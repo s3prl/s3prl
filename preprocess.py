@@ -43,7 +43,7 @@ def get_preprocess_args():
 	parser = argparse.ArgumentParser(description='preprocess arguments for LibriSpeech dataset.')
 
 	parser.add_argument('--data_path', default='./data/', type=str, help='Path to raw LibriSpeech dataset')
-	parser.add_argument('--output_path', default='.', type=str, help='Path to store output', required=False)
+	parser.add_argument('--output_path', default='./data/', type=str, help='Path to store output', required=False)
 
 	parser.add_argument('--feature_type', default='fbank', type=str, help='Feature type ( mfcc / fbank )', required=False)
 	parser.add_argument('--feature_dim', default=40, type=int, help='Dimension of feature', required=False)

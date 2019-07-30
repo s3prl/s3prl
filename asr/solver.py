@@ -11,8 +11,8 @@ import torch.nn.functional as F
 from asr.model import Seq2Seq
 from asr.rnnlm import RNN_LM
 from asr.clm import CLM_wrapper
-from asr.dataset import LoadDataset
 from utils.asr import Mapper,cal_acc,cal_cer,draw_att
+from dataset import LoadDataset
 
 
 VAL_STEP = 30        # Additional Inference Timesteps to run during validation (to calculate CER)
@@ -72,8 +72,8 @@ class Trainer(Solver):
     def load_data(self):
         ''' Load date for training/validation'''
         self.verbose('Loading data from '+self.config['solver']['data_path'])
-        setattr(self,'train_set',LoadDataset('train',text_only=False,use_gpu=self.paras.gpu,**self.config['solver']))
-        setattr(self,'dev_set',LoadDataset('dev',text_only=False,use_gpu=self.paras.gpu,**self.config['solver']))
+        setattr(self,'train_set',LoadDataset('train', load='all', use_gpu=self.paras.gpu, **self.config['solver']))
+        setattr(self,'dev_set',LoadDataset('dev',load='all', use_gpu=self.paras.gpu, **self.config['solver']))
         
         # Get 1 example for auto constructing model
         for self.sample_x,_ in getattr(self,'train_set'):break
@@ -305,8 +305,8 @@ class Tester(Solver):
     def load_data(self):
         self.verbose('Loading testing data '+str(self.config['solver']['test_set'])\
                      +' from '+self.config['solver']['data_path'])
-        setattr(self,'test_set',LoadDataset('test',text_only=False,use_gpu=self.paras.gpu,**self.config['solver']))
-        setattr(self,'dev_set',LoadDataset('dev',text_only=False,use_gpu=self.paras.gpu,**self.config['solver']))
+        setattr(self,'test_set',LoadDataset('test', load='all', use_gpu=self.paras.gpu, **self.config['solver']))
+        setattr(self,'dev_set',LoadDataset('dev', load='all', use_gpu=self.paras.gpu, **self.config['solver']))
 
     def set_model(self):
         ''' Load saved ASR'''
@@ -459,8 +459,8 @@ class RNNLM_Trainer(Solver):
     def load_data(self):
         ''' Load training / dev set'''
         self.verbose('Loading text data from '+self.config['solver']['data_path'])
-        setattr(self,'train_set',LoadDataset('train',text_only=True,use_gpu=self.paras.gpu,**self.config['solver']))
-        setattr(self,'dev_set',LoadDataset('dev',text_only=True,use_gpu=self.paras.gpu,**self.config['solver']))
+        setattr(self,'train_set',LoadDataset('train', load='text', use_gpu=self.paras.gpu, **self.config['solver']))
+        setattr(self,'dev_set',LoadDataset('dev', load='text', use_gpu=self.paras.gpu, **self.config['solver']))
 
     def set_model(self):
         ''' Setup RNNLM'''
