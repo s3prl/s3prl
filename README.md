@@ -6,17 +6,27 @@ Feel free to use/modify them, any bug report or improvement suggestion will be a
 
 ## Highlights
 
-
 ## Requirements
 
 - Python 3
 - Computing power (high-end GPU) and memory space (both RAM/GPU's RAM) is **extremely important** if you'd like to train your own model.
-- Required packages and their use are listed [here](used_package.txt).
+- Required packages and their use are listed:
+```
+apex             # non-essential, faster optimization (only needed if enabled in config)
+editdistance     # error rate calculation
+joblib           # parallel feature extraction & decoding
+librosa          # feature extraction (for feature extraction only)
+pandas           # data management
+sentencepiece    # sub-word unit encoding (for feature extraction only, see https://github.com/google/sentencepiece#build-and-install-sentencepiece for install instruction)
+tensorboardX     # logger & monitor
+torch            # model & learning
+tqdm             # verbosity
+yaml             # config parser
+```
 
 ## Instructions
 
-
-***Before you start, make sure all the [packages required](used_package.txt) were installed correctly***
+***Before you start, make sure all the packages required listed above are installed correctly***
 
 ### Step 0. Preprocessing - Acoustic Feature Extraction & Text Encoding
 

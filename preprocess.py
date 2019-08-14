@@ -201,7 +201,7 @@ def main():
 
 	# BPE training
 	if args.target == 'subword':
-		encode_table, output_dir = subword_preprocess(args, sets, encode_table, output_dir, dim)
+		encode_table, output_dir, bpe_dir = subword_preprocess(args, sets, encode_table, output_dir, dim)
 
 	# Select data sets
 	print('')

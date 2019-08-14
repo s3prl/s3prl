@@ -122,3 +122,6 @@ save
 TODO
 checkpoint
 run.sh
+dev-clean
+test-clean
+train-clean-360
