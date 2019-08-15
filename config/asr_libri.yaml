@@ -41,7 +41,7 @@ solver:
   # Data options
   dataset: 'librispeech'                      # 
   data_path: 'data/libri_fbank80_subword5000' # Source data path
-  n_jobs: 4                                   # Subprocess used for torch Dataloader
+  n_jobs: 0                                   # Subprocess used for torch Dataloader
   max_timestep: 3000                          # Max length for audio feature (0 for no restriction)
   max_label_len: 400                          # Max length for output sequence (0 for no restriction)
   # Training options
