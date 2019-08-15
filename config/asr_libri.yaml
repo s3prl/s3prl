@@ -41,19 +41,19 @@ solver:
   # Data options
   dataset: 'librispeech'                      # 
   data_path: 'data/libri_fbank80_subword5000' # Source data path
-  n_jobs: 0                                   # Subprocess used for torch Dataloader
+  n_jobs: 8                                   # Subprocess used for torch Dataloader
   max_timestep: 3000                          # Max length for audio feature (0 for no restriction)
   max_label_len: 400                          # Max length for output sequence (0 for no restriction)
   # Training options
   train_set: ['train-clean-360']              #
-  batch_size: 16                              # training batch size
-  apex: True                                  # Use APEX (see https://github.com/NVIDIA/apex for more details)
+  batch_size: 8                               # training batch size
+  apex: False                                 # Use APEX (see https://github.com/NVIDIA/apex for more details)
   total_steps: 300000                         # total steps for training                         
   tf_start: 1.0                               # teacher forcing rate during training will be linearly
   tf_end: 1.0                                 # decaying from upperbound to lower bound for each epoch
   # Validation options
   dev_set: ['dev-clean']                      
-  dev_batch_size: 16                             
+  dev_batch_size: 8                             
   dev_step: 2000
   # Decoding options
   test_set: ['test-clean']
