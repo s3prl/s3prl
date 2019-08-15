@@ -46,7 +46,7 @@ solver:
   max_label_len: 400                          # Max length for output sequence (0 for no restriction)
   # Training options
   train_set: ['train-clean-360']              #
-  batch_size: 24                              # training batch size
+  batch_size: 16                              # training batch size
   apex: True                                  # Use APEX (see https://github.com/NVIDIA/apex for more details)
   total_steps: 300000                         # total steps for training                         
   tf_start: 1.0                               # teacher forcing rate during training will be linearly
