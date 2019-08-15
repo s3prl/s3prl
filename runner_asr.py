@@ -20,6 +20,8 @@ import pandas as pd
 import editdistance as ed
 torch.backends.cudnn.deterministic = True
 # Make cudnn CTC deterministic
+import warnings
+warnings.filterwarnings("ignore", category=UserWarning) 
 
 
 ##########################
@@ -29,7 +31,7 @@ def get_asr_args():
 	
 	parser = argparse.ArgumentParser(description='Training E2E asr.')
 	
-	parser.add_argument('--config', type=str, help='Path to experiment config.')
+	parser.add_argument('--config', default='config/asr_libri.yaml', type=str, help='Path to experiment config.')
 	parser.add_argument('--name', default=None, type=str, help='Name for logging.')
 	parser.add_argument('--logdir', default='log/', type=str, help='Logging path.', required=False)
 	parser.add_argument('--ckpdir', default='result/', type=str, help='Checkpoint/Result path.', required=False)

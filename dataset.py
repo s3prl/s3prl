@@ -96,7 +96,7 @@ class LibriDataset(Dataset):
 		x = pad_sequence(x, batch_first=True)
 		if self.load == 'spec':
 			return x
-		else return x,y
+		else: return x,y
 			
 	
 	def __len__(self):
@@ -108,23 +108,23 @@ class LibriDataset(Dataset):
 ################
 def LoadDataset(split, load, data_path, batch_size, max_timestep, max_label_len, use_gpu, n_jobs,
 				dataset, train_set, dev_set, test_set, dev_batch_size, decode_beam_size, **kwargs):
-	if split=='train':
+	if split == 'train':
 		bs = batch_size
 		shuffle = True
 		sets = train_set
 		drop_too_long = True
-	elif split=='dev':
+	elif split == 'dev':
 		bs = dev_batch_size
 		shuffle = False
 		sets = dev_set
 		drop_too_long = True
-	elif split=='test':
+	elif split == 'test':
 		bs = 1 if decode_beam_size>1 else dev_batch_size
 		n_jobs = 1
 		shuffle = False
 		sets = test_set
 		drop_too_long = False
-	elif split=='text':
+	elif split == 'text':
 		bs = batch_size
 		shuffle = True
 		sets = train_set
@@ -132,11 +132,11 @@ def LoadDataset(split, load, data_path, batch_size, max_timestep, max_label_len,
 	else:
 		raise NotImplementedError
 		
-	if dataset.upper() =="LIBRISPEECH":
+	if dataset.upper() == "LIBRISPEECH":
 		ds = LibriDataset(file_path=data_path, sets=sets, max_timestep=max_timestep, load=load,
 						   max_label_len=max_label_len, bucket_size=bs, drop=drop_too_long)
 	else:
-		raise ValueError('Unsupported Dataset: '+dataset)
+		raise ValueError('Unsupported Dataset: ' + dataset)
 
 	return DataLoader(ds, batch_size=1, shuffle=shuffle, drop_last=False, num_workers=n_jobs, pin_memory=use_gpu)
 

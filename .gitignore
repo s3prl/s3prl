@@ -125,3 +125,4 @@ run.sh
 dev-clean
 test-clean
 train-clean-360
+libri_fbank80_subword5000

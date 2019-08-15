@@ -25,7 +25,7 @@ asr_model:
 clm:
   enable: False                               # Enable adversarial training between ASR and CLM
   weight: 0.0001                              # Adversarial loss weight for ASR
-  source: ['train-clean-100']                 # Text only source for CLM
+  source: ['train-clean-360']                 # Text only source for CLM
   optimizer: 
     type: 'Adam'                              # Optimizer used for training (adam)
     learning_rate: 0.0001                     # Learning rate for opt
@@ -45,7 +45,7 @@ solver:
   max_timestep: 3000                          # Max length for audio feature (0 for no restriction)
   max_label_len: 400                          # Max length for output sequence (0 for no restriction)
   # Training options
-  train_set: ['train-clean-100']              #
+  train_set: ['train-clean-360']              #
   batch_size: 24                              # training batch size
   apex: True                                  # Use APEX (see https://github.com/NVIDIA/apex for more details)
   total_steps: 300000                         # total steps for training                         

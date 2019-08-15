@@ -1,3 +1,16 @@
+# -*- coding: utf-8 -*- #
+"""*********************************************************************************************"""
+#   FileName     [ utils/solver.py ]
+#   Synopsis     [ solver for asr]
+#   Author       [ Andy T. Liu (Andi611) ]
+#   Copyright    [ Copyleft(c), Speech Lab, NTU, Taiwan ]
+#   Reference 1  [ https://github.com/Alexander-H-Liu/End-to-end-ASR-Pytorch ]
+"""*********************************************************************************************"""
+
+
+###############
+# IMPORTATION #
+###############
 import os
 import torch
 import copy
@@ -19,6 +32,7 @@ VAL_STEP = 30        # Additional Inference Timesteps to run during validation (
 TRAIN_WER_STEP = 250 # steps for debugging info.
 GRAD_CLIP = 5
 CLM_MIN_SEQ_LEN = 5
+
 
 class Solver():
     ''' Super class Solver for all kinds of tasks'''
