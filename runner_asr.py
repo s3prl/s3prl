@@ -32,12 +32,14 @@ def get_asr_args():
 	parser = argparse.ArgumentParser(description='Training E2E asr.')
 	
 	parser.add_argument('--config', default='config/asr_libri.yaml', type=str, help='Path to experiment config.')
-	parser.add_argument('--name', default=None, type=str, help='Name for logging.')
 	parser.add_argument('--logdir', default='log/', type=str, help='Logging path.', required=False)
 	parser.add_argument('--ckpdir', default='result/', type=str, help='Checkpoint/Result path.', required=False)
+
+	parser.add_argument('--name', default=None, type=str, help='Name for logging.')
 	parser.add_argument('--load', default=None, type=str, help='Load pre-trained model', required=False)
-	parser.add_argument('--seed', default=0, type=int, help='Random seed for reproducable results.', required=False)
-	parser.add_argument('--njobs', default=1, type=int, help='Number of threads for decoding.', required=False)
+	parser.add_argument('--seed', default=1337, type=int, help='Random seed for reproducable results.', required=False)
+	parser.add_argument('--njobs', default=0, type=int, help='Number of threads for decoding.', required=False)
+
 	parser.add_argument('--cpu', action='store_true', help='Disable GPU training.')
 	parser.add_argument('--test', action='store_true', help='Test the model.')
 	parser.add_argument('--no-msg', action='store_true', help='Hide all messages.')
