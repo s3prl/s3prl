@@ -204,7 +204,7 @@ class Trainer(Solver):
                                    {'train':cal_cer(att_pred,label,mapper=self.mapper)})
 
                 # Validation
-                if self.step%self.valid_step == 0:
+                if self.step % self.valid_step == 0 and self.step != 0:
                     self.asr_opt.zero_grad()
                     self.valid()
 
