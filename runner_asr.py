@@ -63,7 +63,8 @@ def main():
 	
 	# get arguments
 	config, args = get_asr_args()
-
+	if torch.cuda.is_available(): print('[Runner] - CUDA is available!')
+	
 	# Train / Test
 	if not args.eval:
 		random.seed(args.seed)
