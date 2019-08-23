@@ -1,0 +1,65 @@
+asr_model:
+  optimizer: 
+    type: 'Adadelta'                          # Optimizer used for training (adam)
+    learning_rate: 1.0                        # Learning rate for opt
+    joint_ctc: 0.5                            # Weight for joint CTC training (0:disabled CTC, 1:only CTC) 
+
+  encoder:                                    ########## Encoder
+    enc_type: 'VGGBiRNN'                      # Encoder type (RNN: Normal RNN encoder /BiRNN: Bidirection / VGGBiRNN : BiRNN w/ VGG extractor)
+    sample_rate: '1_1_1_1_1'                  # Sample rate between layers (reduce time dimension)
+    sample_style: 'drop'                      # Sample by drop (dropping frame) or concat (concatenating them)
+    dim: '320_320_320_320_320'                # Dimension of each hidden layer
+    dropout: '0_0_0_0_0'                      # Dropout between each hidden layer
+    rnn_cell: 'LSTM'                          # RNN cell used in encoder, should be implemented in Pytorch
+  attention:                                  ########## Attention : http://www.aclweb.org/anthology/D15-1166 section 3.1 for more details
+    att_mode: 'loc'                           # Attention mode (dot/loc)
+    dim: 300                                  # The dimension of attention layer, only works when proj==True
+    proj: True                                # Use a single layer to project encoded feature
+    num_head: 1                               # Number of heads for multi-head attention (UNTESTED)
+  decoder:
+    dim: 320
+    layer: 1
+    dropout: 0.0
+    rnn_cell: 'LSTMCell'                      # Only LSTMCell is availible now.
+
+clm:
+  enable: False                               # Enable adversarial training between ASR and CLM
+  weight: 0.0001                              # Adversarial loss weight for ASR
+  source: ['train-clean-360']                 # Text only source for CLM
+  optimizer: 
+    type: 'Adam'                              # Optimizer used for training (adam)
+    learning_rate: 0.0001                     # Learning rate for opt
+    gp_lambda: 10                             # Weight for gradient penalty
+    update_freq: 5                            # Update freqency for CLM
+  network:
+    dim: '128_128'
+    kernel_size: '2_3'
+    stride: '1_1'
+    dropout: '0_0'
+
+solver:
+  # Data options
+  dataset: 'librispeech'                      # 
+  data_path: 'data/libri_fbank80_subword5000' # Source data path
+  n_jobs: 8                                   # Subprocess used for torch Dataloader
+  max_timestep: 3000                          # Max length for audio feature (0 for no restriction)
+  max_label_len: 400                          # Max length for output sequence (0 for no restriction)
+  # Training options
+  train_set: ['train-clean-360']              #
+  batch_size: 16                              # training batch size
+  apex: False                                 # Use APEX (see https://github.com/NVIDIA/apex for more details)
+  total_steps: 300000                         # total steps for training                         
+  tf_start: 1.0                               # teacher forcing rate during training will be linearly
+  tf_end: 1.0                                 # decaying from upperbound to lower bound for each epoch
+  # Validation options
+  dev_set: ['dev-clean']                      
+  dev_batch_size: 4                             
+  dev_step: 2000
+  # Decoding options
+  test_set: ['test-clean']
+  max_decode_step_ratio: 0.1
+  decode_beam_size: 10
+  decode_ctc_weight: 0.5
+  decode_lm_path: 'result/libri_rnnlm460_sd0/rnnlm'
+  decode_lm_weight: 0.5
+

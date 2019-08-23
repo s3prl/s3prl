@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*- #
 """*********************************************************************************************"""
-#   FileName     [ utils/model.py ]
+#   FileName     [ asr/model.py ]
 #   Synopsis     [ LAS model for asr]
 #   Author       [ Andy T. Liu (Andi611) ]
 #   Copyright    [ Copyleft(c), Speech Lab, NTU, Taiwan ]

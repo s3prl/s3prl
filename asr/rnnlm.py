@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*- #
 """*********************************************************************************************"""
-#   FileName     [ utils/rnnlm.py ]
+#   FileName     [ asr/rnnlm.py ]
 #   Synopsis     [ rnnlm for asr]
 #   Author       [ Andy T. Liu (Andi611) ]
 #   Copyright    [ Copyleft(c), Speech Lab, NTU, Taiwan ]
