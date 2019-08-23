@@ -36,7 +36,7 @@ CLM_MIN_SEQ_LEN = 5
 
 class Solver():
 	''' Super class Solver for all kinds of tasks'''
-	def __init__(self,config,paras):
+	def __init__(self, config, paras):
 		# General Settings
 		self.config = config
 		self.paras = paras
@@ -52,23 +52,25 @@ class Solver():
 		# Load Mapper for idx2token
 		self.mapper = Mapper(config['solver']['data_path'])
 
-	def verbose(self,msg):
+		if torch.cuda.is_available(): self.verbose('CUDA is available!')
+
+	def verbose(self, msg):
 		''' Verbose function for print information to stdout'''
 		if self.paras.verbose:
-			print('[INFO]',msg)
+			print('[SOLVER]', msg)
    
-	def progress(self,msg):
+	def progress(self, msg):
 		''' Verbose function for updating progress on stdout'''
 		if self.paras.verbose:
-			print(msg+'                              ',end='\r')
+			print(msg + '                              ', end='\r')
 
 
 class Trainer(Solver):
 	''' Handler for complete training progress'''
-	def __init__(self,config,paras):
+	def __init__(self, config, paras):
 		super(Trainer, self).__init__(config,paras)
 		# Logger Settings
-		self.logdir = os.path.join(paras.logdir,self.exp_name)
+		self.logdir = os.path.join(paras.logdir, self.exp_name)
 		self.log = SummaryWriter(self.logdir)
 		self.valid_step = config['solver']['dev_step']
 		self.best_val_ed = 2.0
@@ -85,13 +87,13 @@ class Trainer(Solver):
 
 	def load_data(self):
 		''' Load date for training/validation'''
-		self.verbose('Loading data from '+self.config['solver']['data_path'])
-		setattr(self,'train_set',LoadDataset('train', load='all', use_gpu=self.paras.gpu, **self.config['solver']))
-		setattr(self,'dev_set',LoadDataset('dev',load='all', use_gpu=self.paras.gpu, **self.config['solver']))
+		self.verbose('Loading data from ' + self.config['solver']['data_path'])
+		setattr(self, 'train_set', LoadDataset('train', load='all', use_gpu=self.paras.gpu, **self.config['solver']))
+		setattr(self, 'dev_set', LoadDataset('dev',load='all', use_gpu=self.paras.gpu, **self.config['solver']))
 		
 		# Get 1 example for auto constructing model
-		for self.sample_x,_ in getattr(self,'train_set'):break
-		if len(self.sample_x.shape)==4: self.sample_x=self.sample_x[0]
+		for self.sample_x, _ in getattr(self,'train_set'): break
+		if len(self.sample_x.shape) == 4: self.sample_x = self.sample_x[0]
 
 	def set_model(self):
 		''' Setup ASR (and CLM if enabled)'''
