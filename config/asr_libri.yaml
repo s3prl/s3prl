@@ -53,12 +53,12 @@ solver:
   tf_end: 1.0                                 # decaying from upperbound to lower bound for each epoch
   # Validation options
   dev_set: ['dev-clean']                      
-  dev_batch_size: 16                             
+  dev_batch_size: 4                             
   dev_step: 2000
   # Decoding options
   test_set: ['test-clean']
   max_decode_step_ratio: 0.1
-  decode_beam_size: 20
+  decode_beam_size: 10
   decode_ctc_weight: 0.5
   decode_lm_path: 'result/libri_rnnlm460_sd0/rnnlm'
   decode_lm_weight: 0.5
