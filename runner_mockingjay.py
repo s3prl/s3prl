@@ -1,10 +1,9 @@
 # -*- coding: utf-8 -*- #
 """*********************************************************************************************"""
-#   FileName     [ runner_asr.py ]
+#   FileName     [ runner_mockingjay.py ]
 #   Synopsis     [ training for the mockingjay model ]
 #   Author       [ Andy T. Liu (Andi611) ]
 #   Copyright    [ Copyleft(c), Speech Lab, NTU, Taiwan ]
-#   Reference    [ https://github.com/Alexander-H-Liu/End-to-end-ASR-Pytorch ]
 """*********************************************************************************************"""
 
 
@@ -65,7 +64,6 @@ def main():
 	
 	# get arguments
 	config, args = get_mockingjay_args()
-	if torch.cuda.is_available(): print('[Runner] - CUDA is available!')
 	
 	# Train
 	random.seed(args.seed)

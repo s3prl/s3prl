@@ -19,9 +19,10 @@ import numpy as np
 import itertools
 from tensorboardX import SummaryWriter
 from joblib import Parallel, delayed
-from tqdm import tqdm
 import torch.nn.functional as F
 from dataset import LoadDataset
+from mockingjay.model import MockingjayForMaskedSpeechModel
+from mockingjay.optimization import BertAdam, WarmupLinearSchedule
 
 
 VAL_STEP = 30        # Additional Inference Timesteps to run during validation (to calculate CER)
@@ -32,7 +33,7 @@ CLM_MIN_SEQ_LEN = 5
 
 class Solver():
 	''' Super class Solver for all kinds of tasks'''
-	def __init__(self,config,paras):
+	def __init__(self, config, paras):
 		# General Settings
 		self.config = config
 		self.paras = paras
@@ -45,24 +46,26 @@ class Solver():
 		self.ckpdir = os.path.join(paras.ckpdir,self.exp_name)
 		if not os.path.exists(self.ckpdir):os.makedirs(self.ckpdir)
 
+		if torch.cuda.is_available(): self.verbose('CUDA is available!')
 
-	def verbose(self,msg):
+
+	def verbose(self, msg):
 		''' Verbose function for print information to stdout'''
 		if self.paras.verbose:
-			print('[INFO]',msg)
+			print('[SOLVER]', msg)
    
-	def progress(self,msg):
+	def progress(self, msg):
 		''' Verbose function for updating progress on stdout'''
 		if self.paras.verbose:
-			print(msg+'                              ',end='\r')
+			print(msg + '                              ', end='\r')
 
 
 class Trainer(Solver):
 	''' Handler for complete training progress'''
-	def __init__(self,config,paras):
+	def __init__(self, config, paras):
 		super(Trainer, self).__init__(config,paras)
 		# Logger Settings
-		self.logdir = os.path.join(paras.logdir,self.exp_name)
+		self.logdir = os.path.join(paras.logdir, self.exp_name)
 		self.log = SummaryWriter(self.logdir)
 		self.valid_step = config['solver']['dev_step']
 		self.best_val_ed = 2.0
@@ -74,43 +77,61 @@ class Trainer(Solver):
 		self.tf_end = config['solver']['tf_end']
 		self.apex = config['solver']['apex']
 
-		# CLM option
-		self.apply_clm = config['clm']['enable']
+
 
 	def load_data(self):
 		''' Load date for training/validation'''
 		self.verbose('Loading data from '+self.config['solver']['data_path'])
-		setattr(self,'train_set',LoadDataset('train', load='all', use_gpu=self.paras.gpu, **self.config['solver']))
+		setattr(self, 'train_set', LoadDataset('train', load='spec', use_gpu=self.paras.gpu, **self.config['solver']))
 		
 		# Get 1 example for auto constructing model
-		for self.sample_x,_ in getattr(self,'train_set'):break
-		if len(self.sample_x.shape)==4: self.sample_x=self.sample_x[0]
+		for self.x_sample, _ in getattr(self, 'train_set'): break
+		if len(self.x_sample.shape) == 4: self.x_sample = self.x_sample[0]
 
 	def set_model(self):
 		''' Setup ASR (and CLM if enabled)'''
 		self.verbose('[Solver] - Initializing Mockingjay model.')
 		
-		# # Build attention end-to-end ASR
-		# self.asr_model = Seq2Seq(self.sample_x,self.mapper.get_dim(),self.config['asr_model']).to(self.device)
-		# if 'VGG' in self.config['asr_model']['encoder']['enc_type']:
-		# 	self.verbose('VCC Extractor in Encoder is enabled, time subsample rate = 4.')
-		# self.seq_loss = torch.nn.CrossEntropyLoss(ignore_index=0, reduction='none').to(self.device)#, reduction='none')
-		
-		# # Involve CTC
-		# self.ctc_loss = torch.nn.CTCLoss(blank=0, reduction='mean')
-		# self.ctc_weight = self.config['asr_model']['optimizer']['joint_ctc']
-		
-		# # TODO: load pre-trained model
-		# if self.paras.load:
-		# 	raise NotImplementedError
+		# # Build the Mockingjay model with speech prediction head
+		self.model = MockingjayForMaskedSpeechModel(self.config, self.x_sample).to(self.device)
 			
-		# # Setup optimizer
-		# if self.apex and self.config['asr_model']['optimizer']['type']=='Adam':
-		# 	import apex
-		# 	self.asr_opt = apex.optimizers.FusedAdam(self.asr_model.parameters(), lr=self.config['asr_model']['optimizer']['learning_rate'])
-		# else:
-		# 	self.asr_opt = getattr(torch.optim,self.config['asr_model']['optimizer']['type'])
-		# 	self.asr_opt = self.asr_opt(self.asr_model.parameters(), lr=self.config['asr_model']['optimizer']['learning_rate'],eps=1e-8)
+		# Setup optimizer
+		param_optimizer = list(self.model.named_parameters())
+
+		no_decay = ['bias', 'LayerNorm.bias', 'LayerNorm.weight']
+		optimizer_grouped_parameters = [
+			{'params': [p for n, p in param_optimizer if not any(nd in n for nd in no_decay)], 'weight_decay': 0.01},
+			{'params': [p for n, p in param_optimizer if any(nd in n for nd in no_decay)], 'weight_decay': 0.0}
+			]
+
+		if self.apex:
+			try:
+				from apex.optimizers import FP16_Optimizer
+				from apex.optimizers import FusedAdam
+			except ImportError:
+				raise ImportError("Please install apex from https://www.github.com/nvidia/apex to use distributed and fp16 training.")
+
+			optimizer = FusedAdam(optimizer_grouped_parameters,
+								  lr=args.learning_rate,
+								  bias_correction=False,
+								  max_grad_norm=1.0)
+			if args.loss_scale == 0:
+				self.optimizer = FP16_Optimizer(optimizer, dynamic_loss_scale=True)
+			else:
+				self.optimizer = FP16_Optimizer(optimizer, static_loss_scale=args.loss_scale)
+			warmup_linear = WarmupLinearSchedule(warmup=args.warmup_proportion,
+												 t_total=num_train_optimization_steps)
+		else:
+			self.optimizer = BertAdam(optimizer_grouped_parameters,
+									lr=args.learning_rate,
+									warmup=args.warmup_proportion,
+									t_total=num_train_optimization_steps)
+
+		# TODO: load pre-trained model
+		if self.paras.load:
+			raise NotImplementedError
+
+	def prep_MSM_training(spec):
 
 
 	def exec(self):
@@ -118,8 +139,8 @@ class Trainer(Solver):
 		self.verbose('Training set total ' + str(len(self.train_set)) + ' batches.')
 
 		while self.step < self.max_step:
-			for x,y in self.train_set:
-				self.progress('Training step - '+str(self.step))
+			for x, x_len in self.train_set:
+				self.progress('Training step - ' + str(self.step))
 				
 				
 				# Hack bucket, record state length for each uttr, get longest label seq for decode step
@@ -127,6 +148,7 @@ class Trainer(Solver):
 				print(x.shape)
 				x = x.squeeze(0).to(device=self.device, dtype=torch.float32)
 				print(x.shape)
+				print(x_len)
 
 				# ASR forwarding 
 				# self.asr_opt.zero_grad()
@@ -147,14 +169,6 @@ class Trainer(Solver):
 				# 	att_loss = torch.mean(att_loss) # Mean by batch
 				# 	loss_log['train_att'] = att_loss
 
-				# # CTC loss on CTC decoder
-				# if self.ctc_weight>0:
-				# 	target_len = torch.sum(y!=0,dim=-1)
-				# 	ctc_loss = self.ctc_loss( F.log_softmax( ctc_pred.transpose(0,1),dim=-1), label, torch.LongTensor(state_len), target_len)
-				# 	loss_log['train_ctc'] = ctc_loss
-				
-				# asr_loss = (1-self.ctc_weight)*att_loss+self.ctc_weight*ctc_loss
-				# loss_log['train_full'] = asr_loss
 
 				# # Backprop
 				# asr_loss.backward()
@@ -165,15 +179,15 @@ class Trainer(Solver):
 				# 	self.asr_opt.step()
 				
 				# Logger
-				self.write_log('loss',loss_log)
-				if self.ctc_weight<1:
-					self.write_log('acc',{'train':cal_acc(att_pred,label)})
-				if self.step % TRAIN_WER_STEP ==0:
-					self.write_log('error rate',
-								   {'train':cal_cer(att_pred,label,mapper=self.mapper)})
+				# self.write_log('loss',loss_log)
+				# if self.ctc_weight < 1:
+				# 	self.write_log('acc',{'train':cal_acc(att_pred,label)})
+				# if self.step % TRAIN_WER_STEP == 0:
+				# 	self.write_log('error rate',
+				# 				   {'train':cal_cer(att_pred,label,mapper=self.mapper)})
 
-				self.step+=1
-				if self.step > self.max_step:break
+				self.step += 1
+				if self.step > self.max_step: break
 	
 
 	def write_log(self,val_name,val_dict):

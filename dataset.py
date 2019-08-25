@@ -61,42 +61,52 @@ class LibriDataset(Dataset):
 		# Bucketing, X & X_len is dummy when load == 'text'
 		self.X = []
 		self.Y = []
-		tmp_x,tmp_len,tmp_y = [],[],[]
+		batch_x, batch_len, batch_y = [],[],[]
 
-		for x,x_len,y in zip(X,X_lens,Y):
-			tmp_x.append(x)
-			tmp_len.append(x_len)
-			tmp_y.append(y)
-			# Half the batch size if seq too long
-			if len(tmp_x)== bucket_size:
-				if (bucket_size>=2) and ((max(tmp_len)> HALF_BATCHSIZE_TIME) or (max([len(y) for y in tmp_y])>HALF_BATCHSIZE_LABEL)):
-					self.X.append(tmp_x[:bucket_size//2])
-					self.X.append(tmp_x[bucket_size//2:])
-					self.Y.append(tmp_y[:bucket_size//2])
-					self.Y.append(tmp_y[bucket_size//2:])
+		for x, x_len, y in zip(X, X_lens, Y):
+			batch_x.append(x)
+			batch_len.append(x_len)
+			batch_y.append(y)
+			
+			# Fill in batch_x until batch is full
+			if len(batch_x) == bucket_size:
+				# Half the batch size if seq too long
+				if (bucket_size >= 2) and ((max(batch_len) > HALF_BATCHSIZE_TIME) or (max([len(y) for y in batch_y]) > HALF_BATCHSIZE_LABEL)):
+					self.X.append(batch_x[:bucket_size//2])
+					self.X.append(batch_x[bucket_size//2:])
+					self.Y.append(batch_y[:bucket_size//2])
+					self.Y.append(batch_y[bucket_size//2:])
 				else:
-					self.X.append(tmp_x)
-					self.Y.append(tmp_y)
-				tmp_x,tmp_len,tmp_y = [],[],[]
-		if len(tmp_x)>0:
-			self.X.append(tmp_x)
-			self.Y.append(tmp_y)
+					self.X.append(batch_x)
+					self.Y.append(batch_y)
+				batch_x, batch_len, batch_y = [], [], []
+		
+		# Gather the last batch
+		if len(batch_x) > 0:
+			self.X.append(batch_x)
+			self.Y.append(batch_y)
 
 
 	def __getitem__(self, index):
 		# Load label
 		if self.load != 'spec':
-			y = [y for y in self.Y[index]]
-			y = target_padding(y, max([len(v) for v in y]))
+			y_batch = [y for y in self.Y[index]]
+			y_pad_batch = target_padding(y_batch, max([len(v) for v in y_batch]))
 			if self.load == 'text':
-				return y
+				return y_pad_batch
 		
 		# Load acoustic feature and pad
-		x = [torch.FloatTensor(np.load(os.path.join(self.root,f))) for f in self.X[index]]
-		x = pad_sequence(x, batch_first=True)
+		x_batch = [], x_len_batch = []
+		for x_file in self.X[index]:
+			x = torch.FloatTensor(np.load(os.path.join(self.root, x_file)))
+			x_len_batch.append(x.size(0))
+			x_batch.append(x)
+		x_pad_batch = pad_sequence(x_batch, batch_first=True)
+
+		# Return (x, len) if load == 'spec', else return (x, y)
 		if self.load == 'spec':
-			return x
-		else: return x,y
+			return x_pad_batch, x_len_batch
+		else: return x_pad_batch, y_pad_batch
 			
 	
 	def __len__(self):
@@ -119,7 +129,7 @@ def LoadDataset(split, load, data_path, batch_size, max_timestep, max_label_len,
 		sets = dev_set
 		drop_too_long = True
 	elif split == 'test':
-		bs = 1 if decode_beam_size>1 else dev_batch_size
+		bs = 1 if decode_beam_size > 1 else dev_batch_size
 		n_jobs = 1
 		shuffle = False
 		sets = test_set
@@ -132,12 +142,11 @@ def LoadDataset(split, load, data_path, batch_size, max_timestep, max_label_len,
 	else:
 		raise NotImplementedError
 		
+
 	if dataset.upper() == "LIBRISPEECH":
-		ds = LibriDataset(file_path=data_path, sets=sets, max_timestep=max_timestep, load=load,
+		ds = ASR_LibriDataset(file_path=data_path, sets=sets, max_timestep=max_timestep, load=load,
 						   max_label_len=max_label_len, bucket_size=bs, drop=drop_too_long)
+		return DataLoader(ds, batch_size=1, shuffle=shuffle, drop_last=False, num_workers=n_jobs, pin_memory=use_gpu)
 	else:
 		raise ValueError('Unsupported Dataset: ' + dataset)
-
-	return DataLoader(ds, batch_size=1, shuffle=shuffle, drop_last=False, num_workers=n_jobs, pin_memory=use_gpu)
-
 
