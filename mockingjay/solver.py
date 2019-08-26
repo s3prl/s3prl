@@ -215,7 +215,8 @@ class Trainer(Solver):
 		self.global_step = 1
 
 		for epoch in trange(self.total_epoch, desc="Epoch"):
-			for step, x in enumerate(tqdm(self.dataloader, desc="Iteration")):
+			progress = tqdm(self.dataloader, desc="Iteration")
+			for step, x in enumerate(progress):
 				self.progress('Training step - ' + str(self.global_step))
 
 				spec_masked, pos_enc, mask_label, attn_mask, spec_stacked = self.process_MAM_data(spec=x)
@@ -250,6 +251,7 @@ class Trainer(Solver):
 					self.log.add_scalar('lr', self.optimizer.get_lr()[0], self.global_step)
 					self.log.add_scalar('loss', loss.item(), self.global_step)
 					self.global_step += 1
+					progress.set_description("Loss %s" % str(loss.item()))
 
 
 				# ASR forwarding 
