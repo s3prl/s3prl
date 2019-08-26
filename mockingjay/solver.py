@@ -165,7 +165,7 @@ class Trainer(Solver):
 			x = copy.deepcopy(frames)
 			x[masked_indexs.to(torch.long)] = 0
 			spec_masked.append(x)
-			print(x[masked_indexs[torch.Tensor(0, dtype=torch.long)]])
+			print(x[masked_indexs[torch.Tensor(0).to(torch.long)]])
 			exit()
 
 		spec_stacked = spec_stacked.to(device=self.device, dtype=torch.float32)
