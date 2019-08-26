@@ -123,7 +123,8 @@ class MockingjayInputRepresentations(nn.Module):
 	def forward(self, spec, pos_enc):
 		seq_length = spec.size(1)
 		spec_transformed = self.spec_transform(spec)
-
+		print(spec_transformed.shape)
+		print(pos_enc.shape)
 		input_representations = spec_transformed + pos_enc
 		input_representations = self.LayerNorm(input_representations)
 		input_representations = self.dropout(input_representations)
