@@ -247,7 +247,7 @@ class Trainer(Solver):
 					self.optimizer.zero_grad()
 
 					# Log
-					self.log.add_scalar('lr', optimizer.get_lr()[0], self.global_step)
+					self.log.add_scalar('lr', self.optimizer.get_lr()[0], self.global_step)
 					self.log.add_scalar('loss', loss.item(), self.global_step)
 					self.global_step += 1
 
