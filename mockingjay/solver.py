@@ -162,7 +162,7 @@ class Trainer(Solver):
 			masked_indexs = torch.Tensor(random.sample(range(spec_len[idx]), int(spec_len[idx]*self.mask_proportion)))
 			print(masked_indexs)
 			x = copy.deepcopy(frames)
-			x[masked_indexs] = 0
+			x[masked_indexs.to(torch.long)] = 0
 			spec_masked.append(x)
 			print(x[masked_indexs[-1]])
 			exit()
