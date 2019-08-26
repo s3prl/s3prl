@@ -36,3 +36,6 @@ solver:
   dev_set: ['dev-clean']                      
   dev_batch_size: 4                             
   dev_step: 2000
+
+  # testing options
+  test_set: ['test-clean']

@@ -113,7 +113,7 @@ class LibriDataset(Dataset):
 # GET DATALOADER #
 ##################
 def get_Dataloader(split, load, data_path, batch_size, max_timestep, max_label_len, use_gpu, n_jobs,
-				   dataset, train_set, dev_set, test_set, dev_batch_size, decode_beam_size, **kwargs):
+				   dataset, train_set, dev_set, test_set, dev_batch_size, decode_beam_size=None, **kwargs):
 	if split == 'train':
 		bs = batch_size
 		shuffle = True
