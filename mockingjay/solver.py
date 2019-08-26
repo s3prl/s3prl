@@ -193,7 +193,7 @@ class Trainer(Solver):
 
 			pos_enc.append(self.position_encoding(len(x), spec_len[idx]))
 
-			l = np.zeros((spec_len[idx], int(list(self.x_sample.shape)[-1]*self.dr)))
+			l = np.zeros((spec_len[idx], int(list(self.x_sample.shape)[-1]*self.dr))) # (seq_len, mel_dim * dr)
 			l[chosen_index] = 1
 			mask_label.append(l)
 
@@ -202,7 +202,7 @@ class Trainer(Solver):
 
 		spec_masked = torch.FloatTensor(spec_masked).to(device=self.device, dtype=torch.float32)
 		pos_enc = torch.FloatTensor(pos_enc).to(device=self.device, dtype=torch.float32)
-		mask_label = torch.FloatTensor(mask_label).to(device=self.device, dtype=torch.float32)
+		mask_label = torch.ByteTensor(mask_label).to(device=self.device, dtype=torch.uint8)
 		attn_mask = torch.FloatTensor(attn_mask).to(device=self.device, dtype=torch.float32)
 		spec_stacked = spec_stacked.to(device=self.device, dtype=torch.float32)
 		return spec_masked, pos_enc, mask_label, attn_mask, spec_stacked # (x, pos_enc, mask_label, attention_mask. y)
