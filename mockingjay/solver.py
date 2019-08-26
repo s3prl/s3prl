@@ -192,8 +192,8 @@ class Trainer(Solver):
 			spec_masked.append(x)
 
 			pos_enc.append(self.position_encoding(len(x), spec_len[idx]))
-			
-			l = np.zeros([spec_len[idx]])
+
+			l = np.zeros([spec_len[idx], self.x_sample*self.dr])
 			l[chosen_index] = 1
 			mask_label.append(l)
 
