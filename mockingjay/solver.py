@@ -159,7 +159,7 @@ class Trainer(Solver):
 		# select a proportion of frames and mask them
 		spec_masked, mask_label, attn_mask = [], [], []
 		for idx, frames in enumerate(spec_stacked):
-			masked_indexs = torch.Tensor(random.sample(range(spec_len[idx]), int(spec_len[idx]*self.mask_proportion))).to(torch.long)
+			masked_indexs = torch.LongTensor(random.sample(range(spec_len[idx]), int(spec_len[idx]*self.mask_proportion)))
 			
 			x = copy.deepcopy(frames)
 			x[masked_indexs] = 0
