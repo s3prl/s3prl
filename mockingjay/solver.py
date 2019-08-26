@@ -161,20 +161,20 @@ class Trainer(Solver):
 		for idx, frames in enumerate(spec_stacked):
 			masked_indexs = torch.LongTensor(random.sample(range(spec_len[idx]), int(spec_len[idx]*self.mask_proportion)))
 			
-			x = copy.deepcopy(frames)
+			x = copy.deepcopy(frames.data.numpy())
 			x[masked_indexs] = 0
 			spec_masked.append(x)
 
-			l = torch.zeros([spec_len[idx]])
+			l = np.zeros([spec_len[idx]])
 			l[masked_indexs] = 1
 			mask_label.append(l)
 
-			a = torch.ones([spec_len[idx]])
+			a = np.ones([spec_len[idx]])
 			attn_mask.append(a)
 
-		spec_masked = torch.from_numpy(spec_masked).to(device=self.device, dtype=torch.float32)
-		mask_label = torch.from_numpy(mask_label).to(device=self.device, dtype=torch.float32)
-		attn_mask = torch.from_numpy(attn_mask).to(device=self.device, dtype=torch.float32)
+		spec_masked = torch.FloatTensor(spec_masked).to(device=self.device, dtype=torch.float32)
+		mask_label = torch.FloatTensor(mask_label).to(device=self.device, dtype=torch.float32)
+		attn_mask = torch.FloatTensor(attn_mask).to(device=self.device, dtype=torch.float32)
 		spec_stacked = spec_stacked.to(device=self.device, dtype=torch.float32)
 		print(attn_mask.shape)
 		exit()
