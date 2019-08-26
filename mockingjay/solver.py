@@ -172,7 +172,7 @@ class Trainer(Solver):
 			a = torch.ones([spec_len[idx]])
 			attn_mask.append(a)
 
-		spec_masked = torch.FloatTensor(spec_masked).to(device=self.device, dtype=torch.float32)
+		spec_masked = torch.FloatTensor(spec_masked)
 		mask_label = torch.FloatTensor(mask_label).to(device=self.device, dtype=torch.float32)
 		attn_mask = torch.FloatTensor(attn_mask).to(device=self.device, dtype=torch.float32)
 		spec_stacked = spec_stacked.to(device=self.device, dtype=torch.float32)
