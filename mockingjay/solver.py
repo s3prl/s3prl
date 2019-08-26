@@ -159,14 +159,20 @@ class Trainer(Solver):
 		# select a proportion of frames and mask them
 		spec_masked, mask_label, attn_mask = [], [], []
 		for idx, frames in enumerate(spec_stacked):
-			masked_indexs = torch.LongTensor(random.sample(range(spec_len[idx]), int(spec_len[idx]*self.mask_proportion)))
-			
+			# chooses 15% of the frame positions at random for prediction
+			chosen_index = random.sample(range(spec_len[idx]), int(spec_len[idx]*self.mask_proportion))
+			sub_mask_proportion = int(len(chosen_index)*0.8) # replace the i-th frame with (1) the [MASK] frame 80% of the time
+			sub_rand_proportion = int(len(chosen_index)*0.1) # a random frame 10% of the time
+			masked_index = chosen_index[:sub_mask_proportion]
+			random_index = chosen_index[sub_mask_proportion:sub_rand_proportion]
+
 			x = copy.deepcopy(frames.data.numpy())
-			x[masked_indexs] = 0
+			for r in random_index: x[r] = x[r-random.randint(1, spec_len[idx]-1)]
+			x[masked_index] = 0
 			spec_masked.append(x)
 
 			l = np.zeros([spec_len[idx]])
-			l[masked_indexs] = 1
+			l[chosen_index] = 1
 			mask_label.append(l)
 
 			a = np.ones([spec_len[idx]])
@@ -189,7 +195,8 @@ class Trainer(Solver):
 			for x in tqdm(self.dataloader, desc="Iteration"):
 				self.progress('Training step - ' + str(self.global_step))
 
-				self.process_MAM_data(spec=x)
+				spec_masked, mask_label, attn_mask, spec_stacked = self.process_MAM_data(spec=x)
+				loss = self.model(spec_masked, mask_label, attn_mask, spec_stacked)
 				
 				# Accumulate Loss
 				if self.gradient_accumulation_steps > 1:

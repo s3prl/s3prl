@@ -560,7 +560,7 @@ class MockingjayForMaskedAcousticModel(MockingjayPreTrainedModel):
 		self.project_spec = MockingjaySpecPredictionHead(config, x_sample)
 		self.apply(self.init_Mockingjay_weights)
 
-	def forward(self, spec_input, attention_mask=None, spec_label=None, mask_label=None, head_mask=None):
+	def forward(self, spec_input, mask_label=None, attention_mask=None, spec_label=None, head_mask=None):
 		outputs = self.Mockingjay(spec_input, attention_mask,
 							output_all_encoded_layers=False,
 							head_mask=head_mask)
