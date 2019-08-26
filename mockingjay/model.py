@@ -552,7 +552,7 @@ class MockingjayForMaskedAcousticModel(MockingjayPreTrainedModel):
 	```
 	"""
 	def __init__(self, config, x_sample, output_attentions=False, keep_multihead_output=False):
-		super(MockingjayForMaskedSpeechModel, self).__init__(config)
+		super(MockingjayForMaskedAcousticModel, self).__init__(config)
 		self.output_attentions = output_attentions
 		self.Mockingjay = MockingjayModel(config, x_sample, output_attentions=output_attentions,
 									  keep_multihead_output=keep_multihead_output)
