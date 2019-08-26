@@ -217,7 +217,6 @@ class Trainer(Solver):
 		for epoch in trange(self.total_epoch, desc="Epoch"):
 			progress = tqdm(self.dataloader, desc="Iteration")
 			for step, x in enumerate(progress):
-				self.progress('Training step - ' + str(self.global_step))
 
 				spec_masked, pos_enc, mask_label, attn_mask, spec_stacked = self.process_MAM_data(spec=x)
 				loss = self.model(spec_masked, pos_enc, mask_label, attn_mask, spec_stacked)
