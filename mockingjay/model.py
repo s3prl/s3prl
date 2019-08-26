@@ -114,7 +114,6 @@ class MockingjayInputRepresentations(nn.Module):
 		super(MockingjayInputRepresentations, self).__init__()
 		self.hidden_size = config.hidden_size
 		self.spec_transform = nn.Linear(input_dim*config.downsample_rate, config.hidden_size)
-		self.device = torch.device('cuda') if (self.paras.gpu and torch.cuda.is_available()) else torch.device('cpu')
 
 		# self.LayerNorm is not snake-cased to stick with TensorFlow model variable name and be able to load
 		# any TensorFlow checkpoint file
