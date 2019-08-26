@@ -548,6 +548,9 @@ class MockingjayForMaskedAcousticModel(MockingjayPreTrainedModel):
 
 		if spec_label is not None and mask_label is not None:
 			loss = nn.SmoothL1Loss() 
+			print(pred_spec.shape)
+			print(spec_label.shape)
+			print(mask_label.shape)
 			masked_spec_loss = loss(pred_spec.masked_select(mask_label), spec_label.masked_select(mask_label))
 			return masked_spec_loss
 		elif self.output_attentions:
