@@ -97,6 +97,7 @@ class Trainer(Solver):
 		self.model = MockingjayForMaskedAcousticModel(self.model_config, self.x_sample).to(self.device)
 		self.model.train()
 		self.dr = self.model_config.downsample_rate
+		self.hidden_size = self.model_config.hidden_size
 			
 		# Setup optimizer
 		param_optimizer = list(self.model.named_parameters())
@@ -143,6 +144,25 @@ class Trainer(Solver):
 		return spec_stacked
 
 
+	def position_encoding(self, seq_len, padding_idx=None):
+		''' Sinusoid position encoding table '''
+		def cal_angle(position, hid_idx):
+			return position / np.power(10000, 2 * (hid_idx // 2) / self.hidden_size)
+	 
+		def get_posi_angle_vec(position):
+			return [cal_angle(position, hid_j) for hid_j in range(self.hidden_size)]
+	 
+		sinusoid_table = np.array([get_posi_angle_vec(pos_i) for pos_i in range(seq_len)])
+	 
+		sinusoid_table[:, 0::2] = np.sin(sinusoid_table[:, 0::2])  # dim 2i
+		sinusoid_table[:, 1::2] = np.cos(sinusoid_table[:, 1::2])  # dim 2i+1
+	 
+		if padding_idx is not None:
+			sinusoid_table[padding_idx:] = 0. # zero vector for padding dimension
+	 
+		return sinusoid_table  # seq_len × hidden_size
+
+
 	def process_MAM_data(self, spec):
 		"""Process training data for the masked acoustic model"""
 		# Hack bucket
@@ -157,7 +177,7 @@ class Trainer(Solver):
 		spec_len = [int(sl) for sl in spec_len]
 
 		# select a proportion of frames and mask them
-		spec_masked, mask_label, attn_mask = [], [], []
+		spec_masked, pos_enc, mask_label, attn_mask = [], [], [], []
 		for idx, frames in enumerate(spec_stacked):
 			# chooses 15% of the frame positions at random for prediction
 			chosen_index = random.sample(range(spec_len[idx]), int(spec_len[idx]*self.mask_proportion))
@@ -171,6 +191,8 @@ class Trainer(Solver):
 			x[masked_index] = 0
 			spec_masked.append(x)
 
+			pos_enc.append(self.position_encoding(len(x), spec_len[idx]))
+
 			l = np.zeros([spec_len[idx]])
 			l[chosen_index] = 1
 			mask_label.append(l)
@@ -179,10 +201,11 @@ class Trainer(Solver):
 			attn_mask.append(a)
 
 		spec_masked = torch.FloatTensor(spec_masked).to(device=self.device, dtype=torch.float32)
+		pos_enc = torch.FloatTensor().to(device=self.device, dtype=torch.float32)
 		mask_label = torch.FloatTensor(mask_label).to(device=self.device, dtype=torch.float32)
 		attn_mask = torch.FloatTensor(attn_mask).to(device=self.device, dtype=torch.float32)
 		spec_stacked = spec_stacked.to(device=self.device, dtype=torch.float32)
-		return spec_masked, mask_label, attn_mask, spec_stacked # (x, mask_label, attention_mask. y)
+		return spec_masked, pos_enc, mask_label, attn_mask, spec_stacked # (x, pos_enc, mask_label, attention_mask. y)
 
 
 	def exec(self):
@@ -195,8 +218,8 @@ class Trainer(Solver):
 			for x in tqdm(self.dataloader, desc="Iteration"):
 				self.progress('Training step - ' + str(self.global_step))
 
-				spec_masked, mask_label, attn_mask, spec_stacked = self.process_MAM_data(spec=x)
-				loss = self.model(spec_masked, mask_label, attn_mask, spec_stacked)
+				spec_masked, pos_enc, mask_label, attn_mask, spec_stacked = self.process_MAM_data(spec=x)
+				loss = self.model(spec_masked, pos_enc, mask_label, attn_mask, spec_stacked)
 				
 				# Accumulate Loss
 				if self.gradient_accumulation_steps > 1:

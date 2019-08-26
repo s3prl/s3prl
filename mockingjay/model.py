@@ -107,26 +107,6 @@ except ImportError:
 			return self.weight * x + self.bias
 
 
-def position_encoding(seq_len, hidden_size, padding_idx=None):
-	''' Sinusoid position encoding table '''
- 
-	def cal_angle(position, hid_idx):
-		return position / np.power(10000, 2 * (hid_idx // 2) / hidden_size)
- 
-	def get_posi_angle_vec(position):
-		return [cal_angle(position, hid_j) for hid_j in range(hidden_size)]
- 
-	sinusoid_table = np.array([get_posi_angle_vec(pos_i) for pos_i in range(seq_len)])
- 
-	sinusoid_table[:, 0::2] = np.sin(sinusoid_table[:, 0::2])  # dim 2i
-	sinusoid_table[:, 1::2] = np.cos(sinusoid_table[:, 1::2])  # dim 2i+1
- 
-	if padding_idx is not None:
-		sinusoid_table[padding_idx] = 0. # zero vector for padding dimension
- 
-	return torch.FloatTensor(sinusoid_table)  # seq_len × hidden_size
-
-
 class MockingjayInputRepresentations(nn.Module):
 	"""Construct the input representation from spectrogram, and position encodings.
 	"""
@@ -134,18 +114,18 @@ class MockingjayInputRepresentations(nn.Module):
 		super(MockingjayInputRepresentations, self).__init__()
 		self.hidden_size = config.hidden_size
 		self.spec_transform = nn.Linear(input_dim*config.downsample_rate, config.hidden_size)
+		self.device = torch.device('cuda') if (self.paras.gpu and torch.cuda.is_available()) else torch.device('cpu')
 
 		# self.LayerNorm is not snake-cased to stick with TensorFlow model variable name and be able to load
 		# any TensorFlow checkpoint file
 		self.LayerNorm = MockingjayLayerNorm(config.hidden_size, eps=config.layer_norm_eps)
 		self.dropout = nn.Dropout(config.hidden_dropout_prob)
 
-	def forward(self, spec):
+	def forward(self, spec, pos_enc):
 		seq_length = spec.size(1)
 		spec_transformed = self.spec_transform(spec)
-		position_encoded = position_encoding(seq_length, self.hidden_size)
 
-		input_representations = spec_transformed + position_encoded
+		input_representations = spec_transformed + pos_enc
 		input_representations = self.LayerNorm(input_representations)
 		input_representations = self.dropout(input_representations)
 		return input_representations
@@ -453,9 +433,9 @@ class MockingjayModel(MockingjayPreTrainedModel):
 		"""
 		return [layer.attention.self.multihead_output for layer in self.encoder.layer]
 
-	def forward(self, input_ids, attention_mask=None, output_all_encoded_layers=True, head_mask=None):
+	def forward(self, inputs, pos_enc, attention_mask=None, output_all_encoded_layers=True, head_mask=None):
 		if attention_mask is None:
-			attention_mask = torch.ones_like(input_ids)
+			attention_mask = torch.ones_like(inputs)
 
 		# We create a 3D attention mask from a 2D tensor mask.
 		# Sizes are [batch_size, 1, 1, to_seq_length]
@@ -487,7 +467,7 @@ class MockingjayModel(MockingjayPreTrainedModel):
 		else:
 			head_mask = [None] * self.config.num_hidden_layers
 
-		input_representations = self.input_representations(input_ids)
+		input_representations = self.input_representations(inputs, pos_enc)
 		encoded_layers = self.encoder(input_representations,
 									  extended_attention_mask,
 									  output_all_encoded_layers=output_all_encoded_layers,
@@ -557,8 +537,8 @@ class MockingjayForMaskedAcousticModel(MockingjayPreTrainedModel):
 		self.project_spec = MockingjaySpecPredictionHead(config, x_sample)
 		self.apply(self.init_Mockingjay_weights)
 
-	def forward(self, spec_input, mask_label=None, attention_mask=None, spec_label=None, head_mask=None):
-		outputs = self.Mockingjay(spec_input, attention_mask,
+	def forward(self, spec_input, pos_enc, mask_label=None, attention_mask=None, spec_label=None, head_mask=None):
+		outputs = self.Mockingjay(spec_input, pos_enc, attention_mask,
 							output_all_encoded_layers=False,
 							head_mask=head_mask)
 		if self.output_attentions:
