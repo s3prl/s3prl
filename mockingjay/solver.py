@@ -176,9 +176,8 @@ class Trainer(Solver):
 		mask_label = torch.FloatTensor(mask_label).to(device=self.device, dtype=torch.float32)
 		attn_mask = torch.FloatTensor(attn_mask).to(device=self.device, dtype=torch.float32)
 		spec_stacked = spec_stacked.to(device=self.device, dtype=torch.float32)
-		print(attn_mask.shape)
-		exit()
 		return spec_masked, mask_label, attn_mask, spec_stacked # (x, mask_label, attention_mask. y)
+
 
 	def exec(self):
 		''' Training End-to-end ASR system'''
