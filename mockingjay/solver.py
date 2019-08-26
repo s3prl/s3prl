@@ -157,7 +157,7 @@ class Trainer(Solver):
 		spec_len = [int(sl) for sl in spec_len]
 
 		# select a proportion of frames and mask them
-		spec_masked, mask_label = [], []
+		spec_masked, mask_label, attn_mask = [], [], []
 		for idx, frames in enumerate(spec_stacked):
 			masked_indexs = torch.Tensor(random.sample(range(spec_len[idx]), int(spec_len[idx]*self.mask_proportion))).to(torch.long)
 			
@@ -169,12 +169,15 @@ class Trainer(Solver):
 			l[masked_indexs] = 1
 			mask_label.append(l)
 
-			print(l)
-			exit()
+			a = torch.ones([spec_len[idx]])
+			attn_mask.append(a)
 
 		spec_masked = torch.Tensor(spec_masked).to(device=self.device, dtype=torch.float32)
 		mask_label = torch.Tensor(mask_label).to(device=self.device, dtype=torch.float32)
+		attn_mask = torch.Tensor(attn_mask).to(device=self.device, dtype=torch.float32)
 		spec_stacked = spec_stacked.to(device=self.device, dtype=torch.float32)
+		print(attn_mask.shape)
+		exit()
 		return spec_masked, mask_label, attn_mask, spec_stacked # (x, mask_label, attention_mask. y)
 
 	def exec(self):
