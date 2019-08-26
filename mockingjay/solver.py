@@ -215,7 +215,7 @@ class Trainer(Solver):
 		self.global_step = 1
 
 		for epoch in trange(self.total_epoch, desc="Epoch"):
-			for x in tqdm(self.dataloader, desc="Iteration"):
+			for step, x in enumerate(tqdm(self.dataloader, desc="Iteration")):
 				self.progress('Training step - ' + str(self.global_step))
 
 				spec_masked, pos_enc, mask_label, attn_mask, spec_stacked = self.process_MAM_data(spec=x)
