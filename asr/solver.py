@@ -24,7 +24,7 @@ from tensorboardX import SummaryWriter
 from asr.rnnlm import RNN_LM
 from asr.model import Seq2Seq
 from asr.clm import CLM_wrapper
-from dataset import LoadDataset
+from dataset import get_Dataloader
 from utils.asr import Mapper,cal_acc,cal_cer,draw_att
 
 
@@ -88,8 +88,8 @@ class Trainer(Solver):
 	def load_data(self):
 		''' Load date for training/validation'''
 		self.verbose('Loading data from ' + self.config['solver']['data_path'])
-		setattr(self, 'train_set', LoadDataset('train', load='all', use_gpu=self.paras.gpu, **self.config['solver']))
-		setattr(self, 'dev_set', LoadDataset('dev',load='all', use_gpu=self.paras.gpu, **self.config['solver']))
+		setattr(self, 'train_set', get_Dataloader('train', load='all', use_gpu=self.paras.gpu, **self.config['solver']))
+		setattr(self, 'dev_set', get_Dataloader('dev',load='all', use_gpu=self.paras.gpu, **self.config['solver']))
 		
 		# Get 1 example for auto constructing model
 		for self.sample_x, _ in getattr(self,'train_set'): break
@@ -321,8 +321,8 @@ class Tester(Solver):
 	def load_data(self):
 		self.verbose('Loading testing data '+str(self.config['solver']['test_set'])\
 					 +' from '+self.config['solver']['data_path'])
-		setattr(self,'test_set',LoadDataset('test', load='all', use_gpu=self.paras.gpu, **self.config['solver']))
-		setattr(self,'dev_set',LoadDataset('dev', load='all', use_gpu=self.paras.gpu, **self.config['solver']))
+		setattr(self,'test_set', get_Dataloader('test', load='all', use_gpu=self.paras.gpu, **self.config['solver']))
+		setattr(self,'dev_set', get_Dataloader('dev', load='all', use_gpu=self.paras.gpu, **self.config['solver']))
 
 	def set_model(self):
 		''' Load saved ASR'''
@@ -475,8 +475,8 @@ class RNNLM_Trainer(Solver):
 	def load_data(self):
 		''' Load training / dev set'''
 		self.verbose('Loading text data from '+self.config['solver']['data_path'])
-		setattr(self,'train_set',LoadDataset('train', load='text', use_gpu=self.paras.gpu, **self.config['solver']))
-		setattr(self,'dev_set',LoadDataset('dev', load='text', use_gpu=self.paras.gpu, **self.config['solver']))
+		setattr(self,'train_set', get_Dataloader('train', load='text', use_gpu=self.paras.gpu, **self.config['solver']))
+		setattr(self,'dev_set', get_Dataloader('dev', load='text', use_gpu=self.paras.gpu, **self.config['solver']))
 
 	def set_model(self):
 		''' Setup RNNLM'''

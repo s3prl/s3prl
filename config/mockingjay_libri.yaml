@@ -1,5 +1,5 @@
 mockingjay:
-  downsample_rate: 4                          # stacked 4 consecutive features vectors to reduce the length of input sequences by this factor.
+  downsample_rate: 3                          # stacked consecutive features vectors to reduce the length of input sequences by this factor.
   hidden_size: 768                            # Size of the encoder layers and the pooler layer.
   num_hidden_layers: 12                       # Number of hidden layers in the Transformer encoder.
   num_attention_heads: 12                     # Number of attention heads for each attention layer in the Transformer encoder.
@@ -10,11 +10,11 @@ mockingjay:
   initializer_range: 0.02                     # The sttdev of the truncated_normal_initializer for initializing all weight matrices.
   layer_norm_eps: "1e-12"                     # The epsilon used by LayerNorm.
 
-  optimizer: 
-    type: 'Adadelta'                          # Optimizer used for training (adam)
-    learning_rate: 1.0                        # Learning rate for opt
-    joint_ctc: 0.5                            # Weight for joint CTC training (0:disabled CTC, 1:only CTC) 
-
+optimizer: 
+  learning_rate: "5e-5"                     # Learning rate for opt
+  loss_scale: 0                             # Loss scale to improve fp16 numeric stability. Only used when apex is set to True. 0: dynamic loss scaling. positive power of 2: static loss scaling.
+  warmup_proportion: 0.1                    # Proportion of training to perform linear rate warmup.
+  gradient_accumulation_steps: 1            # Number of updates steps to accumulate before performing a backward/update pass
 
 solver:
   # Data options
@@ -24,10 +24,10 @@ solver:
   max_timestep: 3000                          # Max length for audio feature (0 for no restriction)
   max_label_len: 400                          # Max length for output sequence (0 for no restriction)
   # Training options
+  apex: False                                 # Use APEX (see https://github.com/NVIDIA/apex for more details)
   train_set: ['train-clean-360']              #
   batch_size: 16                              # training batch size
-  apex: False                                 # Use APEX (see https://github.com/NVIDIA/apex for more details)
-  total_steps: 300000                         # total steps for training                         
+  total_epochs: 1000                          # total epochs for training                         
   tf_start: 1.0                               # teacher forcing rate during training will be linearly
   tf_end: 1.0                                 # decaying from upperbound to lower bound for each epoch
   # Validation options

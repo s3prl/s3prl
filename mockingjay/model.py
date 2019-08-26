@@ -12,7 +12,6 @@
 # IMPORTATION #
 ###############
 """PyTorch Mockingjay model."""
-from __future__ import absolute_import, division, print_function, unicode_literals
 import copy
 import json
 import logging
@@ -23,10 +22,6 @@ from io import open
 
 import torch
 from torch import nn
-
-from .file_utils import cached_path, WEIGHTS_NAME, CONFIG_NAME
-
-logger = logging.getLogger(__name__)
 """
 1. should loss be masked? only predict the masked token rather than reconstructing the entire input.
 2. does spec matter? linear or mel
@@ -48,7 +43,7 @@ class MockingjayConfig(object):
 		self.hidden_act = config['mockingjay']['hidden_act']
 		self.intermediate_size = config['mockingjay']['intermediate_size']
 		self.hidden_dropout_prob = config['mockingjay']['hidden_dropout_prob']
-		self.attention_probs_dropout_prob = config['mockingjay']['attention_probs_dropout_pro'b]
+		self.attention_probs_dropout_prob = config['mockingjay']['attention_probs_dropout_prob']
 		self.initializer_range = config['mockingjay']['initializer_range']
 		self.layer_norm_eps = float(config['mockingjay']['layer_norm_eps'])
 
@@ -97,7 +92,7 @@ ACT2FN = {"gelu": gelu, "relu": torch.nn.functional.relu, "swish": swish}
 try:
 	from apex.normalization.fused_layer_norm import FusedLayerNorm as MockingjayLayerNorm
 except ImportError:
-	logger.info("Better speed can be achieved with apex installed from https://www.github.com/nvidia/apex .")
+	print("Better speed can be achieved with apex installed from https://www.github.com/nvidia/apex .")
 	class MockingjayLayerNorm(nn.Module):
 		def __init__(self, hidden_size, eps=1e-12):
 			"""Construct a layernorm module in the TF style (epsilon inside the square root).
@@ -372,13 +367,6 @@ class MockingjayPreTrainedModel(nn.Module):
 	"""
 	def __init__(self, config, *inputs, **kwargs):
 		super(MockingjayPreTrainedModel, self).__init__()
-		if not isinstance(config, BertConfig):
-			raise ValueError(
-				"Parameter config in `{}(config)` should be an instance of class `BertConfig`. "
-				"To create a model from a Google pretrained model use "
-				"`model = {}.from_pretrained(PRETRAINED_MODEL_NAME)`".format(
-					self.__class__.__name__, self.__class__.__name__
-				))
 		self.config = config
 
 	def init_Mockingjay_weights(self, module):
@@ -388,7 +376,7 @@ class MockingjayPreTrainedModel(nn.Module):
 			# Slightly different from the TF version which uses truncated_normal for initialization
 			# cf https://github.com/pytorch/pytorch/pull/5617
 			module.weight.data.normal_(mean=0.0, std=self.config.initializer_range)
-		elif isinstance(module, BertLayerNorm):
+		elif isinstance(module, MockingjayLayerNorm):
 			module.bias.data.zero_()
 			module.weight.data.fill_(1.0)
 		if isinstance(module, nn.Linear) and module.bias is not None:
@@ -571,8 +559,8 @@ class MockingjayForMaskedSpeechModel(MockingjayPreTrainedModel):
 		self.project_spec = MockingjaySpecPredictionHead(config, x_sample)
 		self.apply(self.init_Mockingjay_weights)
 
-	def forward(self, spec, attention_mask=None, spec_labels=None, spec_mask=None, head_mask=None):
-		outputs = self.Mockingjay(spec, attention_mask,
+	def forward(self, spec_input, attention_mask=None, spec_label=None, mask_label=None, head_mask=None):
+		outputs = self.Mockingjay(spec_input, attention_mask,
 							output_all_encoded_layers=False,
 							head_mask=head_mask)
 		if self.output_attentions:
@@ -581,9 +569,9 @@ class MockingjayForMaskedSpeechModel(MockingjayPreTrainedModel):
 			sequence_output = outputs
 		pred_spec = self.project_spec(sequence_output)
 
-		if spec_labels is not None and spec_mask is not None:
+		if spec_label is not None and mask_label is not None:
 			loss = nn.SmoothL1Loss() 
-			masked_spec_loss = loss(pred_spec.masked_select(spec_mask), spec_labels.smasked_select(spec_mask))
+			masked_spec_loss = loss(pred_spec.masked_select(mask_label), spec_label.masked_select(mask_label))
 			return masked_spec_loss
 		elif self.output_attentions:
 			return all_attentions, pred_specs

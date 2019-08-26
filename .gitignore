@@ -127,3 +127,4 @@ test-clean
 train-clean-360
 libri_fbank80_subword5000
 result_*
+log_*

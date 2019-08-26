@@ -96,16 +96,12 @@ class LibriDataset(Dataset):
 				return y_pad_batch
 		
 		# Load acoustic feature and pad
-		x_batch = [], x_len_batch = []
-		for x_file in self.X[index]:
-			x = torch.FloatTensor(np.load(os.path.join(self.root, x_file)))
-			x_len_batch.append(x.size(0))
-			x_batch.append(x)
+		x_batch = [torch.FloatTensor(np.load(os.path.join(self.root, x_file))) for x_file in self.X[index]]
 		x_pad_batch = pad_sequence(x_batch, batch_first=True)
 
-		# Return (x, len) if load == 'spec', else return (x, y)
+		# Return (x, None) if load == 'spec', else return (x, y)
 		if self.load == 'spec':
-			return x_pad_batch, x_len_batch
+			return x_pad_batch
 		else: return x_pad_batch, y_pad_batch
 			
 	
@@ -113,11 +109,11 @@ class LibriDataset(Dataset):
 		return len(self.Y)
 
 
-################
-# LOAD DATASET #
-################
-def LoadDataset(split, load, data_path, batch_size, max_timestep, max_label_len, use_gpu, n_jobs,
-				dataset, train_set, dev_set, test_set, dev_batch_size, decode_beam_size, **kwargs):
+##################
+# GET DATALOADER #
+##################
+def get_Dataloader(split, load, data_path, batch_size, max_timestep, max_label_len, use_gpu, n_jobs,
+				   dataset, train_set, dev_set, test_set, dev_batch_size, decode_beam_size, **kwargs):
 	if split == 'train':
 		bs = batch_size
 		shuffle = True
@@ -144,7 +140,7 @@ def LoadDataset(split, load, data_path, batch_size, max_timestep, max_label_len,
 		
 
 	if dataset.upper() == "LIBRISPEECH":
-		ds = ASR_LibriDataset(file_path=data_path, sets=sets, max_timestep=max_timestep, load=load,
+		ds = LibriDataset(file_path=data_path, sets=sets, max_timestep=max_timestep, load=load,
 						   max_label_len=max_label_len, bucket_size=bs, drop=drop_too_long)
 		return DataLoader(ds, batch_size=1, shuffle=shuffle, drop_last=False, num_workers=n_jobs, pin_memory=use_gpu)
 	else:

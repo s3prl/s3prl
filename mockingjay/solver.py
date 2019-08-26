@@ -15,13 +15,14 @@ import os
 import torch
 import copy
 import math
-import numpy as np
 import itertools
-from tensorboardX import SummaryWriter
-from joblib import Parallel, delayed
+import numpy as np
+from tqdm import tqdm, trange
 import torch.nn.functional as F
-from dataset import LoadDataset
-from mockingjay.model import MockingjayForMaskedSpeechModel
+from joblib import Parallel, delayed
+from tensorboardX import SummaryWriter
+from dataset import get_Dataloader
+from mockingjay.model import MockingjayConfig, MockingjayForMaskedSpeechModel
 from mockingjay.optimization import BertAdam, WarmupLinearSchedule
 
 
@@ -71,29 +72,31 @@ class Trainer(Solver):
 		self.best_val_ed = 2.0
 
 		# Training details
-		self.step = 0
-		self.max_step = config['solver']['total_steps']
-		self.tf_start = config['solver']['tf_start']
-		self.tf_end = config['solver']['tf_end']
+		self.total_epoch = config['solver']['total_epochs']
 		self.apex = config['solver']['apex']
-
+		self.learning_rate = float(self.config['optimizer']['learning_rate'])
+		self.warmup_proportion = self.config['optimizer']['warmup_proportion']
+		self.gradient_accumulation_steps = self.config['optimizer']['gradient_accumulation_steps']
 
 
 	def load_data(self):
 		''' Load date for training/validation'''
-		self.verbose('Loading data from '+self.config['solver']['data_path'])
-		setattr(self, 'train_set', LoadDataset('train', load='spec', use_gpu=self.paras.gpu, **self.config['solver']))
+		self.verbose('Loading data from ' + self.config['solver']['data_path'])
+		setattr(self, 'dataloader', get_Dataloader('train', load='spec', use_gpu=self.paras.gpu, **self.config['solver']))
 		
 		# Get 1 example for auto constructing model
-		for self.x_sample, _ in getattr(self, 'train_set'): break
+		for self.x_sample in getattr(self, 'dataloader'): break
 		if len(self.x_sample.shape) == 4: self.x_sample = self.x_sample[0]
 
 	def set_model(self):
 		''' Setup ASR (and CLM if enabled)'''
-		self.verbose('[Solver] - Initializing Mockingjay model.')
+		self.verbose('Initializing Mockingjay model.')
 		
 		# # Build the Mockingjay model with speech prediction head
-		self.model = MockingjayForMaskedSpeechModel(self.config, self.x_sample).to(self.device)
+		self.model_config = MockingjayConfig(self.config)
+		self.model = MockingjayForMaskedSpeechModel(self.model_config, self.x_sample).to(self.device)
+		self.model.train()
+		self.dr = self.model_config.downsample_rate
 			
 		# Setup optimizer
 		param_optimizer = list(self.model.named_parameters())
@@ -103,6 +106,7 @@ class Trainer(Solver):
 			{'params': [p for n, p in param_optimizer if not any(nd in n for nd in no_decay)], 'weight_decay': 0.01},
 			{'params': [p for n, p in param_optimizer if any(nd in n for nd in no_decay)], 'weight_decay': 0.0}
 			]
+		num_train_optimization_steps = (len(self.dataloader) // self.gradient_accumulation_steps) * self.total_epoch
 
 		if self.apex:
 			try:
@@ -112,43 +116,87 @@ class Trainer(Solver):
 				raise ImportError("Please install apex from https://www.github.com/nvidia/apex to use distributed and fp16 training.")
 
 			optimizer = FusedAdam(optimizer_grouped_parameters,
-								  lr=args.learning_rate,
+								  lr=self.learning_rate,
 								  bias_correction=False,
 								  max_grad_norm=1.0)
-			if args.loss_scale == 0:
+			if self.config['optimizer']['loss_scale'] == 0:
 				self.optimizer = FP16_Optimizer(optimizer, dynamic_loss_scale=True)
 			else:
-				self.optimizer = FP16_Optimizer(optimizer, static_loss_scale=args.loss_scale)
-			warmup_linear = WarmupLinearSchedule(warmup=args.warmup_proportion,
-												 t_total=num_train_optimization_steps)
+				self.optimizer = FP16_Optimizer(optimizer, static_loss_scale=self.config['optimizer']['loss_scale'])
+			self.warmup_linear = WarmupLinearSchedule(warmup=self.warmup_proportion,
+													  t_total=num_train_optimization_steps)
 		else:
 			self.optimizer = BertAdam(optimizer_grouped_parameters,
-									lr=args.learning_rate,
-									warmup=args.warmup_proportion,
+									lr=self.learning_rate,
+									warmup=self.warmup_proportion,
 									t_total=num_train_optimization_steps)
 
 		# TODO: load pre-trained model
 		if self.paras.load:
 			raise NotImplementedError
 
-	def prep_MSM_training(spec):
 
+	def down_sample_frames(self, spec):
+		left_over = spec.shape[1] % self.dr
+		if left_over != 0: spec = spec[:, :-left_over, :]
+		spec_stacked = spec.view(spec.shape[0], spec.shape[1]//self.dr, spec.shape[2]*self.dr)
+		return spec_stacked
+
+
+	def prep_MAM_training(self, spec):
+		assert(len(spec.shape) == 4), 'Bucketing should cause acoustic feature to have shape 1xBxTxD'
+		# Hack bucket
+		spec = spec.squeeze(0)
+
+		# Down sample
+		spec_stacked = self.down_sample_frames(spec)
+
+		# record length for each uttr
+		spec_len = np.sum(np.sum(spec_stacked.data.numpy(), axis=-1) !=0, axis=-1)
+		spec_len = [int(sl) for sl in spec_len]
+
+		exit()
+
+		spec_stacked = spec_stacked.to(device=self.device, dtype=torch.float32)
+		return spec_masked, mask_label, attn_mask, spec_stacked # (x, mask_label, attention_mask. y)
 
 	def exec(self):
 		''' Training End-to-end ASR system'''
-		self.verbose('Training set total ' + str(len(self.train_set)) + ' batches.')
+		self.verbose('Training set total ' + str(len(self.dataloader)) + ' batches.')
 
-		while self.step < self.max_step:
-			for x, x_len in self.train_set:
-				self.progress('Training step - ' + str(self.step))
+		self.global_step = 1
+
+		for epoch in trange(self.total_epoch, desc="Epoch"):
+			for x in tqdm(self.dataloader, desc="Iteration"):
+				self.progress('Training step - ' + str(self.global_step))
+
+				self.prep_MAM_training(spec=x)
 				
-				
-				# Hack bucket, record state length for each uttr, get longest label seq for decode step
-				assert len(x.shape) == 4,'Bucketing should cause acoustic feature to have shape 1xBxTxD'
-				print(x.shape)
-				x = x.squeeze(0).to(device=self.device, dtype=torch.float32)
-				print(x.shape)
-				print(x_len)
+				# Accumulate Loss
+				if self.gradient_accumulation_steps > 1:
+					loss = loss / self.gradient_accumulation_steps
+				if self.apex:
+					self.optimizer.backward(loss)
+				else:
+					loss.backward()
+
+				# Update
+				if step % args.gradient_accumulation_steps == 0:
+					if self.apex:
+						# modify learning rate with special warm up BERT uses
+						# if args.fp16 is False, BertAdam is used and handles this automatically
+						lr_this_step = self.learning_rate * self.warmup_linear.get_lr(self.global_step, self.warmup_proportion)
+						for param_group in self.optimizer.param_groups:
+							param_group['lr'] = lr_this_step
+					
+					self.optimizer.step()
+					self.optimizer.zero_grad()
+
+					self.log.add_scalar('lr', optimizer.get_lr()[0], self.global_step)
+					self.log.add_scalar('loss', loss.item(), self.global_step)
+
+					self.global_step += 1
+
 
 				# ASR forwarding 
 				# self.asr_opt.zero_grad()
@@ -177,25 +225,4 @@ class Trainer(Solver):
 				# 	self.verbose('Error : grad norm is NaN @ step '+str(self.step))
 				# else:
 				# 	self.asr_opt.step()
-				
-				# Logger
-				# self.write_log('loss',loss_log)
-				# if self.ctc_weight < 1:
-				# 	self.write_log('acc',{'train':cal_acc(att_pred,label)})
-				# if self.step % TRAIN_WER_STEP == 0:
-				# 	self.write_log('error rate',
-				# 				   {'train':cal_cer(att_pred,label,mapper=self.mapper)})
-
-				self.step += 1
-				if self.step > self.max_step: break
-	
-
-	def write_log(self,val_name,val_dict):
-		'''Write log to TensorBoard'''
-		if 'att' in val_name:
-			self.log.add_image(val_name,val_dict,self.step)
-		elif 'txt' in val_name or 'hyp' in val_name:
-			self.log.add_text(val_name, val_dict, self.step)
-		else:
-			self.log.add_scalars(val_name,val_dict,self.step)
 
