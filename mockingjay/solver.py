@@ -230,10 +230,10 @@ class Trainer(Solver):
 					loss.backward()
 
 				# Update
-				if step % args.gradient_accumulation_steps == 0:
+				if step % self.gradient_accumulation_steps == 0:
 					if self.apex:
 						# modify learning rate with special warm up BERT uses
-						# if args.fp16 is False, BertAdam is used and handles this automatically
+						# if conifg.apex is False, BertAdam is used and handles this automatically
 						lr_this_step = self.learning_rate * self.warmup_linear.get_lr(self.global_step, self.warmup_proportion)
 						for param_group in self.optimizer.param_groups:
 							param_group['lr'] = lr_this_step
