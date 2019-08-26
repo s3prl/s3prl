@@ -146,7 +146,7 @@ class MockingjayInputRepresentations(nn.Module):
 	def forward(self, spec):
 		seq_length = spec.size(1)
 		spec_transformed = self.spec_transform(spec)
-		position_encoded = position_encoding(seq_len, self.hidden_size)
+		position_encoded = position_encoding(seq_length, self.hidden_size)
 
 		input_representations = spec_transformed + position_encoded
 		input_representations = self.LayerNorm(input_representations)
