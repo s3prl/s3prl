@@ -52,11 +52,6 @@ class Solver():
 		''' Verbose function for print information to stdout'''
 		if self.paras.verbose:
 			print('[SOLVER]', msg)
-   
-	def progress(self, msg):
-		''' Verbose function for updating progress on stdout'''
-		if self.paras.verbose:
-			print(msg + '                              ', end='\r')
 
 
 class Trainer(Solver):
@@ -250,7 +245,7 @@ class Trainer(Solver):
 					self.log.add_scalar('lr', self.optimizer.get_lr()[0], self.global_step)
 					self.log.add_scalar('loss', loss.item(), self.global_step)
 					self.global_step += 1
-					progress.set_description("Loss %s" % str(loss.item()))
+					progress.set_description("Loss %.4f" % loss.item())
 
 
 				# ASR forwarding 
