@@ -504,7 +504,7 @@ class MockingjayModel(MockingjayPreTrainedModel):
 		return encoded_layers
 
 
-class MockingjayForMaskedSpeechModel(MockingjayPreTrainedModel):
+class MockingjayForMaskedAcousticModel(MockingjayPreTrainedModel):
 	"""Mockingjay model with the masked language modeling head.
 	This module comprises the Mockingjay model followed by the masked language modeling head.
 

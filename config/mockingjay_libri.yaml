@@ -15,6 +15,7 @@ optimizer:
   loss_scale: 0                             # Loss scale to improve fp16 numeric stability. Only used when apex is set to True. 0: dynamic loss scaling. positive power of 2: static loss scaling.
   warmup_proportion: 0.1                    # Proportion of training to perform linear rate warmup.
   gradient_accumulation_steps: 1            # Number of updates steps to accumulate before performing a backward/update pass
+  gradient_clipping: 5
 
 solver:
   # Data options
@@ -23,22 +24,15 @@ solver:
   n_jobs: 8                                   # Subprocess used for torch Dataloader
   max_timestep: 3000                          # Max length for audio feature (0 for no restriction)
   max_label_len: 400                          # Max length for output sequence (0 for no restriction)
+  
   # Training options
   apex: False                                 # Use APEX (see https://github.com/NVIDIA/apex for more details)
   train_set: ['train-clean-360']              #
   batch_size: 16                              # training batch size
-  total_epochs: 1000                          # total epochs for training                         
-  tf_start: 1.0                               # teacher forcing rate during training will be linearly
-  tf_end: 1.0                                 # decaying from upperbound to lower bound for each epoch
+  total_epochs: 1000                          # total epochs for training
+  mask_proportion: 0.15                       # mask this percentage of all spectrogram frames in each sequence at random during MAM training                        
+
   # Validation options
   dev_set: ['dev-clean']                      
   dev_batch_size: 4                             
   dev_step: 2000
-  # Decoding options
-  test_set: ['test-clean']
-  max_decode_step_ratio: 0.1
-  decode_beam_size: 10
-  decode_ctc_weight: 0.5
-  decode_lm_path: 'result/libri_rnnlm460_sd0/rnnlm'
-  decode_lm_weight: 0.5
-

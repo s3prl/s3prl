@@ -15,6 +15,7 @@ import os
 import torch
 import copy
 import math
+import random
 import itertools
 import numpy as np
 from tqdm import tqdm, trange
@@ -22,16 +23,13 @@ import torch.nn.functional as F
 from joblib import Parallel, delayed
 from tensorboardX import SummaryWriter
 from dataset import get_Dataloader
-from mockingjay.model import MockingjayConfig, MockingjayForMaskedSpeechModel
+from mockingjay.model import MockingjayConfig, MockingjayForMaskedAcousticModel
 from mockingjay.optimization import BertAdam, WarmupLinearSchedule
 
 
-VAL_STEP = 30        # Additional Inference Timesteps to run during validation (to calculate CER)
-TRAIN_WER_STEP = 250 # steps for debugging info.
-GRAD_CLIP = 5
-CLM_MIN_SEQ_LEN = 5
-
-
+##########
+# SOLVER #
+##########
 class Solver():
 	''' Super class Solver for all kinds of tasks'''
 	def __init__(self, config, paras):
@@ -72,11 +70,13 @@ class Trainer(Solver):
 		self.best_val_ed = 2.0
 
 		# Training details
-		self.total_epoch = config['solver']['total_epochs']
 		self.apex = config['solver']['apex']
+		self.total_epoch = config['solver']['total_epochs']
+		self.mask_proportion = config['solver']['mask_proportion']
 		self.learning_rate = float(self.config['optimizer']['learning_rate'])
 		self.warmup_proportion = self.config['optimizer']['warmup_proportion']
 		self.gradient_accumulation_steps = self.config['optimizer']['gradient_accumulation_steps']
+		self.gradient_clipping = self.config['optimizer']['gradient_clipping']
 
 
 	def load_data(self):
@@ -94,7 +94,7 @@ class Trainer(Solver):
 		
 		# # Build the Mockingjay model with speech prediction head
 		self.model_config = MockingjayConfig(self.config)
-		self.model = MockingjayForMaskedSpeechModel(self.model_config, self.x_sample).to(self.device)
+		self.model = MockingjayForMaskedAcousticModel(self.model_config, self.x_sample).to(self.device)
 		self.model.train()
 		self.dr = self.model_config.downsample_rate
 			
@@ -143,19 +143,29 @@ class Trainer(Solver):
 		return spec_stacked
 
 
-	def prep_MAM_training(self, spec):
-		assert(len(spec.shape) == 4), 'Bucketing should cause acoustic feature to have shape 1xBxTxD'
+	def process_MAM_data(self, spec):
+		"""Process training data for the masked acoustic model"""
 		# Hack bucket
+		assert(len(spec.shape) == 4), 'Bucketing should cause acoustic feature to have shape 1xBxTxD'
 		spec = spec.squeeze(0)
 
 		# Down sample
 		spec_stacked = self.down_sample_frames(spec)
 
-		# record length for each uttr
-		spec_len = np.sum(np.sum(spec_stacked.data.numpy(), axis=-1) !=0, axis=-1)
+		# Record length for each uttr
+		spec_len = np.sum(np.sum(spec_stacked.data.numpy(), axis=-1) != 0, axis=-1)
 		spec_len = [int(sl) for sl in spec_len]
 
-		exit()
+		# select a proportion of frames and mask them
+		spec_masked = []
+		for idx, frames in enumerate(spec_stacked):
+			masked_indexs = torch.Tensor(random.sample(range(spec_len[idx]), int(spec_len[idx]*self.mask_proportion)))
+			print(masked_indexs)
+			x = copy.deepcopy(frames)
+			x[masked_indexs] = 0
+			spec_masked.append(x)
+			print(x[masked_indexs[-1]])
+			exit()
 
 		spec_stacked = spec_stacked.to(device=self.device, dtype=torch.float32)
 		return spec_masked, mask_label, attn_mask, spec_stacked # (x, mask_label, attention_mask. y)
@@ -170,7 +180,7 @@ class Trainer(Solver):
 			for x in tqdm(self.dataloader, desc="Iteration"):
 				self.progress('Training step - ' + str(self.global_step))
 
-				self.prep_MAM_training(spec=x)
+				self.process_MAM_data(spec=x)
 				
 				# Accumulate Loss
 				if self.gradient_accumulation_steps > 1:
@@ -189,12 +199,17 @@ class Trainer(Solver):
 						for param_group in self.optimizer.param_groups:
 							param_group['lr'] = lr_this_step
 					
-					self.optimizer.step()
+					# Step
+					grad_norm = torch.nn.utils.clip_grad_norm_(self.model.parameters(), self.gradient_clipping)
+					if math.isnan(grad_norm):
+						self.verbose('Error : grad norm is NaN @ step ' + str(self.global_step))
+					else:
+						self.optimizer.step()
 					self.optimizer.zero_grad()
 
+					# Log
 					self.log.add_scalar('lr', optimizer.get_lr()[0], self.global_step)
 					self.log.add_scalar('loss', loss.item(), self.global_step)
-
 					self.global_step += 1
 
 
