@@ -25,6 +25,7 @@ from torch import nn
 """
 1. should loss be masked? only predict the masked token rather than reconstructing the entire input.
 2. does spec matter? linear or mel
+3. use 0s as mask?
 
 TODO:
 spec_mask
