@@ -11,17 +11,14 @@
 ###############
 # IMPORTATION #
 ###############
-"""PyTorch Mockingjay model."""
-import copy
-import json
-import logging
-import math
-import os
 import sys
+import copy
+import math
 from io import open
-
 import torch
 from torch import nn
+import numpy as np
+
 """
 1. should loss be masked? only predict the masked token rather than reconstructing the entire input.
 2. does spec matter? linear or mel
