@@ -14,7 +14,7 @@
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
-from dataset import LoadDataset
+from dataloader import get_Dataloader
 
 
 # CLM wrapper
@@ -36,7 +36,7 @@ class CLM_wrapper(torch.nn.Module):
 		
 	def load_text(self,data_config):
 		# Independent training set for CLM
-		self.train_set = LoadDataset('text',text_only=True,**data_config)
+		self.train_set = get_Dataloader('text',text_only=True,**data_config)
 		self.data_iter = iter(self.train_set)
 
 	def train(self,fake_seq,clm_min_seq_len):
