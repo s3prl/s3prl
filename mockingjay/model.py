@@ -533,9 +533,9 @@ class MockingjayForMaskedAcousticModel(MockingjayPreTrainedModel):
 		self.output_attentions = output_attentions
 		self.Mockingjay = MockingjayModel(config, x_sample, output_attentions=output_attentions,
 									  keep_multihead_output=keep_multihead_output)
-		self.project_spec = MockingjaySpecPredictionHead(config, x_sample)
+		self.SpecHead = MockingjaySpecPredictionHead(config, x_sample)
 		self.apply(self.init_Mockingjay_weights)
-		self.loss = nn.SmoothL1Loss() 
+		self.loss = nn.L1Loss() 
 
 	def forward(self, spec_input, pos_enc, mask_label=None, attention_mask=None, spec_label=None, head_mask=None):
 		outputs = self.Mockingjay(spec_input, pos_enc, attention_mask,
@@ -545,7 +545,7 @@ class MockingjayForMaskedAcousticModel(MockingjayPreTrainedModel):
 			all_attentions, sequence_output = outputs
 		else:
 			sequence_output = outputs
-		pred_spec = self.project_spec(sequence_output)
+		pred_spec = self.SpecHead(sequence_output)
 
 		if spec_label is not None and mask_label is not None:
 			masked_spec_loss = self.loss(pred_spec.masked_select(mask_label), spec_label.masked_select(mask_label))

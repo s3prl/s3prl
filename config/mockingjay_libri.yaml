@@ -39,3 +39,6 @@ solver:
 
   # testing options
   test_set: ['test-clean']
+
+  # models
+  load_model_list: ['SpecHead', 'Mockingjay']

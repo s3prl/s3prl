@@ -46,12 +46,54 @@ class Solver():
 		if not os.path.exists(self.ckpdir):os.makedirs(self.ckpdir)
 
 		if torch.cuda.is_available(): self.verbose('CUDA is available!')
+		self.load_model_list = config['solver']['load_model_list']
+		self.reset_train()
 
 
-	def verbose(self, msg):
+	def verbose(self, msg, end='\r'):
 		''' Verbose function for print information to stdout'''
 		if self.paras.verbose:
-			print('[SOLVER]', msg)
+			print('[SOLVER] - ', msg, end)
+
+	def reset_train(self):
+		self.model_kept = []
+		self.global_step = 1
+
+
+	def save_model(self, name, model_all=True):
+		if model_all:
+			all_model = {
+				'SpecHead': self.model.SpecHead.state_dict(),
+				'Mockingjay': self.model.Mockingjay.state_dict(),
+			}
+		else:
+			all_model = {
+				'Mockingjay': self.model.Mockingjay.state_dict(),
+			}
+		new_model_path = '{}-{}-{}'.format(self.ckpdir, name, self.global_step)
+		torch.save(all_model, new_model_path)
+		self.model_kept.append(new_model_path)
+
+		if len(self.model_kept) >= self.max_keep:
+			os.remove(self.model_kept[0])
+			self.model_kept.pop(0)
+
+
+	def load_model(self, verbose=True, clf_path = None):
+		verbose('Load model from {}'.format(self.ckpdir))
+		all_model = torch.load(self.ckpdir)
+		verbose('', end = '')
+		if 'SpecHead' in self.load_model_list:
+			try:
+				self.model.SpecHead.load_state_dict(all_model['SpecHead'])
+				verbose('[SpecHead], ', end = '')
+			except: verbose('[SpecHead - X], ', end = '')
+		if 'Mockingjay' in self.load_model_list:
+			try:
+				self.model.Mockingjay.load_state_dict(all_model['Mockingjay'])
+				verbose('[Mockingjay], ', end = '')
+			except: verbose('[Mockingjay - X], ', end = '')
+		verbose('Loaded!')
 
 
 class Trainer(Solver):
@@ -191,6 +233,7 @@ class Trainer(Solver):
 			l = np.zeros((len(x), int(list(self.x_sample.shape)[-1]*self.dr))) # (seq_len, mel_dim * dr)
 			l[chosen_index] = 1
 			mask_label.append(l)
+			assert(len(l) == len(x))
 
 			a = np.ones([spec_len[idx]])
 			attn_mask.append(a)
@@ -207,7 +250,7 @@ class Trainer(Solver):
 		''' Training End-to-end ASR system'''
 		self.verbose('Training set total ' + str(len(self.dataloader)) + ' batches.')
 
-		self.global_step = 1
+		self.reset_train()
 
 		for epoch in trange(self.total_epoch, desc="Epoch"):
 			progress = tqdm(self.dataloader, desc="Iteration")
@@ -247,32 +290,6 @@ class Trainer(Solver):
 					self.global_step += 1
 					progress.set_description("Loss %.4f" % loss.item())
 
-
-				# ASR forwarding 
-				# self.asr_opt.zero_grad()
-				# ctc_pred, state_len, att_pred, _ =  self.asr_model(x, ans_len,tf_rate=tf_rate,teacher=y,state_len=state_len)
-
-				# # Calculate loss function
-				# loss_log = {}
-				# label = y[:,1:ans_len+1].contiguous()
-				# ctc_loss = 0
-				# att_loss = 0
-				
-				# # CE loss on attention decoder
-				# if self.ctc_weight<1:
-				# 	b,t,c = att_pred.shape
-				# 	att_loss = self.seq_loss(att_pred.view(b*t,c),label.view(-1))
-				# 	att_loss = torch.sum(att_loss.view(b,t),dim=-1)/torch.sum(y!=0,dim=-1)\
-				# 			   .to(device = self.device,dtype=torch.float32) # Sum each uttr and devide by length
-				# 	att_loss = torch.mean(att_loss) # Mean by batch
-				# 	loss_log['train_att'] = att_loss
-
-
-				# # Backprop
-				# asr_loss.backward()
-				# grad_norm = torch.nn.utils.clip_grad_norm_(self.asr_model.parameters(), GRAD_CLIP)
-				# if math.isnan(grad_norm):
-				# 	self.verbose('Error : grad norm is NaN @ step '+str(self.step))
-				# else:
-				# 	self.asr_opt.step()
+				if self.global_step % 10 == 0:
+					self.save_model('mockingjay')
 
