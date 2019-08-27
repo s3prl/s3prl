@@ -104,8 +104,6 @@ class Trainer(Solver):
 		# Logger Settings
 		self.logdir = os.path.join(paras.logdir, self.exp_name)
 		self.log = SummaryWriter(self.logdir)
-		self.valid_step = config['solver']['dev_step']
-		self.best_val_ed = 2.0
 
 		# Training details
 		self.apex = config['solver']['apex']
@@ -234,7 +232,6 @@ class Trainer(Solver):
 			l = np.zeros((len(x), int(list(self.x_sample.shape)[-1]*self.dr))) # (seq_len, mel_dim * dr)
 			l[chosen_index] = 1
 			mask_label.append(l)
-			assert(len(l) == len(x))
 
 			a = np.ones((len(x)))
 			a[spec_len[idx]:] = 0
