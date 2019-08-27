@@ -47,6 +47,7 @@ class Solver():
 
 		if torch.cuda.is_available(): self.verbose('CUDA is available!')
 		self.load_model_list = config['solver']['load_model_list']
+		self.max_keep = config['solver']['max_keep']
 		self.reset_train()
 
 
@@ -235,7 +236,8 @@ class Trainer(Solver):
 			mask_label.append(l)
 			assert(len(l) == len(x))
 
-			a = np.ones([spec_len[idx]])
+			a = np.ones((len(x)))
+			a[spec_len[idx]:] = 0
 			attn_mask.append(a)
 
 		spec_masked = torch.FloatTensor(spec_masked).to(device=self.device, dtype=torch.float32)

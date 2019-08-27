@@ -11,10 +11,10 @@ mockingjay:
   layer_norm_eps: "1e-12"                     # The epsilon used by LayerNorm.
 
 optimizer: 
-  learning_rate: "5e-5"                     # Learning rate for opt
-  loss_scale: 0                             # Loss scale to improve fp16 numeric stability. Only used when apex is set to True. 0: dynamic loss scaling. positive power of 2: static loss scaling.
-  warmup_proportion: 0.1                    # Proportion of training to perform linear rate warmup.
-  gradient_accumulation_steps: 1            # Number of updates steps to accumulate before performing a backward/update pass
+  learning_rate: "5e-5"                       # Learning rate for opt
+  loss_scale: 0                               # Loss scale to improve fp16 numeric stability. Only used when apex is set to True. 0: dynamic loss scaling. positive power of 2: static loss scaling.
+  warmup_proportion: 0.1                      # Proportion of training to perform linear rate warmup.
+  gradient_accumulation_steps: 1              # Number of updates steps to accumulate before performing a backward/update pass
   gradient_clipping: 5
 
 solver:
@@ -41,4 +41,5 @@ solver:
   test_set: ['test-clean']
 
   # models
-  load_model_list: ['SpecHead', 'Mockingjay']
+  load_model_list: ['SpecHead', 'Mockingjay'] # load the components in the list for test/eval
+  max_keep: 10                                # maximum number of model ckpt to keep during training
