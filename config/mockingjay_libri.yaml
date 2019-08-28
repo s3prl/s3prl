@@ -28,7 +28,7 @@ solver:
   # Training options
   apex: False                                 # Use APEX (see https://github.com/NVIDIA/apex for more details)
   train_set: ['train-clean-360']              #
-  batch_size: 16                              # training batch size
+  batch_size: 8                              # training batch size
   total_epochs: 1000                          # total epochs for training
   mask_proportion: 0.15                       # mask this percentage of all spectrogram frames in each sequence at random during MAM training                        
 
