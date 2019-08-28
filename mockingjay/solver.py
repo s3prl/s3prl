@@ -110,7 +110,7 @@ class Trainer(Solver):
 		self.apex = config['solver']['apex']
 		self.log_step = config['solver']['log_step']
 		self.save_step = config['solver']['save_step']
-		self.total_epoch = config['solver']['total_epochs']
+		self.total_steps = config['solver']['total_steps']
 		self.mask_proportion = config['solver']['mask_proportion']
 		self.learning_rate = float(self.config['optimizer']['learning_rate'])
 		self.warmup_proportion = self.config['optimizer']['warmup_proportion']
@@ -146,7 +146,7 @@ class Trainer(Solver):
 			{'params': [p for n, p in param_optimizer if not any(nd in n for nd in no_decay)], 'weight_decay': 0.01},
 			{'params': [p for n, p in param_optimizer if any(nd in n for nd in no_decay)], 'weight_decay': 0.0}
 			]
-		num_train_optimization_steps = (len(self.dataloader) // self.gradient_accumulation_steps) * self.total_epoch
+		num_train_optimization_steps = self.total_steps // self.gradient_accumulation_steps
 
 		if self.apex:
 			try:
@@ -259,8 +259,10 @@ class Trainer(Solver):
 
 		self.reset_train()
 
-		for epoch in trange(self.total_epoch, desc="Epoch"):
+		while self.global_step <= self.total_steps:
+
 			progress = tqdm(self.dataloader, desc="Iteration")
+
 			for step, x in enumerate(progress):
 
 				spec_masked, pos_enc, mask_label, attn_mask, spec_stacked = self.process_MAM_data(spec=x)
