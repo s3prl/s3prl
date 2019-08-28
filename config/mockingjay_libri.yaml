@@ -43,3 +43,4 @@ solver:
   # models
   load_model_list: ['SpecHead', 'Mockingjay'] # load the components in the list for test/eval
   max_keep: 10                                # maximum number of model ckpt to keep during training
+  save_step: 100                              # save model after every this amount of training steps

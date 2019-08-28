@@ -59,6 +59,7 @@ class Solver():
 	def reset_train(self):
 		self.model_kept = []
 		self.global_step = 1
+		self.best_loss = 999.9
 
 
 	def save_model(self, name, model_all=True):
@@ -71,7 +72,7 @@ class Solver():
 			all_model = {
 				'Mockingjay': self.model.Mockingjay.state_dict(),
 			}
-		new_model_path = '{}-{}-{}'.format(self.ckpdir, name, self.global_step)
+		new_model_path = '{}/{}-{}'.format(self.ckpdir, name, self.global_step)
 		torch.save(all_model, new_model_path)
 		self.model_kept.append(new_model_path)
 
@@ -107,6 +108,7 @@ class Trainer(Solver):
 
 		# Training details
 		self.apex = config['solver']['apex']
+		self.save_step = config['solver']['save_step']
 		self.total_epoch = config['solver']['total_epochs']
 		self.mask_proportion = config['solver']['mask_proportion']
 		self.learning_rate = float(self.config['optimizer']['learning_rate'])
@@ -293,6 +295,7 @@ class Trainer(Solver):
 					self.global_step += 1
 					progress.set_description("Loss %.4f" % loss.item())
 
-				if self.global_step % 10 == 0:
+				if self.global_step % self.save_step == 0 and loss.item() < self.best_loss:
 					self.save_model('mockingjay')
+					self.best_loss = loss.item()
 
