@@ -229,6 +229,8 @@ class Trainer(Solver):
 			random_index = chosen_index[sub_mask_proportion:sub_rand_proportion]
 
 			x = copy.deepcopy(frames.data.numpy())
+			print()
+			print(np.shape(chosen_index))
 			print(np.shape(random_index))
 			print(np.shape(random_frames))
 			print(np.shape(x))
