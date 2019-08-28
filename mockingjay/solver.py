@@ -108,6 +108,7 @@ class Trainer(Solver):
 
 		# Training details
 		self.apex = config['solver']['apex']
+		self.log_step = config['solver']['log_step']
 		self.save_step = config['solver']['save_step']
 		self.total_epoch = config['solver']['total_epochs']
 		self.mask_proportion = config['solver']['mask_proportion']
@@ -289,13 +290,14 @@ class Trainer(Solver):
 						self.optimizer.step()
 					self.optimizer.zero_grad()
 
+				if self.global_step % self.log_step == 0:
 					# Log
 					self.log.add_scalar('lr', self.optimizer.get_lr()[0], self.global_step)
 					self.log.add_scalar('loss', loss.item(), self.global_step)
-					self.global_step += 1
 					progress.set_description("Loss %.4f" % loss.item())
 
 				if self.global_step % self.save_step == 0 and loss.item() < self.best_loss:
 					self.save_model('mockingjay')
 					self.best_loss = loss.item()
 
+				self.global_step += 1
