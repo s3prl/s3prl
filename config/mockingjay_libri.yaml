@@ -28,7 +28,7 @@ solver:
   # Training options
   apex: False                                 # Use APEX (see https://github.com/NVIDIA/apex for more details)
   train_set: ['train-clean-360']              #
-  log_step: 50                                # log training status every this amount of training steps
+  log_step: 100                                # log training status every this amount of training steps
   batch_size: 8                               # training batch size
   total_epochs: 20                            # total epochs for training
   mask_proportion: 0.15                       # mask this percentage of all spectrogram frames in each sequence at random during MAM training                        
@@ -44,4 +44,4 @@ solver:
   # models
   load_model_list: ['SpecHead', 'Mockingjay'] # load the components in the list for test/eval
   max_keep: 10                                # maximum number of model ckpt to keep during training
-  save_step: 100                              # save model every this amount of training steps
+  save_step: 200                              # save model every this amount of training steps
