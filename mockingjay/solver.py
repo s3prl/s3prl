@@ -226,7 +226,7 @@ class Trainer(Solver):
 			random_frames = sample_index[chose_proportion:]
 			chosen_index = sample_index[:chose_proportion]
 			masked_index = chosen_index[:sub_mask_proportion]
-			random_index = chosen_index[sub_mask_proportion : sub_mask_proportion+sub_rand_proportion]
+			random_index = chosen_index[-sub_rand_proportion]
 
 			x = copy.deepcopy(frames.data.numpy())
 			x[random_index] = x[random_frames]
