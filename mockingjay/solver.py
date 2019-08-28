@@ -224,13 +224,14 @@ class Trainer(Solver):
 			sub_rand_proportion = int(chose_proportion*0.1) # a random frame 10% of the time
 			
 			sample_index = random.sample(range(spec_len[idx]), chose_proportion + sub_rand_proportion) # sample the chosen_index and random frames
-			random_frames = sample_index[-sub_rand_proportion:]
 			chosen_index = sample_index[:chose_proportion]
 			masked_index = chosen_index[:sub_mask_proportion]
-			random_index = chosen_index[-sub_rand_proportion:]
 
 			x = copy.deepcopy(frames.data.numpy())
-			if sub_rand_proportion > 1: x[random_index] = x[random_frames]
+			if sub_rand_proportion > 0:
+				random_index = chosen_index[-sub_rand_proportion:]
+				random_frames = sample_index[-sub_rand_proportion:]
+				x[random_index] = x[random_frames]
 			x[masked_index] = 0
 			spec_masked.append(x)
 
