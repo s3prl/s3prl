@@ -23,6 +23,7 @@ import numpy as np
 1. should loss be masked? only predict the masked token rather than reconstructing the entire input.
 2. does spec matter? linear or mel
 3. use 0s as mask?
+4. downsample and stack by 5
 
 TODO:
 spec_mask
