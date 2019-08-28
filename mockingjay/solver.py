@@ -232,6 +232,8 @@ class Trainer(Solver):
 			print()
 			print(np.shape(sample_index))
 			print(np.shape(random_index))
+			print(np.shape(chosen_index[sub_mask_proportion:sub_rand_proportion]))
+			print(sub_rand_proportion)
 			print(np.shape(chosen_index))
 			print(np.shape(masked_index))
 			print(np.shape(random_frames))
