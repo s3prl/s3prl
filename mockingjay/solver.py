@@ -44,6 +44,7 @@ class Solver():
 		if not os.path.exists(paras.ckpdir):os.makedirs(paras.ckpdir)
 		self.ckpdir = os.path.join(paras.ckpdir,self.exp_name)
 		if not os.path.exists(self.ckpdir):os.makedirs(self.ckpdir)
+		self.load = paras.load
 
 		if torch.cuda.is_available(): self.verbose('CUDA is available!')
 		self.load_model_list = config['solver']['load_model_list']
@@ -67,6 +68,8 @@ class Solver():
 			all_model = {
 				'SpecHead': self.model.SpecHead.state_dict(),
 				'Mockingjay': self.model.Mockingjay.state_dict(),
+				"Optimizer": self.optimizer.state_dict(),
+				"Global_step": self.global_step,
 			}
 		else:
 			all_model = {
@@ -81,9 +84,9 @@ class Solver():
 			self.model_kept.pop(0)
 
 
-	def load_model(self, verbose=True, clf_path = None):
-		verbose('Load model from {}'.format(self.ckpdir))
-		all_model = torch.load(self.ckpdir)
+	def load_model(self, verbose=True):
+		verbose('Load model from {}'.format(os.path.join(self.ckpdir, self.load)))
+		all_model = torch.load(os.path.join(self.ckpdir, self.load))
 		verbose('', end = '')
 		if 'SpecHead' in self.load_model_list:
 			try:
@@ -95,6 +98,20 @@ class Solver():
 				self.model.Mockingjay.load_state_dict(all_model['Mockingjay'])
 				verbose('[Mockingjay], ', end = '')
 			except: verbose('[Mockingjay - X], ', end = '')
+		if 'Optimizer' in self.load_model_list:
+			try:
+				self.optimizer.load_state_dict(all_model['Optimizer'])
+				for state in self.optimizer.state.values():
+					for k, v in state.items():
+						if torch.is_tensor(v):
+							state[k] = v.cuda()
+				verbose('[Optimizer], ', end = '')
+			except: verbose('[Optimizer - X], ', end = '')
+		if 'Global_step' in self.load_model_list:
+			try:
+				self.global_step = all_model['Global_step']
+				verbose('[Global_step], ', end = '')
+			except: verbose('[Global_step - X], ', end = '')
 		verbose('Loaded!')
 
 
@@ -128,7 +145,6 @@ class Trainer(Solver):
 		if len(self.x_sample.shape) == 4: self.x_sample = self.x_sample[0]
 
 	def set_model(self):
-		''' Setup ASR (and CLM if enabled)'''
 		self.verbose('Initializing Mockingjay model.')
 		
 		# # Build the Mockingjay model with speech prediction head
@@ -171,9 +187,8 @@ class Trainer(Solver):
 									warmup=self.warmup_proportion,
 									t_total=num_train_optimization_steps)
 
-		# TODO: load pre-trained model
-		if self.paras.load:
-			raise NotImplementedError
+		if self.load:
+			self.load_model()
 
 
 	def down_sample_frames(self, spec):
@@ -183,7 +198,7 @@ class Trainer(Solver):
 		return spec_stacked
 
 
-	def position_encoding(self, seq_len, padding_idx=None):
+	def position_encoding(self, seq_len, batch_size=None, padding_idx=None):
 		''' Sinusoid position encoding table '''
 		def cal_angle(position, hid_idx):
 			return position / np.power(10000, 2 * (hid_idx // 2) / self.hidden_size)
@@ -198,8 +213,12 @@ class Trainer(Solver):
 	 
 		if padding_idx is not None:
 			sinusoid_table[padding_idx:] = 0. # zero vector for padding dimension
-	 
-		return sinusoid_table  # seq_len × hidden_size
+	 	
+	 	if batch_size is not None:
+	 		batch_sinusoid_table = np.repeat(sinusoid_table[np.newaxis,...], batch_size, axis=0)
+	 		return batch_sinusoid_table # (batch_size, seq_len, hidden_size)
+	 	else:
+			return sinusoid_table  # (seq_len, hidden_size)
 
 
 	def process_MAM_data(self, spec):
@@ -209,14 +228,20 @@ class Trainer(Solver):
 		spec = spec.squeeze(0)
 
 		# Down sample
-		spec_stacked = self.down_sample_frames(spec)
+		spec_stacked = self.down_sample_frames(spec) # (batch_size, seq_len, mel_dim * dr)
 
 		# Record length for each uttr
 		spec_len = np.sum(np.sum(spec_stacked.data.numpy(), axis=-1) != 0, axis=-1)
 		spec_len = [int(sl) for sl in spec_len]
 
-		# select a proportion of frames and mask them
-		spec_masked, pos_enc, mask_label, attn_mask = [], [], [], []
+		batch_size = spec.shape[0]
+		seq_len = spec.shape[1]
+
+		spec_masked = np.zeros_like(spec_stacked)
+		pos_enc = self.position_encoding(seq_len, batch_size) # (batch_size, seq_len, hidden_size)
+		mask_label = np.zeros_like(spec_stacked)
+		attn_mask = np.ones((batch_size, seq_len)) # (batch_size, seq_len)
+
 		for idx, frames in enumerate(spec_stacked):
 			
 			chose_proportion = int(spec_len[idx]*self.mask_proportion) # chooses % of the frame positions at random for prediction
@@ -227,23 +252,18 @@ class Trainer(Solver):
 			chosen_index = sample_index[:chose_proportion]
 			masked_index = chosen_index[:sub_mask_proportion]
 
-			x = copy.deepcopy(frames.data.numpy())
+			spec_masked[idx] = copy.deepcopy(frames.data.numpy())
 			if sub_rand_proportion > 0:
 				random_index = chosen_index[-sub_rand_proportion:]
 				random_frames = sample_index[-sub_rand_proportion:]
-				x[random_index] = x[random_frames]
-			x[masked_index] = 0
-			spec_masked.append(x)
+				spec_masked[idx][random_index] = spec_masked[idx][random_frames]
+			
+			spec_masked[idx][masked_index] = 0 # mask frames to zero
+			mask_label[idx][chosen_index] = 1 # the frames where gradients will be calculated on 
 
-			pos_enc.append(self.position_encoding(len(x), spec_len[idx]))
-
-			l = np.zeros((len(x), int(list(self.x_sample.shape)[-1]*self.dr))) # (seq_len, mel_dim * dr)
-			l[chosen_index] = 1
-			mask_label.append(l)
-
-			a = np.ones((len(x)))
-			a[spec_len[idx]:] = 0
-			attn_mask.append(a)
+			# zero vectors for padding dimension
+			pos_enc[idx][spec_len[idx]:] = 0  
+			attn_mask[idx][spec_len[idx]:] = 0 
 
 		spec_masked = torch.FloatTensor(spec_masked).to(device=self.device, dtype=torch.float32)
 		pos_enc = torch.FloatTensor(pos_enc).to(device=self.device, dtype=torch.float32)
@@ -254,10 +274,8 @@ class Trainer(Solver):
 
 
 	def exec(self):
-		''' Training End-to-end ASR system'''
+		''' Training Unsupervised End-to-end Mockingjay Model'''
 		self.verbose('Training set total ' + str(len(self.dataloader)) + ' batches.')
-
-		self.reset_train()
 
 		while self.global_step <= self.total_steps:
 
@@ -304,3 +322,6 @@ class Trainer(Solver):
 					self.best_loss = loss.item()
 
 				self.global_step += 1
+
+		self.reset_train()
+		
