@@ -15,7 +15,7 @@ optimizer:
   loss_scale: 0                               # Loss scale to improve fp16 numeric stability. Only used when apex is set to True. 0: dynamic loss scaling. positive power of 2: static loss scaling.
   warmup_proportion: 0.1                      # Proportion of training to perform linear rate warmup.
   gradient_accumulation_steps: 1              # Number of updates steps to accumulate before performing a backward/update pass
-  gradient_clipping: 5
+  gradient_clipping: 5                        # Maximum gradient norm
 
 solver:
   # Data options
