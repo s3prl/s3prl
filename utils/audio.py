@@ -14,6 +14,9 @@
 ###############
 import librosa
 import numpy as np
+import matplotlib
+import matplotlib.pylab as plt
+matplotlib.use("Agg")
 import warnings
 warnings.filterwarnings("ignore")
 # NOTE: there are warnings for MFCC extraction due to librosa's issue
@@ -66,4 +69,24 @@ def extract_feature(input_file,feature='fbank',dim=40, cmvn=True, delta=False, d
 	else:
 		return np.swapaxes(feat,0,1).astype('float32')
 
-		
+
+def plot_spectrogram_to_numpy(spectrogram):
+	
+	def save_figure_to_numpy(fig):
+		# save it to a numpy array.
+		data = np.fromstring(fig.canvas.tostring_rgb(), dtype=np.uint8, sep='')
+		data = data.reshape(fig.canvas.get_width_height()[::-1] + (3,))
+		return data.transpose(2, 0, 1)
+	
+	fig, ax = plt.subplots(figsize=(12, 3))
+	im = ax.imshow(spectrogram, aspect="auto", origin="lower",
+				   interpolation='none')
+	plt.colorbar(im, ax=ax)
+	plt.xlabel("Frames")
+	plt.ylabel("Channels")
+	plt.tight_layout()
+
+	fig.canvas.draw()
+	data = save_figure_to_numpy(fig)
+	plt.close()
+	return data

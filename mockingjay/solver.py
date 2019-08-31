@@ -25,6 +25,7 @@ from tensorboardX import SummaryWriter
 from dataloader import get_Dataloader
 from mockingjay.model import MockingjayConfig, MockingjayForMaskedAcousticModel
 from mockingjay.optimization import BertAdam, WarmupLinearSchedule
+from utils.audio import plot_spectrogram_to_numpy
 
 
 ##########
@@ -190,6 +191,9 @@ class Trainer(Solver):
 		if self.load:
 			self.load_model()
 
+	def up_sample_frames(self, spec):
+		spec_flatten = spec.view(spec.shape[0], spec.shape[1]*self.dr, spec.shape[2]//self.dr)
+		return spec_flatten
 
 	def down_sample_frames(self, spec):
 		left_over = spec.shape[1] % self.dr
@@ -284,7 +288,7 @@ class Trainer(Solver):
 			for step, x in enumerate(progress):
 
 				spec_masked, pos_enc, mask_label, attn_mask, spec_stacked = self.process_MAM_data(spec=x)
-				loss = self.model(spec_masked, pos_enc, mask_label, attn_mask, spec_stacked)
+				loss, pred_spec = self.model(spec_masked, pos_enc, mask_label, attn_mask, spec_stacked)
 				
 				# Accumulate Loss
 				if self.gradient_accumulation_steps > 1:
@@ -320,6 +324,9 @@ class Trainer(Solver):
 				if self.global_step % self.save_step == 0 and loss.item() < self.best_loss:
 					self.save_model('mockingjay')
 					self.best_loss = loss.item()
+					spec_to_plot = self.up_sample_frames(pred_spec)
+					spec_to_plot = plot_spectrogram_to_numpy(spec_to_plot[0])
+					self.log.add_image('pred_spec', spec_to_plot, self.global_step)
 
 				self.global_step += 1
 
