@@ -188,10 +188,11 @@ class Trainer(Solver):
 									warmup=self.warmup_proportion,
 									t_total=num_train_optimization_steps)
 
-		if self.load:
+		if self.load is not None:
 			self.load_model()
 
 	def up_sample_frames(self, spec):
+		if len(spec.shape) != 3: spec = spec.unsqueeze(0)
 		spec_flatten = spec.view(spec.shape[0], spec.shape[1]*self.dr, spec.shape[2]//self.dr)
 		return spec_flatten
 
@@ -209,19 +210,19 @@ class Trainer(Solver):
 	 
 		def get_posi_angle_vec(position):
 			return [cal_angle(position, hid_j) for hid_j in range(self.hidden_size)]
-	 
+
 		sinusoid_table = np.array([get_posi_angle_vec(pos_i) for pos_i in range(seq_len)])
-	 
+
 		sinusoid_table[:, 0::2] = np.sin(sinusoid_table[:, 0::2])  # dim 2i
 		sinusoid_table[:, 1::2] = np.cos(sinusoid_table[:, 1::2])  # dim 2i+1
-	 
+
 		if padding_idx is not None:
 			sinusoid_table[padding_idx:] = 0. # zero vector for padding dimension
-	 	
-	 	if batch_size is not None:
-	 		batch_sinusoid_table = np.repeat(sinusoid_table[np.newaxis,...], batch_size, axis=0)
-	 		return batch_sinusoid_table # (batch_size, seq_len, hidden_size)
-	 	else:
+
+		if batch_size is not None:
+			batch_sinusoid_table = np.repeat(sinusoid_table[np.newaxis,...], batch_size, axis=0)
+			return batch_sinusoid_table # (batch_size, seq_len, hidden_size)
+		else:
 			return sinusoid_table  # (seq_len, hidden_size)
 
 
@@ -238,15 +239,15 @@ class Trainer(Solver):
 		spec_len = np.sum(np.sum(spec_stacked.data.numpy(), axis=-1) != 0, axis=-1)
 		spec_len = [int(sl) for sl in spec_len]
 
-		batch_size = spec.shape[0]
-		seq_len = spec.shape[1]
+		batch_size = spec_stacked.shape[0]
+		seq_len = spec_stacked.shape[1]
 
-		spec_masked = np.zeros_like(spec_stacked)
+		spec_masked = copy.deepcopy(spec_stacked)
 		pos_enc = self.position_encoding(seq_len, batch_size) # (batch_size, seq_len, hidden_size)
 		mask_label = np.zeros_like(spec_stacked)
 		attn_mask = np.ones((batch_size, seq_len)) # (batch_size, seq_len)
 
-		for idx, frames in enumerate(spec_stacked):
+		for idx in range(len(spec_stacked)):
 			
 			chose_proportion = int(spec_len[idx]*self.mask_proportion) # chooses % of the frame positions at random for prediction
 			sub_mask_proportion = int(chose_proportion*0.8) # replace the i-th frame with (1) the [MASK] frame 80% of the time
@@ -256,7 +257,6 @@ class Trainer(Solver):
 			chosen_index = sample_index[:chose_proportion]
 			masked_index = chosen_index[:sub_mask_proportion]
 
-			spec_masked[idx] = copy.deepcopy(frames.data.numpy())
 			if sub_rand_proportion > 0:
 				random_index = chosen_index[-sub_rand_proportion:]
 				random_frames = sample_index[-sub_rand_proportion:]
@@ -269,7 +269,7 @@ class Trainer(Solver):
 			pos_enc[idx][spec_len[idx]:] = 0  
 			attn_mask[idx][spec_len[idx]:] = 0 
 
-		spec_masked = torch.FloatTensor(spec_masked).to(device=self.device, dtype=torch.float32)
+		spec_masked = spec_masked.to(device=self.device, dtype=torch.float32)
 		pos_enc = torch.FloatTensor(pos_enc).to(device=self.device, dtype=torch.float32)
 		mask_label = torch.ByteTensor(mask_label).to(device=self.device, dtype=torch.uint8)
 		attn_mask = torch.FloatTensor(attn_mask).to(device=self.device, dtype=torch.float32)
@@ -281,6 +281,7 @@ class Trainer(Solver):
 		''' Training Unsupervised End-to-end Mockingjay Model'''
 		self.verbose('Training set total ' + str(len(self.dataloader)) + ' batches.')
 
+		pbar = tqdm(total=self.total_steps)
 		while self.global_step <= self.total_steps:
 
 			progress = tqdm(self.dataloader, desc="Iteration")
@@ -325,10 +326,12 @@ class Trainer(Solver):
 					self.save_model('mockingjay')
 					self.best_loss = loss.item()
 					spec_to_plot = self.up_sample_frames(pred_spec)
-					spec_to_plot = plot_spectrogram_to_numpy(spec_to_plot[0])
+					spec_to_plot = plot_spectrogram_to_numpy(spec_to_plot[0].data.cpu().numpy())
 					self.log.add_image('pred_spec', spec_to_plot, self.global_step)
 
 				self.global_step += 1
+				pbar.update(1)
 
+		pbar.close()
 		self.reset_train()
 		

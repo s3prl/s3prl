@@ -15,8 +15,8 @@
 import librosa
 import numpy as np
 import matplotlib
-import matplotlib.pylab as plt
 matplotlib.use("Agg")
+import matplotlib.pylab as plt
 import warnings
 warnings.filterwarnings("ignore")
 # NOTE: there are warnings for MFCC extraction due to librosa's issue

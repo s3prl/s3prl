@@ -36,7 +36,7 @@ def get_mockingjay_args():
 	parser.add_argument('--logdir', default='log_mockingjay/', type=str, help='Logging path.', required=False)
 	parser.add_argument('--ckpdir', default='result_mockingjay/', type=str, help='Checkpoint/Result path.', required=False)
 
-	parser.add_argument('--name', default=None, type=str, help='Name for logging.')
+	parser.add_argument('--name', default=None, type=str, help='Name for logging.', required=False)
 	parser.add_argument('--load', default=None, type=str, help='Load pre-trained model', required=False)
 	parser.add_argument('--seed', default=1337, type=int, help='Random seed for reproducable results.', required=False)
 	# parser.add_argument('--njobs', default=1, type=int, help='Number of threads for decoding.', required=False)
