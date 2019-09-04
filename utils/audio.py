@@ -76,9 +76,9 @@ def plot_spectrogram_to_numpy(spectrogram):
 		# save it to a numpy array.
 		data = np.fromstring(fig.canvas.tostring_rgb(), dtype=np.uint8, sep='')
 		data = data.reshape(fig.canvas.get_width_height()[::-1] + (3,))
-		return data.transpose(2, 0, 1)
+		return data.transpose(2, 1, 0) # (Width, Height, Channel) -> (Channel, Height, Width)
 	
-	fig, ax = plt.subplots(figsize=(12, 3))
+	fig, ax = plt.subplots(figsize=(3, 12))
 	im = ax.imshow(spectrogram, aspect="auto", origin="lower",
 				   interpolation='none')
 	plt.colorbar(im, ax=ax)
