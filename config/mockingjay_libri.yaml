@@ -29,7 +29,7 @@ solver:
   apex: False                                 # Use APEX (see https://github.com/NVIDIA/apex for more details)
   train_set: ['train-clean-360']              #
   log_step: 100                               # log training status every this amount of training steps
-  batch_size: 12                              # training batch size
+  batch_size: 8                               # training batch size
   total_steps: 1000000                        # total steps for training, a step is a batch of update
   mask_proportion: 0.15                       # mask this percentage of all spectrogram frames in each sequence at random during MAM training                        
 
