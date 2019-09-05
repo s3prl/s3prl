@@ -78,8 +78,8 @@ def plot_spectrogram_to_numpy(spectrogram):
 		data = data.reshape(fig.canvas.get_width_height()[::-1] + (3,))
 		return data.transpose(2, 1, 0) # (Width, Height, Channel) -> (Channel, Height, Width)
 	
-	fig, ax = plt.subplots(figsize=(3, 12))
-	im = ax.imshow(spectrogram, aspect="auto", origin="lower",
+	fig, ax = plt.subplots(figsize=(12, 3))
+	im = ax.imshow(spectrogram.transpose(1, 0), aspect="auto", origin="lower",
 				   interpolation='none')
 	plt.colorbar(im, ax=ax)
 	plt.xlabel("Frames")
