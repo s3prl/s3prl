@@ -42,9 +42,9 @@ class Solver():
 		self.exp_name = paras.name
 		if self.exp_name is None:
 			self.exp_name = '_'.join([paras.config.split('/')[-1].replace('.yaml',''),'sd'+str(paras.seed)])
-		if not os.path.exists(paras.ckpdir):os.makedirs(paras.ckpdir)
-		self.ckpdir = os.path.join(paras.ckpdir,self.exp_name)
-		if not os.path.exists(self.ckpdir):os.makedirs(self.ckpdir)
+		if not os.path.exists(paras.ckpdir): os.makedirs(paras.ckpdir)
+		self.ckpdir = os.path.join(paras.ckpdir, self.exp_name)
+		if not os.path.exists(self.ckpdir): os.makedirs(self.ckpdir)
 		self.load = paras.load
 
 		if torch.cuda.is_available(): self.verbose('CUDA is available!')
@@ -66,18 +66,18 @@ class Solver():
 
 	def save_model(self, name, model_all=True):
 		if model_all:
-			all_model = {
+			all_states = {
 				'SpecHead': self.model.SpecHead.state_dict(),
 				'Mockingjay': self.model.Mockingjay.state_dict(),
 				"Optimizer": self.optimizer.state_dict(),
 				"Global_step": self.global_step,
 			}
 		else:
-			all_model = {
+			all_states = {
 				'Mockingjay': self.model.Mockingjay.state_dict(),
 			}
 		new_model_path = '{}/{}-{}'.format(self.ckpdir, name, self.global_step)
-		torch.save(all_model, new_model_path)
+		torch.save(all_states, new_model_path)
 		self.model_kept.append(new_model_path)
 
 		if len(self.model_kept) >= self.max_keep:
@@ -87,32 +87,77 @@ class Solver():
 
 	def load_model(self, verbose=True):
 		verbose('Load model from {}'.format(os.path.join(self.ckpdir, self.load)))
-		all_model = torch.load(os.path.join(self.ckpdir, self.load))
+		all_states = torch.load(os.path.join(self.ckpdir, self.load), map_location='cpu')
 		verbose('', end = '')
 		if 'SpecHead' in self.load_model_list:
 			try:
-				self.model.SpecHead.load_state_dict(all_model['SpecHead'])
+				self.model.SpecHead.load_state_dict(all_states['SpecHead'])
 				verbose('[SpecHead], ', end = '')
 			except: verbose('[SpecHead - X], ', end = '')
 		if 'Mockingjay' in self.load_model_list:
 			try:
-				self.model.Mockingjay.load_state_dict(all_model['Mockingjay'])
+				state_dict = all_states['Mockingjay']
+				# Load from a PyTorch state_dict
+				old_keys = []
+				new_keys = []
+				for key in state_dict.keys():
+					new_key = None
+					if 'gamma' in key:
+						new_key = key.replace('gamma', 'weight')
+					if 'beta' in key:
+						new_key = key.replace('beta', 'bias')
+					if new_key:
+						old_keys.append(key)
+						new_keys.append(new_key)
+				for old_key, new_key in zip(old_keys, new_keys):
+					state_dict[new_key] = state_dict.pop(old_key)
+
+				missing_keys = []
+				unexpected_keys = []
+				error_msgs = []
+				# copy state_dict so _load_from_state_dict can modify it
+				metadata = getattr(state_dict, '_metadata', None)
+				state_dict = state_dict.copy()
+				if metadata is not None:
+					state_dict._metadata = metadata
+
+				def load(module, prefix=''):
+					local_metadata = {} if metadata is None else metadata.get(prefix[:-1], {})
+					module._load_from_state_dict(
+						state_dict, prefix, local_metadata, True, missing_keys, unexpected_keys, error_msgs)
+					for name, child in module._modules.items():
+						if child is not None:
+							load(child, prefix + name + '.')
+
+				load(self.mockingjay)
+				if len(missing_keys) > 0:
+					verbose("Weights of {} not initialized from pretrained model: {}".format(
+						self.mockingjay.__class__.__name__, missing_keys))
+				if len(unexpected_keys) > 0:
+					verbose("Weights from pretrained model not used in {}: {}".format(
+						self.mockingjay.__class__.__name__, unexpected_keys))
+				if len(error_msgs) > 0:
+					raise RuntimeError('Error(s) in loading state_dict for {}:\n\t{}'.format(
+									   self.mockingjay.__class__.__name__, "\n\t".join(error_msgs)))
 				verbose('[Mockingjay], ', end = '')
 			except: verbose('[Mockingjay - X], ', end = '')
+
 		if 'Optimizer' in self.load_model_list:
 			try:
-				self.optimizer.load_state_dict(all_model['Optimizer'])
+				self.optimizer.load_state_dict(all_states['Optimizer'])
 				for state in self.optimizer.state.values():
 					for k, v in state.items():
 						if torch.is_tensor(v):
 							state[k] = v.cuda()
 				verbose('[Optimizer], ', end = '')
 			except: verbose('[Optimizer - X], ', end = '')
+
 		if 'Global_step' in self.load_model_list:
 			try:
-				self.global_step = all_model['Global_step']
+				self.global_step = all_states['Global_step']
 				verbose('[Global_step], ', end = '')
 			except: verbose('[Global_step - X], ', end = '')
+
 		verbose('Loaded!')
 
 
@@ -152,6 +197,7 @@ class Trainer(Solver):
 		self.model_config = MockingjayConfig(self.config)
 		self.model = MockingjayForMaskedAcousticModel(self.model_config, self.x_sample).to(self.device)
 		self.model.train()
+		self.mockingjay = self.model.Mockingjay
 		self.dr = self.model_config.downsample_rate
 		self.hidden_size = self.model_config.hidden_size
 			
@@ -191,9 +237,12 @@ class Trainer(Solver):
 		if self.load is not None:
 			self.load_model()
 
-	def up_sample_frames(self, spec):
-		if len(spec.shape) != 3: spec = spec.unsqueeze(0)
+	def up_sample_frames(self, spec, return_first=False):
+		if len(spec.shape) != 3: 
+			spec = spec.unsqueeze(0)
+			assert(len(spec.shape) == 3), 'Input should have acoustic feature of shape BxTxD'
 		spec_flatten = spec.view(spec.shape[0], spec.shape[1]*self.dr, spec.shape[2]//self.dr)
+		if return_first: return spec_flatten[0]
 		return spec_flatten
 
 	def down_sample_frames(self, spec):
@@ -325,9 +374,12 @@ class Trainer(Solver):
 				if self.global_step % self.save_step == 0 and loss.item() < self.best_loss:
 					self.save_model('mockingjay')
 					self.best_loss = loss.item()
-					spec_to_plot = self.up_sample_frames(pred_spec)
-					spec_to_plot = plot_spectrogram_to_numpy(spec_to_plot[0].data.cpu().numpy())
-					self.log.add_image('pred_spec', spec_to_plot, self.global_step)
+					pred_spec = self.up_sample_frames(pred_spec[0], return_first=True)
+					true_spec = self.up_sample_frames(spec_stacked[0], return_first=True)
+					pred_spec = plot_spectrogram_to_numpy(pred_spec.data.cpu().numpy())
+					true_spec = plot_spectrogram_to_numpy(true_spec.data.cpu().numpy())
+					self.log.add_image('pred_spec', pred_spec, self.global_step)
+					self.log.add_image('true_spec', true_spec, self.global_step)
 
 				self.global_step += 1
 				pbar.update(1)
