@@ -44,20 +44,13 @@ You may check the parameter type and default value by using the option ```--help
 
 All the parameters related to training/decoding will be stored in a yaml file. Hyperparameter tuning and massive experiment and can be managed easily this way. See [documentation and examples](config/) for the exact format. **Note that the example configs provided were not fine-tuned**, you may want to write your own config for best performance.
 
-### Step 2. Training End-to-end ASR (or RNN-LM) Learning
+### Step 2. Training the Mockingjay Model for Speech Representation Learning
 
-Once the config file is ready, run the following command to train end-to-end ASR (or language model)
+Once the config file is ready, run the following command to train unsupervised end-to-end Mockingjay.
 ```
-python3 runner_asr.py --config <path of config file> 
+python3 runner_mockingjay.py
 ```
-All settings will be parsed from the config file automatically to start training, the log file can be accessed through TensorBoard. ***Please notice that the error rate reported on the TensorBoard is biased (see issue #10), you should run the testing phase in order to get the true performance of model***. For example, train an ASR on LibriSpeech and watch the log with
-```
-python3 runner_asr.py --config config/asr_libri.yaml
-# open TensorBoard to see log
-tensorboard --logdir log/
-# Train an external language model
-python3 runner_asr.py --config config/rnnlm_libri.yaml --rnnlm
-```
+All settings will be parsed from the config file automatically to start training, the log file can be accessed through TensorBoard.
 
 ### Step 3. Testing - Speech Recognition & Performance Evaluation
 
@@ -70,6 +63,14 @@ Recognition result will be stored at `result/<name>/` as a txt file with auto-na
 python3 runner_asr.py --config config/asr_libri.yaml --test
 # Check WER/CER
 python3 runner_asr.py --file result/libri_example_sd0/decode_*.txt
+```
+
+### Step 4. Monitor Training Log
+```
+# open TensorBoard to see log
+tensorboard --logdir=log_mockingjay/mockingjay_libri_sd1337/
+# or
+python3 -m tensorboard.main --logdir=log_mockingjay/mockingjay_libri_sd1337/
 ```
 
 ## ToDo
