@@ -46,6 +46,7 @@ class Solver():
 		self.ckpdir = os.path.join(paras.ckpdir, self.exp_name)
 		if not os.path.exists(self.ckpdir): os.makedirs(self.ckpdir)
 		self.load = paras.load
+		self.ckpt = paras.ckpt
 
 		if torch.cuda.is_available(): self.verbose('CUDA is available!')
 		self.load_model_list = config['solver']['load_model_list']
@@ -115,7 +116,7 @@ class Solver():
 										warmup=self.warmup_proportion,
 										t_total=num_train_optimization_steps)
 
-		if self.load is not None:
+		if self.load:
 			self.load_model()
 
 
@@ -131,7 +132,7 @@ class Solver():
 			all_states = {
 				'Mockingjay': self.model.Mockingjay.state_dict(),
 			}
-		new_model_path = '{}/{}-{}'.format(self.ckpdir, name, self.global_step)
+		new_model_path = '{}/{}-{}.ckpt'.format(self.ckpdir, name, self.global_step)
 		torch.save(all_states, new_model_path)
 		self.model_kept.append(new_model_path)
 
@@ -141,8 +142,8 @@ class Solver():
 
 
 	def load_model(self, verbose=True):
-		verbose('Load model from {}'.format(os.path.join(self.ckpdir, self.load)))
-		all_states = torch.load(os.path.join(self.ckpdir, self.load), map_location='cpu')
+		verbose('Load model from {}'.format(os.path.join(self.ckpdir, self.ckpt)))
+		all_states = torch.load(os.path.join(self.ckpdir, self.ckpt), map_location='cpu')
 		verbose('', end = '')
 		if 'SpecHead' in self.load_model_list:
 			try:

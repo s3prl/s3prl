@@ -31,19 +31,24 @@ def get_mockingjay_args():
 	
 	parser = argparse.ArgumentParser(description='Training E2E asr.')
 	
+	# setting
 	parser.add_argument('--config', default='config/mockingjay_libri.yaml', type=str, help='Path to experiment config.')
-	parser.add_argument('--logdir', default='log_mockingjay/', type=str, help='Logging path.', required=False)
-	parser.add_argument('--ckpdir', default='result_mockingjay/', type=str, help='Checkpoint/Result path.', required=False)
-
-	parser.add_argument('--name', default=None, type=str, help='Name for logging.', required=False)
-	parser.add_argument('--load', default=None, type=str, help='Load pre-trained model', required=False)
 	parser.add_argument('--seed', default=1337, type=int, help='Random seed for reproducable results.', required=False)
+
+	# Logging
+	parser.add_argument('--logdir', default='log_mockingjay/', type=str, help='Logging path.', required=False)
+	parser.add_argument('--name', default=None, type=str, help='Name for logging.', required=False)
+
+	# model ckpt
+	parser.add_argument('--load', action='store_true', help='Load pre-trained model')
+	parser.add_argument('--ckpdir', default='result_mockingjay/', type=str, help='Checkpoint/Result path.', required=False)
+	parser.add_argument('--ckpt', default='mockingjay_libri_sd1337/mockingjay-689400.ckpt', type=str, help='path to model checkpoint', required=False)
 	# parser.add_argument('--njobs', default=1, type=int, help='Number of threads for decoding.', required=False)
 
-	parser.add_argument('--cpu', action='store_true', help='Disable GPU training.')
+	# modes
 	parser.add_argument('--test', action='store_true', help='Test the model.')
+	parser.add_argument('--cpu', action='store_true', help='Disable GPU training.')
 	parser.add_argument('--no-msg', action='store_true', help='Hide all messages.')
-	# parser.add_argument('--rnnlm', action='store_true', help='Option for training RNNLM.')
 
 	# parser.add_argument('--eval', action='store_true', help='Eval the model on test results.')
 	# parser.add_argument('--file', type=str, help='Path to decode result file.')
