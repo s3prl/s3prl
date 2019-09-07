@@ -1,10 +1,9 @@
 # -*- coding: utf-8 -*- #
 """*********************************************************************************************"""
 #   FileName     [ mockingjay/solver.py ]
-#   Synopsis     [ solver for the mockingjay model]
+#   Synopsis     [ solvers for the mockingjay model: trainer / tester ]
 #   Author       [ Andy T. Liu (Andi611) ]
 #   Copyright    [ Copyleft(c), Speech Lab, NTU, Taiwan ]
-#   Reference 1  [ https://github.com/Alexander-H-Liu/End-to-end-ASR-Pytorch ]
 """*********************************************************************************************"""
 
 
@@ -16,14 +15,12 @@ import torch
 import copy
 import math
 import random
-import itertools
 import numpy as np
 from tqdm import tqdm, trange
 import torch.nn.functional as F
-from joblib import Parallel, delayed
 from tensorboardX import SummaryWriter
 from dataloader import get_Dataloader
-from mockingjay.model import MockingjayConfig, MockingjayForMaskedAcousticModel
+from mockingjay.model import MockingjayConfig, MockingjayModel, MockingjayForMaskedAcousticModel
 from mockingjay.optimization import BertAdam, WarmupLinearSchedule
 from utils.audio import plot_spectrogram_to_numpy
 
@@ -76,9 +73,15 @@ class Solver():
 		
 		# # Build the Mockingjay model with speech prediction head
 		self.model_config = MockingjayConfig(self.config)
-		self.model = MockingjayForMaskedAcousticModel(self.model_config, self.x_sample).to(self.device)
-		self.model.train() if not inference else self.model.eval()
-		self.mockingjay = self.model.Mockingjay
+		if inference:
+			self.mockingjay = MockingjayModel(self.model_config, self.x_sample).to(self.device)
+			self.mockingjay.eval()
+		else:
+			self.model = MockingjayForMaskedAcousticModel(self.model_config, self.x_sample).to(self.device)
+			self.mockingjay = self.model.Mockingjay
+			self.model.train()
+
+		 if not inference else 
 		self.dr = self.model_config.downsample_rate
 		self.hidden_size = self.model_config.hidden_size
 		
@@ -124,13 +127,13 @@ class Solver():
 		if model_all:
 			all_states = {
 				'SpecHead': self.model.SpecHead.state_dict(),
-				'Mockingjay': self.model.Mockingjay.state_dict(),
+				'Mockingjay': self.mockingjay.state_dict(),
 				"Optimizer": self.optimizer.state_dict(),
 				"Global_step": self.global_step,
 			}
 		else:
 			all_states = {
-				'Mockingjay': self.model.Mockingjay.state_dict(),
+				'Mockingjay': self.mockingjay.state_dict(),
 			}
 		new_model_path = '{}/{}-{}.ckpt'.format(self.ckpdir, name, self.global_step)
 		torch.save(all_states, new_model_path)
@@ -439,6 +442,11 @@ class Tester(Solver):
 
 	def exec(self):
 		''' Training Unsupervised End-to-end Mockingjay Model'''
-		self.verbose('Training set total ' + str(len(self.dataloader)) + ' batches.')
+		self.verbose('Testing set total ' + str(len(self.dataloader)) + ' batches.')
 
-		pbar = tqdm(total=self.total_steps)
+		for x in tqdm(self.dataloader, desc="Testing"):
+				spec_stacked, pos_enc, attn_mask = self.process_MAM_data(spec=x)
+				#TODO loss, pred_spec = self.mockingjay(spec_masked, pos_enc, mask_label, attn_mask, spec_stacked)
+
+		
+
