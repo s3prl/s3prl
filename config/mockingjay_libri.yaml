@@ -35,7 +35,7 @@ solver:
 
   # Validation options
   dev_set: ['dev-clean']                      
-  dev_batch_size: 4                             
+  dev_batch_size: 8                             
   dev_step: 2000
 
   # testing options

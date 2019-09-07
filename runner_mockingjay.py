@@ -16,7 +16,6 @@ import random
 import argparse
 import numpy as np
 import pandas as pd
-from mockingjay.solver import Trainer as Solver
 
 
 # Make cudnn CTC deterministic
@@ -42,7 +41,7 @@ def get_mockingjay_args():
 	# parser.add_argument('--njobs', default=1, type=int, help='Number of threads for decoding.', required=False)
 
 	parser.add_argument('--cpu', action='store_true', help='Disable GPU training.')
-	# parser.add_argument('--test', action='store_true', help='Test the model.')
+	parser.add_argument('--test', action='store_true', help='Test the model.')
 	parser.add_argument('--no-msg', action='store_true', help='Hide all messages.')
 	# parser.add_argument('--rnnlm', action='store_true', help='Option for training RNNLM.')
 
@@ -71,10 +70,18 @@ def main():
 	torch.manual_seed(args.seed)
 	if torch.cuda.is_available(): torch.cuda.manual_seed_all(args.seed)
 
-	solver = Solver(config, args)
-	solver.load_data()
-	solver.set_model()
-	solver.exec()
+	if not args.test:
+		from mockingjay.solver import Trainer
+		trainer = Trainer(config, args)
+		trainer.load_data(dataset='train')
+		trainer.set_model(inference=False)
+		trainer.exec()
+	else:
+		from mockingjay.solver import Tester
+		tester = Tester(config, args)
+		tester.load_data(dataset='test')
+		tester.set_model(inference=True)
+		tester.exec()
 
 
 if __name__ == '__main__':

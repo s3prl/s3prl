@@ -49,8 +49,7 @@ class Solver():
 
 		if torch.cuda.is_available(): self.verbose('CUDA is available!')
 		self.load_model_list = config['solver']['load_model_list']
-		self.max_keep = config['solver']['max_keep']
-		self.reset_train()
+		self.x_sample = None
 
 
 	def verbose(self, msg, end='\r'):
@@ -58,10 +57,66 @@ class Solver():
 		if self.paras.verbose:
 			print('[SOLVER] - ', msg, end)
 
-	def reset_train(self):
-		self.model_kept = []
-		self.global_step = 1
-		self.best_loss = 999.9
+
+	def load_data(self, dataset='train'):
+		''' Load date for training/validation'''
+		if dataset == 'train': self.verbose('Loading data from ' + self.config['solver']['data_path'])
+		else: self.verbose('Loading testing data ' + str(self.config['solver']['test_set']) + ' from ' + self.config['solver']['data_path'])
+		setattr(self, 'dataloader', get_Dataloader(dataset, load='spec', use_gpu=self.paras.gpu, **self.config['solver']))
+		
+		# Get 1 example for auto constructing model
+		for self.x_sample in getattr(self, 'dataloader'): break
+		if len(self.x_sample.shape) == 4: self.x_sample = self.x_sample[0]
+
+
+	def set_model(self, inference=False):
+		self.verbose('Initializing Mockingjay model.')
+		assert(self.x_sample is not None), 'Run load_data() to get input feature shape before initializing model.'
+		
+		# # Build the Mockingjay model with speech prediction head
+		self.model_config = MockingjayConfig(self.config)
+		self.model = MockingjayForMaskedAcousticModel(self.model_config, self.x_sample).to(self.device)
+		self.model.train() if not inference else self.model.eval()
+		self.mockingjay = self.model.Mockingjay
+		self.dr = self.model_config.downsample_rate
+		self.hidden_size = self.model_config.hidden_size
+		
+		if not inference:
+			# Setup optimizer
+			param_optimizer = list(self.model.named_parameters())
+
+			no_decay = ['bias', 'LayerNorm.bias', 'LayerNorm.weight']
+			optimizer_grouped_parameters = [
+				{'params': [p for n, p in param_optimizer if not any(nd in n for nd in no_decay)], 'weight_decay': 0.01},
+				{'params': [p for n, p in param_optimizer if any(nd in n for nd in no_decay)], 'weight_decay': 0.0}
+				]
+			num_train_optimization_steps = self.total_steps // self.gradient_accumulation_steps
+
+			if self.apex:
+				try:
+					from apex.optimizers import FP16_Optimizer
+					from apex.optimizers import FusedAdam
+				except ImportError:
+					raise ImportError("Please install apex from https://www.github.com/nvidia/apex to use distributed and fp16 training.")
+
+				optimizer = FusedAdam(optimizer_grouped_parameters,
+									  lr=self.learning_rate,
+									  bias_correction=False,
+									  max_grad_norm=1.0)
+				if self.config['optimizer']['loss_scale'] == 0:
+					self.optimizer = FP16_Optimizer(optimizer, dynamic_loss_scale=True)
+				else:
+					self.optimizer = FP16_Optimizer(optimizer, static_loss_scale=self.config['optimizer']['loss_scale'])
+				self.warmup_linear = WarmupLinearSchedule(warmup=self.warmup_proportion,
+														  t_total=num_train_optimization_steps)
+			else:
+				self.optimizer = BertAdam(optimizer_grouped_parameters,
+										lr=self.learning_rate,
+										warmup=self.warmup_proportion,
+										t_total=num_train_optimization_steps)
+
+		if self.load is not None:
+			self.load_model()
 
 
 	def save_model(self, name, model_all=True):
@@ -161,82 +216,6 @@ class Solver():
 		verbose('Loaded!')
 
 
-class Trainer(Solver):
-	''' Handler for complete training progress'''
-	def __init__(self, config, paras):
-		super(Trainer, self).__init__(config,paras)
-		# Logger Settings
-		self.logdir = os.path.join(paras.logdir, self.exp_name)
-		self.log = SummaryWriter(self.logdir)
-
-		# Training details
-		self.apex = config['solver']['apex']
-		self.log_step = config['solver']['log_step']
-		self.save_step = config['solver']['save_step']
-		self.total_steps = config['solver']['total_steps']
-		self.mask_proportion = config['solver']['mask_proportion']
-		self.learning_rate = float(self.config['optimizer']['learning_rate'])
-		self.warmup_proportion = self.config['optimizer']['warmup_proportion']
-		self.gradient_accumulation_steps = self.config['optimizer']['gradient_accumulation_steps']
-		self.gradient_clipping = self.config['optimizer']['gradient_clipping']
-
-
-	def load_data(self):
-		''' Load date for training/validation'''
-		self.verbose('Loading data from ' + self.config['solver']['data_path'])
-		setattr(self, 'dataloader', get_Dataloader('train', load='spec', use_gpu=self.paras.gpu, **self.config['solver']))
-		
-		# Get 1 example for auto constructing model
-		for self.x_sample in getattr(self, 'dataloader'): break
-		if len(self.x_sample.shape) == 4: self.x_sample = self.x_sample[0]
-
-	def set_model(self):
-		self.verbose('Initializing Mockingjay model.')
-		
-		# # Build the Mockingjay model with speech prediction head
-		self.model_config = MockingjayConfig(self.config)
-		self.model = MockingjayForMaskedAcousticModel(self.model_config, self.x_sample).to(self.device)
-		self.model.train()
-		self.mockingjay = self.model.Mockingjay
-		self.dr = self.model_config.downsample_rate
-		self.hidden_size = self.model_config.hidden_size
-			
-		# Setup optimizer
-		param_optimizer = list(self.model.named_parameters())
-
-		no_decay = ['bias', 'LayerNorm.bias', 'LayerNorm.weight']
-		optimizer_grouped_parameters = [
-			{'params': [p for n, p in param_optimizer if not any(nd in n for nd in no_decay)], 'weight_decay': 0.01},
-			{'params': [p for n, p in param_optimizer if any(nd in n for nd in no_decay)], 'weight_decay': 0.0}
-			]
-		num_train_optimization_steps = self.total_steps // self.gradient_accumulation_steps
-
-		if self.apex:
-			try:
-				from apex.optimizers import FP16_Optimizer
-				from apex.optimizers import FusedAdam
-			except ImportError:
-				raise ImportError("Please install apex from https://www.github.com/nvidia/apex to use distributed and fp16 training.")
-
-			optimizer = FusedAdam(optimizer_grouped_parameters,
-								  lr=self.learning_rate,
-								  bias_correction=False,
-								  max_grad_norm=1.0)
-			if self.config['optimizer']['loss_scale'] == 0:
-				self.optimizer = FP16_Optimizer(optimizer, dynamic_loss_scale=True)
-			else:
-				self.optimizer = FP16_Optimizer(optimizer, static_loss_scale=self.config['optimizer']['loss_scale'])
-			self.warmup_linear = WarmupLinearSchedule(warmup=self.warmup_proportion,
-													  t_total=num_train_optimization_steps)
-		else:
-			self.optimizer = BertAdam(optimizer_grouped_parameters,
-									lr=self.learning_rate,
-									warmup=self.warmup_proportion,
-									t_total=num_train_optimization_steps)
-
-		if self.load is not None:
-			self.load_model()
-
 	def up_sample_frames(self, spec, return_first=False):
 		if len(spec.shape) != 3: 
 			spec = spec.unsqueeze(0)
@@ -244,6 +223,7 @@ class Trainer(Solver):
 		spec_flatten = spec.view(spec.shape[0], spec.shape[1]*self.dr, spec.shape[2]//self.dr)
 		if return_first: return spec_flatten[0]
 		return spec_flatten
+
 
 	def down_sample_frames(self, spec):
 		left_over = spec.shape[1] % self.dr
@@ -273,6 +253,33 @@ class Trainer(Solver):
 			return batch_sinusoid_table # (batch_size, seq_len, hidden_size)
 		else:
 			return sinusoid_table  # (seq_len, hidden_size)
+
+
+class Trainer(Solver):
+	''' Handler for complete training progress'''
+	def __init__(self, config, paras):
+		super(Trainer, self).__init__(config,paras)
+		# Logger Settings
+		self.logdir = os.path.join(paras.logdir, self.exp_name)
+		self.log = SummaryWriter(self.logdir)
+
+		# Training details
+		self.apex = config['solver']['apex']
+		self.log_step = config['solver']['log_step']
+		self.save_step = config['solver']['save_step']
+		self.total_steps = config['solver']['total_steps']
+		self.mask_proportion = config['solver']['mask_proportion']
+		self.learning_rate = float(self.config['optimizer']['learning_rate'])
+		self.warmup_proportion = self.config['optimizer']['warmup_proportion']
+		self.gradient_accumulation_steps = self.config['optimizer']['gradient_accumulation_steps']
+		self.gradient_clipping = self.config['optimizer']['gradient_clipping']
+		self.max_keep = config['solver']['max_keep']
+		self.reset_train()
+
+	def reset_train(self):
+		self.model_kept = []
+		self.global_step = 1
+		self.best_loss = 999.9
 
 
 	def process_MAM_data(self, spec):
@@ -387,3 +394,50 @@ class Trainer(Solver):
 		pbar.close()
 		self.reset_train()
 		
+
+
+
+class Tester(Solver):
+	''' Handler for complete testing progress'''
+	def __init__(self, config, paras):
+		super(Tester, self).__init__(config,paras)
+		# Logger Settings
+		self.logdir = os.path.join(paras.logdir, self.exp_name)
+		self.log = SummaryWriter(self.logdir)
+
+
+	def process_MAM_data(self, spec):
+		"""Process training data for the masked acoustic model"""
+		# Hack bucket
+		assert(len(spec.shape) == 4), 'Bucketing should cause acoustic feature to have shape 1xBxTxD'
+		spec = spec.squeeze(0)
+
+		# Down sample
+		spec_stacked = self.down_sample_frames(spec) # (batch_size, seq_len, mel_dim * dr)
+
+		# Record length for each uttr
+		spec_len = np.sum(np.sum(spec_stacked.data.numpy(), axis=-1) != 0, axis=-1)
+		spec_len = [int(sl) for sl in spec_len]
+
+		batch_size = spec_stacked.shape[0]
+		seq_len = spec_stacked.shape[1]
+
+		pos_enc = self.position_encoding(seq_len, batch_size) # (batch_size, seq_len, hidden_size)
+		attn_mask = np.ones((batch_size, seq_len)) # (batch_size, seq_len)
+
+		# zero vectors for padding dimension
+		for idx in range(len(spec_stacked)):
+			pos_enc[idx][spec_len[idx]:] = 0  
+			attn_mask[idx][spec_len[idx]:] = 0 
+
+		spec_stacked = spec_stacked.to(device=self.device, dtype=torch.float32)
+		pos_enc = torch.FloatTensor(pos_enc).to(device=self.device, dtype=torch.float32)
+		attn_mask = torch.FloatTensor(attn_mask).to(device=self.device, dtype=torch.float32)
+		return spec_stacked, pos_enc, attn_mask # (x, pos_enc, attention_mask)
+
+
+	def exec(self):
+		''' Training Unsupervised End-to-end Mockingjay Model'''
+		self.verbose('Training set total ' + str(len(self.dataloader)) + ' batches.')
+
+		pbar = tqdm(total=self.total_steps)
