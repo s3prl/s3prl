@@ -120,7 +120,7 @@ class Solver():
 										t_total=num_train_optimization_steps)
 
 		if self.load:
-			self.load_model()
+			self.load_model(inference=inference)
 
 
 	def save_model(self, name, model_all=True):
@@ -144,11 +144,11 @@ class Solver():
 			self.model_kept.pop(0)
 
 
-	def load_model(self, verbose=True):
+	def load_model(self, verbose=True, inference=False):
 		verbose('Load model from {}'.format(os.path.join(self.ckpdir, self.ckpt)))
 		all_states = torch.load(os.path.join(self.ckpdir, self.ckpt), map_location='cpu')
 		verbose('', end = '')
-		if 'SpecHead' in self.load_model_list:
+		if 'SpecHead' in self.load_model_list and not inference:
 			try:
 				self.model.SpecHead.load_state_dict(all_states['SpecHead'])
 				verbose('[SpecHead], ', end = '')
@@ -201,7 +201,7 @@ class Solver():
 				verbose('[Mockingjay], ', end = '')
 			except: verbose('[Mockingjay - X], ', end = '')
 
-		if 'Optimizer' in self.load_model_list:
+		if 'Optimizer' in self.load_model_list and not inference:
 			try:
 				self.optimizer.load_state_dict(all_states['Optimizer'])
 				for state in self.optimizer.state.values():
@@ -211,7 +211,7 @@ class Solver():
 				verbose('[Optimizer], ', end = '')
 			except: verbose('[Optimizer - X], ', end = '')
 
-		if 'Global_step' in self.load_model_list:
+		if 'Global_step' in self.load_model_list and not inference:
 			try:
 				self.global_step = all_states['Global_step']
 				verbose('[Global_step], ', end = '')
