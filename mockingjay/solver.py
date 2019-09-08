@@ -73,6 +73,9 @@ class Solver():
 		
 		# # Build the Mockingjay model with speech prediction head
 		self.model_config = MockingjayConfig(self.config)
+		self.dr = self.model_config.downsample_rate
+		self.hidden_size = self.model_config.hidden_size
+		
 		if inference:
 			self.mockingjay = MockingjayModel(self.model_config, self.x_sample).to(self.device)
 			self.mockingjay.eval()
@@ -81,11 +84,6 @@ class Solver():
 			self.mockingjay = self.model.Mockingjay
 			self.model.train()
 
-		 if not inference else 
-		self.dr = self.model_config.downsample_rate
-		self.hidden_size = self.model_config.hidden_size
-		
-		if not inference:
 			# Setup optimizer
 			param_optimizer = list(self.model.named_parameters())
 
