@@ -46,23 +46,17 @@ All the parameters related to training/decoding will be stored in a yaml file. H
 
 ### Step 2. Training the Mockingjay Model for Speech Representation Learning
 
-Once the config file is ready, run the following command to train unsupervised end-to-end Mockingjay.
+Once the config file is ready, run the following command to train unsupervised end-to-end Mockingjay:
 ```
 python3 runner_mockingjay.py
 ```
 All settings will be parsed from the config file automatically to start training, the log file can be accessed through TensorBoard.
 
-### Step 3. Testing - Speech Recognition & Performance Evaluation
+### Step 3. Loading Pre-trained Models and Testing
 
-Once a model was trained, run the following command to test it
+Once a model was trained, run the following command to test it:
 ```
-python3 runner_asr.py --config <path of config file> --test
-```
-Recognition result will be stored at `result/<name>/` as a txt file with auto-naming according to the decoding parameters specified in config file. The result file may be evaluated with `eval.py`. For example, test the ASR trained on LibriSpeech and check performance with
-```
-python3 runner_asr.py --config config/asr_libri.yaml --test
-# Check WER/CER
-python3 runner_asr.py --file result/libri_example_sd0/decode_*.txt
+python3 runner_mockingjay.py --test
 ```
 
 ### Step 4. Monitor Training Log
@@ -87,10 +81,10 @@ python3 -m tensorboard.main --logdir=log_mockingjay/mockingjay_libri_sd1337/
 ## Citation
 ```
 @inproceedings{,
-  title={},
+  title={Mockingjay: Speech Representation Learning through Self-Imitation},
   author={Liu, Andy T. and Lee, Hung-yi},
   booktitle={},
   year={2019},
-  organization={}
+  organization={College of Electrical Engineering and Computer Science, National Taiwan University}
 }
 ```

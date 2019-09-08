@@ -348,6 +348,7 @@ class Trainer(Solver):
 
 			for step, x in enumerate(progress):
 
+				pbar.update(1)
 				spec_masked, pos_enc, mask_label, attn_mask, spec_stacked = self.process_MAM_data(spec=x)
 				loss, pred_spec = self.model(spec_masked, pos_enc, mask_label, attn_mask, spec_stacked)
 				
@@ -392,14 +393,12 @@ class Trainer(Solver):
 					self.log.add_image('pred_spec', pred_spec, self.global_step)
 					self.log.add_image('true_spec', true_spec, self.global_step)
 
-				self.global_step += 1
-				pbar.update(1)
-
+				if self.global_step >= self.total_steps: break
+				else: self.global_step += 1
+				
 		pbar.close()
 		self.reset_train()
 		
-
-
 
 class Tester(Solver):
 	''' Handler for complete testing progress'''

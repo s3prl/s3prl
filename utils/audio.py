@@ -69,15 +69,20 @@ def extract_feature(input_file,feature='fbank',dim=40, cmvn=True, delta=False, d
 	else:
 		return np.swapaxes(feat,0,1).astype('float32')
 
+#####################
+# SAVE FIG TO NUMPY #
+#####################
+def _save_figure_to_numpy(fig):
+	# save it to a numpy array.
+	data = np.fromstring(fig.canvas.tostring_rgb(), dtype=np.uint8, sep='')
+	data = data.reshape(fig.canvas.get_width_height()[::-1] + (3,))
+	return data.transpose(2, 1, 0) # (Width, Height, Channel) -> (Channel, Height, Width)
 
+
+#############################
+# PLOT SPECTROGRAM TO NUMPY #
+#############################
 def plot_spectrogram_to_numpy(spectrogram):
-	
-	def save_figure_to_numpy(fig):
-		# save it to a numpy array.
-		data = np.fromstring(fig.canvas.tostring_rgb(), dtype=np.uint8, sep='')
-		data = data.reshape(fig.canvas.get_width_height()[::-1] + (3,))
-		return data.transpose(2, 1, 0) # (Width, Height, Channel) -> (Channel, Height, Width)
-	
 	fig, ax = plt.subplots(figsize=(12, 3))
 	im = ax.imshow(spectrogram.transpose(1, 0), aspect="auto", origin="lower",
 				   interpolation='none')
@@ -87,6 +92,20 @@ def plot_spectrogram_to_numpy(spectrogram):
 	plt.tight_layout()
 
 	fig.canvas.draw()
-	data = save_figure_to_numpy(fig)
+	data = _save_figure_to_numpy(fig)
 	plt.close()
 	return data
+
+
+####################
+# PLOT SPECTROGRAM #
+####################
+def plot_spectrogram(spec, path):
+	plt.gcf().clear()
+	plt.figure(figsize=(12, 3))
+	plt.imshow(spec, aspect="auto", origin="lower")
+	plt.colorbar()
+	plt.tight_layout()
+	plt.savefig(path, dpi=300, format="png")
+	plt.close()	
+
