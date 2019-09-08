@@ -125,7 +125,7 @@ def get_Dataloader(split, load, data_path, batch_size, max_timestep, max_label_l
 		sets = dev_set
 		drop_too_long = True
 	elif split == 'test':
-		bs = 1 if decode_beam_size > 1 else dev_batch_size
+		bs = 1 if decode_beam_size is not None else dev_batch_size
 		n_jobs = 1
 		shuffle = False
 		sets = test_set

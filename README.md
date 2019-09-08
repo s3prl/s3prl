@@ -56,7 +56,7 @@ All settings will be parsed from the config file automatically to start training
 
 Once a model was trained, run the following command to test it:
 ```
-python3 runner_mockingjay.py --test
+python3 runner_mockingjay.py --test --load
 ```
 
 ### Step 4. Monitor Training Log
