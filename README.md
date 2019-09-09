@@ -54,9 +54,16 @@ All settings will be parsed from the config file automatically to start training
 
 ### Step 3. Loading Pre-trained Models and Testing
 
-Once a model was trained, run the following command to test it:
+Once a model was trained, run the following command to get the generated representations:
 ```
 python3 runner_mockingjay.py --test --load
+```
+Run the following command to visualize the model generated samples:
+```
+# spectrogram
+python3 runner_mockingjay.py --test --load --plot
+# hidden representations
+python3 runner_mockingjay.py --test --load --plot --with-head
 ```
 
 ### Step 4. Monitor Training Log

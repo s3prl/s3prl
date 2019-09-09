@@ -22,7 +22,7 @@ from tensorboardX import SummaryWriter
 from dataloader import get_Dataloader
 from mockingjay.model import MockingjayConfig, MockingjayModel, MockingjayForMaskedAcousticModel
 from mockingjay.optimization import BertAdam, WarmupLinearSchedule
-from utils.audio import plot_spectrogram_to_numpy
+from utils.audio import plot_spectrogram_to_numpy, plot_spectrogram
 
 
 ##########
@@ -43,17 +43,17 @@ class Solver():
 		self.ckpdir = os.path.join(paras.ckpdir, self.exp_name)
 		if not os.path.exists(self.ckpdir): os.makedirs(self.ckpdir)
 		self.load = paras.load
-		self.ckpt = paras.ckpt
+		self.ckpt = os.path.join(paras.ckpdir, paras.ckpt)
 
 		if torch.cuda.is_available(): self.verbose('CUDA is available!')
 		self.load_model_list = config['solver']['load_model_list']
 		self.x_sample = None
 
 
-	def verbose(self, msg, end='\r'):
+	def verbose(self, msg, end='\n'):
 		''' Verbose function for print information to stdout'''
 		if self.paras.verbose:
-			print('[SOLVER] - ', msg, end)
+			print('[SOLVER] - ', msg, end=end)
 
 
 	def load_data(self, dataset='train'):
@@ -67,7 +67,7 @@ class Solver():
 		if len(self.x_sample.shape) == 4: self.x_sample = self.x_sample[0]
 
 
-	def set_model(self, inference=False):
+	def set_model(self, inference=False, with_head=False):
 		self.verbose('Initializing Mockingjay model.')
 		assert(self.x_sample is not None), 'Run load_data() to get input feature shape before initializing model.'
 		
@@ -76,12 +76,16 @@ class Solver():
 		self.dr = self.model_config.downsample_rate
 		self.hidden_size = self.model_config.hidden_size
 		
-		if inference:
-			self.mockingjay = MockingjayModel(self.model_config, self.x_sample).to(self.device)
-			self.mockingjay.eval()
-		else:
+		if not inference or with_head:
 			self.model = MockingjayForMaskedAcousticModel(self.model_config, self.x_sample).to(self.device)
 			self.mockingjay = self.model.Mockingjay
+
+		if inference and not with_head:
+			self.mockingjay = MockingjayModel(self.model_config, self.x_sample).to(self.device)
+			self.mockingjay.eval()
+		elif inference and with_head:
+			self.model.eval()
+		elif not inference:
 			self.model.train()
 
 			# Setup optimizer
@@ -116,9 +120,11 @@ class Solver():
 										lr=self.learning_rate,
 										warmup=self.warmup_proportion,
 										t_total=num_train_optimization_steps)
+		else:
+			raise NotImplementedError
 
 		if self.load:
-			self.load_model(inference=inference)
+			self.load_model(inference=inference, with_head=with_head)
 
 
 	def save_model(self, name, model_all=True):
@@ -142,15 +148,16 @@ class Solver():
 			self.model_kept.pop(0)
 
 
-	def load_model(self, verbose=True, inference=False):
-		verbose('Load model from {}'.format(os.path.join(self.ckpdir, self.ckpt)))
-		all_states = torch.load(os.path.join(self.ckpdir, self.ckpt), map_location='cpu')
-		verbose('', end = '')
-		if 'SpecHead' in self.load_model_list and not inference:
-			try:
-				self.model.SpecHead.load_state_dict(all_states['SpecHead'])
-				verbose('[SpecHead], ', end = '')
-			except: verbose('[SpecHead - X], ', end = '')
+	def load_model(self, inference=False, with_head=False):
+		self.verbose('Load model from {}'.format(self.ckpt))
+		all_states = torch.load(self.ckpt, map_location='cpu')
+		self.verbose('', end='')
+		if 'SpecHead' in self.load_model_list:
+			if not inference or with_head:
+				try:
+					self.model.SpecHead.load_state_dict(all_states['SpecHead'])
+					self.verbose('[SpecHead] - Loaded')
+				except: self.verbose('[SpecHead - X]')
 		if 'Mockingjay' in self.load_model_list:
 			try:
 				state_dict = all_states['Mockingjay']
@@ -188,16 +195,16 @@ class Solver():
 
 				load(self.mockingjay)
 				if len(missing_keys) > 0:
-					verbose("Weights of {} not initialized from pretrained model: {}".format(
+					self.verbose("Weights of {} not initialized from pretrained model: {}".format(
 						self.mockingjay.__class__.__name__, missing_keys))
 				if len(unexpected_keys) > 0:
-					verbose("Weights from pretrained model not used in {}: {}".format(
+					self.verbose("Weights from pretrained model not used in {}: {}".format(
 						self.mockingjay.__class__.__name__, unexpected_keys))
 				if len(error_msgs) > 0:
 					raise RuntimeError('Error(s) in loading state_dict for {}:\n\t{}'.format(
 									   self.mockingjay.__class__.__name__, "\n\t".join(error_msgs)))
-				verbose('[Mockingjay], ', end = '')
-			except: verbose('[Mockingjay - X], ', end = '')
+				self.verbose('[Mockingjay] - Loaded')
+			except: self.verbose('[Mockingjay - X]')
 
 		if 'Optimizer' in self.load_model_list and not inference:
 			try:
@@ -206,16 +213,16 @@ class Solver():
 					for k, v in state.items():
 						if torch.is_tensor(v):
 							state[k] = v.cuda()
-				verbose('[Optimizer], ', end = '')
-			except: verbose('[Optimizer - X], ', end = '')
+				self.verbose('[Optimizer] - Loaded')
+			except: self.verbose('[Optimizer - X]')
 
 		if 'Global_step' in self.load_model_list and not inference:
 			try:
 				self.global_step = all_states['Global_step']
-				verbose('[Global_step], ', end = '')
-			except: verbose('[Global_step - X], ', end = '')
+				self.verbose('[Global_step] - Loaded')
+			except: self.verbose('[Global_step - X]')
 
-		verbose('Loaded!')
+		self.verbose('Loaded!')
 
 
 	def up_sample_frames(self, spec, return_first=False):
@@ -260,7 +267,7 @@ class Solver():
 class Trainer(Solver):
 	''' Handler for complete training progress'''
 	def __init__(self, config, paras):
-		super(Trainer, self).__init__(config,paras)
+		super(Trainer, self).__init__(config, paras)
 		# Logger Settings
 		self.logdir = os.path.join(paras.logdir, self.exp_name)
 		self.log = SummaryWriter(self.logdir)
@@ -346,7 +353,6 @@ class Trainer(Solver):
 
 			for step, x in enumerate(progress):
 
-				pbar.update(1)
 				spec_masked, pos_enc, mask_label, attn_mask, spec_stacked = self.process_MAM_data(spec=x)
 				loss, pred_spec = self.model(spec_masked, pos_enc, mask_label, attn_mask, spec_stacked)
 				
@@ -391,6 +397,7 @@ class Trainer(Solver):
 					self.log.add_image('pred_spec', pred_spec, self.global_step)
 					self.log.add_image('true_spec', true_spec, self.global_step)
 
+				pbar.update(1)
 				if self.global_step >= self.total_steps: break
 				else: self.global_step += 1
 				
@@ -401,10 +408,10 @@ class Trainer(Solver):
 class Tester(Solver):
 	''' Handler for complete testing progress'''
 	def __init__(self, config, paras):
-		super(Tester, self).__init__(config,paras)
-		# Logger Settings
-		self.logdir = os.path.join(paras.logdir, self.exp_name)
-		self.log = SummaryWriter(self.logdir)
+		super(Tester, self).__init__(config, paras)
+		self.dump_dir = str(self.ckpt.split('.')[0]) + '-dump/'
+		if not os.path.exists(self.dump_dir): os.makedirs(self.dump_dir)
+		self.plot = paras.plot
 
 
 	def process_MAM_data(self, spec):
@@ -437,13 +444,50 @@ class Tester(Solver):
 		return spec_stacked, pos_enc, attn_mask # (x, pos_enc, attention_mask)
 
 
-	def exec(self):
+	def exec(self, with_head=False):
 		''' Training Unsupervised End-to-end Mockingjay Model'''
 		self.verbose('Testing set total ' + str(len(self.dataloader)) + ' batches.')
 
+		idx = 0
 		for x in tqdm(self.dataloader, desc="Testing"):
-				spec_stacked, pos_enc, attn_mask = self.process_MAM_data(spec=x)
-				#TODO loss, pred_spec = self.mockingjay(spec_masked, pos_enc, mask_label, attn_mask, spec_stacked)
+			spec_stacked, pos_enc, attn_mask = self.process_MAM_data(spec=x)
+			if with_head:
+				pred_spec = self.model(spec_stacked, pos_enc, attention_mask=attn_mask)
+
+				if self.plot:
+					# generate the model filled MAM spectrogram
+					spec_masked = copy.deepcopy(spec_stacked)
+					for i in range(len(spec_masked)):
+						sample_index = random.sample(range(len(spec_masked[i])), int(len(spec_masked[i])*0.15))
+						print(sample_index)
+						spec_masked[i][sample_index] = 0
+						print(spec_masked.shape)
+					fill_spec = self.model(spec_masked, pos_enc, attention_mask=attn_mask)
+
+					# plot reconstructed / ground-truth / MAM filled spectrogram
+					for y_pred, y_true, y_fill in zip(pred_spec, spec_stacked, fill_spec):
+						y_pred = self.up_sample_frames(y_pred, return_first=True)
+						y_true = self.up_sample_frames(y_true, return_first=True)
+						y_true = self.up_sample_frames(y_fill, return_first=True)
+						plot_spectrogram(y_pred.data.cpu().numpy(), path=os.path.join(self.dump_dir, str(idx) + '_pred.png'))
+						plot_spectrogram(y_true.data.cpu().numpy(), path=os.path.join(self.dump_dir, str(idx) + '_true.png'))
+						plot_spectrogram(y_fill.data.cpu().numpy(), path=os.path.join(self.dump_dir, str(idx) + '_fill.png'))
+						idx += 1
+						if idx > 10: 
+							self.verbose('Spectrogram head generated samples are saved to: {}'.format(self.dump_dir))
+							exit() # visualize the first 10 testing samples
+			else:
+				encoded_layers = self.mockingjay(spec_stacked, pos_enc, attention_mask=attn_mask, output_all_encoded_layers=True)
+				last_encoded_layer = encoded_layers[-1]
+
+				if self.plot:
+					for rep in last_encoded_layer:
+						plot_spectrogram(rep.data.cpu().numpy(), path=os.path.join(self.dump_dir, str(idx) + '_hidden.png'))
+						idx += 1
+						if idx > 10: 
+							self.verbose('Mockingjay generated samples are saved to: {}'.format(self.dump_dir))
+							exit() # visualize the first 10 testing samples
+					
 
 		
 

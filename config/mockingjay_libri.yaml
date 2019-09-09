@@ -1,7 +1,7 @@
 mockingjay:
   downsample_rate: 5                          # stacked consecutive features vectors to reduce the length of input sequences by this factor.
   hidden_size: 512                            # Size of the encoder layers and the pooler layer.
-  num_hidden_layers: 10                       # Number of hidden layers in the Transformer encoder.
+  num_hidden_layers: 12                       # Number of hidden layers in the Transformer encoder.
   num_attention_heads: 8                      # Number of attention heads for each attention layer in the Transformer encoder.
   intermediate_size: 2048                     # The size of the "intermediate" (i.e., feed-forward) layer in the Transformer encoder.
   hidden_act: "gelu"                          # The non-linear activation function (function or string) in the encoder and pooler. If string, "gelu", "relu" and "swish" are supported.
@@ -29,13 +29,13 @@ solver:
   apex: False                                 # Use APEX (see https://github.com/NVIDIA/apex for more details)
   train_set: ['train-clean-360']              #
   log_step: 100                               # log training status every this amount of training steps
-  batch_size: 8                               # training batch size
+  batch_size: 32                              # training batch size
   total_steps: 1000000                        # total steps for training, a step is a batch of update
   mask_proportion: 0.15                       # mask this percentage of all spectrogram frames in each sequence at random during MAM training                        
 
   # Validation options
   dev_set: ['dev-clean']                      
-  dev_batch_size: 8                             
+  dev_batch_size: 1                             
   dev_step: 2000
 
   # testing options
@@ -44,4 +44,4 @@ solver:
   # models
   load_model_list: ['SpecHead', 'Mockingjay'] # load the components in the list for test/eval
   max_keep: 10                                # maximum number of model ckpt to keep during training
-  save_step: 200                              # save model every this amount of training steps
+  save_step: 100                              # save model every this amount of training steps
