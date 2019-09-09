@@ -4,6 +4,7 @@
 #   Synopsis     [ audio processing functions ]
 #   Author       [ Andy T. Liu (Andi611) ]
 #   Copyright    [ Copyleft(c), Speech Lab, NTU, Taiwan ]
+#   Reference 0  [ https://github.com/andi611/TTS-Tacotron-Pytorch ]
 #   Reference 1  [ https://github.com/Alexander-H-Liu/End-to-end-ASR-Pytorch ]
 #   Reference 2  [ https://groups.google.com/forum/#!msg/librosa/V4Z1HpTKn8Q/1-sMpjxjCSoJ ]
 """*********************************************************************************************"""
@@ -22,6 +23,65 @@ warnings.filterwarnings("ignore")
 # NOTE: there are warnings for MFCC extraction due to librosa's issue
 
 
+##################
+# AUDIO SETTINGS #
+##################
+"""
+For feature == 'fbank' or 'mfcc'
+"""
+num_mels = 80 # int, dimension of feature
+delta = True # Append Delta
+delta_delta = False # Append Delta Delta
+window_size = 25 # int, window size for FFT (ms)
+stride = 10 # int, window stride for FFT
+mel_dim = num_mels * (1 + int(delta) + int(delta_delta))
+"""
+For feature == 'linear'
+"""
+num_freq = 1025
+frame_length_ms = 50
+frame_shift_ms = 12.5
+preemphasis = 0.97
+min_level_db = -100
+ref_level_db = 20
+hop_length = 250
+
+
+############################
+# LINEAR SPECTROGRAM UTILS #
+############################
+def _stft_parameters(sample_rate):
+	n_fft = (num_freq - 1) * 2
+	hop_length = int(frame_shift_ms / 1000 * sample_rate)
+	win_length = int(frame_length_ms / 1000 * sample_rate)
+	return n_fft, hop_length, win_length
+
+def _stft(y, sr):
+	n_fft, hop_length, win_length = _stft_parameters(sr)
+	return librosa.stft(y=y, n_fft=n_fft, hop_length=hop_length, win_length=win_length)
+
+def _preemphasis(x):
+	return signal.lfilter([1, -preemphasis], [1], x)
+
+def _amp_to_db(x):
+	return 20 * np.log10(np.maximum(1e-5, x))
+
+def _normalize(S):
+	return np.clip((S - min_level_db) / -min_level_db, 0, 1)
+
+
+###############
+# SPECTROGRAM #
+###############
+"""
+Compute the linear-scale spectrogram from the wav.
+"""
+def spectrogram(y, sr):
+	D = _stft(_preemphasis(y), sr)
+	S = _amp_to_db(np.abs(D)) - ref_level_db
+	return _normalize(S)
+
+
 ###################
 # EXTRACT FEATURE #
 ###################
@@ -29,30 +89,28 @@ warnings.filterwarnings("ignore")
 # Parameters
 #     - input file  : str, audio file path
 #     - feature     : str, fbank or mfcc
-#     - dim         : int, dimension of feature
 #     - cmvn        : bool, apply CMVN on feature
-#     - window_size : int, window size for FFT (ms)
-#     - stride      : int, window stride for FFT
 #     - save_feature: str, if given, store feature to the path and return len(feature)
 # Return
 #     acoustic features with shape (time step, dim)
-def extract_feature(input_file,feature='fbank',dim=40, cmvn=True, delta=False, delta_delta=False,
-					window_size=25, stride=10,save_feature=None):
-	y, sr = librosa.load(input_file,sr=None)
+def extract_feature(input_file, feature='fbank', cmvn=True, save_feature=None):
+	y, sr = librosa.load(input_file, sr=None)
 	ws = int(sr*0.001*window_size)
 	st = int(sr*0.001*stride)
 	if feature == 'fbank': # log-scaled
-		feat = librosa.feature.melspectrogram(y=y, sr=sr, n_mels=dim,
+		feat = librosa.feature.melspectrogram(y=y, sr=sr, n_mels=num_mels,
 									n_fft=ws, hop_length=st)
-		feat = np.log(feat+1e-6)
+		feat = np.log(feat + 1e-6)
 	elif feature == 'mfcc':
-		feat = librosa.feature.mfcc(y=y, sr=sr, n_mfcc=dim, n_mels=26,
+		feat = librosa.feature.mfcc(y=y, sr=sr, n_mfcc=num_mels, n_mels=26,
 									n_fft=ws, hop_length=st)
 		feat[0] = librosa.feature.rmse(y, hop_length=st, frame_length=ws) 
-		
+	elif feature == 'linear':
+		feat = spectrogram(y, sr)
 	else:
-		raise ValueError('Unsupported Acoustic Feature: '+feature)
+		raise ValueError('Unsupported Acoustic Feature: ' + feature)
 
+	# Apply delta
 	feat = [feat]
 	if delta:
 		feat.append(librosa.feature.delta(feat[0]))
@@ -60,14 +118,16 @@ def extract_feature(input_file,feature='fbank',dim=40, cmvn=True, delta=False, d
 	if delta_delta:
 		feat.append(librosa.feature.delta(feat[0],order=2))
 	feat = np.concatenate(feat,axis=0)
+
 	if cmvn:
 		feat = (feat - feat.mean(axis=1)[:,np.newaxis]) / (feat.std(axis=1)+1e-16)[:,np.newaxis]
 	if save_feature is not None:
-		tmp = np.swapaxes(feat,0,1).astype('float32')
+		tmp = np.swapaxes(feat, 0, 1).astype('float32')
 		np.save(save_feature,tmp)
 		return len(tmp)
 	else:
-		return np.swapaxes(feat,0,1).astype('float32')
+		return np.swapaxes(feat, 0, 1).astype('float32')
+
 
 #####################
 # SAVE FIG TO NUMPY #
