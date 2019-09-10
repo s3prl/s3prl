@@ -125,6 +125,7 @@ run.sh
 dev-clean
 test-clean
 train-clean-360
-libri_fbank80_subword5000
-result_*
+libri_*
+result_asr
+result_mockingjay/mockingjay_*
 log_*

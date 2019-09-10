@@ -36,20 +36,59 @@ HALF_BATCHSIZE_LABEL = 150
 #     - max_timestep : int, max len for input (set to 0 for no restriction)
 #     - max_label_len: int, max len for output (set to 0 for no restriction)
 #     - bucket_size  : int, batch size for each bucket
+#     - load         : str, types of data to load: ['all', 'text', 'spec', 'duo']
 class LibriDataset(Dataset):
 	def __init__(self, file_path, sets, bucket_size, max_timestep=0, max_label_len=0, drop=False, load='all'):
 		# Read file
 		self.root = file_path
-		tables = [pd.read_csv(os.path.join(file_path,s+'.csv')) for s in sets]
+		tables = [pd.read_csv(os.path.join(file_path, s + '.csv')) for s in sets]
 		self.table = pd.concat(tables,ignore_index=True).sort_values(by=['length'],ascending=False)
 		self.load = load
-		assert self.load in ['all', 'text', 'spec']
+		assert self.load in ['all', 'text', 'spec', 'duo']
 
 		# Crop seqs that are too long
 		if drop and max_timestep > 0 and self.load != 'text':
 			self.table = self.table[self.table.length < max_timestep]
 		if drop and max_label_len > 0:
 			self.table = self.table[self.table.label.str.count('_')+1 < max_label_len]
+
+
+	def __getitem__(self, index):
+		# Load label
+		if self.load != 'spec':
+			y_batch = [y for y in self.Y[index]]
+			y_pad_batch = target_padding(y_batch, max([len(v) for v in y_batch]))
+			if self.load == 'text':
+				return y_pad_batch
+		
+		# Load acoustic feature and pad
+		x_batch = [torch.FloatTensor(np.load(os.path.join(self.root, x_file))) for x_file in self.X[index]]
+		x_pad_batch = pad_sequence(x_batch, batch_first=True)
+
+		# Return (x_spec) 
+		if self.load == 'spec':
+			return x_pad_batch
+		# Return (x_spec, t_spec)
+		elif self.load == 'duo':
+			t_batch = [torch.FloatTensor(np.load(os.path.join(self.t_root, t_file))) for t_file in self.T[index]]
+			t_pad_batch = pad_sequence(t_batch, batch_first=True)
+			return x_pad_batch, t_pad_batch
+		# return (x, y)
+		else:
+			return x_pad_batch, y_pad_batch
+			
+	
+	def __len__(self):
+		return len(self.Y)
+
+
+###############
+# MEL DATASET #
+###############
+class MelDataset(LibriDataset):
+	
+	def __init__(self, file_path, sets, bucket_size, max_timestep=0, max_label_len=0, drop=False, load='all'):
+		super(AsrDataset, self).__init__(file_path, sets, bucket_size, max_timestep, max_label_len, drop, load)
 
 		X = self.table['file_path'].tolist()
 		X_lens = self.table['length'].tolist()
@@ -61,7 +100,7 @@ class LibriDataset(Dataset):
 		# Bucketing, X & X_len is dummy when load == 'text'
 		self.X = []
 		self.Y = []
-		batch_x, batch_len, batch_y = [],[],[]
+		batch_x, batch_len, batch_y = [], [], []
 
 		for x, x_len, y in zip(X, X_lens, Y):
 			batch_x.append(x)
@@ -87,33 +126,68 @@ class LibriDataset(Dataset):
 			self.Y.append(batch_y)
 
 
-	def __getitem__(self, index):
-		# Load label
-		if self.load != 'spec':
-			y_batch = [y for y in self.Y[index]]
-			y_pad_batch = target_padding(y_batch, max([len(v) for v in y_batch]))
-			if self.load == 'text':
-				return y_pad_batch
-		
-		# Load acoustic feature and pad
-		x_batch = [torch.FloatTensor(np.load(os.path.join(self.root, x_file))) for x_file in self.X[index]]
-		x_pad_batch = pad_sequence(x_batch, batch_first=True)
-
-		# Return (x, None) if load == 'spec', else return (x, y)
-		if self.load == 'spec':
-			return x_pad_batch
-		else: return x_pad_batch, y_pad_batch
-			
+######################
+# MEL LINEAR DATASET #
+######################
+class Mel_Linear_Dataset(LibriDataset):
 	
-	def __len__(self):
-		return len(self.Y)
+	def __init__(self, file_path, target_path, sets, bucket_size, max_timestep=0, max_label_len=0, drop=False, load='all'):
+		super(Mel_Linear_Dataset, self).__init__(file_path, sets, bucket_size, max_timestep, max_label_len, drop, load)
+
+		assert(self.load == 'duo'), 'This dataset loads duo features: mel spectrogram and linear spectrogram'
+		# Read Target file
+		self.t_root = target_path
+		t_tables = [pd.read_csv(os.path.join(target_path, s + '.csv')) for s in sets]
+		self.t_table = pd.concat(t_tables,ignore_index=True).sort_values(by=['length'],ascending=False)
+
+		T = self.t_table['file_path'].tolist()
+		X = self.table['file_path'].tolist()
+		X_lens = self.table['length'].tolist()
+			
+		Y = [list(map(int, label.split('_'))) for label in self.table['label'].tolist()]
+		if self.load == 'text':
+			Y.sort(key=len,reverse=True)
+
+		# Bucketing, X & X_len is dummy when load == 'text'
+		self.T = []
+		self.X = []
+		self.Y = []
+		batch_t, batch_x, batch_len, batch_y = [], [], [], []
+
+		for t, x, x_len, y in zip(T, X, X_lens, Y):
+			batch_t.append(t)
+			batch_x.append(x)
+			batch_len.append(x_len)
+			batch_y.append(y)
+			
+			# Fill in batch_x until batch is full
+			if len(batch_x) == bucket_size:
+				# Half the batch size if seq too long
+				if (bucket_size >= 2) and ((max(batch_len) > HALF_BATCHSIZE_TIME) or (max([len(y) for y in batch_y]) > HALF_BATCHSIZE_LABEL)):
+					self.T.append(batch_t[:bucket_size//2])
+					self.T.append(batch_t[bucket_size//2:])
+					self.X.append(batch_x[:bucket_size//2])
+					self.X.append(batch_x[bucket_size//2:])
+					self.Y.append(batch_y[:bucket_size//2])
+					self.Y.append(batch_y[bucket_size//2:])
+				else:
+					self.T.append(batch_t)
+					self.X.append(batch_x)
+					self.Y.append(batch_y)
+				batch_t, batch_x, batch_len, batch_y = [], [], [], []
+		
+		# Gather the last batch
+		if len(batch_x) > 0:
+			self.T.append(batch_t)
+			self.X.append(batch_x)
+			self.Y.append(batch_y)
 
 
 ##################
 # GET DATALOADER #
 ##################
 def get_Dataloader(split, load, data_path, batch_size, max_timestep, max_label_len, use_gpu, n_jobs,
-				   dataset, train_set, dev_set, test_set, dev_batch_size, decode_beam_size=None, **kwargs):
+				   dataset, train_set, dev_set, test_set, dev_batch_size, target_path=None, decode_beam_size=None, **kwargs):
 	if split == 'train':
 		bs = batch_size
 		shuffle = True
@@ -138,10 +212,14 @@ def get_Dataloader(split, load, data_path, batch_size, max_timestep, max_label_l
 	else:
 		raise NotImplementedError
 		
-
 	if dataset.upper() == "LIBRISPEECH":
-		ds = LibriDataset(file_path=data_path, sets=sets, max_timestep=max_timestep, load=load,
+		ds = MelDataset(file_path=data_path, sets=sets, max_timestep=max_timestep, load=load,
 						   max_label_len=max_label_len, bucket_size=bs, drop=drop_too_long)
+		return DataLoader(ds, batch_size=1, shuffle=shuffle, drop_last=False, num_workers=n_jobs, pin_memory=use_gpu)
+	elif dataset.upper() == "LIBRISPEECH_MEL_LINEAR":
+		assert(target_path is not None), '`target path` must be provided for this dataset.'
+		ds = Mel_Linear_Dataset(file_path=data_path, target_path=target_path, sets=sets, max_timestep=max_timestep, load=load,
+						   		max_label_len=max_label_len, bucket_size=bs, drop=drop_too_long)
 		return DataLoader(ds, batch_size=1, shuffle=shuffle, drop_last=False, num_workers=n_jobs, pin_memory=use_gpu)
 	else:
 		raise ValueError('Unsupported Dataset: ' + dataset)

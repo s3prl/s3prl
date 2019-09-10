@@ -1,47 +1,48 @@
 mockingjay:
-  downsample_rate: 6                          # stacked consecutive features vectors to reduce the length of input sequences by this factor.
-  hidden_size: 512                            # Size of the encoder layers and the pooler layer.
-  num_hidden_layers: 12                       # Number of hidden layers in the Transformer encoder.
-  num_attention_heads: 8                      # Number of attention heads for each attention layer in the Transformer encoder.
-  intermediate_size: 2048                     # The size of the "intermediate" (i.e., feed-forward) layer in the Transformer encoder.
-  hidden_act: "gelu"                          # The non-linear activation function (function or string) in the encoder and pooler. If string, "gelu", "relu" and "swish" are supported.
-  hidden_dropout_prob: 0.1                    # The dropout probabilitiy for all fully connected layers in the embeddings, encoder, and pooler.
-  attention_probs_dropout_prob: 0.1           # The dropout ratio for the attention probabilities.
-  initializer_range: 0.02                     # The sttdev of the truncated_normal_initializer for initializing all weight matrices.
-  layer_norm_eps: "1e-12"                     # The epsilon used by LayerNorm.
+  downsample_rate: 3                                    # stacked consecutive features vectors to reduce the length of input sequences by this factor.
+  hidden_size: 768                                      # Size of the encoder layers and the pooler layer.
+  num_hidden_layers: 12                                 # Number of hidden layers in the Transformer encoder.
+  num_attention_heads: 12                               # Number of attention heads for each attention layer in the Transformer encoder.
+  intermediate_size: 3078                               # The size of the "intermediate" (i.e., feed-forward) layer in the Transformer encoder.
+  hidden_act: "gelu"                                    # The non-linear activation function (function or string) in the encoder and pooler. If string, "gelu", "relu" and "swish" are supported.
+  hidden_dropout_prob: 0.1                              # The dropout probabilitiy for all fully connected layers in the embeddings, encoder, and pooler.
+  attention_probs_dropout_prob: 0.1                     # The dropout ratio for the attention probabilities.
+  initializer_range: 0.02                               # The sttdev of the truncated_normal_initializer for initializing all weight matrices.
+  layer_norm_eps: "1e-12"                               # The epsilon used by LayerNorm.
 
 optimizer: 
-  learning_rate: "5e-5"                       # Learning rate for opt
-  loss_scale: 0                               # Loss scale to improve fp16 numeric stability. Only used when apex is set to True. 0: dynamic loss scaling. positive power of 2: static loss scaling.
-  warmup_proportion: 0.1                      # Proportion of training to perform linear rate warmup.
-  gradient_accumulation_steps: 1              # Number of updates steps to accumulate before performing a backward/update pass
-  gradient_clipping: 5                        # Maximum gradient norm
+  learning_rate: "5e-5"                                 # Learning rate for opt
+  loss_scale: 0                                         # Loss scale to improve fp16 numeric stability. Only used when apex is set to True. 0: dynamic loss scaling. positive power of 2: static loss scaling.
+  warmup_proportion: 0.1                                # Proportion of training to perform linear rate warmup.
+  gradient_accumulation_steps: 1                        # Number of updates steps to accumulate before performing a backward/update pass
+  gradient_clipping: 5                                  # Maximum gradient norm
 
 solver:
   # Data options
-  dataset: 'librispeech'                      # 
-  data_path: 'data/libri_fbank80_subword5000' # Source data path
-  n_jobs: 8                                   # Subprocess used for torch Dataloader
-  max_timestep: 3000                          # Max length for audio feature (0 for no restriction)
-  max_label_len: 400                          # Max length for output sequence (0 for no restriction)
+  dataset: 'librispeech_mel_linear'                     # [ librispeech / librispeech_mel_linear ]
+  data_path: 'data/libri_mel160_subword5000'            # Source data path
+  target_path: 'data/libri_linear1025_subword5000'      # Target data path for reconstruction to a different feature type, set dataset to 'librispeech_mel_linear'.
+  n_jobs: 16                                            # Subprocess used for torch Dataloader
+  max_timestep: 3000                                    # Max length for audio feature (0 for no restriction)
+  max_label_len: 400                                    # Max length for output sequence (0 for no restriction)
   
   # Training options
-  apex: False                                 # Use APEX (see https://github.com/NVIDIA/apex for more details)
-  train_set: ['train-clean-360']              #
-  log_step: 100                               # log training status every this amount of training steps
-  batch_size: 24                              # training batch size
-  total_steps: 1000000                        # total steps for training, a step is a batch of update
-  mask_proportion: 0.15                       # mask this percentage of all spectrogram frames in each sequence at random during MAM training                        
+  apex: False                                           # Use APEX (see https://github.com/NVIDIA/apex for more details)
+  train_set: ['train-clean-360']                        #
+  log_step: 100                                         # log training status every this amount of training steps
+  batch_size: 8                                         # training batch size
+  total_steps: 1000000                                  # total steps for training, a step is a batch of update
+  mask_proportion: 0.15                                 # mask this percentage of all spectrogram frames in each sequence at random during MAM training                        
 
   # Validation options
-  dev_set: ['dev-clean']                      
-  dev_batch_size: 1                             
-  dev_step: 2000
+  dev_set: ['dev-clean']                                #
+  dev_batch_size: 1                                     #
+  dev_step: 2000                                        #
 
   # testing options
-  test_set: ['test-clean']
+  test_set: ['test-clean']                              #
 
   # models
-  load_model_list: ['SpecHead', 'Mockingjay'] # load the components in the list for test/eval
-  max_keep: 10                                # maximum number of model ckpt to keep during training
-  save_step: 100                              # save model every this amount of training steps
+  load_model_list: ['SpecHead', 'Mockingjay']           # load the components in the list for test/eval
+  max_keep: 10                                          # maximum number of model ckpt to keep during training
+  save_step: 100                                        # save model every this amount of training steps

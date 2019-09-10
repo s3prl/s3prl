@@ -122,7 +122,6 @@ class MockingjayInputRepresentations(nn.Module):
 		self.dropout = nn.Dropout(config.hidden_dropout_prob)
 
 	def forward(self, spec, pos_enc):
-		seq_length = spec.size(1)
 		spec_transformed = self.spec_transform(spec)
 
 		input_representations = spec_transformed + pos_enc
@@ -320,16 +319,16 @@ class MockingjayEncoder(nn.Module):
 
 
 class MockingjaySpecPredictionHead(nn.Module):
-	def __init__(self, config, x_sample):
+	def __init__(self, config, y_sample):
 		super(MockingjaySpecPredictionHead, self).__init__()
-		self.input_dim = x_sample.shape[-1]
+		self.output_dim = y_sample.shape[-1]
 		self.dense = nn.Linear(config.hidden_size, config.hidden_size)
 		if isinstance(config.hidden_act, str) or (sys.version_info[0] == 2 and isinstance(config.hidden_act, unicode)):
 			self.transform_act_fn = ACT2FN[config.hidden_act]
 		else:
 			self.transform_act_fn = config.hidden_act
 		self.LayerNorm = MockingjayLayerNorm(config.hidden_size, eps=config.layer_norm_eps)
-		self.output = nn.Linear(config.hidden_size, self.input_dim * config.downsample_rate)
+		self.output = nn.Linear(config.hidden_size, self.output_dim * config.downsample_rate)
 
 	def forward(self, hidden_states):
 		hidden_states = self.dense(hidden_states)
@@ -521,12 +520,12 @@ class MockingjayForMaskedAcousticModel(MockingjayInitModel):
 	masked_spec_logits = model(spec_input, pos_enc)
 	```
 	"""
-	def __init__(self, config, x_sample, output_attentions=False, keep_multihead_output=False):
+	def __init__(self, config, x_sample, y_sample, output_attentions=False, keep_multihead_output=False):
 		super(MockingjayForMaskedAcousticModel, self).__init__(config)
 		self.output_attentions = output_attentions
 		self.Mockingjay = MockingjayModel(config, x_sample, output_attentions=output_attentions,
 									  keep_multihead_output=keep_multihead_output)
-		self.SpecHead = MockingjaySpecPredictionHead(config, x_sample)
+		self.SpecHead = MockingjaySpecPredictionHead(config, y_sample if y_sample is not None else x_sample)
 		self.apply(self.init_Mockingjay_weights)
 		self.loss = nn.L1Loss() 
 

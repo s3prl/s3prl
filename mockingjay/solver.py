@@ -31,11 +31,14 @@ from utils.audio import plot_spectrogram_to_numpy, plot_spectrogram
 class Solver():
 	''' Super class Solver for all kinds of tasks'''
 	def __init__(self, config, paras):
+		
 		# General Settings
 		self.config = config
 		self.paras = paras
 		self.device = torch.device('cuda') if (self.paras.gpu and torch.cuda.is_available()) else torch.device('cpu')
+		if torch.cuda.is_available(): self.verbose('CUDA is available!')
 
+		# path and directories
 		self.exp_name = paras.name
 		if self.exp_name is None:
 			self.exp_name = '_'.join([paras.config.split('/')[-1].replace('.yaml',''),'sd'+str(paras.seed)])
@@ -45,9 +48,10 @@ class Solver():
 		self.load = paras.load
 		self.ckpt = os.path.join(paras.ckpdir, paras.ckpt)
 
-		if torch.cuda.is_available(): self.verbose('CUDA is available!')
+		# model
 		self.load_model_list = config['solver']['load_model_list']
 		self.x_sample = None
+		self.duo_loader = False
 
 
 	def verbose(self, msg, end='\n'):
@@ -56,14 +60,21 @@ class Solver():
 			print('[SOLVER] - ', msg, end=end)
 
 
-	def load_data(self, dataset='train'):
+	def load_data(self, dataset='train', duo_loader=False):
 		''' Load date for training/validation'''
-		if dataset == 'train': self.verbose('Loading data from ' + self.config['solver']['data_path'])
+		if dataset == 'train': 
+			self.verbose('Loading source data from ' + self.config['solver']['data_path'])
+			if self.duo_loader: self.verbose('Loading target data from ' + self.config['solver']['target_path'])
 		else: self.verbose('Loading testing data ' + str(self.config['solver']['test_set']) + ' from ' + self.config['solver']['data_path'])
-		setattr(self, 'dataloader', get_Dataloader(dataset, load='spec', use_gpu=self.paras.gpu, **self.config['solver']))
+		if self.duo_loader:
+			setattr(self, 'dataloader', get_Dataloader(dataset, load='duo', use_gpu=self.paras.gpu, **self.config['solver']))
+			for self.x_sample, self.t_sample in getattr(self, 'dataloader'): break
+		else:
+			setattr(self, 'dataloader', get_Dataloader(dataset, load='spec', use_gpu=self.paras.gpu, **self.config['solver']))
+			for self.x_sample in getattr(self, 'dataloader'): break
+			self.t_sample = None
 		
 		# Get 1 example for auto constructing model
-		for self.x_sample in getattr(self, 'dataloader'): break
 		if len(self.x_sample.shape) == 4: self.x_sample = self.x_sample[0]
 
 
@@ -77,7 +88,7 @@ class Solver():
 		self.hidden_size = self.model_config.hidden_size
 		
 		if not inference or with_head:
-			self.model = MockingjayForMaskedAcousticModel(self.model_config, self.x_sample).to(self.device)
+			self.model = MockingjayForMaskedAcousticModel(self.model_config, self.x_sample, self.t_sample).to(self.device)
 			self.mockingjay = self.model.Mockingjay
 
 		if inference and not with_head:
@@ -283,6 +294,7 @@ class Trainer(Solver):
 		self.gradient_accumulation_steps = self.config['optimizer']['gradient_accumulation_steps']
 		self.gradient_clipping = self.config['optimizer']['gradient_clipping']
 		self.max_keep = config['solver']['max_keep']
+		self.duo_loader = True if config['solver']['dataset'] == 'librispeech_mel_linear' else False
 		self.reset_train()
 
 	def reset_train(self):
@@ -291,14 +303,18 @@ class Trainer(Solver):
 		self.best_loss = 999.9
 
 
-	def process_MAM_data(self, spec):
+	def process_MAM_data(self, source_spec, target_spec):
 		"""Process training data for the masked acoustic model"""
 		# Hack bucket
-		assert(len(spec.shape) == 4), 'Bucketing should cause acoustic feature to have shape 1xBxTxD'
-		spec = spec.squeeze(0)
+		assert(len(source_spec.shape) == 4), 'Bucketing should cause acoustic feature to have shape 1xBxTxD'
+		assert(len(target_spec.shape) == 4), 'Bucketing should cause acoustic feature to have shape 1xBxTxD'
+		source_spec = source_spec.squeeze(0)
+		target_spec = target_spec.squeeze(0)
 
 		# Down sample
-		spec_stacked = self.down_sample_frames(spec) # (batch_size, seq_len, mel_dim * dr)
+		spec_masked = self.down_sample_frames(source_spec) # (batch_size, seq_len, mel_dim * dr)
+		spec_stacked = self.down_sample_frames(target_spec) # (batch_size, seq_len, mel_dim * dr)
+		assert(spec_masked.shape[1] == spec_stacked.shape[1])
 
 		# Record length for each uttr
 		spec_len = np.sum(np.sum(spec_stacked.data.numpy(), axis=-1) != 0, axis=-1)
@@ -307,7 +323,6 @@ class Trainer(Solver):
 		batch_size = spec_stacked.shape[0]
 		seq_len = spec_stacked.shape[1]
 
-		spec_masked = copy.deepcopy(spec_stacked)
 		pos_enc = self.position_encoding(seq_len, batch_size) # (batch_size, seq_len, hidden_size)
 		mask_label = np.zeros_like(spec_stacked)
 		attn_mask = np.ones((batch_size, seq_len)) # (batch_size, seq_len)
@@ -351,9 +366,14 @@ class Trainer(Solver):
 
 			progress = tqdm(self.dataloader, desc="Iteration")
 
-			for step, x in enumerate(progress):
+			for step, spec in enumerate(progress):
 
-				spec_masked, pos_enc, mask_label, attn_mask, spec_stacked = self.process_MAM_data(spec=x)
+				if self.duo_loader:
+					spec_masked, pos_enc, mask_label, attn_mask, spec_stacked = self.process_MAM_data(source_spec=spec[0], 
+																									  target_spec=spec[1])
+				else:
+					spec_masked, pos_enc, mask_label, attn_mask, spec_stacked = self.process_MAM_data(source_spec=spec,
+																									  target_spec=copy.deepcopy(spec))
 				loss, pred_spec = self.model(spec_masked, pos_enc, mask_label, attn_mask, spec_stacked)
 				
 				# Accumulate Loss
@@ -390,10 +410,13 @@ class Trainer(Solver):
 				if self.global_step % self.save_step == 0 and loss.item() < self.best_loss:
 					self.save_model('mockingjay')
 					self.best_loss = loss.item()
+					mask_spec = self.up_sample_frames(spec_masked[0], return_first=True)
 					pred_spec = self.up_sample_frames(pred_spec[0], return_first=True)
 					true_spec = self.up_sample_frames(spec_stacked[0], return_first=True)
+					mask_spec = plot_spectrogram_to_numpy(mask_spec.data.cpu().numpy())
 					pred_spec = plot_spectrogram_to_numpy(pred_spec.data.cpu().numpy())
 					true_spec = plot_spectrogram_to_numpy(true_spec.data.cpu().numpy())
+					self.log.add_image('mask_spec', mask_spec, self.global_step)
 					self.log.add_image('pred_spec', pred_spec, self.global_step)
 					self.log.add_image('true_spec', true_spec, self.global_step)
 

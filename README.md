@@ -32,7 +32,11 @@ yaml             # config parser
 
 Preprocessing scripts may be executed directly if the LibriSpeech dataset is placed under [`data/`](data/). The extracted data, which is ready for training, will be stored under the same [`data/`](data/) directory by default. 
 ```
-python3 preprocess.py 
+# Defualt
+python3 preprocess.py --feature_type=fbank
+# To train on different features:
+python3 preprocess.py --feature_type=mel
+python3 preprocess.py --feature_type=linear 
 ```
 Run preprocessing with the following command to change input directory:
 ```
@@ -56,7 +60,7 @@ All settings will be parsed from the config file automatically to start training
 
 Once a model was trained, run the following command to get the generated representations:
 ```
-python3 runner_mockingjay.py --test --load
+python3 runner_mockingjay.py --test --load --ckpdir='directory_to_model' --ckpt='model_name'
 ```
 Run the following command to visualize the model generated samples:
 ```
@@ -65,6 +69,8 @@ python3 runner_mockingjay.py --test --load --plot
 # hidden representations
 python3 runner_mockingjay.py --test --load --plot --with-head
 ```
+Pre-trained models and their configs can be download from [HERE](https://drive.google.com/drive/folders/1tZQnT8y7sE6kuxVWivo-KmRw8CgLy7da?usp=sharing).
+To load with default path, models should be placed under this directory path: `--ckpdir=./result_mockingjay/` and name the model file with `--ckpt=`.
 
 ### Step 4. Monitor Training Log
 ```

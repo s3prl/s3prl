@@ -18,6 +18,7 @@ import numpy as np
 import matplotlib
 matplotlib.use("Agg")
 import matplotlib.pylab as plt
+from scipy import signal
 import warnings
 warnings.filterwarnings("ignore")
 # NOTE: there are warnings for MFCC extraction due to librosa's issue
@@ -47,18 +48,22 @@ ref_level_db = 20
 hop_length = 250
 
 
-############################
-# LINEAR SPECTROGRAM UTILS #
-############################
+#####################
+# SPECTROGRAM UTILS #
+#####################
 def _stft_parameters(sample_rate):
 	n_fft = (num_freq - 1) * 2
 	hop_length = int(frame_shift_ms / 1000 * sample_rate)
 	win_length = int(frame_length_ms / 1000 * sample_rate)
 	return n_fft, hop_length, win_length
 
-def _stft(y, sr):
-	n_fft, hop_length, win_length = _stft_parameters(sr)
-	return librosa.stft(y=y, n_fft=n_fft, hop_length=hop_length, win_length=win_length)
+def _linear_to_mel(spectrogram, sample_rate):
+	_mel_basis = _build_mel_basis(sample_rate)
+	return np.dot(_mel_basis, spectrogram)
+
+def _build_mel_basis(sample_rate):
+	n_fft = (num_freq - 1) * 2
+	return librosa.filters.mel(sample_rate, n_fft, n_mels=num_mels)
 
 def _preemphasis(x):
 	return signal.lfilter([1, -preemphasis], [1], x)
@@ -68,6 +73,26 @@ def _amp_to_db(x):
 
 def _normalize(S):
 	return np.clip((S - min_level_db) / -min_level_db, 0, 1)
+
+
+########
+# STFT #
+########
+def _stft(y, sr):
+	n_fft, hop_length, win_length = _stft_parameters(sr)
+	return librosa.stft(y=y, n_fft=n_fft, hop_length=hop_length, win_length=win_length)
+
+
+###################
+# MEL SPECTROGRAM #
+###################
+"""
+Compute the mel-scale spectrogram from the wav.
+"""
+def melspectrogram(y, sr):
+	D = _stft(_preemphasis(y), sr)
+	S = _amp_to_db(_linear_to_mel(np.abs(D), sr))
+	return _normalize(S)
 
 
 ###############
@@ -105,6 +130,8 @@ def extract_feature(input_file, feature='fbank', cmvn=True, save_feature=None):
 		feat = librosa.feature.mfcc(y=y, sr=sr, n_mfcc=num_mels, n_mels=26,
 									n_fft=ws, hop_length=st)
 		feat[0] = librosa.feature.rmse(y, hop_length=st, frame_length=ws) 
+	elif feature == 'mel':
+		feat = melspectrogram(y, sr)
 	elif feature == 'linear':
 		feat = spectrogram(y, sr)
 	else:
@@ -112,13 +139,14 @@ def extract_feature(input_file, feature='fbank', cmvn=True, save_feature=None):
 
 	# Apply delta
 	feat = [feat]
-	if delta:
+	if delta and feature != 'linear':
 		feat.append(librosa.feature.delta(feat[0]))
 
-	if delta_delta:
-		feat.append(librosa.feature.delta(feat[0],order=2))
-	feat = np.concatenate(feat,axis=0)
-
+	if delta_delta and feature != 'linear':
+		feat.append(librosa.feature.delta(feat[0], order=2))
+	feat = np.concatenate(feat, axis=0)
+	if feature == 'linear': assert(np.shape(feat)[0] == num_freq)
+	
 	if cmvn:
 		feat = (feat - feat.mean(axis=1)[:,np.newaxis]) / (feat.std(axis=1)+1e-16)[:,np.newaxis]
 	if save_feature is not None:
