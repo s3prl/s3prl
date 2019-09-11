@@ -1,10 +1,10 @@
 # -*- coding: utf-8 -*- #
 """*********************************************************************************************"""
-#   FileName     [ mockingjay/solver.py ]
-#   Synopsis     [ solver for the mockingjay model]
+#   FileName     [ mockingjay/model.py ]
+#   Synopsis     [ Implementation of the mockingjay model ]
 #   Author       [ Andy T. Liu (Andi611) ]
 #   Copyright    [ Copyleft(c), Speech Lab, NTU, Taiwan ]
-#   Reference 1  [ https://github.com/Alexander-H-Liu/End-to-end-ASR-Pytorch ]
+#   Reference 1  [ https://github.com/huggingface/pytorch-transformers ]
 """*********************************************************************************************"""
 
 

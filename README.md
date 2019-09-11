@@ -1,4 +1,4 @@
-# Mockingjay: Speech Representation Learning through Self-Imitation - PyTorch Implementation
+# Mockingjay: Speech Representation Learning through Self-Imitation - PyTorch Official Implementation
 
 This is an open source project for Mockingjay, end-to-end learning of acoustic features representations, implemented with Pytorch.
 
