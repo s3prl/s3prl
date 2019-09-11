@@ -1,7 +1,7 @@
 mockingjay:
   downsample_rate: 3                                    # stacked consecutive features vectors to reduce the length of input sequences by this factor.
   hidden_size: 768                                      # Size of the encoder layers and the pooler layer.
-  num_hidden_layers: 12                                 # Number of hidden layers in the Transformer encoder.
+  num_hidden_layers: 10                                 # Number of hidden layers in the Transformer encoder.
   num_attention_heads: 12                               # Number of attention heads for each attention layer in the Transformer encoder.
   intermediate_size: 3078                               # The size of the "intermediate" (i.e., feed-forward) layer in the Transformer encoder.
   hidden_act: "gelu"                                    # The non-linear activation function (function or string) in the encoder and pooler. If string, "gelu", "relu" and "swish" are supported.
