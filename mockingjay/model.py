@@ -386,7 +386,7 @@ class MockingjayModel(MockingjayInitModel):
 		`encoded_layers`: controled by `output_all_encoded_layers` argument:
 			- `output_all_encoded_layers=True`: outputs a list of the full sequences of encoded-hidden-states
 				at the end of each attention block, each encoded-hidden-state is a torch.FloatTensor
-				of size [batch_size, sequence_length, hidden_size],
+				of size [batch_size, sequence_length, hidden_size], i.e [num_hidden_layers, batch_size, sequence_length, hidden_size]
 			- `output_all_encoded_layers=False`: outputs only the full sequence of hidden-states corresponding
 				to the last attention block of shape [batch_size, sequence_length, hidden_size].
 
@@ -504,9 +504,9 @@ class MockingjayForMaskedAcousticModel(MockingjayInitModel):
 
 	Outputs:
 		if `spec_label` and `mask_label` is not `None`:
-			Outputs the masked language modeling loss and predicted spectrogram.
+			Outputs the masked acoustic modeling loss and predicted spectrogram.
 		if `spec_label` and `mask_label` is `None`:
-			Outputs the masked language modeling logits of shape [batch_size, sequence_length, hidden_size].
+			Outputs the masked acoustic modeling predicted spectrogram of shape [batch_size, sequence_length, output_dim * downsample_rate].
 
 	Example usage:
 	```python

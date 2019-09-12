@@ -468,11 +468,10 @@ class Tester(Solver):
 
 	def plot(self, with_head=False):
 		''' Plotting the visualizations of the Unsupervised End-to-end Mockingjay Model'''
-		self.verbose('Plotting...')
 		self.verbose('Testing set total ' + str(len(self.dataloader)) + ' batches.')
 
 		idx = 0
-		for x in tqdm(self.dataloader, desc="Testing"):
+		for x in tqdm(self.dataloader, desc="Plotting"):
 			spec_stacked, pos_enc, attn_mask = self.process_MAM_data(spec=x)
 			if with_head:
 				pred_spec = self.model(spec_stacked, pos_enc, attention_mask=attn_mask)
@@ -516,40 +515,25 @@ class Tester(Solver):
 		idx = 0
 		for x in tqdm(self.dataloader, desc="Testing"):
 			spec_stacked, pos_enc, attn_mask = self.process_MAM_data(spec=x)
+			
 			if with_head:
 				pred_spec = self.model(spec_stacked, pos_enc, attention_mask=attn_mask)
+				# pred_spec shape: [batch_size, sequence_length // downsample_rate, output_dim * downsample_rate]
+				pred_spec = self.up_sample_frames(pred_spec, return_first=False)
+				# pred_spec shape: [batch_size, sequence_length * downsample_rate, output_dim // downsample_rate]
 
-				# generate the model filled MAM spectrogram
-				spec_masked = copy.deepcopy(spec_stacked)
-				for i in range(len(spec_masked)):
-					sample_index = random.sample(range(len(spec_masked[i])), int(len(spec_masked[i])*0.15))
-					print(sample_index)
-					spec_masked[i][sample_index] = 0
-					print(spec_masked.shape)
-				fill_spec = self.model(spec_masked, pos_enc, attention_mask=attn_mask)
-
-				# plot reconstructed / ground-truth / MAM filled spectrogram
-				for y_pred, y_true, y_fill in zip(pred_spec, spec_stacked, fill_spec):
-					y_pred = self.up_sample_frames(y_pred, return_first=True)
-					y_true = self.up_sample_frames(y_true, return_first=True)
-					y_true = self.up_sample_frames(y_fill, return_first=True)
-					plot_spectrogram(y_pred.data.cpu().numpy(), path=os.path.join(self.dump_dir, str(idx) + '_pred.png'))
-					plot_spectrogram(y_true.data.cpu().numpy(), path=os.path.join(self.dump_dir, str(idx) + '_true.png'))
-					plot_spectrogram(y_fill.data.cpu().numpy(), path=os.path.join(self.dump_dir, str(idx) + '_fill.png'))
-					idx += 1
-					if idx > 10: 
-						self.verbose('Spectrogram head generated samples are saved to: {}'.format(self.dump_dir))
-						exit() # visualize the first 10 testing samples
 			else:
 				encoded_layers = self.mockingjay(spec_stacked, pos_enc, attention_mask=attn_mask, output_all_encoded_layers=True)
-				last_encoded_layer = encoded_layers[-1]
+				# encoded_layers shape: [num_hidden_layers, batch_size, sequence_length, hidden_size]
+				tiled_encoded_layers = []
+				for encoded_layer in encoded_layers:
+					tiled_encoded_layer = np.zeros((encoded_layer.shape[0],
+													encoded_layer.shape[1]*self.dr, 
+													encoded_layer.shape[2]))
+					for idx in range(len(tiled_encoded_layer)):
+						for jdx in range(self.dr):
+							tiled_encoded_layer[idx][jdx]
 
-				for rep in last_encoded_layer:
-					plot_spectrogram(rep.data.cpu().numpy(), path=os.path.join(self.dump_dir, str(idx) + '_hidden.png'))
-					idx += 1
-					if idx > 10: 
-						self.verbose('Mockingjay generated samples are saved to: {}'.format(self.dump_dir))
-						exit() # visualize the first 10 testing samples				
 
 		
 
