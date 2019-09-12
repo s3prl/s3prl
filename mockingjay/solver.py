@@ -526,13 +526,16 @@ class Tester(Solver):
 				encoded_layers = self.mockingjay(spec_stacked, pos_enc, attention_mask=attn_mask, output_all_encoded_layers=True)
 				# encoded_layers shape: [num_hidden_layers, batch_size, sequence_length, hidden_size]
 				tiled_encoded_layers = []
-				for encoded_layer in encoded_layers:
+				for encoded_layer in encoded_layers: # for layers
 					tiled_encoded_layer = np.zeros((encoded_layer.shape[0],
 													encoded_layer.shape[1]*self.dr, 
 													encoded_layer.shape[2]))
-					for idx in range(len(tiled_encoded_layer)):
-						for jdx in range(self.dr):
-							tiled_encoded_layer[idx][jdx]
+					for idx in range(len(tiled_encoded_layer)): # for batch
+						for jdx in range(len(tiled_encoded_layer[idx])): # for each timestep
+							for kdx in range(self.dr): # repeat and tile
+								tiled_encoded_layer[idx][jdx+kdx] = copy.deepcopy(encoded_layer[idx][jdx])
+					tiled_encoded_layers.append(tiled_encoded_layer)
+				# tiled_encoded_layers shape: [num_hidden_layers, batch_size, sequence_length * downsample_rate, hidden_size]
 
 
 		
