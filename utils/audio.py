@@ -120,18 +120,25 @@ def spectrogram(y, sr):
 #     acoustic features with shape (time step, dim)
 def extract_feature(input_file, feature='fbank', cmvn=True, save_feature=None):
 	y, sr = librosa.load(input_file, sr=None)
-	ws = int(sr*0.001*window_size)
-	st = int(sr*0.001*stride)
-	if feature == 'fbank': # log-scaled
+
+	if feature == 'fbank':
+		ws = int(sr*0.001*window_size)
+		st = int(sr*0.001*stride)
 		feat = librosa.feature.melspectrogram(y=y, sr=sr, n_mels=num_mels,
-									n_fft=ws, hop_length=st)
-		feat = np.log(feat + 1e-6)
+											  n_fft=ws, hop_length=st)
+		feat = np.log(feat + 1e-6) # log-scaled
 	elif feature == 'mfcc':
+		ws = int(sr*0.001*window_size)
+		st = int(sr*0.001*stride)
 		feat = librosa.feature.mfcc(y=y, sr=sr, n_mfcc=num_mels, n_mels=26,
 									n_fft=ws, hop_length=st)
 		feat[0] = librosa.feature.rmse(y, hop_length=st, frame_length=ws) 
 	elif feature == 'mel':
-		feat = melspectrogram(y, sr)
+		# feat = melspectrogram(y, sr) # deprecated
+		n_fft, hop_length, win_length = _stft_parameters(sr)
+		feat = librosa.feature.melspectrogram(y=y, sr=sr, n_mels=num_mels,
+											  n_fft=n_fft, hop_length=hop_length, win_length=win_length)
+		feat = np.log(feat + 1e-6) # log-scaled
 	elif feature == 'linear':
 		feat = spectrogram(y, sr)
 	else:
@@ -146,7 +153,7 @@ def extract_feature(input_file, feature='fbank', cmvn=True, save_feature=None):
 		feat.append(librosa.feature.delta(feat[0], order=2))
 	feat = np.concatenate(feat, axis=0)
 	if feature == 'linear': assert(np.shape(feat)[0] == num_freq)
-	
+
 	if cmvn:
 		feat = (feat - feat.mean(axis=1)[:,np.newaxis]) / (feat.std(axis=1)+1e-16)[:,np.newaxis]
 	if save_feature is not None:

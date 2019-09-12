@@ -34,7 +34,7 @@ Preprocessing scripts may be executed directly if the LibriSpeech dataset is pla
 ```
 # Defualt
 python3 preprocess.py --feature_type=fbank
-# To train on different features:
+# To train on different input / output target features:
 python3 preprocess.py --feature_type=mel
 python3 preprocess.py --feature_type=linear 
 ```

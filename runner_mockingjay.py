@@ -47,10 +47,10 @@ def get_mockingjay_args():
 
 	# modes
 	parser.add_argument('--test', action='store_true', help='Test the model.')
+	parser.add_argument('--with-head', action='store_true', help='inference with the spectrogram head, the model outputs spectrogram.')
 	parser.add_argument('--plot', action='store_true', help='Plot model generated results during testing.')
 	parser.add_argument('--cpu', action='store_true', help='Disable GPU training.')
 	parser.add_argument('--no-msg', action='store_true', help='Hide all messages.')
-	parser.add_argument('--with-head', action='store_true', help='inference with the spectrogram head, the model outputs spectrogram.')
 
 	# parser.add_argument('--eval', action='store_true', help='Eval the model on test results.')
 	# parser.add_argument('--file', type=str, help='Path to decode result file.')
@@ -88,7 +88,7 @@ def main():
 		tester = Tester(config, args)
 		tester.load_data(dataset='test')
 		tester.set_model(inference=True, with_head=args.with_head)
-		tester.exec(with_head=args.with_head)
+		if args.plot: tester.plot(with_head=args.with_head)
 
 
 if __name__ == '__main__':
