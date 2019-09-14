@@ -52,25 +52,28 @@ All the parameters related to training/decoding will be stored in a yaml file. H
 
 Once the config file is ready, run the following command to train unsupervised end-to-end Mockingjay:
 ```
-python3 runner_mockingjay.py
+python3 runner_mockingjay.py --train
 ```
 All settings will be parsed from the config file automatically to start training, the log file can be accessed through TensorBoard.
 
 ### Step 3. Loading Pre-trained Models and Testing
 
-Once a model was trained, run the following command to get the generated representations:
+Once a model was trained, run the following command to test the generated representations:
 ```
-python3 runner_mockingjay.py --test --load --ckpdir='directory_to_model' --ckpt='model_name'
-```
-Run the following command to visualize the model generated samples:
-```
-# spectrogram
-python3 runner_mockingjay.py --test --load --plot
-# hidden representations
-python3 runner_mockingjay.py --test --load --plot --with-head
+python3 runner_mockingjay.py --load --test_phone
 ```
 Pre-trained models and their configs can be download from [HERE](https://drive.google.com/drive/folders/1tZQnT8y7sE6kuxVWivo-KmRw8CgLy7da?usp=sharing).
-To load with default path, models should be placed under this directory path: `--ckpdir=./result_mockingjay/` and name the model file with `--ckpt=`.
+To load with default path, models should be placed under the directory path: `--ckpdir=./result_mockingjay/` and name the model file manually with `--ckpt=`.
+
+### Step 4. Loading Pre-trained Models and Visualize
+Run the following command to visualize the model generated samples:
+```
+# visualize spectrogram
+python3 runner_mockingjay.py --load --plot
+# visualize hidden representations
+python3 runner_mockingjay.py --load --plot --with-head
+```
+Note that the arguments ```--ckpdir=XXX --ckpt=XXX``` needs to be set correctly for the above command to run properly.
 
 ### Step 4. Monitor Training Log
 ```

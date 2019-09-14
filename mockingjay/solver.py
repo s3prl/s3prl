@@ -23,6 +23,7 @@ from dataloader import get_Dataloader
 from mockingjay.model import MockingjayConfig, MockingjayModel, MockingjayForMaskedAcousticModel
 from mockingjay.optimization import BertAdam, WarmupLinearSchedule
 from utils.audio import plot_spectrogram_to_numpy, plot_spectrogram
+from utils.audio import mel_dim, num_freq
 
 
 ##########
@@ -50,8 +51,9 @@ class Solver():
 
 		# model
 		self.load_model_list = config['solver']['load_model_list']
-		self.x_sample = None
-		self.duo_loader = False
+		self.duo_feature = config['solver']['duo_feature']
+		self.output_dim = num_freq if self.duo_feature else None # output dim is the same as input dim if not using duo features
+		self.input_dim = mel_dim
 
 
 	def verbose(self, msg, end='\n'):
@@ -60,27 +62,27 @@ class Solver():
 			print('[SOLVER] - ', msg, end=end)
 
 
-	def load_data(self, dataset='train', duo_loader=False):
-		''' Load date for training/validation'''
+	def load_data(self, dataset='train', phone_loader=False):
+		''' Load date for training / validation'''
 		if dataset == 'train': 
 			self.verbose('Loading source data from ' + self.config['solver']['data_path'])
-			if self.duo_loader: self.verbose('Loading target data from ' + self.config['solver']['target_path'])
-		else: self.verbose('Loading testing data ' + str(self.config['solver']['test_set']) + ' from ' + self.config['solver']['data_path'])
-		if self.duo_loader:
+			if self.duo_feature: self.verbose('Loading target data from ' + self.config['solver']['target_path'])
+			if self.phone_loader: self.verbose('Loading phone data from ' + self.config['solver']['phone_path'])
+		else: 
+			self.verbose('Loading testing data ' + str(self.config['solver']['test_set']) + ' from ' + self.config['solver']['data_path'])
+			if self.phone_loader: self.verbose('Loading label data ' + str(self.config['solver']['test_set']) + ' from ' + self.config['solver']['phone_path'])
+
+		if phone_loader:
+			setattr(self, 'dataloader', get_Dataloader(dataset, load='phone', use_gpu=self.paras.gpu, **self.config['solver']))
+		elif self.duo_feature:
 			setattr(self, 'dataloader', get_Dataloader(dataset, load='duo', use_gpu=self.paras.gpu, **self.config['solver']))
-			for self.x_sample, self.t_sample in getattr(self, 'dataloader'): break
 		else:
 			setattr(self, 'dataloader', get_Dataloader(dataset, load='spec', use_gpu=self.paras.gpu, **self.config['solver']))
-			for self.x_sample in getattr(self, 'dataloader'): break
-			self.t_sample = None
-		
-		# Get 1 example for auto constructing model
-		if len(self.x_sample.shape) == 4: self.x_sample = self.x_sample[0]
 
 
 	def set_model(self, inference=False, with_head=False):
 		self.verbose('Initializing Mockingjay model.')
-		assert(self.x_sample is not None), 'Run load_data() to get input feature shape before initializing model.'
+		assert(self.input_dim is not None), 'Run load_data() to get input feature shape before initializing model.'
 		
 		# # Build the Mockingjay model with speech prediction head
 		self.model_config = MockingjayConfig(self.config)
@@ -88,11 +90,11 @@ class Solver():
 		self.hidden_size = self.model_config.hidden_size
 		
 		if not inference or with_head:
-			self.model = MockingjayForMaskedAcousticModel(self.model_config, self.x_sample, self.t_sample).to(self.device)
+			self.model = MockingjayForMaskedAcousticModel(self.model_config, self.input_dim, self.output_dim).to(self.device)
 			self.mockingjay = self.model.Mockingjay
 
 		if inference and not with_head:
-			self.mockingjay = MockingjayModel(self.model_config, self.x_sample).to(self.device)
+			self.mockingjay = MockingjayModel(self.model_config, self.input_dim).to(self.device)
 			self.mockingjay.eval()
 		elif inference and with_head:
 			self.model.eval()
@@ -240,9 +242,10 @@ class Solver():
 		if len(spec.shape) != 3: 
 			spec = spec.unsqueeze(0)
 			assert(len(spec.shape) == 3), 'Input should have acoustic feature of shape BxTxD'
+		# spec shape: [batch_size, sequence_length // downsample_rate, output_dim * downsample_rate]
 		spec_flatten = spec.view(spec.shape[0], spec.shape[1]*self.dr, spec.shape[2]//self.dr)
 		if return_first: return spec_flatten[0]
-		return spec_flatten
+		return spec_flatten # spec_flatten shape: [batch_size, sequence_length * downsample_rate, output_dim // downsample_rate]
 
 
 	def down_sample_frames(self, spec):
@@ -275,6 +278,31 @@ class Solver():
 			return sinusoid_table  # (seq_len, hidden_size)
 
 
+	def tile_representations(encoded_layers):
+		'''Tile up the mockingjay representations to match the amount of input frames'''
+		# Input - encoded_layers shape: [num_hidden_layers, batch_size, sequence_length, hidden_size]
+		# Output - tiled_encoded_layers shape: [num_hidden_layers, batch_size, sequence_length * downsample_rate, hidden_size]
+		
+		if len(encoded_layers.shape) == 4:
+			tiled_encoded_layers = []
+		else:
+			encoded_layers = [encoded_layers]
+
+		for encoded_layer in encoded_layers: # for layers
+			tiled_encoded_layer = np.zeros((encoded_layer.shape[0],
+											encoded_layer.shape[1]*self.dr, 
+											encoded_layer.shape[2]))
+			for idx in range(len(tiled_encoded_layer)): # for batch
+				for jdx in range(len(tiled_encoded_layer[idx])): # for each timestep
+					for kdx in range(self.dr): # repeat and tile
+						tiled_encoded_layer[idx][jdx+kdx] = copy.deepcopy(encoded_layer[idx][jdx])
+			tiled_encoded_layers.append(tiled_encoded_layer)
+
+		if len(tiled_encoded_layers) == 1:
+			return tiled_encoded_layers[0] # return the only layer if only one layer is given at input
+		else: return tiled_encoded_layers # else return all layers
+
+
 class Trainer(Solver):
 	''' Handler for complete training progress'''
 	def __init__(self, config, paras):
@@ -294,7 +322,6 @@ class Trainer(Solver):
 		self.gradient_accumulation_steps = self.config['optimizer']['gradient_accumulation_steps']
 		self.gradient_clipping = self.config['optimizer']['gradient_clipping']
 		self.max_keep = config['solver']['max_keep']
-		self.duo_loader = True if config['solver']['dataset'] == 'librispeech_mel_linear' else False
 		self.reset_train()
 
 	def reset_train(self):
@@ -368,7 +395,7 @@ class Trainer(Solver):
 
 			for step, spec in enumerate(progress):
 
-				if self.duo_loader:
+				if self.duo_feature:
 					spec_masked, pos_enc, mask_label, attn_mask, spec_stacked = self.process_MAM_data(source_spec=spec[0], 
 																									  target_spec=spec[1])
 				else:
@@ -508,34 +535,18 @@ class Tester(Solver):
 						self.verbose('Mockingjay generated samples are saved to: {}'.format(self.dump_dir))
 						exit() # visualize the first 10 testing samples
 
-	def exec(self, with_head=False):
+	def test_phone(self):
 		''' Testing Unsupervised End-to-end Mockingjay Model'''
 		self.verbose('Testing set total ' + str(len(self.dataloader)) + ' batches.')
 
 		idx = 0
 		for x in tqdm(self.dataloader, desc="Testing"):
-			spec_stacked, pos_enc, attn_mask = self.process_MAM_data(spec=x)
 			
-			if with_head:
-				pred_spec = self.model(spec_stacked, pos_enc, attention_mask=attn_mask)
-				# pred_spec shape: [batch_size, sequence_length // downsample_rate, output_dim * downsample_rate]
-				pred_spec = self.up_sample_frames(pred_spec, return_first=False)
-				# pred_spec shape: [batch_size, sequence_length * downsample_rate, output_dim // downsample_rate]
+			spec_stacked, pos_enc, attn_mask = self.process_MAM_data(spec=x)
+			encoded_layers = self.mockingjay(spec_stacked, pos_enc, attention_mask=attn_mask, output_all_encoded_layers=True)
+			
+			reps = tile_representations(encoded_layers)
 
-			else:
-				encoded_layers = self.mockingjay(spec_stacked, pos_enc, attention_mask=attn_mask, output_all_encoded_layers=True)
-				# encoded_layers shape: [num_hidden_layers, batch_size, sequence_length, hidden_size]
-				tiled_encoded_layers = []
-				for encoded_layer in encoded_layers: # for layers
-					tiled_encoded_layer = np.zeros((encoded_layer.shape[0],
-													encoded_layer.shape[1]*self.dr, 
-													encoded_layer.shape[2]))
-					for idx in range(len(tiled_encoded_layer)): # for batch
-						for jdx in range(len(tiled_encoded_layer[idx])): # for each timestep
-							for kdx in range(self.dr): # repeat and tile
-								tiled_encoded_layer[idx][jdx+kdx] = copy.deepcopy(encoded_layer[idx][jdx])
-					tiled_encoded_layers.append(tiled_encoded_layer)
-				# tiled_encoded_layers shape: [num_hidden_layers, batch_size, sequence_length * downsample_rate, hidden_size]
 
 
 		

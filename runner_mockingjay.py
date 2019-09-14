@@ -46,9 +46,13 @@ def get_mockingjay_args():
 	# parser.add_argument('--njobs', default=1, type=int, help='Number of threads for decoding.', required=False)
 
 	# modes
-	parser.add_argument('--test', action='store_true', help='Test the model.')
-	parser.add_argument('--with-head', action='store_true', help='inference with the spectrogram head, the model outputs spectrogram.')
+	parser.add_argument('--train', action='store_true', help='Test the model.')
+	parser.add_argument('--train_phone', action='store_true', help='Train the phone classifier on mockingjay representations.')
+	parser.add_argument('--test_phone', action='store_true', help='Test mockingjay representations using the trained phone classifier.')
 	parser.add_argument('--plot', action='store_true', help='Plot model generated results during testing.')
+	
+	# Options
+	parser.add_argument('--with-head', action='store_true', help='inference with the spectrogram head, the model outputs spectrogram.')
 	parser.add_argument('--cpu', action='store_true', help='Disable GPU training.')
 	parser.add_argument('--no-msg', action='store_true', help='Hide all messages.')
 
@@ -77,18 +81,26 @@ def main():
 	torch.manual_seed(args.seed)
 	if torch.cuda.is_available(): torch.cuda.manual_seed_all(args.seed)
 
-	if not args.test:
+	if args.train:
 		from mockingjay.solver import Trainer
 		trainer = Trainer(config, args)
 		trainer.load_data(dataset='train')
 		trainer.set_model(inference=False)
 		trainer.exec()
-	else:
+
+	elif args.test_phone:
 		from mockingjay.solver import Tester
 		tester = Tester(config, args)
-		tester.load_data(dataset='test')
+		tester.load_data(dataset='test', phone_loader=True)
+		tester.set_model(inference=True, with_head=False)
+		tester.test_phone()
+
+	elif args.plot:
+		from mockingjay.solver import Tester
+		tester = Tester(config, args)
+		tester.load_data(dataset='test', phone_loader=False)
 		tester.set_model(inference=True, with_head=args.with_head)
-		if args.plot: tester.plot(with_head=args.with_head)
+		tester.plot(with_head=args.with_head)
 
 
 if __name__ == '__main__':

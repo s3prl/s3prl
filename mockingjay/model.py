@@ -19,17 +19,6 @@ import torch
 from torch import nn
 import numpy as np
 
-"""
-1. should loss be masked? only predict the masked token rather than reconstructing the entire input.
-2. does spec matter? linear or mel
-3. use 0s as mask?
-4. downsample and stack by 5
-
-TODO:
-spec_mask
-attention_mask
-masked input
-"""
 
 class MockingjayConfig(object):
 	"""Configuration class to store the configuration of a `MockingjayModel`.
@@ -114,7 +103,7 @@ class MockingjayInputRepresentations(nn.Module):
 	def __init__(self, config, input_dim):
 		super(MockingjayInputRepresentations, self).__init__()
 		self.hidden_size = config.hidden_size
-		self.spec_transform = nn.Linear(input_dim*config.downsample_rate, config.hidden_size)
+		self.spec_transform = nn.Linear(input_dim * onfig.downsample_rate, config.hidden_size)
 
 		# self.LayerNorm is not snake-cased to stick with TensorFlow model variable name and be able to load
 		# any TensorFlow checkpoint file
@@ -319,9 +308,9 @@ class MockingjayEncoder(nn.Module):
 
 
 class MockingjaySpecPredictionHead(nn.Module):
-	def __init__(self, config, y_sample):
+	def __init__(self, config, output_dim):
 		super(MockingjaySpecPredictionHead, self).__init__()
-		self.output_dim = y_sample.shape[-1]
+		self.output_dim = output_dim
 		self.dense = nn.Linear(config.hidden_size, config.hidden_size)
 		if isinstance(config.hidden_act, str) or (sys.version_info[0] == 2 and isinstance(config.hidden_act, unicode)):
 			self.transform_act_fn = ACT2FN[config.hidden_act]
@@ -363,6 +352,7 @@ class MockingjayModel(MockingjayInitModel):
 
 	Params:
 		`config`: a MockingjayConfig class instance with the configuration to build a new model
+		`intput_dim`: int,  input dimension of model	
 		`output_attentions`: If True, also output attentions weights computed by the model at each layer. Default: False
 		`keep_multihead_output`: If True, saves output of the multi-head attention module with its gradient.
 			This can be used to compute head importance metrics. Default: False
@@ -403,11 +393,10 @@ class MockingjayModel(MockingjayInitModel):
 	masked_spec_logits = model(spec_input, pos_enc)
 	```
 	"""
-	def __init__(self, config, x_sample, output_attentions=False, keep_multihead_output=False):
+	def __init__(self, config, input_dim, output_attentions=False, keep_multihead_output=False):
 		super(MockingjayModel, self).__init__(config)
-		self.input_dim = x_sample.shape[-1]
 		self.output_attentions = output_attentions
-		self.input_representations = MockingjayInputRepresentations(config, self.input_dim)
+		self.input_representations = MockingjayInputRepresentations(config, input_dim)
 		self.encoder = MockingjayEncoder(config, output_attentions=output_attentions,
 										   keep_multihead_output=keep_multihead_output)
 		self.apply(self.init_Mockingjay_weights)
@@ -480,6 +469,8 @@ class MockingjayForMaskedAcousticModel(MockingjayInitModel):
 
 	Params:
 		`config`: a MockingjayConfig class instance with the configuration to build a new model
+		`intput_dim`: int,  input dimension of model
+		`output_dim`: int,  output dimension of model
 		`output_attentions`: If True, also output attentions weights computed by the model at each layer. Default: False
 		`keep_multihead_output`: If True, saves output of the multi-head attention module with its gradient.
 			This can be used to compute head importance metrics. Default: False
@@ -520,12 +511,12 @@ class MockingjayForMaskedAcousticModel(MockingjayInitModel):
 	masked_spec_logits = model(spec_input, pos_enc)
 	```
 	"""
-	def __init__(self, config, x_sample, y_sample, output_attentions=False, keep_multihead_output=False):
+	def __init__(self, config, input_dim, output_dim, output_attentions=False, keep_multihead_output=False):
 		super(MockingjayForMaskedAcousticModel, self).__init__(config)
 		self.output_attentions = output_attentions
-		self.Mockingjay = MockingjayModel(config, x_sample, output_attentions=output_attentions,
+		self.Mockingjay = MockingjayModel(config, input_dim, output_attentions=output_attentions,
 									  keep_multihead_output=keep_multihead_output)
-		self.SpecHead = MockingjaySpecPredictionHead(config, y_sample if y_sample is not None else x_sample)
+		self.SpecHead = MockingjaySpecPredictionHead(config, output_dim if output_dim is not None else input_dim)
 		self.apply(self.init_Mockingjay_weights)
 		self.loss = nn.L1Loss() 
 

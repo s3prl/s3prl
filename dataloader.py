@@ -42,9 +42,8 @@ class LibriDataset(Dataset):
 		# Read file
 		self.root = file_path
 		tables = [pd.read_csv(os.path.join(file_path, s + '.csv')) for s in sets]
-		self.table = pd.concat(tables,ignore_index=True).sort_values(by=['length'],ascending=False)
+		self.table = pd.concat(tables, ignore_index=True).sort_values(by=['length'], ascending=False)
 		self.load = load
-		assert self.load in ['all', 'text', 'spec', 'duo']
 
 		# Crop seqs that are too long
 		if drop and max_timestep > 0 and self.load != 'text':
@@ -73,6 +72,9 @@ class LibriDataset(Dataset):
 			t_batch = [torch.FloatTensor(np.load(os.path.join(self.t_root, t_file))) for t_file in self.T[index]]
 			t_pad_batch = pad_sequence(t_batch, batch_first=True)
 			return x_pad_batch, t_pad_batch
+		elif self.load == 'phone':
+			p_pad_batch = None # TODO
+			return x_pad_batch, p_pad_batch
 		# return (x, y)
 		else:
 			return x_pad_batch, y_pad_batch
@@ -90,6 +92,7 @@ class MelDataset(LibriDataset):
 	def __init__(self, file_path, sets, bucket_size, max_timestep=0, max_label_len=0, drop=False, load='all'):
 		super(AsrDataset, self).__init__(file_path, sets, bucket_size, max_timestep, max_label_len, drop, load)
 
+		assert(self.load in ['all', 'text', 'spec']), 'This dataset loads mel features and text labels.'
 		X = self.table['file_path'].tolist()
 		X_lens = self.table['length'].tolist()
 			
@@ -134,7 +137,7 @@ class Mel_Linear_Dataset(LibriDataset):
 	def __init__(self, file_path, target_path, sets, bucket_size, max_timestep=0, max_label_len=0, drop=False, load='all'):
 		super(Mel_Linear_Dataset, self).__init__(file_path, sets, bucket_size, max_timestep, max_label_len, drop, load)
 
-		assert(self.load == 'duo'), 'This dataset loads duo features: mel spectrogram and linear spectrogram'
+		assert(self.load == 'duo'), 'This dataset loads duo features: mel spectrogram and linear spectrogram.'
 		# Read Target file
 		self.t_root = target_path
 		t_tables = [pd.read_csv(os.path.join(target_path, s + '.csv')) for s in sets]
@@ -183,11 +186,24 @@ class Mel_Linear_Dataset(LibriDataset):
 			self.Y.append(batch_y)
 
 
+#####################
+# MEL PHONE DATASET #
+#####################
+class Mel_Phone_Dataset(LibriDataset):
+	
+	def __init__(self, file_path, phone_path, sets, bucket_size, max_timestep=0, max_label_len=0, drop=False, load='all'):
+		super(Mel_Phone_Dataset, self).__init__(file_path, sets, bucket_size, max_timestep, max_label_len, drop, load)
+
+		assert(self.load == 'phone'), 'This dataset loads mel features and phone boundary labels.'
+		# TODO
+
+
 ##################
 # GET DATALOADER #
 ##################
-def get_Dataloader(split, load, data_path, batch_size, max_timestep, max_label_len, use_gpu, n_jobs,
-				   dataset, train_set, dev_set, test_set, dev_batch_size, target_path=None, decode_beam_size=None, **kwargs):
+def get_Dataloader(split, load, data_path, batch_size, max_timestep, max_label_len, 
+				   use_gpu, n_jobs, dataset, train_set, dev_set, test_set, dev_batch_size, 
+				   target_path=None, phone_path=None, decode_beam_size=None, **kwargs):
 	if split == 'train':
 		bs = batch_size
 		shuffle = True
@@ -210,17 +226,24 @@ def get_Dataloader(split, load, data_path, batch_size, max_timestep, max_label_l
 		sets = train_set
 		drop_too_long = True
 	else:
-		raise NotImplementedError
+		raise NotImplementedError('Unsupported `split` argument: ' + split)
 		
 	if dataset.upper() == "LIBRISPEECH":
-		ds = MelDataset(file_path=data_path, sets=sets, max_timestep=max_timestep, load=load,
-						   max_label_len=max_label_len, bucket_size=bs, drop=drop_too_long)
-		return DataLoader(ds, batch_size=1, shuffle=shuffle, drop_last=False, num_workers=n_jobs, pin_memory=use_gpu)
-	elif dataset.upper() == "LIBRISPEECH_MEL_LINEAR":
-		assert(target_path is not None), '`target path` must be provided for this dataset.'
-		ds = Mel_Linear_Dataset(file_path=data_path, target_path=target_path, sets=sets, max_timestep=max_timestep, load=load,
-						   		max_label_len=max_label_len, bucket_size=bs, drop=drop_too_long)
-		return DataLoader(ds, batch_size=1, shuffle=shuffle, drop_last=False, num_workers=n_jobs, pin_memory=use_gpu)
+		if load in ['all', 'text', 'spec']:
+			ds = MelDataset(file_path=data_path, sets=sets, max_timestep=max_timestep, load=load,
+						    max_label_len=max_label_len, bucket_size=bs, drop=drop_too_long)
+		elif load == 'duo':
+			assert(target_path is not None), '`target path` must be provided for this dataset.'
+			ds = Mel_Linear_Dataset(file_path=data_path, target_path=target_path, sets=sets, max_timestep=max_timestep, load=load,
+						   			max_label_len=max_label_len, bucket_size=bs, drop=drop_too_long)
+		elif load == 'phone':
+			assert(phone_path is not None), '`phone path` must be provided for this dataset.'
+			ds = Mel_Phone_Dataset(file_path=data_path, phone_path=phone_path, sets=sets, max_timestep=max_timestep, load=load,
+						   			max_label_len=max_label_len, bucket_size=bs, drop=drop_too_long)
+		else:
+			raise NotImplementedError('Unsupported `load` argument: ' + load)
 	else:
 		raise ValueError('Unsupported Dataset: ' + dataset)
+
+	return DataLoader(ds, batch_size=1, shuffle=shuffle, drop_last=False, num_workers=n_jobs, pin_memory=use_gpu)
 

@@ -19,14 +19,16 @@ optimizer:
 
 solver:
   # Data options
-  dataset: 'librispeech_mel_linear'                     # [ librispeech / librispeech_mel_linear ]
+  dataset: 'librispeech'                                # librispeech dataset
   data_path: 'data/libri_mel160_subword5000'            # Source data path
   target_path: 'data/libri_linear1025_subword5000'      # Target data path for reconstruction to a different feature type, set dataset to 'librispeech_mel_linear'.
+  phone_path: 'data/libri_phone'                        # phone boundary data path for the phone classification task.
   n_jobs: 16                                            # Subprocess used for torch Dataloader
   max_timestep: 3000                                    # Max length for audio feature (0 for no restriction)
   max_label_len: 400                                    # Max length for output sequence (0 for no restriction)
   
   # Training options
+  duo_feature: True                                     # Use different input / output features during training
   apex: False                                           # Use APEX (see https://github.com/NVIDIA/apex for more details)
   train_set: ['train-clean-360']                        #
   log_step: 100                                         # log training status every this amount of training steps
