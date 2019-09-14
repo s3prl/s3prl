@@ -27,6 +27,7 @@ warnings.filterwarnings("ignore")
 ##################
 # AUDIO SETTINGS #
 ##################
+sample_rate = 16000
 """
 For feature == 'fbank' or 'mfcc'
 """
@@ -46,11 +47,13 @@ preemphasis = 0.97
 min_level_db = -100
 ref_level_db = 20
 hop_length = 250
+griffin_lim_iters = 64
+power = 1.5 # Power to raise magnitudes to prior to Griffin-Lim
 
 
-#####################
-# SPECTROGRAM UTILS #
-#####################
+#############################
+# SPECTROGRAM UTILS FORWARD #
+#############################
 def _stft_parameters(sample_rate):
 	n_fft = (num_freq - 1) * 2
 	hop_length = int(frame_shift_ms / 1000 * sample_rate)
@@ -74,13 +77,39 @@ def _amp_to_db(x):
 def _normalize(S):
 	return np.clip((S - min_level_db) / -min_level_db, 0, 1)
 
-
-########
-# STFT #
-########
 def _stft(y, sr):
 	n_fft, hop_length, win_length = _stft_parameters(sr)
 	return librosa.stft(y=y, n_fft=n_fft, hop_length=hop_length, win_length=win_length)
+
+
+#############################
+# SPECTROGRAM UTILS BACKWARD #
+#############################
+def _denormalize(S):
+	return (np.clip(S, 0, 1) * -min_level_db) + min_level_db
+
+def _db_to_amp(x):
+	return np.power(10.0, x * 0.05)
+
+def inv_preemphasis(x):
+	return signal.lfilter([1], [1, -preemphasis], x)
+
+def _griffin_lim(S):
+	"""
+		librosa implementation of Griffin-Lim
+		Based on https://github.com/librosa/librosa/issues/434
+	"""
+	angles = np.exp(2j * np.pi * np.random.rand(*S.shape))
+	S_complex = np.abs(S).astype(np.complex)
+	y = _istft(S_complex * angles)
+	for i in range(griffin_lim_iters):
+		angles = np.exp(1j * np.angle(_stft(y)))
+		y = _istft(S_complex * angles)
+	return y
+
+def _istft(y):
+	_, hop_length, win_length = _stft_parameters()
+	return librosa.istft(y, hop_length=hop_length, win_length=win_length)
 
 
 ###################
@@ -108,6 +137,17 @@ def spectrogram(y, sr):
 
 
 ###################
+# INV SPECTROGRAM #
+###################
+"""
+Converts spectrogram to waveform using librosa
+"""
+def inv_spectrogram(spectrogram):
+	S = _db_to_amp(_denormalize(spectrogram) + ref_level_db)  # Convert back to linear
+	return inv_preemphasis(_griffin_lim(S ** power))          # Reconstruct phase
+
+
+###################
 # EXTRACT FEATURE #
 ###################
 # Acoustic Feature Extraction
@@ -119,7 +159,7 @@ def spectrogram(y, sr):
 # Return
 #     acoustic features with shape (time step, dim)
 def extract_feature(input_file, feature='fbank', cmvn=True, save_feature=None):
-	y, sr = librosa.load(input_file, sr=None)
+	y, sr = librosa.load(input_file, sr=sample_rate)
 
 	if feature == 'fbank':
 		ws = int(sr*0.001*window_size)

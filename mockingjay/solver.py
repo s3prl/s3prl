@@ -15,6 +15,7 @@ import torch
 import copy
 import math
 import random
+import librosa
 import numpy as np
 from tqdm import tqdm, trange
 import torch.nn.functional as F
@@ -23,7 +24,7 @@ from dataloader import get_Dataloader
 from mockingjay.model import MockingjayConfig, MockingjayModel, MockingjayForMaskedAcousticModel
 from mockingjay.optimization import BertAdam, WarmupLinearSchedule
 from utils.audio import plot_spectrogram_to_numpy, plot_spectrogram
-from utils.audio import mel_dim, num_freq
+from utils.audio import mel_dim, num_freq, sample_rate, inv_spectrogram
 
 
 ##########
@@ -500,6 +501,7 @@ class Tester(Solver):
 		idx = 0
 		for x in tqdm(self.dataloader, desc="Plotting"):
 			spec_stacked, pos_enc, attn_mask = self.process_MAM_data(spec=x)
+			
 			if with_head:
 				pred_spec = self.model(spec_stacked, pos_enc, attention_mask=attn_mask)
 
@@ -507,19 +509,25 @@ class Tester(Solver):
 				spec_masked = copy.deepcopy(spec_stacked)
 				for i in range(len(spec_masked)):
 					sample_index = random.sample(range(len(spec_masked[i])), int(len(spec_masked[i])*0.15))
-					print(sample_index)
 					spec_masked[i][sample_index] = 0
-					print(spec_masked.shape)
 				fill_spec = self.model(spec_masked, pos_enc, attention_mask=attn_mask)
 
 				# plot reconstructed / ground-truth / MAM filled spectrogram
 				for y_pred, y_true, y_fill in zip(pred_spec, spec_stacked, fill_spec):
+					
 					y_pred = self.up_sample_frames(y_pred, return_first=True)
 					y_true = self.up_sample_frames(y_true, return_first=True)
-					y_true = self.up_sample_frames(y_fill, return_first=True)
+					y_fill = self.up_sample_frames(y_fill, return_first=True)
+					
 					plot_spectrogram(y_pred.data.cpu().numpy(), path=os.path.join(self.dump_dir, str(idx) + '_pred.png'))
 					plot_spectrogram(y_true.data.cpu().numpy(), path=os.path.join(self.dump_dir, str(idx) + '_true.png'))
 					plot_spectrogram(y_fill.data.cpu().numpy(), path=os.path.join(self.dump_dir, str(idx) + '_fill.png'))
+					
+					wave_pred = inv_spectrogram(y_pred.data.cpu().numpy().T)
+					wave_fill = inv_spectrogram(y_fill.data.cpu().numpy().T)
+					librosa.output.write_wav(os.path.join(self.dump_dir, str(idx) + '_pred.wav'), wave_pred, sample_rate)
+					librosa.output.write_wav(os.path.join(self.dump_dir, str(idx) + '_fill.wav'), wave_fill, sample_rate)
+					
 					idx += 1
 					if idx > 10: 
 						self.verbose('Spectrogram head generated samples are saved to: {}'.format(self.dump_dir))
@@ -534,6 +542,7 @@ class Tester(Solver):
 					if idx > 10: 
 						self.verbose('Mockingjay generated samples are saved to: {}'.format(self.dump_dir))
 						exit() # visualize the first 10 testing samples
+
 
 	def test_phone(self):
 		''' Testing Unsupervised End-to-end Mockingjay Model'''
