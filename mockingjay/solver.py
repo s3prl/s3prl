@@ -384,7 +384,7 @@ class Trainer(Solver):
 		return spec_masked, pos_enc, mask_label, attn_mask, spec_stacked # (x, pos_enc, mask_label, attention_mask. y)
 
 
-	def exec(self):
+	def train(self):
 		''' Training Unsupervised End-to-end Mockingjay Model'''
 		self.verbose('Training set total ' + str(len(self.dataloader)) + ' batches.')
 

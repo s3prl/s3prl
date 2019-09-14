@@ -18,12 +18,6 @@ import numpy as np
 import pandas as pd
 
 
-# Make cudnn CTC deterministic
-torch.backends.cudnn.deterministic = True
-# import warnings
-# warnings.filterwarnings("ignore", category=UserWarning) 
-
-
 #############################
 # MOCKINGJAY CONFIGURATIONS #
 #############################
@@ -56,10 +50,8 @@ def get_mockingjay_args():
 	parser.add_argument('--cpu', action='store_true', help='Disable GPU training.')
 	parser.add_argument('--no-msg', action='store_true', help='Hide all messages.')
 
-	# parser.add_argument('--eval', action='store_true', help='Eval the model on test results.')
-	# parser.add_argument('--file', type=str, help='Path to decode result file.')
-	args = parser.parse_args()
 
+	args = parser.parse_args()
 	setattr(args,'gpu', not args.cpu)
 	setattr(args,'verbose', not args.no_msg)
 	config = yaml.load(open(args.config,'r'))
@@ -75,18 +67,19 @@ def main():
 	# get arguments
 	config, args = get_mockingjay_args()
 	
-	# Train
+	# Fix seed and make backends deterministic
 	random.seed(args.seed)
 	np.random.seed(args.seed)
 	torch.manual_seed(args.seed)
 	if torch.cuda.is_available(): torch.cuda.manual_seed_all(args.seed)
+	torch.backends.cudnn.deterministic = True
 
 	if args.train:
 		from mockingjay.solver import Trainer
 		trainer = Trainer(config, args)
 		trainer.load_data(dataset='train')
 		trainer.set_model(inference=False)
-		trainer.exec()
+		trainer.train()
 
 	elif args.test_phone:
 		from mockingjay.solver import Tester

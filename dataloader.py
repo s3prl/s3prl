@@ -54,7 +54,7 @@ class LibriDataset(Dataset):
 
 	def __getitem__(self, index):
 		# Load label
-		if self.load != 'spec':
+		if self.load == 'all' or self.load == 'text':
 			y_batch = [y for y in self.Y[index]]
 			y_pad_batch = target_padding(y_batch, max([len(v) for v in y_batch]))
 			if self.load == 'text':
@@ -85,14 +85,14 @@ class LibriDataset(Dataset):
 
 
 ###############
-# MEL DATASET #
+# ASR DATASET #
 ###############
-class MelDataset(LibriDataset):
+class AsrDataset(LibriDataset):
 	
 	def __init__(self, file_path, sets, bucket_size, max_timestep=0, max_label_len=0, drop=False, load='all'):
 		super(AsrDataset, self).__init__(file_path, sets, bucket_size, max_timestep, max_label_len, drop, load)
 
-		assert(self.load in ['all', 'text', 'spec']), 'This dataset loads mel features and text labels.'
+		assert(self.load in ['all', 'text']), 'This dataset loads mel features and text labels.'
 		X = self.table['file_path'].tolist()
 		X_lens = self.table['length'].tolist()
 			
@@ -129,61 +129,86 @@ class MelDataset(LibriDataset):
 			self.Y.append(batch_y)
 
 
+###############
+# MEL DATASET #
+###############
+class MelDataset(LibriDataset):
+	
+	def __init__(self, file_path, sets, bucket_size, max_timestep=0, max_label_len=0, drop=False, load='spec'):
+		super(AsrDataset, self).__init__(file_path, sets, bucket_size, max_timestep, max_label_len, drop, load)
+
+		assert(self.load == 'spec'), 'This dataset loads mel features.'
+		X = self.table['file_path'].tolist()
+		X_lens = self.table['length'].tolist()
+
+		# Bucketing, X & X_len is dummy when load == 'text'
+		self.X = []
+		batch_x, batch_len = [], []
+
+		for x, x_len in zip(X, X_lens):
+			batch_x.append(x)
+			batch_len.append(x_len)
+			
+			# Fill in batch_x until batch is full
+			if len(batch_x) == bucket_size:
+				# Half the batch size if seq too long
+				if (bucket_size >= 2) and (max(batch_len) > HALF_BATCHSIZE_TIME):
+					self.X.append(batch_x[:bucket_size//2])
+					self.X.append(batch_x[bucket_size//2:])
+				else:
+					self.X.append(batch_x)
+				batch_x, batch_len = [], []
+		
+		# Gather the last batch
+		if len(batch_x) > 0:
+			self.X.append(batch_x)
+
+
 ######################
 # MEL LINEAR DATASET #
 ######################
 class Mel_Linear_Dataset(LibriDataset):
 	
-	def __init__(self, file_path, target_path, sets, bucket_size, max_timestep=0, max_label_len=0, drop=False, load='all'):
+	def __init__(self, file_path, target_path, sets, bucket_size, max_timestep=0, max_label_len=0, drop=False, load='duo'):
 		super(Mel_Linear_Dataset, self).__init__(file_path, sets, bucket_size, max_timestep, max_label_len, drop, load)
 
 		assert(self.load == 'duo'), 'This dataset loads duo features: mel spectrogram and linear spectrogram.'
 		# Read Target file
 		self.t_root = target_path
 		t_tables = [pd.read_csv(os.path.join(target_path, s + '.csv')) for s in sets]
-		self.t_table = pd.concat(t_tables,ignore_index=True).sort_values(by=['length'],ascending=False)
+		self.t_table = pd.concat(t_tables, ignore_index=True).sort_values(by=['length'], ascending=False)
 
 		T = self.t_table['file_path'].tolist()
 		X = self.table['file_path'].tolist()
 		X_lens = self.table['length'].tolist()
-			
-		Y = [list(map(int, label.split('_'))) for label in self.table['label'].tolist()]
-		if self.load == 'text':
-			Y.sort(key=len,reverse=True)
 
 		# Bucketing, X & X_len is dummy when load == 'text'
 		self.T = []
 		self.X = []
-		self.Y = []
-		batch_t, batch_x, batch_len, batch_y = [], [], [], []
+		batch_t, batch_x, batch_len = [], [], []
 
-		for t, x, x_len, y in zip(T, X, X_lens, Y):
+		for t, x, x_len, y in zip(T, X, X_lens):
 			batch_t.append(t)
 			batch_x.append(x)
 			batch_len.append(x_len)
-			batch_y.append(y)
 			
 			# Fill in batch_x until batch is full
 			if len(batch_x) == bucket_size:
 				# Half the batch size if seq too long
-				if (bucket_size >= 2) and ((max(batch_len) > HALF_BATCHSIZE_TIME) or (max([len(y) for y in batch_y]) > HALF_BATCHSIZE_LABEL)):
+				if (bucket_size >= 2) and (max(batch_len) > HALF_BATCHSIZE_TIME):
 					self.T.append(batch_t[:bucket_size//2])
 					self.T.append(batch_t[bucket_size//2:])
 					self.X.append(batch_x[:bucket_size//2])
 					self.X.append(batch_x[bucket_size//2:])
-					self.Y.append(batch_y[:bucket_size//2])
-					self.Y.append(batch_y[bucket_size//2:])
 				else:
 					self.T.append(batch_t)
 					self.X.append(batch_x)
-					self.Y.append(batch_y)
-				batch_t, batch_x, batch_len, batch_y = [], [], [], []
+				batch_t, batch_x, batch_len = [], [], []
 		
 		# Gather the last batch
 		if len(batch_x) > 0:
 			self.T.append(batch_t)
 			self.X.append(batch_x)
-			self.Y.append(batch_y)
 
 
 #####################
@@ -191,11 +216,35 @@ class Mel_Linear_Dataset(LibriDataset):
 #####################
 class Mel_Phone_Dataset(LibriDataset):
 	
-	def __init__(self, file_path, phone_path, sets, bucket_size, max_timestep=0, max_label_len=0, drop=False, load='all'):
+	def __init__(self, file_path, phone_path, sets, bucket_size, max_timestep=0, max_label_len=0, drop=False, load='phone'):
 		super(Mel_Phone_Dataset, self).__init__(file_path, sets, bucket_size, max_timestep, max_label_len, drop, load)
 
 		assert(self.load == 'phone'), 'This dataset loads mel features and phone boundary labels.'
 		# TODO
+		X = self.table['file_path'].tolist()
+		X_lens = self.table['length'].tolist()
+
+		# Bucketing, X & X_len is dummy when load == 'text'
+		self.X = []
+		batch_x, batch_len = [], []
+
+		for x, x_len in zip(X, X_lens):
+			batch_x.append(x)
+			batch_len.append(x_len)
+			
+			# Fill in batch_x until batch is full
+			if len(batch_x) == bucket_size:
+				# Half the batch size if seq too long
+				if (bucket_size >= 2) and (max(batch_len) > HALF_BATCHSIZE_TIME):
+					self.X.append(batch_x[:bucket_size//2])
+					self.X.append(batch_x[bucket_size//2:])
+				else:
+					self.X.append(batch_x)
+				batch_x, batch_len = [], []
+		
+		# Gather the last batch
+		if len(batch_x) > 0:
+			self.X.append(batch_x)
 
 
 ##################
@@ -229,7 +278,10 @@ def get_Dataloader(split, load, data_path, batch_size, max_timestep, max_label_l
 		raise NotImplementedError('Unsupported `split` argument: ' + split)
 		
 	if dataset.upper() == "LIBRISPEECH":
-		if load in ['all', 'text', 'spec']:
+		if load in ['all', 'text']:
+			ds = AsrDataset(file_path=data_path, sets=sets, max_timestep=max_timestep, load=load,
+						    max_label_len=max_label_len, bucket_size=bs, drop=drop_too_long)
+		elif load == 'spec':
 			ds = MelDataset(file_path=data_path, sets=sets, max_timestep=max_timestep, load=load,
 						    max_label_len=max_label_len, bucket_size=bs, drop=drop_too_long)
 		elif load == 'duo':
