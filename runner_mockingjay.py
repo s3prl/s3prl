@@ -79,14 +79,14 @@ def main():
 		trainer = Trainer(config, args)
 		trainer.load_data(dataset='train')
 		trainer.set_model(inference=False)
-		trainer.train()
+		trainer.exec()
 
 	elif args.test_phone:
 		from mockingjay.solver import Tester
 		tester = Tester(config, args)
 		tester.load_data(dataset='test', phone_loader=True)
 		tester.set_model(inference=True, with_head=False)
-		tester.test_phone()
+		tester.exec()
 
 	elif args.plot:
 		from mockingjay.solver import Tester

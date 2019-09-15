@@ -68,10 +68,10 @@ class Solver():
 		if dataset == 'train': 
 			self.verbose('Loading source data from ' + self.config['solver']['data_path'])
 			if self.duo_feature: self.verbose('Loading target data from ' + self.config['solver']['target_path'])
-			if phone_loader: self.verbose('Loading phone data from ' + self.config['solver']['phone_path'])
+			if self.phone_loader: self.verbose('Loading phone data from ' + self.config['solver']['phone_path'])
 		else: 
 			self.verbose('Loading testing data ' + str(self.config['solver']['test_set']) + ' from ' + self.config['solver']['data_path'])
-			if phone_loader: self.verbose('Loading label data ' + str(self.config['solver']['test_set']) + ' from ' + self.config['solver']['phone_path'])
+			if self.phone_loader: self.verbose('Loading label data ' + str(self.config['solver']['test_set']) + ' from ' + self.config['solver']['phone_path'])
 
 		if phone_loader:
 			setattr(self, 'dataloader', get_Dataloader(dataset, load='phone', use_gpu=self.paras.gpu, **self.config['solver']))
@@ -279,31 +279,6 @@ class Solver():
 			return sinusoid_table  # (seq_len, hidden_size)
 
 
-	def tile_representations(encoded_layers):
-		'''Tile up the mockingjay representations to match the amount of input frames'''
-		# Input - encoded_layers shape: [num_hidden_layers, batch_size, sequence_length, hidden_size]
-		# Output - tiled_encoded_layers shape: [num_hidden_layers, batch_size, sequence_length * downsample_rate, hidden_size]
-		
-		if len(encoded_layers.shape) == 4:
-			tiled_encoded_layers = []
-		else:
-			encoded_layers = [encoded_layers]
-
-		for encoded_layer in encoded_layers: # for layers
-			tiled_encoded_layer = np.zeros((encoded_layer.shape[0],
-											encoded_layer.shape[1]*self.dr, 
-											encoded_layer.shape[2]))
-			for idx in range(len(tiled_encoded_layer)): # for batch
-				for jdx in range(len(tiled_encoded_layer[idx])): # for each timestep
-					for kdx in range(self.dr): # repeat and tile
-						tiled_encoded_layer[idx][jdx+kdx] = copy.deepcopy(encoded_layer[idx][jdx])
-			tiled_encoded_layers.append(tiled_encoded_layer)
-
-		if len(tiled_encoded_layers) == 1:
-			return tiled_encoded_layers[0] # return the only layer if only one layer is given at input
-		else: return tiled_encoded_layers # else return all layers
-
-
 class Trainer(Solver):
 	''' Handler for complete training progress'''
 	def __init__(self, config, paras):
@@ -385,12 +360,12 @@ class Trainer(Solver):
 		return spec_masked, pos_enc, mask_label, attn_mask, spec_stacked # (x, pos_enc, mask_label, attention_mask. y)
 
 
-	def train(self):
+	def exec(self):
 		''' Training Unsupervised End-to-end Mockingjay Model'''
 		self.verbose('Training set total ' + str(len(self.dataloader)) + ' batches.')
 
 		pbar = tqdm(total=self.total_steps)
-		while self.global_step < self.total_steps:
+		while self.global_step <= self.total_steps:
 
 			progress = tqdm(self.dataloader, desc="Iteration")
 
@@ -462,6 +437,7 @@ class Tester(Solver):
 		super(Tester, self).__init__(config, paras)
 		self.dump_dir = str(self.ckpt.split('.')[0]) + '-dump/'
 		if not os.path.exists(self.dump_dir): os.makedirs(self.dump_dir)
+		self.duo_feature = False # Set duo feature to False since only input mel is needed during testing
 
 
 	def process_MAM_data(self, spec):
@@ -492,6 +468,34 @@ class Tester(Solver):
 		pos_enc = torch.FloatTensor(pos_enc).to(device=self.device, dtype=torch.float32)
 		attn_mask = torch.FloatTensor(attn_mask).to(device=self.device, dtype=torch.float32)
 		return spec_stacked, pos_enc, attn_mask # (x, pos_enc, attention_mask)
+
+
+	def tile_representations(self, encoded_layers):
+		"""	
+			Tile up the mockingjay representations to match the amount of input frames
+			Input - encoded_layers shape: (num_hidden_layers, batch_size, sequence_length, hidden_size)
+			Output - tiled_encoded_layers shape: (num_hidden_layers, batch_size, sequence_length * downsample_rate, hidden_size)
+		"""
+		if len(encoded_layers.shape) == 4:
+			tiled_encoded_layers = []
+		else:
+			encoded_layers = [encoded_layers]
+
+		for encoded_layer in encoded_layers: # for layers
+			tiled_encoded_layer = torch.zeros((encoded_layer.shape[0],
+											   encoded_layer.shape[1] * self.dr, 
+											   encoded_layer.shape[2]))
+			for i in range(len(tiled_encoded_layer)): # for batch
+				for j in range(len(tiled_encoded_layer[i])): # for each timestep
+					for k in range(self.dr): # repeat and tile
+						tiled_encoded_layer[i][j+k] = copy.deepcopy(encoded_layer[i][j])
+			tiled_encoded_layers.append(tiled_encoded_layer)
+
+		# return the only layer if only one layer is given at input
+		# else return all layers
+		if len(tiled_encoded_layers) == 1:
+			tiled_encoded_layers = tiled_encoded_layers[0]
+		return torch.FloatTensor(tiled_encoded_layers).to(device=self.device, dtype=torch.float32)
 
 
 	def plot(self, with_head=False):
@@ -544,19 +548,18 @@ class Tester(Solver):
 						exit() # visualize the first 10 testing samples
 
 
-	def test_phone(self):
-		''' Testing Unsupervised End-to-end Mockingjay Model'''
-		self.verbose('Testing set total ' + str(len(self.dataloader)) + ' batches.')
-
-		idx = 0
-		for x in tqdm(self.dataloader, desc="Testing"):
+	def exec(self, spec, all_layers=True):
+		"""	
+			Generation of the Mockingjay Model Representation
+			Input: A batch of spectrograms: (batch_size, seq_len, hidden_size)
+			If `all_layers` == True, Output: A batch of representations: (batch_size, num_hiddem_layers, seq_len, hidden_size)
+			If `all_layers` == False, Output: A batch of representations: (batch_size, seq_len, hidden_size)
+		"""
 			
-			spec_stacked, pos_enc, attn_mask = self.process_MAM_data(spec=x)
-			encoded_layers = self.mockingjay(spec_stacked, pos_enc, attention_mask=attn_mask, output_all_encoded_layers=True)
-			
-			reps = tile_representations(encoded_layers)
-
-
-
+		spec_stacked, pos_enc, attn_mask = self.process_MAM_data(spec=spec)
+		encoded_layers = self.mockingjay(spec_stacked, pos_enc, attention_mask=attn_mask, output_all_encoded_layers=all_layers)
 		
+		reps = self.tile_representations(encoded_layers)
+		if len(reps.shape) == 4: reps = reps.permute(1, 0, 2, 3) # (batch_size, num_hidden_layers, sequence_length * downsample_rate, hidden_size)
+		return reps
 
