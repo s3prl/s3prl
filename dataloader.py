@@ -81,7 +81,7 @@ class LibriDataset(Dataset):
 			
 	
 	def __len__(self):
-		return len(self.Y)
+		return len(self.X)
 
 
 ###############
@@ -135,7 +135,7 @@ class AsrDataset(LibriDataset):
 class MelDataset(LibriDataset):
 	
 	def __init__(self, file_path, sets, bucket_size, max_timestep=0, max_label_len=0, drop=False, load='spec'):
-		super(AsrDataset, self).__init__(file_path, sets, bucket_size, max_timestep, max_label_len, drop, load)
+		super(MelDataset, self).__init__(file_path, sets, bucket_size, max_timestep, max_label_len, drop, load)
 
 		assert(self.load == 'spec'), 'This dataset loads mel features.'
 		X = self.table['file_path'].tolist()
