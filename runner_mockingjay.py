@@ -82,11 +82,11 @@ def main():
 		trainer.exec()
 
 	elif args.test_phone:
-		from mockingjay.solver import Tester
-		tester = Tester(config, args)
-		tester.load_data(dataset='test', phone_loader=True)
-		tester.set_model(inference=True, with_head=False)
-		tester.exec()
+		from downstream.solver import Trainer
+		trainer = Trainer(config, args)
+		trainer.load_data(dataset='train', phone_loader=True)
+		trainer.set_model(inference=True, with_head=False)
+		trainer.exec()
 
 	elif args.plot:
 		from mockingjay.solver import Tester

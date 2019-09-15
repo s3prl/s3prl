@@ -48,3 +48,17 @@ solver:
   load_model_list: ['SpecHead', 'Mockingjay']           # load the components in the list for test/eval
   max_keep: 10                                          # maximum number of model ckpt to keep during training
   save_step: 100                                        # save model every this amount of training steps
+
+downstream:
+  # Training options
+  train_set: ['train-clean-360']                        #
+  dev_set: ['dev-clean']                                #
+  test_set: ['test-clean']                              #
+  learning_rate: "5e-4"                                 # Learning rate for opt
+  log_step: 100                                         # log training status every this amount of training steps
+  batch_size: 8                                         # training batch size
+  total_steps: 500000                                   # total steps for training, a step is a batch of update
+  load_model_list: ['SpecHead', 'Mockingjay']           # load the components in the list for test/eval
+  max_keep: 10                                          # maximum number of model ckpt to keep during training
+  save_step: 100                                        # save model every this amount of training steps
+
