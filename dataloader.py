@@ -187,7 +187,7 @@ class Mel_Linear_Dataset(LibriDataset):
 		self.X = []
 		batch_t, batch_x, batch_len = [], [], []
 
-		for t, x, x_len, y in zip(T, X, X_lens):
+		for t, x, x_len in zip(T, X, X_lens):
 			batch_t.append(t)
 			batch_x.append(x)
 			batch_len.append(x_len)
