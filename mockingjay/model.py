@@ -103,7 +103,7 @@ class MockingjayInputRepresentations(nn.Module):
 	def __init__(self, config, input_dim):
 		super(MockingjayInputRepresentations, self).__init__()
 		self.hidden_size = config.hidden_size
-		self.spec_transform = nn.Linear(input_dim * onfig.downsample_rate, config.hidden_size)
+		self.spec_transform = nn.Linear(input_dim * config.downsample_rate, config.hidden_size)
 
 		# self.LayerNorm is not snake-cased to stick with TensorFlow model variable name and be able to load
 		# any TensorFlow checkpoint file
