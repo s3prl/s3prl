@@ -57,6 +57,7 @@ class Downstream_Solver(Solver):
 	def set_model(self, inference=False, with_head=False):
 		self.mockingjay = Tester(self.config, self.paras)
 		self.mockingjay.set_model(inference=True, with_head=False)
+		# TODO
 
 	def save_model(self, name, model_all=True):
 		pass #TODO
@@ -91,4 +92,4 @@ class Downstream_Trainer(Downstream_Solver):
 
 	def exec(self):
 		pass #TODO
-		
+
