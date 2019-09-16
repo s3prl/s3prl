@@ -33,16 +33,16 @@ class LinearClassifier(nn.Module):
 
 		self.criterion = nn.CrossEntropyLoss()
 
-	def forward(self, hidden_states, labels=None):
-		hidden_states = self.dense1(hidden_states)
-		hidden_states = self.drop1(hidden_states)
-		hidden_states = self.act_fn(hidden_states)
+	def forward(self, features, labels=None):
+		hidden = self.dense1(features)
+		hidden = self.drop1(hidden)
+		hidden = self.act_fn(hidden)
 
-		hidden_states = self.dense2(hidden_states)
-		hidden_states = self.drop2(hidden_states)
-		hidden_states = self.act_fn(hidden_states)
+		hidden = self.dense2(hidden)
+		hidden = self.drop2(hidden)
+		hidden = self.act_fn(hidden)
 
-		logits = self.out(hidden_states)
+		logits = self.out(hidden)
 		if labels is not None:
-			return self.out_fn(logits), self.criterion(logits, labels)
+			return self.criterion(logits, labels), self.out_fn(logits)
 		return self.out_fn(logits)

@@ -83,7 +83,7 @@ def main():
 
 	elif args.train_phone:
 		from downstream.solver import Downstream_Trainer
-		trainer = Downstream_Trainer(config, args, task='phone')
+		trainer = Downstream_Trainer(config, args, task='phone_baseline')
 		trainer.load_data(dataset='train')
 		trainer.set_model(inference=True)
 		trainer.exec()

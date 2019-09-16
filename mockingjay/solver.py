@@ -301,7 +301,6 @@ class Trainer(Solver):
 	def reset_train(self):
 		self.model_kept = []
 		self.global_step = 1
-		self.best_loss = 999.9
 
 
 	def process_MAM_data(self, source_spec, target_spec):
@@ -408,9 +407,8 @@ class Trainer(Solver):
 					self.log.add_scalar('loss', loss.item(), self.global_step)
 					progress.set_description("Loss %.4f" % loss.item())
 
-				if self.global_step % self.save_step == 0 and loss.item() < self.best_loss:
+				if self.global_step % self.save_step == 0:
 					self.save_model('mockingjay')
-					self.best_loss = loss.item()
 					mask_spec = self.up_sample_frames(spec_masked[0], return_first=True)
 					pred_spec = self.up_sample_frames(pred_spec[0], return_first=True)
 					true_spec = self.up_sample_frames(spec_stacked[0], return_first=True)
