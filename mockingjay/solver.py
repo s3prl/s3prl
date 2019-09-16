@@ -274,6 +274,9 @@ class Solver():
 			return sinusoid_table  # (seq_len, hidden_size)
 
 
+###########
+# TRAINER #
+###########
 class Trainer(Solver):
 	''' Handler for complete training progress'''
 	def __init__(self, config, paras):
@@ -426,6 +429,9 @@ class Trainer(Solver):
 		self.reset_train()
 		
 
+##########
+# TESTER #
+##########
 class Tester(Solver):
 	''' Handler for complete testing progress'''
 	def __init__(self, config, paras):

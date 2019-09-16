@@ -81,11 +81,11 @@ def main():
 		trainer.set_model(inference=False)
 		trainer.exec()
 
-	elif args.test_phone:
+	elif args.train_phone:
 		from downstream.solver import Downstream_Trainer
 		trainer = Downstream_Trainer(config, args, task='phone')
 		trainer.load_data(dataset='train')
-		trainer.set_model(inference=True, with_head=False)
+		trainer.set_model(inference=True)
 		trainer.exec()
 
 	elif args.plot:

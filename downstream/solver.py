@@ -17,14 +17,19 @@ import math
 import random
 import librosa
 import numpy as np
+from torch.optim import Adam
 from tqdm import tqdm, trange
 import torch.nn.functional as F
 from tensorboardX import SummaryWriter
 from dataloader import get_Dataloader
 from mockingjay.solver import Solver, Tester
+from downstream.model import LinearClassifier
 from utils.audio import mel_dim, num_freq, sample_rate, inv_spectrogram
 
 
+##########
+# SOLVER #
+##########
 class Downstream_Solver(Solver):
 	''' Handler for complete training progress'''
 	def __init__(self, config, paras, task):
@@ -53,20 +58,34 @@ class Downstream_Solver(Solver):
 			self.verbose('Loading label data ' + str(self.config['solver']['test_set']) + ' from ' + self.config['solver']['phone_path'])
 		setattr(self, 'dataloader', get_Dataloader(dataset, load='phone', use_gpu=self.paras.gpu, **self.config['solver']))
 
+		# Get 1 example for auto constructing model
+		for _, self.sample_y in getattr(self,'train_set'): break
+		if len(self.sample_y.shape) == 4: self.sample_y = self.sample_y[0]
 
-	def set_model(self, inference=False, with_head=False):
+
+	def set_model(self, inference=False):
 		self.mockingjay = Tester(self.config, self.paras)
 		self.mockingjay.set_model(inference=True, with_head=False)
-		# TODO
+		self.classifier = LinearClassifier(input_dim=self.output_dim, # input of classifier is output of the mockingjay model
+										   output_sample=self.sample_y)
+		self.classifier.eval() if inference else self.classifier.train()
+		self.optimizer = Adam(self.classifier.parameters(), lr=self.learning_rate, betas=0.99)
+		
+		if self.load:
+			self.load_model(inference=inference)
+
 
 	def save_model(self, name, model_all=True):
 		pass #TODO
+
 
 	def load_model(self, inference=False, with_head=False):
 		pass #TODO
 
 
-
+###########
+# TRAINER #
+###########
 class Downstream_Trainer(Downstream_Solver):
 	''' Handler for complete training progress'''
 	def __init__(self, config, paras, task):
@@ -93,3 +112,15 @@ class Downstream_Trainer(Downstream_Solver):
 	def exec(self):
 		pass #TODO
 
+
+##########
+# TESTER #
+##########
+class Downstream_Tester(Downstream_Solver):
+	''' Handler for complete testing progress'''
+	def __init__(self, config, paras, task):
+		super(Downstream_Tester, self).__init__(config, paras, task)
+		self.dump_dir = str(self.ckpt.split('.')[0]) + 'downstream-dump/'
+		if not os.path.exists(self.dump_dir): os.makedirs(self.dump_dir)
+		self.duo_feature = False # Set duo feature to False since only input mel is needed during testing
+		#TODO
