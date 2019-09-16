@@ -4,7 +4,6 @@
 #   Synopsis     [ Librispeech dataset for solver ]
 #   Author       [ Andy T. Liu (Andi611) ]
 #   Copyright    [ Copyleft(c), Speech Lab, NTU, Taiwan ]
-#   Reference    [ https://github.com/Alexander-H-Liu/End-to-end-ASR-Pytorch ]
 """*********************************************************************************************"""
 
 
@@ -21,7 +20,10 @@ from torch.utils.data import DataLoader
 from torch.utils.data.dataset import Dataset
 from utils.asr import zero_padding,target_padding
 
-# TODO : Move this to config
+
+############
+# CONSTANT #
+############
 HALF_BATCHSIZE_TIME = 800
 HALF_BATCHSIZE_LABEL = 150
 
@@ -72,9 +74,18 @@ class LibriDataset(Dataset):
 			t_batch = [torch.FloatTensor(np.load(os.path.join(self.t_root, t_file))) for t_file in self.T[index]]
 			t_pad_batch = pad_sequence(t_batch, batch_first=True)
 			return x_pad_batch, t_pad_batch
+		# Return (x_spec, phone_label)
 		elif self.load == 'phone':
 			p_pad_batch = None # TODO
 			return x_pad_batch, p_pad_batch
+				# Return (x_spec, phone_label)
+		elif self.load == 'sentiment':
+			s_pad_batch = None # TODO
+			return x_pad_batch, s_pad_batch
+				# Return (x_spec, phone_label)
+		elif self.load == 'speaker':
+			s_pad_batch = None # TODO
+			return x_pad_batch, s_pad_batch
 		# return (x, y)
 		else:
 			return x_pad_batch, y_pad_batch
@@ -220,7 +231,7 @@ class Mel_Phone_Dataset(LibriDataset):
 		super(Mel_Phone_Dataset, self).__init__(file_path, sets, bucket_size, max_timestep, max_label_len, drop, load)
 
 		assert(self.load == 'phone'), 'This dataset loads mel features and phone boundary labels.'
-		# TODO
+		#TODO
 		X = self.table['file_path'].tolist()
 		X_lens = self.table['length'].tolist()
 
@@ -247,12 +258,37 @@ class Mel_Phone_Dataset(LibriDataset):
 			self.X.append(batch_x)
 
 
+#####################
+# MEL PHONE DATASET #
+#####################
+class Mel_Sentiment_Dataset(LibriDataset):
+	
+	def __init__(self, file_path, sentiment_path, sets, bucket_size, max_timestep=0, max_label_len=0, drop=False, load='sentiment'):
+		super(Mel_Sentiment_Dataset, self).__init__(file_path, sets, bucket_size, max_timestep, max_label_len, drop, load)
+
+		assert(self.load == 'sentiment'), 'This dataset loads mel features and sentiment labels.'
+		#TODO
+
+
+#####################
+# MEL PHONE DATASET #
+#####################
+class Mel_Speaker_Dataset(LibriDataset):
+	
+	def __init__(self, file_path, speaker_path, sets, bucket_size, max_timestep=0, max_label_len=0, drop=False, load='sentiment'):
+		super(Mel_Speaker_Dataset, self).__init__(file_path, sets, bucket_size, max_timestep, max_label_len, drop, load)
+
+		assert(self.load == 'speaker'), 'This dataset loads mel features and speaker ID labels.'
+		#TODO
+
+
 ##################
 # GET DATALOADER #
 ##################
 def get_Dataloader(split, load, data_path, batch_size, max_timestep, max_label_len, 
 				   use_gpu, n_jobs, dataset, train_set, dev_set, test_set, dev_batch_size, 
-				   target_path=None, phone_path=None, decode_beam_size=None, **kwargs):
+				   target_path=None, phone_path=None, sentiment_path=None, speaker_path=None,
+				   decode_beam_size=None, **kwargs):
 	if split == 'train':
 		bs = batch_size
 		shuffle = True
@@ -291,6 +327,14 @@ def get_Dataloader(split, load, data_path, batch_size, max_timestep, max_label_l
 		elif load == 'phone':
 			assert(phone_path is not None), '`phone path` must be provided for this dataset.'
 			ds = Mel_Phone_Dataset(file_path=data_path, phone_path=phone_path, sets=sets, max_timestep=max_timestep, load=load,
+						   			max_label_len=max_label_len, bucket_size=bs, drop=drop_too_long)
+		elif load == 'sentiment':
+			assert(sentiment_path is not None), '`sentiment path` must be provided for this dataset.'
+			ds = Mel_Sentiment_Dataset(file_path=data_path, sentiment_path=sentiment_path, sets=sets, max_timestep=max_timestep, load=load,
+						   			max_label_len=max_label_len, bucket_size=bs, drop=drop_too_long)
+		elif load == 'speaker':
+			assert(speaker_path is not None), '`speaker path` must be provided for this dataset.'
+			ds = Mel_Speaker_Dataset(file_path=data_path, speaker_path=speaker_path, sets=sets, max_timestep=max_timestep, load=load,
 						   			max_label_len=max_label_len, bucket_size=bs, drop=drop_too_long)
 		else:
 			raise NotImplementedError('Unsupported `load` argument: ' + load)

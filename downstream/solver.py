@@ -52,15 +52,16 @@ class Downstream_Solver(Solver):
 		if self.run_mockingjay: self.verbose('Using Mockingjay representations.')
 
 
-	def load_data(self, dataset='train'):
+	def load_data(self, dataset='train', load='phone'):
 		''' Load date for training / validation'''
+		assert(load in ['phone', 'sentiment', 'speaker']), 'Unsupported dataloader!'
 		if dataset == 'train': 
 			self.verbose('Loading source data from ' + self.config['solver']['data_path'])
 			self.verbose('Loading phone data from ' + self.config['solver']['phone_path'])
 		else: 
 			self.verbose('Loading testing data ' + str(self.config['solver']['test_set']) + ' from ' + self.config['solver']['data_path'])
 			self.verbose('Loading label data ' + str(self.config['solver']['test_set']) + ' from ' + self.config['solver']['phone_path'])
-		setattr(self, 'dataloader', get_Dataloader(dataset, load='phone', use_gpu=self.paras.gpu, **self.config['solver']))
+		setattr(self, 'dataloader', get_Dataloader(dataset, load=load, use_gpu=self.paras.gpu, **self.config['solver']))
 
 		# Get 1 example for auto constructing model
 		for _, self.sample_y in getattr(self,'train_set'): break
@@ -216,4 +217,18 @@ class Downstream_Tester(Downstream_Solver):
 		self.dump_dir = str(self.ckpt.split('.')[0]) + '-' + task + '-dump/'
 		if not os.path.exists(self.dump_dir): os.makedirs(self.dump_dir)
 		self.duo_feature = False # Set duo feature to False since only input mel is needed during testing
-		#TODO
+		self.load = True # Tester will load pre-trained models automatically
+	
+	def exec(self):
+		''' Testing of downstream tasks'''
+		self.verbose('Testing set total ' + str(len(self.dataloader)) + ' batches.')
+
+		test_acc = []
+		for features, labels in tqdm(self.dataloader, desc="Iteration"):
+
+			if self.run_mockingjay:
+				features = self.mockingjay.exec(features)
+			logits = self.classifier(features, labels)
+			test_acc.append(self.cal_acc(logits, labels))
+		self.verbose('Testing set accuracy: ' + str(np.mean(test_acc)))
+

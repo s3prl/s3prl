@@ -22,7 +22,9 @@ solver:
   dataset: 'librispeech'                                # librispeech dataset
   data_path: 'data/libri_mel160_subword5000'            # Source data path
   target_path: 'data/libri_linear1025_subword5000'      # Target data path for reconstruction to a different feature type, set dataset to 'librispeech_mel_linear'.
-  phone_path: 'data/libri_phone'                        # phone boundary data path for the phone classification task.
+  phone_path: 'data/libri_phone'                        # phone boundary label data path for the phone classification task.
+  sentiment_path: 'data/libri_sentiment'                # sentiment label data path for the sentiment classification task.
+  speaker_path: 'data/libri_speaker'                    # speaker ID label data path for the speaker classification classification task.
   n_jobs: 16                                            # Subprocess used for torch Dataloader
   max_timestep: 3000                                    # Max length for audio feature (0 for no restriction)
   max_label_len: 400                                    # Max length for output sequence (0 for no restriction)

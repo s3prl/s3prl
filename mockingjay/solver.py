@@ -65,6 +65,7 @@ class Solver():
 
 	def load_data(self, dataset='train'):
 		''' Load date for training / validation'''
+		assert(load in ['duo', 'spec']), 'Unsupported dataloader!'
 		if dataset == 'train': 
 			self.verbose('Loading source data from ' + self.config['solver']['data_path'])
 			if self.duo_feature: self.verbose('Loading target data from ' + self.config['solver']['target_path'])
@@ -437,6 +438,7 @@ class Tester(Solver):
 		self.dump_dir = str(self.ckpt.split('.')[0]) + '-dump/'
 		if not os.path.exists(self.dump_dir): os.makedirs(self.dump_dir)
 		self.duo_feature = False # Set duo feature to False since only input mel is needed during testing
+		self.load = True # Tester will load pre-trained models automatically
 
 
 	def process_MAM_data(self, spec):

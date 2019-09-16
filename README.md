@@ -69,13 +69,64 @@ To load with default path, models should be placed under the directory path: `--
 Run the following command to visualize the model generated samples:
 ```
 # visualize spectrogram
-python3 runner_mockingjay.py --load --plot
+python3 runner_mockingjay.py --plot
 # visualize hidden representations
-python3 runner_mockingjay.py --load --plot --with-head
+python3 runner_mockingjay.py --plot --with-head
 ```
 Note that the arguments ```--ckpdir=XXX --ckpt=XXX``` needs to be set correctly for the above command to run properly.
 
-### Step 4. Monitor Training Log
+### Step 5. Training and Testing of the Phone Classification Task
+Run the following command to train a phone classifier:
+```
+# using spectrogram as baseline
+python3 runner_mockingjay.py --train_phone
+# using mockingjay representations
+python3 runner_mockingjay.py --train_phone --run_mockingjay
+```
+Run the following command to test representations using the phone classifier:
+```
+# testing spectrogram as baseline
+python3 runner_mockingjay.py --test_phone
+# testing mockingjay representations
+python3 runner_mockingjay.py --test_phone --run_mockingjay
+```
+Note that the arguments ```--ckpdir=XXX --ckpt=XXX``` needs to be set correctly for the above command to run properly.
+
+### Step 6. Training and Testing of the Sentimental Classification Task
+Run the following command to train a sentiment classifier:
+```
+# using spectrogram as baseline
+python3 runner_mockingjay.py --train_sentiment
+# using mockingjay representations
+python3 runner_mockingjay.py --train_sentiment --run_mockingjay
+```
+Run the following command to test representations using the phone classifier:
+```
+# testing spectrogram as baseline
+python3 runner_mockingjay.py --test_sentiment
+# testing mockingjay representations
+python3 runner_mockingjay.py --test_sentiment --run_mockingjay
+```
+Note that the arguments ```--ckpdir=XXX --ckpt=XXX``` needs to be set correctly for the above command to run properly.
+
+### Step 7. Training and Testing of the Speaker Verification Task
+Run the following command to train a sentiment classifier:
+```
+# using spectrogram as baseline
+python3 runner_mockingjay.py --train_speaker
+# using mockingjay representations
+python3 runner_mockingjay.py --train_speaker --run_mockingjay
+```
+Run the following command to test representations using the phone classifier:
+```
+# testing spectrogram as baseline
+python3 runner_mockingjay.py --test_sentiment
+# testing mockingjay representations
+python3 runner_mockingjay.py --test_sentiment --run_mockingjay
+```
+Note that the arguments ```--ckpdir=XXX --ckpt=XXX``` needs to be set correctly for the above command to run properly.
+
+### Step 7. Monitor Training Log
 ```
 # open TensorBoard to see log
 tensorboard --logdir=log_mockingjay/mockingjay_libri_sd1337/

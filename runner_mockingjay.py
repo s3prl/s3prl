@@ -37,13 +37,23 @@ def get_mockingjay_args():
 	parser.add_argument('--load', action='store_true', help='Load pre-trained model')
 	parser.add_argument('--ckpdir', default='result_mockingjay/', type=str, help='Checkpoint/Result path.', required=False)
 	parser.add_argument('--ckpt', default='mockingjay_libri_sd1337_0908/mockingjay-789600.ckpt', type=str, help='path to model checkpoint', required=False)
-	# parser.add_argument('--njobs', default=1, type=int, help='Number of threads for decoding.', required=False)
 
-	# modes
+	# mockingjay
 	parser.add_argument('--train', action='store_true', help='Test the model.')
-	parser.add_argument('--train_phone', action='store_true', help='Train the phone classifier on mockingjay representations.')
-	parser.add_argument('--test_phone', action='store_true', help='Test mockingjay representations using the trained phone classifier.')
+	parser.add_argument('--run_mockingjay', action='store_true', help='train and test the downstream tasks using mockingjay representations.')
 	parser.add_argument('--plot', action='store_true', help='Plot model generated results during testing.')
+	
+	# phone task
+	parser.add_argument('--train_phone', action='store_true', help='Train the phone classifier on mel or mockingjay representations.')
+	parser.add_argument('--test_phone', action='store_true', help='Test mel or mockingjay representations using the trained phone classifier.')
+	
+	# sentiment task
+	parser.add_argument('--train_sentiment', action='store_true', help='Train the sentiment classifier on mel or mockingjay representations.')
+	parser.add_argument('--test_sentiment', action='store_true', help='Test mel or mockingjay representations using the trained sentiment classifier.')
+	
+	# speaker verification task
+	parser.add_argument('--train_speaker', action='store_true', help='Train the speaker classifier on mel or mockingjay representations.')
+	parser.add_argument('--test_speaker', action='store_true', help='Test mel or mockingjay representations using the trained speaker classifier.')
 	
 	# Options
 	parser.add_argument('--with-head', action='store_true', help='inference with the spectrogram head, the model outputs spectrogram.')
@@ -74,6 +84,7 @@ def main():
 	if torch.cuda.is_available(): torch.cuda.manual_seed_all(args.seed)
 	torch.backends.cudnn.deterministic = True
 
+	# Train Mockingjay
 	if args.train:
 		from mockingjay.solver import Trainer
 		trainer = Trainer(config, args)
@@ -81,13 +92,69 @@ def main():
 		trainer.set_model(inference=False)
 		trainer.exec()
 
+	##################################################################################
+	
+	# Train Phone Task
 	elif args.train_phone:
 		from downstream.solver import Downstream_Trainer
-		trainer = Downstream_Trainer(config, args, task='phone_baseline')
-		trainer.load_data(dataset='train')
-		trainer.set_model(inference=True)
+		task = 'mockingjay_phone' if args.run_mockingjay else 'baseline_phone'
+		trainer = Downstream_Trainer(config, args, task=task)
+		trainer.load_data(dataset='train', load='phone')
+		trainer.set_model(inference=False)
 		trainer.exec()
 
+	# Test Phone Task
+	elif args.test_phone:
+		from downstream.solver import Downstream_Tester
+		task = 'mockingjay_phone' if args.run_mockingjay else 'baseline_phone'
+		tester = Downstream_Tester(config, args, task=task)
+		tester.load_data(dataset='test', load='phone')
+		tester.set_model(inference=True)
+		tester.exec()
+
+	##################################################################################
+
+	# Train Sentiment Task
+	elif args.train_sentiment:
+		from downstream.solver import Downstream_Trainer
+		task = 'mockingjay_sentiment' if args.run_mockingjay else 'baseline_sentiment'
+		trainer = Downstream_Trainer(config, args, task=task)
+		trainer.load_data(dataset='train', load='sentiment')
+		trainer.set_model(inference=False)
+		trainer.exec()
+
+	# Test Sentiment Task
+	elif args.test_phone:
+		from downstream.solver import Downstream_Tester
+		task = 'mockingjay_sentiment' if args.run_mockingjay else 'baseline_sentiment'
+		tester = Downstream_Tester(config, args, task=task)
+		tester.load_data(dataset='test', load='sentiment')
+		tester.set_model(inference=True)
+		tester.exec()
+
+	##################################################################################
+	
+	# Train Sentiment Task
+	elif args.train_sentiment:
+		from downstream.solver import Downstream_Trainer
+		task = 'mockingjay_speaker' if args.run_mockingjay else 'baseline_speaker'
+		trainer = Downstream_Trainer(config, args, task=task)
+		trainer.load_data(dataset='train', load='speaker')
+		trainer.set_model(inference=False)
+		trainer.exec()
+
+	# Test Sentiment Task
+	elif args.test_phone:
+		from downstream.solver import Downstream_Tester
+		task = 'mockingjay_speaker' if args.run_mockingjay else 'baseline_speaker'
+		tester = Downstream_Tester(config, args, task=task)
+		tester.load_data(dataset='test', load='speaker')
+		tester.set_model(inference=True)
+		tester.exec()
+
+	##################################################################################
+
+	# Visualize Mockingjay
 	elif args.plot:
 		from mockingjay.solver import Tester
 		tester = Tester(config, args)
