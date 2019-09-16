@@ -68,10 +68,10 @@ class Solver():
 		if dataset == 'train': 
 			self.verbose('Loading source data from ' + self.config['solver']['data_path'])
 			if self.duo_feature: self.verbose('Loading target data from ' + self.config['solver']['target_path'])
-			if self.phone_loader: self.verbose('Loading phone data from ' + self.config['solver']['phone_path'])
+			if phone_loader: self.verbose('Loading phone data from ' + self.config['solver']['phone_path'])
 		else: 
 			self.verbose('Loading testing data ' + str(self.config['solver']['test_set']) + ' from ' + self.config['solver']['data_path'])
-			if self.phone_loader: self.verbose('Loading label data ' + str(self.config['solver']['test_set']) + ' from ' + self.config['solver']['phone_path'])
+			if phone_loader: self.verbose('Loading label data ' + str(self.config['solver']['test_set']) + ' from ' + self.config['solver']['phone_path'])
 
 		if phone_loader:
 			setattr(self, 'dataloader', get_Dataloader(dataset, load='phone', use_gpu=self.paras.gpu, **self.config['solver']))
@@ -424,7 +424,7 @@ class Trainer(Solver):
 					self.log.add_image('true_spec', true_spec, self.global_step)
 
 				pbar.update(1)
-				if self.global_step >= self.total_steps: break
+				if self.global_step > self.total_steps: break
 				else: self.global_step += 1
 				
 		pbar.close()
