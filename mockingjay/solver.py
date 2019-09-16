@@ -63,19 +63,15 @@ class Solver():
 			print('[SOLVER] - ', msg, end=end)
 
 
-	def load_data(self, dataset='train', phone_loader=False):
+	def load_data(self, dataset='train'):
 		''' Load date for training / validation'''
 		if dataset == 'train': 
 			self.verbose('Loading source data from ' + self.config['solver']['data_path'])
 			if self.duo_feature: self.verbose('Loading target data from ' + self.config['solver']['target_path'])
-			if phone_loader: self.verbose('Loading phone data from ' + self.config['solver']['phone_path'])
 		else: 
 			self.verbose('Loading testing data ' + str(self.config['solver']['test_set']) + ' from ' + self.config['solver']['data_path'])
-			if phone_loader: self.verbose('Loading label data ' + str(self.config['solver']['test_set']) + ' from ' + self.config['solver']['phone_path'])
 
-		if phone_loader:
-			setattr(self, 'dataloader', get_Dataloader(dataset, load='phone', use_gpu=self.paras.gpu, **self.config['solver']))
-		elif self.duo_feature:
+		if self.duo_feature:
 			setattr(self, 'dataloader', get_Dataloader(dataset, load='duo', use_gpu=self.paras.gpu, **self.config['solver']))
 		else:
 			setattr(self, 'dataloader', get_Dataloader(dataset, load='spec', use_gpu=self.paras.gpu, **self.config['solver']))
@@ -83,7 +79,6 @@ class Solver():
 
 	def set_model(self, inference=False, with_head=False):
 		self.verbose('Initializing Mockingjay model.')
-		assert(self.input_dim is not None), 'Run load_data() to get input feature shape before initializing model.'
 		
 		# # Build the Mockingjay model with speech prediction head
 		self.model_config = MockingjayConfig(self.config)
