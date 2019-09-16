@@ -166,7 +166,6 @@ class Downstream_Trainer(Downstream_Solver):
 	def reset_train(self):
 		self.model_kept = []
 		self.global_step = 1
-		self.best_loss = 999.9
 
 
 	def exec(self):
