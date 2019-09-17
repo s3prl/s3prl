@@ -22,6 +22,7 @@ tensorboardX     # logger & monitor
 torch            # model & learning
 tqdm             # verbosity
 yaml             # config parser
+mmsdk            # sentiment dataset CMU-MOSI SDK (sentiment data preprocessing only, see https://github.com/A2Zadeh/CMU-MultimodalSDK#installation for install instruction)
 ```
 
 ## Instructions
@@ -30,6 +31,7 @@ yaml             # config parser
 
 ### Step 0. Preprocessing - Acoustic Feature Extraction & Text Encoding
 
+#### LibriSpeech preprocessing
 Preprocessing scripts may be executed directly if the LibriSpeech dataset is placed under [`data/`](data/). The extracted data, which is ready for training, will be stored under the same [`data/`](data/) directory by default. 
 ```
 # Defualt
@@ -43,6 +45,14 @@ Run preprocessing with the following command to change input directory:
 python3 preprocess.py --data_path <path to LibriSpeech on your computer> 
 ```
 You may check the parameter type and default value by using the option ```--help``` for each script.
+
+#### Downstream preprocessing
+CMU-MOSI sentiment analysis dataset
+- Remember to update PYTHONPATH in your `.bashrc` to successfully load mmsdk package
+- Replace `preprocess.py` with `preprocess_mosi.py` in above commands
+- eg. `python3 preprocess_mosi.py --feature_type=mel --data_path=[MOSI RAW SEGMENTED AUDIO FILE DIR]`
+- The **AUDIO FILES** can be acquired from [here](http://immortal.multicomp.cs.cmu.edu/raw_datasets/CMU_MOSI.zip)
+- After unzipped, the target directory locates at `Raw/Audio/WAV_16000/Segmented`
 
 ### Step 1. Configuring - Model Design & Hyperparameter Setup
 
