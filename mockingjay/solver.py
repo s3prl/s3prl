@@ -63,9 +63,9 @@ class Solver():
 			print('[SOLVER] - ', msg, end=end)
 
 
-	def load_data(self, dataset='train'):
+	def load_data(self, dataset='train', load='base'):
 		''' Load date for training / validation'''
-		assert(load in ['duo', 'spec']), 'Unsupported dataloader!'
+		assert(load in ['phone', 'sentiment', 'speaker', 'base']), 'Unsupported dataloader!'
 		if dataset == 'train': 
 			self.verbose('Loading source data from ' + self.config['solver']['data_path'])
 			if self.duo_feature: self.verbose('Loading target data from ' + self.config['solver']['target_path'])
