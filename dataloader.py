@@ -262,6 +262,7 @@ class Mel_Phone_Dataset(LibriDataset):
 # MEL PHONE DATASET #
 #####################
 class Mel_Sentiment_Dataset(LibriDataset):
+	# This dataset
 	
 	def __init__(self, file_path, sentiment_path, sets, bucket_size, max_timestep=0, max_label_len=0, drop=False, load='sentiment'):
 		super(Mel_Sentiment_Dataset, self).__init__(file_path, sets, bucket_size, max_timestep, max_label_len, drop, load)
@@ -269,6 +270,17 @@ class Mel_Sentiment_Dataset(LibriDataset):
 		assert(self.load == 'sentiment'), 'This dataset loads mel features and sentiment labels.'
 		#TODO
 
+class Mel_Joint_Sentiment_Dataset(LibriDataset):
+	# "Joint" means all output embeddings jointly predict the sentiment of the whole input utterance segment
+	# Because sentiment is labeled at segment level, it is more intuitive to predict sentiment with a bunch of embeddings
+	# But ideally, with Bert's contextualized embeddings, we hope that a single embedding from one input frame can embed
+	# the sentiment directly
+	
+	def __init__(self, file_path, sentiment_path, sets, bucket_size, max_timestep=0, max_label_len=0, drop=False, load='sentiment'):
+		super(Mel_Sentiment_Dataset, self).__init__(file_path, sets, bucket_size, max_timestep, max_label_len, drop, load)
+
+		assert(self.load == 'sentiment'), 'This dataset loads mel features and sentiment labels.'
+		#TODO
 
 #####################
 # MEL PHONE DATASET #
