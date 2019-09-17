@@ -124,7 +124,7 @@ def main():
 		trainer.exec()
 
 	# Test Sentiment Task
-	elif args.test_phone:
+	elif args.test_sentiment:
 		from downstream.solver import Downstream_Tester
 		task = 'mockingjay_sentiment' if args.run_mockingjay else 'baseline_sentiment'
 		tester = Downstream_Tester(config, args, task=task)
@@ -134,8 +134,8 @@ def main():
 
 	##################################################################################
 	
-	# Train Sentiment Task
-	elif args.train_sentiment:
+	# Train Speaker Task
+	elif args.train_speaker:
 		from downstream.solver import Downstream_Trainer
 		task = 'mockingjay_speaker' if args.run_mockingjay else 'baseline_speaker'
 		trainer = Downstream_Trainer(config, args, task=task)
@@ -143,8 +143,8 @@ def main():
 		trainer.set_model(inference=False)
 		trainer.exec()
 
-	# Test Sentiment Task
-	elif args.test_phone:
+	# Test Speaker Task
+	elif args.test_speaker:
 		from downstream.solver import Downstream_Tester
 		task = 'mockingjay_speaker' if args.run_mockingjay else 'baseline_speaker'
 		tester = Downstream_Tester(config, args, task=task)
