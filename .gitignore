@@ -129,3 +129,5 @@ libri_*
 result_asr
 result_mockingjay/mockingjay_*
 log_*
+Raw
+CMU_MOSI.zup

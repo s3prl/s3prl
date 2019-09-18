@@ -71,8 +71,14 @@ The following python packages are required: h5py, validators, tqdm. The setup.py
 pip3 install h5py validators tqdm numpy argparse requests
 ```
 
-The **AUDIO FILES** can be acquired from [here](http://immortal.multicomp.cs.cmu.edu/raw_datasets/CMU_MOSI.zip)
-After unzipping, the target directory can be located at `Raw/Audio/WAV_16000/Segmented`
+The **AUDIO FILES** can be downloaded from [here](http://immortal.multicomp.cs.cmu.edu/raw_datasets/CMU_MOSI.zip), or use the following commands:
+```bash
+cd data
+wget http://immortal.multicomp.cs.cmu.edu/raw_datasets/CMU_MOSI.zip
+unzip CMU_MOSI.zip
+```
+After unzipping, the target directory can be located at `Raw/Audio/WAV_16000/Segmented`.
+
 Use the following command to run preprocess:
 ```bash
 python3 preprocess_mosi.py --feature_type=mel --data_path=<MOSI RAW SEGMENTED AUDIO FILE DIR>
