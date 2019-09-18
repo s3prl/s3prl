@@ -1,4 +1,5 @@
-# Mockingjay: Speech Representation Learning through Self-Imitation - PyTorch Official Implementation
+# 👾 Mockingjay
+## Speech Representation Learning through Self-Imitation - PyTorch Official Implementation
 
 This is an open source project for Mockingjay, end-to-end learning of acoustic features representations, implemented with Pytorch.
 
@@ -68,7 +69,7 @@ The **AUDIO FILES** can be acquired from [here](http://immortal.multicomp.cs.cmu
 After unzipping, the target directory can be located at `Raw/Audio/WAV_16000/Segmented`
 Use the following command to run preprocess:
 ```bash
-`python3 preprocess_mosi.py --feature_type=mel --data_path=<MOSI RAW SEGMENTED AUDIO FILE DIR>`
+python3 preprocess_mosi.py --feature_type=mel --data_path=<MOSI RAW SEGMENTED AUDIO FILE DIR>
 ```
 
 ## Step 1. Configuring - Model Design & Hyperparameter Setup
@@ -169,7 +170,9 @@ python3 -m tensorboard.main --logdir=log_mockingjay/mockingjay_libri_sd1337/
 
 
 # Reference
-1. [End-to-end-ASR-Pytorch](https://github.com/Alexander-H-Liu/End-to-end-ASR-Pytorch), Alexander-H-Liu.
+1. [CMU-MultimodalSDK](https://github.com/A2Zadeh/CMU-MultimodalSDK/blob/master/README.md), Amir Zadeh.
+2. [PyTorch-Transformers](https://github.com/huggingface/pytorch-transformers), Hugging Face.
+3. [End-to-end-ASR-Pytorch](https://github.com/Alexander-H-Liu/End-to-end-ASR-Pytorch), Alexander-H-Liu.
 
 
 ## Citation
