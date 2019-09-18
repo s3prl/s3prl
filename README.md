@@ -174,17 +174,12 @@ tensorboard --logdir=log_mockingjay/mockingjay_libri_sd1337/
 python3 -m tensorboard.main --logdir=log_mockingjay/mockingjay_libri_sd1337/
 ```
 
-# ToDo
-- 
-
-# Acknowledgements 
-- ASR Implementation by [Alexander-H-Liu](https://github.com/Alexander-H-Liu), a great end-to-end Automatic Speech Recognition System.
-
 
 # Reference
-1. [CMU-MultimodalSDK](https://github.com/A2Zadeh/CMU-MultimodalSDK/blob/master/README.md), Amir Zadeh.
-2. [PyTorch-Transformers](https://github.com/huggingface/pytorch-transformers), Hugging Face.
-3. [End-to-end-ASR-Pytorch](https://github.com/Alexander-H-Liu/End-to-end-ASR-Pytorch), Alexander-H-Liu.
+1. [Montreal Forced Aligner](https://montreal-forced-aligner.readthedocs.io/en/latest/), McAuliffe et. al.
+2. [CMU-MultimodalSDK](https://github.com/A2Zadeh/CMU-MultimodalSDK/blob/master/README.md), Amir Zadeh.
+3. [PyTorch-Transformers](https://github.com/huggingface/pytorch-transformers), Hugging Face.
+4. [End-to-end-ASR-Pytorch](https://github.com/Alexander-H-Liu/End-to-end-ASR-Pytorch), Alexander-H-Liu.
 
 
 ## Citation
