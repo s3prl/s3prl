@@ -55,28 +55,37 @@ class Downstream_Solver(Solver):
 	def load_data(self, split='train', load='phone'):
 		''' Load date for training / validation'''
 		assert(load in ['phone', 'sentiment', 'speaker']), 'Unsupported dataloader!'
-		if split == 'train': 
-			self.verbose('Loading source data from ' + self.config['dataloader']['data_path'])
-			self.verbose('Loading phone data from ' + self.config['dataloader']['phone_path'])
-		else: 
-			self.verbose('Loading testing data ' + str(self.config['dataloader']['test_set']) + ' from ' + self.config['dataloader']['data_path'])
-			self.verbose('Loading label data ' + str(self.config['dataloader']['test_set']) + ' from ' + self.config['dataloader']['phone_path'])
+		if load == 'phone':
+			if split == 'train':
+				self.verbose('Loading source data from ' + self.config['dataloader']['data_path'])
+				self.verbose('Loading phone data from ' + self.config['dataloader']['phone_path'])
+			else: 
+				self.verbose('Loading testing data ' + str(self.config['dataloader']['test_set']) + ' from ' + self.config['dataloader']['data_path'])
+				self.verbose('Loading label data ' + str(self.config['dataloader']['test_set']) + ' from ' + self.config['dataloader']['phone_path'])
+		elif load == 'sentiment':
+			sentiment_path = self.config['dataloader']['sentiment_path']
+			self.verbose(f'Loading {split} data from {sentiment_path}')
+		else:
+			assert False, 'Not yet support other downstream tasks'
+
 		setattr(self, 'dataloader', get_Dataloader(split, load=load, use_gpu=self.paras.gpu, **self.config['dataloader']))
 
 		# Get 1 example for auto constructing model
-		for _, self.sample_y in getattr(self,'train_set'): break
+		for _, self.sample_y in getattr(self,'dataloader'): break
 		if len(self.sample_y.shape) == 4: self.sample_y = self.sample_y[0]
 
 
 	def set_model(self, inference=False):
 		self.mockingjay = Tester(self.config, self.paras)
 		self.mockingjay.set_model(inference=True, with_head=False)
-		self.classifier = LinearClassifier(input_dim=self.output_dim, # input of classifier is output of the mockingjay model
-										   output_sample=self.sample_y)
+		
+		input_dim = self.input_dim if 'mockingjay' not in self.task else self.config['mockingjay']['hidden_size']
+		self.classifier = LinearClassifier(input_dim=input_dim, # input of classifier is output of the mockingjay model
+										   output_sample=self.sample_y).to(self.device)
 		self.classifier.eval() if inference else self.classifier.train()
 		
 		if not inference:
-			self.optimizer = Adam(self.classifier.parameters(), lr=self.learning_rate, betas=0.99)
+			self.optimizer = Adam(self.classifier.parameters(), lr=self.learning_rate, betas=(0.9, 0.999))
 		if self.load:
 			self.load_model(inference=inference)
 
@@ -132,8 +141,8 @@ class Downstream_Solver(Solver):
 
 
 	def cal_acc(self, logits, labels):
-		assert(len(logits.shape) == 3)
-		assert(len(labels.shape) == 2)
+		assert(len(logits.shape) == 3)  # (batch, seq, class)
+		assert(len(labels.shape) == 2)  # (batch, seq)
 		accs = []
 		for step in range(logits.shape[1]):
 			_, ind = torch.max(logits[:, step, :], dim=1)
@@ -176,6 +185,9 @@ class Downstream_Trainer(Downstream_Solver):
 		while self.global_step <= self.total_steps:
 
 			for features, labels in tqdm(self.dataloader, desc="Iteration"):
+				# features: (1, batch, seq, feature), tensor in CPU
+				# labels: (1, batch, seq, class), tensor in GPU
+				labels = labels.to(self.device)
 
 				if self.run_mockingjay:
 					features = self.mockingjay.exec(features)

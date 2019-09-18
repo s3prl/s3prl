@@ -79,10 +79,6 @@ class LibriDataset(Dataset):
 			p_pad_batch = None # TODO
 			return x_pad_batch, p_pad_batch
 				# Return (x_spec, phone_label)
-		elif self.load == 'sentiment':
-			s_pad_batch = None # TODO
-			return x_pad_batch, s_pad_batch
-				# Return (x_spec, phone_label)
 		elif self.load == 'speaker':
 			s_pad_batch = None # TODO
 			return x_pad_batch, s_pad_batch
@@ -258,29 +254,79 @@ class Mel_Phone_Dataset(LibriDataset):
 			self.X.append(batch_x)
 
 
-#####################
-# MEL PHONE DATASET #
-#####################
-class Mel_Sentiment_Dataset(LibriDataset):
-	# This dataset
+#########################
+# MEL SENTIMENT DATASET #
+#########################
+class Mel_Sentiment_Dataset(Dataset):
+	def __init__(self, sentiment_path, split='train', bucket_size='8', max_timestep=0, drop=True, load='sentiment'):
+		self.root = sentiment_path
+		self.split = split
+
+		self.table = pd.read_csv(os.path.join(sentiment_path, split + '.csv'))
+		self.table.label = self.table.label.astype(int)
+		self.table.label += 3  # cause pytorch only accepts non-negative class value
+
+		# Drop seqs that are too long
+		if drop and max_timestep > 0:
+			self.table = self.table[self.table.length < max_timestep]
+
+		# 'load' specify what task we want to conduct
+		self.load = load
+		assert 'sentiment' in load, 'MOSI support sentiment analysis only now'
+
+		# "joint" means all output embeddings jointly predict the sentiment of the whole input utterance segment
+		# Because sentiment is labeled at segment level, it is more intuitive to predict sentiment with a bunch of embeddings
+		# But ideally, with Bert's contextualized embeddings, we hope that a single embedding from one input frame can embed
+		# the sentiment directly
+		self.joint = 'joint' in load  # NOT YET IMPLEMENTED
+
+		Y = torch.LongTensor(self.table['label'].values)
+		Y = torch.nn.functional.one_hot(Y)  # (all_data, class)
+		X = self.table['file_path'].tolist()
+		X_lens = self.table['length'].tolist()
+
+		self.Y = []
+		self.X = []
+		batch_y, batch_x, batch_len = [], [], []
+
+		for y, x, x_len in zip(Y, X, X_lens):
+			batch_y.append(y)
+			batch_x.append(x)
+			batch_len.append(x_len)
+			
+			# Fill in batch_x until batch is full
+			if len(batch_x) == bucket_size:
+				# Half the batch size if seq too long
+				if (bucket_size >= 2) and (max(batch_len) > HALF_BATCHSIZE_TIME):
+					self.Y.append(batch_y[:bucket_size//2])
+					self.Y.append(batch_y[bucket_size//2:])
+					self.X.append(batch_x[:bucket_size//2])
+					self.X.append(batch_x[bucket_size//2:])
+				else:
+					self.Y.append(batch_y)
+					self.X.append(batch_x)
+				batch_y, batch_x, batch_len = [], [], []
+		
+		# Gather the last batch
+		if len(batch_x) > 0:
+			self.Y.append(batch_y)
+			self.X.append(batch_x)
+
+
+	def __getitem__(self, index):
+		# Load acoustic feature and pad
+		x_batch = [torch.FloatTensor(np.load(os.path.join(self.root, self.split, x_file))) for x_file in self.X[index]]
+		x_pad_batch = pad_sequence(x_batch, batch_first=True)
+
+		# Load label
+		y_batch = torch.stack([y for y in self.Y[index]])  # (batch, class)
+		y_broadcast_onehot_batch = y_batch.repeat(1, x_pad_batch.size(1)).view(y_batch.size(0), -1, y_batch.size(1))  # (batch, seq, class)
+
+		return x_pad_batch, y_broadcast_onehot_batch
 	
-	def __init__(self, file_path, sentiment_path, sets, bucket_size, max_timestep=0, max_label_len=0, drop=False, load='sentiment'):
-		super(Mel_Sentiment_Dataset, self).__init__(file_path, sets, bucket_size, max_timestep, max_label_len, drop, load)
+	def __len__(self):
+		return len(self.X)
 
-		assert(self.load == 'sentiment'), 'This dataset loads mel features and sentiment labels.'
-		#TODO
-
-class Mel_Joint_Sentiment_Dataset(LibriDataset):
-	# "Joint" means all output embeddings jointly predict the sentiment of the whole input utterance segment
-	# Because sentiment is labeled at segment level, it is more intuitive to predict sentiment with a bunch of embeddings
-	# But ideally, with Bert's contextualized embeddings, we hope that a single embedding from one input frame can embed
-	# the sentiment directly
-	
-	def __init__(self, file_path, sentiment_path, sets, bucket_size, max_timestep=0, max_label_len=0, drop=False, load='sentiment'):
-		super(Mel_Sentiment_Dataset, self).__init__(file_path, sets, bucket_size, max_timestep, max_label_len, drop, load)
-
-		assert(self.load == 'sentiment'), 'This dataset loads mel features and sentiment labels.'
-		#TODO
 
 #####################
 # MEL PHONE DATASET #
@@ -298,24 +344,26 @@ class Mel_Speaker_Dataset(LibriDataset):
 # GET DATALOADER #
 ##################
 def get_Dataloader(split, load, data_path, batch_size, max_timestep, max_label_len, 
-				   use_gpu, n_jobs, dataset, train_set, dev_set, test_set, dev_batch_size, 
+				   use_gpu, n_jobs, train_set, dev_set, test_set, dev_batch_size, 
 				   target_path=None, phone_path=None, sentiment_path=None, speaker_path=None,
 				   decode_beam_size=None, **kwargs):
+
+	# Decide which split to use: train/dev/test
 	if split == 'train':
 		bs = batch_size
 		shuffle = True
-		sets = train_set
+		sets = ['train'] if 'sentiment' in load else train_set
 		drop_too_long = True
 	elif split == 'dev':
 		bs = dev_batch_size
 		shuffle = False
-		sets = dev_set
+		sets = ['dev'] if 'sentiment' in load else dev_set
 		drop_too_long = True
 	elif split == 'test':
 		bs = 1 if decode_beam_size is not None else dev_batch_size
 		n_jobs = 1
 		shuffle = False
-		sets = test_set
+		sets = ['test'] if 'sentiment' in load else test_set
 		drop_too_long = False
 	elif split == 'text':
 		bs = batch_size
@@ -324,34 +372,30 @@ def get_Dataloader(split, load, data_path, batch_size, max_timestep, max_label_l
 		drop_too_long = True
 	else:
 		raise NotImplementedError('Unsupported `split` argument: ' + split)
-		
-	if dataset.upper() == "LIBRISPEECH":
-		if load in ['all', 'text']:
-			ds = AsrDataset(file_path=data_path, sets=sets, max_timestep=max_timestep, load=load,
-						    max_label_len=max_label_len, bucket_size=bs, drop=drop_too_long)
-		elif load == 'spec':
-			ds = MelDataset(file_path=data_path, sets=sets, max_timestep=max_timestep, load=load,
-						    max_label_len=max_label_len, bucket_size=bs, drop=drop_too_long)
-		elif load == 'duo':
-			assert(target_path is not None), '`target path` must be provided for this dataset.'
-			ds = Mel_Linear_Dataset(file_path=data_path, target_path=target_path, sets=sets, max_timestep=max_timestep, load=load,
-						   			max_label_len=max_label_len, bucket_size=bs, drop=drop_too_long)
-		elif load == 'phone':
-			assert(phone_path is not None), '`phone path` must be provided for this dataset.'
-			ds = Mel_Phone_Dataset(file_path=data_path, phone_path=phone_path, sets=sets, max_timestep=max_timestep, load=load,
-						   			max_label_len=max_label_len, bucket_size=bs, drop=drop_too_long)
-		elif load == 'sentiment':
-			assert(sentiment_path is not None), '`sentiment path` must be provided for this dataset.'
-			ds = Mel_Sentiment_Dataset(file_path=data_path, sentiment_path=sentiment_path, sets=sets, max_timestep=max_timestep, load=load,
-						   			max_label_len=max_label_len, bucket_size=bs, drop=drop_too_long)
-		elif load == 'speaker':
-			assert(speaker_path is not None), '`speaker path` must be provided for this dataset.'
-			ds = Mel_Speaker_Dataset(file_path=data_path, speaker_path=speaker_path, sets=sets, max_timestep=max_timestep, load=load,
-						   			max_label_len=max_label_len, bucket_size=bs, drop=drop_too_long)
-		else:
-			raise NotImplementedError('Unsupported `load` argument: ' + load)
-	else:
-		raise ValueError('Unsupported Dataset: ' + dataset)
+
+	# Decide which task (or dataset) to propogate through model
+	if load in ['all', 'text']:
+		ds = AsrDataset(file_path=data_path, sets=sets, max_timestep=max_timestep, load=load,
+				max_label_len=max_label_len, bucket_size=bs, drop=drop_too_long)
+	elif load == 'spec':
+		ds = MelDataset(file_path=data_path, sets=sets, max_timestep=max_timestep, load=load, 
+				max_label_len=max_label_len, bucket_size=bs, drop=drop_too_long)
+	elif load == 'duo':
+		assert(target_path is not None), '`target path` must be provided for this dataset.'
+		ds = Mel_Linear_Dataset(file_path=data_path, target_path=target_path, sets=sets, max_timestep=max_timestep, load=load,
+								max_label_len=max_label_len, bucket_size=bs, drop=drop_too_long)
+	elif load == 'phone':
+		assert(phone_path is not None), '`phone path` must be provided for this dataset.'
+		ds = Mel_Phone_Dataset(file_path=data_path, phone_path=phone_path, sets=sets, max_timestep=max_timestep, load=load,
+								max_label_len=max_label_len, bucket_size=bs, drop=drop_too_long)
+	elif load == 'sentiment':
+		assert(sentiment_path is not None), '`sentiment path` must be provided for this dataset.'
+		ds = Mel_Sentiment_Dataset(sentiment_path=sentiment_path, max_timestep=max_timestep, load=load,
+								bucket_size=bs, drop=drop_too_long)
+	elif load == 'speaker':
+		assert(speaker_path is not None), '`speaker path` must be provided for this dataset.'
+		ds = Mel_Speaker_Dataset(file_path=data_path, speaker_path=speaker_path, sets=sets, max_timestep=max_timestep, load=load,
+								max_label_len=max_label_len, bucket_size=bs, drop=drop_too_long)
 
 	return DataLoader(ds, batch_size=1, shuffle=shuffle, drop_last=False, num_workers=n_jobs, pin_memory=use_gpu)
 
