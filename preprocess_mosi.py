@@ -12,6 +12,8 @@
 # IMPORTATION #
 ###############
 import os
+import shutil
+import glob
 import sys
 import pickle
 import argparse
@@ -78,6 +80,7 @@ def acoustic_preprocess(args, dim):
 	todo = list(Path(args.data_path).glob("*.wav"))
 	print(len(todo),'audio files found in MOSI')
 
+	assert args.feature_type in ['mel', 'linear', 'fbank'], 'Feature type unsupported'
 	output_dir = os.path.join(args.output_path,'_'.join(['mosi',str(args.feature_type)+str(dim)]))
 	if not os.path.exists(output_dir):
 		os.makedirs(output_dir)
@@ -126,13 +129,56 @@ def acoustic_preprocess(args, dim):
 		sdkname = npy2sdk(filename)
 		if sdkname in dataset[label_field].keys():
 			sorted_xlen.append(tr_x[idx])
-			sorted_y.append(dataset[label_field][sdkname]['features'].reshape(-1))
+			sorted_y.append(dataset[label_field][sdkname]['features'].reshape(-1)[0])
 			sorted_todo.append(filename)
 
-	# Dump label
+	# Organize label
 	df = pd.DataFrame(data={'file_path':[fp for fp in sorted_todo],'length':list(sorted_xlen),'label':sorted_y})
-	df.to_csv(os.path.join(output_dir,'mosi.csv'))
 
+	# Split data into train/dev/test
+	train_split = DATASET.standard_folds.standard_train_fold
+	dev_split = DATASET.standard_folds.standard_valid_fold
+	test_split = DATASET.standard_folds.standard_test_fold
+
+	# create split directory if necessary
+	train_path = os.path.join(output_dir, 'train')
+	dev_path = os.path.join(output_dir, 'dev')
+	test_path = os.path.join(output_dir, 'test')
+	for split_path in [train_path, dev_path, test_path]:
+		if not os.path.exists(split_path):
+			os.makedirs(split_path)
+
+	def classify(file_name):
+		file_name = file_name[0]
+		prefix = '_'.join(file_name.split('_')[:-1])
+		if prefix in train_split:
+			shutil.move(os.path.join(output_dir,file_name), os.path.join(train_path, file_name))
+			return 'train'
+		elif prefix in dev_split:
+			shutil.move(os.path.join(output_dir,file_name), os.path.join(dev_path, file_name))
+			return 'dev'
+		elif prefix in test_split:
+			shutil.move(os.path.join(output_dir,file_name), os.path.join(test_path, file_name))
+			return 'test'
+		else: assert 0, 'Error in preprocess_mosi.py:146'
+	
+	belong = np.apply_along_axis(lambda file_name: classify(file_name), 1, df['file_path'].values.reshape(-1, 1))
+	df.insert(len(df.columns), 'set', belong)
+	train_frame = df[df.set == 'train']
+	dev_frame = df[df.set == 'dev']
+	test_frame = df[df.set == 'test']
+	
+	# dump csv of all splits
+	df.to_csv(os.path.join(output_dir,'all.csv'))
+	train_frame.to_csv(os.path.join(output_dir,'train.csv'))
+	dev_frame.to_csv(os.path.join(output_dir,'dev.csv'))
+	test_frame.to_csv(os.path.join(output_dir,'test.csv'))
+
+	remain_npy = glob.glob(os.path.join(output_dir, '*.npy'))
+	print('Delete ' + str(len(remain_npy)) + ' unlabeled npy files:')
+	for npy in remain_npy:
+		print('delete ' + npy)
+		os.remove(npy)
 	print('All done, saved at', output_dir, 'exit.')
 
 
