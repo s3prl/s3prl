@@ -88,7 +88,7 @@ def main():
 	if args.train:
 		from mockingjay.solver import Trainer
 		trainer = Trainer(config, args)
-		trainer.load_data(dataset='train')
+		trainer.load_data(split='train')
 		trainer.set_model(inference=False)
 		trainer.exec()
 
@@ -99,7 +99,7 @@ def main():
 		from downstream.solver import Downstream_Trainer
 		task = 'mockingjay_phone' if args.run_mockingjay else 'baseline_phone'
 		trainer = Downstream_Trainer(config, args, task=task)
-		trainer.load_data(dataset='train', load='phone')
+		trainer.load_data(split='train', load='phone')
 		trainer.set_model(inference=False)
 		trainer.exec()
 
@@ -108,7 +108,7 @@ def main():
 		from downstream.solver import Downstream_Tester
 		task = 'mockingjay_phone' if args.run_mockingjay else 'baseline_phone'
 		tester = Downstream_Tester(config, args, task=task)
-		tester.load_data(dataset='test', load='phone')
+		tester.load_data(split='test', load='phone')
 		tester.set_model(inference=True)
 		tester.exec()
 
@@ -119,7 +119,7 @@ def main():
 		from downstream.solver import Downstream_Trainer
 		task = 'mockingjay_sentiment' if args.run_mockingjay else 'baseline_sentiment'
 		trainer = Downstream_Trainer(config, args, task=task)
-		trainer.load_data(dataset='train', load='sentiment')
+		trainer.load_data(split='train', load='sentiment')
 		trainer.set_model(inference=False)
 		trainer.exec()
 
@@ -128,7 +128,7 @@ def main():
 		from downstream.solver import Downstream_Tester
 		task = 'mockingjay_sentiment' if args.run_mockingjay else 'baseline_sentiment'
 		tester = Downstream_Tester(config, args, task=task)
-		tester.load_data(dataset='test', load='sentiment')
+		tester.load_data(split='test', load='sentiment')
 		tester.set_model(inference=True)
 		tester.exec()
 
@@ -139,7 +139,7 @@ def main():
 		from downstream.solver import Downstream_Trainer
 		task = 'mockingjay_speaker' if args.run_mockingjay else 'baseline_speaker'
 		trainer = Downstream_Trainer(config, args, task=task)
-		trainer.load_data(dataset='train', load='speaker')
+		trainer.load_data(split='train', load='speaker')
 		trainer.set_model(inference=False)
 		trainer.exec()
 
@@ -148,7 +148,7 @@ def main():
 		from downstream.solver import Downstream_Tester
 		task = 'mockingjay_speaker' if args.run_mockingjay else 'baseline_speaker'
 		tester = Downstream_Tester(config, args, task=task)
-		tester.load_data(dataset='test', load='speaker')
+		tester.load_data(split='test', load='speaker')
 		tester.set_model(inference=True)
 		tester.exec()
 
@@ -158,7 +158,7 @@ def main():
 	elif args.plot:
 		from mockingjay.solver import Tester
 		tester = Tester(config, args)
-		tester.load_data(dataset='test')
+		tester.load_data(split='test')
 		tester.set_model(inference=True, with_head=args.with_head)
 		tester.plot(with_head=args.with_head)
 

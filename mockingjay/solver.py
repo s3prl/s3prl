@@ -63,18 +63,18 @@ class Solver():
 			print('[SOLVER] - ', msg, end=end)
 
 
-	def load_data(self, dataset='train'):
+	def load_data(self, split='train'):
 		''' Load date for training / validation'''
-		if dataset == 'train': 
-			self.verbose('Loading source data from ' + self.config['solver']['data_path'])
-			if self.duo_feature: self.verbose('Loading target data from ' + self.config['solver']['target_path'])
+		if split == 'train': 
+			self.verbose('Loading source data from ' + self.config['dataloader']['data_path'])
+			if self.duo_feature: self.verbose('Loading target data from ' + self.config['dataloader']['target_path'])
 		else: 
-			self.verbose('Loading testing data ' + str(self.config['solver']['test_set']) + ' from ' + self.config['solver']['data_path'])
+			self.verbose('Loading testing data ' + str(self.config['dataloader']['test_set']) + ' from ' + self.config['dataloader']['data_path'])
 
 		if self.duo_feature:
-			setattr(self, 'dataloader', get_Dataloader(dataset, load='duo', use_gpu=self.paras.gpu, **self.config['solver']))
+			setattr(self, 'dataloader', get_Dataloader(split, load='duo', use_gpu=self.paras.gpu, **self.config['dataloader']))
 		else:
-			setattr(self, 'dataloader', get_Dataloader(dataset, load='spec', use_gpu=self.paras.gpu, **self.config['solver']))
+			setattr(self, 'dataloader', get_Dataloader(split, load='spec', use_gpu=self.paras.gpu, **self.config['dataloader']))
 
 
 	def set_model(self, inference=False, with_head=False):
@@ -502,50 +502,51 @@ class Tester(Solver):
 		''' Plotting the visualizations of the Unsupervised End-to-end Mockingjay Model'''
 		self.verbose('Testing set total ' + str(len(self.dataloader)) + ' batches.')
 
-		idx = 0
-		for x in tqdm(self.dataloader, desc="Plotting"):
-			spec_stacked, pos_enc, attn_mask = self.process_MAM_data(spec=x)
-			
-			if with_head:
-				pred_spec = self.model(spec_stacked, pos_enc, attention_mask=attn_mask)
+		with torch.no_grad():
+			idx = 0
+			for x in tqdm(self.dataloader, desc="Plotting"):
+				spec_stacked, pos_enc, attn_mask = self.process_MAM_data(spec=x)
+				
+				if with_head:
+					pred_spec = self.model(spec_stacked, pos_enc, attention_mask=attn_mask)
 
-				# generate the model filled MAM spectrogram
-				spec_masked = copy.deepcopy(spec_stacked)
-				for i in range(len(spec_masked)):
-					sample_index = random.sample(range(len(spec_masked[i])), int(len(spec_masked[i])*0.15))
-					spec_masked[i][sample_index] = 0
-				fill_spec = self.model(spec_masked, pos_enc, attention_mask=attn_mask)
+					# generate the model filled MAM spectrogram
+					spec_masked = copy.deepcopy(spec_stacked)
+					for i in range(len(spec_masked)):
+						sample_index = random.sample(range(len(spec_masked[i])), int(len(spec_masked[i])*0.15))
+						spec_masked[i][sample_index] = 0
+					fill_spec = self.model(spec_masked, pos_enc, attention_mask=attn_mask)
 
-				# plot reconstructed / ground-truth / MAM filled spectrogram
-				for y_pred, y_true, y_fill in zip(pred_spec, spec_stacked, fill_spec):
-					
-					y_pred = self.up_sample_frames(y_pred, return_first=True)
-					y_true = self.up_sample_frames(y_true, return_first=True)
-					y_fill = self.up_sample_frames(y_fill, return_first=True)
-					
-					plot_spectrogram(y_pred.data.cpu().numpy(), path=os.path.join(self.dump_dir, str(idx) + '_pred.png'))
-					plot_spectrogram(y_true.data.cpu().numpy(), path=os.path.join(self.dump_dir, str(idx) + '_true.png'))
-					plot_spectrogram(y_fill.data.cpu().numpy(), path=os.path.join(self.dump_dir, str(idx) + '_fill.png'))
-					
-					wave_pred = inv_spectrogram(y_pred.data.cpu().numpy().T)
-					wave_fill = inv_spectrogram(y_fill.data.cpu().numpy().T)
-					librosa.output.write_wav(os.path.join(self.dump_dir, str(idx) + '_pred.wav'), wave_pred, sample_rate)
-					librosa.output.write_wav(os.path.join(self.dump_dir, str(idx) + '_fill.wav'), wave_fill, sample_rate)
-					
-					idx += 1
-					if idx > 10: 
-						self.verbose('Spectrogram head generated samples are saved to: {}'.format(self.dump_dir))
-						exit() # visualize the first 10 testing samples
-			else:
-				encoded_layers = self.mockingjay(spec_stacked, pos_enc, attention_mask=attn_mask, output_all_encoded_layers=True)
-				last_encoded_layer = encoded_layers[-1]
+					# plot reconstructed / ground-truth / MAM filled spectrogram
+					for y_pred, y_true, y_fill in zip(pred_spec, spec_stacked, fill_spec):
+						
+						y_pred = self.up_sample_frames(y_pred, return_first=True)
+						y_true = self.up_sample_frames(y_true, return_first=True)
+						y_fill = self.up_sample_frames(y_fill, return_first=True)
+						
+						plot_spectrogram(y_pred.data.cpu().numpy(), path=os.path.join(self.dump_dir, str(idx) + '_pred.png'))
+						plot_spectrogram(y_true.data.cpu().numpy(), path=os.path.join(self.dump_dir, str(idx) + '_true.png'))
+						plot_spectrogram(y_fill.data.cpu().numpy(), path=os.path.join(self.dump_dir, str(idx) + '_fill.png'))
+						
+						wave_pred = inv_spectrogram(y_pred.data.cpu().numpy().T)
+						wave_fill = inv_spectrogram(y_fill.data.cpu().numpy().T)
+						librosa.output.write_wav(os.path.join(self.dump_dir, str(idx) + '_pred.wav'), wave_pred, sample_rate)
+						librosa.output.write_wav(os.path.join(self.dump_dir, str(idx) + '_fill.wav'), wave_fill, sample_rate)
+						
+						idx += 1
+						if idx > 10: 
+							self.verbose('Spectrogram head generated samples are saved to: {}'.format(self.dump_dir))
+							exit() # visualize the first 10 testing samples
+				else:
+					encoded_layers = self.mockingjay(spec_stacked, pos_enc, attention_mask=attn_mask, output_all_encoded_layers=True)
+					last_encoded_layer = encoded_layers[-1]
 
-				for rep in last_encoded_layer:
-					plot_spectrogram(rep.data.cpu().numpy(), path=os.path.join(self.dump_dir, str(idx) + '_hidden.png'))
-					idx += 1
-					if idx > 10: 
-						self.verbose('Mockingjay generated samples are saved to: {}'.format(self.dump_dir))
-						exit() # visualize the first 10 testing samples
+					for rep in last_encoded_layer:
+						plot_spectrogram(rep.data.cpu().numpy(), path=os.path.join(self.dump_dir, str(idx) + '_hidden.png'))
+						idx += 1
+						if idx > 10: 
+							self.verbose('Mockingjay generated samples are saved to: {}'.format(self.dump_dir))
+							exit() # visualize the first 10 testing samples
 
 
 	def exec(self, spec, all_layers=True):
@@ -556,10 +557,12 @@ class Tester(Solver):
 			If `all_layers` == False, Output: A batch of representations: (batch_size, seq_len, hidden_size)
 		"""
 			
-		spec_stacked, pos_enc, attn_mask = self.process_MAM_data(spec=spec)
-		encoded_layers = self.mockingjay(spec_stacked, pos_enc, attention_mask=attn_mask, output_all_encoded_layers=all_layers)
-		
-		reps = self.tile_representations(encoded_layers)
-		if len(reps.shape) == 4: reps = reps.permute(1, 0, 2, 3) # (batch_size, num_hidden_layers, sequence_length * downsample_rate, hidden_size)
+		with torch.no_grad():
+			spec_stacked, pos_enc, attn_mask = self.process_MAM_data(spec=spec)
+			encoded_layers = self.mockingjay(spec_stacked, pos_enc, attention_mask=attn_mask, output_all_encoded_layers=all_layers)
+			
+			reps = self.tile_representations(encoded_layers)
+			if len(reps.shape) == 4: reps = reps.permute(1, 0, 2, 3) # (batch_size, num_hidden_layers, sequence_length * downsample_rate, hidden_size)
+
 		return reps
 

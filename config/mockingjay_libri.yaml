@@ -10,6 +10,7 @@ mockingjay:
   initializer_range: 0.02                               # The sttdev of the truncated_normal_initializer for initializing all weight matrices.
   layer_norm_eps: "1e-12"                               # The epsilon used by LayerNorm.
 
+
 optimizer: 
   learning_rate: "5e-5"                                 # Learning rate for opt
   loss_scale: 0                                         # Loss scale to improve fp16 numeric stability. Only used when apex is set to True. 0: dynamic loss scaling. positive power of 2: static loss scaling.
@@ -17,49 +18,48 @@ optimizer:
   gradient_accumulation_steps: 1                        # Number of updates steps to accumulate before performing a backward/update pass
   gradient_clipping: 5                                  # Maximum gradient norm
 
-solver:
+
+dataloader:
+  n_jobs: 16                                            # Subprocess used for torch Dataloader
   # Data options
   dataset: 'librispeech'                                # librispeech dataset
   data_path: 'data/libri_mel160_subword5000'            # Source data path
   target_path: 'data/libri_linear1025_subword5000'      # Target data path for reconstruction to a different feature type, set dataset to 'librispeech_mel_linear'.
+
   phone_path: 'data/libri_phone'                        # phone boundary label data path for the phone classification task.
-  sentiment_path: 'data/libri_sentiment'                # sentiment label data path for the sentiment classification task.
+  sentiment_path: 'data/mosi_mel160'                    # sentiment label data path for the sentiment classification task.
   speaker_path: 'data/libri_speaker'                    # speaker ID label data path for the speaker classification classification task.
-  n_jobs: 16                                            # Subprocess used for torch Dataloader
+
+  batch_size: 8                                         # training batch size
+  dev_batch_size: 1                                     #
   max_timestep: 3000                                    # Max length for audio feature (0 for no restriction)
   max_label_len: 400                                    # Max length for output sequence (0 for no restriction)
-  
-  # Training options
-  duo_feature: True                                     # Use different input / output features during training
-  apex: False                                           # Use APEX (see https://github.com/NVIDIA/apex for more details)
+
   train_set: ['train-clean-360']                        #
-  log_step: 100                                         # log training status every this amount of training steps
-  batch_size: 8                                         # training batch size
-  total_steps: 1000000                                  # total steps for training, a step is a batch of update
-  mask_proportion: 0.15                                 # mask this percentage of all spectrogram frames in each sequence at random during MAM training                        
-
-  # Validation options
   dev_set: ['dev-clean']                                #
-  dev_batch_size: 1                                     #
-  dev_step: 2000                                        #
-
-  # testing options
   test_set: ['test-clean']                              #
+
+
+solver:
+  # Training options
+  apex: False                                           # Use APEX (see https://github.com/NVIDIA/apex for more details)
+  total_steps: 1000000                                  # total steps for training, a step is a batch of update
+  log_step: 100                                         # log training status every this amount of training steps
+  mask_proportion: 0.15                                 # mask this percentage of all spectrogram frames in each sequence at random during MAM training                        
+  dev_step: 2000                                        #
+  duo_feature: True                                     # Use different input / output features during training
 
   # models
   load_model_list: ['SpecHead', 'Mockingjay']           # load the components in the list for test/eval
   max_keep: 10                                          # maximum number of model ckpt to keep during training
-  save_step: 100                                        # save model every this amount of training steps
+  save_step: 5                                        # save model every this amount of training steps
+
 
 downstream:
   # Training options
-  train_set: ['train-clean-360']                        #
-  dev_set: ['dev-clean']                                #
-  test_set: ['test-clean']                              #
   learning_rate: "5e-4"                                 # Learning rate for opt
-  log_step: 100                                         # log training status every this amount of training steps
-  batch_size: 8                                         # training batch size
   total_steps: 500000                                   # total steps for training, a step is a batch of update
+  log_step: 100                                         # log training status every this amount of training steps
   load_model_list: ['Classifier']                       # load the components in the list for test/eval
   max_keep: 10                                          # maximum number of model ckpt to keep during training
   save_step: 100                                        # save model every this amount of training steps

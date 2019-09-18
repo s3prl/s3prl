@@ -52,16 +52,16 @@ class Downstream_Solver(Solver):
 		if self.run_mockingjay: self.verbose('Using Mockingjay representations.')
 
 
-	def load_data(self, dataset='train', load='phone'):
+	def load_data(self, split='train', load='phone'):
 		''' Load date for training / validation'''
 		assert(load in ['phone', 'sentiment', 'speaker']), 'Unsupported dataloader!'
-		if dataset == 'train': 
-			self.verbose('Loading source data from ' + self.config['solver']['data_path'])
-			self.verbose('Loading phone data from ' + self.config['solver']['phone_path'])
+		if split == 'train': 
+			self.verbose('Loading source data from ' + self.config['dataloader']['data_path'])
+			self.verbose('Loading phone data from ' + self.config['dataloader']['phone_path'])
 		else: 
-			self.verbose('Loading testing data ' + str(self.config['solver']['test_set']) + ' from ' + self.config['solver']['data_path'])
-			self.verbose('Loading label data ' + str(self.config['solver']['test_set']) + ' from ' + self.config['solver']['phone_path'])
-		setattr(self, 'dataloader', get_Dataloader(dataset, load=load, use_gpu=self.paras.gpu, **self.config['solver']))
+			self.verbose('Loading testing data ' + str(self.config['dataloader']['test_set']) + ' from ' + self.config['dataloader']['data_path'])
+			self.verbose('Loading label data ' + str(self.config['dataloader']['test_set']) + ' from ' + self.config['dataloader']['phone_path'])
+		setattr(self, 'dataloader', get_Dataloader(split, load=load, use_gpu=self.paras.gpu, **self.config['dataloader']))
 
 		# Get 1 example for auto constructing model
 		for _, self.sample_y in getattr(self,'train_set'): break
