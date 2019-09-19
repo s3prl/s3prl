@@ -24,7 +24,7 @@ from utils.asr import zero_padding,target_padding
 ############
 # CONSTANT #
 ############
-HALF_BATCHSIZE_TIME = 800
+HALF_BATCHSIZE_TIME = 500
 HALF_BATCHSIZE_LABEL = 150
 
 
@@ -275,7 +275,7 @@ class Mel_Sentiment_Dataset(Dataset):
 
 		# 'load' specify what task we want to conduct
 		self.load = load
-		assert 'sentiment' in load, 'MOSI support sentiment analysis only now'
+		assert 'sentiment' in load, 'The MOSI dataset only supports sentiment analysis for now'
 
 		# "joint" means all output embeddings jointly predict the sentiment of the whole input utterance segment
 		# Because sentiment is labeled at segment level, it is more intuitive to predict sentiment with a bunch of embeddings
@@ -354,18 +354,18 @@ def get_Dataloader(split, load, data_path, batch_size, max_timestep, max_label_l
 	if split == 'train':
 		bs = batch_size
 		shuffle = True
-		sets = ['train'] if 'sentiment' in load else train_set
+		sets = train_set
 		drop_too_long = True
 	elif split == 'dev':
 		bs = dev_batch_size
 		shuffle = False
-		sets = ['dev'] if 'sentiment' in load else dev_set
+		sets = dev_set
 		drop_too_long = True
 	elif split == 'test':
 		bs = 1 if decode_beam_size is not None else dev_batch_size
 		n_jobs = 1
 		shuffle = False
-		sets = ['test'] if 'sentiment' in load else test_set
+		sets = test_set
 		drop_too_long = False
 	elif split == 'text':
 		bs = batch_size
@@ -392,7 +392,7 @@ def get_Dataloader(split, load, data_path, batch_size, max_timestep, max_label_l
 								max_label_len=max_label_len, bucket_size=bs, drop=drop_too_long)
 	elif load == 'sentiment':
 		assert(sentiment_path is not None), '`sentiment path` must be provided for this dataset.'
-		ds = Mel_Sentiment_Dataset(sentiment_path=sentiment_path, max_timestep=max_timestep, load=load,
+		ds = Mel_Sentiment_Dataset(sentiment_path=sentiment_path, split=split, max_timestep=max_timestep, load=load,
 								bucket_size=bs, drop=drop_too_long)
 	elif load == 'speaker':
 		assert(speaker_path is not None), '`speaker path` must be provided for this dataset.'
