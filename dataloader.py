@@ -38,9 +38,9 @@ HALF_BATCHSIZE_LABEL = 150
 #     - max_timestep : int, max len for input (set to 0 for no restriction)
 #     - max_label_len: int, max len for output (set to 0 for no restriction)
 #     - bucket_size  : int, batch size for each bucket
-#     - load         : str, types of data to load: ['all', 'text', 'spec', 'duo']
+#     - load         : str, types of data to load: ['asr', 'text', 'spec', 'duo', 'phone', 'speaker']
 class LibriDataset(Dataset):
-	def __init__(self, file_path, sets, bucket_size, max_timestep=0, max_label_len=0, drop=False, load='all'):
+	def __init__(self, file_path, sets, bucket_size, max_timestep=0, max_label_len=0, drop=False, load='asr'):
 		# Read file
 		self.root = file_path
 		tables = [pd.read_csv(os.path.join(file_path, s + '.csv')) for s in sets]
@@ -52,40 +52,6 @@ class LibriDataset(Dataset):
 			self.table = self.table[self.table.length < max_timestep]
 		if drop and max_label_len > 0:
 			self.table = self.table[self.table.label.str.count('_')+1 < max_label_len]
-
-
-	def __getitem__(self, index):
-		# Load label
-		if self.load == 'all' or self.load == 'text':
-			y_batch = [y for y in self.Y[index]]
-			y_pad_batch = target_padding(y_batch, max([len(v) for v in y_batch]))
-			if self.load == 'text':
-				return y_pad_batch
-		
-		# Load acoustic feature and pad
-		x_batch = [torch.FloatTensor(np.load(os.path.join(self.root, x_file))) for x_file in self.X[index]]
-		x_pad_batch = pad_sequence(x_batch, batch_first=True)
-
-		# Return (x_spec) 
-		if self.load == 'spec':
-			return x_pad_batch
-		# Return (x_spec, t_spec)
-		elif self.load == 'duo':
-			t_batch = [torch.FloatTensor(np.load(os.path.join(self.t_root, t_file))) for t_file in self.T[index]]
-			t_pad_batch = pad_sequence(t_batch, batch_first=True)
-			return x_pad_batch, t_pad_batch
-		# Return (x_spec, phone_label)
-		elif self.load == 'phone':
-			p_pad_batch = None # TODO
-			return x_pad_batch, p_pad_batch
-				# Return (x_spec, phone_label)
-		elif self.load == 'speaker':
-			s_pad_batch = None # TODO
-			return x_pad_batch, s_pad_batch
-		# return (x, y)
-		else:
-			return x_pad_batch, y_pad_batch
-			
 	
 	def __len__(self):
 		return len(self.X)
@@ -96,10 +62,10 @@ class LibriDataset(Dataset):
 ###############
 class AsrDataset(LibriDataset):
 	
-	def __init__(self, file_path, sets, bucket_size, max_timestep=0, max_label_len=0, drop=False, load='all'):
+	def __init__(self, file_path, sets, bucket_size, max_timestep=0, max_label_len=0, drop=False, load='asr'):
 		super(AsrDataset, self).__init__(file_path, sets, bucket_size, max_timestep, max_label_len, drop, load)
 
-		assert(self.load in ['all', 'text']), 'This dataset loads mel features and text labels.'
+		assert(self.load in ['asr', 'text']), 'This dataset loads mel features and text labels.'
 		X = self.table['file_path'].tolist()
 		X_lens = self.table['length'].tolist()
 			
@@ -136,6 +102,19 @@ class AsrDataset(LibriDataset):
 			self.Y.append(batch_y)
 
 
+	def __getitem__(self, index):
+		# Load label
+		if self.load == 'asr' or self.load == 'text':
+			y_batch = [y for y in self.Y[index]]
+			y_pad_batch = target_padding(y_batch, max([len(v) for v in y_batch]))
+			if self.load == 'text':
+				return y_pad_batch
+		# Load acoustic feature and pad
+		x_batch = [torch.FloatTensor(np.load(os.path.join(self.root, x_file))) for x_file in self.X[index]]
+		x_pad_batch = pad_sequence(x_batch, batch_first=True)
+		return x_pad_batch, y_pad_batch
+
+
 ###############
 # MEL DATASET #
 ###############
@@ -169,6 +148,14 @@ class MelDataset(LibriDataset):
 		# Gather the last batch
 		if len(batch_x) > 0:
 			self.X.append(batch_x)
+
+
+	def __getitem__(self, index):
+		# Load acoustic feature and pad
+		x_batch = [torch.FloatTensor(np.load(os.path.join(self.root, x_file))) for x_file in self.X[index]]
+		x_pad_batch = pad_sequence(x_batch, batch_first=True)
+		# Return (x_spec) 
+		return x_pad_batch
 
 
 ######################
@@ -217,6 +204,15 @@ class Mel_Linear_Dataset(LibriDataset):
 			self.T.append(batch_t)
 			self.X.append(batch_x)
 
+	def __getitem__(self, index):
+		# Load acoustic feature and pad
+		x_batch = [torch.FloatTensor(np.load(os.path.join(self.root, x_file))) for x_file in self.X[index]]
+		x_pad_batch = pad_sequence(x_batch, batch_first=True)
+		# Return (x_spec, t_spec)
+		t_batch = [torch.FloatTensor(np.load(os.path.join(self.t_root, t_file))) for t_file in self.T[index]]
+		t_pad_batch = pad_sequence(t_batch, batch_first=True)
+		return x_pad_batch, t_pad_batch
+
 
 #####################
 # MEL PHONE DATASET #
@@ -253,6 +249,14 @@ class Mel_Phone_Dataset(LibriDataset):
 		# Gather the last batch
 		if len(batch_x) > 0:
 			self.X.append(batch_x)
+	
+	def __getitem__(self, index):
+		# Load acoustic feature and pad
+		x_batch = [torch.FloatTensor(np.load(os.path.join(self.root, x_file))) for x_file in self.X[index]]
+		x_pad_batch = pad_sequence(x_batch, batch_first=True)
+		# Return (x_spec, phone_label)
+		p_pad_batch = None # TODO
+		return x_pad_batch, p_pad_batch
 
 
 #########################
@@ -341,6 +345,14 @@ class Mel_Speaker_Dataset(LibriDataset):
 
 		assert(self.load == 'speaker'), 'This dataset loads mel features and speaker ID labels.'
 		#TODO
+	
+	def __getitem__(self, index):
+		# Load acoustic feature and pad
+		x_batch = [torch.FloatTensor(np.load(os.path.join(self.root, x_file))) for x_file in self.X[index]]
+		x_pad_batch = pad_sequence(x_batch, batch_first=True)
+		# Return (x_spec, speaker_label)
+		s_pad_batch = None # TODO
+		return x_pad_batch, s_pad_batch
 
 
 ##################
@@ -377,7 +389,7 @@ def get_Dataloader(split, load, data_path, batch_size, max_timestep, max_label_l
 		raise NotImplementedError('Unsupported `split` argument: ' + split)
 
 	# Decide which task (or dataset) to propogate through model
-	if load in ['all', 'text']:
+	if load in ['asr', 'text']:
 		ds = AsrDataset(file_path=data_path, sets=sets, max_timestep=max_timestep, load=load,
 				max_label_len=max_label_len, bucket_size=bs, drop=drop_too_long)
 	elif load == 'spec':
