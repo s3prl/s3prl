@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*- #
 """*********************************************************************************************"""
-#   FileName     [ dataset.py ]
-#   Synopsis     [ Librispeech dataset for solver ]
+#   FileName     [ dataloader.py ]
+#   Synopsis     [ Datasets for mockingjay and downstream task training ]
 #   Author       [ Andy T. Liu (Andi611) ]
 #   Copyright    [ Copyleft(c), Speech Lab, NTU, Taiwan ]
 """*********************************************************************************************"""
@@ -31,7 +31,7 @@ HALF_BATCHSIZE_LABEL = 150
 ################
 # LIBRIDATASET #
 ################
-# Librispeech Dataset (work in bucketing style)
+# Librispeech Dataset (works in bucketing style)
 # Parameters
 #     - file_path    : str, file path to dataset
 #     - split        : str, data split (train / dev / test)
