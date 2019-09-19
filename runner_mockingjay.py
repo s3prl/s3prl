@@ -40,7 +40,7 @@ def get_mockingjay_args():
 
 	# mockingjay
 	parser.add_argument('--train', action='store_true', help='Test the model.')
-	parser.add_argument('--run_mockingjay', default=True, action='store_true', help='train and test the downstream tasks using mockingjay representations.')
+	parser.add_argument('--run_mockingjay', action='store_true', help='train and test the downstream tasks using mockingjay representations.')
 	parser.add_argument('--plot', action='store_true', help='Plot model generated results during testing.')
 	
 	# phone task
