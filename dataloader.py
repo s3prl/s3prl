@@ -148,7 +148,7 @@ class MelDataset(LibriDataset):
 		X = self.table['file_path'].tolist()
 		X_lens = self.table['length'].tolist()
 
-		# Bucketing, X & X_len is dummy when load == 'text'
+		# Use bucketing to allow different batch size at run time
 		self.X = []
 		batch_x, batch_len = [], []
 
@@ -189,7 +189,7 @@ class Mel_Linear_Dataset(LibriDataset):
 		X = self.table['file_path'].tolist()
 		X_lens = self.table['length'].tolist()
 
-		# Bucketing, X & X_len is dummy when load == 'text'
+		# Use bucketing to allow different batch sizes at run time
 		self.T = []
 		self.X = []
 		batch_t, batch_x, batch_len = [], [], []
@@ -231,7 +231,7 @@ class Mel_Phone_Dataset(LibriDataset):
 		X = self.table['file_path'].tolist()
 		X_lens = self.table['length'].tolist()
 
-		# Bucketing, X & X_len is dummy when load == 'text'
+		# Use bucketing to allow different batch sizes at run time
 		self.X = []
 		batch_x, batch_len = [], []
 
