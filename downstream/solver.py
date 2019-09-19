@@ -70,18 +70,14 @@ class Downstream_Solver(Solver):
 
 		setattr(self, 'dataloader', get_Dataloader(split, load=load, use_gpu=self.paras.gpu, **self.config['dataloader']))
 
-		# Get 1 example for auto constructing model
-		for _, self.sample_y in getattr(self,'dataloader'): break
-		if len(self.sample_y.shape) == 4: self.sample_y = self.sample_y[0]
-
 
 	def set_model(self, inference=False):
 		self.mockingjay = Tester(self.config, self.paras)
 		self.mockingjay.set_model(inference=True, with_head=False)
 		
 		input_dim = self.input_dim if 'mockingjay' not in self.task else self.config['mockingjay']['hidden_size']
-		self.classifier = LinearClassifier(input_dim=input_dim, # input of classifier is output of the mockingjay model
-										   output_sample=self.sample_y).to(self.device)
+		self.classifier = LinearClassifier(input_dim=input_dim,
+										   output_dim=self.dataloader.dataset.class_num).to(self.device)
 		self.classifier.eval() if inference else self.classifier.train()
 		
 		if not inference:
@@ -186,7 +182,7 @@ class Downstream_Trainer(Downstream_Solver):
 
 			for features, labels in tqdm(self.dataloader, desc="Iteration"):
 				# features: (1, batch, seq, feature), tensor in CPU
-				# labels: (1, batch, seq, class), tensor in GPU
+				# labels: (1, batch, seq), tensor in GPU
 				labels = labels.to(self.device)
 
 				if self.run_mockingjay:

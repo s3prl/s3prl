@@ -18,17 +18,15 @@ from torch import nn
 # LINEAR CLASSIFIER #
 #####################
 class LinearClassifier(nn.Module):
-	def __init__(self, input_dim, output_sample, hidden_size=768, drop=0.2):
+	def __init__(self, input_dim, output_dim, hidden_size=768, drop=0.2):
 		super(LinearClassifier, self).__init__()
 		# use sample's last dim as class num, means the labels must be in one-hot
-		self.output_dim = output_sample.shape[-1]
-		
 		self.dense1 = nn.Linear(input_dim, hidden_size)
 		self.dense2 = nn.Linear(hidden_size, hidden_size)
 		self.drop1 = nn.Dropout(p=drop)
 		self.drop2 = nn.Dropout(p=drop)
 
-		self.out = nn.Linear(hidden_size, self.output_dim)
+		self.out = nn.Linear(hidden_size, output_dim)
 		self.act_fn = torch.nn.functional.relu
 		self.out_fn = nn.Softmax()
 
@@ -62,6 +60,9 @@ class LinearClassifier(nn.Module):
 
 		logits = self.out(hidden)
 		if labels is not None:
-			class_num = labels.size(-1)
-			return self.criterion(logits.reshape(-1, class_num), torch.argmax(labels.reshape(-1, class_num), dim=1)), self.out_fn(logits)
+			# cause logits are in (batch, seq, class) and labels are in (batch, seq)
+			# nn.CrossEntropyLoss expect to have (batch, class) and (batch,) as input
+			# here we flatten logits and labels in order to apply nn.CrossEntropyLoss
+			class_num = logits.size(-1)
+			return self.criterion(logits.reshape(-1, class_num), labels.reshape(-1)), self.out_fn(logits)
 		return self.out_fn(logits)

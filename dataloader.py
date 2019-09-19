@@ -263,8 +263,11 @@ class Mel_Sentiment_Dataset(Dataset):
 		self.split = split
 
 		self.table = pd.read_csv(os.path.join(sentiment_path, split + '.csv'))
-		self.table.label = self.table.label.astype(int)
-		self.table.label += 3  # cause pytorch only accepts non-negative class value
+		self.table.label = self.table.label.astype(int)  # cause the labels given are average label over all annotaters, so we first round them
+		self.table.label += 3  # cause pytorch only accepts non-negative class value, we convert original [-3, -2, -1, 0, 1, 2, 3] into [0, 1, 2, 3, 4, 5, 6]
+
+		# This is necessary for downstream solver to automatically build LinearClassifier depending on dataset property
+		self.class_num = 7
 
 		# Drop seqs that are too long
 		if drop and max_timestep > 0:
@@ -280,8 +283,7 @@ class Mel_Sentiment_Dataset(Dataset):
 		# the sentiment directly
 		self.joint = 'joint' in load  # NOT YET IMPLEMENTED
 
-		Y = torch.LongTensor(self.table['label'].values)
-		Y = torch.nn.functional.one_hot(Y)  # (all_data, class)
+		Y = self.table['label'].tolist()  # (all_data, )
 		X = self.table['file_path'].tolist()
 		X_lens = self.table['length'].tolist()
 
@@ -315,14 +317,14 @@ class Mel_Sentiment_Dataset(Dataset):
 
 	def __getitem__(self, index):
 		# Load acoustic feature and pad
-		x_batch = [torch.FloatTensor(np.load(os.path.join(self.root, self.split, x_file))) for x_file in self.X[index]]
-		x_pad_batch = pad_sequence(x_batch, batch_first=True)
+		x_batch = [torch.FloatTensor(np.load(os.path.join(self.root, self.split, x_file))) for x_file in self.X[index]]  # [(seq, feature), ...]
+		x_pad_batch = pad_sequence(x_batch, batch_first=True)  # (batch, seq, feature) with all seq padded with zeros to align the longest seq in this batch
 
 		# Load label
-		y_batch = torch.stack([y for y in self.Y[index]])  # (batch, class)
-		y_broadcast_onehot_batch = y_batch.repeat(1, x_pad_batch.size(1)).view(y_batch.size(0), -1, y_batch.size(1))  # (batch, seq, class)
+		y_batch = torch.LongTensor(self.Y[index])  # (batch, )
+		y_broadcast_int_batch = y_batch.repeat(x_pad_batch.size(1), 1).T  # (batch, seq)
 
-		return x_pad_batch, y_broadcast_onehot_batch
+		return x_pad_batch, y_broadcast_int_batch
 	
 	def __len__(self):
 		return len(self.X)
