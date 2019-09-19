@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*- #
 """*********************************************************************************************"""
-#   FileName     [ mockingjay/downstream_model.py ]
+#   FileName     [ downstream/model.py ]
 #   Synopsis     [ Implementation of downstream models ]
 #   Author       [ Andy T. Liu (Andi611) ]
 #   Copyright    [ Copyleft(c), Speech Lab, NTU, Taiwan ]
@@ -31,6 +31,7 @@ class LinearClassifier(nn.Module):
 
 		self.criterion = nn.CrossEntropyLoss(ignore_index=-100)
 
+
 	def statistic(self, probabilities, labels, label_mask):
 		assert(len(probabilities.shape) > 1)
 		assert(probabilities.unbind(dim=-1)[0].shape == labels.shape)
@@ -43,15 +44,16 @@ class LinearClassifier(nn.Module):
 		correct_count = ((probabilities.argmax(dim=-1) == labels).type(torch.cuda.LongTensor) * label_mask).sum()
 		return correct_count, valid_count
 
+
 	def forward(self, features, labels=None, label_mask=None):
-		# features from bert: (bucket, layer, seq, feature)
-		# features from baseline: (bucket, seq, feature)
-		# labels: (bucket, seq), frame by frame classification
+		# features from mockingjay: (batch_size, layer, seq_len, feature)
+		# features from baseline: (batch_size, seq_len, feature)
+		# labels: (batch_size, seq_len), frame by frame classification
 		labels = labels.squeeze(0)
 
 		if len(features.shape) == 4:
-			# means is mockingjay representation
-			features = features.mean(dim=1)  # now simply average the representations over all layers, (bucket, seq, feature)
+			# compute mean on mockingjay representations if given features from mockingjay
+			features = features.mean(dim=1)  # now simply average the representations over all layers, (batch_size, seq_len, feature)
 
 			# since the down-sampling (float length be truncated to int) and then up-sampling process
 			# can cause a mismatch between the seq lenth of mockingjay representation and that of label
@@ -68,6 +70,7 @@ class LinearClassifier(nn.Module):
 		hidden = self.act_fn(hidden)
 
 		logits = self.out(hidden)
+		
 		if labels is not None:
 			assert label_mask is not None, 'When frame-wise labels are provided, validity of each timestamp should also be provided'
 			labels_with_ignore_index = 100 * (label_mask - 1) + labels * label_mask
@@ -83,4 +86,5 @@ class LinearClassifier(nn.Module):
 			correct, valid = self.statistic(probabilities, labels, label_mask)
 
 			return loss, probabilities.detach(), correct.detach(), valid.detach()
+
 		return self.out_fn(logits)

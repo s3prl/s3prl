@@ -34,7 +34,7 @@ class Downstream_Solver(Solver):
 	''' Handler for complete training progress'''
 	def __init__(self, config, paras, task):
 		super(Downstream_Solver, self).__init__(config, paras)
-		
+		# Downstream task the solver is solving
 		self.task = task
 
 		# path and directories
@@ -66,7 +66,7 @@ class Downstream_Solver(Solver):
 			sentiment_path = self.config['dataloader']['sentiment_path']
 			self.verbose(f'Loading {split} data from {sentiment_path}')
 		else:
-			assert False, 'Not yet support other downstream tasks'
+			raise NotImplementedError('Unsupported downstream tasks.')
 
 		setattr(self, 'dataloader', get_Dataloader(split, load=load, use_gpu=self.paras.gpu, **self.config['dataloader']))
 
@@ -170,20 +170,22 @@ class Downstream_Trainer(Downstream_Solver):
 		while self.global_step <= self.total_steps:
 
 			for features, labels in tqdm(self.dataloader, desc="Iteration"):
-				# features: (1, bucket, seq, feature)
+				# features: (1, batch_size, seq_len, feature)
 				# dimension of labels is depends on task and dataset, but the first dimention is always trivial due to bucketing
-				labels = labels[0].to(self.device)
+				labels = labels.squeeze(0).to(device=self.device, dtype=torch.float32)
 
 				# Since zero padding technique, some timestamps of features are not valid
 				# For each timestamps, we mark 1 on valid timestamps, and 0 otherwise
 				# This variable can be useful for frame-wise metric, like phoneme recognition or speaker verification
-				# label_mask: (bucket, seq), LongTensor
+				# label_mask: (batch_size, seq_len), LongTensor
 				label_mask = (features[0].sum(dim=-1).abs() > 1e-8).type(torch.LongTensor).to(self.device)
 
 				if self.run_mockingjay:
-					representations = self.mockingjay.exec(features)  # representations: (bucket, layer, seq, feature)
+					# representations shape: (batch_size, layer, seq_len, feature)
+					representations = self.mockingjay.exec(features)
 				else:
-					representations = features[0].to(self.device)  # representations: (bucket, seq, feature)
+					# representations shape: (batch_size, seq_len, feature)
+					representations = features.squeeze(0).to(device=self.device, dtype=torch.float32)
 				loss, logits, correct, valid = self.classifier(representations, labels, label_mask)
 				
 				# Accumulate Loss
@@ -229,20 +231,22 @@ class Downstream_Tester(Downstream_Solver):
 
 		test_acc = []
 		for features, labels in tqdm(self.dataloader, desc="Iteration"):
-			# features: (1, bucket, seq, feature)
+			# features: (1, batch_size, seq_len, feature)
 			# dimension of labels is depends on task and dataset, but the first dimention is always trivial due to bucketing
-			labels = labels[0].to(self.device)
+			labels = labels.squeeze(0).to(device=self.device, dtype=torch.float32)
 
 			# Since zero padding technique, some timestamps of features are not valid
 			# For each timestamps, we mark 1 on valid timestamps, and 0 otherwise
 			# This variable can be useful for frame-wise metric, like phoneme recognition or speaker verification
-			# label_mask: (bucket, seq), LongTensor
-			label_mask = (features[0].sum(dim=-1).abs() > 1e-8).type(torch.LongTensor).to(self.device)
+			# label_mask: (batch_size, seq_len), LongTensor
+			label_mask = (features[0].sum(dim=-1).abs() > 1e-8).type(torch.LongTensor).to(device=self.device, dtype=torch.float32)
 
 			if self.run_mockingjay:
-				representations = self.mockingjay.exec(features)  # representations: (bucket, layer, seq, feature)
+				# representations shape: (batch_size, layer, seq_len, feature)
+				representations = self.mockingjay.exec(features)
 			else:
-				representations = features[0].to(self.device)  # representations: (bucket, seq, feature)
+				# representations shape: (batch_size, seq_len, feature)
+				representations = features.squeeze(0).to(device=self.device, dtype=torch.float32)
 			loss, logits, correct, valid = self.classifier(representations, labels, label_mask)
 			test_acc.append(correct / valid)
 

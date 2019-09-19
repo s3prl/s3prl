@@ -1,10 +1,9 @@
 # -*- coding: utf-8 -*- #
 """*********************************************************************************************"""
-#   FileName     [ preprocess.py ]
-#   Synopsis     [ preprocess text transcripts and audio speech for the LibriSpeech dataset ]
+#   FileName     [ preprocess_mosi.py ]
+#   Synopsis     [ preprocessing for the MOSI dataset ]
 #   Author       [ Andy T. Liu (Andi611) ]
 #   Copyright    [ Copyleft(c), Speech Lab, NTU, Taiwan ]
-#   Reference    [ https://github.com/Alexander-H-Liu/End-to-end-ASR-Pytorch ]
 """*********************************************************************************************"""
 
 
@@ -58,6 +57,7 @@ def npy2sdk(string):
 	string = utterance_name + '[' + str(number - 1) + ']'
 	return string
 
+
 #############################
 # PREPROCESS CONFIGURATIONS #
 #############################
@@ -71,6 +71,7 @@ def get_preprocess_args():
 	parser.add_argument('--n_tokens', default=5000, type=int, help='Vocabulary size of target', required=False)
 	args = parser.parse_args()
 	return args
+
 
 #######################
 # ACOUSTIC PREPROCESS #

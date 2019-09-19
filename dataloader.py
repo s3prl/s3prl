@@ -228,6 +228,7 @@ class Mel_Phone_Dataset(LibriDataset):
 
 		assert(self.load == 'phone'), 'This dataset loads mel features and phone boundary labels.'
 		#TODO
+		self.class_num = None
 		X = self.table['file_path'].tolist()
 		X_lens = self.table['length'].tolist()
 
@@ -259,6 +260,10 @@ class Mel_Phone_Dataset(LibriDataset):
 #########################
 class Mel_Sentiment_Dataset(Dataset):
 	def __init__(self, sentiment_path, split='train', bucket_size='8', max_timestep=0, drop=True, load='sentiment'):
+		# 'load' specify what task we want to conduct
+		self.load = load
+		assert(self.load == 'sentiment'), 'The MOSI dataset only supports sentiment analysis for now'
+
 		self.root = sentiment_path
 		self.split = split
 
@@ -273,15 +278,11 @@ class Mel_Sentiment_Dataset(Dataset):
 		if drop and max_timestep > 0:
 			self.table = self.table[self.table.length < max_timestep]
 
-		# 'load' specify what task we want to conduct
-		self.load = load
-		assert 'sentiment' in load, 'The MOSI dataset only supports sentiment analysis for now'
-
 		# "joint" means all output embeddings jointly predict the sentiment of the whole input utterance segment
 		# Because sentiment is labeled at segment level, it is more intuitive to predict sentiment with a bunch of embeddings
-		# But ideally, with Bert's contextualized embeddings, we hope that a single embedding from one input frame can embed
+		# But ideally, with mockingjay's contextualized embeddings, we hope that a single embedding from one input frame can embed
 		# the sentiment directly
-		self.joint = 'joint' in load  # NOT YET IMPLEMENTED
+		self.joint = 'joint' in load  # TODO: NOT YET IMPLEMENTED
 
 		Y = self.table['label'].tolist()  # (all_data, )
 		X = self.table['file_path'].tolist()
