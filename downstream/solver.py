@@ -172,13 +172,13 @@ class Downstream_Trainer(Downstream_Solver):
 			for features, labels in tqdm(self.dataloader, desc="Iteration"):
 				# features: (1, batch_size, seq_len, feature)
 				# dimension of labels is depends on task and dataset, but the first dimention is always trivial due to bucketing
-				labels = labels.squeeze(0).to(device=self.device, dtype=torch.float32)
+				labels = labels.squeeze(0).to(device=self.device, dtype=torch.long)
 
 				# Since zero padding technique, some timestamps of features are not valid
 				# For each timestamps, we mark 1 on valid timestamps, and 0 otherwise
 				# This variable can be useful for frame-wise metric, like phoneme recognition or speaker verification
 				# label_mask: (batch_size, seq_len), LongTensor
-				label_mask = (features[0].sum(dim=-1).abs() > 1e-8).type(torch.LongTensor).to(self.device)
+				label_mask = (features[0].sum(dim=-1).abs() > 1e-8).type(torch.LongTensor).to(device=self.device, dtype=torch.long)
 
 				if self.run_mockingjay:
 					# representations shape: (batch_size, layer, seq_len, feature)
