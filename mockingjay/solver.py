@@ -367,7 +367,8 @@ class Trainer(Solver):
 			progress = tqdm(self.dataloader, desc="Iteration")
 
 			for step, spec in enumerate(progress):
-
+				if self.global_step > self.total_steps: break
+				
 				if self.duo_feature:
 					spec_masked, pos_enc, mask_label, attn_mask, spec_stacked = self.process_MAM_data(source_spec=spec[0], 
 																									  target_spec=spec[1])
@@ -420,8 +421,7 @@ class Trainer(Solver):
 					self.log.add_image('true_spec', true_spec, self.global_step)
 
 				pbar.update(1)
-				if self.global_step > self.total_steps: break
-				else: self.global_step += 1
+				self.global_step += 1
 				
 		pbar.close()
 		self.reset_train()

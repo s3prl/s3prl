@@ -170,6 +170,7 @@ class Downstream_Trainer(Downstream_Solver):
 		while self.global_step <= self.total_steps:
 
 			for features, labels in tqdm(self.dataloader, desc="Iteration"):
+				if self.global_step > self.total_steps: break
 				# features: (1, batch_size, seq_len, feature)
 				# dimension of labels is depends on task and dataset, but the first dimention is always trivial due to bucketing
 				labels = labels.squeeze(0).to(device=self.device, dtype=torch.long)
@@ -206,8 +207,7 @@ class Downstream_Trainer(Downstream_Solver):
 					self.save_model(self.task)
 
 				pbar.update(1)
-				if self.global_step > self.total_steps: break
-				else: self.global_step += 1
+				self.global_step += 1
 				
 		pbar.close()
 		self.reset_train()
