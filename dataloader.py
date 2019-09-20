@@ -254,9 +254,10 @@ class Mel_Phone_Dataset(LibriDataset):
 		# Load acoustic feature and pad
 		x_batch = [torch.FloatTensor(np.load(os.path.join(self.root, x_file))) for x_file in self.X[index]]
 		x_pad_batch = pad_sequence(x_batch, batch_first=True)
+		p_batch = [torch.FloatTensor(pickle.load(open(x_file.replace('npy', 'txt'), "rb"))) for x_file in self.X[index]]
+		# TODO : handle unaligned phone, check len missmatch
 		# Return (x_spec, phone_label)
-		p_pad_batch = None # TODO
-		return x_pad_batch, p_pad_batch
+		return x_pad_batch, p_batch
 
 
 #########################
