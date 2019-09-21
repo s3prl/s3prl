@@ -223,8 +223,9 @@ class Mel_Phone_Dataset(LibriDataset):
 		super(Mel_Phone_Dataset, self).__init__(file_path, sets, bucket_size, max_timestep, max_label_len, drop, load)
 
 		assert(self.load == 'phone'), 'This dataset loads mel features and phone boundary labels.'
-		#TODO
-		self.class_num = None
+		self.phone_path = phone_path
+		self.class_num = len(pickle.load(open(os.path.join(phone_path, 'phone2idx.pkl'))))
+		unaligned = pickle.load(open(os.path.join(phone_path, 'unaligned.pkl')))
 		X = self.table['file_path'].tolist()
 		X_lens = self.table['length'].tolist()
 
@@ -233,31 +234,41 @@ class Mel_Phone_Dataset(LibriDataset):
 		batch_x, batch_len = [], []
 
 		for x, x_len in zip(X, X_lens):
-			batch_x.append(x)
-			batch_len.append(x_len)
-			
-			# Fill in batch_x until batch is full
-			if len(batch_x) == bucket_size:
-				# Half the batch size if seq too long
-				if (bucket_size >= 2) and (max(batch_len) > HALF_BATCHSIZE_TIME):
-					self.X.append(batch_x[:bucket_size//2])
-					self.X.append(batch_x[bucket_size//2:])
-				else:
-					self.X.append(batch_x)
-				batch_x, batch_len = [], []
+			if x not in unaligned:
+				batch_x.append(x)
+				batch_len.append(x_len)
+				
+				# Fill in batch_x until batch is full
+				if len(batch_x) == bucket_size:
+					# Half the batch size if seq too long
+					if (bucket_size >= 2) and (max(batch_len) > HALF_BATCHSIZE_TIME):
+						self.X.append(batch_x[:bucket_size//2])
+						self.X.append(batch_x[bucket_size//2:])
+					else:
+						self.X.append(batch_x)
+					batch_x, batch_len = [], []
 		
 		# Gather the last batch
 		if len(batch_x) > 0:
-			self.X.append(batch_x)
-	
+			if x not in unaligned:
+				self.X.append(batch_x)
+
+	def match_sequence(self, x_batch, p_batch):
+		truncated_length = min(x_batch.shape[1], p_batch.shape[1])
+		x_match_batch = x_batch[:, :truncated_length, :]
+		p_match_batch = p_batch[:, :truncated_length]
+		return x_match_batch, p_match_batch
+
 	def __getitem__(self, index):
 		# Load acoustic feature and pad
 		x_batch = [torch.FloatTensor(np.load(os.path.join(self.root, x_file))) for x_file in self.X[index]]
 		x_pad_batch = pad_sequence(x_batch, batch_first=True)
-		p_batch = [torch.FloatTensor(pickle.load(open(x_file.replace('npy', 'txt'), "rb"))) for x_file in self.X[index]]
-		# TODO : handle unaligned phone, check len missmatch
+		p_batch = [torch.FloatTensor(pickle.load(open(os.path.join(self.phone_path, \
+				   x_file.replace('npy', 'pkl')), "rb"))) for x_file in self.X[index]]
+		p_pad_batch = pad_sequence(p_batch, batch_first=True)
+		x_match_batch, p_match_batch = self.match_sequence(x_pad_batch, p_pad_batch)
 		# Return (x_spec, phone_label)
-		return x_pad_batch, p_batch
+		return x_match_batch, p_match_batch
 
 
 #########################

@@ -57,6 +57,8 @@ def phone_preprocess(data_path, output_path, sets):
 					phone2idx[phone] = idx
 					idx += 1
 	print(len(phone2idx), 'distinct phones found in', sets)
+	with open(os.path.join(output_path, 'phone2idx.pkl'), "wb") as fp:
+			pickle.dump(phone2idx, fp)
 
 	for s in sets:
 		print('')
@@ -73,7 +75,8 @@ def phone_preprocess(data_path, output_path, sets):
 			for line in file:
 				line = line.strip('\n').split(' ')
 				x += time_to_frame(start_time=float(line[0]), end_time=float(line[1]), phone=phone2idx[line[2]])
-			path_to_save = str(path).replace(data_path.split('/')[-1], output_path.split('/')[-1])
+			x = np.asarray(x)
+			path_to_save = str(path).replace(data_path.split('/')[-1], output_path.split('/')[-1]).replace('txt', 'pkl')
 			with open(path_to_save, "wb") as fp:
 				pickle.dump(x, fp)
 
@@ -93,7 +96,7 @@ def time_to_frame(start_time, end_time, phone):
 	h_window = win_length * 0.5 # select the middle of a window
 
 	start_time = (start_time - h_window) if start_time >= h_window else 0
-	end_time = (end_time-h_window) if end_time >= h_window else 0
+	end_time = (end_time - h_window) if end_time >= h_window else 0
 	times = (end_time // hop_length) - (start_time // hop_length) \
 			+ (1 if start_time % hop_length == 0 else 0) - (1 if end_time % hop_length == 0 else 0)
 	phones += [phone] * int(times)
@@ -107,6 +110,15 @@ def main():
 
 	# get arguments
 	args = get_preprocess_args()
+	
+	# dump unaligned text
+	try:
+		file = open(os.path.join(args.data_path, 'train-clean-360/unaligned.txt')).readlines()
+		unaligned = ['train-clean-360/' + str(line).split('\t')[0].split(' ')[0] + '.npy' for line in file]
+		with open(os.path.join(args.output_path, 'unaligned.pkl'), "wb") as fp:
+			pickle.dump(unaligned, fp)
+	except:
+		print('Did not find unaligned.txt!')
 
 	# Process data
 	sets = ['train-clean-360', 'test-clean'] # only two sets available for now
