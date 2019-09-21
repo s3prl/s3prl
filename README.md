@@ -36,7 +36,7 @@ See the mockingjay [wiki page](https://github.com/andi611/Mockingjay-Speech-Repr
 
 ## Step 1. Configuring - Model Design & Hyperparameter Setup
 
-All the parameters related to training/decoding will be stored in a yaml file. Hyperparameter tuning and massive experiment and can be managed easily this way. See [documentation and examples](config/) for the exact format. **Note that the example configs provided were not fine-tuned**, you may want to write your own config for best performance.
+All the parameters related to training/decoding will be stored in a yaml file. Hyperparameter tuning and massive experiment and can be managed easily this way. See [config files](config/) for the exact format and examples.
 
 ## Step 2. Training the Mockingjay Model for Speech Representation Learning
 
