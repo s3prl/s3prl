@@ -32,57 +32,7 @@ mmsdk            # sentiment dataset CMU-MOSI SDK (sentiment data preprocessing 
 
 ## Step 0. Preprocessing - Acoustic Feature Extraction & Text Encoding
 
-### LibriSpeech Preprocessing
-Preprocessing scripts may be executed directly if the LibriSpeech dataset is placed under [`data/`](data/). The extracted data, which is ready for training, will be stored under the same [`data/`](data/) directory by default. 
-```bash
-# Defualt
-python3 preprocess.py --feature_type=fbank
-# To train on different input / output target features:
-python3 preprocess.py --feature_type=mel
-python3 preprocess.py --feature_type=linear 
-```
-Run preprocessing with the following command to change input directory:
-```bash
-python3 preprocess.py --data_path=<path to LibriSpeech on your computer> 
-```
-You may check the parameter type and default value by using the option ```--help``` for each script.
-
-### Downstream Task Preprocessing - Phone Classification
-Unzip the processed [phone alignment dataset](http://bit.ly/libri_alignment) for LibriSpeech, generated using the [Montreal Forced Aligner](https://montreal-forced-aligner.readthedocs.io/en/latest/).
-```bash
-cd data
-unzip libri_alignment.zip
-```
-
-### Downstream Task Preprocessing - Sentiment Classification
-CMU-MOSI sentiment analysis dataset installation, the first step is to download the SDK:
-```bash
-git clone git@github.com:A2Zadeh/CMU-MultimodalSDK.git
-```
-
-Then add the cloned folder to your `$PYTHONPATH` environment variable. For example, you can do so by adding the following line (replace the path with your actual path of course) to your `~/.bashrc` file. 
-```bash
-export PYTHONPATH="/path/to/cloned/directory/CMU-MultimodalSDK:$PYTHONPATH"
-```
-In order to load the mmsdk package, make sure the update of PYTHONPATH in `.bashrc` is successful .
-
-The following python packages are required: h5py, validators, tqdm. The setup.py will install them for you. You can also manually install them using pip by:
-```bash
-pip3 install h5py validators tqdm numpy argparse requests
-```
-
-The **AUDIO FILES** can be downloaded from [here](http://immortal.multicomp.cs.cmu.edu/raw_datasets/CMU_MOSI.zip), or use the following commands:
-```bash
-cd data
-wget http://immortal.multicomp.cs.cmu.edu/raw_datasets/CMU_MOSI.zip
-unzip CMU_MOSI.zip
-```
-After unzipping, the target directory can be located at `Raw/Audio/WAV_16000/Segmented`.
-
-Use the following command to run preprocess:
-```bash
-python3 preprocess_mosi.py --feature_type=mel --data_path=<MOSI RAW SEGMENTED AUDIO FILE DIR>
-```
+See the mockingjay [wiki page](https://github.com/andi611/Mockingjay-Speech-Representation-Learning/wiki/Mockingjay-Preprocessing) for preprocessing instructions.
 
 ## Step 1. Configuring - Model Design & Hyperparameter Setup
 
