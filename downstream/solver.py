@@ -167,6 +167,9 @@ class Downstream_Trainer(Downstream_Solver):
 		self.verbose('Training set total ' + str(len(self.dataloader)) + ' batches.')
 
 		pbar = tqdm(total=self.total_steps)
+		corrects = 0
+		valids = 0
+		losses = 0
 		while self.global_step <= self.total_steps:
 
 			for features, labels in tqdm(self.dataloader, desc="Iteration"):
@@ -188,9 +191,13 @@ class Downstream_Trainer(Downstream_Solver):
 					# representations shape: (batch_size, seq_len, feature)
 					representations = features.squeeze(0).to(device=self.device, dtype=torch.float32)
 				loss, logits, correct, valid = self.classifier(representations, labels, label_mask)
-				
+
 				# Accumulate Loss
 				loss.backward()
+
+				losses += loss.detach().cpu()
+				corrects += correct
+				valids += valid
 
 				# Update
 				self.optimizer.step()
@@ -198,10 +205,14 @@ class Downstream_Trainer(Downstream_Solver):
 
 				if self.global_step % self.log_step == 0:
 					# Log
-					acc = correct / valid
+					acc = corrects.item() / valids.item()
 					self.log.add_scalar('acc', acc, self.global_step)
-					self.log.add_scalar('loss', loss.item(), self.global_step)
+					self.log.add_scalar('loss', losses.item(), self.global_step)
 					pbar.set_description("Loss %.4f" % loss.item())
+
+					corrects = 0
+					valids = 0
+					losses = 0
 
 				if self.global_step % self.save_step == 0:
 					self.save_model(self.task)

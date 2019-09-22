@@ -58,7 +58,7 @@ downstream:
   # Training options
   learning_rate: "5e-4"                                 # Learning rate for opt
   total_steps: 500000                                   # total steps for training, a step is a batch of update
-  log_step: 100                                         # log training status every this amount of training steps
+  log_step: 1000                                        # log training status every this amount of training steps
   load_model_list: ['Classifier']                       # load the components in the list for test/eval
   max_keep: 10                                          # maximum number of model ckpt to keep during training
   save_step: 100                                        # save model every this amount of training steps
