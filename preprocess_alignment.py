@@ -36,7 +36,7 @@ def get_preprocess_args():
 ####################
 # PHONE PREPROCESS #
 ####################
-def phone_preprocess(data_path, output_path, sets):
+def phone_preprocess(data_path, output_path, sets, unaligned):
 	
 	print('Data sets :')
 	for idx, s in enumerate(sets):
@@ -51,11 +51,15 @@ def phone_preprocess(data_path, output_path, sets):
 		print('')
 		print('Computing', s, 'data...')
 		for path in tqdm(list(Path(os.path.join(data_path, s)).rglob("*.txt"))):
-			for line in open(path).readlines():
-				phone = line.strip('\n').split(' ')[-1]
-				if phone not in phone2idx:
-					phone2idx[phone] = idx
-					idx += 1
+			check_name = path.split('/')[-1].split('.')[0]
+			if check_name not in unaligned:
+				for line in open(path).readlines():
+					phone = line.strip('\n').split(' ')[-1]
+					if phone not in phone2idx:
+						phone2idx[phone] = idx
+						idx += 1
+	print('Phone set:')
+	print(phone2idx)
 	print(len(phone2idx), 'distinct phones found in', sets)
 	if not os.path.exists(output_path):
 		os.makedirs(output_path)
@@ -72,15 +76,17 @@ def phone_preprocess(data_path, output_path, sets):
 
 		print('Preprocessing phone alignments...', flush=True)
 		for path in tqdm(todo):
-			x = []
-			file = open(path).readlines()
-			for line in file:
-				line = line.strip('\n').split(' ')
-				x += time_to_frame(start_time=float(line[0]), end_time=float(line[1]), phone=phone2idx[line[2]])
-			x = np.asarray(x)
-			path_to_save = str(path).replace(data_path.split('/')[-1], output_path.split('/')[-1]).replace('txt', 'pkl')
-			with open(path_to_save, "wb") as fp:
-				pickle.dump(x, fp)
+			check_name = path.split('/')[-1].split('.')[0]
+			if check_name not in unaligned:
+				x = []
+				file = open(path).readlines()
+				for line in file:
+					line = line.strip('\n').split(' ')
+					x += time_to_frame(start_time=float(line[0]), end_time=float(line[1]), phone=phone2idx[line[2]])
+				x = np.asarray(x)
+				path_to_save = str(path).replace(data_path.split('/')[-1], output_path.split('/')[-1]).replace('txt', 'pkl')
+				with open(path_to_save, "wb") as fp:
+					pickle.dump(x, fp)
 
 	print('Phone preprocessing complete!')		
 
@@ -116,16 +122,17 @@ def main():
 	# dump unaligned text
 	try:
 		file = open(os.path.join(args.data_path, 'train-clean-360/unaligned.txt')).readlines()
-		unaligned = ['train-clean-360/' + str(line).split('\t')[0].split(' ')[0] + '.npy' for line in file]
+		unaligned = [str(line).split('\t')[0].split(' ')[0] for line in file]
+		unaligned_pkl = ['train-clean-360/' + u + '.npy' for u in unaligned]
 		with open(os.path.join(args.output_path, 'unaligned.pkl'), "wb") as fp:
-			pickle.dump(unaligned, fp)
+			pickle.dump(unaligned_pkl, fp)
 	except:
-		print('Did not find unaligned.txt!')
+		raise ValueError('Did not find unaligned.txt!')
 
 	# Process data
 	sets = ['train-clean-360', 'test-clean'] # only two sets available for now
 	# sets = ['train-clean-100','train-clean-360','train-other-500','dev-clean','dev-other','test-clean','test-other']
-	phone_preprocess(args.data_path, args.output_path, sets)
+	phone_preprocess(args.data_path, args.output_path, sets, unaligned)
 
 
 if __name__ == '__main__':
