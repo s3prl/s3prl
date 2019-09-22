@@ -553,7 +553,7 @@ class Tester(Solver):
 							exit() # visualize the first 10 testing samples
 
 
-	def exec(self, spec, all_layers=True):
+	def forward(self, spec, all_layers=True):
 		"""	
 			Generation of the Mockingjay Model Representation
 			Input: A batch of spectrograms: (batch_size, seq_len, hidden_size)

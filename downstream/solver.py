@@ -186,7 +186,7 @@ class Downstream_Trainer(Downstream_Solver):
 
 				if self.run_mockingjay:
 					# representations shape: (batch_size, layer, seq_len, feature)
-					representations = self.mockingjay.exec(features)
+					representations = self.mockingjay.forward(features)
 				else:
 					# representations shape: (batch_size, seq_len, feature)
 					representations = features.squeeze(0).to(device=self.device, dtype=torch.float32)
@@ -254,7 +254,7 @@ class Downstream_Tester(Downstream_Solver):
 
 			if self.run_mockingjay:
 				# representations shape: (batch_size, layer, seq_len, feature)
-				representations = self.mockingjay.exec(features)
+				representations = self.mockingjay.forward(features)
 			else:
 				# representations shape: (batch_size, seq_len, feature)
 				representations = features.squeeze(0).to(device=self.device, dtype=torch.float32)

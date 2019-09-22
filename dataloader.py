@@ -24,7 +24,7 @@ from utils.asr import zero_padding,target_padding
 ############
 # CONSTANT #
 ############
-HALF_BATCHSIZE_TIME = 500
+HALF_BATCHSIZE_TIME = 400
 HALF_BATCHSIZE_LABEL = 150
 
 
