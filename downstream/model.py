@@ -49,7 +49,6 @@ class LinearClassifier(nn.Module):
 		# features from mockingjay: (batch_size, layer, seq_len, feature)
 		# features from baseline: (batch_size, seq_len, feature)
 		# labels: (batch_size, seq_len), frame by frame classification
-		labels = labels.squeeze(0)
 
 		if len(features.shape) == 4:
 			# compute mean on mockingjay representations if given features from mockingjay
@@ -85,6 +84,6 @@ class LinearClassifier(nn.Module):
 			# statistic for accuracy
 			correct, valid = self.statistic(probabilities, labels, label_mask)
 
-			return loss, probabilities.detach(), correct.detach(), valid.detach()
+			return loss, probabilities.detach().cpu(), correct.detach().cpu(), valid.detach().cpu()
 
 		return self.out_fn(logits)
