@@ -57,6 +57,8 @@ def phone_preprocess(data_path, output_path, sets):
 					phone2idx[phone] = idx
 					idx += 1
 	print(len(phone2idx), 'distinct phones found in', sets)
+	if not os.path.exists(output_path):
+		os.makedirs(output_path)
 	with open(os.path.join(output_path, 'phone2idx.pkl'), "wb") as fp:
 			pickle.dump(phone2idx, fp)
 
