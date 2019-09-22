@@ -48,6 +48,7 @@ class Solver():
 		self.ckpdir = os.path.join(paras.ckpdir, self.exp_name)
 		if not os.path.exists(self.ckpdir): os.makedirs(self.ckpdir)
 		self.load = paras.load
+		# only for test
 		self.ckpt = os.path.join(paras.ckpdir, paras.ckpt)
 
 		# model
