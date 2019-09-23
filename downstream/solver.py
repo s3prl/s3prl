@@ -100,6 +100,10 @@ class Downstream_Solver(Solver):
 				'Classifier': self.classifier.state_dict(),
 				"Optimizer": self.optimizer.state_dict(),
 				"Global_step": self.global_step,
+				"Settings": {
+					"Config": self.config,
+					"Paras": self.paras,
+				},
 			}
 		else:
 			all_states = {

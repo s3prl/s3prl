@@ -144,6 +144,10 @@ class Solver():
 				'Mockingjay': self.mockingjay.state_dict(),
 				"Optimizer": self.optimizer.state_dict(),
 				"Global_step": self.global_step,
+				"Settings": {
+					"Config": self.config,
+					"Paras": self.paras,
+				},
 			}
 		else:
 			all_states = {
