@@ -152,6 +152,10 @@ class Solver():
 		else:
 			all_states = {
 				'Mockingjay': self.mockingjay.state_dict(),
+				"Settings": {
+					"Config": self.config,
+					"Paras": self.paras,
+				},
 			}
 		new_model_path = '{}/{}-{}.ckpt'.format(self.ckpdir, name, self.global_step)
 		torch.save(all_states, new_model_path)
