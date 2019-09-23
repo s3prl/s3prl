@@ -61,8 +61,6 @@ def phone_preprocess(data_path, output_path, sets, unaligned):
 	print('Phone set:')
 	print(phone2idx)
 	print(len(phone2idx), 'distinct phones found in', sets)
-	if not os.path.exists(output_path):
-		os.makedirs(output_path)
 	with open(os.path.join(output_path, 'phone2idx.pkl'), "wb") as fp:
 			pickle.dump(phone2idx, fp)
 
@@ -119,6 +117,10 @@ def main():
 	# get arguments
 	args = get_preprocess_args()
 	
+	# mkdir
+	if not os.path.exists(args.output_path):
+		os.makedirs(args.output_path)
+
 	# dump unaligned text
 	try:
 		file = open(os.path.join(args.data_path, 'train-clean-360/unaligned.txt')).readlines()
