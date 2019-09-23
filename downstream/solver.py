@@ -81,7 +81,8 @@ class Downstream_Solver(Solver):
 		
 		class_num = self.dataloader.dataset.class_num
 		self.classifier = LinearClassifier(
-							input_dim=self.mock_config['mockingjay']['hidden_size'] if 'mockingjay' in self.task else mel_dim,
+							input_dim=int(self.config['downstream']['input_dim']) if self.config['downstream']['input_dim'] != 'None' else \
+									  self.mock_config['mockingjay']['hidden_size'] if 'mockingjay' in self.task else mel_dim,
 							class_num=class_num,
 							task=self.task,
 							dconfig=self.config['downstream']).to(self.device)
