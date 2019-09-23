@@ -120,9 +120,9 @@ Note that the arguments ```--ckpdir=XXX --ckpt=XXX``` needs to be set correctly 
 ## Step 8. Monitor Training Log
 ```bash
 # open TensorBoard to see log
-tensorboard --logdir=log_mockingjay/mockingjay_libri_sd1337/
+tensorboard --logdir=log/log_mockingjay/mockingjay_libri_sd1337/
 # or
-python3 -m tensorboard.main --logdir=log_mockingjay/mockingjay_libri_sd1337/
+python3 -m tensorboard.main --logdir=log/log_mockingjay/mockingjay_libri_sd1337/
 ```
 
 
