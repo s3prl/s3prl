@@ -32,8 +32,8 @@ def get_asr_args():
 	parser = argparse.ArgumentParser(description='Training E2E asr.')
 	
 	parser.add_argument('--config', default='config/asr_libri.yaml', type=str, help='Path to experiment config.')
-	parser.add_argument('--logdir', default='log_asr/', type=str, help='Logging path.', required=False)
-	parser.add_argument('--ckpdir', default='result_asr/', type=str, help='Checkpoint/Result path.', required=False)
+	parser.add_argument('--logdir', default='log/log_asr/', type=str, help='Logging path.', required=False)
+	parser.add_argument('--ckpdir', default='result/result_asr/', type=str, help='Checkpoint/Result path.', required=False)
 
 	parser.add_argument('--name', default=None, type=str, help='Name for logging.')
 	parser.add_argument('--load', default=None, type=str, help='Load pre-trained model', required=False)
