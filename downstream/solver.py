@@ -36,15 +36,16 @@ class Downstream_Solver(Solver):
 		super(Downstream_Solver, self).__init__(config, paras)
 		# Downstream task the solver is solving
 		self.task = task
+		self.mock_paras = copy.deepcopy(paras)
+		self.mock_config = copy.deepcopy(config)
 
 		# path and directories
-		paras.dckpdir = paras.ckpdir.replace('mockingjay', task)
-		if not os.path.exists(paras.dckpdir): os.makedirs(paras.dckpdir)
-		self.dckpdir = self.ckpdir.replace('mockingjay', task)
-		if not os.path.exists(self.dckpdir): os.makedirs(self.dckpdir)
-		self.load = paras.load
-		# only for test
-		self.dckpt = os.path.join(paras.dckpdir, paras.dckpt)
+		self.exp_name = self.exp_name.replace('mockingjay', task)
+		paras.ckpdir = paras.ckpdir.replace('mockingjay', task)
+		if not os.path.exists(paras.ckpdir): os.makedirs(paras.ckpdir)
+		self.ckpdir = self.ckpdir.replace('mockingjay', task)
+		if not os.path.exists(self.ckpdir): os.makedirs(self.ckpdir)
+		self.ckpt = os.path.join(paras.ckpdir, paras.dckpt)
 
 		# model
 		self.load_model_list = config['downstream']['load_model_list']
@@ -72,7 +73,7 @@ class Downstream_Solver(Solver):
 
 
 	def set_model(self, inference=False):
-		self.mockingjay = Tester(self.config, self.paras)
+		self.mockingjay = Tester(self.mock_config, self.mock_paras)
 		self.mockingjay.set_model(inference=True, with_head=False)
 		
 		input_dim = self.input_dim if 'mockingjay' not in self.task else self.config['mockingjay']['hidden_size']
@@ -97,7 +98,7 @@ class Downstream_Solver(Solver):
 			all_states = {
 				'Classifier': self.classifier.state_dict(),
 			}
-		new_model_path = '{}/{}-{}.ckpt'.format(self.dckpdir, name, self.global_step)
+		new_model_path = '{}/{}-{}.ckpt'.format(self.ckpdir, name, self.global_step)
 		torch.save(all_states, new_model_path)
 		self.model_kept.append(new_model_path)
 
@@ -107,8 +108,8 @@ class Downstream_Solver(Solver):
 
 
 	def load_model(self, inference=False):
-		self.verbose('Load model from {}'.format(self.dckpt))
-		all_states = torch.load(self.dckpt, map_location='cpu')
+		self.verbose('Load model from {}'.format(self.ckpt))
+		all_states = torch.load(self.ckpt, map_location='cpu')
 		self.verbose('', end='')
 		
 		if 'Classifier' in self.load_model_list:
@@ -145,7 +146,7 @@ class Downstream_Trainer(Downstream_Solver):
 		super(Downstream_Trainer, self).__init__(config, paras, task)
 
 		# Logger Settings
-		self.logdir = os.path.join(paras.logdir, self.exp_name)
+		self.logdir = os.path.join(paras.logdir.replace('mockingjay', task), self.exp_name)
 		self.log = SummaryWriter(self.logdir)
 
 		# Training details
@@ -231,7 +232,7 @@ class Downstream_Tester(Downstream_Solver):
 	''' Handler for complete testing progress'''
 	def __init__(self, config, paras, task):
 		super(Downstream_Tester, self).__init__(config, paras, task)
-		self.dump_dir = str(self.dckpt.split('.')[0]) + '-' + task + '-dump/'
+		self.dump_dir = str(self.ckpt.split('.')[0]) + '-' + task + '-dump/'
 		if not os.path.exists(self.dump_dir): os.makedirs(self.dump_dir)
 		self.duo_feature = False # Set duo feature to False since only input mel is needed during testing
 		self.load = True # Tester will load pre-trained models automatically
