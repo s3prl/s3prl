@@ -142,19 +142,19 @@ class Solver():
 			all_states = {
 				'SpecHead': self.model.SpecHead.state_dict(),
 				'Mockingjay': self.mockingjay.state_dict(),
-				"Optimizer": self.optimizer.state_dict(),
-				"Global_step": self.global_step,
-				"Settings": {
-					"Config": self.config,
-					"Paras": self.paras,
+				'Optimizer': self.optimizer.state_dict(),
+				'Global_step': self.global_step,
+				'Settings': {
+					'Config': self.config,
+					'Paras': self.paras,
 				},
 			}
 		else:
 			all_states = {
 				'Mockingjay': self.mockingjay.state_dict(),
-				"Settings": {
-					"Config": self.config,
-					"Paras": self.paras,
+				'Settings': {
+					'Config': self.config,
+					'Paras': self.paras,
 				},
 			}
 		new_model_path = '{}/{}-{}.ckpt'.format(self.ckpdir, name, self.global_step)
