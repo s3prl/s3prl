@@ -378,12 +378,13 @@ class Trainer(Solver):
 			for step, spec in enumerate(progress):
 				if self.global_step > self.total_steps: break
 				
-				if self.duo_feature:
-					spec_masked, pos_enc, mask_label, attn_mask, spec_stacked = self.process_MAM_data(source_spec=spec[0], 
-																									  target_spec=spec[1])
-				else:
-					spec_masked, pos_enc, mask_label, attn_mask, spec_stacked = self.process_MAM_data(source_spec=spec,
-																									  target_spec=copy.deepcopy(spec))
+				with torch.no_grad():
+					if self.duo_feature:
+						spec_masked, pos_enc, mask_label, attn_mask, spec_stacked = self.process_MAM_data(source_spec=spec[0], 
+																										  target_spec=spec[1])
+					else:
+						spec_masked, pos_enc, mask_label, attn_mask, spec_stacked = self.process_MAM_data(source_spec=spec,
+																										  target_spec=copy.deepcopy(spec))
 				loss, pred_spec = self.model(spec_masked, pos_enc, mask_label, attn_mask, spec_stacked)
 				
 				# Accumulate Loss
