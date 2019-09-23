@@ -116,7 +116,6 @@ dmypy.json
 .pyre/
 
 # data and log directory
-log
 runs
 save
 TODO
@@ -126,8 +125,9 @@ dev-clean
 test-clean
 train-clean-360
 libri_*
-result_asr
-result_mockingjay/mockingjay_*
+result
+result_*
+log
 log_*
 Raw
 CMU_MOSI.zip
