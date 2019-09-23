@@ -108,6 +108,10 @@ class Downstream_Solver(Solver):
 		else:
 			all_states = {
 				'Classifier': self.classifier.state_dict(),
+				"Settings": {
+					"Config": self.config,
+					"Paras": self.paras,
+				},
 			}
 		new_model_path = '{}/{}-{}.ckpt'.format(self.ckpdir, name, self.global_step)
 		torch.save(all_states, new_model_path)
