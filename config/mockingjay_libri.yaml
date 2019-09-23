@@ -54,11 +54,8 @@ solver:
   save_step: 100                                        # save model every this amount of training steps
 
 
-downstream:
-  # downstream model config
+downstream:                                             # downstream model config
   # linear model
-  mock_input: 768
-  base_input: 160
   hidden_size: 768
   drop: 0.2
   select_hidden: 'last'                                 # support modes: 'last', 'average'

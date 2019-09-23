@@ -18,8 +18,7 @@ from torch import nn
 # LINEAR CLASSIFIER #
 #####################
 class LinearClassifier(nn.Module):
-	def __init__(self, class_num, task, dconfig):
-		input_dim = dconfig['mock_input'] if 'mockingjay' in task else dconfig['base_input']
+	def __init__(self, input_dim, class_num, task, dconfig):
 		output_dim = class_num
 		hidden_size = dconfig['hidden_size']
 		drop = dconfig['drop']
