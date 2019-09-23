@@ -52,7 +52,7 @@ def phone_preprocess(data_path, output_path, sets, unaligned):
 		print('Computing', s, 'data...')
 		for path in tqdm(list(Path(os.path.join(data_path, s)).rglob("*.txt"))):
 			check_name = path.as_posix().split('/')[-1].split('.')[0]
-			if check_name not in unaligned and check_name != 'unaligned.txt':
+			if check_name not in unaligned and check_name != 'unaligned':
 				for line in open(path).readlines():
 					phone = line.strip('\n').split(' ')[-1]
 					if phone not in phone2idx:
@@ -75,7 +75,7 @@ def phone_preprocess(data_path, output_path, sets, unaligned):
 		print('Preprocessing phone alignments...', flush=True)
 		for path in tqdm(todo):
 			check_name = path.as_posix().split('/')[-1].split('.')[0]
-			if check_name not in unaligned and check_name != 'unaligned.txt':
+			if check_name not in unaligned and check_name != 'unaligned':
 				x = []
 				file = open(path).readlines()
 				for line in file:
