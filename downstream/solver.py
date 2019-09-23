@@ -47,6 +47,9 @@ class Downstream_Solver(Solver):
 		if not os.path.exists(self.ckpdir): os.makedirs(self.ckpdir)
 		self.ckpt = os.path.join(paras.ckpdir, paras.dckpt)
 
+		# modify log directory
+		paras.logdir = paras.logdir.replace('mockingjay', task)
+
 		# model
 		self.load_model_list = config['downstream']['load_model_list']
 		self.run_mockingjay = True if 'mockingjay' in task else False
@@ -146,7 +149,7 @@ class Downstream_Trainer(Downstream_Solver):
 		super(Downstream_Trainer, self).__init__(config, paras, task)
 
 		# Logger Settings
-		self.logdir = os.path.join(paras.logdir.replace('mockingjay', task), self.exp_name)
+		self.logdir = os.path.join(paras.logdir, self.exp_name)
 		self.log = SummaryWriter(self.logdir)
 
 		# Training details
