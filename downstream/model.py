@@ -18,7 +18,13 @@ from torch import nn
 # LINEAR CLASSIFIER #
 #####################
 class LinearClassifier(nn.Module):
-	def __init__(self, input_dim, output_dim, hidden_size=768, drop=0.2):
+	def __init__(self, class_num, task, dconfig):
+		input_dim = dconfig['mock_input'] if 'mockingjay' in task else dconfig['base_input']
+		output_dim = class_num
+		hidden_size = dconfig['hidden_size']
+		drop = dconfig['drop']
+		self.select_hidden = dconfig['select_hidden']
+
 		super(LinearClassifier, self).__init__()
 		self.dense1 = nn.Linear(input_dim, hidden_size)
 		self.dense2 = nn.Linear(hidden_size, hidden_size)
@@ -52,7 +58,12 @@ class LinearClassifier(nn.Module):
 
 		if len(features.shape) == 4:
 			# compute mean on mockingjay representations if given features from mockingjay
-			features = features.mean(dim=1)  # now simply average the representations over all layers, (batch_size, seq_len, feature)
+			if self.select_hidden == 'last':
+				features = features[:, -1, :, :]
+			elif self.select_hidden == 'average':
+				features = features.mean(dim=1)  # now simply average the representations over all layers, (batch_size, seq_len, feature)
+			else:
+				raise NotImplementedError('Select-hidden mode not supported')
 
 			# since the down-sampling (float length be truncated to int) and then up-sampling process
 			# can cause a mismatch between the seq lenth of mockingjay representation and that of label

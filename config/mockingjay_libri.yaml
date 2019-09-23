@@ -55,6 +55,14 @@ solver:
 
 
 downstream:
+  # downstream model config
+  # linear model
+  mock_input: 768
+  base_input: 160
+  hidden_size: 768
+  drop: 0.2
+  select_hidden: 'last'                                 # support modes: 'last', 'average'
+
   # Training options
   learning_rate: "5e-4"                                 # Learning rate for opt
   total_steps: 500000                                   # total steps for training, a step is a batch of update

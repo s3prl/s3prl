@@ -79,9 +79,13 @@ class Downstream_Solver(Solver):
 		self.mockingjay = Tester(self.mock_config, self.mock_paras)
 		self.mockingjay.set_model(inference=True, with_head=False)
 		
-		input_dim = self.input_dim if 'mockingjay' not in self.task else self.config['mockingjay']['hidden_size']
-		self.classifier = LinearClassifier(input_dim=input_dim,
-										   output_dim=self.dataloader.dataset.class_num).to(self.device)
+		class_num = self.dataloader.dataset.class_num
+		self.classifier = LinearClassifier(
+										class_num=class_num,
+										task=self.task,
+										dconfig=self.config['downstream']
+										).to(self.device)
+
 		self.classifier.eval() if inference else self.classifier.train()
 		
 		if not inference:
