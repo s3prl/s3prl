@@ -23,7 +23,7 @@ import pandas as pd
 #############################
 def get_mockingjay_args():
 	
-	parser = argparse.ArgumentParser(description='Training E2E asr.')
+	parser = argparse.ArgumentParser(description='Argument Parser for the mockingjay project.')
 	
 	# setting
 	parser.add_argument('--config', default='config/mockingjay_libri.yaml', type=str, help='Path to experiment config.')
