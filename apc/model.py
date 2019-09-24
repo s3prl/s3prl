@@ -4,7 +4,7 @@
 #   Synopsis     [ implementation of the apc model ]
 #   Author       [ Yu-An Chung ]
 #   Copyright    [ https://github.com/iamyuanchung/Autoregressive-Predictive-Coding ]
-#	Reference	 [ https://arxiv.org/abs/1904.03240 ]
+#   Reference    [ https://arxiv.org/abs/1904.03240 ]
 """*********************************************************************************************"""
 
 

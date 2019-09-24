@@ -4,7 +4,7 @@
 #   Synopsis     [ training and testing of the apc model ]
 #   Author       [ Andy T. Liu (Andi611) ]
 #   Copyright    [ Copyleft(c), Speech Lab, NTU, Taiwan ]
-#	Reference	 [ Modified and rewrite based on: https://github.com/iamyuanchung/Autoregressive-Predictive-Coding ]
+#   Reference    [ Modified and rewrite based on: https://github.com/iamyuanchung/Autoregressive-Predictive-Coding ]
 """*********************************************************************************************"""
 
 
