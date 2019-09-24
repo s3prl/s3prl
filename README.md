@@ -33,7 +33,7 @@ mmsdk            # sentiment dataset CMU-MOSI SDK (sentiment data preprocessing 
 
 ## Step 0. Preprocessing - Acoustic Feature Extraction & Text Encoding
 
-See the mockingjay [wiki page](https://github.com/andi611/Mockingjay-Speech-Representation-Learning/wiki/Mockingjay-Preprocessing) for preprocessing instructions.
+See the instructions on the [Preprocess wiki page](https://github.com/andi611/Mockingjay-Speech-Representation-Learning/wiki/Mockingjay-Preprocessing-Instructions) for preprocessing instructions.
 
 ## Step 1. Configuring - Model Design & Hyperparameter Setup
 
@@ -66,58 +66,7 @@ python3 runner_mockingjay.py --plot --with-head
 ```
 Note that the arguments ```--ckpdir=XXX --ckpt=XXX``` needs to be set correctly for the above command to run properly.
 
-## Step 5. Training and Testing of the Phone Classification Task
-Run the following command to train a phone classifier:
-```bash
-# using spectrogram as baseline
-python3 runner_mockingjay.py --train_phone
-# using mockingjay representations
-python3 runner_mockingjay.py --train_phone --run_mockingjay
-```
-Run the following command to test representations using the phone classifier:
-```bash
-# testing spectrogram as baseline
-python3 runner_mockingjay.py --test_phone
-# testing mockingjay representations
-python3 runner_mockingjay.py --test_phone --run_mockingjay
-```
-Note that the arguments ```--ckpdir=XXX --ckpt=XXX``` needs to be set correctly for the above command to run properly.
-
-## Step 6. Training and Testing of the Sentimental Classification Task
-Run the following command to train a sentiment classifier:
-```bash
-# using spectrogram as baseline
-python3 runner_mockingjay.py --train_sentiment
-# using mockingjay representations
-python3 runner_mockingjay.py --train_sentiment --run_mockingjay
-```
-Run the following command to test representations using the phone classifier:
-```bash
-# testing spectrogram as baseline
-python3 runner_mockingjay.py --test_sentiment
-# testing mockingjay representations
-python3 runner_mockingjay.py --test_sentiment --run_mockingjay
-```
-Note that the arguments ```--ckpdir=XXX --ckpt=XXX``` needs to be set correctly for the above command to run properly.
-
-## Step 7. Training and Testing of the Speaker Verification Task
-Run the following command to train a sentiment classifier:
-```bash
-# using spectrogram as baseline
-python3 runner_mockingjay.py --train_speaker
-# using mockingjay representations
-python3 runner_mockingjay.py --train_speaker --run_mockingjay
-```
-Run the following command to test representations using the phone classifier:
-```bash
-# testing spectrogram as baseline
-python3 runner_mockingjay.py --test_sentiment
-# testing mockingjay representations
-python3 runner_mockingjay.py --test_sentiment --run_mockingjay
-```
-Note that the arguments ```--ckpdir=XXX --ckpt=XXX``` needs to be set correctly for the above command to run properly.
-
-## Step 8. Monitor Training Log
+## Step 5. Monitor Training Log
 ```bash
 # open TensorBoard to see log
 tensorboard --logdir=log/log_mockingjay/mockingjay_libri_sd1337/
@@ -125,12 +74,19 @@ tensorboard --logdir=log/log_mockingjay/mockingjay_libri_sd1337/
 python3 -m tensorboard.main --logdir=log/log_mockingjay/mockingjay_libri_sd1337/
 ```
 
+## Experiments - Application on downstream tasks
+See the instructions on the [Downstream wiki page](https://github.com/andi611/Mockingjay-Speech-Representation-Learning/wiki/Downstream-Task-Instructions) to reproduce our experiments.
+
+## Experiments - Compare with APC
+See the instructions on the [APC wiki page](https://github.com/andi611/Mockingjay-Speech-Representation-Learning/wiki/Reproducing-APC-to-compare-with-Mockingjay) to reproduce our experiments.
+
 
 # Reference
 1. [Montreal Forced Aligner](https://montreal-forced-aligner.readthedocs.io/en/latest/), McAuliffe et. al.
-2. [CMU-MultimodalSDK](https://github.com/A2Zadeh/CMU-MultimodalSDK/blob/master/README.md), Amir Zadeh.
-3. [PyTorch-Transformers](https://github.com/huggingface/pytorch-transformers), Hugging Face.
-4. [End-to-end-ASR-Pytorch](https://github.com/Alexander-H-Liu/End-to-end-ASR-Pytorch), Alexander-H-Liu.
+2. [CMU MultimodalSDK](https://github.com/A2Zadeh/CMU-MultimodalSDK/blob/master/README.md), Amir Zadeh.
+3. [PyTorch Transformers](https://github.com/huggingface/pytorch-transformers), Hugging Face.
+4. [Autoregressive Predictive Coding](https://arxiv.org/abs/1904.03240), Yu-An Chung.
+5. [End-to-end ASR Pytorch](https://github.com/Alexander-H-Liu/End-to-end-ASR-Pytorch), Alexander-H-Liu.
 
 
 ## Citation
