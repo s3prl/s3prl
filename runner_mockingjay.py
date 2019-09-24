@@ -15,7 +15,6 @@ import torch
 import random
 import argparse
 import numpy as np
-import pandas as pd
 
 
 #############################
