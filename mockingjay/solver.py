@@ -65,7 +65,7 @@ class Solver():
 
 
 	def load_data(self, split='train'):
-		''' Load date for training / validation'''
+		''' Load data for training / testing'''
 		if split == 'train': 
 			self.verbose('Loading source data from ' + self.config['dataloader']['data_path'])
 			if self.duo_feature: self.verbose('Loading target data from ' + self.config['dataloader']['target_path'])
@@ -81,7 +81,7 @@ class Solver():
 	def set_model(self, inference=False, with_head=False):
 		self.verbose('Initializing Mockingjay model.')
 		
-		# # Build the Mockingjay model with speech prediction head
+		# uild the Mockingjay model with speech prediction head
 		self.model_config = MockingjayConfig(self.config)
 		self.dr = self.model_config.downsample_rate
 		self.hidden_size = self.model_config.hidden_size

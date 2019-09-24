@@ -57,7 +57,7 @@ class Downstream_Solver(Solver):
 
 
 	def load_data(self, split='train', load='phone'):
-		''' Load date for training / validation'''
+		''' Load date for training / testing'''
 		assert(load in ['phone', 'sentiment', 'speaker']), 'Unsupported dataloader!'
 		if load == 'phone':
 			if split == 'train':
