@@ -12,11 +12,11 @@ mockingjay:
 
 
 optimizer: 
-  learning_rate: "6e-4"                                 # Learning rate for opt
+  learning_rate: "5e-5"                                 # Learning rate for opt
   loss_scale: 0                                         # Loss scale to improve fp16 numeric stability. Only used when apex is set to True. 0: dynamic loss scaling. positive power of 2: static loss scaling.
-  warmup_proportion: 0.06                               # Proportion of training to perform linear rate warmup.
+  warmup_proportion: 0.07                               # Proportion of training to perform linear rate warmup.
   gradient_accumulation_steps: 1                        # Number of updates steps to accumulate before performing a backward/update pass
-  gradient_clipping: 5                                  # Maximum gradient norm
+  gradient_clipping: 3                                  # Maximum gradient norm
 
 
 dataloader:
@@ -42,7 +42,7 @@ dataloader:
 solver:
   # Training options
   apex: False                                           # Use APEX (see https://github.com/NVIDIA/apex for more details)
-  total_steps: 500000                                   # total steps for training, a step is a batch of update
+  total_steps: 1000000                                  # total steps for training, a step is a batch of update
   log_step: 100                                         # log training status every this amount of training steps
   mask_proportion: 0.15                                 # mask this percentage of all spectrogram frames in each sequence at random during MAM training                        
   dev_step: 2000                                        #
