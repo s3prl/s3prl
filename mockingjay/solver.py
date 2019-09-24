@@ -314,55 +314,57 @@ class Trainer(Solver):
 
 	def process_MAM_data(self, source_spec, target_spec):
 		"""Process training data for the masked acoustic model"""
-		# Hack bucket
-		assert(len(source_spec.shape) == 4), 'Bucketing should cause acoustic feature to have shape 1xBxTxD'
-		assert(len(target_spec.shape) == 4), 'Bucketing should cause acoustic feature to have shape 1xBxTxD'
-		source_spec = source_spec.squeeze(0)
-		target_spec = target_spec.squeeze(0)
+		with torch.no_grad():
 
-		# Down sample
-		spec_masked = self.down_sample_frames(source_spec) # (batch_size, seq_len, mel_dim * dr)
-		spec_stacked = self.down_sample_frames(target_spec) # (batch_size, seq_len, mel_dim * dr)
-		assert(spec_masked.shape[1] == spec_stacked.shape[1])
+			# Hack bucket
+			assert(len(source_spec.shape) == 4), 'Bucketing should cause acoustic feature to have shape 1xBxTxD'
+			source_spec = source_spec.squeeze(0)
+			target_spec = target_spec.squeeze(0)
 
-		# Record length for each uttr
-		spec_len = np.sum(np.sum(spec_stacked.data.numpy(), axis=-1) != 0, axis=-1)
-		spec_len = [int(sl) for sl in spec_len]
+			# Down sample
+			spec_masked = self.down_sample_frames(source_spec) # (batch_size, seq_len, mel_dim * dr)
+			spec_stacked = self.down_sample_frames(target_spec) # (batch_size, seq_len, mel_dim * dr)
+			assert(spec_masked.shape[1] == spec_stacked.shape[1]), 'Input and output spectrogram should have the same shape'
 
-		batch_size = spec_stacked.shape[0]
-		seq_len = spec_stacked.shape[1]
+			# Record length for each uttr
+			spec_len = np.sum(np.sum(spec_stacked.data.numpy(), axis=-1) != 0, axis=-1)
+			spec_len = [int(sl) for sl in spec_len]
 
-		pos_enc = self.position_encoding(seq_len, batch_size) # (batch_size, seq_len, hidden_size)
-		mask_label = np.zeros_like(spec_stacked)
-		attn_mask = np.ones((batch_size, seq_len)) # (batch_size, seq_len)
+			batch_size = spec_stacked.shape[0]
+			seq_len = spec_stacked.shape[1]
 
-		for idx in range(len(spec_stacked)):
-			
-			chose_proportion = int(spec_len[idx]*self.mask_proportion) # chooses % of the frame positions at random for prediction
-			sub_mask_proportion = int(chose_proportion*0.8) # replace the i-th frame with (1) the [MASK] frame 80% of the time
-			sub_rand_proportion = int(chose_proportion*0.1) # a random frame 10% of the time
-			
-			sample_index = random.sample(range(spec_len[idx]), chose_proportion + sub_rand_proportion) # sample the chosen_index and random frames
-			chosen_index = sample_index[:chose_proportion]
-			masked_index = chosen_index[:sub_mask_proportion]
+			pos_enc = self.position_encoding(seq_len, batch_size) # (batch_size, seq_len, hidden_size)
+			mask_label = np.zeros_like(spec_stacked)
+			attn_mask = np.ones((batch_size, seq_len)) # (batch_size, seq_len)
 
-			if sub_rand_proportion > 0:
-				random_index = chosen_index[-sub_rand_proportion:]
-				random_frames = sample_index[-sub_rand_proportion:]
-				spec_masked[idx][random_index] = spec_masked[idx][random_frames]
-			
-			spec_masked[idx][masked_index] = 0 # mask frames to zero
-			mask_label[idx][chosen_index] = 1 # the frames where gradients will be calculated on 
+			for idx in range(len(spec_stacked)):
+				
+				chose_proportion = int(spec_len[idx]*self.mask_proportion) # chooses % of the frame positions at random for prediction
+				sub_mask_proportion = int(chose_proportion*0.8) # replace the i-th frame with (1) the [MASK] frame 80% of the time
+				sub_rand_proportion = int(chose_proportion*0.1) # a random frame 10% of the time
+				
+				sample_index = random.sample(range(spec_len[idx]), chose_proportion + sub_rand_proportion) # sample the chosen_index and random frames
+				chosen_index = sample_index[:chose_proportion]
+				masked_index = chosen_index[:sub_mask_proportion]
 
-			# zero vectors for padding dimension
-			pos_enc[idx][spec_len[idx]:] = 0  
-			attn_mask[idx][spec_len[idx]:] = 0 
+				if sub_rand_proportion > 0:
+					random_index = chosen_index[-sub_rand_proportion:]
+					random_frames = sample_index[-sub_rand_proportion:]
+					spec_masked[idx][random_index] = spec_masked[idx][random_frames]
+				
+				spec_masked[idx][masked_index] = 0 # mask frames to zero
+				mask_label[idx][chosen_index] = 1 # the frames where gradients will be calculated on 
 
-		spec_masked = spec_masked.to(device=self.device, dtype=torch.float32)
-		pos_enc = torch.FloatTensor(pos_enc).to(device=self.device, dtype=torch.float32)
-		mask_label = torch.ByteTensor(mask_label).to(device=self.device, dtype=torch.uint8)
-		attn_mask = torch.FloatTensor(attn_mask).to(device=self.device, dtype=torch.float32)
-		spec_stacked = spec_stacked.to(device=self.device, dtype=torch.float32)
+				# zero vectors for padding dimension
+				pos_enc[idx][spec_len[idx]:] = 0  
+				attn_mask[idx][spec_len[idx]:] = 0 
+
+			spec_masked = spec_masked.to(device=self.device, dtype=torch.float32)
+			pos_enc = torch.FloatTensor(pos_enc).to(device=self.device, dtype=torch.float32)
+			mask_label = torch.ByteTensor(mask_label).to(device=self.device, dtype=torch.uint8)
+			attn_mask = torch.FloatTensor(attn_mask).to(device=self.device, dtype=torch.float32)
+			spec_stacked = spec_stacked.to(device=self.device, dtype=torch.float32)
+
 		return spec_masked, pos_enc, mask_label, attn_mask, spec_stacked # (x, pos_enc, mask_label, attention_mask. y)
 
 
@@ -378,13 +380,12 @@ class Trainer(Solver):
 			for step, spec in enumerate(progress):
 				if self.global_step > self.total_steps: break
 				
-				with torch.no_grad():
-					if self.duo_feature:
-						spec_masked, pos_enc, mask_label, attn_mask, spec_stacked = self.process_MAM_data(source_spec=spec[0], 
-																										  target_spec=spec[1])
-					else:
-						spec_masked, pos_enc, mask_label, attn_mask, spec_stacked = self.process_MAM_data(source_spec=spec,
-																										  target_spec=copy.deepcopy(spec))
+				if self.duo_feature:
+					spec_masked, pos_enc, mask_label, attn_mask, spec_stacked = self.process_MAM_data(source_spec=spec[0], 
+																									  target_spec=spec[1])
+				else:
+					spec_masked, pos_enc, mask_label, attn_mask, spec_stacked = self.process_MAM_data(source_spec=spec,
+																									  target_spec=copy.deepcopy(spec))
 				loss, pred_spec = self.model(spec_masked, pos_enc, mask_label, attn_mask, spec_stacked)
 				
 				# Accumulate Loss
