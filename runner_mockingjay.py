@@ -39,7 +39,7 @@ def get_mockingjay_args():
 	parser.add_argument('--dckpt', default='baseline_sentiment_libri_sd1337/baseline_sentiment-5.ckpt', type=str, help='path to downstream checkpoint', required=False)
 
 	# mockingjay
-	parser.add_argument('--train', action='store_true', help='Test the model.')
+	parser.add_argument('--train', action='store_true', help='Train the model.')
 	parser.add_argument('--run_mockingjay', action='store_true', help='train and test the downstream tasks using mockingjay representations.')
 	parser.add_argument('--plot', action='store_true', help='Plot model generated results during testing.')
 	
