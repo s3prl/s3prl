@@ -481,25 +481,23 @@ class Tester(Solver):
 		return spec_stacked, pos_enc, attn_mask # (x, pos_enc, attention_mask)
 
 
-	def tile_representations(self, encoded_layers):
+	def tile_representations(self, reps):
 		"""	
-			Tile up the mockingjay representations to match the amount of input frames
+			Tile up the mockingjay representations to match the amount of input frames.
 			Input - encoded_layers shape: (num_hidden_layers, batch_size, sequence_length, hidden_size)
 			Output - tiled_encoded_layers shape: (num_hidden_layers, batch_size, sequence_length * downsample_rate, hidden_size)
 		"""
-		if len(encoded_layers.shape) != 4:
-			encoded_layers = encoded_layers.unsqueeze(0)
+		if len(reps.shape) != 4:
+			reps = reps.unsqueeze(0)
 
-		layer_num = encoded_layers.size(0)
-		batch_size = encoded_layers.size(1)
-		feature_dim = encoded_layers.size(3)
-		tiled_encoded_layers = encoded_layers.repeat(1, 1, 1, self.dr).reshape(layer_num, batch_size, -1, feature_dim)
+		tiled_reps = reps.repeat(1, 1, 1, self.dr)
+		tiled_reps = tiled_reps.reshape(reps.size(0), reps.size(1), reps.size(2)*self.dr, reps.size(3))
 
 		# return the only layer if only one layer is given at input
-		# else return all layers
-		if len(tiled_encoded_layers) == 1:
-			tiled_encoded_layers = tiled_encoded_layers[0]
-		return tiled_encoded_layers
+		# else return representations of all layers
+		if len(tiled_reps) == 1:
+			return tiled_reps.squeeze(0) # (batch_size, sequence_length * downsample_rate, hidden_size)
+		return tiled_reps # (num_hidden_layers, batch_size, sequence_length * downsample_rate, hidden_size)
 
 
 	def plot(self, with_head=False):
