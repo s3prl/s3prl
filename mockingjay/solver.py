@@ -487,29 +487,19 @@ class Tester(Solver):
 			Input - encoded_layers shape: (num_hidden_layers, batch_size, sequence_length, hidden_size)
 			Output - tiled_encoded_layers shape: (num_hidden_layers, batch_size, sequence_length * downsample_rate, hidden_size)
 		"""
-		if len(encoded_layers.shape) == 4:
-			tiled_encoded_layers = []
-		else:
-			encoded_layers = [encoded_layers]
+		if len(encoded_layers.shape) != 4:
+			encoded_layers = encoded_layers.unsqueeze(0)
 
-		for encoded_layer in encoded_layers: # for layers
-			tiled_encoded_layer = torch.zeros((encoded_layer.shape[0],
-											   encoded_layer.shape[1] * self.dr, 
-											   encoded_layer.shape[2]))
-
-			# TODO: REPLACED BY TENSOR OPERATION
-			for i in range(len(tiled_encoded_layer)): # for batch
-				for j in range(len(encoded_layer[i])): # for each timestep
-					for k in range(self.dr): # repeat and tile
-						tiled_encoded_layer[i][j+k] = copy.deepcopy(encoded_layer[i][j])
-			tiled_encoded_layers.append(tiled_encoded_layer)
-		tiled_encoded_layers = torch.stack(tiled_encoded_layers)
+		layer_num = encoded_layers.size(0)
+		batch_size = encoded_layers.size(1)
+		feature_dim = encoded_layers.size(3)
+		tiled_encoded_layers = encoded_layers.repeat(1, 1, 1, self.dr).reshape(layer_num, batch_size, -1, feature_dim)
 
 		# return the only layer if only one layer is given at input
 		# else return all layers
 		if len(tiled_encoded_layers) == 1:
 			tiled_encoded_layers = tiled_encoded_layers[0]
-		return torch.FloatTensor(tiled_encoded_layers).to(device=self.device, dtype=torch.float32)
+		return tiled_encoded_layers
 
 
 	def plot(self, with_head=False):

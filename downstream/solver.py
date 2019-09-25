@@ -38,6 +38,7 @@ class Downstream_Solver(Solver):
 		self.task = task
 		self.mock_paras = copy.deepcopy(paras)
 		self.mock_config = copy.deepcopy(config)
+		self.mock_config['timer'] = config['timer']
 
 		# path and directories
 		self.exp_name = self.exp_name.replace('mockingjay', task)

@@ -15,6 +15,7 @@ import torch
 import random
 import argparse
 import numpy as np
+from timer import Timer
 
 
 #############################
@@ -65,6 +66,7 @@ def get_mockingjay_args():
 	setattr(args,'gpu', not args.cpu)
 	setattr(args,'verbose', not args.no_msg)
 	config = yaml.load(open(args.config,'r'))
+	config['timer'] = Timer()
 	
 	return config, args
 
@@ -162,6 +164,7 @@ def main():
 		tester.set_model(inference=True, with_head=args.with_head)
 		tester.plot(with_head=args.with_head)
 
+	config['timer'].report()
 
 if __name__ == '__main__':
 	main()
