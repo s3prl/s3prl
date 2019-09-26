@@ -189,7 +189,7 @@ class Solver():
 			logging.info('Epoch: %d Training Loss: %.5f Validation Loss: %.5f' % (epoch_i + 1, np.mean(train_losses), np.mean(val_losses)))
 			log_value("training loss (epoch-wise)", np.mean(train_losses), epoch_i)
 			
-			new_model_path = os.path.join(self.model_dir, 'apc_epoch_%d' % (epoch_i + 1) + '.ckpt')
+			new_model_path = os.path.join(self.model_dir, 'apc-epoch-%d' % (epoch_i + 1) + '.ckpt')
 			torch.save(self.model.state_dict(), new_model_path)
 			model_kept.append(new_model_path)
 
@@ -239,7 +239,7 @@ class Solver():
 									batch_l - self.config.time_shift)
 		# feats shape: (num_layers, batch_size, seq_len, rnn_hidden_size)
 		if not all_layers:
-			return feats[-1, :, :, :]
+			return feats[-1, :, :, :] # (batch_size, seq_len, rnn_hidden_size)
 		else:
-			return feats
+			return feats.permute(1, 0, 2, 3).contiguous() # (batch_size, num_layers, seq_len, rnn_hidden_size)
 

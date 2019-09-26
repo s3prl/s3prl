@@ -38,10 +38,12 @@ def get_mockingjay_args():
 	parser.add_argument('--ckpdir', default='result/result_mockingjay/', type=str, help='Checkpoint/Result path.', required=False)
 	parser.add_argument('--ckpt', default='mockingjay_libri_sd1337_0908/mockingjay-789600.ckpt', type=str, help='path to model checkpoint', required=False)
 	parser.add_argument('--dckpt', default='baseline_sentiment_libri_sd1337/baseline_sentiment-5.ckpt', type=str, help='path to downstream checkpoint', required=False)
+	parser.add_argument('--apc_path', default='./result/result_apc/apc_libri_sd1337/apc-epoch-100.ckpt', type=str, help='path to the apc model checkpoint', required=False)
 
 	# mockingjay
 	parser.add_argument('--train', action='store_true', help='Train the model.')
 	parser.add_argument('--run_mockingjay', action='store_true', help='train and test the downstream tasks using mockingjay representations.')
+	parser.add_argument('--run_apc', action='store_true', help='train and test the downstream tasks using apc representations.')
 	parser.add_argument('--plot', action='store_true', help='Plot model generated results during testing.')
 	
 	# phone task
@@ -99,7 +101,8 @@ def main():
 	# Train Phone Task
 	elif args.train_phone:
 		from downstream.solver import Downstream_Trainer
-		task = 'mockingjay_phone' if args.run_mockingjay else 'baseline_phone'
+		task = 'mockingjay_phone' if args.run_mockingjay \
+				else 'apc_phone' if args.run_apc else 'baseline_phone'
 		trainer = Downstream_Trainer(config, args, task=task)
 		trainer.load_data(split='train', load='phone')
 		trainer.set_model(inference=False)
@@ -108,7 +111,8 @@ def main():
 	# Test Phone Task
 	elif args.test_phone:
 		from downstream.solver import Downstream_Tester
-		task = 'mockingjay_phone' if args.run_mockingjay else 'baseline_phone'
+		task = 'mockingjay_phone' if args.run_mockingjay \
+				else 'apc_phone' if args.run_apc else 'baseline_phone'
 		tester = Downstream_Tester(config, args, task=task)
 		tester.load_data(split='test', load='phone')
 		tester.set_model(inference=True)
@@ -119,7 +123,8 @@ def main():
 	# Train Sentiment Task
 	elif args.train_sentiment:
 		from downstream.solver import Downstream_Trainer
-		task = 'mockingjay_sentiment' if args.run_mockingjay else 'baseline_sentiment'
+		task = 'mockingjay_sentiment' if args.run_mockingjay \
+				else 'apc_sentiment' if args.run_apc else 'baseline_sentiment'
 		trainer = Downstream_Trainer(config, args, task=task)
 		trainer.load_data(split='train', load='sentiment')
 		trainer.set_model(inference=False)
@@ -128,7 +133,8 @@ def main():
 	# Test Sentiment Task
 	elif args.test_sentiment:
 		from downstream.solver import Downstream_Tester
-		task = 'mockingjay_sentiment' if args.run_mockingjay else 'baseline_sentiment'
+		task = 'mockingjay_sentiment' if args.run_mockingjay \
+				else 'apc_sentiment' if args.run_apc else 'baseline_sentiment'
 		tester = Downstream_Tester(config, args, task=task)
 		tester.load_data(split='test', load='sentiment')
 		tester.set_model(inference=True)
@@ -139,7 +145,8 @@ def main():
 	# Train Speaker Task
 	elif args.train_speaker:
 		from downstream.solver import Downstream_Trainer
-		task = 'mockingjay_speaker' if args.run_mockingjay else 'baseline_speaker'
+		task = 'mockingjay_speaker' if args.run_mockingjay \
+				else 'apc_speaker' if args.run_apc else 'baseline_speaker'
 		trainer = Downstream_Trainer(config, args, task=task)
 		trainer.load_data(split='train', load='speaker')
 		trainer.set_model(inference=False)
@@ -148,7 +155,8 @@ def main():
 	# Test Speaker Task
 	elif args.test_speaker:
 		from downstream.solver import Downstream_Tester
-		task = 'mockingjay_speaker' if args.run_mockingjay else 'baseline_speaker'
+		task = 'mockingjay_speaker' if args.run_mockingjay \
+				else 'apc_speaker' if args.run_apc else 'baseline_speaker'
 		tester = Downstream_Tester(config, args, task=task)
 		tester.load_data(split='test', load='speaker')
 		tester.set_model(inference=True)

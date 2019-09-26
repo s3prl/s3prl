@@ -131,9 +131,9 @@ class Solver():
 										warmup=self.warmup_proportion,
 										t_total=num_train_optimization_steps)
 		else:
-			raise NotImplementedError
+			raise NotImplementedError('Invalid Arguments!')
 
-		if self.load:
+		if self.load: # This will be set to True by default when Tester is running set_model()
 			self.load_model(inference=inference, with_head=with_head)
 
 

@@ -88,7 +88,8 @@ def get_apc_solver(seed, train=True):
 # GET APC MODEL #
 #################
 def get_apc_model(path):
-	solver = get_apc_solver(seed=1337, train=False)
+	solver = Solver(get_apc_config())
+	solver.set_model(inference=True)
 	solver.load_model(path)
 	return solver
 

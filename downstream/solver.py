@@ -25,6 +25,7 @@ from dataloader import get_Dataloader
 from mockingjay.solver import Solver, Tester
 from downstream.model import LinearClassifier
 from utils.audio import mel_dim, num_freq, sample_rate, inv_spectrogram
+from runner_apc import get_apc_model
 
 
 ##########
@@ -54,6 +55,8 @@ class Downstream_Solver(Solver):
 		# model
 		self.load_model_list = config['downstream']['load_model_list']
 		self.run_mockingjay = True if 'mockingjay' in task else False
+		self.run_apc = True if 'apc' in task else False
+		assert( not (self.run_mockingjay and self.run_apc) ), 'Mockingjay and Apc can not run at the same time!'
 		if self.run_mockingjay: self.verbose('Using Mockingjay representations.')
 
 
@@ -77,22 +80,35 @@ class Downstream_Solver(Solver):
 
 
 	def set_model(self, inference=False):
-		self.mockingjay = Tester(self.mock_config, self.mock_paras)
-		self.mockingjay.set_model(inference=True, with_head=False)
-		
-		class_num = self.dataloader.dataset.class_num
-		self.classifier = LinearClassifier(
-							input_dim=int(self.config['downstream']['input_dim']) if self.config['downstream']['input_dim'] != 'None' else \
-									  self.mock_config['mockingjay']['hidden_size'] if 'mockingjay' in self.task else mel_dim,
-							class_num=class_num,
-							task=self.task,
-							dconfig=self.config['downstream']).to(self.device)
+		input_dim = int(self.config['downstream']['input_dim']) if \
+					self.config['downstream']['input_dim'] != 'None' else None
+		if 'mockingjay' in self.task:
+			self.mockingjay = Tester(self.mock_config, self.mock_paras)
+			self.mockingjay.set_model(inference=True, with_head=False)
+			if self.config['downstream']['input_dim'] is None:
+				input_dim = self.mock_config['mockingjay']['hidden_size']
+		elif 'apc' in self.task:
+			self.apc = get_apc_model(path=self.paras.apc_path)
+			if self.config['downstream']['input_dim'] is None: 
+				input_dim = self.mock_config['mockingjay']['hidden_size'] # use identical dim size for fair comparison
+		elif 'baseline' in self.task:
+			if self.config['downstream']['input_dim'] is None: 
+				input_dim = mel_dim
+		else:
+			raise NotImplementedError('Invalid Task!')
 
-		self.classifier.eval() if inference else self.classifier.train()
+		self.classifier = LinearClassifier(input_dim=input_dim,
+										   class_num=self.dataloader.dataset.class_num,
+										   task=self.task,
+										   dconfig=self.config['downstream']).to(self.device)
 		
 		if not inference:
 			self.optimizer = Adam(self.classifier.parameters(), lr=self.learning_rate, betas=(0.9, 0.999))
-		if self.load:
+			self.classifier.train()
+		else:
+			self.classifier.eval()
+
+		if self.load: # This will be set to True by default when Tester is running set_model()
 			self.load_model(inference=inference)
 
 
@@ -205,6 +221,9 @@ class Downstream_Trainer(Downstream_Solver):
 				if self.run_mockingjay:
 					# representations shape: (batch_size, layer, seq_len, feature)
 					representations = self.mockingjay.forward(features)
+				elif self.run_apc:
+					# representations shape: (batch_size, layer, seq_len, feature)
+					representations = self.apc.forward(features)
 				else:
 					# representations shape: (batch_size, seq_len, feature)
 					representations = features.squeeze(0).to(device=self.device, dtype=torch.float32)
@@ -274,6 +293,9 @@ class Downstream_Tester(Downstream_Solver):
 			if self.run_mockingjay:
 				# representations shape: (batch_size, layer, seq_len, feature)
 				representations = self.mockingjay.forward(features)
+			elif self.run_apc:
+				# representations shape: (batch_size, layer, seq_len, feature)
+				representations = self.apc.forward(features)
 			else:
 				# representations shape: (batch_size, seq_len, feature)
 				representations = features.squeeze(0).to(device=self.device, dtype=torch.float32)
