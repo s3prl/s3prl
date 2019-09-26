@@ -178,7 +178,7 @@ def main():
 ########################
 # GET MOCKINGJAY MODEL #
 ########################
-def get_mockingjay_model(from_path='result/result_mockingjay/mockingjay_libri_sd1337_bset/mockingjay-500000.ckpt', display_settings=False):
+def get_mockingjay_model(from_path='result/result_mockingjay/mockingjay_libri_sd1337_best/mockingjay-500000.ckpt', display_settings=False):
 	''' Wrapper that loads the mockingjay model from checkpoint path '''
 
 	# load config and paras

@@ -10,24 +10,24 @@ Feel free to use/modify them, any bug report or improvement suggestion will be a
 With this repo and trained models, you can use it to extract speech representations from your target dataset. To do so, feed-forward the trained model on the target dataset and retrieve the extracted features by running the following example python code:
 ```python
 from runner_mockingjay import get_mockingjay_model
-path = 'result/result_mockingjay/mockingjay_libri_sd1337_bset/mockingjay-500000.ckpt'
+path = 'result/result_mockingjay/mockingjay_libri_sd1337_best/mockingjay-500000.ckpt'
 mockingjay = get_mockingjay_model(from_path=path)
 
 # reps.shape: (batch_size, num_hiddem_layers, seq_len, hidden_size)
-reps = mockingjay.forward(spec=inputs, all_layers=True, tile=True)
+reps = mockingjay.forward(spec=spec, all_layers=True, tile=True)
 
 # reps.shape: (batch_size, num_hiddem_layers, seq_len // downsample_rate, hidden_size)
-reps = mockingjay.forward(spec=inputs, all_layers=True, tile=False)
+reps = mockingjay.forward(spec=spec, all_layers=True, tile=False)
 
 # reps.shape: (batch_size, seq_len, hidden_size)
-reps = mockingjay.forward(spec=inputs, all_layers=False, tile=True)
+reps = mockingjay.forward(spec=spec, all_layers=False, tile=True)
 
 # reps.shape: (batch_size, seq_len // downsample_rate, hidden_size)
-reps = mockingjay.forward(spec=inputs, all_layers=False, tile=False)
+reps = mockingjay.forward(spec=spec, all_layers=False, tile=False)
 ```
-`spec` is the input of the mockingjay model where:
-- `inputs` can be PyTorch tensors with shape of `(seq_len, mel_dim)` or `(batch_size, seq_len, mel_dim)`.
-- `mel_dim` is the default preprocessed spectrogram dimension (`mel_dim == 160`), see [utils/audio.py](utils/audio.py) for more details.
+`spec` is the input spectrogram of the mockingjay model where:
+- `spec` needs to be a PyTorch tensor with shape of `(seq_len, mel_dim)` or `(batch_size, seq_len, mel_dim)`.
+- `mel_dim` is the spectrogram feature dimension which by default is `mel_dim == 160`, see [utils/audio.py](utils/audio.py) for more preprocessing details.
 
 `reps` is a PyTorch tensor of various possible shapes where:
 - `batch_size` is the inference batch size.
