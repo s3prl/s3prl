@@ -174,6 +174,36 @@ def main():
 
 	config['timer'].report()
 
+
+########################
+# GET MOCKINGJAY MODEL #
+########################
+def get_mockingjay_model(from_path='result/result_mockingjay/mockingjay_libri_sd1337_bset/mockingjay-500000.ckpt', display_settings=False):
+	''' Wrapper that loads the mockingjay model from checkpoint path '''
+
+	# load config and paras
+	all_states = torch.load(from_path, map_location='cpu')
+	config = all_states['Settings']['Config']
+	paras = all_states['Settings']['Paras']
+
+	# display checkpoint settings
+	if display_settings:
+		for cluster in config:
+			print(cluster + ':')
+			for item in config[cluster]:
+				print('\t' + str(item) + ': ', config[cluster][item])
+		print('paras:')
+		v_paras = vars(paras)
+		for item in v_paras:
+			print('\t' + str(item) + ': ', v_paras[item])
+
+	# load model with Tester
+	from mockingjay.solver import Tester
+	mockingjay = Tester(config, paras)
+	mockingjay.set_model(inference=True, with_head=False, from_path=from_path)
+	return mockingjay
+
+
 if __name__ == '__main__':
 	main()
 

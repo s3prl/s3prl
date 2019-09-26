@@ -78,7 +78,7 @@ class Solver():
 			setattr(self, 'dataloader', get_Dataloader(split, load='spec', use_gpu=self.paras.gpu, **self.config['dataloader']))
 
 
-	def set_model(self, inference=False, with_head=False):
+	def set_model(self, inference=False, with_head=False, from_path=None):
 		self.verbose('Initializing Mockingjay model.')
 		
 		# uild the Mockingjay model with speech prediction head
@@ -134,7 +134,7 @@ class Solver():
 			raise NotImplementedError('Invalid Arguments!')
 
 		if self.load: # This will be set to True by default when Tester is running set_model()
-			self.load_model(inference=inference, with_head=with_head)
+			self.load_model(inference=inference, with_head=with_head, from_path=from_path)
 
 
 	def save_model(self, name, model_all=True):
@@ -166,9 +166,14 @@ class Solver():
 			self.model_kept.pop(0)
 
 
-	def load_model(self, inference=False, with_head=False):
-		self.verbose('Load model from {}'.format(self.ckpt))
-		all_states = torch.load(self.ckpt, map_location='cpu')
+	def load_model(self, inference=False, with_head=False, from_path=None):
+		if from_path is not None:
+			self.verbose('Load model from {}'.format(from_path))
+			all_states = torch.load(from_path, map_location='cpu')
+			self.load_model_list = ['Mockingjay']
+		else:
+			self.verbose('Load model from {}'.format(self.ckpt))
+			all_states = torch.load(self.ckpt, map_location='cpu')
 		self.verbose('', end='')
 		if 'SpecHead' in self.load_model_list:
 			if not inference or with_head:
@@ -240,7 +245,7 @@ class Solver():
 				self.verbose('[Global_step] - Loaded')
 			except: self.verbose('[Global_step - X]')
 
-		self.verbose('Loaded!')
+		self.verbose('Model loading complete!')
 
 
 	def up_sample_frames(self, spec, return_first=False):
@@ -453,9 +458,16 @@ class Tester(Solver):
 
 	def process_MAM_data(self, spec):
 		"""Process training data for the masked acoustic model"""
-		# Hack bucket
-		assert(len(spec.shape) == 4), 'Bucketing should cause acoustic feature to have shape 1xBxTxD'
-		spec = spec.squeeze(0)
+		
+		# Hack bucket if spec is loaded from the dataloader
+		if len(spec.shape) == 4: # Bucketing should cause acoustic feature to have shape 1xBxTxD
+			spec = spec.squeeze(0)
+		# add arbitary batch axis B if input `spec` has shape of TxD
+		elif len(spec.shape) == 2:
+			spec = spec.unsqueeze(0)
+		# input `spec` should have shape BxTxD
+		elif len(spec.shape) != 3:
+			raise ValueError('Input argument `spec` has invalid shape: {}'.format(spec.shape))
 
 		# Down sample
 		spec_stacked = self.down_sample_frames(spec) # (batch_size, seq_len, mel_dim * dr)
@@ -487,8 +499,10 @@ class Tester(Solver):
 			Input - encoded_layers shape: (num_hidden_layers, batch_size, sequence_length, hidden_size)
 			Output - tiled_encoded_layers shape: (num_hidden_layers, batch_size, sequence_length * downsample_rate, hidden_size)
 		"""
-		if len(reps.shape) != 4:
+		if len(reps.shape) == 3:
 			reps = reps.unsqueeze(0)
+		elif len(reps.shape) != 4:
+			raise ValueError('Input argument `reps` has invalid shape: {}'.format(reps.shape))
 
 		tiled_reps = reps.repeat(1, 1, 1, self.dr)
 		tiled_reps = tiled_reps.reshape(reps.size(0), reps.size(1), reps.size(2)*self.dr, reps.size(3))
@@ -515,7 +529,7 @@ class Tester(Solver):
 					# generate the model filled MAM spectrogram
 					spec_masked = copy.deepcopy(spec_stacked)
 					for i in range(len(spec_masked)):
-						sample_index = random.sample(range(len(spec_masked[i])), int(len(spec_masked[i])*0.15))
+						sample_index = random.sample(range(len(spec_masked[i])), int(len(spec_masked[i])*self.mask_proportion))
 						spec_masked[i][sample_index] = 0
 					fill_spec = self.model(spec_masked, pos_enc, attention_mask=attn_mask)
 
@@ -551,21 +565,32 @@ class Tester(Solver):
 							exit() # visualize the first 10 testing samples
 
 
-	def forward(self, spec, all_layers=True):
+	def forward(self, spec, all_layers=True, tile=True):
 		"""	
 			Generation of the Mockingjay Model Representation
 			Input: A batch of spectrograms: (batch_size, seq_len, hidden_size)
-			If `all_layers` == True, Output: A batch of representations: (batch_size, num_hiddem_layers, seq_len, hidden_size)
-			If `all_layers` == False, Output: A batch of representations: (batch_size, seq_len, hidden_size)
+			If `all_layers` == True:
+				if `tile`: Output - A batch of representations: (batch_size, num_hiddem_layers, seq_len, hidden_size)
+				if not `tile`: Output - A batch of representations: (batch_size, num_hiddem_layers, seq_len // downsample_rate, hidden_size)
+			If `all_layers` == False:
+				if `tile`: Output - A batch of representations: (batch_size, seq_len, hidden_size)
+				if not `tile`: Output - A batch of representations: (batch_size, seq_len // downsample_rate, hidden_size)
+			where `seq_len` is the sequence length of the input `spec`.
 		"""
 			
 		with torch.no_grad():
+			
 			spec_stacked, pos_enc, attn_mask = self.process_MAM_data(spec=spec)
-			encoded_layers = self.mockingjay(spec_stacked, pos_enc, attention_mask=attn_mask, output_all_encoded_layers=all_layers)
-			encoded_layers = torch.stack(encoded_layers)
+			reps = self.mockingjay(spec_stacked, pos_enc, attention_mask=attn_mask, output_all_encoded_layers=all_layers)
+			reps = torch.stack(reps) 
+			# (num_hiddem_layers, batch_size, seq_len // downsample_rate, hidden_size) if `all_layers` or,
+			# (batch_size, seq_len // downsample_rate, hidden_size) if not `all_layers`.
 
-			reps = self.tile_representations(encoded_layers)
-			if len(reps.shape) == 4: reps = reps.permute(1, 0, 2, 3) # (batch_size, num_hidden_layers, sequence_length * downsample_rate, hidden_size)
+			# tile representations to match the input `seq_len` of `spec`
+			if tile: reps = self.tile_representations(reps) # (num_hiddem_layers, batch_size, seq_len, hidden_size)
+			
+			if len(reps.shape) == 4: reps = reps.permute(1, 0, 2, 3).contiguous() # if `all_layers`: (batch_size, num_hidden_layers, -1, hidden_size)
+			elif len(reps.shape) != 3: raise ValueError('Invalid representation shape!') # if not `all_layers`: (batch_size, -1, hidden_size)
 
 		return reps
 
