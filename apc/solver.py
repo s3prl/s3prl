@@ -141,7 +141,7 @@ class Solver():
 
 	def process_data(self, batch_x):
 		assert(len(batch_x.shape) == 4), 'Bucketing should cause acoustic feature to have shape 1xBxTxD'
-		with torch.no_grad()
+		with torch.no_grad():
 			# Hack bucket
 			batch_x = batch_x.squeeze(0)
 			# compute length for each uttr

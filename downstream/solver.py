@@ -85,14 +85,14 @@ class Downstream_Solver(Solver):
 		if 'mockingjay' in self.task:
 			self.mockingjay = Tester(self.mock_config, self.mock_paras)
 			self.mockingjay.set_model(inference=True, with_head=False)
-			if self.config['downstream']['input_dim'] is None:
+			if input_dim is None:
 				input_dim = self.mock_config['mockingjay']['hidden_size']
 		elif 'apc' in self.task:
 			self.apc = get_apc_model(path=self.paras.apc_path)
-			if self.config['downstream']['input_dim'] is None: 
+			if input_dim is None: 
 				input_dim = self.mock_config['mockingjay']['hidden_size'] # use identical dim size for fair comparison
 		elif 'baseline' in self.task:
-			if self.config['downstream']['input_dim'] is None: 
+			if input_dim is None: 
 				input_dim = mel_dim
 		else:
 			raise NotImplementedError('Invalid Task!')
