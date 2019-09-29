@@ -42,9 +42,6 @@ class LinearClassifier(nn.Module):
 		assert(probabilities.unbind(dim=-1)[0].shape == labels.shape)
 		assert(labels.shape == label_mask.shape)
 
-		probabilities = probabilities.reshape(-1, probabilities.size(-1))
-		labels = labels.reshape(-1)
-		label_mask = label_mask.reshape(-1)
 		valid_count = label_mask.sum()
 		correct_count = ((probabilities.argmax(dim=-1) == labels).type(torch.cuda.LongTensor) * label_mask).sum()
 		return correct_count, valid_count
@@ -62,7 +59,7 @@ class LinearClassifier(nn.Module):
 			elif self.select_hidden == 'average':
 				features = features.mean(dim=1)  # now simply average the representations over all layers, (batch_size, seq_len, feature)
 			else:
-				raise NotImplementedError('Select-hidden mode not supported')
+				raise NotImplementedError('Feature selection mode not supported!')
 
 			# since the down-sampling (float length be truncated to int) and then up-sampling process
 			# can cause a mismatch between the seq lenth of mockingjay representation and that of label
@@ -79,9 +76,10 @@ class LinearClassifier(nn.Module):
 		hidden = self.act_fn(hidden)
 
 		logits = self.out(hidden)
+		prob = self.out_fn(logits)
 		
 		if labels is not None:
-			assert label_mask is not None, 'When frame-wise labels are provided, validity of each timestamp should also be provided'
+			assert(label_mask is not None), 'When frame-wise labels are provided, validity of each timestamp should also be provided'
 			labels_with_ignore_index = 100 * (label_mask - 1) + labels * label_mask
 
 			# cause logits are in (batch, seq, class) and labels are in (batch, seq)
@@ -89,11 +87,10 @@ class LinearClassifier(nn.Module):
 			# here we flatten logits and labels in order to apply nn.CrossEntropyLoss
 			class_num = logits.size(-1)
 			loss = self.criterion(logits.reshape(-1, class_num), labels_with_ignore_index.reshape(-1))
-			probabilities = self.out_fn(logits)
-
+			
 			# statistic for accuracy
-			correct, valid = self.statistic(probabilities, labels, label_mask)
+			correct, valid = self.statistic(prob, labels, label_mask)
 
-			return loss, probabilities.detach().cpu(), correct.detach().cpu(), valid.detach().cpu()
+			return loss, prob.detach().cpu(), correct.detach().cpu(), valid.detach().cpu()
 
-		return self.out_fn(logits)
+		return prob

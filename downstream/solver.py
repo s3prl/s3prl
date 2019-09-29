@@ -216,7 +216,7 @@ class Downstream_Trainer(Downstream_Solver):
 				# For each timestamps, we mark 1 on valid timestamps, and 0 otherwise
 				# This variable can be useful for frame-wise metric, like phoneme recognition or speaker verification
 				# label_mask: (batch_size, seq_len), LongTensor
-				label_mask = (features[0].sum(dim=-1).abs() > 1e-8).type(torch.LongTensor).to(device=self.device, dtype=torch.long)
+				label_mask = (features[0].sum(dim=-1) != 0).type(torch.LongTensor).to(device=self.device, dtype=torch.long)
 
 				if self.run_mockingjay:
 					# representations shape: (batch_size, layer, seq_len, feature)
@@ -244,9 +244,10 @@ class Downstream_Trainer(Downstream_Solver):
 					# Log
 					acc = corrects.item() / valids.item()
 					los = losses.item() / valids.item()
+					self.log.add_scalar('correct', int(corrects.item()), self.global_step)
 					self.log.add_scalar('acc', acc, self.global_step)
 					self.log.add_scalar('loss', los, self.global_step)
-					pbar.set_description("Loss %.4f" % los)
+					pbar.set_description("Loss %.10f" % los)
 
 					corrects = 0
 					valids = 0
