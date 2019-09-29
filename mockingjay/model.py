@@ -455,7 +455,6 @@ class MockingjayModel(MockingjayInitModel):
 									  head_mask=head_mask)
 		if self.output_attentions:
 			all_attentions, encoded_layers = encoded_layers
-		sequence_output = encoded_layers[-1]
 		if not output_all_encoded_layers:
 			encoded_layers = encoded_layers[-1]
 		if self.output_attentions:
