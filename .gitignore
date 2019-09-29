@@ -2,6 +2,7 @@
 __pycache__/
 *.py[cod]
 *$py.class
+*.npy
 
 # C extensions
 *.so
@@ -132,3 +133,4 @@ log_*
 Raw
 CMU_MOSI.zip
 libri_alignment.zip
+data
