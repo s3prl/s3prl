@@ -41,6 +41,9 @@ HALF_BATCHSIZE_LABEL = 150
 #     - load         : str, types of data to load: ['asr', 'text', 'spec', 'duo', 'phone', 'speaker']
 class LibriDataset(Dataset):
 	def __init__(self, file_path, sets, bucket_size, max_timestep=0, max_label_len=0, drop=False, load='asr'):
+		# define default length
+		self.X = []
+
 		# Read file
 		self.root = file_path
 		tables = [pd.read_csv(os.path.join(file_path, s + '.csv')) for s in sets]
