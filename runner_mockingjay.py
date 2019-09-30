@@ -36,7 +36,7 @@ def get_mockingjay_args():
 	# model ckpt
 	parser.add_argument('--load', action='store_true', help='Load pre-trained model')
 	parser.add_argument('--ckpdir', default='result/result_mockingjay/', type=str, help='Checkpoint/Result path.', required=False)
-	parser.add_argument('--ckpt', default='mockingjay_libri_sd1337_0908/mockingjay-789600.ckpt', type=str, help='path to model checkpoint', required=False)
+	parser.add_argument('--ckpt', default='mockingjay_libri_sd1337_0929/mockingjay-500000.ckpt', type=str, help='path to model checkpoint', required=False)
 	parser.add_argument('--dckpt', default='baseline_sentiment_libri_sd1337/baseline_sentiment-5.ckpt', type=str, help='path to downstream checkpoint', required=False)
 	parser.add_argument('--apc_path', default='./result/result_apc/apc_libri_sd1337/apc-epoch-100.ckpt', type=str, help='path to the apc model checkpoint', required=False)
 

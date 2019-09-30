@@ -290,7 +290,7 @@ class Downstream_Tester(Downstream_Solver):
 			# For each timestamps, we mark 1 on valid timestamps, and 0 otherwise
 			# This variable can be useful for frame-wise metric, like phoneme recognition or speaker verification
 			# label_mask: (batch_size, seq_len), LongTensor
-			label_mask = (features[0].sum(dim=-1).abs() > 1e-8).type(torch.LongTensor).to(device=self.device, dtype=torch.long)
+			label_mask = (features.squeeze(0).sum(dim=-1) != 0).type(torch.LongTensor).to(device=self.device, dtype=torch.long)
 
 			if self.run_mockingjay:
 				# representations shape: (batch_size, layer, seq_len, feature)
@@ -303,7 +303,7 @@ class Downstream_Tester(Downstream_Solver):
 				representations = features.squeeze(0).to(device=self.device, dtype=torch.float32)
 
 			loss, logits, correct, valid = self.classifier(representations, labels, label_mask)
-			test_acc.append(correct / valid)
+			test_acc.append(correct.item() / valid.item())
 
 		test_acc = torch.FloatTensor(test_acc)
 		self.verbose('Testing set accuracy: ' + str(test_acc.mean().item()))
