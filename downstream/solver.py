@@ -101,7 +101,7 @@ class Downstream_Solver(Solver):
 										   class_num=self.dataloader.dataset.class_num,
 										   task=self.task,
 										   dconfig=self.config['downstream'],
-										   sequencial=True if 'phone' in self.task else False).to(self.device)
+										   sequencial=False).to(self.device)
 		
 		if not inference:
 			self.optimizer = Adam(self.classifier.parameters(), lr=self.learning_rate, betas=(0.9, 0.999))
