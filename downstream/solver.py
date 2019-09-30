@@ -100,7 +100,8 @@ class Downstream_Solver(Solver):
 		self.classifier = LinearClassifier(input_dim=input_dim,
 										   class_num=self.dataloader.dataset.class_num,
 										   task=self.task,
-										   dconfig=self.config['downstream']).to(self.device)
+										   dconfig=self.config['downstream'],
+										   sequencial=True if 'phone' in self.task else False).to(self.device)
 		
 		if not inference:
 			self.optimizer = Adam(self.classifier.parameters(), lr=self.learning_rate, betas=(0.9, 0.999))
@@ -216,7 +217,7 @@ class Downstream_Trainer(Downstream_Solver):
 				# For each timestamps, we mark 1 on valid timestamps, and 0 otherwise
 				# This variable can be useful for frame-wise metric, like phoneme recognition or speaker verification
 				# label_mask: (batch_size, seq_len), LongTensor
-				label_mask = (features[0].sum(dim=-1) != 0).type(torch.LongTensor).to(device=self.device, dtype=torch.long)
+				label_mask = (features.squeeze(0).sum(dim=-1) != 0).type(torch.LongTensor).to(device=self.device, dtype=torch.long)
 
 				if self.run_mockingjay:
 					# representations shape: (batch_size, layer, seq_len, feature)

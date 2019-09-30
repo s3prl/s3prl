@@ -59,10 +59,10 @@ downstream:                                             # downstream model confi
   input_dim: 'None'                                     # `int`, else if set to None, input_dim will be set according to mockingjay settings or mel-preprocessing dimensions automatically
   hidden_size: 768
   drop: 0.2
-  select_hidden: 'last'                                 # support modes: 'last', 'average'
+  select_hidden: 'last'                                 # support modes: 'last', 'first', 'average'
 
   # Training options
-  learning_rate: "5e-4"                                 # Learning rate for opt
+  learning_rate: "4e-3"                                 # Learning rate for opt
   total_steps: 500000                                   # total steps for training, a step is a batch of update
   log_step: 1000                                        # log training status every this amount of training steps
   

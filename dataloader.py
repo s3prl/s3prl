@@ -226,6 +226,7 @@ class Mel_Phone_Dataset(LibriDataset):
 		super(Mel_Phone_Dataset, self).__init__(file_path, sets, bucket_size, max_timestep, max_label_len, drop, load)
 
 		assert(self.load == 'phone'), 'This dataset loads mel features and phone boundary labels.'
+		HALF_BATCHSIZE_TIME = 1000
 		self.phone_path = phone_path
 		self.class_num = len(pickle.load(open(os.path.join(phone_path, 'phone2idx.pkl'), 'rb')))
 		unaligned = pickle.load(open(os.path.join(phone_path, 'unaligned.pkl'), 'rb'))

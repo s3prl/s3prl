@@ -18,14 +18,22 @@ from torch import nn
 # LINEAR CLASSIFIER #
 #####################
 class LinearClassifier(nn.Module):
-	def __init__(self, input_dim, class_num, task, dconfig):
+	def __init__(self, input_dim, class_num, task, dconfig, sequencial=False):
+		super(LinearClassifier, self).__init__()
+		
 		output_dim = class_num
 		hidden_size = dconfig['hidden_size']
 		drop = dconfig['drop']
+		self.sequencial = sequencial
 		self.select_hidden = dconfig['select_hidden']
 
-		super(LinearClassifier, self).__init__()
-		self.dense1 = nn.Linear(input_dim, hidden_size)
+		if self.sequencial: 
+			self.rnn = nn.GRU(input_size=input_dim, hidden_size=hidden_size, num_layers=1, dropout=0.1,
+							  batch_first=True, bidirectional=False)
+			self.dense1 = nn.Linear(hidden_size, hidden_size)
+		else:
+			self.dense1 = nn.Linear(input_dim, hidden_size)
+
 		self.dense2 = nn.Linear(hidden_size, hidden_size)
 		self.drop1 = nn.Dropout(p=drop)
 		self.drop2 = nn.Dropout(p=drop)
@@ -56,6 +64,8 @@ class LinearClassifier(nn.Module):
 			# compute mean on mockingjay representations if given features from mockingjay
 			if self.select_hidden == 'last':
 				features = features[:, -1, :, :]
+			elif self.select_hidden == 'first':
+				features = features[:, 0, :, :]
 			elif self.select_hidden == 'average':
 				features = features.mean(dim=1)  # now simply average the representations over all layers, (batch_size, seq_len, feature)
 			else:
@@ -66,6 +76,9 @@ class LinearClassifier(nn.Module):
 			# we truncate the final few timestamp of label to make two seq equal in length
 			labels = labels[:, :features.size(1)]
 			label_mask = label_mask[:, :features.size(1)]
+		
+		if self.sequencial:
+			features, h_n = self.rnn(features)
 
 		hidden = self.dense1(features)
 		hidden = self.drop1(hidden)
