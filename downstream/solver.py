@@ -65,11 +65,14 @@ class Downstream_Solver(Solver):
 		assert(load in ['phone', 'sentiment', 'speaker']), 'Unsupported dataloader!'
 		if load == 'phone':
 			if split == 'train':
-				self.verbose('Loading source data from ' + self.config['dataloader']['data_path'])
-				self.verbose('Loading phone data from ' + self.config['dataloader']['phone_path'])
-			else: 
+				self.verbose('Loading source data from ' + str(self.config['dataloader']['train_set']) + ' from ' + self.config['dataloader']['data_path'])
+				self.verbose('Loading phone data from ' + str(self.config['dataloader']['train_set']) + ' from ' + self.config['dataloader']['phone_path'])
+			elif split == 'test': 
 				self.verbose('Loading testing data ' + str(self.config['dataloader']['test_set']) + ' from ' + self.config['dataloader']['data_path'])
 				self.verbose('Loading label data ' + str(self.config['dataloader']['test_set']) + ' from ' + self.config['dataloader']['phone_path'])
+			else:
+				raise NotImplementedError('Invalid `split` argument!')
+
 		elif load == 'sentiment':
 			sentiment_path = self.config['dataloader']['sentiment_path']
 			self.verbose(f'Loading {split} data from {sentiment_path}')

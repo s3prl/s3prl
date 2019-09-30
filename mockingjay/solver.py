@@ -67,10 +67,12 @@ class Solver():
 	def load_data(self, split='train'):
 		''' Load data for training / testing'''
 		if split == 'train': 
-			self.verbose('Loading source data from ' + self.config['dataloader']['data_path'])
-			if self.duo_feature: self.verbose('Loading target data from ' + self.config['dataloader']['target_path'])
-		else: 
+			self.verbose('Loading source data ' + str(self.config['dataloader']['train_set']) + ' from ' + self.config['dataloader']['data_path'])
+			if self.duo_feature: self.verbose('Loading target data ' + str(self.config['dataloader']['train_set']) + ' from ' + self.config['dataloader']['target_path'])
+		elif split == 'test': 
 			self.verbose('Loading testing data ' + str(self.config['dataloader']['test_set']) + ' from ' + self.config['dataloader']['data_path'])
+		else:
+			raise NotImplementedError('Invalid `split` argument!')
 
 		if self.duo_feature:
 			setattr(self, 'dataloader', get_Dataloader(split, load='duo', use_gpu=self.paras.gpu, **self.config['dataloader']))
