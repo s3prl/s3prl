@@ -252,8 +252,7 @@ class Downstream_Trainer(Downstream_Solver):
 				if self.global_step % self.log_step == 0:
 					# Log
 					acc = corrects.item() / valids.item()
-					los = losses.item() / valids.item()
-					self.log.add_scalar('correct', int(corrects.item()), self.global_step)
+					los = losses.item() / self.global_step
 					self.log.add_scalar('acc', acc, self.global_step)
 					self.log.add_scalar('loss', los, self.global_step)
 					pbar.set_description("Loss %.10f" % los)
