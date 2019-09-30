@@ -174,7 +174,7 @@ class Solver():
 		else:
 			self.verbose('Load model from {}'.format(self.ckpt))
 			all_states = torch.load(self.ckpt, map_location='cpu')
-		self.verbose('', end='')
+
 		if 'SpecHead' in self.load_model_list:
 			if not inference or with_head:
 				try:

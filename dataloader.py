@@ -227,7 +227,7 @@ class Mel_Phone_Dataset(LibriDataset):
 	def __init__(self, run_mockingjay, file_path, phone_path, sets, bucket_size, max_timestep=0, max_label_len=0, drop=False, load='phone'):
 		super(Mel_Phone_Dataset, self).__init__(file_path, sets, bucket_size, max_timestep, max_label_len, drop, load)
 		HALF_BATCHSIZE_TIME = 1000
-		
+
 		assert(self.load == 'phone'), 'This dataset loads mel features and phone boundary labels.'
 		self.run_mockingjay = run_mockingjay
 		self.phone_path = phone_path
@@ -286,7 +286,7 @@ class Mel_Phone_Dataset(LibriDataset):
 class Mel_Sentiment_Dataset(Dataset):
 	def __init__(self, run_mockingjay, sentiment_path, split='train', bucket_size='8', max_timestep=0, drop=True, load='sentiment'):
 
-		assert(self.load == 'sentiment'), 'The MOSI dataset only supports sentiment analysis for now'
+		assert(load == 'sentiment'), 'The MOSI dataset only supports sentiment analysis for now'
 		self.run_mockingjay = run_mockingjay
 
 		self.root = sentiment_path

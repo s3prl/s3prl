@@ -222,15 +222,17 @@ class Downstream_Trainer(Downstream_Solver):
 				elif self.run_apc:
 					# representations shape: (batch_size, layer, seq_len, feature)
 					representations = self.apc.forward(features)
+					features = features.squeeze(0)
 				else:
 					# representations shape: (batch_size, seq_len, feature)
-					representations = features.squeeze(0).to(device=self.device, dtype=torch.float32)
+					features = features.squeeze(0)
+					representations = features.to(device=self.device, dtype=torch.float32)
 
 				# Since zero padding technique, some timestamps of features are not valid
 				# For each timestamps, we mark 1 on valid timestamps, and 0 otherwise
 				# This variable can be useful for frame-wise metric, like phoneme recognition or speaker verification
 				# label_mask: (batch_size, seq_len), LongTensor
-				label_mask = (features.squeeze(0).sum(dim=-1) != 0).type(torch.LongTensor).to(device=self.device, dtype=torch.long)
+				label_mask = (features.sum(dim=-1) != 0).type(torch.LongTensor).to(device=self.device, dtype=torch.long)
 				loss, logits, correct, valid = self.classifier(representations, labels, label_mask)
 
 				# Accumulate Loss
@@ -296,15 +298,17 @@ class Downstream_Tester(Downstream_Solver):
 			elif self.run_apc:
 				# representations shape: (batch_size, layer, seq_len, feature)
 				representations = self.apc.forward(features)
+				features = features.squeeze(0)
 			else:
 				# representations shape: (batch_size, seq_len, feature)
-				representations = features.squeeze(0).to(device=self.device, dtype=torch.float32)
+				features = features.squeeze(0)
+				representations = features.to(device=self.device, dtype=torch.float32)
 
 			# Since zero padding technique, some timestamps of features are not valid
 			# For each timestamps, we mark 1 on valid timestamps, and 0 otherwise
 			# This variable can be useful for frame-wise metric, like phoneme recognition or speaker verification
 			# label_mask: (batch_size, seq_len), LongTensor
-			label_mask = (features.squeeze(0).sum(dim=-1) != 0).type(torch.LongTensor).to(device=self.device, dtype=torch.long)
+			label_mask = (features.sum(dim=-1) != 0).type(torch.LongTensor).to(device=self.device, dtype=torch.long)
 			loss, logits, correct, valid = self.classifier(representations, labels, label_mask)
 			
 			test_acc.append(correct.item() / valid.item())
