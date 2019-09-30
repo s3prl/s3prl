@@ -317,58 +317,23 @@ class Trainer(Solver):
 		self.global_step = 1
 
 
-	def process_MAM_data(self, source_spec, target_spec):
+	def process_data(self, spec):
 		"""Process training data for the masked acoustic model"""
 		with torch.no_grad():
+			
+			assert(len(spec) == 5), 'dataloader should return (spec_masked, pos_enc, mask_label, attn_mask, spec_stacked)'
+			# Unpack and Hack bucket: Bucketing should cause acoustic feature to have shape 1xBxTxD'
+			spec_masked = spec[0].squeeze(0)
+			pos_enc = spec[1].squeeze(0)
+			mask_label = spec[2].squeeze(0)
+			attn_mask = spec[3].squeeze(0)
+			spec_stacked = spec[4].squeeze(0)
 
-			# Hack bucket
-			assert(len(source_spec.shape) == 4), 'Bucketing should cause acoustic feature to have shape 1xBxTxD'
-			source_spec = source_spec.squeeze(0)
-			target_spec = target_spec.squeeze(0)
-
-			# Down sample
-			spec_masked = self.down_sample_frames(source_spec) # (batch_size, seq_len, mel_dim * dr)
-			spec_stacked = self.down_sample_frames(target_spec) # (batch_size, seq_len, mel_dim * dr)
-			assert(spec_masked.shape[1] == spec_stacked.shape[1]), 'Input and output spectrogram should have the same shape'
-
-			# Record length for each uttr
-			spec_len = np.sum(np.sum(spec_stacked.data.numpy(), axis=-1) != 0, axis=-1)
-			spec_len = [int(sl) for sl in spec_len]
-
-			batch_size = spec_stacked.shape[0]
-			seq_len = spec_stacked.shape[1]
-
-			pos_enc = self.position_encoding(seq_len, batch_size) # (batch_size, seq_len, hidden_size)
-			mask_label = np.zeros_like(spec_stacked)
-			attn_mask = np.ones((batch_size, seq_len)) # (batch_size, seq_len)
-
-			for idx in range(len(spec_stacked)):
-				
-				chose_proportion = int(spec_len[idx]*self.mask_proportion) # chooses % of the frame positions at random for prediction
-				sub_mask_proportion = int(chose_proportion*0.8) # replace the i-th frame with (1) the [MASK] frame 80% of the time
-				sub_rand_proportion = int(chose_proportion*0.1) # a random frame 10% of the time
-				
-				sample_index = random.sample(range(spec_len[idx]), chose_proportion + sub_rand_proportion) # sample the chosen_index and random frames
-				chosen_index = sample_index[:chose_proportion]
-				masked_index = chosen_index[:sub_mask_proportion]
-
-				if sub_rand_proportion > 0:
-					random_index = chosen_index[-sub_rand_proportion:]
-					random_frames = sample_index[-sub_rand_proportion:]
-					spec_masked[idx][random_index] = spec_masked[idx][random_frames]
-				
-				spec_masked[idx][masked_index] = 0 # mask frames to zero
-				mask_label[idx][chosen_index] = 1 # the frames where gradients will be calculated on 
-
-				# zero vectors for padding dimension
-				pos_enc[idx][spec_len[idx]:] = 0  
-				attn_mask[idx][spec_len[idx]:] = 0 
-
-			spec_masked = spec_masked.to(device=self.device, dtype=torch.float32)
-			pos_enc = torch.FloatTensor(pos_enc).to(device=self.device, dtype=torch.float32)
-			mask_label = torch.ByteTensor(mask_label).to(device=self.device, dtype=torch.uint8)
-			attn_mask = torch.FloatTensor(attn_mask).to(device=self.device, dtype=torch.float32)
-			spec_stacked = spec_stacked.to(device=self.device, dtype=torch.float32)
+			spec_masked = spec_masked.to(device=self.device)
+			pos_enc = torch.FloatTensor(pos_enc).to(device=self.device)
+			mask_label = torch.ByteTensor(mask_label).to(device=self.device)
+			attn_mask = torch.FloatTensor(attn_mask).to(device=self.device)
+			spec_stacked = spec_stacked.to(device=self.device)
 
 		return spec_masked, pos_enc, mask_label, attn_mask, spec_stacked # (x, pos_enc, mask_label, attention_mask. y)
 
@@ -382,15 +347,10 @@ class Trainer(Solver):
 
 			progress = tqdm(self.dataloader, desc="Iteration")
 
-			for step, spec in enumerate(progress):
+			for step, batch in enumerate(progress):
 				if self.global_step > self.total_steps: break
 				
-				if self.duo_feature:
-					spec_masked, pos_enc, mask_label, attn_mask, spec_stacked = self.process_MAM_data(source_spec=spec[0], 
-																									  target_spec=spec[1])
-				else:
-					spec_masked, pos_enc, mask_label, attn_mask, spec_stacked = self.process_MAM_data(source_spec=spec,
-																									  target_spec=copy.deepcopy(spec))
+				spec_masked, pos_enc, mask_label, attn_mask, spec_stacked = self.process_data(batch)
 				loss, pred_spec = self.model(spec_masked, pos_enc, mask_label, attn_mask, spec_stacked)
 				
 				# Accumulate Loss
@@ -457,7 +417,7 @@ class Tester(Solver):
 
 
 	def process_MAM_data(self, spec):
-		"""Process training data for the masked acoustic model"""
+		"""Process testing data for the masked acoustic model"""
 		
 		# Hack bucket if spec is loaded from the dataloader
 		if len(spec.shape) == 4: # Bucketing should cause acoustic feature to have shape 1xBxTxD
@@ -490,6 +450,19 @@ class Tester(Solver):
 		spec_stacked = spec_stacked.to(device=self.device, dtype=torch.float32)
 		pos_enc = torch.FloatTensor(pos_enc).to(device=self.device, dtype=torch.float32)
 		attn_mask = torch.FloatTensor(attn_mask).to(device=self.device, dtype=torch.float32)
+		return spec_stacked, pos_enc, attn_mask # (x, pos_enc, attention_mask)
+
+
+	def process_data(self, spec):
+		assert(len(spec) == 3), 'dataloader should return (spec_stacked, pos_enc, attn_mask)'
+		# Unpack and Hack bucket: Bucketing should cause acoustic feature to have shape 1xBxTxD'
+		spec_stacked = spec[0].squeeze(0)
+		pos_enc = spec[1].squeeze(0)
+		attn_mask = spec[2].squeeze(0)
+	
+		spec_stacked = spec_stacked.to(device=self.device)
+		pos_enc = torch.FloatTensor(pos_enc).to(device=self.device)
+		attn_mask = torch.FloatTensor(attn_mask).to(device=self.device)
 		return spec_stacked, pos_enc, attn_mask # (x, pos_enc, attention_mask)
 
 
@@ -565,7 +538,7 @@ class Tester(Solver):
 							exit() # visualize the first 10 testing samples
 
 
-	def forward(self, spec, all_layers=True, tile=True):
+	def forward(self, spec, all_layers=True, tile=True, process_from_loader=False):
 		"""	
 			Generation of the Mockingjay Model Representation
 			Input: A batch of spectrograms: (batch_size, seq_len, hidden_size)
@@ -580,7 +553,10 @@ class Tester(Solver):
 			
 		with torch.no_grad():
 			
-			spec_stacked, pos_enc, attn_mask = self.process_MAM_data(spec=spec)
+			if not process_from_loader:
+				spec_stacked, pos_enc, attn_mask = self.process_MAM_data(spec=spec)
+			else:
+				spec_stacked, pos_enc, attn_mask = self.process_data(spec=spec) # Use dataloader to process MAM data to increase speed
 			reps = self.mockingjay(spec_stacked, pos_enc, attention_mask=attn_mask, output_all_encoded_layers=all_layers)
 			reps = torch.stack(reps) 
 			# (num_hiddem_layers, batch_size, seq_len // downsample_rate, hidden_size) if `all_layers` or,

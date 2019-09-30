@@ -19,6 +19,7 @@ from torch.nn.utils.rnn import pad_sequence
 from torch.utils.data import DataLoader
 from torch.utils.data.dataset import Dataset
 from utils.asr import zero_padding,target_padding
+from utils.mam import process_train_MAM_data, process_test_MAM_data
 
 
 ############
@@ -157,8 +158,8 @@ class MelDataset(LibriDataset):
 		# Load acoustic feature and pad
 		x_batch = [torch.FloatTensor(np.load(os.path.join(self.root, x_file))) for x_file in self.X[index]]
 		x_pad_batch = pad_sequence(x_batch, batch_first=True)
-		# Return (x_spec) 
-		return x_pad_batch
+		batch = process_train_MAM_data(spec=(x_pad_batch,))
+		return batch
 
 
 ######################
@@ -214,7 +215,8 @@ class Mel_Linear_Dataset(LibriDataset):
 		# Return (x_spec, t_spec)
 		t_batch = [torch.FloatTensor(np.load(os.path.join(self.t_root, t_file))) for t_file in self.T[index]]
 		t_pad_batch = pad_sequence(t_batch, batch_first=True)
-		return x_pad_batch, t_pad_batch
+		batch = process_train_MAM_data(spec=(x_pad_batch, t_pad_batch))
+		return batch
 
 
 #####################
@@ -222,11 +224,12 @@ class Mel_Linear_Dataset(LibriDataset):
 #####################
 class Mel_Phone_Dataset(LibriDataset):
 	
-	def __init__(self, file_path, phone_path, sets, bucket_size, max_timestep=0, max_label_len=0, drop=False, load='phone'):
+	def __init__(self, run_mockingjay, file_path, phone_path, sets, bucket_size, max_timestep=0, max_label_len=0, drop=False, load='phone'):
 		super(Mel_Phone_Dataset, self).__init__(file_path, sets, bucket_size, max_timestep, max_label_len, drop, load)
-
-		assert(self.load == 'phone'), 'This dataset loads mel features and phone boundary labels.'
 		HALF_BATCHSIZE_TIME = 1000
+		
+		assert(self.load == 'phone'), 'This dataset loads mel features and phone boundary labels.'
+		self.run_mockingjay = run_mockingjay
 		self.phone_path = phone_path
 		self.class_num = len(pickle.load(open(os.path.join(phone_path, 'phone2idx.pkl'), 'rb')))
 		unaligned = pickle.load(open(os.path.join(phone_path, 'unaligned.pkl'), 'rb'))
@@ -272,6 +275,8 @@ class Mel_Phone_Dataset(LibriDataset):
 		p_pad_batch = pad_sequence(p_batch, batch_first=True)
 		x_match_batch, p_match_batch = self.match_sequence(x_pad_batch, p_pad_batch)
 		# Return (x_spec, phone_label)
+		if self.run_mockingjay:
+			x_match_batch = process_test_MAM_data(spec=(x_match_batch,))
 		return x_match_batch, p_match_batch
 
 
@@ -279,10 +284,10 @@ class Mel_Phone_Dataset(LibriDataset):
 # MEL SENTIMENT DATASET #
 #########################
 class Mel_Sentiment_Dataset(Dataset):
-	def __init__(self, sentiment_path, split='train', bucket_size='8', max_timestep=0, drop=True, load='sentiment'):
-		# 'load' specify what task we want to conduct
-		self.load = load
+	def __init__(self, run_mockingjay, sentiment_path, split='train', bucket_size='8', max_timestep=0, drop=True, load='sentiment'):
+
 		assert(self.load == 'sentiment'), 'The MOSI dataset only supports sentiment analysis for now'
+		self.run_mockingjay = run_mockingjay
 
 		self.root = sentiment_path
 		self.split = split
@@ -344,7 +349,9 @@ class Mel_Sentiment_Dataset(Dataset):
 		# Load label
 		y_batch = torch.LongTensor(self.Y[index])  # (batch, )
 		y_broadcast_int_batch = y_batch.repeat(x_pad_batch.size(1), 1).T  # (batch, seq)
-
+		
+		if self.run_mockingjay:
+			x_pad_batch = process_test_MAM_data(spec=(x_pad_batch,))
 		return x_pad_batch, y_broadcast_int_batch
 	
 	def __len__(self):
@@ -356,11 +363,11 @@ class Mel_Sentiment_Dataset(Dataset):
 #####################
 class Mel_Speaker_Dataset(LibriDataset):
 	
-	def __init__(self, file_path, speaker_path, sets, bucket_size, max_timestep=0, max_label_len=0, drop=False, load='sentiment'):
+	def __init__(self, run_mockingjay, file_path, speaker_path, sets, bucket_size, max_timestep=0, max_label_len=0, drop=False, load='sentiment'):
 		super(Mel_Speaker_Dataset, self).__init__(file_path, sets, bucket_size, max_timestep, max_label_len, drop, load)
-
+		
 		assert(self.load == 'speaker'), 'This dataset loads mel features and speaker ID labels.'
-		#TODO
+		self.run_mockingjay = run_mockingjay
 	
 	def __getitem__(self, index):
 		# Load acoustic feature and pad
@@ -377,7 +384,7 @@ class Mel_Speaker_Dataset(LibriDataset):
 def get_Dataloader(split, load, data_path, batch_size, max_timestep, max_label_len, 
 				   use_gpu, n_jobs, train_set, dev_set, test_set, dev_batch_size, 
 				   target_path=None, phone_path=None, sentiment_path=None, speaker_path=None,
-				   decode_beam_size=None, **kwargs):
+				   decode_beam_size=None, run_mockingjay=False, **kwargs):
 
 	# Decide which split to use: train/dev/test
 	if split == 'train':
@@ -417,15 +424,15 @@ def get_Dataloader(split, load, data_path, batch_size, max_timestep, max_label_l
 								max_label_len=max_label_len, bucket_size=bs, drop=drop_too_long)
 	elif load == 'phone':
 		assert(phone_path is not None), '`phone path` must be provided for this dataset.'
-		ds = Mel_Phone_Dataset(file_path=data_path, phone_path=phone_path, sets=sets, max_timestep=max_timestep, load=load,
+		ds = Mel_Phone_Dataset(run_mockingjay=run_mockingjay, file_path=data_path, phone_path=phone_path, sets=sets, max_timestep=max_timestep, load=load,
 								max_label_len=max_label_len, bucket_size=bs, drop=drop_too_long)
 	elif load == 'sentiment':
 		assert(sentiment_path is not None), '`sentiment path` must be provided for this dataset.'
-		ds = Mel_Sentiment_Dataset(sentiment_path=sentiment_path, split=split, max_timestep=max_timestep, load=load,
+		ds = Mel_Sentiment_Dataset(run_mockingjay=run_mockingjay, sentiment_path=sentiment_path, split=split, max_timestep=max_timestep, load=load,
 								bucket_size=bs, drop=drop_too_long)
 	elif load == 'speaker':
 		assert(speaker_path is not None), '`speaker path` must be provided for this dataset.'
-		ds = Mel_Speaker_Dataset(file_path=data_path, speaker_path=speaker_path, sets=sets, max_timestep=max_timestep, load=load,
+		ds = Mel_Speaker_Dataset(run_mockingjay=run_mockingjay, file_path=data_path, speaker_path=speaker_path, sets=sets, max_timestep=max_timestep, load=load,
 								max_label_len=max_label_len, bucket_size=bs, drop=drop_too_long)
 
 	return DataLoader(ds, batch_size=1, shuffle=shuffle, drop_last=False, num_workers=n_jobs, pin_memory=use_gpu)
