@@ -33,6 +33,7 @@ dataloader:
   train_set: ['train-clean-360']                        #
   dev_set: ['dev-clean']                                #
   test_set: ['test-clean']                              #
+  train_proportion: 0.5                                 # Currently only effect the `phone classification task`, use this percent of `train_set` for downstream task training to demonstrate mockingjay generality
 
   # MOSI SETTINGS
   sentiment_path: 'data/mosi_mel160'                    # train/dev/test set has fixed subdir name with 'test', 'dev', 'test'

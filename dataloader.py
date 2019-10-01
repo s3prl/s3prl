@@ -13,6 +13,7 @@
 import os
 import torch
 import pickle
+import random
 import numpy as np
 import pandas as pd
 from tqdm import tqdm
@@ -226,7 +227,8 @@ class Mel_Linear_Dataset(LibriDataset):
 #####################
 class Mel_Phone_Dataset(LibriDataset):
 	
-	def __init__(self, run_mockingjay, file_path, phone_path, sets, bucket_size, max_timestep=0, max_label_len=0, drop=False, load='phone'):
+	def __init__(self, run_mockingjay, file_path, phone_path, sets, bucket_size, max_timestep=0, 
+				 max_label_len=0, drop=False, train_proportion=1.0, load='phone'):
 		super(Mel_Phone_Dataset, self).__init__(file_path, sets, bucket_size, max_timestep, max_label_len, drop, load)
 		HALF_BATCHSIZE_TIME = 1000
 
@@ -239,6 +241,15 @@ class Mel_Phone_Dataset(LibriDataset):
 		unaligned = pickle.load(open(os.path.join(phone_path, 'unaligned.pkl'), 'rb'))
 		X = self.table['file_path'].tolist()
 		X_lens = self.table['length'].tolist()
+		if train_proportion < 1.0:
+			print('[Dataset] - Truncating dataset size from ', len(X), end='')
+			chose_proportion = int(len(X)*train_proportion)
+			sample_index = random.sample(range(len(X)), chose_proportion)
+			X = np.asarray(X)[sample_index]
+			X_lens = np.asarray(X_lens)[sample_index]
+			print(' to ', len(X))
+		elif train_proportion > 1.0:
+			raise ValueError('Invalid range for `train_proportion`, (0.0, 1.0] is the appropriate range!)')
 
 		# Use bucketing to allow different batch sizes at run time
 		self.X = []
@@ -459,7 +470,7 @@ class Mel_Speaker_Dataset(Dataset):
 def get_Dataloader(split, load, data_path, batch_size, max_timestep, max_label_len, 
 				   use_gpu, n_jobs, train_set, dev_set, test_set, dev_batch_size, 
 				   target_path=None, phone_path=None, sentiment_path=None,
-				   decode_beam_size=None, run_mockingjay=False, **kwargs):
+				   decode_beam_size=None, run_mockingjay=False, train_proportion=1.0, **kwargs):
 
 	# Decide which split to use: train/dev/test
 	if split == 'train':
@@ -500,7 +511,7 @@ def get_Dataloader(split, load, data_path, batch_size, max_timestep, max_label_l
 	elif load == 'phone':
 		assert(phone_path is not None), '`phone path` must be provided for this dataset.'
 		ds = Mel_Phone_Dataset(run_mockingjay=run_mockingjay, file_path=data_path, phone_path=phone_path, sets=sets, max_timestep=max_timestep, load=load,
-								max_label_len=max_label_len, bucket_size=bs, drop=drop_too_long)
+								max_label_len=max_label_len, bucket_size=bs, drop=drop_too_long, train_proportion=train_proportion)
 	elif load == 'sentiment':
 		assert(sentiment_path is not None), '`sentiment path` must be provided for this dataset.'
 		ds = Mel_Sentiment_Dataset(run_mockingjay=run_mockingjay, sentiment_path=sentiment_path, split=split, max_timestep=max_timestep, load=load,
