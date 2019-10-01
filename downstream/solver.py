@@ -278,8 +278,6 @@ class Downstream_Tester(Downstream_Solver):
 	''' Handler for complete testing progress'''
 	def __init__(self, config, paras, task):
 		super(Downstream_Tester, self).__init__(config, paras, task)
-		self.dump_dir = str(self.ckpt.split('.')[0]) + '-' + task + '-dump/'
-		if not os.path.exists(self.dump_dir): os.makedirs(self.dump_dir)
 		self.duo_feature = False # Set duo feature to False since only input mel is needed during testing
 		self.load = True # Tester will load pre-trained models automatically
 	

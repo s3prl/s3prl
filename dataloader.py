@@ -511,7 +511,7 @@ def get_Dataloader(split, load, data_path, batch_size, max_timestep, max_label_l
 	elif load == 'phone':
 		assert(phone_path is not None), '`phone path` must be provided for this dataset.'
 		ds = Mel_Phone_Dataset(run_mockingjay=run_mockingjay, file_path=data_path, phone_path=phone_path, sets=sets, max_timestep=max_timestep, load=load,
-								max_label_len=max_label_len, bucket_size=bs, drop=drop_too_long, train_proportion=train_proportion)
+								max_label_len=max_label_len, bucket_size=bs, drop=drop_too_long, train_proportion=train_proportion if split == 'train' else 1.0)
 	elif load == 'sentiment':
 		assert(sentiment_path is not None), '`sentiment path` must be provided for this dataset.'
 		ds = Mel_Sentiment_Dataset(run_mockingjay=run_mockingjay, sentiment_path=sentiment_path, split=split, max_timestep=max_timestep, load=load,
