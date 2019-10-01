@@ -55,8 +55,6 @@ solver:
 
 
 downstream:                                             # downstream model config
-  model_type: 'rnn'                                     # model type: 'linear' or 'rnn'
-
   linear:
     input_dim: 'None'                                     # `int`, else if set to None, input_dim will be set according to mockingjay settings or mel-preprocessing dimensions automatically
     hidden_size: 768

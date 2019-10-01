@@ -84,7 +84,7 @@ class Downstream_Solver(Solver):
 
 
 	def set_model(self, inference=False):
-		model_type = self.config['downstream']['model_type']
+		model_type = 'linear' if 'phone' in self.task else 'rnn'
 		input_dim = int(self.config['downstream'][model_type]['input_dim']) if \
 					self.config['downstream'][model_type]['input_dim'] != 'None' else None
 		if 'mockingjay' in self.task:
