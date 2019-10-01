@@ -124,10 +124,11 @@ class AsrDataset(LibriDataset):
 ###############
 class MelDataset(LibriDataset):
 	
-	def __init__(self, file_path, sets, bucket_size, max_timestep=0, max_label_len=0, drop=False, load='spec'):
+	def __init__(self, run_mockingjay, file_path, sets, bucket_size, max_timestep=0, max_label_len=0, drop=False, load='spec'):
 		super(MelDataset, self).__init__(file_path, sets, bucket_size, max_timestep, max_label_len, drop, load)
 
 		assert(self.load == 'spec'), 'This dataset loads mel features.'
+		self.run_mockingjay = run_mockingjay
 		X = self.table['file_path'].tolist()
 		X_lens = self.table['length'].tolist()
 
@@ -158,8 +159,8 @@ class MelDataset(LibriDataset):
 		# Load acoustic feature and pad
 		x_batch = [torch.FloatTensor(np.load(os.path.join(self.root, x_file))) for x_file in self.X[index]]
 		x_pad_batch = pad_sequence(x_batch, batch_first=True)
-		batch = process_train_MAM_data(spec=(x_pad_batch,))
-		return batch
+		if self.run_mockingjay: x_pad_batch = process_train_MAM_data(spec=(x_pad_batch,))
+		return x_pad_batch
 
 
 ######################
@@ -232,6 +233,8 @@ class Mel_Phone_Dataset(LibriDataset):
 		self.run_mockingjay = run_mockingjay
 		self.phone_path = phone_path
 		self.class_num = len(pickle.load(open(os.path.join(phone_path, 'phone2idx.pkl'), 'rb')))
+		print('[Dataset] - Possible phone classes: ', self.class_num)
+
 		unaligned = pickle.load(open(os.path.join(phone_path, 'unaligned.pkl'), 'rb'))
 		X = self.table['file_path'].tolist()
 		X_lens = self.table['length'].tolist()
@@ -416,7 +419,7 @@ def get_Dataloader(split, load, data_path, batch_size, max_timestep, max_label_l
 		ds = AsrDataset(file_path=data_path, sets=sets, max_timestep=max_timestep, load=load,
 				max_label_len=max_label_len, bucket_size=bs, drop=drop_too_long)
 	elif load == 'spec':
-		ds = MelDataset(file_path=data_path, sets=sets, max_timestep=max_timestep, load=load, 
+		ds = MelDataset(run_mockingjay=run_mockingjay, file_path=data_path, sets=sets, max_timestep=max_timestep, load=load, 
 				max_label_len=max_label_len, bucket_size=bs, drop=drop_too_long)
 	elif load == 'duo':
 		assert(target_path is not None), '`target path` must be provided for this dataset.'

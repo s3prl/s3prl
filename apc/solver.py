@@ -13,17 +13,14 @@
 ###############
 import os
 import torch
-import logging
 import argparse
-from collections import namedtuple
-
 import numpy as np
-from torch.utils import data
+from tqdm import tqdm
+from collections import namedtuple
 from torch import nn, optim
+from torch.utils import data
 from torch.autograd import Variable
-import tensorboard_logger
-from tensorboard_logger import log_value
-
+from tensorboardX import SummaryWriter
 from dataloader import get_Dataloader
 from apc.model import APCModel
 
@@ -38,54 +35,30 @@ class Solver():
 
 	def __init__(self, config):
 		
-		self.congig = config
+		self.config = config
 		self.model_dir = os.path.join(self.config.result_path, self.config.experiment_name)
 		self.log_dir = os.path.join(self.config.log_path, self.config.experiment_name)
 		os.makedirs(self.model_dir, exist_ok=True)
 		os.makedirs(self.log_dir, exist_ok=True)
 
-		logging.basicConfig(
-			level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s',
-			filename=self.log_dir,
-			filemode='w')
-
-		# define a new Handler to log to console as well
-		console = logging.StreamHandler()
-		console.setLevel(logging.INFO)
-		formatter = logging.Formatter('%(asctime)s - %(levelname)s - %(message)s')
-		console.setFormatter(formatter)
-		logging.getLogger('').addHandler(console)
-
-		logging.info('Model Parameters: ')
-		logging.info('Prenet Depth: %d' % (self.config.prenet_num_layers))
-		logging.info('Prenet Dropout: %f' % (self.config.prenet_dropout))
-		logging.info('RNN Depth: %d ' % (self.config.rnn_num_layers))
-		logging.info('RNN Hidden Dim: %d' % (self.config.rnn_hidden_size))
-		logging.info('RNN Residual Connections: %s' % (self.config.rnn_residual))
-		logging.info('RNN Dropout: %f' % (self.config.rnn_dropout))
-		logging.info('Optimizer: %s ' % (self.config.optimizer))
-		logging.info('Batch Size: %d ' % (self.config.batch_size))
-		logging.info('Initial Learning Rate: %f ' % (self.config.learning_rate))
-		logging.info('Time Shift: %d' % (self.config.time_shift))
-		logging.info('Gradient Clip Threshold: %f' % (self.config.clip_thresh))
-
 
 	def verbose(self, msg, end='\n'):
 		''' Verbose function for print information to stdout'''
-		if self.paras.verbose:
-			print('[SOLVER] - ', msg, end=end)
+		print('[SOLVER] - ', msg, end=end)
 
 
 	def load_data(self, split='train'):
 		''' Load data for training / testing'''
 		if split == 'train': 
-			self.verbose('Loading source data from ' + self.config.data_path)
-		else: 
+			self.verbose('Loading source data from ' + str(self.config.train_set) + ' from ' + self.config.data_path)
+		elif split == 'test': 
 			self.verbose('Loading testing data ' + str(self.config.test_set) + ' from ' + self.config.data_path)
+		else:
+			raise NotImplementedError('Invalid `split` argument!')
 		setattr(self, 'dataloader', get_Dataloader(split, load='spec', data_path=self.config.data_path, 
 												   batch_size=self.config.batch_size, 
 												   max_timestep=3000, max_label_len=400, 
-				   								   use_gpu=True, n_jobs=16, 
+				   								   use_gpu=True, n_jobs=self.config.load_data_workers, 
 				   								   train_set=self.config.train_set, 
 				   								   dev_set=self.config.dev_set, 
 				   								   test_set=self.config.test_set, 
@@ -110,7 +83,7 @@ class Solver():
 							  prenet_config=prenet_config,
 							  rnn_config=rnn_config).cuda()
 
-		if inference:
+		if not inference:
 			self.criterion = nn.L1Loss()
 			if self.config.optimizer == 'adam':
 				self.optimizer = optim.Adam(self.model.parameters(), lr=self.config.learning_rate)
@@ -124,9 +97,7 @@ class Solver():
 				self.optimizer = optim.RMSprop(self.model.parameters(), lr=self.config.learning_rate)
 			else:
 				raise NotImplementedError("Learning method not supported for the task")
-
-		# setup tensorboard logger
-		tensorboard_logger.configure(os.path.join(self.model_dir, self.config.experiment_name + '.tb_log'))
+			self.log = SummaryWriter(self.log_dir)
 
 
 	def load_model(self, path):
@@ -147,7 +118,7 @@ class Solver():
 			# compute length for each uttr
 			batch_l = np.sum(np.sum(batch_x.data.numpy(), axis=-1) != 0, axis=-1)
 			batch_l = [int(sl) for sl in batch_l]
-		return batch_x, batch_l
+		return torch.FloatTensor(batch_x), torch.FloatTensor(batch_l)
 
 
 	####################
@@ -158,11 +129,11 @@ class Solver():
 		model_kept = []
 		global_step = 0
 
-		for epoch_i in range(self.config.epochs):
+		for epoch_i in tqdm(range(self.config.epochs), desc="Epoch"):
 
 			self.model.train()
 			train_losses = []
-			for batch_x in self.dataloader:
+			for batch_x in tqdm(self.dataloader, desc="Iteration"):
 
 				batch_x, batch_l = self.process_data(batch_x)
 				_, indices = torch.sort(batch_l, descending=True)
@@ -180,15 +151,13 @@ class Solver():
 				grad_norm = torch.nn.utils.clip_grad_norm_(self.model.parameters(), self.config.clip_thresh)
 				self.optimizer.step()
 
-				log_value("training loss (step-wise)", float(loss.item()), global_step)
-				log_value("gradient norm", grad_norm, global_step)
+				self.log.add_scalar('training loss (step-wise)', float(loss.item()), global_step)
+				self.log.add_scalar('gradient norm', grad_norm, global_step)
 
 				global_step += 1
 
 			# log and save
-			logging.info('Epoch: %d Training Loss: %.5f Validation Loss: %.5f' % (epoch_i + 1, np.mean(train_losses), np.mean(val_losses)))
-			log_value("training loss (epoch-wise)", np.mean(train_losses), epoch_i)
-			
+			self.log.add_scalar('training loss (epoch-wise)', np.mean(train_losses), epoch_i)	
 			new_model_path = os.path.join(self.model_dir, 'apc-epoch-%d' % (epoch_i + 1) + '.ckpt')
 			torch.save(self.model.state_dict(), new_model_path)
 			model_kept.append(new_model_path)
@@ -218,8 +187,6 @@ class Solver():
 
 				test_loss = self.criterion(test_outputs, test_batch_x[:, self.config.time_shift:, :])
 				test_losses.append(test_loss.item())
-
-		log_value("testing loss (epoch-wise)", np.mean(test_losses), epoch_i)
 
 
 	###################

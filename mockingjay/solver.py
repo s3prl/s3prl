@@ -75,9 +75,11 @@ class Solver():
 			raise NotImplementedError('Invalid `split` argument!')
 
 		if self.duo_feature:
-			setattr(self, 'dataloader', get_Dataloader(split, load='duo', use_gpu=self.paras.gpu, **self.config['dataloader']))
+			setattr(self, 'dataloader', get_Dataloader(split, load='duo', use_gpu=self.paras.gpu, \
+					**self.config['dataloader'])) # Currently the duo feature dataloader only supports mockingjay training, no need to specify `run_mockingjay`
 		else:
-			setattr(self, 'dataloader', get_Dataloader(split, load='spec', use_gpu=self.paras.gpu, **self.config['dataloader']))
+			setattr(self, 'dataloader', get_Dataloader(split, load='spec', use_gpu=self.paras.gpu, \
+					run_mockingjay=True, **self.config['dataloader'])) # specify `run_mockingjay` so dataloader will process mockingjay MAM data
 
 
 	def set_model(self, inference=False, with_head=False, from_path=None):
@@ -384,6 +386,7 @@ class Trainer(Solver):
 					# Log
 					self.log.add_scalar('lr', self.optimizer.get_lr()[0], self.global_step)
 					self.log.add_scalar('loss', loss.item(), self.global_step)
+					self.log.add_scalar('gradient norm', grad_norm, self.global_step)
 					progress.set_description("Loss %.4f" % loss.item())
 
 				if self.global_step % self.save_step == 0:
@@ -413,7 +416,6 @@ class Tester(Solver):
 	def __init__(self, config, paras):
 		super(Tester, self).__init__(config, paras)
 		self.dump_dir = str(self.ckpt.split('.')[0]) + '-dump/'
-		if not os.path.exists(self.dump_dir): os.makedirs(self.dump_dir)
 		self.duo_feature = False # Set duo feature to False since only input mel is needed during testing
 		self.load = True # Tester will load pre-trained models automatically
 
@@ -492,7 +494,7 @@ class Tester(Solver):
 	def plot(self, with_head=False):
 		''' Plotting the visualizations of the Unsupervised End-to-end Mockingjay Model'''
 		self.verbose('Testing set total ' + str(len(self.dataloader)) + ' batches.')
-
+		if not os.path.exists(self.dump_dir): os.makedirs(self.dump_dir)
 		with torch.no_grad():
 			idx = 0
 			for x in tqdm(self.dataloader, desc="Plotting"):

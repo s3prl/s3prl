@@ -42,7 +42,7 @@ def get_apc_args():
 class get_apc_config():
 	def __init__(self, seed=1337):
 		# Prenet architecture (note that all APC models in the paper DO NOT incoporate a prenet)
-		self.renet_num_layers = 0 # Number of ReLU layers as prenet
+		self.prenet_num_layers = 0 # Number of ReLU layers as prenet
 		self.prenet_dropout = 0.0 # Dropout for prenet
 
 		# RNN architecture
@@ -62,7 +62,7 @@ class get_apc_config():
 
 		# Misc configurations
 		self.feature_dim = mel_dim # The dimension of the input frame
-		self.load_data_workers # Number of parallel data loaders
+		self.load_data_workers = 16 # Number of parallel data loaders
 		self.experiment_name = 'apc_libri_sd' + str(seed) # Name of this experiment
 		self.log_path = './log/log_apc/' # Where to save the logs
 		self.result_path = './result/result_apc/' # Where to save the trained models
