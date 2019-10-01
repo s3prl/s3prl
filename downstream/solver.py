@@ -63,7 +63,7 @@ class Downstream_Solver(Solver):
 	def load_data(self, split='train', load='phone'):
 		''' Load date for training / testing'''
 		assert(load in ['phone', 'sentiment', 'speaker']), 'Unsupported dataloader!'
-		if load == 'phone':
+		if load == 'phone' or load == 'speaker':
 			if split == 'train':
 				self.verbose('Loading source data from ' + str(self.config['dataloader']['train_set']) + ' from ' + self.config['dataloader']['data_path'])
 				self.verbose('Loading phone data from ' + str(self.config['dataloader']['train_set']) + ' from ' + self.config['dataloader']['phone_path'])

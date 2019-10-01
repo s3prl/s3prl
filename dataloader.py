@@ -15,6 +15,7 @@ import torch
 import pickle
 import numpy as np
 import pandas as pd
+from tqdm import tqdm
 from torch.nn.utils.rnn import pad_sequence
 from torch.utils.data import DataLoader
 from torch.utils.data.dataset import Dataset
@@ -364,21 +365,92 @@ class Mel_Sentiment_Dataset(Dataset):
 #####################
 # MEL PHONE DATASET #
 #####################
-class Mel_Speaker_Dataset(LibriDataset):
+class Mel_Speaker_Dataset(Dataset):
 	
-	def __init__(self, run_mockingjay, file_path, speaker_path, sets, bucket_size, max_timestep=0, max_label_len=0, drop=False, load='sentiment'):
-		super(Mel_Speaker_Dataset, self).__init__(file_path, sets, bucket_size, max_timestep, max_label_len, drop, load)
+	def __init__(self, run_mockingjay, file_path, sets, bucket_size, max_timestep=0, max_label_len=0, drop=False, load='sentiment'):
 		
-		assert(self.load == 'speaker'), 'This dataset loads mel features and speaker ID labels.'
+		HALF_BATCHSIZE_TIME = 1000
+		assert(load == 'speaker'), 'This dataset loads mel features and speaker ID labels.'
 		self.run_mockingjay = run_mockingjay
-	
+		self.root = file_path
+		self.load = load
+
+		# Load the other set for speaker computation
+		if len(sets) == 2:
+			other_tables = pd.read_csv(os.path.join(file_path, sets[1] + '.csv'))
+			other_table = other_tables.sort_values(by=['length'], ascending=False)
+			O_speaker2idx = self.compute_speaker2idx(other_table['file_path'].tolist())
+		else:
+			raise ValueError('Both the `train_set` and `test_set` should be provided for speaker dictionary construction!')
+
+		# Load the major set (train or test)
+		tables = pd.read_csv(os.path.join(file_path, sets[0] + '.csv'))
+		self.table = tables.sort_values(by=['length'], ascending=False)
+		X = self.table['file_path'].tolist()
+		X_lens = self.table['length'].tolist()
+
+		# Crop seqs that are too long
+		if drop and max_timestep > 0 and self.load != 'text':
+			self.table = self.table[self.table.length < max_timestep]
+		if drop and max_label_len > 0:
+			self.table = self.table[self.table.label.str.count('_')+1 < max_label_len]
+
+		# Compute speaker dictionary
+		print('[Dataset] - Computing speaker class...')
+		self.speaker2idx = self.compute_speaker2idx(X, merge=O_speaker2idx)
+		self.class_num = len(self.speaker2idx)
+		print('[Dataset] - Possible speaker classes: ', self.class_num)
+
+		# Use bucketing to allow different batch sizes at run time
+		self.X = []
+		batch_x, batch_len = [], []
+
+		for x, x_len in zip(X, X_lens):
+			batch_x.append(x)
+			batch_len.append(x_len)
+			
+			# Fill in batch_x until batch is full
+			if len(batch_x) == bucket_size:
+				# Half the batch size if seq too long
+				if (bucket_size >= 2) and (max(batch_len) > HALF_BATCHSIZE_TIME):
+					self.X.append(batch_x[:bucket_size//2])
+					self.X.append(batch_x[bucket_size//2:])
+				else:
+					self.X.append(batch_x)
+				batch_x, batch_len = [], []
+		
+		# Gather the last batch
+		if len(batch_x) > 0:
+			self.X.append(batch_x)
+
+	def __len__(self):
+		return len(self.X)
+
 	def __getitem__(self, index):
 		# Load acoustic feature and pad
 		x_batch = [torch.FloatTensor(np.load(os.path.join(self.root, x_file))) for x_file in self.X[index]]
 		x_pad_batch = pad_sequence(x_batch, batch_first=True)
 		# Return (x_spec, speaker_label)
-		s_pad_batch = None # TODO
-		return x_pad_batch, s_pad_batch
+		s_batch = torch.FloatTensor([self.speaker2idx[self.get_speaker_from_path(x_file)] for x_file in self.X[index]])
+		return x_pad_batch, s_batch
+
+	def get_speaker_from_path(self, x):
+		return x.split('/')[-1].split('.')[0].split('-')[0]
+
+	def compute_speaker2idx(self, X, merge=None):
+		idx = 0
+		speaker2idx = {}
+		for x in tqdm(X):
+			speaker = self.get_speaker_from_path(x)
+			if speaker not in speaker2idx:
+				speaker2idx[speaker] = idx
+				idx += 1
+		if merge is not None:
+			for key in merge:
+				if key not in speaker2idx:
+					speaker2idx[speaker] = idx
+					idx += 1
+		return speaker2idx
 
 
 ##################
@@ -386,7 +458,7 @@ class Mel_Speaker_Dataset(LibriDataset):
 ##################
 def get_Dataloader(split, load, data_path, batch_size, max_timestep, max_label_len, 
 				   use_gpu, n_jobs, train_set, dev_set, test_set, dev_batch_size, 
-				   target_path=None, phone_path=None, sentiment_path=None, speaker_path=None,
+				   target_path=None, phone_path=None, sentiment_path=None,
 				   decode_beam_size=None, run_mockingjay=False, **kwargs):
 
 	# Decide which split to use: train/dev/test
@@ -434,9 +506,16 @@ def get_Dataloader(split, load, data_path, batch_size, max_timestep, max_label_l
 		ds = Mel_Sentiment_Dataset(run_mockingjay=run_mockingjay, sentiment_path=sentiment_path, split=split, max_timestep=max_timestep, load=load,
 								bucket_size=bs, drop=drop_too_long)
 	elif load == 'speaker':
-		assert(speaker_path is not None), '`speaker path` must be provided for this dataset.'
-		ds = Mel_Speaker_Dataset(run_mockingjay=run_mockingjay, file_path=data_path, speaker_path=speaker_path, sets=sets, max_timestep=max_timestep, load=load,
+		if split == 'train': 
+			sets = (train_set[0], test_set[0])
+		elif split  == 'test':
+			sets = (test_set[0], train_set[0])
+		else:
+			raise NotImplementedError('Invalid configuration for `Mel_Speaker_Dataset`!')
+		ds = Mel_Speaker_Dataset(run_mockingjay=run_mockingjay, file_path=data_path, sets=sets, max_timestep=max_timestep, load=load,
 								max_label_len=max_label_len, bucket_size=bs, drop=drop_too_long)
+	else:
+		raise NotImplementedError('Invalid `load` argument for `get_Dataloader()`!')
 
 	return DataLoader(ds, batch_size=1, shuffle=shuffle, drop_last=False, num_workers=n_jobs, pin_memory=use_gpu)
 
