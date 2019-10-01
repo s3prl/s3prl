@@ -244,7 +244,7 @@ class Mel_Phone_Dataset(LibriDataset):
 		if train_proportion < 1.0:
 			print('[Dataset] - Truncating dataset size from ', len(X), end='')
 			chose_proportion = int(len(X)*train_proportion)
-			sample_index = random.sample(range(len(X)), chose_proportion)
+			sample_index = sorted(random.sample(range(len(X)), chose_proportion), reverse=True)
 			X = np.asarray(X)[sample_index]
 			X_lens = np.asarray(X_lens)[sample_index]
 			print(' to ', len(X))
