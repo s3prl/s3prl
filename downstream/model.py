@@ -12,6 +12,7 @@
 ###############
 import torch
 from torch import nn
+from torch.nn.utils.rnn import pack_padded_sequence
 
 
 #####################
@@ -105,5 +106,80 @@ class LinearClassifier(nn.Module):
 			correct, valid = self.statistic(prob, labels, label_mask)
 
 			return loss, prob.detach().cpu(), correct.detach().cpu(), valid.detach().cpu()
+
+		return prob
+
+
+class RnnClassifier(nn.Module):
+	def __init__(self, input_dim, class_num, task, dconfig):
+		super(RnnClassifier, self).__init__()
+		
+		output_dim = class_num
+		hidden_size = dconfig['hidden_size']
+		drop = dconfig['drop']
+		self.select_hidden = dconfig['select_hidden']
+
+		self.rnn = nn.GRU(input_size=input_dim, hidden_size=hidden_size, num_layers=1, dropout=drop,
+			batch_first=True, bidirectional=False)
+		self.out = nn.Linear(hidden_size, output_dim)
+		self.out_fn = nn.Softmax(dim=-1)
+		self.criterion = nn.CrossEntropyLoss(ignore_index=-100)
+
+
+	def statistic(self, probabilities, labels):
+		assert(len(probabilities.shape) > 1)
+		assert(probabilities.unbind(dim=-1)[0].shape == labels.shape)
+
+		valid_count = len(labels)
+		correct_count = ((probabilities.argmax(dim=-1) == labels).type(torch.cuda.LongTensor)).sum()
+		return correct_count, valid_count
+
+
+	def forward(self, features, labels=None, label_mask=None):
+		# features from mockingjay: (batch_size, layer, seq_len, feature)
+		# features from baseline: (batch_size, seq_len, feature)
+		# labels: (batch_size, seq_len), frame by frame classification
+		# label_mask: (batch_size, seq_len)
+
+		if len(features.shape) == 4:
+			# compute mean on mockingjay representations if given features from mockingjay
+			if self.select_hidden == 'last':
+				features = features[:, -1, :, :]
+			elif self.select_hidden == 'first':
+				features = features[:, 0, :, :]
+			elif self.select_hidden == 'average':
+				features = features.mean(dim=1)  # now simply average the representations over all layers, (batch_size, seq_len, feature)
+			else:
+				raise NotImplementedError('Feature selection mode not supported!')
+
+			# since the down-sampling (float length be truncated to int) and then up-sampling process
+			# can cause a mismatch between the seq lenth of mockingjay representation and that of label
+			# we truncate the final few timestamp of label to make two seq equal in length
+			labels = labels[:, :features.size(1)]
+			label_mask = label_mask[:, :features.size(1)]
+
+		labels = labels[:, 0]
+		valid_lengths = label_mask.sum(dim=1)
+		# features: (batch_size, seq_len, feature)
+		# labels: (batch_size,)
+		# valid_lengths: (batch_size, )
+
+		packed = pack_padded_sequence(features, valid_lengths, batch_first=True, enforce_sorted=True)
+		output, h_n = self.rnn(packed)
+		embedded = h_n[-1, :, :]
+		# cause h_n directly contains info for final states
+		# it will be easier to use h_n as extracted embedding
+
+		logits = self.out(embedded)
+		prob = self.out_fn(logits)
+		# prob: (batch_size, probs)
+		
+		if labels is not None:
+			assert(label_mask is not None), 'When labels are provided, label_mask should also be provided'
+			loss = self.criterion(logits, labels)
+			
+			# statistic for accuracy
+			correct, valid = self.statistic(prob, labels)
+			return loss, prob.detach().cpu(), torch.tensor(correct), torch.tensor(valid)
 
 		return prob
