@@ -1,5 +1,5 @@
 # 👾 Mockingjay
-## Speech Representation Learning with Deep Bidirectional Transformer Encoders
+## Self-Supervised Speech Representation Learning with Deep Bidirectional Transformer Encoders
 ### PyTorch Official Implementation
 
 This is an open source project for Mockingjay, end-to-end learning of acoustic features representations, implemented with Pytorch.
