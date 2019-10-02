@@ -63,9 +63,9 @@ def npy2sdk(string):
 #############################
 def get_preprocess_args():
 	parser = argparse.ArgumentParser(description='preprocess arguments for LibriSpeech dataset.')
-	parser.add_argument('--data_path', default='/home/leo/d/workspace/dataset/MOSI/Raw/Audio/WAV_16000/Segmented', type=str, help='Path to raw MOSI segmented audio dataset')
+	parser.add_argument('--data_path', default='/home/leo/d/datasets/MOSI/Raw/Audio/WAV_16000/Segmented', type=str, help='Path to raw MOSI segmented audio dataset')
 	parser.add_argument('--output_path', default='./data/', type=str, help='Path to store output', required=False)
-	parser.add_argument('--feature_type', default='fbank', type=str, help='Feature type ( mfcc / fbank / mel / linear )', required=False)
+	parser.add_argument('--feature_type', default='mel', type=str, help='Feature type ( mfcc / fbank / mel / linear )', required=False)
 	parser.add_argument('--apply_cmvn', default=True, type=boolean_string, help='Apply CMVN on feature', required=False)
 	parser.add_argument('--n_jobs', default=-1, type=int, help='Number of jobs used for feature extraction', required=False)
 	parser.add_argument('--n_tokens', default=5000, type=int, help='Vocabulary size of target', required=False)
