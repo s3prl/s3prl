@@ -84,9 +84,9 @@ class Downstream_Solver(Solver):
 
 
 	def set_model(self, inference=False):
-		model_type = 'linear' if 'phone' in self.task else 'rnn'
-		input_dim = int(self.config['downstream'][model_type]['input_dim']) if \
-					self.config['downstream'][model_type]['input_dim'] != 'None' else None
+		self.model_type = 'linear' if 'phone' in self.task else 'rnn'
+		input_dim = int(self.config['downstream'][self.model_type]['input_dim']) if \
+					self.config['downstream'][self.model_type]['input_dim'] != 'None' else None
 		if 'mockingjay' in self.task:
 			self.mockingjay = Tester(self.mock_config, self.mock_paras)
 			self.mockingjay.set_model(inference=True, with_head=False)
@@ -103,13 +103,13 @@ class Downstream_Solver(Solver):
 		else:
 			raise NotImplementedError('Invalid Task!')
 
-		if model_type == 'linear':
+		if self.model_type == 'linear':
 			self.classifier = LinearClassifier(input_dim=input_dim,
 											class_num=self.dataloader.dataset.class_num,
 											task=self.task,
 											dconfig=self.config['downstream']['linear'],
 											sequencial=False).to(self.device)
-		elif model_type == 'rnn':
+		elif self.model_type == 'rnn':
 			self.classifier = RnnClassifier(input_dim=input_dim,
 											class_num=self.dataloader.dataset.class_num,
 											task=self.task,
@@ -223,6 +223,7 @@ class Downstream_Trainer(Downstream_Solver):
 				if self.global_step > self.total_steps: break
 				# features: (1, batch_size, seq_len, feature)
 				# dimension of labels is depends on task and dataset, but the first dimention is always trivial due to bucketing
+				# eg. (1, batch_size, seq_len) or (1, batch_size)
 				labels = labels.squeeze(0).to(device=self.device, dtype=torch.long)
 
 				if self.run_mockingjay:
@@ -242,8 +243,18 @@ class Downstream_Trainer(Downstream_Solver):
 				# For each timestamps, we mark 1 on valid timestamps, and 0 otherwise
 				# This variable can be useful for frame-wise metric, like phoneme recognition or speaker verification
 				# label_mask: (batch_size, seq_len), LongTensor
+				# valid_lengths: (batch_size), LongTensor
 				label_mask = (features.sum(dim=-1) != 0).type(torch.LongTensor).to(device=self.device, dtype=torch.long)
-				loss, logits, correct, valid = self.classifier(representations, labels, label_mask)
+				valid_lengths = label_mask.sum(dim=1)
+
+				if self.model_type == 'linear':
+					# labels: (batch_size, seq_len)
+					loss, logits, correct, valid = self.classifier(representations, labels, label_mask)
+				elif self.model_type == 'rnn':
+					# labels: (batch_size, )
+					loss, logits, correct, valid = self.classifier(representations, labels, valid_lengths)
+				else:
+					raise NotImplementedError
 
 				# Accumulate Loss
 				loss.backward()
@@ -316,7 +327,16 @@ class Downstream_Tester(Downstream_Solver):
 			# This variable can be useful for frame-wise metric, like phoneme recognition or speaker verification
 			# label_mask: (batch_size, seq_len), LongTensor
 			label_mask = (features.sum(dim=-1) != 0).type(torch.LongTensor).to(device=self.device, dtype=torch.long)
-			loss, logits, correct, valid = self.classifier(representations, labels, label_mask)
+			valid_lengths = label_mask.sum(dim=1)
+
+			if self.model_type == 'linear':
+				# labels: (batch_size, seq_len)
+				loss, logits, correct, valid = self.classifier(representations, labels, label_mask)
+			elif self.model_type == 'rnn':
+				# labels: (batch_size, )
+				loss, logits, correct, valid = self.classifier(representations, labels, valid_lengths)
+			else:
+				raise NotImplementedError
 			
 			test_acc.append(correct.item() / valid.item())
 

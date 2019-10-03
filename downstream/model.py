@@ -135,11 +135,12 @@ class RnnClassifier(nn.Module):
 		return correct_count, valid_count
 
 
-	def forward(self, features, labels=None, label_mask=None):
+	def forward(self, features, labels=None, valid_lengths=None):
+		assert(valid_lengths is not None), 'Valid_lengths is required.'
 		# features from mockingjay: (batch_size, layer, seq_len, feature)
 		# features from baseline: (batch_size, seq_len, feature)
-		# labels: (batch_size, seq_len), frame by frame classification
-		# label_mask: (batch_size, seq_len)
+		# labels: (batch_size,), one utterance to one label
+		# valid_lengths: (batch_size, )
 
 		if len(features.shape) == 4:
 			# compute mean on mockingjay representations if given features from mockingjay
@@ -152,18 +153,6 @@ class RnnClassifier(nn.Module):
 			else:
 				raise NotImplementedError('Feature selection mode not supported!')
 
-			# since the down-sampling (float length be truncated to int) and then up-sampling process
-			# can cause a mismatch between the seq lenth of mockingjay representation and that of label
-			# we truncate the final few timestamp of label to make two seq equal in length
-			labels = labels[:, :features.size(1)]
-			label_mask = label_mask[:, :features.size(1)]
-
-		labels = labels[:, 0]
-		valid_lengths = label_mask.sum(dim=1)
-		# features: (batch_size, seq_len, feature)
-		# labels: (batch_size,)
-		# valid_lengths: (batch_size, )
-
 		packed = pack_padded_sequence(features, valid_lengths, batch_first=True, enforce_sorted=True)
 		output, h_n = self.rnn(packed)
 		embedded = h_n[-1, :, :]
@@ -175,9 +164,8 @@ class RnnClassifier(nn.Module):
 		# prob: (batch_size, probs)
 		
 		if labels is not None:
-			assert(label_mask is not None), 'When labels are provided, label_mask should also be provided'
 			loss = self.criterion(logits, labels)
-			
+
 			# statistic for accuracy
 			correct, valid = self.statistic(prob, labels)
 			return loss, prob.detach().cpu(), torch.tensor(correct), torch.tensor(valid)

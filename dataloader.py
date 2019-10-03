@@ -367,11 +367,11 @@ class Mel_Sentiment_Dataset(Dataset):
 
 		# Load label
 		y_batch = torch.LongTensor(self.Y[index])  # (batch, )
-		y_broadcast_int_batch = y_batch.repeat(x_pad_batch.size(1), 1).T  # (batch, seq)
-		
+		# y_broadcast_int_batch = y_batch.repeat(x_pad_batch.size(1), 1).T  # (batch, seq)
+
 		if self.run_mockingjay:
 			x_pad_batch = process_test_MAM_data(spec=(x_pad_batch,))
-		return x_pad_batch, y_broadcast_int_batch
+		return x_pad_batch, y_batch
 	
 	def __len__(self):
 		return len(self.X)
