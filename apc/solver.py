@@ -23,6 +23,7 @@ from torch.autograd import Variable
 from tensorboardX import SummaryWriter
 from dataloader import get_Dataloader
 from apc.model import APCModel
+from utils.audio import plot_spectrogram_to_numpy
 
 
 PrenetConfig = namedtuple(
@@ -128,7 +129,7 @@ class Solver():
 		self.model.train()
 		pbar = tqdm(total=self.config.total_steps)
 		model_kept = []
-		global_step = 0
+		global_step = 1
 
 		while global_step <= self.config.total_steps:
 
@@ -150,20 +151,26 @@ class Solver():
 				self.optimizer.step()
 				self.optimizer.zero_grad()
 
-				self.log.add_scalar('training loss (step-wise)', float(loss.item()), global_step)
-				self.log.add_scalar('gradient norm', grad_norm, global_step)
+				if global_step % self.config.log_step == 0:
+					self.log.add_scalar('training loss (step-wise)', float(loss.item()), global_step)
+					self.log.add_scalar('gradient norm', grad_norm, global_step)
+
+				# log and save
+				if global_step % self.config.save_step == 0:
+					pred_spec = plot_spectrogram_to_numpy(outputs[0].data.cpu().numpy())
+					true_spec = plot_spectrogram_to_numpy(batch_x[0].data.cpu().numpy())
+					self.log.add_image('pred_spec', pred_spec, global_step)
+					self.log.add_image('true_spec', true_spec, global_step)
+					new_model_path = os.path.join(self.model_dir, 'apc-%d' % (global_step + 1) + '.ckpt')
+					torch.save(self.model.state_dict(), new_model_path)
+					model_kept.append(new_model_path)
+
+					if len(model_kept) > self.config.max_keep:
+						os.remove(model_kept[0])
+						model_kept.pop(0)
 
 				pbar.update(1)
 				global_step += 1
-
-			# log and save
-			new_model_path = os.path.join(self.model_dir, 'apc-%d' % (global_step + 1) + '.ckpt')
-			torch.save(self.model.state_dict(), new_model_path)
-			model_kept.append(new_model_path)
-
-			if len(model_kept) >= self.config.max_keep:
-				os.remove(model_kept[0])
-				model_kept.pop(0)
 
 
 	###################

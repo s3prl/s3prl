@@ -53,12 +53,14 @@ class get_apc_config():
 
 		# Training configuration
 		self.optimizer = "adam" # The gradient descent optimizer (e.g., sgd, adam, etc.)
-		self.batch_size = 6 # Training minibatch size
+		self.batch_size = 12 # Training minibatch size
 		self.learning_rate = 0.001 # Initial learning rate
 		self.total_steps = 500000 # Number of training steps
 		self.time_shift = 3 # Given f_{t}, predict f_{t + n}, where n is the time_shift, , sweet spot == 3 as reported in the paper
 		self.clip_thresh = 1.0 # Threshold for clipping the gradients
-		self.max_keep = 10 # Maximum number of model ckpt to keep during training
+		self.log_step = 50 # Log training every this amount of training steps
+		self.max_keep = 20 # Maximum number of model ckpt to keep during training
+		self.save_step = 1000 # Save model every this amount of training steps
 
 		# Misc configurations
 		self.feature_dim = mel_dim # The dimension of the input frame
