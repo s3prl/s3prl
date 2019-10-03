@@ -60,7 +60,7 @@ class get_apc_config():
 		self.clip_thresh = 1.0 # Threshold for clipping the gradients
 		self.log_step = 50 # Log training every this amount of training steps
 		self.max_keep = 20 # Maximum number of model ckpt to keep during training
-		self.save_step = 1000 # Save model every this amount of training steps
+		self.save_step = 10000 # Save model every this amount of training steps
 
 		# Misc configurations
 		self.feature_dim = mel_dim # The dimension of the input frame

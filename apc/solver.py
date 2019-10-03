@@ -12,6 +12,7 @@
 # IMPORTATION #
 ###############
 import os
+import math
 import torch
 import argparse
 import numpy as np
@@ -148,7 +149,12 @@ class Solver():
 				loss = self.criterion(outputs, batch_x[:, self.config.time_shift:, :])
 				loss.backward()
 				grad_norm = torch.nn.utils.clip_grad_norm_(self.model.parameters(), self.config.clip_thresh)
-				self.optimizer.step()
+				
+				# Step
+				if math.isnan(grad_norm):
+					print('Error : grad norm is NaN @ step ' + str(global_step))
+				else:
+					self.optimizer.step()
 				self.optimizer.zero_grad()
 
 				if global_step % self.config.log_step == 0:
