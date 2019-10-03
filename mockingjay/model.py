@@ -537,14 +537,15 @@ class MockingjayForMaskedAcousticModel(MockingjayInitModel):
 		return pred_spec
 
 class ALBertMackingjayModel(MockingjayInitModel):
-    	""" A Lite Version for  MackingModel
+
+	""" 
+	A Lite Version for  MackingModel
 	Params:
 		`config`: a MockingjayConfig class instance with the configuration to build a new model
 		`intput_dim`: int,  input dimension of model	
 		`output_attentions`: If True, also output attentions weights computed by the model at each layer. Default: False
 		`keep_multihead_output`: If True, saves output of the multi-head attention module with its gradient.
 			This can be used to compute head importance metrics. Default: False
-
 	Inputs:
 		`spec_input`: a torch.LongTensor of shape [batch_size, sequence_length, feature_dimension]
 			with the selected frames processed as masked frames during training,
@@ -558,8 +559,6 @@ class ALBertMackingjayModel(MockingjayInitModel):
 		`output_all_encoded_layers`: boolean which controls the content of the `encoded_layers` output as described below. Default: `True`.
 		`head_mask`: an optional torch.Tensor of shape [num_heads] or [num_layers, num_heads] with indices between 0 and 1.
 			It's a mask to be used to nullify some heads of the transformer. 1.0 => head is fully masked, 0.0 => head is not masked.
-
-
 	Outputs: Tuple of (encoded_layers, pooled_output)
 		`encoded_layers`: controled by `output_all_encoded_layers` argument:
 			- `output_all_encoded_layers=True`: outputs a list of the full sequences of encoded-hidden-states
@@ -568,12 +567,13 @@ class ALBertMackingjayModel(MockingjayInitModel):
 			- `output_all_encoded_layers=False`: outputs only the full sequence of hidden-states corresponding
 				to the last attention block of shape [batch_size, sequence_length, hidden_size].
 	"""
+
 	def __init__(self, config, input_dim, output_attentions=False, keep_multihead_output=False):
 		super(ALBertMackingjayModel, self).__init__(config)
 		self.output_attentions = output_attentions
 		self.input_representations = MockingjayInputRepresentations(config, input_dim)
 		self.encoder = MockingjayEncoder(config, output_attentions=output_attentions,
-										   keep_multihead_output=keep_multihead_output)
+											keep_multihead_output=keep_multihead_output)
 		self.apply(self.init_Mockingjay_weights)
 
 	def prune_heads(self, heads_to_prune):
@@ -637,12 +637,12 @@ class ALBertMackingjayModel(MockingjayInitModel):
 		return encoded_layers
 
 class ALbertEncoder(nn.Module):
-    	def __init__(self, config, output_attentions=False, keep_multihead_output=False):
+	def __init__(self, config, output_attentions=False, keep_multihead_output=False):
 		super(ALbertEncoder, self).__init__()
 		self.output_attentions = output_attentions
 		self.config = config
 		self.layer = MockingjayLayer(self.config, output_attentions=output_attentions,
-								  keep_multihead_output=keep_multihead_output)
+									keep_multihead_output=keep_multihead_output)
 		# self.layer = nn.ModuleList([copy.deepcopy(layer) for _ in range(config.num_hidden_layers)])
 
 	def forward(self, hidden_states, attention_mask, output_all_encoded_layers=True, head_mask=None):
