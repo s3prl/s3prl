@@ -730,6 +730,7 @@ class MockingjayForMaskedAcoustic_SpectOrderModel(MockingjayInitModel):
 		else:
 			sequence_output = outputs
 		pred_spec = self.SpecHead(sequence_output)
+		
 
 		if spec_label is not None and mask_label is not None:
 			masked_spec_loss = self.loss(pred_spec.masked_select(mask_label), spec_label.masked_select(mask_label))

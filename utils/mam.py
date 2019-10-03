@@ -176,25 +176,33 @@ def process_train_MAM_data_spectrum_order(spec):
 
         for idx in range(len(spec_stacked)):
 
-            # ignore middle 20 % samples and divide the spec to two part to the second task spec order prediction
+            #ignore middle 20 % samples and divide the spec to two part to the second task spec order prediction
             sample_length = int(spec_len[idx])
-            first_proportion  = spec_stacked[idx][: int(0.4*sample_length)]
-            second_proportion = spec_stacked[idx][int(0.6*sample_length): ]
-            ignore_part = spec_stacked[idx][int(0.4*sample_length): int(0.6*sample_length) ]
+            first_proportion_input  = spec_masked[idx][: int(0.45*sample_length)]
+            second_proportion = spec_masked[idx][int(0.55*sample_length): ]
+            ignore_part_input = spec_masked[idx][int(0.45*sample_length): int(0.55*sample_length) ]
+            first_proportion_output  = spec_stacked[idx][: int(0.45*sample_length)]
+            second_proportion_output = spec_stacked[idx][int(0.55*sample_length): ]
+            ignore_part_output = spec_stacked[idx][int(0.45*sample_length): int(0.55*sample_length) ]
+
+            ignore_indexes = list(range(int(0.45*sample_length),int(0.55*sample_length)))
 
             if random.uniform(0, 1) > 0.5:
                 order_label[idx] = 1
-                spec_stacked[idx] = torch.cat([first_proportion,second_proportion],dim=0)
+                spec_masked[idx] = torch.cat([first_proportion_input,ignore_part_input,second_proportion_input],dim=0)
+                spec_stacked[idx] = torch.cat([first_proportion_output,ignore_part_output,second_proportion_output],dim=0)
             else:
                 order_label[idx] = 0
-                spec_stacked[idx] = torch.cat([second_proportion,first_proportion],dim=0)
+                spec_masked[idx] = torch.cat([second_proportion,ignore_part,first_proportion],dim=0)
+                spec_stacked[idx] = torch.cat([first_proportion_output,ignore_part_output,second_proportion_output],dim=0)
 
             chose_proportion = int(spec_len[idx]*mask_proportion) # chooses % of the frame positions at random for prediction
             sub_mask_proportion = int(chose_proportion*0.8) # replace the i-th frame with (1) the [MASK] frame 80% of the time
             sub_rand_proportion = int(chose_proportion*0.1) # a random frame 10% of the time
 
-            
-            sample_index = random.sample(range(spec_len[idx]), chose_proportion + sub_rand_proportion) # sample the chosen_index and random frames
+            all_range = list(range(spec_len[idx]))
+            just_two_proportion = [x for x in all_range if x not in ignore_indexes] #we will keep ignore part data to clean
+            sample_index = random.sample(just_two_proportion, chose_proportion + sub_rand_proportion) # sample the chosen_index and random frames
             chosen_index = sample_index[:chose_proportion]
             masked_index = chosen_index[:sub_mask_proportion]
 
