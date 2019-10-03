@@ -165,7 +165,7 @@ def process_train_MAM_data_spectrum_order(spec):
         spec_len = [int(sl) for sl in spec_len]
 
         batch_size = spec_stacked.shape[0]
-        seq_len = spec_stacked.shape[1]
+        seq_len = int(spec_stacked.shape[1] * 0.8)
 
         pos_enc = position_encoding(seq_len, batch_size) # (batch_size, seq_len, hidden_size)
         mask_label = np.zeros_like(spec_stacked)
@@ -184,9 +184,10 @@ def process_train_MAM_data_spectrum_order(spec):
 
             if random.uniform(0, 1) > 0.5:
                 order_label[idx] = 1
+                spec_stacked[idx] = torch.cat([first_proportion,second_proportion],dim=0)
             else:
                 order_label[idx] = 0
-                spec_stacked[idx] = torch.cat([second_proportion,ignore_part,first_proportion],dim=0)
+                spec_stacked[idx] = torch.cat([second_proportion,first_proportion],dim=0)
 
             chose_proportion = int(spec_len[idx]*mask_proportion) # chooses % of the frame positions at random for prediction
             sub_mask_proportion = int(chose_proportion*0.8) # replace the i-th frame with (1) the [MASK] frame 80% of the time
