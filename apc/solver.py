@@ -125,14 +125,15 @@ class Solver():
 	####################
 	def train(self):
 		
+		self.model.train()
+		pbar = tqdm(total=self.config.total_steps)
 		model_kept = []
 		global_step = 0
 
-		for epoch_i in tqdm(range(self.config.epochs), desc="Epoch"):
+		while global_step <= self.config.total_steps:
 
-			self.model.train()
-			train_losses = []
 			for batch_x in tqdm(self.dataloader, desc="Iteration"):
+				if global_step > self.config.total_steps: break
 
 				batch_x, batch_l = self.process_data(batch_x)
 				_, indices = torch.sort(batch_l, descending=True)
@@ -143,21 +144,20 @@ class Solver():
 				outputs, _ = self.model(batch_x[:, :-self.config.time_shift, :], \
 										batch_l - self.config.time_shift)
 
-				self.optimizer.zero_grad()
 				loss = self.criterion(outputs, batch_x[:, self.config.time_shift:, :])
-				train_losses.append(loss.item())
 				loss.backward()
 				grad_norm = torch.nn.utils.clip_grad_norm_(self.model.parameters(), self.config.clip_thresh)
 				self.optimizer.step()
+				self.optimizer.zero_grad()
 
 				self.log.add_scalar('training loss (step-wise)', float(loss.item()), global_step)
 				self.log.add_scalar('gradient norm', grad_norm, global_step)
 
+				pbar.update(1)
 				global_step += 1
 
 			# log and save
-			self.log.add_scalar('training loss (epoch-wise)', np.mean(train_losses), epoch_i)	
-			new_model_path = os.path.join(self.model_dir, 'apc-epoch-%d' % (epoch_i + 1) + '.ckpt')
+			new_model_path = os.path.join(self.model_dir, 'apc-%d' % (global_step + 1) + '.ckpt')
 			torch.save(self.model.state_dict(), new_model_path)
 			model_kept.append(new_model_path)
 
@@ -201,8 +201,7 @@ class Solver():
 			batch_x = Variable(batch_x[indices]).cuda()
 			batch_l = Variable(batch_l[indices]).cuda()
 
-			_, feats = self.model(batch_x[:, :-self.config.time_shift, :], \
-									batch_l - self.config.time_shift)
+			_, feats = self.model(batch_x, batch_l)
 		# feats shape: (num_layers, batch_size, seq_len, rnn_hidden_size)
 		if not all_layers:
 			return feats[-1, :, :, :] # (batch_size, seq_len, rnn_hidden_size)
