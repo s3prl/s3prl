@@ -102,12 +102,11 @@ class Solver():
 
 	def load_model(self, path):
 		self.verbose('Load model from {}'.format(path))
-		state = torch.load(self.ckpt, map_location='cpu')
-		self.verbose('', end='')
+		state = torch.load(path, map_location='cpu')
 		try:
 			self.model.load_state_dict(state)
-			self.verbose('[SpecHead] - Loaded')
-		except: self.verbose('[SpecHead - X]')
+			self.verbose('[APC] - Loaded')
+		except: self.verbose('[APC - X]')
 
 
 	def process_data(self, batch_x):
