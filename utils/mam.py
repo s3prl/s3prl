@@ -165,35 +165,36 @@ def process_train_MAM_data_spectrum_order(spec):
         spec_len = [int(sl) for sl in spec_len]
 
         batch_size = spec_stacked.shape[0]
-        seq_len = int(spec_stacked.shape[1] * 0.8)
+        seq_len = spec_stacked.shape[1]
 
         pos_enc = position_encoding(seq_len, batch_size) # (batch_size, seq_len, hidden_size)
         mask_label = np.zeros_like(spec_stacked)
         attn_mask = np.ones((batch_size, seq_len)) # (batch_size, seq_len)
 
-        order_label = torch.zeros(batch_size,1)
+        order_label = torch.zeros(batch_size,2)
         
 
         for idx in range(len(spec_stacked)):
 
             #ignore middle 20 % samples and divide the spec to two part to the second task spec order prediction
             sample_length = int(spec_len[idx])
-            first_proportion_input  = spec_masked[idx][: int(0.45*sample_length)]
-            second_proportion = spec_masked[idx][int(0.55*sample_length): ]
-            ignore_part_input = spec_masked[idx][int(0.45*sample_length): int(0.55*sample_length) ]
-            first_proportion_output  = spec_stacked[idx][: int(0.45*sample_length)]
-            second_proportion_output = spec_stacked[idx][int(0.55*sample_length): ]
-            ignore_part_output = spec_stacked[idx][int(0.45*sample_length): int(0.55*sample_length) ]
+            first_proportion_input  = spec_masked[idx][: int(0.4*sample_length)]
+            second_proportion_input = spec_masked[idx][int(0.6*sample_length): ]
+            ignore_part_input = spec_masked[idx][int(0.4*sample_length): int(0.6*sample_length) ]
 
-            ignore_indexes = list(range(int(0.45*sample_length),int(0.55*sample_length)))
+            first_proportion_output  = spec_stacked[idx][: int(0.4*sample_length)]
+            second_proportion_output = spec_stacked[idx][int(0.6*sample_length): ]
+            ignore_part_output = spec_stacked[idx][int(0.4*sample_length): int(0.6*sample_length) ]
+
+            ignore_indexes = list(range(int(0.4*sample_length),int(0.6*sample_length)))
 
             if random.uniform(0, 1) > 0.5:
-                order_label[idx] = 1
+                order_label[idx][1] = 1
                 spec_masked[idx] = torch.cat([first_proportion_input,ignore_part_input,second_proportion_input],dim=0)
                 spec_stacked[idx] = torch.cat([first_proportion_output,ignore_part_output,second_proportion_output],dim=0)
             else:
-                order_label[idx] = 0
-                spec_masked[idx] = torch.cat([second_proportion,ignore_part,first_proportion],dim=0)
+                order_label[idx][0] = 1
+                spec_masked[idx] = torch.cat([second_proportion_input,ignore_part,first_proportion_input],dim=0)
                 spec_stacked[idx] = torch.cat([first_proportion_output,ignore_part_output,second_proportion_output],dim=0)
 
             chose_proportion = int(spec_len[idx]*mask_proportion) # chooses % of the frame positions at random for prediction
