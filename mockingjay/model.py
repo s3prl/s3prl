@@ -730,32 +730,35 @@ class MockingjayForMaskedAcoustic_SpectOrderModel(MockingjayInitModel):
 		else:
 			sequence_output = outputs
 		pred_spec = self.SpecHead(sequence_output)
-		
+		pred_prob= self.OrderHead(sequence_output)
 
+		
 		if spec_label is not None and mask_label is not None:
 			masked_spec_loss = self.loss(pred_spec.masked_select(mask_label), spec_label.masked_select(mask_label))
-			return masked_spec_loss, pred_spec
+			order_loss		 = self.order_loss(pred_prob,order_label)
+			return masked_spec_loss, pred_spec, order_loss
 		elif self.output_attentions:
 			return all_attentions, pred_spec
 		return pred_spec
 
 class MockingjaySpecOrderHead(nn.Module):
-	def __init__(self, config, output_dim):
+	def __init__(self, config):
 		super(MockingjaySpecOrderHead, self).__init__()
 		self.output_dim = output_dim
-		self.dense = nn.Linear(config.hidden_size, config.hidden_size)
-		if isinstance(config.hidden_act, str) or (sys.version_info[0] == 2 and isinstance(config.hidden_act, unicode)):
-			self.transform_act_fn = ACT2FN[config.hidden_act]
-		else:
-			self.transform_act_fn = config.hidden_act
-		self.LayerNorm = MockingjayLayerNorm(config.hidden_size, eps=config.layer_norm_eps)
-		self.output = nn.Linear(config.hidden_size, self.output_dim * config.downsample_rate)
-
+		self.dense = nn.Linear(config.hidden_states,1)
+		self.act = ACT2FN(config.hidden_act)
+		self.seq_length = seq_len
+		self.total_length = 512
+		self.dense2= nn.Linear(512, 2)
+		self.softmax = nn.Softmax(-1)
 	def forward(self, hidden_states):
-		hidden_states = self.dense(hidden_states)
-		hidden_states = self.transform_act_fn(hidden_states)
-		hidden_states = self.LayerNorm(hidden_states)
-		linear_output = self.output(hidden_states)
-		return linear_output
+		score = self.dense(hidden_states)
+		score = score.squeeze(2)
+		score = self.act(score)
+		length=score.shape[1]
+		pad_seq = torch.cat(score,torch.zeros([score.shape[0],self.total_length - length]))
+		linear = self.dense2(pad_seq)
+		prob = self.softmax(linear)
+		return prob
 		
 
