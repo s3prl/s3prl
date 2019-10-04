@@ -52,7 +52,7 @@ class LinearClassifier(nn.Module):
 		assert(labels.shape == label_mask.shape)
 
 		valid_count = label_mask.sum()
-		correct_count = ((probabilities.argmax(dim=-1) == labels).type(torch.cuda.LongTensor) * label_mask).sum()
+		correct_count = ((probabilities.argmax(dim=-1) == labels).type(torch.LongTensor) * label_mask).sum()
 		return correct_count, valid_count
 
 
@@ -131,7 +131,7 @@ class RnnClassifier(nn.Module):
 		assert(probabilities.unbind(dim=-1)[0].shape == labels.shape)
 
 		valid_count = len(labels)
-		correct_count = ((probabilities.argmax(dim=-1) == labels).type(torch.cuda.LongTensor)).sum()
+		correct_count = ((probabilities.argmax(dim=-1) == labels).type(torch.LongTensor)).sum()
 		return correct_count, valid_count
 
 
@@ -154,7 +154,7 @@ class RnnClassifier(nn.Module):
 				raise NotImplementedError('Feature selection mode not supported!')
 
 		packed = pack_padded_sequence(features, valid_lengths, batch_first=True, enforce_sorted=True)
-		output, h_n = self.rnn(packed)
+		_, h_n = self.rnn(packed)
 		embedded = h_n[-1, :, :]
 		# cause h_n directly contains info for final states
 		# it will be easier to use h_n as extracted embedding

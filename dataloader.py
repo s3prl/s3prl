@@ -382,21 +382,13 @@ class Mel_Sentiment_Dataset(Dataset):
 #####################
 class Mel_Speaker_Dataset(Dataset):
 	
-	def __init__(self, run_mockingjay, file_path, sets, bucket_size, max_timestep=0, max_label_len=0, drop=False, load='sentiment'):
+	def __init__(self, run_mockingjay, file_path, sets, bucket_size, max_timestep=0, max_label_len=0, drop=False, load='speaker'):
 		
 		HALF_BATCHSIZE_TIME = 1000
 		assert(load == 'speaker'), 'This dataset loads mel features and speaker ID labels.'
 		self.run_mockingjay = run_mockingjay
 		self.root = file_path
 		self.load = load
-
-		# Load the other set for speaker computation
-		if len(sets) == 2:
-			other_tables = pd.read_csv(os.path.join(file_path, sets[1] + '.csv'))
-			other_table = other_tables.sort_values(by=['length'], ascending=False)
-			O_speaker2idx = self.compute_speaker2idx(other_table['file_path'].tolist())
-		else:
-			raise ValueError('Both the `train_set` and `test_set` should be provided for speaker dictionary construction!')
 
 		# Load the major set (train or test)
 		tables = pd.read_csv(os.path.join(file_path, sets[0] + '.csv'))
@@ -412,7 +404,18 @@ class Mel_Speaker_Dataset(Dataset):
 
 		# Compute speaker dictionary
 		print('[Dataset] - Computing speaker class...')
-		self.speaker2idx = self.compute_speaker2idx(X, merge=O_speaker2idx)
+		if len(sets) != 2:
+			raise ValueError('Both the `train_set` and `test_set` should be provided for speaker dictionary construction!')
+		
+		# Load the other set for speaker computation
+		other_tables = pd.read_csv(os.path.join(file_path, sets[1] + '.csv'))
+		other_table = other_tables.sort_values(by=['length'], ascending=False)
+		O = other_table['file_path'].tolist()
+		O_speakers = self.get_all_speakers(O)
+
+		X_speakers = self.get_all_speakers(X)
+		speakers = O_speakers + X_speakers
+		self.speaker2idx = self.compute_speaker2idx(speakers)
 		self.class_num = len(self.speaker2idx)
 		print('[Dataset] - Possible speaker classes: ', self.class_num)
 
@@ -452,19 +455,21 @@ class Mel_Speaker_Dataset(Dataset):
 	def get_speaker_from_path(self, x):
 		return x.split('/')[-1].split('.')[0].split('-')[0]
 
-	def compute_speaker2idx(self, X, merge=None):
+	def get_all_speakers(self, X):
+		speaker_list = []
+		for x in X:
+			speaker = self.get_speaker_from_path(x)
+			if speaker not in speaker_list:
+				speaker_list.append(speaker)
+		return speaker_list
+
+	def compute_speaker2idx(self, speakers):
 		idx = 0
 		speaker2idx = {}
-		for x in tqdm(X):
-			speaker = self.get_speaker_from_path(x)
+		for speaker in sorted(speakers):
 			if speaker not in speaker2idx:
 				speaker2idx[speaker] = idx
 				idx += 1
-		if merge is not None:
-			for key in merge:
-				if key not in speaker2idx:
-					speaker2idx[speaker] = idx
-					idx += 1
 		return speaker2idx
 
 
