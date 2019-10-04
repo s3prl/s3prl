@@ -116,15 +116,18 @@ class RnnClassifier(nn.Module):
 		
 		output_dim = class_num
 		hidden_size = dconfig['hidden_size']
+		self.use_linear = dconfig['use_linear']
 		drop = dconfig['drop']
 		self.select_hidden = dconfig['select_hidden']
 
 		self.rnn = nn.GRU(input_size=input_dim, hidden_size=hidden_size, num_layers=1, dropout=drop,
 						  batch_first=True, bidirectional=False)
-		self.dense1 = nn.Linear(hidden_size, hidden_size)
-		self.dense2 = nn.Linear(hidden_size, hidden_size)
-		self.drop1 = nn.Dropout(p=drop)
-		self.drop2 = nn.Dropout(p=drop)
+
+		if self.use_linear:
+			self.dense1 = nn.Linear(hidden_size, hidden_size)
+			self.dense2 = nn.Linear(hidden_size, hidden_size)
+			self.drop1 = nn.Dropout(p=drop)
+			self.drop2 = nn.Dropout(p=drop)
 
 		self.out = nn.Linear(hidden_size, output_dim)
 		
@@ -165,14 +168,16 @@ class RnnClassifier(nn.Module):
 		embedded = h_n[-1, :, :]
 		# cause h_n directly contains info for final states
 		# it will be easier to use h_n as extracted embedding
+		hidden = embedded
 		
-		hidden = self.dense1(embedded)
-		hidden = self.drop1(hidden)
-		hidden = self.act_fn(hidden)
+		if self.use_linear:
+			hidden = self.dense1(embedded)
+			hidden = self.drop1(hidden)
+			hidden = self.act_fn(hidden)
 
-		hidden = self.dense2(hidden)
-		hidden = self.drop2(hidden)
-		hidden = self.act_fn(hidden)
+			hidden = self.dense2(hidden)
+			hidden = self.drop2(hidden)
+			hidden = self.act_fn(hidden)
 
 		logits = self.out(hidden)
 		prob = self.out_fn(logits)
