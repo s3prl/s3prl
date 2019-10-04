@@ -289,6 +289,20 @@ class Downstream_Trainer(Downstream_Solver):
 				if self.global_step % self.save_step == 0:
 					self.save_model(self.task)
 
+					if self.config['downstream']['evaluation'] != 'None':
+						# immediately evaluate the new model
+						evaluation = self.config['downstream']['evaluation']
+						new_model_path = '{}/{}-{}.ckpt'.format(self.ckpdir, self.task, self.global_step)
+						new_dckpt = '/'.join(new_model_path.split('/')[-2:])
+						test_config = copy.deepcopy(self.mock_config)
+						test_paras = copy.deepcopy(self.mock_paras)
+						test_paras.dckpt = new_dckpt
+						tester = Downstream_Tester(test_config, test_paras, task=self.task)
+						tester.load_data(split=evaluation, load=self.task.split('_')[-1])
+						tester.set_model(inference=True)
+						eval_acc = tester.exec()
+						self.log.add_scalar(f'{evaluation}_acc', eval_acc, self.global_step)
+
 				pbar.update(1)
 				self.global_step += 1
 				
@@ -349,4 +363,6 @@ class Downstream_Tester(Downstream_Solver):
 
 		test_acc = torch.FloatTensor(test_acc)
 		self.verbose('Testing set accuracy: ' + str(test_acc.mean().item()))
+
+		return test_acc.mean().item()
 

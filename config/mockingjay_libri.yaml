@@ -36,7 +36,7 @@ dataloader:
   train_proportion: 1.0                                 # Currently only effect the `phone classification task`, use this percent of `train_set` for downstream task training to demonstrate mockingjay generality
 
   # MOSI SETTINGS
-  sentiment_path: 'data/mosi_mel160'                    # train/dev/test set has fixed subdir name with 'test', 'dev', 'test'
+  sentiment_path: 'data/mosi_nonstandard_mel160'                    # train/dev/test set has fixed subdir name with 'test', 'dev', 'test'
 
 
 solver:
@@ -72,6 +72,7 @@ downstream:                                             # downstream model confi
   learning_rate: "4e-3"                                 # Learning rate for opt
   total_steps: 500000                                   # total steps for training, a step is a batch of update
   log_step: 1000                                        # log training status every this amount of training steps
+  evaluation: 'test'                                    # can be 'dev' or 'test', show inference results right after saving model
   
   # models
   load_model_list: ['Classifier']                       # load the components in the list for test/eval
