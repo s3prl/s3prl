@@ -167,7 +167,7 @@ class Solver():
 					true_spec = plot_spectrogram_to_numpy(batch_x[0].data.cpu().numpy())
 					self.log.add_image('pred_spec', pred_spec, global_step)
 					self.log.add_image('true_spec', true_spec, global_step)
-					new_model_path = os.path.join(self.model_dir, 'apc-%d' % (global_step + 1) + '.ckpt')
+					new_model_path = os.path.join(self.model_dir, 'apc-%d' % global_step + '.ckpt')
 					torch.save(self.model.state_dict(), new_model_path)
 					model_kept.append(new_model_path)
 

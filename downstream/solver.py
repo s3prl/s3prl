@@ -129,19 +129,19 @@ class Downstream_Solver(Solver):
 		if model_all:
 			all_states = {
 				'Classifier': self.classifier.state_dict(),
-				"Optimizer": self.optimizer.state_dict(),
-				"Global_step": self.global_step,
-				"Settings": {
-					"Config": self.config,
-					"Paras": self.paras,
+				'Optimizer': self.optimizer.state_dict(),
+				'Global_step': self.global_step,
+				'Settings': {
+					'Config': self.config,
+					'Paras': self.paras,
 				},
 			}
 		else:
 			all_states = {
 				'Classifier': self.classifier.state_dict(),
-				"Settings": {
-					"Config": self.config,
-					"Paras": self.paras,
+				'Settings': {
+					'Config': self.config,
+					'Paras': self.paras,
 				},
 			}
 		new_model_path = '{}/{}-{}.ckpt'.format(self.ckpdir, name, self.global_step)
@@ -156,7 +156,6 @@ class Downstream_Solver(Solver):
 	def load_model(self, inference=False):
 		self.verbose('Load model from {}'.format(self.ckpt))
 		all_states = torch.load(self.ckpt, map_location='cpu')
-		self.verbose('', end='')
 		
 		if 'Classifier' in self.load_model_list:
 			try:
@@ -180,7 +179,7 @@ class Downstream_Solver(Solver):
 				self.verbose('[Global_step] - Loaded')
 			except: self.verbose('[Global_step - X]')
 
-		self.verbose('Loaded!')
+		self.verbose('Model loading complete!')
 
 
 ###########
