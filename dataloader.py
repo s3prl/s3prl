@@ -377,9 +377,9 @@ class Mel_Sentiment_Dataset(Dataset):
 		return len(self.X)
 
 
-#####################
-# MEL PHONE DATASET #
-#####################
+#######################
+# MEL SPEAKER DATASET #
+#######################
 class Mel_Speaker_Dataset(Dataset):
 	
 	def __init__(self, run_mockingjay, file_path, sets, bucket_size, max_timestep=0, max_label_len=0, drop=False, load='speaker'):
@@ -473,6 +473,70 @@ class Mel_Speaker_Dataset(Dataset):
 		return speaker2idx
 
 
+#############################
+# MEL SPEAKER SMALL DATASET #
+#############################
+class Mel_Speaker_Small_Dataset(Mel_Speaker_Dataset):
+	
+	def __init__(self, split, run_mockingjay, file_path, sets, bucket_size, max_timestep=0, max_label_len=0, drop=False, load='speaker_small'):
+		
+		HALF_BATCHSIZE_TIME = 1000
+		assert(load == 'speaker_small'), 'This dataset loads mel features and speaker ID labels.'
+		self.run_mockingjay = run_mockingjay
+		self.root = file_path
+		self.load = load
+
+		# Load the train-clean-100 set
+		tables = pd.read_csv(os.path.join(file_path, sets + '.csv'))
+
+		# Compute speaker dictionary
+		print('[Dataset] - Computing speaker class...')
+		O = tables['file_path'].tolist()
+		speakers = self.get_all_speakers(O)
+		self.speaker2idx = self.compute_speaker2idx(speakers)
+		self.class_num = len(self.speaker2idx)
+		print('[Dataset] - Possible speaker classes: ', self.class_num)
+		
+		train = tables.sample(frac=0.9, random_state=1337) # random state is a seed value
+		test = tables.drop(train.index)
+		if split == 'train':
+			self.table = train.sort_values(by=['length'], ascending=False)
+		elif split == 'test':
+			self.table = test.sort_values(by=['length'], ascending=False)
+		else:
+			raise NotImplementedError('Invalid `split` argument!')
+		X = self.table['file_path'].tolist()
+		X_lens = self.table['length'].tolist()
+
+		# Crop seqs that are too long
+		if drop and max_timestep > 0 and self.load != 'text':
+			self.table = self.table[self.table.length < max_timestep]
+		if drop and max_label_len > 0:
+			self.table = self.table[self.table.label.str.count('_')+1 < max_label_len]
+
+		# Use bucketing to allow different batch sizes at run time
+		self.X = []
+		batch_x, batch_len = [], []
+
+		for x, x_len in zip(X, X_lens):
+			batch_x.append(x)
+			batch_len.append(x_len)
+			
+			# Fill in batch_x until batch is full
+			if len(batch_x) == bucket_size:
+				# Half the batch size if seq too long
+				if (bucket_size >= 2) and (max(batch_len) > HALF_BATCHSIZE_TIME):
+					self.X.append(batch_x[:bucket_size//2])
+					self.X.append(batch_x[bucket_size//2:])
+				else:
+					self.X.append(batch_x)
+				batch_x, batch_len = [], []
+		
+		# Gather the last batch
+		if len(batch_x) > 0:
+			self.X.append(batch_x)
+
+
 ##################
 # GET DATALOADER #
 ##################
@@ -509,10 +573,10 @@ def get_Dataloader(split, load, data_path, batch_size, max_timestep, max_label_l
 	# Decide which task (or dataset) to propogate through model
 	if load in ['asr', 'text']:
 		ds = AsrDataset(file_path=data_path, sets=sets, max_timestep=max_timestep, load=load,
-				max_label_len=max_label_len, bucket_size=bs, drop=drop_too_long)
+						max_label_len=max_label_len, bucket_size=bs, drop=drop_too_long)
 	elif load == 'spec':
 		ds = MelDataset(run_mockingjay=run_mockingjay, file_path=data_path, sets=sets, max_timestep=max_timestep, load=load, 
-				max_label_len=max_label_len, bucket_size=bs, drop=drop_too_long)
+						max_label_len=max_label_len, bucket_size=bs, drop=drop_too_long)
 	elif load == 'duo':
 		assert(target_path is not None), '`target path` must be provided for this dataset.'
 		ds = Mel_Linear_Dataset(file_path=data_path, target_path=target_path, sets=sets, max_timestep=max_timestep, load=load,
@@ -520,11 +584,11 @@ def get_Dataloader(split, load, data_path, batch_size, max_timestep, max_label_l
 	elif load == 'phone':
 		assert(phone_path is not None), '`phone path` must be provided for this dataset.'
 		ds = Mel_Phone_Dataset(run_mockingjay=run_mockingjay, file_path=data_path, phone_path=phone_path, sets=sets, max_timestep=max_timestep, load=load,
-								max_label_len=max_label_len, bucket_size=bs, drop=drop_too_long, train_proportion=train_proportion if split == 'train' else 1.0)
+							   max_label_len=max_label_len, bucket_size=bs, drop=drop_too_long, train_proportion=train_proportion if split == 'train' else 1.0)
 	elif load == 'sentiment':
 		assert(sentiment_path is not None), '`sentiment path` must be provided for this dataset.'
 		ds = Mel_Sentiment_Dataset(run_mockingjay=run_mockingjay, sentiment_path=sentiment_path, split=split, max_timestep=max_timestep, load=load,
-								bucket_size=bs, drop=drop_too_long)
+								   bucket_size=bs, drop=drop_too_long)
 	elif load == 'speaker':
 		if split == 'train': 
 			sets = (train_set[0], test_set[0])
@@ -533,7 +597,11 @@ def get_Dataloader(split, load, data_path, batch_size, max_timestep, max_label_l
 		else:
 			raise NotImplementedError('Invalid configuration for `Mel_Speaker_Dataset`!')
 		ds = Mel_Speaker_Dataset(run_mockingjay=run_mockingjay, file_path=data_path, sets=sets, max_timestep=max_timestep, load=load,
-								max_label_len=max_label_len, bucket_size=bs, drop=drop_too_long)
+								 max_label_len=max_label_len, bucket_size=bs, drop=drop_too_long)
+	elif load == 'speaker_small':
+		sets = train_set[0].replace('360', '100') # Use the `train-clean-100` set instead of the `train-clean-360`
+		ds = Mel_Speaker_Small_Dataset(split=split, run_mockingjay=run_mockingjay, file_path=data_path, sets=sets, max_timestep=max_timestep, load=load,
+									   max_label_len=max_label_len, bucket_size=bs, drop=drop_too_long)
 	else:
 		raise NotImplementedError('Invalid `load` argument for `get_Dataloader()`!')
 

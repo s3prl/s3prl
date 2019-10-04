@@ -40,9 +40,9 @@ class LinearClassifier(nn.Module):
 		self.drop2 = nn.Dropout(p=drop)
 
 		self.out = nn.Linear(hidden_size, output_dim)
+
 		self.act_fn = torch.nn.functional.relu
 		self.out_fn = nn.Softmax(dim=-1)
-
 		self.criterion = nn.CrossEntropyLoss(ignore_index=-100)
 
 
@@ -52,7 +52,7 @@ class LinearClassifier(nn.Module):
 		assert(labels.shape == label_mask.shape)
 
 		valid_count = label_mask.sum()
-		correct_count = ((probabilities.argmax(dim=-1) == labels).type(torch.LongTensor) * label_mask).sum()
+		correct_count = ((probabilities.argmax(dim=-1) == labels).type(torch.cuda.LongTensor) * label_mask).sum()
 		return correct_count, valid_count
 
 
@@ -120,8 +120,15 @@ class RnnClassifier(nn.Module):
 		self.select_hidden = dconfig['select_hidden']
 
 		self.rnn = nn.GRU(input_size=input_dim, hidden_size=hidden_size, num_layers=1, dropout=drop,
-			batch_first=True, bidirectional=False)
+						  batch_first=True, bidirectional=False)
+		self.dense1 = nn.Linear(hidden_size, hidden_size)
+		self.dense2 = nn.Linear(hidden_size, hidden_size)
+		self.drop1 = nn.Dropout(p=drop)
+		self.drop2 = nn.Dropout(p=drop)
+
 		self.out = nn.Linear(hidden_size, output_dim)
+		
+		self.act_fn = torch.nn.functional.relu
 		self.out_fn = nn.Softmax(dim=-1)
 		self.criterion = nn.CrossEntropyLoss(ignore_index=-100)
 
@@ -131,7 +138,7 @@ class RnnClassifier(nn.Module):
 		assert(probabilities.unbind(dim=-1)[0].shape == labels.shape)
 
 		valid_count = len(labels)
-		correct_count = ((probabilities.argmax(dim=-1) == labels).type(torch.LongTensor)).sum()
+		correct_count = ((probabilities.argmax(dim=-1) == labels).type(torch.cuda.LongTensor)).sum()
 		return correct_count, valid_count
 
 
@@ -158,8 +165,16 @@ class RnnClassifier(nn.Module):
 		embedded = h_n[-1, :, :]
 		# cause h_n directly contains info for final states
 		# it will be easier to use h_n as extracted embedding
+		
+		hidden = self.dense1(embedded)
+		hidden = self.drop1(hidden)
+		hidden = self.act_fn(hidden)
 
-		logits = self.out(embedded)
+		hidden = self.dense2(hidden)
+		hidden = self.drop2(hidden)
+		hidden = self.act_fn(hidden)
+
+		logits = self.out(hidden)
 		prob = self.out_fn(logits)
 		# prob: (batch_size, probs)
 		

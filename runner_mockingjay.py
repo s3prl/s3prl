@@ -148,7 +148,8 @@ def main():
 		task = 'mockingjay_speaker' if args.run_mockingjay \
 				else 'apc_speaker' if args.run_apc else 'baseline_speaker'
 		trainer = Downstream_Trainer(config, args, task=task)
-		trainer.load_data(split='train', load='speaker')
+		trainer.load_data(split='train', load='speaker_small')
+		# trainer.load_data(split='train', load='speaker') # Deprecated
 		trainer.set_model(inference=False)
 		trainer.exec()
 
@@ -158,7 +159,8 @@ def main():
 		task = 'mockingjay_speaker' if args.run_mockingjay \
 				else 'apc_speaker' if args.run_apc else 'baseline_speaker'
 		tester = Downstream_Tester(config, args, task=task)
-		tester.load_data(split='test', load='speaker')
+		tester.load_data(split='test', load='speaker_small')
+		# tester.load_data(split='test', load='speaker') # Deprecated
 		tester.set_model(inference=True)
 		tester.exec()
 

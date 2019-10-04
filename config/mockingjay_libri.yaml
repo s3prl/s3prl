@@ -63,7 +63,7 @@ downstream:                                             # downstream model confi
 
   rnn:
     input_dim: 'None'                                     # `int`, else if set to None, input_dim will be set according to mockingjay settings or mel-preprocessing dimensions automatically
-    hidden_size: 128
+    hidden_size: 768
     drop: 0.2
     select_hidden: 'last'                                 # support modes: 'last', 'first', 'average'
 

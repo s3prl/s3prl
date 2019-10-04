@@ -62,17 +62,23 @@ class Downstream_Solver(Solver):
 
 	def load_data(self, split='train', load='phone'):
 		''' Load date for training / testing'''
-		assert(load in ['phone', 'sentiment', 'speaker']), 'Unsupported dataloader!'
+		assert(load in ['phone', 'sentiment', 'speaker', 'speaker_small']), 'Unsupported dataloader!'
 		if load == 'phone' or load == 'speaker':
 			if split == 'train':
 				self.verbose('Loading source data from ' + str(self.config['dataloader']['train_set']) + ' from ' + self.config['dataloader']['data_path'])
-				self.verbose('Loading phone data from ' + str(self.config['dataloader']['train_set']) + ' from ' + self.config['dataloader']['phone_path'])
+				if load == 'phone': self.verbose('Loading phone data from ' + str(self.config['dataloader']['train_set']) + ' from ' + self.config['dataloader']['phone_path'])
 			elif split == 'test': 
 				self.verbose('Loading testing data ' + str(self.config['dataloader']['test_set']) + ' from ' + self.config['dataloader']['data_path'])
-				self.verbose('Loading label data ' + str(self.config['dataloader']['test_set']) + ' from ' + self.config['dataloader']['phone_path'])
+				if load == 'phone': self.verbose('Loading label data ' + str(self.config['dataloader']['test_set']) + ' from ' + self.config['dataloader']['phone_path'])
 			else:
 				raise NotImplementedError('Invalid `split` argument!')
-
+		elif load == 'speaker_small':
+			if split == 'train':
+				self.verbose('Loading source data from ' + str(self.config['dataloader']['train_set']).replace('360', '100') + ' from ' + self.config['dataloader']['data_path'])
+			elif split == 'test':
+				self.verbose('Loading testing data ' + str(self.config['dataloader']['test_set']).replace('360', '100') + ' from ' + self.config['dataloader']['data_path'])
+			else:
+				raise NotImplementedError('Invalid `split` argument!')
 		elif load == 'sentiment':
 			sentiment_path = self.config['dataloader']['sentiment_path']
 			self.verbose(f'Loading {split} data from {sentiment_path}')
@@ -247,11 +253,12 @@ class Downstream_Trainer(Downstream_Solver):
 				valid_lengths = label_mask.sum(dim=1)
 
 				if self.model_type == 'linear':
+
 					# labels: (batch_size, seq_len)
-					loss, logits, correct, valid = self.classifier(representations, labels, label_mask)
+					loss, _, correct, valid = self.classifier(representations, labels, label_mask)
 				elif self.model_type == 'rnn':
 					# labels: (batch_size, )
-					loss, logits, correct, valid = self.classifier(representations, labels, valid_lengths)
+					loss, _, correct, valid = self.classifier(representations, labels, valid_lengths)
 				else:
 					raise NotImplementedError
 
@@ -271,6 +278,7 @@ class Downstream_Trainer(Downstream_Solver):
 					acc = corrects.item() / valids.item()
 					los = losses.item() / self.global_step
 					self.log.add_scalar('acc', acc, self.global_step)
+					self.log.add_scalar('correct', corrects.item(), self.global_step)
 					self.log.add_scalar('loss', los, self.global_step)
 					pbar.set_description("Loss %.10f" % los)
 
