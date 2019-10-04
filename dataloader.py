@@ -29,6 +29,7 @@ from utils.mam import process_train_MAM_data, process_test_MAM_data
 ############
 HALF_BATCHSIZE_TIME = 400
 HALF_BATCHSIZE_LABEL = 150
+SPEAKER_THRESHOLD = 115
 
 
 ################
@@ -429,9 +430,9 @@ class Mel_Speaker_Large_Dataset(Dataset):
 		other_tables = pd.read_csv(os.path.join(file_path, sets[1] + '.csv'))
 		other_table = other_tables.sort_values(by=['length'], ascending=False)
 		O = other_table['file_path'].tolist()
-		O_speakers = self.get_all_speakers(O)
+		O_speakers = sorted(self.get_all_speakers(O))
 
-		X_speakers = self.get_all_speakers(X)
+		X_speakers = sorted(self.get_all_speakers(X))
 		speakers = O_speakers + X_speakers
 		self.speaker2idx = self.compute_speaker2idx(speakers)
 		self.class_num = len(self.speaker2idx)
@@ -476,18 +477,20 @@ class Mel_Speaker_Large_Dataset(Dataset):
 		return x.split('/')[-1].split('.')[0].split('-')[0]
 
 	def get_all_speakers(self, X):
-		speaker_list = []
+		speaker_set = {}
 		for x in X:
 			speaker = self.get_speaker_from_path(x)
-			if speaker not in speaker_list:
-				speaker_list.append(speaker)
-		return speaker_list
+			if speaker not in speaker_set:
+				speaker_set[speaker] = 0
+			else:
+				speaker_set[speaker] += 1
+		return speaker_set
 
 	def compute_speaker2idx(self, speakers):
 		idx = 0
 		speaker2idx = {}
 		for speaker in sorted(speakers):
-			if speaker not in speaker2idx:
+			if speaker not in speaker2idx and speakers[speaker] > SPEAKER_THRESHOLD: # eliminate the speakers with too few utterance
 				speaker2idx[speaker] = idx
 				idx += 1
 		return speaker2idx
@@ -520,7 +523,7 @@ class Mel_Speaker_Small_Dataset(Mel_Speaker_Large_Dataset):
 		self.class_num = len(self.speaker2idx)
 		print('[Dataset] - Possible speaker classes: ', self.class_num)
 		
-		train = tables.sample(frac=0.95, random_state=20190929) # random state is a seed value
+		train = tables.sample(frac=0.9, random_state=20190929) # random state is a seed value
 		test = tables.drop(train.index)
 		if split == 'train':
 			self.table = train.sort_values(by=['length'], ascending=False)
@@ -542,18 +545,20 @@ class Mel_Speaker_Small_Dataset(Mel_Speaker_Large_Dataset):
 		batch_x, batch_len = [], []
 
 		for x, x_len in zip(X, X_lens):
-			batch_x.append(x)
-			batch_len.append(x_len)
-			
-			# Fill in batch_x until batch is full
-			if len(batch_x) == bucket_size:
-				# Half the batch size if seq too long
-				if (bucket_size >= 2) and (max(batch_len) > HALF_BATCHSIZE_TIME):
-					self.X.append(batch_x[:bucket_size//2])
-					self.X.append(batch_x[bucket_size//2:])
-				else:
-					self.X.append(batch_x)
-				batch_x, batch_len = [], []
+			speaker = self.get_speaker_from_path(x)
+			if speaker in self.speaker2idx:
+				batch_x.append(x)
+				batch_len.append(x_len)
+				
+				# Fill in batch_x until batch is full
+				if len(batch_x) == bucket_size:
+					# Half the batch size if seq too long
+					if (bucket_size >= 2) and (max(batch_len) > HALF_BATCHSIZE_TIME):
+						self.X.append(batch_x[:bucket_size//2])
+						self.X.append(batch_x[bucket_size//2:])
+					else:
+						self.X.append(batch_x)
+					batch_x, batch_len = [], []
 		
 		# Gather the last batch
 		if len(batch_x) > 0:
