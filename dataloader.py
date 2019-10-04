@@ -21,7 +21,7 @@ from torch.nn.utils.rnn import pad_sequence
 from torch.utils.data import DataLoader
 from torch.utils.data.dataset import Dataset
 from utils.asr import zero_padding,target_padding
-from utils.mam import process_train_MAM_data, process_test_MAM_data
+from utils.mam import process_train_MAM_data, process_test_MAM_data,process_train_MAM_data_spectrum_order
 
 
 ############
@@ -161,7 +161,8 @@ class MelDataset(LibriDataset):
 		# Load acoustic feature and pad
 		x_batch = [torch.FloatTensor(np.load(os.path.join(self.root, x_file))) for x_file in self.X[index]]
 		x_pad_batch = pad_sequence(x_batch, batch_first=True)
-		if self.run_mockingjay: x_pad_batch = process_train_MAM_data(spec=(x_pad_batch,))
+		# if self.run_mockingjay: x_pad_batch = process_train_MAM_data(spec=(x_pad_batch,))
+		if self.run_mockingjay: x_pad_batch = process_train_MAM_data_spectrum_order(spec=(x_pad_batch,))
 		return x_pad_batch
 
 
@@ -218,7 +219,8 @@ class Mel_Linear_Dataset(LibriDataset):
 		# Return (x_spec, t_spec)
 		t_batch = [torch.FloatTensor(np.load(os.path.join(self.t_root, t_file))) for t_file in self.T[index]]
 		t_pad_batch = pad_sequence(t_batch, batch_first=True)
-		batch = process_train_MAM_data(spec=(x_pad_batch, t_pad_batch))
+		# batch = process_train_MAM_data(spec=(x_pad_batch, t_pad_batch))
+		batch = process_train_MAM_data_spectrum_order(spec=(x_pad_batch, t_pad_batch))
 		return batch
 
 

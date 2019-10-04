@@ -741,20 +741,18 @@ class MockingjayForMaskedAcoustic_SpectOrderModel(MockingjayInitModel):
 			return all_attentions, pred_spec
 		return pred_spec
 
-class MockingjaySpecOrderHead(nn.Module):
+class SpecOrderHead(nn.Module):
 	def __init__(self, config):
 		super(MockingjaySpecOrderHead, self).__init__()
 		self.output_dim = output_dim
 		self.dense = nn.Linear(config.hidden_states,1)
 		self.act = ACT2FN(config.hidden_act)
-		self.seq_length = seq_len
 		self.total_length = 512
 		self.dense2= nn.Linear(512, 2)
 		self.softmax = nn.Softmax(-1)
 	def forward(self, hidden_states):
 		score = self.dense(hidden_states)
 		score = score.squeeze(2)
-		score = self.act(score)
 		length=score.shape[1]
 		pad_seq = torch.cat(score,torch.zeros([score.shape[0],self.total_length - length]))
 		linear = self.dense2(pad_seq)

@@ -21,7 +21,7 @@ from tqdm import tqdm, trange
 import torch.nn.functional as F
 from tensorboardX import SummaryWriter
 from dataloader import get_Dataloader
-from mockingjay.model import MockingjayConfig, MockingjayModel, MockingjayForMaskedAcousticModel
+from mockingjay.model import MockingjayConfig, MockingjayModel, MockingjayForMaskedAcousticModel,MockingjayForMaskedAcoustic_SpectOrderModel
 from mockingjay.optimization import BertAdam, WarmupLinearSchedule
 from utils.audio import plot_spectrogram_to_numpy, plot_spectrogram
 from utils.audio import mel_dim, num_freq, sample_rate, inv_spectrogram
@@ -91,8 +91,10 @@ class Solver():
 		self.hidden_size = self.model_config.hidden_size
 		
 		if not inference or with_head:
-			self.model = MockingjayForMaskedAcousticModel(self.model_config, self.input_dim, self.output_dim).to(self.device)
+			# self.model = MockingjayForMaskedAcousticModel(self.model_config, self.input_dim, self.output_dim).to(self.device)
+			self.model = MockingjayForMaskedAcoustic_SpectOrderModel(self.model_config, self.input_dim, self.output_dim).to(self.device)
 			self.mockingjay = self.model.Mockingjay
+			
 
 		if inference and not with_head:
 			self.mockingjay = MockingjayModel(self.model_config, self.input_dim).to(self.device)
@@ -354,9 +356,10 @@ class Trainer(Solver):
 			for step, batch in enumerate(progress):
 				if self.global_step > self.total_steps: break
 				
-				spec_masked, pos_enc, mask_label, attn_mask, spec_stacked = self.process_data(batch)
-				loss, pred_spec = self.model(spec_masked, pos_enc, mask_label, attn_mask, spec_stacked)
+				spec_masked, pos_enc, mask_label, attn_mask, spec_stacked,order_label = self.process_data(batch)
+				loss1, pred_spec, loss2 = self.model(spec_masked, pos_enc, mask_label, attn_mask, spec_stacked, order_label)
 				
+				loss = loss1 + loss2
 				# Accumulate Loss
 				if self.gradient_accumulation_steps > 1:
 					loss = loss / self.gradient_accumulation_steps
