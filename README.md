@@ -1,8 +1,10 @@
 # 👾 Mockingjay
 ## Self-Supervised Speech Representation Learning with Deep Bidirectional Transformer Encoders
 ### PyTorch Official Implementation
-[![GitHub Issues](https://img.shields.io/github/issues/google/sentencepiece.svg)](https://github.com/andi611/Mockingjay-Speech-Representation-Learning/issues)
+[![Bitbucket open issues](https://img.shields.io/bitbucket/issues/andi611/Mockingjay-Speech-Representation-Learning)](https://github.com/andi611/Mockingjay-Speech-Representation-Learning/issues)
 [![Contributions welcome](https://img.shields.io/badge/contributions-welcome-brightgreen.svg)](CONTRIBUTING.md)
+[![GitHub](https://img.shields.io/github/license/andi611/Mockingjay-Speech-Representation-Learning)](https://en.wikipedia.org/wiki/MIT_License)
+
 This is an open source project for Mockingjay, end-to-end learning of acoustic features representations, implemented with Pytorch.
 
 Feel free to use/modify them, any bug report or improvement suggestion will be appreciated. If you have any questions, please contact r07942089[AT]ntu.edu.tw. If you find this project helpful for your research, please do consider to cite [this project](#Citation), thanks!
