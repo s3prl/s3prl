@@ -25,7 +25,6 @@ from joblib import Parallel, delayed
 from utils.asr import encode_target
 from utils.audio import extract_feature, mel_dim, num_freq
 from pydub import AudioSegment
-from ipdb import set_trace
 
 # using CMU SDK to access audio label
 # for installing mmsdk package, please follow the instructions in:
@@ -78,19 +77,6 @@ def segment_mosei(args):
 	dataset = md.mmdataset(recipe)
 	dataset.align(label)
 
-	# Split data into train/dev/test
-	train_split = DATASET.standard_folds.standard_train_fold
-	dev_split = DATASET.standard_folds.standard_valid_fold
-	test_split = DATASET.standard_folds.standard_test_fold
-	splits = [train_split, dev_split, test_split]
-	names = ['train', 'dev', 'test']
-	new_splits = []
-	for split, name in zip(splits, names):
-		path = os.path.join(flac_dir, name)
-		os.mkdir(path)
-		new_splits.append((split, path))
-	splits = new_splits
-	
 	for key in iter(dataset[label].keys()):
 		underscore = bracket_underscore(key)
 		underscore_split = underscore.split('_')
@@ -102,11 +88,7 @@ def segment_mosei(args):
 			assert False, f'wav not exists: {wavpath}'
 		wav = AudioSegment.from_wav(wavpath)
 
-		for index, (split, path) in enumerate(splits):
-			if prefix in split:
-				break
-		seg_flacpath = os.path.join(path, f'{underscore}.flac')
-		
+		seg_flacpath = os.path.join(flac_dir, f'{underscore}.flac')
 		item = dataset[label][key]
 		start = int(item['intervals'][0, 0] * 1000)
 		end = int(item['intervals'][0, 1] * 1000)
