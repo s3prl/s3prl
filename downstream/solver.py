@@ -206,6 +206,8 @@ class Downstream_Trainer(Downstream_Solver):
 		self.total_steps = config['downstream']['total_steps']
 		self.learning_rate = float(self.config['downstream']['learning_rate'])
 		self.max_keep = config['downstream']['max_keep']
+		self.eval = config['downstream']['evaluation']
+		self.dev_step = config['solver']['dev_step']
 		self.reset_train()
 
 
@@ -243,6 +245,10 @@ class Downstream_Trainer(Downstream_Solver):
 					# representations shape: (batch_size, seq_len, feature)
 					features = features.squeeze(0)
 					representations = features.to(device=self.device, dtype=torch.float32)
+				if 'speaker' in self.task: # Doesn't need the whole utterance to predict speaker
+					original_len = representations.size(1)
+					representations = representations[:, :original_len//3, :]
+					features = features[:, :original_len//3, :]
 
 				# Since zero padding technique, some timestamps of features are not valid
 				# For each timestamps, we mark 1 on valid timestamps, and 0 otherwise
@@ -253,14 +259,13 @@ class Downstream_Trainer(Downstream_Solver):
 				valid_lengths = label_mask.sum(dim=1)
 
 				if self.model_type == 'linear':
-
 					# labels: (batch_size, seq_len)
 					loss, _, correct, valid = self.classifier(representations, labels, label_mask)
 				elif self.model_type == 'rnn':
 					# labels: (batch_size, )
 					loss, _, correct, valid = self.classifier(representations, labels, valid_lengths)
 				else:
-					raise NotImplementedError
+					raise NotImplementedError('Invalid `model_type`!')
 
 				# Accumulate Loss
 				loss.backward()
@@ -288,19 +293,19 @@ class Downstream_Trainer(Downstream_Solver):
 				if self.global_step % self.save_step == 0:
 					self.save_model(self.task)
 
-					if self.config['downstream']['evaluation'] != 'None':
-						# immediately evaluate the new model
-						evaluation = self.config['downstream']['evaluation']
-						new_model_path = '{}/{}-{}.ckpt'.format(self.ckpdir, self.task, self.global_step)
-						new_dckpt = '/'.join(new_model_path.split('/')[-2:])
-						test_config = copy.deepcopy(self.mock_config)
-						test_paras = copy.deepcopy(self.mock_paras)
-						test_paras.dckpt = new_dckpt
-						tester = Downstream_Tester(test_config, test_paras, task=self.task)
-						tester.load_data(split=evaluation, load=self.task.split('_')[-1])
-						tester.set_model(inference=True)
-						eval_acc = tester.exec()
-						self.log.add_scalar(f'{evaluation}_acc', eval_acc, self.global_step)
+				if self.eval != 'None' and self.global_step % self.dev_step == 0:
+					# immediately evaluate the new model
+					evaluation = self.config['downstream']['evaluation']
+					new_model_path = '{}/{}-{}.ckpt'.format(self.ckpdir, self.task, self.global_step)
+					new_dckpt = '/'.join(new_model_path.split('/')[-2:])
+					test_config = copy.deepcopy(self.mock_config)
+					test_paras = copy.deepcopy(self.mock_paras)
+					test_paras.dckpt = new_dckpt
+					tester = Downstream_Tester(test_config, test_paras, task=self.task)
+					tester.load_data(split=evaluation, load=self.task.split('_')[-1])
+					tester.set_model(inference=True)
+					eval_acc = tester.exec()
+					self.log.add_scalar(f'{evaluation}_acc', eval_acc, self.global_step)
 
 				pbar.update(1)
 				self.global_step += 1

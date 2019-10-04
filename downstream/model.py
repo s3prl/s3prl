@@ -42,7 +42,7 @@ class LinearClassifier(nn.Module):
 		self.out = nn.Linear(hidden_size, output_dim)
 
 		self.act_fn = torch.nn.functional.relu
-		self.out_fn = nn.Softmax(dim=-1)
+		self.out_fn = nn.LogSoftmax(dim=-1)
 		self.criterion = nn.CrossEntropyLoss(ignore_index=-100)
 
 
@@ -132,7 +132,7 @@ class RnnClassifier(nn.Module):
 		self.out = nn.Linear(hidden_size, output_dim)
 		
 		self.act_fn = torch.nn.functional.relu
-		self.out_fn = nn.Softmax(dim=-1)
+		self.out_fn = nn.LogSoftmax(dim=-1)
 		self.criterion = nn.CrossEntropyLoss(ignore_index=-100)
 
 

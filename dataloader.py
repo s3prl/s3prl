@@ -402,7 +402,7 @@ class Mel_Speaker_Large_Dataset(Dataset):
 	
 	def __init__(self, run_mockingjay, file_path, sets, bucket_size, max_timestep=0, max_label_len=0, drop=False, load='speaker_large'):
 		
-		HALF_BATCHSIZE_TIME = 1000
+		HALF_BATCHSIZE_TIME = 2000
 		assert(load == 'speaker_large'), 'This dataset loads mel features and speaker ID labels.'
 		self.run_mockingjay = run_mockingjay
 		self.root = file_path
@@ -468,6 +468,8 @@ class Mel_Speaker_Large_Dataset(Dataset):
 		x_pad_batch = pad_sequence(x_batch, batch_first=True)
 		# Return (x_spec, speaker_label)
 		s_batch = torch.FloatTensor([self.speaker2idx[self.get_speaker_from_path(x_file)] for x_file in self.X[index]])
+		if self.run_mockingjay:
+			x_pad_batch = process_test_MAM_data(spec=(x_pad_batch,))
 		return x_pad_batch, s_batch
 
 	def get_speaker_from_path(self, x):
@@ -501,7 +503,7 @@ class Mel_Speaker_Small_Dataset(Mel_Speaker_Large_Dataset):
 	
 	def __init__(self, split, run_mockingjay, file_path, sets, bucket_size, max_timestep=0, max_label_len=0, drop=False, load='speaker'):
 		
-		HALF_BATCHSIZE_TIME = 1000
+		HALF_BATCHSIZE_TIME = 2000
 		assert(load == 'speaker'), 'This dataset loads mel features and speaker ID labels.'
 		self.run_mockingjay = run_mockingjay
 		self.root = file_path
@@ -518,7 +520,7 @@ class Mel_Speaker_Small_Dataset(Mel_Speaker_Large_Dataset):
 		self.class_num = len(self.speaker2idx)
 		print('[Dataset] - Possible speaker classes: ', self.class_num)
 		
-		train = tables.sample(frac=0.9, random_state=1337) # random state is a seed value
+		train = tables.sample(frac=0.95, random_state=20190929) # random state is a seed value
 		test = tables.drop(train.index)
 		if split == 'train':
 			self.table = train.sort_values(by=['length'], ascending=False)
@@ -618,11 +620,11 @@ def get_Dataloader(split, load, data_path, batch_size, max_timestep, max_label_l
 		else:
 			raise NotImplementedError('Invalid configuration for `Mel_Speaker_Dataset`!')
 		ds = Mel_Speaker_Large_Dataset(run_mockingjay=run_mockingjay, file_path=data_path, sets=sets, max_timestep=max_timestep, load=load,
-								 	   max_label_len=max_label_len, bucket_size=bs, drop=drop_too_long)
+								 	   max_label_len=max_label_len, bucket_size=128, drop=drop_too_long)
 	elif load == 'speaker':
 		sets = train_set[0].replace('360', '100') # Use the `train-clean-100` set instead of the `train-clean-360`
 		ds = Mel_Speaker_Small_Dataset(split=split, run_mockingjay=run_mockingjay, file_path=data_path, sets=sets, max_timestep=max_timestep, load=load,
-									   max_label_len=max_label_len, bucket_size=bs, drop=drop_too_long)
+									   max_label_len=max_label_len, bucket_size=128, drop=drop_too_long)
 	else:
 		raise NotImplementedError('Invalid `load` argument for `get_Dataloader()`!')
 

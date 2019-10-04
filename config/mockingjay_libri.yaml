@@ -36,7 +36,7 @@ dataloader:
   train_proportion: 1.0                                 # Currently only effect the `phone classification task`, use this percent of `train_set` for downstream task training to demonstrate mockingjay generality
 
   # MOSI SETTINGS
-  sentiment_path: 'data/mosi_nonstandard_mel160'                    # train/dev/test set has fixed subdir name with 'test', 'dev', 'test'
+  sentiment_path: 'data/mosi_nonstandard_mel160'        # train/dev/test set has fixed subdir name with 'test', 'dev', 'test'
 
 
 solver:
@@ -45,7 +45,7 @@ solver:
   total_steps: 500000                                   # total steps for training, a step is a batch of update
   log_step: 100                                         # log training status every this amount of training steps
   mask_proportion: 0.15                                 # mask this percentage of all spectrogram frames in each sequence at random during MAM training                        
-  dev_step: 2000                                        #
+  dev_step: 10000                                       #
   duo_feature: True                                     # Use different input / output features during training
 
   # models
@@ -56,16 +56,16 @@ solver:
 
 downstream:                                             # downstream model config
   linear:
-    input_dim: 'None'                                     # `int`, else if set to None, input_dim will be set according to mockingjay settings or mel-preprocessing dimensions automatically
+    input_dim: 'None'                                   # `int`, else if set to None, input_dim will be set according to mockingjay settings or mel-preprocessing dimensions automatically
     hidden_size: 768
     drop: 0.2
-    select_hidden: 'last'                                 # support modes: 'last', 'first', 'average'
+    select_hidden: 'last'                               # support modes: 'last', 'first', 'average'
 
   rnn:
-    input_dim: 'None'                                     # `int`, else if set to None, input_dim will be set according to mockingjay settings or mel-preprocessing dimensions automatically
-    hidden_size: 768
+    input_dim: 'None'                                   # `int`, else if set to None, input_dim will be set according to mockingjay settings or mel-preprocessing dimensions automatically
+    hidden_size: 256
     drop: 0.2
-    select_hidden: 'last'                                 # support modes: 'last', 'first', 'average'
+    select_hidden: 'last'                               # support modes: 'last', 'first', 'average'
     use_linear: True
 
 
