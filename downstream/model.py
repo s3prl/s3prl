@@ -165,13 +165,12 @@ class RnnClassifier(nn.Module):
 
 		packed = pack_padded_sequence(features, valid_lengths, batch_first=True, enforce_sorted=True)
 		_, h_n = self.rnn(packed)
-		embedded = h_n[-1, :, :]
+		hidden = h_n[-1, :, :]
 		# cause h_n directly contains info for final states
 		# it will be easier to use h_n as extracted embedding
-		hidden = embedded
 		
 		if self.use_linear:
-			hidden = self.dense1(embedded)
+			hidden = self.dense1(hidden)
 			hidden = self.drop1(hidden)
 			hidden = self.act_fn(hidden)
 

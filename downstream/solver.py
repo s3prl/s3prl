@@ -62,8 +62,8 @@ class Downstream_Solver(Solver):
 
 	def load_data(self, split='train', load='phone'):
 		''' Load date for training / testing'''
-		assert(load in ['phone', 'sentiment', 'speaker', 'speaker_small']), 'Unsupported dataloader!'
-		if load == 'phone' or load == 'speaker':
+		assert(load in ['phone', 'sentiment', 'speaker', 'speaker_large']), 'Unsupported dataloader!'
+		if load == 'phone' or load == 'speaker_large':
 			if split == 'train':
 				self.verbose('Loading source data from ' + str(self.config['dataloader']['train_set']) + ' from ' + self.config['dataloader']['data_path'])
 				if load == 'phone': self.verbose('Loading phone data from ' + str(self.config['dataloader']['train_set']) + ' from ' + self.config['dataloader']['phone_path'])
@@ -72,7 +72,7 @@ class Downstream_Solver(Solver):
 				if load == 'phone': self.verbose('Loading label data ' + str(self.config['dataloader']['test_set']) + ' from ' + self.config['dataloader']['phone_path'])
 			else:
 				raise NotImplementedError('Invalid `split` argument!')
-		elif load == 'speaker_small':
+		elif load == 'speaker':
 			if split == 'train':
 				self.verbose('Loading source data from ' + str(self.config['dataloader']['train_set']).replace('360', '100') + ' from ' + self.config['dataloader']['data_path'])
 			elif split == 'test':
@@ -278,7 +278,6 @@ class Downstream_Trainer(Downstream_Solver):
 					acc = corrects.item() / valids.item()
 					los = losses.item() / self.global_step
 					self.log.add_scalar('acc', acc, self.global_step)
-					self.log.add_scalar('correct', corrects.item(), self.global_step)
 					self.log.add_scalar('loss', los, self.global_step)
 					pbar.set_description("Loss %.10f" % los)
 

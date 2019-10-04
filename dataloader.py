@@ -41,7 +41,7 @@ HALF_BATCHSIZE_LABEL = 150
 #     - max_timestep : int, max len for input (set to 0 for no restriction)
 #     - max_label_len: int, max len for output (set to 0 for no restriction)
 #     - bucket_size  : int, batch size for each bucket
-#     - load         : str, types of data to load: ['asr', 'text', 'spec', 'duo', 'phone', 'speaker']
+#     - load         : str, types of data to load: ['asr', 'text', 'spec', 'duo', 'phone', 'speaker', 'speaker_large']
 class LibriDataset(Dataset):
 	def __init__(self, file_path, sets, bucket_size, max_timestep=0, max_label_len=0, drop=False, load='asr'):
 		# define default length
@@ -66,6 +66,9 @@ class LibriDataset(Dataset):
 ###############
 # ASR DATASET #
 ###############
+'''
+The LibriSpeech train-clean-360 (Mel Spectrogram, Transcript) dataset
+'''
 class AsrDataset(LibriDataset):
 	
 	def __init__(self, file_path, sets, bucket_size, max_timestep=0, max_label_len=0, drop=False, load='asr'):
@@ -124,6 +127,9 @@ class AsrDataset(LibriDataset):
 ###############
 # MEL DATASET #
 ###############
+'''
+The LibriSpeech train-clean-360 (Mel Spectrogram) dataset
+'''
 class MelDataset(LibriDataset):
 	
 	def __init__(self, run_mockingjay, file_path, sets, bucket_size, max_timestep=0, max_label_len=0, drop=False, load='spec'):
@@ -168,6 +174,9 @@ class MelDataset(LibriDataset):
 ######################
 # MEL LINEAR DATASET #
 ######################
+'''
+The LibriSpeech train-clean-360 (Mel Spectrogram, Linear Spectrogram) dataset
+'''
 class Mel_Linear_Dataset(LibriDataset):
 	
 	def __init__(self, file_path, target_path, sets, bucket_size, max_timestep=0, max_label_len=0, drop=False, load='duo'):
@@ -225,6 +234,9 @@ class Mel_Linear_Dataset(LibriDataset):
 #####################
 # MEL PHONE DATASET #
 #####################
+'''
+The LibriSpeech train-clean-360 (speech, phone) dataset
+'''
 class Mel_Phone_Dataset(LibriDataset):
 	
 	def __init__(self, run_mockingjay, file_path, phone_path, sets, bucket_size, max_timestep=0, 
@@ -302,8 +314,11 @@ class Mel_Phone_Dataset(LibriDataset):
 #########################
 # MEL SENTIMENT DATASET #
 #########################
+'''
+The MOSI (speech, sentiment) dataset
+'''
 class Mel_Sentiment_Dataset(Dataset):
-	def __init__(self, run_mockingjay, sentiment_path, split='train', bucket_size='8', max_timestep=0, drop=True, load='sentiment'):
+	def __init__(self, run_mockingjay, sentiment_path, split='train', bucket_size=8, max_timestep=0, drop=True, load='sentiment'):
 
 		assert(load == 'sentiment'), 'The MOSI dataset only supports sentiment analysis for now'
 		self.run_mockingjay = run_mockingjay
@@ -377,15 +392,18 @@ class Mel_Sentiment_Dataset(Dataset):
 		return len(self.X)
 
 
-#######################
-# MEL SPEAKER DATASET #
-#######################
-class Mel_Speaker_Dataset(Dataset):
+#############################
+# MEL SPEAKER LARGE DATASET #
+#############################
+'''
+The LibriSpeech train-clean-360 (speech, speaker) dataset
+'''
+class Mel_Speaker_Large_Dataset(Dataset):
 	
-	def __init__(self, run_mockingjay, file_path, sets, bucket_size, max_timestep=0, max_label_len=0, drop=False, load='speaker'):
+	def __init__(self, run_mockingjay, file_path, sets, bucket_size, max_timestep=0, max_label_len=0, drop=False, load='speaker_large'):
 		
 		HALF_BATCHSIZE_TIME = 1000
-		assert(load == 'speaker'), 'This dataset loads mel features and speaker ID labels.'
+		assert(load == 'speaker_large'), 'This dataset loads mel features and speaker ID labels.'
 		self.run_mockingjay = run_mockingjay
 		self.root = file_path
 		self.load = load
@@ -476,12 +494,15 @@ class Mel_Speaker_Dataset(Dataset):
 #############################
 # MEL SPEAKER SMALL DATASET #
 #############################
-class Mel_Speaker_Small_Dataset(Mel_Speaker_Dataset):
+'''
+The LibriSpeech train-clean-100 (speech, speaker) dataset
+'''
+class Mel_Speaker_Small_Dataset(Mel_Speaker_Large_Dataset):
 	
-	def __init__(self, split, run_mockingjay, file_path, sets, bucket_size, max_timestep=0, max_label_len=0, drop=False, load='speaker_small'):
+	def __init__(self, split, run_mockingjay, file_path, sets, bucket_size, max_timestep=0, max_label_len=0, drop=False, load='speaker'):
 		
 		HALF_BATCHSIZE_TIME = 1000
-		assert(load == 'speaker_small'), 'This dataset loads mel features and speaker ID labels.'
+		assert(load == 'speaker'), 'This dataset loads mel features and speaker ID labels.'
 		self.run_mockingjay = run_mockingjay
 		self.root = file_path
 		self.load = load
@@ -589,16 +610,16 @@ def get_Dataloader(split, load, data_path, batch_size, max_timestep, max_label_l
 		assert(sentiment_path is not None), '`sentiment path` must be provided for this dataset.'
 		ds = Mel_Sentiment_Dataset(run_mockingjay=run_mockingjay, sentiment_path=sentiment_path, split=split, max_timestep=max_timestep, load=load,
 								   bucket_size=bs, drop=drop_too_long)
-	elif load == 'speaker':
+	elif load == 'speaker_large':
 		if split == 'train': 
 			sets = (train_set[0], test_set[0])
 		elif split  == 'test':
 			sets = (test_set[0], train_set[0])
 		else:
 			raise NotImplementedError('Invalid configuration for `Mel_Speaker_Dataset`!')
-		ds = Mel_Speaker_Dataset(run_mockingjay=run_mockingjay, file_path=data_path, sets=sets, max_timestep=max_timestep, load=load,
-								 max_label_len=max_label_len, bucket_size=bs, drop=drop_too_long)
-	elif load == 'speaker_small':
+		ds = Mel_Speaker_Large_Dataset(run_mockingjay=run_mockingjay, file_path=data_path, sets=sets, max_timestep=max_timestep, load=load,
+								 	   max_label_len=max_label_len, bucket_size=bs, drop=drop_too_long)
+	elif load == 'speaker':
 		sets = train_set[0].replace('360', '100') # Use the `train-clean-100` set instead of the `train-clean-360`
 		ds = Mel_Speaker_Small_Dataset(split=split, run_mockingjay=run_mockingjay, file_path=data_path, sets=sets, max_timestep=max_timestep, load=load,
 									   max_label_len=max_label_len, bucket_size=bs, drop=drop_too_long)
