@@ -223,7 +223,7 @@ class Downstream_Trainer(Downstream_Solver):
 		pbar = tqdm(total=self.total_steps)
 		corrects = 0
 		valids = 0
-		best_loss = 999.999
+		best_acc = 0.0
 		while self.global_step <= self.total_steps:
 
 			for features, labels in tqdm(self.dataloader, desc="Iteration"):
@@ -288,9 +288,9 @@ class Downstream_Trainer(Downstream_Solver):
 					corrects = 0
 					valids = 0
 
-				if self.global_step % self.save_step == 0 and los < best_loss:
+				if self.global_step % self.save_step == 0 and acc > best_acc:
 					self.save_model(self.task)
-					best_loss = los
+					best_acc = acc
 
 				if self.eval != 'None' and self.global_step % self.dev_step == 0:
 					try: # since models are only saved at `best_loss`, there may not be a checkpoint to evaluate
