@@ -223,7 +223,7 @@ class Downstream_Trainer(Downstream_Solver):
 		pbar = tqdm(total=self.total_steps)
 		corrects = 0
 		valids = 0
-		losses = 0
+		best_loss = 0
 		while self.global_step <= self.total_steps:
 
 			for features, labels in tqdm(self.dataloader, desc="Iteration"):
@@ -270,7 +270,6 @@ class Downstream_Trainer(Downstream_Solver):
 				# Accumulate Loss
 				loss.backward()
 
-				losses += loss.detach().cpu()
 				corrects += correct
 				valids += valid
 
@@ -281,7 +280,7 @@ class Downstream_Trainer(Downstream_Solver):
 				if self.global_step % self.log_step == 0:
 					# Log
 					acc = corrects.item() / valids.item()
-					los = losses.item() / self.global_step
+					los = loss.item()
 					self.log.add_scalar('acc', acc, self.global_step)
 					self.log.add_scalar('loss', los, self.global_step)
 					pbar.set_description("Loss %.10f" % los)
@@ -290,8 +289,9 @@ class Downstream_Trainer(Downstream_Solver):
 					valids = 0
 					losses = 0
 
-				if self.global_step % self.save_step == 0:
+				if self.global_step % self.save_step == 0 and los < best_loss:
 					self.save_model(self.task)
+					best_loss = los
 
 				if self.eval != 'None' and self.global_step % self.dev_step == 0:
 					# immediately evaluate the new model

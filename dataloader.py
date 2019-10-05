@@ -625,11 +625,11 @@ def get_Dataloader(split, load, data_path, batch_size, max_timestep, max_label_l
 		else:
 			raise NotImplementedError('Invalid configuration for `Mel_Speaker_Dataset`!')
 		ds = Mel_Speaker_Large_Dataset(run_mockingjay=run_mockingjay, file_path=data_path, sets=sets, max_timestep=max_timestep, load=load,
-								 	   max_label_len=max_label_len, bucket_size=128, drop=drop_too_long)
+								 	   max_label_len=max_label_len, bucket_size=bs, drop=drop_too_long)
 	elif load == 'speaker':
 		sets = train_set[0].replace('360', '100') # Use the `train-clean-100` set instead of the `train-clean-360`
 		ds = Mel_Speaker_Small_Dataset(split=split, run_mockingjay=run_mockingjay, file_path=data_path, sets=sets, max_timestep=max_timestep, load=load,
-									   max_label_len=max_label_len, bucket_size=128, drop=drop_too_long)
+									   max_label_len=max_label_len, bucket_size=bs, drop=drop_too_long)
 	else:
 		raise NotImplementedError('Invalid `load` argument for `get_Dataloader()`!')
 
