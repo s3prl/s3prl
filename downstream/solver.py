@@ -223,7 +223,7 @@ class Downstream_Trainer(Downstream_Solver):
 		pbar = tqdm(total=self.total_steps)
 		corrects = 0
 		valids = 0
-		best_loss = 0
+		best_loss = 999.999
 		while self.global_step <= self.total_steps:
 
 			for features, labels in tqdm(self.dataloader, desc="Iteration"):
@@ -287,25 +287,26 @@ class Downstream_Trainer(Downstream_Solver):
 
 					corrects = 0
 					valids = 0
-					losses = 0
 
 				if self.global_step % self.save_step == 0 and los < best_loss:
 					self.save_model(self.task)
 					best_loss = los
 
 				if self.eval != 'None' and self.global_step % self.dev_step == 0:
-					# immediately evaluate the new model
-					evaluation = self.config['downstream']['evaluation']
-					new_model_path = '{}/{}-{}.ckpt'.format(self.ckpdir, self.task, self.global_step)
-					new_dckpt = '/'.join(new_model_path.split('/')[-2:])
-					test_config = copy.deepcopy(self.mock_config)
-					test_paras = copy.deepcopy(self.mock_paras)
-					test_paras.dckpt = new_dckpt
-					tester = Downstream_Tester(test_config, test_paras, task=self.task)
-					tester.load_data(split=evaluation, load=self.task.split('_')[-1])
-					tester.set_model(inference=True)
-					eval_acc = tester.exec()
-					self.log.add_scalar(f'{evaluation}_acc', eval_acc, self.global_step)
+					try: # since models are only saved at `best_loss`, there may not be a checkpoint to evaluate
+						# immediately evaluate the new model
+						evaluation = self.config['downstream']['evaluation']
+						new_model_path = '{}/{}-{}.ckpt'.format(self.ckpdir, self.task, self.global_step)
+						new_dckpt = '/'.join(new_model_path.split('/')[-2:])
+						test_config = copy.deepcopy(self.mock_config)
+						test_paras = copy.deepcopy(self.mock_paras)
+						test_paras.dckpt = new_dckpt
+						tester = Downstream_Tester(test_config, test_paras, task=self.task)
+						tester.load_data(split=evaluation, load=self.task.split('_')[-1])
+						tester.set_model(inference=True)
+						eval_acc = tester.exec()
+						self.log.add_scalar(f'{evaluation}_acc', eval_acc, self.global_step)
+					except: pass
 
 				pbar.update(1)
 				self.global_step += 1
