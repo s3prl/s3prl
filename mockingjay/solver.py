@@ -21,12 +21,12 @@ from tqdm import tqdm, trange
 import torch.nn.functional as F
 from tensorboardX import SummaryWriter
 from dataloader import get_Dataloader
-from mockingjay.model import MockingjayConfig, MockingjayModel, MockingjayForMaskedAcousticModel,MockingjayForMaskedAcoustic_SpectOrderModel
+from mockingjay.model import MockingjayConfig, MockingjayModel, MockingjayForMaskedAcousticModel,MockingjayForMaskedAcoustic_SpectOrderModel,MockingjayForMaskedAcoustic_SpectOrder_Mask_By_Probability_Model,MockingjayForMaskedAcoustic_SpectOrder_Mask_By_Probability_Model_albert
 from mockingjay.optimization import BertAdam, WarmupLinearSchedule
 from utils.audio import plot_spectrogram_to_numpy, plot_spectrogram
 from utils.audio import mel_dim, num_freq, sample_rate, inv_spectrogram
-
-
+import pdb
+import IPython
 ##########
 # SOLVER #
 ##########
@@ -88,11 +88,19 @@ class Solver():
 		# uild the Mockingjay model with speech prediction head
 		self.model_config = MockingjayConfig(self.config)
 		self.dr = self.model_config.downsample_rate
+		# self.embedding_size = self.model_config.embedding_size
 		self.hidden_size = self.model_config.hidden_size
 		
 		if not inference or with_head:
+			# pdb.set_trace()
+
 			# self.model = MockingjayForMaskedAcousticModel(self.model_config, self.input_dim, self.output_dim).to(self.device)
-			self.model = MockingjayForMaskedAcoustic_SpectOrderModel(self.model_config, self.input_dim, self.output_dim).to(self.device)
+			# self.model = MockingjayForMaskedAcoustic_SpectOrderModel(self.model_config, self.input_dim, self.output_dim).to(self.device)
+			# self.model = MockingjayForMaskedAcoustic_SpectOrder_Mask_By_Probability_Model(self.model_config, self.input_dim, self.output_dim).to(self.device)
+			self.model = MockingjayForMaskedAcoustic_SpectOrder_Mask_By_Probability_Model_albert(self.model_config, self.input_dim, self.output_dim).to(self.device)
+
+			para = sum([np.prod(list(p.size())) for p in self.model.parameters()])
+			print("para numbers: ",para)
 			self.mockingjay = self.model.Mockingjay
 			
 
@@ -327,21 +335,22 @@ class Trainer(Solver):
 		"""Process training data for the masked acoustic model"""
 		with torch.no_grad():
 			
-			assert(len(spec) == 5), 'dataloader should return (spec_masked, pos_enc, mask_label, attn_mask, spec_stacked)'
+			# assert(len(spec) == 5), 'dataloader should return (spec_masked, pos_enc, mask_label, attn_mask, spec_stacked)'
 			# Unpack and Hack bucket: Bucketing should cause acoustic feature to have shape 1xBxTxD'
 			spec_masked = spec[0].squeeze(0)
 			pos_enc = spec[1].squeeze(0)
 			mask_label = spec[2].squeeze(0)
 			attn_mask = spec[3].squeeze(0)
 			spec_stacked = spec[4].squeeze(0)
+			order_stacked = spec[5].squeeze(0)
 
 			spec_masked = spec_masked.to(device=self.device)
 			pos_enc = torch.FloatTensor(pos_enc).to(device=self.device)
 			mask_label = torch.ByteTensor(mask_label).to(device=self.device)
 			attn_mask = torch.FloatTensor(attn_mask).to(device=self.device)
 			spec_stacked = spec_stacked.to(device=self.device)
-
-		return spec_masked, pos_enc, mask_label, attn_mask, spec_stacked # (x, pos_enc, mask_label, attention_mask. y)
+			order_stacked = order_stacked.to(device=self.device)
+		return spec_masked, pos_enc, mask_label, attn_mask, spec_stacked, order_stacked # (x, pos_enc, mask_label, attention_mask. y)
 
 
 	def exec(self):

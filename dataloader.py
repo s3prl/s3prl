@@ -21,7 +21,7 @@ from torch.nn.utils.rnn import pad_sequence
 from torch.utils.data import DataLoader
 from torch.utils.data.dataset import Dataset
 from utils.asr import zero_padding,target_padding
-from utils.mam import process_train_MAM_data, process_test_MAM_data,process_train_MAM_data_spectrum_order
+from utils.mam import process_train_MAM_data, process_test_MAM_data,process_train_MAM_data_spectrum_order,process_train_MAM_data_spectrum_order_random_mask
 
 
 ############
@@ -162,7 +162,8 @@ class MelDataset(LibriDataset):
 		x_batch = [torch.FloatTensor(np.load(os.path.join(self.root, x_file))) for x_file in self.X[index]]
 		x_pad_batch = pad_sequence(x_batch, batch_first=True)
 		# if self.run_mockingjay: x_pad_batch = process_train_MAM_data(spec=(x_pad_batch,))
-		if self.run_mockingjay: x_pad_batch = process_train_MAM_data_spectrum_order(spec=(x_pad_batch,))
+		# if self.run_mockingjay: x_pad_batch = process_train_MAM_data_spectrum_order(spec=(x_pad_batch,))
+		if self.run_mockingjay: x_pad_batch = process_train_MAM_data_spectrum_order_random_mask(spec=(x_pad_batch,))
 		return x_pad_batch
 
 
