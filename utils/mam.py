@@ -18,7 +18,7 @@ import numpy as np
 
 # TODO: load this from yaml
 dr = 3
-hidden_size = 1024
+hidden_size = 768
 mask_proportion = 0.15
 
 
