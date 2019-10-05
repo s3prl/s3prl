@@ -97,7 +97,7 @@ class Solver():
 			# self.model = MockingjayForMaskedAcousticModel(self.model_config, self.input_dim, self.output_dim).to(self.device)
 			self.model = MockingjayForMaskedAcoustic_SpectOrderModel(self.model_config, self.input_dim, self.output_dim).to(self.device)
 			# self.model = MockingjayForMaskedAcoustic_SpectOrder_Mask_By_Probability_Model(self.model_config, self.input_dim, self.output_dim).to(self.device)
-			self.model = MockingjayForMaskedAcoustic_SpectOrder_Mask_By_Probability_Model_albert(self.model_config, self.input_dim, self.output_dim).to(self.device)
+			# self.model = MockingjayForMaskedAcoustic_SpectOrder_Mask_By_Probability_Model_albert(self.model_config, self.input_dim, self.output_dim).to(self.device)
 
 			para = sum([np.prod(list(p.size())) for p in self.model.parameters()])
 			print("para numbers: ",para)
