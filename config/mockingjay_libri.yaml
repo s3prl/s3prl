@@ -27,7 +27,16 @@ dataloader:
   max_label_len: 400                                    # Max length for output sequence (0 for no restriction)
 
   # for MOSI
-  random_split: 42                                      # any positive integer for assigning random seed for spliting, any negative integer for using standard splits
+  mosi_config:
+    label_mode: 'positive_negative'
+      # original
+      # positive_negative
+    standard_split: False
+
+    # if standard_split is False
+    random_seed: 1122
+    train_ratio: 0.9
+    sample_rate: 10
 
   # LIBRISEECH SETTINGS
   data_path: 'data/libri_mel160_subword5000'            # Source data path
