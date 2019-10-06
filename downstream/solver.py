@@ -293,7 +293,7 @@ class Downstream_Trainer(Downstream_Solver):
 					los = loses / self.log_step
 					self.log.add_scalar('acc', acc, self.global_step)
 					self.log.add_scalar('loss', los, self.global_step)
-					pbar.set_description("Loss %.10f" % acc)
+					pbar.set_description('Loss %.5f, Acc %.5f' % (los, acc))
 
 					loses = 0.0
 					corrects = 0
