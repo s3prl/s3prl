@@ -203,11 +203,11 @@ class Downstream_Trainer(Downstream_Solver):
 		# Training details
 		self.log_step = config['downstream']['log_step']
 		self.save_step = config['downstream']['save_step']
+		self.dev_step = config['downstream']['dev_step']
 		self.total_steps = config['downstream']['total_steps']
 		self.learning_rate = float(self.config['downstream']['learning_rate'])
 		self.max_keep = config['downstream']['max_keep']
 		self.eval = config['downstream']['evaluation']
-		self.dev_step = config['solver']['dev_step']
 		self.reset_train()
 
 
