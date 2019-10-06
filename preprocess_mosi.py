@@ -141,25 +141,19 @@ def acoustic_preprocess(args, dim):
 	dev_split = DATASET.standard_folds.standard_valid_fold
 	test_split = DATASET.standard_folds.standard_test_fold
 
-	# create split directory if necessary
-	train_path = os.path.join(output_dir, 'train')
-	dev_path = os.path.join(output_dir, 'dev')
-	test_path = os.path.join(output_dir, 'test')
-	for split_path in [train_path, dev_path, test_path]:
-		if not os.path.exists(split_path):
-			os.makedirs(split_path)
+	npy_dir = os.path.join(output_dir, 'npy')
+	if not os.path.exists(npy_dir):
+		os.mkdir(npy_dir)
 
 	def classify(file_name):
 		file_name = file_name[0]
 		prefix = '_'.join(file_name.split('_')[:-1])
+		shutil.move(os.path.join(output_dir,file_name), os.path.join(npy_dir, file_name))
 		if prefix in train_split:
-			shutil.move(os.path.join(output_dir,file_name), os.path.join(train_path, file_name))
 			return 'train'
 		elif prefix in dev_split:
-			shutil.move(os.path.join(output_dir,file_name), os.path.join(dev_path, file_name))
 			return 'dev'
 		elif prefix in test_split:
-			shutil.move(os.path.join(output_dir,file_name), os.path.join(test_path, file_name))
 			return 'test'
 		else: assert 0, 'Error in preprocess_mosi.py:146'
 	
