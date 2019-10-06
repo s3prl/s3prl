@@ -80,7 +80,8 @@ class Downstream_Solver(Solver):
 			else:
 				raise NotImplementedError('Invalid `split` argument!')
 		elif load == 'sentiment':
-			sentiment_path = self.config['dataloader']['sentiment_path']
+			target = self.config['dataloader']['sentiment_config']['dataset']
+			sentiment_path = self.config['dataloader']['sentiment_config'][target]['path']
 			self.verbose(f'Loading {split} data from {sentiment_path}')
 		else:
 			raise NotImplementedError('Unsupported downstream tasks.')

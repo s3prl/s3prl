@@ -323,14 +323,14 @@ class Mel_Phone_Dataset(LibriDataset):
 The MOSI (speech, sentiment) dataset
 '''
 class Mosi_Dataset(Dataset):
-	def __init__(self, run_mockingjay, sentiment_path, split='train', bucket_size=8, max_timestep=0, drop=True, mock_config=None, mosi_config=None, load='sentiment'):
-
+	def __init__(self, run_mockingjay, split='train', bucket_size=8, max_timestep=0, drop=True, mock_config=None, mosi_config=None, load='sentiment'):
+		assert(mosi_config is not None), 'MOSI config is necessary for this dataset'
 		assert(load == 'sentiment'), 'The MOSI dataset only supports sentiment analysis for now'
 		self.run_mockingjay = run_mockingjay
 		self.mock_config = mock_config
 		self.config = mosi_config
 
-		self.root = sentiment_path
+		self.root = mosi_config['path']
 		self.split = split
 
 		if mosi_config['standard_split']:
@@ -413,6 +413,105 @@ class Mosi_Dataset(Dataset):
 	def __len__(self):
 		return len(self.X)
 
+
+class Mosei_Dataset(Dataset):
+	def __init__(self, run_mockingjay, split='train', bucket_size=8, max_timestep=0, drop=True, mock_config=None, mosei_config=None, load='sentiment'):
+		assert(mosei_config is not None), 'MOSEI config is necessary for this dataset'
+		assert(load == 'sentiment'), 'The MOSEI dataset only supports sentiment analysis for now'
+		self.run_mockingjay = run_mockingjay
+		self.mock_config = mock_config
+		self.config = mosei_config
+
+		self.csv_path = os.path.join(mosei_config['path'], 'mosei_no_semi.csv')
+		self.npy_dir = os.path.join(mosei_config['path'], mosei_config['feature'])
+		self.split = split
+
+		if mosei_config['standard_split']:
+			raise NotImplementedError('MOSEI standard splits is not supported')
+		else:
+			all_table = pd.read_csv(self.csv_path)
+			starts = all_table.start
+			ends = all_table.end
+			intervals = ends - starts
+			too_long_index = all_table[intervals > 20].index
+			too_short_index = all_table[intervals < 1].index
+			dropped = all_table.drop(too_long_index)
+			dropped = dropped.drop(too_short_index)
+			all_table = dropped
+
+			train = all_table.sample(frac=mosei_config['train_ratio'], random_state=mosei_config['random_seed'])
+			test = all_table.drop(train.index)
+			if split == 'train':
+				self.table = train.sort_values(by=['length'], ascending=False)
+			elif split == 'test':
+				self.table = test.sort_values(by=['length'], ascending=False)
+			else:
+				raise NotImplementedError('Invalid `split` argument!')
+
+		if mosei_config['label_mode'] == 'original':
+			self.table['label'] = self.table.sentiment.astype(int)  # cause the labels given are average label over all annotaters, so we first round them
+			self.table.label += 3  # cause pytorch only accepts non-negative class value, we convert original [-3, -2, -1, 0, 1, 2, 3] into [0, 1, 2, 3, 4, 5, 6]
+			self.class_num = 7
+		elif mosei_config['label_mode'] == 'positive_negative':
+			self.table['label'] = (self.table.sentiment > 0).astype(np.int64)
+			self.class_num = 2
+		else:
+			raise NotImplementedError('Not supported label mode')
+
+		# Drop seqs that are too long
+		if drop and max_timestep > 0:
+			self.table = self.table[self.table.length < max_timestep]
+
+		Y = self.table['label'].tolist()  # (all_data, )
+		X = self.table['key'].tolist()
+		X = [key + '.npy' for key in X]
+		X_lens = self.table['length'].tolist()
+
+		self.Y = []
+		self.X = []
+		batch_y, batch_x, batch_len = [], [], []
+
+		for y, x, x_len in zip(Y, X, X_lens):
+			batch_y.append(y)
+			batch_x.append(x)
+			batch_len.append(x_len)
+			
+			# Fill in batch_x until batch is full
+			if len(batch_x) == bucket_size:
+				# Half the batch size if seq too long
+				if (bucket_size >= 2) and (max(batch_len) > HALF_BATCHSIZE_TIME):
+					self.Y.append(batch_y[:bucket_size//2])
+					self.Y.append(batch_y[bucket_size//2:])
+					self.X.append(batch_x[:bucket_size//2])
+					self.X.append(batch_x[bucket_size//2:])
+				else:
+					self.Y.append(batch_y)
+					self.X.append(batch_x)
+				batch_y, batch_x, batch_len = [], [], []
+		
+		# Gather the last batch
+		if len(batch_x) > 0:
+			self.Y.append(batch_y)
+			self.X.append(batch_x)
+
+
+	def __getitem__(self, index):
+		# Load acoustic feature and pad
+		x_batch = [torch.FloatTensor(np.load(os.path.join(self.npy_dir, x_file))) for x_file in self.X[index]]  # [(seq, feature), ...]
+		x_pad_batch = pad_sequence(x_batch, batch_first=True)  # (batch, seq, feature) with all seq padded with zeros to align the longest seq in this batch
+		seq_len = x_pad_batch.size(1)
+		x_pad_batch = x_pad_batch[:, torch.arange(0, seq_len, self.config['sample_rate']), :]
+
+		# Load label
+		y_batch = torch.LongTensor(self.Y[index])  # (batch, )
+		# y_broadcast_int_batch = y_batch.repeat(x_pad_batch.size(1), 1).T  # (batch, seq)
+
+		if self.run_mockingjay:
+			x_pad_batch = process_test_MAM_data(spec=(x_pad_batch,), config=self.mock_config)
+		return x_pad_batch, y_batch
+	
+	def __len__(self):
+		return len(self.X)
 
 #############################
 # MEL SPEAKER LARGE DATASET #
@@ -593,8 +692,8 @@ class Mel_Speaker_Small_Dataset(Mel_Speaker_Large_Dataset):
 ##################
 def get_Dataloader(split, load, data_path, batch_size, max_timestep, max_label_len, 
 				   use_gpu, n_jobs, train_set, dev_set, test_set, dev_batch_size, 
-				   target_path=None, phone_path=None, sentiment_path=None, 
-				   mock_config=None, mosi_config=None,
+				   target_path=None, phone_path=None,
+				   mock_config=None, sentiment_config=None,
 				   decode_beam_size=None, run_mockingjay=False, train_proportion=1.0, **kwargs):
 
 	# Decide which split to use: train/dev/test
@@ -639,9 +738,16 @@ def get_Dataloader(split, load, data_path, batch_size, max_timestep, max_label_l
 							   max_label_len=max_label_len, bucket_size=bs, drop=drop_too_long, mock_config=mock_config,
 							   train_proportion=train_proportion if split == 'train' else 1.0)
 	elif load == 'sentiment':
-		assert(sentiment_path is not None), '`sentiment path` must be provided for this dataset.'
-		ds = Mosi_Dataset(run_mockingjay=run_mockingjay, sentiment_path=sentiment_path, split=split, max_timestep=max_timestep, load=load,
-						  bucket_size=bs, drop=drop_too_long, mock_config=mock_config, mosi_config=mosi_config)
+		assert(sentiment_config is not None), '`sentiment config` must be provided for this dataset.'
+		target = sentiment_config['dataset']
+		if target == 'mosi':
+			ds = Mosi_Dataset(run_mockingjay=run_mockingjay, split=split, max_timestep=max_timestep, load=load,
+							  bucket_size=bs, drop=drop_too_long, mock_config=mock_config, mosi_config=sentiment_config[target])
+		elif target == 'mosei':
+			ds = Mosei_Dataset(run_mockingjay=run_mockingjay, split=split, max_timestep=max_timestep, load=load,
+							  bucket_size=bs, drop=drop_too_long, mock_config=mock_config, mosei_config=sentiment_config[target])
+		else:
+			raise NotImplementedError('Not supported dataset for sentiment')
 	elif load == 'speaker_large':
 		if split == 'train': 
 			sets = (train_set[0], test_set[0])
