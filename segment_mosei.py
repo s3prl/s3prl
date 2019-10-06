@@ -26,12 +26,6 @@ from utils.asr import encode_target
 from utils.audio import extract_feature, mel_dim, num_freq
 from pydub import AudioSegment
 
-# using CMU SDK to access audio label
-# for installing mmsdk package, please follow the instructions in:
-# https://github.com/A2Zadeh/CMU-MultimodalSDK#installation
-import mmsdk
-from mmsdk import mmdatasdk as md
-
 
 def bracket_underscore(string):
 	split = string.split('[')
@@ -51,48 +45,42 @@ def underscore_bracket(string):
 def get_preprocess_args():
 	parser = argparse.ArgumentParser(description='preprocess arguments for LibriSpeech dataset.')
 	parser.add_argument('--data_path', default='/home/leo/d/datasets/MOSEI/Raw/Audio/Full/WAV_16000', type=str, help='Path to MOSEI non-segmented WAV files')
-	parser.add_argument('--output_path', default='./data/mosei_segmented_flac', type=str, help='Path to store segmented flac', required=False)
+	parser.add_argument('--output_path', default='./data/mosei', type=str, help='Path to store segmented flac and npys. Should already contains mosei_no_semi.csv', required=False)
 	args = parser.parse_args()
 	return args
 
 
 def segment_mosei(args):
-	flac_dir = args.output_path
-	if os.path.exists(flac_dir):
-		shutil.rmtree(flac_dir)
-	os.makedirs(flac_dir)
+	output_dir = args.output_path
+	mosei_summary = os.path.join(output_dir, 'mosei_no_semi.csv')
+	flac_dir = os.path.join(output_dir, 'flac')
+	assert os.path.exists(mosei_summary), 'Output path should already be created with a mosei_no_semi.csv inside it'
+	for target_dir in [flac_dir]:
+		if os.path.exists(target_dir):
+			decision = input(f'{target_dir} already exists. Remove it? [Y/N]: ')
+			if decision.upper() == 'Y':
+				print(f'Removing {target_dir}')
+				shutil.rmtree(target_dir)
+			else:
+				print('Abort')
+				exit(0)
+		os.makedirs(target_dir)
 
-	# Loading labels
-	DATASET = md.cmu_mosei
-	try:
-		md.mmdataset(DATASET.labels, args.data_path)
-	except RuntimeError:
-		print("Labels have been downloaded previously.")
+	df = pd.read_csv(mosei_summary)
 
-	label = 'CMU_MOSEI_LabelsSentiment'
-	features = [
-		label,
-	]
-	recipe = {feat: os.path.join(args.data_path, feat) + '.csd' for feat in features}
-	dataset = md.mmdataset(recipe)
-	dataset.align(label)
-
-	for key in iter(dataset[label].keys()):
-		underscore = bracket_underscore(key)
-		underscore_split = underscore.split('_')
-		prefix = '_'.join(underscore_split[:-1])
-		postfix = underscore_split[-1]
-		wavname = f'{prefix}.wav'
+	for index, row in df.iterrows():
+		underscore = row.key
+		wavname = f'{row.filename}.wav'
 		wavpath = os.path.join(args.data_path, wavname)
-		if not os.path.exists(wavpath):
-			assert False, f'wav not exists: {wavpath}'
+		assert os.path.exists(wavpath), f'wav not exists: {wavpath}'
 		wav = AudioSegment.from_wav(wavpath)
 
-		seg_flacpath = os.path.join(flac_dir, f'{underscore}.flac')
-		item = dataset[label][key]
-		start = int(item['intervals'][0, 0] * 1000)
-		end = int(item['intervals'][0, 1] * 1000)
+		start = int(row.start * 1000)
+		end = int(row.end * 1000)
+		assert start >= 0, f'{underscore} has negative start time'
+		assert end >= 0, f'{underscore} has negative end time'
 		seg_wav = wav[start:end]
+		seg_flacpath = os.path.join(flac_dir, f'{underscore}.flac')
 		seg_wav.export(seg_flacpath, format='flac', parameters=['-ac', '1', '-sample_fmt', 's16', '-ar', '16000'])
 
 
@@ -110,4 +98,3 @@ def main():
 if __name__ == '__main__':
 	main()
 
-	
