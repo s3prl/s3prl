@@ -26,6 +26,9 @@ dataloader:
   max_timestep: 3000                                    # Max length for audio feature (0 for no restriction)
   max_label_len: 400                                    # Max length for output sequence (0 for no restriction)
 
+  # for MOSI
+  random_split: 42                                      # any positive integer for assigning random seed for spliting, any negative integer for using standard splits
+
   # LIBRISEECH SETTINGS
   data_path: 'data/libri_mel160_subword5000'            # Source data path
   target_path: 'data/libri_linear1025_subword5000'      # Target data path for reconstruction to a different feature type, set dataset to 'librispeech_mel_linear'.
@@ -36,7 +39,7 @@ dataloader:
   train_proportion: 1.0                                 # Currently only effect the `phone classification task`, use this percent of `train_set` for downstream task training to demonstrate mockingjay generality
 
   # MOSI SETTINGS
-  sentiment_path: 'data/mosi_mel160'        # train/dev/test set has fixed subdir name with 'test', 'dev', 'test'
+  sentiment_path: 'data/mosi_mel160'
 
 
 solver:

@@ -318,8 +318,8 @@ class Mel_Phone_Dataset(LibriDataset):
 '''
 The MOSI (speech, sentiment) dataset
 '''
-class Mel_Sentiment_Dataset(Dataset):
-	def __init__(self, run_mockingjay, sentiment_path, split='train', bucket_size=8, max_timestep=0, drop=True, load='sentiment'):
+class Mosi_Dataset(Dataset):
+	def __init__(self, run_mockingjay, sentiment_path, split='train', bucket_size=8, max_timestep=0, drop=True, load='sentiment', random_split=42):
 
 		assert(load == 'sentiment'), 'The MOSI dataset only supports sentiment analysis for now'
 		self.run_mockingjay = run_mockingjay
@@ -327,7 +327,19 @@ class Mel_Sentiment_Dataset(Dataset):
 		self.root = sentiment_path
 		self.split = split
 
-		self.table = pd.read_csv(os.path.join(sentiment_path, split + '.csv'))
+		if random_split < 0:
+			self.table = pd.read_csv(os.path.join(sentiment_path, split + '.csv'))
+		else:
+			all_table = pd.read_csv(os.path.join(sentiment_path, 'all.csv'))
+			train = all_table.sample(frac=0.9, random_state=random_split)
+			test = all_table.drop(train.index)
+			if split == 'train':
+				self.table = train.sort_values(by=['length'], ascending=False)
+			elif split == 'test':
+				self.table = test.sort_values(by=['length'], ascending=False)
+			else:
+				raise NotImplementedError('Invalid `split` argument!')
+
 		self.table.label = self.table.label.astype(int)  # cause the labels given are average label over all annotaters, so we first round them
 		self.table.label += 3  # cause pytorch only accepts non-negative class value, we convert original [-3, -2, -1, 0, 1, 2, 3] into [0, 1, 2, 3, 4, 5, 6]
 
@@ -570,7 +582,7 @@ class Mel_Speaker_Small_Dataset(Mel_Speaker_Large_Dataset):
 ##################
 def get_Dataloader(split, load, data_path, batch_size, max_timestep, max_label_len, 
 				   use_gpu, n_jobs, train_set, dev_set, test_set, dev_batch_size, 
-				   target_path=None, phone_path=None, sentiment_path=None,
+				   target_path=None, phone_path=None, sentiment_path=None, random_split=42,
 				   decode_beam_size=None, run_mockingjay=False, train_proportion=1.0, **kwargs):
 
 	# Decide which split to use: train/dev/test
@@ -615,8 +627,8 @@ def get_Dataloader(split, load, data_path, batch_size, max_timestep, max_label_l
 							   max_label_len=max_label_len, bucket_size=bs, drop=drop_too_long, train_proportion=train_proportion if split == 'train' else 1.0)
 	elif load == 'sentiment':
 		assert(sentiment_path is not None), '`sentiment path` must be provided for this dataset.'
-		ds = Mel_Sentiment_Dataset(run_mockingjay=run_mockingjay, sentiment_path=sentiment_path, split=split, max_timestep=max_timestep, load=load,
-								   bucket_size=bs, drop=drop_too_long)
+		ds = Mosi_Dataset(run_mockingjay=run_mockingjay, sentiment_path=sentiment_path, split=split, max_timestep=max_timestep, load=load,
+								   bucket_size=bs, drop=drop_too_long, random_split=random_split)
 	elif load == 'speaker_large':
 		if split == 'train': 
 			sets = (train_set[0], test_set[0])
