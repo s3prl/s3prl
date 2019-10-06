@@ -134,11 +134,12 @@ The LibriSpeech train-clean-360 (Mel Spectrogram) dataset
 '''
 class MelDataset(LibriDataset):
 	
-	def __init__(self, run_mockingjay, file_path, sets, bucket_size, max_timestep=0, max_label_len=0, drop=False, load='spec'):
+	def __init__(self, run_mockingjay, file_path, sets, bucket_size, max_timestep=0, max_label_len=0, drop=False, mock_config=None, load='spec'):
 		super(MelDataset, self).__init__(file_path, sets, bucket_size, max_timestep, max_label_len, drop, load)
 
 		assert(self.load == 'spec'), 'This dataset loads mel features.'
 		self.run_mockingjay = run_mockingjay
+		self.mock_config = mock_config
 		X = self.table['file_path'].tolist()
 		X_lens = self.table['length'].tolist()
 
@@ -169,7 +170,7 @@ class MelDataset(LibriDataset):
 		# Load acoustic feature and pad
 		x_batch = [torch.FloatTensor(np.load(os.path.join(self.root, x_file))) for x_file in self.X[index]]
 		x_pad_batch = pad_sequence(x_batch, batch_first=True)
-		if self.run_mockingjay: x_pad_batch = process_train_MAM_data(spec=(x_pad_batch,))
+		if self.run_mockingjay: x_pad_batch = process_train_MAM_data(spec=(x_pad_batch,), config=self.mock_config)
 		return x_pad_batch
 
 
@@ -181,10 +182,11 @@ The LibriSpeech train-clean-360 (Mel Spectrogram, Linear Spectrogram) dataset
 '''
 class Mel_Linear_Dataset(LibriDataset):
 	
-	def __init__(self, file_path, target_path, sets, bucket_size, max_timestep=0, max_label_len=0, drop=False, load='duo'):
+	def __init__(self, file_path, target_path, sets, bucket_size, max_timestep=0, max_label_len=0, drop=False, mock_config=None, load='duo'):
 		super(Mel_Linear_Dataset, self).__init__(file_path, sets, bucket_size, max_timestep, max_label_len, drop, load)
 
 		assert(self.load == 'duo'), 'This dataset loads duo features: mel spectrogram and linear spectrogram.'
+		self.mock_config = mock_config
 		# Read Target file
 		self.t_root = target_path
 		t_tables = [pd.read_csv(os.path.join(target_path, s + '.csv')) for s in sets]
@@ -229,7 +231,7 @@ class Mel_Linear_Dataset(LibriDataset):
 		# Return (x_spec, t_spec)
 		t_batch = [torch.FloatTensor(np.load(os.path.join(self.t_root, t_file))) for t_file in self.T[index]]
 		t_pad_batch = pad_sequence(t_batch, batch_first=True)
-		batch = process_train_MAM_data(spec=(x_pad_batch, t_pad_batch))
+		batch = process_train_MAM_data(spec=(x_pad_batch, t_pad_batch), config=self.mock_config)
 		return batch
 
 
@@ -242,12 +244,13 @@ The LibriSpeech train-clean-360 (speech, phone) dataset
 class Mel_Phone_Dataset(LibriDataset):
 	
 	def __init__(self, run_mockingjay, file_path, phone_path, sets, bucket_size, max_timestep=0, 
-				 max_label_len=0, drop=False, train_proportion=1.0, load='phone'):
+				 max_label_len=0, drop=False, train_proportion=1.0, mock_config=None, load='phone'):
 		super(Mel_Phone_Dataset, self).__init__(file_path, sets, bucket_size, max_timestep, max_label_len, drop, load)
 		HALF_BATCHSIZE_TIME = 1000
 
 		assert(self.load == 'phone'), 'This dataset loads mel features and phone boundary labels.'
 		self.run_mockingjay = run_mockingjay
+		self.mock_config = mock_config
 		self.phone_path = phone_path
 		self.class_num = len(pickle.load(open(os.path.join(phone_path, 'phone2idx.pkl'), 'rb')))
 		print('[Dataset] - Possible phone classes: ', self.class_num)
@@ -309,7 +312,7 @@ class Mel_Phone_Dataset(LibriDataset):
 		x_match_batch, p_match_batch = self.match_sequence(x_pad_batch, p_pad_batch)
 		# Return (x_spec, phone_label)
 		if self.run_mockingjay:
-			x_match_batch = process_test_MAM_data(spec=(x_match_batch,))
+			x_match_batch = process_test_MAM_data(spec=(x_match_batch,), config=self.mock_config)
 		return x_match_batch, p_match_batch
 
 
@@ -320,14 +323,15 @@ class Mel_Phone_Dataset(LibriDataset):
 The MOSI (speech, sentiment) dataset
 '''
 class Mosi_Dataset(Dataset):
-	def __init__(self, run_mockingjay, sentiment_path, split='train', bucket_size=8, max_timestep=0, drop=True, load='sentiment', mosi_config=None):
+	def __init__(self, run_mockingjay, sentiment_path, split='train', bucket_size=8, max_timestep=0, drop=True, mock_config=None, mosi_config=None, load='sentiment'):
 
 		assert(load == 'sentiment'), 'The MOSI dataset only supports sentiment analysis for now'
 		self.run_mockingjay = run_mockingjay
+		self.mock_config = mock_config
+		self.config = mosi_config
 
 		self.root = sentiment_path
 		self.split = split
-		self.config = mosi_config
 
 		if mosi_config['standard_split']:
 			self.table = pd.read_csv(os.path.join(sentiment_path, split + '.csv'))
@@ -403,7 +407,7 @@ class Mosi_Dataset(Dataset):
 		# y_broadcast_int_batch = y_batch.repeat(x_pad_batch.size(1), 1).T  # (batch, seq)
 
 		if self.run_mockingjay:
-			x_pad_batch = process_test_MAM_data(spec=(x_pad_batch,))
+			x_pad_batch = process_test_MAM_data(spec=(x_pad_batch,), config=self.mock_config)
 		return x_pad_batch, y_batch
 	
 	def __len__(self):
@@ -418,11 +422,12 @@ The LibriSpeech train-clean-360 (speech, speaker) dataset
 '''
 class Mel_Speaker_Large_Dataset(Dataset):
 	
-	def __init__(self, run_mockingjay, file_path, sets, bucket_size, max_timestep=0, max_label_len=0, drop=False, load='speaker_large'):
+	def __init__(self, run_mockingjay, file_path, sets, bucket_size, max_timestep=0, max_label_len=0, drop=False, mock_config=None, load='speaker_large'):
 		
 		HALF_BATCHSIZE_TIME = 2000
 		assert(load == 'speaker_large'), 'This dataset loads mel features and speaker ID labels.'
 		self.run_mockingjay = run_mockingjay
+		self.mock_config = mock_config
 		self.root = file_path
 		self.load = load
 
@@ -487,7 +492,7 @@ class Mel_Speaker_Large_Dataset(Dataset):
 		# Return (x_spec, speaker_label)
 		s_batch = torch.FloatTensor([self.speaker2idx[self.get_speaker_from_path(x_file)] for x_file in self.X[index]])
 		if self.run_mockingjay:
-			x_pad_batch = process_test_MAM_data(spec=(x_pad_batch,))
+			x_pad_batch = process_test_MAM_data(spec=(x_pad_batch,), config=self.mock_config)
 		return x_pad_batch, s_batch
 
 	def get_speaker_from_path(self, x):
@@ -521,11 +526,12 @@ The LibriSpeech train-clean-100 (speech, speaker) dataset
 '''
 class Mel_Speaker_Small_Dataset(Mel_Speaker_Large_Dataset):
 	
-	def __init__(self, split, run_mockingjay, file_path, sets, bucket_size, max_timestep=0, max_label_len=0, drop=False, load='speaker'):
+	def __init__(self, split, run_mockingjay, file_path, sets, bucket_size, max_timestep=0, max_label_len=0, drop=False, mock_config=None, load='speaker'):
 		
 		HALF_BATCHSIZE_TIME = 2000
 		assert(load == 'speaker'), 'This dataset loads mel features and speaker ID labels.'
 		self.run_mockingjay = run_mockingjay
+		self.mock_config = mock_config
 		self.root = file_path
 		self.load = load
 
@@ -587,7 +593,8 @@ class Mel_Speaker_Small_Dataset(Mel_Speaker_Large_Dataset):
 ##################
 def get_Dataloader(split, load, data_path, batch_size, max_timestep, max_label_len, 
 				   use_gpu, n_jobs, train_set, dev_set, test_set, dev_batch_size, 
-				   target_path=None, phone_path=None, sentiment_path=None, mosi_config=None,
+				   target_path=None, phone_path=None, sentiment_path=None, 
+				   mock_config=None, mosi_config=None,
 				   decode_beam_size=None, run_mockingjay=False, train_proportion=1.0, **kwargs):
 
 	# Decide which split to use: train/dev/test
@@ -621,19 +628,20 @@ def get_Dataloader(split, load, data_path, batch_size, max_timestep, max_label_l
 						max_label_len=max_label_len, bucket_size=bs, drop=drop_too_long)
 	elif load == 'spec':
 		ds = MelDataset(run_mockingjay=run_mockingjay, file_path=data_path, sets=sets, max_timestep=max_timestep, load=load, 
-						max_label_len=max_label_len, bucket_size=bs, drop=drop_too_long)
+						max_label_len=max_label_len, bucket_size=bs, drop=drop_too_long, mock_config=mock_config)
 	elif load == 'duo':
 		assert(target_path is not None), '`target path` must be provided for this dataset.'
 		ds = Mel_Linear_Dataset(file_path=data_path, target_path=target_path, sets=sets, max_timestep=max_timestep, load=load,
-								max_label_len=max_label_len, bucket_size=bs, drop=drop_too_long)
+								max_label_len=max_label_len, bucket_size=bs, drop=drop_too_long, mock_config=mock_config)
 	elif load == 'phone':
 		assert(phone_path is not None), '`phone path` must be provided for this dataset.'
 		ds = Mel_Phone_Dataset(run_mockingjay=run_mockingjay, file_path=data_path, phone_path=phone_path, sets=sets, max_timestep=max_timestep, load=load,
-							   max_label_len=max_label_len, bucket_size=bs, drop=drop_too_long, train_proportion=train_proportion if split == 'train' else 1.0)
+							   max_label_len=max_label_len, bucket_size=bs, drop=drop_too_long, mock_config=mock_config,
+							   train_proportion=train_proportion if split == 'train' else 1.0)
 	elif load == 'sentiment':
 		assert(sentiment_path is not None), '`sentiment path` must be provided for this dataset.'
 		ds = Mosi_Dataset(run_mockingjay=run_mockingjay, sentiment_path=sentiment_path, split=split, max_timestep=max_timestep, load=load,
-								   bucket_size=bs, drop=drop_too_long, mosi_config=mosi_config)
+						  bucket_size=bs, drop=drop_too_long, mock_config=mock_config, mosi_config=mosi_config)
 	elif load == 'speaker_large':
 		if split == 'train': 
 			sets = (train_set[0], test_set[0])
@@ -642,11 +650,11 @@ def get_Dataloader(split, load, data_path, batch_size, max_timestep, max_label_l
 		else:
 			raise NotImplementedError('Invalid configuration for `Mel_Speaker_Dataset`!')
 		ds = Mel_Speaker_Large_Dataset(run_mockingjay=run_mockingjay, file_path=data_path, sets=sets, max_timestep=max_timestep, load=load,
-								 	   max_label_len=max_label_len, bucket_size=bs, drop=drop_too_long)
+								 	   max_label_len=max_label_len, bucket_size=bs, drop=drop_too_long, mock_config=mock_config)
 	elif load == 'speaker':
 		sets = train_set[0].replace('360', '100') # Use the `train-clean-100` set instead of the `train-clean-360`
 		ds = Mel_Speaker_Small_Dataset(split=split, run_mockingjay=run_mockingjay, file_path=data_path, sets=sets, max_timestep=max_timestep, load=load,
-									   max_label_len=max_label_len, bucket_size=bs, drop=drop_too_long)
+									   max_label_len=max_label_len, bucket_size=bs, drop=drop_too_long, mock_config=mock_config)
 	else:
 		raise NotImplementedError('Invalid `load` argument for `get_Dataloader()`!')
 

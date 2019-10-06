@@ -86,7 +86,8 @@ class Downstream_Solver(Solver):
 			raise NotImplementedError('Unsupported downstream tasks.')
 
 		setattr(self, 'dataloader', get_Dataloader(split, load=load, use_gpu=self.paras.gpu, \
-				run_mockingjay=self.run_mockingjay, **self.config['dataloader']))
+				run_mockingjay=self.run_mockingjay, mock_config=self.config['mockingjay'], \
+				**self.config['dataloader']))
 
 
 	def set_model(self, inference=False):

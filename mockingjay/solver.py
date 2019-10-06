@@ -76,10 +76,11 @@ class Solver():
 
 		if self.duo_feature:
 			setattr(self, 'dataloader', get_Dataloader(split, load='duo', use_gpu=self.paras.gpu, \
-					**self.config['dataloader'])) # Currently the duo feature dataloader only supports mockingjay training, no need to specify `run_mockingjay`
+					mock_config=self.config['mockingjay'], **self.config['dataloader'])) # Currently the duo feature dataloader only supports mockingjay training, no need to specify `run_mockingjay`
 		else:
 			setattr(self, 'dataloader', get_Dataloader(split, load='spec', use_gpu=self.paras.gpu, \
-					run_mockingjay=True, **self.config['dataloader'])) # specify `run_mockingjay` so dataloader will process mockingjay MAM data
+					run_mockingjay=True, mock_config=self.config['mockingjay'], \
+					**self.config['dataloader'])) # specify `run_mockingjay` so dataloader will process mockingjay MAM data
 
 
 	def set_model(self, inference=False, with_head=False, from_path=None):
@@ -308,7 +309,6 @@ class Trainer(Solver):
 		self.log_step = config['solver']['log_step']
 		self.save_step = config['solver']['save_step']
 		self.total_steps = config['solver']['total_steps']
-		self.mask_proportion = config['solver']['mask_proportion']
 		self.learning_rate = float(self.config['optimizer']['learning_rate'])
 		self.warmup_proportion = self.config['optimizer']['warmup_proportion']
 		self.gradient_accumulation_steps = self.config['optimizer']['gradient_accumulation_steps']
@@ -506,7 +506,7 @@ class Tester(Solver):
 					# generate the model filled MAM spectrogram
 					spec_masked = copy.deepcopy(spec_stacked)
 					for i in range(len(spec_masked)):
-						sample_index = random.sample(range(len(spec_masked[i])), int(len(spec_masked[i])*self.mask_proportion))
+						sample_index = random.sample(range(len(spec_masked[i])), int(len(spec_masked[i])*self.config['mockingjay']['mask_proportion']))
 						spec_masked[i][sample_index] = 0
 					fill_spec = self.model(spec_masked, pos_enc, attention_mask=attn_mask)
 

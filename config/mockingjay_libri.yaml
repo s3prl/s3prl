@@ -9,6 +9,7 @@ mockingjay:
   attention_probs_dropout_prob: 0.1                     # The dropout ratio for the attention probabilities.
   initializer_range: 0.02                               # The sttdev of the truncated_normal_initializer for initializing all weight matrices.
   layer_norm_eps: "1e-12"                               # The epsilon used by LayerNorm.
+  mask_proportion: 0.15                                 # mask this percentage of all spectrogram frames in each sequence at random during MAM training                        
 
 
 optimizer: 
@@ -56,7 +57,6 @@ solver:
   apex: False                                           # Use APEX (see https://github.com/NVIDIA/apex for more details)
   total_steps: 500000                                   # total steps for training, a step is a batch of update
   log_step: 100                                         # log training status every this amount of training steps
-  mask_proportion: 0.15                                 # mask this percentage of all spectrogram frames in each sequence at random during MAM training                        
   dev_step: 10000                                       #
   duo_feature: True                                     # Use different input / output features during training
 

@@ -16,20 +16,22 @@ import torch
 import numpy as np
 
 
-# TODO: load this from yaml
-dr = 3
-hidden_size = 768
-mask_proportion = 0.15
+############
+# CONSTANT #
+############
+DR = 3
+HIDDEN_SIZE = 768
+MASK_PROPORTION = 0.15
 
 
-def down_sample_frames(spec):
+def down_sample_frames(spec, dr):
     left_over = spec.shape[1] % dr
     if left_over != 0: spec = spec[:, :-left_over, :]
     spec_stacked = spec.view(spec.shape[0], spec.shape[1]//dr, spec.shape[2]*dr)
     return spec_stacked
 
 
-def position_encoding(seq_len, batch_size=None, padding_idx=None):
+def position_encoding(seq_len, hidden_size, batch_size=None, padding_idx=None):
     ''' Sinusoid position encoding table '''
     def cal_angle(position, hid_idx):
         return position / np.power(10000, 2 * (hid_idx // 2) / hidden_size)
@@ -52,8 +54,13 @@ def position_encoding(seq_len, batch_size=None, padding_idx=None):
         return sinusoid_table  # (seq_len, hidden_size)
 
 
-def process_train_MAM_data(spec):
+def process_train_MAM_data(spec, config=None):
     """Process training data for the masked acoustic model"""
+
+    dr = config['downsample_rate'] if config is not None else DR
+    hidden_size = config['hidden_size'] if config is not None else HIDDEN_SIZE
+    mask_proportion = config['mask_proportion'] if config is not None else MASK_PROPORTION
+
     with torch.no_grad():
         if len(spec) == 2: # if self.duo_feature: dataloader will output `source_spec` and `target_spec`
             source_spec = spec[0]
@@ -65,8 +72,8 @@ def process_train_MAM_data(spec):
             raise NotImplementedError('Input spec sould be either (spec,) or (target_spec, source_spec), where `spec` has shape BxTxD.')
 
         # Down sample
-        spec_masked = down_sample_frames(source_spec) # (batch_size, seq_len, mel_dim * dr)
-        spec_stacked = down_sample_frames(target_spec) # (batch_size, seq_len, mel_dim * dr)
+        spec_masked = down_sample_frames(source_spec, dr) # (batch_size, seq_len, mel_dim * dr)
+        spec_stacked = down_sample_frames(target_spec, dr) # (batch_size, seq_len, mel_dim * dr)
         assert(spec_masked.shape[1] == spec_stacked.shape[1]), 'Input and output spectrogram should have the same shape'
 
         # Record length for each uttr
@@ -76,7 +83,7 @@ def process_train_MAM_data(spec):
         batch_size = spec_stacked.shape[0]
         seq_len = spec_stacked.shape[1]
 
-        pos_enc = position_encoding(seq_len, batch_size) # (batch_size, seq_len, hidden_size)
+        pos_enc = position_encoding(seq_len, hidden_size, batch_size) # (batch_size, seq_len, hidden_size)
         mask_label = np.zeros_like(spec_stacked)
         attn_mask = np.ones((batch_size, seq_len)) # (batch_size, seq_len)
 
@@ -111,15 +118,18 @@ def process_train_MAM_data(spec):
     return spec_masked, pos_enc, mask_label, attn_mask, spec_stacked
 
 
-def process_test_MAM_data(spec):
+def process_test_MAM_data(spec, config=None):
     """Process testing data for the masked acoustic model"""
     
+    dr = config['downsample_rate'] if config is not None else DR
+    hidden_size = config['hidden_size'] if config is not None else HIDDEN_SIZE
+
     with torch.no_grad():
         if len(spec) != 1:
             raise NotImplementedError('Input spec sould be a tuple of: (spec,), where `spec` has shape BxTxD.')
 
         # Down sample
-        spec_stacked = down_sample_frames(spec[0]) # (batch_size, seq_len, mel_dim * dr)
+        spec_stacked = down_sample_frames(spec[0], dr) # (batch_size, seq_len, mel_dim * dr)
 
         # Record length for each uttr
         spec_len = np.sum(np.sum(spec_stacked.data.numpy(), axis=-1) != 0, axis=-1)
@@ -128,7 +138,7 @@ def process_test_MAM_data(spec):
         batch_size = spec_stacked.shape[0]
         seq_len = spec_stacked.shape[1]
 
-        pos_enc = position_encoding(seq_len, batch_size) # (batch_size, seq_len, hidden_size)
+        pos_enc = position_encoding(seq_len, hidden_size, batch_size) # (batch_size, seq_len, hidden_size)
         attn_mask = np.ones((batch_size, seq_len)) # (batch_size, seq_len)
 
         # zero vectors for padding dimension
