@@ -22,6 +22,7 @@ from torch.utils.data import DataLoader
 from torch.utils.data.dataset import Dataset
 from utils.asr import zero_padding,target_padding
 from utils.mam import process_train_MAM_data, process_test_MAM_data
+from ipdb import set_trace
 
 
 ############
@@ -319,19 +320,20 @@ class Mel_Phone_Dataset(LibriDataset):
 The MOSI (speech, sentiment) dataset
 '''
 class Mosi_Dataset(Dataset):
-	def __init__(self, run_mockingjay, sentiment_path, split='train', bucket_size=8, max_timestep=0, drop=True, load='sentiment', random_split=42):
+	def __init__(self, run_mockingjay, sentiment_path, split='train', bucket_size=8, max_timestep=0, drop=True, load='sentiment', mosi_config=None):
 
 		assert(load == 'sentiment'), 'The MOSI dataset only supports sentiment analysis for now'
 		self.run_mockingjay = run_mockingjay
 
 		self.root = sentiment_path
 		self.split = split
+		self.config = mosi_config
 
-		if random_split < 0:
+		if mosi_config['standard_split']:
 			self.table = pd.read_csv(os.path.join(sentiment_path, split + '.csv'))
 		else:
 			all_table = pd.read_csv(os.path.join(sentiment_path, 'all.csv'))
-			train = all_table.sample(frac=0.9, random_state=random_split)
+			train = all_table.sample(frac=mosi_config['train_ratio'], random_state=mosi_config['random_seed'])
 			test = all_table.drop(train.index)
 			if split == 'train':
 				self.table = train.sort_values(by=['length'], ascending=False)
@@ -340,21 +342,22 @@ class Mosi_Dataset(Dataset):
 			else:
 				raise NotImplementedError('Invalid `split` argument!')
 
-		self.table.label = self.table.label.astype(int)  # cause the labels given are average label over all annotaters, so we first round them
-		self.table.label += 3  # cause pytorch only accepts non-negative class value, we convert original [-3, -2, -1, 0, 1, 2, 3] into [0, 1, 2, 3, 4, 5, 6]
-
-		# This is necessary for downstream solver to automatically build LinearClassifier depending on dataset property
-		self.class_num = 7
+		if mosi_config['label_mode'] == 'original':
+			self.table.label = self.table.label.astype(int)  # cause the labels given are average label over all annotaters, so we first round them
+			self.table.label += 3  # cause pytorch only accepts non-negative class value, we convert original [-3, -2, -1, 0, 1, 2, 3] into [0, 1, 2, 3, 4, 5, 6]
+			self.class_num = 7
+		elif mosi_config['label_mode'] == 'positive_negative':
+			drop_index = self.table[self.table.label == 0].index
+			dropped = self.table.drop(drop_index)
+			dropped.label = (dropped.label > 0).astype(np.int64)
+			self.table = dropped
+			self.class_num = 2
+		else:
+			raise NotImplementedError('Not supported label mode')
 
 		# Drop seqs that are too long
 		if drop and max_timestep > 0:
 			self.table = self.table[self.table.length < max_timestep]
-
-		# "joint" means all output embeddings jointly predict the sentiment of the whole input utterance segment
-		# Because sentiment is labeled at segment level, it is more intuitive to predict sentiment with a bunch of embeddings
-		# But ideally, with mockingjay's contextualized embeddings, we hope that a single embedding from one input frame can embed
-		# the sentiment directly
-		self.joint = 'joint' in load  # TODO: NOT YET IMPLEMENTED
 
 		Y = self.table['label'].tolist()  # (all_data, )
 		X = self.table['file_path'].tolist()
@@ -392,6 +395,8 @@ class Mosi_Dataset(Dataset):
 		# Load acoustic feature and pad
 		x_batch = [torch.FloatTensor(np.load(os.path.join(self.root, 'npy', x_file))) for x_file in self.X[index]]  # [(seq, feature), ...]
 		x_pad_batch = pad_sequence(x_batch, batch_first=True)  # (batch, seq, feature) with all seq padded with zeros to align the longest seq in this batch
+		seq_len = x_pad_batch.size(1)
+		x_pad_batch = x_pad_batch[:, torch.arange(0, seq_len, self.config['sample_rate']), :]
 
 		# Load label
 		y_batch = torch.LongTensor(self.Y[index])  # (batch, )
@@ -582,7 +587,7 @@ class Mel_Speaker_Small_Dataset(Mel_Speaker_Large_Dataset):
 ##################
 def get_Dataloader(split, load, data_path, batch_size, max_timestep, max_label_len, 
 				   use_gpu, n_jobs, train_set, dev_set, test_set, dev_batch_size, 
-				   target_path=None, phone_path=None, sentiment_path=None, random_split=42,
+				   target_path=None, phone_path=None, sentiment_path=None, mosi_config=None,
 				   decode_beam_size=None, run_mockingjay=False, train_proportion=1.0, **kwargs):
 
 	# Decide which split to use: train/dev/test
@@ -628,7 +633,7 @@ def get_Dataloader(split, load, data_path, batch_size, max_timestep, max_label_l
 	elif load == 'sentiment':
 		assert(sentiment_path is not None), '`sentiment path` must be provided for this dataset.'
 		ds = Mosi_Dataset(run_mockingjay=run_mockingjay, sentiment_path=sentiment_path, split=split, max_timestep=max_timestep, load=load,
-								   bucket_size=bs, drop=drop_too_long, random_split=random_split)
+								   bucket_size=bs, drop=drop_too_long, mosi_config=mosi_config)
 	elif load == 'speaker_large':
 		if split == 'train': 
 			sets = (train_set[0], test_set[0])
