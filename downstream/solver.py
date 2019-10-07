@@ -80,7 +80,8 @@ class Downstream_Solver(Solver):
 			else:
 				raise NotImplementedError('Invalid `split` argument!')
 		elif load == 'sentiment':
-			sentiment_path = self.config['dataloader']['sentiment_path']
+			target = self.config['dataloader']['sentiment_config']['dataset']
+			sentiment_path = self.config['dataloader']['sentiment_config'][target]['path']
 			self.verbose(f'Loading {split} data from {sentiment_path}')
 		else:
 			raise NotImplementedError('Unsupported downstream tasks.')
@@ -132,7 +133,7 @@ class Downstream_Solver(Solver):
 			self.load_model(inference=inference)
 
 
-	def save_model(self, name, model_all=True):
+	def save_model(self, name, model_all=True, tmp=False):
 		if model_all:
 			all_states = {
 				'Classifier': self.classifier.state_dict(),
@@ -151,6 +152,12 @@ class Downstream_Solver(Solver):
 					'Paras': self.paras,
 				},
 			}
+
+		if tmp:
+			tmp_model_path = '{}/tmp.ckpt'.format(self.ckpdir)
+			torch.save(all_states, tmp_model_path)
+			return
+
 		new_model_path = '{}/{}-{}.ckpt'.format(self.ckpdir, name, self.global_step)
 		torch.save(all_states, new_model_path)
 		self.model_kept.append(new_model_path)
@@ -286,7 +293,7 @@ class Downstream_Trainer(Downstream_Solver):
 					los = loses / self.log_step
 					self.log.add_scalar('acc', acc, self.global_step)
 					self.log.add_scalar('loss', los, self.global_step)
-					pbar.set_description("Loss %.10f" % los)
+					pbar.set_description('Loss %.5f, Acc %.5f' % (los, acc))
 
 					loses = 0.0
 					corrects = 0
@@ -297,20 +304,18 @@ class Downstream_Trainer(Downstream_Solver):
 					best_acc = acc
 
 				if self.eval != 'None' and self.global_step % self.dev_step == 0:
-					try: # since models are only saved at `best_loss`, there may not be a checkpoint to evaluate
-						# immediately evaluate the new model
-						evaluation = self.config['downstream']['evaluation']
-						new_model_path = '{}/{}-{}.ckpt'.format(self.ckpdir, self.task, self.global_step)
-						new_dckpt = '/'.join(new_model_path.split('/')[-2:])
-						test_config = copy.deepcopy(self.mock_config)
-						test_paras = copy.deepcopy(self.mock_paras)
-						test_paras.dckpt = new_dckpt
-						tester = Downstream_Tester(test_config, test_paras, task=self.task)
-						tester.load_data(split=evaluation, load=self.task.split('_')[-1])
-						tester.set_model(inference=True)
-						eval_acc = tester.exec()
-						self.log.add_scalar(f'{evaluation}_acc', eval_acc, self.global_step)
-					except: pass
+					self.save_model(self.task, tmp=True)
+					evaluation = self.config['downstream']['evaluation']
+					tmp_model_path = '{}/tmp.ckpt'.format(self.ckpdir)
+					new_dckpt = '/'.join(tmp_model_path.split('/')[-2:])
+					test_config = copy.deepcopy(self.mock_config)
+					test_paras = copy.deepcopy(self.mock_paras)
+					test_paras.dckpt = new_dckpt
+					tester = Downstream_Tester(test_config, test_paras, task=self.task)
+					tester.load_data(split=evaluation, load=self.task.split('_')[-1])
+					tester.set_model(inference=True)
+					eval_acc = tester.exec()
+					self.log.add_scalar(f'{evaluation}_acc', eval_acc, self.global_step)
 
 				pbar.update(1)
 				self.global_step += 1
