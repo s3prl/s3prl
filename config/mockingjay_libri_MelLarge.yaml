@@ -9,7 +9,8 @@ mockingjay:
   attention_probs_dropout_prob: 0.1                     # The dropout ratio for the attention probabilities.
   initializer_range: 0.02                               # The sttdev of the truncated_normal_initializer for initializing all weight matrices.
   layer_norm_eps: "1e-12"                               # The epsilon used by LayerNorm.
-  mask_proportion: 0.2                                  # mask this percentage of all spectrogram frames in each sequence at random during MAM training                        
+  mask_proportion: 0.15                                 # mask this percentage of all spectrogram frames in each sequence at random during MAM training                        
+  mask_consecutive: 3                                   # mask this amount of consecutive frames
 
 
 optimizer: 
@@ -22,7 +23,7 @@ optimizer:
 
 dataloader:
   n_jobs: 16                                            # Subprocess used for torch Dataloader
-  batch_size: 12                                        # training batch size
+  batch_size: 6                                         # training batch size
   dev_batch_size: 12                                    # used for dev/test splits
   max_timestep: 3000                                    # Max length for audio feature (0 for no restriction)
   max_label_len: 400                                    # Max length for output sequence (0 for no restriction)

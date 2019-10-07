@@ -10,6 +10,7 @@ mockingjay:
   initializer_range: 0.02                               # The sttdev of the truncated_normal_initializer for initializing all weight matrices.
   layer_norm_eps: "1e-12"                               # The epsilon used by LayerNorm.
   mask_proportion: 0.15                                 # mask this percentage of all spectrogram frames in each sequence at random during MAM training                        
+  mask_consecutive: 1                                   # mask this amount of consecutive frames
 
 
 optimizer: 

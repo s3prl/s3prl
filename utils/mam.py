@@ -22,6 +22,7 @@ import numpy as np
 DR = 3
 HIDDEN_SIZE = 768
 MASK_PROPORTION = 0.15
+MASK_CONSECUTIVE = 1
 
 
 def down_sample_frames(spec, dr):
@@ -60,6 +61,7 @@ def process_train_MAM_data(spec, config=None):
     dr = config['downsample_rate'] if config is not None else DR
     hidden_size = config['hidden_size'] if config is not None else HIDDEN_SIZE
     mask_proportion = config['mask_proportion'] if config is not None else MASK_PROPORTION
+    mask_consecutive = config['mask_consecutive'] if config is not None else MASK_CONSECUTIVE
 
     with torch.no_grad():
         if len(spec) == 2: # if self.duo_feature: dataloader will output `source_spec` and `target_spec`
@@ -89,21 +91,26 @@ def process_train_MAM_data(spec, config=None):
 
         for idx in range(len(spec_stacked)):
             
-            chose_proportion = int(spec_len[idx]*mask_proportion) # chooses % of the frame positions at random for prediction
-            sub_mask_proportion = int(chose_proportion*0.8) # replace the i-th frame with (1) the [MASK] frame 80% of the time
-            sub_rand_proportion = int(chose_proportion*0.1) # a random frame 10% of the time
+            # determine whether to mask / random / or do nothing to the frame
+            dice = random.uniform(0, 1)
+            valid_index_range = range(spec_len[idx] - mask_consecutive - 1) # compute valid len for consecutive masking
+            chosen_index = np.asarray(random.sample(valid_index_range, int(spec_len[idx]*mask_proportion)))
             
-            sample_index = random.sample(range(spec_len[idx]), chose_proportion + sub_rand_proportion) # sample the chosen_index and random frames
-            chosen_index = sample_index[:chose_proportion]
-            masked_index = chosen_index[:sub_mask_proportion]
+            # mask to zero
+            if dice < 0.8:
+                for i in range(mask_consecutive):
+                    spec_masked[idx][chosen_index+i] = 0
+            # replace to random frames
+            elif dice >= 0.8 and dice < 0.9:
+                random_index = np.asarray(random.sample(valid_index_range, int(spec_len[idx]*mask_proportion)))
+                for i in range(mask_consecutive):
+                    spec_masked[idx][chosen_index+i] = spec_masked[idx][random_index+i]
+            # do nothing
+            else:
+                pass
 
-            if sub_rand_proportion > 0:
-                random_index = chosen_index[-sub_rand_proportion:]
-                random_frames = sample_index[-sub_rand_proportion:]
-                spec_masked[idx][random_index] = spec_masked[idx][random_frames]
-            
-            spec_masked[idx][masked_index] = 0 # mask frames to zero
-            mask_label[idx][chosen_index] = 1 # the frames where gradients will be calculated on 
+            # the gradients will be calculated on all chosen frames
+            mask_label[idx][chosen_index] = 1
 
             # zero vectors for padding dimension
             pos_enc[idx][spec_len[idx]:] = 0  
