@@ -314,7 +314,8 @@ class Downstream_Trainer(Downstream_Solver):
 					tester = Downstream_Tester(test_config, test_paras, task=self.task)
 					tester.load_data(split=evaluation, load=self.task.split('_')[-1])
 					tester.set_model(inference=True)
-					eval_acc = tester.exec()
+					eval_loss, eval_acc = tester.exec()
+					self.log.add_scalar(f'{evaluation}_loss', eval_loss, self.global_step)
 					self.log.add_scalar(f'{evaluation}_acc', eval_acc, self.global_step)
 
 				pbar.update(1)
@@ -338,11 +339,13 @@ class Downstream_Tester(Downstream_Solver):
 		''' Testing of downstream tasks'''
 		self.verbose('Testing set total ' + str(len(self.dataloader)) + ' batches.')
 
-		test_acc = []
+		valid_count = 0
+		correct_count = 0
+		loss_sum = 0
 		for features, labels in tqdm(self.dataloader, desc="Iteration"):
 			# features: (1, batch_size, seq_len, feature)
 			# dimension of labels is depends on task and dataset, but the first dimention is always trivial due to bucketing
-			labels = labels.squeeze(0).to(device=self.device, dtype=torch.long)
+			labels = labels.squeeze(0).to(device=self.device)
 
 			if self.run_mockingjay:
 				# representations shape: (batch_size, layer, seq_len, feature)
@@ -373,10 +376,13 @@ class Downstream_Tester(Downstream_Solver):
 			else:
 				raise NotImplementedError
 			
-			test_acc.append(correct.item() / valid.item())
+			correct_count += correct.item()
+			valid_count += valid.item()
+			loss_sum += loss.detach().cpu().item()
 
-		test_acc = torch.FloatTensor(test_acc)
-		self.verbose('Testing set accuracy: ' + str(test_acc.mean().item()))
+		test_acc = correct_count * 1.0 / valid_count
+		average_loss = loss_sum / len(self.dataloader)
+		self.verbose(f'Test result: loss {average_loss}, acc {test_acc}')
 
-		return test_acc.mean().item()
+		return average_loss, test_acc
 
