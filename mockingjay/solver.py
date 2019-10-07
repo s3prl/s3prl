@@ -44,9 +44,7 @@ class Solver():
 		self.exp_name = paras.name
 		if self.exp_name is None:
 			self.exp_name = '_'.join([paras.config.split('/')[-1].replace('.yaml',''),'sd'+str(paras.seed)])
-		if not os.path.exists(paras.ckpdir): os.makedirs(paras.ckpdir)
 		self.ckpdir = os.path.join(paras.ckpdir, self.exp_name)
-		if not os.path.exists(self.ckpdir): os.makedirs(self.ckpdir)
 		self.load = paras.load
 		# only for test
 		self.ckpt = os.path.join(paras.ckpdir, paras.ckpt)
@@ -315,6 +313,10 @@ class Trainer(Solver):
 		self.gradient_clipping = self.config['optimizer']['gradient_clipping']
 		self.max_keep = config['solver']['max_keep']
 		self.reset_train()
+
+		# mkdir
+		if not os.path.exists(self.paras.ckpdir): os.makedirs(self.paras.ckpdir)
+		if not os.path.exists(self.ckpdir): os.makedirs(self.ckpdir)
 
 	def reset_train(self):
 		self.model_kept = []
