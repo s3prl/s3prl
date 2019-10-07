@@ -112,36 +112,46 @@ class LinearClassifier(nn.Module):
 
 class RnnClassifier(nn.Module):
 	def __init__(self, input_dim, class_num, task, dconfig):
+		# The class_num for regression mode should be 1
+
 		super(RnnClassifier, self).__init__()
-		
-		output_dim = class_num
-		hidden_size = dconfig['hidden_size']
-		self.use_linear = dconfig['use_linear']
-		drop = dconfig['drop']
-		self.select_hidden = dconfig['select_hidden']
+		self.config = dconfig
+
+		hidden_size = self.config['hidden_size']
+		drop = self.config['drop']
 
 		self.rnn = nn.GRU(input_size=input_dim, hidden_size=hidden_size, num_layers=1, dropout=drop,
 						  batch_first=True, bidirectional=False)
 
-		if self.use_linear:
-			self.dense1 = nn.Linear(hidden_size, hidden_size)
-			self.dense2 = nn.Linear(hidden_size, hidden_size)
-			self.drop1 = nn.Dropout(p=drop)
-			self.drop2 = nn.Dropout(p=drop)
+		self.linears = []
+		self.dropouts = []
+		last_dim = hidden_size
+		for linear_dim in self.config['linear_dims']:
+			self.linears.append(nn.Linear(last_dim, linear_dim))
+			self.dropouts.append(nn.Dropout(p=drop))
+			last_dim = linear_dim
+		self.linears = nn.ModuleList(self.linears)
+		self.dropouts = nn.ModuleList(self.dropouts)
 
-		self.out = nn.Linear(hidden_size, output_dim)
-		
 		self.act_fn = torch.nn.functional.relu
-		self.out_fn = nn.LogSoftmax(dim=-1)
-		self.criterion = nn.CrossEntropyLoss(ignore_index=-100)
+		self.out = nn.Linear(last_dim, class_num)
+		
+		mode = self.config['mode']
+		if mode == 'classification':
+			self.out_fn = nn.LogSoftmax(dim=-1)
+			self.criterion = nn.CrossEntropyLoss(ignore_index=-100)
+		elif mode == 'regression':
+			self.criterion = nn.MSELoss()
+		else:
+			raise NotImplementedError('Only classification/regression modes are supported')
 
 
 	def statistic(self, probabilities, labels):
 		assert(len(probabilities.shape) > 1)
 		assert(probabilities.unbind(dim=-1)[0].shape == labels.shape)
 
-		valid_count = len(labels)
-		correct_count = ((probabilities.argmax(dim=-1) == labels).type(torch.cuda.LongTensor)).sum()
+		valid_count = torch.LongTensor([len(labels)])
+		correct_count = ((probabilities.argmax(dim=-1) == labels).type(torch.LongTensor)).sum()
 		return correct_count, valid_count
 
 
@@ -152,13 +162,14 @@ class RnnClassifier(nn.Module):
 		# labels: (batch_size,), one utterance to one label
 		# valid_lengths: (batch_size, )
 
+		select_hidden = self.config['select_hidden']
 		if len(features.shape) == 4:
 			# compute mean on mockingjay representations if given features from mockingjay
-			if self.select_hidden == 'last':
+			if select_hidden == 'last':
 				features = features[:, -1, :, :]
-			elif self.select_hidden == 'first':
+			elif select_hidden == 'first':
 				features = features[:, 0, :, :]
-			elif self.select_hidden == 'average':
+			elif select_hidden == 'average':
 				features = features.mean(dim=1)  # now simply average the representations over all layers, (batch_size, seq_len, feature)
 			else:
 				raise NotImplementedError('Feature selection mode not supported!')
@@ -169,24 +180,34 @@ class RnnClassifier(nn.Module):
 		# cause h_n directly contains info for final states
 		# it will be easier to use h_n as extracted embedding
 		
-		if self.use_linear:
-			hidden = self.dense1(hidden)
-			hidden = self.drop1(hidden)
-			hidden = self.act_fn(hidden)
-
-			hidden = self.dense2(hidden)
-			hidden = self.drop2(hidden)
-			hidden = self.act_fn(hidden)
+		activation = self.act_fn
+		for linear, dropout in zip(self.linears, self.dropouts):
+			hidden = linear(hidden)
+			hidden = activation(hidden)
+			hidden = dropout(hidden)
 
 		logits = self.out(hidden)
-		prob = self.out_fn(logits)
-		# prob: (batch_size, probs)
+
+		mode = self.config['mode']
+		if mode == 'classification':
+			result = self.out_fn(logits)
+			# result: (batch_size, class_num)
+		elif mode == 'regression':
+			result = logits.reshape(-1)
+			# result: (batch_size, )
 		
 		if labels is not None:
-			loss = self.criterion(logits, labels)
+			loss = self.criterion(result, labels)
 
 			# statistic for accuracy
-			correct, valid = self.statistic(prob, labels)
-			return loss, prob.detach().cpu(), torch.tensor(correct), torch.tensor(valid)
+			if mode == 'classification':
+				correct, valid = self.statistic(result, labels)
+			elif mode == 'regression':
+				# correct and valid has no meaning when in regression mode
+				# just to make the outside wrapper can correctly function
+				correct, valid = torch.LongTensor([1]), torch.LongTensor([1])
 
-		return prob
+			return loss, result.detach().cpu(), correct, valid
+
+		return result
+

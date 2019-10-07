@@ -46,9 +46,10 @@ dataloader:
     mosei:
       path: 'data/mosei'
       feature: 'mel160'
-      label_mode: 'positive_negative'
+      label_mode: 'regression'
         # original
         # positive_negative
+        # regression
       standard_split: False
 
       # if standard_split is False
@@ -92,11 +93,14 @@ downstream:                                             # downstream model confi
     select_hidden: 'last'                               # support modes: 'last', 'first', 'average'
 
   rnn:
+    mode: 'classification'
+      # 'classification'
+      # 'regression'
     input_dim: 'None'                                   # `int`, else if set to None, input_dim will be set according to mockingjay settings or mel-preprocessing dimensions automatically
-    hidden_size: 256
-    drop: 0.2
     select_hidden: 'last'                               # support modes: 'last', 'first', 'average'
-    use_linear: True
+    hidden_size: 256
+    linear_dims: [256, 256]
+    drop: 0.2
 
 
   # Training options

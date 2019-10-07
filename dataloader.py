@@ -458,6 +458,9 @@ class Mosei_Dataset(Dataset):
 		elif mosei_config['label_mode'] == 'positive_negative':
 			self.table['label'] = (self.table.sentiment > 0).astype(np.int64)
 			self.class_num = 2
+		elif mosei_config['label_mode'] == 'regression':
+			self.table['label'] = self.table.sentiment
+			self.class_num = 1
 		else:
 			raise NotImplementedError('Not supported label mode')
 
@@ -506,8 +509,11 @@ class Mosei_Dataset(Dataset):
 		x_pad_batch = x_pad_batch[:, torch.arange(0, seq_len, self.config['sample_rate']), :]
 
 		# Load label
-		y_batch = torch.LongTensor(self.Y[index])  # (batch, )
-		# y_broadcast_int_batch = y_batch.repeat(x_pad_batch.size(1), 1).T  # (batch, seq)
+		if self.config['label_mode'] == 'regression':
+			y_batch = torch.FloatTensor(self.Y[index])  # (batch, )
+		else:
+			y_batch = torch.LongTensor(self.Y[index])  # (batch, )
+			# y_broadcast_int_batch = y_batch.repeat(x_pad_batch.size(1), 1).T  # (batch, seq)
 
 		if self.run_mockingjay:
 			x_pad_batch = process_test_MAM_data(spec=(x_pad_batch,), config=self.mock_config)

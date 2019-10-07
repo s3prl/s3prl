@@ -240,7 +240,7 @@ class Downstream_Trainer(Downstream_Solver):
 				# features: (1, batch_size, seq_len, feature)
 				# dimension of labels is depends on task and dataset, but the first dimention is always trivial due to bucketing
 				# eg. (1, batch_size, seq_len) or (1, batch_size)
-				labels = labels.squeeze(0).to(device=self.device, dtype=torch.long)
+				labels = labels.squeeze(0).to(device=self.device)  # labels can be torch.long or torch.float (regression)
 
 				if self.run_mockingjay:
 					# representations shape: (batch_size, layer, seq_len, feature)
