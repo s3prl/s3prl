@@ -23,7 +23,7 @@ optimizer:
 dataloader:
   n_jobs: 16                                            # Subprocess used for torch Dataloader
   batch_size: 12                                        # training batch size
-  dev_batch_size: 6                                     # used for dev/test splits
+  dev_batch_size: 12                                    # used for dev/test splits
   max_timestep: 3000                                    # Max length for audio feature (0 for no restriction)
   max_label_len: 400                                    # Max length for output sequence (0 for no restriction)
 
@@ -58,7 +58,7 @@ solver:
   total_steps: 500000                                   # total steps for training, a step is a batch of update
   log_step: 100                                         # log training status every this amount of training steps
   dev_step: 10000                                       #
-  duo_feature: True                                     # Use different input / output features during training
+  duo_feature: False                                    # Use different input / output features during training
 
   # models
   load_model_list: ['SpecHead', 'Mockingjay']           # load the components in the list for test/eval
