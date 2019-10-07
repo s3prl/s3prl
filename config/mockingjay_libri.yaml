@@ -42,7 +42,6 @@ dataloader:
       # if standard_split is False
       random_seed: 1122
       train_ratio: 0.9
-      sample_rate: 10
     mosei:
       path: 'data/mosei'
       feature: 'mel160'
@@ -55,7 +54,6 @@ dataloader:
       # if standard_split is False
       random_seed: 42
       train_ratio: 0.9
-      sample_rate: 10
 
       max_time: 10
       min_time: 2
@@ -98,6 +96,7 @@ downstream:                                             # downstream model confi
       # 'regression'
     input_dim: 'None'                                   # `int`, else if set to None, input_dim will be set according to mockingjay settings or mel-preprocessing dimensions automatically
     select_hidden: 'last'                               # support modes: 'last', 'first', 'average'
+    sample_rate: 1
     hidden_size: 256
     linear_dims: [256, 256]
     drop: 0.2

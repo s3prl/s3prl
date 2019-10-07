@@ -174,6 +174,11 @@ class RnnClassifier(nn.Module):
 			else:
 				raise NotImplementedError('Feature selection mode not supported!')
 
+		seq_len = features.size(1)
+		sample_rate = self.config['sample_rate']
+		features = features[:, torch.arange(0, seq_len, sample_rate), :]
+		valid_lengths /= sample_rate
+
 		packed = pack_padded_sequence(features, valid_lengths, batch_first=True, enforce_sorted=True)
 		_, h_n = self.rnn(packed)
 		hidden = h_n[-1, :, :]
