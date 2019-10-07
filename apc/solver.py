@@ -40,8 +40,6 @@ class Solver():
 		self.config = config
 		self.model_dir = os.path.join(self.config.result_path, self.config.experiment_name)
 		self.log_dir = os.path.join(self.config.log_path, self.config.experiment_name)
-		os.makedirs(self.model_dir, exist_ok=True)
-		os.makedirs(self.log_dir, exist_ok=True)
 
 
 	def verbose(self, msg, end='\n'):
@@ -127,8 +125,12 @@ class Solver():
 	####################
 	def train(self):
 		
+		os.makedirs(self.model_dir, exist_ok=True)
+		os.makedirs(self.log_dir, exist_ok=True)
+
 		self.model.train()
 		pbar = tqdm(total=self.config.total_steps)
+		
 		model_kept = []
 		global_step = 1
 
