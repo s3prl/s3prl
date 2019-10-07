@@ -433,14 +433,17 @@ class Mosei_Dataset(Dataset):
 			starts = all_table.start
 			ends = all_table.end
 			intervals = ends - starts
-			too_long_index = all_table[intervals > 20].index
-			too_short_index = all_table[intervals < 1].index
+			too_long_index = all_table[intervals > mosei_config['max_time']].index
+			too_short_index = all_table[intervals < mosei_config['min_time']].index
 			dropped = all_table.drop(too_long_index)
 			dropped = dropped.drop(too_short_index)
 			all_table = dropped
 
 			train = all_table.sample(frac=mosei_config['train_ratio'], random_state=mosei_config['random_seed'])
 			test = all_table.drop(train.index)
+			print(f'[DATALOADER] - Training set: {len(train)}')
+			print(f'[DATALOADER] - Testing set: {len(test)}')
+
 			if split == 'train':
 				self.table = train.sort_values(by=['length'], ascending=False)
 			elif split == 'test':

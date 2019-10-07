@@ -52,9 +52,13 @@ dataloader:
       standard_split: False
 
       # if standard_split is False
-      random_seed: 1122
+      random_seed: 42
       train_ratio: 0.9
       sample_rate: 10
+
+      max_time: 10
+      min_time: 2
+        # unit: sec
 
   # LIBRISEECH SETTINGS
   data_path: 'data/libri_mel160_subword5000'            # Source data path
