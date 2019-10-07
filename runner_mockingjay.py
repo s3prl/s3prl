@@ -59,7 +59,7 @@ def get_mockingjay_args():
 	parser.add_argument('--test_speaker', action='store_true', help='Test mel or mockingjay representations using the trained speaker classifier.')
 	
 	# Options
-	parser.add_argument('--with-head', action='store_true', help='inference with the spectrogram head, the model outputs spectrogram.')
+	parser.add_argument('--with_head', action='store_true', help='inference with the spectrogram head, the model outputs spectrogram.')
 	parser.add_argument('--cpu', action='store_true', help='Disable GPU training.')
 	parser.add_argument('--no-msg', action='store_true', help='Hide all messages.')
 
@@ -170,7 +170,7 @@ def main():
 	elif args.plot:
 		from mockingjay.solver import Tester
 		tester = Tester(config, args)
-		tester.load_data(split='test')
+		tester.load_data(split='test', load_mel_only=True)
 		tester.set_model(inference=True, with_head=args.with_head)
 		tester.plot(with_head=args.with_head)
 

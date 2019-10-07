@@ -47,7 +47,7 @@ preemphasis = 0.97
 min_level_db = -100
 ref_level_db = 20
 hop_length = 250
-griffin_lim_iters = 64
+griffin_lim_iters = 16
 power = 1.5 # Power to raise magnitudes to prior to Griffin-Lim
 
 
@@ -94,21 +94,21 @@ def _db_to_amp(x):
 def inv_preemphasis(x):
 	return signal.lfilter([1], [1, -preemphasis], x)
 
-def _griffin_lim(S):
+def _griffin_lim(S, sr):
 	"""
 		librosa implementation of Griffin-Lim
 		Based on https://github.com/librosa/librosa/issues/434
 	"""
 	angles = np.exp(2j * np.pi * np.random.rand(*S.shape))
 	S_complex = np.abs(S).astype(np.complex)
-	y = _istft(S_complex * angles)
+	y = _istft(S_complex * angles, sr)
 	for i in range(griffin_lim_iters):
-		angles = np.exp(1j * np.angle(_stft(y)))
-		y = _istft(S_complex * angles)
+		angles = np.exp(1j * np.angle(_stft(y ,sr)))
+		y = _istft(S_complex * angles, sr)
 	return y
 
-def _istft(y):
-	_, hop_length, win_length = _stft_parameters()
+def _istft(y, sr):
+	_, hop_length, win_length = _stft_parameters(sr)
 	return librosa.istft(y, hop_length=hop_length, win_length=win_length)
 
 
@@ -142,9 +142,9 @@ def spectrogram(y, sr):
 """
 Converts spectrogram to waveform using librosa
 """
-def inv_spectrogram(spectrogram):
+def inv_spectrogram(spectrogram, sr=16000):
 	S = _db_to_amp(_denormalize(spectrogram) + ref_level_db)  # Convert back to linear
-	return inv_preemphasis(_griffin_lim(S ** power))          # Reconstruct phase
+	return inv_preemphasis(_griffin_lim(S ** power, sr))          # Reconstruct phase
 
 
 ###################

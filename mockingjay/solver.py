@@ -62,7 +62,7 @@ class Solver():
 			print('[SOLVER] - ', msg, end=end)
 
 
-	def load_data(self, split='train'):
+	def load_data(self, split='train', load_mel_only=False):
 		''' Load data for training / testing'''
 		if split == 'train': 
 			self.verbose('Loading source data ' + str(self.config['dataloader']['train_set']) + ' from ' + self.config['dataloader']['data_path'])
@@ -72,12 +72,12 @@ class Solver():
 		else:
 			raise NotImplementedError('Invalid `split` argument!')
 
-		if self.duo_feature:
+		if self.duo_feature and not load_mel_only:
 			setattr(self, 'dataloader', get_Dataloader(split, load='duo', use_gpu=self.paras.gpu, \
 					mock_config=self.config['mockingjay'], **self.config['dataloader'])) # Currently the duo feature dataloader only supports mockingjay training, no need to specify `run_mockingjay`
 		else:
 			setattr(self, 'dataloader', get_Dataloader(split, load='spec', use_gpu=self.paras.gpu, \
-					run_mockingjay=True, mock_config=self.config['mockingjay'], \
+					run_mockingjay=True if not load_mel_only else False, mock_config=self.config['mockingjay'], \
 					**self.config['dataloader'])) # specify `run_mockingjay` so dataloader will process mockingjay MAM data
 
 

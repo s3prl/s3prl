@@ -101,7 +101,7 @@ Run the following command to visualize the model generated samples:
 # visualize spectrogram
 python3 runner_mockingjay.py --plot
 # visualize hidden representations
-python3 runner_mockingjay.py --plot --with-head
+python3 runner_mockingjay.py --plot --with_head
 ```
 Note that the arguments ```--ckpdir=XXX --ckpt=XXX``` needs to be set correctly for the above command to run properly.
 
