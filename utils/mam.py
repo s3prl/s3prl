@@ -94,7 +94,8 @@ def process_train_MAM_data(spec, config=None):
             # determine whether to mask / random / or do nothing to the frame
             dice = random.uniform(0, 1)
             valid_index_range = range(spec_len[idx] - mask_consecutive - 1) # compute valid len for consecutive masking
-            chosen_index = np.asarray(random.sample(valid_index_range, int(spec_len[idx]*mask_proportion)))
+            proportion = int(spec_len[idx] * mask_proportion // mask_consecutive)
+            chosen_index = np.asarray(random.sample(valid_index_range, proportion))
             
             # mask to zero
             if dice < 0.8:
@@ -102,7 +103,7 @@ def process_train_MAM_data(spec, config=None):
                     spec_masked[idx][chosen_index+i] = 0
             # replace to random frames
             elif dice >= 0.8 and dice < 0.9:
-                random_index = np.asarray(random.sample(valid_index_range, int(spec_len[idx]*mask_proportion)))
+                random_index = np.asarray(random.sample(valid_index_range, proportion))
                 for i in range(mask_consecutive):
                     spec_masked[idx][chosen_index+i] = spec_masked[idx][random_index+i]
             # do nothing
