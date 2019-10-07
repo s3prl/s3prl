@@ -1,5 +1,5 @@
 mockingjay:
-  downsample_rate: 3                                    # stacked consecutive features vectors to reduce the length of input sequences by this factor.
+  downsample_rate: 1                                    # stacked consecutive features vectors to reduce the length of input sequences by this factor.
   hidden_size: 768                                      # Size of the encoder layers and the pooler layer.
   num_hidden_layers: 6                                  # Number of hidden layers in the Transformer encoder.
   num_attention_heads: 12                               # Number of attention heads for each attention layer in the Transformer encoder.
@@ -10,7 +10,7 @@ mockingjay:
   initializer_range: 0.02                               # The sttdev of the truncated_normal_initializer for initializing all weight matrices.
   layer_norm_eps: "1e-12"                               # The epsilon used by LayerNorm.
   mask_proportion: 0.15                                 # mask this percentage of all spectrogram frames in each sequence at random during MAM training                        
-  mask_consecutive: 1                                   # mask this amount of consecutive frames
+  mask_consecutive: 3                                   # mask this amount of consecutive frames
 
 
 optimizer: 
