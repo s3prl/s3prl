@@ -28,17 +28,30 @@ dataloader:
   max_timestep: 3000                                    # Max length for audio feature (0 for no restriction)
   max_label_len: 400                                    # Max length for output sequence (0 for no restriction)
 
-  # for MOSI
-  mosi_config:
-    label_mode: 'positive_negative'
-      # original
-      # positive_negative
-    standard_split: False
+  # for sentiment
+  sentiment_config:
+    dataset: 'mosei'                                    # suppor datasets: 'mosi', 'mosei'
+    mosi:
+      path: 'data/mosi_mel160'
+      label_mode: 'positive_negative'                   # suppor modes: 'positive_negative', 'original', 'positive_negative', 'regression'
+      standard_split: False
 
-    # if standard_split is False
-    random_seed: 1122
-    train_ratio: 0.9
-    sample_rate: 10
+      # if standard_split is set to False
+      random_seed: 1122
+      train_ratio: 0.9
+    mosei:
+      path: 'data/mosei'
+      feature: 'mel160'
+      label_mode: 'regression'                          # suppor modes: 'regression', 'original', 'positive_negative', 'regression'
+      standard_split: False
+
+      # if standard_split is set to False
+      random_seed: 42
+      train_ratio: 0.9
+
+      max_time: 10                                      # unit: sec
+      min_time: 2                                       # unit: sec
+
 
   # LIBRISEECH SETTINGS
   data_path: 'data/libri_mel160_subword5000'            # Source data path
@@ -48,9 +61,6 @@ dataloader:
   dev_set: ['dev-clean']                                #
   test_set: ['test-clean']                              #
   train_proportion: 1.0                                 # Currently only effect the `phone classification task`, use this percent of `train_set` for downstream task training to demonstrate mockingjay generality
-
-  # MOSI SETTINGS
-  sentiment_path: 'data/mosi_mel160'
 
 
 solver:
@@ -75,11 +85,13 @@ downstream:                                             # downstream model confi
     select_hidden: 'last'                               # support modes: 'last', 'first', 'average'
 
   rnn:
+    mode: 'classification'                              # support modes: 'classification' , 'regression'
     input_dim: 'None'                                   # `int`, else if set to None, input_dim will be set according to mockingjay settings or mel-preprocessing dimensions automatically
-    hidden_size: 256
-    drop: 0.2
     select_hidden: 'last'                               # support modes: 'last', 'first', 'average'
-    use_linear: True
+    sample_rate: 1
+    hidden_size: 256
+    linear_dims: [256, 256]
+    drop: 0.2
 
 
   # Training options

@@ -596,7 +596,7 @@ class Mel_Speaker_Large_Dataset(Dataset):
 		x_batch = [torch.FloatTensor(np.load(os.path.join(self.root, x_file))) for x_file in self.X[index]]
 		x_pad_batch = pad_sequence(x_batch, batch_first=True)
 		# Return (x_spec, speaker_label)
-		s_batch = torch.FloatTensor([self.speaker2idx[self.get_speaker_from_path(x_file)] for x_file in self.X[index]])
+		s_batch = torch.LongTensor([self.speaker2idx[self.get_speaker_from_path(x_file)] for x_file in self.X[index]])
 		if self.run_mockingjay:
 			x_pad_batch = process_test_MAM_data(spec=(x_pad_batch,), config=self.mock_config)
 		return x_pad_batch, s_batch
@@ -763,11 +763,11 @@ def get_Dataloader(split, load, data_path, batch_size, max_timestep, max_label_l
 		else:
 			raise NotImplementedError('Invalid configuration for `Mel_Speaker_Dataset`!')
 		ds = Mel_Speaker_Large_Dataset(run_mockingjay=run_mockingjay, file_path=data_path, sets=sets, max_timestep=max_timestep, load=load,
-								 	   max_label_len=max_label_len, bucket_size=bs, drop=drop_too_long, mock_config=mock_config)
+								 	   max_label_len=max_label_len, bucket_size=64, drop=drop_too_long, mock_config=mock_config)
 	elif load == 'speaker':
 		sets = train_set[0].replace('360', '100') # Use the `train-clean-100` set instead of the `train-clean-360`
 		ds = Mel_Speaker_Small_Dataset(split=split, run_mockingjay=run_mockingjay, file_path=data_path, sets=sets, max_timestep=max_timestep, load=load,
-									   max_label_len=max_label_len, bucket_size=bs, drop=drop_too_long, mock_config=mock_config)
+									   max_label_len=max_label_len, bucket_size=64, drop=drop_too_long, mock_config=mock_config)
 	else:
 		raise NotImplementedError('Invalid `load` argument for `get_Dataloader()`!')
 
