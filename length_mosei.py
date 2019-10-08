@@ -19,7 +19,7 @@ def add_length(args):
 		npy = np.load(os.path.join(args.npy_path, row.key + '.npy'))
 		lengths.append(npy.shape[0])
 	csv['length'] = lengths
-	csv.to_csv(args.csv_path)
+	csv.to_csv(args.csv_path, index=False)
 
 
 def main():
