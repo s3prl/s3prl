@@ -42,16 +42,16 @@ dataloader:
     mosei:
       path: 'data/mosei'
       feature: 'mel160'
-      label_mode: 'regression'                          # suppor modes: 'regression', 'original', 'positive_negative', 'regression'
+      label_mode: 'positive_negative'                          # suppor modes: 'regression', 'original', 'positive_negative', 'regression'
       standard_split: False
 
       # if standard_split is set to False
-      random_seed: 42
+      random_seed: 29
       train_ratio: 0.9
 
       max_time: 10                                      # unit: sec
       min_time: 2                                       # unit: sec
-
+      sentiment_threshold: 1.1
 
   # LIBRISEECH SETTINGS
   data_path: 'data/libri_mel160_subword5000'            # Source data path

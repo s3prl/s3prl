@@ -433,11 +433,9 @@ class Mosei_Dataset(Dataset):
 			starts = all_table.start
 			ends = all_table.end
 			intervals = ends - starts
-			too_long_index = all_table[intervals > mosei_config['max_time']].index
-			too_short_index = all_table[intervals < mosei_config['min_time']].index
-			dropped = all_table.drop(too_long_index)
-			dropped = dropped.drop(too_short_index)
-			all_table = dropped
+			all_table = all_table[intervals <= mosei_config['max_time']]
+			all_table = all_table[intervals >= mosei_config['min_time']]
+			all_table = all_table[all_table.sentiment.abs() >= mosei_config['sentiment_threshold']]
 
 			train = all_table.sample(frac=mosei_config['train_ratio'], random_state=mosei_config['random_seed'])
 			test = all_table.drop(train.index)
@@ -463,6 +461,13 @@ class Mosei_Dataset(Dataset):
 			self.class_num = 1
 		else:
 			raise NotImplementedError('Not supported label mode')
+
+		# print the majority baseline if is classification task
+		if self.class_num > 1:
+			value_counts = self.table.label.value_counts()
+			majority = value_counts.max()
+			all_count = value_counts.sum()
+			print(f'[DATALOADER] - Majority: {majority * 1.0 / all_count}')
 
 		# Drop seqs that are too long
 		if drop and max_timestep > 0:
