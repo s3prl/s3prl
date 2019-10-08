@@ -43,10 +43,8 @@ class Downstream_Solver(Solver):
 
 		# path and directories
 		self.exp_name = self.exp_name.replace('mockingjay', task)
-		paras.ckpdir = paras.ckpdir.replace('mockingjay', task)
-		if not os.path.exists(paras.ckpdir): os.makedirs(paras.ckpdir)
+		self.paras.ckpdir = paras.ckpdir.replace('mockingjay', task)
 		self.ckpdir = self.ckpdir.replace('mockingjay', task)
-		if not os.path.exists(self.ckpdir): os.makedirs(self.ckpdir)
 		self.ckpt = os.path.join(paras.ckpdir, paras.dckpt)
 
 		# modify log directory
@@ -217,6 +215,10 @@ class Downstream_Trainer(Downstream_Solver):
 		self.max_keep = config['downstream']['max_keep']
 		self.eval = config['downstream']['evaluation']
 		self.reset_train()
+
+		# mkdir
+		if not os.path.exists(self.paras.ckpdir): os.makedirs(self.paras.ckpdir)
+		if not os.path.exists(self.ckpdir): os.makedirs(self.ckpdir)
 
 
 	def reset_train(self):
