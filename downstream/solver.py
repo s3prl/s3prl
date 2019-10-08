@@ -25,6 +25,7 @@ from dataloader import get_Dataloader
 from mockingjay.solver import Solver, Tester
 from downstream.model import LinearClassifier, RnnClassifier
 from utils.audio import mel_dim, num_freq, sample_rate, inv_spectrogram
+from utils.timer import Timer
 from runner_apc import get_apc_model
 
 
@@ -340,10 +341,13 @@ class Downstream_Tester(Downstream_Solver):
 	def exec(self):
 		''' Testing of downstream tasks'''
 		self.verbose('Testing set total ' + str(len(self.dataloader)) + ' batches.')
+		timer = Timer()
+		timer.start()
 
 		valid_count = 0
 		correct_count = 0
 		loss_sum = 0
+
 		for features, labels in tqdm(self.dataloader, desc="Iteration"):
 			# features: (1, batch_size, seq_len, feature)
 			# dimension of labels is depends on task and dataset, but the first dimention is always trivial due to bucketing
@@ -385,6 +389,9 @@ class Downstream_Tester(Downstream_Solver):
 		test_acc = correct_count * 1.0 / valid_count
 		average_loss = loss_sum / len(self.dataloader)
 		self.verbose(f'Test result: loss {average_loss}, acc {test_acc}')
-
+		
+		timer.end()
+		timer.report()
+		
 		return average_loss, test_acc
 

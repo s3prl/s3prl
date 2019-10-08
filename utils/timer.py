@@ -2,13 +2,13 @@ import time
 import inspect
 from ipdb import set_trace
 
-class Timer:
+class Timer():
 	def __init__(self):
 		self.timings = []
-		self.tmp = 0
+		self.start = 0
 
 	def start(self):
-		self.tmp = time.time()
+		self.start = time.time()
 	
 
 	def end(self):
@@ -16,10 +16,10 @@ class Timer:
 		filename = frameinfo.filename
 		filename = '/'.join(filename.split('/')[-2:])
 		marker = f'{filename}:{frameinfo.lineno}'
-		self.timings.append( (marker, time.time() - self.tmp) )
+		self.timings.append( (marker, time.time() - self.start) )
 
 	def report(self):
-		prev = 0
+		print('[TIMER]:')
 		for items in self.timings:
 			for item in items:
 				print(item, end="\t")
