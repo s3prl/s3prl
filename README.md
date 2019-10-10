@@ -92,7 +92,7 @@ Once a model was trained, run the following command to test the generated repres
 ```bash
 python3 runner_mockingjay.py --load --test_phone
 ```
-Pre-trained models and their configs can be download from [HERE](https://drive.google.com/drive/folders/1tZQnT8y7sE6kuxVWivo-KmRw8CgLy7da?usp=sharing).
+Pre-trained models and their configs can be download from [HERE](http://bit.ly/result_mockingjay).
 To load with default path, models should be placed under the directory path: `--ckpdir=./result_mockingjay/` and name the model file manually with `--ckpt=`.
 
 ## Step 4. Loading Pre-trained Models and Visualize

@@ -102,6 +102,7 @@ class Downstream_Solver(Solver):
 					self.config['downstream'][self.model_type]['input_dim'] != 'None' else None
 		if 'mockingjay' in self.task:
 			self.mockingjay = Tester(self.mock_config, self.mock_paras)
+			if self.fine_tune and inference: self.mockingjay.load = False # Do not load twice when testing the fine-tuned model, load only for fine-tune training
 			self.mockingjay.set_model(inference=True, with_head=self.paras.with_head)
 			self.dr = self.mockingjay.dr
 			if input_dim is None:
@@ -215,7 +216,7 @@ class Downstream_Solver(Solver):
 
 		if self.fine_tune:
 			try:
-				self.verbose('@ Downstream, loading with Upstream Tester...')
+				self.verbose('@ Downstream, [Fine-Tuned Mockingjay] - Loading from Upstream Tester...')
 				self.mockingjay.load_model(inference=inference, from_path=self.ckpt)
 				self.verbose('@ Downstream, [Fine-Tuned Mockingjay] - Loaded')
 			except: self.verbose('[Fine-Tuned Mockingjay] - X')
@@ -245,7 +246,7 @@ class Downstream_Trainer(Downstream_Solver):
 		self.eval = config['downstream']['evaluation']
 		self.reset_train()
 		if self.fine_tune:
-			 self.total_steps = self.total_steps // 10
+			 self.total_steps = self.total_steps * 2 # train two epcohs to fine-tune the model, set steps manually in config/*.yaml
 
 		# mkdir
 		if not os.path.exists(self.paras.ckpdir): os.makedirs(self.paras.ckpdir)
@@ -394,56 +395,60 @@ class Downstream_Tester(Downstream_Solver):
 		correct_count = 0
 		loss_sum = 0
 
+		oom_counter = 0
 		for features, labels in tqdm(self.dataloader, desc="Iteration"):
-			try:
-				# features: (1, batch_size, seq_len, feature)
-				# dimension of labels is depends on task and dataset, but the first dimention is always trivial due to bucketing
-				labels = labels.squeeze(0).to(device=self.device)
+			with torch.no_grad():
+				try:
+					# features: (1, batch_size, seq_len, feature)
+					# dimension of labels is depends on task and dataset, but the first dimention is always trivial due to bucketing
+					labels = labels.squeeze(0).to(device=self.device)
 
-				if self.run_mockingjay and self.paras.with_head:
-					# representations shape: (batch_size, seq_len, feature)
-					representations = self.mockingjay.forward_with_head(features, process_from_loader=True)
-					features = self.up_sample_frames(features[0].squeeze(0))
-				elif self.run_mockingjay and self.fine_tune:
-					# representations shape: (batch_size, seq_len, feature)
-					representations = self.mockingjay.forward_fine_tune(features, process_from_loader=True)
-					features = self.up_sample_frames(features[0].squeeze(0))
-				elif self.run_mockingjay:
-					# representations shape: (batch_size, layer, seq_len, feature)
-					representations = self.mockingjay.forward(features, process_from_loader=True)
-					features = self.up_sample_frames(features[0].squeeze(0))
-				elif self.run_apc:
-					# representations shape: (batch_size, layer, seq_len, feature)
-					representations = self.apc.forward(features)
-					features = features.squeeze(0)
-				else:
-					# representations shape: (batch_size, seq_len, feature)
-					features = features.squeeze(0)
-					representations = features.to(device=self.device, dtype=torch.float32)
+					if self.run_mockingjay and self.paras.with_head:
+						# representations shape: (batch_size, seq_len, feature)
+						representations = self.mockingjay.forward_with_head(features, process_from_loader=True)
+						features = self.up_sample_frames(features[0].squeeze(0))
+					elif self.run_mockingjay and self.fine_tune:
+						# representations shape: (batch_size, seq_len, feature)
+						representations = self.mockingjay.forward_fine_tune(features, process_from_loader=True)
+						features = self.up_sample_frames(features[0].squeeze(0))
+					elif self.run_mockingjay:
+						# representations shape: (batch_size, layer, seq_len, feature)
+						representations = self.mockingjay.forward(features, process_from_loader=True)
+						features = self.up_sample_frames(features[0].squeeze(0))
+					elif self.run_apc:
+						# representations shape: (batch_size, layer, seq_len, feature)
+						representations = self.apc.forward(features)
+						features = features.squeeze(0)
+					else:
+						# representations shape: (batch_size, seq_len, feature)
+						features = features.squeeze(0)
+						representations = features.to(device=self.device, dtype=torch.float32)
 
-				# Since zero padding technique, some timestamps of features are not valid
-				# For each timestamps, we mark 1 on valid timestamps, and 0 otherwise
-				# This variable can be useful for frame-wise metric, like phoneme recognition or speaker verification
-				# label_mask: (batch_size, seq_len), LongTensor
-				label_mask = (features.sum(dim=-1) != 0).type(torch.LongTensor).to(device=self.device, dtype=torch.long)
-				valid_lengths = label_mask.sum(dim=1)
+					# Since zero padding technique, some timestamps of features are not valid
+					# For each timestamps, we mark 1 on valid timestamps, and 0 otherwise
+					# This variable can be useful for frame-wise metric, like phoneme recognition or speaker verification
+					# label_mask: (batch_size, seq_len), LongTensor
+					label_mask = (features.sum(dim=-1) != 0).type(torch.LongTensor).to(device=self.device, dtype=torch.long)
+					valid_lengths = label_mask.sum(dim=1)
 
-				if self.model_type == 'linear':
-					# labels: (batch_size, seq_len)
-					loss, logits, correct, valid = self.classifier(representations, labels, label_mask)
-				elif self.model_type == 'rnn':
-					# labels: (batch_size, )
-					loss, logits, correct, valid = self.classifier(representations, labels, valid_lengths)
-				else:
-					raise NotImplementedError
+					if self.model_type == 'linear':
+						# labels: (batch_size, seq_len)
+						loss, logits, correct, valid = self.classifier(representations, labels, label_mask)
+					elif self.model_type == 'rnn':
+						# labels: (batch_size, )
+						loss, logits, correct, valid = self.classifier(representations, labels, valid_lengths)
+					else:
+						raise NotImplementedError
+					
+					correct_count += correct.item()
+					valid_count += valid.item()
+					loss_sum += loss.detach().cpu().item()
 				
-				correct_count += correct.item()
-				valid_count += valid.item()
-				loss_sum += loss.detach().cpu().item()
-			
-			except RuntimeError:
-				print('CUDA out of memory during testing, ignoring this entry...')
-				torch.cuda.empty_cache()
+				except RuntimeError:
+					if oom_counter > 10: break
+					else: oom_counter += 1
+					print('CUDA out of memory during testing, aborting after ' + str(10 - oom_counter) + ' more tries...')
+					torch.cuda.empty_cache()
 
 		test_acc = correct_count * 1.0 / valid_count
 		average_loss = loss_sum / len(self.dataloader)
