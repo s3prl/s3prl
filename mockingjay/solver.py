@@ -407,6 +407,7 @@ class Trainer(Solver):
 				except RuntimeError:
 					print('CUDA out of memory at step: ', self.global_step)
 					torch.cuda.empty_cache()
+					self.optimizer.zero_grad()
 
 				pbar.update(1)
 				self.global_step += 1
