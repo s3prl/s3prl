@@ -47,11 +47,13 @@ dataloader:
 
       # if standard_split is set to False
       random_seed: 29
-      train_ratio: 0.9
+      split_by: 'unsegmented'                              # 'unsegmented' or 'segmented'
+      key_ratio: 0.8
+      filename_ratio: 0.2
 
-      max_time: 10                                      # unit: sec
-      min_time: 2                                       # unit: sec
-      sentiment_threshold: 1.1
+      max_time: 20                                      # unit: sec
+      min_time: 1                                       # unit: sec
+      sentiment_threshold: 1
 
   # LIBRISEECH SETTINGS
   data_path: 'data/libri_mel160_subword5000'            # Source data path

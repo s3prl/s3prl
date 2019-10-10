@@ -437,8 +437,21 @@ class Mosei_Dataset(Dataset):
 			all_table = all_table[intervals >= mosei_config['min_time']]
 			all_table = all_table[all_table.sentiment.abs() >= mosei_config['sentiment_threshold']]
 
-			train = all_table.sample(frac=mosei_config['train_ratio'], random_state=mosei_config['random_seed'])
-			test = all_table.drop(train.index)
+			if mosei_config['split_by'] == 'segmented':
+				train = all_table.sample(frac=mosei_config['key_ratio'], random_state=mosei_config['random_seed'])
+				test = all_table.drop(train.index)
+			elif mosei_config['split_by'] == 'unsegmented':
+				train_filenames = all_table.filename.sample(frac=mosei_config['filename_ratio'], random_state=mosei_config['random_seed']).values.tolist()
+				def judge(filename):
+					if filename in train_filenames:
+						return 'train'
+					else:
+						return 'test'
+				all_table['split'] = all_table.filename.apply(judge)
+				train = all_table[all_table.split == 'train']
+				test = all_table.drop(train.index)
+			else:
+				raise NotImplementedError
 			print(f'[DATALOADER] - Training set: {len(train)}')
 			print(f'[DATALOADER] - Testing set: {len(test)}')
 
