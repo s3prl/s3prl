@@ -30,7 +30,7 @@ from ipdb import set_trace
 ############
 HALF_BATCHSIZE_TIME = 400
 HALF_BATCHSIZE_LABEL = 150
-SPEAKER_THRESHOLD = 115
+SPEAKER_THRESHOLD = 120
 
 
 ################
