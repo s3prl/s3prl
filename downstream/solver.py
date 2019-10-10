@@ -133,16 +133,10 @@ class Downstream_Solver(Solver):
 			# Setup Fine tune optimizer
 			self.mockingjay.mockingjay.train()
 			param_optimizer = list(self.mockingjay.mockingjay.named_parameters()) + list(self.classifier.named_parameters())
-
-			no_decay = ['bias', 'LayerNorm.bias', 'LayerNorm.weight']
-			optimizer_grouped_parameters = [
-				{'params': [p for n, p in param_optimizer if not any(nd in n for nd in no_decay)], 'weight_decay': 0.01},
-				{'params': [p for n, p in param_optimizer if any(nd in n for nd in no_decay)], 'weight_decay': 0.0}
-				]
-			self.optimizer = BertAdam(optimizer_grouped_parameters,
-									  lr=self.learning_rate,
-									  warmup=self.config['optimizer']['warmup_proportion'],
-									  t_total=self.total_steps)
+			self.optimizer = get_mockingjay_optimizer(params=param_optimizer, 
+									 				  lr=self.learning_rate, 
+									 				  warmup_proportion=self.config['optimizer']['warmup_proportion'],
+									 				  training_steps=self.total_steps)
 		elif not inference:
 			self.optimizer = Adam(self.classifier.parameters(), lr=self.learning_rate, betas=(0.9, 0.999))
 			self.classifier.train()
@@ -459,3 +453,15 @@ class Downstream_Tester(Downstream_Solver):
 		
 		return average_loss, test_acc
 
+
+def get_mockingjay_optimizer(params, lr, warmup_proportion, training_steps):
+	no_decay = ['bias', 'LayerNorm.bias', 'LayerNorm.weight']
+	optimizer_grouped_parameters = [
+		{'params': [p for n, p in params if not any(nd in n for nd in no_decay)], 'weight_decay': 0.01},
+		{'params': [p for n, p in params if any(nd in n for nd in no_decay)], 'weight_decay': 0.0}
+		]
+	optimizer = BertAdam(optimizer_grouped_parameters,
+						 lr=lr,
+						 warmup=warmup_proportion,
+						 t_total=training_steps)
+	return optimizer

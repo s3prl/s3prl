@@ -9,12 +9,13 @@ This is an open source project for Mockingjay, end-to-end learning of acoustic f
 
 Feel free to use/modify them, any bug report or improvement suggestion will be appreciated. If you have any questions, please contact r07942089[AT]ntu.edu.tw. If you find this project helpful for your research, please do consider to cite [this project](#Citation), thanks!
 
-# Highlights
-With this repo and trained models, you can use it to extract speech representations from your target dataset. To do so, feed-forward the trained model on the target dataset and retrieve the extracted features by running the following example python code:
+# Usage Highlights
+## Extracting Speech Representations
+With this repo and the trained models, you can use it to extract speech representations from your target dataset. To do so, feed-forward the trained model on the target dataset and retrieve the extracted features by running the following example python code:
 ```python
 from runner_mockingjay import get_mockingjay_model
-path = 'result/result_mockingjay/mockingjay_libri_sd1337_best/mockingjay-500000.ckpt'
-mockingjay = get_mockingjay_model(from_path=path)
+example_path = 'result/result_mockingjay/mockingjay_libri_sd1337_LinearLarge/mockingjay-500000.ckpt'
+mockingjay = get_mockingjay_model(from_path=example_path)
 
 # reps.shape: (batch_size, num_hiddem_layers, seq_len, hidden_size)
 reps = mockingjay.forward(spec=spec, all_layers=True, tile=True)
@@ -46,6 +47,39 @@ The output shape of `reps` is determined by the two arguments:
 As you can see, `reps` is essentially the Transformer Encoder hidden representations in the mockingjay model. You can think of Mockingjay as a speech version of [BERT](https://arxiv.org/abs/1810.04805) if you are familiar with it.
 
 There are many ways to incorporate `reps` into your downtream task. One of the easiest way is to take only the outputs of the last Encoder layer (i.e., `all_layers=False`) as the input features to your downstream model, feel free to explore other mechanisms.
+
+## Fine-tuning on your own downstream SLP tasks
+With this repo and the trained models, you can fine-tune the pre-trained Mockingjay model on your own dataset and tasks. To do so, take a look at the following example python code:
+```python
+import torch
+from downstream.solver import get_mockingjay_optimizer
+from runner_mockingjay import get_mockingjay_model
+from your_code import example_classifier
+
+# setup the mockingjay model
+example_path = 'result/result_mockingjay/mockingjay_libri_sd1337_MelBase/mockingjay-500000.ckpt'
+solver = get_mockingjay_model(from_path=example_path)
+
+# setup your downstream class model
+classifier = example_classifier()
+
+# construct the Mockingjay optimizer
+params = list(solver.mockingjay.named_parameters()) + list(classifier.named_parameters())
+optimizer = get_mockingjay_optimizer(params=params, lr=4e-3, warmup_proportion=0.7, training_steps=50000)
+
+# forward
+example_inputs = [[[0,],],] # A batch of spectrograms: (batch_size, seq_len, hidden_size)
+reps = solver.forward_fine_tune(spec=example_inputs) # returns: (batch_size, seq_len, hidden_size)
+logits, loss = classifier(reps)
+
+# update
+loss.backward()
+optimizer.step()
+
+# save
+states = {'Classifier': classifier.state_dict(), 'Mockingjay': solver.mockingjay.state_dict()}
+torch.save(states, 'PATH_TO_SAVE_YOUR_MODEL')
+```
 
 # Requirements
 
