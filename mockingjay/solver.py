@@ -602,3 +602,23 @@ class Tester(Solver):
 			if tile: reps = self.tile_representations(reps) # (batch_size, seq_len, hidden_size)
 
 		return reps
+
+
+	def forward_fine_tune(self, spec, process_from_loader=False):
+		"""	
+			Fine tune the Mockingjay Model on downstream tasks
+			Input: A batch of spectrograms: (batch_size, seq_len, hidden_size)
+			Output - A batch of representations: (batch_size, seq_len, hidden_size)
+			where `seq_len` is the sequence length of the input `spec`.
+		"""
+			
+		if not process_from_loader:
+			spec_stacked, pos_enc, attn_mask = self.process_MAM_data(spec=spec)
+		else:
+			spec_stacked, pos_enc, attn_mask = self.process_data(spec=spec) # Use dataloader to process MAM data to increase speed
+		reps = self.mockingjay(spec_stacked, pos_enc, attention_mask=attn_mask, output_all_encoded_layers=False)
+		# reps: (batch_size, seq_len // downsample_rate, hidden_size)
+
+		# tile representations to match the input `seq_len` of `spec`
+		reps = self.tile_representations(reps) # (batch_size, seq_len, hidden_size)
+		return reps
