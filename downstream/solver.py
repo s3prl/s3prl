@@ -239,87 +239,93 @@ class Downstream_Trainer(Downstream_Solver):
 		while self.global_step <= self.total_steps:
 
 			for features, labels in tqdm(self.dataloader, desc="Iteration"):
-				if self.global_step > self.total_steps: break
-				# features: (1, batch_size, seq_len, feature)
-				# dimension of labels is depends on task and dataset, but the first dimention is always trivial due to bucketing
-				# eg. (1, batch_size, seq_len) or (1, batch_size)
-				labels = labels.squeeze(0).to(device=self.device)  # labels can be torch.long or torch.float (regression)
+				try:
+					if self.global_step > self.total_steps: break
+					# features: (1, batch_size, seq_len, feature)
+					# dimension of labels is depends on task and dataset, but the first dimention is always trivial due to bucketing
+					# eg. (1, batch_size, seq_len) or (1, batch_size)
+					labels = labels.squeeze(0).to(device=self.device)  # labels can be torch.long or torch.float (regression)
 
-				if self.run_mockingjay:
-					# representations shape: (batch_size, layer, seq_len, feature)
-					representations = self.mockingjay.forward(features, process_from_loader=True)
-					features = self.up_sample_frames(features[0].squeeze(0))
-				elif self.run_apc:
-					# representations shape: (batch_size, layer, seq_len, feature)
-					representations = self.apc.forward(features)
-					features = features.squeeze(0)
-				else:
-					# representations shape: (batch_size, seq_len, feature)
-					features = features.squeeze(0)
-					representations = features.to(device=self.device, dtype=torch.float32)
-				if 'speaker' in self.task: # Doesn't need the whole utterance to predict speaker
-					original_len = representations.size(1)
-					representations = representations[:, :original_len//3, :]
-					features = features[:, :original_len//3, :]
+					if self.run_mockingjay:
+						# representations shape: (batch_size, layer, seq_len, feature)
+						representations = self.mockingjay.forward(features, process_from_loader=True)
+						features = self.up_sample_frames(features[0].squeeze(0))
+					elif self.run_apc:
+						# representations shape: (batch_size, layer, seq_len, feature)
+						representations = self.apc.forward(features)
+						features = features.squeeze(0)
+					else:
+						# representations shape: (batch_size, seq_len, feature)
+						features = features.squeeze(0)
+						representations = features.to(device=self.device, dtype=torch.float32)
+					if 'speaker' in self.task: # Doesn't need the whole utterance to predict speaker
+						original_len = representations.size(1)
+						representations = representations[:, :original_len//3, :]
+						features = features[:, :original_len//3, :]
 
-				# Since zero padding technique, some timestamps of features are not valid
-				# For each timestamps, we mark 1 on valid timestamps, and 0 otherwise
-				# This variable can be useful for frame-wise metric, like phoneme recognition or speaker verification
-				# label_mask: (batch_size, seq_len), LongTensor
-				# valid_lengths: (batch_size), LongTensor
-				label_mask = (features.sum(dim=-1) != 0).type(torch.LongTensor).to(device=self.device, dtype=torch.long)
-				valid_lengths = label_mask.sum(dim=1)
+					# Since zero padding technique, some timestamps of features are not valid
+					# For each timestamps, we mark 1 on valid timestamps, and 0 otherwise
+					# This variable can be useful for frame-wise metric, like phoneme recognition or speaker verification
+					# label_mask: (batch_size, seq_len), LongTensor
+					# valid_lengths: (batch_size), LongTensor
+					label_mask = (features.sum(dim=-1) != 0).type(torch.LongTensor).to(device=self.device, dtype=torch.long)
+					valid_lengths = label_mask.sum(dim=1)
 
-				if self.model_type == 'linear':
-					# labels: (batch_size, seq_len)
-					loss, _, correct, valid = self.classifier(representations, labels, label_mask)
-				elif self.model_type == 'rnn':
-					# labels: (batch_size, )
-					loss, _, correct, valid = self.classifier(representations, labels, valid_lengths)
-				else:
-					raise NotImplementedError('Invalid `model_type`!')
+					if self.model_type == 'linear':
+						# labels: (batch_size, seq_len)
+						loss, _, correct, valid = self.classifier(representations, labels, label_mask)
+					elif self.model_type == 'rnn':
+						# labels: (batch_size, )
+						loss, _, correct, valid = self.classifier(representations, labels, valid_lengths)
+					else:
+						raise NotImplementedError('Invalid `model_type`!')
 
-				# Accumulate Loss
-				loss.backward()
+					# Accumulate Loss
+					loss.backward()
 
-				loses += loss.detach().item()
-				corrects += correct
-				valids += valid
+					loses += loss.detach().item()
+					corrects += correct
+					valids += valid
 
-				# Update
-				self.optimizer.step()
-				self.optimizer.zero_grad()
+					# Update
+					self.optimizer.step()
+					self.optimizer.zero_grad()
 
-				if self.global_step % self.log_step == 0:
-					# Log
-					acc = corrects.item() / valids.item()
-					los = loses / self.log_step
-					self.log.add_scalar('acc', acc, self.global_step)
-					self.log.add_scalar('loss', los, self.global_step)
-					pbar.set_description('Loss %.5f, Acc %.5f' % (los, acc))
+					if self.global_step % self.log_step == 0:
+						# Log
+						acc = corrects.item() / valids.item()
+						los = loses / self.log_step
+						self.log.add_scalar('acc', acc, self.global_step)
+						self.log.add_scalar('loss', los, self.global_step)
+						pbar.set_description('Loss %.5f, Acc %.5f' % (los, acc))
 
-					loses = 0.0
-					corrects = 0
-					valids = 0
+						loses = 0.0
+						corrects = 0
+						valids = 0
 
-				if self.global_step % self.save_step == 0 and acc > best_acc:
-					self.save_model(self.task)
-					best_acc = acc
+					if self.global_step % self.save_step == 0 and acc > best_acc:
+						self.save_model(self.task)
+						best_acc = acc
 
-				if self.eval != 'None' and self.global_step % self.dev_step == 0:
-					self.save_model(self.task, tmp=True)
-					evaluation = self.config['downstream']['evaluation']
-					tmp_model_path = '{}/tmp.ckpt'.format(self.ckpdir)
-					new_dckpt = '/'.join(tmp_model_path.split('/')[-2:])
-					test_config = copy.deepcopy(self.mock_config)
-					test_paras = copy.deepcopy(self.mock_paras)
-					test_paras.dckpt = new_dckpt
-					tester = Downstream_Tester(test_config, test_paras, task=self.task)
-					tester.load_data(split=evaluation, load=self.task.split('_')[-1])
-					tester.set_model(inference=True)
-					eval_loss, eval_acc = tester.exec()
-					self.log.add_scalar(f'{evaluation}_loss', eval_loss, self.global_step)
-					self.log.add_scalar(f'{evaluation}_acc', eval_acc, self.global_step)
+					if self.eval != 'None' and self.global_step % self.dev_step == 0:
+						self.save_model(self.task, tmp=True)
+						evaluation = self.config['downstream']['evaluation']
+						tmp_model_path = '{}/tmp.ckpt'.format(self.ckpdir)
+						new_dckpt = '/'.join(tmp_model_path.split('/')[-2:])
+						test_config = copy.deepcopy(self.mock_config)
+						test_paras = copy.deepcopy(self.mock_paras)
+						test_paras.dckpt = new_dckpt
+						tester = Downstream_Tester(test_config, test_paras, task=self.task)
+						tester.load_data(split=evaluation, load=self.task.split('_')[-1])
+						tester.set_model(inference=True)
+						eval_loss, eval_acc = tester.exec()
+						self.log.add_scalar(f'{evaluation}_loss', eval_loss, self.global_step)
+						self.log.add_scalar(f'{evaluation}_acc', eval_acc, self.global_step)
+				
+				except RuntimeError:
+					print('CUDA out of memory at step: ', self.global_step)
+					torch.cuda.empty_cache()
+					self.optimizer.zero_grad()
 
 				pbar.update(1)
 				self.global_step += 1
