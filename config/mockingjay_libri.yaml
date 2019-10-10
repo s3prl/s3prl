@@ -91,8 +91,9 @@ downstream:                                             # downstream model confi
     input_dim: 'None'                                   # `int`, else if set to None, input_dim will be set according to mockingjay settings or mel-preprocessing dimensions automatically
     select_hidden: 'last'                               # support modes: 'last', 'first', 'average'
     sample_rate: 1
+    pre_linear_dims: []
     hidden_size: 256
-    linear_dims: [256, 256]
+    post_linear_dims: [256, 256]
     drop: 0.2
 
 

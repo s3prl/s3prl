@@ -117,21 +117,26 @@ class RnnClassifier(nn.Module):
 		super(RnnClassifier, self).__init__()
 		self.config = dconfig
 
-		hidden_size = self.config['hidden_size']
 		drop = self.config['drop']
+		self.dropout = nn.Dropout(p=drop)
 
-		self.rnn = nn.GRU(input_size=input_dim, hidden_size=hidden_size, num_layers=1, dropout=drop,
+		linears = []
+		last_dim = input_dim
+		for linear_dim in self.config['pre_linear_dims']:
+			linears.append(nn.Linear(last_dim, linear_dim))
+			last_dim = linear_dim
+		self.pre_linears = nn.ModuleList(linears)
+
+		hidden_size = self.config['hidden_size']
+		self.rnn = nn.GRU(input_size=last_dim, hidden_size=hidden_size, num_layers=1, dropout=drop,
 						  batch_first=True, bidirectional=False)
 
-		self.linears = []
-		self.dropouts = []
+		linears = []
 		last_dim = hidden_size
-		for linear_dim in self.config['linear_dims']:
-			self.linears.append(nn.Linear(last_dim, linear_dim))
-			self.dropouts.append(nn.Dropout(p=drop))
+		for linear_dim in self.config['post_linear_dims']:
+			linears.append(nn.Linear(last_dim, linear_dim))
 			last_dim = linear_dim
-		self.linears = nn.ModuleList(self.linears)
-		self.dropouts = nn.ModuleList(self.dropouts)
+		self.post_linears = nn.ModuleList(linears)
 
 		self.act_fn = torch.nn.functional.relu
 		self.out = nn.Linear(last_dim, class_num)
@@ -179,17 +184,21 @@ class RnnClassifier(nn.Module):
 		features = features[:, torch.arange(0, seq_len, sample_rate), :]
 		valid_lengths /= sample_rate
 
+		for linear in self.pre_linears:
+			features = linear(features)
+			features = self.act_fn(features)
+			features = self.dropout(features)
+
 		packed = pack_padded_sequence(features, valid_lengths, batch_first=True, enforce_sorted=True)
 		_, h_n = self.rnn(packed)
 		hidden = h_n[-1, :, :]
 		# cause h_n directly contains info for final states
 		# it will be easier to use h_n as extracted embedding
 		
-		activation = self.act_fn
-		for linear, dropout in zip(self.linears, self.dropouts):
+		for linear in self.post_linears:
 			hidden = linear(hidden)
-			hidden = activation(hidden)
-			hidden = dropout(hidden)
+			hidden = self.act_fn(hidden)
+			hidden = self.dropout(hidden)
 
 		logits = self.out(hidden)
 
