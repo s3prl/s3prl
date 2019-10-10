@@ -324,7 +324,7 @@ class MockingjaySpecPredictionHead(nn.Module):
 		hidden_states = self.transform_act_fn(hidden_states)
 		hidden_states = self.LayerNorm(hidden_states)
 		linear_output = self.output(hidden_states)
-		return linear_output
+		return linear_output, hidden_states
 
 
 class MockingjayInitModel(nn.Module):
@@ -527,13 +527,13 @@ class MockingjayForMaskedAcousticModel(MockingjayInitModel):
 			all_attentions, sequence_output = outputs
 		else:
 			sequence_output = outputs
-		pred_spec = self.SpecHead(sequence_output)
+		pred_spec, pred_state = self.SpecHead(sequence_output)
 
 		if spec_label is not None and mask_label is not None:
 			masked_spec_loss = self.loss(pred_spec.masked_select(mask_label), spec_label.masked_select(mask_label))
 			return masked_spec_loss, pred_spec
 		elif self.output_attentions:
 			return all_attentions, pred_spec
-		return pred_spec
+		return pred_spec, pred_state
 
 

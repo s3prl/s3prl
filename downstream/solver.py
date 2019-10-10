@@ -56,7 +56,8 @@ class Downstream_Solver(Solver):
 		self.run_mockingjay = True if 'mockingjay' in task else False
 		self.run_apc = True if 'apc' in task else False
 		assert( not (self.run_mockingjay and self.run_apc) ), 'Mockingjay and Apc can not run at the same time!'
-		if self.run_mockingjay: self.verbose('Using Mockingjay representations.')
+		if self.run_mockingjay and self.paras.with_head: self.verbose('Using Mockingjay representations from head.')
+		elif self.run_mockingjay: self.verbose('Using Mockingjay representations.')
 
 
 	def load_data(self, split='train', load='phone'):
@@ -96,7 +97,7 @@ class Downstream_Solver(Solver):
 					self.config['downstream'][self.model_type]['input_dim'] != 'None' else None
 		if 'mockingjay' in self.task:
 			self.mockingjay = Tester(self.mock_config, self.mock_paras)
-			self.mockingjay.set_model(inference=True, with_head=False)
+			self.mockingjay.set_model(inference=True, with_head=self.paras.with_head)
 			self.dr = self.mockingjay.dr
 			if input_dim is None:
 				input_dim = self.mock_config['mockingjay']['hidden_size']
@@ -246,7 +247,11 @@ class Downstream_Trainer(Downstream_Solver):
 					# eg. (1, batch_size, seq_len) or (1, batch_size)
 					labels = labels.squeeze(0).to(device=self.device)  # labels can be torch.long or torch.float (regression)
 
-					if self.run_mockingjay:
+					if self.run_mockingjay and self.paras.with_head:
+						# representations shape: (batch_size, seq_len, feature)
+						representations = self.mockingjay.forward_with_head(features, process_from_loader=True)
+						features = self.up_sample_frames(features[0].squeeze(0))
+					elif self.run_mockingjay:
 						# representations shape: (batch_size, layer, seq_len, feature)
 						representations = self.mockingjay.forward(features, process_from_loader=True)
 						features = self.up_sample_frames(features[0].squeeze(0))
@@ -359,7 +364,11 @@ class Downstream_Tester(Downstream_Solver):
 			# dimension of labels is depends on task and dataset, but the first dimention is always trivial due to bucketing
 			labels = labels.squeeze(0).to(device=self.device)
 
-			if self.run_mockingjay:
+			if self.run_mockingjay and self.paras.with_head:
+				# representations shape: (batch_size, seq_len, feature)
+				representations = self.mockingjay.forward_with_head(features, process_from_loader=True)
+				features = self.up_sample_frames(features[0].squeeze(0))
+			elif self.run_mockingjay:
 				# representations shape: (batch_size, layer, seq_len, feature)
 				representations = self.mockingjay.forward(features, process_from_loader=True)
 				features = self.up_sample_frames(features[0].squeeze(0))

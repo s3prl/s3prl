@@ -582,3 +582,23 @@ class Tester(Solver):
 
 		return reps
 
+
+	def forward_with_head(self, spec, tile=True, process_from_loader=False):
+		"""	
+			Get representations from the spectrogram prediction head
+			if `tile`: Output - A batch of representations: (batch_size, seq_len, hidden_size)
+			if not `tile`: Output - A batch of representations: (batch_size, seq_len // downsample_rate, hidden_size)
+		"""
+			
+		with torch.no_grad():
+			
+			if not process_from_loader:
+				spec_stacked, pos_enc, attn_mask = self.process_MAM_data(spec=spec)
+			else:
+				spec_stacked, pos_enc, attn_mask = self.process_data(spec=spec) # Use dataloader to process MAM data to increase speed
+			_, reps = self.model(spec_stacked, pos_enc, attention_mask=attn_mask)
+
+			# tile representations to match the input `seq_len` of `spec`
+			if tile: reps = self.tile_representations(reps) # (batch_size, seq_len, hidden_size)
+
+		return reps
