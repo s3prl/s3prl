@@ -147,7 +147,7 @@ class Downstream_Solver(Solver):
 			self.load_model(inference=inference)
 
 
-	def save_model(self, name, model_all=True, tmp=False):
+	def save_model(self, name, model_all=True, assign_name=None):
 		if model_all:
 			all_states = {
 				'Classifier': self.classifier.state_dict(),
@@ -168,9 +168,9 @@ class Downstream_Solver(Solver):
 				},
 			}
 
-		if tmp:
-			tmp_model_path = '{}/tmp.ckpt'.format(self.ckpdir)
-			torch.save(all_states, tmp_model_path)
+		if assign_name is not None:
+			model_path = f'{self.ckpdir}/{assign_name}.ckpt'
+			torch.save(all_states, model_path)
 			return
 
 		new_model_path = '{}/{}-{}.ckpt'.format(self.ckpdir, name, self.global_step)
@@ -260,6 +260,7 @@ class Downstream_Trainer(Downstream_Solver):
 		corrects = 0
 		valids = 0
 		best_acc = 0.0
+		best_val_acc = 0.0
 		loses = 0.0
 		while self.global_step <= self.total_steps:
 
@@ -341,7 +342,7 @@ class Downstream_Trainer(Downstream_Solver):
 						best_acc = acc
 
 					if self.eval != 'None' and self.global_step % self.dev_step == 0:
-						self.save_model(self.task, tmp=True)
+						self.save_model(self.task, assign_name='tmp')
 						torch.cuda.empty_cache()
 
 						evaluation = self.config['downstream']['evaluation']
@@ -356,6 +357,11 @@ class Downstream_Trainer(Downstream_Solver):
 						eval_loss, eval_acc = tester.exec()
 						self.log.add_scalar(f'{evaluation}_loss', eval_loss, self.global_step)
 						self.log.add_scalar(f'{evaluation}_acc', eval_acc, self.global_step)
+						if eval_acc > best_val_acc:
+							self.verbose('Saving new best model on validation')
+							self.save_model(self.task, assign_name='best_val')
+							torch.cuda.empty_cache()
+							best_val_acc = eval_acc
 				
 				except RuntimeError:
 					print('CUDA out of memory at step: ', self.global_step)
