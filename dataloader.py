@@ -438,10 +438,13 @@ class Mosei_Dataset(Dataset):
 			all_table = all_table[all_table.sentiment.abs() >= mosei_config['sentiment_threshold']]
 
 			if mosei_config['split_by'] == 'segmented':
-				train = all_table.sample(frac=mosei_config['key_ratio'], random_state=mosei_config['random_seed'])
+				train = all_table.sample(frac=mosei_config['split_ratio'], random_state=mosei_config['random_seed'])
 				test = all_table.drop(train.index)
 			elif mosei_config['split_by'] == 'unsegmented':
-				train_filenames = all_table.filename.sample(frac=mosei_config['filename_ratio'], random_state=mosei_config['random_seed']).values.tolist()
+				all_filenames = all_table.filename.value_counts().index.values
+				all_filenames_len = len(all_filenames)
+				np.random.seed(mosei_config['random_seed'])
+				train_filenames = all_filenames[np.random.permutation(all_filenames_len)[ : int(mosei_config['split_ratio'] * all_filenames_len)]]
 				def judge(filename):
 					if filename in train_filenames:
 						return 'train'
