@@ -415,7 +415,7 @@ class Mosi_Dataset(Dataset):
 
 
 class Mosei_Dataset(Dataset):
-	def __init__(self, run_mockingjay, split='train', bucket_size=8, max_timestep=0, drop=True, mock_config=None, mosei_config=None, load='sentiment'):
+	def __init__(self, run_mockingjay, split='train', bucket_size=8, train_proportion=1.0, max_timestep=0, drop=True, mock_config=None, mosei_config=None, load='sentiment'):
 		assert(mosei_config is not None), 'MOSEI config is necessary for this dataset'
 		assert(load == 'sentiment'), 'The MOSEI dataset only supports sentiment analysis for now'
 		self.run_mockingjay = run_mockingjay
@@ -455,6 +455,7 @@ class Mosei_Dataset(Dataset):
 				all_table['split'] = all_table.filename.apply(judge)
 				train = all_table[all_table.split == 'train']
 				test = all_table.drop(train.index)
+				train = train.sample(frac=train_proportion, random_state=mosei_config['sample_seed'])
 			else:
 				raise NotImplementedError
 			print(f'[DATALOADER] - Training set: {len(train)}')
@@ -522,6 +523,10 @@ class Mosei_Dataset(Dataset):
 		if len(batch_x) > 0:
 			self.Y.append(batch_y)
 			self.X.append(batch_x)
+
+		self.Y *= int(1.0 / train_proportion)
+		self.X *= int(1.0 / train_proportion)
+		set_trace()
 
 
 	def __getitem__(self, index):
@@ -774,7 +779,7 @@ def get_Dataloader(split, load, data_path, batch_size, max_timestep, max_label_l
 			ds = Mosi_Dataset(run_mockingjay=run_mockingjay, split=split, max_timestep=max_timestep, load=load,
 							  bucket_size=bs, drop=drop_too_long, mock_config=mock_config, mosi_config=sentiment_config[target])
 		elif target == 'mosei':
-			ds = Mosei_Dataset(run_mockingjay=run_mockingjay, split=split, max_timestep=max_timestep, load=load,
+			ds = Mosei_Dataset(run_mockingjay=run_mockingjay, split=split, max_timestep=max_timestep, load=load, train_proportion=train_proportion,
 							  bucket_size=bs, drop=drop_too_long, mock_config=mock_config, mosei_config=sentiment_config[target])
 		else:
 			raise NotImplementedError('Not supported dataset for sentiment')

@@ -53,6 +53,7 @@ dataloader:
       max_time: 20                                      # unit: sec
       min_time: 1                                       # unit: sec
       sentiment_threshold: 0.1
+      sample_seed: 29
 
   # LIBRISEECH SETTINGS
   data_path: 'data/libri_mel160_subword5000'            # Source data path
