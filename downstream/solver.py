@@ -354,12 +354,13 @@ class Downstream_Trainer(Downstream_Solver):
 						tester = Downstream_Tester(test_config, test_paras, task=self.task)
 						tester.load_data(split=evaluation, load=self.task.split('_')[-1])
 						tester.set_model(inference=True)
-						eval_loss, eval_acc = tester.exec()
+						eval_loss, eval_acc, eval_logits = tester.exec()
 						self.log.add_scalar(f'{evaluation}_loss', eval_loss, self.global_step)
 						self.log.add_scalar(f'{evaluation}_acc', eval_acc, self.global_step)
 						if eval_acc > best_val_acc:
 							self.verbose('Saving new best model on validation')
 							self.save_model(self.task, assign_name='best_val')
+							torch.save(eval_logits, f'{self.ckpdir}/best_val.logits')
 							torch.cuda.empty_cache()
 							best_val_acc = eval_acc
 				
@@ -394,6 +395,7 @@ class Downstream_Tester(Downstream_Solver):
 		valid_count = 0
 		correct_count = 0
 		loss_sum = 0
+		all_logits = []
 
 		oom_counter = 0
 		for features, labels in tqdm(self.dataloader, desc="Iteration"):
@@ -440,24 +442,26 @@ class Downstream_Tester(Downstream_Solver):
 					else:
 						raise NotImplementedError
 					
+					loss_sum += loss.detach().cpu().item()
+					all_logits.append(logits)
 					correct_count += correct.item()
 					valid_count += valid.item()
-					loss_sum += loss.detach().cpu().item()
-				
+
 				except RuntimeError:
 					if oom_counter > 10: break
 					else: oom_counter += 1
 					print('CUDA out of memory during testing, aborting after ' + str(10 - oom_counter) + ' more tries...')
 					torch.cuda.empty_cache()
 
-		test_acc = correct_count * 1.0 / valid_count
 		average_loss = loss_sum / len(self.dataloader)
+		all_logits = torch.cat(all_logits)
+		test_acc = correct_count * 1.0 / valid_count
 		self.verbose(f'Test result: loss {average_loss}, acc {test_acc}')
-		
+
 		timer.end()
 		timer.report()
 		
-		return average_loss, test_acc
+		return average_loss, test_acc, all_logits
 
 
 def get_mockingjay_optimizer(params, lr, warmup_proportion, training_steps):
