@@ -526,7 +526,6 @@ class Mosei_Dataset(Dataset):
 
 		self.Y *= int(1.0 / train_proportion)
 		self.X *= int(1.0 / train_proportion)
-		set_trace()
 
 
 	def __getitem__(self, index):
