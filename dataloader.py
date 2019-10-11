@@ -442,9 +442,11 @@ class Mosei_Dataset(Dataset):
 				test = all_table.drop(train.index)
 			elif mosei_config['split_by'] == 'unsegmented':
 				all_filenames = all_table.filename.value_counts().index.values
+				all_filenames.sort()
 				all_filenames_len = len(all_filenames)
 				np.random.seed(mosei_config['random_seed'])
-				train_filenames = all_filenames[np.random.permutation(all_filenames_len)[ : int(mosei_config['split_ratio'] * all_filenames_len)]]
+				permute = np.random.permutation(all_filenames_len)
+				train_filenames = all_filenames[permute[ : int(mosei_config['split_ratio'] * all_filenames_len)]]
 				def judge(filename):
 					if filename in train_filenames:
 						return 'train'

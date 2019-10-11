@@ -48,7 +48,7 @@ dataloader:
       # if standard_split is set to False
       random_seed: 29
       split_by: 'unsegmented'                              # 'unsegmented' or 'segmented'
-      split_ratio: 0.8
+      split_ratio: 0.9
 
       max_time: 20                                      # unit: sec
       min_time: 1                                       # unit: sec
