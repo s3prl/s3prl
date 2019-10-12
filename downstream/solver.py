@@ -456,7 +456,6 @@ class Downstream_Tester(Downstream_Solver):
 					torch.cuda.empty_cache()
 
 		average_loss = loss_sum / len(self.dataloader)
-		all_logits = torch.cat(all_logits)
 		test_acc = correct_count * 1.0 / valid_count
 		self.verbose(f'Test result: loss {average_loss}, acc {test_acc}')
 
