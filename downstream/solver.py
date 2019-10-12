@@ -60,8 +60,10 @@ class Downstream_Solver(Solver):
 		if self.fine_tune:  
 			assert(self.run_mockingjay), 'Use `--run_mockingjay` to fine-tune the mockingjay model.'
 			assert(not self.run_apc), 'Fine tuning only supports the mockingjay model.'
+			assert(not self.paras.with_head), 'Fine tuning only supports the mockingjay model, not with head.'
 		assert( not (self.run_mockingjay and self.run_apc) ), 'Mockingjay and Apc can not run at the same time!'
 		if self.run_mockingjay and self.paras.with_head: self.verbose('Using Mockingjay representations from head.')
+		elif self.run_mockingjay and self.fine_tune: self.verbose('Fine-tuning on Mockingjay representations.')
 		elif self.run_mockingjay: self.verbose('Using Mockingjay representations.')
 
 

@@ -42,15 +42,18 @@ dataloader:
     mosei:
       path: 'data/mosei'
       feature: 'mel160'
-      label_mode: 'regression'                          # suppor modes: 'regression', 'original', 'positive_negative', 'regression'
+      label_mode: 'positive_negative'                          # suppor modes: 'regression', 'original', 'positive_negative', 'regression'
       standard_split: False
 
       # if standard_split is set to False
-      random_seed: 42
-      train_ratio: 0.9
+      random_seed: 29
+      split_by: 'unsegmented'                              # 'unsegmented' or 'segmented'
+      split_ratio: 0.9
 
-      max_time: 10                                      # unit: sec
-      min_time: 2                                       # unit: sec
+      max_time: 20                                      # unit: sec
+      min_time: 1                                       # unit: sec
+      sentiment_threshold: 0.1
+      sample_seed: 29
 
 
   # LIBRISEECH SETTINGS
@@ -89,8 +92,9 @@ downstream:                                             # downstream model confi
     input_dim: 'None'                                   # `int`, else if set to None, input_dim will be set according to mockingjay settings or mel-preprocessing dimensions automatically
     select_hidden: 'last'                               # support modes: 'last', 'first', 'average'
     sample_rate: 1
+    pre_linear_dims: []
     hidden_size: 256
-    linear_dims: [256, 256]
+    post_linear_dims: [256, 256]
     drop: 0.2
 
 

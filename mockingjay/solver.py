@@ -91,10 +91,12 @@ class Solver():
 		
 		if not inference or with_head:
 			self.model = MockingjayForMaskedAcousticModel(self.model_config, self.input_dim, self.output_dim).to(self.device)
+			self.verbose('Number of parameters: ' + str(sum(p.numel() for p in self.model.parameters() if p.requires_grad)))
 			self.mockingjay = self.model.Mockingjay
 
 		if inference and not with_head:
 			self.mockingjay = MockingjayModel(self.model_config, self.input_dim).to(self.device)
+			self.verbose('Number of parameters: ' + str(sum(p.numel() for p in self.mockingjay.parameters() if p.requires_grad)))
 			self.mockingjay.eval()
 		elif inference and with_head:
 			self.model.eval()
