@@ -524,8 +524,9 @@ class Mosei_Dataset(Dataset):
 			self.Y.append(batch_y)
 			self.X.append(batch_x)
 
-		self.Y *= int(1.0 / train_proportion)
-		self.X *= int(1.0 / train_proportion)
+		if split == 'train':
+			self.Y *= int(1.0 / train_proportion)
+			self.X *= int(1.0 / train_proportion)
 
 
 	def __getitem__(self, index):
