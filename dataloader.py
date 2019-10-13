@@ -265,7 +265,7 @@ class Mel_Phone_Dataset(LibriDataset):
 			X = np.asarray(X)[sample_index]
 			X_lens = np.asarray(X_lens)[sample_index]
 			print(' to ', len(X))
-			if len(X) < 200: # is a batch is too small, manually duplicate batch size to increase dataloader speed.
+			if len(X) < 200: # is a batch is too small, manually duplicate epoch size to increase dataloader speed.
 				for _ in range(4): 
 					X = np.concatenate((X, X), axis=0)
 					X_lens = np.concatenate((X_lens, X_lens), axis=0)
