@@ -1,9 +1,9 @@
 # 👾 Mockingjay
 ## Self-Supervised Speech Representation Learning with Deep Bidirectional Transformer Encoders
 ### PyTorch Official Implementation
-[![Bitbucket open issues](https://img.shields.io/bitbucket/issues/andi611/Mockingjay-Speech-Representation-Learning)](https://github.com/andi611/Mockingjay-Speech-Representation-Learning/issues)
+[![Bitbucket open issues](https://img.shields.io/bitbucket/issues/andi611/Mockingjay-Speech-Representation)](https://github.com/andi611/Mockingjay-Speech-Representation/issues)
 [![Contributions welcome](https://img.shields.io/badge/contributions-welcome-brightgreen.svg)](CONTRIBUTING.md)
-[![GitHub](https://img.shields.io/github/license/andi611/Mockingjay-Speech-Representation-Learning)](https://en.wikipedia.org/wiki/MIT_License)
+[![GitHub](https://img.shields.io/github/license/andi611/Mockingjay-Speech-Representation)](https://en.wikipedia.org/wiki/MIT_License)
 
 This is an open source project for Mockingjay, end-to-end learning of acoustic features representations, implemented with Pytorch.
 
@@ -106,7 +106,7 @@ mmsdk            # sentiment dataset CMU-MOSI SDK (sentiment data preprocessing 
 
 ## Step 0. Preprocessing - Acoustic Feature Extraction & Text Encoding
 
-See the instructions on the [Preprocess wiki page](https://github.com/andi611/Mockingjay-Speech-Representation-Learning/wiki/Mockingjay-Preprocessing-Instructions) for preprocessing instructions.
+See the instructions on the [Preprocess wiki page](https://github.com/andi611/Mockingjay-Speech-Representation/wiki/Mockingjay-Preprocessing-Instructions) for preprocessing instructions.
 
 ## Step 1. Configuring - Model Design & Hyperparameter Setup
 
@@ -148,10 +148,10 @@ python3 -m tensorboard.main --logdir=log/log_mockingjay/mockingjay_libri_sd1337/
 ```
 
 ## Experiments - Application on downstream tasks
-See the instructions on the [Downstream wiki page](https://github.com/andi611/Mockingjay-Speech-Representation-Learning/wiki/Downstream-Task-Instructions) to reproduce our experiments.
+See the instructions on the [Downstream wiki page](https://github.com/andi611/Mockingjay-Speech-Representation/wiki/Downstream-Task-Instructions) to reproduce our experiments.
 
 ## Experiments - Compare with APC
-See the instructions on the [APC wiki page](https://github.com/andi611/Mockingjay-Speech-Representation-Learning/wiki/Reproducing-APC-to-compare-with-Mockingjay) to reproduce our experiments.
+See the instructions on the [APC wiki page](https://github.com/andi611/Mockingjay-Speech-Representation/wiki/Reproducing-APC-to-compare-with-Mockingjay) to reproduce our experiments.
 
 
 # Reference

@@ -63,7 +63,7 @@ dataloader:
   train_set: ['train-clean-360']                        #
   dev_set: ['dev-clean']                                #
   test_set: ['test-clean']                              #
-  train_proportion: 1.0                                 # Currently only effect the `phone classification task`, use this percent of `train_set` for downstream task training to demonstrate mockingjay generality
+  train_proportion: 0.001                                 # Currently only effect the `phone classification task`, use this percent of `train_set` for downstream task training to demonstrate mockingjay generality
 
 
 solver:
@@ -100,9 +100,9 @@ downstream:                                             # downstream model confi
 
   # Training options
   learning_rate: "4e-3"                                 # Learning rate for opt
-  total_steps: 29078                                    # total steps for training, a step is a batch of update
+  total_steps: 500000 #29078                                    # total steps for training, a step is a batch of update
   log_step: 500                                         # log training status every this amount of training steps
-  dev_step: 58156
+  dev_step: 20000 #58156
   evaluation: 'test'                                    # can be 'dev' or 'test', show inference results right after saving model
   
   # models
