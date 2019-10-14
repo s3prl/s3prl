@@ -282,6 +282,7 @@ class Downstream_Trainer(Downstream_Solver):
 						# representations shape: (batch_size, seq_len, feature)
 						representations = self.mockingjay.forward_fine_tune(features, tile=False if 'speaker' in self.task else True, process_from_loader=True)
 						features = self.up_sample_frames(features[0].squeeze(0)) if 'speaker' not in self.task else features[0].squeeze(0)
+						labels = labels[: , :features.size(1)] # match feature and label during fine-tune, as downsampling may cause mismatch
 					elif self.run_mockingjay:
 						# representations shape: (batch_size, layer, seq_len, feature)
 						representations = self.mockingjay.forward(features, tile=False if 'speaker' in self.task else True, process_from_loader=True)
