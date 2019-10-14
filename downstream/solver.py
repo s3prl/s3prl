@@ -280,12 +280,12 @@ class Downstream_Trainer(Downstream_Solver):
 						features = self.up_sample_frames(features[0].squeeze(0))
 					elif self.run_mockingjay and self.fine_tune:
 						# representations shape: (batch_size, seq_len, feature)
-						representations = self.mockingjay.forward_fine_tune(features, process_from_loader=True)
-						features = self.up_sample_frames(features[0].squeeze(0))
+						representations = self.mockingjay.forward_fine_tune(features, tile=False if 'speaker' in self.task else True, process_from_loader=True)
+						features = self.up_sample_frames(features[0].squeeze(0)) if 'speaker' not in self.task else features[0].squeeze(0)
 					elif self.run_mockingjay:
 						# representations shape: (batch_size, layer, seq_len, feature)
-						representations = self.mockingjay.forward(features, process_from_loader=True)
-						features = self.up_sample_frames(features[0].squeeze(0))
+						representations = self.mockingjay.forward(features, tile=False if 'speaker' in self.task else True, process_from_loader=True)
+						features = self.up_sample_frames(features[0].squeeze(0)) if 'speaker' not in self.task else features[0].squeeze(0)
 					elif self.run_apc:
 						# representations shape: (batch_size, layer, seq_len, feature)
 						representations = self.apc.forward(features)
@@ -413,12 +413,12 @@ class Downstream_Tester(Downstream_Solver):
 						features = self.up_sample_frames(features[0].squeeze(0))
 					elif self.run_mockingjay and self.fine_tune:
 						# representations shape: (batch_size, seq_len, feature)
-						representations = self.mockingjay.forward_fine_tune(features, process_from_loader=True)
-						features = self.up_sample_frames(features[0].squeeze(0))
+						representations = self.mockingjay.forward_fine_tune(features, tile=False if 'speaker' in self.task else True, process_from_loader=True)
+						features = self.up_sample_frames(features[0].squeeze(0)) if 'speaker' not in self.task else features[0].squeeze(0)
 					elif self.run_mockingjay:
 						# representations shape: (batch_size, layer, seq_len, feature)
-						representations = self.mockingjay.forward(features, process_from_loader=True)
-						features = self.up_sample_frames(features[0].squeeze(0))
+						representations = self.mockingjay.forward(features, tile=False if 'speaker' in self.task else True, process_from_loader=True)
+						features = self.up_sample_frames(features[0].squeeze(0)) if 'speaker' not in self.task else features[0].squeeze(0)
 					elif self.run_apc:
 						# representations shape: (batch_size, layer, seq_len, feature)
 						representations = self.apc.forward(features)
