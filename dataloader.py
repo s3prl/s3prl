@@ -721,6 +721,48 @@ class Mel_Speaker_Small_Dataset(Mel_Speaker_Large_Dataset):
 		if len(batch_x) > 0:
 			self.X.append(batch_x)
 
+class TimitDataset(Dataset):
+	def __init__(self, run_mockingjay, file_path, sets, bucket_size, max_timestep=0, max_label_len=0, mock_config=None):
+		
+		self.run_mockingjay = run_mockingjay
+		self.mock_config = mock_config
+		self.class_num = 63
+		# Open dataset
+		x = []
+		y = []
+		for s in sets:
+			with open(os.path.join(file_path,s+'_x.pkl'),'rb') as fp:
+				x += pickle.load(fp)
+			with open(os.path.join(file_path,s+'_y.pkl'),'rb') as fp:
+				y += pickle.load(fp)
+		assert len(x)==len(y)
+
+		# Sort data w.r.t. length
+		self.X = []
+		self.Y = []
+		sortd_len = [len(t) for t in x]
+		sorted_x = [x[idx] for idx in reversed(np.argsort(sortd_len))]
+		sorted_y = [y[idx] for idx in reversed(np.argsort(sortd_len))]
+
+		# Bucketing
+		for b in range(int(np.ceil(len(sorted_x)/bucket_size))):
+			offset = b*bucket_size
+			bound = min((b+1)*bucket_size,len(sorted_x))
+			bucket_max_timestep = min(max_timestep,len(sorted_x[offset]))
+			self.X.append(zero_padding(sorted_x[offset:bound], bucket_max_timestep))
+			bucket_max_label_len = min(max_label_len,max([len(v) for v in sorted_y[offset:bound]]))
+			self.Y.append(target_padding(sorted_y[offset:bound], bucket_max_label_len))
+
+	def __getitem__(self, index):
+		x_batch = self.X[index]
+		y_batch = self.Y[index]
+		if self.run_mockingjay:
+			x_batch = process_test_MAM_data(spec=(x_batch,), config=self.mock_config)
+		return x_batch, y_batch
+	
+	def __len__(self):
+		return len(self.X)
+
 
 ##################
 # GET DATALOADER #
@@ -772,6 +814,9 @@ def get_Dataloader(split, load, data_path, batch_size, max_timestep, max_label_l
 		ds = Mel_Phone_Dataset(run_mockingjay=run_mockingjay, file_path=data_path, phone_path=phone_path, sets=sets, max_timestep=max_timestep, load=load,
 							   max_label_len=max_label_len, bucket_size=bs, drop=drop_too_long, mock_config=mock_config,
 							   train_proportion=train_proportion if split == 'train' else 1.0)
+	elif load == 'timit':
+		ds = TimitDataset(run_mockingjay=run_mockingjay, file_path=data_path, sets=sets, max_timestep=max_timestep, 
+						   max_label_len=max_label_len, bucket_size=bs, mock_config=mock_config)
 	elif load == 'sentiment':
 		assert(sentiment_config is not None), '`sentiment config` must be provided for this dataset.'
 		target = sentiment_config['dataset']
@@ -791,7 +836,7 @@ def get_Dataloader(split, load, data_path, batch_size, max_timestep, max_label_l
 		else:
 			raise NotImplementedError('Invalid configuration for `Mel_Speaker_Dataset`!')
 		ds = Mel_Speaker_Large_Dataset(run_mockingjay=run_mockingjay, file_path=data_path, sets=sets, max_timestep=max_timestep, load=load,
-								 	   max_label_len=max_label_len, bucket_size=64, drop=drop_too_long, mock_config=mock_config)
+							           max_label_len=max_label_len, bucket_size=64, drop=drop_too_long, mock_config=mock_config)
 	elif load == 'speaker':
 		sets = train_set[0].replace('360', '100') # Use the `train-clean-100` set instead of the `train-clean-360`
 		ds = Mel_Speaker_Small_Dataset(split=split, run_mockingjay=run_mockingjay, file_path=data_path, sets=sets, max_timestep=max_timestep, load=load,
