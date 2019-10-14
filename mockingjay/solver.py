@@ -606,7 +606,7 @@ class Tester(Solver):
 		return reps
 
 
-	def forward_fine_tune(self, spec, process_from_loader=False):
+	def forward_fine_tune(self, spec, tile=True, process_from_loader=False):
 		"""	
 			Fine tune the Mockingjay Model on downstream tasks
 			Input: A batch of spectrograms: (batch_size, seq_len, hidden_size)
@@ -622,5 +622,5 @@ class Tester(Solver):
 		# reps: (batch_size, seq_len // downsample_rate, hidden_size)
 
 		# tile representations to match the input `seq_len` of `spec`
-		reps = self.tile_representations(reps) # (batch_size, seq_len, hidden_size)
+		if tile: reps = self.tile_representations(reps) # (batch_size, seq_len, hidden_size)
 		return reps
