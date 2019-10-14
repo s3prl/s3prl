@@ -72,11 +72,13 @@ class LinearClassifier(nn.Module):
 			else:
 				raise NotImplementedError('Feature selection mode not supported!')
 
-			# since the down-sampling (float length be truncated to int) and then up-sampling process
-			# can cause a mismatch between the seq lenth of mockingjay representation and that of label
-			# we truncate the final few timestamp of label to make two seq equal in length
-			labels = labels[:, :features.size(1)]
-			label_mask = label_mask[:, :features.size(1)]
+		# since the down-sampling (float length be truncated to int) and then up-sampling process
+		# can cause a mismatch between the seq lenth of mockingjay representation and that of label
+		# we truncate the final few timestamp of label to make two seq equal in length
+		truncated_length = min(features.size(1), labels.size(-1))
+		features = features[:, :truncated_length, :]
+		labels = labels[:, :truncated_length]
+		label_mask = label_mask[:, :truncated_length]
 		
 		if self.sequencial:
 			features, h_n = self.rnn(features)
