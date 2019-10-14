@@ -42,12 +42,12 @@ dataloader:
     mosei:
       path: 'data/mosei'
       feature: 'mel160'
-      label_mode: 'positive_negative'                          # suppor modes: 'regression', 'original', 'positive_negative', 'regression'
+      label_mode: 'positive_negative'                   # suppor modes: 'regression', 'original', 'positive_negative', 'regression'
       standard_split: False
 
       # if standard_split is set to False
       random_seed: 29
-      split_by: 'unsegmented'                              # 'unsegmented' or 'segmented'
+      split_by: 'unsegmented'                           # 'unsegmented' or 'segmented'
       split_ratio: 0.9
 
       max_time: 20                                      # unit: sec
@@ -99,10 +99,10 @@ downstream:                                             # downstream model confi
 
 
   # Training options
-  learning_rate: "4e-3"                                 # Learning rate for opt
-  total_steps: 29078                                    # total steps for training, a step is a batch of update
+  learning_rate: "4e-3"                                 # Learning rate for opt: ['4e-3' for fine-tune, '4e-3' for regualr downstream task training]
+  total_steps: 29078                                    # total steps for training, a step is a batch of update: [29078 for fine-tune, 500000 for regualr downstream task training ]
   log_step: 500                                         # log training status every this amount of training steps
-  dev_step: 58156
+  dev_step: 58156                                       # [58156 for fine-tune, 10000 for regualr downstream task training ]
   evaluation: 'test'                                    # can be 'dev' or 'test', show inference results right after saving model
   
   # models
