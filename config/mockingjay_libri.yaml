@@ -22,7 +22,7 @@ optimizer:
 
 
 dataloader:
-  n_jobs: 16                                            # Subprocess used for torch Dataloader
+  n_jobs: 6                                            # Subprocess used for torch Dataloader
   batch_size: 12                                        # training batch size: [12 for fine-tune, 6 for mockingjay pre-training]
   dev_batch_size: 6                                     # used for dev/test splits
   max_timestep: 3000                                    # Max length for audio feature (0 for no restriction)
@@ -99,9 +99,9 @@ downstream:                                             # downstream model confi
 
   # Training options
   learning_rate: "4e-3"                                 # Learning rate for opt: ['4e-4' for fine-tune, '4e-3' for regualr downstream task training ]
-  total_steps: 14540                                    # total steps for training, a step is a batch of update: [14540 for fine-tune, 500000 for regualr downstream task training ]
+  total_steps: 500000                                   # total steps for training, a step is a batch of update: [29080 for fine-tune, 500000 for regualr downstream task training ]
   log_step: 500                                         # log training status every this amount of training steps
-  dev_step: 29080                                       # [29080 for fine-tune, 10000 for regualr downstream task training ]
+  dev_step: 10000                                       # [29080 for fine-tune, 10000 for regualr downstream task training ]
   evaluation: 'test'                                    # can be 'dev' or 'test', show inference results right after saving model
   
   # models
