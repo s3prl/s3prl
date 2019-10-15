@@ -240,6 +240,7 @@ class Downstream_Trainer(Downstream_Solver):
 		self.learning_rate = float(config['downstream']['learning_rate'])
 		self.max_keep = config['downstream']['max_keep']
 		self.eval = config['downstream']['evaluation']
+		self.gradient_clipping = config['optimizer']['gradient_clipping']
 		self.reset_train()
 		if self.fine_tune:
 			 self.total_steps = self.total_steps * 2 # train two epcohs to fine-tune the model, set steps manually in config/*.yaml
@@ -324,7 +325,16 @@ class Downstream_Trainer(Downstream_Solver):
 					valids += valid
 
 					# Update
-					self.optimizer.step()
+					if self.fine_tune: 
+						grad_norm = torch.nn.utils.clip_grad_norm_(list(self.mockingjay.mockingjay.parameters()) + list(self.classifier.parameters()), \
+																   self.gradient_clipping)
+					else:
+						grad_norm = torch.nn.utils.clip_grad_norm_(self.classifier.parameters(), \
+																   self.gradient_clipping)
+					if math.isnan(grad_norm):
+						self.verbose('Error : grad norm is NaN @ step ' + str(self.global_step))
+					else:
+						self.optimizer.step()
 					self.optimizer.zero_grad()
 
 					if self.global_step % self.log_step == 0:
@@ -333,6 +343,7 @@ class Downstream_Trainer(Downstream_Solver):
 						los = loses / self.log_step
 						self.log.add_scalar('acc', acc, self.global_step)
 						self.log.add_scalar('loss', los, self.global_step)
+						self.log.add_scalar('gradient norm', grad_norm, self.global_step)
 						pbar.set_description('Loss %.5f, Acc %.5f' % (los, acc))
 
 						loses = 0.0
