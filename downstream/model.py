@@ -27,6 +27,7 @@ class LinearClassifier(nn.Module):
 		drop = dconfig['drop']
 		self.sequencial = sequencial
 		self.select_hidden = dconfig['select_hidden']
+		self.weight = nn.Parameter(torch.zeros(12))
 
 		if self.sequencial: 
 			self.rnn = nn.GRU(input_size=input_dim, hidden_size=hidden_size, num_layers=1, dropout=0.1,
@@ -69,6 +70,13 @@ class LinearClassifier(nn.Module):
 				features = features[:, 0, :, :]
 			elif self.select_hidden == 'average':
 				features = features.mean(dim=1)  # now simply average the representations over all layers, (batch_size, seq_len, feature)
+			elif self.select_hidden == 'weighted_sum':
+				batch_size = features.size(0)
+				layer_num = features.size(1)
+				seq_len = features.size(2)
+				feature_dim = features.size(3)
+				features = features.transpose(0, 1).reshape(layer_num, -1)
+				features = torch.matmul(self.weight[:layer_num], features).reshape(batch_size, seq_len, feature_dim)
 			else:
 				raise NotImplementedError('Feature selection mode not supported!')
 
@@ -118,6 +126,7 @@ class RnnClassifier(nn.Module):
 
 		super(RnnClassifier, self).__init__()
 		self.config = dconfig
+		self.weight = nn.Parameter(torch.zeros(12))
 
 		drop = self.config['drop']
 		self.dropout = nn.Dropout(p=drop)
@@ -178,6 +187,13 @@ class RnnClassifier(nn.Module):
 				features = features[:, 0, :, :]
 			elif select_hidden == 'average':
 				features = features.mean(dim=1)  # now simply average the representations over all layers, (batch_size, seq_len, feature)
+			elif select_hidden == 'weighted_sum':
+				batch_size = features.size(0)
+				layer_num = features.size(1)
+				seq_len = features.size(2)
+				feature_dim = features.size(3)
+				features = features.transpose(0, 1).reshape(layer_num, -1)
+				features = torch.matmul(self.weight[:layer_num], features).reshape(batch_size, seq_len, feature_dim)
 			else:
 				raise NotImplementedError('Feature selection mode not supported!')
 
