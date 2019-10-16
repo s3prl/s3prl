@@ -274,7 +274,9 @@ class Downstream_Trainer(Downstream_Solver):
 					# dimension of labels is depends on task and dataset, but the first dimention is always trivial due to bucketing
 					# eg. (1, batch_size, seq_len) or (1, batch_size)
 					labels = labels.squeeze(0).to(device=self.device)  # labels can be torch.long or torch.float (regression)
-
+					if 'speaker' in self.task: # Doesn't need the whole utterance to predict speaker
+						original_len = features[0].size(2)
+						features = (features[0][:, :, :original_len//5, :], features[1][:, :, :original_len//5, :], features[2][:, :, :original_len//5])
 					if self.run_mockingjay and self.paras.with_head:
 						# representations shape: (batch_size, seq_len, feature)
 						representations = self.mockingjay.forward_with_head(features, process_from_loader=True)
@@ -295,10 +297,6 @@ class Downstream_Trainer(Downstream_Solver):
 						# representations shape: (batch_size, seq_len, feature)
 						features = features.squeeze(0)
 						representations = features.to(device=self.device, dtype=torch.float32)
-					if 'speaker' in self.task: # Doesn't need the whole utterance to predict speaker
-						original_len = representations.size(1)
-						representations = representations[:, :original_len//3, :]
-						features = features[:, :original_len//3, :]
 
 					# Since zero padding technique, some timestamps of features are not valid
 					# For each timestamps, we mark 1 on valid timestamps, and 0 otherwise
@@ -378,9 +376,9 @@ class Downstream_Trainer(Downstream_Solver):
 							best_val_acc = eval_acc
 				
 				except RuntimeError:
-					print('CUDA out of memory at step: ', self.global_step)
-					torch.cuda.empty_cache()
-					self.optimizer.zero_grad()
+				 	print('CUDA out of memory at step: ', self.global_step)
+				 	torch.cuda.empty_cache()
+				 	self.optimizer.zero_grad()
 
 				pbar.update(1)
 				self.global_step += 1
