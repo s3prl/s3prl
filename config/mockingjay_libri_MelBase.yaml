@@ -52,6 +52,7 @@ dataloader:
 
       max_time: 20                                      # unit: sec
       min_time: 1                                       # unit: sec
+      truncate_length: 5000                             # unit: timestamp
       sentiment_threshold: 0.1
       sample_seed: 29
 
