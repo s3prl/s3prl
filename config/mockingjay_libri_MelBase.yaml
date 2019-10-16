@@ -85,12 +85,12 @@ downstream:                                             # downstream model confi
     input_dim: 'None'                                   # `int`, else if set to None, input_dim will be set according to mockingjay settings or mel-preprocessing dimensions automatically
     hidden_size: 768                                    # size of hidden layer
     drop: 0.2
-    select_hidden: 'last'                               # support modes: 'last', 'first', 'average'
+    select_hidden: 'last'                               # support modes: ['last', 'first', 'average', 'weighted_sum']
 
  rnn:
     mode: 'classification'                              # support modes: 'classification' , 'regression'
     input_dim: 'None'                                   # `int`, else if set to None, input_dim will be set according to mockingjay settings or mel-preprocessing dimensions automatically
-    select_hidden: 'last'                               # support modes: 'last', 'first', 'average'
+    select_hidden: 'last'                               # support modes: ['last', 'first', 'average', 'weighted_sum']
     sample_rate: 5                                      # `int`, sample every this number of frames
     pre_linear_dims: []
     hidden_size: 32                                     # size of hidden layer
@@ -102,7 +102,7 @@ downstream:                                             # downstream model confi
   learning_rate: "4e-3"                                 # Learning rate for opt: ['4e-3' for fine-tune, '4e-3' for regualr downstream task training]
   total_steps: 29078                                    # total steps for training, a step is a batch of update: [29078 for fine-tune, 500000 for regualr downstream task training ]
   log_step: 500                                         # log training status every this amount of training steps
-  dev_step: 58156                                       # [58156 for fine-tune, 10000 for regualr downstream task training ]
+  dev_step: 5000                                       # [58156 for fine-tune, 10000 for regualr downstream task training ]
   evaluation: 'test'                                    # can be 'dev' or 'test', show inference results right after saving model
   
   # models
