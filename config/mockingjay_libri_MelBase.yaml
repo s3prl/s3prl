@@ -83,19 +83,19 @@ solver:
 downstream:                                             # downstream model config
   linear:
     input_dim: 'None'                                   # `int`, else if set to None, input_dim will be set according to mockingjay settings or mel-preprocessing dimensions automatically
-    hidden_size: 768
+    hidden_size: 768                                    # size of hidden layer
     drop: 0.2
     select_hidden: 'last'                               # support modes: 'last', 'first', 'average'
 
-  rnn:
+ rnn:
     mode: 'classification'                              # support modes: 'classification' , 'regression'
     input_dim: 'None'                                   # `int`, else if set to None, input_dim will be set according to mockingjay settings or mel-preprocessing dimensions automatically
     select_hidden: 'last'                               # support modes: 'last', 'first', 'average'
-    sample_rate: 1
+    sample_rate: 5                                      # `int`, sample every this number of frames
     pre_linear_dims: []
-    hidden_size: 256
-    post_linear_dims: [256, 256]
-    drop: 0.2
+    hidden_size: 32                                     # size of hidden layer
+    post_linear_dims: [32]
+    drop: 0.5                                           # The dropout ratio
 
 
   # Training options
