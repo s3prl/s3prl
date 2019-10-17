@@ -533,6 +533,9 @@ class Mosei_Dataset(Dataset):
 		# Load acoustic feature and pad
 		x_batch = [torch.FloatTensor(np.load(os.path.join(self.npy_dir, x_file))) for x_file in self.X[index]]  # [(seq, feature), ...]
 		x_pad_batch = pad_sequence(x_batch, batch_first=True)  # (batch, seq, feature) with all seq padded with zeros to align the longest seq in this batch
+		truncate_length = self.config['truncate_length']
+		if x_pad_batch.size(1) > self.config['truncate_length']:
+			x_pad_batch = x_pad_batch[:, :truncate_length, :]
 
 		# Load label
 		if self.config['label_mode'] == 'regression':
