@@ -27,7 +27,7 @@ class LinearClassifier(nn.Module):
 		drop = dconfig['drop']
 		self.sequencial = sequencial
 		self.select_hidden = dconfig['select_hidden']
-		self.weight = nn.Parameter(torch.zeros(12))
+		self.weight = nn.Parameter(torch.ones(12) / 12)
 
 		if self.sequencial: 
 			self.rnn = nn.GRU(input_size=input_dim, hidden_size=hidden_size, num_layers=1, dropout=0.1,
@@ -130,7 +130,7 @@ class RnnClassifier(nn.Module):
 
 		super(RnnClassifier, self).__init__()
 		self.config = dconfig
-		self.weight = nn.Parameter(torch.zeros(12))
+		self.weight = nn.Parameter(torch.ones(12) / 12)
 
 		drop = self.config['drop']
 		self.dropout = nn.Dropout(p=drop)
