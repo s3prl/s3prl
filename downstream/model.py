@@ -62,9 +62,9 @@ class LinearClassifier(nn.Module):
 		# features from baseline: (batch_size, seq_len, feature)
 		# labels: (batch_size, seq_len), frame by frame classification
 		batch_size = features.size(0)
-		layer_num = features.size(1)
-		seq_len = features.size(2)
-		feature_dim = features.size(3)
+		layer_num = features.size(1) if len(features.shape) == 4 else None
+		seq_len = features.size(2) if len(features.shape) == 4 else features.size(1)
+		feature_dim = features.size(3) if len(features.shape) == 4 else features.size(2)
 
 		if len(features.shape) == 4:
 			# compute mean on mockingjay representations if given features from mockingjay
