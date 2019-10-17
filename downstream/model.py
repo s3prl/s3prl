@@ -182,9 +182,9 @@ class RnnClassifier(nn.Module):
 		# labels: (batch_size,), one utterance to one label
 		# valid_lengths: (batch_size, )
 		batch_size = features.size(0)
-		layer_num = features.size(1)
-		seq_len = features.size(2)
-		feature_dim = features.size(3)
+		layer_num = features.size(1) if len(features) == 4 else None
+		seq_len = features.size(2) if len(features) == 4 else features.size(1)
+		feature_dim = features.size(3) if len(features) == 4 else features.size(2)
 
 		select_hidden = self.config['select_hidden']
 		if len(features.shape) == 4:
@@ -205,7 +205,6 @@ class RnnClassifier(nn.Module):
 			else:
 				raise NotImplementedError('Feature selection mode not supported!')
 
-		seq_len = features.size(1)
 		sample_rate = self.config['sample_rate']
 		features = features[:, torch.arange(0, seq_len, sample_rate), :]
 		valid_lengths /= sample_rate
