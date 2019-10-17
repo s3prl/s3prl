@@ -61,6 +61,10 @@ class LinearClassifier(nn.Module):
 		# features from mockingjay: (batch_size, layer, seq_len, feature)
 		# features from baseline: (batch_size, seq_len, feature)
 		# labels: (batch_size, seq_len), frame by frame classification
+		batch_size = features.size(0)
+		layer_num = features.size(1)
+		seq_len = features.size(2)
+		feature_dim = features.size(3)
 
 		if len(features.shape) == 4:
 			# compute mean on mockingjay representations if given features from mockingjay
@@ -71,12 +75,12 @@ class LinearClassifier(nn.Module):
 			elif self.select_hidden == 'average':
 				features = features.mean(dim=1)  # now simply average the representations over all layers, (batch_size, seq_len, feature)
 			elif self.select_hidden == 'weighted_sum':
-				batch_size = features.size(0)
-				layer_num = features.size(1)
-				seq_len = features.size(2)
-				feature_dim = features.size(3)
 				features = features.transpose(0, 1).reshape(layer_num, -1)
 				features = torch.matmul(self.weight[:layer_num], features).reshape(batch_size, seq_len, feature_dim)
+			elif self.select_hidden == 'weighted_sum_norm':
+				weights = nn.functional.softmax(self.weight[:layer_num], dim=-1)
+				features = features.transpose(0, 1).reshape(layer_num, -1)
+				features = torch.matmul(weights, features).reshape(batch_size, seq_len, feature_dim)
 			else:
 				raise NotImplementedError('Feature selection mode not supported!')
 
@@ -177,6 +181,10 @@ class RnnClassifier(nn.Module):
 		# features from baseline: (batch_size, seq_len, feature)
 		# labels: (batch_size,), one utterance to one label
 		# valid_lengths: (batch_size, )
+		batch_size = features.size(0)
+		layer_num = features.size(1)
+		seq_len = features.size(2)
+		feature_dim = features.size(3)
 
 		select_hidden = self.config['select_hidden']
 		if len(features.shape) == 4:
@@ -188,12 +196,12 @@ class RnnClassifier(nn.Module):
 			elif select_hidden == 'average':
 				features = features.mean(dim=1)  # now simply average the representations over all layers, (batch_size, seq_len, feature)
 			elif select_hidden == 'weighted_sum':
-				batch_size = features.size(0)
-				layer_num = features.size(1)
-				seq_len = features.size(2)
-				feature_dim = features.size(3)
 				features = features.transpose(0, 1).reshape(layer_num, -1)
 				features = torch.matmul(self.weight[:layer_num], features).reshape(batch_size, seq_len, feature_dim)
+			elif select_hidden == 'weighted_sum_norm':
+				weights = nn.functional.softmax(self.weight[:layer_num], dim=-1)
+				features = features.transpose(0, 1).reshape(layer_num, -1)
+				features = torch.matmul(weights, features).reshape(batch_size, seq_len, feature_dim)
 			else:
 				raise NotImplementedError('Feature selection mode not supported!')
 
