@@ -5,11 +5,14 @@
 [![Contributions welcome](https://img.shields.io/badge/contributions-welcome-brightgreen.svg)](CONTRIBUTING.md)
 [![GitHub](https://img.shields.io/github/license/andi611/Mockingjay-Speech-Representation)](https://en.wikipedia.org/wiki/MIT_License)
 
-This is an open source project for Mockingjay, end-to-end learning of acoustic features representations, implemented with Pytorch.
+This is an open source project for Mockingjay, end-to-end learning of speech representations, implemented with Pytorch.
 
-Feel free to use/modify them, any bug report or improvement suggestion will be appreciated. If you have any questions, please contact r07942089[AT]ntu.edu.tw. If you find this project helpful for your research, please do consider to cite [this project](#Citation), thanks!
+Feel free to use/modify them, any bug report or improvement suggestion will be appreciated. If you have any questions, please contact r07942089[AT]ntu.edu.tw. If you find this project helpful for your research, please do consider to cite [this paper](https://github.com/andi611/Mockingjay-Speech-Representation/blob/master/paper/liu.pdf), thanks!
 
-# Usage Highlights
+<img src="https://github.com/andi611/Mockingjay-Speech-Representation/blob/master/paper/training.png">
+<img src="https://github.com/andi611/Mockingjay-Speech-Representation/blob/master/paper/model.png">
+
+# Highlight
 ## Extracting Speech Representations
 With this repo and the trained models, you can use it to extract speech representations from your target dataset. To do so, feed-forward the trained model on the target dataset and retrieve the extracted features by running the following example python code:
 ```python
@@ -48,7 +51,7 @@ As you can see, `reps` is essentially the Transformer Encoder hidden representat
 
 There are many ways to incorporate `reps` into your downtream task. One of the easiest way is to take only the outputs of the last Encoder layer (i.e., `all_layers=False`) as the input features to your downstream model, feel free to explore other mechanisms.
 
-## Fine-tuning on your own downstream SLP tasks
+## Fine-tuning with your own downstream SLP tasks
 With this repo and the trained models, you can fine-tune the pre-trained Mockingjay model on your own dataset and tasks. To do so, take a look at the following example python code:
 ```python
 import torch
@@ -104,15 +107,15 @@ mmsdk            # sentiment dataset CMU-MOSI SDK (sentiment data preprocessing 
 
 ***Before you start, make sure all the packages required listed above are installed correctly***
 
-## Step 0. Preprocessing - Acoustic Feature Extraction & Text Encoding
+### Step 0. Preprocessing - Acoustic Feature Extraction & Text Encoding
 
 See the instructions on the [Preprocess wiki page](https://github.com/andi611/Mockingjay-Speech-Representation/wiki/Mockingjay-Preprocessing-Instructions) for preprocessing instructions.
 
-## Step 1. Configuring - Model Design & Hyperparameter Setup
+### Step 1. Configuring - Model Design & Hyperparameter Setup
 
 All the parameters related to training/decoding will be stored in a yaml file. Hyperparameter tuning and massive experiment and can be managed easily this way. See [config files](config/) for the exact format and examples.
 
-## Step 2. Training the Mockingjay Model for Speech Representation Learning
+### Step 2. Training the Mockingjay Model for Speech Representation Learning
 
 Once the config file is ready, run the following command to train unsupervised end-to-end Mockingjay:
 ```bash
@@ -120,7 +123,7 @@ python3 runner_mockingjay.py --train
 ```
 All settings will be parsed from the config file automatically to start training, the log file can be accessed through TensorBoard.
 
-## Step 3. Loading Pre-trained Models and Testing
+### Step 3. Loading Pre-trained Models and Testing
 
 Once a model was trained, run the following command to test the generated representations:
 ```bash
@@ -129,7 +132,7 @@ python3 runner_mockingjay.py --load --test_phone
 Pre-trained models and their configs can be download from [HERE](http://bit.ly/result_mockingjay).
 To load with default path, models should be placed under the directory path: `--ckpdir=./result_mockingjay/` and name the model file manually with `--ckpt=`.
 
-## Step 4. Loading Pre-trained Models and Visualize
+### Step 4. Loading Pre-trained Models and Visualize
 Run the following command to visualize the model generated samples:
 ```bash
 # visualize spectrogram
@@ -139,7 +142,7 @@ python3 runner_mockingjay.py --plot --with_head
 ```
 Note that the arguments ```--ckpdir=XXX --ckpt=XXX``` needs to be set correctly for the above command to run properly.
 
-## Step 5. Monitor Training Log
+### Step 5. Monitor Training Log
 ```bash
 # open TensorBoard to see log
 tensorboard --logdir=log/log_mockingjay/mockingjay_libri_sd1337/
@@ -150,7 +153,7 @@ python3 -m tensorboard.main --logdir=log/log_mockingjay/mockingjay_libri_sd1337/
 ## Experiments - Application on downstream tasks
 See the instructions on the [Downstream wiki page](https://github.com/andi611/Mockingjay-Speech-Representation/wiki/Downstream-Task-Instructions) to reproduce our experiments.
 
-## Experiments - Compare with APC
+## Experiments - Comparing with APC
 See the instructions on the [APC wiki page](https://github.com/andi611/Mockingjay-Speech-Representation/wiki/Reproducing-APC-to-compare-with-Mockingjay) to reproduce our experiments.
 
 
@@ -164,11 +167,11 @@ See the instructions on the [APC wiki page](https://github.com/andi611/Mockingja
 
 ## Citation
 ```
-@inproceedings{,
-  title={Mockingjay: Speech Representation Learning through Self-Imitation},
-  author={Liu, Andy T. and Lee, Hung-yi},
-  booktitle={},
+@inproceedings{liu2019Mockingjay,
+  title={MOCKINGJAY: UNSUPERVISED SPEECH REPRESENTATION LEARNING WITH DEEP BIDIRECTIONAL TRANSFORMER ENCODERS},
+  author={Liu, Andy T. and Yang, Shu-wen and Chi, Po-Han and Hsu, Po-chun and Lee, Hung-yi},
+  booktitle={Acoustics, Speech and Signal Processing (ICASSP)},
   year={2019},
-  organization={College of Electrical Engineering and Computer Science, National Taiwan University}
+  organization={IEEE}
 }
 ```
