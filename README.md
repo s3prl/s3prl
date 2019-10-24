@@ -94,13 +94,13 @@ apex             # non-essential, faster optimization (only needed if enabled in
 editdistance     # error rate calculation
 joblib           # parallel feature extraction & decoding
 librosa          # feature extraction (for feature extraction only)
+pydub            # audio segmentation (for MOSEI dataset preprocessing only)
 pandas           # data management
 sentencepiece    # sub-word unit encoding (for feature extraction only, see https://github.com/google/sentencepiece#build-and-install-sentencepiece for install instruction)
 tensorboardX     # logger & monitor
 torch            # model & learning
 tqdm             # verbosity
 yaml             # config parser
-mmsdk            # sentiment dataset CMU-MOSI SDK (sentiment data preprocessing only, see https://github.com/A2Zadeh/CMU-MultimodalSDK#installation for install instruction)
 ```
 
 # Instructions
