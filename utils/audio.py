@@ -18,6 +18,7 @@ import numpy as np
 import matplotlib
 matplotlib.use("Agg")
 import matplotlib.pylab as plt
+from matplotlib import ticker, cm
 from scipy import signal
 import warnings
 warnings.filterwarnings("ignore")
@@ -246,3 +247,16 @@ def plot_spectrogram(spec, path):
     plt.savefig(path, dpi=300, format="png")
     plt.close() 
 
+
+####################
+# PLOT EMBEDDING #
+####################
+def plot_embedding(spec, path):
+    spec = spec.transpose(1, 0) # (seq_len, feature_dim) -> (feature_dim, seq_len)
+    plt.gcf().clear()
+    plt.figure(figsize=(12, 3))
+    plt.contourf(spec, locator=ticker.LogLocator(), cmap=cm.PuBu_r)
+    plt.colorbar()
+    plt.tight_layout()
+    plt.savefig(path, dpi=300, format="png")
+    plt.close()

@@ -23,7 +23,7 @@ from tensorboardX import SummaryWriter
 from dataloader import get_Dataloader
 from mockingjay.model import MockingjayConfig, MockingjayModel, MockingjayForMaskedAcousticModel
 from mockingjay.optimization import BertAdam, WarmupLinearSchedule
-from utils.audio import plot_spectrogram_to_numpy, plot_spectrogram
+from utils.audio import plot_spectrogram_to_numpy, plot_spectrogram, plot_embedding
 from utils.audio import mel_dim, num_freq, sample_rate, inv_spectrogram
 
 
@@ -81,21 +81,22 @@ class Solver():
                     **self.config['dataloader'])) # specify `run_mockingjay` so dataloader will process mockingjay MAM data
 
 
-    def set_model(self, inference=False, with_head=False, from_path=None):
+    def set_model(self, inference=False, with_head=False, from_path=None, output_attention=False):
         self.verbose('Initializing Mockingjay model.')
         
         # uild the Mockingjay model with speech prediction head
         self.model_config = MockingjayConfig(self.config)
         self.dr = self.model_config.downsample_rate
         self.hidden_size = self.model_config.hidden_size
+        self.output_attention = output_attention
         
         if not inference or with_head:
-            self.model = MockingjayForMaskedAcousticModel(self.model_config, self.input_dim, self.output_dim).to(self.device)
+            self.model = MockingjayForMaskedAcousticModel(self.model_config, self.input_dim, self.output_dim, self.output_attention).to(self.device)
             self.verbose('Number of parameters: ' + str(sum(p.numel() for p in self.model.parameters() if p.requires_grad)))
             self.mockingjay = self.model.Mockingjay
 
         if inference and not with_head:
-            self.mockingjay = MockingjayModel(self.model_config, self.input_dim).to(self.device)
+            self.mockingjay = MockingjayModel(self.model_config, self.input_dim, self.output_attention).to(self.device)
             self.verbose('Number of parameters: ' + str(sum(p.numel() for p in self.mockingjay.parameters() if p.requires_grad)))
             self.mockingjay.eval()
         elif inference and with_head:
@@ -511,17 +512,17 @@ class Tester(Solver):
                 spec_stacked, pos_enc, attn_mask = self.process_MAM_data(spec=x)
                 
                 if with_head:
-                    pred_spec = self.model(spec_stacked, pos_enc, attention_mask=attn_mask)
+                    all_attentions, pred_spec = self.model(spec_stacked, pos_enc, attention_mask=attn_mask)
 
                     # generate the model filled MAM spectrogram
                     spec_masked = copy.deepcopy(spec_stacked)
                     for i in range(len(spec_masked)):
                         sample_index = random.sample(range(len(spec_masked[i])), int(len(spec_masked[i])*self.config['mockingjay']['mask_proportion']))
                         spec_masked[i][sample_index] = 0
-                    fill_spec = self.model(spec_masked, pos_enc, attention_mask=attn_mask)
+                    all_attentions, fill_spec = self.model(spec_masked, pos_enc, attention_mask=attn_mask)
 
                     # plot reconstructed / ground-truth / MAM filled spectrogram
-                    for y_pred, y_true, y_fill in zip(pred_spec[0], spec_stacked, fill_spec[0]):
+                    for y_pred, y_true, y_fill in zip(pred_spec, spec_stacked, fill_spec):
                         
                         y_pred = self.up_sample_frames(y_pred, return_first=True)
                         y_true = self.up_sample_frames(y_true, return_first=True)
@@ -541,11 +542,11 @@ class Tester(Solver):
                             self.verbose('Spectrogram head generated samples are saved to: {}'.format(self.dump_dir))
                             exit() # visualize the first 10 testing samples
                 else:
-                    encoded_layers = self.mockingjay(spec_stacked, pos_enc, attention_mask=attn_mask, output_all_encoded_layers=True)
+                    all_attentions, encoded_layers = self.mockingjay(spec_stacked, pos_enc, attention_mask=attn_mask, output_all_encoded_layers=True)
                     last_encoded_layer = encoded_layers[-1]
 
                     for rep in last_encoded_layer:
-                        plot_spectrogram(rep.data.cpu().numpy(), path=os.path.join(self.dump_dir, str(idx) + '_hidden.png'))
+                        plot_embedding(rep.data.cpu().numpy(), path=os.path.join(self.dump_dir, str(idx) + '_hidden.png'))
                         idx += 1
                         if idx > 10: 
                             self.verbose('Mockingjay generated samples are saved to: {}'.format(self.dump_dir))

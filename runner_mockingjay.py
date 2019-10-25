@@ -174,7 +174,7 @@ def main():
         from mockingjay.solver import Tester
         tester = Tester(config, args)
         tester.load_data(split='test', load_mel_only=True)
-        tester.set_model(inference=True, with_head=args.with_head)
+        tester.set_model(inference=True, with_head=args.with_head, output_attention=True)
         tester.plot(with_head=args.with_head)
 
     config['timer'].report()
