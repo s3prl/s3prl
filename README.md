@@ -1,4 +1,4 @@
-# 👾 Mockingjay
+# 🦜 Mockingjay
 ## Unsupervised Speech Representation Learning with Deep Bidirectional Transformer Encoders
 ### PyTorch Official Implementation
 [![Bitbucket open issues](https://img.shields.io/bitbucket/issues/andi611/Mockingjay-Speech-Representation)](https://github.com/andi611/Mockingjay-Speech-Representation/issues)
