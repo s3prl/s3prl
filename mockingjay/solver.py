@@ -521,7 +521,7 @@ class Tester(Solver):
                     fill_spec = self.model(spec_masked, pos_enc, attention_mask=attn_mask)
 
                     # plot reconstructed / ground-truth / MAM filled spectrogram
-                    for y_pred, y_true, y_fill in zip(pred_spec, spec_stacked, fill_spec):
+                    for y_pred, y_true, y_fill in zip(pred_spec[0], spec_stacked, fill_spec[0]):
                         
                         y_pred = self.up_sample_frames(y_pred, return_first=True)
                         y_true = self.up_sample_frames(y_true, return_first=True)
