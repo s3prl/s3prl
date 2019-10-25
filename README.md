@@ -5,12 +5,10 @@
 [![Contributions welcome](https://img.shields.io/badge/contributions-welcome-brightgreen.svg)](CONTRIBUTING.md)
 [![GitHub](https://img.shields.io/github/license/andi611/Mockingjay-Speech-Representation)](https://en.wikipedia.org/wiki/MIT_License)
 
-This is an open source project for Mockingjay, end-to-end learning of speech representations, implemented with Pytorch.
-
-Feel free to use/modify them, any bug report or improvement suggestion will be appreciated. If you have any questions, please contact r07942089[AT]ntu.edu.tw. If you find this project helpful for your research, please do consider to cite [this paper](https://github.com/andi611/Mockingjay-Speech-Representation/blob/master/paper/liu.pdf), thanks!
-
+This is an open source project for Mockingjay, an unsupervised learning algorithm for speech representations.
 <img src="https://github.com/andi611/Mockingjay-Speech-Representation/blob/master/paper/training.png">
-<img src="https://github.com/andi611/Mockingjay-Speech-Representation/blob/master/paper/model.png">
+
+Feel free to use or modify them, any bug report or improvement suggestion will be appreciated. If you have any questions, please contact r07942089@ntu.edu.tw. If you find this project helpful for your research, please do consider to cite [this paper](https://github.com/andi611/Mockingjay-Speech-Representation/blob/master/paper/liu.pdf), thanks!
 
 # Highlight
 ## Extracting Speech Representations
@@ -163,14 +161,14 @@ See the instructions on the [APC wiki page](https://github.com/andi611/Mockingja
 3. [PyTorch Transformers](https://github.com/huggingface/pytorch-transformers), Hugging Face.
 4. [Autoregressive Predictive Coding](https://arxiv.org/abs/1904.03240), Yu-An Chung.
 5. [End-to-end ASR Pytorch](https://github.com/Alexander-H-Liu/End-to-end-ASR-Pytorch), Alexander-H-Liu.
-
+6. [Tacotron Preprocessing](https://github.com/r9y9/tacotron_pytorch), Ryuichi Yamamoto (r9y9)
 
 ## Citation
 ```
 @inproceedings{liu2019Mockingjay,
-  title={MOCKINGJAY: UNSUPERVISED SPEECH REPRESENTATION LEARNING WITH DEEP BIDIRECTIONAL TRANSFORMER ENCODERS},
+  title={Mockingjay: Unsupervised Speech Representation Learning with Deep Bidirectional Transformer Encoders},
   author={Liu, Andy T. and Yang, Shu-wen and Chi, Po-Han and Hsu, Po-chun and Lee, Hung-yi},
-  booktitle={Acoustics, Speech and Signal Processing (ICASSP)},
+  booktitle={Submitted to: Acoustics, Speech and Signal Processing (ICASSP)},
   year={2019},
   organization={IEEE}
 }
