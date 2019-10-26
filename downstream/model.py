@@ -250,3 +250,26 @@ class RnnClassifier(nn.Module):
 
         return result
 
+
+class example_classifier(nn.Module):
+    def __init__(self, input_dim, hidden_dim, class_num):
+        super(example_classifier, self).__init__()
+        self.rnn = nn.GRU(input_size=input_dim, hidden_size=hidden_dim, num_layers=1, dropout=0.3,
+                          batch_first=True, bidirectional=False)
+
+        self.out = nn.Linear(hidden_dim, class_num)
+        self.out_fn = nn.LogSoftmax(dim=-1)
+        self.criterion = nn.CrossEntropyLoss()
+
+    def forward(self, features, labels):
+        # features: (batch_size, seq_len, feature)
+        # labels: (batch_size,), one utterance to one label
+
+        _, h_n = self.rnn(features)
+        hidden = h_n[-1, :, :]
+        logits = self.out(hidden)
+        result = self.out_fn(logits)
+        loss = self.criterion(result, labels)
+
+        return loss
+

@@ -603,7 +603,9 @@ class Tester(Solver):
             else:
                 spec_stacked, pos_enc, attn_mask = self.process_data(spec=spec) # Use dataloader to process MAM data to increase speed
             reps = self.mockingjay(spec_stacked, pos_enc, attention_mask=attn_mask, output_all_encoded_layers=all_layers)
-            reps = torch.stack(reps) 
+
+            if type(reps) is list:
+                reps = torch.stack(reps)
             # (num_hiddem_layers, batch_size, seq_len // downsample_rate, hidden_size) if `all_layers` or,
             # (batch_size, seq_len // downsample_rate, hidden_size) if not `all_layers`.
 
