@@ -12,11 +12,16 @@ Feel free to use or modify them, any bug report or improvement suggestion will b
 
 # Highlight
 ## Extracting Speech Representations
-With this repo and the trained models, you can use it to extract speech representations from your target dataset. To do so, feed-forward the trained model on the target dataset and retrieve the extracted features by running the following example python code:
+With this repo and the trained models, you can use it to extract speech representations from your target dataset. To do so, feed-forward the trained model on the target dataset and retrieve the extracted features by running the following example python code (example_extract.py):
 ```python
+import torch
 from runner_mockingjay import get_mockingjay_model
+
 example_path = 'result/result_mockingjay/mockingjay_libri_sd1337_LinearLarge/mockingjay-500000.ckpt'
 mockingjay = get_mockingjay_model(from_path=example_path)
+
+# A batch of spectrograms: (batch_size, seq_len, hidden_size)
+spec = torch.zeros(3, 800, 160)
 
 # reps.shape: (batch_size, num_hiddem_layers, seq_len, hidden_size)
 reps = mockingjay.forward(spec=spec, all_layers=True, tile=True)
@@ -50,36 +55,38 @@ As you can see, `reps` is essentially the Transformer Encoder hidden representat
 There are many ways to incorporate `reps` into your downtream task. One of the easiest way is to take only the outputs of the last Encoder layer (i.e., `all_layers=False`) as the input features to your downstream model, feel free to explore other mechanisms.
 
 ## Fine-tuning with your own downstream SLP tasks
-With this repo and the trained models, you can fine-tune the pre-trained Mockingjay model on your own dataset and tasks. To do so, take a look at the following example python code:
+With this repo and the trained models, you can fine-tune the pre-trained Mockingjay model on your own dataset and tasks. To do so, take a look at the following example python code (example_finetune.py):
 ```python
 import torch
-from downstream.solver import get_mockingjay_optimizer
 from runner_mockingjay import get_mockingjay_model
-from your_code import example_classifier
+from downstream.model import example_classifier
+from downstream.solver import get_mockingjay_optimizer
 
 # setup the mockingjay model
 example_path = 'result/result_mockingjay/mockingjay_libri_sd1337_MelBase/mockingjay-500000.ckpt'
 solver = get_mockingjay_model(from_path=example_path)
 
 # setup your downstream class model
-classifier = example_classifier()
+# features extracted from MelBase model have dimention 768
+classifier = example_classifier(input_dim=768, hidden_dim=128, class_num=2).cuda()
 
 # construct the Mockingjay optimizer
 params = list(solver.mockingjay.named_parameters()) + list(classifier.named_parameters())
 optimizer = get_mockingjay_optimizer(params=params, lr=4e-3, warmup_proportion=0.7, training_steps=50000)
 
 # forward
-example_inputs = [[[0,],],] # A batch of spectrograms: (batch_size, seq_len, hidden_size)
+example_inputs = torch.zeros(3, 800, 160) # A batch of spectrograms: (batch_size, seq_len, hidden_size)
 reps = solver.forward_fine_tune(spec=example_inputs) # returns: (batch_size, seq_len, hidden_size)
-logits, loss = classifier(reps)
+loss = classifier(reps, torch.LongTensor([0, 1, 0]).cuda())
 
 # update
 loss.backward()
 optimizer.step()
 
 # save
+PATH_TO_SAVE_YOUR_MODEL = 'example.ckpt'
 states = {'Classifier': classifier.state_dict(), 'Mockingjay': solver.mockingjay.state_dict()}
-torch.save(states, 'PATH_TO_SAVE_YOUR_MODEL')
+torch.save(states, PATH_TO_SAVE_YOUR_MODEL)
 ```
 
 # Requirements
@@ -99,6 +106,7 @@ tensorboardX     # logger & monitor
 torch            # model & learning
 tqdm             # verbosity
 yaml             # config parser
+matplotlib       # visualization
 ```
 
 # Instructions
@@ -121,21 +129,20 @@ python3 runner_mockingjay.py --train
 ```
 All settings will be parsed from the config file automatically to start training, the log file can be accessed through TensorBoard.
 
-### Step 3. Loading Pre-trained Models and Testing
+### Step 3. Using Pre-trained Models on Downstream Tasks
 
-Once a model was trained, run the following command to test the generated representations:
-```bash
-python3 runner_mockingjay.py --load --test_phone
-```
+Once a Mockingjay model was trained, we can use the generated representations to train downstream tasks.
+See [Downstream section](https://github.com/andi611/Mockingjay-Speech-Representation#experiments---application-on-downstream-tasks) for reproducing downstream tasks mentioned in our paper, and see [Highlight section](https://github.com/andi611/Mockingjay-Speech-Representation#highlight) for designing your own downstream task.
+
 Pre-trained models and their configs can be download from [HERE](http://bit.ly/result_mockingjay).
 To load with default path, models should be placed under the directory path: `--ckpdir=./result_mockingjay/` and name the model file manually with `--ckpt=`.
 
 ### Step 4. Loading Pre-trained Models and Visualize
 Run the following command to visualize the model generated samples:
 ```bash
-# visualize spectrogram
-python3 runner_mockingjay.py --plot
 # visualize hidden representations
+python3 runner_mockingjay.py --plot
+# visualize spectrogram
 python3 runner_mockingjay.py --plot --with_head
 ```
 Note that the arguments ```--ckpdir=XXX --ckpt=XXX``` needs to be set correctly for the above command to run properly.
