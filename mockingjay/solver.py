@@ -512,14 +512,22 @@ class Tester(Solver):
                 spec_stacked, pos_enc, attn_mask = self.process_MAM_data(spec=x)
                 
                 if with_head:
-                    all_attentions, pred_spec = self.model(spec_stacked, pos_enc, attention_mask=attn_mask)
+                    outputs = self.model(spec_stacked, pos_enc, attention_mask=attn_mask)
+                    if self.output_attention:
+                        _, pred_spec = outputs
+                    else:
+                        pred_spec, _ = outputs
 
                     # generate the model filled MAM spectrogram
                     spec_masked = copy.deepcopy(spec_stacked)
                     for i in range(len(spec_masked)):
                         sample_index = random.sample(range(len(spec_masked[i])), int(len(spec_masked[i])*self.config['mockingjay']['mask_proportion']))
                         spec_masked[i][sample_index] = 0
-                    all_attentions, fill_spec = self.model(spec_masked, pos_enc, attention_mask=attn_mask)
+                    outputs = self.model(spec_masked, pos_enc, attention_mask=attn_mask)
+                    if self.output_attention:
+                        _, fill_spec = outputs
+                    else:
+                        fill_spec, _ = outputs
 
                     # plot reconstructed / ground-truth / MAM filled spectrogram
                     for y_pred, y_true, y_fill in zip(pred_spec, spec_stacked, fill_spec):
@@ -538,19 +546,41 @@ class Tester(Solver):
                         librosa.output.write_wav(os.path.join(self.dump_dir, str(idx) + '_fill.wav'), wave_fill, sample_rate)
                         
                         idx += 1
-                        if idx > 10: 
+                        if idx >= 10:
                             self.verbose('Spectrogram head generated samples are saved to: {}'.format(self.dump_dir))
                             exit() # visualize the first 10 testing samples
                 else:
-                    all_attentions, encoded_layers = self.mockingjay(spec_stacked, pos_enc, attention_mask=attn_mask, output_all_encoded_layers=True)
-                    last_encoded_layer = encoded_layers[-1]
+                    encoded_layers = self.mockingjay(spec_stacked, pos_enc, attention_mask=attn_mask, output_all_encoded_layers=True)
+                    if self.output_attention:
+                        all_attentions, encoded_layers = encoded_layers
+                    encoded_layers = torch.stack(encoded_layers)
 
-                    for rep in last_encoded_layer:
-                        plot_embedding(rep.data.cpu().numpy(), path=os.path.join(self.dump_dir, str(idx) + '_hidden.png'))
-                        idx += 1
-                        if idx > 10: 
-                            self.verbose('Mockingjay generated samples are saved to: {}'.format(self.dump_dir))
-                            exit() # visualize the first 10 testing samples
+                    layer_num = encoded_layers.size(0)
+                    batch_size = encoded_layers.size(1)
+                    seq_len = encoded_layers.size(2)
+                    feature_dim = encoded_layers.size(3)
+
+                    dckpt = torch.load(self.paras.load_ws)
+                    weights = dckpt['Classifier']['weight']
+
+                    flatten = encoded_layers.reshape(layer_num, -1)
+                    weighted_sum = torch.matmul(weights[:layer_num], flatten).reshape(batch_size, seq_len, feature_dim)
+                    # embeddings: (batch_size, seq_len, feature_dim)
+
+                    targets = [encoded_layers[0], encoded_layers[-1], weighted_sum]
+                    target_names = ['_hidden_first.png', '_hidden_last.png', '_hidden_weighted_sum.png']
+                    for target, name in zip(targets, target_names):
+                        for index, rep in enumerate(target):
+                            if idx + index >= 10:
+                                break
+                            png_name = os.path.join(self.dump_dir, str(idx + index) + name)
+                            self.verbose(f'Generating {png_name}')
+                            plot_embedding(rep.data.cpu().numpy(), path=png_name)
+
+                    idx += batch_size
+                    if idx >= 10:
+                        self.verbose('Mockingjay generated samples are saved to: {}'.format(self.dump_dir))
+                        break # visualize the first 10 testing samples
 
 
     def forward(self, spec, all_layers=True, tile=True, process_from_loader=False):
