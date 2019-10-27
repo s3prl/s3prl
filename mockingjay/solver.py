@@ -549,10 +549,19 @@ class Tester(Solver):
                         if idx >= 10:
                             self.verbose('Spectrogram head generated samples are saved to: {}'.format(self.dump_dir))
                             exit() # visualize the first 10 testing samples
+                elif self.output_attention:
+                    all_attentions, _ = self.mockingjay(spec_stacked, pos_enc, attention_mask=attn_mask, output_all_encoded_layers=True)
+                    all_attentions = torch.stack(all_attentions).transpose(0, 1)
+                    # all_attentions: (batch_size, num_layer, num_head, Q_seq_len, K_seq_len)
+
+                    for attentions in all_attentions:
+                        torch.save(attentions.cpu(), os.path.join(self.dump_dir, f'{idx}_attentions'))
+                        idx += 1
+                        if idx >= 10:
+                            self.verbose(f'Attention samples are saved to {self.dump_dir}')
+                            exit()
                 else:
                     encoded_layers = self.mockingjay(spec_stacked, pos_enc, attention_mask=attn_mask, output_all_encoded_layers=True)
-                    if self.output_attention:
-                        all_attentions, encoded_layers = encoded_layers
                     encoded_layers = torch.stack(encoded_layers)
 
                     layer_num = encoded_layers.size(0)
