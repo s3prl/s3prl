@@ -111,6 +111,10 @@ matplotlib       # visualization
 
 # Instructions
 
+Pretrained Model can be download from below link or Step3 section:
+
+ [http://bit.ly/result_mockingjay](http://bit.ly/result_mockingjay)
+
 ***Before you start, make sure all the packages required listed above are installed correctly***
 
 ### Step 0. Preprocessing - Acoustic Feature Extraction & Text Encoding
