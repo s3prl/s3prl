@@ -14,7 +14,7 @@ Feel free to use or modify them, any bug report or improvement suggestion will b
 ## Pre-trained Models
 You can find pre-trained models here:
 
- **[http://bit.ly/result_mockingjay]**(http://bit.ly/result_mockingjay)
+ **[http://bit.ly/result_mockingjay](http://bit.ly/result_mockingjay)**
 
  Their usage are explained bellow and furthur in [Step 3 of the Instruction Section](#Instructions).
 
