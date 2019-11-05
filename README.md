@@ -11,6 +11,13 @@ This is an open source project for Mockingjay, an unsupervised algorithm for lea
 Feel free to use or modify them, any bug report or improvement suggestion will be appreciated. If you have any questions, please contact r07942089@ntu.edu.tw. If you find this project helpful for your research, please do consider to cite [this paper](#Citation), thanks!
 
 # Highlight
+## Pre-trained Models
+You can find pre-trained models here:
+
+ **[http://bit.ly/result_mockingjay]**(http://bit.ly/result_mockingjay)
+
+ Their usage are explained bellow and furthur in [Step 3 of the Instruction Section](#Instructions).
+
 ## Extracting Speech Representations
 With this repo and the trained models, you can use it to extract speech representations from your target dataset. To do so, feed-forward the trained model on the target dataset and retrieve the extracted features by running the following example python code ([example_extract.py](example_extract.py)):
 ```python
@@ -110,10 +117,6 @@ matplotlib       # visualization
 ```
 
 # Instructions
-
-Pretrained Model can be download from below link or Step3 section:
-
- [http://bit.ly/result_mockingjay](http://bit.ly/result_mockingjay)
 
 ***Before you start, make sure all the packages required listed above are installed correctly***
 
