@@ -99,21 +99,32 @@ torch.save(states, PATH_TO_SAVE_YOUR_MODEL)
 # Requirements
 
 - Python 3
+- Pytorch 1.3.0 or above
 - Computing power (high-end GPU) and memory space (both RAM/GPU's RAM) is **extremely important** if you'd like to train your own model.
 - Required packages and their use are listed:
 ```
-apex             # non-essential, faster optimization (only needed if enabled in config)
 editdistance     # error rate calculation
 joblib           # parallel feature extraction & decoding
 librosa          # feature extraction (for feature extraction only)
 pydub            # audio segmentation (for MOSEI dataset preprocessing only)
 pandas           # data management
-sentencepiece    # sub-word unit encoding (for feature extraction only, see https://github.com/google/sentencepiece#build-and-install-sentencepiece for install instruction)
 tensorboardX     # logger & monitor
 torch            # model & learning
 tqdm             # verbosity
 yaml             # config parser
 matplotlib       # visualization
+ipdb             # optional debugger
+numpy            # array computation
+scipy            # for feature extraction
+```
+The above packages can be installed by the command:
+```bash
+pip3 install -r requirements.txt
+```
+Below we list packages that need special attention, and is recommanded to be installed manually:
+```
+apex             # non-essential, faster optimization (only needed if enabled in config)
+sentencepiece    # sub-word unit encoding (for feature extraction only, see https://github.com/google/sentencepiece#build-and-install-sentencepiece for install instruction)
 ```
 
 # Instructions
