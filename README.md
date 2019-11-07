@@ -101,7 +101,7 @@ torch.save(states, PATH_TO_SAVE_YOUR_MODEL)
 - Python 3
 - Pytorch 1.3.0 or above
 - Computing power (high-end GPU) and memory space (both RAM/GPU's RAM) is **extremely important** if you'd like to train your own model.
-- Required packages and their use are listed:
+- Required packages and their use are listed below, and also in [requirements.txt](requirements.txt):
 ```
 editdistance     # error rate calculation
 joblib           # parallel feature extraction & decoding
@@ -121,7 +121,7 @@ The above packages can be installed by the command:
 ```bash
 pip3 install -r requirements.txt
 ```
-Below we list packages that need special attention, and is recommanded to be installed manually:
+Below we list packages that need special attention, and we recommand you to install them manually:
 ```
 apex             # non-essential, faster optimization (only needed if enabled in config)
 sentencepiece    # sub-word unit encoding (for feature extraction only, see https://github.com/google/sentencepiece#build-and-install-sentencepiece for install instruction)
