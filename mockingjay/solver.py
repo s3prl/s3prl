@@ -23,6 +23,7 @@ from tensorboardX import SummaryWriter
 from dataloader import get_Dataloader
 from mockingjay.model import MockingjayConfig, MockingjayModel, MockingjayForMaskedAcousticModel
 from mockingjay.optimization import BertAdam, WarmupLinearSchedule
+from mockingjay.Albertmodel import AlbertMockingjayModel,AlbertMockingjayForMaskedAcousticModel
 from utils.audio import plot_spectrogram_to_numpy, plot_spectrogram, plot_embedding
 from utils.audio import mel_dim, num_freq, sample_rate, inv_spectrogram
 
@@ -91,7 +92,7 @@ class Solver():
         self.output_attention = output_attention
         
         if not inference or with_head:
-            self.model = MockingjayForMaskedAcousticModel(self.model_config, self.input_dim, self.output_dim, self.output_attention).to(self.device)
+            self.model = AlbertMockingjayForMaskedAcousticModel(self.model_config, self.input_dim, self.output_dim, self.output_attention).to(self.device)
             self.verbose('Number of parameters: ' + str(sum(p.numel() for p in self.model.parameters() if p.requires_grad)))
             self.mockingjay = self.model.Mockingjay
 
@@ -396,7 +397,7 @@ class Trainer(Solver):
                         progress.set_description("Loss %.4f" % loss.item())
 
                     if self.global_step % self.save_step == 0:
-                        self.save_model('mockingjay')
+                        self.save_model('mockingjayAlbert')
                         mask_spec = self.up_sample_frames(spec_masked[0], return_first=True)
                         pred_spec = self.up_sample_frames(pred_spec[0], return_first=True)
                         true_spec = self.up_sample_frames(spec_stacked[0], return_first=True)

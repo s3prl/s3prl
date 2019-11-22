@@ -1,79 +1,15 @@
 import torch 
 import numpy as np 
-from model import MockingjayLayerNorm,MockingjayInputRepresentations, /
-    MockingjayIntermediate,MockingjayLayer,MockingjayOutput, /
-    MockingjaySelfAttention,MockingjaySpecPredictionHead, MockingjayInitModel, /
-    MockingjayEncoder /
-
-
-def gelu(x):
-    """Implementation of the gelu activation function.
-        For information: OpenAI GPT's gelu is slightly different (and gives slightly different results):
-        0.5 * x * (1 + torch.tanh(math.sqrt(2 / math.pi) * (x + 0.044715 * torch.pow(x, 3))))
-        Also see https://arxiv.org/abs/1606.08415
-    """
-    return x * 0.5 * (1.0 + torch.erf(x / math.sqrt(2.0)))
-
-def swish(x):
-    return x * torch.sigmoid(x)
-
-ACT2FN = {"gelu": gelu, "relu": torch.nn.functional.relu, "swish": swish}
-
-try:
-    from apex.normalization.fused_layer_norm import FusedLayerNorm as MockingjayLayerNorm
-except ImportError:
-    print("Better speed can be achieved with apex installed from https://www.github.com/nvidia/apex .")
-    class MockingjayLayerNorm(nn.Module):
-        def __init__(self, hidden_size, eps=1e-12):
-            """Construct a layernorm module in the TF style (epsilon inside the square root).
-            """
-            super(MockingjayLayerNorm, self).__init__()
-            self.weight = nn.Parameter(torch.ones(hidden_size))
-            self.bias = nn.Parameter(torch.zeros(hidden_size))
-            self.variance_epsilon = eps
-
-        def forward(self, x):
-            u = x.mean(-1, keepdim=True)
-            s = (x - u).pow(2).mean(-1, keepdim=True)
-            x = (x - u) / torch.sqrt(s + self.variance_epsilon)
-            return self.weight * x + self.bias
-
-class AlbertMockingjayIntermediate(nn.Module):
-    def __init__(self, config):
-        super(MockingjayIntermediate, self).__init__()
-        self.dense = nn.Linear(config.hidden_size, config.intermediate_size)
-        if isinstance(config.hidden_act, str) or (sys.version_info[0] == 2 and isinstance(config.hidden_act, unicode)):
-            self.intermediate_act_fn = ACT2FN[config.hidden_act]
-        else:
-            self.intermediate_act_fn = config.hidden_act
-
-    def forward(self, hidden_states):
-        hidden_states = self.dense(hidden_states)
-        hidden_states = self.intermediate_act_fn(hidden_states)
-        return hidden_states
-
-class AlbertMockingJayLayer(nn.Module):
-    def __init__(self,config, output_attentions=False,keep_multihead_output=False):
-        super(AlbertMockingJayLayer,self).__init__():
-        self.output_attentions = output_attentions
-        self.attention = MockingjayAttention(config, output_attentions=output_attentions,
-                                               keep_multihead_output=keep_multihead_output)
-        self.intermediate = MockingjayIntermediate(config)
-        self.output = MockingjayOutput(config)
-
-    def forward(self, hidden_states, attention_mask, head_mask=None):
-        attention_output = self.attention(hidden_states, attention_mask, head_mask)
-        if self.output_attentions:
-            attentions, attention_output = attention_output
-        intermediate_output = self.intermediate(attention_output)
-        layer_output = self.output(intermediate_output, attention_output)
-        if self.output_attentions:
-            return attentions, layer_output
-        return layer_output
+from .model import (MockingjayLayerNorm,MockingjayInputRepresentations, 
+    MockingjayIntermediate,MockingjayLayer,MockingjayOutput, 
+    MockingjaySelfAttention,MockingjaySpecPredictionHead, MockingjayInitModel, 
+    MockingjayEncoder) 
+from .model import (gelu, ACT2FN, swish)
+from torch import nn
 
 class AlbertMockingJayEncoder(nn.Module):
     def __init__(self, config, output_attentions=False, keep_multihead_output=False):
-        super(MockingjayEncoder, self).__init__()
+        super(AlbertMockingJayEncoder, self).__init__()
         self.output_attentions = output_attentions
         layer = MockingjayLayer(config, output_attentions=output_attentions,
                                   keep_multihead_output=keep_multihead_output)
@@ -84,7 +20,7 @@ class AlbertMockingJayEncoder(nn.Module):
     def forward(self, hidden_states, attention_mask, output_all_encoded_layers=True, head_mask=None):
         all_encoder_layers = []
         all_attentions = []
-        for i, in range(self.config_hidden_num):
+        for i in range(self.config_hidden_num):
             hidden_states = self.layer(hidden_states, attention_mask, head_mask[i])
             if self.output_attentions:
                 attentions, hidden_states = hidden_states
@@ -97,10 +33,10 @@ class AlbertMockingJayEncoder(nn.Module):
             return all_attentions, all_encoder_layers
         return all_encoder_layers
 
-class ALbertMockingjayInitModel(nn.Module):
+class AlbertMockingjayInitModel(nn.Module):
     """ An abstract class to handle weights initialization."""
     def __init__(self, config, *inputs, **kwargs):
-        super(ALbertMockingjayInitModel, self).__init__()
+        super(AlbertMockingjayInitModel, self).__init__()
         self.config = config
 
     def init_Mockingjay_weights(self, module):
@@ -166,7 +102,7 @@ class AlbertMockingjayModel(AlbertMockingjayInitModel):
         super(AlbertMockingjayModel, self).__init__(config)
         self.output_attentions = output_attentions
         self.input_representations = MockingjayInputRepresentations(config, input_dim)
-        self.encoder = MockingjayEncoder(config, output_attentions=output_attentions,
+        self.encoder = AlbertMockingJayEncoder(config, output_attentions=output_attentions,
                                            keep_multihead_output=keep_multihead_output)
         self.apply(self.init_Mockingjay_weights)
 
@@ -231,7 +167,7 @@ class AlbertMockingjayModel(AlbertMockingjayInitModel):
         return encoded_layers
 
 
-class AlbertMockingjayForMaskedAcousticModel(ALbertMockingjayInitModel):
+class AlbertMockingjayForMaskedAcousticModel(AlbertMockingjayInitModel):
     """Mockingjay model with the masked acoustic modeling head.
     This module comprises the Mockingjay model followed by the masked acoustic modeling head.
 
