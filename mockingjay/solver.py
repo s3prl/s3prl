@@ -97,7 +97,7 @@ class Solver():
             self.mockingjay = self.model.Mockingjay
 
         if inference and not with_head:
-            self.mockingjay = AlbertMockingjayForMaskedAcousticModeljayModel(self.model_config, self.input_dim, self.output_attention).to(self.device)
+            self.mockingjay = AlbertMockingjayModel(self.model_config, self.input_dim, self.output_attention).to(self.device)
             self.verbose('Number of parameters: ' + str(sum(p.numel() for p in self.mockingjay.parameters() if p.requires_grad)))
             self.mockingjay.eval()
         elif inference and with_head:
