@@ -108,9 +108,9 @@ class Solver():
             # Setup optimizer
             param_optimizer = list(self.model.named_parameters())
 
-            no_decay = ['bias', 'LayerNorm.bias', 'LayerNorm.weight']
+            no_decay = ['bias', 'LayerNorm.weight']
             optimizer_grouped_parameters = [
-                {'params': [p for n, p in param_optimizer if not any(nd in n for nd in no_decay)], 'weight_decay': 0.01},
+                {'params': [p for n, p in param_optimizer if not any(nd in n for nd in no_decay)], 'weight_decay': 0.1},
                 {'params': [p for n, p in param_optimizer if any(nd in n for nd in no_decay)], 'weight_decay': 0.0}
                 ]
             num_train_optimization_steps = self.total_steps // self.gradient_accumulation_steps
