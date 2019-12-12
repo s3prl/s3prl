@@ -24,7 +24,7 @@ from dataloader import get_Dataloader
 from mockingjay.model import MockingjayConfig, MockingjayModel, MockingjayForMaskedAcousticModel
 from mockingjay.optimization import BertAdam, WarmupLinearSchedule
 from utils.audio import plot_spectrogram_to_numpy, plot_spectrogram, plot_embedding
-from utils.audio import mel_dim, num_freq, sample_rate, inv_spectrogram
+from utils.audio import mel_dim, num_freq, fmllr_dim, sample_rate, inv_spectrogram
 
 
 ##########
@@ -53,7 +53,7 @@ class Solver():
         self.load_model_list = config['solver']['load_model_list']
         self.duo_feature = config['solver']['duo_feature']
         self.output_dim = num_freq if self.duo_feature else None # output dim is the same as input dim if not using duo features
-        self.input_dim = mel_dim
+        self.input_dim = mel_dim if 'fmllr' not in config['dataloader']['data_path'] else fmllr_dim
 
 
     def verbose(self, msg, end='\n'):

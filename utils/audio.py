@@ -50,6 +50,10 @@ ref_level_db = 20
 hop_length = 250
 griffin_lim_iters = 16
 power = 1.5 # Power to raise magnitudes to prior to Griffin-Lim
+"""
+For feature == 'fmllr'
+"""
+fmllr_dim = 40
 
 
 #############################
