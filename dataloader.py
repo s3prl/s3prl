@@ -20,8 +20,8 @@ from tqdm import tqdm
 from torch.nn.utils.rnn import pad_sequence
 from torch.utils.data import DataLoader
 from torch.utils.data.dataset import Dataset
-from utils.asr import zero_padding,target_padding
-from utils.mam import process_train_MAM_data, process_test_MAM_data
+from utility.asr import zero_padding,target_padding
+from utility.mam import process_train_MAM_data, process_test_MAM_data
 from ipdb import set_trace
 
 

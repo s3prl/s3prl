@@ -18,7 +18,7 @@ import numpy as np
 import pandas as pd
 from tqdm import tqdm
 from pathlib import Path
-from utils.audio import sample_rate, _stft_parameters
+from utility.audio import sample_rate, _stft_parameters
 
 
 #############################

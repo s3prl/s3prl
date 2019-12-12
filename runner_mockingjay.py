@@ -15,7 +15,7 @@ import torch
 import random
 import argparse
 import numpy as np
-from utils.timer import Timer
+from utility.timer import Timer
 
 
 #############################

@@ -22,7 +22,7 @@ from torch.distributions.categorical import Categorical
 import numpy as np
 import math
 
-from utils.asr import Hypothesis
+from utility.asr import Hypothesis
 from asr.ctc import CTCPrefixScore
 
 CTC_BEAM_RATIO = 1.5 # DO NOT CHANGE THIS, MAY CAUSE OOM 

@@ -22,8 +22,8 @@ from tqdm import tqdm
 from pathlib import Path
 import shutil
 from joblib import Parallel, delayed
-from utils.asr import encode_target
-from utils.audio import extract_feature, mel_dim, num_freq
+from utility.asr import encode_target
+from utility.audio import extract_feature, mel_dim, num_freq
 
 
 def boolean_string(s):

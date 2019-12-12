@@ -16,7 +16,7 @@ import random
 import argparse
 import numpy as np
 from apc.solver import Solver
-from utils.audio import mel_dim
+from utility.audio import mel_dim
 
 ######################
 # APC CONFIGURATIONS #

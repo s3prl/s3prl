@@ -24,7 +24,7 @@ from torch.autograd import Variable
 from tensorboardX import SummaryWriter
 from dataloader import get_Dataloader
 from apc.model import APCModel
-from utils.audio import plot_spectrogram_to_numpy
+from utility.audio import plot_spectrogram_to_numpy
 
 
 PrenetConfig = namedtuple(

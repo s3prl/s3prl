@@ -23,8 +23,8 @@ from tensorboardX import SummaryWriter
 from dataloader import get_Dataloader
 from mockingjay.model import MockingjayConfig, MockingjayModel, MockingjayForMaskedAcousticModel
 from mockingjay.optimization import BertAdam, WarmupLinearSchedule
-from utils.audio import plot_spectrogram_to_numpy, plot_spectrogram, plot_embedding
-from utils.audio import mel_dim, num_freq, fmllr_dim, sample_rate, inv_spectrogram
+from utility.audio import plot_spectrogram_to_numpy, plot_spectrogram, plot_embedding
+from utility.audio import mel_dim, num_freq, fmllr_dim, sample_rate, inv_spectrogram
 
 
 ##########

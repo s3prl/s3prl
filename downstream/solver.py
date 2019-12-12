@@ -25,8 +25,8 @@ from dataloader import get_Dataloader
 from mockingjay.solver import Solver, Tester
 from mockingjay.optimization import BertAdam
 from downstream.model import LinearClassifier, RnnClassifier
-from utils.audio import mel_dim, num_freq, sample_rate, inv_spectrogram
-from utils.timer import Timer
+from utility.audio import mel_dim, num_freq, sample_rate, inv_spectrogram
+from utility.timer import Timer
 from runner_apc import get_apc_model
 
 
