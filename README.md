@@ -44,7 +44,7 @@ reps = mockingjay.forward(spec=spec, all_layers=False, tile=False)
 ```
 `spec` is the input spectrogram of the mockingjay model where:
 - `spec` needs to be a PyTorch tensor with shape of `(seq_len, mel_dim)` or `(batch_size, seq_len, mel_dim)`.
-- `mel_dim` is the spectrogram feature dimension which by default is `mel_dim == 160`, see [utils/audio.py](utils/audio.py) for more preprocessing details.
+- `mel_dim` is the spectrogram feature dimension which by default is `mel_dim == 160`, see [utility/audio.py](utility/audio.py) for more preprocessing details.
 
 `reps` is a PyTorch tensor of various possible shapes where:
 - `batch_size` is the inference batch size.
