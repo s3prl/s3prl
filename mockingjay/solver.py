@@ -17,6 +17,7 @@ import math
 import random
 import librosa
 import numpy as np
+from shutil import copyfile
 from tqdm import tqdm, trange
 import torch.nn.functional as F
 from tensorboardX import SummaryWriter
@@ -45,6 +46,7 @@ class Solver():
         if self.exp_name is None:
             self.exp_name = '_'.join([paras.config.split('/')[-1].replace('.yaml',''),'sd'+str(paras.seed)])
         self.ckpdir = os.path.join(paras.ckpdir, self.exp_name)
+        
         self.load = paras.load
         # only for test
         self.ckpt = os.path.join(paras.ckpdir, paras.ckpt)
@@ -320,6 +322,7 @@ class Trainer(Solver):
         # mkdir
         if not os.path.exists(self.paras.ckpdir): os.makedirs(self.paras.ckpdir)
         if not os.path.exists(self.ckpdir): os.makedirs(self.ckpdir)
+        copyfile(self.paras.config, os.path.join(self.ckpdir, self.paras.config.split('/')[-1]))
 
     def reset_train(self):
         self.model_kept = []
