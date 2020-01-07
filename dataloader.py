@@ -551,117 +551,14 @@ class Mosei_Dataset(Dataset):
     def __len__(self):
         return len(self.X)
 
-#############################
-# MEL SPEAKER LARGE DATASET #
-#############################
-'''
-The LibriSpeech train-clean-360 (speech, speaker) dataset
-'''
-class Mel_Speaker_Large_Dataset(Dataset):
-    
-    def __init__(self, run_mockingjay, file_path, sets, bucket_size, max_timestep=0, max_label_len=0, drop=False, mock_config=None, load='speaker_large'):
-        
-        HALF_BATCHSIZE_TIME = 2000
-        assert(load == 'speaker_large'), 'This dataset loads mel features and speaker ID labels.'
-        self.run_mockingjay = run_mockingjay
-        self.mock_config = mock_config
-        self.root = file_path
-        self.load = load
 
-        # Load the major set (train or test)
-        tables = pd.read_csv(os.path.join(file_path, sets[0] + '.csv'))
-        self.table = tables.sort_values(by=['length'], ascending=False)
-        X = self.table['file_path'].tolist()
-        X_lens = self.table['length'].tolist()
-
-        # Crop seqs that are too long
-        if drop and max_timestep > 0 and self.load != 'text':
-            self.table = self.table[self.table.length < max_timestep]
-        if drop and max_label_len > 0:
-            self.table = self.table[self.table.label.str.count('_')+1 < max_label_len]
-
-        # Compute speaker dictionary
-        print('[Dataset] - Computing speaker class...')
-        if len(sets) != 2:
-            raise ValueError('Both the `train_set` and `test_set` should be provided for speaker dictionary construction!')
-        
-        # Load the other set for speaker computation
-        other_tables = pd.read_csv(os.path.join(file_path, sets[1] + '.csv'))
-        other_table = other_tables.sort_values(by=['length'], ascending=False)
-        O = other_table['file_path'].tolist()
-        O_speakers = sorted(self.get_all_speakers(O))
-
-        X_speakers = sorted(self.get_all_speakers(X))
-        speakers = O_speakers + X_speakers
-        self.speaker2idx = self.compute_speaker2idx(speakers)
-        self.class_num = len(self.speaker2idx)
-        print('[Dataset] - Possible speaker classes: ', self.class_num)
-
-        # Use bucketing to allow different batch sizes at run time
-        self.X = []
-        batch_x, batch_len = [], []
-
-        for x, x_len in zip(X, X_lens):
-            batch_x.append(x)
-            batch_len.append(x_len)
-            
-            # Fill in batch_x until batch is full
-            if len(batch_x) == bucket_size:
-                # Half the batch size if seq too long
-                if (bucket_size >= 2) and (max(batch_len) > HALF_BATCHSIZE_TIME):
-                    self.X.append(batch_x[:bucket_size//2])
-                    self.X.append(batch_x[bucket_size//2:])
-                else:
-                    self.X.append(batch_x)
-                batch_x, batch_len = [], []
-        
-        # Gather the last batch
-        if len(batch_x) > 0:
-            self.X.append(batch_x)
-
-    def __len__(self):
-        return len(self.X)
-
-    def __getitem__(self, index):
-        # Load acoustic feature and pad
-        x_batch = [torch.FloatTensor(np.load(os.path.join(self.root, x_file))) for x_file in self.X[index]]
-        x_pad_batch = pad_sequence(x_batch, batch_first=True)
-        # Return (x_spec, speaker_label)
-        s_batch = torch.LongTensor([self.speaker2idx[self.get_speaker_from_path(x_file)] for x_file in self.X[index]])
-        if self.run_mockingjay:
-            x_pad_batch = process_test_MAM_data(spec=(x_pad_batch,), config=self.mock_config)
-        return x_pad_batch, s_batch
-
-    def get_speaker_from_path(self, x):
-        return x.split('/')[-1].split('.')[0].split('-')[0]
-
-    def get_all_speakers(self, X):
-        speaker_set = {}
-        for x in X:
-            speaker = self.get_speaker_from_path(x)
-            if speaker not in speaker_set:
-                speaker_set[speaker] = 0
-            else:
-                speaker_set[speaker] += 1
-        return speaker_set
-
-    def compute_speaker2idx(self, speakers):
-        idx = 0
-        speaker2idx = {}
-        for speaker in sorted(speakers):
-            if speaker not in speaker2idx and speakers[speaker] > SPEAKER_THRESHOLD: # eliminate the speakers with too few utterance
-                speaker2idx[speaker] = idx
-                idx += 1
-        return speaker2idx
-
-
-#############################
-# MEL SPEAKER SMALL DATASET #
-#############################
+#######################
+# MEL SPEAKER DATASET #
+#######################
 '''
 The LibriSpeech train-clean-100 (speech, speaker) dataset
 '''
-class Mel_Speaker_Small_Dataset(Mel_Speaker_Large_Dataset):
+class Mel_Speaker_Dataset(Dataset):
     
     def __init__(self, split, run_mockingjay, file_path, sets, bucket_size, max_timestep=0, max_label_len=0, drop=False, mock_config=None, load='speaker'):
         
@@ -723,6 +620,42 @@ class Mel_Speaker_Small_Dataset(Mel_Speaker_Large_Dataset):
         # Gather the last batch
         if len(batch_x) > 0:
             self.X.append(batch_x)
+
+    def __len__(self):
+        return len(self.X)
+
+    def __getitem__(self, index):
+        # Load acoustic feature and pad
+        x_batch = [torch.FloatTensor(np.load(os.path.join(self.root, x_file))) for x_file in self.X[index]]
+        x_pad_batch = pad_sequence(x_batch, batch_first=True)
+        # Return (x_spec, speaker_label)
+        s_batch = torch.LongTensor([self.speaker2idx[self.get_speaker_from_path(x_file)] for x_file in self.X[index]])
+        if self.run_mockingjay:
+            x_pad_batch = process_test_MAM_data(spec=(x_pad_batch,), config=self.mock_config)
+        return x_pad_batch, s_batch
+
+    def get_speaker_from_path(self, x):
+        return x.split('/')[-1].split('.')[0].split('-')[0]
+
+    def get_all_speakers(self, X):
+        speaker_set = {}
+        for x in X:
+            speaker = self.get_speaker_from_path(x)
+            if speaker not in speaker_set:
+                speaker_set[speaker] = 0
+            else:
+                speaker_set[speaker] += 1
+        return speaker_set
+
+    def compute_speaker2idx(self, speakers):
+        idx = 0
+        speaker2idx = {}
+        for speaker in sorted(speakers):
+            if speaker not in speaker2idx and speakers[speaker] > SPEAKER_THRESHOLD: # eliminate the speakers with too few utterance
+                speaker2idx[speaker] = idx
+                idx += 1
+        return speaker2idx
+
 
 class TimitDataset(Dataset):
     def __init__(self, run_mockingjay, file_path, sets, bucket_size, max_timestep=0, max_label_len=0, mock_config=None):
@@ -831,19 +764,10 @@ def get_Dataloader(split, load, data_path, batch_size, max_timestep, max_label_l
                               bucket_size=bs, drop=drop_too_long, mock_config=mock_config, mosei_config=sentiment_config[target])
         else:
             raise NotImplementedError('Not supported dataset for sentiment')
-    elif load == 'speaker_large':
-        if split == 'train': 
-            sets = (train_set[0], test_set[0])
-        elif split  == 'test':
-            sets = (test_set[0], train_set[0])
-        else:
-            raise NotImplementedError('Invalid configuration for `Mel_Speaker_Dataset`!')
-        ds = Mel_Speaker_Large_Dataset(run_mockingjay=run_mockingjay, file_path=data_path, sets=sets, max_timestep=max_timestep, load=load,
-                                       max_label_len=max_label_len, bucket_size=64, drop=drop_too_long, mock_config=mock_config)
     elif load == 'speaker':
         sets = train_set[0].replace('360', '100') # Use the `train-clean-100` set instead of the `train-clean-360`
-        ds = Mel_Speaker_Small_Dataset(split=split, run_mockingjay=run_mockingjay, file_path=data_path, sets=sets, max_timestep=max_timestep, load=load,
-                                       max_label_len=max_label_len, bucket_size=64, drop=drop_too_long, mock_config=mock_config)
+        ds = Mel_Speaker_Dataset(split=split, run_mockingjay=run_mockingjay, file_path=data_path, sets=sets, max_timestep=max_timestep, load=load,
+                                 max_label_len=max_label_len, bucket_size=64, drop=drop_too_long, mock_config=mock_config)
     else:
         raise NotImplementedError('Invalid `load` argument for `get_Dataloader()`!')
 
