@@ -18,7 +18,47 @@ You can find pre-trained models here:
 
  Their usage are explained bellow and furthur in [Step 3 of the Instruction Section](#Instructions).
 
-## Extracting Speech Representations
+## Extract features or fine-tuning with your own downstream models
+With this repo and the trained models, you can fine-tune the pre-trained Mockingjay model on your own dataset and tasks. 
+To do so, use the wrapper class in [nn_mockingjay.py](mockingjay/nn_mockingjay.py), and take a look at the following example python code ([example_finetune.py](example_finetune.py)):
+```python
+import torch
+from mockingjay.nn_mockingjay import MOCKINGJAY
+from downstream.model import example_classifier
+from downstream.solver import get_mockingjay_optimizer
+
+# setup the mockingjay model
+options = {
+    'ckpt_file' : 'result/result_mockingjay/mockingjay_libri_sd1337_MelBase/mockingjay-500000.ckpt',
+    'load_pretrain' : True,
+    'no_grad' : False,
+    'dropout' : 'default'
+}
+model = MOCKINGJAY(options=options, inp_dim=160)
+
+# setup your downstream class model
+classifier = example_classifier(input_dim=768, hidden_dim=128, class_num=2).cuda()
+
+# construct the Mockingjay optimizer
+params = list(model.named_parameters()) + list(classifier.named_parameters())
+optimizer = get_mockingjay_optimizer(params=params, lr=4e-3, warmup_proportion=0.7, training_steps=50000)
+
+# forward
+example_inputs = torch.zeros(1200, 16, 160) # A batch of spectrograms: (time_step, batch_size, dimension)
+reps = model(example_inputs) # returns: (time_step, batch_size, hidden_size)
+loss = classifier(reps, torch.LongTensor([0, 1, 0]).cuda())
+
+# update
+loss.backward()
+optimizer.step()
+
+# save
+PATH_TO_SAVE_YOUR_MODEL = 'example.ckpt'
+states = {'Classifier': classifier.state_dict(), 'Mockingjay': model.state_dict()}
+torch.save(states, PATH_TO_SAVE_YOUR_MODEL)
+```
+
+## Extracting Speech Representations with Solver
 With this repo and the trained models, you can use it to extract speech representations from your target dataset. To do so, feed-forward the trained model on the target dataset and retrieve the extracted features by running the following example python code ([example_extract.py](example_extract.py)):
 ```python
 import torch
@@ -60,41 +100,6 @@ The output shape of `reps` is determined by the two arguments:
 As you can see, `reps` is essentially the Transformer Encoder hidden representations in the mockingjay model. You can think of Mockingjay as a speech version of [BERT](https://arxiv.org/abs/1810.04805) if you are familiar with it.
 
 There are many ways to incorporate `reps` into your downtream task. One of the easiest way is to take only the outputs of the last Encoder layer (i.e., `all_layers=False`) as the input features to your downstream model, feel free to explore other mechanisms.
-
-## Fine-tuning with your own downstream SLP tasks
-With this repo and the trained models, you can fine-tune the pre-trained Mockingjay model on your own dataset and tasks. To do so, take a look at the following example python code ([example_finetune.py](example_finetune.py)):
-```python
-import torch
-from runner_mockingjay import get_mockingjay_model
-from downstream.model import example_classifier
-from downstream.solver import get_mockingjay_optimizer
-
-# setup the mockingjay model
-example_path = 'result/result_mockingjay/mockingjay_libri_sd1337_MelBase/mockingjay-500000.ckpt'
-solver = get_mockingjay_model(from_path=example_path)
-
-# setup your downstream class model
-# features extracted from MelBase model have dimention 768
-classifier = example_classifier(input_dim=768, hidden_dim=128, class_num=2).cuda()
-
-# construct the Mockingjay optimizer
-params = list(solver.mockingjay.named_parameters()) + list(classifier.named_parameters())
-optimizer = get_mockingjay_optimizer(params=params, lr=4e-3, warmup_proportion=0.7, training_steps=50000)
-
-# forward
-example_inputs = torch.zeros(3, 800, 160) # A batch of spectrograms: (batch_size, seq_len, hidden_size)
-reps = solver.forward_fine_tune(spec=example_inputs) # returns: (batch_size, seq_len, hidden_size)
-loss = classifier(reps, torch.LongTensor([0, 1, 0]).cuda())
-
-# update
-loss.backward()
-optimizer.step()
-
-# save
-PATH_TO_SAVE_YOUR_MODEL = 'example.ckpt'
-states = {'Classifier': classifier.state_dict(), 'Mockingjay': solver.mockingjay.state_dict()}
-torch.save(states, PATH_TO_SAVE_YOUR_MODEL)
-```
 
 # Requirements
 
