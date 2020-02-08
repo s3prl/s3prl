@@ -316,6 +316,94 @@ class Mel_Phone_Dataset(LibriDataset):
         return x_match_batch, p_match_batch
 
 
+#####################
+# CPC PHONE DATASET #
+#####################
+'''
+The LibriSpeech train-clean-100 (speech, phone) dataset, idendical alignment and split with the CPC paper
+'''
+class CPC_Phone_Dataset(LibriDataset):
+    
+    def __init__(self, run_mockingjay, file_path, phone_path, sets, bucket_size, max_timestep=0, 
+                 max_label_len=0, drop=False, mock_config=None, load='phone', split='train'):
+        super(CPC_Phone_Dataset, self).__init__(file_path, sets, bucket_size, max_timestep, max_label_len, drop, load)
+        HALF_BATCHSIZE_TIME = 1000
+
+        assert(self.load == 'cpc_phone'), 'This dataset loads mel features and phone boundary labels.'
+        self.run_mockingjay = run_mockingjay
+        self.mock_config = mock_config
+        self.phone_path = phone_path
+        
+        phone_file = open(os.path.join(phone_path, 'converted_aligned_phones.txt')).readlines()
+        phone_set = []
+        self.Y = {}
+
+        for line in phone_file:
+            line = line.strip('\n').split(' ')
+            self.Y[line[0]] = [int(p) for p in line[1:]]
+            for p in line[1:]: 
+                if p not in phone_set: phone_set.append(p)
+
+        self.class_num = len(phone_set)
+        print('[Dataset] - Possible phone classes: ', self.class_num)
+
+        if split == 'train':
+            usage_list = open(os.path.join(phone_path, 'train_split.txt')).readlines()
+        elif split == 'test':
+            usage_list = open(os.path.join(phone_path, 'test_split.txt')).readlines()
+        else:
+            raise ValueError('Invalid \'split\' argument for dataset: CPC_Phone_Dataset!')
+        usage_list = [line.strip('\n') for line in usage_list]
+
+        X = self.table['file_path'].tolist()
+        X_lens = self.table['length'].tolist()
+
+        # Use bucketing to allow different batch sizes at run time
+        self.X = []
+        batch_x, batch_len = [], []
+
+        for x, x_len in zip(X, X_lens):
+            if self.parse_x_name(x) in usage_list:
+                batch_x.append(x)
+                batch_len.append(x_len)
+                
+                # Fill in batch_x until batch is full
+                if len(batch_x) == bucket_size:
+                    # Half the batch size if seq too long
+                    if (bucket_size >= 2) and (max(batch_len) > HALF_BATCHSIZE_TIME):
+                        self.X.append(batch_x[:bucket_size//2])
+                        self.X.append(batch_x[bucket_size//2:])
+                    else:
+                        self.X.append(batch_x)
+                    batch_x, batch_len = [], []
+        
+        # Gather the last batch
+        if len(batch_x) > 0:
+            if self.parse_x_name(x) in usage_list:
+                self.X.append(batch_x)
+
+    def parse_x_name(self, x):
+        return x.split('/')[-1].split('.')[0]
+
+    def match_sequence(self, x_batch, p_batch):
+        truncated_length = min(x_batch.shape[1], p_batch.shape[1])
+        x_match_batch = x_batch[:, :truncated_length, :]
+        p_match_batch = p_batch[:, :truncated_length]
+        return x_match_batch, p_match_batch
+
+    def __getitem__(self, index):
+        # Load acoustic feature and pad
+        x_batch = [torch.FloatTensor(np.load(os.path.join(self.root, x_file))) for x_file in self.X[index]]
+        x_pad_batch = pad_sequence(x_batch, batch_first=True)
+        p_batch = [torch.LongTensor(self.Y[self.parse_x_name(x_file)]) for x_file in self.X[index]]
+        p_pad_batch = pad_sequence(p_batch, batch_first=True)
+        x_match_batch, p_match_batch = self.match_sequence(x_pad_batch, p_pad_batch)
+        # Return (x_spec, phone_label)
+        if self.run_mockingjay:
+            x_match_batch = process_test_MAM_data(spec=(x_match_batch,), config=self.mock_config)
+        return x_match_batch, p_match_batch
+
+
 #########################
 # MEL SENTIMENT DATASET #
 #########################
@@ -724,7 +812,7 @@ def get_Dataloader(split, load, data_path, batch_size, max_timestep, max_label_l
         bs = 1 if decode_beam_size is not None else dev_batch_size
         n_jobs = 1
         shuffle = False
-        sets = test_set
+        sets = test_set if load != 'cpc_phone' else train_set # the CPC paper uses its own train/test split from train-clean-100
         drop_too_long = False
     elif split == 'text':
         bs = batch_size
@@ -750,6 +838,10 @@ def get_Dataloader(split, load, data_path, batch_size, max_timestep, max_label_l
         ds = Mel_Phone_Dataset(run_mockingjay=run_mockingjay, file_path=data_path, phone_path=phone_path, sets=sets, max_timestep=max_timestep, load=load,
                                max_label_len=max_label_len, bucket_size=bs, drop=drop_too_long, mock_config=mock_config,
                                train_proportion=train_proportion if split == 'train' else 1.0)
+    elif load == 'cpc_phone':
+        assert(phone_path is not None), '`phone path` must be provided for this dataset.'
+        ds = CPC_Phone_Dataset(run_mockingjay=run_mockingjay, file_path=data_path, phone_path=phone_path, sets=sets, max_timestep=max_timestep, load=load,
+                               max_label_len=max_label_len, bucket_size=bs, drop=drop_too_long, mock_config=mock_config, split=split)
     elif load == 'timit':
         ds = TimitDataset(run_mockingjay=run_mockingjay, file_path=data_path, sets=sets, max_timestep=max_timestep, 
                            max_label_len=max_label_len, bucket_size=bs, mock_config=mock_config)

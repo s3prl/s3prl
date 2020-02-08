@@ -51,7 +51,11 @@ def get_mockingjay_args():
     # phone task
     parser.add_argument('--train_phone', action='store_true', help='Train the phone classifier on mel or mockingjay representations.')
     parser.add_argument('--test_phone', action='store_true', help='Test mel or mockingjay representations using the trained phone classifier.')
-    
+
+    # cpc phone task
+    parser.add_argument('--train_cpc_phone', action='store_true', help='Train the phone classifier on mel or mockingjay representations with the alignments in CPC paper.')
+    parser.add_argument('--test_cpc_phone', action='store_true', help='Test mel or mockingjay representations using the trained phone classifier with the alignments in CPC paper.')
+
     # sentiment task
     parser.add_argument('--train_sentiment', action='store_true', help='Train the sentiment classifier on mel or mockingjay representations.')
     parser.add_argument('--test_sentiment', action='store_true', help='Test mel or mockingjay representations using the trained sentiment classifier.')
@@ -124,6 +128,28 @@ def main():
         tester.exec()
 
     ##################################################################################
+
+    # Train the CPC Phone Task
+    elif args.train_cpc_phone:
+        from downstream.solver import Downstream_Trainer
+        task = 'mockingjay_cpc_phone' if args.run_mockingjay \
+                else 'apc_cpc_phone' if args.run_apc else 'baseline_cpc_phone'
+        trainer = Downstream_Trainer(config, args, task=task)
+        trainer.load_data(split='train', load='cpc_phone')
+        trainer.set_model(inference=False)
+        trainer.exec()
+
+    # Test Phone Task
+    elif args.test_cpc_phone:
+        from downstream.solver import Downstream_Tester
+        task = 'mockingjay_cpc_phone' if args.run_mockingjay \
+                else 'apc_cpc_phone' if args.run_apc else 'baseline_cpc_phone'
+        tester = Downstream_Tester(config, args, task=task)
+        tester.load_data(split='test', load='cpc_phone')
+        tester.set_model(inference=True)
+        tester.exec()
+
+    ##################################################################################    
 
     # Train Sentiment Task
     elif args.train_sentiment:

@@ -19,30 +19,37 @@ from torch.nn.utils.rnn import pack_padded_sequence
 # LINEAR CLASSIFIER #
 #####################
 class LinearClassifier(nn.Module):
-    def __init__(self, input_dim, class_num, task, dconfig, sequencial=False):
+    def __init__(self, input_dim, class_num, task, dconfig):
         super(LinearClassifier, self).__init__()
         
         output_dim = class_num
         hidden_size = dconfig['hidden_size']
         drop = dconfig['drop']
-        self.sequencial = sequencial
+
         self.select_hidden = dconfig['select_hidden']
+        self.sequencial = dconfig['sequencial']
+        self.linear = dconfig['linear']
         self.weight = nn.Parameter(torch.ones(12) / 12)
+        assert(not (self.sequencial and self.linear))
 
         if self.sequencial: 
             self.rnn = nn.GRU(input_size=input_dim, hidden_size=hidden_size, num_layers=1, dropout=0.1,
                               batch_first=True, bidirectional=False)
-            self.dense1 = nn.Linear(hidden_size, hidden_size)
+            self.input_layer = nn.Linear(hidden_size, hidden_size)
         else:
-            self.dense1 = nn.Linear(input_dim, hidden_size)
+            self.input_layer = nn.Linear(input_dim, hidden_size)
 
-        self.dense2 = nn.Linear(hidden_size, hidden_size)
-        self.drop1 = nn.Dropout(p=drop)
-        self.drop2 = nn.Dropout(p=drop)
+        linears = []
+        for _ in range(dconfig['layers']):
+            linears.append(nn.Linear(hidden_size, hidden_size))
+        self.linears = nn.ModuleList(linears)
 
-        self.out = nn.Linear(hidden_size, output_dim)
+        self.output_layer = nn.Linear(hidden_size, output_dim)
 
-        self.act_fn = torch.nn.functional.relu
+        if not self.linear:
+            self.drop = nn.Dropout(p=drop)
+            self.act_fn = torch.nn.functional.relu
+            
         self.out_fn = nn.LogSoftmax(dim=-1)
         self.criterion = nn.CrossEntropyLoss(ignore_index=-100)
 
@@ -95,15 +102,18 @@ class LinearClassifier(nn.Module):
         if self.sequencial:
             features, h_n = self.rnn(features)
 
-        hidden = self.dense1(features)
-        hidden = self.drop1(hidden)
-        hidden = self.act_fn(hidden)
+        hidden = self.input_layer(features)
+        if not self.linear:
+            hidden = self.drop(hidden)
+            hidden = self.act_fn(hidden)
 
-        hidden = self.dense2(hidden)
-        hidden = self.drop2(hidden)
-        hidden = self.act_fn(hidden)
+        for linear in self.linears:
+            hidden = linear(hidden)
+            if not self.linear: 
+                hidden = self.drop(hidden)
+                hidden = self.act_fn(hidden)
 
-        logits = self.out(hidden)
+        logits = self.output_layer(hidden)
         prob = self.out_fn(logits)
         
         if labels is not None:
