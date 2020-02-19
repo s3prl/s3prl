@@ -10,16 +10,16 @@ This is an open source project for Mockingjay, an unsupervised algorithm for lea
 
 Feel free to use or modify them, any bug report or improvement suggestion will be appreciated. If you have any questions, please contact r07942089@ntu.edu.tw. If you find this project helpful for your research, please do consider to cite [this paper](#Citation), thanks!
 # Update
-We provide furthur phone classification experiment results, comparing with the *"Contrastive Predictive Coding, CPC"* method, using identical phone
-labels and train/test split as provided in the [CPC paper](https://arxiv.org/pdf/1807.03748.pdf).
+We provide furthur phone classification experiment results, comparing with the *"Contrastive Predictive Coding, CPC"* method, using identical [phone
+labels and train/test split](https://drive.google.com/drive/folders/1BhJ2umKH3whguxMwifaKtSra0TgAbtfb) as provided in the [CPC paper](https://arxiv.org/pdf/1807.03748.pdf).
 There are 41 possible classes, phone classification results on LibriSpeech:
 
 | Features | Classifier | Acc (%) |
 | -------- | -------- | -------- |
 | MFCC features | linear | 39.7 |
 | CPC | linear | 64.6 |
-| CPC | 1 hidden layer | 72.5 |
 | Mockingjay (Ours) | linear | **65.1** |
+| CPC | 1 hidden layer | 72.5 |
 | Mockingjay (Ours) | 1 hidden layer | **79.5** |
 
 # Highlight
