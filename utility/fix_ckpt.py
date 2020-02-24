@@ -5,7 +5,7 @@ import torch
 Usage:
 This .py helps fix the old checkpoint name issue.
 1) First create a dummy directory called "utils/"
-2) Then create a dummy class called `Timer()` in a dummy file called `timmer.py`
+2) Copy utility/timer.py as utils/timer.py
 3) Run this script to fix the old checkpoint files that store a 'utils.timer' that is no longer used
 """
 input_dir = sys.argv[1]
