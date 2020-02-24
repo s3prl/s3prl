@@ -22,12 +22,11 @@ import torch.nn.functional as F
 from tensorboardX import SummaryWriter
 from dataloader import get_Dataloader
 from mockingjay.model import MockingjayConfig, MockingjayModel, MockingjayForMaskedAcousticModel
-from mockingjay.optimization import BertAdam, WarmupLinearSchedule
+from mockingjay.optimization import BertAdam, WarmupLinearSchedule, Lamb
 from mockingjay.Albertmodel import AlbertMockingjayModel,AlbertMockingjayForMaskedAcousticModel
 from utils.audio import plot_spectrogram_to_numpy, plot_spectrogram, plot_embedding
 from utils.audio import mel_dim, num_freq, sample_rate, inv_spectrogram
-
-
+from mockingjay.optimization import get_linear_schedule_with_warmup
 ##########
 # SOLVER #
 ##########
@@ -82,7 +81,7 @@ class Solver():
                     **self.config['dataloader'])) # specify `run_mockingjay` so dataloader will process mockingjay MAM data
 
 
-    def set_model(self, inference=False, with_head=False, from_path=None, output_attention=False):
+    def set_model(self, inference=False, with_head=False, from_path=None, output_attention=False,wandb=None):
         self.verbose('Initializing Mockingjay model.')
         
         # uild the Mockingjay model with speech prediction head
@@ -93,6 +92,8 @@ class Solver():
         
         if not inference or with_head:
             self.model = AlbertMockingjayForMaskedAcousticModel(self.model_config, self.input_dim, self.output_dim, self.output_attention).to(self.device)
+            if wandb is not None:
+                wandb.watch(self.model.Mockingjay,log="all")
             self.verbose('Number of parameters: ' + str(sum(p.numel() for p in self.model.parameters() if p.requires_grad)))
             self.mockingjay = self.model.Mockingjay
 
@@ -110,35 +111,26 @@ class Solver():
 
             no_decay = ['bias', 'LayerNorm.weight']
             optimizer_grouped_parameters = [
-                {'params': [p for n, p in param_optimizer if not any(nd in n for nd in no_decay)], 'weight_decay': 0.1},
-                {'params': [p for n, p in param_optimizer if any(nd in n for nd in no_decay)], 'weight_decay': 0.0}
-                ]
+            {'params': [p for n, p in self.model.named_parameters() if not any(nd in n for nd in no_decay)], 'weight_decay': 0.01},
+            {'params': [p for n, p in self.model.named_parameters() if any(nd in n for nd in no_decay)], 'weight_decay': 0.0}
+            ]
+            
+            optimizer = Lamb(optimizer_grouped_parameters, lr=self.learning_rate, eps=1e-6)
             num_train_optimization_steps = self.total_steps // self.gradient_accumulation_steps
-
             if self.apex:
                 try:
-                    from apex.optimizers import FP16_Optimizer
-                    from apex.optimizers import FusedAdam
+                    from apex import amp
                 except ImportError:
-                    raise ImportError("Please install apex from https://www.github.com/nvidia/apex to use distributed and fp16 training.")
+                    raise ImportError("Please install apex from https://www.github.com/nvidia/apex to use fp16 training.")
+                self.model, self.optimizer = amp.initialize(self.model, optimizer, opt_level="O1")
+                self.warmup_steps = int(self.warmup_proportion * num_train_optimization_steps)
+                self.scheduler = get_linear_schedule_with_warmup(optimizer=self.optimizer, num_warmup_steps=self.warmup_steps, num_training_steps=num_train_optimization_steps)
 
-                optimizer = FusedAdam(optimizer_grouped_parameters,
-                                      lr=self.learning_rate,
-                                      bias_correction=False,
-                                      max_grad_norm=1.0)
-                if self.config['optimizer']['loss_scale'] == 0:
-                    self.optimizer = FP16_Optimizer(optimizer, dynamic_loss_scale=True)
-                else:
-                    self.optimizer = FP16_Optimizer(optimizer, static_loss_scale=self.config['optimizer']['loss_scale'])
-                self.warmup_linear = WarmupLinearSchedule(warmup=self.warmup_proportion,
-                                                          t_total=num_train_optimization_steps)
             else:
-                self.optimizer = BertAdam(optimizer_grouped_parameters,
-                                        lr=self.learning_rate,
-                                        warmup=self.warmup_proportion,
-                                        t_total=num_train_optimization_steps)
-        else:
-            raise NotImplementedError('Invalid Arguments!')
+                self.optimizer = optimizer
+                self.warmup_steps = int(self.warmup_proportion * num_train_optimization_steps)
+                self.scheduler = get_linear_schedule_with_warmup(self.optimizer, num_warmup_steps=self.warmup_steps, num_training_steps=num_train_optimization_steps)
+                raise NotImplementedError('Invalid Arguments!')
 
         if self.load: # This will be set to True by default when Tester is running set_model()
             self.load_model(inference=inference, with_head=with_head, from_path=from_path)
@@ -294,7 +286,6 @@ class Solver():
         else:
             return sinusoid_table  # (seq_len, hidden_size)
 
-
 ###########
 # TRAINER #
 ###########
@@ -341,16 +332,17 @@ class Trainer(Solver):
 
             spec_masked = spec_masked.to(device=self.device)
             pos_enc = torch.FloatTensor(pos_enc).to(device=self.device)
-            mask_label = torch.ByteTensor(mask_label).to(device=self.device)
+            mask_label = torch.BoolTensor(mask_label).to(device=self.device)
             attn_mask = torch.FloatTensor(attn_mask).to(device=self.device)
             spec_stacked = spec_stacked.to(device=self.device)
 
         return spec_masked, pos_enc, mask_label, attn_mask, spec_stacked # (x, pos_enc, mask_label, attention_mask. y)
 
 
-    def exec(self):
+    def exec(self,wandb=None):
         ''' Training Unsupervised End-to-end Mockingjay Model'''
         self.verbose('Training set total ' + str(len(self.dataloader)) + ' batches.')
+        tr_loss, logging_loss = 0, 0
 
         pbar = tqdm(total=self.total_steps)
         while self.global_step <= self.total_steps:
@@ -368,56 +360,63 @@ class Trainer(Solver):
                     if self.gradient_accumulation_steps > 1:
                         loss = loss / self.gradient_accumulation_steps
                     if self.apex:
-                        self.optimizer.backward(loss)
+                        from apex import amp
+                        with amp.scale_loss(loss, self.optimizer) as scaled_loss:
+                    	    scaled_loss.backward()
                     else:
                         loss.backward()
-
+                    tr_loss += loss.item()
                     # Update
-                    if step % self.gradient_accumulation_steps == 0:
-                        if self.apex:
-                            # modify learning rate with special warm up BERT uses
-                            # if conifg.apex is False, BertAdam is used and handles this automatically
-                            lr_this_step = self.learning_rate * self.warmup_linear.get_lr(self.global_step, self.warmup_proportion)
-                            for param_group in self.optimizer.param_groups:
-                                param_group['lr'] = lr_this_step
-                        
+                    if (step+1) % self.gradient_accumulation_steps == 0:
                         # Step
-                        grad_norm = torch.nn.utils.clip_grad_norm_(self.model.parameters(), self.gradient_clipping)
-                        if math.isnan(grad_norm):
-                            self.verbose('Error : grad norm is NaN @ step ' + str(self.global_step))
+                        if self.apex:
+                            from apex import amp
+                            grad_norm = torch.nn.utils.clip_grad_norm_(amp.master_params(self.optimizer), self.gradient_clipping)
                         else:
-                            self.optimizer.step()
-                        self.optimizer.zero_grad()
+                            grad_norm = torch.nn.utils.clip_grad_norm_(self.model.parameters(), self.gradient_clipping)
 
-                    if self.global_step % self.log_step == 0:
-                        # Log
-                        self.log.add_scalar('lr', self.optimizer.get_lr()[0], self.global_step)
-                        self.log.add_scalar('loss', loss.item(), self.global_step)
-                        self.log.add_scalar('gradient norm', grad_norm, self.global_step)
-                        progress.set_description("Loss %.4f" % loss.item())
+                        self.optimizer.step()
+                        self.scheduler.step()
+                        self.model.zero_grad()
+                        self.global_step += 1
+                        pbar.update(1)   
 
-                    if self.global_step % self.save_step == 0:
-                        self.save_model('mockingjayAlbert')
-                        mask_spec = self.up_sample_frames(spec_masked[0], return_first=True)
-                        pred_spec = self.up_sample_frames(pred_spec[0], return_first=True)
-                        true_spec = self.up_sample_frames(spec_stacked[0], return_first=True)
-                        mask_spec = plot_spectrogram_to_numpy(mask_spec.data.cpu().numpy())
-                        pred_spec = plot_spectrogram_to_numpy(pred_spec.data.cpu().numpy())
-                        true_spec = plot_spectrogram_to_numpy(true_spec.data.cpu().numpy())
-                        self.log.add_image('mask_spec', mask_spec, self.global_step)
-                        self.log.add_image('pred_spec', pred_spec, self.global_step)
-                        self.log.add_image('true_spec', true_spec, self.global_step)
+                        if self.global_step % self.log_step == 0:
+                            # Log
+                            display_loss = (tr_loss - logging_loss) / self.log_step
+                            
+                            self.log.add_scalar('lr', self.scheduler.get_lr()[0], self.global_step)
+                            self.log.add_scalar('loss', display_loss, self.global_step)
+                            if wandb is not None:
+                                metric = {"loss": display_loss,"lr": self.scheduler.get_lr()[0]}
+                                wandb.log(metric,step=self.global_step)
+                            logging_loss = tr_loss
+                            self.log.add_scalar('gradient norm', grad_norm, self.global_step)
+                            progress.set_description("Loss %.4f" % display_loss)
+                        #fuck
+                        if self.global_step % self.save_step == 0:
+                            self.save_model('mockingjayAlbert')
+                            mask_spec = self.up_sample_frames(spec_masked[0], return_first=True)
+                            pred_spec = self.up_sample_frames(pred_spec[0], return_first=True)
+                            true_spec = self.up_sample_frames(spec_stacked[0], return_first=True)
+                            mask_spec = plot_spectrogram_to_numpy(mask_spec.data.cpu().numpy())
+                            pred_spec = plot_spectrogram_to_numpy(pred_spec.data.cpu().numpy())
+                            true_spec = plot_spectrogram_to_numpy(true_spec.data.cpu().numpy())
+                            if wandb is not None: 
+                                wandb.log({"mask_spec":[wandb.Image(mask_spec.transpose(1,2,0),caption="mask spec\n x-axis:frames,y-axis=channel")]},step=self.global_step)
+                                wandb.log({"pred_spec":[wandb.Image(pred_spec.transpose(1,2,0),caption="pred spec\n x-axis:frames,y-axis=channel")]},step=self.global_step)
+                                wandb.log({"true_spec":[wandb.Image(true_spec.transpose(1,2,0),caption="true spec\n x-axis:frames,y-axis=channel")]},step=self.global_step)
+                            self.log.add_image('mask_spec', mask_spec, self.global_step)
+                            self.log.add_image('pred_spec', pred_spec, self.global_step)
+                            self.log.add_image('true_spec', true_spec, self.global_step)
                 
                 except RuntimeError:
                     print('CUDA out of memory at step: ', self.global_step)
                     torch.cuda.empty_cache()
-                    self.optimizer.zero_grad()
-
-                pbar.update(1)
-                self.global_step += 1
-                
+                    self.model.zero_grad()
         pbar.close()
         self.reset_train()
+        
         
 
 ##########

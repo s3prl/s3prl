@@ -76,25 +76,25 @@ def swish(x):
 
 ACT2FN = {"gelu": gelu, "relu": torch.nn.functional.relu, "swish": swish}
 
+MockingjayLayerNorm = torch.nn.LayerNorm
+# try:
+#     from apex.normalization.fused_layer_norm import FusedLayerNorm as MockingjayLayerNorm
+# except ImportError:
+#     print("Better speed can be achieved with apex installed from https://www.github.com/nvidia/apex .")
+#     class MockingjayLayerNorm(nn.Module):
+#         def __init__(self, hidden_size, eps=1e-12):
+#             """Construct a layernorm module in the TF style (epsilon inside the square root).
+#             """
+#             super(MockingjayLayerNorm, self).__init__()
+#             self.weight = nn.Parameter(torch.ones(hidden_size))
+#             self.bias = nn.Parameter(torch.zeros(hidden_size))
+#             self.variance_epsilon = eps
 
-try:
-    from apex.normalization.fused_layer_norm import FusedLayerNorm as MockingjayLayerNorm
-except ImportError:
-    print("Better speed can be achieved with apex installed from https://www.github.com/nvidia/apex .")
-    class MockingjayLayerNorm(nn.Module):
-        def __init__(self, hidden_size, eps=1e-12):
-            """Construct a layernorm module in the TF style (epsilon inside the square root).
-            """
-            super(MockingjayLayerNorm, self).__init__()
-            self.weight = nn.Parameter(torch.ones(hidden_size))
-            self.bias = nn.Parameter(torch.zeros(hidden_size))
-            self.variance_epsilon = eps
-
-        def forward(self, x):
-            u = x.mean(-1, keepdim=True)
-            s = (x - u).pow(2).mean(-1, keepdim=True)
-            x = (x - u) / torch.sqrt(s + self.variance_epsilon)
-            return self.weight * x + self.bias
+#         def forward(self, x):
+#             u = x.mean(-1, keepdim=True)
+#             s = (x - u).pow(2).mean(-1, keepdim=True)
+#             x = (x - u) / torch.sqrt(s + self.variance_epsilon)
+#             return self.weight * x + self.bias
 
 
 class MockingjayInputRepresentations(nn.Module):
@@ -326,6 +326,25 @@ class MockingjaySpecPredictionHead(nn.Module):
         linear_output = self.output(hidden_states)
         return linear_output, hidden_states
 
+class MockingjayOrderPredictionHead(nn.Module):
+    def __init__(self, config, output_dim):
+        super(MockingjayOrderPredictionHead, self).__init__()
+        self.output_dim = output_dim
+        self.dense = nn.Linear(config.hidden_size, config.hidden_size)
+        if isinstance(config.hidden_act, str) or (sys.version_info[0] == 2 and isinstance(config.hidden_act, unicode)):
+            self.transform_act_fn = ACT2FN[config.hidden_act]
+        else:
+            self.transform_act_fn = config.hidden_act
+        self.LayerNorm = MockingjayLayerNorm(config.hidden_size, eps=config.layer_norm_eps)
+        self.output = nn.Linear(config.hidden_size, self.output_dim * config.downsample_rate)
+
+    def forward(self, hidden_states):
+        hidden_states = self.dense(hidden_states)
+        hidden_states = self.transform_act_fn(hidden_states)
+        hidden_states = self.LayerNorm(hidden_states)
+        linear_output = self.output(hidden_states)
+        return linear_output, hidden_states
+
 
 class MockingjayInitModel(nn.Module):
     """ An abstract class to handle weights initialization."""
@@ -516,8 +535,9 @@ class MockingjayForMaskedAcousticModel(MockingjayInitModel):
         self.Mockingjay = MockingjayModel(config, input_dim, output_attentions=output_attentions,
                                       keep_multihead_output=keep_multihead_output)
         self.SpecHead = MockingjaySpecPredictionHead(config, output_dim if output_dim is not None else input_dim)
+        
         self.apply(self.init_Mockingjay_weights)
-        self.loss = nn.L1Loss() 
+        self.loss = nn.SmoothL1Loss() 
 
     def forward(self, spec_input, pos_enc, mask_label=None, attention_mask=None, spec_label=None, head_mask=None):
         outputs = self.Mockingjay(spec_input, pos_enc, attention_mask,

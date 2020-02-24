@@ -29,17 +29,17 @@ albertmockingjay:
 
 
 optimizer: 
-  learning_rate: "1e-5"                                 # Learning rate for opt
+  learning_rate: "2.6e-5"                                 # Learning rate for opt
   loss_scale: 0                                         # Loss scale to improve fp16 numeric stability. Only used when apex is set to True. 0: dynamic loss scaling. positive power of 2: static loss scaling.
-  warmup_proportion: 0.07                               # Proportion of training to perform linear rate warmup.
+  warmup_proportion: 0                                  # Proportion of training to perform linear rate warmup.
   gradient_accumulation_steps: 1                        # Number of updates steps to accumulate before performing a backward/update pass
   gradient_clipping: 1.0                                # Maximum gradient norm
 
 
 dataloader:
   n_jobs: 6                                            # Subprocess used for torch Dataloader
-  batch_size: 6                                        # training batch size: [12 for fine-tune, 6 for mockingjay pre-training]
-  dev_batch_size: 3                                     # used for dev/test splits
+  batch_size: 50                                        # training batch size: [12 for fine-tune, 6 for mockingjay pre-training]
+  dev_batch_size: 50                                     # used for dev/test splits
   max_timestep: 3000                                    # Max length for audio feature (0 for no restriction)
   max_label_len: 400                                    # Max length for output sequence (0 for no restriction)
 
@@ -72,9 +72,9 @@ dataloader:
       sample_seed: 29
 
   # LIBRISEECH SETTINGS
-  data_path: '/mnt/home2/data/libri_mel160_subword5000'            # Source data path
-  target_path: '/mnt/home2/data/libri_linear1025_subword5000'      # Target data path for reconstruction to a different feature type, set dataset to 'librispeech_mel_linear'.
-  phone_path: '/mnt/home2/data/libri_phone'                        # phone boundary label data path for the phone classification task.
+  data_path: '../../fuck/Mockingjay/data/libri_mel160_subword5000'            # Source data path
+  target_path: '../../fuck/Mockingjay/data/libri_linear1025_subword5000'      # Target data path for reconstruction to a different feature type, set dataset to 'librispeech_mel_linear'.
+  phone_path: '../../fuck/Mockingjay/data/libri_phone'                        # phone boundary label data path for the phone classification task.
   train_set: ['train-clean-360']                        #
   dev_set: ['dev-clean']                                #
   test_set: ['test-clean']                              #
@@ -83,8 +83,8 @@ dataloader:
 
 solver:
   # Training options
-  apex: False                                           # Use APEX (see https://github.com/NVIDIA/apex for more details)
-  total_steps: 500000                                   # total steps for training, a step is a batch of update
+  apex: True                                            # Use APEX (see https://github.com/NVIDIA/apex for more details)
+  total_steps: 300000                                   # total steps for training, a step is a batch of update
   log_step: 100                                         # log training status every this amount of training steps
   dev_step: 10000                                       #
   duo_feature: True                                     # Use different input / output features during training

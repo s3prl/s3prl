@@ -16,7 +16,7 @@ import random
 import argparse
 import numpy as np
 from utils.timer import Timer
-
+import wandb
 
 #############################
 # MOCKINGJAY CONFIGURATIONS #
@@ -30,12 +30,12 @@ def get_mockingjay_args():
     parser.add_argument('--seed', default=1337, type=int, help='Random seed for reproducable results.', required=False)
 
     # Logging
-    parser.add_argument('--logdir', default='log/log_mockingjay/', type=str, help='Logging path.', required=False)
+    parser.add_argument('--logdir', default='log/log_mockingjay2_18/', type=str, help='Logging path.', required=False)
     parser.add_argument('--name', default=None, type=str, help='Name for logging.', required=False)
 
     # model ckpt
     parser.add_argument('--load', action='store_true', help='Load pre-trained model to restore training, no need to specify this during testing.')
-    parser.add_argument('--ckpdir', default='result/result_mockingjay/', type=str, help='Checkpoint/Result path.', required=False)
+    parser.add_argument('--ckpdir', default='result/result_mockingjay_2_18/', type=str, help='Checkpoint/Result path.', required=False)
     parser.add_argument('--ckpt', default='mockingjay_libri_sd1337_LinearLarge/mockingjay-500000.ckpt', type=str, help='path to mockingjay model checkpoint.', required=False)
     # parser.add_argument('--ckpt', default='mockingjay_libri_sd1337_MelBase/mockingjay-500000.ckpt', type=str, help='path to mockingjay model checkpoint.', required=False)
     parser.add_argument('--dckpt', default='baseline_sentiment_libri_sd1337/baseline_sentiment-500000.ckpt', type=str, help='path to downstream checkpoint.', required=False)
@@ -99,7 +99,7 @@ def main():
         trainer = Trainer(config, args)
         trainer.load_data(split='train')
         trainer.set_model(inference=False)
-        trainer.exec()
+        trainer.exec(wandb)
 
     ##################################################################################
     
