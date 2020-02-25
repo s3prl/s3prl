@@ -373,18 +373,18 @@ class Trainer(Solver):
                         self.optimizer.backward(loss)
                     else:
                         loss.backward()
-                        
-                    pbar.update(1)
-                    self.global_step += 1
 
                     # Update
-                    if step % self.gradient_accumulation_steps == 0:
+                    if (step+1) % self.gradient_accumulation_steps == 0:
                         if self.apex:
                             # modify learning rate with special warm up BERT uses
                             # if conifg.apex is False, BertAdam is used and handles this automatically
                             lr_this_step = self.learning_rate * self.warmup_linear.get_lr(self.global_step, self.warmup_proportion)
                             for param_group in self.optimizer.param_groups:
                                 param_group['lr'] = lr_this_step
+                        
+                        pbar.update(1)
+                        self.global_step += 1
                         
                         # Step
                         grad_norm = torch.nn.utils.clip_grad_norm_(self.model.parameters(), self.gradient_clipping)
