@@ -326,7 +326,7 @@ class Trainer(Solver):
 
     def reset_train(self):
         self.model_kept = []
-        self.global_step = 1
+        self.global_step = 0
 
 
     def process_data(self, spec):
@@ -373,6 +373,9 @@ class Trainer(Solver):
                         self.optimizer.backward(loss)
                     else:
                         loss.backward()
+                        
+                    pbar.update(1)
+                    self.global_step += 1
 
                     # Update
                     if step % self.gradient_accumulation_steps == 0:
@@ -391,32 +394,31 @@ class Trainer(Solver):
                             self.optimizer.step()
                         self.optimizer.zero_grad()
 
-                    if self.global_step % self.log_step == 0:
-                        # Log
-                        self.log.add_scalar('lr', self.optimizer.get_lr()[0], self.global_step)
-                        self.log.add_scalar('loss', loss.item(), self.global_step)
-                        self.log.add_scalar('gradient norm', grad_norm, self.global_step)
-                        progress.set_description("Loss %.4f" % loss.item())
+                        if self.global_step % self.log_step == 0:
+                            # Log
+                            self.log.add_scalar('lr', self.optimizer.get_lr()[0], self.global_step)
+                            self.log.add_scalar('loss', loss.item(), self.global_step)
+                            self.log.add_scalar('gradient norm', grad_norm, self.global_step)
+                            progress.set_description("Loss %.4f" % loss.item())
 
-                    if self.global_step % self.save_step == 0:
-                        self.save_model('mockingjay')
-                        mask_spec = self.up_sample_frames(spec_masked[0], return_first=True)
-                        pred_spec = self.up_sample_frames(pred_spec[0], return_first=True)
-                        true_spec = self.up_sample_frames(spec_stacked[0], return_first=True)
-                        mask_spec = plot_spectrogram_to_numpy(mask_spec.data.cpu().numpy())
-                        pred_spec = plot_spectrogram_to_numpy(pred_spec.data.cpu().numpy())
-                        true_spec = plot_spectrogram_to_numpy(true_spec.data.cpu().numpy())
-                        self.log.add_image('mask_spec', mask_spec, self.global_step)
-                        self.log.add_image('pred_spec', pred_spec, self.global_step)
-                        self.log.add_image('true_spec', true_spec, self.global_step)
+                        if self.global_step % self.save_step == 0:
+                            self.save_model('mockingjay')
+                            mask_spec = self.up_sample_frames(spec_masked[0], return_first=True)
+                            pred_spec = self.up_sample_frames(pred_spec[0], return_first=True)
+                            true_spec = self.up_sample_frames(spec_stacked[0], return_first=True)
+                            mask_spec = plot_spectrogram_to_numpy(mask_spec.data.cpu().numpy())
+                            pred_spec = plot_spectrogram_to_numpy(pred_spec.data.cpu().numpy())
+                            true_spec = plot_spectrogram_to_numpy(true_spec.data.cpu().numpy())
+                            self.log.add_image('mask_spec', mask_spec, self.global_step)
+                            self.log.add_image('pred_spec', pred_spec, self.global_step)
+                            self.log.add_image('true_spec', true_spec, self.global_step)
                 
                 except RuntimeError:
                     print('CUDA out of memory at step: ', self.global_step)
                     torch.cuda.empty_cache()
                     self.optimizer.zero_grad()
 
-                pbar.update(1)
-                self.global_step += 1
+                
                 
         pbar.close()
         self.reset_train()
