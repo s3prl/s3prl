@@ -177,7 +177,7 @@ def extract_feature(input_file, feature='fbank', cmvn=True, save_feature=None):
         st = int(sr*0.001*stride)
         feat = librosa.feature.mfcc(y=y, sr=sr, n_mfcc=num_mels, n_mels=26,
                                     n_fft=ws, hop_length=st)
-        feat[0] = librosa.feature.rmse(y, hop_length=st, frame_length=ws) 
+        feat[0] = librosa.feature.rms(y, hop_length=st, frame_length=ws)
     elif feature == 'mel':
         # feat = melspectrogram(y, sr) # deprecated
         n_fft, hop_length, win_length = _stft_parameters(sr)
