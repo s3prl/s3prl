@@ -23,7 +23,7 @@ from tensorboardX import SummaryWriter
 from dataloader import get_Dataloader
 from mockingjay.model import MockingjayConfig, MockingjayModel, MockingjayForMaskedAcousticModel
 from mockingjay.optimization import BertAdam, WarmupLinearSchedule, Lamb
-from mockingjay.Albertmodel import AlbertMockingjayModel,AlbertMockingjayForMaskedAcousticModel
+from mockingjay.Albertmodel import AlbertMockingjayModel,AlbertMockingjayForMaskedAcousticModel, MockingjayAlbertConfig
 from utils.audio import plot_spectrogram_to_numpy, plot_spectrogram, plot_embedding
 from utils.audio import mel_dim, num_freq, sample_rate, inv_spectrogram
 from mockingjay.optimization import get_linear_schedule_with_warmup
@@ -85,13 +85,15 @@ class Solver():
         self.verbose('Initializing Mockingjay model.')
         
         # uild the Mockingjay model with speech prediction head
-        self.model_config = MockingjayConfig(self.config)
+        self.model_config = MockingjayAlbertConfig(self.config)
         self.dr = self.model_config.downsample_rate
         self.hidden_size = self.model_config.hidden_size
         self.output_attention = output_attention
         
         if not inference or with_head:
             self.model = AlbertMockingjayForMaskedAcousticModel(self.model_config, self.input_dim, self.output_dim, self.output_attention).to(self.device)
+            # self.model = MockingjayForMaskedAcousticModel(self.model_config, self.input_dim, self.output_dim, self.output_attention).to(self.device)
+
             if wandb is not None:
                 wandb.watch(self.model.Mockingjay,log="all")
             self.verbose('Number of parameters: ' + str(sum(p.numel() for p in self.model.parameters() if p.requires_grad)))
