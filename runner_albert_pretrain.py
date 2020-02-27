@@ -37,7 +37,7 @@ def get_mockingjay_args():
     # model ckpt
     parser.add_argument('--load', action='store_true', help='Load pre-trained model to restore training, no need to specify this during testing.')
     parser.add_argument('--ckpdir', default='result_albert/albert_2_23_mockingjay_resume_3e-5/', type=str, help='Checkpoint/Result path.', required=False)
-    parser.add_argument('--ckpt', default='result_albert_ckpt_resume_3e-5/mockingjay-1000000.ckpt', type=str, help='path to mockingjay model checkpoint.', required=False)
+    parser.add_argument('--ckpt', default="/mnt/newMockingjay/result_albert/albert_2_23_mockingjay/mockingjay_libri_sd1337/mockingjayAlbert-250000.ckpt", type=str, help='path to mockingjay model checkpoint.', required=False)
     # parser.add_argument('--ckpt', default='mockingjay_libri_sd1337_MelBase/mockingjay-500000.ckpt', type=str, help='path to mockingjay model checkpoint.', required=False)
     parser.add_argument('--dckpt', default='baseline_sentiment_libri_sd1337/baseline_sentiment-500000.ckpt', type=str, help='path to downstream checkpoint.', required=False)
     parser.add_argument('--apc_path', default='./result/result_apc/apc_libri_sd1337_standard/apc-500000.ckpt', type=str, help='path to the apc model checkpoint.', required=False)
@@ -85,7 +85,8 @@ def main():
     
     # get arguments
     config, args = get_mockingjay_args()
-    wandb.init(config=config,project="albert-mockingjay")#,resume=True)
+    wandb.init(config=config,project="albert-mockingjay-downstream-task")#,resume=True)
+    wandb.config.update(args)
     # Fix seed and make backends deterministic
     random.seed(args.seed)
     np.random.seed(args.seed)
@@ -99,7 +100,7 @@ def main():
         from mockingjay.solver import Trainer
         trainer = Trainer(config, args)
         trainer.load_data(split='train')
-        trainer.set_model(inference=False,wandb=wandb,from_path="./result_albert/albert_2_22_mockingjay/mockingjay_libri_sd1337/mockingjayAlbert-200000.ckpt")
+        trainer.set_model(inference=False,wandb=wandb)
         trainer.exec(wandb=wandb)
 
     ##################################################################################
@@ -111,8 +112,8 @@ def main():
                 else 'apc_phone' if args.run_apc else 'baseline_phone'
         trainer = Downstream_Trainer(config, args, task=task)
         trainer.load_data(split='train', load='phone')
-        trainer.set_model(inference=False)
-        trainer.exec()
+        trainer.set_model(inference=False,wandb=wandb)
+        trainer.exec(wandb=wandb)
 
     # Test Phone Task
     elif args.test_phone:
@@ -150,13 +151,14 @@ def main():
     
     # Train Speaker Task
     elif args.train_speaker:
+        
         from downstream.solver import Downstream_Trainer
         task = 'mockingjay_speaker' if args.run_mockingjay \
                 else 'apc_speaker' if args.run_apc else 'baseline_speaker'
         trainer = Downstream_Trainer(config, args, task=task)
         trainer.load_data(split='train', load='speaker')
         # trainer.load_data(split='train', load='speaker_large') # Deprecated
-        trainer.set_model(inference=False)
+        trainer.set_model(inference=False,wandb=wandb)
         trainer.exec()
 
     # Test Speaker Task
