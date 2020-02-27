@@ -7,6 +7,24 @@ from .model import (MockingjayLayerNorm,MockingjayInputRepresentations,
 from .model import (gelu, ACT2FN, swish)
 from torch import nn
 
+
+class MockingjayAlbertConfig(object):
+    """Configuration class to store the configuration of a `MockingjayModel`.
+    """
+    def __init__(self, config):
+        self.downsample_rate = config['albertmockingjay']['downsample_rate']
+        self.hidden_size = config['albertmockingjay']['hidden_size']
+        self.num_hidden_layers = config['albertmockingjay']['num_hidden_layers']
+        self.num_attention_heads = config['albertmockingjay']['num_attention_heads']
+        self.hidden_act = config['albertmockingjay']['hidden_act']
+        self.intermediate_size = config['albertmockingjay']['intermediate_size']
+        self.hidden_dropout_prob = config['albertmockingjay']['hidden_dropout_prob']
+        self.attention_probs_dropout_prob = config['albertmockingjay']['attention_probs_dropout_prob']
+        self.initializer_range = config['albertmockingjay']['initializer_range']
+        self.layer_norm_eps = float(config['albertmockingjay']['layer_norm_eps'])
+
+
+
 class AlbertMockingJayEncoder(nn.Module):
     def __init__(self, config, output_attentions=False, keep_multihead_output=False):
         super(AlbertMockingJayEncoder, self).__init__()
