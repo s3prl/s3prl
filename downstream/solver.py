@@ -24,7 +24,7 @@ from tensorboardX import SummaryWriter
 from dataloader import get_Dataloader
 from mockingjay.solver import Solver, Tester
 from mockingjay.optimization import BertAdam
-from downstream.model import LinearClassifier, RnnClassifier
+from downstream.model import LinearClassifier, RnnClassifier, MeanLinearClassifier
 from utils.audio import mel_dim, num_freq, sample_rate, inv_spectrogram
 from utils.timer import Timer
 from runner_apc import get_apc_model
@@ -98,8 +98,15 @@ class Downstream_Solver(Solver):
                 **self.config['dataloader']))
 
 
-    def set_model(self, inference=False):
-        self.model_type = 'linear' if 'phone' in self.task else 'rnn'
+    def set_model(self, inference=False,wandb=None):
+        
+        if "phone" in self.task:
+            self.model_type = "linear"
+        elif "sentiment" in self.task:
+            self.model_type = "mean_linear"
+        else:
+            self.model_type = "rnn" 
+
         input_dim = int(self.config['downstream'][self.model_type]['input_dim']) if \
                     self.config['downstream'][self.model_type]['input_dim'] != 'None' else None
         if 'mockingjay' in self.task:
@@ -130,6 +137,13 @@ class Downstream_Solver(Solver):
                                             class_num=self.dataloader.dataset.class_num,
                                             task=self.task,
                                             dconfig=self.config['downstream']['rnn']).to(self.device)
+        elif self.model_type == "mean_linear":
+            self.classifier = MeanLinearClassifier(input_dim=input_dim,
+                                            class_num=self.dataloader.dataset.class_num,
+                                            task=self.task,
+                                            dconfig=self.config['downstream']['mean_linear']).to(self.device)
+        else:
+            NotImplementedError
 
         if not inference and self.fine_tune:
             # Setup Fine tune optimizer
@@ -255,7 +269,7 @@ class Downstream_Trainer(Downstream_Solver):
         self.global_step = 1
 
 
-    def exec(self):
+    def exec(self,wandb=None):
         ''' Training of downstream tasks'''
         self.verbose('Training set total ' + str(len(self.dataloader)) + ' batches.')
 
@@ -314,6 +328,9 @@ class Downstream_Trainer(Downstream_Solver):
                     elif self.model_type == 'rnn':
                         # labels: (batch_size, )
                         loss, _, correct, valid = self.classifier(representations, labels, valid_lengths)
+                    elif self.model_type == "mean_linear":
+                        loss, _, correct, valid = self.classifier(representations, labels, valid_lengths)
+
                     else:
                         raise NotImplementedError('Invalid `model_type`!')
 
@@ -341,6 +358,8 @@ class Downstream_Trainer(Downstream_Solver):
                         # Log
                         acc = corrects.item() / valids.item()
                         los = loses / self.log_step
+                        metric = {"acc":acc, "loss":los, "gradient_norm":grad_norm}
+                        wandb.log(metric,step=self.global_step)
                         self.log.add_scalar('acc', acc, self.global_step)
                         self.log.add_scalar('loss', los, self.global_step)
                         self.log.add_scalar('gradient norm', grad_norm, self.global_step)
@@ -368,6 +387,9 @@ class Downstream_Trainer(Downstream_Solver):
                         tester.load_data(split=evaluation, load=self.task.split('_')[-1])
                         tester.set_model(inference=True)
                         eval_loss, eval_acc, eval_logits = tester.exec()
+                        if wandb != None:
+                            metric = {"eval_acc":eval_acc, "eval_loss":eval_loss}
+                            wandb.log(metric,step=self.global_step)
                         self.log.add_scalar(f'{evaluation}_loss', eval_loss, self.global_step)
                         self.log.add_scalar(f'{evaluation}_acc', eval_acc, self.global_step)
                         if eval_acc > best_val_acc:
@@ -452,8 +474,8 @@ class Downstream_Tester(Downstream_Solver):
                     elif self.model_type == 'rnn':
                         # labels: (batch_size, )
                         loss, logits, correct, valid = self.classifier(representations, labels, valid_lengths)
-                    else:
-                        raise NotImplementedError
+                    elif self.model_type == "mean_linear":
+                        loss, logits, correct, valid = self.classifier(representations, labels, valid_lengths)
                     
                     loss_sum += loss.detach().cpu().item()
                     all_logits.append(logits)
