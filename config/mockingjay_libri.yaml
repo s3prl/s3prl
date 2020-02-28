@@ -15,7 +15,7 @@ mockingjay:
 albertmockingjay:
   downsample_rate: 3                                    # stacked consecutive features vectors to reduce the length of input sequences by this factor.
   hidden_size: 768                                      # Size of the encoder layers and the pooler layer.
-  num_hidden_layers: 12                                 # Number of hidden layers in the Transformer encoder.
+  num_hidden_layers: 12                                  # Number of hidden layers in the Transformer encoder.
   num_attention_heads: 12                               # Number of attention heads for each attention layer in the Transformer encoder.
   intermediate_size: 3072                               # The size of the "intermediate" (i.e., feed-forward) layer in the Transformer encoder.
   hidden_act: "gelu"                                    # The non-linear activation function (function or string) in the encoder and pooler. If string, "gelu", "relu" and "swish" are supported.
@@ -29,17 +29,17 @@ albertmockingjay:
 
 
 optimizer: 
-  learning_rate: "2.6e-5"                                 # Learning rate for opt
+  learning_rate: "5e-5"                                 # Learning rate for opt
   loss_scale: 0                                         # Loss scale to improve fp16 numeric stability. Only used when apex is set to True. 0: dynamic loss scaling. positive power of 2: static loss scaling.
   warmup_proportion: 0                                  # Proportion of training to perform linear rate warmup.
   gradient_accumulation_steps: 1                        # Number of updates steps to accumulate before performing a backward/update pass
-  gradient_clipping: 1.0                                # Maximum gradient norm
+  gradient_clipping: 10.0                                # Maximum gradient norm
 
 
 dataloader:
   n_jobs: 6                                            # Subprocess used for torch Dataloader
-  batch_size: 50                                        # training batch size: [12 for fine-tune, 6 for mockingjay pre-training]
-  dev_batch_size: 50                                     # used for dev/test splits
+  batch_size: 12                                        # training batch size: [12 for fine-tune, 6 for mockingjay pre-training]
+  dev_batch_size: 12                                     # used for dev/test splits
   max_timestep: 3000                                    # Max length for audio feature (0 for no restriction)
   max_label_len: 400                                    # Max length for output sequence (0 for no restriction)
 
@@ -47,7 +47,7 @@ dataloader:
   sentiment_config:
     dataset: 'mosei'                                    # suppor datasets: 'mosi', 'mosei'
     mosi:
-      path: 'data/mosi_mel160'
+      path: '/mnt/fuck/Mockingjay/data/mosi_mel160'
       label_mode: 'positive_negative'                   # suppor modes: 'positive_negative', 'original', 'positive_negative', 'regression'
       standard_split: False
 
@@ -55,7 +55,7 @@ dataloader:
       random_seed: 1122
       train_ratio: 0.9
     mosei:
-      path: 'data/mosei'
+      path: '/mnt/fuck/Mockingjay/data/mosei'
       feature: 'mel160'
       label_mode: 'positive_negative'                   # suppor modes: 'regression', 'original', 'positive_negative', 'regression'
       standard_split: False
@@ -72,9 +72,9 @@ dataloader:
       sample_seed: 29
 
   # LIBRISEECH SETTINGS
-  data_path: '../../fuck/Mockingjay/data/libri_mel160_subword5000'            # Source data path
-  target_path: '../../fuck/Mockingjay/data/libri_linear1025_subword5000'      # Target data path for reconstruction to a different feature type, set dataset to 'librispeech_mel_linear'.
-  phone_path: '../../fuck/Mockingjay/data/libri_phone'                        # phone boundary label data path for the phone classification task.
+  data_path: '/mnt/fuck/Mockingjay/data/libri_mel160_subword5000'            # Source data path
+  target_path: '/mnt/fuck/Mockingjay/data/libri_linear1025_subword5000'      # Target data path for reconstruction to a different feature type, set dataset to 'librispeech_mel_linear'.
+  phone_path: '/mnt/fuck/Mockingjay/data/libri_phone'                        # phone boundary label data path for the phone classification task.
   train_set: ['train-clean-360']                        #
   dev_set: ['dev-clean']                                #
   test_set: ['test-clean']                              #
@@ -106,15 +106,25 @@ downstream:                                             # downstream model confi
     mode: 'classification'                              # support modes: 'classification' , 'regression'
     input_dim: 'None'                                   # `int`, else if set to None, input_dim will be set according to mockingjay settings or mel-preprocessing dimensions automatically
     select_hidden: 'last'                               # support modes: ['last', 'first', 'average', 'weighted_sum', 'weighted_sum_norm']
-    sample_rate: 5                                      # `int`, sample every this number of frames
+    sample_rate: 1                                      # `int`, sample every this number of frames
     pre_linear_dims: []
     hidden_size: 32                                     # size of hidden layer
     post_linear_dims: [32]
-    drop: 0.5                                           # The dropout ratio
+    drop: 0.5    
+  
+  mean_linear:
+    mode: 'classification'                              # support modes: 'classification' , 'regression'
+    input_dim: 'None'                                   # `int`, else if set to None, input_dim will be set according to mockingjay settings or mel-preprocessing dimensions automatically
+    select_hidden: 'last'                               # support modes: ['last', 'first', 'average', 'weighted_sum', 'weighted_sum_norm']
+    sample_rate: 1                                      # `int`, sample every this number of frames
+    pre_linear_dims: []
+    hidden_size: 32                                     # size of hidden layer
+    post_linear_dims: [32]
+    drop: 0.2     # The dropout ratio
 
 
   # Training options
-  learning_rate: "4e-3"                                 # Learning rate for opt: ['4e-4' for fine-tune, '4e-3' for regualr downstream task training ]
+  learning_rate: "5e-4"                                 # Learning rate for opt: ['4e-4' for fine-tune, '4e-3' for regualr downstream task training ]
   total_steps: 500000                                   # total steps for training, a step is a batch of update: [29080 for fine-tune, 500000 for regualr downstream task training ]
   log_step: 500                                         # log training status every this amount of training steps
   dev_step: 5000                                        # [29080 for fine-tune, 10000 for regualr downstream task training ]

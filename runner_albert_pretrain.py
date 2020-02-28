@@ -36,8 +36,10 @@ def get_mockingjay_args():
 
     # model ckpt
     parser.add_argument('--load', action='store_true', help='Load pre-trained model to restore training, no need to specify this during testing.')
-    parser.add_argument('--ckpdir', default='result_albert/albert_2_23_mockingjay_resume_3e-5/', type=str, help='Checkpoint/Result path.', required=False)
+    parser.add_argument('--ckpdir', default='result_albert/albert_2_23_mockingjay/', type=str, help='Checkpoint/Result path.', required=False)
+    # parser.add_argument('--ckpt', default="/mnt/newMockingjay/result_albert/albert_2_25_mockingjay_5e-5/mockingjay_libri_sd1337/mockingjayAlbert-250000.ckpt", type=str, help='path to mockingjay model checkpoint.', required=False)
     parser.add_argument('--ckpt', default="/mnt/newMockingjay/result_albert/albert_2_23_mockingjay/mockingjay_libri_sd1337/mockingjayAlbert-250000.ckpt", type=str, help='path to mockingjay model checkpoint.', required=False)
+
     # parser.add_argument('--ckpt', default='mockingjay_libri_sd1337_MelBase/mockingjay-500000.ckpt', type=str, help='path to mockingjay model checkpoint.', required=False)
     parser.add_argument('--dckpt', default='baseline_sentiment_libri_sd1337/baseline_sentiment-500000.ckpt', type=str, help='path to downstream checkpoint.', required=False)
     parser.add_argument('--apc_path', default='./result/result_apc/apc_libri_sd1337_standard/apc-500000.ckpt', type=str, help='path to the apc model checkpoint.', required=False)
@@ -134,8 +136,8 @@ def main():
                 else 'apc_sentiment' if args.run_apc else 'baseline_sentiment'
         trainer = Downstream_Trainer(config, args, task=task)
         trainer.load_data(split='train', load='sentiment')
-        trainer.set_model(inference=False)
-        trainer.exec()
+        trainer.set_model(inference=False,wandb=wandb)
+        trainer.exec(wandb=wandb)
 
     # Test Sentiment Task
     elif args.test_sentiment:
