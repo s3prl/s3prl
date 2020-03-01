@@ -24,7 +24,7 @@ from tensorboardX import SummaryWriter
 from dataloader import get_Dataloader
 from mockingjay.solver import Solver, Tester
 from mockingjay.optimization import BertAdam
-from downstream.model import LinearClassifier, RnnClassifier, MeanLinearClassifier
+from downstream.model import LinearClassifier, RnnClassifier, MeanLinearClassifier, MeanLinearClassifier_v2
 from utils.audio import mel_dim, num_freq, sample_rate, inv_spectrogram
 from utils.timer import Timer
 from runner_apc import get_apc_model
@@ -103,9 +103,9 @@ class Downstream_Solver(Solver):
         if "phone" in self.task:
             self.model_type = "linear"
         elif "sentiment" in self.task:
-            self.model_type = "mean_linear"
+            self.model_type = "mean_linear_v2"
         else:
-            self.model_type = "rnn" 
+            self.model_type = "mean_linear_v2" 
 
         input_dim = int(self.config['downstream'][self.model_type]['input_dim']) if \
                     self.config['downstream'][self.model_type]['input_dim'] != 'None' else None
@@ -142,6 +142,11 @@ class Downstream_Solver(Solver):
                                             class_num=self.dataloader.dataset.class_num,
                                             task=self.task,
                                             dconfig=self.config['downstream']['mean_linear']).to(self.device)
+        elif self.model_type == "mean_linear_v2":
+            self.classifier = MeanLinearClassifier_v2(input_dim=input_dim,
+                                            class_num=self.dataloader.dataset.class_num,
+                                            task=self.task,
+                                            dconfig=self.config['downstream']['mean_linear_v2']).to(self.device)
         else:
             NotImplementedError
 
@@ -477,6 +482,10 @@ class Downstream_Tester(Downstream_Solver):
                     elif self.model_type == "mean_linear":
                         loss, logits, correct, valid = self.classifier(representations, labels, valid_lengths)
                     
+                    elif self.model_type == "mean_linear_v2":
+                        loss, logits, correct, valid = self.classifier(representations, labels, valid_lengths)
+                    else:
+                        pass
                     loss_sum += loss.detach().cpu().item()
                     all_logits.append(logits)
                     correct_count += correct.item()

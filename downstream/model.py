@@ -202,9 +202,9 @@ class MeanLinearClassifier(nn.Module):
             else:
                 raise NotImplementedError('Feature selection mode not supported!')
 
-        # sample_rate = self.config['sample_rate']
-        # features = features[:, torch.arange(0, seq_len, sample_rate), :]
-        # valid_lengths /= sample_rate
+        sample_rate = self.config['sample_rate']
+        features = features[:, torch.arange(0, seq_len, sample_rate), :]
+        valid_lengths /= sample_rate
         # valid_lengths = 1
 
         hidden = features.mean(dim=1)
@@ -238,6 +238,102 @@ class MeanLinearClassifier(nn.Module):
             return loss, result.detach().cpu(), correct, valid
 
         return result
+
+class MeanLinearClassifier_v2(nn.Module):
+    def __init__(self, input_dim, class_num, task, dconfig):
+        # The class_num for regression mode should be 1
+
+        super(MeanLinearClassifier_v2, self).__init__()
+        self.config = dconfig
+        self.weight = nn.Parameter(torch.ones(12) / 12)
+
+        drop = self.config['drop']
+        self.dropout = nn.Dropout(p=drop)
+
+        last_dim = input_dim
+        self.out = nn.Linear(last_dim, class_num)
+        
+        mode = self.config['mode']
+        if mode == 'classification':
+            self.out_fn = nn.LogSoftmax(dim=-1)
+            self.criterion = nn.CrossEntropyLoss(ignore_index=-100)
+        elif mode == 'regression':
+            self.criterion = nn.MSELoss()
+        else:
+            raise NotImplementedError('Only classification/regression modes are supported')
+
+
+    def statistic(self, probabilities, labels):
+        assert(len(probabilities.shape) > 1)
+        assert(probabilities.unbind(dim=-1)[0].shape == labels.shape)
+
+        valid_count = torch.LongTensor([len(labels)])
+        correct_count = ((probabilities.argmax(dim=-1) == labels).type(torch.LongTensor)).sum()
+        return correct_count, valid_count
+
+
+    def forward(self, features, labels=None, valid_lengths=None):
+        assert(valid_lengths is not None), 'Valid_lengths is required.'
+        # features from mockingjay: (batch_size, layer, seq_len, feature)
+        # features from baseline: (batch_size, seq_len, feature)
+        # labels: (batch_size,), one utterance to one label
+        # valid_lengths: (batch_size, )
+        
+        batch_size = features.size(0)
+        layer_num = features.size(1) if len(features.shape) == 4 else None
+        seq_len = features.size(2) if len(features.shape) == 4 else features.size(1)
+        feature_dim = features.size(3) if len(features.shape) == 4 else features.size(2)
+        select_hidden = self.config['select_hidden']
+        if len(features.shape) == 4:
+            # compute mean on mockingjay representations if given features from mockingjay
+            if select_hidden == 'last':
+                features = features[:, -1, :, :]
+            elif select_hidden == 'first':
+                features = features[:, 0, :, :]
+            elif select_hidden == 'average':
+                features = features.mean(dim=1)  # now simply average the representations over all layers, (batch_size, seq_len, feature)
+            elif select_hidden == 'weighted_sum':
+                features = features.transpose(0, 1).reshape(layer_num, -1)
+                features = torch.matmul(self.weight[:layer_num], features).reshape(batch_size, seq_len, feature_dim)
+            elif select_hidden == 'weighted_sum_norm':
+                weights = nn.functional.softmax(self.weight[:layer_num], dim=-1)
+                features = features.transpose(0, 1).reshape(layer_num, -1)
+                features = torch.matmul(weights, features).reshape(batch_size, seq_len, feature_dim)
+            else:
+                raise NotImplementedError('Feature selection mode not supported!')
+
+        sample_rate = self.config['sample_rate']
+        features = features[:, torch.arange(0, seq_len, sample_rate), :]
+        valid_lengths /= sample_rate
+        # valid_lengths = 1
+
+        hidden = features.mean(dim=1)
+        
+        logits = self.out(hidden)
+
+        mode = self.config['mode']
+        if mode == 'classification':
+            result = self.out_fn(logits)
+            # result: (batch_size, class_num)
+        elif mode == 'regression':
+            result = logits.reshape(-1)
+            # result: (batch_size, )
+        
+        if labels is not None:
+            loss = self.criterion(result, labels)
+
+            # statistic for accuracy
+            if mode == 'classification':
+                correct, valid = self.statistic(result, labels)
+            elif mode == 'regression':
+                # correct and valid has no meaning when in regression mode
+                # just to make the outside wrapper can correctly function
+                correct, valid = torch.LongTensor([1]), torch.LongTensor([1])
+
+            return loss, result.detach().cpu(), correct, valid
+
+        return result
+
 
 
 class RnnClassifier(nn.Module):
