@@ -1,9 +1,9 @@
 # 🦜 Mockingjay
 ## Unsupervised Speech Representation Learning with Deep Bidirectional Transformer Encoders
 ### PyTorch Official Implementation
-[![Bitbucket open issues](https://img.shields.io/bitbucket/issues/andi611/Mockingjay-Speech-Representation)](https://github.com/andi611/Mockingjay-Speech-Representation/issues)
-[![Contributions welcome](https://img.shields.io/badge/contributions-welcome-brightgreen.svg)](CONTRIBUTING.md)
 [![GitHub](https://img.shields.io/github/license/andi611/Mockingjay-Speech-Representation)](https://en.wikipedia.org/wiki/MIT_License)
+[![Contributions welcome](https://img.shields.io/badge/contributions-welcome-brightgreen.svg)](CONTRIBUTING.md)
+[![Bitbucket open issues](https://img.shields.io/bitbucket/issues/andi611/Mockingjay-Speech-Representation)](https://github.com/andi611/Mockingjay-Speech-Representation/issues)
 
 This is an open source project for Mockingjay, an unsupervised algorithm for learning speech representations introduced and described in the paper ["Mockingjay: Unsupervised Speech Representation Learning with Deep Bidirectional Transformer Encoders"](https://arxiv.org/abs/1910.12638).
 <img src="https://github.com/andi611/Mockingjay-Speech-Representation/blob/master/paper/training.png">
@@ -42,8 +42,8 @@ from downstream.solver import get_mockingjay_optimizer
 # setup the mockingjay model
 options = {
     'ckpt_file' : 'result/result_mockingjay/mockingjay_libri_sd1337_MelBase/mockingjay-500000.ckpt',
-    'load_pretrain' : True,
-    'no_grad' : False,
+    'load_pretrain' : 'True',
+    'no_grad' : 'False',
     'dropout' : 'default'
 }
 model = MOCKINGJAY(options=options, inp_dim=160)
@@ -56,9 +56,11 @@ params = list(model.named_parameters()) + list(classifier.named_parameters())
 optimizer = get_mockingjay_optimizer(params=params, lr=4e-3, warmup_proportion=0.7, training_steps=50000)
 
 # forward
-example_inputs = torch.zeros(1200, 16, 160) # A batch of spectrograms: (time_step, batch_size, dimension)
+example_inputs = torch.zeros(1200, 3, 160) # A batch of spectrograms: (time_step, batch_size, dimension)
 reps = model(example_inputs) # returns: (time_step, batch_size, hidden_size)
-loss = classifier(reps, torch.LongTensor([0, 1, 0]).cuda())
+reps = reps.permute(1, 0, 2) # change to: (batch_size, time_step, feature_size)
+labels = torch.LongTensor([0, 1, 0]).cuda()
+loss = classifier(reps, labels)
 
 # update
 loss.backward()
