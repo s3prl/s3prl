@@ -417,8 +417,6 @@ class Trainer(Solver):
                     print('CUDA out of memory at step: ', self.global_step)
                     torch.cuda.empty_cache()
                     self.optimizer.zero_grad()
-
-                
                 
         pbar.close()
         self.reset_train()
