@@ -25,7 +25,7 @@ from dataloader import get_Dataloader
 from mockingjay.solver import Solver, Tester
 from mockingjay.optimization import BertAdam
 from downstream.model import LinearClassifier, RnnClassifier
-from utility.audio import mel_dim, num_freq, sample_rate, inv_spectrogram
+from utility.audio import mel_dim, fmllr_dim, num_freq, sample_rate, inv_spectrogram
 from utility.timer import Timer
 from runner_apc import get_apc_model
 
@@ -116,7 +116,7 @@ class Downstream_Solver(Solver):
                 input_dim = self.mock_config['mockingjay']['hidden_size'] # use identical dim size for fair comparison
         elif 'baseline' in self.task:
             if input_dim is None: 
-                input_dim = mel_dim
+                input_dim = fmllr_dim if 'fmllr' in self.config['dataloader']['data_path'] else mel_dim
         else:
             raise NotImplementedError('Invalid Task!')
 
