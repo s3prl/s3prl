@@ -111,7 +111,8 @@ def process_train_MAM_data(spec, config=None):
                 pass
 
             # the gradients will be calculated on all chosen frames
-            mask_label[idx][chosen_index] = 1
+            for i in range(mask_consecutive):
+                mask_label[idx][chosen_index+i] = 1
 
             # zero vectors for padding dimension
             pos_enc[idx][spec_len[idx]:] = 0  
