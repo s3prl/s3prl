@@ -23,6 +23,8 @@ DR = 3
 HIDDEN_SIZE = 768
 MASK_PROPORTION = 0.15
 MASK_CONSECUTIVE = 1
+MASK_FREQUENCY = 8
+NOISE_PROPORTION = 0.15
 
 
 def down_sample_frames(spec, dr):
@@ -62,6 +64,8 @@ def process_train_MAM_data(spec, config=None):
     hidden_size = config['hidden_size'] if config is not None else HIDDEN_SIZE
     mask_proportion = config['mask_proportion'] if config is not None else MASK_PROPORTION
     mask_consecutive = config['mask_consecutive'] if config is not None else MASK_CONSECUTIVE
+    mask_frequency = config['mask_frequency'] if config is not None else MASK_FREQUENCY
+    noise_proportion = config['noise_proportion'] if config is not None else NOISE_PROPORTION
 
     with torch.no_grad():
         if len(spec) == 2: # if self.duo_feature: dataloader will output `source_spec` and `target_spec`
@@ -89,7 +93,7 @@ def process_train_MAM_data(spec, config=None):
         mask_label = np.zeros_like(spec_stacked)
         attn_mask = np.ones((batch_size, seq_len)) # (batch_size, seq_len)
 
-        for idx in range(len(spec_stacked)):
+        for idx in range(batch_size):
             
             # determine whether to mask / random / or do nothing to the frame
             dice = torch.rand(1).data.cpu()
@@ -110,9 +114,23 @@ def process_train_MAM_data(spec, config=None):
             else:
                 pass
 
+            # frequency masking
+            if mask_frequency > 0:
+                rand_bandwidth = int(torch.randperm(mask_frequency).data.cpu().numpy()[:1][0])
+                chosen_start = int(torch.randperm(spec_stacked.shape[2]-rand_bandwidth).data.cpu().numpy()[:1][0])
+                spec_masked[idx, :, chosen_start:chosen_start+rand_bandwidth] = 0
+                
+            # noise augmentation
+            dice = torch.rand(1).data.cpu()
+            if bool(dice < noise_proportion):
+                noise = np.random.normal(0, 0.1, spec_masked.shape)
+                spec_masked += torch.FloatTensor(noise)
+
             # the gradients will be calculated on all chosen frames
             for i in range(mask_consecutive):
                 mask_label[idx][chosen_index+i] = 1
+            if mask_frequency > 0:
+                mask_label[idx, :, chosen_start:chosen_start+rand_bandwidth] = 1
 
             # zero vectors for padding dimension
             pos_enc[idx][spec_len[idx]:] = 0  

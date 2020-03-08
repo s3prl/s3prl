@@ -11,6 +11,8 @@ mockingjay:
   layer_norm_eps: "1e-12"                               # The epsilon used by LayerNorm.
   mask_proportion: 0.15                                 # mask this percentage of all spectrogram frames in each sequence at random during MAM training                        
   mask_consecutive: 7                                   # mask this amount of consecutive frames
+  mask_frequency: 8                                     # mask maximum this amount of frequency bands, set to 0 for no frequency mask
+  noise_proportion: 0.15                                # for this percentage of the time, Gaussian noise will be applied on all frames during MAM training, set to 0 for no noise
 
 
 optimizer: 
@@ -22,9 +24,9 @@ optimizer:
 
 
 dataloader:
-  n_jobs: 12                                             # Subprocess used for torch Dataloader
-  batch_size: 12                                         # training batch size
-  dev_batch_size: 16                                    # used for dev/test splits
+  n_jobs: 12                                            # Subprocess used for torch Dataloader
+  batch_size: 12                                        # training batch size
+  dev_batch_size: 12                                    # used for dev/test splits
   max_timestep: 1500                                    # Max length for audio feature (0 for no restriction)
   max_label_len: 400                                    # Max length for output sequence (0 for no restriction)
 
@@ -113,4 +115,3 @@ downstream:                                             # downstream model confi
   load_model_list: ['Classifier']                       # load the components in the list for test/eval
   max_keep: 5                                           # maximum number of model ckpt to keep during training
   save_step: 2000                                       # save model every this amount of training steps
-
