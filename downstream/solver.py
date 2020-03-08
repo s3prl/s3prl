@@ -335,6 +335,8 @@ class Downstream_Trainer(Downstream_Solver):
                         loss, _, correct, valid = self.classifier(representations, labels, valid_lengths)
                     elif self.model_type == "mean_linear":
                         loss, _, correct, valid = self.classifier(representations, labels, valid_lengths)
+                    elif self.model_type == "mean_linear_v2":
+                        loss, _, correct, valid = self.classifier(representations, labels, valid_lengths)
 
                     else:
                         raise NotImplementedError('Invalid `model_type`!')
