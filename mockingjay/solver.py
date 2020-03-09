@@ -397,9 +397,9 @@ class Trainer(Solver):
                         if self.global_step % self.log_step == 0:
                             # Log
                             self.log.add_scalar('lr', self.optimizer.get_lr()[0], self.global_step)
-                            self.log.add_scalar('loss', loss.item(), self.global_step)
+                            self.log.add_scalar('loss', (loss.item() * self.gradient_accumulation_steps), self.global_step)
                             self.log.add_scalar('gradient norm', grad_norm, self.global_step)
-                            progress.set_description("Loss %.4f" % loss.item())
+                            progress.set_description("Loss %.4f" % (loss.item() * self.gradient_accumulation_steps))
 
                         if self.global_step % self.save_step == 0:
                             self.save_model('mockingjay')
