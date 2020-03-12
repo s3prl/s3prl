@@ -114,7 +114,6 @@ class Solver():
                 {'params': [p for n, p in param_optimizer if not any(nd in n for nd in no_decay)], 'weight_decay': 0.01},
                 {'params': [p for n, p in param_optimizer if any(nd in n for nd in no_decay)], 'weight_decay': 0.0}
                 ]
-            num_train_optimization_steps = self.total_steps // self.gradient_accumulation_steps
 
             if self.apex:
                 try:
@@ -132,12 +131,12 @@ class Solver():
                 else:
                     self.optimizer = FP16_Optimizer(optimizer, static_loss_scale=self.config['optimizer']['loss_scale'])
                 self.warmup_linear = WarmupLinearSchedule(warmup=self.warmup_proportion,
-                                                          t_total=num_train_optimization_steps)
+                                                          t_total=self.total_steps)
             else:
                 self.optimizer = BertAdam(optimizer_grouped_parameters,
                                         lr=self.learning_rate,
                                         warmup=self.warmup_proportion,
-                                        t_total=num_train_optimization_steps)
+                                        t_total=self.total_steps)
         else:
             raise NotImplementedError('Invalid Arguments!')
 
