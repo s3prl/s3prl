@@ -382,9 +382,6 @@ class Trainer(Solver):
                             for param_group in self.optimizer.param_groups:
                                 param_group['lr'] = lr_this_step
                         
-                        pbar.update(1)
-                        self.global_step += 1
-                        
                         # Step
                         grad_norm = torch.nn.utils.clip_grad_norm_(self.model.parameters(), self.gradient_clipping)
                         if math.isnan(grad_norm):
@@ -412,6 +409,9 @@ class Trainer(Solver):
                             self.log.add_image('pred_spec', pred_spec, self.global_step)
                             self.log.add_image('true_spec', true_spec, self.global_step)
                 
+                        pbar.update(1)
+                        self.global_step += 1
+                        
                 except RuntimeError:
                     print('CUDA out of memory at step: ', self.global_step)
                     torch.cuda.empty_cache()
