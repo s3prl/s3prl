@@ -412,10 +412,13 @@ class Trainer(Solver):
                         pbar.update(1)
                         self.global_step += 1
                         
-                except RuntimeError:
-                    print('CUDA out of memory at step: ', self.global_step)
-                    torch.cuda.empty_cache()
-                    self.optimizer.zero_grad()
+                except RuntimeError as e:
+                    if 'CUDA out of memory' in str(e):
+                        print('CUDA out of memory at step: ', self.global_step)
+                        torch.cuda.empty_cache()
+                        self.optimizer.zero_grad()
+                    else:
+                        raise
                 
         pbar.close()
         self.reset_train()
