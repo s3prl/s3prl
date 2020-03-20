@@ -64,7 +64,7 @@ def process_train_MAM_data(spec, config=None):
     mask_consecutive = config['mask_consecutive'] if config is not None else MASK_CONSECUTIVE
     mini_bucket_num = config["mini_bucket_num"]
     consecutive_offset = config["consecutive_offset"]
-
+    temp = []
 
 
     with torch.no_grad():
@@ -88,7 +88,6 @@ def process_train_MAM_data(spec, config=None):
 
         batch_size = spec_stacked.shape[0]
         seq_len = spec_stacked.shape[1]
-
         pos_enc = position_encoding(seq_len, hidden_size, batch_size) # (batch_size, seq_len, hidden_size)
         mask_label = np.zeros_like(spec_stacked)
         attn_mask = np.ones((batch_size, seq_len)) # (batch_size, seq_len)
@@ -101,6 +100,10 @@ def process_train_MAM_data(spec, config=None):
             proportion   = int(spec_len[idx] * mask_proportion // instance_mask_consecutive) ### how many number of buckets we need to mask
             start_point = random.choice(range(instance_mask_consecutive))
             total_buckets_num  = (valid_index_range - start_point) // (instance_mask_consecutive + consecutive_offset) 
+            if total_buckets_num < mini_bucket_num:
+                temp += [idx]
+                mask_label[idx][:] = 0
+                continue 
             bound_indexes = range(start_point, spec_len[idx], (instance_mask_consecutive + consecutive_offset) ) 
             chosen_index = torch.randperm(bound_indexes).data.cpu().numpy()[:proportion] # draw `proportion` samples from the range (0, valid_index_range) and without replacement
             
@@ -130,6 +133,7 @@ def process_train_MAM_data(spec, config=None):
         mask_label = torch.ByteTensor(mask_label).to(dtype=torch.bool)
         attn_mask = torch.FloatTensor(attn_mask).to(dtype=torch.float32)
         spec_stacked = spec_stacked.to(dtype=torch.float32)
+        print(f"miss {len(temp)} sampe data in batch {len(spec_masked)}")
 
     return spec_masked, pos_enc, mask_label, attn_mask, spec_stacked
 
