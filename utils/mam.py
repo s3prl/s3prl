@@ -133,7 +133,7 @@ def process_train_MAM_data(spec, config=None):
         mask_label = torch.ByteTensor(mask_label).to(dtype=torch.bool)
         attn_mask = torch.FloatTensor(attn_mask).to(dtype=torch.float32)
         spec_stacked = spec_stacked.to(dtype=torch.float32)
-        print(f"miss {len(temp)} sampe data in batch {len(spec_masked)}")
+        print(f"\n miss {len(temp)} sampe data in batch {len(spec_masked)} \n")
 
     return spec_masked, pos_enc, mask_label, attn_mask, spec_stacked
 
