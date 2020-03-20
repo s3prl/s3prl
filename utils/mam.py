@@ -62,6 +62,10 @@ def process_train_MAM_data(spec, config=None):
     hidden_size = config['hidden_size'] if config is not None else HIDDEN_SIZE
     mask_proportion = config['mask_proportion'] if config is not None else MASK_PROPORTION
     mask_consecutive = config['mask_consecutive'] if config is not None else MASK_CONSECUTIVE
+    mini_bucket_num = config["mini_bucket_num"]
+    consecutive_offset = config["consecutive_offset"]
+
+
 
     with torch.no_grad():
         if len(spec) == 2: # if self.duo_feature: dataloader will output `source_spec` and `target_spec`
@@ -111,7 +115,8 @@ def process_train_MAM_data(spec, config=None):
                 pass
 
             # the gradients will be calculated on all chosen frames
-            mask_label[idx][chosen_index] = 1
+            for i in range(mask_consecutive):
+                mask_label[idx][chosen_index+io] = 1
 
             # zero vectors for padding dimension
             pos_enc[idx][spec_len[idx]:] = 0  
