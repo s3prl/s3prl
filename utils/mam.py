@@ -100,7 +100,7 @@ def process_train_MAM_data(spec, config=None):
             valid_index_range = int(spec_len[idx] - instance_mask_consecutive - 1) # compute valid len for consecutive masking
             proportion   = int(spec_len[idx] * mask_proportion // instance_mask_consecutive) ### how many number of buckets we need to mask
             start_point = random.choice(range(instance_mask_consecutive))
-            total_buckets  = (valid_index_range - start_point) // (instance_mask_consecutive + consecutive_offset) 
+            total_buckets_num  = (valid_index_range - start_point) // (instance_mask_consecutive + consecutive_offset) 
             bound_indexes = range(start_point, spec_len[idx], (instance_mask_consecutive + consecutive_offset) ) 
             chosen_index = torch.randperm(bound_indexes).data.cpu().numpy()[:proportion] # draw `proportion` samples from the range (0, valid_index_range) and without replacement
             
@@ -112,7 +112,7 @@ def process_train_MAM_data(spec, config=None):
             elif bool(dice >= 0.8) and bool(dice < 0.9):
                 random_index = torch.randperm(valid_index_range).data.cpu().numpy()[:int(spec_len[idx] * mask_proportion)]
                 for i in range(instance_mask_consecutive):
-                    spec_masked[idx][chosen_index*(instance_mask_consecutive + consecutive_offset)+i] = spec_masked[idx][random_index[i]]
+                    spec_masked[idx][chosen_index*(instance_mask_consecutive + consecutive_offset)+i] = spec_masked[idx][random_index[i*len(chosen_index):(i+1)*len(chosen_index)]]
             # do nothing
             else:
                 pass
