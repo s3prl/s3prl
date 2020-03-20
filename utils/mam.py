@@ -93,7 +93,7 @@ def process_train_MAM_data(spec, config=None):
         attn_mask = np.ones((batch_size, seq_len)) # (batch_size, seq_len)
 
         for idx in range(len(spec_stacked)):
-            instance_mask_consecutive = random.choice(range(mask_consecutive))
+            instance_mask_consecutive = random.choice(range(0,mask_consecutive)) +1
             # determine whether to mask / random / or do nothing to the frame
             dice = torch.rand(1).data.cpu()
             valid_index_range = int(spec_len[idx] - instance_mask_consecutive - 1) # compute valid len for consecutive masking
@@ -104,25 +104,25 @@ def process_train_MAM_data(spec, config=None):
                 temp += [idx]
                 mask_label[idx][:] = 0
                 continue 
-            bound_indexes = range(start_point, spec_len[idx], (instance_mask_consecutive + consecutive_offset) ) 
-            chosen_index = torch.randperm(bound_indexes).data.cpu().numpy()[:proportion] # draw `proportion` samples from the range (0, valid_index_range) and without replacement
+            bound_indexes = range(start_point, valid_index_range, (instance_mask_consecutive + consecutive_offset) ) 
+            chosen_index = np.random.permutation(bound_indexes)[:proportion] # draw `proportion` samples from the range (0, valid_index_range) and without replacement
             
             # mask to zero
             if bool(dice < 0.8):
                 for i in range(instance_mask_consecutive):
-                    spec_masked[idx][chosen_index*(instance_mask_consecutive + consecutive_offset)+i] = 0
+                    spec_masked[idx][chosen_index+i] = 0
             # replace to random frames
             elif bool(dice >= 0.8) and bool(dice < 0.9):
                 random_index = torch.randperm(valid_index_range).data.cpu().numpy()[:int(spec_len[idx] * mask_proportion)]
                 for i in range(instance_mask_consecutive):
-                    spec_masked[idx][chosen_index*(instance_mask_consecutive + consecutive_offset)+i] = spec_masked[idx][random_index[i*len(chosen_index):(i+1)*len(chosen_index)]]
+                    spec_masked[idx][chosen_index+i] = spec_masked[idx][random_index[i*len(chosen_index):(i+1)*len(chosen_index)]]
             # do nothing
             else:
                 pass
 
             # the gradients will be calculated on all chosen frames
             for i in range(mask_consecutive):
-                mask_label[idx][chosen_index*(instance_mask_consecutive + consecutive_offset)+i] = 1
+                mask_label[idx][chosen_index +i] = 1
 
             # zero vectors for padding dimension
             pos_enc[idx][spec_len[idx]:] = 0  
@@ -133,7 +133,8 @@ def process_train_MAM_data(spec, config=None):
         mask_label = torch.ByteTensor(mask_label).to(dtype=torch.bool)
         attn_mask = torch.FloatTensor(attn_mask).to(dtype=torch.float32)
         spec_stacked = spec_stacked.to(dtype=torch.float32)
-        print(f"\n miss {len(temp)} sampe data in batch {len(spec_masked)} \n")
+        if len(temp) != 0:
+            print(f"\n miss {len(temp)} sampe data in batch {len(spec_masked)} \n")
 
     return spec_masked, pos_enc, mask_label, attn_mask, spec_stacked
 
