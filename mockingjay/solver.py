@@ -428,7 +428,7 @@ class Tester(Solver):
     ''' Handler for complete testing progress'''
     def __init__(self, config, paras):
         super(Tester, self).__init__(config, paras)
-        self.dump_dir = str(self.ckpt.split('.')[0]) + '-dump/'
+        self.dump_dir = str(self.ckpt.split('.ckpt')[0]) + '-dump/'
         self.duo_feature = False # Set duo feature to False since only input mel is needed during testing
         self.load = True # Tester will load pre-trained models automatically
 
