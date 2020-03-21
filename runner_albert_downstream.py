@@ -37,7 +37,12 @@ def get_mockingjay_args():
     # model ckpt
     parser.add_argument('--load', action='store_true', help='Load pre-trained model to restore training, no need to specify this during testing.')
     # parser.add_argument('--ckpdir', default='../result_albert/albert_2_25_mockingjay_5e-5', type=str, help='Checkpoint/Result path.', required=False)
-    parser.add_argument('--ckpdir', default='../result_albert/albert-650000/albert_2_23_mockingjay', type=str, help='Checkpoint/Result path.', required=False)
+    # parser.add_argument('--ckpdir', default='../result_albert/albert-650000/albert_3l_melbase', type=str, help='Checkpoint/Result path.', required=False)
+    #parser.add_argument('--ckpdir', default='../result_albert/albert-650000/albert_6l_melbase', type=str, help='Checkpoint/Result path.', required=False)
+    parser.add_argument('--ckpdir', default='../result_albert/albert-650000/albert_3l_mask1', type=str, help='Checkpoint/Result path.', required=False)
+    # parser.add_argument('--ckpdir', default='../result_albert/albert-650000/albert_12l_mask1', type=str, help='Checkpoint/Result path.', required=False)
+    # parser.add_argument('--ckpdir', default='../result_albert/albert-650000/albert_', type=str, help='Checkpoint/Result path.', required=False)
+
     parser.add_argument('--ckpt', default="mockingjay_libri_sd1337/mockingjayAlbert-490000.ckpt", type=str, help='path to mockingjay model checkpoint.', required=False)
 
     # parser.add_argument('--ckpt', default='mockingjay_libri_sd1337_MelBase/mockingjay-500000.ckpt', type=str, help='path to mockingjay model checkpoint.', required=False)
@@ -84,12 +89,11 @@ def get_mockingjay_args():
 # MAIN #
 ########
 def main():
-    
+    # WANDB_MODE="dryrun"
     # get arguments
     config, args = get_mockingjay_args()
     # wandb.init(config=config,project="albert-mockingjay-downstream-task")#,resume=True)
-    wandb.init(config=config,project="albert-mockingjay-downstream-task",tags=["albert-490000"])#,resume=True)
-
+    wandb.init(config=config,project="albert-mockingjay-downstream-task",name="SEALBERT-3LAYER")#,resume=True)
     wandb.config.update(args)
     # Fix seed and make backends deterministic
     random.seed(args.seed)
@@ -102,6 +106,7 @@ def main():
     # Train Mockingjay
     if args.train:
         from mockingjay.solver import Trainer
+        
         trainer = Trainer(config, args)
         trainer.load_data(split='train')
         trainer.set_model(inference=False,wandb=wandb)

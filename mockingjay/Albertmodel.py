@@ -6,7 +6,7 @@ from .model import (MockingjayLayerNorm,MockingjayInputRepresentations,
     MockingjayEncoder) 
 from .model import (gelu, ACT2FN, swish)
 from torch import nn
-
+import pdb 
 
 class MockingjayAlbertConfig(object):
     """Configuration class to store the configuration of a `MockingjayModel`.
@@ -39,6 +39,7 @@ class AlbertMockingJayEncoder(nn.Module):
         all_encoder_layers = []
         all_attentions = []
         for i in range(self.config_hidden_num):
+
             hidden_states = self.layer(hidden_states, attention_mask, head_mask[i])
             if self.output_attentions:
                 attentions, hidden_states = hidden_states

@@ -27,6 +27,7 @@ from mockingjay.Albertmodel import AlbertMockingjayModel,AlbertMockingjayForMask
 from utils.audio import plot_spectrogram_to_numpy, plot_spectrogram, plot_embedding
 from utils.audio import mel_dim, num_freq, sample_rate, inv_spectrogram
 from mockingjay.optimization import get_linear_schedule_with_warmup
+import pdb
 ##########
 # SOLVER #
 ##########
@@ -41,6 +42,8 @@ class Solver():
         if torch.cuda.is_available(): self.verbose('CUDA is available!')
 
         # path and directories
+        # print(f"[Initialize Model on Solver!]")
+        # pdb.set_trace()
         self.exp_name = paras.name
         if self.exp_name is None:
             self.exp_name = '_'.join([paras.config.split('/')[-1].replace('.yaml',''),'sd'+str(paras.seed)])
@@ -54,6 +57,8 @@ class Solver():
         self.duo_feature = config['solver']['duo_feature']
         self.output_dim = num_freq if self.duo_feature else None # output dim is the same as input dim if not using duo features
         self.input_dim = mel_dim
+        # print(f"[init finish!]")
+        # pdb.set_trace()
 
 
     def verbose(self, msg, end='\n'):
@@ -63,7 +68,13 @@ class Solver():
 
 
     def load_data(self, split='train', load_mel_only=False):
+
+        
         ''' Load data for training / testing'''
+        
+        # print(f"[Load Data!]")
+        # pdb.set_trace()
+        
         if split == 'train': 
             self.verbose('Loading source data ' + str(self.config['dataloader']['train_set']) + ' from ' + self.config['dataloader']['data_path'])
             if self.duo_feature: self.verbose('Loading target data ' + str(self.config['dataloader']['train_set']) + ' from ' + self.config['dataloader']['target_path'])
@@ -89,6 +100,9 @@ class Solver():
         self.dr = self.model_config.downsample_rate
         self.hidden_size = self.model_config.hidden_size
         self.output_attention = output_attention
+
+        # print("[Load Model Config Complete !]")
+        # pdb.set_trace()
         
         if not inference or with_head:
             self.model = AlbertMockingjayForMaskedAcousticModel(self.model_config, self.input_dim, self.output_dim, self.output_attention).to(self.device)
@@ -107,6 +121,10 @@ class Solver():
             self.model.eval()
         elif not inference:
             self.model.train()
+
+            # print(f"[Load Model Complete!]")
+            # pdb.set_trace()
+
 
             # Setup optimizer
             param_optimizer = list(self.model.named_parameters())
@@ -299,6 +317,8 @@ class Trainer(Solver):
         self.logdir = os.path.join(paras.logdir, self.exp_name)
         self.log = SummaryWriter(self.logdir)
 
+
+
         # Training details
         self.apex = config['solver']['apex']
         self.log_step = config['solver']['log_step']
@@ -357,7 +377,7 @@ class Trainer(Solver):
                     
                     spec_masked, pos_enc, mask_label, attn_mask, spec_stacked = self.process_data(batch)
                     loss, pred_spec = self.model(spec_masked, pos_enc, mask_label, attn_mask, spec_stacked)
-                    
+
                     # Accumulate Loss
                     if self.gradient_accumulation_steps > 1:
                         loss = loss / self.gradient_accumulation_steps
