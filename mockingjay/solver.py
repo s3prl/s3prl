@@ -342,7 +342,7 @@ class Trainer(Solver):
 
             spec_masked = spec_masked.to(device=self.device)
             pos_enc = torch.FloatTensor(pos_enc).to(device=self.device)
-            mask_label = torch.ByteTensor(mask_label).to(device=self.device)
+            mask_label = torch.BoolTensor(mask_label).to(device=self.device)
             attn_mask = torch.FloatTensor(attn_mask).to(device=self.device)
             spec_stacked = spec_stacked.to(device=self.device)
 

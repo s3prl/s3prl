@@ -138,7 +138,7 @@ def process_train_MAM_data(spec, config=None):
 
         spec_masked = spec_masked.to(dtype=torch.float32)
         pos_enc = torch.FloatTensor(pos_enc).to(dtype=torch.float32)
-        mask_label = torch.ByteTensor(mask_label).to(dtype=torch.uint8)
+        mask_label = torch.BoolTensor(mask_label).to(dtype=torch.bool)
         attn_mask = torch.FloatTensor(attn_mask).to(dtype=torch.float32)
         spec_stacked = spec_stacked.to(dtype=torch.float32)
 
