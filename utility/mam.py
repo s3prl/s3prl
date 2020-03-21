@@ -105,20 +105,20 @@ def process_train_MAM_data(spec, config=None):
                 intervals = tiled + offset
                 return intervals.view(-1)
             
+            valid_start_max = int(spec_len[idx] - mask_consecutive - 1) # compute max valid start point for a consecutive mask
+            proportion = int(spec_len[idx] * mask_proportion // mask_consecutive)
+            chosen_starts = torch.randperm(valid_start_max)[:proportion] # draw `proportion` samples from the range (0, valid_index_range) and without replacement
+            chosen_intervals = starts_to_intervals(chosen_starts, mask_consecutive)
+            
             # determine whether to mask / random / or do nothing to the frame
             dice = torch.rand(1).data.cpu()
-            valid_index_range = int(spec_len[idx] - mask_consecutive - 1) # compute valid len for consecutive masking
-            proportion = int(spec_len[idx] * mask_proportion // mask_consecutive)
-            chosen_index = torch.randperm(valid_index_range)[:proportion] # draw `proportion` samples from the range (0, valid_index_range) and without replacement
-            chosen_intervals = starts_to_intervals(chosen_index, mask_consecutive)
-
             # mask to zero
             if bool(dice < 0.8):
                 spec_masked[idx, chosen_intervals, :] = 0
             # replace to random frames
             elif bool(dice >= 0.8) and bool(dice < 0.9):
-                random_index = torch.randperm(valid_index_range)[:proportion]
-                random_intervals = starts_to_intervals(random_index, mask_consecutive)
+                random_starts = torch.randperm(valid_start_max)[:proportion]
+                random_intervals = starts_to_intervals(random_starts, mask_consecutive)
                 spec_masked[idx, chosen_intervals, :] = spec_masked[idx, random_intervals, :]
             # do nothing
             else:
