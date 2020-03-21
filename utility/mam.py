@@ -25,6 +25,7 @@ MASK_PROPORTION = 0.15
 MASK_CONSECUTIVE = 1
 MASK_FREQUENCY = 8
 NOISE_PROPORTION = 0.15
+MAX_SEQLEN = 3000
 
 
 def down_sample_frames(spec, dr):
@@ -36,22 +37,26 @@ def down_sample_frames(spec, dr):
 
 def position_encoding(seq_len, hidden_size, batch_size=None, padding_idx=None):
     ''' Sinusoid position encoding table '''
+    assert seq_len <= MAX_SEQLEN, f'constant MAX_SEQLEN ({MAX_SEQLEN}) in mam.py < received seq_len ({seq_len})'
+
     def cal_angle(position, hid_idx):
         return position / np.power(10000, 2 * (hid_idx // 2) / hidden_size)
-    
+        
     def get_posi_angle_vec(position):
         return [cal_angle(position, hid_j) for hid_j in range(hidden_size)]
-
-    sinusoid_table = np.array([get_posi_angle_vec(pos_i) for pos_i in range(seq_len)])
-
-    sinusoid_table[:, 0::2] = np.sin(sinusoid_table[:, 0::2])  # dim 2i
-    sinusoid_table[:, 1::2] = np.cos(sinusoid_table[:, 1::2])  # dim 2i+1
+        
+    if 'sinusoid_table' not in position_encoding.__dict__:
+        sinusoid_table = np.array([get_posi_angle_vec(pos_i) for pos_i in range(MAX_SEQLEN)])
+        sinusoid_table[:, 0::2] = np.sin(sinusoid_table[:, 0::2])  # dim 2i
+        sinusoid_table[:, 1::2] = np.cos(sinusoid_table[:, 1::2])  # dim 2i+1
+        position_encoding.sinusoid_table = torch.FloatTensor(sinusoid_table)
+    sinusoid_table = copy.deepcopy(position_encoding.sinusoid_table[:seq_len])
 
     if padding_idx is not None:
         sinusoid_table[padding_idx:] = 0. # zero vector for padding dimension
 
     if batch_size is not None:
-        batch_sinusoid_table = np.repeat(sinusoid_table[np.newaxis,...], batch_size, axis=0)
+        batch_sinusoid_table = sinusoid_table.repeat(batch_size, 1, 1)
         return batch_sinusoid_table # (batch_size, seq_len, hidden_size)
     else:
         return sinusoid_table  # (seq_len, hidden_size)
