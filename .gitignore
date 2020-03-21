@@ -12,6 +12,7 @@ __pycache__/
 *.jsonl 
 *.patch
 *.txt
+wandb/
 # Distribution / packaging
 .Python
 build/
