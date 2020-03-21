@@ -25,6 +25,7 @@ MASK_PROPORTION = 0.15
 MASK_CONSECUTIVE = 1
 MASK_FREQUENCY = 8
 NOISE_PROPORTION = 0.15
+MAX_SEQLEN = 3000
 
 
 def down_sample_frames(spec, dr):
@@ -36,22 +37,26 @@ def down_sample_frames(spec, dr):
 
 def position_encoding(seq_len, hidden_size, batch_size=None, padding_idx=None):
     ''' Sinusoid position encoding table '''
+    assert seq_len <= MAX_SEQLEN, f'constant MAX_SEQLEN ({MAX_SEQLEN}) in mam.py < received seq_len ({seq_len})'
+
     def cal_angle(position, hid_idx):
         return position / np.power(10000, 2 * (hid_idx // 2) / hidden_size)
-    
+        
     def get_posi_angle_vec(position):
         return [cal_angle(position, hid_j) for hid_j in range(hidden_size)]
-
-    sinusoid_table = np.array([get_posi_angle_vec(pos_i) for pos_i in range(seq_len)])
-
-    sinusoid_table[:, 0::2] = np.sin(sinusoid_table[:, 0::2])  # dim 2i
-    sinusoid_table[:, 1::2] = np.cos(sinusoid_table[:, 1::2])  # dim 2i+1
+        
+    if 'sinusoid_table' not in position_encoding.__dict__:
+        sinusoid_table = np.array([get_posi_angle_vec(pos_i) for pos_i in range(MAX_SEQLEN)])
+        sinusoid_table[:, 0::2] = np.sin(sinusoid_table[:, 0::2])  # dim 2i
+        sinusoid_table[:, 1::2] = np.cos(sinusoid_table[:, 1::2])  # dim 2i+1
+        position_encoding.sinusoid_table = torch.FloatTensor(sinusoid_table)
+    sinusoid_table = copy.deepcopy(position_encoding.sinusoid_table[:seq_len])
 
     if padding_idx is not None:
         sinusoid_table[padding_idx:] = 0. # zero vector for padding dimension
 
     if batch_size is not None:
-        batch_sinusoid_table = np.repeat(sinusoid_table[np.newaxis,...], batch_size, axis=0)
+        batch_sinusoid_table = sinusoid_table.repeat(batch_size, 1, 1)
         return batch_sinusoid_table # (batch_size, seq_len, hidden_size)
     else:
         return sinusoid_table  # (seq_len, hidden_size)
@@ -94,22 +99,27 @@ def process_train_MAM_data(spec, config=None):
         attn_mask = np.ones((batch_size, seq_len)) # (batch_size, seq_len)
 
         for idx in range(batch_size):
+            def starts_to_intervals(starts, consecutive):
+                tiled = starts.expand(consecutive, starts.size(0)).T
+                offset = torch.arange(consecutive).expand_as(tiled)
+                intervals = tiled + offset
+                return intervals.view(-1)
             
             # determine whether to mask / random / or do nothing to the frame
             dice = torch.rand(1).data.cpu()
             valid_index_range = int(spec_len[idx] - mask_consecutive - 1) # compute valid len for consecutive masking
             proportion = int(spec_len[idx] * mask_proportion // mask_consecutive)
-            chosen_index = torch.randperm(valid_index_range).data.cpu().numpy()[:proportion] # draw `proportion` samples from the range (0, valid_index_range) and without replacement
-            
+            chosen_index = torch.randperm(valid_index_range)[:proportion] # draw `proportion` samples from the range (0, valid_index_range) and without replacement
+            chosen_intervals = starts_to_intervals(chosen_index, mask_consecutive)
+
             # mask to zero
             if bool(dice < 0.8):
-                for i in range(mask_consecutive):
-                    spec_masked[idx][chosen_index+i] = 0
+                spec_masked[idx, chosen_intervals, :] = 0
             # replace to random frames
             elif bool(dice >= 0.8) and bool(dice < 0.9):
-                random_index = torch.randperm(valid_index_range).data.cpu().numpy()[:proportion]
-                for i in range(mask_consecutive):
-                    spec_masked[idx][chosen_index+i] = spec_masked[idx][random_index+i]
+                random_index = torch.randperm(valid_index_range)[:proportion]
+                random_intervals = starts_to_intervals(random_index, mask_consecutive)
+                spec_masked[idx, chosen_intervals, :] = spec_masked[idx, random_intervals, :]
             # do nothing
             else:
                 pass
@@ -127,8 +137,7 @@ def process_train_MAM_data(spec, config=None):
                 spec_masked += torch.FloatTensor(noise)
 
             # the gradients will be calculated on all chosen frames
-            for i in range(mask_consecutive):
-                mask_label[idx][chosen_index+i] = 1
+            mask_label[idx, chosen_intervals, :] = 1
             if mask_frequency > 0:
                 mask_label[idx, :, chosen_start:chosen_start+rand_bandwidth] = 1
 
