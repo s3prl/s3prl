@@ -50,15 +50,26 @@ def position_encoding(seq_len, hidden_size, batch_size=None, padding_idx=None):
         sinusoid_table[:, 0::2] = np.sin(sinusoid_table[:, 0::2])  # dim 2i
         sinusoid_table[:, 1::2] = np.cos(sinusoid_table[:, 1::2])  # dim 2i+1
         position_encoding.sinusoid_table = torch.FloatTensor(sinusoid_table)
-    sinusoid_table = copy.deepcopy(position_encoding.sinusoid_table[:seq_len])
+    sinusoid_table = position_encoding.sinusoid_table[:seq_len]
 
     if padding_idx is not None:
+        # deepcopy will slow down whole process when positional table is too large
+        # this path is dreprecated and should never be used
+        sinusoid_table = copy.deepcopy(sinusoid_table)
         sinusoid_table[padding_idx:] = 0. # zero vector for padding dimension
 
     if batch_size is not None:
-        batch_sinusoid_table = sinusoid_table.repeat(batch_size, 1, 1)
+        # using expand will not cause extra CPU memory allocation issue
+        # however, the expanded tensor after put into GPU still need
+        # GPU memory of expanded size, which should be avoided when
+        # positional table is large
+        # this path is not recommended
+        batch_sinusoid_table = sinusoid_table.expand(batch_size, -1, -1)
         return batch_sinusoid_table # (batch_size, seq_len, hidden_size)
     else:
+        # this path is most recommended, no extra CPU and GPU memory allocation
+        # after getting the (seq_len, hidden_size) tensor, one should first put
+        # this tensor into GPU then expand it
         return sinusoid_table  # (seq_len, hidden_size)
 
 
@@ -94,7 +105,7 @@ def process_train_MAM_data(spec, config=None):
         batch_size = spec_stacked.shape[0]
         seq_len = spec_stacked.shape[1]
 
-        pos_enc = position_encoding(seq_len, hidden_size, batch_size) # (batch_size, seq_len, hidden_size)
+        pos_enc = position_encoding(seq_len, hidden_size) # (seq_len, hidden_size)
         mask_label = np.zeros_like(spec_stacked)
         attn_mask = np.ones((batch_size, seq_len)) # (batch_size, seq_len)
 
@@ -142,7 +153,6 @@ def process_train_MAM_data(spec, config=None):
                 mask_label[idx, :, chosen_start:chosen_start+rand_bandwidth] = 1
 
             # zero vectors for padding dimension
-            pos_enc[idx][spec_len[idx]:] = 0  
             attn_mask[idx][spec_len[idx]:] = 0
 
         spec_masked = spec_masked.to(dtype=torch.float32)
