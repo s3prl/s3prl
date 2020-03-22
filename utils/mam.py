@@ -97,7 +97,7 @@ def process_train_MAM_data(spec, config=None):
         # start = time.time()
         position_table = static_position_table_f(hidden_size)[:seq_len]
         pos_enc = position_encoding(hidden_size, position_table, batch_size) # (batch_size, seq_len, hidden_size)
-        # end = time.time()
+        end = time.time()
 
         # with open(f"cache_position_embedding.txt","a+") as d: 
         #     d.write(f"cache time is {end - start:7.6f}\n")
@@ -150,10 +150,10 @@ def process_train_MAM_data(spec, config=None):
             # zero vectors for padding dimension
             attn_mask[idx][spec_len[idx]:] = 0
 
-        # end_time =time.time()
+        end_time =time.time()
 
-        # with open(f"loop_time.txt","a+") as d:
-        #     d.write(f"loop time is {end_time - end_batch_time:7.6f}\n")
+        with open(f"loop_time_batch.txt","a+") as d:
+            d.write(f"loop time is {end_time - end:7.6f}\n")
 
         # with open(f"loop_all_time.txt","a+") as d:
         #     d.write(f"loop time is {end_time - start_two_time:7.6f}\n")
