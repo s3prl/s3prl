@@ -42,7 +42,7 @@ def cal_angle(position, hid_idx,hidden_size):
 def get_posi_angle_vec(position,hidden_size):
     return [cal_angle(position, hid_j,hidden_size) for hid_j in range(hidden_size)]
 
-@lru_cache(maxsize=3)
+@lru_cache(maxsize=5)
 def static_position_table_f(hidden_size,max_length=2000):
 
     sinusoid_table          = np.array([get_posi_angle_vec(pos_i,hidden_size) for pos_i in range(2000)])
@@ -52,7 +52,7 @@ def static_position_table_f(hidden_size,max_length=2000):
 
     return sinusoid_table
 
-@lru_cache(maxsize=3)
+@lru_cache(maxsize=5)
 def position_encoding(hidden_size, sinusoid_table, batch_size=None, padding_idx=None):
     ''' Sinusoid position encoding table '''
 
@@ -90,7 +90,7 @@ def process_train_MAM_data(spec, config=None):
 
         # Record length for each uttr
         spec_len = np.sum(np.sum(spec_stacked.data.numpy(), axis=-1) != 0, axis=-1)
-        spec_len = [int(sl) for sl in spec_len]
+        spec_len = np.array([int(sl) for sl in spec_len])
 
         batch_size = spec_stacked.shape[0]
         seq_len = spec_stacked.shape[1]
@@ -102,15 +102,15 @@ def process_train_MAM_data(spec, config=None):
         # with open(f"cache_position_embedding.txt","a+") as d: 
         #     d.write(f"cache time is {end - start:7.6f}\n")
 
-        # start_two_time = time.time()
+        
         mask_label = np.zeros_like(spec_stacked)
         attn_mask = np.ones((batch_size, seq_len)) # (batch_size, seq_len)
-        batch_consecutives                         = np.array(random.choices(range(0,mask_consecutive), k=len(spec_stacked))) +1
-        batch_random_dices                         = torch.rand(len(spec_stacked)).data.cpu().numpy()
-        batch_valid_indexes                        = np.array(spec_len) - batch_consecutives - 1
-        batch_proportions                          = np.array(spec_len) * mask_proportion // batch_consecutives
+        batch_consecutives                         = np.random.choice(np.arange(0,mask_consecutive), size=batch_size) +1
+        batch_random_dices                         = torch.rand(batch_size)
+        batch_valid_indexes                        = spec_len - batch_consecutives - 1
+        batch_proportions                          = spec_len * mask_proportion // batch_consecutives
         batch_proportions[batch_proportions == 0 ] = 1
-        batch_start_points                         = torch.randint(low=0, high=mask_consecutive, size=(len(spec_stacked),)).data.cpu().numpy()
+        batch_start_points                         = torch.randint(low=0, high=mask_consecutive, size=(batch_size,)).data.cpu().numpy()
         batch_buckets_num                          = (batch_valid_indexes - batch_start_points) // (batch_consecutives + consecutive_offset)
         # end_batch_time = time.time()
 
@@ -123,8 +123,8 @@ def process_train_MAM_data(spec, config=None):
             if batch_buckets_num[idx] < mini_bucket_num:
                 temp += [idx]
                 continue 
-
-            bound_indexes = np.arange(batch_start_points[idx], batch_valid_indexes[idx], (batch_consecutives[idx] + consecutive_offset) ) 
+            step = (batch_consecutives[idx] + consecutive_offset)
+            bound_indexes = np.arange(batch_start_points[idx], batch_valid_indexes[idx], step ) 
             chosen_index = torch.LongTensor(np.random.permutation(bound_indexes)[:int(batch_proportions[idx])]) # draw `proportion` samples from the range (0, valid_index_range) and without replacement
             
             chosen_index     = chosen_index.unsqueeze(-1)
@@ -137,7 +137,8 @@ def process_train_MAM_data(spec, config=None):
                 spec_masked[idx][one_line_indexes] = 0
             # replace to random frames
             elif bool(batch_random_dices[idx] >= 0.8) and bool(batch_random_dices[idx] < 0.9):
-                random_index = np.random.permutation(batch_valid_indexes[idx])[:np.arange(batch_consecutives[idx]*chosen_index.shape[0]).shape[0]]
+                length = batch_consecutives[idx]*(chosen_index.shape[0])
+                random_index = np.random.permutation(batch_valid_indexes[idx])[:length]
                 spec_masked[idx][one_line_indexes] = spec_masked[idx][random_index]
             # do nothing
             else:
