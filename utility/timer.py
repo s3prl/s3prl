@@ -1,10 +1,12 @@
 import time
 import inspect
+from collections import defaultdict
+import torch
 
 
 class Timer():
     def __init__(self):
-        self.timings = []
+        self.timings = defaultdict(list)
         self.start_time = 0
 
     def start(self):
@@ -16,11 +18,11 @@ class Timer():
         filename = frameinfo.filename
         filename = '/'.join(filename.split('/')[-2:])
         marker = f'{filename}:{frameinfo.lineno}'
-        self.timings.append( (marker, time.time() - self.start_time) )
+        self.timings[marker].append( float(time.time() - self.start_time) )
 
     def report(self):
         print('[TIMER]:')
-        for items in self.timings:
-            for item in items:
-                print(item, end="\t")
-            print()
+        for marker in self.timings:
+            print(f'{marker}: {torch.FloatTensor(self.timings[marker]).mean().item()}')
+
+timer = Timer()
