@@ -107,7 +107,7 @@ def process_train_MAM_data(spec, config=None):
                 temp += [idx]
                 continue 
 
-
+            
             bound_indexes = range(batch_start_points[idx], batch_valid_indexes[idx], (batch_consecutives[idx] + consecutive_offset) ) 
             chosen_index = torch.LongTensor(np.random.permutation(bound_indexes)[:int(batch_proportions[idx])]) # draw `proportion` samples from the range (0, valid_index_range) and without replacement
             
