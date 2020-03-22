@@ -131,7 +131,7 @@ def process_train_MAM_data(spec, config=None):
             mapping          = chosen_index.expand(chosen_index.size(0),batch_consecutives[idx])
             offset           = torch.LongTensor(np.arange(batch_consecutives[idx])).expand(chosen_index.size(0), batch_consecutives[idx])
             indexes          = mapping + offset
-            one_line_indexes = indexes.reshape(1,-1) 
+            one_line_indexes = indexes.view(1,-1) 
             # mask to zero
             if bool(batch_random_dices[idx] < 0.8):
                 spec_masked[idx][one_line_indexes] = 0
