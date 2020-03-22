@@ -76,8 +76,8 @@ def main():
     
     # get arguments
     config, args = get_mockingjay_args()
-    # wandb=None
-    wandb.init(config=config,project="albert-mockingjay",name="albert-3-linear-mask-long")#,resume=True)
+    wandb=None
+    # wandb.init(config=config,project="albert-mockingjay",name="albert-3-linear-mask-long")#,resume=True)
 
     # if args.wandb_service:
     # wandb.init(config=config,project="albert-mockingjay",name="albert-3-linear-2")#,resume=True)
