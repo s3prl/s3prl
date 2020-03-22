@@ -81,7 +81,7 @@ def main():
 
     # if args.wandb_service:
     # wandb.init(config=config,project="albert-mockingjay",name="albert-3-linear-2")#,resume=True)
-    wandb.config.update(args)
+    # wandb.config.update(args)
     # Fix seed and make backends deterministic
     random.seed(args.seed)
     np.random.seed(args.seed)

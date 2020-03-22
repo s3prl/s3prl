@@ -27,7 +27,7 @@ albertmockingjay:
   mask_proportion: 0.15                                 # mask this percentage of all spectrogram frames in each sequence at random during MAM training                        
   mask_consecutive: 30                                  # mask this amount of consecutive frames
   mini_bucket_num: 3
-  consecutive_offset:5
+  consecutive_offset: 5
 
 optimizer: 
   learning_rate: "5e-5"                                 # Learning rate for opt
@@ -38,10 +38,10 @@ optimizer:
 
 
 dataloader:
-  n_jobs: 4     
+  n_jobs: 5     
   #!!!!!!!!!!!! both 50                                       # Subprocess used for torch Dataloader
-  batch_size: 12                                       # training batch size: [12 for fine-tune, 6 for mockingjay pre-training]
-  dev_batch_size: 12                                     # used for dev/test splits
+  batch_size: 50                                       # training batch size: [12 for fine-tune, 6 for mockingjay pre-training]
+  dev_batch_size: 50                                     # used for dev/test splits
   max_timestep: 3000                                    # Max length for audio feature (0 for no restriction)
   max_label_len: 400                                    # Max length for output sequence (0 for no restriction)
 

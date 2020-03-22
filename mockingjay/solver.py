@@ -365,7 +365,7 @@ class Trainer(Solver):
         ''' Training Unsupervised End-to-end Mockingjay Model'''
         self.verbose('Training set total ' + str(len(self.dataloader)) + ' batches.')
         tr_loss, logging_loss = 0, 0
-
+        stop_batch = 100
         pbar = tqdm(total=self.total_steps)
         while self.global_step <= self.total_steps:
 
@@ -373,7 +373,7 @@ class Trainer(Solver):
 
             for step, batch in enumerate(progress):
                 try:
-                    if self.global_step > self.total_steps: break
+                    if self.global_step > stop_batch: exit()
                     
                     spec_masked, pos_enc, mask_label, attn_mask, spec_stacked = self.process_data(batch)
                     loss, pred_spec = self.model(spec_masked, pos_enc, mask_label, attn_mask, spec_stacked)
