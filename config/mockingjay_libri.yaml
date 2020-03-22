@@ -16,7 +16,7 @@ albertmockingjay:
   downsample_rate: 3                                    # stacked consecutive features vectors to reduce the length of input sequences by this factor.
   hidden_size: 768  
   #12!!!!!!!!!!!!!!!                                    # Size of the encoder layers and the pooler layer.
-  num_hidden_layers: 3                              # Number of hidden layers in the Transformer encoder.
+  num_hidden_layers: 2                              # Number of hidden layers in the Transformer encoder.
   num_attention_heads: 12                               # Number of attention heads for each attention layer in the Transformer encoder.
   intermediate_size: 3072                               # The size of the "intermediate" (i.e., feed-forward) layer in the Transformer encoder.
   hidden_act: "gelu"                                    # The non-linear activation function (function or string) in the encoder and pooler. If string, "gelu", "relu" and "swish" are supported.
@@ -25,7 +25,7 @@ albertmockingjay:
   initializer_range: 0.02                               # The sttdev of the truncated_normal_initializer for initializing all weight matrices.
   layer_norm_eps: "1e-12"                               # The epsilon used by LayerNorm.
   mask_proportion: 0.15                                 # mask this percentage of all spectrogram frames in each sequence at random during MAM training                        
-  mask_consecutive: 10                                  # mask this amount of consecutive frames
+  mask_consecutive: 5                                  # mask this amount of consecutive frames
   mini_bucket_num: 2
   consecutive_offset: 3
 
@@ -38,7 +38,7 @@ optimizer:
 
 
 dataloader:
-  n_jobs: 12     
+  n_jobs: 0     
   #!!!!!!!!!!!! both 50                                       # Subprocess used for torch Dataloader
   batch_size: 50                                       # training batch size: [12 for fine-tune, 6 for mockingjay pre-training]
   dev_batch_size: 50                                     # used for dev/test splits
@@ -49,7 +49,7 @@ dataloader:
   sentiment_config:
     dataset: 'mosei'                                    # suppor datasets: 'mosi', 'mosei'
     mosi:
-      path: '../../fuck/Mockingjay/data/mosi_mel160'
+      path: '/mnt/fuck/Mockingjay/data/mosi_mel160'
       label_mode: 'positive_negative'                   # suppor modes: 'positive_negative', 'original', 'positive_negative', 'regression'
       standard_split: False
 
@@ -57,7 +57,7 @@ dataloader:
       random_seed: 1122
       train_ratio: 0.9
     mosei:
-      path: '../../fuck/Mockingjay/data/mosei'
+      path: '/mnt/fuck/Mockingjay/data/mosei'
       feature: 'mel160'
       label_mode: 'positive_negative'                   # suppor modes: 'regression', 'original', 'positive_negative', 'regression'
       standard_split: False
@@ -74,9 +74,9 @@ dataloader:
       sample_seed: 29
 
   # LIBRISEECH SETTINGS
-  data_path: '../../fuck/Mockingjay/data/libri_mel160_subword5000'            # Source data path
-  target_path: '../../fuck/Mockingjay/data/libri_linear1025_subword5000'      # Target data path for reconstruction to a different feature type, set dataset to 'librispeech_mel_linear'.
-  phone_path: '../../fuck/Mockingjay/data/libri_phone'                        # phone boundary label data path for the phone classification task.
+  data_path: '/mnt/fuck/Mockingjay/data/libri_mel160_subword5000'            # Source data path
+  target_path: '/mnt/fuck/Mockingjay/data/libri_linear1025_subword5000'      # Target data path for reconstruction to a different feature type, set dataset to 'librispeech_mel_linear'.
+  phone_path: '/mnt/fuck/Mockingjay/data/libri_phone'                        # phone boundary label data path for the phone classification task.
   train_set: ['train-clean-360']                        #
   dev_set: ['dev-clean']                                #
   test_set: ['test-clean']                              #
@@ -103,7 +103,7 @@ downstream:                                             # downstream model confi
     input_dim: 'None'                                   # `int`, else if set to None, input_dim will be set according to mockingjay settings or mel-preprocessing dimensions automatically
     hidden_size: 768
     drop: 0.2
-    select_hidden: 'weighted_sum_norm'                       # support modes: ['last', 'first', 'average', 'weighted_sum', 'weighted_sum_norm']
+    select_hidden: 'last'                       # support modes: ['last', 'first', 'average', 'weighted_sum', 'weighted_sum_norm']
 
   rnn:
     mode: 'classification'                              # support modes: 'classification' , 'regression'
