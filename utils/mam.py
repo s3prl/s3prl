@@ -35,6 +35,7 @@ def down_sample_frames(spec, dr):
     spec_stacked = spec.view(spec.shape[0], spec.shape[1]//dr, spec.shape[2]*dr)
     return spec_stacked
 
+
 def cal_angle(position, hid_idx,hidden_size):
     return position / np.power(10000, 2 * (hid_idx // 2) / hidden_size)
 
@@ -42,16 +43,17 @@ def get_posi_angle_vec(position,hidden_size):
     return [cal_angle(position, hid_j,hidden_size) for hid_j in range(hidden_size)]
 
 @lru_cache(maxsize=3)
-def static_position_table_f(hidden_size,max_length=1500):
-    sinusoid_table          = np.array([get_posi_angle_vec(pos_i,hidden_size) for pos_i in range(1500)])
+def static_position_table_f(hidden_size,max_length=2000):
+
+    sinusoid_table          = np.array([get_posi_angle_vec(pos_i,hidden_size) for pos_i in range(2000)])
     sinusoid_table[:, 0::2] = np.sin(sinusoid_table[:, 0::2])
     sinusoid_table[:, 1::2] = np.cos(sinusoid_table[:, 1::2])  
     sinusoid_table          = torch.FloatTensor(sinusoid_table).to(dtype=torch.float32)
 
     return sinusoid_table
 
-@lru_cache(maxsize=5)
-def position_encoding(seq_len, hidden_size, sinusoid_table, batch_size=None, padding_idx=None):
+@lru_cache(maxsize=3)
+def position_encoding(hidden_size, sinusoid_table, batch_size=None, padding_idx=None):
     ''' Sinusoid position encoding table '''
 
     if batch_size is not None:
@@ -92,15 +94,15 @@ def process_train_MAM_data(spec, config=None):
 
         batch_size = spec_stacked.shape[0]
         seq_len = spec_stacked.shape[1]
-        start = time.time()
+        # start = time.time()
         position_table = static_position_table_f(hidden_size)[:seq_len]
-        pos_enc = position_encoding(seq_len, hidden_size, position_table, batch_size) # (batch_size, seq_len, hidden_size)
-        end = time.time()
+        pos_enc = position_encoding(hidden_size, position_table, batch_size) # (batch_size, seq_len, hidden_size)
+        # end = time.time()
 
-        with open(f"cache_position_embedding.txt","a+") as d: 
-            d.write(f"cache time is {end - start:7.6f}\n")
+        # with open(f"cache_position_embedding.txt","a+") as d: 
+        #     d.write(f"cache time is {end - start:7.6f}\n")
 
-        start_two_time = time.time()
+        # start_two_time = time.time()
         mask_label = np.zeros_like(spec_stacked)
         attn_mask = np.ones((batch_size, seq_len)) # (batch_size, seq_len)
         batch_consecutives                         = np.array(random.choices(range(0,mask_consecutive), k=len(spec_stacked))) +1
@@ -110,13 +112,11 @@ def process_train_MAM_data(spec, config=None):
         batch_proportions[batch_proportions == 0 ] = 1
         batch_start_points                         = torch.randint(low=0, high=mask_consecutive, size=(len(spec_stacked),)).data.cpu().numpy()
         batch_buckets_num                          = (batch_valid_indexes - batch_start_points) // (batch_consecutives + consecutive_offset)
-        end_batch_time = time.time()
+        # end_batch_time = time.time()
 
-        with open(f"batch_time.txt","a+") as d:
-            d.write(f"batch time is {end_batch_time - start_two_time:7.6f}\n")
+        # with open(f"batch_time.txt","a+") as d:
+        #     d.write(f"batch time is {end_batch_time - start_two_time:7.6f}\n")
         
-
-
         for idx in range(len(spec_stacked)):
             
             # determine whether to mask / random / or do nothing to the frame
@@ -137,7 +137,7 @@ def process_train_MAM_data(spec, config=None):
                 spec_masked[idx][one_line_indexes] = 0
             # replace to random frames
             elif bool(batch_random_dices[idx] >= 0.8) and bool(batch_random_dices[idx] < 0.9):
-                random_index = np.random.permutation(batch_valid_indexes[idx])[:len(np.arange(batch_consecutives[idx]*chosen_index.shape[0]))]
+                random_index = np.random.permutation(batch_valid_indexes[idx])[:np.arange(batch_consecutives[idx]*chosen_index.shape[0]).shape[0]]
                 spec_masked[idx][one_line_indexes] = spec_masked[idx][random_index]
             # do nothing
             else:
@@ -149,13 +149,13 @@ def process_train_MAM_data(spec, config=None):
             # zero vectors for padding dimension
             attn_mask[idx][spec_len[idx]:] = 0
 
-        end_time =time.time()
+        # end_time =time.time()
 
-        with open(f"loop_time.txt","a+") as d:
-            d.write(f"loop time is {end_time - end_batch_time:7.6f}\n")
+        # with open(f"loop_time.txt","a+") as d:
+        #     d.write(f"loop time is {end_time - end_batch_time:7.6f}\n")
 
-        with open(f"loop_all_time.txt","a+") as d:
-            d.write(f"loop time is {end_time - start_two_time:7.6f}\n")
+        # with open(f"loop_all_time.txt","a+") as d:
+        #     d.write(f"loop time is {end_time - start_two_time:7.6f}\n")
 
         spec_masked = spec_masked.to(dtype=torch.float32)
         mask_label = torch.ByteTensor(mask_label).to(dtype=torch.bool)
@@ -193,10 +193,9 @@ def process_test_MAM_data(spec, config=None):
         # zero vectors for padding dimension
         for idx in range(len(spec_stacked)):
             pos_enc[idx][spec_len[idx]:] = 0  
-            attn_mask[idx][spec_len[idx]:] = 0 
-
+            attn_mask[idx][spec_len[idx]:] = 0
+            
         spec_stacked = spec_stacked.to(dtype=torch.float32)
-        pos_enc = torch.FloatTensor(pos_enc).to(dtype=torch.float32)
         attn_mask = torch.FloatTensor(attn_mask).to(dtype=torch.float32)
 
     return spec_stacked, pos_enc, attn_mask # (x, pos_enc, attention_mask)
