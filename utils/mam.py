@@ -102,43 +102,55 @@ def process_train_MAM_data(spec, config=None):
         # with open(f"cache_position_embedding.txt","a+") as d: 
         #     d.write(f"cache time is {end - start:7.6f}\n")
 
-        
         mask_label = np.zeros_like(spec_stacked)
         attn_mask = np.ones((batch_size, seq_len)) # (batch_size, seq_len)
-        batch_consecutives                         = np.random.choice(np.arange(0,mask_consecutive), size=batch_size) +1
-        batch_random_dices                         = torch.rand(batch_size)
-        batch_valid_indexes                        = spec_len - batch_consecutives - 1
-        batch_proportions                          = spec_len * mask_proportion // batch_consecutives
-        batch_proportions[batch_proportions == 0 ] = 1
-        batch_start_points                         = torch.randint(low=0, high=mask_consecutive, size=(batch_size,)).data.cpu().numpy()
-        batch_buckets_num                          = (batch_valid_indexes - batch_start_points) // (batch_consecutives + consecutive_offset)
+        # batch_consecutives                         = np.random.choice(np.arange(0,mask_consecutive), size=batch_size) +1
+        # batch_random_dices                         = torch.rand(batch_size)
+        # batch_valid_indexes                        = spec_len - batch_consecutives - 1
+        # batch_proportions                          = spec_len * mask_proportion // batch_consecutives
+        # batch_proportions[batch_proportions == 0 ] = 1
+        # batch_start_points                         = torch.randint(low=0, high=mask_consecutive, size=(batch_size,)).data.cpu().numpy()
+        # batch_buckets_num                          = (batch_valid_indexes - batch_start_points) // (batch_consecutives + consecutive_offset)
         # end_batch_time = time.time()
 
         # with open(f"batch_time.txt","a+") as d:
         #     d.write(f"batch time is {end_batch_time - start_two_time:7.6f}\n")
         
         for idx in range(len(spec_stacked)):
+            # IPython.embed()
+            # pdb.set_trace()
+            instance_consecutive  =  np.random.choice(np.arange(0,mask_consecutive), size=(1,)) +1
+            instance_random_dices =  torch.rand(1)
+            valid_index           =  spec_len[idx] - instance_consecutive - 1
+            instance_proportions  =  spec_len[idx] * mask_proportion // (instance_consecutive[0])
+            start_point                         = torch.randint(low=0, high=mask_consecutive, size=(1,)).data.cpu().numpy()
+            buckets_num                          = (valid_index - start_point) // (instance_consecutive + consecutive_offset)
             
+            if instance_proportions == 0:
+                instance_proportions = 1
             # determine whether to mask / random / or do nothing to the frame
-            if batch_buckets_num[idx] < mini_bucket_num:
-                temp += [idx]
-                continue 
-            step = (batch_consecutives[idx] + consecutive_offset)
-            bound_indexes = np.arange(batch_start_points[idx], batch_valid_indexes[idx], step ) 
-            chosen_index = torch.LongTensor(np.random.permutation(bound_indexes)[:int(batch_proportions[idx])]) # draw `proportion` samples from the range (0, valid_index_range) and without replacement
+            # if buckets_num < mini_bucket_num:
+            #     temp += [idx]
+            #     continue 
+            step = (instance_consecutive + consecutive_offset)
+            bound_indexes = np.arange(start_point, valid_index, step ) 
+            chosen_index = torch.LongTensor(np.random.permutation(bound_indexes)[:int(instance_proportions)]) # draw `proportion` samples from the range (0, valid_index_range) and without replacement
             
             chosen_index     = chosen_index.unsqueeze(-1)
-            mapping          = chosen_index.expand(chosen_index.size(0),batch_consecutives[idx])
-            offset           = torch.LongTensor(np.arange(batch_consecutives[idx])).expand(chosen_index.size(0), batch_consecutives[idx])
+            mapping          = chosen_index.expand(chosen_index.size(0),int(instance_consecutive))
+            offset           = torch.LongTensor(np.arange(instance_consecutive)).expand(chosen_index.size(0), int(instance_consecutive))
             indexes          = mapping + offset
-            one_line_indexes = indexes.view(1,-1) 
+            one_line_indexes = indexes.view(-1) 
             # mask to zero
-            if bool(batch_random_dices[idx] < 0.8):
+            if bool(instance_random_dices < 0.8):
+                # pdb.set_trace()
+
                 spec_masked[idx][one_line_indexes] = 0
             # replace to random frames
-            elif bool(batch_random_dices[idx] >= 0.8) and bool(batch_random_dices[idx] < 0.9):
-                length = batch_consecutives[idx]*(chosen_index.shape[0])
-                random_index = np.random.permutation(batch_valid_indexes[idx])[:length]
+            elif bool(instance_random_dices >= 0.8) and bool(instance_random_dices < 0.9):
+                length = int(instance_consecutive)*(chosen_index.shape[0])
+                random_index = np.random.permutation(np.arange(valid_index))[:length]
+                # pdb.set_trace()
                 spec_masked[idx][one_line_indexes] = spec_masked[idx][random_index]
             # do nothing
             else:
