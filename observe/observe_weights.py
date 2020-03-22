@@ -1,6 +1,5 @@
 import sys
 import torch
-from utils import timer
 import matplotlib.pyplot as plt
 
 ckpt_path = sys.argv[1]

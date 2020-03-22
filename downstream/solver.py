@@ -26,7 +26,6 @@ from mockingjay.solver import Solver, Tester
 from mockingjay.optimization import BertAdam
 from downstream.model import LinearClassifier, RnnClassifier
 from utility.audio import mel_dim, fmllr_dim, num_freq, sample_rate, inv_spectrogram
-from utility.timer import Timer
 from runner_apc import get_apc_model
 
 
@@ -41,8 +40,7 @@ class Downstream_Solver(Solver):
         self.task = task
         self.mock_paras = copy.deepcopy(paras)
         self.mock_config = copy.deepcopy(config)
-        self.mock_config['timer'] = config['timer']
-
+        
         # path and directories
         self.exp_name = self.exp_name.replace('mockingjay', task)
         self.paras.ckpdir = paras.ckpdir.replace('mockingjay', task)
@@ -402,9 +400,7 @@ class Downstream_Tester(Downstream_Solver):
     def exec(self):
         ''' Testing of downstream tasks'''
         self.verbose('Testing set total ' + str(len(self.dataloader)) + ' batches.')
-        timer = Timer()
-        timer.start()
-
+        
         valid_count = 0
         correct_count = 0
         loss_sum = 0
@@ -470,9 +466,6 @@ class Downstream_Tester(Downstream_Solver):
         test_acc = correct_count * 1.0 / valid_count
         self.verbose(f'Test result: loss {average_loss}, acc {test_acc}')
 
-        timer.end()
-        timer.report()
-        
         return average_loss, test_acc, all_logits
 
 
