@@ -187,14 +187,14 @@ def process_test_MAM_data(spec, config=None):
         batch_size = spec_stacked.shape[0]
         seq_len = spec_stacked.shape[1]
         position_table = static_position_table_f(hidden_size)[:seq_len]
-        pos_enc = position_encoding(seq_len, hidden_size,position_table, batch_size) # (batch_size, seq_len, hidden_size)
+        pos_enc = position_encoding(hidden_size,position_table, batch_size) # (batch_size, seq_len, hidden_size)
         attn_mask = np.ones((batch_size, seq_len)) # (batch_size, seq_len)
 
         # zero vectors for padding dimension
         for idx in range(len(spec_stacked)):
             pos_enc[idx][spec_len[idx]:] = 0  
             attn_mask[idx][spec_len[idx]:] = 0
-            
+
         spec_stacked = spec_stacked.to(dtype=torch.float32)
         attn_mask = torch.FloatTensor(attn_mask).to(dtype=torch.float32)
 
