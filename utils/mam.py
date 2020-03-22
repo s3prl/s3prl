@@ -52,7 +52,7 @@ def static_position_table_f(hidden_size,max_length=2000):
 
     return sinusoid_table
 
-@lru_cache(maxsize=5)
+@lru_cache(maxsize=10)
 def position_encoding(hidden_size, sinusoid_table, batch_size=None, padding_idx=None):
     ''' Sinusoid position encoding table '''
 
@@ -123,7 +123,7 @@ def process_train_MAM_data(spec, config=None):
             instance_random_dices =  torch.rand(1)
             valid_index           =  spec_len[idx] - instance_consecutive - 1
             instance_proportions  =  spec_len[idx] * mask_proportion // (instance_consecutive[0])
-            start_point                         = torch.randint(low=0, high=mask_consecutive, size=(1,)).data.cpu().numpy()
+            start_point                          = torch.randint(low=0, high=mask_consecutive, size=(1,)).data.cpu().numpy()
             buckets_num                          = (valid_index - start_point) // (instance_consecutive + consecutive_offset)
             
             if instance_proportions == 0:
