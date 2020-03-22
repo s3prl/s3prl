@@ -111,7 +111,7 @@ def process_train_MAM_data(spec, config=None):
         # batch_proportions[batch_proportions == 0 ] = 1
         # batch_start_points                         = torch.randint(low=0, high=mask_consecutive, size=(batch_size,)).data.cpu().numpy()
         # batch_buckets_num                          = (batch_valid_indexes - batch_start_points) // (batch_consecutives + consecutive_offset)
-        # end_batch_time = time.time()
+        end_batch_time = time.time()
 
         # with open(f"batch_time.txt","a+") as d:
         #     d.write(f"batch time is {end_batch_time - start_two_time:7.6f}\n")
@@ -164,11 +164,13 @@ def process_train_MAM_data(spec, config=None):
 
         end_time =time.time()
 
+
         with open(f"loop_time_batch.txt","a+") as d:
             d.write(f"loop time is {end_time - end:7.6f}\n")
 
+
         # with open(f"loop_all_time.txt","a+") as d:
-        #     d.write(f"loop time is {end_time - start_two_time:7.6f}\n")
+            # d.write(f"loop time is {end_time - start_two_time:7.6f}\n")
 
         spec_masked = spec_masked.to(dtype=torch.float32)
         mask_label = torch.ByteTensor(mask_label).to(dtype=torch.bool)
