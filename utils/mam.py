@@ -17,6 +17,8 @@ import numpy as np
 import pdb
 import IPython
 from copy import deepcopy 
+import time 
+from functools import lru_cache
 
 ############
 # CONSTANT #
@@ -39,6 +41,16 @@ def cal_angle(position, hid_idx,hidden_size):
 def get_posi_angle_vec(position,hidden_size):
     return [cal_angle(position, hid_j,hidden_size) for hid_j in range(hidden_size)]
 
+@lru_cache(maxsize=3)
+def static_position_table_f(hidden_size,max_length=1500):
+    sinusoid_table          = np.array([get_posi_angle_vec(pos_i,hidden_size) for pos_i in range(1500)])
+    sinusoid_table[:, 0::2] = np.sin(sinusoid_table[:, 0::2])
+    sinusoid_table[:, 1::2] = np.cos(sinusoid_table[:, 1::2])  
+    sinusoid_table          = torch.FloatTensor(sinusoid_table).to(dtype=torch.float32)
+
+    return sinusoid_table
+
+@lru_cache(maxsize=5)
 def position_encoding(seq_len, hidden_size, sinusoid_table, batch_size=None, padding_idx=None):
     ''' Sinusoid position encoding table '''
 
@@ -58,11 +70,6 @@ def process_train_MAM_data(spec, config=None):
     mini_bucket_num = config["mini_bucket_num"]
     consecutive_offset = config["consecutive_offset"]
     temp = []
-
-    if 'sinusoid_table' not in process_train_MAM_data.__dict__:
-        process_train_MAM_data.sinusoid_table = np.array([get_posi_angle_vec(pos_i,hidden_size) for pos_i in range(1500)])
-        process_train_MAM_data.sinusoid_table[:, 0::2] = np.sin(process_train_MAM_data.sinusoid_table[:, 0::2])  # dim 2i
-        process_train_MAM_data.sinusoid_table[:, 1::2] = np.cos(process_train_MAM_data.sinusoid_table[:, 1::2])  # dim 2i+1
     
     with torch.no_grad():
         if len(spec) == 2: # if self.duo_feature: dataloader will output `source_spec` and `target_spec`
@@ -85,13 +92,17 @@ def process_train_MAM_data(spec, config=None):
 
         batch_size = spec_stacked.shape[0]
         seq_len = spec_stacked.shape[1]
-        position_table = process_train_MAM_data.sinusoid_table[:seq_len]
-        position_table = torch.FloatTensor(position_table).to(dtype=torch.float32)
+        start = time.time()
+        position_table = static_position_table_f(hidden_size)[:seq_len]
         pos_enc = position_encoding(seq_len, hidden_size, position_table, batch_size) # (batch_size, seq_len, hidden_size)
+        end = time.time()
+
+        with open(f"cache_position_embedding.txt","a+") as d: 
+            d.write(f"cache time is {end - start:7.6f}\n")
+
+        start_two_time = time.time()
         mask_label = np.zeros_like(spec_stacked)
         attn_mask = np.ones((batch_size, seq_len)) # (batch_size, seq_len)
-
-
         batch_consecutives                         = np.array(random.choices(range(0,mask_consecutive), k=len(spec_stacked))) +1
         batch_random_dices                         = torch.rand(len(spec_stacked)).data.cpu().numpy()
         batch_valid_indexes                        = np.array(spec_len) - batch_consecutives - 1
@@ -99,7 +110,13 @@ def process_train_MAM_data(spec, config=None):
         batch_proportions[batch_proportions == 0 ] = 1
         batch_start_points                         = torch.randint(low=0, high=mask_consecutive, size=(len(spec_stacked),)).data.cpu().numpy()
         batch_buckets_num                          = (batch_valid_indexes - batch_start_points) // (batch_consecutives + consecutive_offset)
+        end_batch_time = time.time()
+
+        with open(f"batch_time.txt","a+") as d:
+            d.write(f"batch time is {end_batch_time - start_two_time:7.6f}\n")
         
+
+
         for idx in range(len(spec_stacked)):
             
             # determine whether to mask / random / or do nothing to the frame
@@ -107,8 +124,7 @@ def process_train_MAM_data(spec, config=None):
                 temp += [idx]
                 continue 
 
-            
-            bound_indexes = range(batch_start_points[idx], batch_valid_indexes[idx], (batch_consecutives[idx] + consecutive_offset) ) 
+            bound_indexes = np.arange(batch_start_points[idx], batch_valid_indexes[idx], (batch_consecutives[idx] + consecutive_offset) ) 
             chosen_index = torch.LongTensor(np.random.permutation(bound_indexes)[:int(batch_proportions[idx])]) # draw `proportion` samples from the range (0, valid_index_range) and without replacement
             
             chosen_index     = chosen_index.unsqueeze(-1)
@@ -121,7 +137,7 @@ def process_train_MAM_data(spec, config=None):
                 spec_masked[idx][one_line_indexes] = 0
             # replace to random frames
             elif bool(batch_random_dices[idx] >= 0.8) and bool(batch_random_dices[idx] < 0.9):
-                random_index = np.random.permutation(batch_valid_indexes[idx])[:len(range(batch_consecutives[idx]*chosen_index.shape[0]))]
+                random_index = np.random.permutation(batch_valid_indexes[idx])[:len(np.arange(batch_consecutives[idx]*chosen_index.shape[0]))]
                 spec_masked[idx][one_line_indexes] = spec_masked[idx][random_index]
             # do nothing
             else:
@@ -132,6 +148,14 @@ def process_train_MAM_data(spec, config=None):
 
             # zero vectors for padding dimension
             attn_mask[idx][spec_len[idx]:] = 0
+
+        end_time =time.time()
+
+        with open(f"loop_time.txt","a+") as d:
+            d.write(f"loop time is {end_time - end_batch_time:7.6f}\n")
+
+        with open(f"loop_all_time.txt","a+") as d:
+            d.write(f"loop time is {end_time - start_two_time:7.6f}\n")
 
         spec_masked = spec_masked.to(dtype=torch.float32)
         mask_label = torch.ByteTensor(mask_label).to(dtype=torch.bool)
@@ -149,11 +173,6 @@ def process_test_MAM_data(spec, config=None):
     dr = config['downsample_rate'] if config is not None else DR
     hidden_size = config['hidden_size'] if config is not None else HIDDEN_SIZE
 
-    if 'sinusoid_table' not in process_test_MAM_data.__dict__:
-        process_test_MAM_data.sinusoid_table = np.array([get_posi_angle_vec(pos_i,hidden_size) for pos_i in range(1500)])
-        process_test_MAM_data.sinusoid_table[:, 0::2] = np.sin(process_test_MAM_data.sinusoid_table[:, 0::2])  # dim 2i
-        process_test_MAM_data.sinusoid_table[:, 1::2] = np.cos(process_test_MAM_data.sinusoid_table[:, 1::2])  # dim 2i+1
-
     with torch.no_grad():
         if len(spec) != 1:
             raise NotImplementedError('Input spec sould be a tuple of: (spec,), where `spec` has shape BxTxD.')
@@ -167,7 +186,7 @@ def process_test_MAM_data(spec, config=None):
 
         batch_size = spec_stacked.shape[0]
         seq_len = spec_stacked.shape[1]
-        position_table = process_test_MAM_data.sinusoid_table[:seq_len]
+        position_table = static_position_table_f(hidden_size)[:seq_len]
         pos_enc = position_encoding(seq_len, hidden_size,position_table, batch_size) # (batch_size, seq_len, hidden_size)
         attn_mask = np.ones((batch_size, seq_len)) # (batch_size, seq_len)
 
