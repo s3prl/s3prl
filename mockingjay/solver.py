@@ -373,7 +373,7 @@ class Trainer(Solver):
 
             for step, batch in enumerate(progress):
                 try:
-                    if self.global_step >= 100: break
+                    if self.global_step >= self.total_steps: break
                     
                     spec_masked, pos_enc, mask_label, attn_mask, spec_stacked = self.process_data(batch)
                     loss, pred_spec = self.model(spec_masked, pos_enc, mask_label, attn_mask, spec_stacked)
