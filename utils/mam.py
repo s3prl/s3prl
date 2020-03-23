@@ -94,31 +94,16 @@ def process_train_MAM_data(spec, config=None):
 
         batch_size = spec_stacked.shape[0]
         seq_len = spec_stacked.shape[1]
-        # start = time.time()
         position_table = static_position_table_f(hidden_size)[:seq_len]
         pos_enc = position_encoding(hidden_size, position_table, batch_size) # (batch_size, seq_len, hidden_size)
-        # end = time.time()
-
-        # with open(f"cache_position_embedding.txt","a+") as d: 
-        #     d.write(f"cache time is {end - start:7.6f}\n")
+ 
 
         mask_label = np.zeros_like(spec_stacked)
         attn_mask = np.ones((batch_size, seq_len)) # (batch_size, seq_len)
-        # batch_consecutives                         = np.random.choice(np.arange(0,mask_consecutive), size=batch_size) +1
-        # batch_random_dices                         = torch.rand(batch_size)
-        # batch_valid_indexes                        = spec_len - batch_consecutives - 1
-        # batch_proportions                          = spec_len * mask_proportion // batch_consecutives
-        # batch_proportions[batch_proportions == 0 ] = 1
-        # batch_start_points                         = torch.randint(low=0, high=mask_consecutive, size=(batch_size,)).data.cpu().numpy()
-        # batch_buckets_num                          = (batch_valid_indexes - batch_start_points) // (batch_consecutives + consecutive_offset)
-        # end_batch_time = time.time()
-
-        # with open(f"batch_time.txt","a+") as d:
-        #     d.write(f"batch time is {end_batch_time - start_two_time:7.6f}\n")
+        valid_idx = []
         
         for idx in range(len(spec_stacked)):
-            # IPython.embed()
-            # pdb.set_trace()
+
             instance_consecutive  =  np.random.choice(np.arange(0,mask_consecutive), size=(1,)) +1
             instance_random_dices =  torch.rand(1)
             valid_index           =  spec_len[idx] - instance_consecutive - 1
@@ -129,9 +114,10 @@ def process_train_MAM_data(spec, config=None):
             if instance_proportions == 0:
                 instance_proportions = 1
             # determine whether to mask / random / or do nothing to the frame
-            # if buckets_num < mini_bucket_num:
-            #     temp += [idx]
-            #     continue 
+            if buckets_num < mini_bucket_num:
+                temp += [idx]
+                continue 
+            valid_idx += [idx]
             step = (instance_consecutive + consecutive_offset)
             bound_indexes = np.arange(start_point, valid_index, step ) 
             chosen_index = torch.LongTensor(np.random.permutation(bound_indexes)[:int(instance_proportions)]) # draw `proportion` samples from the range (0, valid_index_range) and without replacement
@@ -141,16 +127,12 @@ def process_train_MAM_data(spec, config=None):
             offset           = torch.LongTensor(np.arange(instance_consecutive)).expand(chosen_index.size(0), int(instance_consecutive))
             indexes          = mapping + offset
             one_line_indexes = indexes.view(-1) 
-            # mask to zero
             if bool(instance_random_dices < 0.8):
-                # pdb.set_trace()
-
                 spec_masked[idx][one_line_indexes] = 0
             # replace to random frames
             elif bool(instance_random_dices >= 0.8) and bool(instance_random_dices < 0.9):
                 length = int(instance_consecutive)*(chosen_index.shape[0])
                 random_index = np.random.permutation(np.arange(valid_index))[:length]
-                # pdb.set_trace()
                 spec_masked[idx][one_line_indexes] = spec_masked[idx][random_index]
             # do nothing
             else:
@@ -162,22 +144,11 @@ def process_train_MAM_data(spec, config=None):
             # zero vectors for padding dimension
             attn_mask[idx][spec_len[idx]:] = 0
 
-        # end_time =time.time()
-
-
-        # with open(f"loop_time_batch.txt","a+") as d:
-        #     d.write(f"loop time is {end_time - end:7.6f}\n")
-
-
-        # with open(f"loop_all_time.txt","a+") as d:
-            # d.write(f"loop time is {end_time - start_two_time:7.6f}\n")
-
-        spec_masked = spec_masked.to(dtype=torch.float32)
-        mask_label = torch.ByteTensor(mask_label).to(dtype=torch.bool)
-        attn_mask = torch.FloatTensor(attn_mask).to(dtype=torch.float32)
-        spec_stacked = spec_stacked.to(dtype=torch.float32)
-        # if len(temp) != 0:
-        #     print(f"\n miss {len(temp)} sampe data in batch {len(spec_masked)} \n")
+        spec_masked = spec_masked[valid_idx].to(dtype=torch.float32)
+        mask_label = torch.ByteTensor(mask_label[valid_idx]).to(dtype=torch.bool)
+        attn_mask = torch.FloatTensor(attn_mask[valid_idx]).to(dtype=torch.float32)
+        spec_stacked = spec_stacked[valid_idx].to(dtype=torch.float32)
+        pos_enc = pos_enc[valid_idx]
 
     return spec_masked, pos_enc, mask_label, attn_mask, spec_stacked
 
