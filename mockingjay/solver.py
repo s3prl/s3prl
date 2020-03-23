@@ -26,6 +26,7 @@ from mockingjay.model import MockingjayConfig, MockingjayModel, MockingjayForMas
 from mockingjay.optimization import BertAdam, WarmupLinearSchedule
 from utility.audio import plot_spectrogram_to_numpy, plot_spectrogram, plot_embedding
 from utility.audio import mel_dim, num_freq, fmllr_dim, sample_rate, inv_spectrogram
+from utility.mam import position_encoding
 
 
 ##########
@@ -90,6 +91,7 @@ class Solver():
         self.model_config = MockingjayConfig(self.config)
         self.dr = self.model_config.downsample_rate
         self.hidden_size = self.model_config.hidden_size
+        self.with_head = with_head
         self.output_attention = output_attention
         
         if not inference or with_head:
@@ -466,16 +468,15 @@ class Tester(Solver):
         batch_size = spec_stacked.shape[0]
         seq_len = spec_stacked.shape[1]
 
-        pos_enc = self.position_encoding(seq_len, batch_size) # (batch_size, seq_len, hidden_size)
+        pos_enc = position_encoding(seq_len, self.hidden_size) # (seq_len, hidden_size)
         attn_mask = np.ones((batch_size, seq_len)) # (batch_size, seq_len)
 
         # zero vectors for padding dimension
         for idx in range(len(spec_stacked)):
-            pos_enc[idx][spec_len[idx]:] = 0  
             attn_mask[idx][spec_len[idx]:] = 0 
 
         spec_stacked = spec_stacked.to(device=self.device, dtype=torch.float32)
-        pos_enc = torch.FloatTensor(pos_enc).to(device=self.device, dtype=torch.float32)
+        pos_enc = torch.FloatTensor(pos_enc).to(device=self.device, dtype=torch.float32).expand(spec_stacked.size(0), *pos_enc.size())
         attn_mask = torch.FloatTensor(attn_mask).to(device=self.device, dtype=torch.float32)
         return spec_stacked, pos_enc, attn_mask # (x, pos_enc, attention_mask)
 
