@@ -28,6 +28,8 @@ from utils.audio import plot_spectrogram_to_numpy, plot_spectrogram, plot_embedd
 from utils.audio import mel_dim, num_freq, sample_rate, inv_spectrogram
 from mockingjay.optimization import get_linear_schedule_with_warmup
 import pdb
+import apex
+from apex import amp
 ##########
 # SOLVER #
 ##########
@@ -384,7 +386,6 @@ class Trainer(Solver):
                     if self.gradient_accumulation_steps > 1:
                         loss = loss / self.gradient_accumulation_steps
                     if self.apex:
-                        from apex import amp
                         with amp.scale_loss(loss, self.optimizer) as scaled_loss:
                     	    scaled_loss.backward()
                     else:
@@ -394,7 +395,6 @@ class Trainer(Solver):
                     if step % self.gradient_accumulation_steps == 0:
                         # Step
                         if self.apex:
-                            from apex import amp
                             grad_norm = torch.nn.utils.clip_grad_norm_(amp.master_params(self.optimizer), self.gradient_clipping)
                         else:
                             grad_norm = torch.nn.utils.clip_grad_norm_(self.model.parameters(), self.gradient_clipping)
