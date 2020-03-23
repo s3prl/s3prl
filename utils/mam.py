@@ -111,12 +111,10 @@ def process_train_MAM_data(spec, config=None):
             start_point                          = torch.randint(low=0, high=mask_consecutive, size=(1,)).data.cpu().numpy()
             buckets_num                          = (valid_index - start_point) // (instance_consecutive + consecutive_offset)
             
-            if instance_proportions == 0:
-                instance_proportions = 1
+            if instance_proportions == 0: instance_proportions = 1
             # determine whether to mask / random / or do nothing to the frame
-            if buckets_num < mini_bucket_num:
-                temp += [idx]
-                continue 
+            if buckets_num < mini_bucket_num: continue 
+            
             valid_idx += [idx]
             step = (instance_consecutive + consecutive_offset)
             bound_indexes = np.arange(start_point, valid_index, step ) 
