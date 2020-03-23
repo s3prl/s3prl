@@ -3,7 +3,7 @@ __pycache__/
 *.py[cod]
 *$py.class
 *.npy
-
+config/mockingjay_libri.yaml
 # C extensions
 *.so
 *.png 
