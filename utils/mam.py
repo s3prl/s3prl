@@ -175,7 +175,6 @@ def process_test_MAM_data(spec, config=None):
 
         # zero vectors for padding dimension
         for idx in range(len(spec_stacked)):
-            pos_enc[idx][spec_len[idx]:] = 0  
             attn_mask[idx][spec_len[idx]:] = 0
 
         spec_stacked = spec_stacked.to(dtype=torch.float32)
