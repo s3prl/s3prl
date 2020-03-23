@@ -138,7 +138,7 @@ class Solver():
             ]
             
             optimizer = Lamb(optimizer_grouped_parameters, lr=self.learning_rate, eps=1e-6)
-            num_train_optimization_steps = self.total_steps // self.gradient_accumulation_steps
+            num_train_optimization_steps = self.total_steps 
             if self.apex:
                 try:
                     from apex import amp
