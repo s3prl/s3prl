@@ -367,11 +367,13 @@ class Trainer(Solver):
         tr_loss, logging_loss = 0, 0
         
         pbar = tqdm(total=self.total_steps)
+        step = 0
         while self.global_step <= self.total_steps:
 
             progress = tqdm(self.dataloader, desc="Iteration")
 
-            for step, batch in enumerate(progress):
+            for batch in progress:
+                step += 1
                 try:
                     if self.global_step >= self.total_steps: break
                     
@@ -389,7 +391,7 @@ class Trainer(Solver):
                         loss.backward()
                     tr_loss += loss.item()
                     # Update
-                    if (step+1) % self.gradient_accumulation_steps == 0:
+                    if step % self.gradient_accumulation_steps == 0:
                         # Step
                         if self.apex:
                             from apex import amp
