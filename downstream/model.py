@@ -29,22 +29,27 @@ class LinearClassifier(nn.Module):
         self.select_hidden = dconfig['select_hidden']
         self.sequencial = dconfig['sequencial']
         self.linear = dconfig['linear']
+        self.num_layers = dconfig['layers']
         self.weight = nn.Parameter(torch.ones(12) / 12)
         assert(not (self.sequencial and self.linear))
 
         if self.sequencial: 
             self.rnn = nn.GRU(input_size=input_dim, hidden_size=hidden_size, num_layers=1, dropout=0.1,
                               batch_first=True, bidirectional=False)
-            self.input_layer = nn.Linear(hidden_size, hidden_size)
-        else:
-            self.input_layer = nn.Linear(input_dim, hidden_size)
+            self.num_layers = self.num_layers - 1
 
         linears = []
-        for _ in range(dconfig['layers']):
-            linears.append(nn.Linear(hidden_size, hidden_size))
+        for i in range(self.num_layers):
+            if i == 0 and self.num_layers == 1:
+                linears.append(nn.Linear(input_dim, output_dim)) # single layer
+            elif i == 0 and self.num_layers > 1:
+                linears.append(nn.Linear(input_dim, hidden_size)) # input layer of num_layer >= 2
+            elif i == self.num_layers - 1 and self.num_layers > 1:
+                linears.append(nn.Linear(hidden_size, output_dim)) # output layer of num_layer >= 2
+            else: 
+                linears.append(nn.Linear(hidden_size, hidden_size)) # middle layer
         self.linears = nn.ModuleList(linears)
-
-        self.output_layer = nn.Linear(hidden_size, output_dim)
+        assert self.num_layers == len(self.linears)
 
         if not self.linear:
             self.drop = nn.Dropout(p=drop)
@@ -102,18 +107,14 @@ class LinearClassifier(nn.Module):
         if self.sequencial:
             features, h_n = self.rnn(features)
 
-        hidden = self.input_layer(features)
-        if not self.linear:
-            hidden = self.drop(hidden)
-            hidden = self.act_fn(hidden)
-
-        for linear in self.linears:
-            hidden = linear(hidden)
-            if not self.linear: 
+        hidden = features
+        for i, linear_layer in enumerate(self.linears):
+            hidden = linear_layer(hidden)
+            if not self.linear and ((i+1) < self.num_layers): 
                 hidden = self.drop(hidden)
                 hidden = self.act_fn(hidden)
 
-        logits = self.output_layer(hidden)
+        logits = hidden
         prob = self.out_fn(logits)
         
         if labels is not None:
