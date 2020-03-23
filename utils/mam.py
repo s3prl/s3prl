@@ -42,7 +42,7 @@ def cal_angle(position, hid_idx,hidden_size):
 def get_posi_angle_vec(position,hidden_size):
     return [cal_angle(position, hid_j,hidden_size) for hid_j in range(hidden_size)]
 
-@lru_cache(maxsize=5)
+@lru_cache(maxsize=1)
 def static_position_table_f(hidden_size,max_length=2000):
 
     sinusoid_table          = np.array([get_posi_angle_vec(pos_i,hidden_size) for pos_i in range(2000)])
@@ -52,7 +52,6 @@ def static_position_table_f(hidden_size,max_length=2000):
 
     return sinusoid_table
 
-@lru_cache(maxsize=10)
 def position_encoding(hidden_size, sinusoid_table, batch_size=None, padding_idx=None):
     ''' Sinusoid position encoding table '''
 
@@ -102,7 +101,7 @@ def process_train_MAM_data(spec, config=None):
         attn_mask = np.ones((batch_size, seq_len)) # (batch_size, seq_len)
         valid_idx = []
         
-        for idx in range(len(spec_stacked)):
+        for idx in range(batch_size):
 
             instance_consecutive  =  np.random.choice(np.arange(0,mask_consecutive), size=(1,)) +1
             instance_random_dices =  torch.rand(1)
