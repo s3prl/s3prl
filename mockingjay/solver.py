@@ -342,12 +342,12 @@ class Trainer(Solver):
 
             spec_masked = spec_masked.to(device=self.device)
             if pos_enc.dim() == 3:
-                # pos_enc: (bsx, seqlen, hidden_size)
-                # GPU memory need [bsx * seqlen * hidden_size]
+                # pos_enc: (batch_size, seq_len, hidden_size)
+                # GPU memory need (batch_size * seq_len * hidden_size)
                 pos_enc = torch.FloatTensor(pos_enc).to(device=self.device)
             elif pos_enc.dim() == 2:
-                # pos_enc: (seqlen, hidden_size)
-                # GPU memory only need [seqlen * hidden_size] even after expanded
+                # pos_enc: (seq_len, hidden_size)
+                # GPU memory only need (seq_len * hidden_size) even after expanded
                 pos_enc = torch.FloatTensor(pos_enc).to(device=self.device).expand(spec_masked.size(0), *pos_enc.size())
             mask_label = torch.BoolTensor(mask_label).to(device=self.device)
             attn_mask = torch.FloatTensor(attn_mask).to(device=self.device)
@@ -488,7 +488,14 @@ class Tester(Solver):
         attn_mask = spec[2].squeeze(0)
     
         spec_stacked = spec_stacked.to(device=self.device)
-        pos_enc = torch.FloatTensor(pos_enc).to(device=self.device)
+        if pos_enc.dim() == 3:
+            # pos_enc: (batch_size, seq_len, hidden_size)
+            # GPU memory need (batch_size * seq_len * hidden_size)
+            pos_enc = torch.FloatTensor(pos_enc).to(device=self.device)
+        elif pos_enc.dim() == 2:
+            # pos_enc: (seq_len, hidden_size)
+            # GPU memory only need (seq_len * hidden_size) even after expanded
+            pos_enc = torch.FloatTensor(pos_enc).to(device=self.device).expand(spec_stacked.size(0), *pos_enc.size())
         attn_mask = torch.FloatTensor(attn_mask).to(device=self.device)
         return spec_stacked, pos_enc, attn_mask # (x, pos_enc, attention_mask)
 

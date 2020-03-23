@@ -47,8 +47,7 @@ def get_sinusoid_table(hidden_size):
     sinusoid_table = np.array([get_posi_angle_vec(pos_i) for pos_i in range(MAX_SEQLEN)])
     sinusoid_table[:, 0::2] = np.sin(sinusoid_table[:, 0::2])  # dim 2i
     sinusoid_table[:, 1::2] = np.cos(sinusoid_table[:, 1::2])  # dim 2i+1
-    return sinusoid_table
-
+    return torch.FloatTensor(sinusoid_table)
 
 def position_encoding(seq_len, hidden_size, batch_size=None, padding_idx=None):
     ''' position encoding table '''
@@ -187,7 +186,7 @@ def process_test_MAM_data(spec, config=None):
         batch_size = spec_stacked.shape[0]
         seq_len = spec_stacked.shape[1]
 
-        pos_enc = position_encoding(seq_len, hidden_size, batch_size) # (batch_size, seq_len, hidden_size)
+        pos_enc = position_encoding(seq_len, hidden_size) # (seq_len, hidden_size)
         attn_mask = np.ones((batch_size, seq_len)) # (batch_size, seq_len)
 
         # zero vectors for padding dimension
