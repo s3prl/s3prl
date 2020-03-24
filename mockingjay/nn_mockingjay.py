@@ -148,7 +148,7 @@ class MOCKINGJAY(nn.Module):
         batch_size = spec_stacked.shape[0]
         seq_len = spec_stacked.shape[1]
 
-        pos_enc = position_encoding(seq_len, self.hidden_size) # (batch_size, seq_len, hidden_size)
+        pos_enc = position_encoding(seq_len, self.hidden_size) # (seq_len, hidden_size)
         attn_mask = np.ones((batch_size, seq_len)) # (batch_size, seq_len)
 
         # zero vectors for padding dimension
@@ -156,9 +156,9 @@ class MOCKINGJAY(nn.Module):
             pos_enc[idx][spec_len[idx]:] = 0  
             attn_mask[idx][spec_len[idx]:] = 0 
 
-        spec_stacked = spec_stacked.to(device=self.device, dtype=torch.float32)
-        pos_enc = torch.FloatTensor(pos_enc).to(device=self.device, dtype=torch.float32).expand(spec_stacked.size(0), *pos_enc.size())
-        attn_mask = torch.FloatTensor(attn_mask).to(device=self.device, dtype=torch.float32)
+        spec_stacked = spec_stacked.to(device=self.device, dtype=torch.float32) # (batch_size, seq_len, mel_dim * dr)
+        pos_enc = torch.FloatTensor(pos_enc).to(device=self.device, dtype=torch.float32).expand(spec_stacked.size(0), *pos_enc.size()) # (batch_size, seq_len, hidden_size)
+        attn_mask = torch.FloatTensor(attn_mask).to(device=self.device, dtype=torch.float32) # (batch_size, seq_len)
         return spec_stacked, pos_enc, attn_mask # (x, pos_enc, attention_mask)
 
 
@@ -222,6 +222,8 @@ class MOCKINGJAY(nn.Module):
 
 MAX_SEQLEN = 3000
 @lru_cache(maxsize=1)
+
+
 def get_sinusoid_table(hidden_size):
     def cal_angle(position, hid_idx):
         return position / np.power(10000, 2 * (hid_idx // 2) / hidden_size)
