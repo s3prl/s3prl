@@ -24,8 +24,12 @@ class Timer():
             self.timings[marker].append( float(time.time() - self.start_time) )
 
     def report(self):
-        print('[TIMER]:')
-        for marker in self.timings:
-            print(f'{marker}: {torch.FloatTensor(self.timings[marker]).mean().item()}')
+        n_points = len(self.timings.keys())
+        if n_points > 0:
+            print('[TIMER]:')
+            for marker in self.timings:
+                print(f'{marker}: {torch.FloatTensor(self.timings[marker]).mean().item()}')
+        else:
+            print('[TIMER]: No record')
 
 timer = Timer()
