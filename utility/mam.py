@@ -101,15 +101,13 @@ def process_train_MAM_data(spec, config=None):
         assert(spec_masked.shape[1] == spec_stacked.shape[1]), 'Input and output spectrogram should have the same shape'
 
         # Record length for each uttr
-        spec_len = np.sum(np.sum(spec_stacked.data.numpy(), axis=-1) != 0, axis=-1)
-        spec_len = [int(sl) for sl in spec_len]
-
+        spec_len = (spec_stacked.sum(dim=-1) != 0).long().sum(dim=-1).tolist()
         batch_size = spec_stacked.shape[0]
         seq_len = spec_stacked.shape[1]
         
         pos_enc = position_encoding(seq_len, hidden_size) # (seq_len, hidden_size)
-        mask_label = np.zeros_like(spec_stacked)
-        attn_mask = np.ones((batch_size, seq_len)) # (batch_size, seq_len)
+        mask_label = torch.zeros_like(spec_stacked, dtype=torch.bool)
+        attn_mask = torch.ones((batch_size, seq_len)) # (batch_size, seq_len)
 
         for idx in range(batch_size):
             def starts_to_intervals(starts, consecutive):
@@ -118,11 +116,11 @@ def process_train_MAM_data(spec, config=None):
                 intervals = tiled + offset
                 return intervals.view(-1)
             
-            valid_start_max = int(spec_len[idx] - mask_consecutive - 1) # compute max valid start point for a consecutive mask
-            proportion = int(spec_len[idx] * mask_proportion // mask_consecutive)
-            chosen_starts = torch.randperm(valid_start_max)[:proportion] # draw `proportion` samples from the range (0, valid_index_range) and without replacement
+            # time masking
+            valid_start_max = max(spec_len[idx] - mask_consecutive - 1, 0) # compute max valid start point for a consecutive mask
+            proportion = round(spec_len[idx] * mask_proportion / mask_consecutive)
+            chosen_starts = torch.randperm(valid_start_max + 1)[:proportion] # draw `proportion` samples from the range (0, valid_index_range) and without replacement
             chosen_intervals = starts_to_intervals(chosen_starts, mask_consecutive)
-            
             # determine whether to mask / random / or do nothing to the frame
             dice = random.random()
             # mask to zero
@@ -130,42 +128,42 @@ def process_train_MAM_data(spec, config=None):
                 spec_masked[idx, chosen_intervals, :] = 0
             # replace to random frames
             elif dice >= 0.8 and dice < 0.9:
-                random_starts = torch.randperm(valid_start_max)[:proportion]
+                random_starts = torch.randperm(valid_start_max + 1)[:proportion]
                 random_intervals = starts_to_intervals(random_starts, mask_consecutive)
                 spec_masked[idx, chosen_intervals, :] = spec_masked[idx, random_intervals, :]
             # do nothing
             else:
                 pass
+            # the gradients will be calculated on chosen frames
+            mask_label[idx, chosen_intervals, :] = 0
 
             # frequency masking
             if mask_frequency > 0:
-                rand_bandwidth = int(torch.randperm(mask_frequency).data.cpu().numpy()[:1][0])
-                chosen_start = int(torch.randperm(spec_masked.shape[2]-rand_bandwidth).data.cpu().numpy()[:1][0])
-                spec_masked[idx, :, chosen_start:chosen_start+rand_bandwidth] = 0    
-
-            # the gradients will be calculated on all chosen frames
-            mask_label[idx, chosen_intervals, :] = 1
-            if mask_frequency > 0:
-                mask_label[idx, :, chosen_start:chosen_start+rand_bandwidth] = 1
+                rand_bandwidth = random.randint(0, mask_frequency)
+                chosen_starts = torch.randperm(spec_masked.shape[2] - rand_bandwidth)[:1]
+                chosen_intervals = starts_to_intervals(chosen_starts, rand_bandwidth)
+                spec_masked[idx, :, chosen_intervals] = 0
+                # the gradients will be calculated on chosen frames
+                mask_label[idx, :, chosen_intervals] = 1   
 
             # zero vectors for padding dimension
-            attn_mask[idx][spec_len[idx]:] = 0
-
+            attn_mask[idx, spec_len[idx]:] = 0
 
         # noise augmentation
         dice = random.random()
         if dice < noise_proportion:
             noise_sampler = torch.distributions.Normal(0, 0.2)
             spec_masked += noise_sampler.sample(spec_masked.shape)
+        
+        valid_batchid = mask_label.view(batch_size, -1).sum(dim=-1).nonzero().squeeze()
+        batch_is_valid = len(valid_batchid) > 0
+        spec_masked = spec_masked.to(dtype=torch.float32)[valid_batchid]
+        pos_enc = pos_enc.to(dtype=torch.float32)
+        mask_label = mask_label.to(dtype=torch.bool)[valid_batchid]
+        attn_mask = attn_mask.to(dtype=torch.float32)[valid_batchid]
+        spec_stacked = spec_stacked.to(dtype=torch.float32)[valid_batchid]
 
-
-        spec_masked = spec_masked.to(dtype=torch.float32)
-        pos_enc = torch.FloatTensor(pos_enc).to(dtype=torch.float32)
-        mask_label = torch.BoolTensor(mask_label).to(dtype=torch.bool)
-        attn_mask = torch.FloatTensor(attn_mask).to(dtype=torch.float32)
-        spec_stacked = spec_stacked.to(dtype=torch.float32)
-
-    return spec_masked, pos_enc, mask_label, attn_mask, spec_stacked
+    return batch_is_valid, spec_masked, pos_enc, mask_label, attn_mask, spec_stacked
 
 
 def process_test_MAM_data(spec, config=None):
@@ -182,21 +180,19 @@ def process_test_MAM_data(spec, config=None):
         spec_stacked = down_sample_frames(spec[0], dr) # (batch_size, seq_len, mel_dim * dr)
 
         # Record length for each uttr
-        spec_len = np.sum(np.sum(spec_stacked.data.numpy(), axis=-1) != 0, axis=-1)
-        spec_len = [int(sl) for sl in spec_len]
-
+        spec_len = (spec_stacked.sum(dim=-1) != 0).long().sum(dim=-1).tolist()
         batch_size = spec_stacked.shape[0]
         seq_len = spec_stacked.shape[1]
 
         pos_enc = position_encoding(seq_len, hidden_size) # (seq_len, hidden_size)
-        attn_mask = np.ones((batch_size, seq_len)) # (batch_size, seq_len)
+        attn_mask = torch.ones((batch_size, seq_len)) # (batch_size, seq_len)
 
         # zero vectors for padding dimension
         for idx in range(len(spec_stacked)):
-            attn_mask[idx][spec_len[idx]:] = 0 
+            attn_mask[idx, spec_len[idx]:] = 0 
 
         spec_stacked = spec_stacked.to(dtype=torch.float32)
-        pos_enc = torch.FloatTensor(pos_enc).to(dtype=torch.float32)
-        attn_mask = torch.FloatTensor(attn_mask).to(dtype=torch.float32)
+        pos_enc = pos_enc.to(dtype=torch.float32)
+        attn_mask = attn_mask.to(dtype=torch.float32)
 
     return spec_stacked, pos_enc, attn_mask # (x, pos_enc, attention_mask)

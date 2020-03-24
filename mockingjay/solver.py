@@ -383,9 +383,12 @@ class Trainer(Solver):
 
             progress = tqdm(self.dataloader, desc="Iteration")
 
-            for step, batch in enumerate(progress):
+            step = 0
+            for batch_is_valid, *batch in progress:
                 try:
                     if self.global_step > self.total_steps: break
+                    if not batch_is_valid: continue
+                    step += 1
                     
                     spec_masked, pos_enc, mask_label, attn_mask, spec_stacked = self.process_data(batch)
                     loss, pred_spec = self.model(spec_masked, pos_enc, mask_label, attn_mask, spec_stacked)
