@@ -11,10 +11,10 @@
 # IMPORTATION #
 ###############
 import sys
-sys.path.append('/media/andi611/1TBSSD/Mockingjay-Speech-Representation')
 import torch
 import numpy as np
 import torch.nn as nn
+from functools import lru_cache
 from distutils.util import strtobool
 from mockingjay.model import MockingjayConfig, MockingjayModel
 
@@ -126,30 +126,7 @@ class MOCKINGJAY(nn.Module):
         if left_over != 0: spec = spec[:, :-left_over, :]
         spec_stacked = spec.view(spec.shape[0], spec.shape[1]//self.dr, spec.shape[2]*self.dr)
         return spec_stacked
-
-
-    def position_encoding(self, seq_len, batch_size=None, padding_idx=None):
-        ''' Sinusoid position encoding table '''
-        def cal_angle(position, hid_idx):
-            return position / np.power(10000, 2 * (hid_idx // 2) / self.hidden_size)
-     
-        def get_posi_angle_vec(position):
-            return [cal_angle(position, hid_j) for hid_j in range(self.hidden_size)]
-
-        sinusoid_table = np.array([get_posi_angle_vec(pos_i) for pos_i in range(seq_len)])
-
-        sinusoid_table[:, 0::2] = np.sin(sinusoid_table[:, 0::2])  # dim 2i
-        sinusoid_table[:, 1::2] = np.cos(sinusoid_table[:, 1::2])  # dim 2i+1
-
-        if padding_idx is not None:
-            sinusoid_table[padding_idx:] = 0. # zero vector for padding dimension
-
-        if batch_size is not None:
-            batch_sinusoid_table = np.repeat(sinusoid_table[np.newaxis,...], batch_size, axis=0)
-            return batch_sinusoid_table # (batch_size, seq_len, hidden_size)
-        else:
-            return sinusoid_table  # (seq_len, hidden_size)
-
+        
 
     def process_MAM_data(self, spec):
         """Process testing data for the masked acoustic model"""
@@ -171,7 +148,7 @@ class MOCKINGJAY(nn.Module):
         batch_size = spec_stacked.shape[0]
         seq_len = spec_stacked.shape[1]
 
-        pos_enc = self.position_encoding(seq_len, batch_size) # (batch_size, seq_len, hidden_size)
+        pos_enc = position_encoding(seq_len, self.hidden_size) # (batch_size, seq_len, hidden_size)
         attn_mask = np.ones((batch_size, seq_len)) # (batch_size, seq_len)
 
         # zero vectors for padding dimension
@@ -180,7 +157,7 @@ class MOCKINGJAY(nn.Module):
             attn_mask[idx][spec_len[idx]:] = 0 
 
         spec_stacked = spec_stacked.to(device=self.device, dtype=torch.float32)
-        pos_enc = torch.FloatTensor(pos_enc).to(device=self.device, dtype=torch.float32)
+        pos_enc = torch.FloatTensor(pos_enc).to(device=self.device, dtype=torch.float32).expand(spec_stacked.size(0), *pos_enc.size())
         attn_mask = torch.FloatTensor(attn_mask).to(device=self.device, dtype=torch.float32)
         return spec_stacked, pos_enc, attn_mask # (x, pos_enc, attention_mask)
 
@@ -242,3 +219,26 @@ class MOCKINGJAY(nn.Module):
             x = self._forward(x)
         return x
 
+
+MAX_SEQLEN = 3000
+@lru_cache(maxsize=1)
+def get_sinusoid_table(hidden_size):
+    def cal_angle(position, hid_idx):
+        return position / np.power(10000, 2 * (hid_idx // 2) / hidden_size)
+        
+    def get_posi_angle_vec(position):
+        return [cal_angle(position, hid_j) for hid_j in range(hidden_size)]
+
+    sinusoid_table = np.array([get_posi_angle_vec(pos_i) for pos_i in range(MAX_SEQLEN)])
+    sinusoid_table[:, 0::2] = np.sin(sinusoid_table[:, 0::2])  # dim 2i
+    sinusoid_table[:, 1::2] = np.cos(sinusoid_table[:, 1::2])  # dim 2i+1
+    return torch.FloatTensor(sinusoid_table)
+
+
+def position_encoding(seq_len, hidden_size):
+    ''' position encoding table '''      
+    table = get_sinusoid_table(hidden_size)[:seq_len]
+    # no extra CPU and GPU memory allocation
+    # after getting the (seq_len, hidden_size) tensor, one should first put
+    # this tensor into GPU then expand it
+    return table  # (seq_len, hidden_size)
