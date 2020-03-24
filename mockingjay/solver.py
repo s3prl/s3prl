@@ -96,11 +96,18 @@ class Solver():
         
         if not inference or with_head:
             self.model = MockingjayForMaskedAcousticModel(self.model_config, self.input_dim, self.output_dim, self.output_attention).to(self.device)
-            self.verbose('Number of parameters: ' + str(sum(p.numel() for p in self.model.parameters() if p.requires_grad)))
             self.mockingjay = self.model.Mockingjay
+            if self.paras.multi_gpu:
+                self.model = torch.nn.DataParallel(self.model)
+                self.mockingjay = torch.nn.DataParallel(self.mockingjay)
+                self.verbose('Multi-GPU training Enabled: ' + str(torch.cuda.device_count()))
+            self.verbose('Number of parameters: ' + str(sum(p.numel() for p in self.model.parameters() if p.requires_grad)))
 
         if inference and not with_head:
             self.mockingjay = MockingjayModel(self.model_config, self.input_dim, self.output_attention).to(self.device)
+            if self.paras.multi_gpu:
+                self.mockingjay = torch.nn.DataParallel(self.mockingjay)
+                self.verbose('Multi-GPU training Enabled: ' + str(torch.cuda.device_count()))
             self.verbose('Number of parameters: ' + str(sum(p.numel() for p in self.mockingjay.parameters() if p.requires_grad)))
             self.mockingjay.eval()
         elif inference and with_head:
@@ -149,8 +156,8 @@ class Solver():
     def save_model(self, name, model_all=True):
         if model_all:
             all_states = {
-                'SpecHead': self.model.SpecHead.state_dict(),
-                'Mockingjay': self.mockingjay.state_dict(),
+                'SpecHead': self.model.SpecHead.state_dict() if not self.paras.multi_gpu else self.model.module.SpecHead.state_dict(),
+                'Mockingjay': self.mockingjay.state_dict() if not self.paras.multi_gpu else self.mockingjay.module.state_dict(),
                 'Optimizer': self.optimizer.state_dict(),
                 'Global_step': self.global_step,
                 'Settings': {
@@ -160,7 +167,7 @@ class Solver():
             }
         else:
             all_states = {
-                'Mockingjay': self.mockingjay.state_dict(),
+                'Mockingjay': self.mockingjay.state_dict() if not self.paras.multi_gpu else self.mockingjay.module.state_dict(),
                 'Settings': {
                     'Config': self.config,
                     'Paras': self.paras,
@@ -187,9 +194,13 @@ class Solver():
         if 'SpecHead' in self.load_model_list:
             if not inference or with_head:
                 try:
-                    self.model.SpecHead.load_state_dict(all_states['SpecHead'])
+                    if not self.paras.multi_gpu:
+                        self.model.SpecHead.load_state_dict(all_states['SpecHead'])
+                    else:
+                        self.model.module.SpecHead.load_state_dict(all_states['SpecHead'])
                     self.verbose('[SpecHead] - Loaded')
                 except: self.verbose('[SpecHead - X]')
+                
         if 'Mockingjay' in self.load_model_list:
             try:
                 state_dict = all_states['Mockingjay']
@@ -225,7 +236,12 @@ class Solver():
                         if child is not None:
                             load(child, prefix + name + '.')
 
-                load(self.mockingjay)
+                # perform load
+                if not self.paras.multi_gpu:
+                    load(self.mockingjay)
+                else:
+                    load(self.mockingjay.module)
+
                 if len(missing_keys) > 0:
                     self.verbose("Weights of {} not initialized from pretrained model: {}".format(
                         self.mockingjay.__class__.__name__, missing_keys))
@@ -377,8 +393,13 @@ class Trainer(Solver):
                     # Accumulate Loss
                     if self.gradient_accumulation_steps > 1:
                         loss = loss / self.gradient_accumulation_steps
-                    if self.apex:
+                    if self.apex and self.paras.multi_gpu:
+                        raise NotImplementedError
+                    elif self.apex:
                         self.optimizer.backward(loss)
+                    elif self.paras.multi_gpu:
+                        loss = loss.sum()
+                        loss.backward()
                     else:
                         loss.backward()
 

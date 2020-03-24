@@ -36,7 +36,6 @@ def get_mockingjay_args():
     parser.add_argument('--load', action='store_true', help='Load pre-trained model to restore training, no need to specify this during testing.')
     parser.add_argument('--ckpdir', default='result/result_mockingjay/', type=str, help='Checkpoint/Result path.', required=False)
     parser.add_argument('--ckpt', default='mockingjay_libri_sd1337_LinearLarge/mockingjay-500000.ckpt', type=str, help='path to mockingjay model checkpoint.', required=False)
-    # parser.add_argument('--ckpt', default='mockingjay_libri_sd1337_MelBase/mockingjay-500000.ckpt', type=str, help='path to mockingjay model checkpoint.', required=False)
     parser.add_argument('--dckpt', default='baseline_sentiment_libri_sd1337/baseline_sentiment-500000.ckpt', type=str, help='path to downstream checkpoint.', required=False)
     parser.add_argument('--apc_path', default='./result/result_apc/apc_libri_sd1337_standard/apc-500000.ckpt', type=str, help='path to the apc model checkpoint.', required=False)
 
@@ -68,13 +67,14 @@ def get_mockingjay_args():
     parser.add_argument('--output_attention', action='store_true', help='plot attention')
     parser.add_argument('--load_ws', default='result/result_mockingjay_sentiment/10111754-10170300-weight_sum/best_val.ckpt', help='load weighted-sum weights from trained downstream model')
     parser.add_argument('--cpu', action='store_true', help='Disable GPU training.')
-    parser.add_argument('--no-msg', action='store_true', help='Hide all messages.')
+    parser.add_argument('--multi_gpu', action='store_true', help='Enable Multi-GPU training.')
+    parser.add_argument('--no_msg', action='store_true', help='Hide all messages.')
 
 
     args = parser.parse_args()
     setattr(args,'gpu', not args.cpu)
     setattr(args,'verbose', not args.no_msg)
-    config = yaml.load(open(args.config,'r'))
+    config = yaml.load(open(args.config,'r'), Loader=yaml.FullLoader)
     
     return config, args
 

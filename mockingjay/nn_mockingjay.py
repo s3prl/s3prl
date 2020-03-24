@@ -220,7 +220,8 @@ class MOCKINGJAY(nn.Module):
         return x
 
 
-MAX_SEQLEN = 3000
+MAX_SEQLEN = 5000
+
 
 @lru_cache(maxsize=1)
 def get_sinusoid_table(hidden_size):
