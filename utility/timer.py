@@ -6,7 +6,7 @@ import torch
 
 class Timer():
     def __init__(self):
-        self.timings = defaultdict(list)
+        self.timings = {}
         self.start_time = 0
 
     def start(self):
@@ -18,7 +18,10 @@ class Timer():
         filename = frameinfo.filename
         filename = '/'.join(filename.split('/')[-2:])
         marker = f'{filename}:{frameinfo.lineno}'
-        self.timings[marker].append( float(time.time() - self.start_time) )
+        if marker not in self.timings.keys():
+            self.timings[marker] = []
+        else:
+            self.timings[marker].append( float(time.time() - self.start_time) )
 
     def report(self):
         print('[TIMER]:')
