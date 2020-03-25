@@ -289,15 +289,15 @@ class Solver():
         return position / np.power(10000, 2 * (hid_idx // 2) / hidden_size)
 
     def get_posi_angle_vec(self, position,hidden_size):
-        return [cal_angle(position, hid_j,hidden_size) for hid_j in range(hidden_size)]
+        return [self.cal_angle(position, hid_j,hidden_size) for hid_j in range(hidden_size)]
 
     @lru_cache(maxsize=1)
-    def static_position_table_f(self, hidden_size,max_length=2000):
+    def static_position_table_f(self, hidden_size,max_length=3000):
 
-        sinusoid_table          = np.array([get_posi_angle_vec(pos_i,hidden_size) for pos_i in range(2000)])
+        sinusoid_table          = np.array([self.get_posi_angle_vec(pos_i,hidden_size) for pos_i in range(3000)])
         sinusoid_table[:, 0::2] = np.sin(sinusoid_table[:, 0::2])
         sinusoid_table[:, 1::2] = np.cos(sinusoid_table[:, 1::2])  
-        sinusoid_table          = torch.FloatTensor(sinusoid_table).to(dtype=torch.float32)
+        sinusoid_table          = torch.from_numpy(sinusoid_table).to(dtype=torch.float32)
 
         return sinusoid_table
 
@@ -358,9 +358,9 @@ class Trainer(Solver):
             spec_stacked = spec[4].squeeze(0)
 
             spec_masked = spec_masked.to(device=self.device)
-            pos_enc = torch.FloatTensor(pos_enc).to(device=self.device)
+            pos_enc = pos_enc.to(device=self.device)
             mask_label = torch.BoolTensor(mask_label).to(device=self.device)
-            attn_mask = torch.FloatTensor(attn_mask).to(device=self.device)
+            attn_mask = attn_mask.to(device=self.device)
             spec_stacked = spec_stacked.to(device=self.device)
 
         return spec_masked, pos_enc, mask_label, attn_mask, spec_stacked # (x, pos_enc, mask_label, attention_mask. y)
@@ -488,12 +488,12 @@ class Tester(Solver):
         attn_mask = np.ones((batch_size, seq_len)) # (batch_size, seq_len)
 
         # zero vectors for padding dimension
-        for idx in range(len(spec_stacked)):
+        for idx in range(batch_size):
             pos_enc[idx][spec_len[idx]:] = 0  
             attn_mask[idx][spec_len[idx]:] = 0 
 
         spec_stacked = spec_stacked.to(device=self.device, dtype=torch.float32)
-        pos_enc = torch.FloatTensor(pos_enc).to(device=self.device, dtype=torch.float32)
+        pos_enc = pos_enc.to(device=self.device, dtype=torch.float32)
         attn_mask = torch.FloatTensor(attn_mask).to(device=self.device, dtype=torch.float32)
         return spec_stacked, pos_enc, attn_mask # (x, pos_enc, attention_mask)
 
@@ -506,8 +506,8 @@ class Tester(Solver):
         attn_mask = spec[2].squeeze(0)
     
         spec_stacked = spec_stacked.to(device=self.device)
-        pos_enc = torch.FloatTensor(pos_enc).to(device=self.device)
-        attn_mask = torch.FloatTensor(attn_mask).to(device=self.device)
+        pos_enc = pos_enc.to(device=self.device)
+        attn_mask = attn_mask.to(device=self.device)
         return spec_stacked, pos_enc, attn_mask # (x, pos_enc, attention_mask)
 
 
