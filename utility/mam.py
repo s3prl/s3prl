@@ -124,7 +124,7 @@ def process_train_MAM_data(spec, config=None):
             mask_consecutive = random.randint(mask_consecutive_min, mask_consecutive_max)
             valid_start_max = max(spec_len[idx] - mask_consecutive - 1, 0) # compute max valid start point for a consecutive mask
             proportion = round(spec_len[idx] * mask_proportion / mask_consecutive)
-            if not mask_allow_overlap:
+            if mask_allow_overlap:
                 # draw `proportion` samples from the range (0, valid_index_range) and without replacement
                 chosen_starts = torch.randperm(valid_start_max + 1)[:proportion]
             else:
