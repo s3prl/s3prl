@@ -124,7 +124,7 @@ def process_train_MAM_data(spec, config=None):
             chosen_intervals = starts_to_intervals(chosen_starts, mask_consecutive)
             
             # determine whether to mask / random / or do nothing to the frame
-            dice = torch.rand(1).data.cpu()
+            dice = random.random()
             # mask to zero
             if bool(dice < 0.8):
                 spec_masked[idx, chosen_intervals, :] = 0
@@ -153,10 +153,10 @@ def process_train_MAM_data(spec, config=None):
 
 
         # noise augmentation
-        dice = torch.rand(1).data.cpu()
+        dice = random.random()
         if bool(dice < noise_proportion):
-            noise = np.random.normal(0, 0.2, spec_masked.shape)
-            spec_masked += torch.FloatTensor(noise)
+            noise_sampler = torch.distributions.Normal(0, 0.2)
+            spec_masked += noise_sampler.sample(spec_masked.shape)
 
 
         spec_masked = spec_masked.to(dtype=torch.float32)
