@@ -140,7 +140,7 @@ def process_train_MAM_data(spec, config=None):
             # frequency masking
             if mask_frequency > 0:
                 rand_bandwidth = int(torch.randperm(mask_frequency).data.cpu().numpy()[:1][0])
-                chosen_start = int(torch.randperm(spec_stacked.shape[2]-rand_bandwidth).data.cpu().numpy()[:1][0])
+                chosen_start = int(torch.randperm(spec_masked.shape[2]-rand_bandwidth).data.cpu().numpy()[:1][0])
                 spec_masked[idx, :, chosen_start:chosen_start+rand_bandwidth] = 0    
 
             # the gradients will be calculated on all chosen frames
