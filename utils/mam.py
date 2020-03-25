@@ -117,13 +117,14 @@ def process_train_MAM_data(spec, config=None):
             valid_idx += [idx]
             step = (instance_consecutive + consecutive_offset)
             bound_indexes = np.arange(start_point, valid_index, step ) 
-            chosen_index = torch.LongTensor(np.random.permutation(bound_indexes)[:int(instance_proportions)]) # draw `proportion` samples from the range (0, valid_index_range) and without replacement
+            chosen_index = torch.from_numpy(np.random.permutation(bound_indexes)[:int(instance_proportions)]).long() # draw `proportion` samples from the range (0, valid_index_range) and without replacement
             
             chosen_index     = chosen_index.unsqueeze(-1)
             mapping          = chosen_index.expand(chosen_index.size(0),int(instance_consecutive))
-            offset           = torch.LongTensor(np.arange(instance_consecutive)).expand(chosen_index.size(0), int(instance_consecutive))
+            offset           = torch.from_numpy(np.arange(instance_consecutive)).long().expand(chosen_index.size(0), int(instance_consecutive))
             indexes          = mapping + offset
             one_line_indexes = indexes.view(-1) 
+            
             if bool(instance_random_dices < 0.8):
                 spec_masked[idx][one_line_indexes] = 0
             # replace to random frames

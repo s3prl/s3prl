@@ -38,7 +38,7 @@ def get_mockingjay_args():
     parser.add_argument('--load', action='store_true', help='Load pre-trained model to restore training, no need to specify this during testing.')
     
     # !!!!!!!!!!!!!!!!!!
-    parser.add_argument('--ckpdir', default='../result_albert/albert-linear-2l', type=str, help='Checkpoint/Result path.', required=False)
+    parser.add_argument('--ckpdir', default='../result_albert/albert-3l-melbase-consecutive20', type=str, help='Checkpoint/Result path.', required=False)
     # parser.add_argument('--ckpt', default="/mnt/newMockingjay/result_albert/albert_2_25_mockingjay_5e-5/mockingjay_libri_sd1337/mockingjayAlbert-250000.ckpt", type=str, help='path to mockingjay model checkpoint.', required=False)
     parser.add_argument('--ckpt', default="mockingjay_libri_sd1337/mockingjayAlbert-490000.ckpt", type=str, help='path to mockingjay model checkpoint.', required=False)
 
@@ -76,12 +76,12 @@ def main():
     
     # get arguments
     config, args = get_mockingjay_args()
-    wandb=None
-    # wandb.init(config=config,project="albert-mockingjay",name="albert-2l-linear")#,resume=True)
+    # wandb=None
+    wandb.init(config=config,project="albert-mockingjay",name="albert-3l-melbase-consecutive20")#,resume=True)
 
     # if args.wandb_service:
     # wandb.init(config=config,project="albert-mockingjay",name="albert-3-linear-2")#,resume=True)
-    # wandb.config.update(args)
+    wandb.config.update(args)
     # Fix seed and make backends deterministic
     random.seed(args.seed)
     np.random.seed(args.seed)
