@@ -17,6 +17,7 @@ mockingjay:
   mask_frequency: 8                                     # mask maximum this amount of frequency bands, set to 0 for no frequency mask
   noise_proportion: 0.15                                # for this percentage of the time, Gaussian noise will be applied on all frames during MAM training, set to 0 for no noise
 
+
 optimizer: 
   learning_rate: "4e-4"                                 # Learning rate for opt
   loss_scale: 0                                         # Loss scale to improve fp16 numeric stability. Only used when apex is set to True. 0: dynamic loss scaling. positive power of 2: static loss scaling.
