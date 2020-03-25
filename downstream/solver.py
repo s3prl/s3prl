@@ -23,11 +23,11 @@ import torch.nn.functional as F
 from tensorboardX import SummaryWriter
 from dataloader import get_Dataloader
 from mockingjay.solver import Solver, Tester
-from mockingjay.optimization import BertAdam
 from downstream.model import LinearClassifier, RnnClassifier, MeanLinearClassifier, MeanLinearClassifier_v2
 from utils.audio import mel_dim, num_freq, sample_rate, inv_spectrogram
 from utils.timer import Timer
 from runner_apc import get_apc_model
+from mockingjay.optimization import BertAdam, WarmupLinearSchedule, Lamb, get_linear_schedule_with_warmup
 
 
 ##########
@@ -157,7 +157,8 @@ class Downstream_Solver(Solver):
             self.optimizer = get_mockingjay_optimizer(params=param_optimizer, 
                                                       lr=self.learning_rate, 
                                                       warmup_proportion=self.config['optimizer']['warmup_proportion'],
-                                                      training_steps=self.total_steps)
+                                                      training_steps=self.total_steps,
+                                                      optimizer="LAMB")
         elif not inference:
             self.optimizer = Adam(self.classifier.parameters(), lr=self.learning_rate, betas=(0.9, 0.999))
             self.classifier.train()
@@ -508,14 +509,15 @@ class Downstream_Tester(Downstream_Solver):
         return average_loss, test_acc, all_logits
 
 
-def get_mockingjay_optimizer(params, lr, warmup_proportion, training_steps):
+def get_mockingjay_optimizer(params, lr, warmup_proportion, training_steps,optimizer=None):
     no_decay = ['bias', 'LayerNorm.bias', 'LayerNorm.weight']
     optimizer_grouped_parameters = [
         {'params': [p for n, p in params if not any(nd in n for nd in no_decay)], 'weight_decay': 0.01},
         {'params': [p for n, p in params if any(nd in n for nd in no_decay)], 'weight_decay': 0.0}
         ]
-    optimizer = BertAdam(optimizer_grouped_parameters,
-                         lr=lr,
-                         warmup=warmup_proportion,
-                         t_total=training_steps)
+    if optimizer == 'LAMB':
+        optimizer = Lamb(optimizer_grouped_parameters, lr=lr, eps=1e-9)
+
+    if optimizer == "ADAM" or optimizer is None:
+        optimizer = BertAdam(optimizer_grouped_parameters,lr=lr,warmup=warmup_proportion,t_total=training_steps)
     return optimizer
