@@ -141,13 +141,7 @@ def process_train_MAM_data(spec, config=None):
             if mask_frequency > 0:
                 rand_bandwidth = int(torch.randperm(mask_frequency).data.cpu().numpy()[:1][0])
                 chosen_start = int(torch.randperm(spec_stacked.shape[2]-rand_bandwidth).data.cpu().numpy()[:1][0])
-                spec_masked[idx, :, chosen_start:chosen_start+rand_bandwidth] = 0
-                
-            # noise augmentation
-            dice = torch.rand(1).data.cpu()
-            if bool(dice < noise_proportion):
-                noise = np.random.normal(0, 0.1, spec_masked.shape)
-                spec_masked += torch.FloatTensor(noise)
+                spec_masked[idx, :, chosen_start:chosen_start+rand_bandwidth] = 0    
 
             # the gradients will be calculated on all chosen frames
             mask_label[idx, chosen_intervals, :] = 1
@@ -156,6 +150,14 @@ def process_train_MAM_data(spec, config=None):
 
             # zero vectors for padding dimension
             attn_mask[idx][spec_len[idx]:] = 0
+
+
+        # noise augmentation
+        dice = torch.rand(1).data.cpu()
+        if bool(dice < noise_proportion):
+            noise = np.random.normal(0, 0.2, spec_masked.shape)
+            spec_masked += torch.FloatTensor(noise)
+
 
         spec_masked = spec_masked.to(dtype=torch.float32)
         pos_enc = torch.FloatTensor(pos_enc).to(dtype=torch.float32)
