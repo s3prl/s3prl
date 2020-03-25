@@ -24,6 +24,7 @@ DR = 3
 HIDDEN_SIZE = 768
 MASK_PROPORTION = 0.15
 MASK_CONSECUTIVE = 1
+MASK_BUCKET_RATIO = 1.2
 MASK_FREQUENCY = 8
 NOISE_PROPORTION = 0.15
 MAX_SEQLEN = 3000
@@ -81,7 +82,10 @@ def process_train_MAM_data(spec, config=None):
     dr = config['downsample_rate'] if config is not None else DR
     hidden_size = config['hidden_size'] if config is not None else HIDDEN_SIZE
     mask_proportion = config['mask_proportion'] if config is not None else MASK_PROPORTION
-    mask_consecutive = config['mask_consecutive'] if config is not None else MASK_CONSECUTIVE
+    mask_consecutive_min = config['mask_consecutive_min'] if config is not None else MASK_CONSECUTIVE
+    mask_consecutive_max = config['mask_consecutive_max'] if config is not None else MASK_CONSECUTIVE
+    mask_allow_overlap = config['mask_allow_overlap'] if config is not None else True
+    mask_bucket_ratio = config['mask_bucket_ratio'] if config is not None else MASK_BUCKET_RATIO
     mask_frequency = config['mask_frequency'] if config is not None else MASK_FREQUENCY
     noise_proportion = config['noise_proportion'] if config is not None else NOISE_PROPORTION
 
@@ -117,9 +121,17 @@ def process_train_MAM_data(spec, config=None):
                 return intervals.view(-1)
             
             # time masking
+            mask_consecutive = random.randint(mask_consecutive_min, mask_consecutive_max)
             valid_start_max = max(spec_len[idx] - mask_consecutive - 1, 0) # compute max valid start point for a consecutive mask
             proportion = round(spec_len[idx] * mask_proportion / mask_consecutive)
-            chosen_starts = torch.randperm(valid_start_max + 1)[:proportion] # draw `proportion` samples from the range (0, valid_index_range) and without replacement
+            if not mask_allow_overlap:
+                # draw `proportion` samples from the range (0, valid_index_range) and without replacement
+                chosen_starts = torch.randperm(valid_start_max + 1)[:proportion]
+            else:
+                mask_bucket_size = round(mask_consecutive * mask_bucket_ratio)
+                rand_start = random.randint(0, min(mask_consecutive, valid_start_max))
+                valid_starts = torch.arange(rand_start, valid_start_max + 1, mask_bucket_size)
+                chosen_starts = valid_starts[torch.randperm(len(valid_starts))[:proportion]]
             chosen_intervals = starts_to_intervals(chosen_starts, mask_consecutive)
             # determine whether to mask / random / or do nothing to the frame
             dice = random.random()
