@@ -30,6 +30,7 @@ from mockingjay.optimization import get_linear_schedule_with_warmup
 import pdb
 import apex
 from apex import amp
+from functools import lru_cache
 
 
 ##########
@@ -439,10 +440,13 @@ class Trainer(Solver):
                             self.log.add_image('pred_spec', pred_spec, self.global_step)
                             self.log.add_image('true_spec', true_spec, self.global_step)
                 
-                except RuntimeError:
-                    print('CUDA out of memory at step: ', self.global_step)
-                    torch.cuda.empty_cache()
-                    self.model.zero_grad()
+                except RuntimeError as e:
+                    if 'CUDA out of memory' in str(e):
+                        print('CUDA out of memory at step: ', self.global_step)
+                        torch.cuda.empty_cache()
+                        self.optimizer.zero_grad()
+                    else:
+                        raise
         pbar.close()
         self.reset_train()
         

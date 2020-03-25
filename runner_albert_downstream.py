@@ -34,14 +34,14 @@ def get_mockingjay_args():
     parser.add_argument('--logdir', default='log/log_mockingjay_albert_3_layer_resume_5e-5/', type=str, help='Logging path.', required=False)
     parser.add_argument('--name', default=None, type=str, help='Name for logging.', required=False)
 
-    # model ckpt
+    # model ckpt[]
     parser.add_argument('--load', action='store_true', help='Load pre-trained model to restore training, no need to specify this during testing.')
     # parser.add_argument('--ckpdir', default='../result_albert/albert_2_25_mockingjay_5e-5', type=str, help='Checkpoint/Result path.', required=False)
     # parser.add_argument('--ckpdir', default='../result_albert/albert-650000/albert_3l_melbase', type=str, help='Checkpoint/Result path.', required=False)
     #parser.add_argument('--ckpdir', default='../result_albert/albert-650000/albert_6l_melbase', type=str, help='Checkpoint/Result path.', required=False)
-    parser.add_argument('--ckpdir', default='../result_albert/albert-650000/albert_3l_mask1', type=str, help='Checkpoint/Result path.', required=False)
+    # parser.add_argument('--ckpdir', default='../result_albert/albert-650000/albert_3l_mask1', type=str, help='Checkpoint/Result path.', required=False)
     # parser.add_argument('--ckpdir', default='../result_albert/albert-650000/albert_12l_mask1', type=str, help='Checkpoint/Result path.', required=False)
-    # parser.add_argument('--ckpdir', default='../result_albert/albert-650000/albert_', type=str, help='Checkpoint/Result path.', required=False)
+    parser.add_argument('--ckpdir', default='../result_albert/albert-650000/albert_6l_mask1_number1', type=str, help='Checkpoint/Result path.', required=False)
 
     parser.add_argument('--ckpt', default="mockingjay_libri_sd1337/mockingjayAlbert-490000.ckpt", type=str, help='path to mockingjay model checkpoint.', required=False)
 
@@ -50,7 +50,6 @@ def get_mockingjay_args():
     parser.add_argument('--apc_path', default='./result/result_apc/apc_libri_sd1337_standard/apc-500000.ckpt', type=str, help='path to the apc model checkpoint.', required=False)
 
     # mockingjay
-    parser.add_argument('--train', action='store_true', help='Train the model.')
     parser.add_argument('--run_mockingjay', action='store_true', help='train and test the downstream tasks using mockingjay representations.')
     parser.add_argument('--run_apc', action='store_true', help='train and test the downstream tasks using apc representations.')
     parser.add_argument('--fine_tune', action='store_true', help='fine tune the mockingjay model with downstream task.')
@@ -69,6 +68,8 @@ def get_mockingjay_args():
     parser.add_argument('--test_speaker', action='store_true', help='Test mel or mockingjay representations using the trained speaker classifier.')
     
     # Options
+    parser.add_argument('--epoch_train', action='store_true', help='inference with the spectrogram head, the model outputs spectrogram.')
+    
     parser.add_argument('--with_head', action='store_true', help='inference with the spectrogram head, the model outputs spectrogram.')
     parser.add_argument('--output_attention', action='store_true', help='plot attention')
     parser.add_argument('--load_ws', default='result/result_mockingjay_sentiment/10111754-10170300-weight_sum/best_val.ckpt', help='load weighted-sum weights from trained downstream model')
@@ -93,7 +94,7 @@ def main():
     # get arguments
     config, args = get_mockingjay_args()
     # wandb.init(config=config,project="albert-mockingjay-downstream-task")#,resume=True)
-    wandb.init(config=config,project="albert-mockingjay-downstream-task",name="SEALBERT-3LAYER")#,resume=True)
+    wandb.init(config=config,project="albert-mockingjay-downstream-task",name="SEALBERT-6L-finetune")#,resume=True)
     wandb.config.update(args)
     # Fix seed and make backends deterministic
     random.seed(args.seed)
@@ -103,23 +104,17 @@ def main():
     torch.backends.cudnn.deterministic = True
     torch.backends.cudnn.benchmark = True
 
-    # Train Mockingjay
-    if args.train:
-        from mockingjay.solver import Trainer
-        
-        trainer = Trainer(config, args)
-        trainer.load_data(split='train')
-        trainer.set_model(inference=False,wandb=wandb)
-        trainer.exec(wandb=wandb)
-
-    ##################################################################################
-    
     # Train Phone Task
-    elif args.train_phone:
-        from downstream.solver import Downstream_Trainer
+    if args.train_phone:
+        from downstream.solver import Downstream_Trainer, Downstream_Trainer_epoch_training
         task = 'mockingjay_phone' if args.run_mockingjay \
                 else 'apc_phone' if args.run_apc else 'baseline_phone'
-        trainer = Downstream_Trainer(config, args, task=task)
+
+        if args.epoch_train:
+            trainer = Downstream_Trainer_epoch_training(config, args, task=task)
+        else:
+            trainer = Downstream_Trainer(config, args, task=task)
+            
         trainer.load_data(split='train', load='phone')
         trainer.set_model(inference=False,wandb=wandb)
         trainer.exec(wandb=wandb)
@@ -138,10 +133,15 @@ def main():
 
     # Train Sentiment Task
     elif args.train_sentiment:
-        from downstream.solver import Downstream_Trainer
+        from downstream.solver import Downstream_Trainer, Downstream_Trainer_epoch_training
         task = 'mockingjay_sentiment' if args.run_mockingjay \
                 else 'apc_sentiment' if args.run_apc else 'baseline_sentiment'
-        trainer = Downstream_Trainer(config, args, task=task)
+
+        if args.epoch_train:
+            trainer = Downstream_Trainer_epoch_training(config, args, task=task)
+        else:
+            trainer = Downstream_Trainer(config, args, task=task)
+
         trainer.load_data(split='train', load='sentiment')
         trainer.set_model(inference=False,wandb=wandb)
         trainer.exec(wandb=wandb)
@@ -161,12 +161,16 @@ def main():
     # Train Speaker Task
     elif args.train_speaker:
         
-        from downstream.solver import Downstream_Trainer
+        from downstream.solver import Downstream_Trainer, Downstream_Trainer_epoch_training
         task = 'mockingjay_speaker' if args.run_mockingjay \
                 else 'apc_speaker' if args.run_apc else 'baseline_speaker'
-        trainer = Downstream_Trainer(config, args, task=task)
+
+        if args.epoch_train:
+            trainer = Downstream_Trainer_epoch_training(config, args, task=task)
+        else:
+            trainer = Downstream_Trainer(config, args, task=task)
+
         trainer.load_data(split='train', load='speaker')
-        # trainer.load_data(split='train', load='speaker_large') # Deprecated
         trainer.set_model(inference=False,wandb=wandb)
         trainer.exec(wandb=wandb)
 
@@ -177,7 +181,6 @@ def main():
                 else 'apc_speaker' if args.run_apc else 'baseline_speaker'
         tester = Downstream_Tester(config, args, task=task)
         tester.load_data(split='test', load='speaker')
-        # tester.load_data(split='test', load='speaker_large') # Deprecated
         tester.set_model(inference=True)
         tester.exec()
 
