@@ -137,7 +137,7 @@ class Solver():
             {'params': [p for n, p in self.model.named_parameters() if any(nd in n for nd in no_decay)], 'weight_decay': 0.0}
             ]
             
-            optimizer = Lamb(optimizer_grouped_parameters, lr=self.learning_rate, eps=1e-6)
+            optimizer = Lamb(optimizer_grouped_parameters, lr=self.learning_rate, eps=1e-9)
             num_train_optimization_steps = self.total_steps 
             if self.apex:
                 try:
@@ -285,28 +285,31 @@ class Solver():
         spec_stacked = spec.view(spec.shape[0], spec.shape[1]//self.dr, spec.shape[2]*self.dr)
         return spec_stacked
 
+    def cal_angle(self, position, hid_idx,hidden_size):
+        return position / np.power(10000, 2 * (hid_idx // 2) / hidden_size)
 
-    def position_encoding(self, seq_len, batch_size=None, padding_idx=None):
+    def get_posi_angle_vec(self, position,hidden_size):
+        return [cal_angle(position, hid_j,hidden_size) for hid_j in range(hidden_size)]
+
+    @lru_cache(maxsize=1)
+    def static_position_table_f(self, hidden_size,max_length=2000):
+
+        sinusoid_table          = np.array([get_posi_angle_vec(pos_i,hidden_size) for pos_i in range(2000)])
+        sinusoid_table[:, 0::2] = np.sin(sinusoid_table[:, 0::2])
+        sinusoid_table[:, 1::2] = np.cos(sinusoid_table[:, 1::2])  
+        sinusoid_table          = torch.FloatTensor(sinusoid_table).to(dtype=torch.float32)
+
+        return sinusoid_table
+
+    def position_encoding(self, hidden_size, sinusoid_table, batch_size=None, padding_idx=None):
         ''' Sinusoid position encoding table '''
-        def cal_angle(position, hid_idx):
-            return position / np.power(10000, 2 * (hid_idx // 2) / self.hidden_size)
-     
-        def get_posi_angle_vec(position):
-            return [cal_angle(position, hid_j) for hid_j in range(self.hidden_size)]
-
-        sinusoid_table = np.array([get_posi_angle_vec(pos_i) for pos_i in range(seq_len)])
-
-        sinusoid_table[:, 0::2] = np.sin(sinusoid_table[:, 0::2])  # dim 2i
-        sinusoid_table[:, 1::2] = np.cos(sinusoid_table[:, 1::2])  # dim 2i+1
-
-        if padding_idx is not None:
-            sinusoid_table[padding_idx:] = 0. # zero vector for padding dimension
 
         if batch_size is not None:
-            batch_sinusoid_table = np.repeat(sinusoid_table[np.newaxis,...], batch_size, axis=0)
+            batch_sinusoid_table =sinusoid_table.expand(batch_size,sinusoid_table.size(0),sinusoid_table.size(1))
             return batch_sinusoid_table # (batch_size, seq_len, hidden_size)
         else:
             return sinusoid_table  # (seq_len, hidden_size)
+
 
 ###########
 # TRAINER #
@@ -477,8 +480,11 @@ class Tester(Solver):
 
         batch_size = spec_stacked.shape[0]
         seq_len = spec_stacked.shape[1]
+        hidden_size = spec_stacked.shape[-1]
 
-        pos_enc = self.position_encoding(seq_len, batch_size) # (batch_size, seq_len, hidden_size)
+        position_table = self.static_position_table_f(hidden_size)[:seq_len]
+        pos_enc = self.position_encoding(hidden_size, position_table, batch_size) # (batch_size, seq_len, hidden_size)
+ 
         attn_mask = np.ones((batch_size, seq_len)) # (batch_size, seq_len)
 
         # zero vectors for padding dimension
