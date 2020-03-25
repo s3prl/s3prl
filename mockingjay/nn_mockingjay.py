@@ -153,7 +153,6 @@ class MOCKINGJAY(nn.Module):
 
         # zero vectors for padding dimension
         for idx in range(len(spec_stacked)):
-            pos_enc[idx][spec_len[idx]:] = 0  
             attn_mask[idx][spec_len[idx]:] = 0 
 
         spec_stacked = spec_stacked.to(device=self.device, dtype=torch.float32) # (batch_size, seq_len, mel_dim * dr)
