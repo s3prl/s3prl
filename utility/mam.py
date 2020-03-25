@@ -147,7 +147,7 @@ def process_train_MAM_data(spec, config=None):
             else:
                 pass
             # the gradients will be calculated on chosen frames
-            mask_label[idx, chosen_intervals, :] = 0
+            mask_label[idx, chosen_intervals, :] = 1
 
             # frequency masking
             if mask_frequency > 0:
