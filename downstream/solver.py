@@ -514,7 +514,10 @@ class Downstream_Trainer_epoch_training(Downstream_Solver):
 
         if not inference and self.fine_tune:
             # Setup Fine tune optimizer
-            self.warmup_steps = int( num_train_optimization_steps * self.config['optimizer']['warmup_proportion'] )
+            if self.config['downstream']['warmup_steps'] is not None:
+                self.warmup_steps = self.config['downstream']['warmup_steps']
+            else: 
+                self.warmup_steps = int( num_train_optimization_steps * self.config['optimizer']['warmup_proportion'] )
 
             self.mockingjay.mockingjay.train()
             param_optimizer = list(self.mockingjay.mockingjay.named_parameters()) + list(self.classifier.named_parameters())
