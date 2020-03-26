@@ -126,21 +126,21 @@ def process_train_MAM_data(spec, config=None):
             one_line_indexes = indexes.view(-1) 
             
             if bool(instance_random_dices < 0.8):
-                spec_masked[idx][one_line_indexes] = 0
+                spec_masked[idx, one_line_indexes] = 0
             # replace to random frames
             elif bool(instance_random_dices >= 0.8) and bool(instance_random_dices < 0.9):
                 length = int(instance_consecutive)*(chosen_index.shape[0])
                 random_index = np.random.permutation(valid_index)[:length]
-                spec_masked[idx][one_line_indexes] = spec_masked[idx][random_index]
+                spec_masked[idx, one_line_indexes] = spec_masked[idx, random_index]
             # do nothing
             else:
                 pass
 
             # the gradients will be calculated on all chosen frames
-            mask_label[idx][one_line_indexes] = 1
+            mask_label[idx, one_line_indexes] = 1
 
             # zero vectors for padding dimension
-            attn_mask[idx][spec_len[idx]:] = 0
+            attn_mask[idx, spec_len[idx]:] = 0
 
         spec_masked = spec_masked[valid_idx].to(dtype=torch.float32)
         mask_label = torch.ByteTensor(mask_label[valid_idx]).to(dtype=torch.bool)
