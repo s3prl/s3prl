@@ -514,9 +514,10 @@ class Downstream_Trainer_epoch_training(Downstream_Solver):
 
         if not inference and self.fine_tune:
             # Setup Fine tune optimizer
-            if self.config['downstream']['warmup_steps'] is not None:
-                self.warmup_steps = self.config['downstream']['warmup_steps']
-            else: 
+
+            if self.config['downstream']['warmup_steps']:
+                self.warmup_steps = int(self.config['downstream']['warmup_steps']) 
+            else:
                 self.warmup_steps = int( num_train_optimization_steps * self.config['optimizer']['warmup_proportion'] )
 
             self.mockingjay.mockingjay.train()
@@ -605,10 +606,14 @@ class Downstream_Trainer_epoch_training(Downstream_Solver):
                         loss, _, correct, valid = self.classifier(representations, labels, valid_lengths)
                     else:
                         raise NotImplementedError('Invalid `model_type`!')
+                    
+                    if self.fine_tune:
 
-                    if self.apex:
-                        with amp.scale_loss(loss, self.optimizer) as scaled_loss:
-                    	    scaled_loss.backward()
+                        if self.apex:
+                            with amp.scale_loss(loss, self.optimizer) as scaled_loss:
+                    	        scaled_loss.backward()
+                        else:
+                            loss.backward()
                     else:
                         loss.backward()
 
@@ -626,8 +631,12 @@ class Downstream_Trainer_epoch_training(Downstream_Solver):
                     if math.isnan(grad_norm):
                         self.verbose('Error : grad norm is NaN @ step ' + str(self.global_step))
                     else:
-                        self.optimizer.step()
-                        self.scheduler.step()
+                        if self.fine_tune:
+                            self.optimizer.step()
+                            self.scheduler.step()
+                        else:
+                            self.optimizer.step()
+
 
                     self.optimizer.zero_grad()
 

@@ -43,9 +43,9 @@ def get_posi_angle_vec(position,hidden_size):
     return [cal_angle(position, hid_j,hidden_size) for hid_j in range(hidden_size)]
 
 @lru_cache(maxsize=1)
-def static_position_table_f(hidden_size,max_length=2500):
+def static_position_table_f(hidden_size,max_length=3000):
 
-    sinusoid_table          = np.array([get_posi_angle_vec(pos_i,hidden_size) for pos_i in range(2500)])
+    sinusoid_table          = np.array([get_posi_angle_vec(pos_i,hidden_size) for pos_i in range(3000)])
     sinusoid_table[:, 0::2] = np.sin(sinusoid_table[:, 0::2])
     sinusoid_table[:, 1::2] = np.cos(sinusoid_table[:, 1::2])  
     sinusoid_table          = torch.FloatTensor(sinusoid_table).to(dtype=torch.float32)
@@ -107,7 +107,7 @@ def process_train_MAM_data(spec, config=None):
             instance_random_dices =  torch.rand(1)
             valid_index           =  spec_len[idx] - instance_consecutive - 1
             instance_proportions  =  spec_len[idx] * mask_proportion // (instance_consecutive[0])
-            start_point                          = torch.randint(low=0, high=mask_consecutive, size=(1,))
+            start_point                          = np.random.randint(low=0, high=mask_consecutive, size=(1,))
             buckets_num                          = (valid_index - start_point) // (instance_consecutive + consecutive_offset)
             
             if instance_proportions == 0: instance_proportions = 1
@@ -121,7 +121,7 @@ def process_train_MAM_data(spec, config=None):
             
             chosen_index     = chosen_index.unsqueeze(-1)
             mapping          = chosen_index.expand(chosen_index.size(0),int(instance_consecutive))
-            offset           = torch.from_numpy(np.arange(instance_consecutive)).long().expand(chosen_index.size(0), int(instance_consecutive))
+            offset           = torch.arange(instance_consecutive).long().expand(chosen_index.size(0), int(instance_consecutive))
             indexes          = mapping + offset
             one_line_indexes = indexes.view(-1) 
             
