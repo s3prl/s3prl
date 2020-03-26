@@ -43,9 +43,9 @@ def get_posi_angle_vec(position,hidden_size):
     return [cal_angle(position, hid_j,hidden_size) for hid_j in range(hidden_size)]
 
 @lru_cache(maxsize=1)
-def static_position_table_f(hidden_size,max_length=2000):
+def static_position_table_f(hidden_size,max_length=2500):
 
-    sinusoid_table          = np.array([get_posi_angle_vec(pos_i,hidden_size) for pos_i in range(2000)])
+    sinusoid_table          = np.array([get_posi_angle_vec(pos_i,hidden_size) for pos_i in range(2500)])
     sinusoid_table[:, 0::2] = np.sin(sinusoid_table[:, 0::2])
     sinusoid_table[:, 1::2] = np.cos(sinusoid_table[:, 1::2])  
     sinusoid_table          = torch.FloatTensor(sinusoid_table).to(dtype=torch.float32)
@@ -103,11 +103,11 @@ def process_train_MAM_data(spec, config=None):
         
         for idx in range(batch_size):
 
-            instance_consecutive  =  np.random.choice(np.arange(0,mask_consecutive), size=(1,)) +1
+            instance_consecutive  =  np.random.choice(mask_consecutive, size=(1,)) +1
             instance_random_dices =  torch.rand(1)
             valid_index           =  spec_len[idx] - instance_consecutive - 1
             instance_proportions  =  spec_len[idx] * mask_proportion // (instance_consecutive[0])
-            start_point                          = torch.randint(low=0, high=mask_consecutive, size=(1,)).data.cpu().numpy()
+            start_point                          = torch.randint(low=0, high=mask_consecutive, size=(1,))
             buckets_num                          = (valid_index - start_point) // (instance_consecutive + consecutive_offset)
             
             if instance_proportions == 0: instance_proportions = 1
@@ -116,7 +116,7 @@ def process_train_MAM_data(spec, config=None):
             
             valid_idx += [idx]
             step = (instance_consecutive + consecutive_offset)
-            bound_indexes = np.arange(start_point, valid_index, step ) 
+            bound_indexes = np.arange(start_point[0], valid_index, step ) 
             chosen_index = torch.from_numpy(np.random.permutation(bound_indexes)[:int(instance_proportions)]).long() # draw `proportion` samples from the range (0, valid_index_range) and without replacement
             
             chosen_index     = chosen_index.unsqueeze(-1)
@@ -126,21 +126,21 @@ def process_train_MAM_data(spec, config=None):
             one_line_indexes = indexes.view(-1) 
             
             if bool(instance_random_dices < 0.8):
-                spec_masked[idx][one_line_indexes] = 0
+                spec_masked[idx, one_line_indexes] = 0
             # replace to random frames
             elif bool(instance_random_dices >= 0.8) and bool(instance_random_dices < 0.9):
                 length = int(instance_consecutive)*(chosen_index.shape[0])
-                random_index = np.random.permutation(np.arange(valid_index))[:length]
-                spec_masked[idx][one_line_indexes] = spec_masked[idx][random_index]
+                random_index = np.random.permutation(valid_index)[:length]
+                spec_masked[idx, one_line_indexes] = spec_masked[idx, random_index]
             # do nothing
             else:
                 pass
 
             # the gradients will be calculated on all chosen frames
-            mask_label[idx][one_line_indexes] = 1
+            mask_label[idx, one_line_indexes] = 1
 
             # zero vectors for padding dimension
-            attn_mask[idx][spec_len[idx]:] = 0
+            attn_mask[idx, spec_len[idx]:] = 0
 
         spec_masked = spec_masked[valid_idx].to(dtype=torch.float32)
         mask_label = torch.ByteTensor(mask_label[valid_idx]).to(dtype=torch.bool)
