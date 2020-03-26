@@ -167,7 +167,7 @@ def process_train_MAM_data(spec, config=None):
             noise_sampler = torch.distributions.Normal(0, 0.2)
             spec_masked += noise_sampler.sample(spec_masked.shape)
         
-        valid_batchid = mask_label.view(batch_size, -1).sum(dim=-1).nonzero().squeeze()
+        valid_batchid = mask_label.view(batch_size, -1).sum(dim=-1).nonzero().view(-1)
         batch_is_valid = len(valid_batchid) > 0
         spec_masked = spec_masked.to(dtype=torch.float32)[valid_batchid]
         pos_enc = pos_enc.to(dtype=torch.float32)
