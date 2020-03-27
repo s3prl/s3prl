@@ -433,6 +433,7 @@ class Downstream_Trainer_epoch_training(Downstream_Solver):
         self.log = SummaryWriter(self.logdir)
 
         # Training details
+        self.optimizer_type = config['downstream']["optimizer"]
         self.log_step = config['downstream']['log_step']
         self.save_step = config['downstream']['save_step']
         self.dev_step = config['downstream']['dev_step']
@@ -522,13 +523,22 @@ class Downstream_Trainer_epoch_training(Downstream_Solver):
 
             self.mockingjay.mockingjay.train()
             param_optimizer = list(self.mockingjay.mockingjay.named_parameters()) + list(self.classifier.named_parameters())
-            self.optimizer = get_mockingjay_optimizer(params=param_optimizer, 
+            if self.optimizer_type == "LAMB":
+                self.optimizer = get_mockingjay_optimizer(params=param_optimizer, 
                                                       lr=self.learning_rate, 
-                                                      warmup_proportion=self.config['optimizer']['warmup_proportion'],
+                                                      warmup_steps=self.config['downstream']['warmup_steps'],
                                                       training_steps=num_train_optimization_steps,
                                                       optimizer="LAMB")
-            self.mockingjay.mockingjay, self.optimizer = amp.initialize(self.mockingjay.mockingjay, self.optimizer, opt_level="O1")
-            self.scheduler = get_linear_schedule_with_warmup(optimizer=self.optimizer, num_warmup_steps=self.warmup_steps, num_training_steps=num_train_optimization_steps)
+            else:
+                self.optimizer = get_mockingjay_optimizer(params=param_optimizer, 
+                                                      lr=self.learning_rate, 
+                                                      warmup_steps=self.config['downstream']['warmup_steps'],
+                                                      training_steps=num_train_optimization_steps,
+                                                      optimizer="ADAM")
+            if self.apex:
+                self.mockingjay.mockingjay, self.optimizer = amp.initialize(self.mockingjay.mockingjay, self.optimizer, opt_level="O1")
+            if self.optimizer_type=="LAMB":
+                self.scheduler = get_linear_schedule_with_warmup(optimizer=self.optimizer, num_warmup_steps=self.warmup_steps, num_training_steps=num_train_optimization_steps)
         elif not inference:
             self.optimizer = Adam(self.classifier.parameters(), lr=self.learning_rate, betas=(0.9, 0.999))
             
@@ -632,8 +642,11 @@ class Downstream_Trainer_epoch_training(Downstream_Solver):
                         self.verbose('Error : grad norm is NaN @ step ' + str(self.global_step))
                     else:
                         if self.fine_tune:
-                            self.optimizer.step()
-                            self.scheduler.step()
+                            if self.optimizer_type == "LAMB":
+                                self.optimizer.step()
+                                self.scheduler.step()
+                            else:
+                                self.optimizer.step()
                         else:
                             self.optimizer.step()
 
@@ -645,7 +658,11 @@ class Downstream_Trainer_epoch_training(Downstream_Solver):
                         acc = corrects.item() / valids.item()
                         los = loses / self.log_step
                         if wandb is not None:
-                            metric = {"acc":acc, "loss":los, "gradient_norm":grad_norm,"lr": self.scheduler.get_lr()[0]}
+                            if self.optimizer_type == "LAMB":
+                                metric = {"acc":acc, "loss":los, "gradient_norm":grad_norm,"lr": self.scheduler.get_lr()[0]}
+                            else:
+                                metric = {"acc":acc, "loss":los, "gradient_norm":grad_norm,"lr": self.optimizer.get_lr()[0]}
+                                
                             wandb.log(metric,step=self.global_step)
                         self.log.add_scalar('acc', acc, self.global_step)
                         self.log.add_scalar('loss', los, self.global_step)
@@ -696,6 +713,30 @@ class Downstream_Trainer_epoch_training(Downstream_Solver):
 
                 pbar.update(1)
                 self.global_step += 1
+        self.save_model(self.task, assign_name='tmp')
+
+        torch.cuda.empty_cache()
+        evaluation = self.config['downstream']['evaluation']
+        tmp_model_path = '{}/tmp.ckpt'.format(self.ckpdir)
+        new_dckpt = '/'.join(tmp_model_path.split('/')[-2:])
+        test_config = copy.deepcopy(self.mock_config)
+        test_paras = copy.deepcopy(self.mock_paras)
+        test_paras.dckpt = new_dckpt
+        tester = Downstream_Tester(test_config, test_paras, task=self.task)
+        tester.load_data(split=evaluation, load=self.task.split('_')[-1])
+        tester.set_model(inference=True)
+        eval_loss, eval_acc, eval_logits = tester.exec()
+        if wandb != None:
+            metric = {"eval_acc":eval_acc, "eval_loss":eval_loss}
+            wandb.log(metric,step=self.global_step)
+        self.log.add_scalar(f'{evaluation}_loss', eval_loss, self.global_step)
+        self.log.add_scalar(f'{evaluation}_acc', eval_acc, self.global_step)
+        if eval_acc > best_val_acc:
+            self.verbose('Saving new best model on validation')
+            self.save_model(self.task, assign_name='best_val')
+            torch.save(eval_logits, f'{self.ckpdir}/best_val.logits')
+            torch.cuda.empty_cache()
+            best_val_acc = eval_acc
                 
         pbar.close()
         self.reset_train()
@@ -792,7 +833,7 @@ class Downstream_Tester(Downstream_Solver):
         return average_loss, test_acc, all_logits
 
 
-def get_mockingjay_optimizer(params, lr, warmup_proportion, training_steps,optimizer=None):
+def get_mockingjay_optimizer(params, lr, warmup_steps, training_steps,optimizer=None):
     no_decay = ['bias', 'LayerNorm.bias', 'LayerNorm.weight']
     optimizer_grouped_parameters = [
         {'params': [p for n, p in params if not any(nd in n for nd in no_decay)], 'weight_decay': 0.01},
@@ -802,5 +843,6 @@ def get_mockingjay_optimizer(params, lr, warmup_proportion, training_steps,optim
         optimizer = Lamb(optimizer_grouped_parameters, lr=lr, eps=1e-9)
 
     if optimizer == "ADAM" or optimizer is None:
+        warmup_proportion = float(warmup_steps / training_steps)
         optimizer = BertAdam(optimizer_grouped_parameters,lr=lr,warmup=warmup_proportion,t_total=training_steps)
     return optimizer

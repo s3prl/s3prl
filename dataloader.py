@@ -191,8 +191,7 @@ class Mel_Linear_Dataset(LibriDataset):
         self.t_root = target_path
         t_tables = [pd.read_csv(os.path.join(target_path, s + '.csv')) for s in sets]
         self.t_table = pd.concat(t_tables, ignore_index=True).sort_values(by=['length'], ascending=False)
-
-        T = self.t_table['file_path'].tolist()
+        T = self.t_table['file_path'].tolist() 
         X = self.table['file_path'].tolist()
         X_lens = self.table['length'].tolist()
 

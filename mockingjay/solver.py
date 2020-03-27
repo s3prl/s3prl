@@ -56,6 +56,10 @@ class Solver():
         self.load = paras.load
         # only for test
         self.ckpt = os.path.join(paras.ckpdir, paras.ckpt)
+        if paras.bert:
+            self.bert = True
+        else:
+            self.bert = False
 
         # model
         self.load_model_list = config['solver']['load_model_list']
@@ -102,6 +106,7 @@ class Solver():
         
         # uild the Mockingjay model with speech prediction head
         self.model_config = MockingjayAlbertConfig(self.config)
+        # self.model_config = MockingjayConfig(self.config)
         self.dr = self.model_config.downsample_rate
         self.hidden_size = self.model_config.hidden_size
         self.output_attention = output_attention
@@ -110,8 +115,10 @@ class Solver():
         # pdb.set_trace()
         
         if not inference or with_head:
-            self.model = AlbertMockingjayForMaskedAcousticModel(self.model_config, self.input_dim, self.output_dim, self.output_attention).to(self.device)
-            # self.model = MockingjayForMaskedAcousticModel(self.model_config, self.input_dim, self.output_dim, self.output_attention).to(self.device)
+            if not self.bert:
+                self.model = AlbertMockingjayForMaskedAcousticModel(self.model_config, self.input_dim, self.output_dim, self.output_attention).to(self.device)
+            else:
+                self.model = MockingjayForMaskedAcousticModel(self.model_config, self.input_dim, self.output_dim, self.output_attention).to(self.device)
 
             if wandb is not None:
                 wandb.watch(self.model.Mockingjay,log="all")
@@ -119,7 +126,10 @@ class Solver():
             self.mockingjay = self.model.Mockingjay
 
         if inference and not with_head:
-            self.mockingjay = AlbertMockingjayModel(self.model_config, self.input_dim, self.output_attention).to(self.device)
+            if not self.bert:
+                self.mockingjay = AlbertMockingjayModel(self.model_config, self.input_dim, self.output_attention).to(self.device)
+            else:
+                self.mockingjay = MockingjayModel(self.model_config, self.input_dim, self.output_attention).to(self.device)
             self.verbose('Number of parameters: ' + str(sum(p.numel() for p in self.mockingjay.parameters() if p.requires_grad)))
             self.mockingjay.eval()
         elif inference and with_head:

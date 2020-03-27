@@ -121,7 +121,7 @@ def process_train_MAM_data(spec, config=None):
             
             chosen_index     = chosen_index.unsqueeze(-1)
             mapping          = chosen_index.expand(chosen_index.size(0),int(instance_consecutive))
-            offset           = torch.arange(instance_consecutive).long().expand(chosen_index.size(0), int(instance_consecutive))
+            offset           = torch.arange(int(instance_consecutive[0])).long().expand(chosen_index.size(0), int(instance_consecutive[0]))
             indexes          = mapping + offset
             one_line_indexes = indexes.view(-1) 
             
