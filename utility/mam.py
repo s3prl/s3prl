@@ -27,7 +27,7 @@ MASK_CONSECUTIVE = 1
 MASK_BUCKET_RATIO = 1.2
 MASK_FREQUENCY = 8
 NOISE_PROPORTION = 0.15
-MAX_SEQLEN = 3000
+MAX_SEQLEN = 5000
 
 
 def down_sample_frames(spec, dr):
@@ -49,6 +49,7 @@ def get_sinusoid_table(hidden_size):
     sinusoid_table[:, 0::2] = np.sin(sinusoid_table[:, 0::2])  # dim 2i
     sinusoid_table[:, 1::2] = np.cos(sinusoid_table[:, 1::2])  # dim 2i+1
     return torch.FloatTensor(sinusoid_table)
+
 
 def position_encoding(seq_len, hidden_size, batch_size=None, padding_idx=None):
     ''' position encoding table '''
@@ -133,6 +134,7 @@ def process_train_MAM_data(spec, config=None):
                 valid_starts = torch.arange(rand_start, valid_start_max + 1, mask_bucket_size)
                 chosen_starts = valid_starts[torch.randperm(len(valid_starts))[:proportion]]
             chosen_intervals = starts_to_intervals(chosen_starts, mask_consecutive)
+            
             # determine whether to mask / random / or do nothing to the frame
             dice = random.random()
             # mask to zero
@@ -146,6 +148,7 @@ def process_train_MAM_data(spec, config=None):
             # do nothing
             else:
                 pass
+
             # the gradients will be calculated on chosen frames
             mask_label[idx, chosen_intervals, :] = 1
 
@@ -155,6 +158,7 @@ def process_train_MAM_data(spec, config=None):
                 chosen_starts = torch.randperm(spec_masked.shape[2] - rand_bandwidth)[:1]
                 chosen_intervals = starts_to_intervals(chosen_starts, rand_bandwidth)
                 spec_masked[idx, :, chosen_intervals] = 0
+                
                 # the gradients will be calculated on chosen frames
                 mask_label[idx, :, chosen_intervals] = 1   
 
