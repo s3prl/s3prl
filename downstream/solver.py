@@ -23,14 +23,14 @@ import torch.nn.functional as F
 from tensorboardX import SummaryWriter
 from dataloader import get_Dataloader
 from mockingjay.solver import Solver, Tester
-from downstream.model import LinearClassifier, RnnClassifier, MeanLinearClassifier, MeanLinearClassifier_v2
+from downstream.model import LinearClassifier, RnnClassifier, MeanLinearClassifier, MeanLinearClassifier_v2, OneLinear
 from utils.audio import mel_dim, num_freq, sample_rate, inv_spectrogram
 from utils.timer import Timer
 from runner_apc import get_apc_model
 from mockingjay.optimization import BertAdam, WarmupLinearSchedule, Lamb, get_linear_schedule_with_warmup
 import apex
 from apex import amp
-
+import pdb
 ##########
 # SOLVER #
 ##########
@@ -102,7 +102,8 @@ class Downstream_Solver(Solver):
     def set_model(self, inference=False,wandb=None):
         
         if "phone" in self.task:
-            self.model_type = "linear"
+            # self.model_type = "linear"
+            self.model_type = "OneLinear"
         elif "sentiment" in self.task:
             self.model_type = "mean_linear_v2"
         else:
@@ -148,6 +149,12 @@ class Downstream_Solver(Solver):
                                             class_num=self.dataloader.dataset.class_num,
                                             task=self.task,
                                             dconfig=self.config['downstream']['mean_linear_v2']).to(self.device)
+        elif self.model_type == "OneLinear":
+            self.classifier = OneLinear(input_dim=input_dim,
+                                               class_num=self.dataloader.dataset.class_num,
+                                               task=self.task,
+                                               dconfig=self.config['downstream']['OneLinear'],
+                                               sequencial=False).to(self.device)
         else:
             NotImplementedError
 
@@ -341,6 +348,8 @@ class Downstream_Trainer(Downstream_Solver):
                         loss, _, correct, valid = self.classifier(representations, labels, valid_lengths)
                     elif self.model_type == "mean_linear_v2":
                         loss, _, correct, valid = self.classifier(representations, labels, valid_lengths)
+                    elif self.model_type == "OneLinear":
+                        loss, _, correct, valid = self.classifier(representations, labels, label_mask)
                     else:
                         raise NotImplementedError('Invalid `model_type`!')
 
@@ -460,7 +469,8 @@ class Downstream_Trainer_epoch_training(Downstream_Solver):
     def set_model(self, inference=False,wandb=None):
         
         if "phone" in self.task:
-            self.model_type = "linear"
+            # self.model_type = "linear"
+            self.model_type = "OneLinear"
         elif "sentiment" in self.task:
             self.model_type = "mean_linear_v2"
         else:
@@ -507,6 +517,12 @@ class Downstream_Trainer_epoch_training(Downstream_Solver):
                                             class_num=self.dataloader.dataset.class_num,
                                             task=self.task,
                                             dconfig=self.config['downstream']['mean_linear_v2']).to(self.device)
+        elif self.model_type == "OneLinear":
+            self.classifier = OneLinear(input_dim=input_dim,
+                                               class_num=self.dataloader.dataset.class_num,
+                                               task=self.task,
+                                               dconfig=self.config['downstream']['OneLinear'],
+                                               sequencial=False).to(self.device)
         else:
             NotImplementedError
 
@@ -614,6 +630,8 @@ class Downstream_Trainer_epoch_training(Downstream_Solver):
                         loss, _, correct, valid = self.classifier(representations, labels, valid_lengths)
                     elif self.model_type == "mean_linear_v2":
                         loss, _, correct, valid = self.classifier(representations, labels, valid_lengths)
+                    elif self.model_type == "OneLinear":
+                        loss, _, correct, valid = self.classifier(representations, labels, label_mask)
                     else:
                         raise NotImplementedError('Invalid `model_type`!')
                     
@@ -661,7 +679,11 @@ class Downstream_Trainer_epoch_training(Downstream_Solver):
                             if self.optimizer_type == "LAMB":
                                 metric = {"acc":acc, "loss":los, "gradient_norm":grad_norm,"lr": self.scheduler.get_lr()[0]}
                             else:
-                                metric = {"acc":acc, "loss":los, "gradient_norm":grad_norm,"lr": self.optimizer.get_lr()[0]}
+                                if self.fine_tune:
+                                    metric = {"acc":acc, "loss":los, "gradient_norm":grad_norm,"lr": self.optimizer.get_lr()[0]}
+                                else:
+                                    metric = {"acc":acc, "loss":los, "gradient_norm":grad_norm}
+
                                 
                             wandb.log(metric,step=self.global_step)
                         self.log.add_scalar('acc', acc, self.global_step)
@@ -810,6 +832,8 @@ class Downstream_Tester(Downstream_Solver):
                     
                     elif self.model_type == "mean_linear_v2":
                         loss, logits, correct, valid = self.classifier(representations, labels, valid_lengths)
+                    elif self.model_type == "OneLinear":
+                        loss, logits, correct, valid = self.classifier(representations, labels, label_mask)
                     else:
                         pass
                     loss_sum += loss.detach().cpu().item()

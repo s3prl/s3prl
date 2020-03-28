@@ -105,8 +105,11 @@ class Solver():
         self.verbose('Initializing Mockingjay model.')
         
         # uild the Mockingjay model with speech prediction head
-        self.model_config = MockingjayAlbertConfig(self.config)
-        # self.model_config = MockingjayConfig(self.config)
+        if self.bert:
+            self.model_config = MockingjayConfig(self.config)
+        else:
+            self.model_config = MockingjayAlbertConfig(self.config)
+
         self.dr = self.model_config.downsample_rate
         self.hidden_size = self.model_config.hidden_size
         self.output_attention = output_attention
