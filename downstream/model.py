@@ -84,7 +84,7 @@ class LinearClassifier(nn.Module):
             if padding == 'zero':  # set left to zero: [1, 2, 3, 4, 5] -> [0, 0, 1, 2, 3]
                 left = torch.zeros_like(x[-n:])
             elif padding == 'same': # set left to same as last: [1, 2, 3, 4, 5] -> [1, 1, 1, 2, 3]
-                left = x[n].repeat(n, 1)
+                left = x[0].repeat(n, 1)
             else: # roll over: [1, 2, 3, 4, 5] -> [4, 5, 1, 2, 3]
                 left = x[-n:]
             right = x[:-n]
@@ -93,7 +93,7 @@ class LinearClassifier(nn.Module):
             if padding == 'zero': # set right to zero: [1, 2, 3, 4, 5] -> [3, 4, 5, 0, 0]
                 right = torch.zeros_like(x[:-n])
             elif padding == 'same': # set right to same as last: [1, 2, 3, 4, 5] -> [3, 4, 5, 5, 5]
-                right = x[n].repeat(-n, 1)
+                right = x[-1].repeat(-n, 1)
             else: # roll over: [1, 2, 3, 4, 5] -> [3, 4, 5, 1, 2]
                 right = x[:-n]
             left = x[-n:]
