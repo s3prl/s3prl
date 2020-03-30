@@ -214,6 +214,9 @@ def get_mockingjay_model(from_path='result/result_mockingjay/mockingjay_libri_sd
     all_states = torch.load(from_path, map_location='cpu')
     config = all_states['Settings']['Config']
     paras = all_states['Settings']['Paras']
+    
+    if not hasattr(paras, 'multi_gpu'):
+        setattr(paras, 'multi_gpu', False)
 
     # display checkpoint settings
     if display_settings:
