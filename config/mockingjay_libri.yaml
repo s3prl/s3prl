@@ -1,7 +1,7 @@
 mockingjay:
   downsample_rate: 3                                    # stacked consecutive features vectors to reduce the length of input sequences by this factor.
   hidden_size: 768                                      # Size of the encoder layers and the pooler layer.
-  num_hidden_layers: 12                                 # Number of hidden layers in the Transformer encoder.
+  num_hidden_layers: 3                                 # Number of hidden layers in the Transformer encoder.
   num_attention_heads: 12                               # Number of attention heads for each attention layer in the Transformer encoder.
   intermediate_size: 3072                               # The size of the "intermediate" (i.e., feed-forward) layer in the Transformer encoder.
   hidden_act: "gelu"                                    # The non-linear activation function (function or string) in the encoder and pooler. If string, "gelu", "relu" and "swish" are supported.
@@ -90,7 +90,7 @@ solver:
   total_steps: 1000000                                   # total steps for training, a step is a batch of update
   log_step: 100                                         # log training status every this amount of training steps
   dev_step: 10000                                       #
-  duo_feature: False                                     # Use different input / output features during training
+  duo_feature: True                                     # Use different input / output features during training
 
   # models
   load_model_list: ['SpecHead', 'Mockingjay']           # load the components in the list for test/eval
@@ -102,7 +102,7 @@ downstream:                                             # downstream model confi
   linear:
     input_dim: 'None'                                   # `int`, else if set to None, input_dim will be set according to mockingjay settings or mel-preprocessing dimensions automatically
     hidden_size: 768
-    drop: 0.2
+    drop: 0.0
     select_hidden: 'last'                       # support modes: ['last', 'first', 'average', 'weighted_sum', 'weighted_sum_norm']
   
   OneLinear:
@@ -141,10 +141,10 @@ downstream:                                             # downstream model confi
 
   # Training options
   apex: True
-  epoch: 20
+  epoch: 4
   optimizer: "ADAM"
   learning_rate: "4e-4"                                 # Learning rate for opt: ['4e-4' for fine-tune, '4e-3' for regualr downstream task training ]
-  warmup_steps: 1000
+  warmup_steps: 500
   total_steps: 500000                                   # total steps for training, a step is a batch of update: [29080 for fine-tune, 500000 for regualr downstream task training ]
   log_step: 500                                         # log training status every this amount of training steps
   dev_step: 5000                                        # [29080 for fine-tune, 10000 for regualr downstream task training ]
