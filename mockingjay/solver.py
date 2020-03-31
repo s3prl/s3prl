@@ -140,10 +140,6 @@ class Solver():
         elif not inference:
             self.model.train()
 
-            # print(f"[Load Model Complete!]")
-            # pdb.set_trace()
-
-
             # Setup optimizer
             param_optimizer = list(self.model.named_parameters())
 
@@ -438,7 +434,12 @@ class Trainer(Solver):
                             progress.set_description("Loss %.4f" % display_loss)
                         #fuck
                         if self.global_step % self.save_step == 0:
-                            self.save_model('mockingjayAlbert')
+                            
+                            if self.bert:
+                                self.save_model('mockingjayBERT')
+                            else:
+                                self.save_model("mockingjay-ALBERT")
+
                             mask_spec = self.up_sample_frames(spec_masked[0], return_first=True)
                             pred_spec = self.up_sample_frames(pred_spec[0], return_first=True)
                             true_spec = self.up_sample_frames(spec_stacked[0], return_first=True)
