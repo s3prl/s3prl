@@ -30,7 +30,6 @@ from runner_apc import get_apc_model
 from mockingjay.optimization import BertAdam, WarmupLinearSchedule, Lamb, get_linear_schedule_with_warmup
 import apex
 from apex import amp
-import pdb
 ##########
 # SOLVER #
 ##########
@@ -95,15 +94,17 @@ class Downstream_Solver(Solver):
             raise NotImplementedError('Unsupported downstream tasks.')
 
         setattr(self, 'dataloader', get_Dataloader(split, load=load, use_gpu=self.paras.gpu, \
-                run_mockingjay=self.run_mockingjay, mock_config=self.config['mockingjay'], \
+                run_mockingjay=self.run_mockingjay, mock_config=self.config['albertmockingjay'], \
                 **self.config['dataloader']))
 
 
     def set_model(self, inference=False,wandb=None):
         
         if "phone" in self.task:
-            # self.model_type = "linear"
-            self.model_type = "OneLinear"
+            if self.fine_tune:
+                self.model_type = "OneLinear"
+            else:
+                self.model_type = "linear"
         elif "sentiment" in self.task:
             self.model_type = "mean_linear_v2"
         else:
@@ -165,7 +166,7 @@ class Downstream_Solver(Solver):
             param_optimizer = list(self.mockingjay.mockingjay.named_parameters()) + list(self.classifier.named_parameters())
             self.optimizer = get_mockingjay_optimizer(params=param_optimizer, 
                                                       lr=self.learning_rate, 
-                                                      warmup_proportion=self.config['optimizer']['warmup_proportion'],
+                                                      warmup_steps=self.config['downstream']['warmup_steps'],
                                                       training_steps=self.total_steps)
 
         elif not inference:
@@ -469,8 +470,10 @@ class Downstream_Trainer_epoch_training(Downstream_Solver):
     def set_model(self, inference=False,wandb=None):
         
         if "phone" in self.task:
-            # self.model_type = "linear"
-            self.model_type = "OneLinear"
+            if self.fine_tune:
+                self.model_type = "OneLinear"
+            else:
+                self.model_type = "linear"
         elif "sentiment" in self.task:
             self.model_type = "mean_linear_v2"
         else:
@@ -676,16 +679,15 @@ class Downstream_Trainer_epoch_training(Downstream_Solver):
                         acc = corrects.item() / valids.item()
                         los = loses / self.log_step
                         if wandb is not None:
-                            if self.optimizer_type == "LAMB":
-                                metric = {"acc":acc, "loss":los, "gradient_norm":grad_norm,"lr": self.scheduler.get_lr()[0]}
-                            else:
-                                if self.fine_tune:
-                                    metric = {"acc":acc, "loss":los, "gradient_norm":grad_norm,"lr": self.optimizer.get_lr()[0]}
+                            if self.fine_tune:
+                                if self.optimizer_type == "LAMB":
+                                    metric = {"acc":acc, "loss":los, "gradient_norm":grad_norm,"lr": self.scheduler.get_lr()[0]}
                                 else:
-                                    metric = {"acc":acc, "loss":los, "gradient_norm":grad_norm}
-
-                                
+                                    metric = {"acc":acc, "loss":los, "gradient_norm":grad_norm,"lr": self.optimizer.get_lr()[0]}
+                            else:
+                                metric = {"acc":acc, "loss":los, "gradient_norm":grad_norm}  
                             wandb.log(metric,step=self.global_step)
+
                         self.log.add_scalar('acc', acc, self.global_step)
                         self.log.add_scalar('loss', los, self.global_step)
                         self.log.add_scalar('gradient norm', grad_norm, self.global_step)
@@ -735,6 +737,7 @@ class Downstream_Trainer_epoch_training(Downstream_Solver):
 
                 pbar.update(1)
                 self.global_step += 1
+                
         self.save_model(self.task, assign_name='tmp')
 
         torch.cuda.empty_cache()
@@ -867,6 +870,9 @@ def get_mockingjay_optimizer(params, lr, warmup_steps, training_steps,optimizer=
         optimizer = Lamb(optimizer_grouped_parameters, lr=lr, eps=1e-9)
 
     if optimizer == "ADAM" or optimizer is None:
-        warmup_proportion = float(warmup_steps / training_steps)
-        optimizer = BertAdam(optimizer_grouped_parameters,lr=lr,warmup=warmup_proportion,t_total=training_steps)
+        if warmup_steps == -1 or warmup_steps == 0:
+            optimizer = BertAdam(optimizer_grouped_parameters,lr=lr,warmup=0.0,t_total=training_steps)
+        else:
+            warmup_proportion = float(warmup_steps / training_steps)
+            optimizer = BertAdam(optimizer_grouped_parameters,lr=lr,warmup=warmup_proportion,t_total=training_steps)
     return optimizer
