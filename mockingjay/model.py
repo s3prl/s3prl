@@ -149,16 +149,19 @@ class MockingjaySelfAttention(nn.Module):
         mixed_query_layer = self.query(hidden_states)
         mixed_key_layer = self.key(hidden_states)
         mixed_value_layer = self.value(hidden_states)
+        # each mixed layer: (batch_size, seqlen, head_num * head_dim)
 
         query_layer = self.transpose_for_scores(mixed_query_layer)
         key_layer = self.transpose_for_scores(mixed_key_layer)
         value_layer = self.transpose_for_scores(mixed_value_layer)
+        # each layer: (batch_size, head_num, seqlen, head_dim)
 
         # Take the dot product between "query" and "key" to get the raw attention scores.
         attention_scores = torch.matmul(query_layer, key_layer.transpose(-1, -2))
         attention_scores = attention_scores / math.sqrt(self.attention_head_size)
         # Apply the attention mask is (precomputed for all layers in MockingjayModel forward() function)
         attention_scores = attention_scores + attention_mask
+        # attention_scores: (batch_size, head_num, seqlen, seqlen)
 
         # Normalize the attention scores to probabilities.
         attention_probs = nn.Softmax(dim=-1)(attention_scores)
@@ -172,6 +175,7 @@ class MockingjaySelfAttention(nn.Module):
             attention_probs = attention_probs * head_mask
 
         context_layer = torch.matmul(attention_probs, value_layer)
+        # context_layer: (batch_size, head_num, seqlen, head_dim)
         if self.keep_multihead_output:
             self.multihead_output = context_layer
             self.multihead_output.retain_grad()
