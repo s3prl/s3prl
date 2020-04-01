@@ -139,3 +139,7 @@ data
 # checkpoints
 *.ckpt
 *.pth
+
+# experiment files
+*.png
+*.pkl
