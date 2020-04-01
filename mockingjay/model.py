@@ -333,9 +333,10 @@ class MockingjaySpecPredictionHead(nn.Module):
 
 class MockingjayInitModel(nn.Module):
     """ An abstract class to handle weights initialization."""
-    def __init__(self, config, *inputs, **kwargs):
+    def __init__(self, config, output_attentions, *inputs, **kwargs):
         super(MockingjayInitModel, self).__init__()
         self.config = config
+        self.output_attentions = output_attentions
 
     def init_Mockingjay_weights(self, module):
         """ Initialize the weights.
@@ -398,8 +399,7 @@ class MockingjayModel(MockingjayInitModel):
     ```
     """
     def __init__(self, config, input_dim, output_attentions=False, keep_multihead_output=False):
-        super(MockingjayModel, self).__init__(config)
-        self.output_attentions = output_attentions
+        super(MockingjayModel, self).__init__(config, output_attentions)
         self.input_representations = MockingjayInputRepresentations(config, input_dim)
         self.encoder = MockingjayEncoder(config, output_attentions=output_attentions,
                                            keep_multihead_output=keep_multihead_output)
@@ -515,8 +515,7 @@ class MockingjayForMaskedAcousticModel(MockingjayInitModel):
     ```
     """
     def __init__(self, config, input_dim, output_dim, output_attentions=False, keep_multihead_output=False):
-        super(MockingjayForMaskedAcousticModel, self).__init__(config)
-        self.output_attentions = output_attentions
+        super(MockingjayForMaskedAcousticModel, self).__init__(config, output_attentions)
         self.Mockingjay = MockingjayModel(config, input_dim, output_attentions=output_attentions,
                                       keep_multihead_output=keep_multihead_output)
         self.SpecHead = MockingjaySpecPredictionHead(config, output_dim if output_dim is not None else input_dim)
