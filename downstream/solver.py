@@ -30,6 +30,9 @@ from runner_apc import get_apc_model
 from mockingjay.optimization import BertAdam, WarmupLinearSchedule, Lamb, get_linear_schedule_with_warmup
 import apex
 from apex import amp
+import IPython
+import pdb
+import pickle
 ##########
 # SOLVER #
 ##########
@@ -223,7 +226,9 @@ class Downstream_Solver(Solver):
             try:
                 self.classifier.load_state_dict(all_states['Classifier'])
                 self.verbose('[Classifier] - Loaded')
-            except: self.verbose('[Classifier - X]')
+            except: 
+                IPython.embed()
+                self.verbose('[Classifier - X]')
 
         if 'Optimizer' in self.load_model_list and not inference:
             try:
@@ -832,7 +837,6 @@ class Downstream_Tester(Downstream_Solver):
                         loss, logits, correct, valid = self.classifier(representations, labels, valid_lengths)
                     elif self.model_type == "mean_linear":
                         loss, logits, correct, valid = self.classifier(representations, labels, valid_lengths)
-                    
                     elif self.model_type == "mean_linear_v2":
                         loss, logits, correct, valid = self.classifier(representations, labels, valid_lengths)
                     elif self.model_type == "OneLinear":
@@ -854,6 +858,108 @@ class Downstream_Tester(Downstream_Solver):
         test_acc = correct_count * 1.0 / valid_count
         self.verbose(f'Test result: loss {average_loss}, acc {test_acc}')
 
+        timer.end()
+        timer.report()
+        
+        return average_loss, test_acc, all_logits
+
+
+
+class Downstream_tsne_Tester(Downstream_Solver):
+    ''' Handler for complete testing progress'''
+    def __init__(self, config, paras, task):
+        super(Downstream_tsne_Tester, self).__init__(config, paras, task)
+        self.duo_feature = False # Set duo feature to False since only input mel is needed during testing
+        self.load = True # Tester will load pre-trained models automatically
+    
+    def exec(self):
+        ''' Testing of downstream tasks'''
+        self.verbose('Testing set total ' + str(len(self.dataloader)) + ' batches.')
+        timer = Timer()
+        timer.start()
+
+        valid_count = 0
+        correct_count = 0
+        loss_sum = 0
+        all_logits = []
+        all_features_label_pair_data = []
+        oom_counter = 0
+        for features, labels in tqdm(self.dataloader, desc="Iteration"):
+            with torch.no_grad():
+                try:
+                    # features: (1, batch_size, seq_len, feature)
+                    # dimension of labels is depends on task and dataset, but the first dimention is always trivial due to bucketing
+                    labels = labels.squeeze(0).to(device=self.device)
+
+                    if self.run_mockingjay and self.paras.with_head:
+                        # representations shape: (batch_size, seq_len, feature)
+                        representations = self.mockingjay.forward_with_head(features, process_from_loader=True)
+                        features = self.up_sample_frames(features[0].squeeze(0))
+                    elif self.run_mockingjay and self.fine_tune:
+                        # representations shape: (batch_size, seq_len, feature)
+                        representations = self.mockingjay.forward_fine_tune(features, tile=False if 'speaker' in self.task else True, process_from_loader=True)
+                        features = self.up_sample_frames(features[0].squeeze(0)) if 'speaker' not in self.task else features[0].squeeze(0)
+                    elif self.run_mockingjay:
+                        # representations shape: (batch_size, layer, seq_len, feature)
+                        representations = self.mockingjay.forward(features, tile=False if 'speaker' in self.task else True, process_from_loader=True)
+                        features = self.up_sample_frames(features[0].squeeze(0)) if 'speaker' not in self.task else features[0].squeeze(0)
+                    elif self.run_apc:
+                        # representations shape: (batch_size, layer, seq_len, feature)
+                        representations = self.apc.forward(features)
+                        features = features.squeeze(0)
+                    else:
+                        # representations shape: (batch_size, seq_len, feature)
+                        features = features.squeeze(0)
+                        representations = features.to(device=self.device, dtype=torch.float32)
+                    
+                    # Since zero padding technique, some timestamps of features are not valid
+                    # For each timestamps, we mark 1 on valid timestamps, and 0 otherwise
+                    # This variable can be useful for frame-wise metric, like phoneme recognition or speaker verification
+                    # label_mask: (batch_size, seq_len), LongTensor
+                    label_mask = (features.sum(dim=-1) != 0).type(torch.LongTensor).to(device=self.device, dtype=torch.long)
+                    valid_lengths = label_mask.sum(dim=1)
+
+
+                    sample_rate = 3
+
+                    seq_len = representations.size(2) if len(features.shape) == 4 else features.size(1)
+                    features_specific = representations[:,-1,:,:]
+                    feature_store = features_specific[:, torch.arange(0, seq_len, sample_rate), :]
+                    valid_lengths_store = valid_lengths / sample_rate
+                    mean_feature = feature_store.mean(dim=1)
+                    all_features_label_pair_data += [(mean_feature.data.cpu(), labels.data.cpu())]
+
+
+                    if self.model_type == 'linear':
+                        # labels: (batch_size, seq_len)
+                        loss, logits, correct, valid = self.classifier(representations, labels, label_mask)
+                    elif self.model_type == 'rnn':
+                        # labels: (batch_size, )
+                        loss, logits, correct, valid = self.classifier(representations, labels, valid_lengths)
+                    elif self.model_type == "mean_linear":
+                        loss, logits, correct, valid = self.classifier(representations, labels, valid_lengths)
+                    elif self.model_type == "mean_linear_v2":
+                        loss, logits, correct, valid = self.classifier(representations, labels, valid_lengths)
+                    elif self.model_type == "OneLinear":
+                        loss, logits, correct, valid = self.classifier(representations, labels, label_mask)
+                    else:
+                        pass
+                    loss_sum += loss.detach().cpu().item()
+                    all_logits.append(logits)
+                    correct_count += correct.item()
+                    valid_count += valid.item()
+
+                except RuntimeError:
+                    if oom_counter > 10: break
+                    else: oom_counter += 1
+                    print('CUDA out of memory during testing, aborting after ' + str(10 - oom_counter) + ' more tries...')
+                    torch.cuda.empty_cache()
+
+        average_loss = loss_sum / len(self.dataloader)
+        test_acc = correct_count * 1.0 / valid_count
+        self.verbose(f'Test result: loss {average_loss}, acc {test_acc}')
+        pickle.dump(all_features_label_pair_data, open("speaker_representation.p","wb"))
+        print("speaker save representation")
         timer.end()
         timer.report()
         
