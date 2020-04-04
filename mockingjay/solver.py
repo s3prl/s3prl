@@ -79,7 +79,7 @@ class Solver():
             setattr(self, 'dataloader', get_Dataloader(split, load='duo', use_gpu=self.paras.gpu, \
                     mock_config=self.config['mockingjay'], **self.config['dataloader'])) # Currently the duo feature dataloader only supports mockingjay training, no need to specify `run_mockingjay`
         else:
-            setattr(self, 'dataloader', get_Dataloader(split, load='spec', use_gpu=self.paras.gpu, \
+            setattr(self, 'dataloader', get_Dataloader(split, load='acoustic', use_gpu=self.paras.gpu, \
                     run_mockingjay=True if not load_mel_only else False, mock_config=self.config['mockingjay'], \
                     **self.config['dataloader'])) # specify `run_mockingjay` so dataloader will process mockingjay MAM data
 

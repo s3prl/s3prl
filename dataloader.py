@@ -43,7 +43,7 @@ SPEAKER_THRESHOLD = 120
 #     - max_timestep : int, max len for input (set to 0 for no restriction)
 #     - max_label_len: int, max len for output (set to 0 for no restriction)
 #     - bucket_size  : int, batch size for each bucket
-#     - load         : str, types of data to load: ['asr', 'text', 'spec', 'duo', 'phone', 'speaker', 'speaker_large']
+#     - load         : str, types of data to load: ['asr', 'text', 'acoustic', 'duo', 'phone', 'speaker', 'speaker_large']
 class LibriDataset(Dataset):
     def __init__(self, file_path, sets, bucket_size, max_timestep=0, max_label_len=0, drop=False, load='asr'):
         # define default length
@@ -130,14 +130,15 @@ class AsrDataset(LibriDataset):
 # MEL DATASET #
 ###############
 '''
-The LibriSpeech train-clean-360 (Mel Spectrogram) dataset
+The Acoustic dataset that loads different types of handcrafted features of the LibriSpeech corpus.
+Currently supports 'data/libri_mel160_subword5000' and 'data/libri_fmllr_cmvn' for different preprocessing features.
 '''
-class MelDataset(LibriDataset):
+class AcousticDataset(LibriDataset):
     
-    def __init__(self, run_mockingjay, file_path, sets, bucket_size, max_timestep=0, max_label_len=0, drop=False, mock_config=None, load='spec'):
-        super(MelDataset, self).__init__(file_path, sets, bucket_size, max_timestep, max_label_len, drop, load)
+    def __init__(self, run_mockingjay, file_path, sets, bucket_size, max_timestep=0, max_label_len=0, drop=False, mock_config=None, load='acoustic'):
+        super(AcousticDataset, self).__init__(file_path, sets, bucket_size, max_timestep, max_label_len, drop, load)
 
-        assert(self.load == 'spec'), 'This dataset loads mel features.'
+        assert(self.load == 'acoustic'), 'This dataset loads mel features.'
         self.run_mockingjay = run_mockingjay
         self.mock_config = mock_config
         X = self.table['file_path'].tolist()
@@ -826,8 +827,8 @@ def get_Dataloader(split, load, data_path, batch_size, max_timestep, max_label_l
     if load in ['asr', 'text']:
         ds = AsrDataset(file_path=data_path, sets=sets, max_timestep=max_timestep, load=load,
                         max_label_len=max_label_len, bucket_size=bs, drop=drop_too_long)
-    elif load == 'spec':
-        ds = MelDataset(run_mockingjay=run_mockingjay, file_path=data_path, sets=sets, max_timestep=max_timestep, load=load, 
+    elif load == 'acoustic':
+        ds = AcousticDataset(run_mockingjay=run_mockingjay, file_path=data_path, sets=sets, max_timestep=max_timestep, load=load, 
                         max_label_len=max_label_len, bucket_size=bs, drop=drop_too_long, mock_config=mock_config)
     elif load == 'duo':
         assert(target_path is not None), '`target path` must be provided for this dataset.'
