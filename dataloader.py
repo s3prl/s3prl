@@ -138,7 +138,7 @@ class AcousticDataset(LibriDataset):
     def __init__(self, run_mockingjay, file_path, sets, bucket_size, max_timestep=0, max_label_len=0, drop=False, mock_config=None, load='acoustic'):
         super(AcousticDataset, self).__init__(file_path, sets, bucket_size, max_timestep, max_label_len, drop, load)
 
-        assert(self.load == 'acoustic'), 'This dataset loads mel features.'
+        assert(self.load == 'acoustic'), 'This dataset loads acoustic features.'
         self.run_mockingjay = run_mockingjay
         self.mock_config = mock_config
         X = self.table['file_path'].tolist()
@@ -330,7 +330,7 @@ class CPC_Phone_Dataset(LibriDataset):
         super(CPC_Phone_Dataset, self).__init__(file_path, sets, bucket_size, max_timestep, max_label_len, drop, load)
         HALF_BATCHSIZE_TIME = 1000
 
-        assert(self.load == 'cpc_phone'), 'This dataset loads mel features and phone boundary labels.'
+        assert(self.load == 'cpc_phone'), 'This dataset loads Kaldi extracted features and phone boundary labels (For the data released in the CPC paper).'
         self.run_mockingjay = run_mockingjay
         self.mock_config = mock_config
         self.phone_path = phone_path
