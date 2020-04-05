@@ -39,17 +39,22 @@ def get_mockingjay_args():
     # parser.add_argument('--ckpdir', default='../result_albert/albert_2_25_mockingjay_5e-5', type=str, help='Checkpoint/Result path.', required=False)
     # parser.add_argument('--ckpdir', default='../result_albert/albert-650000/albert_3l_melbase', type=str, help='Checkpoint/Result path.', required=False)
     #parser.add_argument('--ckpdir', default='../result_albert/albert-650000/albert_6l_melbase', type=str, help='Checkpoint/Result path.', required=False)
-    parser.add_argument('--ckpdir', default='../result_albert/albert-650000/albert_3l_mask1', type=str, help='Checkpoint/Result path.', required=False)
+    # parser.add_argument('--ckpdir', default='../result_albert/albert-650000/albert_3l_mask1', type=str, help='Checkpoint/Result path.', required=False)
     # parser.add_argument('--ckpdir', default='../result_albert/albert-650000/albert_12l_mask1', type=str, help='Checkpoint/Result path.', required=False)
     # parser.add_argument('--ckpdir', default='../result_albert/albert-650000/albert_6l_mask1_number1', type=str, help='Checkpoint/Result path.', required=False)
     # parser.add_argument("--ckpdir", default='../previous_result', type=str, help='Checkpoint/Result path.', required=False)
     # parser.add_argument("--ckpdir" , default='/home/pohan1996/melbase-albert/albert-3l-melbase-downsample1-consecutive1', type=str, help='Checkpoint/Result path.', required=False)
-    # parser.add_argument("--ckpdir" , default='/home/pohan1996/melbase-albert/albert-3l-melbase-downsample1-consecutive20', type=str, help='Checkpoint/Result path.', required=False)
-
+    parser.add_argument("--ckpdir" , default='../result_albert/albert-650000/albert-3l-melbase-downsample1-consecutive20', type=str, help='Checkpoint/Result path.', required=False)
+    # parser.add_argument("--ckpdir" , default="../result_albert/albert-650000/BERT-3l")
+    # parser.add_argument("--ckpdir" , default="../result_albert/albert-650000/BERT-6l")
+    # parser.add_argument("--ckpdir" , default="../result_albert/albert-650000/ALBERT-3l-mask-consecutive20")
+    # parser.add_argument("--ckpdir" , default="../result_albert/albert-650000/ALBERT-6l-mask-consecutive20")
+    # parser.add_argument('--ckpt', default="mockingjay_libri_sd1337/mockingjayBERT-490000.ckpt", type=str, help='path to mockingjay model checkpoint.', required=False)
+    # parser.add_argument('--ckpt', default="mockingjay_libri_sd1337/mockingjay-ALBERT-490000.ckpt", type=str, help='path to mockingjay model checkpoint.', required=False)
     parser.add_argument('--ckpt', default="mockingjay_libri_sd1337/mockingjayAlbert-490000.ckpt", type=str, help='path to mockingjay model checkpoint.', required=False)
 
     # parser.add_argument('--ckpt', default='mockingjay_libri_sd1337_LinearLarge/mockingjay-500000.ckpt', type=str, help='path to mockingjay model checkpoint.', required=False)
-    parser.add_argument('--dckpt', default='baseline_sentiment_libri_sd1337/baseline_sentiment-500000.ckpt', type=str, help='path to downstream checkpoint.', required=False)
+    parser.add_argument('--dckpt', default='speaker/best_val.ckpt', type=str, help='path to downstream checkpoint.', required=False)
     parser.add_argument('--apc_path', default='./result/result_apc/apc_libri_sd1337_standard/apc-500000.ckpt', type=str, help='path to the apc model checkpoint.', required=False)
 
     # mockingjay
@@ -98,7 +103,7 @@ def main():
     config, args = get_mockingjay_args()
     # wandb.init(config=config,project="albert-mockingjay-downstream-task")#,resume=True)
     # wandb=None
-    wandb.init(config=config,project="albert-mockingjay-downstream-task",name="PHALBERT-feature-extract")#,resume=True)
+    wandb.init(config=config,project="albert-mockingjay-downstream-task",name="PHALBERT-melbase-c20-d1-3l-ft4")#,resume=True)
     wandb.config.update(args)
     # Fix seed and make backends deterministic
     random.seed(args.seed)
