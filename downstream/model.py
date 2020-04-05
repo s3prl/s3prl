@@ -34,9 +34,9 @@ class LinearClassifier(nn.Module):
         self.num_layers = dconfig['layers']
         self.weight = nn.Parameter(torch.ones(12) / 12)
         assert(not (self.sequencial and self.linear))
-        assert(self.concat % 2 == 1) # concat must be an odd number
 
         if self.concat > 1:
+            assert(self.concat % 2 == 1) # concat must be an odd number
             self.input_dim *= self.concat
 
         if self.sequencial: 
