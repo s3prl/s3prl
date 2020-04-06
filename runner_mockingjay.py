@@ -17,11 +17,10 @@ import argparse
 import numpy as np
 
 
-def prune_heads_parse(heads_str):
-    result = None
-    if heads_str != 'None':
+def parse_prune_heads(config):
+    if 'prune_headids' in config['mockingjay'] and config['mockingjay']['prune_headids'] != 'None':
         heads_int = []
-        spans = heads_str.split(',')
+        spans = config['mockingjay']['prune_headids'].split(',')
         for span in spans:
             endpoints = span.split('-')
             if len(endpoints) == 1:
@@ -31,8 +30,9 @@ def prune_heads_parse(heads_str):
             else:
                 raise ValueError
         print(f'[PRUNING] - heads {heads_int} will be pruned')
-        result = heads_int
-    return result
+        config['mockingjay']['prune_headids'] = heads_int
+    else:
+        config['mockingjay']['prune_headids'] = None
 
 
 #############################
@@ -95,7 +95,7 @@ def get_mockingjay_args():
     setattr(args,'verbose', not args.no_msg)
     config = yaml.load(open(args.config,'r'), Loader=yaml.FullLoader)
     config['mockingjay']['test_reconstruct'] = args.test_reconstruct
-    config['mockingjay']['prune_headids'] = prune_heads_parse(config['mockingjay']['prune_headids'])
+    parse_prune_heads(config)
     
     return config, args
 
