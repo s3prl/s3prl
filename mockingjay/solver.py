@@ -661,6 +661,7 @@ class Tester(Solver):
                 for layerid, layer_attentions in enumerate(all_attentions[0]):
                     for headid, head_attention in enumerate(layer_attentions):
                         plot_attention(head_attention.detach().cpu(), os.path.join(sample_dir, f'{layerid}-{headid}.png'))
+                    plot_attention(layer_attentions.mean(dim=0).detach().cpu(), os.path.join(sample_dir, f'{layerid}-average.png'))
 
 
     def forward(self, spec, all_layers=True, tile=True, process_from_loader=False):
