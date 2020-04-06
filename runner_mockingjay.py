@@ -88,6 +88,7 @@ def get_mockingjay_args():
     parser.add_argument('--multi_gpu', action='store_true', help='Enable Multi-GPU training.')
     parser.add_argument('--no_msg', action='store_true', help='Hide all messages.')
     parser.add_argument('--prune_heads', help='Usage: 0,1,2,12-15 will prune headids [0,1,2,12,13,14]. headids = layerid * head_num + headid_in_layer')
+    parser.add_argument('--test_reconstruct', action='store_true', help='Test reconstruction capability')
 
 
     args = parser.parse_args()
@@ -95,6 +96,7 @@ def get_mockingjay_args():
     setattr(args,'verbose', not args.no_msg)
     args.prune_heads = prune_heads_parse(args.prune_heads)
     config = yaml.load(open(args.config,'r'), Loader=yaml.FullLoader)
+    config['mockingjay']['test_reconstruct'] = args.test_reconstruct
     
     return config, args
 
@@ -122,6 +124,14 @@ def main():
         trainer.load_data(split='train')
         trainer.set_model(inference=False)
         trainer.exec()
+
+    # Test Mockingjay
+    if args.test_reconstruct:
+        from mockingjay.solver import Trainer
+        trainer = Trainer(config, args)
+        trainer.load_data(split='test')
+        trainer.set_model(inference=True, with_head=True)
+        trainer.test_reconstruct()
 
     ##################################################################################
     

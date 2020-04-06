@@ -457,6 +457,31 @@ class Trainer(Solver):
         self.reset_train()
         
 
+    def test_reconstruct(self):
+        head_mask = None
+        if self.paras.prune_heads is not None:
+            layer_num = self.config['mockingjay']['num_hidden_layers']
+            head_num = self.config['mockingjay']['num_attention_heads']
+            head_mask = torch.ones(layer_num, head_num)
+            layer_ids = [idx // head_num for idx in self.paras.prune_heads]
+            head_ids = [idx % head_num for idx in self.paras.prune_heads]
+            head_mask[layer_ids, head_ids] = 0.0  
+
+        epoch_loss = []
+        for batch_is_valid, *batch in tqdm(self.dataloader):
+            assert batch_is_valid
+
+            spec_masked, pos_enc, mask_label, attn_mask, spec_stacked = self.process_data(batch)
+            if head_mask is not None:
+                head_mask = head_mask.to(spec_masked.device)
+            
+            with torch.no_grad():
+                loss, pred_spec = self.model(spec_masked, pos_enc, mask_label, attn_mask, spec_stacked, head_mask)
+            epoch_loss.append(loss.item())
+
+        print(sum(epoch_loss) / len(epoch_loss))
+
+
 ##########
 # TESTER #
 ##########

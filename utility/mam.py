@@ -89,6 +89,7 @@ def process_train_MAM_data(spec, config=None):
     mask_bucket_ratio = config['mask_bucket_ratio'] if config is not None else MASK_BUCKET_RATIO
     mask_frequency = config['mask_frequency'] if config is not None else MASK_FREQUENCY
     noise_proportion = config['noise_proportion'] if config is not None else NOISE_PROPORTION
+    test_reconstruct = config['test_reconstruct'] if config is not None else False  # This options is automatically handled by argparser in runner_mockingjay
 
     with torch.no_grad():
         if len(spec) == 2: # if self.duo_feature: dataloader will output `source_spec` and `target_spec`
@@ -115,6 +116,13 @@ def process_train_MAM_data(spec, config=None):
         attn_mask = torch.ones((batch_size, seq_len)) # (batch_size, seq_len)
 
         for idx in range(batch_size):
+            # zero vectors for padding dimension
+            attn_mask[idx, spec_len[idx]:] = 0
+
+            if test_reconstruct:
+                mask_label[idx, :, :] = 1
+                continue
+
             def starts_to_intervals(starts, consecutive):
                 tiled = starts.expand(consecutive, starts.size(0)).T
                 offset = torch.arange(consecutive).expand_as(tiled)
@@ -162,14 +170,12 @@ def process_train_MAM_data(spec, config=None):
                 # the gradients will be calculated on chosen frames
                 mask_label[idx, :, chosen_intervals] = 1   
 
-            # zero vectors for padding dimension
-            attn_mask[idx, spec_len[idx]:] = 0
-
-        # noise augmentation
-        dice = random.random()
-        if dice < noise_proportion:
-            noise_sampler = torch.distributions.Normal(0, 0.2)
-            spec_masked += noise_sampler.sample(spec_masked.shape)
+        if not test_reconstruct:
+            # noise augmentation
+            dice = random.random()
+            if dice < noise_proportion:
+                noise_sampler = torch.distributions.Normal(0, 0.2)
+                spec_masked += noise_sampler.sample(spec_masked.shape)
         
         valid_batchid = mask_label.view(batch_size, -1).sum(dim=-1).nonzero().view(-1)
         batch_is_valid = len(valid_batchid) > 0
