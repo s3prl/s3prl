@@ -128,7 +128,8 @@ class LinearClassifier(nn.Module):
                 features = features.transpose(0, 1).reshape(layer_num, -1)
                 features = torch.matmul(weights, features).reshape(batch_size, seq_len, feature_dim)
             else:
-                raise NotImplementedError('Feature selection mode not supported!')
+                assert type(self.select_hidden) is int
+                features = features[:, self.select_hidden, :, :]
 
         # since the down-sampling (float length be truncated to int) and then up-sampling process
         # can cause a mismatch between the seq lenth of mockingjay representation and that of label
@@ -258,7 +259,8 @@ class RnnClassifier(nn.Module):
                 features = features.transpose(0, 1).reshape(layer_num, -1)
                 features = torch.matmul(weights, features).reshape(batch_size, seq_len, feature_dim)
             else:
-                raise NotImplementedError('Feature selection mode not supported!')
+                assert type(self.select_hidden) is int
+                features = features[:, self.select_hidden, :, :]
 
         sample_rate = self.config['sample_rate']
         features = features[:, torch.arange(0, seq_len, sample_rate), :]
