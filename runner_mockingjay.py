@@ -23,8 +23,14 @@ def prune_heads_parse(heads_str):
         heads_int = []
         spans = heads_str.split(',')
         for span in spans:
-            start, end = span.split('-')
-            heads_int += torch.arange(int(start), int(end) + 1).tolist()
+            endpoints = span.split('-')
+            if len(endpoints) == 1:
+                heads_int.append(int(endpoints[0]))
+            elif len(endpoints) == 2:
+                heads_int += torch.arange(int(endpoints[0]), int(endpoints[1])).tolist()
+            else:
+                raise ValueError
+        print(f'[PRUNING] - heads {heads_int} will be pruned')
         result = heads_int
     return result
 
@@ -81,7 +87,7 @@ def get_mockingjay_args():
     parser.add_argument('--cpu', action='store_true', help='Disable GPU training.')
     parser.add_argument('--multi_gpu', action='store_true', help='Enable Multi-GPU training.')
     parser.add_argument('--no_msg', action='store_true', help='Hide all messages.')
-    parser.add_argument('--prune_heads', help='Used to prune heads for downstream stream')
+    parser.add_argument('--prune_heads', help='Usage: 0,1,2,12-15 will prune headids [0,1,2,12,13,14]. headids = layerid * head_num + headid_in_layer')
 
 
     args = parser.parse_args()
