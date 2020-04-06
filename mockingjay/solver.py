@@ -459,12 +459,13 @@ class Trainer(Solver):
 
     def test_reconstruct(self):
         head_mask = None
-        if self.paras.prune_heads is not None:
+        prune_headids = self.config['mockingjay']['prune_headids']
+        if prune_headids is not None:
             layer_num = self.config['mockingjay']['num_hidden_layers']
             head_num = self.config['mockingjay']['num_attention_heads']
             head_mask = torch.ones(layer_num, head_num)
-            layer_ids = [idx // head_num for idx in self.paras.prune_heads]
-            head_ids = [idx % head_num for idx in self.paras.prune_heads]
+            layer_ids = [idx // head_num for idx in prune_headids]
+            head_ids = [idx % head_num for idx in prune_headids]
             head_mask[layer_ids, head_ids] = 0.0  
 
         epoch_loss = []
@@ -682,13 +683,14 @@ class Tester(Solver):
                 spec_stacked, pos_enc, attn_mask = self.process_data(spec=spec) # Use dataloader to process MAM data to increase speed
 
             head_mask = None
-            if self.paras.prune_heads is not None:
+            prune_headids = self.config['mockingjay']['prune_headids']
+            if prune_headids is not None:
                 layer_num = self.config['mockingjay']['num_hidden_layers']
                 head_num = self.config['mockingjay']['num_attention_heads']
                 head_mask = torch.ones(layer_num, head_num).to(spec_stacked.device)
-                layer_ids = [idx // head_num for idx in self.paras.prune_heads]
-                head_ids = [idx % head_num for idx in self.paras.prune_heads]
-                head_mask[layer_ids, head_ids] = 0.0
+                layer_ids = [idx // head_num for idx in prune_headids]
+                head_ids = [idx % head_num for idx in prune_headids]
+                head_mask[layer_ids, head_ids] = 0.0  
             
             reps = self.mockingjay(spec_stacked, pos_enc, attention_mask=attn_mask, output_all_encoded_layers=all_layers, head_mask=head_mask)
 

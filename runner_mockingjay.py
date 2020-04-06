@@ -19,7 +19,7 @@ import numpy as np
 
 def prune_heads_parse(heads_str):
     result = None
-    if heads_str is not None:
+    if heads_str != 'None':
         heads_int = []
         spans = heads_str.split(',')
         for span in spans:
@@ -87,16 +87,15 @@ def get_mockingjay_args():
     parser.add_argument('--cpu', action='store_true', help='Disable GPU training.')
     parser.add_argument('--multi_gpu', action='store_true', help='Enable Multi-GPU training.')
     parser.add_argument('--no_msg', action='store_true', help='Hide all messages.')
-    parser.add_argument('--prune_heads', help='Usage: 0,1,2,12-15 will prune headids [0,1,2,12,13,14]. headids = layerid * head_num + headid_in_layer')
     parser.add_argument('--test_reconstruct', action='store_true', help='Test reconstruction capability')
 
 
     args = parser.parse_args()
     setattr(args,'gpu', not args.cpu)
     setattr(args,'verbose', not args.no_msg)
-    args.prune_heads = prune_heads_parse(args.prune_heads)
     config = yaml.load(open(args.config,'r'), Loader=yaml.FullLoader)
     config['mockingjay']['test_reconstruct'] = args.test_reconstruct
+    config['mockingjay']['prune_headids'] = prune_heads_parse(config['mockingjay']['prune_headids'])
     
     return config, args
 
