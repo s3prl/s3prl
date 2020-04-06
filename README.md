@@ -12,15 +12,15 @@ Feel free to use or modify them, any bug report or improvement suggestion will b
 # Update
 We provide furthur phone classification experiment results, comparing with the *"Contrastive Predictive Coding, CPC"* method, using identical [phone
 labels and train/test split](https://drive.google.com/drive/folders/1BhJ2umKH3whguxMwifaKtSra0TgAbtfb) as provided in the [CPC paper](https://arxiv.org/pdf/1807.03748.pdf).
-There are 41 possible classes, phone classification results on LibriSpeech:
+We pre-train Mockingjay on the 100hr subset of LibriSpeech, same as CPC. There are 41 possible classes, phone classification results on LibriSpeech:
 
 | Features | Classifier | Acc (%) |
 | -------- | -------- | -------- |
 | MFCC features | linear | 39.7 |
 | CPC | linear | 64.6 |
-| Mockingjay (Ours) | linear | **65.1** |
+| Mockingjay (Ours) | linear | **65.2** |
 | CPC | 1 hidden layer | 72.5 |
-| Mockingjay (Ours) | 1 hidden layer | **79.5** |
+| Mockingjay (Ours) | 1 hidden layer | **77.4** |
 
 # Highlight
 ## Pre-trained Models
@@ -32,7 +32,7 @@ You can find pre-trained models here:
 
 ## Extract features or fine-tuning with your own downstream models
 With this repo and the trained models, you can fine-tune the pre-trained Mockingjay model on your own dataset and tasks. 
-To do so, use the wrapper class in [nn_mockingjay.py](mockingjay/nn_mockingjay.py), and take a look at the following example python code ([example_finetune.py](example_finetune.py)):
+To do so, use the wrapper class in [nn_mockingjay.py](mockingjay/nn_mockingjay.py), and take a look at the following example python code ([example_extract_finetune.py](example_extract_finetune.py)):
 ```python
 import torch
 from mockingjay.nn_mockingjay import MOCKINGJAY
@@ -73,7 +73,7 @@ torch.save(states, PATH_TO_SAVE_YOUR_MODEL)
 ```
 
 ## Extracting Speech Representations with Solver
-With this repo and the trained models, you can use it to extract speech representations from your target dataset. To do so, feed-forward the trained model on the target dataset and retrieve the extracted features by running the following example python code ([example_extract.py](example_extract.py)):
+With this repo and the trained models, you can use it to extract speech representations from your target dataset. To do so, feed-forward the trained model on the target dataset and retrieve the extracted features by running the following example python code ([example_solver.py](example_solver.py)):
 ```python
 import torch
 from runner_mockingjay import get_mockingjay_model
