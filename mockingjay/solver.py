@@ -374,6 +374,7 @@ class Trainer(Solver):
             mask_label = mask_label.bool().to(device=self.device)
             attn_mask = attn_mask.to(device=self.device)
             spec_stacked = spec_stacked.to(device=self.device)
+        
 
         return spec_masked, pos_enc, mask_label, attn_mask, spec_stacked # (x, pos_enc, mask_label, attention_mask. y)
 
@@ -389,11 +390,13 @@ class Trainer(Solver):
 
             progress = tqdm(self.dataloader, desc="Iteration")
 
-            for batch in progress:
-                step += 1
+            for batch_is_valid, *batch in progress:
                 try:
                     if self.global_step >= self.total_steps: break
                     
+                    if not batch_is_valid: continue 
+                    step += 1
+
                     spec_masked, pos_enc, mask_label, attn_mask, spec_stacked = self.process_data(batch)
                     loss, pred_spec = self.model(spec_masked, pos_enc, mask_label, attn_mask, spec_stacked)
 
@@ -438,7 +441,7 @@ class Trainer(Solver):
                             if self.bert:
                                 self.save_model('mockingjayBERT')
                             else:
-                                self.save_model("mockingjay-ALBERT")
+                                self.save_model("mockingjayALBERT")
 
                             mask_spec = self.up_sample_frames(spec_masked[0], return_first=True)
                             pred_spec = self.up_sample_frames(pred_spec[0], return_first=True)

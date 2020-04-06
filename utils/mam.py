@@ -71,7 +71,8 @@ def process_train_MAM_data(spec, config=None):
     mini_bucket_num = config["mini_bucket_num"]
     consecutive_offset = config["consecutive_offset"]
     temp = []
-    
+    pass_signal = None
+
     with torch.no_grad():
         if len(spec) == 2: # if self.duo_feature: dataloader will output `source_spec` and `target_spec`
             source_spec = spec[0]
@@ -148,7 +149,12 @@ def process_train_MAM_data(spec, config=None):
         spec_stacked = spec_stacked[valid_idx].to(dtype=torch.float32)
         pos_enc = pos_enc[valid_idx]
 
-    return spec_masked, pos_enc, mask_label, attn_mask, spec_stacked
+        if len(valid_idx) == 0:
+            pass_signal = False
+        else:
+            pass_signal = True
+
+    return pass_signal, spec_masked, pos_enc, mask_label, attn_mask, spec_stacked
 
 
 def process_test_MAM_data(spec, config=None):
