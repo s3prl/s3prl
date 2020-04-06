@@ -17,6 +17,18 @@ import argparse
 import numpy as np
 
 
+def prune_heads_parse(heads_str):
+    result = None
+    if heads_str is not None:
+        heads_int = []
+        spans = heads_str.split(',')
+        for span in spans:
+            start, end = span.split('-')
+            heads_int += torch.arange(int(start), int(end) + 1).tolist()
+        result = heads_int
+    return result
+
+
 #############################
 # MOCKINGJAY CONFIGURATIONS #
 #############################
@@ -69,11 +81,13 @@ def get_mockingjay_args():
     parser.add_argument('--cpu', action='store_true', help='Disable GPU training.')
     parser.add_argument('--multi_gpu', action='store_true', help='Enable Multi-GPU training.')
     parser.add_argument('--no_msg', action='store_true', help='Hide all messages.')
+    parser.add_argument('--prune_heads', help='Used to prune heads for downstream stream')
 
 
     args = parser.parse_args()
     setattr(args,'gpu', not args.cpu)
     setattr(args,'verbose', not args.no_msg)
+    args.prune_heads = prune_heads_parse(args.prune_heads)
     config = yaml.load(open(args.config,'r'), Loader=yaml.FullLoader)
     
     return config, args
