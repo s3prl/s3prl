@@ -41,10 +41,10 @@ def get_mockingjay_args():
     #parser.add_argument('--ckpdir', default='../result_albert/albert-650000/albert_6l_melbase', type=str, help='Checkpoint/Result path.', required=False)
     # parser.add_argument('--ckpdir', default='../result_albert/albert-650000/albert_3l_mask1', type=str, help='Checkpoint/Result path.', required=False)
     # parser.add_argument('--ckpdir', default='../result_albert/albert-650000/albert_12l_mask1', type=str, help='Checkpoint/Result path.', required=False)
-    # parser.add_argument('--ckpdir', default='../result_albert/albert-650000/albert_6l_mask1_number1', type=str, help='Checkpoint/Result path.', required=False)
+    parser.add_argument('--ckpdir', default='../result_albert/albert-650000/albert_6l_mask1_number1', type=str, help='Checkpoint/Result path.', required=False)
     # parser.add_argument("--ckpdir", default='../previous_result', type=str, help='Checkpoint/Result path.', required=False)
     # parser.add_argument("--ckpdir" , default='/home/pohan1996/melbase-albert/albert-3l-melbase-downsample1-consecutive1', type=str, help='Checkpoint/Result path.', required=False)
-    parser.add_argument("--ckpdir" , default='../result_albert/albert-650000/albert-3l-melbase-downsample1-consecutive20', type=str, help='Checkpoint/Result path.', required=False)
+    # parser.add_argument("--ckpdir" , default='../result_albert/albert-650000/albert-3l-melbase-downsample1-consecutive20', type=str, help='Checkpoint/Result path.', required=False)
     # parser.add_argument("--ckpdir" , default="../result_albert/albert-650000/BERT-3l")
     # parser.add_argument("--ckpdir" , default="../result_albert/albert-650000/BERT-6l")
     # parser.add_argument("--ckpdir" , default="../result_albert/albert-650000/ALBERT-3l-mask-consecutive20")
@@ -74,6 +74,9 @@ def get_mockingjay_args():
     # speaker verification task
     parser.add_argument('--train_speaker', action='store_true', help='Train the speaker classifier on mel or mockingjay representations.')
     parser.add_argument('--test_speaker', action='store_true', help='Test mel or mockingjay representations using the trained speaker classifier.')
+
+    parser.add_argument('--train_speaker_large', action='store_true', help='Train the speaker classifier on mel or mockingjay representations.')
+    parser.add_argument('--test_speaker_large', action='store_true', help='Test mel or mockingjay representations using the trained speaker classifier.')
     
     # Options
     parser.add_argument("--bert", action="store_true", help="if true, use original mockingjay not albert")
@@ -84,6 +87,8 @@ def get_mockingjay_args():
     parser.add_argument('--cpu', action='store_true', help='Disable GPU training.')
     parser.add_argument('--no-msg', action='store_true', help='Hide all messages.')
 
+    parser.add_argument('--train_speaker_CPC', action='store_true', help='Train the speaker classifier on mel or mockingjay representations.')
+    parser.add_argument('--test_speaker_CPC', action='store_true', help='Test mel or mockingjay representations using the trained speaker classifier.')
 
     args = parser.parse_args()
     setattr(args,'gpu', not args.cpu)
@@ -102,9 +107,9 @@ def main():
     # get arguments
     config, args = get_mockingjay_args()
     # wandb.init(config=config,project="albert-mockingjay-downstream-task")#,resume=True)
-    # wandb=None
-    wandb.init(config=config,project="albert-mockingjay-downstream-task",name="PHALBERT-melbase-c20-d1-3l-ft4")#,resume=True)
-    wandb.config.update(args)
+    wandb=None
+    # wandb.init(config=config,project="albert-mockingjay-downstream-task",name="SPCPC-BERT-6l-2-251")#,resume=True)
+    # wandb.config.update(args)
     # Fix seed and make backends deterministic
     random.seed(args.seed)
     np.random.seed(args.seed)
@@ -188,10 +193,67 @@ def main():
         from downstream.solver import Downstream_Tester
         task = 'mockingjay_speaker' if args.run_mockingjay \
                 else 'apc_speaker' if args.run_apc else 'baseline_speaker'
+
         tester = Downstream_Tester(config, args, task=task)
         tester.load_data(split='test', load='speaker')
         tester.set_model(inference=True)
         tester.exec()
+
+    elif args.train_speaker_large:
+        
+        from downstream.solver import Downstream_Trainer, Downstream_Trainer_epoch_training
+        task = 'mockingjay_speakerlarge' if args.run_mockingjay \
+                else 'apc_speakerlarge' if args.run_apc else 'baseline_speakerlarge  '
+
+        if args.epoch_train:
+            trainer = Downstream_Trainer_epoch_training(config, args, task=task)
+        else:
+            trainer = Downstream_Trainer(config, args, task=task)
+
+        trainer.load_data(split='train', load='speakerlarge')
+        trainer.set_model(inference=False,wandb=wandb)
+        trainer.exec(wandb=wandb)
+
+    # Test Speaker Task
+    elif args.test_speaker_large:
+        from downstream.solver import Downstream_Tester
+        task = 'mockingjay_speakerlarge' if args.run_mockingjay \
+                else 'apc_speakerlarge' if args.run_apc else 'baseline_speakerlarge'
+        tester = Downstream_Tester(config, args, task=task)
+        tester.load_data(split='test', load='speakerlarge')
+        tester.set_model(inference=True)
+        tester.exec()
+
+
+    elif args.train_speaker_CPC:
+        
+        from downstream.solver import Downstream_Trainer, Downstream_Trainer_epoch_training
+        task = 'mockingjay_speakerCPC' if args.run_mockingjay \
+                else 'apc_speakerCPC' if args.run_apc else 'baseline_speakerCPC  '
+
+        if args.epoch_train:
+            trainer = Downstream_Trainer_epoch_training(config, args, task=task)
+        else:
+            trainer = Downstream_Trainer(config, args, task=task)
+
+        trainer.load_data(split='train', load='speakerCPC')
+        trainer.set_model(inference=False,wandb=wandb)
+        trainer.exec(wandb=wandb)
+
+    # Test Speaker Task
+    elif args.test_speaker_CPC:
+        from downstream.solver import Downstream_Tester
+        task = 'mockingjay_speakerCPC' if args.run_mockingjay \
+                else 'apc_speakerCPC' if args.run_apc else 'baseline_speakerCPC'
+        tester = Downstream_Tester(config, args, task=task)
+        tester.load_data(split='test', load='speakerCPC')
+        tester.set_model(inference=True)
+        tester.exec()
+
+
+
+
+
 
     ##################################################################################
 

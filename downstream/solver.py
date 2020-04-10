@@ -23,7 +23,7 @@ import torch.nn.functional as F
 from tensorboardX import SummaryWriter
 from dataloader import get_Dataloader
 from mockingjay.solver import Solver, Tester
-from downstream.model import LinearClassifier, RnnClassifier, MeanLinearClassifier, MeanLinearClassifier_v2, OneLinear
+from downstream.model import LinearClassifier, RnnClassifier, MeanLinearClassifier, MeanLinearClassifier_v2, OneLinear, OneLinearCPC
 from utils.audio import mel_dim, num_freq, sample_rate, inv_spectrogram
 from utils.timer import Timer
 from runner_apc import get_apc_model
@@ -72,8 +72,8 @@ class Downstream_Solver(Solver):
 
     def load_data(self, split='train', load='phone'):
         ''' Load date for training / testing'''
-        assert(load in ['phone', 'sentiment', 'speaker', 'speaker_large']), 'Unsupported dataloader!'
-        if load == 'phone' or load == 'speaker_large':
+        assert(load in ['phone', 'sentiment', 'speaker', 'speakerlarge', "speakerCPC"]), 'Unsupported dataloader!'
+        if load == 'phone' or load == 'speakerlarge':
             if split == 'train':
                 self.verbose('Loading source data from ' + str(self.config['dataloader']['train_set']) + ' from ' + self.config['dataloader']['data_path'])
                 if load == 'phone': self.verbose('Loading phone data from ' + str(self.config['dataloader']['train_set']) + ' from ' + self.config['dataloader']['phone_path'])
@@ -82,7 +82,7 @@ class Downstream_Solver(Solver):
                 if load == 'phone': self.verbose('Loading label data ' + str(self.config['dataloader']['test_set']) + ' from ' + self.config['dataloader']['phone_path'])
             else:
                 raise NotImplementedError('Invalid `split` argument!')
-        elif load == 'speaker':
+        elif load == 'speaker' or load == "speakerCPC":
             if split == 'train':
                 self.verbose('Loading source data from ' + str(self.config['dataloader']['train_set']).replace('360', '100') + ' from ' + self.config['dataloader']['data_path'])
             elif split == 'test':
@@ -110,8 +110,12 @@ class Downstream_Solver(Solver):
                 self.model_type = "linear"
         elif "sentiment" in self.task:
             self.model_type = "mean_linear_v2"
+
+        elif "CPC" in self.task:
+            self.model_type = "OneLinearCPC"
+        
         else:
-            self.model_type = "mean_linear_v2" 
+            self.model_type = "mean_linear_v2"
 
         input_dim = int(self.config['downstream'][self.model_type]['input_dim']) if \
                     self.config['downstream'][self.model_type]['input_dim'] != 'None' else None
@@ -159,6 +163,13 @@ class Downstream_Solver(Solver):
                                                task=self.task,
                                                dconfig=self.config['downstream']['OneLinear'],
                                                sequencial=False).to(self.device)
+
+        elif self.model_type == "OneLinearCPC":
+            self.classifier = OneLinearCPC(input_dim=input_dim,
+                                               class_num=self.dataloader.dataset.class_num,
+                                               task=self.task,
+                                               dconfig=self.config['downstream']['OneLinearCPC']).to(self.device)
+
         else:
             NotImplementedError
 
@@ -356,6 +367,8 @@ class Downstream_Trainer(Downstream_Solver):
                         loss, _, correct, valid = self.classifier(representations, labels, valid_lengths)
                     elif self.model_type == "OneLinear":
                         loss, _, correct, valid = self.classifier(representations, labels, label_mask)
+                    elif self.model_type == "OneLinearCPC":
+                        loss, _, correct, valid = self.classifier(representations, labels, label_mask)
                     else:
                         raise NotImplementedError('Invalid `model_type`!')
 
@@ -481,8 +494,13 @@ class Downstream_Trainer_epoch_training(Downstream_Solver):
                 self.model_type = "linear"
         elif "sentiment" in self.task:
             self.model_type = "mean_linear_v2"
+
+        elif "CPC" in self.task:
+            self.model_type = "OneLinearCPC"
+        
         else:
-            self.model_type = "mean_linear_v2" 
+            self.model_type = "mean_linear_v2"
+
 
         input_dim = int(self.config['downstream'][self.model_type]['input_dim']) if \
                     self.config['downstream'][self.model_type]['input_dim'] != 'None' else None
@@ -530,6 +548,12 @@ class Downstream_Trainer_epoch_training(Downstream_Solver):
                                                class_num=self.dataloader.dataset.class_num,
                                                task=self.task,
                                                dconfig=self.config['downstream']['OneLinear'],
+                                               sequencial=False).to(self.device)
+        elif self.model_type == "OneLinearCPC":
+            self.classifier = OneLinearCPC(input_dim=input_dim,
+                                               class_num=self.dataloader.dataset.class_num,
+                                               task=self.task,
+                                               dconfig=self.config['downstream']['OneLinearCPC'],
                                                sequencial=False).to(self.device)
         else:
             NotImplementedError
@@ -593,12 +617,17 @@ class Downstream_Trainer_epoch_training(Downstream_Solver):
                     # features: (1, batch_size, seq_len, feature)
                     # dimension of labels is depends on task and dataset, but the first dimention is always trivial due to bucketing
                     # eg. (1, batch_size, seq_len) or (1, batch_size)
-                    labels = labels.squeeze(0).to(device=self.device)  # labels can be torch.long or torch.float (regression)
+                    labels = labels.squeeze(0).to(device=self.device)
+                      # labels can be torch.long or torch.float (regression)
+                    
                     if 'speaker' in self.task: # Doesn't need the whole utterance to predict speaker
                         original_len = features[0].size(2)
                         reduce_factor = 3
-                        if self.run_mockingjay: features = (features[0][:, :, :original_len//reduce_factor, :], features[1][:, :, :original_len//reduce_factor, :], features[2][:, :, :original_len//reduce_factor])
-                        else: features = features[:, :, :original_len//reduce_factor, :]
+                        if self.run_mockingjay: 
+                            features = (features[0][:, :, :original_len//reduce_factor, :], features[1][:, :, :original_len//reduce_factor, :], features[2][:, :, :original_len//reduce_factor])
+                        else: 
+                            features = features[:, :, :original_len//reduce_factor, :]
+
                     if self.run_mockingjay and self.paras.with_head:
                         # representations shape: (batch_size, seq_len, feature)
                         representations = self.mockingjay.forward_with_head(features, process_from_loader=True)
@@ -611,6 +640,9 @@ class Downstream_Trainer_epoch_training(Downstream_Solver):
                         # representations shape: (batch_size, layer, seq_len, feature)
                         representations = self.mockingjay.forward(features, tile=False if 'speaker' in self.task else True, process_from_loader=True)
                         features = self.up_sample_frames(features[0].squeeze(0)) if 'speaker' not in self.task else features[0].squeeze(0)
+                        if "CPC" in self.task:
+                            labels = labels.unsqueeze(-1).expand(features.shape[0],features.shape[1])
+
                     elif self.run_apc:
                         # representations shape: (batch_size, layer, seq_len, feature)
                         representations = self.apc.forward(features)
@@ -619,7 +651,7 @@ class Downstream_Trainer_epoch_training(Downstream_Solver):
                         # representations shape: (batch_size, seq_len, feature)
                         features = features.squeeze(0)
                         representations = features.to(device=self.device, dtype=torch.float32)
-
+                                      
                     # Since zero padding technique, some timestamps of features are not valid
                     # For each timestamps, we mark 1 on valid timestamps, and 0 otherwise
                     # This variable can be useful for frame-wise metric, like phoneme recognition or speaker verification
@@ -639,6 +671,8 @@ class Downstream_Trainer_epoch_training(Downstream_Solver):
                     elif self.model_type == "mean_linear_v2":
                         loss, _, correct, valid = self.classifier(representations, labels, valid_lengths)
                     elif self.model_type == "OneLinear":
+                        loss, _, correct, valid = self.classifier(representations, labels, label_mask)
+                    elif self.model_type == "OneLinearCPC":
                         loss, _, correct, valid = self.classifier(representations, labels, label_mask)
                     else:
                         raise NotImplementedError('Invalid `model_type`!')
@@ -813,6 +847,8 @@ class Downstream_Tester(Downstream_Solver):
                         # representations shape: (batch_size, layer, seq_len, feature)
                         representations = self.mockingjay.forward(features, tile=False if 'speaker' in self.task else True, process_from_loader=True)
                         features = self.up_sample_frames(features[0].squeeze(0)) if 'speaker' not in self.task else features[0].squeeze(0)
+                        if "CPC" in self.task:
+                            labels = labels.unsqueeze(-1).expand(features.shape[0],features.shape[1])
                     elif self.run_apc:
                         # representations shape: (batch_size, layer, seq_len, feature)
                         representations = self.apc.forward(features)
@@ -839,7 +875,7 @@ class Downstream_Tester(Downstream_Solver):
                         loss, logits, correct, valid = self.classifier(representations, labels, valid_lengths)
                     elif self.model_type == "mean_linear_v2":
                         loss, logits, correct, valid = self.classifier(representations, labels, valid_lengths)
-                    elif self.model_type == "OneLinear":
+                    elif self.model_type == "OneLinearCPC":
                         loss, logits, correct, valid = self.classifier(representations, labels, label_mask)
                     else:
                         pass
@@ -958,7 +994,7 @@ class Downstream_tsne_Tester(Downstream_Solver):
         average_loss = loss_sum / len(self.dataloader)
         test_acc = correct_count * 1.0 / valid_count
         self.verbose(f'Test result: loss {average_loss}, acc {test_acc}')
-        pickle.dump(all_features_label_pair_data, open("speaker_representation.p","wb"))
+        pickle.dump(all_features_label_pair_data, open("speaker_representation_dev.p","wb"))
         print("speaker save representation")
         timer.end()
         timer.report()

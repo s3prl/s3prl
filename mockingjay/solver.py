@@ -149,7 +149,7 @@ class Solver():
             {'params': [p for n, p in self.model.named_parameters() if any(nd in n for nd in no_decay)], 'weight_decay': 0.0}
             ]
             
-            optimizer = Lamb(optimizer_grouped_parameters, lr=self.learning_rate, eps=1e-9)
+            optimizer = Lamb(optimizer_grouped_parameters, lr=self.learning_rate, eps=1e-6)
             num_train_optimization_steps = self.total_steps 
             if self.apex:
                 try:
@@ -393,8 +393,8 @@ class Trainer(Solver):
             for batch_is_valid, *batch in progress:
                 try:
                     if self.global_step >= self.total_steps: break
-                    
                     if not batch_is_valid: continue 
+                    
                     step += 1
 
                     spec_masked, pos_enc, mask_label, attn_mask, spec_stacked = self.process_data(batch)
@@ -476,7 +476,7 @@ class Tester(Solver):
     ''' Handler for complete testing progress'''
     def __init__(self, config, paras):
         super(Tester, self).__init__(config, paras)
-        self.dump_dir = str(self.ckpt.split('.ckpt')[0]) + '-dump/'
+        self.dump_dir = str(self.ckpt.split('.ckpt')[0]) + '-dump-2/'
         self.duo_feature = False # Set duo feature to False since only input mel is needed during testing
         self.load = True # Tester will load pre-trained models automatically
 
@@ -503,7 +503,7 @@ class Tester(Solver):
 
         batch_size = spec_stacked.shape[0]
         seq_len = spec_stacked.shape[1]
-        hidden_size = spec_stacked.shape[-1]
+        hidden_size = 768
 
         position_table = self.static_position_table_f(hidden_size)[:seq_len]
         pos_enc = self.position_encoding(hidden_size, position_table, batch_size) # (batch_size, seq_len, hidden_size)

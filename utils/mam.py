@@ -104,7 +104,8 @@ def process_train_MAM_data(spec, config=None):
         
         for idx in range(batch_size):
 
-            instance_consecutive  =  np.random.choice(mask_consecutive, size=(1,)) +1
+            #instance_consecutive  =  np.random.choice(mask_consecutive, size=(1,)) +1
+            instance_consecutive  =  np.zeros((1,)) + mask_consecutive
             instance_random_dices =  torch.rand(1)
             valid_index           =  spec_len[idx] - instance_consecutive - 1
             instance_proportions  =  spec_len[idx] * mask_proportion // (instance_consecutive[0])
