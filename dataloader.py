@@ -23,14 +23,14 @@ from torch.utils.data.dataset import Dataset
 from utils.asr import zero_padding,target_padding
 from utils.mam import process_train_MAM_data, process_test_MAM_data
 from ipdb import set_trace
-
+import IPython
 
 ############
 # CONSTANT #
 ############
 HALF_BATCHSIZE_TIME = 400
 HALF_BATCHSIZE_LABEL = 150
-SPEAKER_THRESHOLD = 120
+SPEAKER_THRESHOLD = 0
 
 
 ################
@@ -558,18 +558,35 @@ The LibriSpeech train-clean-360 (speech, speaker) dataset
 '''
 class Mel_Speaker_Large_Dataset(Dataset):
     
-    def __init__(self, run_mockingjay, file_path, sets, bucket_size, max_timestep=0, max_label_len=0, drop=False, mock_config=None, load='speaker_large'):
+    def __init__(self, split, run_mockingjay, file_path, sets, bucket_size, max_timestep=0, max_label_len=0, drop=False, mock_config=None, load='speakerlarge'):
         
         HALF_BATCHSIZE_TIME = 2000
-        assert(load == 'speaker_large'), 'This dataset loads mel features and speaker ID labels.'
+        assert(load == 'speakerlarge'), 'This dataset loads mel features and speaker ID labels.'
         self.run_mockingjay = run_mockingjay
         self.mock_config = mock_config
         self.root = file_path
         self.load = load
 
         # Load the major set (train or test)
-        tables = pd.read_csv(os.path.join(file_path, sets[0] + '.csv'))
-        self.table = tables.sort_values(by=['length'], ascending=False)
+        tables = pd.read_csv(os.path.join(file_path, sets + '.csv'))
+        print('[Dataset] - Computing speaker class...')
+        O = tables['file_path'].tolist()
+        speakers = self.get_all_speakers(O)
+        # print(speakers)
+        # d.embed()
+        self.speaker2idx = self.compute_speaker2idx(speakers)
+        self.class_num = len(self.speaker2idx)
+        print('[Dataset] - Possible speaker classes: ', self.class_num)
+        
+        train = tables.sample(frac=0.9, random_state=20190929) # random state is a seed value
+        test = tables.drop(train.index)
+        if split == 'train':
+            self.table = train.sort_values(by=['length'], ascending=False)
+        elif split == 'test':
+            self.table = test.sort_values(by=['length'], ascending=False)
+        else:
+            raise NotImplementedError('Invalid `split` argument!')
+
         X = self.table['file_path'].tolist()
         X_lens = self.table['length'].tolist()
 
@@ -579,40 +596,25 @@ class Mel_Speaker_Large_Dataset(Dataset):
         if drop and max_label_len > 0:
             self.table = self.table[self.table.label.str.count('_')+1 < max_label_len]
 
-        # Compute speaker dictionary
-        print('[Dataset] - Computing speaker class...')
-        if len(sets) != 2:
-            raise ValueError('Both the `train_set` and `test_set` should be provided for speaker dictionary construction!')
-        
-        # Load the other set for speaker computation
-        other_tables = pd.read_csv(os.path.join(file_path, sets[1] + '.csv'))
-        other_table = other_tables.sort_values(by=['length'], ascending=False)
-        O = other_table['file_path'].tolist()
-        O_speakers = sorted(self.get_all_speakers(O))
-
-        X_speakers = sorted(self.get_all_speakers(X))
-        speakers = O_speakers + X_speakers
-        self.speaker2idx = self.compute_speaker2idx(speakers)
-        self.class_num = len(self.speaker2idx)
-        print('[Dataset] - Possible speaker classes: ', self.class_num)
-
         # Use bucketing to allow different batch sizes at run time
         self.X = []
         batch_x, batch_len = [], []
 
         for x, x_len in zip(X, X_lens):
-            batch_x.append(x)
-            batch_len.append(x_len)
-            
-            # Fill in batch_x until batch is full
-            if len(batch_x) == bucket_size:
-                # Half the batch size if seq too long
-                if (bucket_size >= 2) and (max(batch_len) > HALF_BATCHSIZE_TIME):
-                    self.X.append(batch_x[:bucket_size//2])
-                    self.X.append(batch_x[bucket_size//2:])
-                else:
-                    self.X.append(batch_x)
-                batch_x, batch_len = [], []
+            speaker = self.get_speaker_from_path(x)
+            if speaker in self.speaker2idx:
+                batch_x.append(x)
+                batch_len.append(x_len)
+                
+                # Fill in batch_x until batch is full
+                if len(batch_x) == bucket_size:
+                    # Half the batch size if seq too long
+                    if (bucket_size >= 2) and (max(batch_len) > HALF_BATCHSIZE_TIME):
+                        self.X.append(batch_x[:bucket_size//2])
+                        self.X.append(batch_x[bucket_size//2:])
+                    else:
+                        self.X.append(batch_x)
+                    batch_x, batch_len = [], []
         
         # Gather the last batch
         if len(batch_x) > 0:
@@ -723,6 +725,92 @@ class Mel_Speaker_Small_Dataset(Mel_Speaker_Large_Dataset):
         if len(batch_x) > 0:
             self.X.append(batch_x)
 
+#####################
+# CPC PHONE DATASET #
+#####################
+'''
+The LibriSpeech train-clean-100 (speech, speaker) dataset, idendical alignment and split with the CPC paper
+'''
+class CPC_Speaker_Dataset(Mel_Speaker_Large_Dataset):
+    
+    def __init__(self, split, run_mockingjay, file_path, sets, bucket_size, max_timestep=0, max_label_len=0, drop=False, mock_config=None, load='speakerCPC'):
+        # super(CPC_Speaker_Dataset, self).__init__(file_path, sets, bucket_size, max_timestep, max_label_len, drop, load)
+        HALF_BATCHSIZE_TIME = 1000
+
+        self.run_mockingjay = run_mockingjay
+        self.mock_config = mock_config
+        self.root = file_path
+        self.load = load
+        assert(self.load == 'speakerCPC'), 'This dataset loads Kaldi extracted features and phone boundary labels (For the data released in the CPC paper).'
+
+
+        # Load the major set (train or test)
+        tables = pd.read_csv(os.path.join(file_path, sets + '.csv'))
+        if split == 'train':
+            usage_list = open(os.path.join(self.root, 'train_split.txt')).readlines()
+        elif split == 'test':
+            usage_list = open(os.path.join(self.root, 'test_split.txt')).readlines()
+        else:
+            raise ValueError('Invalid \'split\' argument for dataset: CPC_Speaker_Dataset!')
+        usage_list = [line.strip('\n') for line in usage_list]
+
+        origin = tables['file_path'].apply(lambda x: x.split("/")[1])
+        indexes = origin.apply(lambda x: x.split(".")[0]) 
+        tables = tables[indexes.isin(usage_list)].reset_index(drop=True) 
+
+        
+        
+        # IPython.embed()
+        print('[Dataset] - Computing speaker class...')
+        O = tables['file_path'].tolist()
+        speakers = self.get_all_speakers(O)
+        # print(speakers)
+        # d.embed()
+        self.speaker2idx = self.compute_speaker2idx(speakers)
+        self.class_num = len(self.speaker2idx)
+        print('[Dataset] - Possible speaker classes: ', self.class_num)
+        self.table = tables.sort_values(by=['length'], ascending=False)
+        X = self.table['file_path'].tolist()
+        X_lens = self.table['length'].tolist()
+
+        # Use bucketing to allow different batch sizes at run time
+        self.X = []
+        batch_x, batch_len = [], []
+
+        for x, x_len in zip(X, X_lens):
+            speaker = self.get_speaker_from_path(x)
+            
+            batch_x.append(x)
+            batch_len.append(x_len)
+                
+            # Fill in batch_x until batch is full
+            if len(batch_x) == bucket_size:
+                # Half the batch size if seq too long
+                if (bucket_size >= 2) and (max(batch_len) > HALF_BATCHSIZE_TIME):
+                    self.X.append(batch_x[:bucket_size//2])
+                    self.X.append(batch_x[bucket_size//2:])
+                else:
+                    self.X.append(batch_x)
+                batch_x, batch_len = [], []
+        
+        # Gather the last batch
+        if len(batch_x) > 0:
+            # if self.parse_x_name(x) in usage_list:
+            self.X.append(batch_x)
+
+    def __getitem__(self, index):
+        # Load acoustic feature and pad
+        x_batch = [torch.FloatTensor(np.load(os.path.join(self.root, x_file))) for x_file in self.X[index]]
+        x_pad_batch = pad_sequence(x_batch, batch_first=True)
+        # Return (x_spec, speaker_label)
+        s_batch = torch.LongTensor([self.speaker2idx[self.get_speaker_from_path(x_file)] for x_file in self.X[index]])
+        
+        if self.run_mockingjay:
+            x_pad_batch = process_test_MAM_data(spec=(x_pad_batch,), config=self.mock_config)
+        return x_pad_batch, s_batch
+
+
+
 class TimitDataset(Dataset):
     def __init__(self, run_mockingjay, file_path, sets, bucket_size, max_timestep=0, max_label_len=0, mock_config=None):
         
@@ -830,19 +918,24 @@ def get_Dataloader(split, load, data_path, batch_size, max_timestep, max_label_l
                               bucket_size=bs, drop=drop_too_long, mock_config=mock_config, mosei_config=sentiment_config[target])
         else:
             raise NotImplementedError('Not supported dataset for sentiment')
-    elif load == 'speaker_large':
-        if split == 'train': 
-            sets = (train_set[0], test_set[0])
-        elif split  == 'test':
-            sets = (test_set[0], train_set[0])
-        else:
-            raise NotImplementedError('Invalid configuration for `Mel_Speaker_Dataset`!')
-        ds = Mel_Speaker_Large_Dataset(run_mockingjay=run_mockingjay, file_path=data_path, sets=sets, max_timestep=max_timestep, load=load,
-                                       max_label_len=max_label_len, bucket_size=64, drop=drop_too_long, mock_config=mock_config)
+    elif load == 'speakerlarge':
+        # if split == 'train': 
+        sets = train_set[0]
+        # else:
+        #     raise NotImplementedError('Invalid configuration for `Mel_Speaker_Dataset`!')
+        ds = Mel_Speaker_Large_Dataset(split=split, run_mockingjay=run_mockingjay, file_path=data_path, sets=sets, max_timestep=max_timestep, load=load,
+                                       max_label_len=max_label_len, bucket_size=bs, drop=drop_too_long, mock_config=mock_config)
+    elif load == 'speakerCPC':
+        # if split == 'train': 
+        sets = train_set[0].replace('360', '100')
+        ds = CPC_Speaker_Dataset(split=split, run_mockingjay=run_mockingjay, file_path=data_path, sets=sets, max_timestep=max_timestep, load=load,
+                                       max_label_len=max_label_len, bucket_size=bs, drop=drop_too_long, mock_config=mock_config)
+    
+    
     elif load == 'speaker':
         sets = train_set[0].replace('360', '100') # Use the `train-clean-100` set instead of the `train-clean-360`
         ds = Mel_Speaker_Small_Dataset(split=split, run_mockingjay=run_mockingjay, file_path=data_path, sets=sets, max_timestep=max_timestep, load=load,
-                                       max_label_len=max_label_len, bucket_size=64, drop=drop_too_long, mock_config=mock_config)
+                                       max_label_len=max_label_len, bucket_size=bs, drop=drop_too_long, mock_config=mock_config)
     else:
         raise NotImplementedError('Invalid `load` argument for `get_Dataloader()`!')
 
