@@ -877,6 +877,8 @@ class Downstream_Tester(Downstream_Solver):
                         loss, logits, correct, valid = self.classifier(representations, labels, valid_lengths)
                     elif self.model_type == "OneLinearCPC":
                         loss, logits, correct, valid = self.classifier(representations, labels, label_mask)
+                    elif self.model_type == "OneLinear":
+                        loss, logits, correct, valid = self.classifier(representations, labels, label_mask)
                     else:
                         pass
                     loss_sum += loss.detach().cpu().item()
