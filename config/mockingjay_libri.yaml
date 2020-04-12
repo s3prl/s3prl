@@ -1,7 +1,7 @@
 mockingjay:
   downsample_rate: 3                                    # stacked consecutive features vectors to reduce the length of input sequences by this factor.
   hidden_size: 768                                      # Size of the encoder layers and the pooler layer.
-  num_hidden_layers: 3                                 # Number of hidden layers in the Transformer encoder.
+  num_hidden_layers: 12                                 # Number of hidden layers in the Transformer encoder.
   num_attention_heads: 12                               # Number of attention heads for each attention layer in the Transformer encoder.
   intermediate_size: 3072                               # The size of the "intermediate" (i.e., feed-forward) layer in the Transformer encoder.
   hidden_act: "gelu"                                    # The non-linear activation function (function or string) in the encoder and pooler. If string, "gelu", "relu" and "swish" are supported.
@@ -10,10 +10,10 @@ mockingjay:
   initializer_range: 0.02                               # The sttdev of the truncated_normal_initializer for initializing all weight matrices.
   layer_norm_eps: "1e-12"                               # The epsilon used by LayerNorm.
   mask_proportion: 0.15                                 # mask this percentage of all spectrogram frames in each sequence at random during MAM training                        
-  mask_consecutive: 1                                   # mask this amount of consecutive frames
+  mask_consecutive: 1
 
 albertmockingjay:
-  downsample_rate: 3                                    # stacked consecutive features vectors to reduce the length of input sequences by this factor.
+  downsample_rate: 3                                   # stacked consecutive features vectors to reduce the length of input sequences by this factor.
   hidden_size: 768  
   #12!!!!!!!!!!!!!!!                                    # Size of the encoder layers and the pooler layer.
   num_hidden_layers: 6                              # Number of hidden layers in the Transformer encoder.
@@ -25,14 +25,14 @@ albertmockingjay:
   initializer_range: 0.02                               # The sttdev of the truncated_normal_initializer for initializing all weight matrices.
   layer_norm_eps: "1e-12"                               # The epsilon used by LayerNorm.
   mask_proportion: 0.15                                 # mask this percentage of all spectrogram frames in each sequence at random during MAM training                        
-  mask_consecutive: 20                                  # mask this amount of consecutive frames
+  mask_consecutive: 12                                  # mask this amount of consecutive frames
   mini_bucket_num: 1
-  consecutive_offset: 3
+  consecutive_offset: 2
 
 optimizer: 
   learning_rate: "5e-5"                                 # Learning rate for opt
   loss_scale: 0                                         # Loss scale to improve fp16 numeric stability. Only used when apex is set to True. 0: dynamic loss scaling. positive power of 2: static loss scaling.
-  warmup_proportion: 0.1                                  # Proportion of training to perform linear rate warmup.
+  warmup_proportion: 0.0                                  # Proportion of training to perform linear rate warmup.
   gradient_accumulation_steps: 1                        # Number of updates steps to accumulate before performing a backward/update pass
   gradient_clipping: 10.0                                # Maximum gradient norm
 
@@ -77,10 +77,10 @@ dataloader:
   data_path: '../../fuck/Mockingjay/data/libri_mel160_subword5000'            # Source data path
   target_path: '../../fuck/Mockingjay/data/libri_linear1025_subword5000'      # Target data path for reconstruction to a different feature type, set dataset to 'librispeech_mel_linear'.
   phone_path: '../../fuck/Mockingjay/data/libri_phone'                        # phone boundary label data path for the phone classification task.
-  train_set: ['train-clean-360']                        #
-  dev_set: ['dev-clean']                                #
-  test_set: ['test-clean']                              #
-  train_proportion: 1.0                                 # Currently only effect the `phone classification task`, use this percent of `train_set` for downstream task training to demonstrate mockingjay generality
+  train_set: ['train-clean-360']                                              #
+  dev_set:   ['dev-clean']                                                    #
+  test_set:  ['test-clean']                                                   # proportion 0.1%, 0.5%, 1%, 5%, 12.5% 
+  train_proportion: 1.0                                                       # Currently only effect the `phone classification task`, use this percent of `train_set` for downstream task training to demonstrate mockingjay generality
 
 
 solver:
@@ -137,14 +137,19 @@ downstream:                                             # downstream model confi
     select_hidden: "last"                               # support modes: ['last', 'first', 'average', 'weighted_sum', 'weighted_sum_norm']
     sample_rate: 3                                      # `int`, sample every this number of frames
     drop: 0.0     # The dropout ratio
+  OneLinearCPC:
+    input_dim: 'None'
+    hidden_size: 768
+    drop: 0.0
+    select_hidden: "last"
 
 
   # Training options
   apex: True
-  epoch: 4
-  optimizer: "ADAM"
+  epoch: 200                                             # epoch 200 for CPC speaker, epoch 80 for speaker large, epoch 200/400 for speaker, epoch 40 for phone classification finetune 4   2500 for 0.1%, 4000 for 0.5%, 3500 for 1%, 800 for 5%, 350 for 12.5%
+  optimizer: "LAMB"
   learning_rate: "4e-4"                                 # Learning rate for opt: ['4e-4' for fine-tune, '4e-3' for regualr downstream task training ]
-  warmup_steps: 500
+  warmup_steps: 0
   total_steps: 500000                                   # total steps for training, a step is a batch of update: [29080 for fine-tune, 500000 for regualr downstream task training ]
   log_step: 500                                         # log training status every this amount of training steps
   dev_step: 5000                                        # [29080 for fine-tune, 10000 for regualr downstream task training ]
