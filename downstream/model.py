@@ -199,11 +199,13 @@ class RnnClassifier(nn.Module):
         self.pre_linears = nn.ModuleList(linears)
 
         hidden_size = self.config['hidden_size']
-        self.rnn = nn.GRU(input_size=last_dim, hidden_size=hidden_size, num_layers=1, dropout=drop,
-                          batch_first=True, bidirectional=False)
+        self.rnn = None
+        if hidden_size > 0:
+            self.rnn = nn.GRU(input_size=last_dim, hidden_size=hidden_size, num_layers=1, dropout=drop,
+                            batch_first=True, bidirectional=False)
+            last_dim = hidden_size
 
         linears = []
-        last_dim = hidden_size
         for linear_dim in self.config['post_linear_dims']:
             linears.append(nn.Linear(last_dim, linear_dim))
             last_dim = linear_dim
@@ -259,8 +261,8 @@ class RnnClassifier(nn.Module):
                 features = features.transpose(0, 1).reshape(layer_num, -1)
                 features = torch.matmul(weights, features).reshape(batch_size, seq_len, feature_dim)
             else:
-                assert type(self.select_hidden) is int
-                features = features[:, self.select_hidden, :, :]
+                assert type(select_hidden) is int
+                features = features[:, select_hidden, :, :]
 
         sample_rate = self.config['sample_rate']
         features = features[:, torch.arange(0, seq_len, sample_rate), :]
@@ -271,11 +273,14 @@ class RnnClassifier(nn.Module):
             features = self.act_fn(features)
             features = self.dropout(features)
 
-        packed = pack_padded_sequence(features, valid_lengths, batch_first=True, enforce_sorted=True)
-        _, h_n = self.rnn(packed)
-        hidden = h_n[-1, :, :]
-        # cause h_n directly contains info for final states
-        # it will be easier to use h_n as extracted embedding
+        if self.rnn is not None:
+            packed = pack_padded_sequence(features, valid_lengths, batch_first=True, enforce_sorted=True)
+            _, h_n = self.rnn(packed)
+            hidden = h_n[-1, :, :]
+            # cause h_n directly contains info for final states
+            # it will be easier to use h_n as extracted embedding
+        else:
+            hidden = features.mean(dim=1)
         
         for linear in self.post_linears:
             hidden = linear(hidden)
