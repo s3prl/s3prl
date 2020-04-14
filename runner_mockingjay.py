@@ -245,8 +245,11 @@ def get_mockingjay_model(from_path='result/result_mockingjay/mockingjay_libri_sd
     config = all_states['Settings']['Config']
     paras = all_states['Settings']['Paras']
     
+    # handling older checkpoints
     if not hasattr(paras, 'multi_gpu'):
         setattr(paras, 'multi_gpu', False)
+    if 'prune_headids' not in config['mockingjay']:
+        config['mockingjay']['prune_headids'] = None
 
     # display checkpoint settings
     if display_settings:
