@@ -80,13 +80,18 @@ class Downstream_Solver(Solver):
             elif split == 'test': 
                 self.verbose('Loading testing data ' + str(self.config['dataloader']['test_set']) + ' from ' + self.config['dataloader']['data_path'])
                 if load == 'phone': self.verbose('Loading label data ' + str(self.config['dataloader']['test_set']) + ' from ' + self.config['dataloader']['phone_path'])
+            elif split == 'dev': 
+                self.verbose('Loading testing data ' + str(self.config['dataloader']['train_set']) + ' from ' + self.config['dataloader']['data_path'])
+                if load == 'phone': self.verbose('Loading label data ' + str(self.config['dataloader']['train_set']) + ' from ' + self.config['dataloader']['phone_path'])
             else:
                 raise NotImplementedError('Invalid `split` argument!')
         elif load == 'speaker' or load == "speakerCPC":
             if split == 'train':
                 self.verbose('Loading source data from ' + str(self.config['dataloader']['train_set']).replace('360', '100') + ' from ' + self.config['dataloader']['data_path'])
             elif split == 'test':
-                self.verbose('Loading testing data ' + str(self.config['dataloader']['test_set']).replace('360', '100') + ' from ' + self.config['dataloader']['data_path'])
+                self.verbose('Loading testing data ' + str(self.config['dataloader']['train_set']).replace('360', '100') + ' from ' + self.config['dataloader']['data_path'])
+            elif split == 'dev':
+                self.verbose('Loading testing data ' + str(self.config['dataloader']['train_set']).replace('360', '100') + ' from ' + self.config['dataloader']['data_path'])
             else:
                 raise NotImplementedError('Invalid `split` argument!')
         elif load == 'sentiment':
@@ -564,7 +569,7 @@ class Downstream_Trainer_epoch_training(Downstream_Solver):
         if not inference and self.fine_tune:
             # Setup Fine tune optimizer
 
-            if self.config['downstream']['warmup_steps']:
+            if self.config['downstream']['warmup_steps'] is not None :
                 self.warmup_steps = int(self.config['downstream']['warmup_steps']) 
             else:
                 self.warmup_steps = int( num_train_optimization_steps * self.config['optimizer']['warmup_proportion'] )
@@ -574,13 +579,13 @@ class Downstream_Trainer_epoch_training(Downstream_Solver):
             if self.optimizer_type == "LAMB":
                 self.optimizer = get_mockingjay_optimizer(params=param_optimizer, 
                                                       lr=self.learning_rate, 
-                                                      warmup_steps=self.config['downstream']['warmup_steps'],
+                                                      warmup_steps=self.warmup_steps,
                                                       training_steps=num_train_optimization_steps,
                                                       optimizer="LAMB")
             else:
                 self.optimizer = get_mockingjay_optimizer(params=param_optimizer, 
                                                       lr=self.learning_rate, 
-                                                      warmup_steps=self.config['downstream']['warmup_steps'],
+                                                      warmup_steps=self.warmup_steps,
                                                       training_steps=num_train_optimization_steps,
                                                       optimizer="ADAM")
             if self.apex:
@@ -726,7 +731,6 @@ class Downstream_Trainer_epoch_training(Downstream_Solver):
                             else:
                                 metric = {"acc":acc, "loss":los, "gradient_norm":grad_norm}  
                             wandb.log(metric,step=self.global_step)
-
                         self.log.add_scalar('acc', acc, self.global_step)
                         self.log.add_scalar('loss', los, self.global_step)
                         self.log.add_scalar('gradient norm', grad_norm, self.global_step)

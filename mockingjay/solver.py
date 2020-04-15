@@ -149,7 +149,7 @@ class Solver():
             {'params': [p for n, p in self.model.named_parameters() if any(nd in n for nd in no_decay)], 'weight_decay': 0.0}
             ]
             
-            optimizer = Lamb(optimizer_grouped_parameters, lr=self.learning_rate, eps=1e-6)
+            optimizer = Lamb(optimizer_grouped_parameters, lr=self.learning_rate, eps=1e-9)
             num_train_optimization_steps = self.total_steps 
             if self.apex:
                 try:

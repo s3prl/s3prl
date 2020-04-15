@@ -30,7 +30,8 @@ import IPython
 ############
 HALF_BATCHSIZE_TIME = 400
 HALF_BATCHSIZE_LABEL = 150
-SPEAKER_THRESHOLD = 0
+# SPEAKER_THRESHOLD = 0
+SPEAKER_THRESHOLD = 120
 
 
 ################
@@ -242,7 +243,7 @@ The LibriSpeech train-clean-360 (speech, phone) dataset
 '''
 class Mel_Phone_Dataset(LibriDataset):
     
-    def __init__(self, run_mockingjay, file_path, phone_path, sets, bucket_size, max_timestep=0, 
+    def __init__(self, split, run_mockingjay, file_path, phone_path, sets, bucket_size, max_timestep=0, 
                  max_label_len=0, drop=False, train_proportion=1.0, mock_config=None, load='phone'):
         super(Mel_Phone_Dataset, self).__init__(file_path, sets, bucket_size, max_timestep, max_label_len, drop, load)
         HALF_BATCHSIZE_TIME = 1000
@@ -255,21 +256,33 @@ class Mel_Phone_Dataset(LibriDataset):
         print('[Dataset] - Possible phone classes: ', self.class_num)
 
         unaligned = pickle.load(open(os.path.join(phone_path, 'unaligned.pkl'), 'rb'))
+
+        train = self.table.sample(frac=0.9, random_state=20200416)
+        dev = self.table.drop(train.index)
+
+        if split == 'train':
+            self.table = train.sort_values(by=['length'], ascending=False)
+        elif split == 'dev':
+            self.table = dev.sort_values(by=['length'], ascending=False)
+
         X = self.table['file_path'].tolist()
         X_lens = self.table['length'].tolist()
-        if train_proportion < 1.0:
-            print('[Dataset] - Truncating dataset size from ', len(X), end='')
-            chose_proportion = int(len(X)*train_proportion)
-            sample_index = sorted(random.sample(range(len(X)), chose_proportion), reverse=True)
-            X = np.asarray(X)[sample_index]
-            X_lens = np.asarray(X_lens)[sample_index]
-            print(' to ', len(X))
-            if len(X) < 200: # is a batch is too small, manually duplicate epoch size to increase dataloader speed.
-                for _ in range(4): 
-                    X = np.concatenate((X, X), axis=0)
-                    X_lens = np.concatenate((X_lens, X_lens), axis=0)
-        elif train_proportion > 1.0:
-            raise ValueError('Invalid range for `train_proportion`, (0.0, 1.0] is the appropriate range!)')
+        if split == "train":
+            if train_proportion < 1.0:
+                print('[Dataset] - Truncating dataset size from ', len(X), end='')
+                chose_proportion = int(len(X)*train_proportion)
+                sample_index = sorted(random.sample(range(len(X)), chose_proportion), reverse=True)
+                X = np.asarray(X)[sample_index]
+                X_lens = np.asarray(X_lens)[sample_index]
+                print(' to ', len(X))
+                if len(X) < 200: # is a batch is too small, manually duplicate epoch size to increase dataloader speed.
+                    for _ in range(4): 
+                        X = np.concatenate((X, X), axis=0)
+                        X_lens = np.concatenate((X_lens, X_lens), axis=0)
+            elif train_proportion > 1.0:
+                raise ValueError('Invalid range for `train_proportion`, (0.0, 1.0] is the appropriate range!)')
+        
+
 
         # Use bucketing to allow different batch sizes at run time
         self.X = []
@@ -578,12 +591,20 @@ class Mel_Speaker_Large_Dataset(Dataset):
         self.class_num = len(self.speaker2idx)
         print('[Dataset] - Possible speaker classes: ', self.class_num)
         
-        train = tables.sample(frac=0.9, random_state=20190929) # random state is a seed value
-        test = tables.drop(train.index)
+        train_original = tables.sample(frac=0.9, random_state=20190929) # random state is a seed value
+        test = tables.drop(train_original.index)
+        if split == "dev":
+            train = train_original.sample(frac=0.9, random_state=20200416)
+            dev   = train_original.drop(train.index)
+        else:
+            train = train_original
+
         if split == 'train':
             self.table = train.sort_values(by=['length'], ascending=False)
         elif split == 'test':
             self.table = test.sort_values(by=['length'], ascending=False)
+        elif split == 'dev':
+            self.table = dev.sort_values(by=['length'], ascending=False)
         else:
             raise NotImplementedError('Invalid `split` argument!')
 
@@ -684,12 +705,20 @@ class Mel_Speaker_Small_Dataset(Mel_Speaker_Large_Dataset):
         self.class_num = len(self.speaker2idx)
         print('[Dataset] - Possible speaker classes: ', self.class_num)
         
-        train = tables.sample(frac=0.9, random_state=20190929) # random state is a seed value
-        test = tables.drop(train.index)
+        train_original = tables.sample(frac=0.9, random_state=20190929) # random state is a seed value
+        test = tables.drop(train_original.index)
+        if split == "dev":
+            train = train_original.sample(frac=0.9, random_state=20190929)
+            dev = train_original.drop(train.index)
+        else:
+            train = train_original
+
         if split == 'train':
             self.table = train.sort_values(by=['length'], ascending=False)
         elif split == 'test':
             self.table = test.sort_values(by=['length'], ascending=False)
+        elif split == "dev":
+            self.table = dev.sort_values(by=['length'], ascending=False)
         else:
             raise NotImplementedError('Invalid `split` argument!')
         X = self.table['file_path'].tolist()
@@ -758,7 +787,10 @@ class CPC_Speaker_Dataset(Mel_Speaker_Large_Dataset):
         indexes = origin.apply(lambda x: x.split(".")[0]) 
         tables = tables[indexes.isin(usage_list)].reset_index(drop=True) 
 
-        
+        if split == "dev":
+            train  = tables.sample(frac=0.9, random_state=20200416)
+            tables = tables.drop(train.index)
+
         
         # IPython.embed()
         print('[Dataset] - Computing speaker class...')
@@ -872,7 +904,7 @@ def get_Dataloader(split, load, data_path, batch_size, max_timestep, max_label_l
     elif split == 'dev':
         bs = dev_batch_size
         shuffle = False
-        sets = dev_set
+        sets = train_set
         drop_too_long = True
     elif split == 'test':
         bs = 1 if decode_beam_size is not None else dev_batch_size
@@ -901,7 +933,7 @@ def get_Dataloader(split, load, data_path, batch_size, max_timestep, max_label_l
                                 max_label_len=max_label_len, bucket_size=bs, drop=drop_too_long, mock_config=mock_config)
     elif load == 'phone':
         assert(phone_path is not None), '`phone path` must be provided for this dataset.'
-        ds = Mel_Phone_Dataset(run_mockingjay=run_mockingjay, file_path=data_path, phone_path=phone_path, sets=sets, max_timestep=max_timestep, load=load,
+        ds = Mel_Phone_Dataset(split=split,run_mockingjay=run_mockingjay, file_path=data_path, phone_path=phone_path, sets=sets, max_timestep=max_timestep, load=load,
                                max_label_len=max_label_len, bucket_size=bs, drop=drop_too_long, mock_config=mock_config,
                                train_proportion=train_proportion if split == 'train' else 1.0)
     elif load == 'timit':
