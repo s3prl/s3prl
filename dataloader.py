@@ -30,8 +30,8 @@ import IPython
 ############
 HALF_BATCHSIZE_TIME = 400
 HALF_BATCHSIZE_LABEL = 150
-# SPEAKER_THRESHOLD = 0
-SPEAKER_THRESHOLD = 120
+SPEAKER_THRESHOLD = 0
+# SPEAKER_THRESHOLD = 120
 
 
 ################
@@ -775,7 +775,7 @@ class CPC_Speaker_Dataset(Mel_Speaker_Large_Dataset):
 
         # Load the major set (train or test)
         tables = pd.read_csv(os.path.join(file_path, sets + '.csv'))
-        if split == 'train':
+        if split == 'train' or split=="dev":
             usage_list = open(os.path.join(self.root, 'train_split.txt')).readlines()
         elif split == 'test':
             usage_list = open(os.path.join(self.root, 'test_split.txt')).readlines()

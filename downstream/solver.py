@@ -113,6 +113,7 @@ class Downstream_Solver(Solver):
                 self.model_type = "OneLinear"
             else:
                 self.model_type = "linear"
+            # self.model_type = "OneLinear"
         elif "sentiment" in self.task:
             self.model_type = "mean_linear_v2"
 
@@ -328,9 +329,9 @@ class Downstream_Trainer(Downstream_Solver):
                     labels = labels.squeeze(0).to(device=self.device)  # labels can be torch.long or torch.float (regression)
                     if 'speaker' in self.task: # Doesn't need the whole utterance to predict speaker
                         original_len = features[0].size(2)
-                        reduce_factor = 3
-                        if self.run_mockingjay: features = (features[0][:, :, :original_len//reduce_factor, :], features[1][:, :, :original_len//reduce_factor, :], features[2][:, :, :original_len//reduce_factor])
-                        else: features = features[:, :, :original_len//reduce_factor, :]
+                        # reduce_factor = 3
+                        # if self.run_mockingjay: features = (features[0][:, :, :original_len//reduce_factor, :], features[1][:, :, :original_len//reduce_factor, :], features[2][:, :, :original_len//reduce_factor])
+                        # else: features = features[:, :, :original_len//reduce_factor, :]
                     if self.run_mockingjay and self.paras.with_head:
                         # representations shape: (batch_size, seq_len, feature)
                         representations = self.mockingjay.forward_with_head(features, process_from_loader=True)
@@ -393,6 +394,8 @@ class Downstream_Trainer(Downstream_Solver):
                                                                    self.gradient_clipping)
                     if math.isnan(grad_norm):
                         self.verbose('Error : grad norm is NaN @ step ' + str(self.global_step))
+                        self.optimizer.zero_grad()
+                        continue
                     else:
                         self.optimizer.step()
                     self.optimizer.zero_grad()
@@ -497,6 +500,7 @@ class Downstream_Trainer_epoch_training(Downstream_Solver):
                 self.model_type = "OneLinear"
             else:
                 self.model_type = "linear"
+            # self.model_type = "OneLinear"
         elif "sentiment" in self.task:
             self.model_type = "mean_linear_v2"
 
@@ -984,6 +988,7 @@ class Downstream_tsne_Tester(Downstream_Solver):
                         loss, logits, correct, valid = self.classifier(representations, labels, valid_lengths)
                     elif self.model_type == "OneLinear":
                         loss, logits, correct, valid = self.classifier(representations, labels, label_mask)
+                    
                     else:
                         pass
                     loss_sum += loss.detach().cpu().item()
