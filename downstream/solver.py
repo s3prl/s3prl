@@ -387,6 +387,7 @@ class Downstream_Trainer(Downstream_Solver):
                 self.global_step += 1
                 
         pbar.close()
+        self.log.close()
         self.reset_train()
 
 

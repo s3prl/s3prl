@@ -454,6 +454,7 @@ class Trainer(Solver):
                         raise
                 
         pbar.close()
+        self.log.close()
         self.reset_train()
         
 
