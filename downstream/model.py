@@ -220,7 +220,7 @@ class OneHidden(nn.Module):
         self.out = nn.Linear(hidden_size, output_dim)
         self.out_fn = nn.LogSoftmax(dim=-1)
         self.criterion = nn.CrossEntropyLoss(ignore_index=-100)
-
+        self.act_fn = torch.nn.functional.relu
 
     def statistic(self, probabilities, labels, label_mask):
         assert(len(probabilities.shape) > 1)

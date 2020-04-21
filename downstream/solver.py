@@ -112,8 +112,8 @@ class Downstream_Solver(Solver):
             # if self.fine_tune:
             #     self.model_type = "OneLinear"
             # else:
-            self.model_type = "linear"
-            # self.model_type = "OneHidden"
+            # self.model_type = "linear"
+            self.model_type = "OneHidden"
             # self.model_type = "OneLinear"
         elif "sentiment" in self.task:
             self.model_type = "mean_linear_v2"
@@ -508,8 +508,8 @@ class Downstream_Trainer_epoch_training(Downstream_Solver):
             # if self.fine_tune:
             #     self.model_type = "OneLinear"
             # else:
-            self.model_type = "linear"
-            # self.model_type == "OneHidden"
+            # self.model_type = "linear"
+            self.model_type = "OneHidden"
             # self.model_type = "OneLinear"
         elif "sentiment" in self.task:
             self.model_type = "mean_linear_v2"
@@ -914,11 +914,13 @@ class Downstream_Tester(Downstream_Solver):
                     correct_count += correct.item()
                     valid_count += valid.item()
 
-                except RuntimeError:
-                    if oom_counter > 10: break
-                    else: oom_counter += 1
-                    print('CUDA out of memory during testing, aborting after ' + str(10 - oom_counter) + ' more tries...')
-                    torch.cuda.empty_cache()
+                except RuntimeError as e:
+                    if 'CUDA out of memory' in str(e):
+                        print('CUDA out of memory at step: ', self.global_step)
+                        torch.cuda.empty_cache()
+                        self.optimizer.zero_grad()
+                    else:
+                        raisehu
 
         average_loss = loss_sum / len(self.dataloader)
         test_acc = correct_count * 1.0 / valid_count
@@ -1025,7 +1027,7 @@ class Downstream_tsne_Tester(Downstream_Solver):
         average_loss = loss_sum / len(self.dataloader)
         test_acc = correct_count * 1.0 / valid_count
         self.verbose(f'Test result: loss {average_loss}, acc {test_acc}')
-        pickle.dump(all_features_label_pair_data, open("speaker_representation_dev.p","wb"))
+        pickle.dump(all_features_label_pair_data, open("speaker_representation_63.p","wb"))
         print("speaker save representation")
         timer.end()
         timer.report()
