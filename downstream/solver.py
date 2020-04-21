@@ -23,7 +23,7 @@ import torch.nn.functional as F
 from tensorboardX import SummaryWriter
 from dataloader import get_Dataloader
 from mockingjay.solver import Solver, Tester
-from downstream.model import LinearClassifier, RnnClassifier, MeanLinearClassifier, MeanLinearClassifier_v2, OneLinear, OneLinearCPC
+from downstream.model import LinearClassifier, RnnClassifier, MeanLinearClassifier, MeanLinearClassifier_v2, OneLinear, OneLinearCPC, OneHidden
 from utils.audio import mel_dim, num_freq, sample_rate, inv_spectrogram
 from utils.timer import Timer
 from runner_apc import get_apc_model
@@ -109,10 +109,11 @@ class Downstream_Solver(Solver):
     def set_model(self, inference=False,wandb=None):
         
         if "phone" in self.task:
-            if self.fine_tune:
-                self.model_type = "OneLinear"
-            else:
-                self.model_type = "linear"
+            # if self.fine_tune:
+            #     self.model_type = "OneLinear"
+            # else:
+            self.model_type = "linear"
+            # self.model_type = "OneHidden"
             # self.model_type = "OneLinear"
         elif "sentiment" in self.task:
             self.model_type = "mean_linear_v2"
@@ -175,6 +176,12 @@ class Downstream_Solver(Solver):
                                                class_num=self.dataloader.dataset.class_num,
                                                task=self.task,
                                                dconfig=self.config['downstream']['OneLinearCPC']).to(self.device)
+        elif self.model_type == "OneHidden":
+            self.classifier = OneHidden(input_dim=input_dim,
+                                               class_num=self.dataloader.dataset.class_num,
+                                               task=self.task,
+                                               dconfig=self.config['downstream']['OneHidden'],
+                                               sequencial=False).to(self.device)
 
         else:
             NotImplementedError
@@ -375,6 +382,8 @@ class Downstream_Trainer(Downstream_Solver):
                         loss, _, correct, valid = self.classifier(representations, labels, label_mask)
                     elif self.model_type == "OneLinearCPC":
                         loss, _, correct, valid = self.classifier(representations, labels, label_mask)
+                    elif self.model_type == "OneHidden":
+                        loss, _, correct, valid = self.classifier(representations, labels, label_mask)
                     else:
                         raise NotImplementedError('Invalid `model_type`!')
 
@@ -394,7 +403,7 @@ class Downstream_Trainer(Downstream_Solver):
                                                                    self.gradient_clipping)
                     if math.isnan(grad_norm):
                         self.verbose('Error : grad norm is NaN @ step ' + str(self.global_step))
-                        self.optimizer.zero_grad()
+                        # self.optimizer.zero_grad()
                         continue
                     else:
                         self.optimizer.step()
@@ -496,10 +505,11 @@ class Downstream_Trainer_epoch_training(Downstream_Solver):
     def set_model(self, inference=False,wandb=None):
         
         if "phone" in self.task:
-            if self.fine_tune:
-                self.model_type = "OneLinear"
-            else:
-                self.model_type = "linear"
+            # if self.fine_tune:
+            #     self.model_type = "OneLinear"
+            # else:
+            self.model_type = "linear"
+            # self.model_type == "OneHidden"
             # self.model_type = "OneLinear"
         elif "sentiment" in self.task:
             self.model_type = "mean_linear_v2"
@@ -563,6 +573,12 @@ class Downstream_Trainer_epoch_training(Downstream_Solver):
                                                class_num=self.dataloader.dataset.class_num,
                                                task=self.task,
                                                dconfig=self.config['downstream']['OneLinearCPC'],
+                                               sequencial=False).to(self.device)
+        elif self.model_type == "OneHidden":
+            self.classifier = OneHidden(input_dim=input_dim,
+                                               class_num=self.dataloader.dataset.class_num,
+                                               task=self.task,
+                                               dconfig=self.config['downstream']['OneHidden'],
                                                sequencial=False).to(self.device)
         else:
             NotImplementedError
@@ -631,11 +647,11 @@ class Downstream_Trainer_epoch_training(Downstream_Solver):
                     
                     if 'speaker' in self.task: # Doesn't need the whole utterance to predict speaker
                         original_len = features[0].size(2)
-                        reduce_factor = 3
-                        if self.run_mockingjay: 
-                            features = (features[0][:, :, :original_len//reduce_factor, :], features[1][:, :, :original_len//reduce_factor, :], features[2][:, :, :original_len//reduce_factor])
-                        else: 
-                            features = features[:, :, :original_len//reduce_factor, :]
+                        # reduce_factor = 3
+                        # if self.run_mockingjay: 
+                        #     features = (features[0][:, :, :original_len//reduce_factor, :], features[1][:, :, :original_len//reduce_factor, :], features[2][:, :, :original_len//reduce_factor])
+                        # else: 
+                        #     features = features[:, :, :original_len//reduce_factor, :]
 
                     if self.run_mockingjay and self.paras.with_head:
                         # representations shape: (batch_size, seq_len, feature)
@@ -682,6 +698,8 @@ class Downstream_Trainer_epoch_training(Downstream_Solver):
                     elif self.model_type == "OneLinear":
                         loss, _, correct, valid = self.classifier(representations, labels, label_mask)
                     elif self.model_type == "OneLinearCPC":
+                        loss, _, correct, valid = self.classifier(representations, labels, label_mask)
+                    elif self.model_type == "OneHidden":
                         loss, _, correct, valid = self.classifier(representations, labels, label_mask)
                     else:
                         raise NotImplementedError('Invalid `model_type`!')
@@ -886,6 +904,8 @@ class Downstream_Tester(Downstream_Solver):
                     elif self.model_type == "OneLinearCPC":
                         loss, logits, correct, valid = self.classifier(representations, labels, label_mask)
                     elif self.model_type == "OneLinear":
+                        loss, logits, correct, valid = self.classifier(representations, labels, label_mask)
+                    elif self.model_type == "OneHidden":
                         loss, logits, correct, valid = self.classifier(representations, labels, label_mask)
                     else:
                         pass
