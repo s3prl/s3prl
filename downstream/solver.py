@@ -460,11 +460,17 @@ class Downstream_Tester(Downstream_Solver):
                     correct_count += correct.item()
                     valid_count += valid.item()
 
-                except RuntimeError:
-                    if oom_counter > 10: break
-                    else: oom_counter += 1
-                    print('CUDA out of memory during testing, aborting after ' + str(10 - oom_counter) + ' more tries...')
-                    torch.cuda.empty_cache()
+                except RuntimeError as e:
+                    if 'CUDA out of memory' in str(e):
+                        if oom_counter >= 10: 
+                            oom_counter = 0
+                            break
+                        else:
+                            oom_counter += 1
+                        print('CUDA out of memory during testing, aborting after ' + str(10 - oom_counter) + ' more tries...')
+                        torch.cuda.empty_cache()
+                    else:
+                        raise
 
         average_loss = loss_sum / len(self.dataloader)
         test_acc = correct_count * 1.0 / valid_count
