@@ -30,7 +30,7 @@ from ipdb import set_trace
 ############
 HALF_BATCHSIZE_TIME = 400
 HALF_BATCHSIZE_LABEL = 150
-SPEAKER_THRESHOLD = 120
+SPEAKER_THRESHOLD = 0
 
 
 ################
@@ -647,7 +647,7 @@ class Mosei_Dataset(Dataset):
 '''
 The LibriSpeech train-clean-100 (speech, speaker) dataset
 '''
-class Mel_Speaker_Dataset(Dataset):
+class Speaker_Dataset(Dataset):
     
     def __init__(self, split, run_mockingjay, file_path, sets, bucket_size, max_timestep=0, max_label_len=0, drop=False, mock_config=None, load='speaker'):
         
@@ -669,14 +669,29 @@ class Mel_Speaker_Dataset(Dataset):
         self.class_num = len(self.speaker2idx)
         print('[Dataset] - Possible speaker classes: ', self.class_num)
         
-        train = tables.sample(frac=0.9, random_state=20190929) # random state is a seed value
-        test = tables.drop(train.index)
-        if split == 'train':
-            self.table = train.sort_values(by=['length'], ascending=False)
-        elif split == 'test':
-            self.table = test.sort_values(by=['length'], ascending=False)
+        # if cpc split files exist, use them
+        usage_list = []
+        if split == 'train' and os.path.isfile('data/cpc_phone/train_split.txt'):
+            usage_list = open(os.path.join('data/cpc_phone/', 'train_split.txt')).readlines()
+        elif split == 'test' and os.path.isfile('data/cpc_phone/test_split.txt'):
+            usage_list = open(os.path.join('data/cpc_phone/', 'test_split.txt')).readlines()
+
+        # use CPC split:
+        if len(usage_list) > 0:
+            self.table = tables
+            usage_list = [line.strip('\n') for line in usage_list]
+            print('[Dataset] - Using CPC train/test splits.')
+        # use random 9:1 split
         else:
-            raise NotImplementedError('Invalid `split` argument!')
+            train = tables.sample(frac=0.9, random_state=20190929) # random state is a seed value
+            test = tables.drop(train.index)
+            if split == 'train':
+                self.table = train.sort_values(by=['length'], ascending=False)
+            elif split == 'test':
+                self.table = test.sort_values(by=['length'], ascending=False)
+            else:
+                raise NotImplementedError('Invalid `split` argument!')
+
         X = self.table['file_path'].tolist()
         X_lens = self.table['length'].tolist()
 
@@ -691,24 +706,29 @@ class Mel_Speaker_Dataset(Dataset):
         batch_x, batch_len = [], []
 
         for x, x_len in zip(X, X_lens):
-            speaker = self.get_speaker_from_path(x)
-            if speaker in self.speaker2idx:
-                batch_x.append(x)
-                batch_len.append(x_len)
-                
-                # Fill in batch_x until batch is full
-                if len(batch_x) == bucket_size:
-                    # Half the batch size if seq too long
-                    if (bucket_size >= 2) and (max(batch_len) > HALF_BATCHSIZE_TIME):
-                        self.X.append(batch_x[:bucket_size//2])
-                        self.X.append(batch_x[bucket_size//2:])
-                    else:
-                        self.X.append(batch_x)
-                    batch_x, batch_len = [], []
+            if len(usage_list) == 0 or self.parse_x_name(x) in usage_list: # check if x is in list if list not empty
+                speaker = self.get_speaker_from_path(x)
+                if speaker in self.speaker2idx:
+                    batch_x.append(x)
+                    batch_len.append(x_len)
+                    
+                    # Fill in batch_x until batch is full
+                    if len(batch_x) == bucket_size:
+                        # Half the batch size if seq too long
+                        if (bucket_size >= 2) and (max(batch_len) > HALF_BATCHSIZE_TIME):
+                            self.X.append(batch_x[:bucket_size//2])
+                            self.X.append(batch_x[bucket_size//2:])
+                        else:
+                            self.X.append(batch_x)
+                        batch_x, batch_len = [], []
         
         # Gather the last batch
         if len(batch_x) > 0:
-            self.X.append(batch_x)
+            if len(usage_list) == 0 or self.parse_x_name(x) in usage_list: # check if x is in list if list not empty
+                self.X.append(batch_x)
+
+    def parse_x_name(self, x):
+        return x.split('/')[-1].split('.')[0]
 
     def __len__(self):
         return len(self.X)
@@ -859,8 +879,8 @@ def get_Dataloader(split, load, data_path, batch_size, max_timestep, max_label_l
             raise NotImplementedError('Not supported dataset for sentiment')
     elif load == 'speaker':
         sets = train_set[0].replace('360', '100') # Use the `train-clean-100` set instead of the `train-clean-360`
-        ds = Mel_Speaker_Dataset(split=split, run_mockingjay=run_mockingjay, file_path=data_path, sets=sets, max_timestep=max_timestep, load=load,
-                                 max_label_len=max_label_len, bucket_size=64, drop=drop_too_long, mock_config=mock_config)
+        ds = Speaker_Dataset(split=split, run_mockingjay=run_mockingjay, file_path=data_path, sets=sets, max_timestep=max_timestep, load=load,
+                             max_label_len=max_label_len, bucket_size=bs, drop=drop_too_long, mock_config=mock_config)
     else:
         raise NotImplementedError('Invalid `load` argument for `get_Dataloader()`!')
 
