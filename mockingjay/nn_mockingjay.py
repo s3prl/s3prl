@@ -62,6 +62,7 @@ class MOCKINGJAY(nn.Module):
         # Build model
         self.device = torch.device('cuda') if torch.cuda.is_available() else torch.device('cpu')
         self.model = MockingjayModel(self.model_config, inp_dim).to(self.device)
+        self.model.eval() if self.no_grad else self.model.train()
         
         # Load from a PyTorch state_dict
         load = bool(strtobool(options["load_pretrain"]))
@@ -219,9 +220,10 @@ class MOCKINGJAY(nn.Module):
         return x
 
 
+#######################
+# POSITIONAL ENCODING #
+#######################
 MAX_SEQLEN = 5000
-
-
 @lru_cache(maxsize=1)
 def get_sinusoid_table(hidden_size):
     def cal_angle(position, hid_idx):
@@ -243,3 +245,29 @@ def position_encoding(seq_len, hidden_size):
     # after getting the (seq_len, hidden_size) tensor, one should first put
     # this tensor into GPU then expand it
     return table  # (seq_len, hidden_size)
+
+
+#######
+# LIN #
+#######
+"""
+Linear Input Networks (LIN) for domain adaptation
+Params:
+    `options`: a python dictionary containing arguments for pytorch kaldi, give None if not using with pytorch-kaldi:
+    `intput_dim`: int, input dimension of model
+"""
+class LIN(nn.Module):
+    def __init__(self, options, inp_dim):
+        super(LIN, self).__init__()
+
+        self.out_dim = inp_dim # This attribute is for pytorch-kaldi
+        self.linear = nn.Linear(inp_dim, inp_dim)
+        self.linear.weight.data.copy_(torch.eye(inp_dim))
+        
+        self.device = torch.device('cuda') if torch.cuda.is_available() else torch.device('cpu')
+        self.linear = self.linear.to(self.device)
+        self.linear.train()
+        
+    def forward(self, x):
+        x = self.linear(x)
+        return x

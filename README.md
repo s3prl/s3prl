@@ -5,22 +5,26 @@
 [![Contributions welcome](https://img.shields.io/badge/contributions-welcome-brightgreen.svg)](CONTRIBUTING.md)
 [![Bitbucket open issues](https://img.shields.io/bitbucket/issues/andi611/Mockingjay-Speech-Representation)](https://github.com/andi611/Mockingjay-Speech-Representation/issues)
 
-This is an open source project for Mockingjay, an unsupervised algorithm for learning speech representations introduced and described in the paper ["Mockingjay: Unsupervised Speech Representation Learning with Deep Bidirectional Transformer Encoders"](https://arxiv.org/abs/1910.12638).
+* This is an open source project for Mockingjay, an unsupervised algorithm for learning speech representations introduced and described in the paper ["Mockingjay: Unsupervised Speech Representation Learning with Deep Bidirectional Transformer Encoders"](https://arxiv.org/abs/1910.12638), which is accepted as a Lecture in [ICASSP 2020](https://2020.ieeeicassp.org/).
+* We compare our speech representations with the [APC](https://arxiv.org/abs/1904.03240) and [CPC](https://arxiv.org/abs/1807.03748) approach, evaluating on 3 downstream tasks including: phone classification, speaker recognition, and sentiment classification on spoken content.
+* Feel free to use or modify them, any bug report or improvement suggestion will be appreciated. If you have any questions, please contact r07942089@ntu.edu.tw. If you find this project helpful for your research, please do consider to cite [this paper](#Citation), thanks!
+* Below we illustrate the proposed Masked Acoustic Model pre-training task, where 15% of input the frames are masked to zero at random during training. Which is reminiscent of the Masked Language Model task of [BERT](https://arxiv.org/abs/1810.04805)-style pre-training from the NLP ccommunity.
 <img src="https://github.com/andi611/Mockingjay-Speech-Representation/blob/master/paper/training.png">
 
-Feel free to use or modify them, any bug report or improvement suggestion will be appreciated. If you have any questions, please contact r07942089@ntu.edu.tw. If you find this project helpful for your research, please do consider to cite [this paper](#Citation), thanks!
-# Update
-We provide furthur phone classification experiment results, comparing with the *"Contrastive Predictive Coding, CPC"* method, using identical [phone
-labels and train/test split](https://drive.google.com/drive/folders/1BhJ2umKH3whguxMwifaKtSra0TgAbtfb) as provided in the [CPC paper](https://arxiv.org/pdf/1807.03748.pdf).
-There are 41 possible classes, phone classification results on LibriSpeech:
 
-| Features | Classifier | Acc (%) |
-| -------- | -------- | -------- |
-| MFCC features | linear | 39.7 |
-| CPC | linear | 64.6 |
-| Mockingjay (Ours) | linear | **65.1** |
-| CPC | 1 hidden layer | 72.5 |
-| Mockingjay (Ours) | 1 hidden layer | **79.5** |
+# Results
+* We provide furthur frame-wise phone classification results, which is not included in our previous paper, comparing with the *"Contrastive Predictive Coding, CPC"* method, using identical [phone
+labels and train/test split](https://drive.google.com/drive/folders/1BhJ2umKH3whguxMwifaKtSra0TgAbtfb) as provided in the [CPC paper](https://arxiv.org/pdf/1807.03748.pdf).
+* We pre-train Mockingjay on the 100hr subset of LibriSpeech, same as CPC.
+* There are 41 possible classes, phone classification results on LibriSpeech:
+
+| Features    | Pre-train | Linear Classifier | 1 Hidden Classifier |
+|-------------|:---------:|:-----------------:|:-------------------:|
+| MFCC        |    None   |        39.7       |                     |
+| CPC         |   100 hr  |        64.6       |         72.5        |
+| BASE (Ours) |   100 hr  |        64.3       |         76.8        |
+| BASE (Ours) |   360 hr  |        66.4       |         77.0        |
+| BASE (Ours) |   960 hr  |      **67.0**     |       **79.1**      |
 
 # Highlight
 ## Pre-trained Models
@@ -30,9 +34,9 @@ You can find pre-trained models here:
 
  Their usage are explained bellow and furthur in [Step 3 of the Instruction Section](#Instructions).
 
-## Extract features or fine-tuning with your own downstream models
-With this repo and the trained models, you can fine-tune the pre-trained Mockingjay model on your own dataset and tasks. 
-To do so, use the wrapper class in [nn_mockingjay.py](mockingjay/nn_mockingjay.py), and take a look at the following example python code ([example_finetune.py](example_finetune.py)):
+## Extract features or fine-tuning with your own downstream models (RECOMMEND)
+With this repo and the trained models, you can fine-tune the pre-trained Mockingjay model on your own dataset and tasks (*important: the input acoustic features must use the same preprocessing settings!!!*). 
+To do so, use the wrapper class in [nn_mockingjay.py](mockingjay/nn_mockingjay.py), and take a look at the following example python code ([example_extract_finetune.py](example_extract_finetune.py)):
 ```python
 import torch
 from mockingjay.nn_mockingjay import MOCKINGJAY
@@ -73,7 +77,7 @@ torch.save(states, PATH_TO_SAVE_YOUR_MODEL)
 ```
 
 ## Extracting Speech Representations with Solver
-With this repo and the trained models, you can use it to extract speech representations from your target dataset. To do so, feed-forward the trained model on the target dataset and retrieve the extracted features by running the following example python code ([example_extract.py](example_extract.py)):
+With this repo and the trained models, you can use it to extract speech representations from your target dataset (*important: the input acoustic features must use the same preprocessing settings!!!*). To do so, feed-forward the trained model on the target dataset and retrieve the extracted features by running the following example python code ([example_solver.py](example_solver.py)):
 ```python
 import torch
 from runner_mockingjay import get_mockingjay_model
@@ -198,14 +202,17 @@ python3 -m tensorboard.main --logdir=log/log_mockingjay/mockingjay_libri_sd1337/
 See the instructions on the [Downstream wiki page](https://github.com/andi611/Mockingjay-Speech-Representation/wiki/Downstream-Task-Instructions) to reproduce our experiments.
 
 ### Comparing with APC
-See the instructions on the [APC wiki page](https://github.com/andi611/Mockingjay-Speech-Representation/wiki/Reproducing-APC-to-compare-with-Mockingjay) to reproduce our experiments.
+See the instructions on the [APC wiki page](https://github.com/andi611/Mockingjay-Speech-Representation/wiki/Reproducing-APC-to-compare-with-Mockingjay) to reproduce our experiments. Comparison results are in our [paper](https://arxiv.org/abs/1910.12638).
 
+### Comparing with CPC
+See the instructions on the [Downstream wiki page](https://github.com/andi611/Mockingjay-Speech-Representation/wiki/Downstream-Task-Instructions) to reproduce our experiments. Comparison results are in the first [section](#Results).
 
 # Reference
 1. [Montreal Forced Aligner](https://montreal-forced-aligner.readthedocs.io/en/latest/), McAuliffe et. al.
 2. [CMU MultimodalSDK](https://github.com/A2Zadeh/CMU-MultimodalSDK/blob/master/README.md), Amir Zadeh.
 3. [PyTorch Transformers](https://github.com/huggingface/pytorch-transformers), Hugging Face.
 4. [Autoregressive Predictive Coding](https://arxiv.org/abs/1904.03240), Yu-An Chung.
+5. [Contrastive Predictive Coding](https://arxiv.org/abs/1807.03748), Aaron van den Oord.
 5. [End-to-end ASR Pytorch](https://github.com/Alexander-H-Liu/End-to-end-ASR-Pytorch), Alexander-H-Liu.
 6. [Tacotron Preprocessing](https://github.com/r9y9/tacotron_pytorch), Ryuichi Yamamoto (r9y9)
 

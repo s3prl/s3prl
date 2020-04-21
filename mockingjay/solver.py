@@ -24,7 +24,7 @@ from tensorboardX import SummaryWriter
 from dataloader import get_Dataloader
 from mockingjay.model import MockingjayConfig, MockingjayModel, MockingjayForMaskedAcousticModel
 from mockingjay.optimization import BertAdam, WarmupLinearSchedule
-from utility.audio import plot_spectrogram_to_numpy, plot_spectrogram, plot_embedding
+from utility.audio import plot_spectrogram_to_numpy, plot_spectrogram, plot_embedding, plot_attention
 from utility.audio import mel_dim, num_freq, fmllr_dim, sample_rate, inv_spectrogram
 from utility.mam import position_encoding
 
@@ -454,8 +454,35 @@ class Trainer(Solver):
                         raise
                 
         pbar.close()
+        self.log.close()
         self.reset_train()
         
+
+    def test_reconstruct(self):
+        head_mask = None
+        prune_headids = self.config['mockingjay']['prune_headids']
+        if prune_headids is not None:
+            layer_num = self.config['mockingjay']['num_hidden_layers']
+            head_num = self.config['mockingjay']['num_attention_heads']
+            head_mask = torch.ones(layer_num, head_num)
+            layer_ids = [idx // head_num for idx in prune_headids]
+            head_ids = [idx % head_num for idx in prune_headids]
+            head_mask[layer_ids, head_ids] = 0.0  
+
+        epoch_loss = []
+        for batch_is_valid, *batch in tqdm(self.dataloader):
+            assert batch_is_valid
+
+            spec_masked, pos_enc, mask_label, attn_mask, spec_stacked = self.process_data(batch)
+            if head_mask is not None:
+                head_mask = head_mask.to(spec_masked.device)
+            
+            with torch.no_grad():
+                loss, pred_spec = self.model(spec_masked, pos_enc, mask_label, attn_mask, spec_stacked, head_mask)
+            epoch_loss.append(loss.item())
+
+        print(sum(epoch_loss) / len(epoch_loss))
+
 
 ##########
 # TESTER #
@@ -556,23 +583,15 @@ class Tester(Solver):
                 spec_stacked, pos_enc, attn_mask = self.process_MAM_data(spec=x)
                 
                 if with_head:
-                    outputs = self.model(spec_stacked, pos_enc, attention_mask=attn_mask)
-                    if self.output_attention:
-                        _, pred_spec = outputs
-                    else:
-                        pred_spec, _ = outputs
-
+                    pred_spec, _ = self.model(spec_stacked, pos_enc, attention_mask=attn_mask)
+                    
                     # generate the model filled MAM spectrogram
                     spec_masked = copy.deepcopy(spec_stacked)
                     for i in range(len(spec_masked)):
                         sample_index = random.sample(range(len(spec_masked[i])), int(len(spec_masked[i])*self.config['mockingjay']['mask_proportion']))
                         spec_masked[i][sample_index] = 0
-                    outputs = self.model(spec_masked, pos_enc, attention_mask=attn_mask)
-                    if self.output_attention:
-                        _, fill_spec = outputs
-                    else:
-                        fill_spec, _ = outputs
-
+                    fill_spec, _ = self.model(spec_masked, pos_enc, attention_mask=attn_mask)
+                    
                     # plot reconstructed / ground-truth / MAM filled spectrogram
                     for y_pred, y_true, y_fill in zip(pred_spec, spec_stacked, fill_spec):
                         
@@ -593,17 +612,6 @@ class Tester(Solver):
                         if idx >= 10:
                             self.verbose('Spectrogram head generated samples are saved to: {}'.format(self.dump_dir))
                             exit() # visualize the first 10 testing samples
-                elif self.output_attention:
-                    all_attentions, _ = self.mockingjay(spec_stacked, pos_enc, attention_mask=attn_mask, output_all_encoded_layers=True)
-                    all_attentions = torch.stack(all_attentions).transpose(0, 1)
-                    # all_attentions: (batch_size, num_layer, num_head, Q_seq_len, K_seq_len)
-
-                    for attentions in all_attentions:
-                        torch.save(attentions.cpu(), os.path.join(self.dump_dir, f'{idx}_attentions'))
-                        idx += 1
-                        if idx >= 10:
-                            self.verbose(f'Attention samples are saved to {self.dump_dir}')
-                            exit()
                 else:
                     encoded_layers = self.mockingjay(spec_stacked, pos_enc, attention_mask=attn_mask, output_all_encoded_layers=True)
                     encoded_layers = torch.stack(encoded_layers)
@@ -636,6 +644,27 @@ class Tester(Solver):
                         break # visualize the first 10 testing samples
 
 
+    def plot_attention(self):
+        attn_dir = os.path.join('attentions', self.exp_name)
+        if not os.path.exists(attn_dir): os.makedirs(attn_dir)
+        with torch.no_grad():
+            sample_index = torch.arange(0, self.dataloader.dataset.__len__(), self.dataloader.dataset.__len__() // 5)
+            for i, idx in enumerate(tqdm(sample_index)):
+                x = self.dataloader.dataset[idx]
+                spec_stacked, pos_enc, attn_mask = self.process_MAM_data(spec=x)
+                
+                all_attentions, _ = self.mockingjay(spec_stacked, pos_enc, attention_mask=attn_mask, output_all_encoded_layers=True)
+                all_attentions = torch.stack(all_attentions).transpose(0, 1)
+                # all_attentions: (batch_size, num_layer, num_head, Q_seq_len, K_seq_len)
+
+                sample_dir = os.path.join(attn_dir, str(i))
+                if not os.path.exists(sample_dir): os.makedirs(sample_dir)
+                for layerid, layer_attentions in enumerate(all_attentions[0]):
+                    for headid, head_attention in enumerate(layer_attentions):
+                        plot_attention(head_attention.detach().cpu(), os.path.join(sample_dir, f'{layerid}-{headid}.png'))
+                    plot_attention(layer_attentions.mean(dim=0).detach().cpu(), os.path.join(sample_dir, f'{layerid}-average.png'))
+
+
     def forward(self, spec, all_layers=True, tile=True, process_from_loader=False):
         """ 
             Generation of the Mockingjay Model Representation
@@ -655,7 +684,18 @@ class Tester(Solver):
                 spec_stacked, pos_enc, attn_mask = self.process_MAM_data(spec=spec)
             else:
                 spec_stacked, pos_enc, attn_mask = self.process_data(spec=spec) # Use dataloader to process MAM data to increase speed
-            reps = self.mockingjay(spec_stacked, pos_enc, attention_mask=attn_mask, output_all_encoded_layers=all_layers)
+
+            head_mask = None
+            prune_headids = self.config['mockingjay']['prune_headids']
+            if prune_headids is not None:
+                layer_num = self.config['mockingjay']['num_hidden_layers']
+                head_num = self.config['mockingjay']['num_attention_heads']
+                head_mask = torch.ones(layer_num, head_num).to(spec_stacked.device)
+                layer_ids = [idx // head_num for idx in prune_headids]
+                head_ids = [idx % head_num for idx in prune_headids]
+                head_mask[layer_ids, head_ids] = 0.0  
+            
+            reps = self.mockingjay(spec_stacked, pos_enc, attention_mask=attn_mask, output_all_encoded_layers=all_layers, head_mask=head_mask)
 
             if type(reps) is list:
                 reps = torch.stack(reps)

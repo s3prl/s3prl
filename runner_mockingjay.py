@@ -17,6 +17,24 @@ import argparse
 import numpy as np
 
 
+def parse_prune_heads(config):
+    if 'prune_headids' in config['mockingjay'] and config['mockingjay']['prune_headids'] != 'None':
+        heads_int = []
+        spans = config['mockingjay']['prune_headids'].split(',')
+        for span in spans:
+            endpoints = span.split('-')
+            if len(endpoints) == 1:
+                heads_int.append(int(endpoints[0]))
+            elif len(endpoints) == 2:
+                heads_int += torch.arange(int(endpoints[0]), int(endpoints[1])).tolist()
+            else:
+                raise ValueError
+        print(f'[PRUNING] - heads {heads_int} will be pruned')
+        config['mockingjay']['prune_headids'] = heads_int
+    else:
+        config['mockingjay']['prune_headids'] = None
+
+
 #############################
 # MOCKINGJAY CONFIGURATIONS #
 #############################
@@ -64,17 +82,20 @@ def get_mockingjay_args():
     
     # Options
     parser.add_argument('--with_head', action='store_true', help='inference with the spectrogram head, the model outputs spectrogram.')
-    parser.add_argument('--output_attention', action='store_true', help='plot attention')
+    parser.add_argument('--plot_attention', action='store_true', help='plot attention')
     parser.add_argument('--load_ws', default='result/result_mockingjay_sentiment/10111754-10170300-weight_sum/best_val.ckpt', help='load weighted-sum weights from trained downstream model')
     parser.add_argument('--cpu', action='store_true', help='Disable GPU training.')
     parser.add_argument('--multi_gpu', action='store_true', help='Enable Multi-GPU training.')
     parser.add_argument('--no_msg', action='store_true', help='Hide all messages.')
+    parser.add_argument('--test_reconstruct', action='store_true', help='Test reconstruction capability')
 
 
     args = parser.parse_args()
     setattr(args,'gpu', not args.cpu)
     setattr(args,'verbose', not args.no_msg)
     config = yaml.load(open(args.config,'r'), Loader=yaml.FullLoader)
+    config['mockingjay']['test_reconstruct'] = args.test_reconstruct
+    parse_prune_heads(config)
     
     return config, args
 
@@ -102,6 +123,14 @@ def main():
         trainer.load_data(split='train')
         trainer.set_model(inference=False)
         trainer.exec()
+
+    # Test Mockingjay
+    if args.test_reconstruct:
+        from mockingjay.solver import Trainer
+        trainer = Trainer(config, args)
+        trainer.load_data(split='test')
+        trainer.set_model(inference=True, with_head=True)
+        trainer.test_reconstruct()
 
     ##################################################################################
     
@@ -200,8 +229,15 @@ def main():
         from mockingjay.solver import Tester
         tester = Tester(config, args)
         tester.load_data(split='test', load_mel_only=True)
-        tester.set_model(inference=True, with_head=args.with_head, output_attention=args.output_attention)
+        tester.set_model(inference=True, with_head=args.with_head)
         tester.plot(with_head=args.with_head)
+
+    elif args.plot_attention:
+        from mockingjay.solver import Tester
+        tester = Tester(config, args)
+        tester.load_data(split='test', load_mel_only=True)
+        tester.set_model(inference=True, output_attention=True)
+        tester.plot_attention()
 
 
 ########################
@@ -215,8 +251,11 @@ def get_mockingjay_model(from_path='result/result_mockingjay/mockingjay_libri_sd
     config = all_states['Settings']['Config']
     paras = all_states['Settings']['Paras']
     
+    # handling older checkpoints
     if not hasattr(paras, 'multi_gpu'):
         setattr(paras, 'multi_gpu', False)
+    if 'prune_headids' not in config['mockingjay']:
+        config['mockingjay']['prune_headids'] = None
 
     # display checkpoint settings
     if display_settings:

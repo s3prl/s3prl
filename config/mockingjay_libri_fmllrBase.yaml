@@ -16,6 +16,7 @@ mockingjay:
   mask_bucket_ratio: 1.2                                # only used when overlap is not allowed. sample a mask from each bucket in size of [sampled mask_consecutive * mask_bucket_ratio]
   mask_frequency: 8                                     # mask maximum this amount of frequency bands, set to 0 for no frequency mask
   noise_proportion: 0.15                                # for this percentage of the time, Gaussian noise will be applied on all frames during MAM training, set to 0 for no noise
+  prune_headids: None                                   # Usage: 0,1,2,12-15 will prune headids [0,1,2,12,13,14]. headids = layerid * head_num + headid_in_layer
 
 
 optimizer: 
