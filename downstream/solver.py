@@ -274,7 +274,7 @@ class Downstream_Trainer(Downstream_Solver):
                     labels = labels.squeeze(0).to(device=self.device)  # labels can be torch.long or torch.float (regression)
                     if 'speaker' in self.task: # Doesn't need the whole utterance to predict speaker
                         original_len = features[0].size(2)
-                        reduce_factor = 3
+                        reduce_factor = 1
                         if self.run_mockingjay: features = (features[0][:, :, :original_len//reduce_factor, :], features[1][:, :original_len//reduce_factor, :], features[2][:, :, :original_len//reduce_factor])
                         else: features = features[:, :, :original_len//reduce_factor, :]
                     if self.run_mockingjay and self.paras.with_head:
