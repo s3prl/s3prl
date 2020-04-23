@@ -88,6 +88,8 @@ solver:
 
 
 downstream:                                             # downstream model config
+  model_type: 'linear'                                  # support modes: ['linear', 'rnn'], use `linear` for frame-wise classification and `rnn` for utterance-wise classification (However they both supports linear / hidden classifiers)
+  
   linear:
     input_dim: 'None'                                   # `int`, else if set to None, input_dim will be set according to mockingjay settings or mel-preprocessing dimensions automatically
     hidden_size: 768

@@ -88,6 +88,8 @@ solver:
 
 
 downstream:                                             # downstream model config
+  model_type: 'linear'                                  # support modes: ['linear', 'rnn'], use `linear` for frame-wise classification and `rnn` for utterance-wise classification (However they both supports linear / hidden classifiers)
+  
   linear:
     input_dim: 'None'                                   # `int`, else if set to None, input_dim will be set according to mockingjay settings or mel-preprocessing dimensions automatically
     hidden_size: 768
@@ -104,9 +106,9 @@ downstream:                                             # downstream model confi
     select_hidden: 'last'                               # support modes: ['last', 'first', 'average', 'weighted_sum', 'weighted_sum_norm']
     sample_rate: 1                                      # `int`, sample every this number of frames
     pre_linear_dims: []
-    hidden_size: 0                                      # size of hidden layer
+    hidden_size: 0                                      # size of hidden layer, set to 0 for no rnn and we average over time
     post_linear_dims: []
-    drop: 0.5                                           # The dropout ratio
+    drop: 0.0                                           # The dropout ratio, not used when `pre_linear_dims: []` and `hidden_size: 0` and `post_linear_dims: []`, since the model is a linear utterance-wise classifier
 
 
   # Training options

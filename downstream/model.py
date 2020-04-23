@@ -112,6 +112,10 @@ class LinearClassifier(nn.Module):
         seq_len = features.size(2) if len(features.shape) == 4 else features.size(1)
         feature_dim = features.size(3) if len(features.shape) == 4 else features.size(2)
 
+        if labels is not None and labels.dim() == 1:
+            # one label per utterance (speaker & sentiment)
+            labels = labels.unsqueeze(-1).expand(batch_size, seq_len)
+
         if len(features.shape) == 4:
             # compute mean on mockingjay representations if given features from mockingjay
             if self.select_hidden == 'last':

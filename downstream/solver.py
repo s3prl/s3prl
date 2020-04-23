@@ -51,10 +51,11 @@ class Downstream_Solver(Solver):
         paras.logdir = paras.logdir.replace('mockingjay', task)
 
         # model
+        self.model_type = config['downstream']['model_type']
         self.load_model_list = config['downstream']['load_model_list']
         self.fine_tune = paras.fine_tune
-        self.run_mockingjay = True if 'mockingjay' in task else False
-        self.run_apc = True if 'apc' in task else False
+        self.run_mockingjay = paras.run_mockingjay
+        self.run_apc = paras.run_apc
         if self.fine_tune:  
             assert(self.run_mockingjay), 'Use `--run_mockingjay` to fine-tune the mockingjay model.'
             assert(not self.run_apc), 'Fine tuning only supports the mockingjay model.'
@@ -98,7 +99,6 @@ class Downstream_Solver(Solver):
 
 
     def set_model(self, inference=False):
-        self.model_type = 'linear' if 'phone' in self.task else 'rnn'
         input_dim = int(self.config['downstream'][self.model_type]['input_dim']) if \
                     self.config['downstream'][self.model_type]['input_dim'] != 'None' else None
         if 'mockingjay' in self.task:
@@ -272,23 +272,18 @@ class Downstream_Trainer(Downstream_Solver):
                     # dimension of labels is depends on task and dataset, but the first dimention is always trivial due to bucketing
                     # eg. (1, batch_size, seq_len) or (1, batch_size)
                     labels = labels.squeeze(0).to(device=self.device)  # labels can be torch.long or torch.float (regression)
-                    if 'speaker' in self.task: # Doesn't need the whole utterance to predict speaker
-                        original_len = features[0].size(2)
-                        reduce_factor = 1
-                        if self.run_mockingjay: features = (features[0][:, :, :original_len//reduce_factor, :], features[1][:, :original_len//reduce_factor, :], features[2][:, :, :original_len//reduce_factor])
-                        else: features = features[:, :, :original_len//reduce_factor, :]
                     if self.run_mockingjay and self.paras.with_head:
                         # representations shape: (batch_size, seq_len, feature)
                         representations = self.mockingjay.forward_with_head(features, process_from_loader=True)
                         features = self.up_sample_frames(features[0].squeeze(0))
                     elif self.run_mockingjay and self.fine_tune:
                         # representations shape: (batch_size, seq_len, feature)
-                        representations = self.mockingjay.forward_fine_tune(features, tile=False if 'speaker' in self.task else True, process_from_loader=True)
-                        features = self.up_sample_frames(features[0].squeeze(0)) if 'speaker' not in self.task else features[0].squeeze(0)
+                        representations = self.mockingjay.forward_fine_tune(features, process_from_loader=True)
+                        features = self.up_sample_frames(features[0].squeeze(0))
                     elif self.run_mockingjay:
                         # representations shape: (batch_size, layer, seq_len, feature)
-                        representations = self.mockingjay.forward(features, tile=False if 'speaker' in self.task else True, process_from_loader=True)
-                        features = self.up_sample_frames(features[0].squeeze(0)) if 'speaker' not in self.task else features[0].squeeze(0)
+                        representations = self.mockingjay.forward(features, process_from_loader=True)
+                        features = self.up_sample_frames(features[0].squeeze(0))
                     elif self.run_apc:
                         # representations shape: (batch_size, layer, seq_len, feature)
                         representations = self.apc.forward(features)
@@ -424,12 +419,12 @@ class Downstream_Tester(Downstream_Solver):
                         features = self.up_sample_frames(features[0].squeeze(0))
                     elif self.run_mockingjay and self.fine_tune:
                         # representations shape: (batch_size, seq_len, feature)
-                        representations = self.mockingjay.forward_fine_tune(features, tile=False if 'speaker' in self.task else True, process_from_loader=True)
-                        features = self.up_sample_frames(features[0].squeeze(0)) if 'speaker' not in self.task else features[0].squeeze(0)
+                        representations = self.mockingjay.forward_fine_tune(features, process_from_loader=True)
+                        features = self.up_sample_frames(features[0].squeeze(0))
                     elif self.run_mockingjay:
                         # representations shape: (batch_size, layer, seq_len, feature)
-                        representations = self.mockingjay.forward(features, tile=False if 'speaker' in self.task else True, process_from_loader=True)
-                        features = self.up_sample_frames(features[0].squeeze(0)) if 'speaker' not in self.task else features[0].squeeze(0)
+                        representations = self.mockingjay.forward(features, process_from_loader=True)
+                        features = self.up_sample_frames(features[0].squeeze(0))
                     elif self.run_apc:
                         # representations shape: (batch_size, layer, seq_len, feature)
                         representations = self.apc.forward(features)
