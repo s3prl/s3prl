@@ -93,12 +93,12 @@ downstream:                                             # downstream model confi
   linear:
     input_dim: 'None'                                   # `int`, else if set to None, input_dim will be set according to mockingjay settings or mel-preprocessing dimensions automatically
     hidden_size: 768
-    drop: 0.2
+    drop: 0.0                                           # The dropout ratio, not used when `linear` is set to `True`.
     select_hidden: 'last'                               # support modes: ['last', 'first', 'average', 'weighted_sum', 'weighted_sum_norm']
     sequencial: False
     linear: True                                        # whether to make the classifier linear
     layers: 1                                           # number of layers in the classifier, set to 2 for 1 hidden layer
-    concat: 9                                           # `int`, must be an odd number. Concatenation of this amount of windows to match the average size of a phoneme. Set to 1 for no concatenation, set to 9 to concat 4 previous and 4 future frames.
+    concat: 1                                           # `int`, must be an odd number. Concatenation of this amount of windows to match the average size of a phoneme. Set to 1 for no concatenation, set to 9 to concat 4 previous and 4 future frames.
 
   rnn:
     mode: 'classification'                              # support modes: 'classification' , 'regression'

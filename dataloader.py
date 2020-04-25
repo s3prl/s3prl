@@ -650,7 +650,7 @@ class Speaker_Dataset(Dataset):
     
     def __init__(self, split, run_mockingjay, file_path, sets, bucket_size, max_timestep=0, max_label_len=0, drop=False, mock_config=None, load='speaker'):
         
-        HALF_BATCHSIZE_TIME = 2000
+        HALF_BATCHSIZE_TIME = 1000
         assert(load == 'speaker'), 'This dataset loads mel features and speaker ID labels.'
         self.run_mockingjay = run_mockingjay
         self.mock_config = mock_config
@@ -695,7 +695,7 @@ class Speaker_Dataset(Dataset):
         X_lens = self.table['length'].tolist()
 
         # Crop seqs that are too long
-        if drop and max_timestep > 0 and self.load != 'text':
+        if drop and max_timestep > 0:
             self.table = self.table[self.table.length < max_timestep]
         if drop and max_label_len > 0:
             self.table = self.table[self.table.label.str.count('_')+1 < max_label_len]
