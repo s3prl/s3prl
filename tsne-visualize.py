@@ -2,9 +2,8 @@ from __future__ import print_function
 import time
 import numpy as np
 import pandas as pd
-from sklearn.datasets import fetch_mldata
 from sklearn.decomposition import PCA
-from sklearn.manifold import TSNE
+from MulticoreTSNE import MulticoreTSNE as TSNE
 import matplotlib.pyplot as plt
 from mpl_toolkits.mplot3d import Axes3D
 import seaborn as sns
@@ -12,7 +11,9 @@ import pickle
 import torch 
 import IPython 
 import pdb
-
+from matplotlib.colors import ListedColormap
+import tensorboardX 
+from tensorboardX import SummaryWriter
 
 
 def tsne_F(matrix_representation,matrix_labels,kind=63):
@@ -72,36 +73,68 @@ def pca_F(matrix_representation,matrix_labels,kind=63):
     ys=df["pca-two"], 
     zs=df["pca-three"], 
     c=df["y"], 
-    cmap='cubehelix'
+    cmap=sns.color_palette("BrBG", kind)
     )
     ax.set_xlabel('pca-one')
     ax.set_ylabel('pca-two')
     ax.set_zlabel('pca-three')
     plt.savefig("test_pca.png")
 
-def pca_reduce_50_tsne_2d(matrix_representation,matrix_labels,kind=63):
-    pca = PCA(n_components=50)
+def pca_reduce_384_tsne_2d(matrix_representation,matrix_labels,kind=251):
+    pca = PCA(n_components=192)
     df_old = pd.DataFrame(matrix_representation.numpy(), index=list(range(matrix_representation.numpy().shape[0])), columns=["x"for i in range(matrix_representation.numpy().shape[1])], dtype=None, copy=False)
     pca_result = pca.fit_transform(df_old)
+
     df_new = pd.DataFrame(pca_result, index=list(range(pca_result.shape[0])), columns=["x"for i in range(pca_result.shape[1])], dtype=None, copy=False)
     print('Cumulative explained variation for 50 principal components: {}'.format(np.sum(pca.explained_variance_ratio_)))
-    # df_new
+    # IPython.embed()
+    unique,counts=np.unique(matrix_labels.numpy(),return_counts=True)
+    # IPython.embed()
+    # pdb.set_trace()
+    
+    labels = unique[5:15]
+    pseudo_label_mask = np.isin(matrix_labels.numpy(),labels)
+    pseudo_label = matrix_labels.numpy()[pseudo_label_mask]
+    df_new  = df_new[pseudo_label_mask]
+    # df_new=df_new[matrix_lmaabels.numpy()<=10]
     # pseudo_label = matrix_labels.numpy()
-    tsne = TSNE(n_components=2, verbose=1, perplexity=40, n_iter=500)
+    tsne = TSNE(n_components=3, verbose=1, perplexity=1, n_iter=1500, learning_rate=80, n_jobs=4)
     tsne_results = tsne.fit_transform(df_new)
-    df_new["y"] = matrix_labels.numpy()
+    df_new["y"] = pseudo_label#.numpy()
     df_new["tsne_1_dim"] =tsne_results[:,0]
     df_new["tsne_2_dim"] =tsne_results[:,1]
+
+    df_new['tsne-one'] = tsne_results[:,0]
+    df_new['tsne-two'] = tsne_results[:,1] 
+    df_new['tsne-three'] = tsne_results[:,2]
+    # df_new['y'] = matrix_labels.numpy()
+    my_cmap = ListedColormap(sns.color_palette("Paired",len(labels)).as_hex())
+    ax = plt.figure(figsize=(16,10)).gca(projection='3d')
+    ax.scatter(
+    xs=df_new["tsne-one"], 
+    ys=df_new["tsne-two"], 
+    zs=df_new["tsne-three"], 
+    c=df_new["y"], 
+    cmap=my_cmap
+    )
+    ax.set_xlabel('tsne-one')
+    ax.set_ylabel('tsne-two')
+    ax.set_zlabel('tsne-three')
+    plt.savefig("test_tsne-1.png")
+
+
+
+
     plt.figure(figsize=(19,17))
     sns.scatterplot(
         x="tsne_1_dim", y="tsne_2_dim",
         hue="y",
-        palette=sns.color_palette("RdBu_r", 63),
+        palette=sns.color_palette("Paired",len(labels)),
         data=df_new,
         legend="full",
         alpha=1
     )
-    plt.savefig(f"tsne_pca50_train.png")
+    plt.savefig(f"tsne_pca50_CPC-2.png")
     plt.clf()
 
     # for i in range(kind):
@@ -142,16 +175,21 @@ def pca_reduce_50_tsne_2d(matrix_representation,matrix_labels,kind=63):
 
 
 if __name__ == "__main__":
-    speaker_representation = pickle.load(open("speaker_representation_train.p","rb"))
+    speaker_representation = pickle.load(open("speaker_representation_CPC.p","rb"))
 
     tuple_of_list = list(zip(*speaker_representation))
 
-    matrix_representation = torch.cat(tuple_of_list[0],dim=0)
-    matrix_labels         = torch.cat(tuple_of_list[1],dim=0).unsqueeze(-1)
+    matrix_representation = torch.cat(tuple_of_list[0],dim=0)[:150000]
+    matrix_labels         = torch.cat(tuple_of_list[1],dim=0)[:150000]
+    
+    
 
     time_start = time.time()
-    pca_reduce_50_tsne_2d(matrix_representation,matrix_labels)
-    # tsne_F(matrix_representation,matrix_labels)
+    # IPython.embed()
+    # pdb.set_trace()
+    print("start PCA, tsne 2D")
+    pca_reduce_384_tsne_2d(matrix_representation,matrix_labels,251)
+    tsne_F(matrix_representation,matrix_labels)
     
 
 
