@@ -1,4 +1,5 @@
 mockingjay:
+  input_dim: 40                                         # `int`, 40 for fmllr, 39 for mfcc
   downsample_rate: 1                                    # stacked consecutive features vectors to reduce the length of input sequences by this factor.
   hidden_size: 768                                      # Size of the encoder layers and the pooler layer.
   num_hidden_layers: 3                                  # Number of hidden layers in the Transformer encoder.
@@ -64,7 +65,7 @@ dataloader:
 
 
   # LIBRISEECH SETTINGS
-  data_path: 'data/libri_fmllr_cmvn'                    # Source data path, 'data/libri_mel160_subword5000' or 'data/libri_fmllr_cmvn' for different preprocessing features
+  data_path: 'data/libri_fmllr_cmvn'                    # Source data path, 'data/libri_fmllr_cmvn', or 'data/libri_mfcc_cmvn', or 'data/libri_mel160_subword5000' for different preprocessing features
   target_path: 'data/libri_linear1025_subword5000'      # Target data path for reconstruction to a different feature type, set dataset to 'librispeech_mel_linear'.
   phone_path: 'data/cpc_phone'                          # phone boundary label data path for the phone classification task. set to 'data/libri_phone' or 'data/cpc_phone'
   train_set: ['train-clean-100']                        # ['train-clean-100', 'train-clean-360', 'train-other-500'] for pre-training. ['train-clean-360'] or ['train-clean-100'] for libri phone exp or cpc phone exp, respectively.
