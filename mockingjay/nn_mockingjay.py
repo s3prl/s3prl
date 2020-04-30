@@ -12,6 +12,7 @@
 ###############
 import sys
 import torch
+import random
 import numpy as np
 import torch.nn as nn
 from functools import lru_cache
@@ -36,10 +37,13 @@ Params:
     `intput_dim`: int, input dimension of model
 
 An example `options` dictionary:
-    ckpt_file = /media/andi611/1TBSSD/Mockingjay-Speech-Representation/result/result_mockingjay/mockingjay_libri_sd1337_MelBase460-K/mockingjay-500000.ckpt
-    load_pretrain = True
-    no_grad = False
-    dropout = default
+options = {
+    'ckpt_file'     : './result/result_mockingjay/libri_sd1337_fmllrBase960-F-N-K-RA/model-1000000.ckpt',
+    'load_pretrain' : 'True',
+    'no_grad'       : 'False',
+    'dropout'       : 'default',
+    'spec_aug'      : 'True',
+}
 """
 class MOCKINGJAY(nn.Module):
     def __init__(self, options, inp_dim):
@@ -47,7 +51,8 @@ class MOCKINGJAY(nn.Module):
         
         all_states = torch.load(options["ckpt_file"], map_location='cpu')
         self.config = all_states['Settings']['Config']
-        self.no_grad = bool(strtobool(options["no_grad"]))
+        self.no_grad = bool(strtobool(options['no_grad']))
+        self.spec_aug = bool(strtobool(options['spec_aug']))
 
         # increase dropout
         if str(options['dropout']) != 'default':
@@ -70,7 +75,7 @@ class MOCKINGJAY(nn.Module):
             self.load_model(all_states['Mockingjay'])
             print('[Mockingjay] - Number of parameters: ' + str(sum(p.numel() for p in self.model.parameters() if p.requires_grad)))
         
-        self.out_dim = 768 # This attribute is for pytorch-kaldi
+        self.out_dim = self.hidden_size # 768, This attribute is for pytorch-kaldi
 
 
     def load_model(self, state_dict):
@@ -129,8 +134,8 @@ class MOCKINGJAY(nn.Module):
         return spec_stacked
         
 
-    def process_MAM_data(self, spec):
-        """Process testing data for the masked acoustic model"""
+    def process_input_data(self, spec):
+        """Process input data for the model"""
         
         # add arbitary batch axis B if input `spec` has shape of TxD
         if len(spec.shape) == 2:
@@ -140,7 +145,7 @@ class MOCKINGJAY(nn.Module):
             raise ValueError('Input argument `spec` has invalid shape: {}'.format(spec.shape))
 
         # Down sample
-        spec_stacked = self.down_sample_frames(spec) # (batch_size, seq_len, mel_dim * dr)
+        spec_stacked = self.down_sample_frames(spec) # (batch_size, seq_len, feature_dim * dr)
 
         # Record length for each uttr
         spec_len = np.sum(np.sum(spec_stacked.cpu().data.numpy(), axis=-1) != 0, axis=-1)
@@ -156,7 +161,9 @@ class MOCKINGJAY(nn.Module):
         for idx in range(len(spec_stacked)):
             attn_mask[idx][spec_len[idx]:] = 0 
 
-        spec_stacked = spec_stacked.to(device=self.device, dtype=torch.float32) # (batch_size, seq_len, mel_dim * dr)
+        if self.spec_aug and self.model.training:
+            spec_stacked = spec_augment(spec_stacked, self.hidden_size) # (batch_size, seq_len, feature_dim * dr)
+        spec_stacked = spec_stacked.to(device=self.device, dtype=torch.float32) # (batch_size, seq_len, feature_dim * dr)
         pos_enc = torch.FloatTensor(pos_enc).to(device=self.device, dtype=torch.float32).expand(spec_stacked.size(0), *pos_enc.size()) # (batch_size, seq_len, hidden_size)
         attn_mask = torch.FloatTensor(attn_mask).to(device=self.device, dtype=torch.float32) # (batch_size, seq_len)
         return spec_stacked, pos_enc, attn_mask # (x, pos_enc, attention_mask)
@@ -191,7 +198,7 @@ class MOCKINGJAY(nn.Module):
 
         # Model forwarding
         x = x.permute(1, 0, 2).contiguous() # (T, B, D) -> (B, T, D)
-        spec_stacked, pos_enc, attn_mask = self.process_MAM_data(x)
+        spec_stacked, pos_enc, attn_mask = self.process_input_data(x)
         x = self.model(spec_stacked, pos_enc, attn_mask, output_all_encoded_layers=False) # (B, T, D)
         
         # If using a downsampling model, apply tile and padding
@@ -245,6 +252,81 @@ def position_encoding(seq_len, hidden_size):
     # after getting the (seq_len, hidden_size) tensor, one should first put
     # this tensor into GPU then expand it
     return table  # (seq_len, hidden_size)
+
+
+###############
+# SPEC AUMENT #
+###############
+def spec_augment(spec, hidden_size=768):
+    '''
+        Process training data for the supervised ASR model by 
+        masking to time-steps and channels during training
+        which delays overfitting and significantly improves the final accuracy numbers.
+        Input:
+            `spec`: (batch_size, seq_len, feature_dim * dr)
+            `hidden_size`: Mockingjay model hidden size
+        Output:
+            `altered spec`: (batch_size, seq_len, feature_dim * dr)
+    '''
+
+    # default settings, identical to pre-training
+    mask_proportion = 0.15
+    mask_consecutive_min = 7
+    mask_consecutive_max = 7
+    mask_allow_overlap = True
+    mask_bucket_ratio = 1.2
+    mask_frequency = 8
+
+    with torch.no_grad():
+
+        # Record length for each uttr
+        spec_len = (spec.sum(dim=-1) != 0).long().sum(dim=-1).tolist()
+        batch_size = spec.shape[0]
+
+        for idx in range(batch_size):
+
+            def starts_to_intervals(starts, consecutive):
+                tiled = starts.expand(consecutive, starts.size(0)).T
+                offset = torch.arange(consecutive).expand_as(tiled)
+                intervals = tiled + offset
+                return intervals.view(-1)
+            
+            # time masking
+            mask_consecutive = random.randint(mask_consecutive_min, mask_consecutive_max)
+            valid_start_max = max(spec_len[idx] - mask_consecutive - 1, 0) # compute max valid start point for a consecutive mask
+            proportion = round(spec_len[idx] * mask_proportion / mask_consecutive)
+            if mask_allow_overlap:
+                # draw `proportion` samples from the range (0, valid_index_range) and without replacement
+                chosen_starts = torch.randperm(valid_start_max + 1)[:proportion]
+            else:
+                mask_bucket_size = round(mask_consecutive * mask_bucket_ratio)
+                rand_start = random.randint(0, min(mask_consecutive, valid_start_max))
+                valid_starts = torch.arange(rand_start, valid_start_max + 1, mask_bucket_size)
+                chosen_starts = valid_starts[torch.randperm(len(valid_starts))[:proportion]]
+            chosen_intervals = starts_to_intervals(chosen_starts, mask_consecutive)
+            
+            # determine whether to mask / random / or do nothing to the frame
+            dice = random.random()
+            # mask to zero
+            if dice < 0.8:
+                spec[idx, chosen_intervals, :] = 0
+            # replace to random frames
+            elif dice >= 0.8 and dice < 0.9:
+                random_starts = torch.randperm(valid_start_max + 1)[:proportion]
+                random_intervals = starts_to_intervals(random_starts, mask_consecutive)
+                spec[idx, chosen_intervals, :] = spec[idx, random_intervals, :]
+            # do nothing
+            else:
+                pass
+
+            # frequency masking
+            if mask_frequency > 0:
+                rand_bandwidth = random.randint(0, mask_frequency)
+                chosen_starts = torch.randperm(spec.shape[2] - rand_bandwidth)[:1]
+                chosen_intervals = starts_to_intervals(chosen_starts, rand_bandwidth)
+                spec[idx, :, chosen_intervals] = 0
+
+    return spec
 
 
 #######
