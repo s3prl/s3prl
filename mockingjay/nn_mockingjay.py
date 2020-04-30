@@ -34,6 +34,7 @@ Params:
         load_pretrain: bool, whether to load pre-trained weights
         no_grad: bool, whether to have gradient flow over this class
         dropout: float/str, use float to modify dropout value during downstream finetune, or use the str `default` for pre-train default values
+        spec_aug: bool, whether to apply SpecAugment on inputs (used for ASR training)
     `intput_dim`: int, input dimension of model
 
 An example `options` dictionary:
@@ -113,14 +114,14 @@ class MOCKINGJAY(nn.Module):
 
             load(self.model)
             if len(missing_keys) > 0:
-                print("Weights of {} not initialized from pretrained model: {}".format(
+                print('Weights of {} not initialized from pretrained model: {}'.format(
                     self.model.__class__.__name__, missing_keys))
             if len(unexpected_keys) > 0:
-                print("Weights from pretrained model not used in {}: {}".format(
+                print('Weights from pretrained model not used in {}: {}'.format(
                     self.model.__class__.__name__, unexpected_keys))
             if len(error_msgs) > 0:
                 raise RuntimeError('Error(s) in loading state_dict for {}:\n\t{}'.format(
-                                    self.model.__class__.__name__, "\n\t".join(error_msgs)))
+                                    self.model.__class__.__name__, '\n\t'.join(error_msgs)))
             print('[Mockingjay] - Pre-trained weights loaded!')
 
         except: print('[Mockingjay] - Pre-trained weights NOT loaded!')
@@ -162,7 +163,7 @@ class MOCKINGJAY(nn.Module):
             attn_mask[idx][spec_len[idx]:] = 0 
 
         if self.spec_aug and self.model.training:
-            spec_stacked = spec_augment(spec_stacked, self.hidden_size) # (batch_size, seq_len, feature_dim * dr)
+            spec_stacked = spec_augment(spec_stacked, mask_T=70, mask_F=4, num_T=2, num_F=2, p=1.0) # (batch_size, seq_len, feature_dim * dr)
         spec_stacked = spec_stacked.to(device=self.device, dtype=torch.float32) # (batch_size, seq_len, feature_dim * dr)
         pos_enc = torch.FloatTensor(pos_enc).to(device=self.device, dtype=torch.float32).expand(spec_stacked.size(0), *pos_enc.size()) # (batch_size, seq_len, hidden_size)
         attn_mask = torch.FloatTensor(attn_mask).to(device=self.device, dtype=torch.float32) # (batch_size, seq_len)
@@ -171,9 +172,9 @@ class MOCKINGJAY(nn.Module):
 
     def tile_representations(self, reps):
         """ 
-            Tile up the mockingjay representations to match the amount of input frames.
-            Input - encoded_layers shape: (batch_size, sequence_length, hidden_size)
-            Output - tiled_encoded_layers shape: (batch_size, sequence_length * downsample_rate, hidden_size)
+        Tile up the mockingjay representations to match the amount of input frames.
+        Input - encoded_layers shape: (batch_size, sequence_length, hidden_size)
+        Output - tiled_encoded_layers shape: (batch_size, sequence_length * downsample_rate, hidden_size)
         """
         if len(reps.shape) != 3:
             raise ValueError('Input argument `reps` has invalid shape: {}'.format(reps.shape))
@@ -233,20 +234,18 @@ class MOCKINGJAY(nn.Module):
 MAX_SEQLEN = 5000
 @lru_cache(maxsize=1)
 def get_sinusoid_table(hidden_size):
-    def cal_angle(position, hid_idx):
+    def _cal_angle(position, hid_idx):
         return position / np.power(10000, 2 * (hid_idx // 2) / hidden_size)
-        
-    def get_posi_angle_vec(position):
-        return [cal_angle(position, hid_j) for hid_j in range(hidden_size)]
-
-    sinusoid_table = np.array([get_posi_angle_vec(pos_i) for pos_i in range(MAX_SEQLEN)])
+    def _get_posi_angle_vec(position):
+        return [_cal_angle(position, hid_j) for hid_j in range(hidden_size)]
+    sinusoid_table = np.array([_get_posi_angle_vec(pos_i) for pos_i in range(MAX_SEQLEN)])
     sinusoid_table[:, 0::2] = np.sin(sinusoid_table[:, 0::2])  # dim 2i
     sinusoid_table[:, 1::2] = np.cos(sinusoid_table[:, 1::2])  # dim 2i+1
     return torch.FloatTensor(sinusoid_table)
 
 
 def position_encoding(seq_len, hidden_size):
-    ''' position encoding table '''      
+    """ position encoding table """     
     table = get_sinusoid_table(hidden_size)[:seq_len]
     # no extra CPU and GPU memory allocation
     # after getting the (seq_len, hidden_size) tensor, one should first put
@@ -254,79 +253,57 @@ def position_encoding(seq_len, hidden_size):
     return table  # (seq_len, hidden_size)
 
 
-###############
-# SPEC AUMENT #
-###############
-def spec_augment(spec, hidden_size=768):
-    '''
-        Process training data for the supervised ASR model by 
-        masking to time-steps and channels during training
-        which delays overfitting and significantly improves the final accuracy numbers.
-        Input:
-            `spec`: (batch_size, seq_len, feature_dim * dr)
-            `hidden_size`: Mockingjay model hidden size
-        Output:
-            `altered spec`: (batch_size, seq_len, feature_dim * dr)
-    '''
+################
+# SPEC AUGMENT #
+################
+"""
+Process training data for the supervised ASR model by 
+masking to time-steps and channels during training
+which delays overfitting and significantly improves the final accuracy numbers.
+Input:
+    `spec`: input real frames, with shape: (batch_size, seq_len, feature_dim)
+    `mask_T`: the time mask parameter T described in the SpecAugment paper, 
+              we use default values based on the LD Policy
+              (In paper: T=100, we use 70 since we are training on the 100 hr subset only)
+    `mask_F`: the frequency mask parameter F described in the SpecAugment paper, 
+              we use default values based on the LD Policy
+              (In paper: F=27:D=80*3 -> F=4.5:D=40, where D is acoustic dimension)
+    `num_T` : the number of time masks applied (In paper: mT=2)
+    `num_F` : the number of frequency masks applied (In paper: mF=2)
+    `p` : upper bound ratio (In paper: p=1.0)
+Output:
+    `spec`: augmented frames, with shape: (batch_size, seq_len, feature_dim)
+"""
+def spec_augment(spec, mask_T=70, mask_F=4, num_T=2, num_F=2, p=1.0):
 
-    # default settings, identical to pre-training
-    mask_proportion = 0.15
-    mask_consecutive_min = 7
-    mask_consecutive_max = 7
-    mask_allow_overlap = True
-    mask_bucket_ratio = 1.2
-    mask_frequency = 8
+    def _start_to_intervals(starts, consecutive):
+        tiled = starts.expand(consecutive, starts.size(0)).T
+        offset = torch.arange(consecutive).expand_as(tiled)
+        intervals = tiled + offset
+        return intervals.view(-1)
 
     with torch.no_grad():
+        upper_bound = spec.shape[1] * p # upper bound on the time mask so that a time mask cannot be wider than p times the number of time steps
+        
+        for idx in range(spec.shape[0]):
 
-        # Record length for each uttr
-        spec_len = (spec.sum(dim=-1) != 0).long().sum(dim=-1).tolist()
-        batch_size = spec.shape[0]
-
-        for idx in range(batch_size):
-
-            def starts_to_intervals(starts, consecutive):
-                tiled = starts.expand(consecutive, starts.size(0)).T
-                offset = torch.arange(consecutive).expand_as(tiled)
-                intervals = tiled + offset
-                return intervals.view(-1)
-            
             # time masking
-            mask_consecutive = random.randint(mask_consecutive_min, mask_consecutive_max)
-            valid_start_max = max(spec_len[idx] - mask_consecutive - 1, 0) # compute max valid start point for a consecutive mask
-            proportion = round(spec_len[idx] * mask_proportion / mask_consecutive)
-            if mask_allow_overlap:
-                # draw `proportion` samples from the range (0, valid_index_range) and without replacement
-                chosen_starts = torch.randperm(valid_start_max + 1)[:proportion]
-            else:
-                mask_bucket_size = round(mask_consecutive * mask_bucket_ratio)
-                rand_start = random.randint(0, min(mask_consecutive, valid_start_max))
-                valid_starts = torch.arange(rand_start, valid_start_max + 1, mask_bucket_size)
-                chosen_starts = valid_starts[torch.randperm(len(valid_starts))[:proportion]]
-            chosen_intervals = starts_to_intervals(chosen_starts, mask_consecutive)
-            
-            # determine whether to mask / random / or do nothing to the frame
-            dice = random.random()
-            # mask to zero
-            if dice < 0.8:
-                spec[idx, chosen_intervals, :] = 0
-            # replace to random frames
-            elif dice >= 0.8 and dice < 0.9:
-                random_starts = torch.randperm(valid_start_max + 1)[:proportion]
-                random_intervals = starts_to_intervals(random_starts, mask_consecutive)
-                spec[idx, chosen_intervals, :] = spec[idx, random_intervals, :]
-            # do nothing
-            else:
-                pass
+            if mask_T > 0 and mask_T < upper_bound:
+                for _ in range(num_T):
+                    rand_consecutive = random.randint(0, mask_T)
+                    chosen_start = torch.randperm(spec.shape[1] - rand_consecutive)[:1]
+                    chosen_intervals = _start_to_intervals(chosen_start, rand_consecutive)
+                    spec[idx, chosen_intervals, :] = 0
 
             # frequency masking
-            if mask_frequency > 0:
-                rand_bandwidth = random.randint(0, mask_frequency)
-                chosen_starts = torch.randperm(spec.shape[2] - rand_bandwidth)[:1]
-                chosen_intervals = starts_to_intervals(chosen_starts, rand_bandwidth)
-                spec[idx, :, chosen_intervals] = 0
+            if mask_F > 0:
+                for _ in range(num_F):
+                    rand_bandwidth = random.randint(0, mask_F)
+                    chosen_start = torch.randperm(spec.shape[2] - rand_bandwidth)[:1]
+                    chosen_intervals = _start_to_intervals(chosen_start, rand_bandwidth)
+                    spec[idx, :, chosen_intervals] = 0
 
-    return spec
+        return spec
 
 
 #######
