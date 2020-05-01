@@ -38,7 +38,7 @@ def get_mockingjay_args():
     parser.add_argument('--load', action='store_true', help='Load pre-trained model to restore training, no need to specify this during testing.')
     
     # !!!!!!!!!!!!!!!!!!
-    parser.add_argument('--ckpdir', default='../result_albert/ALBERT-6l-4', type=str, help='Checkpoint/Result path.', required=False)
+    parser.add_argument('--ckpdir', default='../result_albert/ALBERT-12ln5', type=str, help='Checkpoint/Result path.', required=False)
     # parser.add_argument('--ckpt', default="/mnt/newMockingjay/result_albert/albert_2_25_mockingjay_5e-5/mockingjay_libri_sd1337/mockingjayAlbert-250000.ckpt", type=str, help='path to mockingjay model checkpoint.', required=False)
     parser.add_argument('--ckpt', default="mockingjay_libri_sd1337/mockingjayAlbert-490000.ckpt", type=str, help='path to mockingjay model checkpoint.', required=False)
 
@@ -54,6 +54,7 @@ def get_mockingjay_args():
     
     # Options
     parser.add_argument("--bert", action="store_true", help="if true, use original mockingjay not albert")
+    parser.add_argument("--only_query", action="store_true", help="if true, use original mockingjay not albert")
     parser.add_argument('--with_head', action='store_true', help='inference with the spectrogram head, the model outputs spectrogram.')
     parser.add_argument('--output_attention', action='store_true', help='plot attention')
     parser.add_argument('--load_ws', default='result/result_mockingjay_sentiment/10111754-10170300-weight_sum/best_val.ckpt', help='load weighted-sum weights from trained downstream model')
@@ -78,7 +79,7 @@ def main():
     # get arguments
     config, args = get_mockingjay_args()
     # wandb=None
-    wandb.init(config=config,project="albert-mockingjay",name="ALBERT-6l-4")#,resume=True)
+    wandb.init(config=config,project="albert-mockingjay",name="ALBERT-12l-n5")#,resume=True)
 
     # if args.wandb_service:
     # wandb.init(config=config,project="albert-mockingjay",name="albert-3-linear-2")#,resume=True)

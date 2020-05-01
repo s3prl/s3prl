@@ -112,8 +112,8 @@ class Downstream_Solver(Solver):
             # if self.fine_tune:
             #     self.model_type = "OneLinear"
             # else:
-            # self.model_type = "linear"
-            self.model_type = "OneHidden"
+            self.model_type = "linear"
+            # self.model_type = "OneHidden"
             # self.model_type = "OneLinear"
         elif "sentiment" in self.task:
             self.model_type = "mean_linear_v2"
@@ -132,11 +132,11 @@ class Downstream_Solver(Solver):
             self.mockingjay.set_model(inference=True, with_head=self.paras.with_head)
             self.dr = self.mockingjay.dr
             if input_dim is None:
-                input_dim = self.mock_config['mockingjay']['hidden_size']
+                input_dim = self.mock_config['albertmockingjay']['hidden_size']
         elif 'apc' in self.task:
             self.apc = get_apc_model(path=self.paras.apc_path)
             if input_dim is None: 
-                input_dim = self.mock_config['mockingjay']['hidden_size'] # use identical dim size for fair comparison
+                input_dim = self.mock_config['albertmockingjay']['hidden_size'] # use identical dim size for fair comparison
         elif 'baseline' in self.task:
             if input_dim is None: 
                 input_dim = mel_dim
@@ -508,8 +508,8 @@ class Downstream_Trainer_epoch_training(Downstream_Solver):
             # if self.fine_tune:
             #     self.model_type = "OneLinear"
             # else:
-            # self.model_type = "linear"
-            self.model_type = "OneHidden"
+            self.model_type = "linear"
+            # self.model_type = "OneHidden"
             # self.model_type = "OneLinear"
         elif "sentiment" in self.task:
             self.model_type = "mean_linear_v2"
@@ -530,11 +530,11 @@ class Downstream_Trainer_epoch_training(Downstream_Solver):
             self.mockingjay.set_model(inference=True, with_head=self.paras.with_head)
             self.dr = self.mockingjay.dr
             if input_dim is None:
-                input_dim = self.mock_config['mockingjay']['hidden_size']
+                input_dim = self.mock_config['albertmockingjay']['hidden_size']
         elif 'apc' in self.task:
             self.apc = get_apc_model(path=self.paras.apc_path)
             if input_dim is None: 
-                input_dim = self.mock_config['mockingjay']['hidden_size'] # use identical dim size for fair comparison
+                input_dim = self.mock_config['albertmockingjay']['hidden_size'] # use identical dim size for fair comparison
         elif 'baseline' in self.task:
             if input_dim is None: 
                 input_dim = mel_dim
@@ -916,11 +916,11 @@ class Downstream_Tester(Downstream_Solver):
 
                 except RuntimeError as e:
                     if 'CUDA out of memory' in str(e):
-                        print('CUDA out of memory at step: ', self.global_step)
+                        print('CUDA out of memory')
                         torch.cuda.empty_cache()
                         self.optimizer.zero_grad()
                     else:
-                        raisehu
+                        raise
 
         average_loss = loss_sum / len(self.dataloader)
         test_acc = correct_count * 1.0 / valid_count
@@ -971,6 +971,8 @@ class Downstream_tsne_Tester(Downstream_Solver):
                         # representations shape: (batch_size, layer, seq_len, feature)
                         representations = self.mockingjay.forward(features, tile=False if 'speaker' in self.task else True, process_from_loader=True)
                         features = self.up_sample_frames(features[0].squeeze(0)) if 'speaker' not in self.task else features[0].squeeze(0)
+                        if "CPC" in self.task:
+                            labels = labels.unsqueeze(-1).expand(features.shape[0],features.shape[1])
                     elif self.run_apc:
                         # representations shape: (batch_size, layer, seq_len, feature)
                         representations = self.apc.forward(features)
@@ -987,16 +989,14 @@ class Downstream_tsne_Tester(Downstream_Solver):
                     label_mask = (features.sum(dim=-1) != 0).type(torch.LongTensor).to(device=self.device, dtype=torch.long)
                     valid_lengths = label_mask.sum(dim=1)
 
-
-                    sample_rate = 3
-
-                    seq_len = representations.size(2) if len(features.shape) == 4 else features.size(1)
                     features_specific = representations[:,-1,:,:]
-                    feature_store = features_specific[:, torch.arange(0, seq_len, sample_rate), :]
-                    valid_lengths_store = valid_lengths / sample_rate
-                    mean_feature = feature_store.mean(dim=1)
-                    all_features_label_pair_data += [(mean_feature.data.cpu(), labels.data.cpu())]
+                    framewise = features_specific.reshape(-1,768)
+                    labels_frame  = labels.reshape(-1,1)
 
+                    # IPython.embed()
+                    # pdb.set_trace()
+                    # for i in range(framewise.shape[0]):
+                    all_features_label_pair_data += [(framewise.data.cpu(), labels_frame.data.cpu())]
 
                     if self.model_type == 'linear':
                         # labels: (batch_size, seq_len)
@@ -1010,7 +1010,8 @@ class Downstream_tsne_Tester(Downstream_Solver):
                         loss, logits, correct, valid = self.classifier(representations, labels, valid_lengths)
                     elif self.model_type == "OneLinear":
                         loss, logits, correct, valid = self.classifier(representations, labels, label_mask)
-                    
+                    elif self.model_type == "OneLinearCPC":
+                        loss, logits, correct, valid = self.classifier(representations, labels, label_mask)
                     else:
                         pass
                     loss_sum += loss.detach().cpu().item()
@@ -1027,7 +1028,7 @@ class Downstream_tsne_Tester(Downstream_Solver):
         average_loss = loss_sum / len(self.dataloader)
         test_acc = correct_count * 1.0 / valid_count
         self.verbose(f'Test result: loss {average_loss}, acc {test_acc}')
-        pickle.dump(all_features_label_pair_data, open("speaker_representation_63.p","wb"))
+        pickle.dump(all_features_label_pair_data, open("speaker_representation_CPC.p","wb"))
         print("speaker save representation")
         timer.end()
         timer.report()

@@ -24,6 +24,7 @@ from dataloader import get_Dataloader
 from mockingjay.model import MockingjayConfig, MockingjayModel, MockingjayForMaskedAcousticModel
 from mockingjay.optimization import BertAdam, WarmupLinearSchedule, Lamb
 from mockingjay.Albertmodel import AlbertMockingjayModel,AlbertMockingjayForMaskedAcousticModel, MockingjayAlbertConfig
+from mockingjay.variant_model import MockingjayAlbertVariantConfig, AlbertMockingjayVariantForMaskedAcousticModel,  AlbertMockingjayVariantModel
 from utils.audio import plot_spectrogram_to_numpy, plot_spectrogram, plot_embedding
 from utils.audio import mel_dim, num_freq, sample_rate, inv_spectrogram
 from mockingjay.optimization import get_linear_schedule_with_warmup
@@ -59,6 +60,10 @@ class Solver():
         if paras.bert:
             self.bert = True
         else:
+            if paras.only_query:
+                self.only_query = True
+            else:
+                self.only_query = False
             self.bert = False
 
         # model
@@ -93,12 +98,29 @@ class Solver():
             raise NotImplementedError('Invalid `split` argument!')
 
         if self.duo_feature and not load_mel_only:
-            setattr(self, 'dataloader', get_Dataloader(split, load='duo', use_gpu=self.paras.gpu, \
-                    mock_config=self.config['albertmockingjay'], **self.config['dataloader'])) # Currently the duo feature dataloader only supports mockingjay training, no need to specify `run_mockingjay`
+            if self.bert:
+                setattr(self, 'dataloader', get_Dataloader(split, load='duo', use_gpu=self.paras.gpu, \
+                        mock_config=self.config['mockingjay'], **self.config['dataloader']))
+            else:
+                if self.only_query:
+                    setattr(self, 'dataloader', get_Dataloader(split, load='duo', use_gpu=self.paras.gpu, \
+                        mock_config=self.config['albertmockingjayVariant'], **self.config['dataloader']))
+                else:
+                    setattr(self, 'dataloader', get_Dataloader(split, load='duo', use_gpu=self.paras.gpu, \
+                        mock_config=self.config['albertmockingjay'], **self.config['dataloader']))
+                    # Currently the duo feature dataloader only supports mockingjay training, no need to specify `run_mockingjay`
         else:
-            setattr(self, 'dataloader', get_Dataloader(split, load='spec', use_gpu=self.paras.gpu, \
-                    run_mockingjay=True if not load_mel_only else False, mock_config=self.config['albertmockingjay'], \
-                    **self.config['dataloader'])) # specify `run_mockingjay` so dataloader will process mockingjay MAM data
+            if self.bert:
+                setattr(self, 'dataloader', get_Dataloader(split, load='spec', use_gpu=self.paras.gpu, \
+                        mock_config=self.config['mockingjay'], **self.config['dataloader']))
+            else:
+                if self.only_query:
+                    setattr(self, 'dataloader', get_Dataloader(split, load='spec', use_gpu=self.paras.gpu, \
+                        mock_config=self.config['albertmockingjayVariant'], **self.config['dataloader']))
+                else:
+                    setattr(self, 'dataloader', get_Dataloader(split, load='spec', use_gpu=self.paras.gpu, \
+                        mock_config=self.config['albertmockingjay'], **self.config['dataloader']))
+                    # Currently the duo feature dataloader only supports mockingjay training, no need to specify `run_mockingjay`
 
 
     def set_model(self, inference=False, with_head=False, from_path=None, output_attention=False,wandb=None):
@@ -108,7 +130,10 @@ class Solver():
         if self.bert:
             self.model_config = MockingjayConfig(self.config)
         else:
-            self.model_config = MockingjayAlbertConfig(self.config)
+            if self.only_query:
+                self.model_config = MockingjayAlbertVariantConfig(self.config)
+            else:
+                self.model_config = MockingjayAlbertConfig(self.config)
 
         self.dr = self.model_config.downsample_rate
         self.hidden_size = self.model_config.hidden_size
@@ -118,10 +143,13 @@ class Solver():
         # pdb.set_trace()
         
         if not inference or with_head:
-            if not self.bert:
-                self.model = AlbertMockingjayForMaskedAcousticModel(self.model_config, self.input_dim, self.output_dim, self.output_attention).to(self.device)
-            else:
+            if self.bert:
                 self.model = MockingjayForMaskedAcousticModel(self.model_config, self.input_dim, self.output_dim, self.output_attention).to(self.device)
+            else:
+                if self.only_query:
+                    self.model = AlbertMockingjayVariantForMaskedAcousticModel(self.model_config, self.input_dim, self.output_dim, self.output_attention).to(self.device)
+                else:
+                    self.model = AlbertMockingjayForMaskedAcousticModel(self.model_config, self.input_dim, self.output_dim, self.output_attention).to(self.device)
 
             if wandb is not None:
                 wandb.watch(self.model.Mockingjay,log="all")
@@ -129,10 +157,13 @@ class Solver():
             self.mockingjay = self.model.Mockingjay
 
         if inference and not with_head:
-            if not self.bert:
-                self.mockingjay = AlbertMockingjayModel(self.model_config, self.input_dim, self.output_attention).to(self.device)
-            else:
+            if self.bert:
                 self.mockingjay = MockingjayModel(self.model_config, self.input_dim, self.output_attention).to(self.device)
+            else:
+                if self.only_query:
+                    self.mockingjay = AlbertMockingjayVariantModel(self.model_config, self.input_dim, self.output_attention).to(self.device)
+                else:
+                    self.mockingjay = AlbertMockingjayModel(self.model_config, self.input_dim, self.output_attention).to(self.device)
             self.verbose('Number of parameters: ' + str(sum(p.numel() for p in self.mockingjay.parameters() if p.requires_grad)))
             self.mockingjay.eval()
         elif inference and with_head:
@@ -164,7 +195,8 @@ class Solver():
                 self.optimizer = optimizer
                 self.warmup_steps = int(self.warmup_proportion * num_train_optimization_steps)
                 self.scheduler = get_linear_schedule_with_warmup(self.optimizer, num_warmup_steps=self.warmup_steps, num_training_steps=num_train_optimization_steps)
-                raise NotImplementedError('Invalid Arguments!')
+            
+                # raise NotImplementedError('Invalid Arguments!')
 
         if self.load: # This will be set to True by default when Tester is running set_model()
             self.load_model(inference=inference, with_head=with_head, from_path=from_path)
@@ -441,7 +473,10 @@ class Trainer(Solver):
                             if self.bert:
                                 self.save_model('mockingjayBERT')
                             else:
-                                self.save_model("mockingjayALBERT")
+                                if self.only_query:
+                                    self.save_model("mockingjayALBERT_variant")
+                                else:
+                                    self.save_model("mockingjayALBERT")
 
                             mask_spec = self.up_sample_frames(spec_masked[0], return_first=True)
                             pred_spec = self.up_sample_frames(pred_spec[0], return_first=True)
@@ -503,7 +538,8 @@ class Tester(Solver):
 
         batch_size = spec_stacked.shape[0]
         seq_len = spec_stacked.shape[1]
-        hidden_size = 768
+        #fuck!
+        hidden_size = 768 # also can change to size 192 intermidiate 768
 
         position_table = self.static_position_table_f(hidden_size)[:seq_len]
         pos_enc = self.position_encoding(hidden_size, position_table, batch_size) # (batch_size, seq_len, hidden_size)
