@@ -41,20 +41,33 @@ def get_mockingjay_args():
     #parser.add_argument('--ckpdir', default='../result_albert/albert-650000/albert_6l_melbase', type=str, help='Checkpoint/Result path.', required=False)
     # parser.add_argument('--ckpdir', default='../result_albert/albert-650000/albert_3l_mask1', type=str, help='Checkpoint/Result path.', required=False)
     # parser.add_argument('--ckpdir', default='../result_albert/albert-650000/albert_12l_mask1', type=str, help='Checkpoint/Result path.', required=False)
-    parser.add_argument('--ckpdir', default='../result_albert/albert-650000/albert_6l_mask1_number1', type=str, help='Checkpoint/Result path.', required=False)
+    # parser.add_argument('--ckpdir', default='../result_albert/albert-650000/albert_6l_mask1_number1', type=str, help='Checkpoint/Result path.', required=False)
+    # parser.add_argument('--ckpdir', default='../result_albert/albert-650000/ALBERT-6l-static12', type=str, help='Checkpoint/Result path.', required=False)
+    # parser.add_argument('--ckpdir', default='../result_albert/albert-650000/ALBERT-6l-static-3', type=str, help='Checkpoint/Result path.', required=False)
+    # parser.add_argument('--ckpdir', default='../result_albert/albert-650000/ALBERT-6l-2', type=str, help='Checkpoint/Result path.', required=False)
     # parser.add_argument("--ckpdir", default='../previous_result', type=str, help='Checkpoint/Result path.', required=False)
     # parser.add_argument("--ckpdir" , default='/home/pohan1996/melbase-albert/albert-3l-melbase-downsample1-consecutive1', type=str, help='Checkpoint/Result path.', required=False)
     # parser.add_argument("--ckpdir" , default='../result_albert/albert-650000/albert-3l-melbase-downsample1-consecutive20', type=str, help='Checkpoint/Result path.', required=False)
     # parser.add_argument("--ckpdir" , default="../result_albert/albert-650000/BERT-3l")
     # parser.add_argument("--ckpdir" , default="../result_albert/albert-650000/BERT-6l")
     # parser.add_argument("--ckpdir" , default="../result_albert/albert-650000/ALBERT-3l-mask-consecutive20")
-    # parser.add_argument("--ckpdir" , default="../result_albert/albert-650000/ALBERT-6l-mask-consecutive20")
-    # parser.add_argument('--ckpt', default="mockingjay_libri_sd1337/mockingjayBERT-490000.ckpt", type=str, help='path to mockingjay model checkpoint.', required=False)
-    # parser.add_argument('--ckpt', default="mockingjay_libri_sd1337/mockingjay-ALBERT-490000.ckpt", type=str, help='path to mockingjay model checkpoint.', required=False)
-    parser.add_argument('--ckpt', default="mockingjay_libri_sd1337/mockingjayAlbert-490000.ckpt", type=str, help='path to mockingjay model checkpoint.', required=False)
+    # parser.add_argument("--ckpdir" , default="../result_albert/albert-650000/ALBERT-3l-192-mask6")
+    parser.add_argument("--ckpdir" , default="../result_albert/albert-650000/BERT-12l-2")
+    # parser.add_argument("--ckpdir" , default="../result_albert/albert-650000/ALBERT-3l-n2")
+    # parser.add_argument("--ckpdir" , default="../result_albert/albert-650000/ALBERT-12l-n3-mask1")
 
+    # parser.add_argument("--ckpdir" , default="../result_albert/albert-650000/ALBERT-2l-n2")
+    # parser.add_argument("--ckpdir" , default="../result_albert/albert-650000/ALBERT-6l-static12")
+    parser.add_argument('--ckpt', default="mockingjay_libri_sd1337/mockingjayBERT-490000.ckpt", type=str, help='path to mockingjay model checkpoint.', required=False)
+    # parser.add_argument('--ckpt', default="mockingjay_libri_sd1337/mockingjayAlbert-490000.ckpt", type=str, help='path to mockingjay model checkpoint.', required=False)
+    # parser.add_argument('--ckpt', default="mockingjay_libri_sd1337/mockingjay-ALBERT-490000.ckpt", type=str, help='path to mockingjay model checkpoint.', required=False)
+    # parser.add_argument('--ckpt', default="mockingjay_libri_sd1337/mockingjayALBERT-490000.ckpt", type=str, help='path to mockingjay model checkpoint.', required=False)
+    # parser.add_argument('--ckpt', default="phone-ft4-0.005-dev/tmp.ckpt", type=str, help='path to mockingjay model checkpoint.', required=False)
     # parser.add_argument('--ckpt', default='mockingjay_libri_sd1337_LinearLarge/mockingjay-500000.ckpt', type=str, help='path to mockingjay model checkpoint.', required=False)
-    parser.add_argument('--dckpt', default='speaker/best_val.ckpt', type=str, help='path to downstream checkpoint.', required=False)
+    # parser.add_argument('--dckpt', default='phone-dev-0.001-500k/best_val.ckpt', type=str, help='path to downstream checkpoint.', required=False)
+    # parser.add_argument('--dckpt', default='speaker-CPC-dev/best_val.ckpt', type=str, help='path to downstream checkpoint.', required=False)
+    # parser.add_argument('--dckpt', default='phone-2-hidden-ft4-1.0-dev/best_val.ckpt', type=str, help='path to downstream checkpoint.', required=False)
+    parser.add_argument('--dckpt', default='phone-0.01-dev-wsn/best_val.ckpt', type=str, help='path to downstream checkpoint.', required=False)
     parser.add_argument('--apc_path', default='./result/result_apc/apc_libri_sd1337_standard/apc-500000.ckpt', type=str, help='path to the apc model checkpoint.', required=False)
 
     # mockingjay
@@ -80,13 +93,14 @@ def get_mockingjay_args():
     
     # Options
     parser.add_argument("--bert", action="store_true", help="if true, use original mockingjay not albert")
+    parser.add_argument("--only_query", action="store_true", help="if true, use original mockingjay not albert")
+
     parser.add_argument('--epoch_train', action='store_true', help='inference with the spectrogram head, the model outputs spectrogram.')
     parser.add_argument('--with_head', action='store_true', help='inference with the spectrogram head, the model outputs spectrogram.')
     parser.add_argument('--output_attention', action='store_true', help='plot attention')
     parser.add_argument('--load_ws', default='result/result_mockingjay_sentiment/10111754-10170300-weight_sum/best_val.ckpt', help='load weighted-sum weights from trained downstream model')
     parser.add_argument('--cpu', action='store_true', help='Disable GPU training.')
     parser.add_argument('--no-msg', action='store_true', help='Hide all messages.')
-
     parser.add_argument('--train_speaker_CPC', action='store_true', help='Train the speaker classifier on mel or mockingjay representations.')
     parser.add_argument('--test_speaker_CPC', action='store_true', help='Test mel or mockingjay representations using the trained speaker classifier.')
 
@@ -108,7 +122,7 @@ def main():
     config, args = get_mockingjay_args()
     # wandb.init(config=config,project="albert-mockingjay-downstream-task")#,resume=True)
     wandb=None
-    # wandb.init(config=config,project="albert-mockingjay-downstream-task",name="SPCPC-BERT-6l-2-251")#,resume=True)
+    # wandb.init(config=config,project="albert-mockingjay-downstream-task",name="PHBERT-6l-5-linear-CPC-n2",tags="test")#,resume=True)
     # wandb.config.update(args)
     # Fix seed and make backends deterministic
     random.seed(args.seed)
@@ -203,7 +217,7 @@ def main():
         
         from downstream.solver import Downstream_Trainer, Downstream_Trainer_epoch_training
         task = 'mockingjay_speakerlarge' if args.run_mockingjay \
-                else 'apc_speakerlarge' if args.run_apc else 'baseline_speakerlarge  '
+                else 'apc_speakerlarge' if args.run_apc else 'baseline_speakerlarge'
 
         if args.epoch_train:
             trainer = Downstream_Trainer_epoch_training(config, args, task=task)
@@ -229,7 +243,7 @@ def main():
         
         from downstream.solver import Downstream_Trainer, Downstream_Trainer_epoch_training
         task = 'mockingjay_speakerCPC' if args.run_mockingjay \
-                else 'apc_speakerCPC' if args.run_apc else 'baseline_speakerCPC  '
+                else 'apc_speakerCPC' if args.run_apc else 'baseline_speakerCPC'
 
         if args.epoch_train:
             trainer = Downstream_Trainer_epoch_training(config, args, task=task)
@@ -249,11 +263,6 @@ def main():
         tester.load_data(split='test', load='speakerCPC')
         tester.set_model(inference=True)
         tester.exec()
-
-
-
-
-
 
     ##################################################################################
 
