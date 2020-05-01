@@ -27,6 +27,23 @@ albertmockingjay:
   mask_proportion: 0.15                                 # mask this percentage of all spectrogram frames in each sequence at random during MAM training                        
   mask_consecutive: 1                                  # mask this amount of consecutive frames
   mini_bucket_num: 2
+  consecutive_offset: 2
+
+albertmockingjayVariant:
+  downsample_rate: 3                                   # stacked consecutive features vectors to reduce the length of input sequences by this factor.
+  hidden_size: 768  
+  #12!!!!!!!!!!!!!!!                                    # Size of the encoder layers and the pooler layer.
+  num_hidden_layers: 3                              # Number of hidden layers in the Transformer encoder.
+  num_attention_heads: 12                               # Number of attention heads for each attention layer in the Transformer encoder.
+  intermediate_size: 3072                               # The size of the "intermediate" (i.e., feed-forward) layer in the Transformer encoder.
+  hidden_act: "gelu"                                    # The non-linear activation function (function or string) in the encoder and pooler. If string, "gelu", "relu" and "swish" are supported.
+  hidden_dropout_prob: 0.0                             # The dropout probabilitiy for all fully connected layers in the embeddings, encoder, and pooler.
+  attention_probs_dropout_prob: 0.0                     # The dropout ratio for the attention probabilities.
+  initializer_range: 0.02                               # The sttdev of the truncated_normal_initializer for initializing all weight matrices.
+  layer_norm_eps: "1e-12"                               # The epsilon used by LayerNorm.
+  mask_proportion: 0.15                                 # mask this percentage of all spectrogram frames in each sequence at random during MAM training                        
+  mask_consecutive: 1                                  # mask this amount of consecutive frames
+  mini_bucket_num: 2
   consecutive_offset: 3
 
 optimizer: 
@@ -40,8 +57,8 @@ optimizer:
 dataloader:
   n_jobs: 4     
   #!!!!!!!!!!!! both 50                                       # Subprocess used for torch Dataloader
-  batch_size: 12                                       # training batch size: [12 for fine-tune, 6 for mockingjay pre-training]
-  dev_batch_size: 12                                     # used for dev/test splits
+  batch_size: 48                                       # training batch size: [12 for fine-tune, 6 for mockingjay pre-training]
+  dev_batch_size: 48                                     # used for dev/test splits
   max_timestep: 3000                                    # Max length for audio feature (0 for no restriction)
   max_label_len: 400                                    # Max length for output sequence (0 for no restriction)
 
@@ -103,7 +120,7 @@ downstream:                                             # downstream model confi
     input_dim: 'None'                                   # `int`, else if set to None, input_dim will be set according to mockingjay settings or mel-preprocessing dimensions automatically
     hidden_size: 768
     drop: 0.0
-    select_hidden: 'last'                       # support modes: ['last', 'first', 'average', 'weighted_sum', 'weighted_sum_norm']
+    select_hidden: 'weighted_sum_norm'                       # support modes: ['last', 'first', 'average', 'weighted_sum', 'weighted_sum_norm']
   
   OneLinear:
     input_dim: 'None'
@@ -153,14 +170,14 @@ downstream:                                             # downstream model confi
 
   # Training options
   apex: False
-  epoch: 38                                            # epoch 200 for CPC speaker, epoch 80 for speaker large, epoch 200/400 for speaker 63/251, epoch 38 for phone classification,  finetune 4   2500 for 0.1%, 4000 for 0.5%, 3500 for 1%, 800 for 5%, 350 for 12.5%
+  epoch: 200                                            # epoch 200 for CPC speaker, epoch 80 for speaker large, epoch 200/400 for speaker 63/251, epoch 38 for phone classification,  finetune 4   2500 for 0.1%, 4000 for 0.5%, 3500 for 1%, 800 for 5%, 350 for 12.5%
   optimizer: "LAMB"
-  learning_rate: "5e-4"                                 # Learning rate for opt: ['4e-4' for fine-tune, '4e-3' for regualr downstream task training ]
+  learning_rate: "1e-3"                                 # Learning rate for opt: ['4e-4' for fine-tune, '4e-3' for regualr downstream task training ]
   warmup_steps: 0
   total_steps: 500000                                   # total steps for training, a step is a batch of update: [29080 for fine-tune, 500000 for regualr downstream task training ]
   log_step: 500                                         # log training status every this amount of training steps
   dev_step: 5000                                        # [29080 for fine-tune, 10000 for regualr downstream task training ]
-  evaluation: 'dev'                                    # can be 'dev' or 'test', show inference results right after saving model
+  evaluation: 'test'                                    # can be 'dev' or 'test', show inference results right after saving model
   
   # models
   load_model_list: ['Classifier']                       # load the components in the list for test/eval
