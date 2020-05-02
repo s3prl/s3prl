@@ -24,7 +24,8 @@ def get_mockingjay_args():
     # parser.add_argument('--ckpdir', default='../result_albert/albert_2_25_mockingjay_5e-5', type=str, help='Checkpoint/Result path.', required=False)
     # parser.add_argument('--ckpdir', default='../result_albert/albert-650000/albert_3l_melbase', type=str, help='Checkpoint/Result path.', required=False)
     #parser.add_argument('--ckpdir', default='../result_albert/albert-650000/albert_6l_melbase', type=str, help='Checkpoint/Result path.', required=False)
-    parser.add_argument('--ckpdir', default='../result_albert/albert-650000/albert_3l_mask1', type=str, help='Checkpoint/Result path.', required=False)
+    # parser.add_argument('--ckpdir', default='../result_albert/albert-650000/albert_3l_mask1', type=str, help='Checkpoint/Result path.', required=False)
+    parser.add_argument('--ckpdir', default='../result_albert/albert-650000/ALBERT-6l-2', type=str, help='Checkpoint/Result path.', required=False)
     # parser.add_argument('--ckpdir', default='../result_albert/albert-650000/albert_12l_mask1', type=str, help='Checkpoint/Result path.', required=False)
     # parser.add_argument('--ckpdir', default='../result_albert/albert-650000/albert_6l_mask1_number1', type=str, help='Checkpoint/Result path.', required=False)
     # parser.add_argument("--ckpdir", default='../previous_result', type=str, help='Checkpoint/Result path.', required=False)
@@ -33,8 +34,9 @@ def get_mockingjay_args():
 
     parser.add_argument('--test_speaker', action='store_true', help='Test mel or mockingjay representations using the trained speaker classifier.')
     
-    parser.add_argument('--ckpt', default="mockingjay_libri_sd1337/mockingjayAlbert-490000.ckpt", type=str, help='path to mockingjay model checkpoint.', required=False)
-    parser.add_argument('--dckpt', default='speaker/best_val.ckpt', type=str, help='path to downstream checkpoint.', required=False)
+    # parser.add_argument('--ckpt', default="mockingjay_libri_sd1337/mockingjayAlbert-490000.ckpt", type=str, help='path to mockingjay model checkpoint.', required=False)
+    parser.add_argument('--ckpt', default="mockingjay_libri_sd1337/mockingjayALBERT-490000.ckpt", type=str, help='path to mockingjay model checkpoint.', required=False)
+    parser.add_argument('--dckpt', default='speaker-dev-CPC/best_val.ckpt', type=str, help='path to downstream checkpoint.', required=False)
 
     # mockingjay
     parser.add_argument('--run_mockingjay', action='store_true', help='train and test the downstream tasks using mockingjay representations.')
@@ -76,10 +78,10 @@ def main():
 
 
     from downstream.solver import Downstream_tsne_Tester
-    task = 'mockingjay_speaker' if args.run_mockingjay \
+    task = 'mockingjay_speakerCPC' if args.run_mockingjay \
             else 'apc_speaker' if args.run_apc else 'baseline_speaker'
     tester = Downstream_tsne_Tester(config, args, task=task)
-    tester.load_data(split='test', load='speaker')
+    tester.load_data(split='test', load='speakerCPC')
     tester.set_model(inference=True)
     tester.exec()
 
