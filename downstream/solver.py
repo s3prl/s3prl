@@ -370,7 +370,7 @@ class Downstream_Trainer(Downstream_Solver):
                         if eval_acc > best_val_acc:
                             self.verbose('Saving new best model on validation')
                             self.save_model(self.task, assign_name='best_val')
-                            torch.save(eval_logits, f'{self.ckpdir}/best_val.logits')
+                            # torch.save(eval_logits, f'{self.ckpdir}/best_val.logits') # uncomment to save logits
                             torch.cuda.empty_cache()
                             best_val_acc = eval_acc
                 
