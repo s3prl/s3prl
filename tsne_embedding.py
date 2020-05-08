@@ -31,9 +31,11 @@ def get_mockingjay_args():
     # parser.add_argument("--ckpdir", default='../previous_result', type=str, help='Checkpoint/Result path.', required=False)
     # parser.add_argument("--ckpdir" , default='/home/pohan1996/melbase-albert/albert-3l-melbase-downsample1-consecutive1', type=str, help='Checkpoint/Result path.', required=False)
     # parser.add_argument("--ckpdir" , default='/home/pohan1996/melbase-albert/albert-3l-melbase-downsample1-consecutive20', type=str, help='Checkpoint/Result path.', required=False)
+    parser.add_argument('--test_speaker_CPC', action='store_true', help='Test mel or mockingjay representations using the trained speaker classifier.')
+    parser.add_argument('--test_speaker_large', action='store_true', help='Test mel or mockingjay representations using the trained speaker classifier.')
+    parser.add_argument('--test_phone', action='store_true', help='Test mel or mockingjay representations using the trained speaker classifier.')
+    parser.add_argument("--only_query", action="store_true", help="if true, use original mockingjay not albert")
 
-    parser.add_argument('--test_speaker', action='store_true', help='Test mel or mockingjay representations using the trained speaker classifier.')
-    
     # parser.add_argument('--ckpt', default="mockingjay_libri_sd1337/mockingjayAlbert-490000.ckpt", type=str, help='path to mockingjay model checkpoint.', required=False)
     parser.add_argument('--ckpt', default="mockingjay_libri_sd1337/mockingjayALBERT-490000.ckpt", type=str, help='path to mockingjay model checkpoint.', required=False)
     parser.add_argument('--dckpt', default='speaker-dev-CPC/best_val.ckpt', type=str, help='path to downstream checkpoint.', required=False)
@@ -76,14 +78,29 @@ def main():
     torch.backends.cudnn.deterministic = True
     torch.backends.cudnn.benchmark = True
 
-
     from downstream.solver import Downstream_tsne_Tester
-    task = 'mockingjay_speakerCPC' if args.run_mockingjay \
-            else 'apc_speaker' if args.run_apc else 'baseline_speaker'
-    tester = Downstream_tsne_Tester(config, args, task=task)
-    tester.load_data(split='test', load='speakerCPC')
-    tester.set_model(inference=True)
-    tester.exec()
-
+    if args.test_phone:
+        task = 'mockingjay_phone' if args.run_mockingjay \
+            else 'apc_phone' if args.run_apc else 'baseline_phone'
+        tester = Downstream_tsne_Tester(config, args, task=task)
+        tester.load_data(split='test', load='phone')
+        tester.set_model(inference=True)
+        tester.exec()
+    elif args.test_speaker_CPC:
+        task = 'mockingjay_speakerCPC' if args.run_mockingjay \
+                else 'apc_speaker' if args.run_apc else 'baseline_speaker'
+        tester = Downstream_tsne_Tester(config, args, task=task)
+        tester.load_data(split='test', load='speakerCPC')
+        tester.set_model(inference=True)
+        tester.exec()
+    elif args.test_speaker_large:
+        
+        from downstream.solver import Downstream_tsne_Tester
+        task = 'mockingjay_speakerlarge' if args.run_mockingjay \
+                else 'apc_speakerlarge' if args.run_apc else 'baseline_speakerlarge'
+        tester = Downstream_tsne_Tester(config, args, task=task)
+        tester.load_data(split='test', load='speakerlarge')
+        tester.set_model(inference=True)
+        tester.exec()
 if __name__ == "__main__":
     main()

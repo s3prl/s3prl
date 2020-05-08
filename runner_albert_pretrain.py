@@ -40,7 +40,7 @@ def get_mockingjay_args():
     # !!!!!!!!!!!!!!!!!!
     parser.add_argument('--ckpdir', default='../result_albert/ALBERT-12ln5', type=str, help='Checkpoint/Result path.', required=False)
     # parser.add_argument('--ckpt', default="/mnt/newMockingjay/result_albert/albert_2_25_mockingjay_5e-5/mockingjay_libri_sd1337/mockingjayAlbert-250000.ckpt", type=str, help='path to mockingjay model checkpoint.', required=False)
-    parser.add_argument('--ckpt', default="mockingjay_libri_sd1337/mockingjayAlbert-490000.ckpt", type=str, help='path to mockingjay model checkpoint.', required=False)
+    parser.add_argument('--ckpt', default="mockingjay_libri_sd1337/mockingjayALBERT-730000.ckpt", type=str, help='path to mockingjay model checkpoint.', required=False)
 
     # parser.add_argument('--ckpt', default='mockingjay_libri_sd1337_MelBase/mockingjay-500000.ckpt', type=str, help='path to mockingjay model checkpoint.', required=False)
     parser.add_argument('--dckpt', default='baseline_sentiment_libri_sd1337/baseline_sentiment-500000.ckpt', type=str, help='path to downstream checkpoint.', required=False)

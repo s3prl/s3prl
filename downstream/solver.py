@@ -112,8 +112,8 @@ class Downstream_Solver(Solver):
             # if self.fine_tune:
             #     self.model_type = "OneLinear"
             # else:
-            self.model_type = "linear"
-            # self.model_type = "OneHidden"
+            # self.model_type = "linear"
+            self.model_type = "OneHidden"
             # self.model_type = "OneLinear"
         elif "sentiment" in self.task:
             self.model_type = "mean_linear_v2"
@@ -508,8 +508,8 @@ class Downstream_Trainer_epoch_training(Downstream_Solver):
             # if self.fine_tune:
             #     self.model_type = "OneLinear"
             # else:
-            self.model_type = "linear"
-            # self.model_type = "OneHidden"
+            # self.model_type = "linear"
+            self.model_type = "OneHidden"
             # self.model_type = "OneLinear"
         elif "sentiment" in self.task:
             self.model_type = "mean_linear_v2"
@@ -633,6 +633,8 @@ class Downstream_Trainer_epoch_training(Downstream_Solver):
         best_acc = 0.0
         best_val_acc = 0.0
         loses = 0.0
+
+        
 
         for i in range(self.epoch):
 
@@ -853,6 +855,9 @@ class Downstream_Tester(Downstream_Solver):
         loss_sum = 0
         all_logits = []
 
+        all_labels = list()
+        all_label_mask = list()
+
         oom_counter = 0
         for features, labels in tqdm(self.dataloader, desc="Iteration"):
             with torch.no_grad():
@@ -914,6 +919,9 @@ class Downstream_Tester(Downstream_Solver):
                     correct_count += correct.item()
                     valid_count += valid.item()
 
+                    # all_labels.append(labels.cpu().numpy())
+                    # all_label_mask.append(label_mask.cpu().numpy())
+
                 except RuntimeError as e:
                     if 'CUDA out of memory' in str(e):
                         print('CUDA out of memory')
@@ -925,6 +933,9 @@ class Downstream_Tester(Downstream_Solver):
         average_loss = loss_sum / len(self.dataloader)
         test_acc = correct_count * 1.0 / valid_count
         self.verbose(f'Test result: loss {average_loss}, acc {test_acc}')
+
+        import pdb
+        pdb.set_trace()
 
         timer.end()
         timer.report()
@@ -990,34 +1001,62 @@ class Downstream_tsne_Tester(Downstream_Solver):
                     valid_lengths = label_mask.sum(dim=1)
 
                     features_specific = representations[:,-1,:,:]
+
                     framewise = features_specific.reshape(-1,768)
-                    labels_frame  = labels.reshape(-1,1)
+
+                    if self.model_type == 'linear':
+                        truncated_length = min(features_specific.size(1), labels.size(-1))
+                        features_specific = features_specific[:, :truncated_length, :]
+                        labels = labels[:, :truncated_length]
+                        label_mask = label_mask[:, :truncated_length]
+                        normalize = torch.norm(torch.mean(features_specific,dim=1,keepdim=True),dim=1,p=2,keepdim=True)
+                        expand_matrix=normalize.expand(-1,features_specific.shape[1], -1)
+                        scalars = torch.sum(features_specific * expand_matrix, -1).unsqueeze(-1)
+                        project_vectors = scalars * expand_matrix
+                        disentagle = features_specific - project_vectors
+                        framewise = disentagle.reshape(-1,768)
+                        labels_frame  = labels.reshape(-1,1)
+
+                        all_features_label_pair_data += [(framewise.data.cpu(), labels_frame.data.cpu())]
+
+                    elif self.model_type == "OneLinearCPC":
+                        framewise = features_specific.reshape(-1,768)
+                        labels_frame  = labels.reshape(-1,1)
+
+                        all_features_label_pair_data += [(framewise.data.cpu(), labels_frame.data.cpu())]
+
+                    elif self.model_type == "mean_linear_v2":
+                        meanpool = torch.mean(features_specific,dim=1)
+                        all_features_label_pair_data += [(meanpool.data.cpu(), labels.data.cpu())]
+                    else:
+                        pass
+                        
 
                     # IPython.embed()
                     # pdb.set_trace()
                     # for i in range(framewise.shape[0]):
-                    all_features_label_pair_data += [(framewise.data.cpu(), labels_frame.data.cpu())]
+                    # all_features_label_pair_data += [(framewise.data.cpu(), labels_frame.data.cpu())]
 
-                    if self.model_type == 'linear':
-                        # labels: (batch_size, seq_len)
-                        loss, logits, correct, valid = self.classifier(representations, labels, label_mask)
-                    elif self.model_type == 'rnn':
-                        # labels: (batch_size, )
-                        loss, logits, correct, valid = self.classifier(representations, labels, valid_lengths)
-                    elif self.model_type == "mean_linear":
-                        loss, logits, correct, valid = self.classifier(representations, labels, valid_lengths)
-                    elif self.model_type == "mean_linear_v2":
-                        loss, logits, correct, valid = self.classifier(representations, labels, valid_lengths)
-                    elif self.model_type == "OneLinear":
-                        loss, logits, correct, valid = self.classifier(representations, labels, label_mask)
-                    elif self.model_type == "OneLinearCPC":
-                        loss, logits, correct, valid = self.classifier(representations, labels, label_mask)
-                    else:
-                        pass
-                    loss_sum += loss.detach().cpu().item()
-                    all_logits.append(logits)
-                    correct_count += correct.item()
-                    valid_count += valid.item()
+                    # if self.model_type == 'linear':
+                    #     # labels: (batch_size, seq_len)
+                    #     loss, logits, correct, valid = self.classifier(representations, labels, label_mask)
+                    # elif self.model_type == 'rnn':
+                    #     # labels: (batch_size, )
+                    #     loss, logits, correct, valid = self.classifier(representations, labels, valid_lengths)
+                    # elif self.model_type == "mean_linear":
+                    #     loss, logits, correct, valid = self.classifier(representations, labels, valid_lengths)
+                    # elif self.model_type == "mean_linear_v2":
+                    #     loss, logits, correct, valid = self.classifier(representations, labels, valid_lengths)
+                    # elif self.model_type == "OneLinear":
+                    #     loss, logits, correct, valid = self.classifier(representations, labels, label_mask)
+                    # elif self.model_type == "OneLinearCPC":
+                    #     loss, logits, correct, valid = self.classifier(representations, labels, label_mask)
+                    # else:
+                    #     pass
+                    # loss_sum += loss.detach().cpu().item()
+                    # all_logits.append(logits)
+                    # correct_count += correct.item()
+                    # valid_count += valid.item()
 
                 except RuntimeError:
                     if oom_counter > 10: break
@@ -1025,15 +1064,15 @@ class Downstream_tsne_Tester(Downstream_Solver):
                     print('CUDA out of memory during testing, aborting after ' + str(10 - oom_counter) + ' more tries...')
                     torch.cuda.empty_cache()
 
-        average_loss = loss_sum / len(self.dataloader)
-        test_acc = correct_count * 1.0 / valid_count
-        self.verbose(f'Test result: loss {average_loss}, acc {test_acc}')
-        pickle.dump(all_features_label_pair_data, open("speaker_representation_CPC.p","wb"))
-        print("speaker save representation")
+        # average_loss = loss_sum / len(self.dataloader)
+        # test_acc = correct_count * 1.0 / valid_count
+        # self.verbose(f'Test result: loss {average_loss}, acc {test_acc}')
+        pickle.dump(all_features_label_pair_data, open("/home/pohan1996/mean_speaker_representation.p","wb"))
+        print("speaker 921 save representation")
         timer.end()
         timer.report()
         
-        return average_loss, test_acc, all_logits
+        return None
 
 
 def get_mockingjay_optimizer(params, lr, warmup_steps, training_steps,optimizer=None):

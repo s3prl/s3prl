@@ -82,23 +82,23 @@ def pca_F(matrix_representation,matrix_labels,kind=63):
 
 def pca_reduce_384_tsne_2d(matrix_representation,matrix_labels,kind=251):
     pca = PCA(n_components=192)
-    df_old = pd.DataFrame(matrix_representation.numpy(), index=for, columns=["x"for i in range(matrix_representation.numpy().shape[1])], dtype=None, copy=False)
+    df_old = pd.DataFrame(matrix_representation.numpy(), index=list(range(matrix_representation.shape[0])), columns=["x"for i in range(matrix_representation.numpy().shape[1])], dtype=None, copy=False)
     pca_result = pca.fit_transform(df_old)
 
     df_new = pd.DataFrame(pca_result, index=list(range(pca_result.shape[0])), columns=["x"for i in range(pca_result.shape[1])], dtype=None, copy=False)
     print('Cumulative explained variation for 50 principal components: {}'.format(np.sum(pca.explained_variance_ratio_)))
     # IPython.embed()
     unique,counts=np.unique(matrix_labels.numpy(),return_counts=True)
-    IPython.embed()
-    pdb.set_trace()
+    # IPython.embed()
+    # pdb.set_trace()
     
-    labels = unique[counts]
+    labels = unique[counts>19]
     pseudo_label_mask = np.isin(matrix_labels.numpy(),labels)
     pseudo_label = matrix_labels.numpy()[pseudo_label_mask]
     df_new  = df_new[pseudo_label_mask]
     # df_new=df_new[matrix_lmaabels.numpy()<=10]
     # pseudo_label = matrix_labels.numpy()
-    tsne = TSNE(n_components=3, verbose=1, perplexity=1, n_iter=1500, learning_rate=80, n_jobs=4)
+    tsne = TSNE(n_components=2, verbose=1, perplexity=50, n_iter=1500, learning_rate=80, n_jobs=4)
     tsne_results = tsne.fit_transform(df_new)
     df_new["y"] = pseudo_label#.numpy()
     df_new["tsne_1_dim"] =tsne_results[:,0]
@@ -126,15 +126,18 @@ def pca_reduce_384_tsne_2d(matrix_representation,matrix_labels,kind=251):
 
 
     plt.figure(figsize=(19,17))
-    sns.scatterplot(
+    sns.set_style("darkgrid")
+    sns.set(font_scale=2.3)
+    a = sns.scatterplot(
         x="tsne_1_dim", y="tsne_2_dim",
         hue="y",
         palette=sns.color_palette("Paired",len(labels)),
         data=df_new,
-        legend="full",
-        alpha=1
+        alpha=1,
+        s=120
     )
-    plt.savefig(f"tsne_pca50_CPC-3.png")
+    a.get_legend().remove()
+    plt.savefig(f"/home/pohan1996/tsne_speaker921.png")
     plt.clf()
 
     # for i in range(kind):
@@ -175,18 +178,19 @@ def pca_reduce_384_tsne_2d(matrix_representation,matrix_labels,kind=251):
 
 
 if __name__ == "__main__":
-    speaker_representation = pickle.load(open("speaker_representation_CPC.p","rb"))
+    # speaker_representation = pickle.load(open("speaker_representation_CPC.p","rb"))
+    phone_representation = pickle.load(open("/home/pohan1996/mean_speaker_representation.p","rb"))
 
-    tuple_of_list = list(zip(*speaker_representation))
+    tuple_of_list = list(zip(*phone_representation))
 
-    matrix_representation = torch.cat(tuple_of_list[0][:100],dim=0)
-    matrix_labels         = torch.cat(tuple_of_list[1][:100],dim=0)
+    matrix_representation = torch.cat(tuple_of_list[0],dim=0)
+    matrix_labels         = torch.cat(tuple_of_list[1],dim=0)
     
     
 
     time_start = time.time()
-    IPython.embed()
-    pdb.set_trace()
+    # IPython.embed()
+    # pdb.set_trace()
     print("start PCA, tsne 2D")
     pca_reduce_384_tsne_2d(matrix_representation,matrix_labels,251)
     # tsne_F(matrix_representation,matrix_labels)
