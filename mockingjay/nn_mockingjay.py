@@ -35,15 +35,17 @@ Params:
         no_grad: bool, whether to have gradient flow over this class
         dropout: float/str, use float to modify dropout value during downstream finetune, or use the str `default` for pre-train default values
         spec_aug: bool, whether to apply SpecAugment on inputs (used for ASR training)
+        spec_aug_prev: bool, apply spec augment on input acoustic features if True, else apply on output representations (used for ASR training)
     `intput_dim`: int, input dimension of model
 
 An example `options` dictionary:
 options = {
     'ckpt_file'     : './result/result_mockingjay/libri_sd1337_fmllrBase960-F-N-K-RA/model-1000000.ckpt',
-    'load_pretrain' : 'True',
-    'no_grad'       : 'False',
+    'load_pretrain' : True,
+    'no_grad'       : True,
     'dropout'       : 'default',
-    'spec_aug'      : 'True',
+    'spec_aug'      : True,
+    'spec_aug_prev' : False,
 }
 """
 class MOCKINGJAY(nn.Module):
@@ -52,8 +54,10 @@ class MOCKINGJAY(nn.Module):
         
         all_states = torch.load(options["ckpt_file"], map_location='cpu')
         self.config = all_states['Settings']['Config']
-        self.no_grad = bool(strtobool(options['no_grad']))
-        self.spec_aug = bool(strtobool(options['spec_aug']))
+        self.no_grad = bool(options['no_grad'])
+        self.spec_aug = bool(options['spec_aug'])
+        self.spec_aug_prev = bool(options['spec_aug_prev'])
+        if (not self.no_grad) and (not self.spec_aug_prev): raise NotImplementedError
 
         # increase dropout
         if str(options['dropout']) != 'default':
@@ -162,7 +166,7 @@ class MOCKINGJAY(nn.Module):
         for idx in range(len(spec_stacked)):
             attn_mask[idx][spec_len[idx]:] = 0 
 
-        if self.spec_aug and self.model.training:
+        if self.spec_aug and self.spec_aug_prev and self.model.training:
             spec_stacked = spec_augment(spec_stacked, mask_T=70, mask_F=4, num_T=2, num_F=2, p=1.0) # (batch_size, seq_len, feature_dim * dr)
         spec_stacked = spec_stacked.to(device=self.device, dtype=torch.float32) # (batch_size, seq_len, feature_dim * dr)
         pos_enc = torch.FloatTensor(pos_enc).to(device=self.device, dtype=torch.float32).expand(spec_stacked.size(0), *pos_enc.size()) # (batch_size, seq_len, hidden_size)
@@ -201,7 +205,10 @@ class MOCKINGJAY(nn.Module):
         x = x.permute(1, 0, 2).contiguous() # (T, B, D) -> (B, T, D)
         spec_stacked, pos_enc, attn_mask = self.process_input_data(x)
         x = self.model(spec_stacked, pos_enc, attn_mask, output_all_encoded_layers=False) # (B, T, D)
-        
+
+        if self.spec_aug and not self.spec_aug_prev and self.model.training:
+            x = spec_augment(x, mask_T=70, mask_F=86, num_T=2, num_F=2, p=1.0) # (B, T, D)
+
         # If using a downsampling model, apply tile and padding
         if x.shape[1] != input_len:
             x = self.tile_representations(x)

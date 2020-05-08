@@ -20,12 +20,22 @@ from downstream.solver import get_mockingjay_optimizer
 ################
 
 # setup the mockingjay model
+"""
+`options`: a python dictionary containing the following keys:
+    ckpt_file: str, a path specifying the pre-trained ckpt file
+    load_pretrain: bool, whether to load pre-trained weights
+    no_grad: bool, whether to have gradient flow over this class
+    dropout: float/str, use float to modify dropout value during downstream finetune, or use the str `default` for pre-train default values
+    spec_aug: bool, whether to apply SpecAugment on inputs (used for ASR training)
+    spec_aug_prev: bool, apply spec augment on input acoustic features if True, else apply on output representations (used for ASR training)
+"""
 options = {
     'ckpt_file'     : 'result/result_mockingjay/mockingjay_libri_sd1337_MelBase/mockingjay-500000.ckpt',
-    'load_pretrain' : 'True',
-    'no_grad'       : 'False',
+    'load_pretrain' : True,
+    'no_grad'       : True,
     'dropout'       : 'default',
-    'spec_aug'      : 'False',
+    'spec_aug'      : False,
+    'spec_aug_prev' : True,
 }
 mockingjay = MOCKINGJAY(options=options, inp_dim=160)
 
