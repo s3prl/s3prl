@@ -934,8 +934,8 @@ class Downstream_Tester(Downstream_Solver):
         test_acc = correct_count * 1.0 / valid_count
         self.verbose(f'Test result: loss {average_loss}, acc {test_acc}')
 
-        import pdb
-        pdb.set_trace()
+        # import pdb
+        # pdb.set_trace()
 
         timer.end()
         timer.report()
