@@ -113,7 +113,7 @@ class Downstream_Solver(Solver):
             #     self.model_type = "OneLinear"
             # else:
             # self.model_type = "linear"
-            self.model_type = "OneHidden"
+            self.model_type = self.config["downstream"]["select_classifier"]
             # self.model_type = "OneLinear"
         elif "sentiment" in self.task:
             self.model_type = "mean_linear_v2"
@@ -509,7 +509,7 @@ class Downstream_Trainer_epoch_training(Downstream_Solver):
             #     self.model_type = "OneLinear"
             # else:
             # self.model_type = "linear"
-            self.model_type = "OneHidden"
+            self.model_type = self.config["downstream"]["select_classifier"]
             # self.model_type = "OneLinear"
         elif "sentiment" in self.task:
             self.model_type = "mean_linear_v2"

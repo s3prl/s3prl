@@ -44,7 +44,7 @@ def get_mockingjay_args():
     # parser.add_argument('--ckpdir', default='../result_albert/albert-650000/albert_6l_mask1_number1', type=str, help='Checkpoint/Result path.', required=False)
     # parser.add_argument('--ckpdir', default='../result_albert/albert-650000/ALBERT-6l-static12', type=str, help='Checkpoint/Result path.', required=False)
     # parser.add_argument('--ckpdir', default='../result_albert/albert-650000/ALBERT-6l-static-3', type=str, help='Checkpoint/Result path.', required=False)
-    parser.add_argument('--ckpdir', default='../result_albert/albert-650000/ALBERT-6l-2', type=str, help='Checkpoint/Result path.', required=False)
+    # parser.add_argument('--ckpdir', default='../result_albert/albert-650000/ALBERT-6l-2', type=str, help='Checkpoint/Result path.', required=False)
     # parser.add_argument("--ckpdir", default='../previous_result', type=str, help='Checkpoint/Result path.', required=False)
     # parser.add_argument("--ckpdir" , default='/home/pohan1996/melbase-albert/albert-3l-melbase-downsample1-consecutive1', type=str, help='Checkpoint/Result path.', required=False)
     # parser.add_argument("--ckpdir" , default='../result_albert/albert-650000/albert-3l-melbase-downsample1-consecutive20', type=str, help='Checkpoint/Result path.', required=False)
@@ -55,16 +55,16 @@ def get_mockingjay_args():
     # parser.add_argument("--ckpdir" , default="../result_albert/albert-650000/BERT-12l-2")
     # parser.add_argument("--ckpdir" , default="../result_albert/albert-650000/ALBERT-3l-n2")
     # parser.add_argument("--ckpdir" , default="../result_albert/albert-650000/ALBERT-12l-n3-mask1")
-    # parser.add_argument("--ckpdir" , default="../result_albert/albert-650000/ALBERT-6l-onlyQuery")
+    parser.add_argument("--ckpdir" , default="../result_albert/albert-650000/ALBERT-6l-onlyQuery")
 
     # parser.add_argument("--ckpdir" , default="../result_albert/albert-650000/ALBERT-2l-n2")
     # parser.add_argument("--ckpdir" , default="../result_albert/albert-650000/ALBERT-6l-static12")
     # parser.add_argument('--ckpt', default="mockingjay_libri_sd1337/mockingjayBERT-490000.ckpt", type=str, help='path to mockingjay model checkpoint.', required=False)
     # parser.add_argument('--ckpt', default="mockingjay_libri_sd1337/mockingjayAlbert-490000.ckpt", type=str, help='path to mockingjay model checkpoint.', required=False)
     # parser.add_argument('--ckpt', default="mockingjay_libri_sd1337/mockingjay-ALBERT-490000.ckpt", type=str, help='path to mockingjay model checkpoint.', required=False)
-    parser.add_argument('--ckpt', default="mockingjay_libri_sd1337/mockingjayALBERT-490000.ckpt", type=str, help='path to mockingjay model checkpoint.', required=False)
+    # parser.add_argument('--ckpt', default="mockingjay_libri_sd1337/mockingjayALBERT-490000.ckpt", type=str, help='path to mockingjay model checkpoint.', required=False)
     # parser.add_argument('--ckpt', default="phone-ft4-0.005-dev/tmp.ckpt", type=str, help='path to mockingjay model checkpoint.', required=False)
-    # parser.add_argument('--ckpt', default='mockingjay_libri_sd1337/mockingjayALBERT_variant-500000.ckpt', type=str, help='path to mockingjay model checkpoint.', required=False)
+    parser.add_argument('--ckpt', default='mockingjay_libri_sd1337/mockingjayALBERT_variant-500000.ckpt', type=str, help='path to mockingjay model checkpoint.', required=False)
     # parser.add_argument('--dckpt', default='phone-dev-0.001-500k/best_val.ckpt', type=str, help='path to downstream checkpoint.', required=False)
     # parser.add_argument('--dckpt', default='speaker-CPC-dev/best_val.ckpt', type=str, help='path to downstream checkpoint.', required=False)
     # parser.add_argument('--dckpt', default='phone-2-hidden-ft4-1.0-dev/best_val.ckpt', type=str, help='path to downstream checkpoint.', required=False)
@@ -118,13 +118,14 @@ def get_mockingjay_args():
 # MAIN #
 ########
 def main():
-    # WANDB_MODE="dryrun"
+    
     # get arguments
     config, args = get_mockingjay_args()
+    WANDB_MODE="dryrun" if args.test_phone or args.test_speaker or args.test_speaker_CPC else "run"
     # wandb.init(config=config,project="albert-mockingjay-downstream-task")#,resume=True)
-    wandb=None
-    # wandb.init(config=config,project="albert-mockingjay-downstream-task",name="PHALBERT-12L-1-0.005-dev",tags="dev")#,resume=True)
-    # wandb.config.update(args)
+    # wandb=None
+    wandb.init(config=config,project="albert-mockingjay-downstream-task",name=args.name,tags="dev")#,resume=True)
+    wandb.config.update(args)
     # Fix seed and make backends deterministic
     random.seed(args.seed)
     np.random.seed(args.seed)

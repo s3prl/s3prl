@@ -1,0 +1,187 @@
+mockingjay:
+  downsample_rate: 3                                    # stacked consecutive features vectors to reduce the length of input sequences by this factor.
+  hidden_size: 768                                      # Size of the encoder layers and the pooler layer.
+  num_hidden_layers: 12                                  # Number of hidden layers in the Transformer encoder.
+  num_attention_heads: 12                               # Number of attention heads for each attention layer in the Transformer encoder.
+  intermediate_size: 3072                               # The size of the "intermediate" (i.e., feed-forward) layer in the Transformer encoder.
+  hidden_act: "gelu"                                    # The non-linear activation function (function or string) in the encoder and pooler. If string, "gelu", "relu" and "swish" are supported.
+  hidden_dropout_prob: 0.0                              # The dropout probabilitiy for all fully connected layers in the embeddings, encoder, and pooler.
+  attention_probs_dropout_prob: 0.0                     # The dropout ratio for the attention probabilities.
+  initializer_range: 0.02                               # The sttdev of the truncated_normal_initializer for initializing all weight matrices.
+  layer_norm_eps: "1e-12"                               # The epsilon used by LayerNorm.
+  mask_proportion: 0.15                                 # mask this percentage of all spectrogram frames in each sequence at random during MAM training                        
+  mask_consecutive: 1
+
+albertmockingjay:
+  downsample_rate: 3                                   # stacked consecutive features vectors to reduce the length of input sequences by this factor.
+  hidden_size: 768  
+  #12!!!!!!!!!!!!!!!                                    # Size of the encoder layers and the pooler layer.
+  num_hidden_layers: 12                              # Number of hidden layers in the Transformer encoder.
+  num_attention_heads: 12                               # Number of attention heads for each attention layer in the Transformer encoder.
+  intermediate_size: 3072                               # The size of the "intermediate" (i.e., feed-forward) layer in the Transformer encoder.
+  hidden_act: "gelu"                                    # The non-linear activation function (function or string) in the encoder and pooler. If string, "gelu", "relu" and "swish" are supported.
+  hidden_dropout_prob: 0.0                             # The dropout probabilitiy for all fully connected layers in the embeddings, encoder, and pooler.
+  attention_probs_dropout_prob: 0.0                     # The dropout ratio for the attention probabilities.
+  initializer_range: 0.02                               # The sttdev of the truncated_normal_initializer for initializing all weight matrices.
+  layer_norm_eps: "1e-12"                               # The epsilon used by LayerNorm.
+  mask_proportion: 0.15                                 # mask this percentage of all spectrogram frames in each sequence at random during MAM training                        
+  mask_consecutive: 1                                  # mask this amount of consecutive frames
+  mini_bucket_num: 2
+  consecutive_offset: 2
+
+albertmockingjayVariant:
+  downsample_rate: 3                                   # stacked consecutive features vectors to reduce the length of input sequences by this factor.
+  hidden_size: 768  
+  #12!!!!!!!!!!!!!!!                                    # Size of the encoder layers and the pooler layer.
+  num_hidden_layers: 6                              # Number of hidden layers in the Transformer encoder.
+  num_attention_heads: 12                               # Number of attention heads for each attention layer in the Transformer encoder.
+  intermediate_size: 3072                               # The size of the "intermediate" (i.e., feed-forward) layer in the Transformer encoder.
+  hidden_act: "gelu"                                    # The non-linear activation function (function or string) in the encoder and pooler. If string, "gelu", "relu" and "swish" are supported.
+  hidden_dropout_prob: 0.0                             # The dropout probabilitiy for all fully connected layers in the embeddings, encoder, and pooler.
+  attention_probs_dropout_prob: 0.0                     # The dropout ratio for the attention probabilities.
+  initializer_range: 0.02                               # The sttdev of the truncated_normal_initializer for initializing all weight matrices.
+  layer_norm_eps: "1e-12"                               # The epsilon used by LayerNorm.
+  mask_proportion: 0.15                                 # mask this percentage of all spectrogram frames in each sequence at random during MAM training                        
+  mask_consecutive: 1                                  # mask this amount of consecutive frames
+  mini_bucket_num: 2
+  consecutive_offset: 3
+
+optimizer: 
+  learning_rate: "5e-5"                                 # Learning rate for opt
+  loss_scale: 0                                         # Loss scale to improve fp16 numeric stability. Only used when apex is set to True. 0: dynamic loss scaling. positive power of 2: static loss scaling.
+  warmup_proportion: 0.1                                  # Proportion of training to perform linear rate warmup.
+  gradient_accumulation_steps: 1                        # Number of updates steps to accumulate before performing a backward/update pass
+  gradient_clipping: 10.0                                # Maximum gradient norm
+
+
+dataloader:
+  n_jobs: 12     
+  #!!!!!!!!!!!! both 50                                       # Subprocess used for torch Dataloader
+  batch_size: 25                                       # training batch size: [12 for fine-tune, 6 for mockingjay pre-training]
+  dev_batch_size: 25                                     # used for dev/test splits
+  max_timestep: 3000                                    # Max length for audio feature (0 for no restriction)
+  max_label_len: 400                                    # Max length for output sequence (0 for no restriction)
+
+  # for sentiment
+  sentiment_config:
+    dataset: 'mosei'                                    # suppor datasets: 'mosi', 'mosei'
+    mosi:
+      path: '../fuck/Mockingjay/data/mosi_mel160'
+      label_mode: 'positive_negative'                   # suppor modes: 'positive_negative', 'original', 'positive_negative', 'regression'
+      standard_split: False
+
+      # if standard_split is set to False
+      random_seed: 1122
+      train_ratio: 0.9
+    mosei:
+      path: '../fuck/Mockingjay/data/mosei'
+      feature: 'mel160'
+      label_mode: 'positive_negative'                   # suppor modes: 'regression', 'original', 'positive_negative', 'regression'
+      standard_split: False
+
+      # if standard_split is set to False
+      random_seed: 29
+      split_by: 'unsegmented'                           # 'unsegmented' or 'segmented'
+      split_ratio: 0.9
+
+      max_time: 20                                      # unit: sec
+      min_time: 1                                       # unit: sec
+      truncate_length: 5000                             # unit: timestamp
+      sentiment_threshold: 0.1
+      sample_seed: 29
+
+  # LIBRISEECH SETTINGS
+  data_path: '../fuck/Mockingjay/data/libri_mel160_subword5000'            # Source data path
+  target_path: '../fuck/Mockingjay/data/libri_linear1025_subword5000'      # Target data path for reconstruction to a different feature type, set dataset to 'librispeech_mel_linear'.
+  phone_path: '../fuck/Mockingjay/data/libri_phone'                        # phone boundary label data path for the phone classification task.
+  train_set: ['train-clean-360']                                              #
+  dev_set:   ['dev-clean']                                                    #
+  test_set:  ['test-clean']                                                   # proportion 0.1%, 0.5%, 1%, 5%, 12.5% 
+  train_proportion: 1.0                                                       # Currently only effect the `phone classification task`, use this percent of `train_set` for downstream task training to demonstrate mockingjay generality
+
+
+solver:
+  # Training options
+  apex: False          
+  # !!!!!!!!!!!! 1e6                                  # Use APEX (see https://github.com/NVIDIA/apex for more details)
+  total_steps: 1000000                                   # total steps for training, a step is a batch of update
+  log_step: 1000                                         # log training status every this amount of training steps
+  dev_step: 10000                                       #
+  duo_feature: True                                     # Use different input / output features during training
+
+  # models
+  load_model_list: ['SpecHead', 'Mockingjay']           # load the components in the list for test/eval
+  max_keep: 10                                          # maximum number of model ckpt to keep during training
+  save_step: 10000                                      # save model every this amount of training steps
+
+
+downstream:
+  select_classifier: OneHidden                          # downstream model config
+  linear:
+    input_dim: 'None'                                   # `int`, else if set to None, input_dim will be set according to mockingjay settings or mel-preprocessing dimensions automatically
+    hidden_size: 768
+    drop: 0.0
+    select_hidden: 'last'                       # support modes: ['last', 'first', 'average', 'weighted_sum', 'weighted_sum_norm']
+  
+  OneLinear:
+    input_dim: 'None'
+    hidden_size: 768
+    drop: 0.0
+    select_hidden: "last"
+  
+  OneHidden:
+    input_dim: 'None'
+    hidden_size: 768
+    drop: 0.0
+    select_hidden: "last"
+
+  rnn:
+    mode: 'classification'                              # support modes: 'classification' , 'regression'
+    input_dim: 'None'                                   # `int`, else if set to None, input_dim will be set according to mockingjay settings or mel-preprocessing dimensions automatically
+    select_hidden: 'last'                               # support modes: ['last', 'first', 'average', 'weighted_sum', 'weighted_sum_norm']
+    sample_rate: 5                                      # `int`, sample every this number of frames
+    pre_linear_dims: []
+    hidden_size: 32                                     # size of hidden layer
+    post_linear_dims: [32]
+    drop: 0.3    
+  
+  mean_linear:
+    mode: 'classification'                              # support modes: 'classification' , 'regression'
+    input_dim: 'None'                                   # `int`, else if set to None, input_dim will be set according to mockingjay settings or mel-preprocessing dimensions automatically
+    select_hidden: 'last'                               # support modes: ['last', 'first', 'average', 'weighted_sum', 'weighted_sum_norm']
+    sample_rate: 3                                      # `int`, sample every this number of frames
+    pre_linear_dims: []
+    hidden_size: 128                                     # size of hidden layer
+    post_linear_dims: [128]
+    drop: 0.0     # The dropout ratio
+  
+  mean_linear_v2:
+    mode: 'classification'                              # support modes: 'classification' , 'regression'
+    input_dim: 'None'                                   # `int`, else if set to None, input_dim will be set according to mockingjay settings or mel-preprocessing dimensions automatically
+    select_hidden: "last"                               # support modes: ['last', 'first', 'average', 'weighted_sum', 'weighted_sum_norm']
+    sample_rate: 3                                      # `int`, sample every this number of frames
+    drop: 0.0     # The dropout ratio
+
+  OneLinearCPC:
+    input_dim: 'None'
+    hidden_size: 768
+    drop: 0.0
+    select_hidden: "last"
+
+
+  # Training options
+  apex: False
+  epoch: 40                                            # epoch 200 for CPC speaker, epoch 80 for speaker large, epoch 200/400 for speaker 63/251, epoch 38 for phone classification,  finetune 4   2500 for 0.1%, 4000 for 0.5%, 3500 for 1%, 800 for 5%, 350 for 12.5%
+  optimizer: "LAMB"
+  learning_rate: "1e-3"                                 # Learning rate for opt: ['4e-4' for fine-tune, '4e-3' for regualr downstream task training ]
+  warmup_steps: 0
+  total_steps: 500000                                   # total steps for training, a step is a batch of update: [29080 for fine-tune, 500000 for regualr downstream task training ]
+  log_step: 1000                                         # log training status every this amount of training steps
+  dev_step: 10000                                        # [29080 for fine-tune, 10000 for regualr downstream task training ]
+  evaluation: 'dev'                                    # can be 'dev' or 'test', show inference results right after saving model
+  
+  # models
+  load_model_list: ['Classifier']                       # load the components in the list for test/eval
+  max_keep: 10                                          # maximum number of model ckpt to keep during training
+  save_step: 10000                                       # save model every this amount of training steps
+
