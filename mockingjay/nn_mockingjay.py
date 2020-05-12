@@ -10,7 +10,6 @@
 ###############
 # IMPORTATION #
 ###############
-import sys
 import torch
 import random
 import numpy as np
