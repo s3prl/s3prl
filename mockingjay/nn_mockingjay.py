@@ -15,7 +15,6 @@ import random
 import numpy as np
 import torch.nn as nn
 from functools import lru_cache
-from distutils.util import strtobool
 from mockingjay.model import MockingjayConfig, MockingjayModel
 
 
@@ -86,7 +85,7 @@ class MOCKINGJAY(nn.Module):
         self.model.eval() if self.no_grad else self.model.train()
         
         # Load from a PyTorch state_dict
-        load = bool(strtobool(options["load_pretrain"]))
+        load = bool(options["load_pretrain"])
         if load: 
             self.load_model(all_states['Mockingjay'])
             print('[Mockingjay] - Number of parameters: ' + str(sum(p.numel() for p in self.model.parameters() if p.requires_grad)))
