@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*- #
 """*********************************************************************************************"""
-#   FileName     [ example_finetune.py ]
+#   FileName     [ example_extract_finetune.py ]
 #   Synopsis     [ an example code of using the wrapper class for downstream feature extraction or finetune ]
 #   Author       [ Andy T. Liu (Andi611) ]
 #   Copyright    [ Copyleft(c), Speech Lab, NTU, Taiwan ]
