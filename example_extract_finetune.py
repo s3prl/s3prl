@@ -23,22 +23,22 @@ from downstream.solver import get_mockingjay_optimizer
 """
 `options`: a python dictionary containing the following keys:
     ckpt_file: str, a path specifying the pre-trained ckpt file
-    load_pretrain: bool, whether to load pre-trained weights
-    no_grad: bool, whether to have gradient flow over this class
+    load_pretrain: str, ['True', 'False'], whether to load pre-trained weights
+    no_grad: str, ['True', 'False'], whether to have gradient flow over this class
     dropout: float/str, use float to modify dropout value during downstream finetune, or use the str `default` for pre-train default values
-    spec_aug: bool, whether to apply SpecAugment on inputs (used for ASR training)
-    spec_aug_prev: bool, apply spec augment on input acoustic features if True, else apply on output representations (used for ASR training)
-    weighted_sum: bool, whether to use a learnable weighted sum to integrate hidden representations from all layers, if False then use the last
+    spec_aug: str, ['True', 'False'], whether to apply SpecAugment on inputs (used for ASR training)
+    spec_aug_prev: str, ['True', 'False'], apply spec augment on input acoustic features if True, else apply on output representations (used for ASR training)
+    weighted_sum: str, ['True', 'False'], whether to use a learnable weighted sum to integrate hidden representations from all layers, if False then use the last
     select_layer: int, select from all hidden representations, set to -1 to select the last (will only be used when weighted_sum is False)
 """
 options = {
-    'ckpt_file'     : 'result/result_mockingjay/mockingjay_libri_sd1337_MelBase/mockingjay-500000.ckpt',
-    'load_pretrain' : True,
-    'no_grad'       : True,
+    'ckpt_file'     : './result/result_mockingjay/libri_sd1337_fmllrBase960-F-N-K-RA/model-1000000.ckpt',
+    'load_pretrain' : 'True',
+    'no_grad'       : 'True',
     'dropout'       : 'default',
-    'spec_aug'      : False,
-    'spec_aug_prev' : True,
-    'weighted_sum'  : False,
+    'spec_aug'      : 'False',
+    'spec_aug_prev' : 'True',
+    'weighted_sum'  : 'False',
     'select_layer'  : -1,
 }
 mockingjay = MOCKINGJAY(options=options, inp_dim=160)

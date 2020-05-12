@@ -15,6 +15,7 @@ import random
 import numpy as np
 import torch.nn as nn
 from functools import lru_cache
+from distutils.util import strtobool
 from mockingjay.model import MockingjayConfig, MockingjayModel
 
 
@@ -24,29 +25,31 @@ from mockingjay.model import MockingjayConfig, MockingjayModel
 """
 Use this class to extract features from the Mockingjay model,
 or to finetune the pre-trained Mockingjay with any downstream tasks.
-Also, this class is `pytorch-kaldi` ready.
+Also, this class is `pytorch-kaldi` ready,
+hence we need to use `str` instead of `bool` in the options dict,
+as pytorch-kaldi scripts will pass in str.
 
 Params:
     `options`: a python dictionary containing the following keys:
         ckpt_file: str, a path specifying the pre-trained ckpt file
-        load_pretrain: bool, whether to load pre-trained weights
-        no_grad: bool, whether to have gradient flow over this class
+        load_pretrain: str, ['True', 'False'], whether to load pre-trained weights
+        no_grad: str, ['True', 'False'], whether to have gradient flow over this class
         dropout: float/str, use float to modify dropout value during downstream finetune, or use the str `default` for pre-train default values
-        spec_aug: bool, whether to apply SpecAugment on inputs (used for ASR training)
-        spec_aug_prev: bool, apply spec augment on input acoustic features if True, else apply on output representations (used for ASR training)
-        weighted_sum: bool, whether to use a learnable weighted sum to integrate hidden representations from all layers, if False then use the last
+        spec_aug: str, ['True', 'False'], whether to apply SpecAugment on inputs (used for ASR training)
+        spec_aug_prev: str, ['True', 'False'], apply spec augment on input acoustic features if True, else apply on output representations (used for ASR training)
+        weighted_sum: str, ['True', 'False'], whether to use a learnable weighted sum to integrate hidden representations from all layers, if False then use the last
         select_layer: int, select from all hidden representations, set to -1 to select the last (will only be used when weighted_sum is False)
     `intput_dim`: int, input dimension of model
 
 An example `options` dictionary:
 options = {
     'ckpt_file'     : './result/result_mockingjay/libri_sd1337_fmllrBase960-F-N-K-RA/model-1000000.ckpt',
-    'load_pretrain' : True,
-    'no_grad'       : True,
+    'load_pretrain' : 'True',
+    'no_grad'       : 'True',
     'dropout'       : 'default',
-    'spec_aug'      : True,
-    'spec_aug_prev' : True,
-    'weighted_sum'  : True,
+    'spec_aug'      : 'False',
+    'spec_aug_prev' : 'True',
+    'weighted_sum'  : 'False',
     'select_layer'  : -1,
 }
 """
@@ -56,10 +59,10 @@ class MOCKINGJAY(nn.Module):
         
         all_states = torch.load(options["ckpt_file"], map_location='cpu')
         self.config = all_states['Settings']['Config']
-        self.no_grad = bool(options['no_grad'])
-        self.spec_aug = bool(options['spec_aug'])
-        self.spec_aug_prev = bool(options['spec_aug_prev'])
-        self.weighted_sum = bool(options['weighted_sum'])
+        self.no_grad = bool(strtobool(options['no_grad']))
+        self.spec_aug = bool(strtobool(options['spec_aug']))
+        self.spec_aug_prev = bool(strtobool(options['spec_aug_prev']))
+        self.weighted_sum = bool(strtobool(options['weighted_sum']))
         self.select_layer = int(options['select_layer'])
         if (not self.no_grad) and (not self.spec_aug_prev): raise RuntimeError('Only one of them can be set False!')
         
@@ -85,7 +88,7 @@ class MOCKINGJAY(nn.Module):
         self.model.eval() if self.no_grad else self.model.train()
         
         # Load from a PyTorch state_dict
-        load = bool(options["load_pretrain"])
+        load = bool(strtobool(options["load_pretrain"]))
         if load: 
             self.load_model(all_states['Mockingjay'])
             print('[Mockingjay] - Number of parameters: ' + str(sum(p.numel() for p in self.model.parameters() if p.requires_grad)))
