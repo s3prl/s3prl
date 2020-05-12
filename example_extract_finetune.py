@@ -38,7 +38,7 @@ options = {
     'dropout'       : 'default',
     'spec_aug'      : False,
     'spec_aug_prev' : True,
-    'weighted_sum'  : True,
+    'weighted_sum'  : False,
     'select_layer'  : -1,
 }
 mockingjay = MOCKINGJAY(options=options, inp_dim=160)
