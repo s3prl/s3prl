@@ -244,8 +244,6 @@ class Downstream_Trainer(Downstream_Solver):
         self.eval = config['downstream']['evaluation']
         self.gradient_clipping = config['optimizer']['gradient_clipping']
         self.reset_train()
-        if self.fine_tune:
-             self.total_steps = self.total_steps * 2 # train two epcohs to fine-tune the model, set steps manually in config/*.yaml
 
         # mkdir
         if not os.path.exists(self.paras.ckpdir): os.makedirs(self.paras.ckpdir)

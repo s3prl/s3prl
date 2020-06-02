@@ -10,7 +10,6 @@
 ###############
 # IMPORTATION #
 ###############
-import sys
 import torch
 import random
 import numpy as np
@@ -26,24 +25,32 @@ from mockingjay.model import MockingjayConfig, MockingjayModel
 """
 Use this class to extract features from the Mockingjay model,
 or to finetune the pre-trained Mockingjay with any downstream tasks.
-Also, this class is `pytorch-kaldi` ready.
+Also, this class is `pytorch-kaldi` ready,
+hence we need to use `str` instead of `bool` in the options dict,
+as pytorch-kaldi scripts will pass in str.
 
 Params:
     `options`: a python dictionary containing the following keys:
         ckpt_file: str, a path specifying the pre-trained ckpt file
-        load_pretrain: bool, whether to load pre-trained weights
-        no_grad: bool, whether to have gradient flow over this class
+        load_pretrain: str, ['True', 'False'], whether to load pre-trained weights
+        no_grad: str, ['True', 'False'], whether to have gradient flow over this class
         dropout: float/str, use float to modify dropout value during downstream finetune, or use the str `default` for pre-train default values
-        spec_aug: bool, whether to apply SpecAugment on inputs (used for ASR training)
+        spec_aug: str, ['True', 'False'], whether to apply SpecAugment on inputs (used for ASR training)
+        spec_aug_prev: str, ['True', 'False'], apply spec augment on input acoustic features if True, else apply on output representations (used for ASR training)
+        weighted_sum: str, ['True', 'False'], whether to use a learnable weighted sum to integrate hidden representations from all layers, if False then use the last
+        select_layer: int, select from all hidden representations, set to -1 to select the last (will only be used when weighted_sum is False)
     `intput_dim`: int, input dimension of model
 
 An example `options` dictionary:
 options = {
     'ckpt_file'     : './result/result_mockingjay/libri_sd1337_fmllrBase960-F-N-K-RA/model-1000000.ckpt',
     'load_pretrain' : 'True',
-    'no_grad'       : 'False',
+    'no_grad'       : 'True',
     'dropout'       : 'default',
-    'spec_aug'      : 'True',
+    'spec_aug'      : 'False',
+    'spec_aug_prev' : 'True',
+    'weighted_sum'  : 'False',
+    'select_layer'  : -1,
 }
 """
 class MOCKINGJAY(nn.Module):
@@ -54,7 +61,11 @@ class MOCKINGJAY(nn.Module):
         self.config = all_states['Settings']['Config']
         self.no_grad = bool(strtobool(options['no_grad']))
         self.spec_aug = bool(strtobool(options['spec_aug']))
-
+        self.spec_aug_prev = bool(strtobool(options['spec_aug_prev']))
+        self.weighted_sum = bool(strtobool(options['weighted_sum']))
+        self.select_layer = int(options['select_layer'])
+        if (not self.no_grad) and (not self.spec_aug_prev): raise RuntimeError('Only one of them can be set False!')
+        
         # increase dropout
         if str(options['dropout']) != 'default':
             self.config['mockingjay']['hidden_dropout_prob'] = float(options['dropout'])
@@ -64,6 +75,12 @@ class MOCKINGJAY(nn.Module):
         self.model_config = MockingjayConfig(self.config)
         self.dr = self.model_config.downsample_rate
         self.hidden_size = self.model_config.hidden_size
+        self.num_layers = self.model_config.num_hidden_layers
+        if not (self.select_layer in list(range(-1, self.num_layers))): raise RuntimeError('Out of range int for \'select_layer\'!')
+
+        # use weighted sum from all layers
+        if self.weighted_sum:
+            self.weight = nn.Parameter(torch.ones(self.num_layers) / self.num_layers)
 
         # Build model
         self.device = torch.device('cuda') if torch.cuda.is_available() else torch.device('cpu')
@@ -162,7 +179,7 @@ class MOCKINGJAY(nn.Module):
         for idx in range(len(spec_stacked)):
             attn_mask[idx][spec_len[idx]:] = 0 
 
-        if self.spec_aug and self.model.training:
+        if self.spec_aug and self.spec_aug_prev and self.model.training:
             spec_stacked = spec_augment(spec_stacked, mask_T=70, mask_F=4, num_T=2, num_F=2, p=1.0) # (batch_size, seq_len, feature_dim * dr)
         spec_stacked = spec_stacked.to(device=self.device, dtype=torch.float32) # (batch_size, seq_len, feature_dim * dr)
         pos_enc = torch.FloatTensor(pos_enc).to(device=self.device, dtype=torch.float32).expand(spec_stacked.size(0), *pos_enc.size()) # (batch_size, seq_len, hidden_size)
@@ -200,8 +217,22 @@ class MOCKINGJAY(nn.Module):
         # Model forwarding
         x = x.permute(1, 0, 2).contiguous() # (T, B, D) -> (B, T, D)
         spec_stacked, pos_enc, attn_mask = self.process_input_data(x)
-        x = self.model(spec_stacked, pos_enc, attn_mask, output_all_encoded_layers=False) # (B, T, D)
-        
+        x = self.model(spec_stacked, pos_enc, attn_mask, output_all_encoded_layers=self.weighted_sum or self.select_layer != -1) # (B, T, D) or # (N, B, T, D)
+
+        # Apply weighted sum
+        if self.weighted_sum:
+            if type(x) is list: x = torch.stack(x)
+            softmax_weight = nn.functional.softmax(self.weight, dim=-1)
+            B, T, D = x.shape[1], x.shape[2], x.shape[3]
+            x = x.reshape(self.num_layers, -1)
+            x = torch.matmul(softmax_weight, x).reshape(B, T, D)
+        # Select a specific layer
+        elif self.select_layer != -1:
+            x = x[self.select_layer]
+
+        if self.spec_aug and not self.spec_aug_prev and self.model.training:
+            x = spec_augment(x, mask_T=70, mask_F=86, num_T=2, num_F=2, p=1.0) # (B, T, D)
+
         # If using a downsampling model, apply tile and padding
         if x.shape[1] != input_len:
             x = self.tile_representations(x)

@@ -218,12 +218,15 @@ See the instructions on the [Downstream wiki page](https://github.com/andi611/Mo
 
 ## Citation
 ```
-@misc{liu2019mockingjay,
-    title={Mockingjay: Unsupervised Speech Representation Learning with Deep Bidirectional Transformer Encoders},
-    author={Andy T. Liu and Shu-wen Yang and Po-Han Chi and Po-chun Hsu and Hung-yi Lee},
-    year={2019},
-    eprint={1910.12638},
-    archivePrefix={arXiv},
-    primaryClass={eess.AS}
+@article{Liu_2020,
+   title={Mockingjay: Unsupervised Speech Representation Learning with Deep Bidirectional Transformer Encoders},
+   ISBN={9781509066315},
+   url={http://dx.doi.org/10.1109/ICASSP40776.2020.9054458},
+   DOI={10.1109/icassp40776.2020.9054458},
+   journal={ICASSP 2020 - 2020 IEEE International Conference on Acoustics, Speech and Signal Processing (ICASSP)},
+   publisher={IEEE},
+   author={Liu, Andy T. and Yang, Shu-wen and Chi, Po-Han and Hsu, Po-chun and Lee, Hung-yi},
+   year={2020},
+   month={May}
 }
 ```
