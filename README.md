@@ -1,15 +1,15 @@
 # 🦜 Mockingjay
 ## Unsupervised Speech Representation Learning with Deep Bidirectional Transformer Encoders
 ### PyTorch Official Implementation
-[![GitHub](https://img.shields.io/github/license/andi611/Mockingjay-Speech-Representation)](https://en.wikipedia.org/wiki/MIT_License)
+[![GitHub](https://img.shields.io/github/license/andi611/Self-Supervised-Speech-Pretraining-and-Representation-Learning)](https://en.wikipedia.org/wiki/MIT_License)
 [![Contributions welcome](https://img.shields.io/badge/contributions-welcome-brightgreen.svg)](CONTRIBUTING.md)
-[![Bitbucket open issues](https://img.shields.io/bitbucket/issues/andi611/Mockingjay-Speech-Representation)](https://github.com/andi611/Mockingjay-Speech-Representation/issues)
+[![Bitbucket open issues](https://img.shields.io/bitbucket/issues/andi611/Self-Supervised-Speech-Pretraining-and-Representation-Learning)](https://github.com/andi611/Self-Supervised-Speech-Pretraining-and-Representation-Learning/issues)
 
 * This is an open source project for Mockingjay, an unsupervised algorithm for learning speech representations introduced and described in the paper ["Mockingjay: Unsupervised Speech Representation Learning with Deep Bidirectional Transformer Encoders"](https://arxiv.org/abs/1910.12638), which is accepted as a Lecture in [ICASSP 2020](https://2020.ieeeicassp.org/).
 * We compare our speech representations with the [APC](https://arxiv.org/abs/1904.03240) and [CPC](https://arxiv.org/abs/1807.03748) approach, evaluating on 3 downstream tasks including: phone classification, speaker recognition, and sentiment classification on spoken content.
 * Feel free to use or modify them, any bug report or improvement suggestion will be appreciated. If you have any questions, please contact r07942089@ntu.edu.tw. If you find this project helpful for your research, please do consider to cite [this paper](#Citation), thanks!
 * Below we illustrate the proposed Masked Acoustic Model pre-training task, where 15% of input the frames are masked to zero at random during training. Which is reminiscent of the Masked Language Model task of [BERT](https://arxiv.org/abs/1810.04805)-style pre-training from the NLP ccommunity.
-<img src="https://github.com/andi611/Mockingjay-Speech-Representation/blob/master/paper/training.png">
+<img src="https://github.com/andi611/Self-Supervised-Speech-Pretraining-and-Representation-Learning/blob/master/paper/training.png">
 
 
 # Results
@@ -156,7 +156,7 @@ sentencepiece    # sub-word unit encoding (for feature extraction only, see http
 
 ### Step 0. Preprocessing - Acoustic Feature Extraction & Text Encoding
 
-See the instructions on the [Preprocess wiki page](https://github.com/andi611/Mockingjay-Speech-Representation/wiki/Mockingjay-Preprocessing-Instructions) for preprocessing instructions.
+See the instructions on the [Preprocess wiki page](https://github.com/andi611/Self-Supervised-Speech-Pretraining-and-Representation-Learning/wiki/Mockingjay-Preprocessing-Instructions) for preprocessing instructions.
 
 ### Step 1. Configuring - Model Design & Hyperparameter Setup
 
@@ -199,13 +199,13 @@ python3 -m tensorboard.main --logdir=log/log_mockingjay/mockingjay_libri_sd1337/
 ## Experiments
 
 ### Application on downstream tasks
-See the instructions on the [Downstream wiki page](https://github.com/andi611/Mockingjay-Speech-Representation/wiki/Downstream-Task-Instructions) to reproduce our experiments.
+See the instructions on the [Downstream wiki page](https://github.com/andi611/Self-Supervised-Speech-Pretraining-and-Representation-Learning/wiki/Downstream-Task-Instructions) to reproduce our experiments.
 
 ### Comparing with APC
-See the instructions on the [APC wiki page](https://github.com/andi611/Mockingjay-Speech-Representation/wiki/Reproducing-APC-to-compare-with-Mockingjay) to reproduce our experiments. Comparison results are in our [paper](https://arxiv.org/abs/1910.12638).
+See the instructions on the [APC wiki page](https://github.com/andi611/Self-Supervised-Speech-Pretraining-and-Representation-Learning/wiki/Reproducing-APC-to-compare-with-Mockingjay) to reproduce our experiments. Comparison results are in our [paper](https://arxiv.org/abs/1910.12638).
 
 ### Comparing with CPC
-See the instructions on the [Downstream wiki page](https://github.com/andi611/Mockingjay-Speech-Representation/wiki/Downstream-Task-Instructions) to reproduce our experiments. Comparison results are in the first [section](#Results).
+See the instructions on the [Downstream wiki page](https://github.com/andi611/Self-Supervised-Speech-Pretraining-and-Representation-Learning/wiki/Downstream-Task-Instructions) to reproduce our experiments. Comparison results are in the first [section](#Results).
 
 # Reference
 1. [Montreal Forced Aligner](https://montreal-forced-aligner.readthedocs.io/en/latest/), McAuliffe et. al.
