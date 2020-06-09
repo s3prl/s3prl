@@ -20,7 +20,6 @@ from tqdm import tqdm
 from torch.nn.utils.rnn import pad_sequence
 from torch.utils.data import DataLoader
 from torch.utils.data.dataset import Dataset
-from utility.asr import zero_padding,target_padding
 from utility.mam import process_train_MAM_data, process_test_MAM_data
 
 
@@ -42,9 +41,9 @@ SPEAKER_THRESHOLD = 0
 #     - max_timestep : int, max len for input (set to 0 for no restriction)
 #     - max_label_len: int, max len for output (set to 0 for no restriction)
 #     - bucket_size  : int, batch size for each bucket
-#     - load         : str, types of data to load: ['asr', 'text', 'acoustic', 'duo', 'phone', 'speaker', 'speaker_large']
+#     - load         : str, types of data to load: ['acoustic', 'duo', 'phone', 'speaker', 'speaker_large']
 class LibriDataset(Dataset):
-    def __init__(self, file_path, sets, bucket_size, max_timestep=0, max_label_len=0, drop=False, load='asr'):
+    def __init__(self, file_path, sets, bucket_size, max_timestep=0, max_label_len=0, drop=False, load='acoustic'):
         # define default length
         self.X = []
 
@@ -55,74 +54,13 @@ class LibriDataset(Dataset):
         self.load = load
 
         # Crop seqs that are too long
-        if drop and max_timestep > 0 and self.load != 'text':
+        if drop and max_timestep > 0:
             self.table = self.table[self.table.length < max_timestep]
         if drop and max_label_len > 0:
             self.table = self.table[self.table.label.str.count('_')+1 < max_label_len]
     
     def __len__(self):
         return len(self.X)
-
-
-###############
-# ASR DATASET #
-###############
-'''
-The LibriSpeech train-clean-360 (Mel Spectrogram, Transcript) dataset
-'''
-class AsrDataset(LibriDataset):
-    
-    def __init__(self, file_path, sets, bucket_size, max_timestep=0, max_label_len=0, drop=False, load='asr'):
-        super(AsrDataset, self).__init__(file_path, sets, bucket_size, max_timestep, max_label_len, drop, load)
-
-        assert(self.load in ['asr', 'text']), 'This dataset loads mel features and text labels.'
-        X = self.table['file_path'].tolist()
-        X_lens = self.table['length'].tolist()
-            
-        Y = [list(map(int, label.split('_'))) for label in self.table['label'].tolist()]
-        if self.load == 'text':
-            Y.sort(key=len,reverse=True)
-
-        # Bucketing, X & X_len is dummy when load == 'text'
-        self.X = []
-        self.Y = []
-        batch_x, batch_len, batch_y = [], [], []
-
-        for x, x_len, y in zip(X, X_lens, Y):
-            batch_x.append(x)
-            batch_len.append(x_len)
-            batch_y.append(y)
-            
-            # Fill in batch_x until batch is full
-            if len(batch_x) == bucket_size:
-                # Half the batch size if seq too long
-                if (bucket_size >= 2) and ((max(batch_len) > HALF_BATCHSIZE_TIME) or (max([len(y) for y in batch_y]) > HALF_BATCHSIZE_LABEL)):
-                    self.X.append(batch_x[:bucket_size//2])
-                    self.X.append(batch_x[bucket_size//2:])
-                    self.Y.append(batch_y[:bucket_size//2])
-                    self.Y.append(batch_y[bucket_size//2:])
-                else:
-                    self.X.append(batch_x)
-                    self.Y.append(batch_y)
-                batch_x, batch_len, batch_y = [], [], []
-        
-        # Gather the last batch
-        if len(batch_x) > 0:
-            self.X.append(batch_x)
-            self.Y.append(batch_y)
-
-
-    def __getitem__(self, index):
-        # Load label
-        if self.load == 'asr' or self.load == 'text':
-            y_batch = [y for y in self.Y[index]]
-            y_pad_batch = target_padding(y_batch, max([len(v) for v in y_batch]))
-            if self.load == 'text':
-                return y_pad_batch
-        # Load acoustic feature and pad
-        x_batch = [torch.FloatTensor(np.load(os.path.join(self.root, x_file))) for x_file in self.X[index]]
-        x_pad_batch = pad_sequence(x_batch, batch_first=True)
-        return x_pad_batch, y_pad_batch
 
 
 ###############
@@ -765,49 +703,6 @@ class Speaker_Dataset(Dataset):
         return speaker2idx
 
 
-class TimitDataset(Dataset):
-    def __init__(self, run_mockingjay, file_path, sets, bucket_size, max_timestep=0, max_label_len=0, mock_config=None):
-        
-        self.run_mockingjay = run_mockingjay
-        self.mock_config = mock_config
-        self.class_num = 63
-        # Open dataset
-        x = []
-        y = []
-        for s in sets:
-            with open(os.path.join(file_path,s+'_x.pkl'),'rb') as fp:
-                x += pickle.load(fp)
-            with open(os.path.join(file_path,s+'_y.pkl'),'rb') as fp:
-                y += pickle.load(fp)
-        assert len(x)==len(y)
-
-        # Sort data w.r.t. length
-        self.X = []
-        self.Y = []
-        sortd_len = [len(t) for t in x]
-        sorted_x = [x[idx] for idx in reversed(np.argsort(sortd_len))]
-        sorted_y = [y[idx] for idx in reversed(np.argsort(sortd_len))]
-
-        # Bucketing
-        for b in range(int(np.ceil(len(sorted_x)/bucket_size))):
-            offset = b*bucket_size
-            bound = min((b+1)*bucket_size,len(sorted_x))
-            bucket_max_timestep = min(max_timestep,len(sorted_x[offset]))
-            self.X.append(zero_padding(sorted_x[offset:bound], bucket_max_timestep))
-            bucket_max_label_len = min(max_label_len,max([len(v) for v in sorted_y[offset:bound]]))
-            self.Y.append(target_padding(sorted_y[offset:bound], bucket_max_label_len))
-
-    def __getitem__(self, index):
-        x_batch = self.X[index]
-        y_batch = self.Y[index]
-        if self.run_mockingjay:
-            x_batch = process_test_MAM_data(spec=(x_batch,), config=self.mock_config)
-        return x_batch, y_batch
-    
-    def __len__(self):
-        return len(self.X)
-
-
 ##################
 # GET DATALOADER #
 ##################
@@ -834,19 +729,11 @@ def get_Dataloader(split, load, data_path, batch_size, max_timestep, max_label_l
         shuffle = False
         sets = test_set if load != 'cpc_phone' else train_set # the CPC paper uses its own train/test split from train-clean-100
         drop_too_long = False
-    elif split == 'text':
-        bs = batch_size
-        shuffle = True
-        sets = train_set
-        drop_too_long = True
     else:
         raise NotImplementedError('Unsupported `split` argument: ' + split)
 
     # Decide which task (or dataset) to propogate through model
-    if load in ['asr', 'text']:
-        ds = AsrDataset(file_path=data_path, sets=sets, max_timestep=max_timestep, load=load,
-                        max_label_len=max_label_len, bucket_size=bs, drop=drop_too_long)
-    elif load == 'acoustic':
+    if load == 'acoustic':
         ds = AcousticDataset(run_mockingjay=run_mockingjay, file_path=data_path, sets=sets, max_timestep=max_timestep, load=load, 
                         max_label_len=max_label_len, bucket_size=bs, drop=drop_too_long, mock_config=mock_config)
     elif load == 'duo':
@@ -862,9 +749,6 @@ def get_Dataloader(split, load, data_path, batch_size, max_timestep, max_label_l
         assert(phone_path is not None), '`phone path` must be provided for this dataset.'
         ds = CPC_Phone_Dataset(run_mockingjay=run_mockingjay, file_path=data_path, phone_path=phone_path, sets=sets, max_timestep=max_timestep, load=load,
                                max_label_len=max_label_len, bucket_size=bs, drop=drop_too_long, mock_config=mock_config, split=split)
-    elif load == 'timit':
-        ds = TimitDataset(run_mockingjay=run_mockingjay, file_path=data_path, sets=sets, max_timestep=max_timestep, 
-                           max_label_len=max_label_len, bucket_size=bs, mock_config=mock_config)
     elif load == 'sentiment':
         assert(sentiment_config is not None), '`sentiment config` must be provided for this dataset.'
         target = sentiment_config['dataset']
