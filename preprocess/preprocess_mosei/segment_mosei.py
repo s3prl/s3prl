@@ -45,7 +45,7 @@ def underscore_bracket(string):
 def get_preprocess_args():
     parser = argparse.ArgumentParser(description='preprocess arguments for LibriSpeech dataset.')
     parser.add_argument('--data_path', default='/home/leo/d/datasets/MOSEI/Raw/Audio/Full/WAV_16000', type=str, help='Path to MOSEI non-segmented WAV files')
-    parser.add_argument('--output_path', default='./data/mosei', type=str, help='Path to store segmented flac and npys. Should already contains mosei_no_semi.csv', required=False)
+    parser.add_argument('--output_path', default='../../data/mosei', type=str, help='Path to store segmented flac and npys. Should already contains mosei_no_semi.csv', required=False)
     args = parser.parse_args()
     return args
 

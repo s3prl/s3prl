@@ -48,8 +48,8 @@ def underscore_bracket(string):
 
 def get_preprocess_args():
     parser = argparse.ArgumentParser()
-    parser.add_argument('--flac_path', default='./data/mosei/flac', type=str, help='Path to MOSEI segmented FLAC files')
-    parser.add_argument('--output_path', default='./data/mosei', type=str, help='Path to store segmented npys', required=False)
+    parser.add_argument('--flac_path', default='../../data/mosei/flac', type=str, help='Path to MOSEI segmented FLAC files')
+    parser.add_argument('--output_path', default='../../data/mosei', type=str, help='Path to store segmented npys', required=False)
     parser.add_argument('--feature_type', default='mel', type=str, help='Feature type ( mfcc / fbank / mel / linear )', required=False)
     parser.add_argument('--apply_cmvn', default=True, type=boolean_string, help='Apply CMVN on feature', required=False)
     parser.add_argument('--n_jobs', default=-1, type=int, help='Number of jobs used for feature extraction', required=False)

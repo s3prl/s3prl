@@ -33,13 +33,10 @@ sample_rate = 16000
 For feature == 'fbank' or 'mfcc'
 """
 num_mels = 80 # int, dimension of feature
-delta = True # Append Delta
-delta_delta = False # Append Delta Delta
 window_size = 25 # int, window size for FFT (ms)
 stride = 10 # int, window stride for FFT
-mel_dim = num_mels * (1 + int(delta) + int(delta_delta))
 """
-For feature == 'linear'
+For feature == 'mel' or 'linear'
 """
 num_freq = 1025
 frame_length_ms = 50
@@ -50,11 +47,6 @@ ref_level_db = 20
 hop_length = 250
 griffin_lim_iters = 16
 power = 1.5 # Power to raise magnitudes to prior to Griffin-Lim
-"""
-For feature == 'fmllr' or 'mfcc'
-"""
-fmllr_dim = 40
-mfcc_dim = 39
 
 
 #############################
@@ -160,11 +152,13 @@ def inv_spectrogram(spectrogram, sr=16000):
 # Parameters
 #     - input file  : str, audio file path
 #     - feature     : str, fbank or mfcc
+#     - delta       : bool, append delta
+#     - delta_delta : bool, append delta delta
 #     - cmvn        : bool, apply CMVN on feature
 #     - save_feature: str, if given, store feature to the path and return len(feature)
 # Return
 #     acoustic features with shape (time step, dim)
-def extract_feature(input_file, feature='fbank', cmvn=True, save_feature=None):
+def extract_feature(input_file, feature='fbank', delta=False, delta_delta=False, cmvn=True, save_feature=None):
     y, sr = librosa.load(input_file, sr=sample_rate)
 
     if feature == 'fbank':

@@ -25,7 +25,7 @@ from dataloader import get_Dataloader
 from mockingjay.model import MockingjayConfig, MockingjayModel, MockingjayForMaskedAcousticModel
 from mockingjay.optimization import BertAdam, WarmupLinearSchedule
 from utility.audio import plot_spectrogram_to_numpy, plot_spectrogram, plot_embedding, plot_attention
-from utility.audio import fmllr_dim, mfcc_dim, mel_dim, num_freq, sample_rate, inv_spectrogram
+from utility.audio import sample_rate, inv_spectrogram
 from utility.mam import position_encoding
 
 
@@ -55,12 +55,11 @@ class Solver():
         # model
         self.load_model_list = config['solver']['load_model_list']
         self.duo_feature = config['solver']['duo_feature']
-        self.output_dim = num_freq if self.duo_feature else None # output dim is the same as input dim if not using duo features
+        self.output_dim = 1025 if self.duo_feature else None # output dim is the same as input dim if not using duo features
         if 'input_dim' in config['mockingjay']:
             self.input_dim = config['mockingjay']['input_dim']
-            self.verbose('Using `input_dim` setting from config.')
         else:
-            input_dim = fmllr_dim if 'fmllr' in self.config['dataloader']['data_path'] else mfcc_dim if 'mfcc' in self.config['dataloader']['data_path'] else mel_dim
+            raise ValueError('Please update your config file to include the attribute `input_dim`.')
 
 
     def verbose(self, msg, end='\n'):

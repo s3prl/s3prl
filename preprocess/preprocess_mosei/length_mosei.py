@@ -6,8 +6,8 @@ import numpy as np
 
 def get_preprocess_args():
     parser = argparse.ArgumentParser()
-    parser.add_argument('--npy_path', default='./data/mosei/mel160', type=str, help='Path to MOSEI segmented NPY files')
-    parser.add_argument('--csv_path', default='./data/mosei/mosei_no_semi.csv', type=str, help='Path to mosei_no_semi.csv', required=False)
+    parser.add_argument('--npy_path', default='../../data/mosei/mel160', type=str, help='Path to MOSEI segmented NPY files')
+    parser.add_argument('--csv_path', default='../../data/mosei/mosei_no_semi.csv', type=str, help='Path to mosei_no_semi.csv', required=False)
     args = parser.parse_args()
     return args
 
