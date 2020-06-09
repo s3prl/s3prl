@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*- #
 """*********************************************************************************************"""
-#   FileName     [ analyze_speaker.py ]
+#   FileName     [ observe_speaker.py ]
 #   Synopsis     [ Analyze the speaker training set for LibriSpeech ]
 #   Author       [ Andy T. Liu (Andi611) ]
 #   Copyright    [ Copyleft(c), Speech Lab, NTU, Taiwan ]
@@ -20,7 +20,7 @@ from torch.utils.data.dataset import Dataset
 # SETTINGS #
 ############
 SPEAKER_THRESHOLD = 120
-root = '../data/libri_mel160_subword5000'
+root = '../data/libri_mel160'
 drop = True
 max_timestep = 3000
 max_label_len = 400
