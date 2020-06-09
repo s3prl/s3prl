@@ -370,7 +370,7 @@ class Trainer(Solver):
                 # pos_enc: (seq_len, hidden_size)
                 # GPU memory only need (seq_len * hidden_size) even after expanded
                 pos_enc = torch.FloatTensor(pos_enc).to(device=self.device).expand(spec_masked.size(0), *pos_enc.size())
-            mask_label = torch.BoolTensor(mask_label).to(device=self.device)
+            mask_label = torch.ByteTensor(mask_label).to(device=self.device)
             attn_mask = torch.FloatTensor(attn_mask).to(device=self.device)
             spec_stacked = spec_stacked.to(device=self.device)
 

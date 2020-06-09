@@ -112,7 +112,7 @@ def process_train_MAM_data(spec, config=None):
         seq_len = spec_stacked.shape[1]
         
         pos_enc = position_encoding(seq_len, hidden_size) # (seq_len, hidden_size)
-        mask_label = torch.zeros_like(spec_stacked, dtype=torch.bool)
+        mask_label = torch.zeros_like(spec_stacked, dtype=torch.uint8)
         attn_mask = torch.ones((batch_size, seq_len)) # (batch_size, seq_len)
 
         for idx in range(batch_size):
@@ -124,7 +124,7 @@ def process_train_MAM_data(spec, config=None):
                 continue
 
             def starts_to_intervals(starts, consecutive):
-                tiled = starts.expand(consecutive, starts.size(0)).T
+                tiled = starts.expand(consecutive, starts.size(0)).permute(1, 0)
                 offset = torch.arange(consecutive).expand_as(tiled)
                 intervals = tiled + offset
                 return intervals.view(-1)
@@ -181,7 +181,7 @@ def process_train_MAM_data(spec, config=None):
         batch_is_valid = len(valid_batchid) > 0
         spec_masked = spec_masked.to(dtype=torch.float32)[valid_batchid]
         pos_enc = pos_enc.to(dtype=torch.float32)
-        mask_label = mask_label.to(dtype=torch.bool)[valid_batchid]
+        mask_label = mask_label.to(dtype=torch.uint8)[valid_batchid]
         attn_mask = attn_mask.to(dtype=torch.float32)[valid_batchid]
         spec_stacked = spec_stacked.to(dtype=torch.float32)[valid_batchid]
 
