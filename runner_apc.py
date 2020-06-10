@@ -16,7 +16,7 @@ import random
 import argparse
 import numpy as np
 from apc.solver import Solver
-from utility.audio import mel_dim
+
 
 ######################
 # APC CONFIGURATIONS #
@@ -63,7 +63,7 @@ class get_apc_config():
         self.save_step = 10000 # Save model every this amount of training steps
 
         # Misc configurations
-        self.feature_dim = mel_dim # The dimension of the input frame
+        self.feature_dim = 160 # The dimension of the input frame
         self.load_data_workers = 16 # Number of parallel data loaders
         self.experiment_name = 'apc_libri_sd' + str(seed) # Name of this experiment
         self.log_path = './log/log_apc/' # Where to save the logs

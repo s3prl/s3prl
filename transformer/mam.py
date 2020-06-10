@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*- #
 """*********************************************************************************************"""
-#   FileName     [ utils/mam.py ]
-#   Synopsis     [ Moasked Acoustic Model data processing for the mockingjay model ]
+#   FileName     [ transformer/mam.py ]
+#   Synopsis     [ Moasked Acoustic Model data processing for pre-training the transformer model ]
 #   Author       [ Andy T. Liu (Andi611) ]
 #   Copyright    [ Copyleft(c), Speech Lab, NTU, Taiwan ]
 """*********************************************************************************************"""
@@ -51,7 +51,7 @@ def get_sinusoid_table(hidden_size):
     return torch.FloatTensor(sinusoid_table)
 
 
-def position_encoding(seq_len, hidden_size, batch_size=None, padding_idx=None):
+def fast_position_encoding(seq_len, hidden_size, batch_size=None, padding_idx=None):
     ''' position encoding table '''
     assert seq_len <= MAX_SEQLEN, f'constant MAX_SEQLEN ({MAX_SEQLEN}) in mam.py < received seq_len ({seq_len})'        
     table = get_sinusoid_table(hidden_size)[:seq_len]
@@ -89,7 +89,7 @@ def process_train_MAM_data(spec, config=None):
     mask_bucket_ratio = config['mask_bucket_ratio'] if config is not None else MASK_BUCKET_RATIO
     mask_frequency = config['mask_frequency'] if config is not None else MASK_FREQUENCY
     noise_proportion = config['noise_proportion'] if config is not None else NOISE_PROPORTION
-    test_reconstruct = config['test_reconstruct'] if config is not None else False  # This options is automatically handled by argparser in runner_mockingjay
+    test_reconstruct = config['test_reconstruct'] if config is not None else False  # This options is automatically handled by argparser in runner
 
     with torch.no_grad():
         if len(spec) == 2: # if self.duo_feature: dataloader will output `source_spec` and `target_spec`
@@ -111,7 +111,7 @@ def process_train_MAM_data(spec, config=None):
         batch_size = spec_stacked.shape[0]
         seq_len = spec_stacked.shape[1]
         
-        pos_enc = position_encoding(seq_len, hidden_size) # (seq_len, hidden_size)
+        pos_enc = fast_position_encoding(seq_len, hidden_size) # (seq_len, hidden_size)
         mask_label = torch.zeros_like(spec_stacked, dtype=torch.uint8)
         attn_mask = torch.ones((batch_size, seq_len)) # (batch_size, seq_len)
 
@@ -206,7 +206,7 @@ def process_test_MAM_data(spec, config=None):
         batch_size = spec_stacked.shape[0]
         seq_len = spec_stacked.shape[1]
 
-        pos_enc = position_encoding(seq_len, hidden_size) # (seq_len, hidden_size)
+        pos_enc = fast_position_encoding(seq_len, hidden_size) # (seq_len, hidden_size)
         attn_mask = torch.ones((batch_size, seq_len)) # (batch_size, seq_len)
 
         # zero vectors for padding dimension

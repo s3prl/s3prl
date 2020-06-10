@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*- #
 """*********************************************************************************************"""
 #   FileName     [ downstream/solver.py ]
-#   Synopsis     [ solvers for the mockingjay downstream model: trainer / tester ]
+#   Synopsis     [ solvers for the transformer downstream model: trainer / tester ]
 #   Author       [ Andy T. Liu (Andi611) ]
 #   Copyright    [ Copyleft(c), Speech Lab, NTU, Taiwan ]
 """*********************************************************************************************"""
@@ -22,8 +22,8 @@ from tqdm import tqdm, trange
 import torch.nn.functional as F
 from tensorboardX import SummaryWriter
 from dataloader import get_Dataloader
-from mockingjay.solver import Solver, Tester
-from mockingjay.optimization import BertAdam
+from transformer.solver import Solver, Tester
+from transformer.optimization import BertAdam
 from downstream.model import LinearClassifier, RnnClassifier
 from runner_apc import get_apc_model
 
@@ -35,34 +35,33 @@ class Downstream_Solver(Solver):
     ''' Handler for complete training progress'''
     def __init__(self, config, paras, task):
         super(Downstream_Solver, self).__init__(config, paras)
-        # Downstream task the solver is solving
-        self.task = task
-        self.mock_paras = copy.deepcopy(paras)
-        self.mock_config = copy.deepcopy(config)
+
+        # backup upstream settings        
+        self.upstream_paras = copy.deepcopy(paras)
+        self.upstream_config = copy.deepcopy(config)
+        self.task = task # Downstream task the solver is solving
         
         # path and directories
-        self.exp_name = self.exp_name.replace('mockingjay', task)
-        self.paras.ckpdir = paras.ckpdir.replace('mockingjay', task)
-        self.ckpdir = self.ckpdir.replace('mockingjay', task)
-        self.ckpt = os.path.join(paras.ckpdir, paras.dckpt)
-
-        # modify log directory
-        paras.logdir = paras.logdir.replace('mockingjay', task)
+        self.exp_name = self.exp_name.replace('transformer', task)
+        self.logdir = self.paras.logdir.replace('transformer', task)
+        self.ckpdir = self.ckpdir.replace('transformer', task)
+        self.expdir = self.expdir.replace('transformer', task)
+        self.dckpt = os.path.join(self.ckpdir, self.paras.dckpt)
 
         # model
         self.model_type = config['downstream']['model_type']
         self.load_model_list = config['downstream']['load_model_list']
-        self.fine_tune = paras.fine_tune
-        self.run_mockingjay = paras.run_mockingjay
-        self.run_apc = paras.run_apc
+        self.fine_tune = self.paras.fine_tune
+        self.run_transformer = self.paras.run_transformer
+        self.run_apc = self.paras.run_apc
         if self.fine_tune:  
-            assert(self.run_mockingjay), 'Use `--run_mockingjay` to fine-tune the mockingjay model.'
-            assert(not self.run_apc), 'Fine tuning only supports the mockingjay model.'
-            assert(not self.paras.with_head), 'Fine tuning only supports the mockingjay model, not with head.'
-        assert( not (self.run_mockingjay and self.run_apc) ), 'Mockingjay and Apc can not run at the same time!'
-        if self.run_mockingjay and self.paras.with_head: self.verbose('Using Mockingjay representations from head.')
-        elif self.run_mockingjay and self.fine_tune: self.verbose('Fine-tuning on Mockingjay representations.')
-        elif self.run_mockingjay: self.verbose('Using Mockingjay representations.')
+            assert(self.run_transformer), 'Use `--run_transformer` to fine-tune the transformer model.'
+            assert(not self.run_apc), 'Fine tuning only supports the transformer model.'
+            assert(not self.paras.with_head), 'Fine tuning only supports the transformer model, not with head.'
+        assert( not (self.run_transformer and self.run_apc) ), 'Transformer and Apc can not run at the same time!'
+        if self.run_transformer and self.paras.with_head: self.verbose('Using transformer speech representations from head.')
+        elif self.run_transformer and self.fine_tune: self.verbose('Fine-tuning on transformer speech representations.')
+        elif self.run_transformer: self.verbose('Using transformer speech representations.')
 
 
     def load_data(self, split='train', load='phone'):
@@ -93,28 +92,28 @@ class Downstream_Solver(Solver):
             raise NotImplementedError('Unsupported downstream tasks.')
 
         setattr(self, 'dataloader', get_Dataloader(split, load=load, use_gpu=self.paras.gpu, \
-                run_mockingjay=self.run_mockingjay, mock_config=self.config['mockingjay'], \
+                run_mam=self.run_transformer, mam_config=self.transformer_config, \
                 **self.config['dataloader']))
 
 
     def set_model(self, inference=False):
         input_dim = int(self.config['downstream'][self.model_type]['input_dim']) if \
                     self.config['downstream'][self.model_type]['input_dim'] != 'None' else None
-        if 'mockingjay' in self.task:
-            self.mockingjay = Tester(self.mock_config, self.mock_paras)
-            if self.fine_tune and inference: self.mockingjay.load = False # Do not load twice when testing the fine-tuned model, load only for fine-tune training
-            self.mockingjay.set_model(inference=True, with_head=self.paras.with_head)
-            self.dr = self.mockingjay.dr
+        if 'transformer' in self.task:
+            self.upstream_tester = Tester(self.upstream_config, self.upstream_paras)
+            if self.fine_tune and inference: self.upstream_tester.load = False # During inference on fine-tuned model, load with `load_downstream_model()`
+            self.upstream_tester.set_model(inference=True, with_head=self.paras.with_head) # inference should be set True so upstream solver won't create optimizer
+            self.dr = self.upstream_tester.dr
             if input_dim is None:
-                input_dim = self.mock_config['mockingjay']['hidden_size']
+                input_dim = self.transformer_config['hidden_size']
         elif 'apc' in self.task:
             self.apc = get_apc_model(path=self.paras.apc_path)
             if input_dim is None: 
-                input_dim = self.mock_config['mockingjay']['hidden_size'] # use identical dim size for fair comparison
+                input_dim = self.transformer_config['hidden_size'] # use identical dim size for fair comparison
         elif 'baseline' in self.task:
             if input_dim is None: 
-                if 'input_dim' in self.mock_config['mockingjay']:
-                    input_dim = self.mock_config['mockingjay']['input_dim']
+                if 'input_dim' in self.transformer_config:
+                    input_dim = self.transformer_config['input_dim']
                 else:
                     raise ValueError('Please update your config file to include the attribute `input_dim`.')
         else:
@@ -133,12 +132,12 @@ class Downstream_Solver(Solver):
 
         if not inference and self.fine_tune:
             # Setup Fine tune optimizer
-            self.mockingjay.mockingjay.train()
-            param_optimizer = list(self.mockingjay.mockingjay.named_parameters()) + list(self.classifier.named_parameters())
-            self.optimizer = get_mockingjay_optimizer(params=param_optimizer, 
-                                                      lr=self.learning_rate, 
-                                                      warmup_proportion=self.config['optimizer']['warmup_proportion'],
-                                                      training_steps=self.total_steps)
+            self.upstream_tester.transformer.train()
+            param_optimizer = list(self.upstream_tester.transformer.named_parameters()) + list(self.classifier.named_parameters())
+            self.optimizer = get_optimizer(params=param_optimizer,
+                                           lr=self.learning_rate, 
+                                           warmup_proportion=self.config['optimizer']['warmup_proportion'],
+                                           training_steps=self.total_steps)
         elif not inference:
             self.optimizer = Adam(self.classifier.parameters(), lr=self.learning_rate, betas=(0.9, 0.999))
             self.classifier.train()
@@ -146,14 +145,14 @@ class Downstream_Solver(Solver):
             self.classifier.eval()
 
         if self.load: # This will be set to True by default when Tester is running set_model()
-            self.load_model(inference=inference)
+            self.load_downstream_model(inference=inference)
 
 
     def save_model(self, name, model_all=True, assign_name=None):
         if model_all:
             all_states = {
                 'Classifier': self.classifier.state_dict(),
-                'Mockingjay': self.mockingjay.mockingjay.state_dict() if self.fine_tune else None,
+                'Transformer': self.upstream_tester.transformer.state_dict() if self.fine_tune else None,
                 'Optimizer': self.optimizer.state_dict(),
                 'Global_step': self.global_step,
                 'Settings': {
@@ -171,11 +170,11 @@ class Downstream_Solver(Solver):
             }
 
         if assign_name is not None:
-            model_path = f'{self.ckpdir}/{assign_name}.ckpt'
+            model_path = f'{self.expdir}/{assign_name}.ckpt'
             torch.save(all_states, model_path)
             return
 
-        new_model_path = '{}/{}-{}.ckpt'.format(self.ckpdir, name, self.global_step)
+        new_model_path = '{}/{}-{}.ckpt'.format(self.expdir, name, self.global_step)
         torch.save(all_states, new_model_path)
         self.model_kept.append(new_model_path)
 
@@ -184,9 +183,9 @@ class Downstream_Solver(Solver):
             self.model_kept.pop(0)
 
 
-    def load_model(self, inference=False):
-        self.verbose('Load model from {}'.format(self.ckpt))
-        all_states = torch.load(self.ckpt, map_location='cpu')
+    def load_downstream_model(self, inference=False):
+        self.verbose('Load model from {}'.format(self.dckpt))
+        all_states = torch.load(self.dckpt, map_location='cpu')
         
         if 'Classifier' in self.load_model_list:
             try:
@@ -212,10 +211,10 @@ class Downstream_Solver(Solver):
 
         if self.fine_tune:
             try:
-                self.verbose('@ Downstream, [Fine-Tuned Mockingjay] - Loading from Upstream Tester...')
-                self.mockingjay.load_model(inference=inference, from_path=self.ckpt)
-                self.verbose('@ Downstream, [Fine-Tuned Mockingjay] - Loaded')
-            except: self.verbose('[Fine-Tuned Mockingjay] - X')
+                self.verbose('@ Downstream, [Fine-Tuned Transformer] - Loading with Upstream Tester...')
+                self.upstream_tester.load_model(inference=inference, from_path=self.ckpt)
+                self.verbose('@ Downstream, [Fine-Tuned Transformer] - Loaded')
+            except: self.verbose('[Fine-Tuned Transformer] - X')
 
         self.verbose('Model loading complete!')
 
@@ -229,7 +228,7 @@ class Downstream_Trainer(Downstream_Solver):
         super(Downstream_Trainer, self).__init__(config, paras, task)
 
         # Logger Settings
-        self.logdir = os.path.join(paras.logdir, self.exp_name)
+        self.logdir = os.path.join(self.logdir, self.exp_name)
         self.log = SummaryWriter(self.logdir)
 
         # Training details
@@ -244,8 +243,8 @@ class Downstream_Trainer(Downstream_Solver):
         self.reset_train()
 
         # mkdir
-        if not os.path.exists(self.paras.ckpdir): os.makedirs(self.paras.ckpdir)
         if not os.path.exists(self.ckpdir): os.makedirs(self.ckpdir)
+        if not os.path.exists(self.expdir): os.makedirs(self.expdir)
 
 
     def reset_train(self):
@@ -272,17 +271,17 @@ class Downstream_Trainer(Downstream_Solver):
                     # dimension of labels is depends on task and dataset, but the first dimention is always trivial due to bucketing
                     # eg. (1, batch_size, seq_len) or (1, batch_size)
                     labels = labels.squeeze(0).to(device=self.device)  # labels can be torch.long or torch.float (regression)
-                    if self.run_mockingjay and self.paras.with_head:
+                    if self.run_transformer and self.paras.with_head:
                         # representations shape: (batch_size, seq_len, feature)
-                        representations = self.mockingjay.forward_with_head(features, process_from_loader=True)
+                        representations = self.upstream_tester.forward_with_head(features, process_from_loader=True)
                         features = self.up_sample_frames(features[0].squeeze(0))
-                    elif self.run_mockingjay and self.fine_tune:
+                    elif self.run_transformer and self.fine_tune:
                         # representations shape: (batch_size, seq_len, feature)
-                        representations = self.mockingjay.forward_fine_tune(features, process_from_loader=True)
+                        representations = self.upstream_tester.forward_fine_tune(features, process_from_loader=True)
                         features = self.up_sample_frames(features[0].squeeze(0))
-                    elif self.run_mockingjay:
+                    elif self.run_transformer:
                         # representations shape: (batch_size, layer, seq_len, feature)
-                        representations = self.mockingjay.forward(features, process_from_loader=True)
+                        representations = self.upstream_tester.forward(features, process_from_loader=True)
                         features = self.up_sample_frames(features[0].squeeze(0))
                     elif self.run_apc:
                         # representations shape: (batch_size, layer, seq_len, feature)
@@ -319,7 +318,7 @@ class Downstream_Trainer(Downstream_Solver):
 
                     # Update
                     if self.fine_tune: 
-                        grad_norm = torch.nn.utils.clip_grad_norm_(list(self.mockingjay.mockingjay.parameters()) + list(self.classifier.parameters()), \
+                        grad_norm = torch.nn.utils.clip_grad_norm_(list(self.upstream_tester.transformer.parameters()) + list(self.classifier.parameters()), \
                                                                    self.gradient_clipping)
                     else:
                         grad_norm = torch.nn.utils.clip_grad_norm_(self.classifier.parameters(), \
@@ -352,10 +351,10 @@ class Downstream_Trainer(Downstream_Solver):
                         torch.cuda.empty_cache()
 
                         evaluation = self.config['downstream']['evaluation']
-                        tmp_model_path = '{}/tmp.ckpt'.format(self.ckpdir)
+                        tmp_model_path = '{}/tmp.ckpt'.format(self.expdir)
                         new_dckpt = '/'.join(tmp_model_path.split('/')[-2:])
-                        test_config = copy.deepcopy(self.mock_config)
-                        test_paras = copy.deepcopy(self.mock_paras)
+                        test_config = copy.deepcopy(self.upstream_config)
+                        test_paras = copy.deepcopy(self.upstream_paras)
                         test_paras.dckpt = new_dckpt
                         tester = Downstream_Tester(test_config, test_paras, task=self.task)
                         tester.load_data(split=evaluation, load='cpc_phone' if 'cpc_phone' in self.task else self.task.split('_')[-1])
@@ -366,7 +365,7 @@ class Downstream_Trainer(Downstream_Solver):
                         if eval_acc > best_val_acc:
                             self.verbose('Saving new best model on validation')
                             self.save_model(self.task, assign_name='best_val')
-                            # torch.save(eval_logits, f'{self.ckpdir}/best_val.logits') # uncomment to save logits
+                            # torch.save(eval_logits, f'{self.exppdir}/best_val.logits') # uncomment to save logits
                             torch.cuda.empty_cache()
                             best_val_acc = eval_acc
                 
@@ -413,17 +412,17 @@ class Downstream_Tester(Downstream_Solver):
                     # dimension of labels is depends on task and dataset, but the first dimention is always trivial due to bucketing
                     labels = labels.squeeze(0).to(device=self.device)
 
-                    if self.run_mockingjay and self.paras.with_head:
+                    if self.run_transformer and self.paras.with_head:
                         # representations shape: (batch_size, seq_len, feature)
-                        representations = self.mockingjay.forward_with_head(features, process_from_loader=True)
+                        representations = self.upstream_tester.forward_with_head(features, process_from_loader=True)
                         features = self.up_sample_frames(features[0].squeeze(0))
-                    elif self.run_mockingjay and self.fine_tune:
+                    elif self.run_transformer and self.fine_tune:
                         # representations shape: (batch_size, seq_len, feature)
-                        representations = self.mockingjay.forward_fine_tune(features, process_from_loader=True)
+                        representations = self.upstream_tester.forward_fine_tune(features, process_from_loader=True)
                         features = self.up_sample_frames(features[0].squeeze(0))
-                    elif self.run_mockingjay:
+                    elif self.run_transformer:
                         # representations shape: (batch_size, layer, seq_len, feature)
-                        representations = self.mockingjay.forward(features, process_from_loader=True)
+                        representations = self.upstream_tester.forward(features, process_from_loader=True)
                         features = self.up_sample_frames(features[0].squeeze(0))
                     elif self.run_apc:
                         # representations shape: (batch_size, layer, seq_len, feature)
@@ -474,7 +473,7 @@ class Downstream_Tester(Downstream_Solver):
         return average_loss, test_acc, all_logits
 
 
-def get_mockingjay_optimizer(params, lr, warmup_proportion, training_steps):
+def get_optimizer(params, lr, warmup_proportion, training_steps):
     no_decay = ['bias', 'LayerNorm.bias', 'LayerNorm.weight']
     optimizer_grouped_parameters = [
         {'params': [p for n, p in params if not any(nd in n for nd in no_decay)], 'weight_decay': 0.01},

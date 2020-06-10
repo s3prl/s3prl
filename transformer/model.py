@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*- #
 """*********************************************************************************************"""
-#   FileName     [ mockingjay/model.py ]
-#   Synopsis     [ Implementation of the mockingjay model ]
+#   FileName     [ transformer/model.py ]
+#   Synopsis     [ Implementation of the transformer models ]
 #   Author       [ Andy T. Liu (Andi611) ]
 #   Copyright    [ Copyleft(c), Speech Lab, NTU, Taiwan ]
 #   Reference 1  [ https://github.com/huggingface/pytorch-transformers ]
@@ -14,26 +14,26 @@
 import sys
 import copy
 import math
-from io import open
 import torch
-from torch import nn
 import numpy as np
+from io import open
+from torch import nn
 
 
-class MockingjayConfig(object):
-    """Configuration class to store the configuration of a `MockingjayModel`.
+class TransformerConfig(object):
+    """Configuration class to store the configuration of a `TransformerModel`.
     """
     def __init__(self, config):
-        self.downsample_rate = config['mockingjay']['downsample_rate']
-        self.hidden_size = config['mockingjay']['hidden_size']
-        self.num_hidden_layers = config['mockingjay']['num_hidden_layers']
-        self.num_attention_heads = config['mockingjay']['num_attention_heads']
-        self.hidden_act = config['mockingjay']['hidden_act']
-        self.intermediate_size = config['mockingjay']['intermediate_size']
-        self.hidden_dropout_prob = config['mockingjay']['hidden_dropout_prob']
-        self.attention_probs_dropout_prob = config['mockingjay']['attention_probs_dropout_prob']
-        self.initializer_range = config['mockingjay']['initializer_range']
-        self.layer_norm_eps = float(config['mockingjay']['layer_norm_eps'])
+        self.downsample_rate = config['transformer']['downsample_rate']
+        self.hidden_size = config['transformer']['hidden_size']
+        self.num_hidden_layers = config['transformer']['num_hidden_layers']
+        self.num_attention_heads = config['transformer']['num_attention_heads']
+        self.hidden_act = config['transformer']['hidden_act']
+        self.intermediate_size = config['transformer']['intermediate_size']
+        self.hidden_dropout_prob = config['transformer']['hidden_dropout_prob']
+        self.attention_probs_dropout_prob = config['transformer']['attention_probs_dropout_prob']
+        self.initializer_range = config['transformer']['initializer_range']
+        self.layer_norm_eps = float(config['transformer']['layer_norm_eps'])
 
 
 def prune_linear_layer(layer, index, dim=0):
@@ -78,14 +78,14 @@ ACT2FN = {"gelu": gelu, "relu": torch.nn.functional.relu, "swish": swish}
 
 
 try:
-    from apex.normalization.fused_layer_norm import FusedLayerNorm as MockingjayLayerNorm
+    from apex.normalization.fused_layer_norm import FusedLayerNorm as TransformerLayerNorm
 except ImportError:
     print("Better speed can be achieved with apex installed from https://www.github.com/nvidia/apex .")
-    class MockingjayLayerNorm(nn.Module):
+    class TransformerLayerNorm(nn.Module):
         def __init__(self, hidden_size, eps=1e-12):
             """Construct a layernorm module in the TF style (epsilon inside the square root).
             """
-            super(MockingjayLayerNorm, self).__init__()
+            super(TransformerLayerNorm, self).__init__()
             self.weight = nn.Parameter(torch.ones(hidden_size))
             self.bias = nn.Parameter(torch.zeros(hidden_size))
             self.variance_epsilon = eps
@@ -97,17 +97,17 @@ except ImportError:
             return self.weight * x + self.bias
 
 
-class MockingjayInputRepresentations(nn.Module):
+class TransformerInputRepresentations(nn.Module):
     """Construct the input representation from spectrogram, and position encodings.
     """
     def __init__(self, config, input_dim):
-        super(MockingjayInputRepresentations, self).__init__()
+        super(TransformerInputRepresentations, self).__init__()
         self.hidden_size = config.hidden_size
         self.spec_transform = nn.Linear(input_dim * config.downsample_rate, config.hidden_size)
 
         # self.LayerNorm is not snake-cased to stick with TensorFlow model variable name and be able to load
         # any TensorFlow checkpoint file
-        self.LayerNorm = MockingjayLayerNorm(config.hidden_size, eps=config.layer_norm_eps)
+        self.LayerNorm = TransformerLayerNorm(config.hidden_size, eps=config.layer_norm_eps)
         self.dropout = nn.Dropout(config.hidden_dropout_prob)
 
     def forward(self, spec, pos_enc):
@@ -119,9 +119,9 @@ class MockingjayInputRepresentations(nn.Module):
         return input_representations
 
 
-class MockingjaySelfAttention(nn.Module):
+class TransformerSelfAttention(nn.Module):
     def __init__(self, config, output_attentions=False, keep_multihead_output=False):
-        super(MockingjaySelfAttention, self).__init__()
+        super(TransformerSelfAttention, self).__init__()
         if config.hidden_size % config.num_attention_heads != 0:
             raise ValueError(
                 "The hidden size (%d) is not a multiple of the number of attention "
@@ -159,7 +159,7 @@ class MockingjaySelfAttention(nn.Module):
         # Take the dot product between "query" and "key" to get the raw attention scores.
         attention_scores = torch.matmul(query_layer, key_layer.transpose(-1, -2))
         attention_scores = attention_scores / math.sqrt(self.attention_head_size)
-        # Apply the attention mask is (precomputed for all layers in MockingjayModel forward() function)
+        # Apply the attention mask is (precomputed for all layers in TransformerModel forward() function)
         attention_scores = attention_scores + attention_mask
         # attention_scores: (batch_size, head_num, seqlen, seqlen)
 
@@ -188,11 +188,11 @@ class MockingjaySelfAttention(nn.Module):
         return context_layer
 
 
-class MockingjaySelfOutput(nn.Module):
+class TransformerSelfOutput(nn.Module):
     def __init__(self, config):
-        super(MockingjaySelfOutput, self).__init__()
+        super(TransformerSelfOutput, self).__init__()
         self.dense = nn.Linear(config.hidden_size, config.hidden_size)
-        self.LayerNorm = MockingjayLayerNorm(config.hidden_size, eps=config.layer_norm_eps)
+        self.LayerNorm = TransformerLayerNorm(config.hidden_size, eps=config.layer_norm_eps)
         self.dropout = nn.Dropout(config.hidden_dropout_prob)
 
     def forward(self, hidden_states, input_tensor):
@@ -202,13 +202,13 @@ class MockingjaySelfOutput(nn.Module):
         return hidden_states
 
 
-class MockingjayAttention(nn.Module):
+class TransformerAttention(nn.Module):
     def __init__(self, config, output_attentions=False, keep_multihead_output=False):
-        super(MockingjayAttention, self).__init__()
+        super(TransformerAttention, self).__init__()
         self.output_attentions = output_attentions
-        self.self = MockingjaySelfAttention(config, output_attentions=output_attentions,
+        self.self = TransformerSelfAttention(config, output_attentions=output_attentions,
                                               keep_multihead_output=keep_multihead_output)
-        self.output = MockingjaySelfOutput(config)
+        self.output = TransformerSelfOutput(config)
 
     def prune_heads(self, heads):
         if len(heads) == 0:
@@ -237,9 +237,9 @@ class MockingjayAttention(nn.Module):
         return attention_output
 
 
-class MockingjayIntermediate(nn.Module):
+class TransformerIntermediate(nn.Module):
     def __init__(self, config):
-        super(MockingjayIntermediate, self).__init__()
+        super(TransformerIntermediate, self).__init__()
         self.dense = nn.Linear(config.hidden_size, config.intermediate_size)
         if isinstance(config.hidden_act, str) or (sys.version_info[0] == 2 and isinstance(config.hidden_act, unicode)):
             self.intermediate_act_fn = ACT2FN[config.hidden_act]
@@ -252,11 +252,11 @@ class MockingjayIntermediate(nn.Module):
         return hidden_states
 
 
-class MockingjayOutput(nn.Module):
+class TransformerOutput(nn.Module):
     def __init__(self, config):
-        super(MockingjayOutput, self).__init__()
+        super(TransformerOutput, self).__init__()
         self.dense = nn.Linear(config.intermediate_size, config.hidden_size)
-        self.LayerNorm = MockingjayLayerNorm(config.hidden_size, eps=config.layer_norm_eps)
+        self.LayerNorm = TransformerLayerNorm(config.hidden_size, eps=config.layer_norm_eps)
         self.dropout = nn.Dropout(config.hidden_dropout_prob)
 
     def forward(self, hidden_states, input_tensor):
@@ -266,14 +266,14 @@ class MockingjayOutput(nn.Module):
         return hidden_states
 
 
-class MockingjayLayer(nn.Module):
+class TransformerLayer(nn.Module):
     def __init__(self, config, output_attentions=False, keep_multihead_output=False):
-        super(MockingjayLayer, self).__init__()
+        super(TransformerLayer, self).__init__()
         self.output_attentions = output_attentions
-        self.attention = MockingjayAttention(config, output_attentions=output_attentions,
+        self.attention = TransformerAttention(config, output_attentions=output_attentions,
                                                keep_multihead_output=keep_multihead_output)
-        self.intermediate = MockingjayIntermediate(config)
-        self.output = MockingjayOutput(config)
+        self.intermediate = TransformerIntermediate(config)
+        self.output = TransformerOutput(config)
 
     def forward(self, hidden_states, attention_mask, head_mask=None):
         attention_output = self.attention(hidden_states, attention_mask, head_mask)
@@ -286,11 +286,11 @@ class MockingjayLayer(nn.Module):
         return layer_output
 
 
-class MockingjayEncoder(nn.Module):
+class TransformerEncoder(nn.Module):
     def __init__(self, config, output_attentions=False, keep_multihead_output=False):
-        super(MockingjayEncoder, self).__init__()
+        super(TransformerEncoder, self).__init__()
         self.output_attentions = output_attentions
-        layer = MockingjayLayer(config, output_attentions=output_attentions,
+        layer = TransformerLayer(config, output_attentions=output_attentions,
                                   keep_multihead_output=keep_multihead_output)
         self.layer = nn.ModuleList([copy.deepcopy(layer) for _ in range(config.num_hidden_layers)])
 
@@ -311,16 +311,16 @@ class MockingjayEncoder(nn.Module):
         return all_encoder_layers
 
 
-class MockingjaySpecPredictionHead(nn.Module):
+class TransformerSpecPredictionHead(nn.Module):
     def __init__(self, config, output_dim):
-        super(MockingjaySpecPredictionHead, self).__init__()
+        super(TransformerSpecPredictionHead, self).__init__()
         self.output_dim = output_dim
         self.dense = nn.Linear(config.hidden_size, config.hidden_size)
         if isinstance(config.hidden_act, str) or (sys.version_info[0] == 2 and isinstance(config.hidden_act, unicode)):
             self.transform_act_fn = ACT2FN[config.hidden_act]
         else:
             self.transform_act_fn = config.hidden_act
-        self.LayerNorm = MockingjayLayerNorm(config.hidden_size, eps=config.layer_norm_eps)
+        self.LayerNorm = TransformerLayerNorm(config.hidden_size, eps=config.layer_norm_eps)
         self.output = nn.Linear(config.hidden_size, self.output_dim * config.downsample_rate)
 
     def forward(self, hidden_states):
@@ -331,32 +331,32 @@ class MockingjaySpecPredictionHead(nn.Module):
         return linear_output, hidden_states
 
 
-class MockingjayInitModel(nn.Module):
+class TransformerInitModel(nn.Module):
     """ An abstract class to handle weights initialization."""
     def __init__(self, config, output_attentions, *inputs, **kwargs):
-        super(MockingjayInitModel, self).__init__()
+        super(TransformerInitModel, self).__init__()
         self.config = config
         self.output_attentions = output_attentions
 
-    def init_Mockingjay_weights(self, module):
+    def init_Transformer_weights(self, module):
         """ Initialize the weights.
         """
         if isinstance(module, (nn.Linear, nn.Embedding)):
             # Slightly different from the TF version which uses truncated_normal for initialization
             # cf https://github.com/pytorch/pytorch/pull/5617
             module.weight.data.normal_(mean=0.0, std=self.config.initializer_range)
-        elif isinstance(module, MockingjayLayerNorm):
+        elif isinstance(module, TransformerLayerNorm):
             module.bias.data.zero_()
             module.weight.data.fill_(1.0)
         if isinstance(module, nn.Linear) and module.bias is not None:
             module.bias.data.zero_()
 
 
-class MockingjayModel(MockingjayInitModel):
-    """Mockingjay model ("Bidirectional Embedding Representations from a Transformer").
+class TransformerModel(TransformerInitModel):
+    """Transformer model ("Bidirectional Embedding Representations from a Transformer").
 
     Params:
-        `config`: a MockingjayConfig class instance with the configuration to build a new model
+        `config`: a TransformerConfig class instance with the configuration to build a new model
         `intput_dim`: int,  input dimension of model    
         `output_attentions`: If True, also output attentions weights computed by the model at each layer. Default: False
         `keep_multihead_output`: If True, saves output of the multi-head attention module with its gradient.
@@ -391,19 +391,19 @@ class MockingjayModel(MockingjayInitModel):
     spec_input = torch.LongTensor(spec_frames)
     pos_enc = torch.LongTensor(position_encoding(seq_len=len(spec_frames)))
 
-    config = MockingjayConfig(hidden_size=768,
+    config = TransformerConfig(hidden_size=768,
              num_hidden_layers=12, num_attention_heads=12, intermediate_size=3072)
 
-    model = MockingjayForMaskedLM(config)
+    model = TransformerForMaskedLM(config)
     masked_spec_logits = model(spec_input, pos_enc)
     ```
     """
     def __init__(self, config, input_dim, output_attentions=False, keep_multihead_output=False):
-        super(MockingjayModel, self).__init__(config, output_attentions)
-        self.input_representations = MockingjayInputRepresentations(config, input_dim)
-        self.encoder = MockingjayEncoder(config, output_attentions=output_attentions,
+        super(TransformerModel, self).__init__(config, output_attentions)
+        self.input_representations = TransformerInputRepresentations(config, input_dim)
+        self.encoder = TransformerEncoder(config, output_attentions=output_attentions,
                                            keep_multihead_output=keep_multihead_output)
-        self.apply(self.init_Mockingjay_weights)
+        self.apply(self.init_Transformer_weights)
 
     def prune_heads(self, heads_to_prune):
         """ Prunes heads of the model.
@@ -466,12 +466,12 @@ class MockingjayModel(MockingjayInitModel):
         return encoded_layers
 
 
-class MockingjayForMaskedAcousticModel(MockingjayInitModel):
-    """Mockingjay model with the masked acoustic modeling head.
-    This module comprises the Mockingjay model followed by the masked acoustic modeling head.
+class TransformerForMaskedAcousticModel(TransformerInitModel):
+    """Transformer model with the masked acoustic modeling head.
+    This module comprises the Transformer model followed by the masked acoustic modeling head.
 
     Params:
-        `config`: a MockingjayConfig class instance with the configuration to build a new model
+        `config`: a TransformerConfig class instance with the configuration to build a new model
         `intput_dim`: int,  input dimension of model
         `output_dim`: int,  output dimension of model
         `output_attentions`: If True, also output attentions weights computed by the model at each layer. Default: False
@@ -507,23 +507,23 @@ class MockingjayForMaskedAcousticModel(MockingjayInitModel):
     spec_input = torch.LongTensor(spec_frames)
     pos_enc = torch.LongTensor(position_encoding(seq_len=len(spec_frames)))
 
-    config = MockingjayConfig(hidden_size=768,
+    config = TransformerConfig(hidden_size=768,
              num_hidden_layers=12, num_attention_heads=12, intermediate_size=3072)
 
-    model = MockingjayForMaskedLM(config)
+    model = TransformerForMaskedLM(config)
     masked_spec_logits = model(spec_input, pos_enc)
     ```
     """
     def __init__(self, config, input_dim, output_dim, output_attentions=False, keep_multihead_output=False):
-        super(MockingjayForMaskedAcousticModel, self).__init__(config, output_attentions)
-        self.Mockingjay = MockingjayModel(config, input_dim, output_attentions=output_attentions,
+        super(TransformerForMaskedAcousticModel, self).__init__(config, output_attentions)
+        self.Transformer = TransformerModel(config, input_dim, output_attentions=output_attentions,
                                       keep_multihead_output=keep_multihead_output)
-        self.SpecHead = MockingjaySpecPredictionHead(config, output_dim if output_dim is not None else input_dim)
-        self.apply(self.init_Mockingjay_weights)
+        self.SpecHead = TransformerSpecPredictionHead(config, output_dim if output_dim is not None else input_dim)
+        self.apply(self.init_Transformer_weights)
         self.loss = nn.L1Loss() 
 
     def forward(self, spec_input, pos_enc, mask_label=None, attention_mask=None, spec_label=None, head_mask=None):
-        outputs = self.Mockingjay(spec_input, pos_enc, attention_mask,
+        outputs = self.Transformer(spec_input, pos_enc, attention_mask,
                             output_all_encoded_layers=False,
                             head_mask=head_mask)
         if self.output_attentions:

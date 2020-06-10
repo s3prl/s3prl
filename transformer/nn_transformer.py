@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*- #
 """*********************************************************************************************"""
-#   FileName     [ mockingjay/nn_mockingjay.py ]
+#   FileName     [ transformer/nn_transformer.py ]
 #   Synopsis     [ wrapper class for downstream feature extraction or finetune ]
 #   Author       [ Andy T. Liu (Andi611) ]
 #   Copyright    [ Copyleft(c), Speech Lab, NTU, Taiwan ]
@@ -16,15 +16,15 @@ import numpy as np
 import torch.nn as nn
 from functools import lru_cache
 from distutils.util import strtobool
-from mockingjay.model import MockingjayConfig, MockingjayModel
+from transformer.model import TransformerConfig, TransformerModel
 
 
-##############
-# MOCKINGJAY #
-##############
+###############
+# TRANSFORMER #
+###############
 """
-Use this class to extract features from the Mockingjay model,
-or to finetune the pre-trained Mockingjay with any downstream tasks.
+Use this class to extract features from the Transformer model,
+or to finetune the pre-trained Transformer with any downstream tasks.
 Also, this class is `pytorch-kaldi` ready,
 hence we need to use `str` instead of `bool` in the options dict,
 as pytorch-kaldi scripts will pass in str.
@@ -43,7 +43,7 @@ Params:
 
 An example `options` dictionary:
 options = {
-    'ckpt_file'     : './result/result_mockingjay/libri_sd1337_fmllrBase960-F-N-K-RA/model-1000000.ckpt',
+    'ckpt_file'     : './result/result_model/libri_sd1337_fmllrBase960-F-N-K-RA/model-1000000.ckpt',
     'load_pretrain' : 'True',
     'no_grad'       : 'True',
     'dropout'       : 'default',
@@ -53,9 +53,9 @@ options = {
     'select_layer'  : -1,
 }
 """
-class MOCKINGJAY(nn.Module):
+class TRANSFORMER(nn.Module):
     def __init__(self, options, inp_dim):
-        super(MOCKINGJAY, self).__init__()
+        super(TRANSFORMER, self).__init__()
         
         all_states = torch.load(options["ckpt_file"], map_location='cpu')
         self.config = all_states['Settings']['Config']
@@ -68,11 +68,11 @@ class MOCKINGJAY(nn.Module):
         
         # increase dropout
         if str(options['dropout']) != 'default':
-            self.config['mockingjay']['hidden_dropout_prob'] = float(options['dropout'])
-            self.config['mockingjay']['attention_probs_dropout_prob'] = float(options['dropout'])
+            self.config['transformer']['hidden_dropout_prob'] = float(options['dropout'])
+            self.config['transformer']['attention_probs_dropout_prob'] = float(options['dropout'])
 
         # Model Config
-        self.model_config = MockingjayConfig(self.config)
+        self.model_config = TransformerConfig(self.config)
         self.dr = self.model_config.downsample_rate
         self.hidden_size = self.model_config.hidden_size
         self.num_layers = self.model_config.num_hidden_layers
@@ -84,14 +84,14 @@ class MOCKINGJAY(nn.Module):
 
         # Build model
         self.device = torch.device('cuda') if torch.cuda.is_available() else torch.device('cpu')
-        self.model = MockingjayModel(self.model_config, inp_dim).to(self.device)
+        self.model = TransformerModel(self.model_config, inp_dim).to(self.device)
         self.model.eval() if self.no_grad else self.model.train()
         
         # Load from a PyTorch state_dict
         load = bool(strtobool(options["load_pretrain"]))
         if load: 
-            self.load_model(all_states['Mockingjay'])
-            print('[Mockingjay] - Number of parameters: ' + str(sum(p.numel() for p in self.model.parameters() if p.requires_grad)))
+            self.load_model(all_states['Transformer'])
+            print('[Transformer] - Number of parameters: ' + str(sum(p.numel() for p in self.model.parameters() if p.requires_grad)))
         
         self.out_dim = self.hidden_size # 768, This attribute is for pytorch-kaldi
 
@@ -139,9 +139,9 @@ class MOCKINGJAY(nn.Module):
             if len(error_msgs) > 0:
                 raise RuntimeError('Error(s) in loading state_dict for {}:\n\t{}'.format(
                                     self.model.__class__.__name__, '\n\t'.join(error_msgs)))
-            print('[Mockingjay] - Pre-trained weights loaded!')
+            print('[Transformer] - Pre-trained weights loaded!')
 
-        except: print('[Mockingjay] - Pre-trained weights NOT loaded!')
+        except: print('[Transformer] - Pre-trained weights NOT loaded!')
 
 
     def down_sample_frames(self, spec):
@@ -189,7 +189,7 @@ class MOCKINGJAY(nn.Module):
 
     def tile_representations(self, reps):
         """ 
-        Tile up the mockingjay representations to match the amount of input frames.
+        Tile up the speech representations to match the amount of input frames.
         Input - encoded_layers shape: (batch_size, sequence_length, hidden_size)
         Output - tiled_encoded_layers shape: (batch_size, sequence_length * downsample_rate, hidden_size)
         """
@@ -308,7 +308,7 @@ Output:
 def spec_augment(spec, mask_T=70, mask_F=4, num_T=2, num_F=2, p=1.0):
 
     def _start_to_intervals(starts, consecutive):
-        tiled = starts.expand(consecutive, starts.size(0)).T
+        tiled = starts.expand(consecutive, starts.size(0)).permute(1, 0)
         offset = torch.arange(consecutive).expand_as(tiled)
         intervals = tiled + offset
         return intervals.view(-1)
