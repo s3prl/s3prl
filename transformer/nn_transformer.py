@@ -43,7 +43,7 @@ Params:
 
 An example `options` dictionary:
 options = {
-    'ckpt_file'     : './result/result_model/libri_sd1337_fmllrBase960-F-N-K-RA/model-1000000.ckpt',
+    'ckpt_file'     : './result/result_transformer/libri_sd1337_fmllrBase960-F-N-K-RA/states-1000000.ckpt',
     'load_pretrain' : 'True',
     'no_grad'       : 'True',
     'dropout'       : 'default',

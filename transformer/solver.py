@@ -157,7 +157,7 @@ class Solver():
             self.load_model(inference=inference, with_head=with_head, from_path=from_path)
 
 
-    def save_model(self, name='model', model_all=True, to_path=None):
+    def save_model(self, name='states', model_all=True, to_path=None):
         if model_all:
             all_states = {
                 'SpecHead': self.model.SpecHead.state_dict() if not self.paras.multi_gpu else self.model.module.SpecHead.state_dict(),
@@ -438,7 +438,7 @@ class Trainer(Solver):
                             progress.set_description("Loss %.4f" % (loss.item() * self.gradient_accumulation_steps))
 
                         if self.global_step % self.save_step == 0:
-                            self.save_model('model')
+                            self.save_model('states')
                             mask_spec = self.up_sample_frames(spec_masked[0], return_first=True)
                             pred_spec = self.up_sample_frames(pred_spec[0], return_first=True)
                             true_spec = self.up_sample_frames(spec_stacked[0], return_first=True)

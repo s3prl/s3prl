@@ -135,7 +135,8 @@ print('[Fixer] - Model weight equivalent before weight transfer: ', check_model_
 print('[Fixer] - Transformer weight equivalent after weight transfer: ', check_model_equiv(t_trainer.transformer, m_trainer.mockingjay))
 
 os.remove(input_ckpt)
-if '/mockingjay-' in input_ckpt: input_ckpt = input_ckpt.replace('/mockingjay-', '/model-')
+if '/mockingjay-' in input_ckpt: input_ckpt = input_ckpt.replace('/mockingjay-', '/states-')
+if '/model-' in input_ckpt: input_ckpt = input_ckpt.replace('/model-', '/states-')
 t_trainer.save_model(to_path=input_ckpt)
 print('Done fixing ckpt: ', input_ckpt)
 exit()
