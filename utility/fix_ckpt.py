@@ -128,8 +128,7 @@ if check1 or check2:
     print('[Fixer] - Aborting, model weights are alreday identical...')
     exit()
 
-t_trainer.model = m_trainer.model
-t_trainer.transformer = m_trainer.mockingjay
+t_trainer.model.load_state_dict(m_trainer.model.state_dict())
 t_trainer.optimizer = m_trainer.optimizer
 t_trainer.global_step = m_trainer.global_step
 t_trainer.paras.verbose = True
