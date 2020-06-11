@@ -1,0 +1,125 @@
+transformer:
+  input_dim: 40                                         # `int`, 39 for mfcc, 40 for fmllr, 80 for fbank, 160 for mel
+  downsample_rate: 1                                    # stacked consecutive features vectors to reduce the length of input sequences by this factor.
+  hidden_size: 768                                      # Size of the encoder layers and the pooler layer.
+  num_hidden_layers: 3                                  # Number of hidden layers in the Transformer encoder.
+  num_attention_heads: 12                               # Number of attention heads for each attention layer in the Transformer encoder.
+  intermediate_size: 3072                               # The size of the "intermediate" (i.e., feed-forward) layer in the Transformer encoder.
+  hidden_act: "gelu"                                    # The non-linear activation function (function or string) in the encoder and pooler. If string, "gelu", "relu" and "swish" are supported.
+  hidden_dropout_prob: 0.1                              # The dropout probabilitiy for all fully connected layers in the embeddings, encoder, and pooler.
+  attention_probs_dropout_prob: 0.1                     # The dropout ratio for the attention probabilities.
+  initializer_range: 0.02                               # The sttdev of the truncated_normal_initializer for initializing all weight matrices.
+  layer_norm_eps: "1e-12"                               # The epsilon used by LayerNorm.
+  mask_proportion: 0.15                                 # mask this percentage of all spectrogram frames in each sequence at random during MAM training                        
+  mask_consecutive_min: 7                               # mask this amount of consecutive frames
+  mask_consecutive_max: 7                               # mask this amount of consecutive frames
+  mask_allow_overlap: True                              # allow overlap masking
+  mask_bucket_ratio: 1.2                                # only used when overlap is not allowed. sample a mask from each bucket in size of [sampled mask_consecutive * mask_bucket_ratio]
+  mask_frequency: 8                                     # mask maximum this amount of frequency bands, set to 0 for no frequency mask
+  noise_proportion: 0.15                                # for this percentage of the time, Gaussian noise will be applied on all frames during MAM training, set to 0 for no noise
+  prune_headids: None                                   # Usage: 0,1,2,12-15 will prune headids [0,1,2,12,13,14]. headids = layerid * head_num + headid_in_layer
+
+
+optimizer: 
+  learning_rate: "2e-4"                                 # Learning rate for opt. "4e-4" for 'data/libri_mel160_subword5000', "2e-4" for 'data/libri_fmllr_cmvn'
+  loss_scale: 0                                         # Loss scale to improve fp16 numeric stability. Only used when apex is set to True. 0: dynamic loss scaling. positive power of 2: static loss scaling.
+  warmup_proportion: 0.07                               # Proportion of training to perform linear rate warmup.
+  gradient_accumulation_steps: 1                        # Number of updates steps to accumulate before performing a backward/update pass
+  gradient_clipping: 1.0                                # Maximum gradient norm
+
+
+dataloader:
+  n_jobs: 12                                            # Subprocess used for torch Dataloader
+  batch_size: 12                                        # training batch size, 12 for pre-train, 6 for cpc exp
+  dev_batch_size: 12                                    # used for dev/test splits
+  max_timestep: 1500                                    # Max length for audio feature (0 for no restriction), 1500 for pre-train, 3000 for downstream tasks
+  max_label_len: 400                                    # Max length for output sequence (0 for no restriction)
+
+  # for sentiment
+  sentiment_config:
+    dataset: 'mosei'                                    # suppor datasets: 'mosi', 'mosei'
+    mosi:
+      path: 'data/mosi_mel160'
+      label_mode: 'positive_negative'                   # suppor modes: 'positive_negative', 'original', 'positive_negative', 'regression'
+      standard_split: False
+
+      # if standard_split is set to False
+      random_seed: 1122
+      train_ratio: 0.9
+    mosei:
+      path: 'data/mosei'
+      feature: 'mel160'
+      label_mode: 'positive_negative'                   # suppor modes: 'regression', 'original', 'positive_negative', 'regression'
+      standard_split: False
+
+      # if standard_split is set to False
+      random_seed: 29
+      split_by: 'unsegmented'                           # 'unsegmented' or 'segmented'
+      split_ratio: 0.9
+
+      max_time: 20                                      # unit: sec
+      min_time: 1                                       # unit: sec
+      truncate_length: 5000                             # unit: timestamp
+      sentiment_threshold: 0.1
+      sample_seed: 29
+
+
+  # LIBRISEECH SETTINGS
+  data_path: 'data/libri_fmllr_cmvn'                    # Source data path, 'data/libri_fmllr_cmvn', or 'data/libri_mfcc_cmvn', or 'data/libri_mel160_subword5000' for different preprocessing features
+  target_path: ''                                       # Target data path, not used when `duo_deature:False`. For reconstruction to a different feature type, for example set dataset to 'libri_linear1025_subword5000'.
+  phone_path: 'data/cpc_phone'                          # phone boundary label data path for the phone classification task. set to 'data/libri_phone' or 'data/cpc_phone'
+  train_set: ['train-clean-100']                        # ['train-clean-100', 'train-clean-360', 'train-other-500'] for pre-training. ['train-clean-360'] or ['train-clean-100'] for libri phone exp or cpc phone exp, respectively.
+  dev_set: ['dev-clean']                                #
+  test_set: ['test-clean']                              #
+  train_proportion: 1.0                                 # Currently only effect the `phone classification task`, use this percent of `train_set` for downstream task training to demonstrate mockingjay generality
+
+
+solver:
+  # Training options
+  apex: False                                           # Use APEX (see https://github.com/NVIDIA/apex for more details)
+  total_steps: 200000                                   # total steps for training, a step is a batch of update
+  log_step: 2500                                        # log training status every this amount of training steps
+  dev_step: 10000                                       #
+  duo_feature: False                                    # Use different input / output features during training
+
+  # models
+  load_model_list: ['SpecHead', 'Transformer']          # load the components in the list for test/eval
+  max_keep: 2                                           # maximum number of model ckpt to keep during training
+  save_step: 10000                                      # save model every this amount of training steps
+
+
+downstream:                                             # downstream model config
+  model_type: 'linear'                                  # support modes: ['linear', 'rnn'], use `linear` for frame-wise classification and `rnn` for utterance-wise classification (However they both supports linear / hidden classifiers)
+  
+  linear:
+    input_dim: 'None'                                   # `int`, else if set to None, input_dim will be set according to mockingjay settings or mel-preprocessing dimensions automatically
+    hidden_size: 768
+    drop: 0.0                                           # The dropout ratio, not used when `linear` is set to `True`.
+    select_hidden: 'last'                               # support modes: ['last', 'first', 'average', 'weighted_sum', 'weighted_sum_norm']
+    sequencial: False
+    linear: True                                        # whether to make the classifier linear
+    layers: 1                                           # number of layers in the classifier, set to 2 for 1 hidden layer
+    concat: 1                                           # `int`, must be an odd number. Concatenation of this amount of windows to match the average size of a phoneme. Set to 1 for no concatenation, set to 9 to concat 4 previous and 4 future frames.
+
+  rnn:
+    mode: 'classification'                              # support modes: 'classification' , 'regression'
+    input_dim: 'None'                                   # `int`, else if set to None, input_dim will be set according to mockingjay settings or mel-preprocessing dimensions automatically
+    select_hidden: 'last'                               # support modes: ['last', 'first', 'average', 'weighted_sum', 'weighted_sum_norm']
+    sample_rate: 1                                      # `int`, sample every this number of frames
+    pre_linear_dims: []
+    hidden_size: 0                                      # size of hidden layer, set to 0 for no rnn and we average over time
+    post_linear_dims: []
+    drop: 0.0                                           # The dropout ratio, not used when `pre_linear_dims: []` and `hidden_size: 0` and `post_linear_dims: []`, since the model is a linear utterance-wise classifier
+
+
+  # Training options
+  learning_rate: "4e-3"                                 # Learning rate for opt: ['4e-3' for fine-tune, '4e-3' for regualr downstream task training]
+  total_steps: 500000                                   # total steps for training, a step is a batch of update: [29078 for fine-tune, 500000 for regualr downstream task training ]
+  log_step: 1000                                        # log training status every this amount of training steps
+  dev_step: 10000                                       # [58156 for fine-tune, 10000 for regualr downstream task training ]
+  evaluation: 'test'                                    # can be 'dev' or 'test', show inference results right after saving model
+  
+  # models
+  load_model_list: ['Classifier']                       # load the components in the list for test/eval
+  max_keep: 2                                           # maximum number of model ckpt to keep during training
+  save_step: 2000                                       # save model every this amount of training steps
