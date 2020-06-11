@@ -30,7 +30,7 @@ torch.manual_seed(seed)
 ########
 utt = 'train-clean-100/1594-135914-0032.npy'
 fmllr_dir = '../data/libri_fmllr_cmvn'
-out_dir = '../visualization/'
+out_dir = '../paper/visualization/'
 
 
 def plot_x(x, name='x', xlabel='Frames'):
