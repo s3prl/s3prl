@@ -11,15 +11,15 @@
 # IMPORTATION #
 ###############
 import torch
-from mockingjay.nn_mockingjay import MOCKINGJAY
+from transformer.nn_transformer import TRANSFORMER
 from downstream.model import example_classifier
-from downstream.solver import get_mockingjay_optimizer
+from downstream.solver import get_optimizer
 
 ################
 # EXAMPLE CODE #
 ################
 
-# setup the mockingjay model
+# setup the transformer model
 """
 `options`: a python dictionary containing the following keys:
     ckpt_file: str, a path specifying the pre-trained ckpt file
@@ -32,7 +32,7 @@ from downstream.solver import get_mockingjay_optimizer
     select_layer: int, select from all hidden representations, set to -1 to select the last (will only be used when weighted_sum is False)
 """
 options = {
-    'ckpt_file'     : './result/result_mockingjay/libri_sd1337_fmllrBase960-F-N-K-RA/model-1000000.ckpt',
+    'ckpt_file'     : './result/result_transformer/tera/fmllrBase960-F-N-K-libri/states-1000000.ckpt',
     'load_pretrain' : 'True',
     'no_grad'       : 'True',
     'dropout'       : 'default',
@@ -41,18 +41,18 @@ options = {
     'weighted_sum'  : 'False',
     'select_layer'  : -1,
 }
-mockingjay = MOCKINGJAY(options=options, inp_dim=160)
+transformer = TRANSFORMER(options=options, inp_dim=40)
 
 # setup your downstream class model
 classifier = example_classifier(input_dim=768, hidden_dim=128, class_num=2).cuda()
 
-# construct the Mockingjay optimizer
-params = list(mockingjay.named_parameters()) + list(classifier.named_parameters())
-optimizer = get_mockingjay_optimizer(params=params, lr=4e-3, warmup_proportion=0.7, training_steps=50000)
+# construct the optimizer
+params = list(transformer.named_parameters()) + list(classifier.named_parameters())
+optimizer = get_optimizer(params=params, lr=4e-3, warmup_proportion=0.7, training_steps=50000)
 
 # forward
-example_inputs = torch.zeros(1200, 3, 160) # A batch of spectrograms: (time_step, batch_size, dimension)
-reps = mockingjay(example_inputs) # returns: (time_step, batch_size, hidden_size)
+example_inputs = torch.zeros(1200, 3, 40) # A batch of spectrograms: (time_step, batch_size, dimension)
+reps = transformer(example_inputs) # returns: (time_step, batch_size, hidden_size)
 reps = reps.permute(1, 0, 2) # change to: (batch_size, time_step, feature_size)
 labels = torch.LongTensor([0, 1, 0]).cuda()
 loss = classifier(reps, labels)
@@ -63,5 +63,5 @@ optimizer.step()
 
 # save
 PATH_TO_SAVE_YOUR_MODEL = 'example.ckpt'
-states = {'Classifier': classifier.state_dict(), 'Mockingjay': mockingjay.model.state_dict()}
-torch.save(states, PATH_TO_SAVE_YOUR_MODEL)
+states = {'Classifier': classifier.state_dict(), 'Transformer': transformer.model.state_dict()}
+# torch.save(states, PATH_TO_SAVE_YOUR_MODEL)
