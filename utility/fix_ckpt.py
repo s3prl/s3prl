@@ -10,10 +10,11 @@
 """
 Usage:
 This .py helps fix the old checkpoint name issue.
+Make sure you understand exactly what this script does before proceeding.
 1) First create a dummy directory called "utils/"
 2) Copy utility/timer.py to utils/timer.py
 3) Download the old "mockingjay/" directory from github history: https://github.com/andi611/Self-Supervised-Speech-Pretraining-and-Representation-Learning/tree/f87fe59ad08eb399006fcba4f2ecc0bb72f9781f
-4) Copy transformer/mam.py to utils/mam.py
+4) Copy transformer/mam.py to utilty/mam.py
 5) Run this script to fix the old checkpoint files.
 """
 
@@ -101,6 +102,7 @@ except:
     print('[Fixer] - Aborting, failed to set model with transformer trainer...')
     exit()
 
+print('[Fixer] - Warning! Make sure the above model is loaded!')
 while True:
     proceed = str(input('Do you want to proceed? [y/n]: '))
     if proceed == 'n': exit()
