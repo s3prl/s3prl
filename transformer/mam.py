@@ -89,7 +89,7 @@ def process_train_MAM_data(spec, config=None):
     mask_bucket_ratio = config['mask_bucket_ratio'] if config is not None else MASK_BUCKET_RATIO
     mask_frequency = config['mask_frequency'] if config is not None else MASK_FREQUENCY
     noise_proportion = config['noise_proportion'] if config is not None else NOISE_PROPORTION
-    test_reconstruct = config['test_reconstruct'] if config is not None else False  # This options is automatically handled by argparser in runner
+    test_reconstruct = False
 
     with torch.no_grad():
         if len(spec) == 2: # if self.duo_feature: dataloader will output `source_spec` and `target_spec`
