@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*- #
 """*********************************************************************************************"""
-#   FileName     [ runner_apc.py ]
-#   Synopsis     [ runner for the apc model ]
+#   FileName     [ rnn/runner_apc.py ]
+#   Synopsis     [ run train / test for the apc model ]
 #   Author       [ Andy T. Liu (Andi611) ]
 #   Copyright    [ Copyleft(c), Speech Lab, NTU, Taiwan ]
 """*********************************************************************************************"""
@@ -15,13 +15,13 @@ import torch
 import random
 import argparse
 import numpy as np
-from apc.solver import Solver
+from rnn.solver import Solver
 
 
 ######################
 # APC CONFIGURATIONS #
 ######################
-def get_apc_args():
+def get_runner_args():
     
     parser = argparse.ArgumentParser(description='Argument Parser for the apc model.')
     
@@ -47,7 +47,7 @@ class get_apc_config():
 
         # RNN architecture
         self.rnn_num_layers = 3 # Number of RNN layers in the APC model
-        self.rnn_hidden_size = 768 # Number of hidden units in each RNN layer, set identical to mockingjay `hidden_size`
+        self.rnn_hidden_size = 512 # Number of hidden units in each RNN layer, set identical to mockingjay `hidden_size`
         self.rnn_dropout = 0.1 # Dropout for each RNN output layer except the last one
         self.rnn_residual = True # Apply residual connections between RNN layers if specified
 
@@ -58,20 +58,20 @@ class get_apc_config():
         self.total_steps = 500000 # Number of training steps
         self.time_shift = 3 # Given f_{t}, predict f_{t + n}, where n is the time_shift, , sweet spot == 3 as reported in the paper
         self.clip_thresh = 1.0 # Threshold for clipping the gradients
-        self.log_step = 50 # Log training every this amount of training steps
-        self.max_keep = 20 # Maximum number of model ckpt to keep during training
+        self.log_step = 2500 # Log training every this amount of training steps
+        self.max_keep = 2 # Maximum number of model ckpt to keep during training
         self.save_step = 10000 # Save model every this amount of training steps
 
         # Misc configurations
-        self.feature_dim = 160 # The dimension of the input frame
-        self.load_data_workers = 16 # Number of parallel data loaders
+        self.feature_dim = 80 # The dimension of the input frame
+        self.load_data_workers = 8 # Number of parallel data loaders
         self.experiment_name = 'apc_libri_sd' + str(seed) # Name of this experiment
         self.log_path = './log/log_apc/' # Where to save the logs
         self.result_path = './result/result_apc/' # Where to save the trained models
 
         # Data path configurations
-        self.data_path = 'data/libri_mel160_subword5000' # Path to the preprocessed librispeech directory 
-        self.train_set = ['train-clean-360'] 
+        self.data_path = 'data/libri_fbank_cmvn' # Path to the preprocessed librispeech directory 
+        self.train_set = ['train-clean-100'] 
         self.dev_set = ['dev-clean'] 
         self.test_set = ['test-clean']
 
@@ -101,7 +101,7 @@ def get_apc_model(path):
 ########
 def main():
     
-    args = get_apc_args()
+    args = get_runner_args()
 
     # Fix seed and make backends deterministic
     random.seed(args.seed)
@@ -125,4 +125,3 @@ def main():
 
 if __name__ == '__main__':
     main()
-

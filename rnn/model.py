@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*- #
 """*********************************************************************************************"""
-#   FileName     [ apc/model.py ]
-#   Synopsis     [ implementation of the apc model ]
+#   FileName     [ rnn/model.py ]
+#   Synopsis     [ implementation of the rnn models, for now including `apc` ]
 #   Author       [ Yu-An Chung ]
 #   Copyright    [ https://github.com/iamyuanchung/Autoregressive-Predictive-Coding ]
 #   Reference    [ https://arxiv.org/abs/1904.03240 ]

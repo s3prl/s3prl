@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*- #
 """*********************************************************************************************"""
-#   FileName     [ apc/solver.py ]
-#   Synopsis     [ training and testing of the apc model ]
+#   FileName     [ rnn/solver.py ]
+#   Synopsis     [ solver for performing pre-training and testing of rnn models ]
 #   Author       [ Andy T. Liu (Andi611) ]
 #   Copyright    [ Copyleft(c), Speech Lab, NTU, Taiwan ]
 #   Reference    [ Modified and rewrite based on: https://github.com/iamyuanchung/Autoregressive-Predictive-Coding ]
@@ -23,7 +23,7 @@ from torch.utils import data
 from torch.autograd import Variable
 from tensorboardX import SummaryWriter
 from dataloader import get_Dataloader
-from apc.model import APCModel
+from rnn.model import APCModel
 from utility.audio import plot_spectrogram_to_numpy
 
 
@@ -55,7 +55,7 @@ class Solver():
             self.verbose('Loading testing data ' + str(self.config.test_set) + ' from ' + self.config.data_path)
         else:
             raise NotImplementedError('Invalid `split` argument!')
-        setattr(self, 'dataloader', get_Dataloader(split, load='spec', data_path=self.config.data_path, 
+        setattr(self, 'dataloader', get_Dataloader(split, load='acoustic', data_path=self.config.data_path, 
                                                    batch_size=self.config.batch_size, 
                                                    max_timestep=3000, max_label_len=400, 
                                                    use_gpu=True, n_jobs=self.config.load_data_workers, 
@@ -222,4 +222,3 @@ class Solver():
             return feats[-1, :, :, :] # (batch_size, seq_len, rnn_hidden_size)
         else:
             return feats.permute(1, 0, 2, 3).contiguous() # (batch_size, num_layers, seq_len, rnn_hidden_size)
-
