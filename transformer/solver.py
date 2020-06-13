@@ -40,6 +40,7 @@ class Solver():
         self.config = config
         self.paras = paras
         self.transformer_config = config['transformer']
+        self.elcetra_config = config['electra']
         self.device = torch.device('cuda') if (self.paras.gpu and torch.cuda.is_available()) else torch.device('cpu')
         if torch.cuda.is_available(): self.verbose('CUDA is available!')
 
@@ -99,13 +100,36 @@ class Solver():
         self.output_attention = output_attention
         
         if not inference or with_head:
-            self.model = TransformerForMaskedAcousticModel(self.model_config, self.input_dim, self.output_dim, self.output_attention).to(self.device)
-            self.transformer = self.model.Transformer
-            if self.paras.multi_gpu:
-                self.model = torch.nn.DataParallel(self.model)
-                self.transformer = torch.nn.DataParallel(self.transformer)
-                self.verbose('Multi-GPU training Enabled: ' + str(torch.cuda.device_count()))
-            self.verbose('Number of parameters: ' + str(sum(p.numel() for p in self.model.parameters() if p.requires_grad)))
+            # Initialize generator and discriminator for training
+            if self.electra['pretrain']:
+                # Define discriminator
+                discriminator_config = self.model_config
+                discriminator_config.num_hidden_layers = 12
+                self.discriminator = ElectraForPreTraining(discriminator_config, self.input_dim, 1, self.output_attention).to(self.device)
+                self.transformer = self.discriminator.Transformer
+
+                # Define generator
+                generator_config = self.model_config
+                generator_config.num_hidden_layers = 2
+                self.generator = TransformerForMaskedAcousticModel(generator_config, self.input_dim, self.output_dim, self.output_attention).to(self.device)
+                
+                if self.paras.multi_gpu:
+                    self.discriminator = torch.nn.DataParallel(self.discriminator)
+                    self.generator = torch.nn.DataParallel(self.generator)
+                    self.transformer = torch.nn.DataParallel(self.transformer)
+                    self.verbose('Multi-GPU training Enabled: ' + str(torch.cuda.device_count()))
+                self.verbose('Number of parameters in discriminator: ' + str(sum(p.numel() for p in self.discriminator.parameters() if p.requires_grad)))
+                self.verbose('Number of parameters in generator: ' + str(sum(p.numel() for p in self.generator.parameters() if p.requires_grad)))
+
+            # Original BERT (Mockingjay) training    
+            else:
+                self.model = TransformerForMaskedAcousticModel(self.model_config, self.input_dim, self.output_dim, self.output_attention).to(self.device)
+                self.transformer = self.model.Transformer
+                if self.paras.multi_gpu:
+                    self.model = torch.nn.DataParallel(self.model)
+                    self.transformer = torch.nn.DataParallel(self.transformer)
+                    self.verbose('Multi-GPU training Enabled: ' + str(torch.cuda.device_count()))
+                self.verbose('Number of parameters: ' + str(sum(p.numel() for p in self.model.parameters() if p.requires_grad)))
 
         if inference and not with_head:
             self.transformer = TransformerModel(self.model_config, self.input_dim, self.output_attention).to(self.device)
@@ -117,39 +141,92 @@ class Solver():
         elif inference and with_head:
             self.model.eval()
         elif not inference:
-            self.model.train()
+            if self.electra['pretrain']:
+                self.generator.train()
+                self.discriminator.train()
 
-            # Setup optimizer
-            param_optimizer = list(self.model.named_parameters())
+                # Setupt optimizer
+                D_param_optimizer = list(self.discriminator.named_parameters())
+                G_param_optimizer = list(self.generator.named_parameters())
 
-            no_decay = ['bias', 'LayerNorm.bias', 'LayerNorm.weight']
-            optimizer_grouped_parameters = [
-                {'params': [p for n, p in param_optimizer if not any(nd in n for nd in no_decay)], 'weight_decay': 0.01},
-                {'params': [p for n, p in param_optimizer if any(nd in n for nd in no_decay)], 'weight_decay': 0.0}
-                ]
+                no_decay = ['bias', 'LayerNorm.bias', 'LayerNorm.weight']
+                D_optimizer_grouped_parameters = [
+                    {'params': [p for n, p in D_param_optimizer if not any(nd in n for nd in no_decay)], 'weight_decay': 0.01},
+                    {'params': [p for n, p in D_param_optimizer if any(nd in n for nd in no_decay)], 'weight_decay': 0.0}
+                    ]
+                G_optimizer_grouped_parameters = [
+                    {'params': [p for n, p in G_param_optimizer if not any(nd in n for nd in no_decay)], 'weight_decay': 0.01},
+                    {'params': [p for n, p in G_param_optimizer if any(nd in n for nd in no_decay)], 'weight_decay': 0.0}
+                    ]     
 
-            if self.apex:
-                try:
-                    from apex.optimizers import FP16_Optimizer
-                    from apex.optimizers import FusedAdam
-                except ImportError:
-                    raise ImportError("Please install apex from https://www.github.com/nvidia/apex to use distributed and fp16 training.")
-
-                optimizer = FusedAdam(optimizer_grouped_parameters,
-                                      lr=self.learning_rate,
-                                      bias_correction=False,
-                                      max_grad_norm=1.0)
-                if self.config['optimizer']['loss_scale'] == 0:
-                    self.optimizer = FP16_Optimizer(optimizer, dynamic_loss_scale=True)
+                if self.apex:
+                    try:
+                        from apex.optimizers import FP16_Optimizer
+                        from apex.optimizers import FusedAdam
+                    except ImportError:
+                        raise ImportError("Please install apex from https://www.github.com/nvidia/apex to use distributed and fp16 training.")
+                    # TODO: D and G should have different learning rate? 
+                    D_optimizer = FusedAdam(D_optimizer_grouped_parameters,
+                                            lr=self.learning_rate,
+                                            bias_correction=False,
+                                            max_grad_norm=1.0)
+                    G_optimizer = FusedAdam(G_optimizer_grouped_parameters,
+                                            lr=self.learning_rate,
+                                            bias_correction=False,
+                                            max_grad_norm=1.0)                        
+                    if self.config['optimizer']['loss_scale'] == 0:
+                        self.D_optimizer = FP16_Optimizer(D_optimizer, dynamic_loss_scale=True)
+                        self.G_optimizer = FP16_Optimizer(G_optimizer, dynamic_loss_scale=True)
+                    else:
+                        self.D_optimizer = FP16_Optimizer(D_optimizer, static_loss_scale=self.config['optimizer']['loss_scale'])
+                        self.G_optimizer = FP16_Optimizer(G_optimizer, static_loss_scale=self.config['optimizer']['loss_scale'])
+                        self.warmup_linear = WarmupLinearSchedule(warmup=self.warmup_proportion,
+                                                              t_total=self.total_steps)
                 else:
-                    self.optimizer = FP16_Optimizer(optimizer, static_loss_scale=self.config['optimizer']['loss_scale'])
-                self.warmup_linear = WarmupLinearSchedule(warmup=self.warmup_proportion,
-                                                          t_total=self.total_steps)
+                    # TODO: D and G should have different learning rate?
+                    self.D_optimizer = BertAdam(D_optimizer_grouped_parameters,
+                                            lr=self.learning_rate,
+                                            warmup=self.warmup_proportion,
+                                            t_total=self.total_steps)  
+                    self.G_optimizer = BertAdam(G_optimizer_grouped_parameters,
+                                            lr=self.learning_rate,
+                                            warmup=self.warmup_proportion,
+                                            t_total=self.total_steps)                                            
+           
             else:
-                self.optimizer = BertAdam(optimizer_grouped_parameters,
-                                        lr=self.learning_rate,
-                                        warmup=self.warmup_proportion,
-                                        t_total=self.total_steps)
+                self.model.train()
+ 
+                # Setup optimizer
+                param_optimizer = list(self.model.named_parameters())
+    
+                no_decay = ['bias', 'LayerNorm.bias', 'LayerNorm.weight']
+                optimizer_grouped_parameters = [
+                    {'params': [p for n, p in param_optimizer if not any(nd in n for nd in no_decay)], 'weight_decay': 0.01},
+                    {'params': [p for n, p in param_optimizer if any(nd in n for nd in no_decay)], 'weight_decay': 0.0}
+                    ]
+
+                if self.apex:
+                    try:
+                        from apex.optimizers import FP16_Optimizer
+                        from apex.optimizers import FusedAdam
+                    except ImportError:
+                        raise ImportError("Please install apex from https://www.github.com/nvidia/apex to use distributed and fp16 training.")
+
+                    optimizer = FusedAdam(optimizer_grouped_parameters,
+                                          lr=self.learning_rate,
+                                          bias_correction=False,
+                                          max_grad_norm=1.0)
+                    if self.config['optimizer']['loss_scale'] == 0:
+                        self.optimizer = FP16_Optimizer(optimizer, dynamic_loss_scale=True)
+                    else:
+                        self.optimizer = FP16_Optimizer(optimizer, static_loss_scale=self.config['optimizer']['loss_scale'])
+                        self.warmup_linear = WarmupLinearSchedule(warmup=self.warmup_proportion,
+                                                              t_total=self.total_steps)
+                else:
+                    self.optimizer = BertAdam(optimizer_grouped_parameters,
+                                            lr=self.learning_rate,
+                                            warmup=self.warmup_proportion,
+                                            t_total=self.total_steps)
         else:
             raise NotImplementedError('Invalid Arguments!')
 
@@ -159,16 +236,31 @@ class Solver():
 
     def save_model(self, name='states', model_all=True, to_path=None):
         if model_all:
-            all_states = {
-                'SpecHead': self.model.SpecHead.state_dict() if not self.paras.multi_gpu else self.model.module.SpecHead.state_dict(),
-                'Transformer': self.transformer.state_dict() if not self.paras.multi_gpu else self.transformer.module.state_dict(),
-                'Optimizer': self.optimizer.state_dict(),
-                'Global_step': self.global_step,
-                'Settings': {
-                    'Config': self.config,
-                    'Paras': self.paras,
-                },
-            }
+            if self.electra['pretrain']:
+                all_states = {
+                    'SpecHead': self.generator.SpecHead.state_dict() if not self.paras.multi_gpu else self.model.module.SpecHead.state_dict(),
+                    'Generator_Transformer': self.generator.Transformer.state_dict() if not self.paras.multi_gpu else self.model.module.SpecHead.state_dict(),
+                    'Transformer': self.transformer.state_dict() if not self.paras.multi_gpu else self.transformer.module.state_dict(),
+                    'ClassifierHead': self.Discriminator.discriminator_predictions.state_dict() if not self.paras.multi_gpu else self.transformer.module.state_dict(),
+                    'D_Optimizer': self.D_optimizer.state_dict(),
+                    'G_Optimizer': self.G_optimizer.state_dict(),
+                    'Global_step': self.global_step,
+                    'Settings': {
+                        'Config': self.config,
+                        'Paras': self.paras,
+                    },
+                }
+            else:
+                all_states = {
+                    'SpecHead': self.model.SpecHead.state_dict() if not self.paras.multi_gpu else self.model.module.SpecHead.state_dict(),
+                    'Transformer': self.transformer.state_dict() if not self.paras.multi_gpu else self.transformer.module.state_dict(),
+                    'Optimizer': self.optimizer.state_dict(),
+                    'Global_step': self.global_step,
+                    'Settings': {
+                        'Config': self.config,
+                        'Paras': self.paras,
+                    },
+                }
         else:
             all_states = {
                 'Transformer': self.transformer.state_dict() if not self.paras.multi_gpu else self.transformer.module.state_dict(),

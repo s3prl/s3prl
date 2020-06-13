@@ -330,6 +330,20 @@ class TransformerSpecPredictionHead(nn.Module):
         linear_output = self.output(hidden_states)
         return linear_output, hidden_states
 
+class ElectraDiscriminatorPredictions(nn.Module):
+    def __init__(self, config):
+        super().__init__()
+        self.dense = nn.Linear(config.hidden_size, config.hidden_size)
+        self.dense_prediction = nn.Linear(config.hidden_size, 1)
+        self.config = config
+
+    def forward(self, discriminator_hidden_states, attention_mask):
+        hidden_states = self.dense(discriminator_hidden_states)
+        hidden_states = get_activation(self.config.hidden_act)(hidden_states)
+        logits = self.dense_prediction(hidden_states).squeeze()
+
+        return logits
+
 
 class TransformerInitModel(nn.Module):
     """ An abstract class to handle weights initialization."""
@@ -540,4 +554,40 @@ class TransformerForMaskedAcousticModel(TransformerInitModel):
             return all_attentions, pred_spec
         return pred_spec, pred_state
 
+class ElectraForPreTraining(TransformerInitModel):
+    """
+    This is the discriminator in the original ELECTRA paper. We will use the transformer model in this 
+    discriminator as the feature extractor after pretraining.
+    """
+    def __init__(self, config, input_dim, output_dim = 1, output_attentions=False, keep_multihead_output=False):
+        super(ElectraForPreTraining, self).__init__(config, output_attentions)
+        self.Transformer = TransformerModel(config, input_dim, output_attentions=output_attentions,
+                                      keep_multihead_output=keep_multihead_output)
+        self.discriminator_predictions = ElectraDiscriminatorPredictions(config) 
+        self.apply(self.init_Transformer_weights)
+        self.loss = nn.BCEWithLogitsLoss()
 
+    def forward(self, spec_input, pos_enc, mask_label=None, attention_mask=None, labels=None, head_mask=None):
+        outputs = self.Transformer(spec_input, pos_enc, attention_mask,
+                            output_all_encoded_layers=False,
+                            head_mask=head_mask)
+        """
+        labels: whether the input is true (original) or fake (predicted by generator)
+        """
+        if self.output_attentions:
+            all_attentions, sequence_output = outputs
+        else:
+            sequence_output = outputs
+        
+        logits = self.discriminator_predictions(discriminator_sequence_output, attention_mask)
+
+        output = (logits, )
+
+        if mask_labels is not None: 
+            loss = self.loss(logits.view(-1, discriminator_sequence_output.shape[1]), mask_label)
+            output = (loss,) + output
+            return output 
+        elif self.output_attentions:
+            output = output + (all_attentions, )
+            return output
+        return output
