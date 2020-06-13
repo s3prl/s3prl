@@ -63,5 +63,5 @@ optimizer.step()
 
 # save
 PATH_TO_SAVE_YOUR_MODEL = 'example.ckpt'
-states = {'Classifier': classifier.state_dict(), 'Transformer': transformer.model.state_dict()}
+states = {'Classifier': classifier.state_dict(), 'Transformer': transformer.state_dict()}
 # torch.save(states, PATH_TO_SAVE_YOUR_MODEL)
