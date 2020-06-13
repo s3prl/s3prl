@@ -15,7 +15,7 @@ transformer:
   mask_consecutive_max: 7                               # mask this amount of consecutive frames
   mask_allow_overlap: True                              # allow overlap masking
   mask_bucket_ratio: 1.2                                # only used when overlap is not allowed. sample a mask from each bucket in size of [sampled mask_consecutive * mask_bucket_ratio]
-  mask_frequency: 8                                     # mask maximum this amount of frequency bands, set to 0 for no frequency mask
+  mask_frequency: 16                                    # mask maximum this amount of frequency bands, set to 0 for no frequency mask
   noise_proportion: 0.15                                # for this percentage of the time, Gaussian noise will be applied on all frames during MAM training, set to 0 for no noise
   prune_headids: None                                   # Usage: 0,1,2,12-15 will prune headids [0,1,2,12,13,14]. headids = layerid * head_num + headid_in_layer
 
@@ -24,8 +24,8 @@ optimizer:
   learning_rate: "2e-4"                                 # Learning rate for opt. "4e-4" for 'data/libri_mel160_subword5000', "2e-4" for 'data/libri_fmllr_cmvn'
   loss_scale: 0                                         # Loss scale to improve fp16 numeric stability. Only used when apex is set to True. 0: dynamic loss scaling. positive power of 2: static loss scaling.
   warmup_proportion: 0.07                               # Proportion of training to perform linear rate warmup.
-  gradient_accumulation_steps: 1                        # Number of updates steps to accumulate before performing a backward/update pass
-  gradient_clipping: 1.0                                # Maximum gradient norm
+  gradient_accumulation_steps: 3                        # Number of updates steps to accumulate before performing a backward/update pass
+  gradient_clipping: 3.0                                # Maximum gradient norm
 
 
 dataloader:
