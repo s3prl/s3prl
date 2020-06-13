@@ -1,6 +1,7 @@
 # 🦜 The S3PRL Toolkit
 - The **S**elf-**S**upervised **S**peech **P**re-training and **R**epresentation **L**earning Toolkit
 - Official Implementation in PyTorch
+
 [![GitHub](https://img.shields.io/github/license/andi611/Self-Supervised-Speech-Pretraining-and-Representation-Learning)](https://en.wikipedia.org/wiki/MIT_License)
 [![Contributions welcome](https://img.shields.io/badge/contributions-welcome-brightgreen.svg)](CONTRIBUTING.md)
 [![Bitbucket open issues](https://img.shields.io/bitbucket/issues/andi611/Self-Supervised-Speech-Pretraining-and-Representation-Learning)](https://github.com/andi611/Self-Supervised-Speech-Pretraining-and-Representation-Learning/issues)
@@ -44,7 +45,27 @@ This is an open source project called S3PRL, where various *upstream* self-super
     - Training and evaluating scripts are coming soon. #TODO
 - **Sentiment classification on spoken content:** 
     - simple *one-layer RNN* classifier on MOSEI dataset
-    - Proposed and used in [Mockingjay](https://arxiv.org/abs/1910.12638)
+    - Proposed and used in [Mockingjay](https://arxiv.org/abs/1910.12638).
+
+**Usage Highlight:**
+- **Acoustic feature extraction scripts:**
+    - Pre-processing with [Lirbosa](https://librosa.github.io/librosa/): *mfcc, fbank, mel*
+    - Pre-processing with [TTS-Preprocessing](https://github.com/r9y9/tacotron_pytorch): *mel, linear*
+    - Pre-processing with the [Kaldi](https://github.com/kaldi-asr/kaldi) s5 recipe: *mfcc, fbank, fmllr*
+    - see section: *Data preporation*
+- **Pre-train your own self-supervised models:**
+    - Implementation of various upstream algorithms.
+    - Pre-train them on your own data.
+    - see section: *Train upstream models*
+- **Evaluate your own pre-trained model:**
+    - Easy-to-use downstream evaluation scripts.
+    - Incorporate any pre-trained model of your own.
+    - see section: *Evaluating your own model*
+- **Apply pre-trained models on your own task:**
+    - Easy-to-use pre-trained model initialization.
+    - Incorporate any downstream task with the provided pre-trained models.
+    - Implemented as [PyTorch-Kaldi](https://github.com/mravanelli/pytorch-kaldi) ready DNNs.
+    - see section: *Using upstream models with your own task*
 
 Feel free to use or modify them, any bug report or improvement suggestion will be appreciated. If you have any questions, please contact tingweiandyliu@gmail.com. If you find this project helpful for your research, please do consider to cite [our papers](#Citation), thanks!
 
@@ -86,7 +107,15 @@ python run_downstream.py --run=speaker_frame --upstream=transformer --ckpt=path_
 python run_downstream.py --run=speaker_utterance --upstream=transformer --ckpt=path_to_ckpt/states-1000000.ckpt
 ```
 
-### Evaluating your own model
+### Evaluating baseline features
+- simply change the `--upstream=transformer` to `--upstream=baseline`, and we no longer need to specify `--ckpt`.
+- for example, phone linear frame-wise classification on LibriSpeech:
+```python
+python run_downstream.py --run=phone_linear --upstream=baseline
+```
+
+Evaluating your own model
+------------------------------------
 - You can easily insert your own upstream models to the evaluation script `run_downstream.py`.
 - There are only three simple requirements for each upstream model:
     1) Implement the `forward` method of `nn.Module`,
@@ -101,13 +130,7 @@ elif args.upstream == 'your_model':
     upstream_model = YOUR_MODEL(example_options)
 ```
 - Now you can evaluate your model with `--upstream=your_model`.
-
-### Evaluating baseline features
-- simply change the `--upstream=transformer` to `--upstream=baseline`, and we no longer need to specify `--ckpt`.
-- for example, phone linear frame-wise classification on LibriSpeech:
-```python
-python run_downstream.py --run=phone_linear --upstream=baseline
-```
+- Make sure the input acoustic features align with your pre-trained model.
 
 Using upstream models with your own task
 ------------------------------------
