@@ -39,11 +39,10 @@ SPEAKER_THRESHOLD = 0
 #     - file_path    : str, file path to dataset
 #     - split        : str, data split (train / dev / test)
 #     - max_timestep : int, max len for input (set to 0 for no restriction)
-#     - max_label_len: int, max len for output (set to 0 for no restriction)
 #     - bucket_size  : int, batch size for each bucket
 #     - load         : str, types of data to load: ['acoustic', 'duo', 'phone', 'speaker', 'speaker_large']
 class LibriDataset(Dataset):
-    def __init__(self, file_path, sets, bucket_size, max_timestep=0, max_label_len=0, drop=False):
+    def __init__(self, file_path, sets, bucket_size, max_timestep=0, drop=False):
         # define default length
         self.X = []
 
@@ -55,8 +54,6 @@ class LibriDataset(Dataset):
         # Crop seqs that are too long
         if drop and max_timestep > 0:
             self.table = self.table[self.table.length < max_timestep]
-        if drop and max_label_len > 0:
-            self.table = self.table[self.table.label.str.count('_')+1 < max_label_len]
     
     def __len__(self):
         return len(self.X)
@@ -71,8 +68,8 @@ Currently supports 'data/libri_mel160_subword5000' and 'data/libri_fmllr_cmvn' f
 '''
 class AcousticDataset(LibriDataset):
     
-    def __init__(self, run_mam, file_path, sets, bucket_size, max_timestep=0, max_label_len=0, drop=False, mam_config=None):
-        super(AcousticDataset, self).__init__(file_path, sets, bucket_size, max_timestep, max_label_len, drop)
+    def __init__(self, run_mam, file_path, sets, bucket_size, max_timestep=0, drop=False, mam_config=None):
+        super(AcousticDataset, self).__init__(file_path, sets, bucket_size, max_timestep, drop)
 
         self.run_mam = run_mam
         self.mam_config = mam_config
@@ -118,8 +115,8 @@ The LibriSpeech train-clean-360 (Mel Spectrogram, Linear Spectrogram) dataset
 '''
 class Mel_Linear_Dataset(LibriDataset):
     
-    def __init__(self, file_path, target_path, sets, bucket_size, max_timestep=0, max_label_len=0, drop=False, mam_config=None):
-        super(Mel_Linear_Dataset, self).__init__(file_path, sets, bucket_size, max_timestep, max_label_len, drop)
+    def __init__(self, file_path, target_path, sets, bucket_size, max_timestep=0, drop=False, mam_config=None):
+        super(Mel_Linear_Dataset, self).__init__(file_path, sets, bucket_size, max_timestep, drop)
 
         self.mam_config = mam_config
         # Read Target file
@@ -178,9 +175,8 @@ The LibriSpeech train-clean-360 (speech, phone) dataset
 '''
 class Mel_Phone_Dataset(LibriDataset):
     
-    def __init__(self, run_mam, file_path, phone_path, sets, bucket_size, max_timestep=0, 
-                 max_label_len=0, drop=False, train_proportion=1.0, mam_config=None):
-        super(Mel_Phone_Dataset, self).__init__(file_path, sets, bucket_size, max_timestep, max_label_len, drop)
+    def __init__(self, run_mam, file_path, phone_path, sets, bucket_size, max_timestep=0, drop=False, train_proportion=1.0, mam_config=None):
+        super(Mel_Phone_Dataset, self).__init__(file_path, sets, bucket_size, max_timestep, drop)
         HALF_BATCHSIZE_TIME = 1000
 
         self.run_mam = run_mam
@@ -258,9 +254,8 @@ The LibriSpeech train-clean-100 (speech, phone) dataset, idendical alignment and
 '''
 class CPC_Phone_Dataset(LibriDataset):
     
-    def __init__(self, run_mam, file_path, phone_path, sets, bucket_size, max_timestep=0, 
-                 max_label_len=0, drop=False, mam_config=None, split='train', seed=1337):
-        super(CPC_Phone_Dataset, self).__init__(file_path, sets, bucket_size, max_timestep, max_label_len, drop)
+    def __init__(self, run_mam, file_path, phone_path, sets, bucket_size, max_timestep=0, drop=False, mam_config=None, split='train', seed=1337):
+        super(CPC_Phone_Dataset, self).__init__(file_path, sets, bucket_size, max_timestep, drop)
         HALF_BATCHSIZE_TIME = 1000
         random.seed(seed)
 
@@ -586,7 +581,7 @@ The LibriSpeech train-clean-100 (speech, speaker) dataset
 '''
 class Speaker_Dataset(Dataset):
     
-    def __init__(self, split, run_mam, file_path, sets, bucket_size, max_timestep=0, max_label_len=0, drop=False, mam_config=None, seed=1337):
+    def __init__(self, split, run_mam, file_path, sets, bucket_size, max_timestep=0, drop=False, mam_config=None, seed=1337):
         
         assert('train-clean-100' in sets and len(sets) == 1) # `sets` must be ['train-clean-100']
         HALF_BATCHSIZE_TIME = 1000
@@ -595,7 +590,7 @@ class Speaker_Dataset(Dataset):
         self.root = file_path
 
         # Load the train-clean-100 set
-        tables = pd.read_csv(os.path.join(file_path, sets + '.csv'))
+        tables = pd.read_csv(os.path.join(file_path, sets[0] + '.csv'))
 
         # Compute speaker dictionary
         print('[Dataset] - Computing speaker class...')
@@ -607,8 +602,11 @@ class Speaker_Dataset(Dataset):
         
         # if cpc split files exist, use them
         usage_list = []
-        if split == 'train' and os.path.isfile('data/cpc_phone/train_split.txt'):
+        if (split == 'train' or split == 'dev') and os.path.isfile('data/cpc_phone/train_split.txt'):
             usage_list = open(os.path.join('data/cpc_phone/', 'train_split.txt')).readlines()
+            random.shuffle(usage_list)
+            percent = int(len(usage_list)*0.9)
+            usage_list = usage_list[:percent] if split == 'train' else usage_list[percent:]
         elif split == 'test' and os.path.isfile('data/cpc_phone/test_split.txt'):
             usage_list = open(os.path.join('data/cpc_phone/', 'test_split.txt')).readlines()
 
@@ -634,8 +632,6 @@ class Speaker_Dataset(Dataset):
         # Crop seqs that are too long
         if drop and max_timestep > 0:
             self.table = self.table[self.table.length < max_timestep]
-        if drop and max_label_len > 0:
-            self.table = self.table[self.table.label.str.count('_')+1 < max_label_len]
 
         # Use bucketing to allow different batch sizes at run time
         self.X = []
@@ -705,7 +701,7 @@ class Speaker_Dataset(Dataset):
 ##################
 # GET DATALOADER #
 ##################
-def get_Dataloader(split, load, data_path, batch_size, max_timestep, max_label_len, 
+def get_Dataloader(split, load, data_path, batch_size, max_timestep, 
                    use_gpu, n_jobs, train_set, dev_set, test_set, dev_batch_size, 
                    target_path=None, phone_path=None, seed=1337,
                    mam_config=None, sentiment_config=None,
@@ -734,20 +730,20 @@ def get_Dataloader(split, load, data_path, batch_size, max_timestep, max_label_l
     # Decide which task (or dataset) to propogate through model
     if load == 'acoustic':
         ds = AcousticDataset(run_mam=run_mam, file_path=data_path, sets=sets, max_timestep=max_timestep,
-                        max_label_len=max_label_len, bucket_size=bs, drop=drop_too_long, mam_config=mam_config)
+                             bucket_size=bs, drop=drop_too_long, mam_config=mam_config)
     elif load == 'duo':
         assert(target_path is not None), '`target path` must be provided for this dataset.'
         ds = Mel_Linear_Dataset(file_path=data_path, target_path=target_path, sets=sets, max_timestep=max_timestep,
-                                max_label_len=max_label_len, bucket_size=bs, drop=drop_too_long, mam_config=mam_config)
+                                bucket_size=bs, drop=drop_too_long, mam_config=mam_config)
     elif load == 'phone':
         assert(phone_path is not None), '`phone path` must be provided for this dataset.'
         ds = Mel_Phone_Dataset(run_mam=run_mam, file_path=data_path, phone_path=phone_path, sets=sets, max_timestep=max_timestep,
-                               max_label_len=max_label_len, bucket_size=bs, drop=drop_too_long, mam_config=mam_config,
+                               bucket_size=bs, drop=drop_too_long, mam_config=mam_config,
                                train_proportion=train_proportion if split == 'train' else 1.0)
     elif load == 'cpc_phone':
         assert(phone_path is not None), '`phone path` must be provided for this dataset.'
         ds = CPC_Phone_Dataset(run_mam=run_mam, file_path=data_path, phone_path=phone_path, sets=sets, max_timestep=max_timestep,
-                               max_label_len=max_label_len, bucket_size=bs, drop=drop_too_long, mam_config=mam_config, split=split, seed=seed)
+                               bucket_size=bs, drop=drop_too_long, mam_config=mam_config, split=split, seed=seed)
     elif load == 'sentiment':
         assert(sentiment_config is not None), '`sentiment config` must be provided for this dataset.'
         target = sentiment_config['dataset']
@@ -761,7 +757,7 @@ def get_Dataloader(split, load, data_path, batch_size, max_timestep, max_label_l
             raise NotImplementedError('Not supported dataset for sentiment')
     elif load == 'speaker':
         ds = Speaker_Dataset(split=split, run_mam=run_mam, file_path=data_path, sets=sets, max_timestep=max_timestep,
-                             max_label_len=max_label_len, bucket_size=bs, drop=drop_too_long, mam_config=mam_config, seed=seed)
+                             bucket_size=bs, drop=drop_too_long, mam_config=mam_config, seed=seed)
     else:
         raise NotImplementedError('Invalid `load` argument for `get_Dataloader()`!')
 

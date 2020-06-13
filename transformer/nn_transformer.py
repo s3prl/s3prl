@@ -10,6 +10,7 @@
 ###############
 # IMPORTATION #
 ###############
+import yaml
 import torch
 import random
 import numpy as np
@@ -54,11 +55,15 @@ options = {
 }
 """
 class TRANSFORMER(nn.Module):
-    def __init__(self, options, inp_dim):
+    def __init__(self, options, inp_dim, config=None):
         super(TRANSFORMER, self).__init__()
-        
-        all_states = torch.load(options["ckpt_file"], map_location='cpu')
-        self.config = all_states['Settings']['Config']
+
+        if config is not None:
+            self.config = yaml.load(open(config, 'r'), Loader=yaml.FullLoader)
+        else:
+            all_states = torch.load(options["ckpt_file"], map_location='cpu')
+            self.config = all_states['Settings']['Config']
+
         self.no_grad = bool(strtobool(options['no_grad']))
         self.spec_aug = bool(strtobool(options['spec_aug']))
         self.spec_aug_prev = bool(strtobool(options['spec_aug_prev']))
@@ -93,7 +98,8 @@ class TRANSFORMER(nn.Module):
             self.load_model(all_states['Transformer'])
             print('[Transformer] - Number of parameters: ' + str(sum(p.numel() for p in self.model.parameters() if p.requires_grad)))
         
-        self.out_dim = self.hidden_size # 768, This attribute is for pytorch-kaldi
+        self.out_dim = self.hidden_size # 768, This attribute is for pytorch-kaldi and downstream runner
+        self.permute_input = True # This attribute is for the forward method. If Ture then input ouput is in the shape of (T, B, D), if False then in (B, T, D)
 
 
     def load_model(self, state_dict):
@@ -163,7 +169,10 @@ class TRANSFORMER(nn.Module):
             raise ValueError('Input argument `spec` has invalid shape: {}'.format(spec.shape))
 
         # Down sample
-        spec_stacked = self.down_sample_frames(spec) # (batch_size, seq_len, feature_dim * dr)
+        if self.dr > 1:
+            spec_stacked = self.down_sample_frames(spec) # (batch_size, seq_len, feature_dim * dr)
+        else:
+            spec_stacked = spec
 
         # Record length for each uttr
         spec_len = np.sum(np.sum(spec_stacked.cpu().data.numpy(), axis=-1) != 0, axis=-1)
@@ -203,10 +212,14 @@ class TRANSFORMER(nn.Module):
 
     def _forward(self, x):
 
-        # Compute padding to compromise the downsample loss
-        input_len = x.shape[0]
-        left_over = input_len % self.dr
+        if self.permute_input:
+            x = x.permute(1, 0, 2).contiguous() # (T, B, D) -> (B, T, D)
+            input_len = x.shape[0]
+        else:
+            input_len = x.shape[1]
 
+        # Compute padding to compromise the downsample loss
+        left_over = input_len % self.dr
         if left_over % 2 == 0:
             left_pad = left_over // 2
             right_pad = left_pad
@@ -215,8 +228,7 @@ class TRANSFORMER(nn.Module):
             right_pad = left_over // 2 + 1
 
         # Model forwarding
-        x = x.permute(1, 0, 2).contiguous() # (T, B, D) -> (B, T, D)
-        spec_stacked, pos_enc, attn_mask = self.process_input_data(x)
+        spec_stacked, pos_enc, attn_mask = self.process_input_data(x) # x shape: (B, T, D)
         x = self.model(spec_stacked, pos_enc, attn_mask, output_all_encoded_layers=self.weighted_sum or self.select_layer != -1) # (B, T, D) or # (N, B, T, D)
 
         # Apply weighted sum
@@ -241,11 +253,15 @@ class TRANSFORMER(nn.Module):
             x = x.permute(0, 2, 1).contiguous() # (B, T, D) -> (B, D, T)
             padding = nn.ReplicationPad1d((left_pad, right_pad))
             x = padding(x)
-            x = x.permute(2, 0, 1).contiguous() # (B, D, T) -> (T, B, D)
+            
+            if self.permute_input: x = x.permute(2, 0, 1).contiguous() # (B, D, T) -> (T, B, D)
+            else: x = x.permute(0, 2, 1).contiguous() # (B, D, T) -> (B, T, D)
         
         # If not using a downsampling model, permute to output
-        else:
+        elif self.permute_input:
             x = x.permute(1, 0, 2).contiguous() # (B, T, D) -> (T, B, D)
+        
+        # else: (B, T, D)
         return x
 
 
