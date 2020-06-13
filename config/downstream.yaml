@@ -1,0 +1,67 @@
+dataloader:
+  n_jobs: 12                                            # Subprocess used for torch Dataloader
+  batch_size: 6                                         # training batch size, 12 for pre-train, 6 for cpc exp
+  dev_batch_size: 12                                    # used for dev/test splits
+  max_timestep: 3000                                    # Max length for audio feature (0 for no restriction), 1500 for pre-train, 3000 for downstream tasks
+
+  data_path: 'data/libri_fbank_cmvn'                    # Source data path, 'data/libri_fmllr_cmvn', or 'data/libri_mfcc_cmvn', or 'data/libri_mel160_subword5000' for different preprocessing features
+  phone_path: 'data/cpc_phone'                          # phone boundary label data path for the phone classification task. set to 'data/libri_phone' or 'data/cpc_phone'
+  train_set: ['train-clean-100']                        # ['train-clean-100', 'train-clean-360', 'train-other-500'] for pre-training. ['train-clean-360'] or ['train-clean-100'] for libri phone exp or cpc phone exp, respectively.
+  dev_set: ['dev-clean']                                #
+  test_set: ['test-clean']                              #
+  train_proportion: 1.0                                 # Currently only effect the `phone classification task`, use this percent of `train_set` for downstream task training to demonstrate mockingjay generality
+
+
+runner:
+  learning_rate: "4e-3"                                 # Learning rate for opt: ['4e-3' for fine-tune, '4e-3' for regualr downstream task training]
+  warmup_proportion: 0.07                               # Proportion of training to perform linear rate warmup.
+  gradient_clipping: 1.0                                # Maximum gradient norm
+  total_steps: 500000                                   # total steps for training, a step is a batch of update
+  log_step: 2000                                        # log training status every this amount of training steps
+  save_step: 2000                                       # save model every this amount of training steps
+  dev_step: 10000                                       # evaluate every this amount of training steps
+  evaluation: 'dev'                                     # can be 'dev' or 'test', show inference results and saves the best model
+  max_keep: 2                                           # maximum number of model ckpt to keep during training
+
+
+model:                                                  # downstream model config
+  
+  linear:
+    input_dim: 'None'                                   # `int`, else if set to None, input_dim will be set according to mockingjay settings or mel-preprocessing dimensions automatically
+    hidden_size: 768
+    drop: 0.0                                           # The dropout ratio, not used when `linear` is set to `True`.
+    select_hidden: 'last'                               # support modes: ['last', 'first', 'average', 'weighted_sum', 'weighted_sum_norm']
+    sequencial: False
+    linear: True                                        # whether to make the classifier linear
+    layers: 1                                           # number of layers in the classifier, set to 2 for 1 hidden layer
+    concat: 1                                           # `int`, must be an odd number. Concatenation of this amount of windows to match the average size of a phoneme. Set to 1 for no concatenation, set to 9 to concat 4 previous and 4 future frames.
+
+  1hidden:
+    input_dim: 'None'                                   # `int`, else if set to None, input_dim will be set according to mockingjay settings or mel-preprocessing dimensions automatically
+    hidden_size: 768
+    drop: 0.0                                           # The dropout ratio, not used when `linear` is set to `True`.
+    select_hidden: 'last'                               # support modes: ['last', 'first', 'average', 'weighted_sum', 'weighted_sum_norm']
+    sequencial: False
+    linear: False                                       # whether to make the classifier linear
+    layers: 2                                           # number of layers in the classifier, set to 2 for 1 hidden layer
+    concat: 1                                           # `int`, must be an odd number. Concatenation of this amount of windows to match the average size of a phoneme. Set to 1 for no concatenation, set to 9 to concat 4 previous and 4 future frames.
+  
+  concat:
+    input_dim: 'None'                                   # `int`, else if set to None, input_dim will be set according to mockingjay settings or mel-preprocessing dimensions automatically
+    hidden_size: 768
+    drop: 0.0                                           # The dropout ratio, not used when `linear` is set to `True`.
+    select_hidden: 'last'                               # support modes: ['last', 'first', 'average', 'weighted_sum', 'weighted_sum_norm']
+    sequencial: False
+    linear: True                                        # whether to make the classifier linear
+    layers: 1                                           # number of layers in the classifier, set to 2 for 1 hidden layer
+    concat: 9                                           # `int`, must be an odd number. Concatenation of this amount of windows to match the average size of a phoneme. Set to 1 for no concatenation, set to 9 to concat 4 previous and 4 future frames.
+
+  utterance:
+    mode: 'classification'                              # support modes: 'classification' , 'regression'
+    input_dim: 'None'                                   # `int`, else if set to None, input_dim will be set according to mockingjay settings or mel-preprocessing dimensions automatically
+    select_hidden: 'last'                               # support modes: ['last', 'first', 'average', 'weighted_sum', 'weighted_sum_norm']
+    sample_rate: 1                                      # `int`, sample every this number of frames
+    pre_linear_dims: []
+    hidden_size: 0                                      # size of hidden layer, set to 0 for no rnn and we average over time
+    post_linear_dims: []
+    drop: 0.0                                           # The dropout ratio, not used when `pre_linear_dims: []` and `hidden_size: 0` and `post_linear_dims: []`, since the model is a linear utterance-wise classifier
