@@ -19,7 +19,7 @@ from torch.nn.utils.rnn import pack_padded_sequence
 # LINEAR CLASSIFIER #
 #####################
 class LinearClassifier(nn.Module):
-    def __init__(self, input_dim, class_num, task, dconfig):
+    def __init__(self, input_dim, class_num, dconfig):
         super(LinearClassifier, self).__init__()
         
         output_dim = class_num
@@ -184,8 +184,11 @@ class LinearClassifier(nn.Module):
         return prob
 
 
+##################
+# RNN CLASSIFIER #
+##################
 class RnnClassifier(nn.Module):
-    def __init__(self, input_dim, class_num, task, dconfig):
+    def __init__(self, input_dim, class_num, dconfig):
         # The class_num for regression mode should be 1
 
         super(RnnClassifier, self).__init__()
@@ -317,6 +320,21 @@ class RnnClassifier(nn.Module):
         return result
 
 
+##################
+# DUMMY UPSTREAM #
+##################
+class dummy_upstream(nn.Module):
+    def __init__(self, input_dim):
+        super(dummy_upstream, self).__init__()
+        self.out_dim = input_dim
+
+    def forward(self, features):
+        return features
+
+
+######################
+# EXAMPLE CLASSIFIER #
+######################
 class example_classifier(nn.Module):
     def __init__(self, input_dim, hidden_dim, class_num):
         super(example_classifier, self).__init__()

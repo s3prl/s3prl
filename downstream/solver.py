@@ -122,12 +122,10 @@ class Downstream_Solver(Solver):
         if self.model_type == 'linear':
             self.classifier = LinearClassifier(input_dim=input_dim,
                                                class_num=self.dataloader.dataset.class_num,
-                                               task=self.task,
                                                dconfig=self.config['downstream']['linear']).to(self.device)
         elif self.model_type == 'rnn':
             self.classifier = RnnClassifier(input_dim=input_dim,
                                             class_num=self.dataloader.dataset.class_num,
-                                            task=self.task,
                                             dconfig=self.config['downstream']['rnn']).to(self.device)
 
         if not inference and self.fine_tune:
