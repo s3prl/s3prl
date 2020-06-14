@@ -40,7 +40,7 @@ class Solver():
         self.config = config
         self.paras = paras
         self.transformer_config = config['transformer']
-        self.elcetra_config = config['electra']
+        self.elcetra = config['electra']
         self.device = torch.device('cuda') if (self.paras.gpu and torch.cuda.is_available()) else torch.device('cpu')
         if torch.cuda.is_available(): self.verbose('CUDA is available!')
 
@@ -103,15 +103,17 @@ class Solver():
             # Initialize generator and discriminator for training
             if self.electra['pretrain']:
                 # Define discriminator
-                discriminator_config = self.model_config
-                discriminator_config.num_hidden_layers = 12
-                self.discriminator = ElectraForPreTraining(discriminator_config, self.input_dim, 1, self.output_attention).to(self.device)
+                self.discriminator_config = self.model_config
+                self.discriminator = ElectraForPreTraining(self.discriminator_config, self.input_dim, 1, self.output_attention).to(self.device)
                 self.transformer = self.discriminator.Transformer
 
                 # Define generator
                 generator_config = self.model_config
-                generator_config.num_hidden_layers = 2
-                self.generator = TransformerForMaskedAcousticModel(generator_config, self.input_dim, self.output_dim, self.output_attention).to(self.device)
+                generator_config.num_attention_heads = int(self.electra.generator_size * self.model_config.num_attention_heads)
+                generator_config.intermediate_size = int(self.electra.generator_size * self.model_config.intermediate_size)
+                generator_config.hidden_size = int(self.electra.generator_size * self.model_config.hidden_size)
+                self.generator_config = generator_config
+                self.generator = TransformerForMaskedAcousticModel(self.generator_config, self.input_dim, self.output_dim, self.output_attention).to(self.device)
                 
                 if self.paras.multi_gpu:
                     self.discriminator = torch.nn.DataParallel(self.discriminator)
@@ -247,6 +249,8 @@ class Solver():
                     'Global_step': self.global_step,
                     'Settings': {
                         'Config': self.config,
+                        'D_Config': self.discriminator_config,
+                        'G_Config': self.generator_config,
                         'Paras': self.paras,
                     },
                 }
@@ -488,9 +492,21 @@ class Trainer(Solver):
                     if self.global_step > self.total_steps: break
                     if not batch_is_valid: continue
                     step += 1
-                    
-                    spec_masked, pos_enc, mask_label, attn_mask, spec_stacked = self.process_data(batch)
-                    loss, pred_spec = self.model(spec_masked, pos_enc, mask_label, attn_mask, spec_stacked)
+                   
+                    if self.electra['pretrain']:
+                      # Get generator output
+                      spec_masked, pos_enc, mask_label, attn_mask, spec_stacked = self.process_data(batch)
+                      mam_loss, pred_spec = self.generator(spec_masked, pos_enc, mask_label, attn_mask, spec_stacked)
+
+                      # Get discriminator output
+                      pred_spec.detach()
+                      disc_loss, logits = self.discriminator(pred_spec, pos_enc, mask_label, attn_mask)
+                      
+                      loss = mam_loss + disc_loss
+
+                    else:
+                      spec_masked, pos_enc, mask_label, attn_mask, spec_stacked = self.process_data(batch)
+                      loss, pred_spec = self.model(spec_masked, pos_enc, mask_label, attn_mask, spec_stacked)
                     
                     # Accumulate Loss
                     if self.gradient_accumulation_steps > 1:
@@ -498,7 +514,11 @@ class Trainer(Solver):
                     if self.apex and self.paras.multi_gpu:
                         raise NotImplementedError
                     elif self.apex:
-                        self.optimizer.backward(loss)
+                        if self.electra['pretrain']:
+                            self.D_optimizer.backward(loss)
+                            self.G_optimizer.backward(loss)
+                        else:
+                            self.optimizer.backward(loss)
                     elif self.paras.multi_gpu:
                         loss = loss.sum()
                         loss.backward()
@@ -511,21 +531,41 @@ class Trainer(Solver):
                             # modify learning rate with special warm up BERT uses
                             # if conifg.apex is False, BertAdam is used and handles this automatically
                             lr_this_step = self.learning_rate * self.warmup_linear.get_lr(self.global_step, self.warmup_proportion)
-                            for param_group in self.optimizer.param_groups:
-                                param_group['lr'] = lr_this_step
+                            if self.electra['pretrain']:
+                                for param_group in self.D_optimizer.param_groups:
+                                    param_group['lr'] = lr_this_step
+                                for param_group in self.G_optimizer.param_groups:
+                                    param_group['lr'] = lr_this_step    
+                            else:
+                                for param_group in self.optimizer.param_groups:
+                                    param_group['lr'] = lr_this_step
                         
                         # Step
-                        grad_norm = torch.nn.utils.clip_grad_norm_(self.model.parameters(), self.gradient_clipping)
-                        if math.isnan(grad_norm):
-                            self.verbose('Error : grad norm is NaN @ step ' + str(self.global_step))
+                        if self.electra['pretrain']:
+                            grad_norm = torch.nn.utils.clip_grad_norm_(self.discriminator.parameters(), self.gradient_clipping) +\
+                                        torch.nn.utils.clip_grad_norm_(self.generator.parameters(), self.gradient_clipping)
+                            if math.isnan(grad_norm):
+                                self.verbose('Error : grad norm is NaN @ step ' + str(self.global_step))
+                            else:
+                                self.D_optimizer.step()
+                                self.G_optimizer.step()
+                            self.D_optimizer.zero_grad()      
+                            self.G_optimizer.zero_grad()
                         else:
-                            self.optimizer.step()
-                        self.optimizer.zero_grad()
+                            grad_norm = torch.nn.utils.clip_grad_norm_(self.model.parameters(), self.gradient_clipping)
+                            if math.isnan(grad_norm):
+                                self.verbose('Error : grad norm is NaN @ step ' + str(self.global_step))
+                            else:
+                                self.optimizer.step()
+                            self.optimizer.zero_grad()
 
                         if self.global_step % self.log_step == 0:
                             # Log
                             self.log.add_scalar('lr', self.optimizer.get_lr()[0], self.global_step)
                             self.log.add_scalar('loss', (loss.item() * self.gradient_accumulation_steps), self.global_step)
+                            if self.electra['pretrain']:
+                                self.log.add_scalar('D_loss', (disc_loss.item() * self.gradient_accumulation_steps), self.global_step)
+                                self.log.add_scalar('G_loss', (mam_loss.item() * self.gradient_accumulation_steps), self.global_step)
                             self.log.add_scalar('gradient norm', grad_norm, self.global_step)
                             progress.set_description("Loss %.4f" % (loss.item() * self.gradient_accumulation_steps))
 
