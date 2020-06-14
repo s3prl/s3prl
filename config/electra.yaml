@@ -19,6 +19,9 @@ transformer:
   noise_proportion: 0.0                                 # for this percentage of the time, Gaussian noise will be applied on all frames during MAM training, set to 0 for no noise
   prune_headids: None                                   # Usage: 0,1,2,12-15 will prune headids [0,1,2,12,13,14]. headids = layerid * head_num + headid_in_layer
 
+electra:
+  pretrain: True                                        # Whether to use ELECTRA style pretraining or not
+  generator_size: 0.33                                  # multiplier for hidden-size, FFN-size, and num-attention-heads
 
 optimizer: 
   earning_rate: "2e-5"                                 # Learning rate for discriminator opt
