@@ -27,30 +27,27 @@ runner:
 model:                                                  # downstream model config
   
   linear:
-    input_dim: 'None'                                   # `int`, else if set to None, input_dim will be set according to mockingjay settings or mel-preprocessing dimensions automatically
     hidden_size: 768
     drop: 0.0                                           # The dropout ratio, not used when `linear` is set to `True`.
-    select_hidden: 'last'                               # support modes: ['last', 'first', 'average', 'weighted_sum', 'weighted_sum_norm']
+    select_hidden: 'upstream'                           # support modes: ['upstream', 'last', 'first', 'average', 'weighted_sum', 'weighted_sum_norm', int], this only have effect when a shape of (batch_size, num_layer, seq_len, feature_dim) is feed to the network
     sequencial: False
     linear: True                                        # whether to make the classifier linear
     layers: 1                                           # number of layers in the classifier, set to 2 for 1 hidden layer
     concat: 1                                           # `int`, must be an odd number. Concatenation of this amount of windows to match the average size of a phoneme. Set to 1 for no concatenation, set to 9 to concat 4 previous and 4 future frames.
 
   1hidden:
-    input_dim: 'None'                                   # `int`, else if set to None, input_dim will be set according to mockingjay settings or mel-preprocessing dimensions automatically
     hidden_size: 768
     drop: 0.0                                           # The dropout ratio, not used when `linear` is set to `True`.
-    select_hidden: 'last'                               # support modes: ['last', 'first', 'average', 'weighted_sum', 'weighted_sum_norm']
+    select_hidden: 'upstream'                           # support modes: ['upstream', 'last', 'first', 'average', 'weighted_sum', 'weighted_sum_norm', int], this only have effect when a shape of (batch_size, num_layer, seq_len, feature_dim) is feed to the network
     sequencial: False
     linear: False                                       # whether to make the classifier linear
     layers: 2                                           # number of layers in the classifier, set to 2 for 1 hidden layer
     concat: 1                                           # `int`, must be an odd number. Concatenation of this amount of windows to match the average size of a phoneme. Set to 1 for no concatenation, set to 9 to concat 4 previous and 4 future frames.
   
   concat:
-    input_dim: 'None'                                   # `int`, else if set to None, input_dim will be set according to mockingjay settings or mel-preprocessing dimensions automatically
     hidden_size: 768
     drop: 0.0                                           # The dropout ratio, not used when `linear` is set to `True`.
-    select_hidden: 'last'                               # support modes: ['last', 'first', 'average', 'weighted_sum', 'weighted_sum_norm']
+    select_hidden: 'upstream'                           # support modes: ['upstream', 'last', 'first', 'average', 'weighted_sum', 'weighted_sum_norm', int], this only have effect when a shape of (batch_size, num_layer, seq_len, feature_dim) is feed to the network
     sequencial: False
     linear: True                                        # whether to make the classifier linear
     layers: 1                                           # number of layers in the classifier, set to 2 for 1 hidden layer
@@ -58,8 +55,7 @@ model:                                                  # downstream model confi
 
   utterance:
     mode: 'classification'                              # support modes: 'classification' , 'regression'
-    input_dim: 'None'                                   # `int`, else if set to None, input_dim will be set according to mockingjay settings or mel-preprocessing dimensions automatically
-    select_hidden: 'last'                               # support modes: ['last', 'first', 'average', 'weighted_sum', 'weighted_sum_norm']
+    select_hidden: 'upstream'                           # support modes: ['upstream', 'last', 'first', 'average', 'weighted_sum', 'weighted_sum_norm', int], this only have effect when a shape of (batch_size, num_layer, seq_len, feature_dim) is feed to the network
     sample_rate: 1                                      # `int`, sample every this number of frames
     pre_linear_dims: []
     hidden_size: 0                                      # size of hidden layer, set to 0 for no rnn and we average over time

@@ -116,7 +116,7 @@ class LinearClassifier(nn.Module):
             # one label per utterance (speaker & sentiment)
             labels = labels.unsqueeze(-1).expand(batch_size, seq_len)
 
-        if len(features.shape) == 4:
+        if len(features.shape) == 4 and self.select_hidden != 'upstream':
             # compute mean on transformer representations if given features from transformer
             if self.select_hidden == 'last':
                 features = features[:, -1, :, :]
@@ -252,7 +252,7 @@ class RnnClassifier(nn.Module):
         feature_dim = features.size(3) if len(features.shape) == 4 else features.size(2)
 
         select_hidden = self.config['select_hidden']
-        if len(features.shape) == 4:
+        if len(features.shape) == 4 and select_hidden != 'upstream':
             # compute mean on transformer representations if given features from transformer
             if select_hidden == 'last':
                 features = features[:, -1, :, :]
