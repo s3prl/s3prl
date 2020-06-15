@@ -25,7 +25,7 @@ from dataloader import get_Dataloader
 from transformer.solver import Solver, Tester
 from transformer.optimization import BertAdam
 from downstream.model import LinearClassifier, RnnClassifier
-from rnn.runner_apc import get_apc_model
+from rnn.runner import get_apc_model
 
 
 ##########

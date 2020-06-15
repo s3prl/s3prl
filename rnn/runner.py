@@ -52,7 +52,7 @@ class get_apc_config():
         self.rnn_residual = True # Apply residual connections between RNN layers if specified
 
         # Training configuration
-        self.optimizer = "adam" # The gradient descent optimizer (e.g., sgd, adam, etc.)
+        self.optimizer = 'adam' # The gradient descent optimizer (e.g., sgd, adam, etc.)
         self.batch_size = 32 # Training minibatch size
         self.learning_rate = 0.001 # Initial learning rate
         self.total_steps = 500000 # Number of training steps
@@ -66,7 +66,7 @@ class get_apc_config():
         self.feature_dim = 80 # The dimension of the input frame
         self.load_data_workers = 8 # Number of parallel data loaders
         self.experiment_name = 'apc_libri_sd' + str(seed) # Name of this experiment
-        self.log_path = './log/log_apc/' # Where to save the logs
+        self.log_path = './result/result_apc/' # Where to save the logs
         self.result_path = './result/result_apc/' # Where to save the trained models
 
         # Data path configurations
