@@ -36,7 +36,7 @@ dataloader:
   
   # LIBRISEECH SETTINGS
   data_path: 'data/libri_mel160_subword5000'            # Source data path, 'data/libri_mel160_subword5000' or 'data/libri_fmllr_cmvn' for different preprocessing features
-  target_path: ''                                       # Target data path for reconstruction to a different feature type, set dataset to 'librispeech_mel_linear'.
+  target_path: ''                                       # Target data path for reconstruction to a different feature type, for example linear spectrograms
   phone_path: 'data/libri_phone'                        # phone boundary label data path for the phone classification task. set to 'data/libri_phone' or 'data/cpc_phone'
   train_set: ['train-clean-360']                        # ['train-clean-100', 'train-clean-360', 'train-other-500'] for pre-training. ['train-clean-360'] or ['train-clean-100'] for libri phone exp or cpc phone exp, respectively.
   dev_set: ['dev-clean']                                #
