@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*- #
 """*********************************************************************************************"""
-#   FileName     [ rnn/runner_apc.py ]
+#   FileName     [ rnn/runner.py ]
 #   Synopsis     [ run train / test for the apc model ]
 #   Author       [ Andy T. Liu (Andi611) ]
 #   Copyright    [ Copyleft(c), Speech Lab, NTU, Taiwan ]
@@ -79,7 +79,7 @@ class get_apc_config():
 ##################
 # GET APC SOLVER #
 ##################
-def get_apc_solver(seed, train=True):
+def Runner(seed, train=True):
     solver = Solver(get_apc_config(seed))
     solver.load_data(split='train' if train else 'test')
     solver.set_model(inference=False if train else True)
@@ -112,14 +112,14 @@ def main():
 
     # Train apc
     if args.train:
-        solver = get_apc_solver(args.seed, train=True)
+        solver = Runner(args.seed, train=True)
         solver.train()
 
     ##################################################################################
 
     # Test apc
     elif args.test:
-        solver = get_apc_solver(args.seed, train=False)
+        solver = Runner(args.seed, train=False)
         solver.test()
 
 
