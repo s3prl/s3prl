@@ -1,8 +1,11 @@
 transformer:
+  discriminator: True       
   input_dim: 160                                        # `int`, 39 for mfcc, 40 for fmllr, 80 for fbank, 160 for mel
   downsample_rate: 3                                    # stacked consecutive features vectors to reduce the length of input sequences by this factor.
   hidden_size: 768                                      # Size of the encoder layers and the pooler layer.
-  num_hidden_layers: 12                                 # Number of hidden layers in the Transformer encoder.
+  discriminator_hidden_size: 768
+  generator_hidden_size: 256
+  num_hidden_layers: 3                                 # Number of hidden layers in the Transformer encoder.
   num_attention_heads: 12                               # Number of attention heads for each attention layer in the Transformer encoder.
   intermediate_size: 3072                               # The size of the "intermediate" (i.e., feed-forward) layer in the Transformer encoder.
   hidden_act: "gelu"                                    # The non-linear activation function (function or string) in the encoder and pooler. If string, "gelu", "relu" and "swish" are supported.
@@ -21,10 +24,10 @@ transformer:
 
 electra:
   pretrain: True                                        # Whether to use ELECTRA style pretraining or not
-  generator_size: 0.33                                  # multiplier for hidden-size, FFN-size, and num-attention-heads
+  generator_size: 3                                     # multiplier for hidden-size, FFN-size, and num-attention-heads
 
 optimizer: 
-  earning_rate: "2e-5"                                 # Learning rate for discriminator opt
+  learning_rate: "2e-5"                                 # Learning rate for discriminator opt
   loss_scale: 0                                         # Loss scale to improve fp16 numeric stability. Only used when apex is set to True. 0: dynamic loss scaling. positive power of 2: static loss scaling.
   warmup_proportion: 0.07                               # Proportion of training to perform linear rate warmup.
   gradient_accumulation_steps: 1                        # Number of updates steps to accumulate before performing a backward/update pass
@@ -33,7 +36,7 @@ optimizer:
 
 dataloader:
   n_jobs: 12                                            # Subprocess used for torch Dataloader
-  batch_size: 6                                         # training batch size: [12 for fine-tune, 6 for mockingjay pre-training]
+  batch_size: 24                                         # training batch size: [12 for fine-tune, 6 for mockingjay pre-training]
   dev_batch_size: 6                                     # used for dev/test splits
   max_timestep: 3000                                    # Max length for audio feature (0 for no restriction)
   max_label_len: 400                                    # Max length for output sequence (0 for no restriction)
@@ -68,10 +71,10 @@ dataloader:
 
 
   # LIBRISEECH SETTINGS
-  data_path: 'data/libri_mel160_subword5000'            # Source data path, 'data/libri_mel160_subword5000' or 'data/libri_fmllr_cmvn' for different preprocessing features
-  target_path: 'data/libri_linear1025_subword5000'      # Target data path for reconstruction to a different feature type, set dataset to 'librispeech_mel_linear'.
-  phone_path: 'data/libri_phone'                        # phone boundary label data path for the phone classification task. set to 'data/libri_phone' or 'data/cpc_phone'
-  train_set: ['train-clean-360']                        # ['train-clean-100', 'train-clean-360', 'train-other-500'] for pre-training. ['train-clean-360'] or ['train-clean-100'] for libri phone exp or cpc phone exp, respectively.
+  data_path: '/work/dcml0714/Mockingjay/libri_mel160_subword5000'            # Source data path, 'data/libri_mel160_subword5000' or 'data/libri_fmllr_cmvn' for different preprocessing features
+  target_path: '/work/dcml0714/Mockingjay/libri_linear1025_subword5000'      # Target data path for reconstruction to a different feature type, set dataset to 'librispeech_mel_linear'.
+  phone_path: '/work/dcml0714/Mockingjay/libri_phone'                        # phone boundary label data path for the phone classification task. set to 'data/libri_phone' or 'data/cpc_phone'
+  train_set: ['train-clean-100']                        # ['train-clean-100', 'train-clean-360', 'train-other-500'] for pre-training. ['train-clean-360'] or ['train-clean-100'] for libri phone exp or cpc phone exp, respectively.
   dev_set: ['dev-clean']                                #
   test_set: ['test-clean']                              #
   train_proportion: 1.0                                 # Currently only effect the `phone classification task`, use this percent of `train_set` for downstream task training to demonstrate mockingjay generality

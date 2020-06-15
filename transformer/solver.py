@@ -22,7 +22,7 @@ from tqdm import tqdm, trange
 import torch.nn.functional as F
 from tensorboardX import SummaryWriter
 from dataloader import get_Dataloader
-from transformer.model import TransformerConfig, TransformerModel, TransformerForMaskedAcousticModel
+from transformer.model import TransformerConfig, TransformerModel, TransformerForMaskedAcousticModel, ElectraForPreTraining
 from transformer.optimization import BertAdam, WarmupLinearSchedule
 from transformer.mam import fast_position_encoding
 from utility.audio import plot_spectrogram_to_numpy, plot_spectrogram, plot_embedding, plot_attention
@@ -40,7 +40,7 @@ class Solver():
         self.config = config
         self.paras = paras
         self.transformer_config = config['transformer']
-        self.elcetra = config['electra']
+        self.electra = config['electra']
         self.device = torch.device('cuda') if (self.paras.gpu and torch.cuda.is_available()) else torch.device('cpu')
         if torch.cuda.is_available(): self.verbose('CUDA is available!')
 
@@ -94,6 +94,9 @@ class Solver():
         
         # uild the Transformer model with speech prediction head
         self.model_config = TransformerConfig(self.config)
+        if self.electra:
+            self.discriminator_config = TransformerConfig(self.config)
+            self.generator_config = TransformerConfig(self.config)
         self.dr = self.model_config.downsample_rate
         self.hidden_size = self.model_config.hidden_size
         self.with_head = with_head
@@ -103,16 +106,13 @@ class Solver():
             # Initialize generator and discriminator for training
             if self.electra['pretrain']:
                 # Define discriminator
-                self.discriminator_config = self.model_config
+                #self.discriminator_config.downsample_rate = 1
                 self.discriminator = ElectraForPreTraining(self.discriminator_config, self.input_dim, 1, self.output_attention).to(self.device)
                 self.transformer = self.discriminator.Transformer
-
                 # Define generator
-                generator_config = self.model_config
-                generator_config.num_attention_heads = int(self.electra.generator_size * self.model_config.num_attention_heads)
-                generator_config.intermediate_size = int(self.electra.generator_size * self.model_config.intermediate_size)
-                generator_config.hidden_size = int(self.electra.generator_size * self.model_config.hidden_size)
-                self.generator_config = generator_config
+                self.generator_config.num_attention_heads = int(self.model_config.num_attention_heads / self.electra['generator_size'])
+                self.generator_config.intermediate_size = int(self.model_config.intermediate_size / self.electra['generator_size'])
+                self.generator_config.hidden_size = int(self.model_config.hidden_size / self.electra['generator_size'])
                 self.generator = TransformerForMaskedAcousticModel(self.generator_config, self.input_dim, self.output_dim, self.output_attention).to(self.device)
                 
                 if self.paras.multi_gpu:
@@ -243,7 +243,7 @@ class Solver():
                     'SpecHead': self.generator.SpecHead.state_dict() if not self.paras.multi_gpu else self.model.module.SpecHead.state_dict(),
                     'Generator_Transformer': self.generator.Transformer.state_dict() if not self.paras.multi_gpu else self.model.module.SpecHead.state_dict(),
                     'Transformer': self.transformer.state_dict() if not self.paras.multi_gpu else self.transformer.module.state_dict(),
-                    'ClassifierHead': self.Discriminator.discriminator_predictions.state_dict() if not self.paras.multi_gpu else self.transformer.module.state_dict(),
+                    'ClassifierHead': self.discriminator.discriminator_predictions.state_dict() if not self.paras.multi_gpu else self.transformer.module.state_dict(),
                     'D_Optimizer': self.D_optimizer.state_dict(),
                     'G_Optimizer': self.G_optimizer.state_dict(),
                     'Global_step': self.global_step,
@@ -497,10 +497,13 @@ class Trainer(Solver):
                       # Get generator output
                       spec_masked, pos_enc, mask_label, attn_mask, spec_stacked = self.process_data(batch)
                       mam_loss, pred_spec = self.generator(spec_masked, pos_enc, mask_label, attn_mask, spec_stacked)
+                      
+                      disc_target = torch.abs(pred_spec - spec_stacked).mean(-1).detach()
+                      disc_target = torch.where(disc_target >= 0.2, torch.ones_like(disc_target), torch.zeros_like(disc_target))
 
                       # Get discriminator output
                       pred_spec.detach()
-                      disc_loss, logits = self.discriminator(pred_spec, pos_enc, mask_label, attn_mask)
+                      disc_loss, logits = self.discriminator(pred_spec, pos_enc, disc_target, attn_mask)
                       
                       loss = mam_loss + disc_loss
 
@@ -561,13 +564,23 @@ class Trainer(Solver):
 
                         if self.global_step % self.log_step == 0:
                             # Log
-                            self.log.add_scalar('lr', self.optimizer.get_lr()[0], self.global_step)
-                            self.log.add_scalar('loss', (loss.item() * self.gradient_accumulation_steps), self.global_step)
                             if self.electra['pretrain']:
                                 self.log.add_scalar('D_loss', (disc_loss.item() * self.gradient_accumulation_steps), self.global_step)
                                 self.log.add_scalar('G_loss', (mam_loss.item() * self.gradient_accumulation_steps), self.global_step)
+                                self.log.add_scalar('D_lr', self.D_optimizer.get_lr()[0], self.global_step)
+                                self.log.add_scalar('G_lr', self.G_optimizer.get_lr()[0], self.global_step)
+                            else:    
+                                self.log.add_scalar('lr', self.optimizer.get_lr()[0], self.global_step)
+                            self.log.add_scalar('loss', (loss.item() * self.gradient_accumulation_steps), self.global_step)
+   
                             self.log.add_scalar('gradient norm', grad_norm, self.global_step)
-                            progress.set_description("Loss %.4f" % (loss.item() * self.gradient_accumulation_steps))
+                            if self.electra['pretrain']:
+                                progress.set_description("Total loss %.4f, D loss %.4f, G loss %.4f" 
+                                    % (loss.item() * self.gradient_accumulation_steps, 
+                                       disc_loss.item() * self.gradient_accumulation_steps,
+                                       mam_loss.item() * self.gradient_accumulation_steps))
+                            else:    
+                                progress.set_description("Loss %.4f" % (loss.item() * self.gradient_accumulation_steps))
 
                         if self.global_step % self.save_step == 0:
                             self.save_model('states')

@@ -34,6 +34,8 @@ class TransformerConfig(object):
         self.attention_probs_dropout_prob = config['transformer']['attention_probs_dropout_prob']
         self.initializer_range = config['transformer']['initializer_range']
         self.layer_norm_eps = float(config['transformer']['layer_norm_eps'])
+        self.generator_hidden_size = config['transformer']['generator_hidden_size']
+        self.discriminator_hidden_size = config['transformer']['discriminator_hidden_size']
 
 
 def prune_linear_layer(layer, index, dim=0):
@@ -103,11 +105,13 @@ class TransformerInputRepresentations(nn.Module):
     def __init__(self, config, input_dim):
         super(TransformerInputRepresentations, self).__init__()
         self.hidden_size = config.hidden_size
-        self.spec_transform = nn.Linear(input_dim * config.downsample_rate, config.hidden_size)
+        self.spec_transform = nn.Linear(input_dim * config.downsample_rate,
+                                            max(config.generator_hidden_size, config.discriminator_hidden_size))
 
         # self.LayerNorm is not snake-cased to stick with TensorFlow model variable name and be able to load
         # any TensorFlow checkpoint file
-        self.LayerNorm = TransformerLayerNorm(config.hidden_size, eps=config.layer_norm_eps)
+        self.LayerNorm = TransformerLayerNorm(max(config.generator_hidden_size, config.discriminator_hidden_size), 
+                                              eps=config.layer_norm_eps)
         self.dropout = nn.Dropout(config.hidden_dropout_prob)
 
     def forward(self, spec, pos_enc):
@@ -339,7 +343,8 @@ class ElectraDiscriminatorPredictions(nn.Module):
 
     def forward(self, discriminator_hidden_states, attention_mask):
         hidden_states = self.dense(discriminator_hidden_states)
-        hidden_states = get_activation(self.config.hidden_act)(hidden_states)
+        ## TODO: allow user to specify their choice of activation in the config file
+        hidden_states = nn.ReLU(self.config.hidden_act)(hidden_states)
         logits = self.dense_prediction(hidden_states).squeeze()
 
         return logits
@@ -412,9 +417,13 @@ class TransformerModel(TransformerInitModel):
     masked_spec_logits = model(spec_input, pos_enc)
     ```
     """
-    def __init__(self, config, input_dim, output_attentions=False, keep_multihead_output=False):
+    def __init__(self, config, input_dim, output_attentions=False, keep_multihead_output=False, generator_linear=False):
         super(TransformerModel, self).__init__(config, output_attentions)
+        self.generator_linear = generator_linear
+
         self.input_representations = TransformerInputRepresentations(config, input_dim)
+        if self.generator_linear:
+            self.Linear = nn.Linear(config.discriminator_hidden_size, config.hidden_size)
         self.encoder = TransformerEncoder(config, output_attentions=output_attentions,
                                            keep_multihead_output=keep_multihead_output)
         self.apply(self.init_Transformer_weights)
@@ -465,8 +474,9 @@ class TransformerModel(TransformerInitModel):
             head_mask = head_mask.to(dtype=next(self.parameters()).dtype) # switch to fload if need + fp16 compatibility
         else:
             head_mask = [None] * self.config.num_hidden_layers
-
         input_representations = self.input_representations(spec_input, pos_enc)
+        if self.generator_linear:
+            input_representations = self.Linear(input_representations)
         encoded_layers = self.encoder(input_representations,
                                       extended_attention_mask,
                                       output_all_encoded_layers=output_all_encoded_layers,
@@ -531,7 +541,9 @@ class TransformerForMaskedAcousticModel(TransformerInitModel):
     def __init__(self, config, input_dim, output_dim, output_attentions=False, keep_multihead_output=False):
         super(TransformerForMaskedAcousticModel, self).__init__(config, output_attentions)
         self.Transformer = TransformerModel(config, input_dim, output_attentions=output_attentions,
-                                      keep_multihead_output=keep_multihead_output)
+                                      keep_multihead_output=keep_multihead_output,
+                                      generator_linear = True) # TODO: there must be some better ways to do this while
+                                                               #       not changing the original Mockingjay 
         self.SpecHead = TransformerSpecPredictionHead(config, output_dim if output_dim is not None else input_dim)
         self.apply(self.init_Transformer_weights)
         self.loss = nn.L1Loss() 
@@ -548,7 +560,7 @@ class TransformerForMaskedAcousticModel(TransformerInitModel):
 
         if spec_label is not None and mask_label is not None:
             assert mask_label.sum() > 0, 'Without any masking, loss might go NaN. Modify your data preprocessing (utility/mam.py)'
-            masked_spec_loss = self.loss(pred_spec.masked_select(mask_label), spec_label.masked_select(mask_label))
+            masked_spec_loss = self.loss(pred_spec.masked_select(mask_label.bool()), spec_label.masked_select(mask_label.bool()))
             return masked_spec_loss, pred_spec
         elif self.output_attentions:
             return all_attentions, pred_spec
@@ -567,7 +579,7 @@ class ElectraForPreTraining(TransformerInitModel):
         self.apply(self.init_Transformer_weights)
         self.loss = nn.BCEWithLogitsLoss()
 
-    def forward(self, spec_input, pos_enc, mask_label=None, attention_mask=None, labels=None, head_mask=None):
+    def forward(self, spec_input, pos_enc, disc_target=None, attention_mask=None, labels=None, head_mask=None):
         outputs = self.Transformer(spec_input, pos_enc, attention_mask,
                             output_all_encoded_layers=False,
                             head_mask=head_mask)
@@ -579,12 +591,13 @@ class ElectraForPreTraining(TransformerInitModel):
         else:
             sequence_output = outputs
         
-        logits = self.discriminator_predictions(discriminator_sequence_output, attention_mask)
+        logits = self.discriminator_predictions(sequence_output, attention_mask)
 
         output = (logits, )
+        
 
-        if mask_labels is not None: 
-            loss = self.loss(logits.view(-1, discriminator_sequence_output.shape[1]), mask_label)
+        if disc_target is not None: 
+            loss = self.loss(logits.view(-1, sequence_output.shape[1]), disc_target.float())
             output = (loss,) + output
             return output 
         elif self.output_attentions:
