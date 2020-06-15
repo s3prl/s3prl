@@ -33,7 +33,7 @@ class Runner():
         self.device = torch.device('cuda') if (args.gpu and torch.cuda.is_available()) else torch.device('cpu')
         if torch.cuda.is_available(): print('[Runner] - CUDA is available!')
         self.model_kept = []
-        self.global_step = 0
+        self.global_step = 1
         self.log = SummaryWriter(ckpdir)
 
         self.args = args
