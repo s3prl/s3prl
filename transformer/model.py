@@ -4,7 +4,7 @@
 #   Synopsis     [ Implementation of the transformer models ]
 #   Author       [ Andy T. Liu (Andi611) ]
 #   Copyright    [ Copyleft(c), Speech Lab, NTU, Taiwan ]
-#   Reference 1  [ https://github.com/huggingface/pytorch-transformers ]
+#   Reference 1  [ https://github.com/huggingface/transformers ]
 """*********************************************************************************************"""
 
 
@@ -34,6 +34,7 @@ class TransformerConfig(object):
         self.attention_probs_dropout_prob = config['transformer']['attention_probs_dropout_prob']
         self.initializer_range = config['transformer']['initializer_range']
         self.layer_norm_eps = float(config['transformer']['layer_norm_eps'])
+        self.share_layer = bool(config['transformer']['share_layer']) if 'share_layer' in config['transformer'] else False
 
 
 def prune_linear_layer(layer, index, dim=0):
@@ -292,7 +293,10 @@ class TransformerEncoder(nn.Module):
         self.output_attentions = output_attentions
         layer = TransformerLayer(config, output_attentions=output_attentions,
                                   keep_multihead_output=keep_multihead_output)
-        self.layer = nn.ModuleList([copy.deepcopy(layer) for _ in range(config.num_hidden_layers)])
+        if config.share_layer:
+            self.layer = nn.ModuleList([layer for _ in range(config.num_hidden_layers)])
+        else:
+            self.layer = nn.ModuleList([copy.deepcopy(layer) for _ in range(config.num_hidden_layers)])
 
     def forward(self, hidden_states, attention_mask, output_all_encoded_layers=True, head_mask=None):
         all_encoder_layers = []
@@ -353,7 +357,7 @@ class TransformerInitModel(nn.Module):
 
 
 class TransformerModel(TransformerInitModel):
-    """Transformer model ("Bidirectional Embedding Representations from a Transformer").
+    """Transformer model.
 
     Params:
         `config`: a TransformerConfig class instance with the configuration to build a new model
@@ -402,7 +406,7 @@ class TransformerModel(TransformerInitModel):
         super(TransformerModel, self).__init__(config, output_attentions)
         self.input_representations = TransformerInputRepresentations(config, input_dim)
         self.encoder = TransformerEncoder(config, output_attentions=output_attentions,
-                                           keep_multihead_output=keep_multihead_output)
+                                          keep_multihead_output=keep_multihead_output)
         self.apply(self.init_Transformer_weights)
 
     def prune_heads(self, heads_to_prune):
@@ -539,5 +543,3 @@ class TransformerForMaskedAcousticModel(TransformerInitModel):
         elif self.output_attentions:
             return all_attentions, pred_spec
         return pred_spec, pred_state
-
-
