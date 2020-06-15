@@ -58,7 +58,7 @@ class Runner():
         self.downstream_model.train()
 
 
-    def save_model(self, name='states'):
+    def save_model(self, name='states', save_best=None):
         
         all_states = {
             'Upstream': self.upstream_model.state_dict() if self.args.fine_tune else None,
@@ -71,7 +71,12 @@ class Runner():
             },
         }
 
-        model_path = '{}/{}-{}.ckpt'.format(self.expdir, name, self.global_step)
+        if save_best is not None:
+            model_path = f'{self.expdir}/{save_best}.ckpt'
+            torch.save(all_states, model_path)
+            return
+
+        model_path = f'{self.expdir}/{name}-{self.global_step}.ckpt'
         torch.save(all_states, model_path)
         self.model_kept.append(model_path)
 
@@ -168,7 +173,7 @@ class Runner():
                         self.log.add_scalar(f"{self.config['evaluation']}_acc", eval_acc, self.global_step)
                         if eval_acc > best_eval_acc:
                             print('[Runner] - Saving new best model on: ', self.config['evaluation'])
-                            self.save_model(name=f"best_{self.config['evaluation']}")
+                            self.save_model(save_best=f"best_{self.config['evaluation']}")
                             torch.cuda.empty_cache()
                             best_eval_acc = eval_acc
                         
@@ -180,7 +185,7 @@ class Runner():
                             self.log.add_scalar('test_acc', test_acc, self.global_step)
                             if test_acc > best_test_acc:
                                 print('[Runner] - Saving new best model on: ', 'test')
-                                self.save_model(name='best_test')
+                                self.save_model(save_best='best_test')
                                 torch.cuda.empty_cache()
                                 best_test_acc = test_acc
 
