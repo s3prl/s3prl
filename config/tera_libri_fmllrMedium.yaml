@@ -1,0 +1,54 @@
+transformer:
+  input_dim: 40                                         # `int`, 39 for mfcc, 40 for fmllr, 80 for fbank, 160 for mel
+  downsample_rate: 1                                    # stacked consecutive features vectors to reduce the length of input sequences by this factor.
+  hidden_size: 768                                      # Size of the encoder layers and the pooler layer.
+  num_hidden_layers: 6                                  # Number of hidden layers in the Transformer encoder.
+  num_attention_heads: 12                               # Number of attention heads for each attention layer in the Transformer encoder.
+  intermediate_size: 3072                               # The size of the "intermediate" (i.e., feed-forward) layer in the Transformer encoder.
+  hidden_act: "gelu"                                    # The non-linear activation function (function or string) in the encoder and pooler. If string, "gelu", "relu" and "swish" are supported.
+  hidden_dropout_prob: 0.1                              # The dropout probabilitiy for all fully connected layers in the embeddings, encoder, and pooler.
+  attention_probs_dropout_prob: 0.1                     # The dropout ratio for the attention probabilities.
+  initializer_range: 0.02                               # The sttdev of the truncated_normal_initializer for initializing all weight matrices.
+  layer_norm_eps: "1e-12"                               # The epsilon used by LayerNorm.
+  mask_proportion: 0.15                                 # mask this percentage of all spectrogram frames in each sequence at random during MAM training                        
+  mask_consecutive_min: 7                               # mask this amount of consecutive frames
+  mask_consecutive_max: 7                               # mask this amount of consecutive frames
+  mask_allow_overlap: True                              # allow overlap masking
+  mask_bucket_ratio: 1.2                                # only used when overlap is not allowed. sample a mask from each bucket in size of [sampled mask_consecutive * mask_bucket_ratio]
+  mask_frequency: 8                                     # mask maximum this amount of frequency bands, set to 0 for no frequency mask
+  noise_proportion: 0.15                                # for this percentage of the time, Gaussian noise will be applied on all frames during MAM training, set to 0 for no noise
+  prune_headids: None                                   # Usage: 0,1,2,12-15 will prune headids [0,1,2,12,13,14]. headids = layerid * head_num + headid_in_layer
+
+
+optimizer: 
+  learning_rate: "2e-4"                                 # Learning rate for opt. "4e-4" for 'data/libri_mel160_subword5000', "2e-4" for 'data/libri_fmllr_cmvn'
+  loss_scale: 0                                         # Loss scale to improve fp16 numeric stability. Only used when apex is set to True. 0: dynamic loss scaling. positive power of 2: static loss scaling.
+  warmup_proportion: 0.07                               # Proportion of training to perform linear rate warmup.
+  gradient_accumulation_steps: 1                        # Number of updates steps to accumulate before performing a backward/update pass
+  gradient_clipping: 1.0                                # Maximum gradient norm
+
+
+dataloader:
+  n_jobs: 12                                            # Subprocess used for torch Dataloader
+  batch_size: 12                                        # training batch size, 12 for pre-train, 6 for cpc exp
+  dev_batch_size: 12                                    # used for dev/test splits
+  max_timestep: 1500                                    # Max length for audio feature (0 for no restriction), 1500 for pre-train, 3000 for downstream tasks
+  
+  # LIBRISEECH SETTINGS
+  data_path: 'data/libri_fmllr_cmvn'                    # Source data path, 'data/libri_fmllr_cmvn', or 'data/libri_mfcc_cmvn', or 'data/libri_mel160_subword5000' for different preprocessing features
+  target_path: ''                                       # Target data path, not used when `duo_deature:False`. For reconstruction to a different feature type, for example set dataset to 'libri_linear1025_subword5000'.
+  phone_path: 'data/cpc_phone'                          # phone boundary label data path for the phone classification task. set to 'data/libri_phone' or 'data/cpc_phone'
+  train_set: ['train-clean-100', 'train-clean-360', 'train-other-500'] # ['train-clean-100', 'train-clean-360', 'train-other-500'] for pre-training. ['train-clean-360'] or ['train-clean-100'] for libri phone exp or cpc phone exp, respectively.
+  dev_set: ['dev-clean']                                #
+  test_set: ['test-clean']                              #
+  train_proportion: 1.0                                 # Currently only effect the `phone classification task`, use this percent of `train_set` for downstream task training to demonstrate mockingjay generality
+
+
+runner:
+  # Training options
+  apex: False                                           # Use APEX (see https://github.com/NVIDIA/apex for more details)
+  total_steps: 1000000                                   # total steps for training, a step is a batch of update
+  log_step: 2500                                        # log training status every this amount of training steps
+  save_step: 10000                                      # save model every this amount of training steps
+  duo_feature: False                                    # Use different input / output features during training
+  max_keep: 2                                           # maximum number of model ckpt to keep during training
