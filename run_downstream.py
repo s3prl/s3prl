@@ -71,7 +71,9 @@ def get_downstream_args():
 # GET DATALOADER #
 ##################
 def get_dataloader(args, dataloader_config):
-    
+
+    if not os.path.exists(dataloader_config['data_path']):
+        raise RuntimeError('[run_downstream] - Data path not valid:', dataloader_config['data_path'])    
     print('[run_downstream] - Loading input data: ' + str(dataloader_config['train_set']) + ' from ' + dataloader_config['data_path'])
     if args.task == 'speaker':
         print('[run_downstream] - Loading speaker data: ' + str(dataloader_config['train_set']) + ' from ' + dataloader_config['data_path'])

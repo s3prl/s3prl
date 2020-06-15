@@ -59,6 +59,8 @@ def get_upstream_args():
 ##################
 def get_dataloader(args, config):
     
+    if not os.path.exists(config['dataloader']['data_path']):
+        raise RuntimeError('[run_upstream] - Data path not valid:', config['dataloader']['data_path'])
     print('[run_upstream] - Loading input data: ' + str(config['dataloader']['train_set']) + ' from ' + config['dataloader']['data_path'])
     print('[run_downstream] - getting train dataloader...')
 
