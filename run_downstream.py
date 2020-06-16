@@ -90,13 +90,13 @@ def get_dataloader(args, dataloader_config):
         print('[run_downstream] - Loading phone data: ' + dataloader_config['phone_path'])
 
     print('[run_downstream] - getting train dataloader...')
-    train_loader = get_Dataloader(split='train', load=args.task, use_gpu=args.gpu, **dataloader_config)
+    train_loader = get_Dataloader(split='train', load=args.task, use_gpu=args.gpu, seed=args.seed, **dataloader_config)
 
     print('[run_downstream] - getting dev dataloader...')
-    dev_loader = get_Dataloader(split='dev', load=args.task, use_gpu=args.gpu, **dataloader_config)
+    dev_loader = get_Dataloader(split='dev', load=args.task, use_gpu=args.gpu, seed=args.seed, **dataloader_config)
 
     print('[run_downstream] - getting test dataloader...')
-    test_loader = get_Dataloader(split='test', load=args.task, use_gpu=args.gpu, **dataloader_config)
+    test_loader = get_Dataloader(split='test', load=args.task, use_gpu=args.gpu, seed=args.seed, **dataloader_config)
     
     return train_loader, dev_loader, test_loader
 

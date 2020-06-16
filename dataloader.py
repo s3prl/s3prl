@@ -17,17 +17,16 @@ import random
 import numpy as np
 import pandas as pd
 from tqdm import tqdm
-from torch.nn.utils.rnn import pad_sequence
 from torch.utils.data import DataLoader
 from torch.utils.data.dataset import Dataset
+from torch.nn.utils.rnn import pad_sequence
 from transformer.mam import process_train_MAM_data, process_test_MAM_data
 
 
 ############
 # CONSTANT #
 ############
-HALF_BATCHSIZE_TIME = 400
-HALF_BATCHSIZE_LABEL = 150
+HALF_BATCHSIZE_TIME = 1000
 SPEAKER_THRESHOLD = 0
 
 
@@ -177,7 +176,6 @@ class Mel_Phone_Dataset(LibriDataset):
     
     def __init__(self, run_mam, file_path, phone_path, sets, bucket_size, max_timestep=0, drop=False, train_proportion=1.0, mam_config=None):
         super(Mel_Phone_Dataset, self).__init__(file_path, sets, bucket_size, max_timestep, drop)
-        HALF_BATCHSIZE_TIME = 1000
 
         self.run_mam = run_mam
         self.mam_config = mam_config
@@ -256,24 +254,22 @@ class CPC_Phone_Dataset(LibriDataset):
     
     def __init__(self, run_mam, file_path, phone_path, sets, bucket_size, max_timestep=0, drop=False, mam_config=None, split='train', seed=1337):
         super(CPC_Phone_Dataset, self).__init__(file_path, sets, bucket_size, max_timestep, drop)
-        HALF_BATCHSIZE_TIME = 1000
-        random.seed(seed)
 
         assert('train-clean-100' in sets and len(sets) == 1) # `sets` must be ['train-clean-100']
+        random.seed(seed)
         self.run_mam = run_mam
         self.mam_config = mam_config
         self.phone_path = phone_path
-        
         phone_file = open(os.path.join(phone_path, 'converted_aligned_phones.txt')).readlines()
-        phone_set = []
+        
         self.Y = {}
-
+        # phone_set = []
         for line in phone_file:
             line = line.strip('\n').split(' ')
             self.Y[line[0]] = [int(p) for p in line[1:]]
-            for p in line[1:]: 
-                if p not in phone_set: phone_set.append(p)
-        self.class_num = len(phone_set)
+            # for p in line[1:]: 
+                # if p not in phone_set: phone_set.append(p)
+        self.class_num = 41 # len(phone_set) # uncomment the above lines if you want to recompute
         
         if split == 'train' or split == 'dev':
             usage_list = open(os.path.join(phone_path, 'train_split.txt')).readlines()
@@ -339,105 +335,9 @@ class CPC_Phone_Dataset(LibriDataset):
         return x_match_batch, p_match_batch
 
 
-#########################
-# MEL SENTIMENT DATASET #
-#########################
-'''
-The MOSI (speech, sentiment) dataset
-'''
-class Mosi_Dataset(Dataset):
-    def __init__(self, run_mam, split='train', bucket_size=8, max_timestep=0, drop=True, mam_config=None, mosi_config=None):
-        assert(mosi_config is not None), 'MOSI config is necessary for this dataset'
-        self.run_mam = run_mam
-        self.mam_config = mam_config
-        self.config = mosi_config
-
-        self.root = mosi_config['path']
-        self.split = split
-
-        if mosi_config['standard_split']:
-            self.table = pd.read_csv(os.path.join(sentiment_path, split + '.csv'))
-        else:
-            all_table = pd.read_csv(os.path.join(sentiment_path, 'all.csv'))
-            train = all_table.sample(frac=mosi_config['train_ratio'], random_state=mosi_config['random_seed'])
-            test = all_table.drop(train.index)
-            if split == 'train':
-                self.table = train.sort_values(by=['length'], ascending=False)
-            elif split == 'test':
-                self.table = test.sort_values(by=['length'], ascending=False)
-            else:
-                raise NotImplementedError('Invalid `split` argument!')
-
-        if mosi_config['label_mode'] == 'original':
-            self.table.label = self.table.label.astype(int)  # cause the labels given are average label over all annotaters, so we first round them
-            self.table.label += 3  # cause pytorch only accepts non-negative class value, we convert original [-3, -2, -1, 0, 1, 2, 3] into [0, 1, 2, 3, 4, 5, 6]
-            self.class_num = 7
-        elif mosi_config['label_mode'] == 'positive_negative':
-            drop_index = self.table[self.table.label == 0].index
-            dropped = self.table.drop(drop_index)
-            dropped.label = (dropped.label > 0).astype(np.int64)
-            self.table = dropped
-            self.class_num = 2
-        else:
-            raise NotImplementedError('Not supported label mode')
-
-        # Drop seqs that are too long
-        if drop and max_timestep > 0:
-            self.table = self.table[self.table.length < max_timestep]
-
-        Y = self.table['label'].tolist()  # (all_data, )
-        X = self.table['file_path'].tolist()
-        X_lens = self.table['length'].tolist()
-
-        self.Y = []
-        self.X = []
-        batch_y, batch_x, batch_len = [], [], []
-
-        for y, x, x_len in zip(Y, X, X_lens):
-            batch_y.append(y)
-            batch_x.append(x)
-            batch_len.append(x_len)
-            
-            # Fill in batch_x until batch is full
-            if len(batch_x) == bucket_size:
-                # Half the batch size if seq too long
-                if (bucket_size >= 2) and (max(batch_len) > HALF_BATCHSIZE_TIME):
-                    self.Y.append(batch_y[:bucket_size//2])
-                    self.Y.append(batch_y[bucket_size//2:])
-                    self.X.append(batch_x[:bucket_size//2])
-                    self.X.append(batch_x[bucket_size//2:])
-                else:
-                    self.Y.append(batch_y)
-                    self.X.append(batch_x)
-                batch_y, batch_x, batch_len = [], [], []
-        
-        # Gather the last batch
-        if len(batch_x) > 0:
-            self.Y.append(batch_y)
-            self.X.append(batch_x)
-
-
-    def __getitem__(self, index):
-        # Load acoustic feature and pad
-        x_batch = [torch.FloatTensor(np.load(os.path.join(self.root, 'npy', x_file))) for x_file in self.X[index]]  # [(seq, feature), ...]
-        x_pad_batch = pad_sequence(x_batch, batch_first=True)  # (batch, seq, feature) with all seq padded with zeros to align the longest seq in this batch
-        seq_len = x_pad_batch.size(1)
-        x_pad_batch = x_pad_batch[:, torch.arange(0, seq_len, self.config['sample_rate']), :]
-
-        # Load label
-        y_batch = torch.LongTensor(self.Y[index])  # (batch, )
-        # y_broadcast_int_batch = y_batch.repeat(x_pad_batch.size(1), 1).T  # (batch, seq)
-
-        if self.run_mam:
-            x_pad_batch = process_test_MAM_data(spec=(x_pad_batch,), config=self.mam_config)
-        return x_pad_batch, y_batch
-    
-    def __len__(self):
-        return len(self.X)
-
-
 class Mosei_Dataset(Dataset):
     def __init__(self, run_mam, split='train', bucket_size=8, train_proportion=1.0, max_timestep=0, drop=True, mam_config=None, mosei_config=None):
+        
         assert(mosei_config is not None), 'MOSEI config is necessary for this dataset'
         self.run_mam = run_mam
         self.mam_config = mam_config
@@ -577,61 +477,65 @@ class Mosei_Dataset(Dataset):
 # MEL SPEAKER DATASET #
 #######################
 '''
-The LibriSpeech train-clean-100 (speech, speaker) dataset
+The LibriSpeech (speech, speaker) dataset
 '''
 class Speaker_Dataset(Dataset):
     
-    def __init__(self, split, run_mam, file_path, sets, bucket_size, max_timestep=0, drop=False, mam_config=None, seed=1337):
+    def __init__(self, split, run_mam, file_path, sets, bucket_size, split_path=None, max_timestep=0, drop=False, mam_config=None, seed=1337):
         
-        assert('train-clean-100' in sets and len(sets) == 1) # `sets` must be ['train-clean-100']
-        HALF_BATCHSIZE_TIME = 1000
+        random.seed(seed)
         self.run_mam = run_mam
         self.mam_config = mam_config
         self.root = file_path
 
-        # Load the train-clean-100 set
-        tables = pd.read_csv(os.path.join(file_path, sets[0] + '.csv'))
+        # Load the input sets
+        tables = [pd.read_csv(os.path.join(file_path, s + '.csv')) for s in sets]
+        self.table = pd.concat(tables, ignore_index=True).sort_values(by=['length'], ascending=False)
+        X = self.table['file_path'].tolist()
+        X_lens = self.table['length'].tolist()
 
         # Compute speaker dictionary
         print('[Dataset] - Computing speaker class...')
-        O = tables['file_path'].tolist()
-        speakers = self.get_all_speakers(O)
+        speakers = self.get_all_speakers(X)
         self.speaker2idx = self.compute_speaker2idx(speakers)
         self.class_num = len(self.speaker2idx)
-        print('[Dataset] - Possible speaker classes: ', self.class_num)
-        
-        # if cpc split files exist, use them
-        usage_list = []
-        if (split == 'train' or split == 'dev') and os.path.isfile('data/cpc_phone/train_split.txt'):
-            usage_list = open(os.path.join('data/cpc_phone/', 'train_split.txt')).readlines()
-            random.shuffle(usage_list)
-            percent = int(len(usage_list)*0.9)
-            usage_list = usage_list[:percent] if split == 'train' else usage_list[percent:]
-        elif split == 'test' and os.path.isfile('data/cpc_phone/test_split.txt'):
-            usage_list = open(os.path.join('data/cpc_phone/', 'test_split.txt')).readlines()
-
-        # use CPC split:
-        if len(usage_list) > 0:
-            self.table = tables
-            usage_list = [line.strip('\n') for line in usage_list]
-            print('[Dataset] - Using CPC train/test splits.')
-        # use random 9:1 split
-        else:
-            train = tables.sample(frac=0.9, random_state=seed) # random state is a seed value
-            test = tables.drop(train.index)
-            if split == 'train':
-                self.table = train.sort_values(by=['length'], ascending=False)
-            elif split == 'test':
-                self.table = test.sort_values(by=['length'], ascending=False)
-            else:
-                raise NotImplementedError('Invalid `split` argument!')
-
-        X = self.table['file_path'].tolist()
-        X_lens = self.table['length'].tolist()
 
         # Crop seqs that are too long
         if drop and max_timestep > 0:
             self.table = self.table[self.table.length < max_timestep]
+        
+        # if using 'train-clean-100' and the cpc split files exist, use them:
+        usage_list = []
+        if len(sets) == 1 and 'train-clean-100' in sets:
+            # use CPC split:
+            if (split == 'train' or split == 'dev') and os.path.isfile(os.path.join(split_path, 'train_split.txt')):
+                usage_list = open(os.path.join(split_path, 'train_split.txt')).readlines()
+                random.shuffle(usage_list)
+                percent = int(len(usage_list)*0.9)
+                usage_list = usage_list[:percent] if split == 'train' else usage_list[percent:]
+            elif split == 'test' and os.path.isfile(os.path.join(split_path, 'test_split.txt')):
+                usage_list = open(os.path.join(split_path, 'test_split.txt')).readlines()
+            else:
+                raise NotImplementedError('Invalid `split` argument!')
+            
+            self.table = tables
+            usage_list = [line.strip('\n') for line in usage_list]
+            print('[Dataset] - Using CPC train/test splits.')
+            print('[Dataset] - Possible speaker classes: ' + str(self.class_num) + ', number of data: ' + str(len(usage_list)))
+
+        # else use random 8:1:1 split
+        if len(usage_list) == 0:
+            random.shuffle(X)
+            percent_train, percent_dev, percent_test = int(len(X)*0.8), int(len(X)*0.1), int(len(X)*0.1)
+            if split == 'train':
+                X = X[:percent_train]
+            elif split == 'dev':
+                X = X[percent_train : percent_train+percent_dev]
+            elif split == 'test':
+                X = X[-percent_test:]
+            else:
+                raise NotImplementedError('Invalid `split` argument!')
+            print('[Dataset] - Possible speaker classes: ' + str(self.class_num) + ', number of data: ' + str(len(X)))
 
         # Use bucketing to allow different batch sizes at run time
         self.X = []
@@ -739,24 +643,17 @@ def get_Dataloader(split, load, data_path, batch_size, max_timestep,
         assert(phone_path is not None), '`phone path` must be provided for this dataset.'
         ds = Mel_Phone_Dataset(run_mam=run_mam, file_path=data_path, phone_path=phone_path, sets=sets, max_timestep=max_timestep,
                                bucket_size=bs, drop=drop_too_long, mam_config=mam_config,
-                               train_proportion=train_proportion if split == 'train' else 1.0)
+                               train_proportion=train_proportion if split != 'test' else 1.0)
     elif load == 'cpc_phone':
         assert(phone_path is not None), '`phone path` must be provided for this dataset.'
         ds = CPC_Phone_Dataset(run_mam=run_mam, file_path=data_path, phone_path=phone_path, sets=sets, max_timestep=max_timestep,
                                bucket_size=bs, drop=drop_too_long, mam_config=mam_config, split=split, seed=seed)
     elif load == 'sentiment':
         assert(sentiment_config is not None), '`sentiment config` must be provided for this dataset.'
-        target = sentiment_config['dataset']
-        if target == 'mosi':
-            ds = Mosi_Dataset(run_mam=run_mam, split=split, max_timestep=max_timestep,
-                              bucket_size=bs, drop=drop_too_long, mam_config=mam_config, mosi_config=sentiment_config[target])
-        elif target == 'mosei':
-            ds = Mosei_Dataset(run_mam=run_mam, split=split, max_timestep=max_timestep, train_proportion=train_proportion,
-                              bucket_size=bs, drop=drop_too_long, mam_config=mam_config, mosei_config=sentiment_config[target])
-        else:
-            raise NotImplementedError('Not supported dataset for sentiment')
+        ds = Mosei_Dataset(run_mam=run_mam, split=split, max_timestep=max_timestep, train_proportion=train_proportion,
+                           bucket_size=bs, drop=drop_too_long, mam_config=mam_config, mosei_config=sentiment_config['mosei'])
     elif load == 'speaker':
-        ds = Speaker_Dataset(split=split, run_mam=run_mam, file_path=data_path, sets=sets, max_timestep=max_timestep,
+        ds = Speaker_Dataset(split=split, run_mam=run_mam, file_path=data_path, split_path=phone_path, sets=sets, max_timestep=max_timestep,
                              bucket_size=bs, drop=drop_too_long, mam_config=mam_config, seed=seed)
     else:
         raise NotImplementedError('Invalid `load` argument for `get_Dataloader()`!')
