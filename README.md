@@ -50,12 +50,11 @@ This is an open source project called S3PRL, where various *upstream* self-super
 
 **Usage Highlight:**
 - **Acoustic feature extraction scripts:**
-    - LibriSpeech:
-        - Pre-processing with [Lirbosa](https://librosa.github.io/librosa/): *mfcc, fbank, mel*
-        - Pre-processing with [TTS-Preprocessing](https://github.com/r9y9/tacotron_pytorch): *mel, linear*
+    - LibriSpeech and TIMIT:
+        - Pre-processing with [Lirbosa](https://librosa.github.io/librosa/): *mfcc, fbank, mel, linear*
         - Pre-processing with the [Kaldi](https://github.com/kaldi-asr/kaldi) s5 recipe: *mfcc, fbank, fmllr*
     - WSJ: coming soon
-    - Extracted features can be directly download from: [S3PRL Drive](bit.ly/drive-s3prl)
+    - Extracted features can be directly download from: [S3PRL Drive](bit.ly/drive-S3PRL)
     - see section: *Data preporation*
 - **Pre-train your own self-supervised models:**
     - Implementation of various upstream algorithms.
@@ -69,7 +68,7 @@ This is an open source project called S3PRL, where various *upstream* self-super
     - Easy-to-use pre-trained model initialization.
     - Incorporate any downstream task with the provided pre-trained models.
     - Implemented as [PyTorch-Kaldi](https://github.com/mravanelli/pytorch-kaldi) ready DNNs.
-    - Pre-trained checkpoints can be directly download from: [S3PRL Drive](bit.ly/drive-s3prl)
+    - Pre-trained checkpoints can be directly download from: [S3PRL Drive](bit.ly/drive-S3PRL)
     - see section: *Using upstream models with your own task*
 - **Knowledge transfer of pre-trained model to downstream task:**
     - We support various methods of incoporating the pre-trained model with downstream models:
@@ -116,22 +115,8 @@ For the installation and usage of Kaldi and PyTorch-Kaldi, see our supplementary
 
 Data preporation
 ------------------------------------
-
-#### Preprocessing with Librosa:
-- Download the LibriSpeech dataset and place under [`data/`](data/): `data/LibriSpeech`. 
-- The extracted data, which is ready for training, will be stored under the same [`data/`](data/) directory by default. 
-```bash
-cd preprocess/
-# features used for Mockingjay
-python preprocess_libri.py --feature_type=mel --data_path=../data/LibriSpeech
-# To preprocess different acoustic features, options are:
-python preprocess_libri.py --feature_type=linear
-python preprocess_libri.py --feature_type=mfcc
-python preprocess_libri.py --feature_type=fbank
-```
-#### Preprocessing with Kaldi:
-- To extract with Kaldi, see the supplementary wiki page for detailed instructions: [Extracting with Kaldi](https://github.com/andi611/Self-Supervised-Speech-Pretraining-and-Representation-Learning/wiki/Extracting-with-Kaldi)
-- Or download the extracted features from here: [S3PRL Drive](bit.ly/drive-s3prl)
+#### Download extracted features (RECOMMENDED):
+- We provide the features we extracted for you to download directly: [S3PRL Drive](bit.ly/drive-S3PRL)
 ```bash
 Structure of S3PRL Drive:
 data/
@@ -139,12 +124,79 @@ data/
     libri_fbank_cmvn.zip 
     libri_fmllr_cmvn.zip # features used for TERA
     timit_fmllr_cmvn.zip
+    libri_mel160_subword5000 # features used for Mockingjay
 ```
+- Download then unzip them, for example:
+```bash
+cd data/
+unzip libri_fmllr_cmvn.zip
+```
+- Modify the setting in config files: [`config/downstream.yaml`](config/downstream.yaml), and others if needed:
+```yaml
+data_path: 'data/libri_fmllr_cmvn'
+```
+
+#### Preprocessing with Librosa:
+##### LibriSpeech
+- Download the [LibriSpeech](http://www.openslr.org/12) dataset and place under [`data/`](data/): `data/LibriSpeech`. 
+- The extracted data, which is ready for training, will be stored under the same [`data/`](data/) directory by default. 
+```bash
+# features used for Mockingjay
+python preprocess/preprocess_libri.py --feature_type=mel --data_path=../data/LibriSpeech # 160-dim
+# To preprocess different acoustic features, options are:
+python preprocess/preprocess_libri.py --feature_type=linear --delta=False # 1025-dim
+python preprocess/preprocess_libri.py --feature_type=mfcc --delta=True --delta_delta=True # 39-dim
+python preprocess/preprocess_libri.py --feature_type=fbank --delta=False # 80-dim
+```
+
+##### TIMIT
+- Download the [TIMIT](https://catalog.ldc.upenn.edu/LDC93S1) dataset and place under [`data/`](data/): `data/timit`. 
+- Follow the command used above:
+```bash
+python preprocess/preprocess_timit.py --feature_type=mel --data_path=../data/LibriSpeech # 160-dim
+python preprocess/preprocess_timit.py --feature_type=linear --delta=False # 1025-dim
+python preprocess/preprocess_timit.py --feature_type=mfcc --delta=True --delta_delta=True # 39-dim
+python preprocess/preprocess_timit.py --feature_type=fbank --delta=False # 80-dim
+```
+
+#### Preprocessing with Kaldi:
+- To extract with Kaldi, see the supplementary wiki page for detailed instructions: [Extracting with Kaldi](https://github.com/andi611/Self-Supervised-Speech-Pretraining-and-Representation-Learning/wiki/Extracting-with-Kaldi)
+- Or download the extracted features from here: [S3PRL Drive](bit.ly/drive-S3PRL)
 - Place the downloaded `*.zip` files under [`data/`](data/):
 ```bash
 cd data/
 unzip libri_fmllr_cmvn.zip # features used for TERA
 ```
+
+#### Downstream Task Preprocessing:
+
+##### Kaldi Phone Set (RECOMMENDED)
+- 41 phone classes, this set is considered in the CPC, TERA papers.
+- To use the CPC phone alignment data, use the following command:
+```bash
+cd data/cpc_phone
+unzip converted_aligned_phones.zip
+```
+- Make sure that in [`config/downstream.yaml`](config/downstream.yaml), phone path is set to:
+```yaml
+phone_path: 'data/cpc_phone'
+```
+- ***Warning:** these phone alignments correspond to a feature/label for every 10ms, you need to use features with windows of 25 ms and an overlap of 10 ms, we recommand the [Kaldi extracted features](bit.ly/drive-S3PRL).*
+
+##### Montreal Phone Set
+- 72 phone classes, this set is considered in the Mockingjay paper.
+- To use the [Montreal Forced Aligner](https://montreal-forced-aligner.readthedocs.io/en/latest/) phone alignment data, download the `libri_alignment.zip` from [S3PRL Drive](bit.ly/drive-S3PRL) and place under the [`data/`](data/) directory:
+```bash
+cd data
+unzip libri_alignment.zip
+cd ..
+python preprocess/preprocess_alignment.py
+```
+- Change the setting in [`config/downstream.yaml`](config/downstream.yaml):
+```yaml
+phone_path: 'data/libri_phone'
+```
+- ***Warning:** we recommand you use `preprocess/preprocess_libri.py --feature_type=mel` to extract matching features.*
 
 Train upstream models
 ------------------------------------
@@ -253,7 +305,7 @@ Using upstream models with your own task
 ------------------------------------
 - You can also fine-tune or extract from the pre-trained upstream model on your own dataset and tasks! 
 - *important: you must use input acoustic features with the **same preprocessing settings and pipeline** as pre-trained models!!!* 
-- Pre-trained checkpoints can be download from: [S3PRL Drive](bit.ly/drive-s3prl)
+- Pre-trained checkpoints can be download from: [S3PRL Drive](bit.ly/drive-S3PRL)
 - Below we show an [example code](src/example_extract_finetune.py) of fine-tuning a upstream model with your own downstream model, by using the wrapper class in [nn_transformer.py](transformer/nn_transformer.py):
 ```python
 import torch
