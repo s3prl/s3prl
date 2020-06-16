@@ -8,7 +8,7 @@
 
 Introduction
 ------------------------------------
-This is an open source project called S3PRL, where various *upstream* self-supervised speech models are implemented with easy-to-load setups, and *downstream* evaluation tasks are available with easy-to-use scripts.
+This is an open source project called S3PRL, which stands for **S**elf-**S**upervised **S**peech **P**re-training and **R**epresentation **L**earning. In this toolkit, various *upstream* self-supervised speech models are implemented with easy-to-load setups, and *downstream* evaluation tasks are available with easy-to-use scripts.
 
 **Upstream Models:**
 - **Mockingjay**
@@ -54,7 +54,7 @@ This is an open source project called S3PRL, where various *upstream* self-super
         - Pre-processing with [Lirbosa](https://librosa.github.io/librosa/): *mfcc, fbank, mel, linear*
         - Pre-processing with the [Kaldi](https://github.com/kaldi-asr/kaldi) s5 recipe: *mfcc, fbank, fmllr*
     - WSJ: coming soon
-    - Extracted features can be directly download from: [S3PRL Drive](bit.ly/drive-S3PRL)
+    - Extracted features can be directly download from: [S3PRL Drive](http://www.bit.ly/drive-S3PRL)
     - see section: *Data preporation*
 - **Pre-train your own self-supervised models:**
     - Implementation of various upstream algorithms.
@@ -68,7 +68,7 @@ This is an open source project called S3PRL, where various *upstream* self-super
     - Easy-to-use pre-trained model initialization.
     - Incorporate any downstream task with the provided pre-trained models.
     - Implemented as [PyTorch-Kaldi](https://github.com/mravanelli/pytorch-kaldi) ready DNNs.
-    - Pre-trained checkpoints can be directly download from: [S3PRL Drive](bit.ly/drive-S3PRL)
+    - Pre-trained checkpoints can be directly download from: [S3PRL Drive](http://www.bit.ly/drive-S3PRL)
     - see section: *Using upstream models with your own task*
 - **Knowledge transfer of pre-trained model to downstream task:**
     - We support various methods of incoporating the pre-trained model with downstream models:
@@ -79,12 +79,13 @@ This is an open source project called S3PRL, where various *upstream* self-super
 
 Feel free to use or modify them, any bug report or improvement suggestion will be appreciated. If you have any questions, please contact tingweiandyliu@gmail.com. If you find this project helpful for your research, please do consider to cite [our papers](#Citation), thanks!
 
-Prerequisite
+Installation
 ------------------------------------
-- Clone this repo: `git clone https://github.com/andi611/Self-Supervised-Speech-Pretraining-and-Representation-Learning.git`
-- Python 3 or above
-- Pytorch 1.3.0 or above
-- Computing power (high-end GPU) and memory space (both RAM/GPU's RAM) is extremely important if you'd like to train your own model.
+
+#### Prerequisite
+- **Python** 3 or above
+- **PyTorch** 1.3.0 or above
+- Computing power (**high-end GPU**) and memory space (both RAM/GPU's RAM) is extremely important if you'd like to train your own model.
 - Required packages and their use are listed below, and also in [requirements.txt](requirements.txt):
 ```
 joblib           # parallel feature extraction & decoding
@@ -111,12 +112,42 @@ PyTorch-Kaldi    # for hybrid ASR training (Optional)
 ```
 For the installation and usage of Kaldi and PyTorch-Kaldi, see our supplementary wiki page: [Extracting with Kaldi](https://github.com/andi611/Self-Supervised-Speech-Pretraining-and-Representation-Learning/wiki/Extracting-with-Kaldi) and [ASR with PyTorch-Kalid](https://github.com/andi611/Self-Supervised-Speech-Pretraining-and-Representation-Learning/wiki/ASR-with-PyTorch-Kaldi)
 
+#### Getting Started
+- Clone this repo:
+`git clone https://github.com/andi611/Self-Supervised-Speech-Pretraining-and-Representation-Learning.git`
+
+#### Setting PYTHONPATH
+##### Linux
+- If you have any importing errors, try the following.
+- Also, to use the codes in this repo from another project (e.g. PyTorch-Kaldi), you have to set a global path.
+- Open the file `~/.bashrc` in your text editor – e.g. `subl ~/.bashrc`;
+- Add the following line to the end:
+```bash
+export PYTHONPATH=/your_abs_path/Self-Supervised-Speech-Pretraining-and-Representation-Learning
+```
+*Make sure you change it to your own path.*
+- Restart your terminal application to read in the new settings, and type this to check if everything is working: `echo $PYTHONPATH`
+- Now in any python environment or .py file, we can do the following in any directory:
+```python
+from transformer.nn_transformer import TRANSFORMER
+```
+- Read the [documentations](https://bic-berkeley.github.io/psych-214-fall-2016/using_pythonpath.html) if you run in to any problem.
+
+##### Windows
+- For Windows, add the following lines to your .py code:
+```python
+import sys
+# set this to your own path
+S3PRL_PATH = "C:\\Users\\ANDYLIU\\Self-Supervised-Speech-Pretraining-and-Representation-Learning"
+if S3PRL_PATH not in sys.path:
+    sys.path.append(S3PRL_PATH)
+```
 
 
 Data preporation
 ------------------------------------
 #### Download extracted features (RECOMMENDED):
-- We provide the features we extracted for you to download directly: [S3PRL Drive](bit.ly/drive-S3PRL)
+- We provide the features we extracted for you to download directly: [S3PRL Drive](http://www.bit.ly/drive-S3PRL)
 ```bash
 Structure of S3PRL Drive:
 data/
@@ -161,7 +192,7 @@ python preprocess/preprocess_timit.py --feature_type=fbank --delta=False # 80-di
 
 #### Preprocessing with Kaldi:
 - To extract with Kaldi, see the supplementary wiki page for detailed instructions: [Extracting with Kaldi](https://github.com/andi611/Self-Supervised-Speech-Pretraining-and-Representation-Learning/wiki/Extracting-with-Kaldi)
-- Or download the extracted features from here: [S3PRL Drive](bit.ly/drive-S3PRL)
+- Or download the extracted features from here: [S3PRL Drive](http://www.bit.ly/drive-S3PRL)
 - Place the downloaded `*.zip` files under [`data/`](data/):
 ```bash
 cd data/
@@ -181,11 +212,11 @@ unzip converted_aligned_phones.zip
 ```yaml
 phone_path: 'data/cpc_phone'
 ```
-- ***Warning:** these phone alignments correspond to a feature/label for every 10ms, you need to use features with windows of 25 ms and an overlap of 10 ms, we recommand the [Kaldi extracted features](bit.ly/drive-S3PRL).*
+- ***Warning:** these phone alignments correspond to a feature/label for every 10ms, you need to use features with windows of 25 ms and an overlap of 10 ms, we recommand the [Kaldi extracted features](http://www.bit.ly/drive-S3PRL).*
 
 ##### Montreal Phone Set
 - 72 phone classes, this set is considered in the Mockingjay paper.
-- To use the [Montreal Forced Aligner](https://montreal-forced-aligner.readthedocs.io/en/latest/) phone alignment data, download the `libri_alignment.zip` from [S3PRL Drive](bit.ly/drive-S3PRL) and place under the [`data/`](data/) directory:
+- To use the [Montreal Forced Aligner](https://montreal-forced-aligner.readthedocs.io/en/latest/) phone alignment data, download the `libri_alignment.zip` from [S3PRL Drive](http://www.bit.ly/drive-S3PRL) and place under the [`data/`](data/) directory:
 ```bash
 cd data
 unzip libri_alignment.zip
@@ -304,8 +335,8 @@ elif args.upstream == 'your_model':
 Using upstream models with your own task
 ------------------------------------
 - You can also fine-tune or extract from the pre-trained upstream model on your own dataset and tasks! 
-- *important: you must use input acoustic features with the **same preprocessing settings and pipeline** as pre-trained models!!!* 
-- Pre-trained checkpoints can be download from: [S3PRL Drive](bit.ly/drive-S3PRL)
+- ***IMPORTANT:** you must use input acoustic features with the **same preprocessing settings and pipeline** as pre-trained models!!!* 
+- Pre-trained checkpoints can be download from: [S3PRL Drive](http://www.bit.ly/drive-S3PRL)
 - Below we show an [example code](src/example_extract_finetune.py) of fine-tuning a upstream model with your own downstream model, by using the wrapper class in [nn_transformer.py](transformer/nn_transformer.py):
 ```python
 import torch
