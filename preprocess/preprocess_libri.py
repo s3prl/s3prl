@@ -39,8 +39,8 @@ def get_preprocess_args():
     
     parser = argparse.ArgumentParser(description='preprocess arguments for LibriSpeech dataset.')
 
-    parser.add_argument('--data_path', default='../data/LibriSpeech', type=str, help='Path to raw LibriSpeech dataset')
-    parser.add_argument('--output_path', default='../data/', type=str, help='Path to store output', required=False)
+    parser.add_argument('--data_path', default='./data/LibriSpeech', type=str, help='Path to raw LibriSpeech dataset')
+    parser.add_argument('--output_path', default='./data/', type=str, help='Path to store output', required=False)
 
     parser.add_argument('--feature_type', default='mel', type=str, help='Feature type ( mfcc / fbank / mel / linear )', required=False)
     parser.add_argument('--delta', default=True, type=boolean_string, help='Append Delta', required=False)
@@ -57,16 +57,18 @@ def get_preprocess_args():
 #######################
 # ACOUSTIC PREPROCESS #
 #######################
-def acoustic_preprocess(args, tr_set, dim, output_dir):
+def acoustic_preprocess(args, tr_set, dim):
     
     for s in tr_set:
         print('')
-        print('Preprocessing',s,'data...',end='')
-        todo = list(Path(os.path.join(args.data_path,s)).rglob("*.flac"))
+        print('Preprocessing', s, 'data...', end='')
+        todo = list(Path(os.path.join(args.data_path, s)).rglob("*.flac"))
         print(len(todo),'audio files found in', s)
 
-        if output_dir == 'None':
-            output_dir = os.path.join(args.output_path,'_'.join(['libri', str(args.feature_type)+str(dim)]))
+        if args.name == 'None':
+            output_dir = os.path.join(args.output_path, '_'.join(['libri', str(args.feature_type)+str(dim)]))
+        else:
+            output_dir = os.path.join(args.output_path, args.name)
         if not os.path.exists(output_dir): os.makedirs(output_dir)
         cur_path = os.path.join(output_dir, s)
         if not os.path.exists(cur_path): os.makedirs(cur_path)
@@ -74,12 +76,12 @@ def acoustic_preprocess(args, tr_set, dim, output_dir):
         print('Extracting acoustic feature...', flush=True)
         tr_x = Parallel(n_jobs=args.n_jobs)(delayed(extract_feature)(str(file), feature=args.feature_type, \
                                             delta=args.delta, delta_delta=args.delta_delta, cmvn=args.apply_cmvn, \
-                                            save_feature=os.path.join(cur_path, str(file).split('/')[-1].replace('.flac',''))) for file in tqdm(todo))
+                                            save_feature=os.path.join(cur_path, str(file).split('/')[-1].replace('.flac', ''))) for file in tqdm(todo))
 
         # sort by len
-        sorted_todo = [os.path.join(s,str(todo[idx]).split('/')[-1].replace('.flac','.npy')) for idx in reversed(np.argsort(tr_x))]
+        sorted_todo = [os.path.join(s, str(todo[idx]).split('/')[-1].replace('.flac', '.npy')) for idx in reversed(np.argsort(tr_x))]
         # Dump data
-        df = pd.DataFrame(data={'file_path':[fp for fp in sorted_todo],'length':list(reversed(sorted(tr_x))),'label':None})
+        df = pd.DataFrame(data={'file_path':[fp for fp in sorted_todo], 'length':list(reversed(sorted(tr_x))), 'label':None})
         df.to_csv(os.path.join(output_dir, s+'.csv'))
 
     print('All done, saved at', output_dir, 'exit.')
@@ -94,6 +96,7 @@ def main():
     args = get_preprocess_args()
     mel_dim = num_mels * (1 + int(args.delta) + int(args.delta_delta))
     dim = num_freq if args.feature_type == 'linear' else mel_dim
+    print('Delta: ', args.delta, '. Delta Delta: ', args.delta_delta, '. Cmvn: '. args.cmvn)
 
     # Select data sets
     print('Data sets :')
@@ -104,10 +107,8 @@ def main():
     tr_set = [sets[int(t)] for t in tr_set.split(' ')]
 
     # Acoustic Feature Extraction & Make Data Table
-    acoustic_preprocess(args, tr_set, dim, args.name)
+    acoustic_preprocess(args, tr_set, dim)
 
 
 if __name__ == '__main__':
     main()
-
-    
