@@ -105,7 +105,11 @@ class Runner():
                     # features: (1, batch_size, seq_len, feature)
                     # dimension of labels depend on task and dataset, but the first dimention is always trivial due to bucketing, eg. (1, ...)
                     features = features.squeeze(0).to(device=self.device, dtype=torch.float32)
-                    features = self.upstream_model(features)
+                    if self.args.fine_tune:
+                        features = self.upstream_model(features)
+                    else:
+                        with torch.no_grad():
+                            features = self.upstream_model(features)
 
                     # Since zero padding technique, some timestamps of features are not valid
                     # For each timestamps, we mark 1 on valid timestamps, and 0 otherwise
