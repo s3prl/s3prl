@@ -101,7 +101,7 @@ def _griffin_lim(S, sr):
     angles = np.exp(2j * np.pi * np.random.rand(*S.shape))
     S_complex = np.abs(S).astype(np.complex)
     y = _istft(S_complex * angles, sr)
-    for i in range(griffin_lim_iters):
+    for _ in range(griffin_lim_iters):
         angles = np.exp(1j * np.angle(_stft(y ,sr)))
         y = _istft(S_complex * angles, sr)
     return y
