@@ -54,26 +54,6 @@ def get_preprocess_args():
     return args
 
 
-#############
-# READ TEXT #
-#############
-def read_text(file, target):
-    labels = []
-    if target == 'phoneme':
-        with open(file.replace('.wav','.phn'),'r') as f:
-            for line in f:
-                labels.append(line.replace('\n','').split(' ')[-1])
-    elif target in ['char','subword','word']:
-        with open(file.replace('.wav','.wrd'),'r') as f:
-            for line in f:
-                labels.append(line.replace('\n','').split(' ')[-1])
-        if target =='char':
-            labels = [c for c in ' '.join(labels)]
-    else:
-        raise ValueError('Unsupported target: ' + target)
-    return labels
-
-
 ##############
 # PREPROCESS #
 ##############
