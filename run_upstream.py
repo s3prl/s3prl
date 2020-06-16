@@ -21,6 +21,15 @@ from dataloader import get_Dataloader
 from utility.helper import parse_prune_heads
 
 
+#################
+# PATH HANDLING #
+#################
+import sys
+S3PRL_PATH = os.getcwd() # or set this to your own path that points to the S3PRL repo
+if S3PRL_PATH not in sys.path:
+    sys.path.append(S3PRL_PATH)
+
+
 ######################
 # UPSTREAM ARGUMENTS #
 ######################
