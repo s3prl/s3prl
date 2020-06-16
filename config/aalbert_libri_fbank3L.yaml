@@ -1,6 +1,6 @@
 transformer:
   input_dim: 80                                         # `int`, 39 for mfcc, 40 for fmllr, 80 for fbank, 160 for mel
-  downsample_rate: 1                                    # stacked consecutive features vectors to reduce the length of input sequences by this factor.
+  downsample_rate: 3                                    # stacked consecutive features vectors to reduce the length of input sequences by this factor.
   hidden_size: 768                                      # Size of the encoder layers and the pooler layer.
   num_hidden_layers: 3                                  # Number of hidden layers in the Transformer encoder.
   num_attention_heads: 12                               # Number of attention heads for each attention layer in the Transformer encoder.
