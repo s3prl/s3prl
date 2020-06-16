@@ -33,6 +33,7 @@ sample_rate = 16000
 For feature == 'fbank' or 'mfcc'
 """
 num_mels = 80 # int, dimension of feature
+num_mfcc = 13 # int, number of MFCCs
 window_size = 25 # int, window size for FFT (ms)
 stride = 10 # int, window stride for FFT
 """
@@ -170,7 +171,7 @@ def extract_feature(input_file, feature='fbank', delta=False, delta_delta=False,
     elif feature == 'mfcc':
         ws = int(sr*0.001*window_size)
         st = int(sr*0.001*stride)
-        feat = librosa.feature.mfcc(y=y, sr=sr, n_mfcc=num_mels, n_mels=26,
+        feat = librosa.feature.mfcc(y=y, sr=sr, n_mfcc=num_mfcc,
                                     n_fft=ws, hop_length=st)
         feat[0] = librosa.feature.rms(y, hop_length=st, frame_length=ws)
     elif feature == 'mel':
