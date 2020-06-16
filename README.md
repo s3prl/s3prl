@@ -85,9 +85,18 @@ This is an open source project called S3PRL, which stands for **S**elf-**S**uper
 
 Feel free to use or modify them, any bug report or improvement suggestion will be appreciated. If you have any questions, please contact tingweiandyliu@gmail.com. If you find this project helpful for your research, please do consider to cite [our papers](#Citation), thanks!
 
-Table of Content
+Table of Contents
 ------------------------------------
-[toc]
+<!--ts-->
+   * [Table of contents](#table-of-contents)
+   * [Introduction](#introduction)
+       * [Upstream Models](#upstream-models)
+       * [Downstream Tasks](#downstream-tasks)
+   * [Installation](#installation)
+       * [Prerequisite](#prerequisite)
+       * [Getting Started](#getting-started)
+       * [Setting PYTHONPATH](#setting-pythonpath)
+<!--te-->
 
 ------------------------------------
 Installation
