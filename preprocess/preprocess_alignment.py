@@ -27,8 +27,8 @@ from utility.audio import sample_rate, _stft_parameters
 def get_preprocess_args():
     
     parser = argparse.ArgumentParser(description='preprocess arguments for LibriSpeech dataset.')
-    parser.add_argument('--data_path', default='../data/libri_alignment', type=str, help='Path to raw LibriSpeech alignment')
-    parser.add_argument('--output_path', default='../data/libri_phone', type=str, help='Path to store output', required=False)
+    parser.add_argument('--data_path', default='./data/libri_alignment', type=str, help='Path to raw LibriSpeech alignment')
+    parser.add_argument('--output_path', default='./data/libri_phone', type=str, help='Path to store output', required=False)
     args = parser.parse_args()
     return args
 
@@ -140,4 +140,3 @@ def main():
 
 if __name__ == '__main__':
     main()
-
