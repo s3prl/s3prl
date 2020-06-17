@@ -76,31 +76,6 @@ def get_downstream_args():
     return args, config
 
 
-##################
-# GET DATALOADER #
-##################
-def get_dataloader(args, dataloader_config):
-
-    if not os.path.exists(dataloader_config['data_path']):
-        raise RuntimeError('[run_downstream] - Data path not valid:', dataloader_config['data_path'])    
-    print('[run_downstream] - Loading input data: ' + str(dataloader_config['train_set']) + ' from ' + dataloader_config['data_path'])
-    if args.task == 'speaker':
-        print('[run_downstream] - Loading speaker data: ' + str(dataloader_config['train_set']) + ' from ' + dataloader_config['data_path'])
-    else:
-        print('[run_downstream] - Loading phone data: ' + dataloader_config['phone_path'])
-
-    print('[run_downstream] - getting train dataloader...')
-    train_loader = get_Dataloader(split='train', load=args.task, use_gpu=args.gpu, seed=args.seed, **dataloader_config)
-
-    print('[run_downstream] - getting dev dataloader...')
-    dev_loader = get_Dataloader(split='dev', load=args.task, use_gpu=args.gpu, seed=args.seed, **dataloader_config)
-
-    print('[run_downstream] - getting test dataloader...')
-    test_loader = get_Dataloader(split='test', load=args.task, use_gpu=args.gpu, seed=args.seed, **dataloader_config)
-    
-    return train_loader, dev_loader, test_loader
-
-
 ################
 # GET UPSTREAM #
 ################
@@ -139,6 +114,31 @@ def get_upstream_model(args):
     assert(hasattr(upstream_model, 'forward'))
     assert(hasattr(upstream_model, 'out_dim'))
     return upstream_model
+
+
+##################
+# GET DATALOADER #
+##################
+def get_dataloader(args, dataloader_config):
+
+    if not os.path.exists(dataloader_config['data_path']):
+        raise RuntimeError('[run_downstream] - Data path not valid:', dataloader_config['data_path'])    
+    print('[run_downstream] - Loading input data: ' + str(dataloader_config['train_set']) + ' from ' + dataloader_config['data_path'])
+    if args.task == 'speaker':
+        print('[run_downstream] - Loading speaker data: ' + str(dataloader_config['train_set']) + ' from ' + dataloader_config['data_path'])
+    else:
+        print('[run_downstream] - Loading phone data: ' + dataloader_config['phone_path'])
+
+    print('[run_downstream] - getting train dataloader...')
+    train_loader = get_Dataloader(split='train', load=args.task, use_gpu=args.gpu, seed=args.seed, **dataloader_config)
+
+    print('[run_downstream] - getting dev dataloader...')
+    dev_loader = get_Dataloader(split='dev', load=args.task, use_gpu=args.gpu, seed=args.seed, **dataloader_config)
+
+    print('[run_downstream] - getting test dataloader...')
+    test_loader = get_Dataloader(split='test', load=args.task, use_gpu=args.gpu, seed=args.seed, **dataloader_config)
+    
+    return train_loader, dev_loader, test_loader
 
 
 ##################
@@ -183,11 +183,11 @@ def main():
         os.makedirs(expdir)
     copyfile(args.config, os.path.join(expdir, args.config.split('/')[-1]))
 
-    # get dataloaders
-    train_loader, dev_loader, test_loader = get_dataloader(args, config['dataloader'])
-
     # get upstream model
     upstream_model = get_upstream_model(args) ######### plug in your upstream pre-trained model here #########
+
+    # get dataloaders
+    train_loader, dev_loader, test_loader = get_dataloader(args, config['dataloader'])
 
     # get downstream model
     downstream_model = get_downstream_model(args, upstream_model.out_dim, train_loader.dataset.class_num, config)
