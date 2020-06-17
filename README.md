@@ -14,6 +14,7 @@ Table of Contents
    * [Introduction](#introduction)
        * [Upstream Models](#upstream-models)
        * [Downstream Tasks](#downstream-tasks)
+       * [Usage Highlight](#usage-highlight)
    * [Installation](#installation)
        * [Prerequisite](#prerequisite)
        * [Getting Started](#getting-started)
@@ -406,12 +407,17 @@ elif args.upstream == 'your_model':
 Using upstream models with your own task
 ------------------------------------
 - You can also fine-tune or extract from the pre-trained upstream model on your own dataset and tasks! 
-- ***IMPORTANT:** you must use input acoustic features with the **same preprocessing settings and pipeline** as pre-trained models!!!* 
+- ***IMPORTANT:** 
+  You must use input acoustic features with the **same preprocessing settings and pipeline** as pre-trained models!!!*
 - Pre-trained checkpoints can be download from: [S3PRL Drive](http://www.bit.ly/drive-S3PRL)
-    - **Mockingjay Models:** download the data of `libri_mel160_subword5000.zip`, or follow the pipeline used in `python preprocess/preprocess_libri.py --feature_type=mel` to extract identical *160-dim mel* features.
-    - **TERA Models:** download the data of `libri_fmllr_cmvn.zip`, or follow the pipeline used in the *Kaldi s5 recipe* to extract identical *40-dim fmllr* features.
-    - **AALBERT Models:** coming soon, download the data of `libri_fbank_cmvn.zip`, or follow the pipeline used in the *Kaldi s5 recipe* to extract identical *80-dim fbank* features.
-
+    - *Mockingjay Models:* 
+    Download the data of `libri_mel160_subword5000.zip`, or follow the pipeline used in `python preprocess/preprocess_libri.py --feature_type=mel` to extract identical ***160-dim mel*** features.
+    - *TERA Models:* 
+    Download the data of `libri_fmllr_cmvn.zip`, or follow the pipeline used in the *Kaldi s5 recipe* to extract identical ***40-dim fmllr*** features.
+    - *AALBERT Models:* 
+    Coming soon, download the data of `libri_fbank_cmvn.zip`, or follow the pipeline used in the *Kaldi s5 recipe* to extract identical ***80-dim fbank*** features.
+- ***WARNING:** 
+  If you are getting bad or worse results, its probably caused by the **mismatch of acoustic features** between pre-trained models and downstream task!!!* 
 - Below we show an [example code](src/example_extract_finetune.py) of fine-tuning a upstream model with your own downstream model, by using the wrapper class in [nn_transformer.py](transformer/nn_transformer.py):
 ```python
 import torch
@@ -442,6 +448,7 @@ optimizer = get_optimizer(params=params, lr=4e-3, warmup_proportion=0.7, trainin
 
 # forward
 example_inputs = torch.zeros(3, 1200, 40) # A batch of spectrograms:  (batch_size, time_step, feature_size)
+# IMPORTANT: Input acoustic features must align with the ones used during our pre-training!
 reps = transformer(example_inputs) # returns: (batch_size, time_step, feature_size)
 labels = torch.LongTensor([0, 1, 0]).cuda()
 loss = classifier(reps, labels)
