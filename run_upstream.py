@@ -71,7 +71,7 @@ def get_dataloader(args, config):
     if not os.path.exists(config['dataloader']['data_path']):
         raise RuntimeError('[run_upstream] - Data path not valid:', config['dataloader']['data_path'])
     print('[run_upstream] - Loading input data: ' + str(config['dataloader']['train_set']) + ' from ' + config['dataloader']['data_path'])
-    print('[run_downstream] - getting train dataloader...')
+    print('[run_upstream] - getting train dataloader...')
 
     load = 'duo' if bool(config['runner']['duo_feature']) else 'acoustic'
     if load == 'duo': print('[run_upstream] - Loading duo data: ' + str(config['dataloader']['train_set']) + ' from ' + config['dataloader']['target_path'])
