@@ -6,11 +6,49 @@
 [![Contributions welcome](https://img.shields.io/badge/contributions-welcome-brightgreen.svg)](CONTRIBUTING.md)
 [![Bitbucket open issues](https://img.shields.io/bitbucket/issues/andi611/Self-Supervised-Speech-Pretraining-and-Representation-Learning)](https://github.com/andi611/Self-Supervised-Speech-Pretraining-and-Representation-Learning/issues)
 
+Table of Contents
+------------------------------------
+
+<!--ts-->
+   * [Table of contents](#table-of-contents)
+   * [Introduction](#introduction)
+       * [Upstream Models](#upstream-models)
+       * [Downstream Tasks](#downstream-tasks)
+       * [Usage Highlight](#usage-highlight)
+   * [Installation](#installation)
+       * [Prerequisite](#prerequisite)
+       * [Getting Started](#getting-started)
+       * [Setting PYTHONPATH](#setting-pythonpath)
+   * [Data preporation](#data-preporation)
+       * [Download extracted features (RECOMMENDED)](#download-extracted-features)
+       * [Preprocessing with Librosa](#preprocessing-with-librosa)
+       * [Preprocessing with Kaldi](#preprocessing-with-kaldi)
+       * [Downstream Task Preprocessing](#downstream-task-preprocessing)
+   * [Train upstream models](#train-upstream-models)
+       * [Train your own Mockingjay](#train-your-own-mockingjay)
+       * [Train your own TERA](#train-your-own-tera)
+       * [Train your own AALBERT](#train-your-own-aalbert)
+       * [Train your own APC](#train-your-own-apc)
+   * [Downstream evaluations](#downstream-evaluations)
+       * [Evaluating upstream models with phone classification](#evaluating-upstream-models-with-phone-classification)
+       * [Evaluating upstream models with speaker recognition](#evaluating-upstream-models-with-speaker-recognition)
+       * [Apply different knowledge transfer methods](#apply-different-knowledge-transfer-methods)
+       * [Evaluating baseline features](#evaluating-baseline-features)
+       * [Evaluating ASR with PyTorch-Kaldi scripts](#evaluating-asr-with-pytorch-kaldi-scripts)
+   * [Evaluating your own model](#evaluating-your-own-model)
+   * [Using upstream models with your own task](#using-upstream-models-with-your-own-task)
+   * [Development pattern for contributors](#development-pattern-for-contributors)
+   * [Reference](#reference)
+   * [Citation](#citation)
+<!--te-->
+
 Introduction
 ------------------------------------
 This is an open source project called S3PRL, which stands for **S**elf-**S**upervised **S**peech **P**re-training and **R**epresentation **L**earning. In this toolkit, various *upstream* self-supervised speech models are implemented with easy-to-load setups, and *downstream* evaluation tasks are available with easy-to-use scripts.
 
-**Upstream Models:**
+------------------------------------
+
+### Upstream Models
 - **Mockingjay**
     - Described in ["Mockingjay: Unsupervised Speech Representation Learning with Deep Bidirectional Transformer Encoders"](https://arxiv.org/abs/1910.12638)
     - *Transformer based, BERT-style masked reconstruction loss*
@@ -28,8 +66,10 @@ This is an open source project called S3PRL, which stands for **S**elf-**S**uper
     - Described in ["An Unsupervised Autoregressive Model for Speech Representation Learning"](https://arxiv.org/abs/1904.03240)
     - *RNN based, unidirectional reconstruction loss*
     - Accepted by [INTERSPEECH 2019](https://interspeech2019.org/).
+    - 
+------------------------------------
 
-**Downstream Tasks:**
+### Downstream Tasks
 - **Phone classification:** 
     - *Linear* classifiers
     - *1 Hidden* classifiers
@@ -48,7 +88,9 @@ This is an open source project called S3PRL, which stands for **S**elf-**S**uper
     - simple *one-layer RNN* classifier on MOSEI dataset
     - Proposed and used in [Mockingjay](https://arxiv.org/abs/1910.12638).
 
-**Usage Highlight:**
+------------------------------------
+
+### Usage Highlight
 - **Acoustic feature extraction scripts:**
     - LibriSpeech and TIMIT:
         - Pre-processing with [Lirbosa](https://librosa.github.io/librosa/): *mfcc, fbank, mel, linear*
@@ -79,10 +121,13 @@ This is an open source project called S3PRL, which stands for **S**elf-**S**uper
 
 Feel free to use or modify them, any bug report or improvement suggestion will be appreciated. If you have any questions, please contact tingweiandyliu@gmail.com. If you find this project helpful for your research, please do consider to cite [our papers](#Citation), thanks!
 
+[Back to Top](#table-of-contents)
+
+------------------------------------
 Installation
 ------------------------------------
 
-#### Prerequisite
+### Prerequisite
 - **Python** 3 or above
 - **PyTorch** 1.3.0 or above
 - Computing power (**high-end GPU**) and memory space (both RAM/GPU's RAM) is extremely important if you'd like to train your own model.
@@ -112,12 +157,16 @@ PyTorch-Kaldi    # for hybrid ASR training (Optional)
 ```
 For the installation and usage of Kaldi and PyTorch-Kaldi, see our supplementary wiki page: [Extracting with Kaldi](https://github.com/andi611/Self-Supervised-Speech-Pretraining-and-Representation-Learning/wiki/Extracting-with-Kaldi) and [ASR with PyTorch-Kalid](https://github.com/andi611/Self-Supervised-Speech-Pretraining-and-Representation-Learning/wiki/ASR-with-PyTorch-Kaldi)
 
-#### Getting Started
+------------------------------------
+
+### Getting Started
 - Clone this repo:
 `git clone https://github.com/andi611/Self-Supervised-Speech-Pretraining-and-Representation-Learning.git`
 
-#### Setting PYTHONPATH
-##### Linux
+------------------------------------
+
+### Setting PYTHONPATH
+#### Linux
 - If you have any importing errors, try the following.
 - Also, to use the codes in this repo from another project (e.g. PyTorch-Kaldi), you have to set a global path.
 - Open the file `~/.bashrc` in your text editor – e.g. `subl ~/.bashrc`;
@@ -133,7 +182,7 @@ from transformer.nn_transformer import TRANSFORMER
 ```
 - Read the [documentations](https://bic-berkeley.github.io/psych-214-fall-2016/using_pythonpath.html) if you run in to any problem.
 
-##### Windows
+#### Windows
 - For Windows, add the following lines to your .py code:
 ```python
 import sys
@@ -143,10 +192,12 @@ if S3PRL_PATH not in sys.path:
     sys.path.append(S3PRL_PATH)
 ```
 
+[Back to Top](#table-of-contents)
 
+------------------------------------
 Data preporation
 ------------------------------------
-#### Download extracted features (RECOMMENDED):
+### Download extracted features
 - We provide the features we extracted for you to download directly: [S3PRL Drive](http://www.bit.ly/drive-S3PRL)
 ```bash
 Structure of S3PRL Drive:
@@ -167,8 +218,10 @@ unzip libri_fmllr_cmvn.zip
 data_path: 'data/libri_fmllr_cmvn'
 ```
 
-#### Preprocessing with Librosa:
-##### LibriSpeech
+------------------------------------
+
+### Preprocessing with Librosa
+#### LibriSpeech
 - Download the [LibriSpeech](http://www.openslr.org/12) dataset and place under [`data/`](data/): `data/LibriSpeech`. 
 - The extracted data, which is ready for training, will be stored under the same [`data/`](data/) directory by default. 
 ```bash
@@ -180,7 +233,7 @@ python preprocess/preprocess_libri.py --feature_type=mfcc --delta=True --delta_d
 python preprocess/preprocess_libri.py --feature_type=fbank --delta=False # 80-dim
 ```
 
-##### TIMIT
+#### TIMIT
 - Download the [TIMIT](https://catalog.ldc.upenn.edu/LDC93S1) dataset and place under [`data/`](data/): `data/timit`. 
 - Follow the command used above:
 ```bash
@@ -190,7 +243,9 @@ python preprocess/preprocess_timit.py --feature_type=mfcc --delta=True --delta_d
 python preprocess/preprocess_timit.py --feature_type=fbank --delta=False # 80-dim
 ```
 
-#### Preprocessing with Kaldi:
+------------------------------------
+
+### Preprocessing with Kaldi
 - To extract with Kaldi, see the supplementary wiki page for detailed instructions: [Extracting with Kaldi](https://github.com/andi611/Self-Supervised-Speech-Pretraining-and-Representation-Learning/wiki/Extracting-with-Kaldi)
 - Or download the extracted features from here: [S3PRL Drive](http://www.bit.ly/drive-S3PRL)
 - Place the downloaded `*.zip` files under [`data/`](data/):
@@ -199,9 +254,11 @@ cd data/
 unzip libri_fmllr_cmvn.zip # features used for TERA
 ```
 
-#### Downstream Task Preprocessing:
+------------------------------------
 
-##### Kaldi Phone Set (RECOMMENDED)
+### Downstream Task Preprocessing
+
+#### Kaldi Phone Set (RECOMMENDED)
 - 41 phone classes, this set is considered in the CPC, TERA papers.
 - To use the CPC phone alignment data, use the following command:
 ```bash
@@ -214,7 +271,7 @@ phone_path: 'data/cpc_phone'
 ```
 - ***Warning:** these phone alignments correspond to a feature/label for every 10ms, you need to use features with windows of 25 ms and an overlap of 10 ms, we recommand the [Kaldi extracted features](http://www.bit.ly/drive-S3PRL).*
 
-##### Montreal Phone Set
+#### Montreal Phone Set
 - 72 phone classes, this set is considered in the Mockingjay paper.
 - To use the [Montreal Forced Aligner](https://montreal-forced-aligner.readthedocs.io/en/latest/) phone alignment data, download the `libri_alignment.zip` from [S3PRL Drive](http://www.bit.ly/drive-S3PRL) and place under the [`data/`](data/) directory:
 ```bash
@@ -229,20 +286,24 @@ phone_path: 'data/libri_phone'
 ```
 - ***Warning:** we recommand you use `preprocess/preprocess_libri.py --feature_type=mel` to extract matching features.*
 
+[Back to Top](#table-of-contents)
+
+------------------------------------
+
 Train upstream models
 ------------------------------------
 - For the pre-training of each model, we provide default configs files `*.yaml` under the [`config/`](config/) directory. However, you may change them according to your needs.
 - *Warning*: the parameters may not strickly follow the original papers, please verify carefully if you need them to be identical.
 - The argument `--name` is used for distinction only, you can use whatever name you want.
 
-#### Train your own Mockingjay:
+### Train your own Mockingjay
 ```python
 # Mockingjay LARGE (mel->linear), 360 hr
 python run_upstream.py --run=transformer --config=config/mockingjay_libri_linearLarge.yaml --name=mockingjay_linearLarge
 # Mockingjay BASE (mel->mel), 360 hr
 python run_upstream.py --run=transformer --config=config/mockingjay_libri_linearLarge.yaml --name=mockingjay_linearLarge
 ```
-#### Train your own TERA:
+### Train your own TERA
 ```python
 # TERA-Base: time + channel + mag, 960 hr
 python run_upstream.py --run=transformer --config=config/tera_libri_fmllrBase.yaml --name=tera_fmllrBase
@@ -251,24 +312,27 @@ python run_upstream.py --run=transformer --config=config/tera_libri_fmllrMedium.
 # TERA-Large: time + channel + mag, 960 hr
 python run_upstream.py --run=transformer --config=config/tera_libri_fmllrLarge.yaml --name=tera_fmllrLarge
 ```
-#### Train your own AALBERT:
+### Train your own AALBERT
 ```python
 # AALBERT-3L, 100 hr
 python run_upstream.py --run=transformer --config=config/aalbert_libri_fbank3L.yaml --name=aalbert_fbank3L
 # AALBERT-6L, 360 hr
 python run_upstream.py --run=transformer --config=config/aalbert_libri_fbank6L.yaml --name=aalbert_fbank6L
 ```
-#### Train your own APC:
+### Train your own APC
 ```python
 python run_upstream.py --run=apc
 ```
 
+[Back to Top](#table-of-contents)
+
+------------------------------------
 Downstream evaluations
 ------------------------------------
 - The below commands are used for evaluating the transformer models, where we specify `--upstream=transformer`.
 - The type of pre-trained transformers (Mockingjay, AALBERT, TERA) will be decided by the pre-trained checkpoint: `--ckpt`.
 
-#### 1) Evaluating upstream models with phone classification
+### Evaluating upstream models with phone classification
 ```python
 # **Phone Linear** Frame-wise Classification on LibriSpeech
 python run_downstream.py --run=phone_linear --upstream=transformer --ckpt=path_to_ckpt/states-1000000.ckpt
@@ -280,7 +344,7 @@ python run_downstream.py --run=phone_1hidden --upstream=transformer --ckpt=path_
 python run_downstream.py --run=phone_concat --upstream=transformer --ckpt=path_to_ckpt/states-1000000.ckpt
 ```
 
-#### 2) Evaluating upstream models with speaker recognition
+### Evaluating upstream models with speaker recognition
 ```python
 # **Speaker Frame**-wise Classification on LibriSpeech
 python run_downstream.py --run=speaker_frame --upstream=transformer --ckpt=path_to_ckpt/states-1000000.ckpt
@@ -289,30 +353,34 @@ python run_downstream.py --run=speaker_frame --upstream=transformer --ckpt=path_
 python run_downstream.py --run=speaker_utterance --upstream=transformer --ckpt=path_to_ckpt/states-1000000.ckpt
 ```
 
-#### 3) Apply different knowledge transfer methods
-##### 3-1) Weighted sum from all layers:
+### Apply different knowledge transfer methods
+#### Weighted sum from all layers:
 - Simply add `--weighted_sum` to the above commands.
 - For example, phone linear frame-wise classification on LibriSpeech:
 ```python
 python run_downstream.py --weighted_sum --run=phone_linear --upstream=transformer --ckpt=path_to_ckpt/states-1000000.ckpt
 ```
 
-##### 3-2) Fine-tuning:
+#### Fine-tuning:
 - Simply add `--fine_tune` to the above commands.
 - For example, phone linear frame-wise classification on LibriSpeech:
 ```python
 python run_downstream.py --fine_tune --run=phone_linear --upstream=transformer --ckpt=path_to_ckpt/states-1000000.ckpt
 ```
 
-#### 4) Evaluating baseline features
+### Evaluating baseline features
 - Simply change the `--upstream=transformer` to `--upstream=baseline`, and we no longer need to specify `--ckpt`.
 - For example, phone linear frame-wise classification on LibriSpeech:
 ```python
 python run_downstream.py --run=phone_linear --upstream=baseline
 ```
 
-#### 5) Evaluating ASR with PyTorch-Kaldi scripts:
+### Evaluating ASR with PyTorch-Kaldi scripts
 - See the supplementary wiki page for detailed instructions: [ASR with PyTorch-Kalid](https://github.com/andi611/Self-Supervised-Speech-Pretraining-and-Representation-Learning/wiki/ASR-with-PyTorch-Kaldi)
+
+[Back to Top](#table-of-contents)
+
+------------------------------------
 
 Evaluating your own model
 ------------------------------------
@@ -332,15 +400,24 @@ elif args.upstream == 'your_model':
 - Now you can evaluate your model with `--upstream=your_model`.
 - Make sure the input acoustic features align with your pre-trained model.
 
+[Back to Top](#table-of-contents)
+
+------------------------------------
+
 Using upstream models with your own task
 ------------------------------------
 - You can also fine-tune or extract from the pre-trained upstream model on your own dataset and tasks! 
-- ***IMPORTANT:** you must use input acoustic features with the **same preprocessing settings and pipeline** as pre-trained models!!!* 
+- ***IMPORTANT:** 
+  You must use input acoustic features with the **same preprocessing settings and pipeline** as pre-trained models!!!*
 - Pre-trained checkpoints can be download from: [S3PRL Drive](http://www.bit.ly/drive-S3PRL)
-    - **Mockingjay Models:** download the data of `libri_mel160_subword5000.zip`, or follow the pipeline used in `python preprocess/preprocess_libri.py --feature_type=mel` to extract identical *160-dim mel* features.
-    - **TERA Models:** download the data of `libri_fmllr_cmvn.zip`, or follow the pipeline used in the *Kaldi s5 recipe* to extract identical *40-dim fmllr* features.
-    - **AALBERT Models:** coming soon, download the data of `libri_fbank_cmvn.zip`, or follow the pipeline used in the *Kaldi s5 recipe* to extract identical *80-dim fbank* features.
-
+    - *Mockingjay Models:* 
+    Download the data of `libri_mel160_subword5000.zip`, or follow the pipeline used in `python preprocess/preprocess_libri.py --feature_type=mel` to extract identical ***160-dim mel*** features.
+    - *TERA Models:* 
+    Download the data of `libri_fmllr_cmvn.zip`, or follow the pipeline used in the *Kaldi s5 recipe* to extract identical ***40-dim fmllr*** features.
+    - *AALBERT Models:* 
+    Coming soon, download the data of `libri_fbank_cmvn.zip`, or follow the pipeline used in the *Kaldi s5 recipe* to extract identical ***80-dim fbank*** features.
+- ***WARNING:** 
+  If you are getting bad or worse results, its probably caused by the **mismatch of acoustic features** between pre-trained models and downstream task!!!* 
 - Below we show an [example code](src/example_extract_finetune.py) of fine-tuning a upstream model with your own downstream model, by using the wrapper class in [nn_transformer.py](transformer/nn_transformer.py):
 ```python
 import torch
@@ -371,6 +448,7 @@ optimizer = get_optimizer(params=params, lr=4e-3, warmup_proportion=0.7, trainin
 
 # forward
 example_inputs = torch.zeros(3, 1200, 40) # A batch of spectrograms:  (batch_size, time_step, feature_size)
+# IMPORTANT: Input acoustic features must align with the ones used during our pre-training!
 reps = transformer(example_inputs) # returns: (batch_size, time_step, feature_size)
 labels = torch.LongTensor([0, 1, 0]).cuda()
 loss = classifier(reps, labels)
@@ -385,13 +463,17 @@ states = {'Classifier': classifier.state_dict(), 'Transformer': transformer.stat
 # torch.save(states, PATH_TO_SAVE_YOUR_MODEL)
 ```
 
+[Back to Top](#table-of-contents)
+
 Development pattern for contributors
 ------------------------------------
 1. [Create a personal fork](https://help.github.com/articles/fork-a-repo/) of the [main S3PRL repository](https://github.com/andi611/Self-Supervised-Speech-Pretraining-and-Representation-Learning) in GitHub.
 2. Make your changes in a named branch different from `master`, e.g. you create a branch `new-awesome-feature`.
 3. [Generate a pull request](https://help.github.com/articles/creating-a-pull-request/) through the Web interface of GitHub.
 4. Please verify that your code is free of basic mistakes, we appreciate any contribution!
-   
+
+[Back to Top](#table-of-contents)
+
 Reference
 ------------------------------------
 1. [Montreal Forced Aligner](https://montreal-forced-aligner.readthedocs.io/en/latest/), McAuliffe et. al.
@@ -403,6 +485,8 @@ Reference
 6. [Tacotron Preprocessing](https://github.com/r9y9/tacotron_pytorch), Ryuichi Yamamoto (r9y9)
 7. [PyTorch-Kaldi](https://github.com/mravanelli/pytorch-kaldi), Mirco Ravanelli
 8. [Kaldi](https://github.com/kaldi-asr/kaldi), Kaldi-ASR
+
+[Back to Top](#table-of-contents)
 
 Citation
 ------------------------------------
