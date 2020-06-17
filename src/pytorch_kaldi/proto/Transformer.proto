@@ -1,0 +1,9 @@
+[proto]
+ckpt_file=str
+load_pretrain=bool
+no_grad=bool
+dropout=str
+spec_aug=bool
+spec_aug_prev=bool
+weighted_sum=bool
+select_layer=int
