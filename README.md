@@ -37,6 +37,9 @@ Table of Contents
        * [Evaluating ASR with PyTorch-Kaldi scripts](#evaluating-asr-with-pytorch-kaldi-scripts)
    * [Evaluating your own model](#evaluating-your-own-model)
    * [Using upstream models with your own task](#using-upstream-models-with-your-own-task)
+   * [Supplementary Wiki Page](#supplementary-wiki-page)
+       * [Extracting with Kaldi](#extracting-with-kaldi)
+       * [ASR with PyTorch Kaldi](#asr-with-pytorch-kaldi)
    * [Development pattern for contributors](#development-pattern-for-contributors)
    * [Reference](#reference)
    * [Citation](#citation)
@@ -462,6 +465,13 @@ PATH_TO_SAVE_YOUR_MODEL = 'example.ckpt'
 states = {'Classifier': classifier.state_dict(), 'Transformer': transformer.state_dict()}
 # torch.save(states, PATH_TO_SAVE_YOUR_MODEL)
 ```
+
+[Back to Top](#table-of-contents)
+
+Supplementary Wiki Page
+------------------------------------
+### [Extracting with Kaldi](https://github.com/andi611/Self-Supervised-Speech-Pretraining-and-Representation-Learning/wiki/Extracting-with-Kaldi)
+### [ASR with PyTorch Kaldi](https://github.com/andi611/Self-Supervised-Speech-Pretraining-and-Representation-Learning/wiki/ASR-with-PyTorch-Kaldi)
 
 [Back to Top](#table-of-contents)
 
