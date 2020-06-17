@@ -189,6 +189,7 @@ class Runner():
             progress = tqdm(self.dataloader, desc="Iteration")
 
             step = 0
+            loss_val = 0
             for batch_is_valid, *batch in progress:
                 try:
                     if self.global_step > self.total_steps: break
@@ -210,6 +211,7 @@ class Runner():
                         loss.backward()
                     else:
                         loss.backward()
+                    loss_val += loss.item()
 
                     # Update
                     if (step+1) % self.gradient_accumulation_steps == 0:
@@ -231,9 +233,9 @@ class Runner():
                         if self.global_step % self.log_step == 0:
                             # Log
                             self.log.add_scalar('lr', self.optimizer.get_lr()[0], self.global_step)
-                            self.log.add_scalar('loss', (loss.item() * self.gradient_accumulation_steps), self.global_step)
+                            self.log.add_scalar('loss', (loss_val), self.global_step)
                             self.log.add_scalar('gradient norm', grad_norm, self.global_step)
-                            progress.set_description("Loss %.4f" % (loss.item() * self.gradient_accumulation_steps))
+                            progress.set_description("Loss %.4f" % (loss_val))
 
                         if self.global_step % self.save_step == 0:
                             self.save_model('states')
@@ -246,7 +248,8 @@ class Runner():
                             self.log.add_image('mask_spec', mask_spec, self.global_step)
                             self.log.add_image('pred_spec', pred_spec, self.global_step)
                             self.log.add_image('true_spec', true_spec, self.global_step)
-                
+
+                        loss_val = 0
                         pbar.update(1)
                         self.global_step += 1
                         
