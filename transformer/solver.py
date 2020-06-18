@@ -22,7 +22,7 @@ from tqdm import tqdm, trange
 import torch.nn.functional as F
 from tensorboardX import SummaryWriter
 from dataloader import get_Dataloader
-from transformer.model import TransformerConfig, TransformerModel, TransformerForMaskedAcousticModel
+from transformer.model import TransformerConfig, TransformerModel, TransformerForMaskedAcousticModel, ElectraForPreTraining
 from transformer.optimization import BertAdam, WarmupLinearSchedule
 from transformer.mam import fast_position_encoding
 from utility.audio import plot_spectrogram_to_numpy, plot_spectrogram, plot_embedding, plot_attention
@@ -40,6 +40,7 @@ class Solver():
         self.config = config
         self.paras = paras
         self.transformer_config = config['transformer']
+        self.electra = config['electra']
         self.device = torch.device('cuda') if (self.paras.gpu and torch.cuda.is_available()) else torch.device('cpu')
         if torch.cuda.is_available(): self.verbose('CUDA is available!')
 
@@ -93,19 +94,44 @@ class Solver():
         
         # uild the Transformer model with speech prediction head
         self.model_config = TransformerConfig(self.config)
+        if self.electra:
+            self.discriminator_config = TransformerConfig(self.config)
+            self.generator_config = TransformerConfig(self.config)
         self.dr = self.model_config.downsample_rate
         self.hidden_size = self.model_config.hidden_size
         self.with_head = with_head
         self.output_attention = output_attention
         
         if not inference or with_head:
-            self.model = TransformerForMaskedAcousticModel(self.model_config, self.input_dim, self.output_dim, self.output_attention).to(self.device)
-            self.transformer = self.model.Transformer
-            if self.paras.multi_gpu:
-                self.model = torch.nn.DataParallel(self.model)
-                self.transformer = torch.nn.DataParallel(self.transformer)
-                self.verbose('Multi-GPU training Enabled: ' + str(torch.cuda.device_count()))
-            self.verbose('Number of parameters: ' + str(sum(p.numel() for p in self.model.parameters() if p.requires_grad)))
+            # Initialize generator and discriminator for training
+            if self.electra['pretrain']:
+                # Define discriminator
+                #self.discriminator_config.downsample_rate = 1
+                self.discriminator = ElectraForPreTraining(self.discriminator_config, self.input_dim, 1, self.output_attention).to(self.device)
+                self.transformer = self.discriminator.Transformer
+                # Define generator
+                self.generator_config.num_attention_heads = int(self.model_config.num_attention_heads / self.electra['generator_size'])
+                self.generator_config.intermediate_size = int(self.model_config.intermediate_size / self.electra['generator_size'])
+                self.generator_config.hidden_size = int(self.model_config.hidden_size / self.electra['generator_size'])
+                self.generator = TransformerForMaskedAcousticModel(self.generator_config, self.input_dim, self.output_dim, self.output_attention).to(self.device)
+                
+                if self.paras.multi_gpu:
+                    self.discriminator = torch.nn.DataParallel(self.discriminator)
+                    self.generator = torch.nn.DataParallel(self.generator)
+                    self.transformer = torch.nn.DataParallel(self.transformer)
+                    self.verbose('Multi-GPU training Enabled: ' + str(torch.cuda.device_count()))
+                self.verbose('Number of parameters in discriminator: ' + str(sum(p.numel() for p in self.discriminator.parameters() if p.requires_grad)))
+                self.verbose('Number of parameters in generator: ' + str(sum(p.numel() for p in self.generator.parameters() if p.requires_grad)))
+
+            # Original BERT (Mockingjay) training    
+            else:
+                self.model = TransformerForMaskedAcousticModel(self.model_config, self.input_dim, self.output_dim, self.output_attention).to(self.device)
+                self.transformer = self.model.Transformer
+                if self.paras.multi_gpu:
+                    self.model = torch.nn.DataParallel(self.model)
+                    self.transformer = torch.nn.DataParallel(self.transformer)
+                    self.verbose('Multi-GPU training Enabled: ' + str(torch.cuda.device_count()))
+                self.verbose('Number of parameters: ' + str(sum(p.numel() for p in self.model.parameters() if p.requires_grad)))
 
         if inference and not with_head:
             self.transformer = TransformerModel(self.model_config, self.input_dim, self.output_attention).to(self.device)
@@ -117,39 +143,92 @@ class Solver():
         elif inference and with_head:
             self.model.eval()
         elif not inference:
-            self.model.train()
+            if self.electra['pretrain']:
+                self.generator.train()
+                self.discriminator.train()
 
-            # Setup optimizer
-            param_optimizer = list(self.model.named_parameters())
+                # Setupt optimizer
+                D_param_optimizer = list(self.discriminator.named_parameters())
+                G_param_optimizer = list(self.generator.named_parameters())
 
-            no_decay = ['bias', 'LayerNorm.bias', 'LayerNorm.weight']
-            optimizer_grouped_parameters = [
-                {'params': [p for n, p in param_optimizer if not any(nd in n for nd in no_decay)], 'weight_decay': 0.01},
-                {'params': [p for n, p in param_optimizer if any(nd in n for nd in no_decay)], 'weight_decay': 0.0}
-                ]
+                no_decay = ['bias', 'LayerNorm.bias', 'LayerNorm.weight']
+                D_optimizer_grouped_parameters = [
+                    {'params': [p for n, p in D_param_optimizer if not any(nd in n for nd in no_decay)], 'weight_decay': 0.01},
+                    {'params': [p for n, p in D_param_optimizer if any(nd in n for nd in no_decay)], 'weight_decay': 0.0}
+                    ]
+                G_optimizer_grouped_parameters = [
+                    {'params': [p for n, p in G_param_optimizer if not any(nd in n for nd in no_decay)], 'weight_decay': 0.01},
+                    {'params': [p for n, p in G_param_optimizer if any(nd in n for nd in no_decay)], 'weight_decay': 0.0}
+                    ]     
 
-            if self.apex:
-                try:
-                    from apex.optimizers import FP16_Optimizer
-                    from apex.optimizers import FusedAdam
-                except ImportError:
-                    raise ImportError("Please install apex from https://www.github.com/nvidia/apex to use distributed and fp16 training.")
-
-                optimizer = FusedAdam(optimizer_grouped_parameters,
-                                      lr=self.learning_rate,
-                                      bias_correction=False,
-                                      max_grad_norm=1.0)
-                if self.config['optimizer']['loss_scale'] == 0:
-                    self.optimizer = FP16_Optimizer(optimizer, dynamic_loss_scale=True)
+                if self.apex:
+                    try:
+                        from apex.optimizers import FP16_Optimizer
+                        from apex.optimizers import FusedAdam
+                    except ImportError:
+                        raise ImportError("Please install apex from https://www.github.com/nvidia/apex to use distributed and fp16 training.")
+                    # TODO: D and G should have different learning rate? 
+                    D_optimizer = FusedAdam(D_optimizer_grouped_parameters,
+                                            lr=self.learning_rate,
+                                            bias_correction=False,
+                                            max_grad_norm=1.0)
+                    G_optimizer = FusedAdam(G_optimizer_grouped_parameters,
+                                            lr=self.learning_rate,
+                                            bias_correction=False,
+                                            max_grad_norm=1.0)                        
+                    if self.config['optimizer']['loss_scale'] == 0:
+                        self.D_optimizer = FP16_Optimizer(D_optimizer, dynamic_loss_scale=True)
+                        self.G_optimizer = FP16_Optimizer(G_optimizer, dynamic_loss_scale=True)
+                    else:
+                        self.D_optimizer = FP16_Optimizer(D_optimizer, static_loss_scale=self.config['optimizer']['loss_scale'])
+                        self.G_optimizer = FP16_Optimizer(G_optimizer, static_loss_scale=self.config['optimizer']['loss_scale'])
+                        self.warmup_linear = WarmupLinearSchedule(warmup=self.warmup_proportion,
+                                                              t_total=self.total_steps)
                 else:
-                    self.optimizer = FP16_Optimizer(optimizer, static_loss_scale=self.config['optimizer']['loss_scale'])
-                self.warmup_linear = WarmupLinearSchedule(warmup=self.warmup_proportion,
-                                                          t_total=self.total_steps)
+                    # TODO: D and G should have different learning rate?
+                    self.D_optimizer = BertAdam(D_optimizer_grouped_parameters,
+                                            lr=self.learning_rate,
+                                            warmup=self.warmup_proportion,
+                                            t_total=self.total_steps)  
+                    self.G_optimizer = BertAdam(G_optimizer_grouped_parameters,
+                                            lr=self.learning_rate,
+                                            warmup=self.warmup_proportion,
+                                            t_total=self.total_steps)                                            
+           
             else:
-                self.optimizer = BertAdam(optimizer_grouped_parameters,
-                                        lr=self.learning_rate,
-                                        warmup=self.warmup_proportion,
-                                        t_total=self.total_steps)
+                self.model.train()
+ 
+                # Setup optimizer
+                param_optimizer = list(self.model.named_parameters())
+    
+                no_decay = ['bias', 'LayerNorm.bias', 'LayerNorm.weight']
+                optimizer_grouped_parameters = [
+                    {'params': [p for n, p in param_optimizer if not any(nd in n for nd in no_decay)], 'weight_decay': 0.01},
+                    {'params': [p for n, p in param_optimizer if any(nd in n for nd in no_decay)], 'weight_decay': 0.0}
+                    ]
+
+                if self.apex:
+                    try:
+                        from apex.optimizers import FP16_Optimizer
+                        from apex.optimizers import FusedAdam
+                    except ImportError:
+                        raise ImportError("Please install apex from https://www.github.com/nvidia/apex to use distributed and fp16 training.")
+
+                    optimizer = FusedAdam(optimizer_grouped_parameters,
+                                          lr=self.learning_rate,
+                                          bias_correction=False,
+                                          max_grad_norm=1.0)
+                    if self.config['optimizer']['loss_scale'] == 0:
+                        self.optimizer = FP16_Optimizer(optimizer, dynamic_loss_scale=True)
+                    else:
+                        self.optimizer = FP16_Optimizer(optimizer, static_loss_scale=self.config['optimizer']['loss_scale'])
+                        self.warmup_linear = WarmupLinearSchedule(warmup=self.warmup_proportion,
+                                                              t_total=self.total_steps)
+                else:
+                    self.optimizer = BertAdam(optimizer_grouped_parameters,
+                                            lr=self.learning_rate,
+                                            warmup=self.warmup_proportion,
+                                            t_total=self.total_steps)
         else:
             raise NotImplementedError('Invalid Arguments!')
 
@@ -159,16 +238,33 @@ class Solver():
 
     def save_model(self, name='states', model_all=True, to_path=None):
         if model_all:
-            all_states = {
-                'SpecHead': self.model.SpecHead.state_dict() if not self.paras.multi_gpu else self.model.module.SpecHead.state_dict(),
-                'Transformer': self.transformer.state_dict() if not self.paras.multi_gpu else self.transformer.module.state_dict(),
-                'Optimizer': self.optimizer.state_dict(),
-                'Global_step': self.global_step,
-                'Settings': {
-                    'Config': self.config,
-                    'Paras': self.paras,
-                },
-            }
+            if self.electra['pretrain']:
+                all_states = {
+                    'SpecHead': self.generator.SpecHead.state_dict() if not self.paras.multi_gpu else self.model.module.SpecHead.state_dict(),
+                    'Generator_Transformer': self.generator.Transformer.state_dict() if not self.paras.multi_gpu else self.model.module.SpecHead.state_dict(),
+                    'Transformer': self.transformer.state_dict() if not self.paras.multi_gpu else self.transformer.module.state_dict(),
+                    'ClassifierHead': self.discriminator.discriminator_predictions.state_dict() if not self.paras.multi_gpu else self.transformer.module.state_dict(),
+                    'D_Optimizer': self.D_optimizer.state_dict(),
+                    'G_Optimizer': self.G_optimizer.state_dict(),
+                    'Global_step': self.global_step,
+                    'Settings': {
+                        'Config': self.config,
+                        'D_Config': self.discriminator_config,
+                        'G_Config': self.generator_config,
+                        'Paras': self.paras,
+                    },
+                }
+            else:
+                all_states = {
+                    'SpecHead': self.model.SpecHead.state_dict() if not self.paras.multi_gpu else self.model.module.SpecHead.state_dict(),
+                    'Transformer': self.transformer.state_dict() if not self.paras.multi_gpu else self.transformer.module.state_dict(),
+                    'Optimizer': self.optimizer.state_dict(),
+                    'Global_step': self.global_step,
+                    'Settings': {
+                        'Config': self.config,
+                        'Paras': self.paras,
+                    },
+                }
         else:
             all_states = {
                 'Transformer': self.transformer.state_dict() if not self.paras.multi_gpu else self.transformer.module.state_dict(),
@@ -396,9 +492,24 @@ class Trainer(Solver):
                     if self.global_step > self.total_steps: break
                     if not batch_is_valid: continue
                     step += 1
-                    
-                    spec_masked, pos_enc, mask_label, attn_mask, spec_stacked = self.process_data(batch)
-                    loss, pred_spec = self.model(spec_masked, pos_enc, mask_label, attn_mask, spec_stacked)
+                   
+                    if self.electra['pretrain']:
+                      # Get generator output
+                      spec_masked, pos_enc, mask_label, attn_mask, spec_stacked = self.process_data(batch)
+                      mam_loss, pred_spec = self.generator(spec_masked, pos_enc, mask_label, attn_mask, spec_stacked)
+                      
+                      disc_target = torch.abs(pred_spec - spec_stacked).mean(-1).detach()
+                      disc_target = torch.where(disc_target >= 0.2, torch.ones_like(disc_target), torch.zeros_like(disc_target))
+
+                      # Get discriminator output
+                      pred_spec.detach()
+                      disc_loss, logits = self.discriminator(pred_spec, pos_enc, disc_target, attn_mask)
+                      
+                      loss = mam_loss + disc_loss
+
+                    else:
+                      spec_masked, pos_enc, mask_label, attn_mask, spec_stacked = self.process_data(batch)
+                      loss, pred_spec = self.model(spec_masked, pos_enc, mask_label, attn_mask, spec_stacked)
                     
                     # Accumulate Loss
                     if self.gradient_accumulation_steps > 1:
@@ -406,7 +517,11 @@ class Trainer(Solver):
                     if self.apex and self.paras.multi_gpu:
                         raise NotImplementedError
                     elif self.apex:
-                        self.optimizer.backward(loss)
+                        if self.electra['pretrain']:
+                            self.D_optimizer.backward(loss)
+                            self.G_optimizer.backward(loss)
+                        else:
+                            self.optimizer.backward(loss)
                     elif self.paras.multi_gpu:
                         loss = loss.sum()
                         loss.backward()
@@ -419,23 +534,53 @@ class Trainer(Solver):
                             # modify learning rate with special warm up BERT uses
                             # if conifg.apex is False, BertAdam is used and handles this automatically
                             lr_this_step = self.learning_rate * self.warmup_linear.get_lr(self.global_step, self.warmup_proportion)
-                            for param_group in self.optimizer.param_groups:
-                                param_group['lr'] = lr_this_step
+                            if self.electra['pretrain']:
+                                for param_group in self.D_optimizer.param_groups:
+                                    param_group['lr'] = lr_this_step
+                                for param_group in self.G_optimizer.param_groups:
+                                    param_group['lr'] = lr_this_step    
+                            else:
+                                for param_group in self.optimizer.param_groups:
+                                    param_group['lr'] = lr_this_step
                         
                         # Step
-                        grad_norm = torch.nn.utils.clip_grad_norm_(self.model.parameters(), self.gradient_clipping)
-                        if math.isnan(grad_norm):
-                            self.verbose('Error : grad norm is NaN @ step ' + str(self.global_step))
+                        if self.electra['pretrain']:
+                            grad_norm = torch.nn.utils.clip_grad_norm_(self.discriminator.parameters(), self.gradient_clipping) +\
+                                        torch.nn.utils.clip_grad_norm_(self.generator.parameters(), self.gradient_clipping)
+                            if math.isnan(grad_norm):
+                                self.verbose('Error : grad norm is NaN @ step ' + str(self.global_step))
+                            else:
+                                self.D_optimizer.step()
+                                self.G_optimizer.step()
+                            self.D_optimizer.zero_grad()      
+                            self.G_optimizer.zero_grad()
                         else:
-                            self.optimizer.step()
-                        self.optimizer.zero_grad()
+                            grad_norm = torch.nn.utils.clip_grad_norm_(self.model.parameters(), self.gradient_clipping)
+                            if math.isnan(grad_norm):
+                                self.verbose('Error : grad norm is NaN @ step ' + str(self.global_step))
+                            else:
+                                self.optimizer.step()
+                            self.optimizer.zero_grad()
 
                         if self.global_step % self.log_step == 0:
                             # Log
-                            self.log.add_scalar('lr', self.optimizer.get_lr()[0], self.global_step)
+                            if self.electra['pretrain']:
+                                self.log.add_scalar('D_loss', (disc_loss.item() * self.gradient_accumulation_steps), self.global_step)
+                                self.log.add_scalar('G_loss', (mam_loss.item() * self.gradient_accumulation_steps), self.global_step)
+                                self.log.add_scalar('D_lr', self.D_optimizer.get_lr()[0], self.global_step)
+                                self.log.add_scalar('G_lr', self.G_optimizer.get_lr()[0], self.global_step)
+                            else:    
+                                self.log.add_scalar('lr', self.optimizer.get_lr()[0], self.global_step)
                             self.log.add_scalar('loss', (loss.item() * self.gradient_accumulation_steps), self.global_step)
+   
                             self.log.add_scalar('gradient norm', grad_norm, self.global_step)
-                            progress.set_description("Loss %.4f" % (loss.item() * self.gradient_accumulation_steps))
+                            if self.electra['pretrain']:
+                                progress.set_description("Total loss %.4f, D loss %.4f, G loss %.4f" 
+                                    % (loss.item() * self.gradient_accumulation_steps, 
+                                       disc_loss.item() * self.gradient_accumulation_steps,
+                                       mam_loss.item() * self.gradient_accumulation_steps))
+                            else:    
+                                progress.set_description("Loss %.4f" % (loss.item() * self.gradient_accumulation_steps))
 
                         if self.global_step % self.save_step == 0:
                             self.save_model('states')
