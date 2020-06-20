@@ -17,7 +17,7 @@ import random
 import numpy as np
 from tqdm import tqdm
 from tensorboardX import SummaryWriter
-from transformer.model import TransformerConfig, TransformerForMaskedAcousticModel
+from transformer.model import TransformerConfig, TransformerForMaskedAcousticModel, ElectraForPreTraining
 from transformer.optimization import BertAdam, WarmupLinearSchedule
 from transformer.mam import fast_position_encoding
 from utility.audio import plot_spectrogram_to_numpy
@@ -41,6 +41,9 @@ class Runner():
         self.dataloader = dataloader
         self.ckpdir = ckpdir
 
+        # Whether to use electra-like pretraining 
+        self.electra = config['electra']
+
         # optimizer
         self.learning_rate = float(config['optimizer']['learning_rate'])
         self.warmup_proportion = config['optimizer']['warmup_proportion']
@@ -59,6 +62,85 @@ class Runner():
         self.transformer_config = config['transformer']
         self.input_dim = self.transformer_config['input_dim']
         self.output_dim = 1025 if self.duo_feature else None # output dim is the same as input dim if not using duo features
+
+    def set_electra_model(self):
+        print('[Runner] - Initializing Electra model...')
+
+        # Build the Electra model with speech prediction head
+        self.model_config = TransformerConfig(self.config)
+        self.discriminator_config = TransformerConfig(self.config)
+        self.generator_config = TransformerConfig(self.config)
+        self.dr = self.model_config.downsample_rate
+        self.hidden_size = self.model_config.hidden_size
+
+        # Define discriminator
+        self.discriminator = ElectraForPreTraining(self.discriminator_config, self.input_dim, 1).to(self.device)
+        self.transformer = self.discriminator.Transformer
+        # Define generator
+        self.generator_config.num_attention_heads = int(self.model_config.num_attention_heads / self.electra['generator_size'])
+        self.generator_config.intermediate_size = int(self.model_config.intermediate_size / self.electra['generator_size'])
+        self.generator_config.hidden_size = int(self.model_config.hidden_size / self.electra['generator_size'])
+        self.generator = TransformerForMaskedAcousticModel(self.generator_config, self.input_dim, self.output_dim).to(self.device)
+
+        self.discriminator.train()
+        self.generator.train()
+
+        if self.args.multi_gpu:
+            self.discriminator = torch.nn.DataParallel(self.discriminator)
+            self.generator = torch.nn.DataParallel(self.generator)
+            self.transformer = torch.nn.DataParallel(self.transformer)
+            self.verbose('Multi-GPU training Enabled: ' + str(torch.cuda.device_count()))
+        self.verbose('Number of parameters in discriminator: ' + str(sum(p.numel() for p in self.discriminator.parameters() if p.requires_grad)))
+        self.verbose('Number of parameters in generator: ' + str(sum(p.numel() for p in self.generator.parameters() if p.requires_grad)))
+        
+        # Setupt optimizer
+        D_param_optimizer = list(self.discriminator.named_parameters())
+        G_param_optimizer = list(self.generator.named_parameters())
+
+        no_decay = ['bias', 'LayerNorm.bias', 'LayerNorm.weight']
+        D_optimizer_grouped_parameters = [
+                    {'params': [p for n, p in D_param_optimizer if not any(nd in n for nd in no_decay)], 'weight_decay': 0.01},
+                    {'params': [p for n, p in D_param_optimizer if any(nd in n for nd in no_decay)], 'weight_decay': 0.0}
+                    ]
+        G_optimizer_grouped_parameters = [
+                    {'params': [p for n, p in G_param_optimizer if not any(nd in n for nd in no_decay)], 'weight_decay': 0.01},
+                    {'params': [p for n, p in G_param_optimizer if any(nd in n for nd in no_decay)], 'weight_decay': 0.0}
+                    ]
+
+        if self.apex:
+            try:
+                from apex.optimizers import FP16_Optimizer
+                from apex.optimizers import FusedAdam
+            except ImportError:
+                raise ImportError("Please install apex from https://www.github.com/nvidia/apex to use distributed and fp16 training.")
+                # TODO: D and G should have different learning rate?
+            D_optimizer = FusedAdam(D_optimizer_grouped_parameters,
+                                            lr=self.learning_rate,
+                                            bias_correction=False,
+                                            max_grad_norm=1.0)
+            G_optimizer = FusedAdam(G_optimizer_grouped_parameters,
+                                            lr=self.learning_rate,
+                                            bias_correction=False,
+                                            max_grad_norm=1.0)
+           if self.config['optimizer']['loss_scale'] == 0:
+               self.D_optimizer = FP16_Optimizer(D_optimizer, dynamic_loss_scale=True)
+               self.G_optimizer = FP16_Optimizer(G_optimizer, dynamic_loss_scale=True)
+            else:
+               self.D_optimizer = FP16_Optimizer(D_optimizer, static_loss_scale=self.config['optimizer']['loss_scale'])
+               self.G_optimizer = FP16_Optimizer(G_optimizer, static_loss_scale=self.config['optimizer']['loss_scale'])
+               self.warmup_linear = WarmupLinearSchedule(warmup=self.warmup_proportion,
+                                                              t_total=self.total_steps)
+        else:
+            # TODO: D and G should have different learning rate?
+            self.D_optimizer = BertAdam(D_optimizer_grouped_parameters,
+                                        lr=self.learning_rate,
+                                        warmup=self.warmup_proportion,
+                                        t_total=self.total_steps)
+            self.G_optimizer = BertAdam(G_optimizer_grouped_parameters,
+                                        lr=self.learning_rate,
+                                        warmup=self.warmup_proportion,
+                                        t_total=self.total_steps)
+            
 
 
     def set_model(self):
@@ -111,16 +193,37 @@ class Runner():
 
 
     def save_model(self, name='states', to_path=None):
-        all_states = {
-            'SpecHead': self.model.SpecHead.state_dict() if not self.args.multi_gpu else self.model.module.SpecHead.state_dict(),
-            'Transformer': self.model.Transformer.state_dict() if not self.args.multi_gpu else self.model.module.Transformer.state_dict(),
-            'Optimizer': self.optimizer.state_dict(),
-            'Global_step': self.global_step,
-            'Settings': {
-                'Config': self.config,
-                'Paras': self.args,
-            },
-        }
+        if self.electra['pretrain']:
+            all_states = {
+                'SpecHead': self.generator.SpecHead.state_dict() if not self.args.multi_gpu 
+                     else self.model.module.SpecHead.state_dict(),
+                'Generator_Transformer': self.generator.Transformer.state_dict() if not self.args.multi_gpu 
+                    else self.model.module.SpecHead.state_dict(),
+                'Transformer': self.discriminator.transformer.state_dict() if not self.args.multi_gpu 
+                    else self.transformer.module.state_dict()
+                'ClassifierHead': self.discriminator.discriminator_predictions.state_dict() if not self.args.multi_gpu 
+                    else self.transformer.module.state_dict(),
+                'D_Optimizer': self.D_optimizer.state_dict(),
+                'G_Optimizer': self.G_optimizer.state_dict(),
+                'Global_step': self.global_step,
+                'Settings': {
+                    'Config': self.config,
+                    'D_Config': self.discriminator_config,
+                    'G_Config': self.generator_config,
+                    'Paras': self.args,
+                },
+                }
+        else:    
+            all_states = {
+                'SpecHead': self.model.SpecHead.state_dict() if not self.args.multi_gpu else self.model.module.SpecHead.state_dict(),
+                'Transformer': self.model.Transformer.state_dict() if not self.args.multi_gpu else self.model.module.Transformer.state_dict(),
+                'Optimizer': self.optimizer.state_dict(),
+                'Global_step': self.global_step,
+                'Settings': {
+                    'Config': self.config,
+                    'Paras': self.args,
+                },
+            }
 
         if to_path is None:
             new_model_path = '{}/{}-{}.ckpt'.format(self.ckpdir, name, self.global_step)
@@ -263,3 +366,110 @@ class Runner():
                 
         pbar.close()
         self.log.close()
+
+     def train_electra(self):
+        ''' Self-Supervised Pre-Training of Electra Model'''
+
+        pbar = tqdm(total=self.total_steps)
+        while self.global_step <= self.total_steps:
+
+            progress = tqdm(self.dataloader, desc="Iteration")
+
+            step = 0
+            loss_val = 0
+            G_loss_val = 0
+            D_loss_val = 0
+            for batch_is_valid, *batch in progress:
+                try:
+                    if self.global_step > self.total_steps: break
+                    if not batch_is_valid: continue
+                    step += 1
+                    
+                    spec_masked, pos_enc, mask_label, attn_mask, spec_stacked = self.process_data(batch)
+                    mam_loss, pred_spec = self.generator(spec_masked, pos_enc, mask_label, attn_mask, spec_stacked)
+
+                    disc_target = torch.abs(pred_spec - spec_stacked).mean(-1).detach()
+                    disc_target = torch.where(disc_target >= 0.2, torch.ones_like(disc_target), torch.zeros_like(disc_target))
+
+                    # Get discriminator output
+                    pred_spec.detach()
+                    disc_loss, logits = self.discriminator(pred_spec, pos_enc, disc_target, attn_mask)
+                    loss = mam_loss + disc_loss
+                    
+                    # Accumulate Loss
+                    if self.gradient_accumulation_steps > 1:
+                        loss = loss / self.gradient_accumulation_steps
+                        mam_loss = mam_loss / self.gradient_accumulation_steps
+                        disc_loss = disc_loss / self.gradient_accumulation_steps
+                    if self.apex and self.args.multi_gpu:
+                        raise NotImplementedError
+                    elif self.apex:
+                        self.D_optimizer.backward(loss)
+                        self.G_optimizer.backward(loss)
+                    elif self.args.multi_gpu:
+                        loss = loss.sum()
+                        loss.backward()
+                    else:
+                        loss.backward()
+                    loss_val += loss.item()
+                    G_loss_val += mam_loss.item()
+                    D_loss_val += disc_loss.item()
+
+                    # Update
+                    if (step+1) % self.gradient_accumulation_steps == 0:
+                        if self.apex:
+                            # modify learning rate with special warm up BERT uses
+                            # if conifg.apex is False, BertAdam is used and handles this automatically
+                            lr_this_step = self.learning_rate * self.warmup_linear.get_lr(self.global_step, self.warmup_proportion)
+                            for param_group in self.D_optimizer.param_groups:
+                                param_group['lr'] = lr_this_step
+                            for param_group in self.G_optimizer.param_groups:
+                                param_group['lr'] = lr_this_step                        
+                        # Step
+                        grad_norm = torch.nn.utils.clip_grad_norm_(self.discriminator.parameters(), self.gradient_clipping) +\
+                                    torch.nn.utils.clip_grad_norm_(self.generator.parameters(), self.gradient_clipping)
+                        if math.isnan(grad_norm):
+                            print('[Runner] - Error : grad norm is NaN @ step ' + str(self.global_step))
+                        else:
+                            self.D_optimizer.step()
+                            self.G_optimizer.step()
+                        self.D_optimizer.zero_grad()
+                        self.G_optimizer.zero_grad()
+                        if self.global_step % self.log_step == 0:
+                            # Log
+                            self.log.add_scalar('D_loss', D_loss_val, self.global_step)
+                            self.log.add_scalar('G_loss', G_loss_val, self.global_step)
+                            self.log.add_scalar('D_lr', self.D_optimizer.get_lr()[0], self.global_step)
+                            self.log.add_scalar('G_lr', self.G_optimizer.get_lr()[0], self.global_step)
+                            self.log.add_scalar('loss', (loss_val), self.global_step)
+                            self.log.add_scalar('gradient norm', grad_norm, self.global_step)
+                            progress.set_description("Total loss %.4f, D loss %.4f, G loss %.4f"
+                                    %(loss_val, D_loss_val, G_loss_val))
+                        if self.global_step % self.save_step == 0:
+                            self.save_model('states')
+                            mask_spec = self.up_sample_frames(spec_masked[0], return_first=True)
+                            pred_spec = self.up_sample_frames(pred_spec[0], return_first=True)
+                            true_spec = self.up_sample_frames(spec_stacked[0], return_first=True)
+                            mask_spec = plot_spectrogram_to_numpy(mask_spec.data.cpu().numpy())
+                            pred_spec = plot_spectrogram_to_numpy(pred_spec.data.cpu().numpy())
+                            true_spec = plot_spectrogram_to_numpy(true_spec.data.cpu().numpy())
+                            self.log.add_image('mask_spec', mask_spec, self.global_step)
+                            self.log.add_image('pred_spec', pred_spec, self.global_step)
+                            self.log.add_image('true_spec', true_spec, self.global_step)
+
+                        loss_val = 0
+                        G_loss_val = 0
+                        D_loss_val = 0
+                        pbar.update(1)
+                        self.global_step += 1
+                        
+                except RuntimeError as e:
+                    if 'CUDA out of memory' in str(e):
+                        print('CUDA out of memory at step: ', self.global_step)
+                        torch.cuda.empty_cache()
+                        self.optimizer.zero_grad()
+                    else:
+                        raise
+                
+        pbar.close()
+        self.log.close()       

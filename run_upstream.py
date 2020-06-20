@@ -103,8 +103,13 @@ def run_transformer(args, config):
 
     # train
     runner = Runner(args, config, dataloader, ckpdir)
-    runner.set_model()
-    runner.train()
+    if config['electra']['pretrain']:
+        runner.set_electra_model()
+        runner.train_electra()
+    else:
+        runner.set_model()
+        runner.train()
+      
 
 
 ####################

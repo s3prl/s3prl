@@ -136,6 +136,7 @@ class TRANSFORMER(nn.Module):
                         load(child, prefix + name + '.')
 
             load(self.model)
+            print(missing_keys, unexpected_keys, error_msgs)
             if len(missing_keys) > 0:
                 print('Weights of {} not initialized from pretrained model: {}'.format(
                     self.model.__class__.__name__, missing_keys))
