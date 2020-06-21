@@ -2,7 +2,7 @@ dataloader:
   n_jobs: 12                                            # Subprocess used for torch Dataloader
   batch_size: 6                                         # training batch size, 12 for pre-train, 6 for cpc exp
   dev_batch_size: 12                                    # used for dev/test splits
-  max_timestep: 3000                                    # Max length for audio feature (0 for no restriction), 1500 for pre-train, 3000 for downstream tasks
+  max_timestep: 0                                       # Max length for audio feature (0 for no restriction)
 
   data_path: 'data/libri_fbank_cmvn'                    # Source data path, 'data/libri_fmllr_cmvn', or 'data/libri_mfcc_cmvn', or 'data/libri_mel160_subword5000' for different preprocessing features
   phone_path: 'data/cpc_phone'                          # phone boundary label data path for the phone classification task. set to 'data/libri_phone' or 'data/cpc_phone'
