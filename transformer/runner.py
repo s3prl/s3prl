@@ -64,7 +64,7 @@ class Runner():
     def set_model(self):
         print('[Runner] - Initializing Transformer model...')
         
-        # uild the Transformer model with speech prediction head
+        # build the Transformer model with speech prediction head
         model_config = TransformerConfig(self.config)
         self.dr = model_config.downsample_rate
         self.hidden_size = model_config.hidden_size
