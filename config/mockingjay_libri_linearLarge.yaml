@@ -18,7 +18,8 @@ transformer:
   mask_frequency: 0                                     # mask maximum this amount of frequency bands, set to 0 for no frequency mask
   noise_proportion: 0.0                                 # for this percentage of the time, Gaussian noise will be applied on all frames during MAM training, set to 0 for no noise
   prune_headids: None                                   # Usage: 0,1,2,12-15 will prune headids [0,1,2,12,13,14]. headids = layerid * head_num + headid_in_layer
-
+  share_layer: False                                    # Share layer weights
+  max_input_length: 0                                   # maximum input length (0 for no restriction)
 
 optimizer: 
   learning_rate: "4e-4"                                 # Learning rate for opt. "4e-4" for 'data/libri_mel160_subword5000', "2e-4" for 'data/libri_fmllr_cmvn'

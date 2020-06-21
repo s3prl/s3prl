@@ -72,6 +72,8 @@ class AcousticDataset(LibriDataset):
 
         self.run_mam = run_mam
         self.mam_config = mam_config
+        self.sample_step = mam_config['max_input_length'] if 'max_input_length' in mam_config else 0
+        if self.sample_step > 0: print('[Dataset] - Sampling random segments for training, sample length:', self.sample_step)
         X = self.table['file_path'].tolist()
         X_lens = self.table['length'].tolist()
 
@@ -97,10 +99,19 @@ class AcousticDataset(LibriDataset):
         if len(batch_x) > 0:
             self.X.append(batch_x)
 
+    
+    def sample(self, x):
+        if len(x) < self.sample_step: return x
+        idx = random.randint(0, len(x)-self.sample_step)
+        return x[idx:idx+self.sample_step]
+
 
     def __getitem__(self, index):
         # Load acoustic feature and pad
-        x_batch = [torch.FloatTensor(np.load(os.path.join(self.root, x_file))) for x_file in self.X[index]]
+        if self.sample_step > 0:
+            x_batch = [torch.FloatTensor(self.sample(np.load(os.path.join(self.root, x_file)))) for x_file in self.X[index]]
+        else:
+            x_batch = [torch.FloatTensor(np.load(os.path.join(self.root, x_file))) for x_file in self.X[index]]
         x_pad_batch = pad_sequence(x_batch, batch_first=True)
         if self.run_mam: x_pad_batch = process_train_MAM_data(spec=(x_pad_batch,), config=self.mam_config)
         return x_pad_batch
