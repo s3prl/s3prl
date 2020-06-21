@@ -10,6 +10,7 @@
 ###############
 # IMPORTATION #
 ###############
+import math
 import yaml
 import torch
 import random
@@ -81,6 +82,8 @@ class TRANSFORMER(nn.Module):
         self.dr = self.model_config.downsample_rate
         self.hidden_size = self.model_config.hidden_size
         self.num_layers = self.model_config.num_hidden_layers
+        self.max_input_length = self.config['transformer']['max_input_length'] if 'max_input_length' in self.config['transformer'] else 0
+        if self.max_input_length > 0: print('[Transformer] - Maximum input length: ', self.max_input_length)
         if not (self.select_layer in list(range(-1, self.num_layers))): raise RuntimeError('Out of range int for \'select_layer\'!')
 
         # use weighted sum from all layers
@@ -208,16 +211,9 @@ class TRANSFORMER(nn.Module):
         tiled_reps = reps.repeat(1, 1, self.dr)
         tiled_reps = tiled_reps.reshape(reps.size(0), reps.size(1)*self.dr, reps.size(2))
         return tiled_reps # (batch_size, sequence_length * downsample_rate, hidden_size)
-        
 
-    def _forward(self, x):
 
-        if self.permute_input:
-            x = x.permute(1, 0, 2).contiguous() # (T, B, D) -> (B, T, D)
-            input_len = x.shape[0]
-        else:
-            input_len = x.shape[1]
-
+    def upsample(self, x, input_len):
         # Compute padding to compromise the downsample loss
         left_over = input_len % self.dr
         if left_over % 2 == 0:
@@ -226,10 +222,37 @@ class TRANSFORMER(nn.Module):
         else:
             left_pad = left_over // 2
             right_pad = left_over // 2 + 1
+        
+        x = self.tile_representations(x)
 
-        # Model forwarding
-        spec_stacked, pos_enc, attn_mask = self.process_input_data(x) # x shape: (B, T, D)
-        x = self.model(spec_stacked, pos_enc, attn_mask, output_all_encoded_layers=self.weighted_sum or self.select_layer != -1) # (B, T, D) or # (N, B, T, D)
+        # padding
+        x = x.permute(0, 2, 1).contiguous() # (B, T, D) -> (B, D, T)
+        padding = nn.ReplicationPad1d((left_pad, right_pad))
+        x = padding(x)
+        
+        x = x.permute(0, 2, 1).contiguous() # (B, D, T) -> (B, T, D)
+        return x
+
+
+    def _forward(self, x):
+
+        if self.permute_input:
+            x = x.permute(1, 0, 2).contiguous() # (T, B, D) -> (B, T, D)
+        input_len = x.shape[1]
+
+        # forward the whole sequence at once
+        if self.max_input_length == 0 or input_len <= self.max_input_length:
+            spec_stacked, pos_enc, attn_mask = self.process_input_data(x) # x shape: (B, T, D)
+            x = self.model(spec_stacked, pos_enc, attn_mask, output_all_encoded_layers=self.weighted_sum or self.select_layer != -1) # (B, T, D) or # (N, B, T, D)
+        # forward the sequence in chunks then concat
+        else:
+            chunks = torch.chunk(x, chunks=math.ceil(input_len / self.max_input_length), dim=1)
+            x_ = []
+            for chunk in chunks:
+                spec_stacked, pos_enc, attn_mask = self.process_input_data(chunk) # x shape: (B, T, D)
+                chunk = self.model(spec_stacked, pos_enc, attn_mask, output_all_encoded_layers=self.weighted_sum or self.select_layer != -1) # (B, T, D) or # (N, B, T, D)
+                x_.append(torch.stack(chunk) if type(chunk) is list else chunk)
+            x = torch.cat(x_, dim=2 if (self.weighted_sum or self.select_layer != -1) else 1)
 
         # Apply weighted sum
         if self.weighted_sum:
@@ -246,23 +269,14 @@ class TRANSFORMER(nn.Module):
             x = spec_augment(x, mask_T=70, mask_F=86, num_T=2, num_F=2, p=1.0) # (B, T, D)
 
         # If using a downsampling model, apply tile and padding
-        if x.shape[1] != input_len:
-            x = self.tile_representations(x)
-
-            # padding
-            x = x.permute(0, 2, 1).contiguous() # (B, T, D) -> (B, D, T)
-            padding = nn.ReplicationPad1d((left_pad, right_pad))
-            x = padding(x)
-            
-            if self.permute_input: x = x.permute(2, 0, 1).contiguous() # (B, D, T) -> (T, B, D)
-            else: x = x.permute(0, 2, 1).contiguous() # (B, D, T) -> (B, T, D)
+        if self.dr > 1:
+            x = self.upsample(x, input_len) # (B, T, D)
         
-        # If not using a downsampling model, permute to output
-        elif self.permute_input:
+        # permute to output
+        if self.permute_input:
             x = x.permute(1, 0, 2).contiguous() # (B, T, D) -> (T, B, D)
-        
-        # else: (B, T, D)
-        return x
+
+        return x # (B, T, D) or (T, B, D)
 
 
     def forward(self, x):
