@@ -129,7 +129,7 @@ def main():
         task = 'transformer_phone' if args.run_transformer \
                 else 'apc_phone' if args.run_apc else 'baseline_phone'
         trainer = Downstream_Trainer(config, args, task=task)
-        trainer.load_data(split='train', load='phone')
+        trainer.load_data(split='train', load='montreal_phone')
         trainer.set_model(inference=False)
         trainer.exec()
 
@@ -139,7 +139,7 @@ def main():
         task = 'transformer_phone' if args.run_transformer \
                 else 'apc_phone' if args.run_apc else 'baseline_phone'
         tester = Downstream_Tester(config, args, task=task)
-        tester.load_data(split='test', load='phone')
+        tester.load_data(split='test', load='montreal_phone')
         tester.set_model(inference=True)
         tester.exec()
 
