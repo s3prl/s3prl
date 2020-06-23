@@ -64,16 +64,16 @@ class Downstream_Solver(Solver):
         elif self.run_transformer: self.verbose('Using transformer speech representations.')
 
 
-    def load_data(self, split='train', load='phone'):
+    def load_data(self, split='train', load='cpc_phone'):
         ''' Load date for training / testing'''
-        assert(load in ['phone', 'cpc_phone', 'sentiment', 'speaker', 'speaker_large']), 'Unsupported dataloader!'
-        if load == 'phone' or load == 'cpc_phone' or load == 'speaker_large':
+        assert(load in ['montreal_phone', 'cpc_phone', 'sentiment', 'speaker', 'speaker_large']), 'Unsupported dataloader!'
+        if load == 'montreal_phone' or load == 'cpc_phone' or load == 'speaker_large':
             if split == 'train':
                 self.verbose('Loading source data from ' + str(self.config['dataloader']['train_set']) + ' from ' + self.config['dataloader']['data_path'])
-                if load == 'phone' or load == 'cpc_phone': self.verbose('Loading phone data from ' + str(self.config['dataloader']['train_set']) + ' from ' + self.config['dataloader']['phone_path'])
+                if load == 'montreal_phone' or load == 'cpc_phone': self.verbose('Loading phone data from ' + str(self.config['dataloader']['train_set']) + ' from ' + self.config['dataloader']['phone_path'])
             elif split == 'test': 
                 if load != 'cpc_phone': self.verbose('Loading testing data ' + str(self.config['dataloader']['test_set']) + ' from ' + self.config['dataloader']['data_path'])
-                if load == 'phone': self.verbose('Loading label data ' + str(self.config['dataloader']['test_set']) + ' from ' + self.config['dataloader']['phone_path'])
+                if load == 'montreal_phone': self.verbose('Loading label data ' + str(self.config['dataloader']['test_set']) + ' from ' + self.config['dataloader']['phone_path'])
                 elif load == 'cpc_phone': self.verbose('Loading label data from ' + self.config['dataloader']['phone_path'])
             else:
                 raise NotImplementedError('Invalid `split` argument!')

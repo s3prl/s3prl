@@ -39,7 +39,6 @@ SPEAKER_THRESHOLD = 0
 #     - split        : str, data split (train / dev / test)
 #     - max_timestep : int, max len for input (set to 0 for no restriction)
 #     - bucket_size  : int, batch size for each bucket
-#     - load         : str, types of data to load: ['acoustic', 'duo', 'phone', 'speaker', 'speaker_large']
 class LibriDataset(Dataset):
     def __init__(self, file_path, sets, bucket_size, max_timestep=0, drop=False):
         # define default length
@@ -650,7 +649,7 @@ def get_Dataloader(split, load, data_path, batch_size, max_timestep,
         assert(target_path is not None), '`target path` must be provided for this dataset.'
         ds = Mel_Linear_Dataset(file_path=data_path, target_path=target_path, sets=sets, max_timestep=max_timestep,
                                 bucket_size=bs, drop=drop_too_long, mam_config=mam_config)
-    elif load == 'phone':
+    elif load == 'montreal_phone':
         assert(phone_path is not None), '`phone path` must be provided for this dataset.'
         ds = Mel_Phone_Dataset(run_mam=run_mam, file_path=data_path, phone_path=phone_path, sets=sets, max_timestep=max_timestep,
                                bucket_size=bs, drop=drop_too_long, mam_config=mam_config,

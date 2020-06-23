@@ -63,6 +63,7 @@ def get_downstream_args():
     # Options
     parser.add_argument('--name', default=None, type=str, help='Name of current experiment.', required=False)
     parser.add_argument('--config', default='config/downstream.yaml', type=str, help='Path to downstream experiment config.', required=False)
+    parser.add_argument('--phone_set', choices=['cpc_phone', 'montreal_phone'], default='cpc_phone', help='Phone set for phone classification tasks', required=False)
     parser.add_argument('--expdir', default='', type=str, help='Path to store experiment result, if empty then default is used.', required=False)
     parser.add_argument('--seed', default=1337, type=int, help='Random seed for reproducable results.', required=False)
     parser.add_argument('--cpu', action='store_true', help='Disable GPU training.')
@@ -70,7 +71,7 @@ def get_downstream_args():
     # parse
     args = parser.parse_args()
     setattr(args, 'gpu', not args.cpu)
-    setattr(args, 'task', 'cpc_phone' if 'phone' in args.run else 'speaker')
+    setattr(args, 'task', args.phone_set if 'phone' in args.run else 'speaker')
     config = yaml.load(open(args.config, 'r'), Loader=yaml.FullLoader)
     
     return args, config
@@ -124,10 +125,15 @@ def get_dataloader(args, dataloader_config):
     if not os.path.exists(dataloader_config['data_path']):
         raise RuntimeError('[run_downstream] - Data path not valid:', dataloader_config['data_path'])    
     print('[run_downstream] - Loading input data: ' + str(dataloader_config['train_set']) + ' from ' + dataloader_config['data_path'])
+    
     if args.task == 'speaker':
         print('[run_downstream] - Loading speaker data: ' + str(dataloader_config['train_set']) + ' from ' + dataloader_config['data_path'])
     else:
         print('[run_downstream] - Loading phone data: ' + dataloader_config['phone_path'])
+        if not os.path.exists(dataloader_config['phone_path']):
+            raise RuntimeError('[run_downstream] - Phone path not valid:', dataloader_config['phone_path'])
+        if args.task == 'montreal_phone':
+            print('[run_downstream] - WARNING: Using a non-preset phone set! Please make sure \'data_path\' (should be: data/libri_mel160_subword5000) and \'phone_path\' (should be: data/libri_phone) are set correctly.')
 
     print('[run_downstream] - getting train dataloader...')
     train_loader = get_Dataloader(split='train', load=args.task, use_gpu=args.gpu, seed=args.seed, **dataloader_config)
