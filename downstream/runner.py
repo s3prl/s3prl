@@ -255,14 +255,14 @@ class Runner():
                             break
                         else:
                             oom_counter += 1
-                        print('[Runner] - CUDA out of memory during testing, aborting after ' + str(10 - oom_counter) + ' more tries...')
+                        print(f'[Runner] - CUDA out of memory during {split}ing, aborting after ' + str(10 - oom_counter) + ' more tries...')
                         torch.cuda.empty_cache()
                     else:
                         raise
 
         average_loss = loss_sum / len(self.dataloader[split])
         eval_acc = correct_count * 1.0 / valid_count
-        print(f'[Runner] - Test result: loss {average_loss}, acc {eval_acc}')
+        print(f'[Runner] - {split} result: loss {average_loss}, acc {eval_acc}')
         
         self.upstream_model.train()
         self.downstream_model.train()

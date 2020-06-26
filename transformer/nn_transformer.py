@@ -150,7 +150,8 @@ class TRANSFORMER(nn.Module):
                                     self.model.__class__.__name__, '\n\t'.join(error_msgs)))
             print('[Transformer] - Pre-trained weights loaded!')
 
-        except: print('[Transformer] - Pre-trained weights NOT loaded!')
+        except: 
+            raise RuntimeError('[Transformer] - Pre-trained weights NOT loaded!')
 
 
     def down_sample_frames(self, spec):
