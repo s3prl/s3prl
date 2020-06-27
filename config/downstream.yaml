@@ -1,5 +1,5 @@
 dataloader:
-  n_jobs: 12                                            # Subprocess used for torch Dataloader
+  n_jobs: 6                                             # Subprocess used for torch Dataloader
   batch_size: 6                                         # training batch size, 12 for pre-train, 6 for cpc exp
   dev_batch_size: 12                                    # used for dev/test splits
   max_timestep: 0                                       # Max length for audio feature (0 for no restriction)
