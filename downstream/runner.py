@@ -196,10 +196,12 @@ class Runner():
                 except RuntimeError as e:
                     if 'CUDA out of memory' in str(e):
                         print('[Runner] - CUDA out of memory at step: ', self.global_step)
-                        torch.cuda.empty_cache()
-                        self.optimizer.zero_grad()
+                    elif 'worker' in str(e):
+                        print('[Runner] - Dataloader worker not available at step: ', self.global_step)
                     else:
                         raise
+                    torch.cuda.empty_cache()
+                    self.optimizer.zero_grad()
 
                 pbar.update(1)
                 self.global_step += 1
