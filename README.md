@@ -69,7 +69,7 @@ This is an open source project called S3PRL, which stands for **S**elf-**S**uper
     - Described in ["An Unsupervised Autoregressive Model for Speech Representation Learning"](https://arxiv.org/abs/1904.03240)
     - *RNN based, unidirectional reconstruction loss*
     - Accepted by [INTERSPEECH 2019](https://interspeech2019.org/).
-    - 
+
 ------------------------------------
 
 ### Downstream Tasks
@@ -500,7 +500,19 @@ Reference
 
 Citation
 ------------------------------------
-Here we list all papers that use our toolkit.
+- The S3PRL Toolkit:
+```
+@misc{S3PRL,
+  author = {Andy T. Liu and Yang Shu-wen},
+  title = {{S3PRL}: The Self-Supervised Speech Pre-training and Representation Learning Toolkit},
+  year = {2020},
+  publisher = {GitHub},
+  journal = {GitHub repository},
+  url = {https://github.com/andi611/Self-Supervised-Speech-Pretraining-and-Representation-Learning}
+}
+```
+
+Here we also list all papers that use our toolkit (Feel free to add your own paper by making a pull request).
 - Mockingjay:
 ```
 @article{mockingjay,
