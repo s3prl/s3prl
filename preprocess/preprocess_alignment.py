@@ -18,6 +18,8 @@ import numpy as np
 import pandas as pd
 from tqdm import tqdm
 from pathlib import Path
+#import sys
+#sys.path.append(os.path.abspath('/home/dcml0714/Self-Supervised-Speech-Pretraining-and-Representation-Learning/'))
 from utility.audio import sample_rate, _stft_parameters
 
 

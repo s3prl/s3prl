@@ -180,7 +180,8 @@ class Runner():
                             self.save_model(save_best=f"best_{self.config['evaluation']}")
                             torch.cuda.empty_cache()
                             best_eval_acc = eval_acc
-                        
+                       
+                        #"""
                         # evaluate on the test set if not already
                         if self.config['evaluation'] != 'test':
                             torch.cuda.empty_cache()
@@ -192,7 +193,7 @@ class Runner():
                                 self.save_model(save_best='best_test')
                                 torch.cuda.empty_cache()
                                 best_test_acc = test_acc
-
+                         #"""
                 except RuntimeError as e:
                     if 'CUDA out of memory' in str(e):
                         print('[Runner] - CUDA out of memory at step: ', self.global_step)

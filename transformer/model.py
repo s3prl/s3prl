@@ -36,6 +36,7 @@ class TransformerConfig(object):
         self.layer_norm_eps = float(config['transformer']['layer_norm_eps'])
         self.generator_hidden_size = config['transformer']['generator_hidden_size']
         self.discriminator_hidden_size = config['transformer']['discriminator_hidden_size']
+        self.regression = config['transformer']['regression']
 
 
 def prune_linear_layer(layer, index, dim=0):
@@ -577,7 +578,10 @@ class ElectraForPreTraining(TransformerInitModel):
                                       keep_multihead_output=keep_multihead_output)
         self.discriminator_predictions = ElectraDiscriminatorPredictions(config) 
         self.apply(self.init_Transformer_weights)
-        self.loss = nn.BCEWithLogitsLoss()
+        if config.regression:
+            self.loss = nn.L1Loss()
+        else:    
+            self.loss = nn.BCEWithLogitsLoss()
 
     def forward(self, spec_input, pos_enc, disc_target=None, attention_mask=None, labels=None, head_mask=None):
         outputs = self.Transformer(spec_input, pos_enc, attention_mask,

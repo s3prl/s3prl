@@ -39,7 +39,6 @@ SPEAKER_THRESHOLD = 0
 #     - split        : str, data split (train / dev / test)
 #     - max_timestep : int, max len for input (set to 0 for no restriction)
 #     - bucket_size  : int, batch size for each bucket
-#     - load         : str, types of data to load: ['acoustic', 'duo', 'phone', 'speaker', 'speaker_large']
 class LibriDataset(Dataset):
     def __init__(self, file_path, sets, bucket_size, max_timestep=0, drop=False):
         # define default length
@@ -72,6 +71,8 @@ class AcousticDataset(LibriDataset):
 
         self.run_mam = run_mam
         self.mam_config = mam_config
+        self.sample_step = mam_config['max_input_length'] if 'max_input_length' in mam_config else 0
+        if self.sample_step > 0: print('[Dataset] - Sampling random segments for training, sample length:', self.sample_step)
         X = self.table['file_path'].tolist()
         X_lens = self.table['length'].tolist()
 
@@ -97,10 +98,19 @@ class AcousticDataset(LibriDataset):
         if len(batch_x) > 0:
             self.X.append(batch_x)
 
+    
+    def sample(self, x):
+        if len(x) < self.sample_step: return x
+        idx = random.randint(0, len(x)-self.sample_step)
+        return x[idx:idx+self.sample_step]
+
 
     def __getitem__(self, index):
         # Load acoustic feature and pad
-        x_batch = [torch.FloatTensor(np.load(os.path.join(self.root, x_file))) for x_file in self.X[index]]
+        if self.sample_step > 0:
+            x_batch = [torch.FloatTensor(self.sample(np.load(os.path.join(self.root, x_file)))) for x_file in self.X[index]]
+        else:
+            x_batch = [torch.FloatTensor(np.load(os.path.join(self.root, x_file))) for x_file in self.X[index]]
         x_pad_batch = pad_sequence(x_batch, batch_first=True)
         if self.run_mam: x_pad_batch = process_train_MAM_data(spec=(x_pad_batch,), config=self.mam_config)
         return x_pad_batch
@@ -639,7 +649,7 @@ def get_Dataloader(split, load, data_path, batch_size, max_timestep,
         assert(target_path is not None), '`target path` must be provided for this dataset.'
         ds = Mel_Linear_Dataset(file_path=data_path, target_path=target_path, sets=sets, max_timestep=max_timestep,
                                 bucket_size=bs, drop=drop_too_long, mam_config=mam_config)
-    elif load == 'phone':
+    elif load == 'montreal_phone':
         assert(phone_path is not None), '`phone path` must be provided for this dataset.'
         ds = Mel_Phone_Dataset(run_mam=run_mam, file_path=data_path, phone_path=phone_path, sets=sets, max_timestep=max_timestep,
                                bucket_size=bs, drop=drop_too_long, mam_config=mam_config,
@@ -659,3 +669,4 @@ def get_Dataloader(split, load, data_path, batch_size, max_timestep,
         raise NotImplementedError('Invalid `load` argument for `get_Dataloader()`!')
 
     return DataLoader(ds, batch_size=1, shuffle=shuffle, drop_last=False, num_workers=n_jobs, pin_memory=use_gpu)
+

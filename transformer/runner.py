@@ -89,9 +89,9 @@ class Runner():
             self.discriminator = torch.nn.DataParallel(self.discriminator)
             self.generator = torch.nn.DataParallel(self.generator)
             self.transformer = torch.nn.DataParallel(self.transformer)
-            self.verbose('Multi-GPU training Enabled: ' + str(torch.cuda.device_count()))
-        self.verbose('Number of parameters in discriminator: ' + str(sum(p.numel() for p in self.discriminator.parameters() if p.requires_grad)))
-        self.verbose('Number of parameters in generator: ' + str(sum(p.numel() for p in self.generator.parameters() if p.requires_grad)))
+            print('Multi-GPU training Enabled: ' + str(torch.cuda.device_count()))
+        print('Number of parameters in discriminator: ' + str(sum(p.numel() for p in self.discriminator.parameters() if p.requires_grad)))
+        print('Number of parameters in generator: ' + str(sum(p.numel() for p in self.generator.parameters() if p.requires_grad)))
         
         # Setupt optimizer
         D_param_optimizer = list(self.discriminator.named_parameters())
@@ -122,13 +122,13 @@ class Runner():
                                             lr=self.learning_rate,
                                             bias_correction=False,
                                             max_grad_norm=1.0)
-           if self.config['optimizer']['loss_scale'] == 0:
-               self.D_optimizer = FP16_Optimizer(D_optimizer, dynamic_loss_scale=True)
-               self.G_optimizer = FP16_Optimizer(G_optimizer, dynamic_loss_scale=True)
+            if self.config['optimizer']['loss_scale'] == 0:
+                self.D_optimizer = FP16_Optimizer(D_optimizer, dynamic_loss_scale=True)
+                self.G_optimizer = FP16_Optimizer(G_optimizer, dynamic_loss_scale=True)
             else:
-               self.D_optimizer = FP16_Optimizer(D_optimizer, static_loss_scale=self.config['optimizer']['loss_scale'])
-               self.G_optimizer = FP16_Optimizer(G_optimizer, static_loss_scale=self.config['optimizer']['loss_scale'])
-               self.warmup_linear = WarmupLinearSchedule(warmup=self.warmup_proportion,
+                self.D_optimizer = FP16_Optimizer(D_optimizer, static_loss_scale=self.config['optimizer']['loss_scale'])
+                self.G_optimizer = FP16_Optimizer(G_optimizer, static_loss_scale=self.config['optimizer']['loss_scale'])
+                self.warmup_linear = WarmupLinearSchedule(warmup=self.warmup_proportion,
                                                               t_total=self.total_steps)
         else:
             # TODO: D and G should have different learning rate?
@@ -199,10 +199,8 @@ class Runner():
                      else self.model.module.SpecHead.state_dict(),
                 'Generator_Transformer': self.generator.Transformer.state_dict() if not self.args.multi_gpu 
                     else self.model.module.SpecHead.state_dict(),
-                'Transformer': self.discriminator.transformer.state_dict() if not self.args.multi_gpu 
-                    else self.transformer.module.state_dict()
-                'ClassifierHead': self.discriminator.discriminator_predictions.state_dict() if not self.args.multi_gpu 
-                    else self.transformer.module.state_dict(),
+                'Transformer': self.discriminator.Transformer.state_dict() if not self.args.multi_gpu else self.discriminator.Transformer.module.state_dict(),
+                'ClassifierHead': self.discriminator.discriminator_predictions.state_dict() if not self.args.multi_gpu else self.transformer.module.state_dict(),
                 'D_Optimizer': self.D_optimizer.state_dict(),
                 'G_Optimizer': self.G_optimizer.state_dict(),
                 'Global_step': self.global_step,
@@ -367,7 +365,7 @@ class Runner():
         pbar.close()
         self.log.close()
 
-     def train_electra(self):
+    def train_electra(self):
         ''' Self-Supervised Pre-Training of Electra Model'''
 
         pbar = tqdm(total=self.total_steps)
@@ -389,11 +387,14 @@ class Runner():
                     mam_loss, pred_spec = self.generator(spec_masked, pos_enc, mask_label, attn_mask, spec_stacked)
 
                     disc_target = torch.abs(pred_spec - spec_stacked).mean(-1).detach()
-                    disc_target = torch.where(disc_target >= 0.2, torch.ones_like(disc_target), torch.zeros_like(disc_target))
+                    if not self.transformer_config['regression']:
+                        #disc_target = torch.where(disc_target >= 0.2, torch.ones_like(disc_target), torch.zeros_like(disc_target))
+                        disc_target = torch.where(disc_target >= mam_loss, torch.ones_like(disc_target), torch.zeros_like(disc_target))
 
                     # Get discriminator output
-                    pred_spec.detach()
-                    disc_loss, logits = self.discriminator(pred_spec, pos_enc, disc_target, attn_mask)
+                    g_input_pred_spec = pred_spec.clone().detach()
+                    g_input_pred_spec = (1 - mask_label) * spec_stacked + mask_label * g_input_pred_spec
+                    disc_loss, logits = self.discriminator(g_input_pred_spec, pos_enc, disc_target, attn_mask)
                     loss = mam_loss + disc_loss
                     
                     # Accumulate Loss

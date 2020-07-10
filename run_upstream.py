@@ -104,6 +104,7 @@ def run_transformer(args, config):
     # train
     runner = Runner(args, config, dataloader, ckpdir)
     if config['electra']['pretrain']:
+        print("Pretraining using Electra model.")
         runner.set_electra_model()
         runner.train_electra()
     else:
