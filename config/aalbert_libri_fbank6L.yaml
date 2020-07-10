@@ -11,12 +11,12 @@ transformer:
   initializer_range: 0.02                               # The sttdev of the truncated_normal_initializer for initializing all weight matrices.
   layer_norm_eps: "1e-12"                               # The epsilon used by LayerNorm.
   mask_proportion: 0.15                                 # mask this percentage of all spectrogram frames in each sequence at random during MAM training                        
-  mask_consecutive_min: 7                               # mask this amount of consecutive frames
-  mask_consecutive_max: 7                               # mask this amount of consecutive frames
+  mask_consecutive_min: 1                               # mask this amount of consecutive frames
+  mask_consecutive_max: 1                               # mask this amount of consecutive frames
   mask_allow_overlap: True                              # allow overlap masking
   mask_bucket_ratio: 1.2                                # only used when overlap is not allowed. sample a mask from each bucket in size of [sampled mask_consecutive * mask_bucket_ratio]
-  mask_frequency: 16                                    # mask maximum this amount of frequency bands, set to 0 for no frequency mask
-  noise_proportion: 0.15                                # for this percentage of the time, Gaussian noise will be applied on all frames during MAM training, set to 0 for no noise
+  mask_frequency: 0                                     # mask maximum this amount of frequency bands, set to 0 for no frequency mask
+  noise_proportion: 0.0                                 # for this percentage of the time, Gaussian noise will be applied on all frames during MAM training, set to 0 for no noise
   prune_headids: None                                   # Usage: 0,1,2,12-15 will prune headids [0,1,2,12,13,14]. headids = layerid * head_num + headid_in_layer
   share_layer: True                                     # Share layer weights
   max_input_length: 0                                   # maximum input length (0 for no restriction)
@@ -25,13 +25,13 @@ optimizer:
   learning_rate: "2e-4"                                 # Learning rate for opt. "4e-4" for 'data/libri_mel160_subword5000', "2e-4" for 'data/libri_fmllr_cmvn'
   loss_scale: 0                                         # Loss scale to improve fp16 numeric stability. Only used when apex is set to True. 0: dynamic loss scaling. positive power of 2: static loss scaling.
   warmup_proportion: 0.07                               # Proportion of training to perform linear rate warmup.
-  gradient_accumulation_steps: 3                        # Number of updates steps to accumulate before performing a backward/update pass
-  gradient_clipping: 3.0                                # Maximum gradient norm
+  gradient_accumulation_steps: 5                        # Number of updates steps to accumulate before performing a backward/update pass
+  gradient_clipping: 5.0                                # Maximum gradient norm
 
 
 dataloader:
   n_jobs: 12                                            # Subprocess used for torch Dataloader
-  batch_size: 12                                        # training batch size, 12 for pre-train, 6 for cpc exp
+  batch_size: 10                                        # training batch size
   dev_batch_size: 12                                    # used for dev/test splits
   max_timestep: 1500                                    # Max length for audio feature (0 for no restriction), 1500 for pre-train, 3000 for downstream tasks
   
