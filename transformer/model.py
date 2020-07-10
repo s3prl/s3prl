@@ -35,6 +35,7 @@ class TransformerConfig(object):
         self.initializer_range = config['transformer']['initializer_range']
         self.layer_norm_eps = float(config['transformer']['layer_norm_eps'])
         self.share_layer = bool(config['transformer']['share_layer']) if 'share_layer' in config['transformer'] else False
+        self.pre_layer_norm = bool(config['transformer']['pre_layer_norm']) if 'pre_layer_norm' in config['transformer'] else False
 
 
 def prune_linear_layer(layer, index, dim=0):
