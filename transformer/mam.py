@@ -181,7 +181,7 @@ def process_train_MAM_data(spec, config=None):
         batch_is_valid = len(valid_batchid) > 0
         spec_masked = spec_masked.to(dtype=torch.float32)[valid_batchid]
         pos_enc = pos_enc.to(dtype=torch.float32)
-        mask_label = mask_label.to(dtype=torch.uint8)[valid_batchid]
+        mask_label = mask_label.to(dtype=torch.bool)[valid_batchid]
         attn_mask = attn_mask.to(dtype=torch.float32)[valid_batchid]
         spec_stacked = spec_stacked.to(dtype=torch.float32)[valid_batchid]
 
