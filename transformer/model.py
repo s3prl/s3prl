@@ -193,13 +193,17 @@ class TransformerSelfAttention(nn.Module):
 class TransformerSelfOutput(nn.Module):
     def __init__(self, config):
         super(TransformerSelfOutput, self).__init__()
+        self.pre_layer_norm = config.pre_layer_norm
         self.dense = nn.Linear(config.hidden_size, config.hidden_size)
         self.dropout = nn.Dropout(config.hidden_dropout_prob)
+        self.LayerNorm = TransformerLayerNorm(config.hidden_size, eps=config.layer_norm_eps)
 
     def forward(self, hidden_states, input_tensor):
         hidden_states = self.dense(hidden_states)
         hidden_states = self.dropout(hidden_states)
         hidden_states = hidden_states + input_tensor
+        if not self.pre_layer_norm:
+            hidden_states = self.LayerNorm(hidden_states)
         return hidden_states
 
 
@@ -211,7 +215,7 @@ class TransformerAttention(nn.Module):
         self.self = TransformerSelfAttention(config, output_attentions=output_attentions,
                                               keep_multihead_output=keep_multihead_output)
         self.output = TransformerSelfOutput(config)
-        self.LayerNorm = TransformerLayerNorm(config.hidden_size, eps=config.layer_norm_eps)
+        self.LayerNorm = self.output.LayerNorm
 
     def prune_heads(self, heads):
         if len(heads) == 0:
@@ -235,16 +239,12 @@ class TransformerAttention(nn.Module):
             # LayerNorm -> SelfAttention -> SelfOutput (residual)
             self_output = self.LayerNorm(input_tensor)
             self_output = self.self(self_output, attention_mask, head_mask)
-            if self.output_attentions:
-                attentions, self_output = self_output
-            attention_output = self.output(self_output, input_tensor)
         else:
-            # SelfAttention -> SelfOutput (residual) -> LayerNorm
+            # SelfAttention -> SelfOutput (residual + LayerNorm)
             self_output = self.self(input_tensor, attention_mask, head_mask)
-            if self.output_attentions:
-                attentions, self_output = self_output
-            attention_output = self.output(self_output, input_tensor)
-            attention_output = self.LayerNorm(attention_output)
+        if self.output_attentions:
+            attentions, self_output = self_output
+        attention_output = self.output(self_output, input_tensor)
         if self.output_attentions:
             return attentions, attention_output
         return attention_output
@@ -268,13 +268,17 @@ class TransformerIntermediate(nn.Module):
 class TransformerOutput(nn.Module):
     def __init__(self, config):
         super(TransformerOutput, self).__init__()
+        self.pre_layer_norm = config.pre_layer_norm
         self.dense = nn.Linear(config.intermediate_size, config.hidden_size)
         self.dropout = nn.Dropout(config.hidden_dropout_prob)
+        self.LayerNorm = TransformerLayerNorm(config.hidden_size, eps=config.layer_norm_eps) # layer_norm for FFN
 
     def forward(self, hidden_states, input_tensor):
         hidden_states = self.dense(hidden_states)
         hidden_states = self.dropout(hidden_states)
         hidden_states = hidden_states + input_tensor
+        if not self.pre_layer_norm:
+            hidden_states = self.LayerNorm(hidden_states)
         return hidden_states
 
 
@@ -287,7 +291,7 @@ class TransformerLayer(nn.Module):
                                                keep_multihead_output=keep_multihead_output)
         self.intermediate = TransformerIntermediate(config)
         self.output = TransformerOutput(config)
-        self.LayerNorm = TransformerLayerNorm(config.hidden_size, eps=config.layer_norm_eps) # layer_norm for FFN
+        self.LayerNorm = self.output.LayerNorm
 
     def forward(self, hidden_states, attention_mask, head_mask=None):
         attention_output = self.attention(hidden_states, attention_mask, head_mask)
@@ -297,12 +301,10 @@ class TransformerLayer(nn.Module):
             # LayerNorm -> Intermediate -> Output (residual)
             intermediate_output = self.LayerNorm(attention_output)
             intermediate_output = self.intermediate(intermediate_output)
-            layer_output = self.output(intermediate_output, attention_output)
         else:
-            # Intermediate -> Output (residual) -> LayerNorm
+            # Intermediate -> Output (residual + LayerNorm)
             intermediate_output = self.intermediate(attention_output)
-            layer_output = self.output(intermediate_output, attention_output)
-            layer_output = self.LayerNorm(layer_output)
+        layer_output = self.output(intermediate_output, attention_output)
         if self.output_attentions:
             return attentions, layer_output
         return layer_output
