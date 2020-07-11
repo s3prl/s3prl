@@ -215,7 +215,8 @@ class TransformerAttention(nn.Module):
         self.self = TransformerSelfAttention(config, output_attentions=output_attentions,
                                               keep_multihead_output=keep_multihead_output)
         self.output = TransformerSelfOutput(config)
-        self.LayerNorm = self.output.LayerNorm
+        if self.pre_layer_norm:
+            self.LayerNorm = self.output.LayerNorm
 
     def prune_heads(self, heads):
         if len(heads) == 0:
@@ -291,7 +292,8 @@ class TransformerLayer(nn.Module):
                                                keep_multihead_output=keep_multihead_output)
         self.intermediate = TransformerIntermediate(config)
         self.output = TransformerOutput(config)
-        self.LayerNorm = self.output.LayerNorm
+        if self.pre_layer_norm:
+            self.LayerNorm = self.output.LayerNorm
 
     def forward(self, hidden_states, attention_mask, head_mask=None):
         attention_output = self.attention(hidden_states, attention_mask, head_mask)
