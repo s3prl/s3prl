@@ -58,7 +58,7 @@ This is an open source project called S3PRL, which stands for **S**elf-**S**uper
     - These papers used our implementations: [Adversarial Defense](https://arxiv.org/abs/2006.03214), [Understanding Self-attention](https://arxiv.org/abs/2006.03265)
     - Accepted by [ICASSP 2020](https://2020.ieeeicassp.org/) as an oral lecture.
 - **TERA**
-    - Described in ["TERA: Self-Supervised Pre-training of Transformer Encoders for Speech"](https://arxiv.org/abs/2007.06028)
+    - Described in ["TERA: Self-Supervised Learning of Transformer Encoder Representation for Speech"](https://arxiv.org/abs/2007.06028)
     - *Transformer based, multi-target alteration reconstruction loss*
     - Submitted to [IEEE/ACM TASLP](https://ieeexplore.ieee.org/xpl/RecentIssue.jsp?punumber=6570655).
 - **Audio ALBERT**
