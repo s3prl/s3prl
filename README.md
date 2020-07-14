@@ -56,11 +56,11 @@ This is an open source project called S3PRL, which stands for **S**elf-**S**uper
     - Described in ["Mockingjay: Unsupervised Speech Representation Learning with Deep Bidirectional Transformer Encoders"](https://arxiv.org/abs/1910.12638)
     - *Transformer based, BERT-style masked reconstruction loss*
     - These papers used our implementations: [Adversarial Defense](https://arxiv.org/abs/2006.03214), [Understanding Self-attention](https://arxiv.org/abs/2006.03265)
-    - Oral Lecture in [ICASSP 2020](https://2020.ieeeicassp.org/).
+    - Accepted by [ICASSP 2020](https://2020.ieeeicassp.org/) as an oral lecture.
 - **TERA**
-    - Described in ["TERA: Self-Supervised Pre-training of Transformer Encoders for Speech"]()
+    - Described in ["TERA: Self-Supervised Pre-training of Transformer Encoders for Speech"](https://arxiv.org/abs/2007.06028)
     - *Transformer based, multi-target alteration reconstruction loss*
-    - Paper are coming soon.
+    - Submitted to [IEEE/ACM TASLP](https://ieeexplore.ieee.org/xpl/RecentIssue.jsp?punumber=6570655).
 - **Audio ALBERT**
     - Described in ["Audio ALBERT: A Lite BERT for Self-supervised Learning of Audio Representation"](https://arxiv.org/abs/2005.08575)
     - *Transformer based, BERT-style masked reconstruction loss*
@@ -68,7 +68,7 @@ This is an open source project called S3PRL, which stands for **S**elf-**S**uper
 - **APC**
     - Described in ["An Unsupervised Autoregressive Model for Speech Representation Learning"](https://arxiv.org/abs/1904.03240)
     - *RNN based, unidirectional reconstruction loss*
-    - Accepted by [INTERSPEECH 2019](https://interspeech2019.org/).
+    - Accepted by [INTERSPEECH 2019](https://interspeech2019.org/) as an oral session.
 
 ------------------------------------
 
@@ -529,7 +529,13 @@ Here we also list all papers that use our toolkit (Feel free to add your own pap
 ```
 - TERA:
 ```
-@article{coming2020soon
+@misc{tera,
+    title={TERA: Self-Supervised Learning of Transformer Encoder Representation for Speech},
+    author={Andy T. Liu and Shang-Wen Li and Hung-yi Lee},
+    year={2020},
+    eprint={2007.06028},
+    archivePrefix={arXiv},
+    primaryClass={eess.AS}
 }
 ```
 - Mockingjay for Adversarial Defense
