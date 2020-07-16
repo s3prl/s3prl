@@ -175,7 +175,7 @@ For the installation and usage of Kaldi and PyTorch-Kaldi, see our supplementary
 - Open the file `~/.bashrc` in your text editor – e.g. `subl ~/.bashrc`;
 - Add the following line to the end:
 ```bash
-export PYTHONPATH=/your_abs_path/Self-Supervised-Speech-Pretraining-and-Representation-Learning
+export PYTHONPATH="/your_abs_path/Self-Supervised-Speech-Pretraining-and-Representation-Learning:$PYTHONPATH"
 ```
 *Make sure you change it to your own path.*
 - Restart your terminal application to read in the new settings, and type this to check if everything is working: `echo $PYTHONPATH`
