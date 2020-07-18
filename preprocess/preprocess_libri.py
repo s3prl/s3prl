@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*- #
 """*********************************************************************************************"""
-#   FileName     [ preprocess.py ]
+#   FileName     [ preprocess_libri.py ]
 #   Synopsis     [ preprocess text transcripts and audio speech for the LibriSpeech dataset ]
 #   Author       [ Andy T. Liu (Andi611) ]
 #   Copyright    [ Copyleft(c), Speech Lab, NTU, Taiwan ]
@@ -63,7 +63,7 @@ def acoustic_preprocess(args, tr_set, dim):
         print('')
         print('Preprocessing', s, 'data...', end='')
         todo = list(Path(os.path.join(args.data_path, s)).rglob("*.flac"))
-        print(len(todo),'audio files found in', s)
+        print(len(todo), 'audio files found in', s)
 
         if args.name == 'None':
             output_dir = os.path.join(args.output_path, '_'.join(['libri', str(args.feature_type)+str(dim)]))
@@ -82,7 +82,7 @@ def acoustic_preprocess(args, tr_set, dim):
         sorted_todo = [os.path.join(s, str(todo[idx]).split('/')[-1].replace('.flac', '.npy')) for idx in reversed(np.argsort(tr_x))]
         # Dump data
         df = pd.DataFrame(data={'file_path':[fp for fp in sorted_todo], 'length':list(reversed(sorted(tr_x))), 'label':None})
-        df.to_csv(os.path.join(output_dir, s+'.csv'))
+        df.to_csv(os.path.join(output_dir, s + '.csv'))
 
     print('All done, saved at', output_dir, 'exit.')
 
@@ -97,7 +97,7 @@ def main():
     mel_dim = num_mels * (1 + int(args.delta) + int(args.delta_delta))
     mfcc_dim = num_mfcc * (1 + int(args.delta) + int(args.delta_delta))
     dim = num_freq if args.feature_type == 'linear' else (mfcc_dim if args.feature_type == 'mfcc' else mel_dim)
-    print('Delta: ', args.delta, '. Delta Delta: ', args.delta_delta, '. Cmvn: ', args.cmvn)
+    print('Delta: ', args.delta, '. Delta Delta: ', args.delta_delta, '. Cmvn: ', args.apply_cmvn)
 
     # Select data sets
     print('Data sets :')
