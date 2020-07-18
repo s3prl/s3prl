@@ -150,7 +150,7 @@ Pillow           # visualization
 ```
 The above packages can be installed by the command: `pip install -r requirements.txt`
 
-- Here we list optional packages that need special attention, and we recommand you to install them manually:
+- Here we list optional packages that need special attention, and we recommend you to install them manually:
 ```
 ipdb             # debugger (Optional)
 apex             # faster optimization (Optional and non-essential, only needed if enabled in config)
@@ -183,7 +183,7 @@ export PYTHONPATH="/your_abs_path/Self-Supervised-Speech-Pretraining-and-Represe
 ```python
 from transformer.nn_transformer import TRANSFORMER
 ```
-- Read the [documentations](https://bic-berkeley.github.io/psych-214-fall-2016/using_pythonpath.html) if you run in to any problem.
+- Read the [documentation](https://bic-berkeley.github.io/psych-214-fall-2016/using_pythonpath.html) if you run into any problem.
 
 #### Windows
 - For Windows, add the following lines to your .py code:
@@ -198,7 +198,7 @@ if S3PRL_PATH not in sys.path:
 [Back to Top](#table-of-contents)
 
 ------------------------------------
-Data preporation
+Data preparation
 ------------------------------------
 ### Download extracted features
 - We provide the features we extracted for you to download directly: [S3PRL Drive](http://www.bit.ly/drive-S3PRL)
@@ -272,7 +272,7 @@ unzip converted_aligned_phones.zip
 ```yaml
 phone_path: 'data/cpc_phone'
 ```
-- ***Warning:** these phone alignments correspond to a feature/label for every 10ms, you need to use features with windows of 25 ms and an overlap of 10 ms, we recommand the [Kaldi extracted features](http://www.bit.ly/drive-S3PRL).*
+- ***Warning:** these phone alignments correspond to a feature/label for every 10ms, you need to use features with windows of 25 ms and an overlap of 10 ms, we recommend the [Kaldi extracted features](http://www.bit.ly/drive-S3PRL).*
 
 #### Montreal Phone Set
 - 72 phone classes, this set is considered in the Mockingjay paper.
@@ -296,7 +296,7 @@ phone_path: 'data/libri_phone'
 Train upstream models
 ------------------------------------
 - For the pre-training of each model, we provide default configs files `*.yaml` under the [`config/`](config/) directory. However, you may change them according to your needs.
-- *Warning*: the parameters may not strickly follow the original papers, please verify carefully if you need them to be identical.
+- *Warning*: the parameters may not strictly follow the original papers, please verify carefully if you need them to be identical.
 - The argument `--name` is used for distinction only, you can use whatever name you want.
 
 ### Train your own Mockingjay
@@ -420,8 +420,8 @@ Using upstream models with your own task
     - *AALBERT Models:* 
     Coming soon, download the data of `libri_fbank_cmvn.zip`, or follow the pipeline used in the *Kaldi s5 recipe* to extract identical ***80-dim fbank*** features.
 - ***WARNING:** 
-  If you are getting bad or worse results, its probably caused by the **mismatch of acoustic features** between pre-trained models and downstream task!!!* 
-- Below we show an [example code](src/example_extract_finetune.py) of fine-tuning a upstream model with your own downstream model, by using the wrapper class in [nn_transformer.py](transformer/nn_transformer.py):
+  If you are getting bad or worse results, it's probably caused by the **mismatch of acoustic features** between pre-trained models and downstream task!!!* 
+- Below we show an [example code](src/example_extract_finetune.py) of fine-tuning an upstream model with your own downstream model, by using the wrapper class in [nn_transformer.py](transformer/nn_transformer.py):
 ```python
 import torch
 from transformer.nn_transformer import TRANSFORMER
