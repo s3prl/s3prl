@@ -9,3 +9,4 @@ tensorboardX==1.9
 torch==1.3.0
 matplotlib==2.2.3
 Pillow>=6.2.2
+numba==0.48
