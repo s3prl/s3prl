@@ -67,8 +67,7 @@ class Runner():
         # build the Transformer model with speech prediction head
         model_config = TransformerConfig(self.config)
         self.dr = model_config.downsample_rate
-        self.hidden_size = model_config.hidden_size
-        
+
         self.model = TransformerForMaskedAcousticModel(model_config, self.input_dim, self.output_dim).to(self.device)
         self.model.train()
 

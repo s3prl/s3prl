@@ -81,7 +81,7 @@ def acoustic_preprocess(args, tr_set, dim):
         # sort by len
         sorted_todo = [os.path.join(s, str(todo[idx]).split('/')[-1].replace('.flac', '.npy')) for idx in reversed(np.argsort(tr_x))]
         # Dump data
-        df = pd.DataFrame(data={'file_path':[fp for fp in sorted_todo], 'length':list(reversed(sorted(tr_x))), 'label':None})
+        df = pd.DataFrame(data={'file_path':[fp for fp in sorted_todo], 'length':list(reversed(sorted(tr_x))), 'label':'None'})
         df.to_csv(os.path.join(output_dir, s + '.csv'))
 
     print('All done, saved at', output_dir, 'exit.')
