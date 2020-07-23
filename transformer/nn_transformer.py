@@ -91,8 +91,9 @@ class TRANSFORMER(nn.Module):
             self.weight = nn.Parameter(torch.ones(self.num_layers) / self.num_layers)
 
         # Build model
+        self.inp_dim = inp_dim if inp_dim > 0 else self.config['transformer']['input_dim']
         self.device = torch.device('cuda') if torch.cuda.is_available() else torch.device('cpu')
-        self.model = TransformerModel(self.model_config, inp_dim).to(self.device)
+        self.model = TransformerModel(self.model_config, self.inp_dim).to(self.device)
         self.model.eval() if self.no_grad else self.model.train()
         
         # Load from a PyTorch state_dict
