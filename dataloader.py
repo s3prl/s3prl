@@ -14,9 +14,14 @@ import os
 import torch
 import pickle
 import random
+from functools import partial
 import numpy as np
 import pandas as pd
 from tqdm import tqdm
+from librosa.util import find_files
+import torchaudio
+from torchaudio.transforms import Spectrogram, MelScale, MFCC
+from torchaudio.functional import magphase, compute_deltas
 from torch.utils.data import DataLoader
 from torch.utils.data.dataset import Dataset
 from torch.nn.utils.rnn import pad_sequence
@@ -28,6 +33,179 @@ from transformer.mam import process_train_MAM_data, process_test_MAM_data
 ############
 HALF_BATCHSIZE_TIME = 1000
 SPEAKER_THRESHOLD = 0
+COMMON_SAMPLE_RATE = 16000
+
+
+#####################################################
+# OnlineDataset: Only support pretraining currently #
+#####################################################
+class OnlinePreprocessor(torch.nn.Module):
+    def __init__(self, sample_rate=16000, win_ms=25, hop_ms=10, n_freq=201, n_mels=40, n_mfcc=13, feat_list=None, **kwargs):
+        super(OnlinePreprocessor, self).__init__()
+        win = round(win_ms * sample_rate / 1000)
+        hop = round(hop_ms * sample_rate / 1000)
+        n_fft = (n_freq - 1) * 2
+        self._win_args = {'n_fft': n_fft, 'hop_length': hop, 'win_length': win}
+        self.register_buffer('_window', torch.hann_window(win))
+        
+        self._stft_args = {'center': True, 'pad_mode': 'reflect', 'normalized': False, 'onesided': True}
+        # stft_args: same default values as torchaudio.transforms.Spectrogram & librosa.core.spectrum._spectrogram
+        self._stft = partial(torch.stft, **self._win_args, **self._stft_args)
+        self._magphase = partial(torchaudio.functional.magphase, power=2)
+        self._melscale = MelScale(sample_rate=sample_rate, n_mels=n_mels)
+        self._mfcc_trans = MFCC(sample_rate=sample_rate, n_mfcc=n_mfcc, log_mels=True, melkwargs=self._win_args)
+        self._istft = partial(torchaudio.functional.istft, **self._win_args, **self._stft_args)
+        
+        self.feat_list = feat_list
+        self.register_buffer('_pseudo_wav', torch.randn(1, 1, COMMON_SAMPLE_RATE))  # batch_size=1, channel_size=1
+    
+    def _check_list(self, feat_list):
+        if feat_list is None:
+            feat_list = self.feat_list
+        assert type(feat_list) is list
+        return feat_list
+
+    def _transpose_list(self, feats):
+        return [feat.transpose(-1, -2).contiguous() if type(feat) is torch.Tensor else feat for feat in feats]
+
+    def forward(self, wavs=None, feat_list=None):
+        # wavs: (batch_size, channel, max_len)
+        # feat_list, mam_list: [{feat_type: 'mfcc', channel: 0, log: False, delta: 2, cmvn: 'True'}, ...]
+        feat_list = self._check_list(feat_list)
+        if wavs is None:
+            max_channel_id = max([int(args['channel']) if 'channel' in args else 0 for args in feat_list])
+            wavs = self._pseudo_wav.expand(-1, max_channel_id + 1, -1)
+        
+        shape = wavs.size()
+        complx = self._stft(wavs.reshape(-1, shape[-1]), window=self._window)
+        complx = complx.reshape(shape[:-1] + complx.shape[-3:])
+        # complx: (batch_size, channel, feature_dim, max_len, 2)
+        linear, phase = self._magphase(complx)
+        # complx == linear.pow(0.5).unsqueeze(-1) * torch.stack([phase.cos(), phase.sin()], dim=-1)
+        mel = self._melscale(linear)
+        mfcc = self._mfcc_trans(wavs)
+        complx = complx.transpose(-1, -2).reshape(*mfcc.shape[:2], -1, mfcc.size(-1))
+        # feat_dim: (batch_size, channel, feature_dim, max_len)
+
+        def select_feat(variables, feat_type, channel=0, log=False, delta=0, cmvn=False):
+            raw_feat = variables[feat_type][:, channel]
+            # apply log scale
+            if bool(log):
+                raw_feat = (raw_feat + 1e-10).log()   
+            feats = [raw_feat.contiguous()]
+            # apply delta for features
+            for _ in range(int(delta)):
+                feats.append(compute_deltas(feats[-1]))
+            feats = torch.cat(feats, dim=-2)
+            # apply cmvn
+            if bool(cmvn):
+                feats = (feats - feats.mean(dim=-1, keepdim=True)) / (feats.std(dim=-1, keepdim=True) + 1e-10)
+            return feats
+            # return: (batch_size, max_len, feature_dim)
+        
+        local_variables = locals()
+        return self._transpose_list([select_feat(local_variables, **args) for args in feat_list])
+
+    def istft(self, complxs=None, linears=None, phases=None, linear_power=2):
+        complxs, linears, phases = self._transpose_list([complxs, linears, phases])
+        # feat: (batch_size, feat_dim, max_feat_len)
+        if complxs is not None and complxs.size(-1) != 2:
+            shape = complxs.shape
+            complxs = complxs.view(shape[0], -1, 2, shape[-1]).transpose(-1, -2).contiguous()
+            # complxs: (batch_size, n_freq, max_feat_len, 2)
+        assert complxs is not None or (linears is not None and phases is not None)
+
+        if complxs is None:
+            complxs = linears.pow(1/linear_power).unsqueeze(-1) * torch.stack([phases.cos(), phases.sin()], dim=-1)
+        wavs = self._istft(complxs, window=self._window)
+        # wav: (batch_size, max_wav_len)
+        return wavs
+
+    def test_istft(self, wavs=None, epsilon=1e-6):
+        # wavs: (batch_size, channel, max_wav_len)
+        if wavs is None:
+            wavs = self._pseudo_wav
+
+        feat_list = [
+            {'feat_type': 'complx'},
+            {'feat_type': 'linear'},
+            {'feat_type': 'phase'}
+        ]
+        complxs, linears, phases = self.forward(wavs, feat_list)
+        assert torch.allclose(wavs[:, 0], self.istft(complxs=complxs), atol=epsilon)
+        assert torch.allclose(wavs[:, 0], self.istft(linears=linears, phases=phases), atol=epsilon)
+        print('[Test passed] stft -> istft')
+
+
+def get_online_Dataloader(args, config, is_train=True):
+    # create waveform dataset
+    dataset = OnlineDataset(**config['online'])
+    
+    # create dataloader for extracting features
+    def collate_fn(samples):
+        # samples: [(seq_len, channel), ...]
+        samples = pad_sequence(samples, batch_first=True)
+        # samples: (batch_size, max_len, channel)
+        return samples.transpose(-1, -2).contiguous()
+        # return: (batch_size, channel, max_len)
+        
+    dataloader = DataLoader(dataset, batch_size=config['dataloader']['batch_size'],
+                            shuffle=is_train, num_workers=config['dataloader']['n_jobs'],
+                            pin_memory=True, collate_fn=collate_fn)
+    return dataloader
+
+
+class OnlineDataset(Dataset):
+    def __init__(self, roots, sample_rate, max_time, target_level, noise_proportion, snrs, **kwargs):
+        self.sample_rate = sample_rate
+        self.max_time = max_time
+        self.target_level = target_level
+        self.noise_proportion = noise_proportion
+        self.snrs = snrs
+        self.filepths = []
+        for root in roots:
+            self.filepths += find_files(root)
+        assert len(self.filepths) > 0, 'No audio file detected'
+        self.noise_sampler = torch.distributions.Normal(0, 1)
+    
+    def _normalize(self, audio):
+        '''Normalize the signal to the target level'''
+        rms = audio.pow(2).mean().pow(0.5)
+        scalar = (10 ** (self.target_level / 20)) / (rms + 1e-10)
+        audio = audio * scalar
+        return audio
+
+    def __getitem__(self, idx):
+        wav, sr = torchaudio.load(self.filepths[idx])
+        assert sr == self.sample_rate, f'Sample rate mismatch: real {sr}, config {self.sample_rate}'
+        wav = wav.view(-1)
+        maxpoints = int(sr / 1000) * self.max_time
+        if len(wav) > maxpoints:
+            start = random.randint(0, len(wav) - maxpoints)
+            wav = wav[start:start + maxpoints]
+        wav = self._normalize(wav)
+
+        # build input
+        dice = random.random()
+        if dice < self.noise_proportion:
+            noise = self.noise_sampler.sample(wav.shape)
+            snr = float(self.snrs[random.randint(0, len(self.snrs) - 1)])
+            snr_exp = 10.0 ** (snr / 10.0)
+            wav_power = wav.pow(2).sum()
+            noise_power = noise.pow(2).sum()
+            scalar = (wav_power / (snr_exp * noise_power)).pow(0.5)
+            wav_inp = wav + scalar * noise
+        else:
+            wav_inp = wav
+
+        # build target
+        wav_tar = wav
+
+        return torch.stack([wav_inp, wav_tar], dim=-1)
+        # return: (seq_len, channel=2)
+
+    def __len__(self):
+        return len(self.filepths)
 
 
 ################

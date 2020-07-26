@@ -21,6 +21,8 @@ from transformer.model import TransformerConfig, TransformerForMaskedAcousticMod
 from transformer.optimization import BertAdam, WarmupLinearSchedule
 from transformer.mam import fast_position_encoding
 from utility.audio import plot_spectrogram_to_numpy
+from transformer.mam import process_train_MAM_data
+from dataloader import OnlinePreprocessor
 
 
 ##########
@@ -57,8 +59,14 @@ class Runner():
 
         # model
         self.transformer_config = config['transformer']
-        self.input_dim = self.transformer_config['input_dim']
-        self.output_dim = 1025 if self.duo_feature else None # output dim is the same as input dim if not using duo features
+        if args.online_feat:
+            feat_list = [config['online']['input'], config['online']['target']]
+            self.preprocessor = OnlinePreprocessor(**config['online'], feat_list=feat_list).to(device=self.device)
+            self.input_dim, self.output_dim = [feat.size(-1) for feat in self.preprocessor()]
+            self.preprocessor.test_istft()
+        else:
+            self.input_dim = self.transformer_config['input_dim']
+            self.output_dim = 1025 if self.duo_feature else None # output dim is the same as input dim if not using duo features
 
 
     def set_model(self):
@@ -181,7 +189,6 @@ class Runner():
 
     def train(self):
         ''' Self-Supervised Pre-Training of Transformer Model'''
-
         pbar = tqdm(total=self.total_steps)
         while self.global_step <= self.total_steps:
 
@@ -189,7 +196,14 @@ class Runner():
 
             step = 0
             loss_val = 0
-            for batch_is_valid, *batch in progress:
+            for batch in progress:
+                if self.args.online_feat:
+                    # batch are raw waveforms
+                    # batch: (batch_size, channel, max_len)
+                    specs = self.preprocessor(batch.to(device=self.device))
+                    batch = process_train_MAM_data(specs, config=self.transformer_config)
+                    
+                batch_is_valid, *batch = batch
                 try:
                     if self.global_step > self.total_steps: break
                     if not batch_is_valid: continue
