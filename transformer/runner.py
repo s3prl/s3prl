@@ -167,13 +167,13 @@ class Runner():
             if pos_enc.dim() == 3:
                 # pos_enc: (batch_size, seq_len, hidden_size)
                 # GPU memory need (batch_size * seq_len * hidden_size)
-                pos_enc = torch.FloatTensor(pos_enc).to(device=self.device)
+                pos_enc = pos_enc.float().to(device=self.device)
             elif pos_enc.dim() == 2:
                 # pos_enc: (seq_len, hidden_size)
                 # GPU memory only need (seq_len * hidden_size) even after expanded
-                pos_enc = torch.FloatTensor(pos_enc).to(device=self.device).expand(spec_masked.size(0), *pos_enc.size())
-            mask_label = torch.BoolTensor(mask_label).to(device=self.device)
-            attn_mask = torch.FloatTensor(attn_mask).to(device=self.device)
+                pos_enc = pos_enc.float().to(device=self.device).expand(spec_masked.size(0), *pos_enc.size())
+            mask_label = mask_label.bool().to(device=self.device)
+            attn_mask = attn_mask.float().to(device=self.device)
             spec_stacked = spec_stacked.to(device=self.device)
 
         return spec_masked, pos_enc, mask_label, attn_mask, spec_stacked # (x, pos_enc, mask_label, attention_mask. y)
