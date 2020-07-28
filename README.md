@@ -37,6 +37,7 @@ Table of Contents
        * [Evaluating ASR with PyTorch-Kaldi scripts](#evaluating-asr-with-pytorch-kaldi-scripts)
    * [Evaluating your own model](#evaluating-your-own-model)
    * [Using upstream models with your own task](#using-upstream-models-with-your-own-task)
+   * [Tutorial for application on custom dataset](#tutorial-for-application-on-custom-dataset)
    * [Supplementary Wiki Page](#supplementary-wiki-page)
        * [Extracting with Kaldi](#extracting-with-kaldi)
        * [ASR with PyTorch Kaldi](#asr-with-pytorch-kaldi)
@@ -468,10 +469,46 @@ states = {'Classifier': classifier.state_dict(), 'Transformer': transformer.stat
 
 [Back to Top](#table-of-contents)
 
+Tutorial for application on custom dataset
+------------------------------------
+For any arbitrary dataset that looks like this:
+```
+- Custom_dataset/
+    - Custom_train/
+       - *.wav / flac / mp3 ...
+    - Custom_dev/
+       - *.wav / flac / mp3 ...
+    - Custom_test/
+       - *.wav / flac / mp3 ...
+```
+The script `preprocess/preprocess_any.py` will process the "train", "dev", "test" set one by one:
+```bash
+python preprocess/preprocess_any.py --audio_extention=.flac
+```
+
+Users only need to specify the path of the directory of each set.
+So for the example above: 
+- the path to the "train" set should be: `Custom_dataset/Custom_train/`
+- the path to the "dev" set should be: `Custom_dataset/Custom_dev/`
+- the path to the "test" set should be: `Custom_dataset/Custom_test/`
+
+The generated files will be compatible to our dataloader.
+
+
+Also, in your config file `*.yaml`, these should be changed:
+```yaml
+  data_path: 'data/NewData_fbank80' 
+  train_set: ['train']
+  dev_set: ['dev'] 
+  test_set: ['test']
+```
+
+[Back to Top](#table-of-contents)
+
 Supplementary Wiki Page
 ------------------------------------
-### [Extracting with Kaldi](https://github.com/andi611/Self-Supervised-Speech-Pretraining-and-Representation-Learning/wiki/Extracting-with-Kaldi)
-### [ASR with PyTorch Kaldi](https://github.com/andi611/Self-Supervised-Speech-Pretraining-and-Representation-Learning/wiki/ASR-with-PyTorch-Kaldi)
+- [Extracting with Kaldi](https://github.com/andi611/Self-Supervised-Speech-Pretraining-and-Representation-Learning/wiki/Extracting-with-Kaldi)
+- [ASR with PyTorch Kaldi](https://github.com/andi611/Self-Supervised-Speech-Pretraining-and-Representation-Learning/wiki/ASR-with-PyTorch-Kaldi)
 
 [Back to Top](#table-of-contents)
 
