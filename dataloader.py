@@ -33,7 +33,6 @@ from transformer.mam import process_train_MAM_data, process_test_MAM_data
 ############
 HALF_BATCHSIZE_TIME = 1000
 SPEAKER_THRESHOLD = 0
-COMMON_SAMPLE_RATE = 16000
 
 
 #####################################################
@@ -57,7 +56,7 @@ class OnlinePreprocessor(torch.nn.Module):
         self._istft = partial(torchaudio.functional.istft, **self._win_args, **self._stft_args)
         
         self.feat_list = feat_list
-        self.register_buffer('_pseudo_wav', torch.randn(1, 1, COMMON_SAMPLE_RATE))  # batch_size=1, channel_size=1
+        self.register_buffer('_pseudo_wav', torch.randn(2, 2, sample_rate))  # batch_size=2, channel_size=2
     
     def _check_list(self, feat_list):
         if feat_list is None:
@@ -69,26 +68,26 @@ class OnlinePreprocessor(torch.nn.Module):
         return [feat.transpose(-1, -2).contiguous() if type(feat) is torch.Tensor else feat for feat in feats]
 
     def forward(self, wavs=None, feat_list=None):
-        # wavs: (batch_size, channel, max_len)
+        # wavs: (*, channel_size, max_len)
         # feat_list, mam_list: [{feat_type: 'mfcc', channel: 0, log: False, delta: 2, cmvn: 'True'}, ...]
         feat_list = self._check_list(feat_list)
         if wavs is None:
             max_channel_id = max([int(args['channel']) if 'channel' in args else 0 for args in feat_list])
             wavs = self._pseudo_wav.expand(-1, max_channel_id + 1, -1)
+        assert wavs.dim() >= 3
         
         shape = wavs.size()
         complx = self._stft(wavs.reshape(-1, shape[-1]), window=self._window)
         complx = complx.reshape(shape[:-1] + complx.shape[-3:])
-        # complx: (batch_size, channel, feature_dim, max_len, 2)
+        # complx: (*, channel_size, feat_dim, max_len, 2)
         linear, phase = self._magphase(complx)
-        # complx == linear.pow(0.5).unsqueeze(-1) * torch.stack([phase.cos(), phase.sin()], dim=-1)
         mel = self._melscale(linear)
         mfcc = self._mfcc_trans(wavs)
         complx = complx.transpose(-1, -2).reshape(*mfcc.shape[:2], -1, mfcc.size(-1))
-        # feat_dim: (batch_size, channel, feature_dim, max_len)
+        # complx, linear, phase, mel, mfcc: (*, channel_size, feat_dim, max_len)
 
         def select_feat(variables, feat_type, channel=0, log=False, delta=0, cmvn=False):
-            raw_feat = variables[feat_type][:, channel]
+            raw_feat = variables[feat_type].select(dim=-3, index=channel)
             # apply log scale
             if bool(log):
                 raw_feat = (raw_feat + 1e-10).log()   
@@ -101,39 +100,43 @@ class OnlinePreprocessor(torch.nn.Module):
             if bool(cmvn):
                 feats = (feats - feats.mean(dim=-1, keepdim=True)) / (feats.std(dim=-1, keepdim=True) + 1e-10)
             return feats
-            # return: (batch_size, max_len, feature_dim)
+            # return: (*, feat_dim, max_len)
         
         local_variables = locals()
         return self._transpose_list([select_feat(local_variables, **args) for args in feat_list])
+        # return: [(*, max_len, feat_dim), ...]
 
     def istft(self, complxs=None, linears=None, phases=None, linear_power=2):
-        complxs, linears, phases = self._transpose_list([complxs, linears, phases])
-        # feat: (batch_size, feat_dim, max_feat_len)
-        if complxs is not None and complxs.size(-1) != 2:
-            shape = complxs.shape
-            complxs = complxs.view(shape[0], -1, 2, shape[-1]).transpose(-1, -2).contiguous()
-            # complxs: (batch_size, n_freq, max_feat_len, 2)
         assert complxs is not None or (linears is not None and phases is not None)
+        # complxs: (*, n_freq, max_feat_len, 2) or (*, max_feat_len, n_freq * 2)
+        # linears, phases: (*, max_feat_len, n_freq)
 
         if complxs is None:
+            linears, phases = self._transpose_list([linears, phases])
             complxs = linears.pow(1/linear_power).unsqueeze(-1) * torch.stack([phases.cos(), phases.sin()], dim=-1)
-        wavs = self._istft(complxs, window=self._window)
-        # wav: (batch_size, max_wav_len)
-        return wavs
+        if complxs.size(-1) != 2:
+            # treat complxs as: (*, max_feat_len, n_freq * 2)
+            shape = complxs.size()
+            complxs = complxs.view(*shape[:-1], -1, 2).transpose(-2, -3).contiguous()
+        # complxs: (*, n_freq, max_feat_len, 2)
+        
+        return self._istft(complxs, window=self._window)
+        # return: (*, max_wav_len)
 
     def test_istft(self, wavs=None, epsilon=1e-6):
-        # wavs: (batch_size, channel, max_wav_len)
+        # wavs: (*, channel_size, max_wav_len)
         if wavs is None:
             wavs = self._pseudo_wav
 
+        channel1, channel2 = 0, 1
         feat_list = [
-            {'feat_type': 'complx'},
-            {'feat_type': 'linear'},
-            {'feat_type': 'phase'}
+            {'feat_type': 'complx', 'channel': channel1},
+            {'feat_type': 'linear', 'channel': channel2},
+            {'feat_type': 'phase', 'channel': channel2}
         ]
         complxs, linears, phases = self.forward(wavs, feat_list)
-        assert torch.allclose(wavs[:, 0], self.istft(complxs=complxs), atol=epsilon)
-        assert torch.allclose(wavs[:, 0], self.istft(linears=linears, phases=phases), atol=epsilon)
+        assert torch.allclose(wavs.select(dim=-2, index=channel1), self.istft(complxs=complxs), atol=epsilon)
+        assert torch.allclose(wavs.select(dim=-2, index=channel2), self.istft(linears=linears, phases=phases), atol=epsilon)
         print('[Test passed] stft -> istft')
 
 
