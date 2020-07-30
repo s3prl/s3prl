@@ -67,6 +67,21 @@ class OnlinePreprocessor(torch.nn.Module):
     def _transpose_list(self, feats):
         return [feat.transpose(-1, -2).contiguous() if type(feat) is torch.Tensor else feat for feat in feats]
 
+    @classmethod
+    def get_feat_config(cls, feat_type, channel=0, log=False, delta=0, cmvn=False):
+        assert feat_type in ['complx', 'linear', 'phase', 'mel', 'mfcc']
+        assert type(channel) is int
+        assert type(log) is bool
+        assert type(delta) is int and delta >= 0
+        assert type(cmvn) is bool
+        return {
+            'feat_type': feat_type,
+            'channel': channel,
+            'log': log,
+            'delta': delta,
+            'cmvn': cmvn
+        }
+
     def forward(self, wavs=None, feat_list=None):
         # wavs: (*, channel_size, max_len)
         # feat_list, mam_list: [{feat_type: 'mfcc', channel: 0, log: False, delta: 2, cmvn: 'True'}, ...]
@@ -106,7 +121,7 @@ class OnlinePreprocessor(torch.nn.Module):
         return self._transpose_list([select_feat(local_variables, **args) for args in feat_list])
         # return: [(*, max_len, feat_dim), ...]
 
-    def istft(self, complxs=None, linears=None, phases=None, linear_power=2):
+    def istft(self, linears=None, phases=None, linear_power=2, complxs=None):
         assert complxs is not None or (linears is not None and phases is not None)
         # complxs: (*, n_freq, max_feat_len, 2) or (*, max_feat_len, n_freq * 2)
         # linears, phases: (*, max_feat_len, n_freq)
