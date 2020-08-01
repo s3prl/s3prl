@@ -4,9 +4,10 @@ from functools import partial
 from torchaudio.transforms import Spectrogram, MelScale, MFCC
 from torchaudio.functional import magphase, compute_deltas
 
+N_SAMPLED_PSEUDO_WAV = 2
 
 class OnlinePreprocessor(torch.nn.Module):
-    def __init__(self, sample_rate=16000, win_ms=25, hop_ms=10, n_freq=201, n_mels=40, n_mfcc=13, feat_list=None, **kwargs):
+    def __init__(self, sample_rate=16000, win_ms=25, hop_ms=10, n_freq=201, n_mels=40, n_mfcc=13, feat_list=None, eps=1e-10, **kwargs):
         super(OnlinePreprocessor, self).__init__()
         win = round(win_ms * sample_rate / 1000)
         hop = round(hop_ms * sample_rate / 1000)
@@ -23,8 +24,9 @@ class OnlinePreprocessor(torch.nn.Module):
         self._istft = partial(torchaudio.functional.istft, **self._win_args, **self._stft_args)
         
         self.feat_list = feat_list
-        self.register_buffer('_pseudo_wav', torch.randn(2, 2, sample_rate))  # batch_size=2, channel_size=2
-    
+        self.register_buffer('_pseudo_wavs', torch.randn(N_SAMPLED_PSEUDO_WAV, sample_rate))
+        self.eps = eps
+
     def _check_list(self, feat_list):
         if feat_list is None:
             feat_list = self.feat_list
@@ -55,7 +57,7 @@ class OnlinePreprocessor(torch.nn.Module):
         feat_list = self._check_list(feat_list)
         if wavs is None:
             max_channel_id = max([int(args['channel']) if 'channel' in args else 0 for args in feat_list])
-            wavs = self._pseudo_wav.expand(-1, max_channel_id + 1, -1)
+            wavs = self._pseudo_wavs[0].view(1, 1, -1).repeat(1, max_channel_id + 1, 1)
         assert wavs.dim() >= 3
         
         shape = wavs.size()
@@ -72,7 +74,7 @@ class OnlinePreprocessor(torch.nn.Module):
             raw_feat = variables[feat_type].select(dim=-3, index=channel)
             # apply log scale
             if bool(log):
-                raw_feat = (raw_feat + 1e-10).log()   
+                raw_feat = (raw_feat + self.eps).log()   
             feats = [raw_feat.contiguous()]
             # apply delta for features
             for _ in range(int(delta)):
@@ -80,7 +82,7 @@ class OnlinePreprocessor(torch.nn.Module):
             feats = torch.cat(feats, dim=-2)
             # apply cmvn
             if bool(cmvn):
-                feats = (feats - feats.mean(dim=-1, keepdim=True)) / (feats.std(dim=-1, keepdim=True) + 1e-10)
+                feats = (feats - feats.mean(dim=-1, keepdim=True)) / (feats.std(dim=-1, keepdim=True) + self.eps)
             return feats
             # return: (*, feat_dim, max_len)
         
@@ -105,18 +107,21 @@ class OnlinePreprocessor(torch.nn.Module):
         return self._istft(complxs, window=self._window)
         # return: (*, max_wav_len)
 
-    def test_istft(self, wavs=None, epsilon=1e-6):
+    def test_istft(self, wavs=None, atol=1e-6):
         # wavs: (*, channel_size, max_wav_len)
-        if wavs is None:
-            wavs = self._pseudo_wav
-
         channel1, channel2 = 0, 1
+        max_channel_id = max(channel1, channel2)
+        
+        if wavs is None:    
+            wavs = self._pseudo_wavs[:max_channel_id + 1].unsqueeze(0)
+        assert wavs.size(-2) > max_channel_id
+        
         feat_list = [
             {'feat_type': 'complx', 'channel': channel1},
             {'feat_type': 'linear', 'channel': channel2},
             {'feat_type': 'phase', 'channel': channel2}
         ]
         complxs, linears, phases = self.forward(wavs, feat_list)
-        assert torch.allclose(wavs.select(dim=-2, index=channel1), self.istft(complxs=complxs), atol=epsilon)
-        assert torch.allclose(wavs.select(dim=-2, index=channel2), self.istft(linears=linears, phases=phases), atol=epsilon)
+        assert torch.allclose(wavs.select(dim=-2, index=channel1), self.istft(complxs=complxs), atol=atol)
+        assert torch.allclose(wavs.select(dim=-2, index=channel2), self.istft(linears=linears, phases=phases), atol=atol)
         print('[Test passed] stft -> istft')
