@@ -37,7 +37,7 @@ SPEAKER_THRESHOLD = 0
 ##############################################
 def get_online_Dataloader(args, config, is_train=True):
     # create waveform dataset
-    dataset = OnlineDataset(**config['online'])
+    dataset = OnlineDataset(**args.online_feat)
     
     # create dataloader for extracting features
     def collate_fn(samples):

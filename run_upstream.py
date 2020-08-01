@@ -53,10 +53,11 @@ def get_upstream_args():
     parser.add_argument('--cpu', action='store_true', help='Disable GPU training.')
     parser.add_argument('--multi_gpu', action='store_true', help='Enable Multi-GPU training.')
     parser.add_argument('--test_reconstruct', action='store_true', help='Test reconstruction capability')
-    parser.add_argument('--online_feat', action='store_true', help='Extract features online')
+    parser.add_argument('--online_feat', type=str, default='', help='Extract features on-the-fly')
 
     # parse
     args = parser.parse_args()
+    args.online_feat = None if args.online_feat == '' else yaml.load(open(args.online_feat, 'r'), Loader=yaml.FullLoader)
     setattr(args, 'gpu', not args.cpu)
     config = yaml.load(open(args.config, 'r'), Loader=yaml.FullLoader)
     parse_prune_heads(config)

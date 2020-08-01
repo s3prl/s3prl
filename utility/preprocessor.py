@@ -124,4 +124,4 @@ class OnlinePreprocessor(torch.nn.Module):
         complxs, linears, phases = self.forward(wavs, feat_list)
         assert torch.allclose(wavs.select(dim=-2, index=channel1), self.istft(complxs=complxs), atol=atol)
         assert torch.allclose(wavs.select(dim=-2, index=channel2), self.istft(linears=linears, phases=phases), atol=atol)
-        print('[Test passed] stft -> istft')
+        print('[Preprocessor] test passed: stft -> istft')
