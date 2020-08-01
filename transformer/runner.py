@@ -22,7 +22,7 @@ from transformer.optimization import BertAdam, WarmupLinearSchedule
 from transformer.mam import fast_position_encoding
 from utility.audio import plot_spectrogram_to_numpy
 from transformer.mam import process_train_MAM_data
-from dataloader import OnlinePreprocessor
+from utility.preprocessor import OnlinePreprocessor
 
 
 ##########
