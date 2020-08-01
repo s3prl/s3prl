@@ -17,7 +17,7 @@ import random
 import argparse
 import numpy as np
 from shutil import copyfile
-from dataloader import get_Dataloader
+from dataloader import get_Dataloader, get_online_Dataloader
 from utility.helper import parse_prune_heads
 
 
@@ -53,6 +53,7 @@ def get_upstream_args():
     parser.add_argument('--cpu', action='store_true', help='Disable GPU training.')
     parser.add_argument('--multi_gpu', action='store_true', help='Enable Multi-GPU training.')
     parser.add_argument('--test_reconstruct', action='store_true', help='Test reconstruction capability')
+    parser.add_argument('--online_feat', action='store_true', help='Extract features online')
 
     # parse
     args = parser.parse_args()
@@ -99,7 +100,10 @@ def run_transformer(args, config):
     copyfile(args.config, os.path.join(ckpdir, args.config.split('/')[-1]))
 
     # get dataloader
-    dataloader = get_dataloader(args, config)
+    if args.online_feat:
+        dataloader = get_online_Dataloader(args, config, is_train=True)
+    else:
+        dataloader = get_dataloader(args, config)
 
     # train
     runner = Runner(args, config, dataloader, ckpdir)

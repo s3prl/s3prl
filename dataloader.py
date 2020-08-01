@@ -14,9 +14,11 @@ import os
 import torch
 import pickle
 import random
+import torchaudio
 import numpy as np
 import pandas as pd
 from tqdm import tqdm
+from librosa.util import find_files
 from torch.utils.data import DataLoader
 from torch.utils.data.dataset import Dataset
 from torch.nn.utils.rnn import pad_sequence
@@ -28,6 +30,80 @@ from transformer.mam import process_train_MAM_data, process_test_MAM_data
 ############
 HALF_BATCHSIZE_TIME = 1000
 SPEAKER_THRESHOLD = 0
+
+
+##############################################
+# Online: Only support pretraining currently #
+##############################################
+def get_online_Dataloader(args, config, is_train=True):
+    # create waveform dataset
+    dataset = OnlineDataset(**config['online'])
+    
+    # create dataloader for extracting features
+    def collate_fn(samples):
+        # samples: [(seq_len, channel), ...]
+        samples = pad_sequence(samples, batch_first=True)
+        # samples: (batch_size, max_len, channel)
+        return samples.transpose(-1, -2).contiguous()
+        # return: (batch_size, channel, max_len)
+        
+    dataloader = DataLoader(dataset, batch_size=config['dataloader']['batch_size'],
+                            shuffle=is_train, num_workers=config['dataloader']['n_jobs'],
+                            pin_memory=True, collate_fn=collate_fn)
+    return dataloader
+
+
+class OnlineDataset(Dataset):
+    def __init__(self, roots, sample_rate, max_time, target_level, noise_proportion, snrs, **kwargs):
+        self.sample_rate = sample_rate
+        self.max_time = max_time
+        self.target_level = target_level
+        self.noise_proportion = noise_proportion
+        self.snrs = snrs
+        self.filepths = []
+        for root in roots:
+            self.filepths += find_files(root)
+        assert len(self.filepths) > 0, 'No audio file detected'
+        self.noise_sampler = torch.distributions.Normal(0, 1)
+    
+    def _normalize(self, audio):
+        '''Normalize the signal to the target level'''
+        rms = audio.pow(2).mean().pow(0.5)
+        scalar = (10 ** (self.target_level / 20)) / (rms + 1e-10)
+        audio = audio * scalar
+        return audio
+
+    def __getitem__(self, idx):
+        wav, sr = torchaudio.load(self.filepths[idx])
+        assert sr == self.sample_rate, f'Sample rate mismatch: real {sr}, config {self.sample_rate}'
+        wav = wav.view(-1)
+        maxpoints = int(sr / 1000) * self.max_time
+        if len(wav) > maxpoints:
+            start = random.randint(0, len(wav) - maxpoints)
+            wav = wav[start:start + maxpoints]
+        wav = self._normalize(wav)
+
+        # build input
+        dice = random.random()
+        if dice < self.noise_proportion:
+            noise = self.noise_sampler.sample(wav.shape)
+            snr = float(self.snrs[random.randint(0, len(self.snrs) - 1)])
+            snr_exp = 10.0 ** (snr / 10.0)
+            wav_power = wav.pow(2).sum()
+            noise_power = noise.pow(2).sum()
+            scalar = (wav_power / (snr_exp * noise_power)).pow(0.5)
+            wav_inp = wav + scalar * noise
+        else:
+            wav_inp = wav
+
+        # build target
+        wav_tar = wav
+
+        return torch.stack([wav_inp, wav_tar], dim=-1)
+        # return: (seq_len, channel=2)
+
+    def __len__(self):
+        return len(self.filepths)
 
 
 ################
