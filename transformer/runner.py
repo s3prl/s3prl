@@ -189,7 +189,7 @@ class Runner():
 
     def train(self):
         ''' Self-Supervised Pre-Training of Transformer Model'''
-        
+
         pbar = tqdm(total=self.total_steps)
         while self.global_step <= self.total_steps:
 
