@@ -5,10 +5,17 @@ roots: [
   '/home/leo/d/datasets/LibriSpeech/train-other-500',
 ]
 sample_rate: 16000
-max_time: 10000
+# Hz, all utterances prepared in roots should be in the same
+# sample rate currently, can implement resampling in the future
+max_time: 40000
+# msec, longer utterances will be trimmed
+# maximum time of LibriSpeech is about 36 sec
 target_level: -25
+# pretrained utterances are first scaled to the same decibel level
 noise_proportion: 0.5
-snrs: [3, 6]
+# stochastically add gaussian noise to input waveforms
+snrs: [3, 6, 9]
+# sample a noise level for each noise addition
 
 # preprocessor
 win_ms: 25
