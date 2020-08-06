@@ -9,6 +9,14 @@ N_SAMPLED_PSEUDO_WAV = 2
 class OnlinePreprocessor(torch.nn.Module):
     def __init__(self, sample_rate=16000, win_ms=25, hop_ms=10, n_freq=201, n_mels=40, n_mfcc=13, feat_list=None, eps=1e-10, **kwargs):
         super(OnlinePreprocessor, self).__init__()
+        # save preprocessing arguments
+        self._sample_rate = sample_rate
+        self._win_ms = win_ms
+        self._hop_ms = hop_ms
+        self._n_freq = n_freq
+        self._n_mels = n_mels
+        self._n_mfcc = n_mfcc
+
         win = round(win_ms * sample_rate / 1000)
         hop = round(hop_ms * sample_rate / 1000)
         n_fft = (n_freq - 1) * 2
