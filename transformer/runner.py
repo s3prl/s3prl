@@ -59,12 +59,13 @@ class Runner():
 
         # model
         self.transformer_config = config['transformer']
-        if args.online_feat is not None:
-            feat_list = [args.online_feat['input'], args.online_feat['target']]
-            self.preprocessor = OnlinePreprocessor(**args.online_feat, feat_list=feat_list).to(device=self.device)
+        if 'online' in config:
+            print(f'[Runner] - Using features extracted on-the-fly')
+            feat_list = [config['online']['input'], config['online']['target']]
+            self.preprocessor = OnlinePreprocessor(**config['online'], feat_list=feat_list).to(device=self.device)
             self.input_dim, self.output_dim = [feat.size(-1) for feat in self.preprocessor()]
-            self.preprocessor.test_istft()
         else:
+            print(f'[Runner] - Using features pre-extracted and saved')
             self.input_dim = self.transformer_config['input_dim']
             self.output_dim = 1025 if self.duo_feature else None # output dim is the same as input dim if not using duo features
 
@@ -198,7 +199,7 @@ class Runner():
             step = 0
             loss_val = 0
             for batch in progress:
-                if self.args.online_feat is not None:
+                if 'online' in self.config:
                     # batch are raw waveforms
                     # batch: (batch_size, channel, max_len)
                     specs = self.preprocessor(batch.to(device=self.device))
