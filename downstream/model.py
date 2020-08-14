@@ -720,6 +720,177 @@ class RnnClassifier(nn.Module):
 
         return result
 
+class OneLinearCPC_1hidden(nn.Module):
+    def __init__(self, input_dim, class_num, task, dconfig, sequencial=False):
+        super(OneLinearCPC_1hidden, self).__init__()
+        
+        output_dim = class_num
+        hidden_size = dconfig['hidden_size']
+        drop = dconfig['drop']
+        self.select_hidden = dconfig['select_hidden']
+        self.weight = nn.Parameter(torch.ones(12) / 12)
+        self.hidden = nn.Linear(hidden_size, hidden_size)
+        self.out = nn.Linear(hidden_size, output_dim)
+        self.act_fn = torch.nn.functional.relu
+        self.out_fn = nn.LogSoftmax(dim=-1)
+        self.criterion = nn.CrossEntropyLoss(ignore_index=-100)
+
+
+    def statistic(self, probabilities, labels, label_mask):
+        assert(len(probabilities.shape) > 1)
+        assert(probabilities.unbind(dim=-1)[0].shape == labels.shape)
+        assert(labels.shape == label_mask.shape)
+
+        valid_count = label_mask.sum()
+        correct_count = ((probabilities.argmax(dim=-1) == labels).type(torch.cuda.LongTensor) * label_mask).sum()
+        return correct_count, valid_count
+    
+    def forward(self, features, labels=None, label_mask=None):
+        # features from mockingjay: (batch_size, layer, seq_len, feature)
+        # features from baseline: (batch_size, seq_len, feature)
+        # labels: (batch_size, seq_len), frame by frame classification
+        batch_size = features.size(0)
+        layer_num = features.size(1) if len(features.shape) == 4 else None
+        seq_len = features.size(2) if len(features.shape) == 4 else features.size(1)
+        feature_dim = features.size(3) if len(features.shape) == 4 else features.size(2)
+
+        if len(features.shape) == 4:
+            # compute mean on mockingjay representations if given features from mockingjay
+            if self.select_hidden == 'last':
+                features = features[:, -1, :, :]
+            elif self.select_hidden == 'first':
+                features = features[:, 0, :, :]
+            elif self.select_hidden == 'average':
+                features = features.mean(dim=1)  # now simply average the representations over all layers, (batch_size, seq_len, feature)
+            elif self.select_hidden == 'weighted_sum':
+                features = features.transpose(0, 1).reshape(layer_num, -1)
+                features = torch.matmul(self.weight[:layer_num], features).reshape(batch_size, seq_len, feature_dim)
+            elif self.select_hidden == 'weighted_sum_norm':
+                weights = nn.functional.softmax(self.weight[:layer_num], dim=-1)
+                features = features.transpose(0, 1).reshape(layer_num, -1)
+                features = torch.matmul(weights, features).reshape(batch_size, seq_len, feature_dim)
+            else:
+                raise NotImplementedError('Feature selection mode not supported!')
+
+        # since the down-sampling (float length be truncated to int) and then up-sampling process
+        # can cause a mismatch between the seq lenth of mockingjay representation and that of label
+        # we truncate the final few timestamp of label to make two seq equal in length
+
+
+        truncated_length = min(features.size(1), labels.size(-1))
+        
+        features = features[:, :truncated_length, :]
+        labels = labels[:, :truncated_length]
+        label_mask = label_mask[:, :truncated_length]
+        
+        features = self.act_fn(self.hidden(features))
+        logits = self.out(features)
+        prob = self.out_fn(logits)
+        
+        if labels is not None:
+            assert(label_mask is not None), 'When frame-wise labels are provided, validity of each timestamp should also be provided'
+            labels_with_ignore_index = 100 * (label_mask - 1) + labels * label_mask
+
+            # cause logits are in (batch, seq, class) and labels are in (batch, seq)
+            # nn.CrossEntropyLoss expect to have (N, class) and (N,) as input
+            # here we flatten logits and labels in order to apply nn.CrossEntropyLoss
+            class_num = logits.size(-1)
+            loss = self.criterion(logits.reshape(-1, class_num), labels_with_ignore_index.reshape(-1))
+            
+            # statistic for accuracy
+            correct, valid = self.statistic(prob, labels, label_mask)
+
+            return loss, prob.detach().cpu(), correct.detach().cpu(), valid.detach().cpu()
+
+        return prob
+
+class OneLinearCPC_2hidden(nn.Module):
+    def __init__(self, input_dim, class_num, task, dconfig, sequencial=False):
+        super(OneLinearCPC_2hidden, self).__init__()
+        
+        output_dim = class_num
+        hidden_size = dconfig['hidden_size']
+        drop = dconfig['drop']
+        self.select_hidden = dconfig['select_hidden']
+        self.weight = nn.Parameter(torch.ones(12) / 12)
+        self.hidden1 = nn.Linear(hidden_size, hidden_size)
+        self.hidden2 = nn.Linear(hidden_size, hidden_size)
+        self.act_fn = torch.nn.functional.relu
+        self.out = nn.Linear(hidden_size, output_dim)
+        self.out_fn = nn.LogSoftmax(dim=-1)
+        self.criterion = nn.CrossEntropyLoss(ignore_index=-100)
+
+
+    def statistic(self, probabilities, labels, label_mask):
+        assert(len(probabilities.shape) > 1)
+        assert(probabilities.unbind(dim=-1)[0].shape == labels.shape)
+        assert(labels.shape == label_mask.shape)
+
+        valid_count = label_mask.sum()
+        correct_count = ((probabilities.argmax(dim=-1) == labels).type(torch.cuda.LongTensor) * label_mask).sum()
+        return correct_count, valid_count
+    
+    def forward(self, features, labels=None, label_mask=None):
+        # features from mockingjay: (batch_size, layer, seq_len, feature)
+        # features from baseline: (batch_size, seq_len, feature)
+        # labels: (batch_size, seq_len), frame by frame classification
+        batch_size = features.size(0)
+        layer_num = features.size(1) if len(features.shape) == 4 else None
+        seq_len = features.size(2) if len(features.shape) == 4 else features.size(1)
+        feature_dim = features.size(3) if len(features.shape) == 4 else features.size(2)
+
+        if len(features.shape) == 4:
+            # compute mean on mockingjay representations if given features from mockingjay
+            if self.select_hidden == 'last':
+                features = features[:, -1, :, :]
+            elif self.select_hidden == 'first':
+                features = features[:, 0, :, :]
+            elif self.select_hidden == 'average':
+                features = features.mean(dim=1)  # now simply average the representations over all layers, (batch_size, seq_len, feature)
+            elif self.select_hidden == 'weighted_sum':
+                features = features.transpose(0, 1).reshape(layer_num, -1)
+                features = torch.matmul(self.weight[:layer_num], features).reshape(batch_size, seq_len, feature_dim)
+            elif self.select_hidden == 'weighted_sum_norm':
+                weights = nn.functional.softmax(self.weight[:layer_num], dim=-1)
+                features = features.transpose(0, 1).reshape(layer_num, -1)
+                features = torch.matmul(weights, features).reshape(batch_size, seq_len, feature_dim)
+            else:
+                raise NotImplementedError('Feature selection mode not supported!')
+
+        # since the down-sampling (float length be truncated to int) and then up-sampling process
+        # can cause a mismatch between the seq lenth of mockingjay representation and that of label
+        # we truncate the final few timestamp of label to make two seq equal in length
+
+
+        truncated_length = min(features.size(1), labels.size(-1))
+        
+        features = features[:, :truncated_length, :]
+        labels = labels[:, :truncated_length]
+        label_mask = label_mask[:, :truncated_length]
+        features = self.act_fn(self.hidden2(self.act_fn(self.hidden1(features))))
+        logits = self.out(features)
+        prob = self.out_fn(logits)
+        
+        if labels is not None:
+            assert(label_mask is not None), 'When frame-wise labels are provided, validity of each timestamp should also be provided'
+            labels_with_ignore_index = 100 * (label_mask - 1) + labels * label_mask
+
+            # cause logits are in (batch, seq, class) and labels are in (batch, seq)
+            # nn.CrossEntropyLoss expect to have (N, class) and (N,) as input
+            # here we flatten logits and labels in order to apply nn.CrossEntropyLoss
+            class_num = logits.size(-1)
+            loss = self.criterion(logits.reshape(-1, class_num), labels_with_ignore_index.reshape(-1))
+            
+            # statistic for accuracy
+            correct, valid = self.statistic(prob, labels, label_mask)
+
+            return loss, prob.detach().cpu(), correct.detach().cpu(), valid.detach().cpu()
+
+        return prob
+
+
+
+
 
 class example_classifier(nn.Module):
     def __init__(self, input_dim, hidden_dim, class_num):

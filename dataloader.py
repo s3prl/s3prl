@@ -770,7 +770,7 @@ class CPC_Speaker_Dataset(Mel_Speaker_Large_Dataset):
         self.mock_config = mock_config
         self.root = file_path
         self.load = load
-        assert(self.load == 'speakerCPC'), 'This dataset loads Kaldi extracted features and phone boundary labels (For the data released in the CPC paper).'
+        # assert(self.load == 'speakerCPC'), 'This dataset loads Kaldi extracted features and phone boundary labels (For the data released in the CPC paper).'
 
 
         # Load the major set (train or test)
@@ -957,7 +957,7 @@ def get_Dataloader(split, load, data_path, batch_size, max_timestep, max_label_l
         #     raise NotImplementedError('Invalid configuration for `Mel_Speaker_Dataset`!')
         ds = Mel_Speaker_Large_Dataset(split=split, run_mockingjay=run_mockingjay, file_path=data_path, sets=sets, max_timestep=max_timestep, load=load,
                                        max_label_len=max_label_len, bucket_size=bs, drop=drop_too_long, mock_config=mock_config)
-    elif load == 'speakerCPC':
+    elif 'speakerCPC' in load:
         # if split == 'train': 
         sets = train_set[0].replace('360', '100')
         ds = CPC_Speaker_Dataset(split=split, run_mockingjay=run_mockingjay, file_path=data_path, sets=sets, max_timestep=max_timestep, load=load,

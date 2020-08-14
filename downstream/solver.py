@@ -72,7 +72,7 @@ class Downstream_Solver(Solver):
 
     def load_data(self, split='train', load='phone'):
         ''' Load date for training / testing'''
-        assert(load in ['phone', 'sentiment', 'speaker', 'speakerlarge', "speakerCPC"]), 'Unsupported dataloader!'
+        assert(load in ['phone', 'sentiment', 'speaker', 'speakerlarge', "speakerCPC", "speakerCPC_1hidden", "speakerCPC_2hidden"]), 'Unsupported dataloader!'
         if load == 'phone' or load == 'speakerlarge':
             if split == 'train':
                 self.verbose('Loading source data from ' + str(self.config['dataloader']['train_set']) + ' from ' + self.config['dataloader']['data_path'])
@@ -85,7 +85,7 @@ class Downstream_Solver(Solver):
                 if load == 'phone': self.verbose('Loading label data ' + str(self.config['dataloader']['train_set']) + ' from ' + self.config['dataloader']['phone_path'])
             else:
                 raise NotImplementedError('Invalid `split` argument!')
-        elif load == 'speaker' or load == "speakerCPC":
+        elif (load == 'speaker') or ("speakerCPC" in load):
             if split == 'train':
                 self.verbose('Loading source data from ' + str(self.config['dataloader']['train_set']).replace('360', '100') + ' from ' + self.config['dataloader']['data_path'])
             elif split == 'test':
@@ -109,18 +109,15 @@ class Downstream_Solver(Solver):
     def set_model(self, inference=False,wandb=None):
         
         if "phone" in self.task:
-            # if self.fine_tune:
-            #     self.model_type = "OneLinear"
-            # else:
-            # self.model_type = "linear"
             self.model_type = self.config["downstream"]["select_classifier"]
-            # self.model_type = "OneLinear"
         elif "sentiment" in self.task:
             self.model_type = "mean_linear_v2"
-
+        elif "CPC_2hidden" in self.task:
+            self.model_type = "OneLinearCPC_2hidden"
+        elif "CPC_1hidden" in self.task:
+            self.model_type = "OneLinearCPC_1hidden"
         elif "CPC" in self.task:
             self.model_type = "OneLinearCPC"
-        
         else:
             self.model_type = "mean_linear_v2"
 
@@ -181,6 +178,18 @@ class Downstream_Solver(Solver):
                                                class_num=self.dataloader.dataset.class_num,
                                                task=self.task,
                                                dconfig=self.config['downstream']['OneHidden'],
+                                               sequencial=False).to(self.device)
+        elif self.model_type == "OneLinearCPC_2hidden":
+            self.classifier = OneHidden(input_dim=input_dim,
+                                               class_num=self.dataloader.dataset.class_num,
+                                               task=self.task,
+                                               dconfig=self.config['downstream']['OneLinearCPC_2hidden'],
+                                               sequencial=False).to(self.device)
+        elif self.model_type == "OneLinearCPC_1hidden":
+            self.classifier = OneHidden(input_dim=input_dim,
+                                               class_num=self.dataloader.dataset.class_num,
+                                               task=self.task,
+                                               dconfig=self.config['downstream']['OneLinearCPC_1hidden'],
                                                sequencial=False).to(self.device)
 
         else:
@@ -384,6 +393,10 @@ class Downstream_Trainer(Downstream_Solver):
                         loss, _, correct, valid = self.classifier(representations, labels, label_mask)
                     elif self.model_type == "OneHidden":
                         loss, _, correct, valid = self.classifier(representations, labels, label_mask)
+                    elif self.model_type == "OneLinearCPC_1hidden":
+                        loss, _, correct, valid = self.classifier(representations, labels, label_mask)
+                    elif self.model_type == "OneLinearCPC_2hidden":
+                        loss, _, correct, valid = self.classifier(representations, labels, label_mask)
                     else:
                         raise NotImplementedError('Invalid `model_type`!')
 
@@ -513,7 +526,10 @@ class Downstream_Trainer_epoch_training(Downstream_Solver):
             # self.model_type = "OneLinear"
         elif "sentiment" in self.task:
             self.model_type = "mean_linear_v2"
-
+        elif "CPC_2hidden" in self.task:
+            self.model_type = "OneLinearCPC_2hidden"
+        elif "CPC_1hidden" in self.task:
+            self.model_type = "OneLinearCPC_1hidden"
         elif "CPC" in self.task:
             self.model_type = "OneLinearCPC"
         
@@ -580,6 +596,20 @@ class Downstream_Trainer_epoch_training(Downstream_Solver):
                                                task=self.task,
                                                dconfig=self.config['downstream']['OneHidden'],
                                                sequencial=False).to(self.device)
+        elif self.model_type == "OneLinearCPC_1hidden":
+            self.classifier = OneLinearCPC(input_dim=input_dim,
+                                               class_num=self.dataloader.dataset.class_num,
+                                               task=self.task,
+                                               dconfig=self.config['downstream']['OneLinearCPC_1hidden'],
+                                               sequencial=False).to(self.device)
+        elif self.model_type == "OneLinearCPC_2hidden":
+            self.classifier = OneLinearCPC(input_dim=input_dim,
+                                               class_num=self.dataloader.dataset.class_num,
+                                               task=self.task,
+                                               dconfig=self.config['downstream']['OneLinearCPC_2hidden'],
+                                               sequencial=False).to(self.device)
+            
+                        
         else:
             NotImplementedError
 
@@ -700,6 +730,10 @@ class Downstream_Trainer_epoch_training(Downstream_Solver):
                     elif self.model_type == "OneLinear":
                         loss, _, correct, valid = self.classifier(representations, labels, label_mask)
                     elif self.model_type == "OneLinearCPC":
+                        loss, _, correct, valid = self.classifier(representations, labels, label_mask)
+                    elif self.model_type == "OneLinearCPC_1hidden":
+                        loss, _, correct, valid = self.classifier(representations, labels, label_mask)
+                    elif self.model_type == "OneLinearCPC_2hidden":
                         loss, _, correct, valid = self.classifier(representations, labels, label_mask)
                     elif self.model_type == "OneHidden":
                         loss, _, correct, valid = self.classifier(representations, labels, label_mask)
@@ -908,6 +942,10 @@ class Downstream_Tester(Downstream_Solver):
                         loss, logits, correct, valid = self.classifier(representations, labels, valid_lengths)
                     elif self.model_type == "OneLinearCPC":
                         loss, logits, correct, valid = self.classifier(representations, labels, label_mask)
+                    elif self.model_type == "OneLinearCPC_1hidden":
+                        loss, logits, correct, valid = self.classifier(representations, labels, label_mask)
+                    elif self.model_type == "OneLinearCPC_2hidden":
+                        loss, logits, correct, valid = self.classifier(representations, labels, label_mask)
                     elif self.model_type == "OneLinear":
                         loss, logits, correct, valid = self.classifier(representations, labels, label_mask)
                     elif self.model_type == "OneHidden":
@@ -919,8 +957,6 @@ class Downstream_Tester(Downstream_Solver):
                     correct_count += correct.item()
                     valid_count += valid.item()
 
-                    # all_labels.append(labels.cpu().numpy())
-                    # all_label_mask.append(label_mask.cpu().numpy())
 
                 except RuntimeError as e:
                     if 'CUDA out of memory' in str(e):
@@ -933,10 +969,6 @@ class Downstream_Tester(Downstream_Solver):
         average_loss = loss_sum / len(self.dataloader)
         test_acc = correct_count * 1.0 / valid_count
         self.verbose(f'Test result: loss {average_loss}, acc {test_acc}')
-
-        # import pdb
-        # pdb.set_trace()
-
         timer.end()
         timer.report()
         
@@ -1031,32 +1063,6 @@ class Downstream_tsne_Tester(Downstream_Solver):
                     else:
                         pass
                         
-
-                    # IPython.embed()
-                    # pdb.set_trace()
-                    # for i in range(framewise.shape[0]):
-                    # all_features_label_pair_data += [(framewise.data.cpu(), labels_frame.data.cpu())]
-
-                    # if self.model_type == 'linear':
-                    #     # labels: (batch_size, seq_len)
-                    #     loss, logits, correct, valid = self.classifier(representations, labels, label_mask)
-                    # elif self.model_type == 'rnn':
-                    #     # labels: (batch_size, )
-                    #     loss, logits, correct, valid = self.classifier(representations, labels, valid_lengths)
-                    # elif self.model_type == "mean_linear":
-                    #     loss, logits, correct, valid = self.classifier(representations, labels, valid_lengths)
-                    # elif self.model_type == "mean_linear_v2":
-                    #     loss, logits, correct, valid = self.classifier(representations, labels, valid_lengths)
-                    # elif self.model_type == "OneLinear":
-                    #     loss, logits, correct, valid = self.classifier(representations, labels, label_mask)
-                    # elif self.model_type == "OneLinearCPC":
-                    #     loss, logits, correct, valid = self.classifier(representations, labels, label_mask)
-                    # else:
-                    #     pass
-                    # loss_sum += loss.detach().cpu().item()
-                    # all_logits.append(logits)
-                    # correct_count += correct.item()
-                    # valid_count += valid.item()
 
                 except RuntimeError:
                     if oom_counter > 10: break

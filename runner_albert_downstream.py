@@ -55,16 +55,16 @@ def get_mockingjay_args():
     # parser.add_argument("--ckpdir" , default="../result_albert/albert-650000/BERT-12l-2")
     # parser.add_argument("--ckpdir" , default="../result_albert/albert-650000/ALBERT-3l-n2")
     # parser.add_argument("--ckpdir" , default="../result_albert/albert-650000/ALBERT-12l-n3-mask1")
-    parser.add_argument("--ckpdir" , default="../result_albert/albert-650000/ALBERT-6l-onlyQuery")
+    parser.add_argument("--ckpdir" , default="../../../../newMockingjay/result_albert/albert-650000/albert-6l-nonoverlap_mask1")
 
     # parser.add_argument("--ckpdir" , default="../result_albert/albert-650000/ALBERT-2l-n2")
     # parser.add_argument("--ckpdir" , default="../result_albert/albert-650000/ALBERT-6l-static12")
     # parser.add_argument('--ckpt', default="mockingjay_libri_sd1337/mockingjayBERT-490000.ckpt", type=str, help='path to mockingjay model checkpoint.', required=False)
     # parser.add_argument('--ckpt', default="mockingjay_libri_sd1337/mockingjayAlbert-490000.ckpt", type=str, help='path to mockingjay model checkpoint.', required=False)
     # parser.add_argument('--ckpt', default="mockingjay_libri_sd1337/mockingjay-ALBERT-490000.ckpt", type=str, help='path to mockingjay model checkpoint.', required=False)
-    # parser.add_argument('--ckpt', default="mockingjay_libri_sd1337/mockingjayALBERT-490000.ckpt", type=str, help='path to mockingjay model checkpoint.', required=False)
+    parser.add_argument('--ckpt', default="mockingjay_libri_sd1337/mockingjayALBERT-500000.ckpt", type=str, help='path to mockingjay model checkpoint.', required=False)
     # parser.add_argument('--ckpt', default="phone-ft4-0.005-dev/tmp.ckpt", type=str, help='path to mockingjay model checkpoint.', required=False)
-    parser.add_argument('--ckpt', default='mockingjay_libri_sd1337/mockingjayALBERT_variant-500000.ckpt', type=str, help='path to mockingjay model checkpoint.', required=False)
+    # parser.add_argument('--ckpt', default='mockingjay_libri_sd1337/mockingjayALBERT_variant-500000.ckpt', type=str, help='path to mockingjay model checkpoint.', required=False)
     # parser.add_argument('--dckpt', default='phone-dev-0.001-500k/best_val.ckpt', type=str, help='path to downstream checkpoint.', required=False)
     # parser.add_argument('--dckpt', default='speaker-CPC-dev/best_val.ckpt', type=str, help='path to downstream checkpoint.', required=False)
     # parser.add_argument('--dckpt', default='phone-2-hidden-ft4-1.0-dev/best_val.ckpt', type=str, help='path to downstream checkpoint.', required=False)
@@ -104,6 +104,10 @@ def get_mockingjay_args():
     parser.add_argument('--no-msg', action='store_true', help='Hide all messages.')
     parser.add_argument('--train_speaker_CPC', action='store_true', help='Train the speaker classifier on mel or mockingjay representations.')
     parser.add_argument('--test_speaker_CPC', action='store_true', help='Test mel or mockingjay representations using the trained speaker classifier.')
+    parser.add_argument('--train_speaker_CPC_1hidden', action='store_true', help='Train the speaker classifier on mel or mockingjay representations.')
+    parser.add_argument('--test_speaker_CPC_1hidden', action='store_true', help='Test mel or mockingjay representations using the trained speaker classifier.')
+    parser.add_argument('--train_speaker_CPC_2hidden', action='store_true', help='Train the speaker classifier on mel or mockingjay representations.')
+    parser.add_argument('--test_speaker_CPC_2hidden', action='store_true', help='Test mel or mockingjay representations using the trained speaker classifier.')
 
     args = parser.parse_args()
     setattr(args,'gpu', not args.cpu)
@@ -263,6 +267,31 @@ def main():
                 else 'apc_speakerCPC' if args.run_apc else 'baseline_speakerCPC'
         tester = Downstream_Tester(config, args, task=task)
         tester.load_data(split='test', load='speakerCPC')
+        tester.set_model(inference=True)
+        tester.exec()
+
+    elif args.train_speaker_CPC_1hidden:
+        
+        from downstream.solver import Downstream_Trainer, Downstream_Trainer_epoch_training
+        task = 'mockingjay_speakerCPC_1hidden' if args.run_mockingjay \
+                else 'apc_speakerCPC_1hidden' if args.run_apc else 'baseline_speakerCPC_1hidden'
+
+        if args.epoch_train:
+            trainer = Downstream_Trainer_epoch_training(config, args, task=task)
+        else:
+            trainer = Downstream_Trainer(config, args, task=task)
+
+        trainer.load_data(split='train', load='speakerCPC_1hidden')
+        trainer.set_model(inference=False,wandb=wandb)
+        trainer.exec(wandb=wandb)
+
+    # Test Speaker Task
+    elif args.test_speaker_CPC_2hidden:
+        from downstream.solver import Downstream_Tester
+        task = 'mockingjay_speakerCPC_2hidden' if args.run_mockingjay \
+                else 'apc_speakerCPC_2hidden' if args.run_apc else 'baseline_speakerCPC_2hidden'
+        tester = Downstream_Tester(config, args, task=task)
+        tester.load_data(split='test', load='speakerCPC_2hidden')
         tester.set_model(inference=True)
         tester.exec()
 

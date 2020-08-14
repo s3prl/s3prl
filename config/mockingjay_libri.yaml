@@ -66,7 +66,7 @@ dataloader:
   sentiment_config:
     dataset: 'mosei'                                    # suppor datasets: 'mosi', 'mosei'
     mosi:
-      path: '../../fuck/Mockingjay/data/mosi_mel160'
+      path: '../../../../fuck/Mockingjay/data/mosi_mel160'
       label_mode: 'positive_negative'                   # suppor modes: 'positive_negative', 'original', 'positive_negative', 'regression'
       standard_split: False
 
@@ -74,7 +74,7 @@ dataloader:
       random_seed: 1122
       train_ratio: 0.9
     mosei:
-      path: '../../fuck/Mockingjay/data/mosei'
+      path: '../../../../fuck/Mockingjay/data/mosei'
       feature: 'mel160'
       label_mode: 'positive_negative'                   # suppor modes: 'regression', 'original', 'positive_negative', 'regression'
       standard_split: False
@@ -91,9 +91,9 @@ dataloader:
       sample_seed: 29
 
   # LIBRISEECH SETTINGS
-  data_path: '../../fuck/Mockingjay/data/libri_mel160_subword5000'            # Source data path
-  target_path: '../../fuck/Mockingjay/data/libri_linear1025_subword5000'      # Target data path for reconstruction to a different feature type, set dataset to 'librispeech_mel_linear'.
-  phone_path: '../../fuck/Mockingjay/data/libri_phone'                        # phone boundary label data path for the phone classification task.
+  data_path: '../../../../fuck/Mockingjay/data/libri_mel160_subword5000'            # Source data path
+  target_path: '../../../../fuck/Mockingjay/data/libri_linear1025_subword5000'      # Target data path for reconstruction to a different feature type, set dataset to 'librispeech_mel_linear'.
+  phone_path: '../../../../fuck/Mockingjay/data/libri_phone'                        # phone boundary label data path for the phone classification task.
   train_set: ['train-clean-360']                                              #
   dev_set:   ['dev-clean']                                                    #
   test_set:  ['test-clean']                                                   # proportion 0.1%, 0.5%, 1%, 5%, 12.5% 
@@ -162,6 +162,18 @@ downstream:                                             # downstream model confi
     drop: 0.0     # The dropout ratio
 
   OneLinearCPC:
+    input_dim: 'None'
+    hidden_size: 768
+    drop: 0.0
+    select_hidden: "last"
+  
+  OneLinearCPC_1hidden:
+    input_dim: 'None'
+    hidden_size: 768
+    drop: 0.0
+    select_hidden: "last"
+  
+  OneLinearCPC_2hidden:
     input_dim: 'None'
     hidden_size: 768
     drop: 0.0
