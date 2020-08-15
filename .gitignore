@@ -1,6 +1,6 @@
 # Byte-compiled / optimized / DLL files
 __pycache__/
-mockingjay/__pycache__/*
+mockingjay/__pycache__/
 *.py[cod]
 *$py.class
 *.npy
