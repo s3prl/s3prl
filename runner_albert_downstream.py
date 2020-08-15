@@ -73,6 +73,7 @@ def get_mockingjay_args():
 
     # mockingjay
     parser.add_argument('--run_mockingjay', action='store_true', help='train and test the downstream tasks using mockingjay representations.')
+    parser.add_argument('--from_scratch', action="store_true", help="train from scratch downstream tasks using mockingjay representations.")
     parser.add_argument('--run_apc', action='store_true', help='train and test the downstream tasks using apc representations.')
     parser.add_argument('--fine_tune', action='store_true', help='fine tune the mockingjay model with downstream task.')
     parser.add_argument('--plot', action='store_true', help='Plot model generated results during testing.')
@@ -150,7 +151,7 @@ def main():
             trainer = Downstream_Trainer(config, args, task=task)
             
         trainer.load_data(split='train', load='phone')
-        trainer.set_model(inference=False,wandb=wandb)
+        trainer.set_model(inference=False,wandb=wandb,from_scratch=args.from_scratch)
         trainer.exec(wandb=wandb)
 
     # Test Phone Task
@@ -160,7 +161,7 @@ def main():
                 else 'apc_phone' if args.run_apc else 'baseline_phone'
         tester = Downstream_Tester(config, args, task=task)
         tester.load_data(split='test', load='phone')
-        tester.set_model(inference=True)
+        tester.set_model(inference=True,from_scratch=args.from_scratch)
         tester.exec()
 
     ##################################################################################
@@ -177,7 +178,7 @@ def main():
             trainer = Downstream_Trainer(config, args, task=task)
 
         trainer.load_data(split='train', load='sentiment')
-        trainer.set_model(inference=False,wandb=wandb)
+        trainer.set_model(inference=False,wandb=wandb, from_scratch=args.from_scratch)
         trainer.exec(wandb=wandb)
 
     # Test Sentiment Task
@@ -187,7 +188,7 @@ def main():
                 else 'apc_sentiment' if args.run_apc else 'baseline_sentiment'
         tester = Downstream_Tester(config, args, task=task)
         tester.load_data(split='test', load='sentiment')
-        tester.set_model(inference=True)
+        tester.set_model(inference=True,from_scratch=args.from_scratch)
         tester.exec()
 
     ##################################################################################
@@ -205,7 +206,7 @@ def main():
             trainer = Downstream_Trainer(config, args, task=task)
 
         trainer.load_data(split='train', load='speaker')
-        trainer.set_model(inference=False,wandb=wandb)
+        trainer.set_model(inference=False,wandb=wandb, from_scratch=args.from_scratch)
         trainer.exec(wandb=wandb)
 
     # Test Speaker Task
@@ -216,7 +217,7 @@ def main():
 
         tester = Downstream_Tester(config, args, task=task)
         tester.load_data(split='test', load='speaker')
-        tester.set_model(inference=True)
+        tester.set_model(inference=True,from_scratch=args.from_scratch)
         tester.exec()
 
     elif args.train_speaker_large:
@@ -231,7 +232,7 @@ def main():
             trainer = Downstream_Trainer(config, args, task=task)
 
         trainer.load_data(split='train', load='speakerlarge')
-        trainer.set_model(inference=False,wandb=wandb)
+        trainer.set_model(inference=False,wandb=wandb, from_scratch=args.from_scratch)
         trainer.exec(wandb=wandb)
 
     # Test Speaker Task
@@ -241,7 +242,7 @@ def main():
                 else 'apc_speakerlarge' if args.run_apc else 'baseline_speakerlarge'
         tester = Downstream_Tester(config, args, task=task)
         tester.load_data(split='test', load='speakerlarge')
-        tester.set_model(inference=True)
+        tester.set_model(inference=True,from_scratch=args.from_scratch)
         tester.exec()
 
 
@@ -257,7 +258,7 @@ def main():
             trainer = Downstream_Trainer(config, args, task=task)
 
         trainer.load_data(split='train', load='speakerCPC')
-        trainer.set_model(inference=False,wandb=wandb)
+        trainer.set_model(inference=False,wandb=wandb, from_scratch=args.from_scratch)
         trainer.exec(wandb=wandb)
 
     # Test Speaker Task
@@ -267,7 +268,7 @@ def main():
                 else 'apc_speakerCPC' if args.run_apc else 'baseline_speakerCPC'
         tester = Downstream_Tester(config, args, task=task)
         tester.load_data(split='test', load='speakerCPC')
-        tester.set_model(inference=True)
+        tester.set_model(inference=True,from_scratch=args.from_scratch)
         tester.exec()
 
     elif args.train_speaker_CPC_1hidden:
@@ -282,7 +283,32 @@ def main():
             trainer = Downstream_Trainer(config, args, task=task)
 
         trainer.load_data(split='train', load='speakerCPC_1hidden')
-        trainer.set_model(inference=False,wandb=wandb)
+        trainer.set_model(inference=False,wandb=wandb, from_scratch=args.from_scratch)
+        trainer.exec(wandb=wandb)
+
+    # Test Speaker Task
+    elif args.test_speaker_CPC_1hidden:
+        from downstream.solver import Downstream_Tester
+        task = 'mockingjay_speakerCPC_1hidden' if args.run_mockingjay \
+                else 'apc_speakerCPC_1hidden' if args.run_apc else 'baseline_speakerCPC_1hidden'
+        tester = Downstream_Tester(config, args, task=task)
+        tester.load_data(split='test', load='speakerCPC_1hidden')
+        tester.set_model(inference=True,from_scratch=args.from_scratch)
+        tester.exec()
+    
+    elif args.train_speaker_CPC_2hidden:
+        
+        from downstream.solver import Downstream_Trainer, Downstream_Trainer_epoch_training
+        task = 'mockingjay_speakerCPC_2hidden' if args.run_mockingjay \
+                else 'apc_speakerCPC_2hidden' if args.run_apc else 'baseline_speakerCPC_2hidden'
+
+        if args.epoch_train:
+            trainer = Downstream_Trainer_epoch_training(config, args, task=task)
+        else:
+            trainer = Downstream_Trainer(config, args, task=task)
+
+        trainer.load_data(split='train', load='speakerCPC_2hidden')
+        trainer.set_model(inference=False,wandb=wandb, from_scratch=args.from_scratch)
         trainer.exec(wandb=wandb)
 
     # Test Speaker Task
@@ -292,7 +318,7 @@ def main():
                 else 'apc_speakerCPC_2hidden' if args.run_apc else 'baseline_speakerCPC_2hidden'
         tester = Downstream_Tester(config, args, task=task)
         tester.load_data(split='test', load='speakerCPC_2hidden')
-        tester.set_model(inference=True)
+        tester.set_model(inference=True,from_scratch=args.from_scratch)
         tester.exec()
 
     ##################################################################################

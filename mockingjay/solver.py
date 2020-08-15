@@ -123,7 +123,7 @@ class Solver():
                     # Currently the duo feature dataloader only supports mockingjay training, no need to specify `run_mockingjay`
 
 
-    def set_model(self, inference=False, with_head=False, from_path=None, output_attention=False,wandb=None):
+    def set_model(self, inference=False, with_head=False, from_path=None, output_attention=False,from_scratch=False, wandb=None):
         self.verbose('Initializing Mockingjay model.')
         
         # uild the Mockingjay model with speech prediction head
@@ -199,7 +199,7 @@ class Solver():
                 # raise NotImplementedError('Invalid Arguments!')
 
         if self.load: # This will be set to True by default when Tester is running set_model()
-            self.load_model(inference=inference, with_head=with_head, from_path=from_path)
+            self.load_model(inference=inference, with_head=with_head, from_path=from_path, from_scratch=from_scratch)
 
 
     def save_model(self, name, model_all=True):
@@ -231,7 +231,7 @@ class Solver():
             self.model_kept.pop(0)
 
 
-    def load_model(self, inference=False, with_head=False, from_path=None):
+    def load_model(self, inference=False, with_head=False, from_path=None, from_scratch=False):
         if from_path is not None:
             self.verbose('Load model from {}'.format(from_path))
             all_states = torch.load(from_path, map_location='cpu')
@@ -247,52 +247,55 @@ class Solver():
                     self.verbose('[SpecHead] - Loaded')
                 except: self.verbose('[SpecHead - X]')
         if 'Mockingjay' in self.load_model_list:
-            try:
-                state_dict = all_states['Mockingjay']
-                # Load from a PyTorch state_dict
-                old_keys = []
-                new_keys = []
-                for key in state_dict.keys():
-                    new_key = None
-                    if 'gamma' in key:
-                        new_key = key.replace('gamma', 'weight')
-                    if 'beta' in key:
-                        new_key = key.replace('beta', 'bias')
-                    if new_key:
-                        old_keys.append(key)
-                        new_keys.append(new_key)
-                for old_key, new_key in zip(old_keys, new_keys):
-                    state_dict[new_key] = state_dict.pop(old_key)
+            if not from_scratch: 
+                try:
+                    state_dict = all_states['Mockingjay']
+                    # Load from a PyTorch state_dict
+                    old_keys = []
+                    new_keys = []
+                    for key in state_dict.keys():
+                        new_key = None
+                        if 'gamma' in key:
+                            new_key = key.replace('gamma', 'weight')
+                        if 'beta' in key:
+                            new_key = key.replace('beta', 'bias')
+                        if new_key:
+                            old_keys.append(key)
+                            new_keys.append(new_key)
+                    for old_key, new_key in zip(old_keys, new_keys):
+                        state_dict[new_key] = state_dict.pop(old_key)
 
-                missing_keys = []
-                unexpected_keys = []
-                error_msgs = []
-                # copy state_dict so _load_from_state_dict can modify it
-                metadata = getattr(state_dict, '_metadata', None)
-                state_dict = state_dict.copy()
-                if metadata is not None:
-                    state_dict._metadata = metadata
+                    missing_keys = []
+                    unexpected_keys = []
+                    error_msgs = []
+                    # copy state_dict so _load_from_state_dict can modify it
+                    metadata = getattr(state_dict, '_metadata', None)
+                    state_dict = state_dict.copy()
+                    if metadata is not None:
+                        state_dict._metadata = metadata
 
-                def load(module, prefix=''):
-                    local_metadata = {} if metadata is None else metadata.get(prefix[:-1], {})
-                    module._load_from_state_dict(
-                        state_dict, prefix, local_metadata, True, missing_keys, unexpected_keys, error_msgs)
-                    for name, child in module._modules.items():
-                        if child is not None:
-                            load(child, prefix + name + '.')
+                    def load(module, prefix=''):
+                        local_metadata = {} if metadata is None else metadata.get(prefix[:-1], {})
+                        module._load_from_state_dict(
+                            state_dict, prefix, local_metadata, True, missing_keys, unexpected_keys, error_msgs)
+                        for name, child in module._modules.items():
+                            if child is not None:
+                                load(child, prefix + name + '.')
 
-                load(self.mockingjay)
-                if len(missing_keys) > 0:
-                    self.verbose("Weights of {} not initialized from pretrained model: {}".format(
-                        self.mockingjay.__class__.__name__, missing_keys))
-                if len(unexpected_keys) > 0:
-                    self.verbose("Weights from pretrained model not used in {}: {}".format(
-                        self.mockingjay.__class__.__name__, unexpected_keys))
-                if len(error_msgs) > 0:
-                    raise RuntimeError('Error(s) in loading state_dict for {}:\n\t{}'.format(
-                                       self.mockingjay.__class__.__name__, "\n\t".join(error_msgs)))
-                self.verbose('[Mockingjay] - Loaded')
-            except: self.verbose('[Mockingjay - X]')
+                    load(self.mockingjay)
+                    if len(missing_keys) > 0:
+                        self.verbose("Weights of {} not initialized from pretrained model: {}".format(
+                            self.mockingjay.__class__.__name__, missing_keys))
+                    if len(unexpected_keys) > 0:
+                        self.verbose("Weights from pretrained model not used in {}: {}".format(
+                            self.mockingjay.__class__.__name__, unexpected_keys))
+                    if len(error_msgs) > 0:
+                        raise RuntimeError('Error(s) in loading state_dict for {}:\n\t{}'.format(
+                                        self.mockingjay.__class__.__name__, "\n\t".join(error_msgs)))
+                    self.verbose('[Mockingjay] - Loaded')
+                except: self.verbose('[Mockingjay - X]')
+            else:
+                self.verbose("[Mockingjay - from_scratch]")
 
         if 'Optimizer' in self.load_model_list and not inference:
             try:

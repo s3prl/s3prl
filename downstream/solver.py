@@ -106,7 +106,7 @@ class Downstream_Solver(Solver):
                 **self.config['dataloader']))
 
 
-    def set_model(self, inference=False,wandb=None):
+    def set_model(self, inference=False, from_scratch=False, wandb=None):
         
         if "phone" in self.task:
             self.model_type = self.config["downstream"]["select_classifier"]
@@ -126,7 +126,7 @@ class Downstream_Solver(Solver):
         if 'mockingjay' in self.task:
             self.mockingjay = Tester(self.mock_config, self.mock_paras)
             if self.fine_tune and inference: self.mockingjay.load = False # Do not load twice when testing the fine-tuned model, load only for fine-tune training
-            self.mockingjay.set_model(inference=True, with_head=self.paras.with_head)
+            self.mockingjay.set_model(inference=True, with_head=self.paras.with_head, from_scratch=from_scratch)
             self.dr = self.mockingjay.dr
             if input_dim is None:
                 input_dim = self.mock_config['albertmockingjay']['hidden_size']
@@ -260,7 +260,6 @@ class Downstream_Solver(Solver):
                 self.classifier.load_state_dict(all_states['Classifier'])
                 self.verbose('[Classifier] - Loaded')
             except: 
-                IPython.embed()
                 self.verbose('[Classifier - X]')
 
         if 'Optimizer' in self.load_model_list and not inference:
@@ -483,7 +482,7 @@ class Downstream_Trainer(Downstream_Solver):
 
 class Downstream_Trainer_epoch_training(Downstream_Solver):
     ''' Handler for complete training progress'''
-    def __init__(self, config, paras, task):
+    def __init__(self, config, paras, task, from_scratch=False):
         super(Downstream_Trainer_epoch_training, self).__init__(config, paras, task)
 
         # Logger Settings
@@ -515,7 +514,7 @@ class Downstream_Trainer_epoch_training(Downstream_Solver):
         self.model_kept = []
         self.global_step = 1
 
-    def set_model(self, inference=False,wandb=None):
+    def set_model(self, inference=False,wandb=None, from_scratch=False):
         
         if "phone" in self.task:
             # if self.fine_tune:
@@ -543,7 +542,7 @@ class Downstream_Trainer_epoch_training(Downstream_Solver):
         if 'mockingjay' in self.task:
             self.mockingjay = Tester(self.mock_config, self.mock_paras)
             if self.fine_tune and inference: self.mockingjay.load = False # Do not load twice when testing the fine-tuned model, load only for fine-tune training
-            self.mockingjay.set_model(inference=True, with_head=self.paras.with_head)
+            self.mockingjay.set_model(inference=True, with_head=self.paras.with_head, from_scratch=from_scratch)
             self.dr = self.mockingjay.dr
             if input_dim is None:
                 input_dim = self.mock_config['albertmockingjay']['hidden_size']
@@ -679,11 +678,6 @@ class Downstream_Trainer_epoch_training(Downstream_Solver):
                     
                     if 'speaker' in self.task: # Doesn't need the whole utterance to predict speaker
                         original_len = features[0].size(2)
-                        # reduce_factor = 3
-                        # if self.run_mockingjay: 
-                        #     features = (features[0][:, :, :original_len//reduce_factor, :], features[1][:, :, :original_len//reduce_factor, :], features[2][:, :, :original_len//reduce_factor])
-                        # else: 
-                        #     features = features[:, :, :original_len//reduce_factor, :]
 
                     if self.run_mockingjay and self.paras.with_head:
                         # representations shape: (batch_size, seq_len, feature)
@@ -709,11 +703,6 @@ class Downstream_Trainer_epoch_training(Downstream_Solver):
                         features = features.squeeze(0)
                         representations = features.to(device=self.device, dtype=torch.float32)
                                       
-                    # Since zero padding technique, some timestamps of features are not valid
-                    # For each timestamps, we mark 1 on valid timestamps, and 0 otherwise
-                    # This variable can be useful for frame-wise metric, like phoneme recognition or speaker verification
-                    # label_mask: (batch_size, seq_len), LongTensor
-                    # valid_lengths: (batch_size), LongTensor
                     label_mask = (features.sum(dim=-1) != 0).type(torch.LongTensor).to(device=self.device, dtype=torch.long)
                     valid_lengths = label_mask.sum(dim=1)
 
@@ -1064,7 +1053,8 @@ class Downstream_tsne_Tester(Downstream_Solver):
                         pass
                         
 
-                except RuntimeError:
+                except RuntimeError as e:
+                    
                     if oom_counter > 10: break
                     else: oom_counter += 1
                     print('CUDA out of memory during testing, aborting after ' + str(10 - oom_counter) + ' more tries...')
