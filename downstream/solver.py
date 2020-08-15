@@ -691,8 +691,6 @@ class Downstream_Trainer_epoch_training(Downstream_Solver):
                         # representations shape: (batch_size, layer, seq_len, feature)
                         representations = self.mockingjay.forward(features, tile=False if 'speaker' in self.task else True, process_from_loader=True)
                         features = self.up_sample_frames(features[0].squeeze(0)) if 'speaker' not in self.task else features[0].squeeze(0)
-                        if "CPC" in self.task:
-                            labels = labels.unsqueeze(-1).expand(features.shape[0],features.shape[1])
 
                     elif self.run_apc:
                         # representations shape: (batch_size, layer, seq_len, feature)
@@ -702,9 +700,13 @@ class Downstream_Trainer_epoch_training(Downstream_Solver):
                         # representations shape: (batch_size, seq_len, feature)
                         features = features.squeeze(0)
                         representations = features.to(device=self.device, dtype=torch.float32)
+                    
+                    if "CPC" in self.task:
+                        labels = labels.unsqueeze(-1).expand(features.shape[0],features.shape[1])
                                       
                     label_mask = (features.sum(dim=-1) != 0).type(torch.LongTensor).to(device=self.device, dtype=torch.long)
                     valid_lengths = label_mask.sum(dim=1)
+
 
                     if self.model_type == 'linear':
                         # labels: (batch_size, seq_len)
