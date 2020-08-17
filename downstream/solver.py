@@ -23,7 +23,7 @@ import torch.nn.functional as F
 from tensorboardX import SummaryWriter
 from dataloader import get_Dataloader
 from mockingjay.solver import Solver, Tester
-from downstream.model import LinearClassifier, RnnClassifier, MeanLinearClassifier, MeanLinearClassifier_v2, OneLinear, OneLinearCPC, OneHidden
+from downstream.model import LinearClassifier, RnnClassifier, MeanLinearClassifier, MeanLinearClassifier_v2, OneLinear, OneLinearCPC, OneHidden, OneLinearCPC_2hidden, OneLinearCPC_1hidden
 from utils.audio import mel_dim, num_freq, sample_rate, inv_spectrogram
 from utils.timer import Timer
 from runner_apc import get_apc_model
@@ -180,13 +180,13 @@ class Downstream_Solver(Solver):
                                                dconfig=self.config['downstream']['OneHidden'],
                                                sequencial=False).to(self.device)
         elif self.model_type == "OneLinearCPC_2hidden":
-            self.classifier = OneHidden(input_dim=input_dim,
+            self.classifier = OneLinearCPC_2hidden(input_dim=input_dim,
                                                class_num=self.dataloader.dataset.class_num,
                                                task=self.task,
                                                dconfig=self.config['downstream']['OneLinearCPC_2hidden'],
                                                sequencial=False).to(self.device)
         elif self.model_type == "OneLinearCPC_1hidden":
-            self.classifier = OneHidden(input_dim=input_dim,
+            self.classifier = OneLinearCPC_1hidden(input_dim=input_dim,
                                                class_num=self.dataloader.dataset.class_num,
                                                task=self.task,
                                                dconfig=self.config['downstream']['OneLinearCPC_1hidden'],
@@ -595,17 +595,17 @@ class Downstream_Trainer_epoch_training(Downstream_Solver):
                                                task=self.task,
                                                dconfig=self.config['downstream']['OneHidden'],
                                                sequencial=False).to(self.device)
-        elif self.model_type == "OneLinearCPC_1hidden":
-            self.classifier = OneLinearCPC(input_dim=input_dim,
-                                               class_num=self.dataloader.dataset.class_num,
-                                               task=self.task,
-                                               dconfig=self.config['downstream']['OneLinearCPC_1hidden'],
-                                               sequencial=False).to(self.device)
         elif self.model_type == "OneLinearCPC_2hidden":
-            self.classifier = OneLinearCPC(input_dim=input_dim,
+            self.classifier = OneLinearCPC_2hidden(input_dim=input_dim,
                                                class_num=self.dataloader.dataset.class_num,
                                                task=self.task,
                                                dconfig=self.config['downstream']['OneLinearCPC_2hidden'],
+                                               sequencial=False).to(self.device)
+        elif self.model_type == "OneLinearCPC_1hidden":
+            self.classifier = OneLinearCPC_1hidden(input_dim=input_dim,
+                                               class_num=self.dataloader.dataset.class_num,
+                                               task=self.task,
+                                               dconfig=self.config['downstream']['OneLinearCPC_1hidden'],
                                                sequencial=False).to(self.device)
             
                         
