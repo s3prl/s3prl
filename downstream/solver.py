@@ -804,7 +804,7 @@ class Downstream_Trainer_epoch_training(Downstream_Solver):
                         test_paras = copy.deepcopy(self.mock_paras)
                         test_paras.dckpt = new_dckpt
                         tester = Downstream_Tester(test_config, test_paras, task=self.task)
-                        tester.load_data(split=evaluation, load=self.task.split('_')[-1])
+                        tester.load_data(split=evaluation, load='_'.join(self.task.split("_")[1:]))
                         tester.set_model(inference=True)
                         eval_loss, eval_acc, eval_logits = tester.exec()
                         if wandb != None:
