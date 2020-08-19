@@ -432,8 +432,7 @@ class TransformerModel(TransformerInitModel):
     spec_input = torch.LongTensor(spec_frames)
     pos_enc = torch.LongTensor(position_encoding(seq_len=len(spec_frames)))
 
-    config = TransformerConfig(hidden_size=768,
-             num_hidden_layers=12, num_attention_heads=12, intermediate_size=3072)
+    config = TransformerConfig(config)
 
     model = TransformerForMaskedLM(config)
     masked_spec_logits = model(spec_input, pos_enc)
@@ -548,8 +547,7 @@ class TransformerForMaskedAcousticModel(TransformerInitModel):
     spec_input = torch.LongTensor(spec_frames)
     pos_enc = torch.LongTensor(position_encoding(seq_len=len(spec_frames)))
 
-    config = TransformerConfig(hidden_size=768,
-             num_hidden_layers=12, num_attention_heads=12, intermediate_size=3072)
+    config = TransformerConfig(config)
 
     model = TransformerForMaskedLM(config)
     masked_spec_logits = model(spec_input, pos_enc)
