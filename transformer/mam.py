@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*- #
 """*********************************************************************************************"""
 #   FileName     [ transformer/mam.py ]
-#   Synopsis     [ Moasked Acoustic Model data processing for pre-training the transformer model ]
+#   Synopsis     [ Masked Acoustic Model data processing for pre-training the transformer model ]
 #   Author       [ Andy T. Liu (Andi611) ]
 #   Copyright    [ Copyleft(c), Speech Lab, NTU, Taiwan ]
 """*********************************************************************************************"""
@@ -11,8 +11,8 @@
 # IMPORTATION #
 ###############
 import copy
-import random
 import torch
+import random
 import numpy as np
 from functools import lru_cache
 
