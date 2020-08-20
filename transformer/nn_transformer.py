@@ -180,8 +180,7 @@ class TRANSFORMER(nn.Module):
             spec_stacked = spec
 
         # Record length for each uttr
-        spec_len = np.sum(np.sum(spec_stacked.cpu().data.numpy(), axis=-1) != 0, axis=-1)
-        spec_len = [int(sl) for sl in spec_len]
+        spec_len = (spec_stacked.sum(dim=-1) != 0).long().sum(dim=-1).tolist()
 
         batch_size = spec_stacked.shape[0]
         seq_len = spec_stacked.shape[1]
