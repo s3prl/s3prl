@@ -171,7 +171,7 @@ def process_train_MAM_data(spec, config=None):
                 # the gradients will be calculated on chosen frames
                 mask_label[idx, :, chosen_intervals] = 1   
 
-        if not test_reconstruct:
+        if not test_reconstruct and noise_proportion > 0:
             # noise augmentation
             dice = random.random()
             if dice < noise_proportion:
