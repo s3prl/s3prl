@@ -20,10 +20,10 @@ from functools import lru_cache
 ############
 # CONSTANT #
 ############
-DR = 3
+DR = 1
 HIDDEN_SIZE = 768
 MASK_PROPORTION = 0.15
-MASK_CONSECUTIVE = 1
+MASK_CONSECUTIVE = 7
 MASK_BUCKET_RATIO = 1.2
 MASK_FREQUENCY = 8
 NOISE_PROPORTION = 0.15
@@ -130,35 +130,36 @@ def process_train_MAM_data(spec, config=None):
                 return intervals.view(-1)
             
             # time masking
-            mask_consecutive = random.randint(mask_consecutive_min, mask_consecutive_max)
-            valid_start_max = max(spec_len[idx] - mask_consecutive - 1, 0) # compute max valid start point for a consecutive mask
-            proportion = round(spec_len[idx] * mask_proportion / mask_consecutive)
-            if mask_allow_overlap:
-                # draw `proportion` samples from the range (0, valid_index_range) and without replacement
-                chosen_starts = torch.randperm(valid_start_max + 1)[:proportion]
-            else:
-                mask_bucket_size = round(mask_consecutive * mask_bucket_ratio)
-                rand_start = random.randint(0, min(mask_consecutive, valid_start_max))
-                valid_starts = torch.arange(rand_start, valid_start_max + 1, mask_bucket_size)
-                chosen_starts = valid_starts[torch.randperm(len(valid_starts))[:proportion]]
-            chosen_intervals = starts_to_intervals(chosen_starts, mask_consecutive)
-            
-            # determine whether to mask / random / or do nothing to the frame
-            dice = random.random()
-            # mask to zero
-            if dice < 0.8:
-                spec_masked[idx, chosen_intervals, :] = 0
-            # replace to random frames
-            elif dice >= 0.8 and dice < 0.9:
-                random_starts = torch.randperm(valid_start_max + 1)[:proportion]
-                random_intervals = starts_to_intervals(random_starts, mask_consecutive)
-                spec_masked[idx, chosen_intervals, :] = spec_masked[idx, random_intervals, :]
-            # do nothing
-            else:
-                pass
+            if mask_proportion > 0:
+                mask_consecutive = random.randint(mask_consecutive_min, mask_consecutive_max)
+                valid_start_max = max(spec_len[idx] - mask_consecutive - 1, 0) # compute max valid start point for a consecutive mask
+                proportion = round(spec_len[idx] * mask_proportion / mask_consecutive)
+                if mask_allow_overlap:
+                    # draw `proportion` samples from the range (0, valid_index_range) and without replacement
+                    chosen_starts = torch.randperm(valid_start_max + 1)[:proportion]
+                else:
+                    mask_bucket_size = round(mask_consecutive * mask_bucket_ratio)
+                    rand_start = random.randint(0, min(mask_consecutive, valid_start_max))
+                    valid_starts = torch.arange(rand_start, valid_start_max + 1, mask_bucket_size)
+                    chosen_starts = valid_starts[torch.randperm(len(valid_starts))[:proportion]]
+                chosen_intervals = starts_to_intervals(chosen_starts, mask_consecutive)
+                
+                # determine whether to mask / random / or do nothing to the frame
+                dice = random.random()
+                # mask to zero
+                if dice < 0.8:
+                    spec_masked[idx, chosen_intervals, :] = 0
+                # replace to random frames
+                elif dice >= 0.8 and dice < 0.9:
+                    random_starts = torch.randperm(valid_start_max + 1)[:proportion]
+                    random_intervals = starts_to_intervals(random_starts, mask_consecutive)
+                    spec_masked[idx, chosen_intervals, :] = spec_masked[idx, random_intervals, :]
+                # do nothing
+                else:
+                    pass
 
-            # the gradients will be calculated on chosen frames
-            mask_label[idx, chosen_intervals, :] = 1
+                # the gradients will be calculated on chosen frames
+                mask_label[idx, chosen_intervals, :] = 1
 
             # frequency masking
             if mask_frequency > 0:
