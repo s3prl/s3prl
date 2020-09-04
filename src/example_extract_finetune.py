@@ -30,6 +30,7 @@ from downstream.solver import get_optimizer
     spec_aug_prev: str, ['True', 'False'], apply spec augment on input acoustic features if True, else apply on output representations (used for ASR training)
     weighted_sum: str, ['True', 'False'], whether to use a learnable weighted sum to integrate hidden representations from all layers, if False then use the last
     select_layer: int, select from all hidden representations, set to -1 to select the last (will only be used when weighted_sum is False)
+    permute_input: str, ['True', 'False'], this attribute is for the forward method. If Ture then input ouput is in the shape of (T, B, D), if False then in (B, T, D)
 """
 options = {
     'ckpt_file'     : './result/result_transformer/tera/fmllrBase960-F-N-K-libri/states-1000000.ckpt',
@@ -40,9 +41,9 @@ options = {
     'spec_aug_prev' : 'True',
     'weighted_sum'  : 'False',
     'select_layer'  : -1,
+    'permute_input' : 'False',
 }
 transformer = TRANSFORMER(options=options, inp_dim=40)
-transformer.permute_input = False # Set to False to take input as (B, T, D), otherwise take (T, B, D)
 
 # setup your downstream class model
 classifier = example_classifier(input_dim=768, hidden_dim=128, class_num=2).cuda()

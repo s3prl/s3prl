@@ -227,10 +227,11 @@ class BertAdam(Optimizer):
             for p in group['params']:
                 state = self.state[p]
                 if len(state) == 0:
-                    return [0]
-                lr_scheduled = group['lr']
-                lr_scheduled *= group['schedule'].get_lr(state['step'])
-                lr.append(lr_scheduled)
+                    lr.append(0)
+                else:
+                    lr_scheduled = group['lr']
+                    lr_scheduled *= group['schedule'].get_lr(state['step'])
+                    lr.append(lr_scheduled)
         return lr
 
     def step(self, closure=None):
