@@ -23,6 +23,7 @@ from torch.utils.data import DataLoader
 from torch.utils.data.dataset import Dataset
 from torch.nn.utils.rnn import pad_sequence
 from transformer.mam import process_train_MAM_data, process_test_MAM_data
+from transformer.mam_dual import process_dual_train_MAM_data
 
 
 ############
@@ -188,7 +189,10 @@ class AcousticDataset(LibriDataset):
         else:
             x_batch = [torch.FloatTensor(np.load(os.path.join(self.root, x_file))) for x_file in self.X[index]]
         x_pad_batch = pad_sequence(x_batch, batch_first=True)
-        if self.run_mam: x_pad_batch = process_train_MAM_data(spec=(x_pad_batch,), config=self.mam_config)
+        if self.run_mam and self.mam_config['dual_transformer']:
+            x_pad_batch = process_dual_train_MAM_data(spec=(x_pad_batch,), config=self.mam_config)
+        elif self.run_mam:
+            x_pad_batch = process_train_MAM_data(spec=(x_pad_batch,), config=self.mam_config)
         return x_pad_batch
 
 

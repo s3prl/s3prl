@@ -18,7 +18,7 @@ import argparse
 import numpy as np
 from shutil import copyfile
 from dataloader import get_Dataloader
-from transformer.nn_transformer import TRANSFORMER
+from transformer.nn_transformer import TRANSFORMER, DUAL_TRANSFORMER
 from downstream.model import dummy_upstream, LinearClassifier, RnnClassifier
 from downstream.runner import Runner
 
@@ -55,7 +55,7 @@ def get_downstream_args():
 
     # upstream settings
     parser.add_argument('--ckpt', default='', type=str, help='Path to upstream pre-trained checkpoint, required if using other than baseline', required=False)
-    parser.add_argument('--upstream', choices=['transformer', 'apc', 'baseline'], default='baseline', help='Whether to use upstream models for speech representation or fine-tune.', required=False)
+    parser.add_argument('--upstream', choices=['dual_transformer', 'transformer', 'apc', 'baseline'], default='baseline', help='Whether to use upstream models for speech representation or fine-tune.', required=False)
     parser.add_argument('--input_dim', default=0, type=int, help='Input dimension used to initialize transformer models', required=False)
     parser.add_argument('--fine_tune', action='store_true', help='Whether to fine tune the transformer model with downstream task.', required=False)
     parser.add_argument('--weighted_sum', action='store_true', help='Whether to use weighted sum on the transformer model with downstream task.', required=False)
@@ -90,18 +90,23 @@ def get_upstream_model(args):
     
     print('[run_downstream] - getting upstream model:', args.upstream)
 
-    if args.upstream == 'transformer':
+    if args.upstream == 'transformer' or args.upstream == 'dual_transformer':
         options = {'ckpt_file'     : args.ckpt,
-                   'load_pretrain' : 'True',
-                   'no_grad'       : 'True' if not args.fine_tune else 'False',
-                   'dropout'       : 'default',
-                   'spec_aug'      : 'False',
-                   'spec_aug_prev' : 'True',
-                   'weighted_sum'  : 'True' if args.weighted_sum else 'False',
-                   'select_layer'  : -1,
+                    'load_pretrain' : 'True',
+                    'no_grad'       : 'True' if not args.fine_tune else 'False',
+                    'dropout'       : 'default',
+                    'spec_aug'      : 'False',
+                    'spec_aug_prev' : 'True',
+                    'weighted_sum'  : 'True' if args.weighted_sum else 'False',
+                    'select_layer'  : -1,
+                    'permute_input' : 'False'
         }
+
+    if args.upstream == 'transformer':
         upstream_model = TRANSFORMER(options, args.input_dim)
-        upstream_model.permute_input = False
+    
+    elif args.upstream == 'dual_transformer':
+        upstream_model = DUAL_TRANSFORMER(options, args.input_dim, mode='phone' if 'phone' in args.run else 'speaker')
         
     elif args.upstream == 'apc':
         raise NotImplementedError
