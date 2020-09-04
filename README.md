@@ -23,6 +23,7 @@ Table of Contents
        * [Download extracted features (RECOMMENDED)](#download-extracted-features)
        * [Preprocessing with Librosa](#preprocessing-with-librosa)
        * [Preprocessing with Kaldi](#preprocessing-with-kaldi)
+       * [On-the-fly Feature Extraction](#on-the-fly-feature-extraction)
        * [Downstream Task Preprocessing](#downstream-task-preprocessing)
    * [Train upstream models](#train-upstream-models)
        * [Train your own Mockingjay](#train-your-own-mockingjay)
@@ -101,6 +102,7 @@ This is an open source project called S3PRL, which stands for **S**elf-**S**uper
         - Pre-processing with the [Kaldi](https://github.com/kaldi-asr/kaldi) s5 recipe: *mfcc, fbank, fmllr*
     - WSJ: coming soon
     - Extracted features can be directly download from: [S3PRL Drive](http://www.bit.ly/drive-S3PRL)
+    - On-the-fly feature extraction using torchaudio as backend
     - see section: *Data preporation*
 - **Pre-train your own self-supervised models:**
     - Implementation of various upstream algorithms.
@@ -256,6 +258,12 @@ python preprocess/preprocess_timit.py --feature_type=fbank --delta=False # 80-di
 ```bash
 cd data/
 unzip libri_fmllr_cmvn.zip # features used for TERA
+```
+
+### On-the-fly Feature Extraction
+- Add the following argument when runing upstream/downstream scripts:
+```bash
+--online_config=config/online.yaml
 ```
 
 ------------------------------------
@@ -575,7 +583,7 @@ Here we also list all papers that use our toolkit (Feel free to add your own pap
     primaryClass={eess.AS}
 }
 ```
-- Mockingjay for Adversarial Defense
+- Mockingjay for Adversarial Defense, code for computing LNSR: [utility/observe_lnsr.py](https://github.com/andi611/Self-Supervised-Speech-Pretraining-and-Representation-Learning/blob/master/utility/observe_lnsr.py)
 ```
 @misc{mockingjay_defense,
     title={Defense for Black-box Attacks on Anti-spoofing Models by Self-Supervised Learning},
