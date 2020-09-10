@@ -89,7 +89,8 @@ def process_train_MAM_data(spec, config=None):
     mask_bucket_ratio = config['mask_bucket_ratio'] if config is not None else MASK_BUCKET_RATIO
     mask_frequency = config['mask_frequency'] if config is not None else MASK_FREQUENCY
     noise_proportion = config['noise_proportion'] if config is not None else NOISE_PROPORTION
-    test_reconstruct = False
+    reconstruct_all = config['reconstruct_all'] if 'reconstruct_all' in config else False
+    assert reconstruct_all or mask_consecutive_max > 0
 
     with torch.no_grad():
         if len(spec) == 2: # if self.duo_feature: dataloader will output `source_spec` and `target_spec`
@@ -119,8 +120,10 @@ def process_train_MAM_data(spec, config=None):
             # zero vectors for padding dimension
             attn_mask[idx, spec_len[idx]:] = 0
 
-            if test_reconstruct:
+            if reconstruct_all:
                 mask_label[idx, :, :] = 1
+
+            if mask_consecutive_max == 0:
                 continue
 
             def starts_to_intervals(starts, consecutive):
@@ -171,7 +174,7 @@ def process_train_MAM_data(spec, config=None):
                 # the gradients will be calculated on chosen frames
                 mask_label[idx, :, chosen_intervals] = 1   
 
-        if not test_reconstruct and noise_proportion > 0:
+        if noise_proportion > 0:
             # noise augmentation
             dice = random.random()
             if dice < noise_proportion:
