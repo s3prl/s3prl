@@ -228,7 +228,7 @@ class BertAdam(Optimizer):
             for p in group['params']:
                 state = self.state[p]
                 if len(state) == 0:
-                    lr.append(0)
+                    pass
                 else:
                     lr_scheduled = group['lr']
                     lr_scheduled *= group['schedule'].get_lr(state['step'])
@@ -303,18 +303,6 @@ class BertAdam(Optimizer):
         return loss
 
 
-def get_linear_schedule_with_warmup(optimizer, num_warmup_steps, num_training_steps, last_epoch=-1):
-    """ Create a schedule with a learning rate that decreases linearly after
-    linearly increasing during a warmup period.
-    """
-    def lr_lambda(current_step):
-        if current_step < num_warmup_steps:
-            return float(current_step) / float(max(1, num_warmup_steps))
-        return max(0.0, float(num_training_steps - current_step) / float(max(1, num_training_steps - num_warmup_steps)))
-
-    return LambdaLR(optimizer, lr_lambda, last_epoch)
-
-
 class BertLamb(Optimizer):
     r"""Implements Lamb algorithm.
     It has been proposed in `Large Batch Optimization for Deep Learning: Training BERT in 76 minutes`_.
@@ -322,6 +310,13 @@ class BertLamb(Optimizer):
         params (iterable): iterable of parameters to optimize or dicts defining
             parameter groups
         lr (float, optional): learning rate (default: 1e-3)
+        warmup (float, optional): portion of t_total for the warmup, -1  means no warmup. Default: -1
+        t_total (int, optional): total number of training steps for the learning
+            rate schedule, -1  means constant learning rate of 1. (no warmup regardless of warmup setting). Default: -1
+        schedule (string, optional): schedule to use for the warmup (see above).
+            Can be `'warmup_linear'`, `'warmup_constant'`, `'warmup_cosine'`, `'none'`, `None` or a `_LRSchedule` object (see below).
+            If `None` or `'none'`, learning rate is always kept constant.
+            Default : `'warmup_linear'`
         betas (Tuple[float, float], optional): coefficients used for computing
             running averages of gradient and its square (default: (0.9, 0.999))
         eps (float, optional): term added to the denominator to improve
@@ -333,8 +328,8 @@ class BertLamb(Optimizer):
         https://arxiv.org/abs/1904.00962
     """
 
-    def __init__(self, params, lr=1e-3, warmup=-1, t_total=-1, betas=(0.9, 0.999), eps=1e-8,
-                 weight_decay=0.0, adam=False, correct_bias=False):
+    def __init__(self, params, lr=1e-3, warmup=-1, t_total=-1, schedule='warmup_linear',
+                 betas=(0.9, 0.999), eps=1e-8, weight_decay=0.0, adam=False, correct_bias=False):
         if not 0.0 <= lr:
             raise ValueError("Invalid learning rate: {}".format(lr))
         if not 0.0 <= eps:
@@ -343,18 +338,32 @@ class BertLamb(Optimizer):
             raise ValueError("Invalid beta parameter at index 0: {}".format(betas[0]))
         if not 0.0 <= betas[1] < 1.0:
             raise ValueError("Invalid beta parameter at index 1: {}".format(betas[1]))
-        if warmup == -1 or t_total == -1:
-            raise ValueError("Invalid warmup or t_total parameter: {}, {}".format(warmup, t_total))
-        defaults = dict(lr=lr, betas=betas, eps=eps,
-                        weight_decay=weight_decay,correct_bias=correct_bias)
+        # initialize schedule object
+        if not isinstance(schedule, _LRSchedule):
+            schedule_type = SCHEDULES[schedule]
+            schedule = schedule_type(warmup=warmup, t_total=t_total)
+        else:
+            if warmup != -1 or t_total != -1:
+                logger.warning("warmup and t_total on the optimizer are ineffective when _LRSchedule object is provided as schedule. "
+                               "Please specify custom warmup and t_total in _LRSchedule object.")
+        defaults = dict(lr=lr, betas=betas, eps=eps, schedule=schedule,
+                        weight_decay=weight_decay, correct_bias=correct_bias)
         self.adam = adam
-        self.scheduler = get_linear_schedule_with_warmup(self, 
-                                                         num_warmup_steps=int(warmup * t_total),
-                                                         num_training_steps=t_total)
+
         super(BertLamb, self).__init__(params, defaults)
     
     def get_lr(self):
-        return self.scheduler.get_lr()
+        lr = []
+        for group in self.param_groups:
+            for p in group['params']:
+                state = self.state[p]
+                if len(state) == 0:
+                    pass
+                else:
+                    lr_scheduled = group['lr']
+                    lr_scheduled *= group['schedule'].get_lr(state['step'])
+                    lr.append(lr_scheduled)
+        return lr
 
     def step(self, closure=None):
         """Performs a single optimization step.
@@ -404,6 +413,7 @@ class BertLamb(Optimizer):
                     bias_correction1 = 1.0 - beta1 ** state['step']
                     bias_correction2 = 1.0 - beta2 ** state['step']
                     step_size = step_size * math.sqrt(bias_correction2) / bias_correction1
+                lr_scheduled = step_size * group['schedule'].get_lr(state['step'])
                     
                 weight_norm = p.data.pow(2).sum().sqrt()
 
@@ -422,7 +432,6 @@ class BertLamb(Optimizer):
                 if self.adam:
                     trust_ratio = 1
 
-                p.data.add_(-step_size * trust_ratio, adam_step)
+                p.data.add_(-lr_scheduled * trust_ratio, adam_step)
 
-        self.scheduler.step()
         return loss
