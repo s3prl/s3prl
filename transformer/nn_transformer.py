@@ -10,6 +10,7 @@
 ###############
 # IMPORTATION #
 ###############
+import copy
 import math
 import yaml
 import torch
@@ -19,94 +20,58 @@ import torch.nn as nn
 from functools import lru_cache
 from distutils.util import strtobool
 from transformer.model import TransformerConfig, TransformerModel
+from utility.preprocessor import OnlinePreprocessor
 
 
 ###############
 # TRANSFORMER #
 ###############
-"""
-Use this class to extract features from the Transformer model,
-or to finetune the pre-trained Transformer with any downstream tasks.
-Also, this class is `pytorch-kaldi` ready,
-hence we need to use `str` instead of `bool` in the options dict,
-as pytorch-kaldi scripts will pass in str.
-
-Params:
-    `options`: a python dictionary containing the following keys:
-        ckpt_file: str, a path specifying the pre-trained ckpt file
-        load_pretrain: str, ['True', 'False'], whether to load pre-trained weights
-        no_grad: str, ['True', 'False'], whether to have gradient flow over this class
-        dropout: float/str, use float to modify dropout value during downstream finetune, or use the str `default` for pre-train default values
-        spec_aug: str, ['True', 'False'], whether to apply SpecAugment on inputs (used for ASR training)
-        spec_aug_prev: str, ['True', 'False'], apply spec augment on input acoustic features if True, else apply on output representations (used for ASR training)
-        weighted_sum: str, ['True', 'False'], whether to use a learnable weighted sum to integrate hidden representations from all layers, if False then use the last
-        select_layer: int, select from all hidden representations, set to -1 to select the last (will only be used when weighted_sum is False)
-    `intput_dim`: int, input dimension of model
-
-An example `options` dictionary:
-options = {
-    'ckpt_file'     : './result/result_transformer/libri_sd1337_fmllrBase960-F-N-K-RA/states-1000000.ckpt',
-    'load_pretrain' : 'True',
-    'no_grad'       : 'True',
-    'dropout'       : 'default',
-    'spec_aug'      : 'False',
-    'spec_aug_prev' : 'True',
-    'weighted_sum'  : 'False',
-    'select_layer'  : -1,
-}
-"""
-class TRANSFORMER(nn.Module):
+class TransformerBaseWrapper(nn.Module):
+    """ 
+    A base class for all Transformer wrappers.
+    Child classes only need to implement the __init__() and forward() method.
+    """
     def __init__(self, options, inp_dim, config=None):
-        super(TRANSFORMER, self).__init__()
+        super(TransformerBaseWrapper, self).__init__()
 
+        # read config
         if config is not None:
             self.config = yaml.load(open(config, 'r'), Loader=yaml.FullLoader)
         else:
-            all_states = torch.load(options["ckpt_file"], map_location='cpu')
-            self.config = all_states['Settings']['Config']
+            self.all_states = torch.load(options["ckpt_file"], map_location='cpu')
+            self.config = self.all_states['Settings']['Config']
 
+        # parse the options dict
         self.no_grad = bool(strtobool(options['no_grad']))
         self.spec_aug = bool(strtobool(options['spec_aug']))
         self.spec_aug_prev = bool(strtobool(options['spec_aug_prev']))
         self.weighted_sum = bool(strtobool(options['weighted_sum']))
         self.select_layer = int(options['select_layer'])
+        self.permute_input = bool(strtobool(options['permute_input']))
         if (not self.no_grad) and (not self.spec_aug_prev): raise RuntimeError('Only one of them can be set False!')
-        
-        # increase dropout
-        if str(options['dropout']) != 'default':
+        if str(options['dropout']) != 'default': # increase dropout if specified
             self.config['transformer']['hidden_dropout_prob'] = float(options['dropout'])
             self.config['transformer']['attention_probs_dropout_prob'] = float(options['dropout'])
 
-        # Model Config
+        # Set model config
         self.model_config = TransformerConfig(self.config)
         self.dr = self.model_config.downsample_rate
         self.hidden_size = self.model_config.hidden_size
         self.num_layers = self.model_config.num_hidden_layers
         self.max_input_length = self.config['transformer']['max_input_length'] if 'max_input_length' in self.config['transformer'] else 0
-        if self.max_input_length > 0: print('[Transformer] - Maximum input length: ', self.max_input_length)
-        if not (self.select_layer in list(range(-1, self.num_layers))): raise RuntimeError('Out of range int for \'select_layer\'!')
-
-        # use weighted sum from all layers
-        if self.weighted_sum:
-            self.weight = nn.Parameter(torch.ones(self.num_layers) / self.num_layers)
-
-        # Build model
         self.inp_dim = inp_dim if inp_dim > 0 else self.config['transformer']['input_dim']
         self.device = torch.device('cuda') if torch.cuda.is_available() else torch.device('cpu')
-        self.model = TransformerModel(self.model_config, self.inp_dim).to(self.device)
-        self.model.eval() if self.no_grad else self.model.train()
         
-        # Load from a PyTorch state_dict
-        load = bool(strtobool(options["load_pretrain"]))
-        if load: 
-            self.load_model(all_states['Transformer'])
-            print('[Transformer] - Number of parameters: ' + str(sum(p.numel() for p in self.model.parameters() if p.requires_grad)))
-        
-        self.out_dim = self.hidden_size # 768, This attribute is for pytorch-kaldi and downstream runner
-        self.permute_input = True # This attribute is for the forward method. If Ture then input ouput is in the shape of (T, B, D), if False then in (B, T, D)
+        if self.max_input_length > 0: print('[Transformer] - Maximum input length: ', self.max_input_length)
+        if not (self.select_layer in list(range(-1, self.num_layers))): raise RuntimeError('Out of range int for \'select_layer\'!')
+        if self.weighted_sum:
+            self.weight = nn.Parameter(torch.ones(self.num_layers) / self.num_layers)
+        if 'online' in self.config:
+            preprocessor, inp_dim = self.get_preprocessor(self.config['online'])
+            self.preprocessor = preprocessor
 
 
-    def load_model(self, state_dict):
+    def load_model(self, transformer_model, state_dict):
         try:
             old_keys = []
             new_keys = []
@@ -139,21 +104,30 @@ class TRANSFORMER(nn.Module):
                     if child is not None:
                         load(child, prefix + name + '.')
 
-            load(self.model)
+            load(transformer_model)
             if len(missing_keys) > 0:
                 print('Weights of {} not initialized from pretrained model: {}'.format(
-                    self.model.__class__.__name__, missing_keys))
+                    transformer_model.__class__.__name__, missing_keys))
             if len(unexpected_keys) > 0:
                 print('Weights from pretrained model not used in {}: {}'.format(
-                    self.model.__class__.__name__, unexpected_keys))
+                    transformer_model.__class__.__name__, unexpected_keys))
             if len(error_msgs) > 0:
                 raise RuntimeError('Error(s) in loading state_dict for {}:\n\t{}'.format(
-                                    self.model.__class__.__name__, '\n\t'.join(error_msgs)))
+                                    transformer_model.__class__.__name__, '\n\t'.join(error_msgs)))
             print('[Transformer] - Pre-trained weights loaded!')
+            return transformer_model
 
         except: 
             raise RuntimeError('[Transformer] - Pre-trained weights NOT loaded!')
 
+    def get_preprocessor(self, online_config):
+        # load the same preprocessor as pretraining stage
+        upstream_feat = online_config['input']
+        upstream_feat['channel'] = 0
+        preprocessor = OnlinePreprocessor(**online_config, feat_list=[upstream_feat])
+        upstream_feat = preprocessor()[0]
+        upstream_input_dim = upstream_feat.size(-1)
+        return preprocessor, upstream_input_dim
 
     def down_sample_frames(self, spec):
         spec = spec.contiguous()
@@ -280,10 +254,64 @@ class TRANSFORMER(nn.Module):
         return x # (B, T, D) or (T, B, D)
 
 
+###############
+# TRANSFORMER #
+###############
+class TRANSFORMER(TransformerBaseWrapper):
+    """
+    Use this class to extract features from the Transformer model,
+    or to finetune the pre-trained Transformer with any downstream tasks.
+    Also, this class is `pytorch-kaldi` ready,
+    hence we need to use `str` instead of `bool` in the options dict,
+    as pytorch-kaldi scripts will pass in str.
+
+    Params:
+        `options`: a python dictionary containing the following keys:
+            ckpt_file: str, a path specifying the pre-trained ckpt file
+            load_pretrain: str, ['True', 'False'], whether to load pre-trained weights
+            no_grad: str, ['True', 'False'], whether to have gradient flow over this class
+            dropout: float/str, use float to modify dropout value during downstream finetune, or use the str `default` for pre-train default values
+            spec_aug: str, ['True', 'False'], whether to apply SpecAugment on inputs (used for ASR training)
+            spec_aug_prev: str, ['True', 'False'], apply spec augment on input acoustic features if True, else apply on output representations (used for ASR training)
+            weighted_sum: str, ['True', 'False'], whether to use a learnable weighted sum to integrate hidden representations from all layers, if False then use the last
+            select_layer: int, select from all hidden representations, set to -1 to select the last (will only be used when weighted_sum is False)
+            permute_input: str, ['True', 'False'], this attribute is for the forward method. If Ture then input ouput is in the shape of (T, B, D), if False then in (B, T, D)
+        `intput_dim`: int, input dimension of model
+
+    An example `options` dictionary:
+    options = {
+        'ckpt_file'     : './result/result_transformer/libri_sd1337_fmllrBase960-F-N-K-RA/states-1000000.ckpt',
+        'load_pretrain' : 'True',
+        'no_grad'       : 'True',
+        'dropout'       : 'default',
+        'spec_aug'      : 'False',
+        'spec_aug_prev' : 'True',
+        'weighted_sum'  : 'False',
+        'select_layer'  : -1,
+        'permute_input' : 'False',
+    }
+    """
+    def __init__(self, options, inp_dim, config=None):
+        super(TRANSFORMER, self).__init__(options, inp_dim, config)
+
+        # Build model
+        self.model = TransformerModel(self.model_config, self.inp_dim).to(self.device)
+        self.model.eval() if self.no_grad else self.model.train()
+        self.out_dim = self.hidden_size # This attribute is for pytorch-kaldi
+        
+        # Load from a PyTorch state_dict
+        load = bool(strtobool(options["load_pretrain"]))
+        if load: 
+            self.model = self.load_model(self.model, self.all_states['Transformer'])
+            print('[Transformer] - Number of parameters: ' + str(sum(p.numel() for p in self.model.parameters() if p.requires_grad)))
+
+
     def forward(self, x):
+        if 'online' in self.config:
+            x = self.preprocessor(x.transpose(1, 2))[0]
+
         if self.no_grad:
             with torch.no_grad():
-                self.model.eval()
                 x = self._forward(x)
         else:
             x = self._forward(x)
