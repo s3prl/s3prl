@@ -18,7 +18,7 @@ import argparse
 import numpy as np
 from shutil import copyfile
 from dataloader import get_Dataloader
-from transformer.nn_transformer import TRANSFORMER, DUAL_TRANSFORMER
+from transformer.nn_transformer import TRANSFORMER
 from downstream.model import dummy_upstream, LinearClassifier, RnnClassifier
 from downstream.runner import Runner
 
@@ -126,6 +126,9 @@ def get_upstream_model(args):
 # GET DATALOADER #
 ##################
 def get_dataloader(args, dataloader_config):
+    pretrain_config = torch.load(args.ckpt, map_location='cpu')['Settings']['Config']
+    if 'online' in pretrain_config:
+        dataloader_config['online_config'] = pretrain_config['online']
 
     if not os.path.exists(dataloader_config['data_path']):
         raise RuntimeError('[run_downstream] - Data path not valid:', dataloader_config['data_path'])    

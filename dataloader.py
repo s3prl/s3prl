@@ -113,6 +113,21 @@ class OnlineDataset(Dataset):
         return len(self.filepths)
 
 
+def load_libri_data(npy_path, npy_root=None, libri_root=None, online_config=None):
+    if online_config is None:
+        return torch.FloatTensor(np.load(os.path.join(npy_root, npy_path)))
+    else:
+        def get_full_libri_path(npy_path):
+            # remove .npy
+            path = ''.join(npy_path.split('.')[:-1])
+            subfolder, filename = path.split('/')
+            filedirs = filename.split('-')
+            libri_path = os.path.join(libri_root, subfolder, filedirs[0], filedirs[1], f'{filename}.flac')
+            return libri_path
+        full_libri_path = get_full_libri_path(npy_path)
+        return OnlineDataset.load_data(full_libri_path, **online_config).unsqueeze(-1)
+
+
 ################
 # LIBRIDATASET #
 ################
@@ -577,12 +592,14 @@ The LibriSpeech (speech, speaker) dataset
 '''
 class Speaker_Dataset(Dataset):
     
-    def __init__(self, split, run_mam, file_path, sets, bucket_size, split_path=None, max_timestep=0, drop=False, mam_config=None, seed=1337):
-        
+    def __init__(self, split, run_mam, file_path, sets, bucket_size, split_path=None, max_timestep=0, drop=False, mam_config=None, seed=1337,
+                 libri_root=None, online_config=None):        
         random.seed(seed)
         self.run_mam = run_mam
         self.mam_config = mam_config
         self.root = file_path
+        self.libri_root = libri_root
+        self.online_config = online_config
 
         # Load the input sets
         tables = [pd.read_csv(os.path.join(file_path, s + '.csv')) for s in sets]
@@ -667,7 +684,7 @@ class Speaker_Dataset(Dataset):
 
     def __getitem__(self, index):
         # Load acoustic feature and pad
-        x_batch = [torch.FloatTensor(np.load(os.path.join(self.root, x_file))) for x_file in self.X[index]]
+        x_batch = [load_libri_data(x_file, self.root, self.libri_root, self.online_config) for x_file in self.X[index]]
         x_pad_batch = pad_sequence(x_batch, batch_first=True)
         # Return (x_spec, speaker_label)
         s_batch = torch.LongTensor([self.speaker2idx[self.get_speaker_from_path(x_file)] for x_file in self.X[index]])
@@ -704,7 +721,7 @@ class Speaker_Dataset(Dataset):
 def get_Dataloader(split, load, data_path, batch_size, max_timestep, 
                    use_gpu, n_jobs, train_set, dev_set, test_set, dev_batch_size, 
                    target_path=None, phone_path=None, seed=1337,
-                   mam_config=None, sentiment_config=None,
+                   mam_config=None, sentiment_config=None, online_config=None, libri_root=None,
                    decode_beam_size=None, run_mam=False, train_proportion=1.0, **kwargs):
 
     # Decide which split to use: train/dev/test
@@ -750,7 +767,8 @@ def get_Dataloader(split, load, data_path, batch_size, max_timestep,
                            bucket_size=bs, drop=drop_too_long, mam_config=mam_config, mosei_config=sentiment_config['mosei'])
     elif load == 'speaker':
         ds = Speaker_Dataset(split=split, run_mam=run_mam, file_path=data_path, split_path=phone_path, sets=sets, max_timestep=max_timestep,
-                             bucket_size=bs, drop=drop_too_long, mam_config=mam_config, seed=seed)
+                             bucket_size=bs, drop=drop_too_long, mam_config=mam_config, seed=seed,
+                             libri_root=libri_root, online_config=online_config)
     else:
         raise NotImplementedError('Invalid `load` argument for `get_Dataloader()`!')
 

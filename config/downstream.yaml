@@ -6,6 +6,7 @@ dataloader:
 
   data_path: 'data/libri_fmllr_cmvn'                    # Source data path, 'data/libri_fmllr_cmvn', or 'data/libri_mfcc_cmvn', or 'data/libri_mel160_subword5000' for different preprocessing features
   phone_path: 'data/cpc_phone'                          # phone boundary label data path for the phone classification task. set to 'data/libri_phone' or 'data/cpc_phone'
+  libri_root: '/home/leo/d/datasets/LibriSpeech'        # only used when extract features on-the-fly
   train_set: ['train-clean-100']                        # ['train-clean-100', 'train-clean-360', 'train-other-500'] for pre-training. ['train-clean-360'] or ['train-clean-100'] for libri phone exp or cpc phone exp, respectively.
   dev_set: ['dev-clean']                                #
   test_set: ['test-clean']                              #
