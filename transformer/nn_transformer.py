@@ -59,6 +59,9 @@ class TransformerBaseWrapper(nn.Module):
         self.hidden_size = self.model_config.hidden_size
         self.num_layers = self.model_config.num_hidden_layers
         self.max_input_length = self.config['transformer']['max_input_length'] if 'max_input_length' in self.config['transformer'] else 0
+        if 'online' in self.config:
+            preprocessor, inp_dim = self.get_preprocessor(self.config['online'])
+            self.preprocessor = preprocessor
         self.inp_dim = inp_dim if inp_dim > 0 else self.config['transformer']['input_dim']
         self.device = torch.device('cuda') if torch.cuda.is_available() else torch.device('cpu')
         
@@ -66,9 +69,6 @@ class TransformerBaseWrapper(nn.Module):
         if not (self.select_layer in list(range(-1, self.num_layers))): raise RuntimeError('Out of range int for \'select_layer\'!')
         if self.weighted_sum:
             self.weight = nn.Parameter(torch.ones(self.num_layers) / self.num_layers)
-        if 'online' in self.config:
-            preprocessor, inp_dim = self.get_preprocessor(self.config['online'])
-            self.preprocessor = preprocessor
 
 
     def load_model(self, transformer_model, state_dict):
