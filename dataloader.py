@@ -56,33 +56,39 @@ def get_online_Dataloader(args, config, is_train=True):
 
 class OnlineDataset(Dataset):
     def __init__(self, roots, sample_rate, max_time, target_level, noise_proportion, snrs, **kwargs):
-        self.sample_rate = sample_rate
-        self.max_time = max_time
-        self.target_level = target_level
-        self.noise_proportion = noise_proportion
-        self.snrs = snrs
+        self.load_config = [sample_rate, max_time, target_level]
+
         self.filepths = []
         for root in roots:
             self.filepths += find_files(root)
         assert len(self.filepths) > 0, 'No audio file detected'
+        
+        self.noise_proportion = noise_proportion
+        self.snrs = snrs
         self.noise_sampler = torch.distributions.Normal(0, 1)
     
-    def _normalize(self, audio):
+    @classmethod
+    def normalize_wav_decibel(cls, audio, target_level):
         '''Normalize the signal to the target level'''
         rms = audio.pow(2).mean().pow(0.5)
-        scalar = (10 ** (self.target_level / 20)) / (rms + 1e-10)
+        scalar = (10 ** (target_level / 20)) / (rms + 1e-10)
         audio = audio * scalar
         return audio
 
-    def __getitem__(self, idx):
-        wav, sr = torchaudio.load(self.filepths[idx])
-        assert sr == self.sample_rate, f'Sample rate mismatch: real {sr}, config {self.sample_rate}'
+    @classmethod
+    def load_data(cls, wav_path, sample_rate=16000, max_time=40000, target_level=-25, **kwargs):
+        wav, sr = torchaudio.load(wav_path)
+        assert sr == sample_rate, f'Sample rate mismatch: real {sr}, config {sample_rate}'
         wav = wav.view(-1)
-        maxpoints = int(sr / 1000) * self.max_time
+        maxpoints = int(sr / 1000) * max_time
         if len(wav) > maxpoints:
             start = random.randint(0, len(wav) - maxpoints)
             wav = wav[start:start + maxpoints]
-        wav = self._normalize(wav)
+        wav = cls.normalize_wav_decibel(wav, target_level)
+        return wav
+
+    def __getitem__(self, idx):
+        wav = OnlineDataset.load_data(self.filepths[idx], *self.load_config)
 
         # build input
         dice = random.random()
