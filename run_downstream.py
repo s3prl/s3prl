@@ -18,7 +18,7 @@ import argparse
 import numpy as np
 from shutil import copyfile
 from dataloader import get_Dataloader
-from transformer.nn_transformer import TRANSFORMER
+from transformer.nn_transformer import TRANSFORMER, DUAL_TRANSFORMER
 from downstream.model import dummy_upstream, LinearClassifier, RnnClassifier
 from downstream.runner import Runner
 
