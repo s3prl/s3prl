@@ -18,7 +18,8 @@ import numpy as np
 from tqdm import tqdm
 from tensorboardX import SummaryWriter
 from transformer.model import TransformerConfig, TransformerForMaskedAcousticModel
-from transformer.optimization import BertAdam, WarmupLinearSchedule
+from transformer.model_dual import DualTransformerConfig, DualTransformerForMaskedAcousticModel
+from transformer.optimization import BertAdam, BertLamb, WarmupLinearSchedule
 from transformer.mam import fast_position_encoding
 from utility.audio import plot_spectrogram_to_numpy
 from transformer.mam import process_train_MAM_data
@@ -59,6 +60,8 @@ class Runner():
 
         # model
         self.transformer_config = config['transformer']
+        self.dr = config['transformer']['downsample_rate']
+        self.dual_transformer = config['transformer']['dual_transformer']
         if 'online' in config:
             print(f'[Runner] - Using features extracted on-the-fly')
             feat_list = [config['online']['input'], config['online']['target']]
@@ -74,10 +77,12 @@ class Runner():
         print('[Runner] - Initializing Transformer model...')
         
         # build the Transformer model with speech prediction head
-        model_config = TransformerConfig(self.config)
-        self.dr = model_config.downsample_rate
-
-        self.model = TransformerForMaskedAcousticModel(model_config, self.input_dim, self.output_dim).to(self.device)
+        if self.dual_transformer:
+            model_config = DualTransformerConfig(self.config)
+            self.model = DualTransformerForMaskedAcousticModel(model_config, self.input_dim, self.output_dim).to(self.device)
+        else:
+            model_config = TransformerConfig(self.config)
+            self.model = TransformerForMaskedAcousticModel(model_config, self.input_dim, self.output_dim).to(self.device)
         self.model.train()
 
         if self.args.multi_gpu:
@@ -94,6 +99,8 @@ class Runner():
             {'params': [p for n, p in param_optimizer if any(nd in n for nd in no_decay)], 'weight_decay': 0.0}
             ]
 
+        if not hasattr(self.config['optimizer'], 'type'):
+            self.config['optimizer']['type'] = 'adam'
         if self.apex:
             try:
                 from apex.optimizers import FP16_Optimizer
@@ -111,24 +118,48 @@ class Runner():
                 self.optimizer = FP16_Optimizer(optimizer, static_loss_scale=self.config['optimizer']['loss_scale'])
             self.warmup_linear = WarmupLinearSchedule(warmup=self.warmup_proportion,
                                                       t_total=self.total_steps)
-        else:
+        elif self.config['optimizer']['type'] == 'adam':
             self.optimizer = BertAdam(optimizer_grouped_parameters,
                                       lr=self.learning_rate,
                                       warmup=self.warmup_proportion,
-                                      t_total=self.total_steps)
+                                      t_total=self.total_steps,
+                                      schedule='warmup_linear')
+        elif self.config['optimizer']['type'] == 'lamb':
+            self.optimizer = BertLamb(optimizer_grouped_parameters,
+                                      lr=self.learning_rate,
+                                      warmup=self.warmup_proportion,
+                                      t_total=self.total_steps,
+                                      schedule='warmup_linear')
+        else:
+            raise NotImplementedError()
 
 
     def save_model(self, name='states', to_path=None):
-        all_states = {
-            'SpecHead': self.model.SpecHead.state_dict() if not self.args.multi_gpu else self.model.module.SpecHead.state_dict(),
-            'Transformer': self.model.Transformer.state_dict() if not self.args.multi_gpu else self.model.module.Transformer.state_dict(),
-            'Optimizer': self.optimizer.state_dict(),
-            'Global_step': self.global_step,
-            'Settings': {
-                'Config': self.config,
-                'Paras': self.args,
-            },
-        }
+        if self.dual_transformer:
+            all_states = {
+                'SpecHead': self.model.SpecHead.state_dict() if not self.args.multi_gpu else self.model.module.SpecHead.state_dict(),
+                'SpecTransformer': self.model.SpecTransformer.state_dict() if not self.args.multi_gpu else self.model.module.SpecTransformer.state_dict(),
+                'SPE': self.model.SPE if not self.args.multi_gpu else self.model.module.SPE,
+            }
+            try: # store phonetic encoder if exist
+                all_states['PhoneticTransformer'] = self.model.PhoneticTransformer.Transformer.state_dict() if not self.args.multi_gpu else self.model.module.PhoneticTransformer.Transformer.state_dict()
+                all_states['PhoneticLayer'] = self.model.PhoneticTransformer.PhoneRecognizer.state_dict() if not self.args.multi_gpu else self.model.module.PhoneticTransformer.PhoneRecognizer.state_dict()
+            except:
+                pass
+            try: # store speaker encoder if exist
+                all_states['SpeakerTransformer'] = self.model.SpeakerTransformer.Transformer.state_dict() if not self.args.multi_gpu else self.model.module.SpeakerTransformer.Transformer.state_dict()
+                all_states['SpeakerLayer'] = self.model.SpeakerTransformer.GlobalStyleToken.state_dict() if not self.args.multi_gpu else self.model.module.SpeakerTransformer.GlobalStyleToken.state_dict()
+            except:
+                pass
+        else:
+            all_states = {
+                'SpecHead': self.model.SpecHead.state_dict() if not self.args.multi_gpu else self.model.module.SpecHead.state_dict(),
+                'Transformer': self.model.Transformer.state_dict() if not self.args.multi_gpu else self.model.module.Transformer.state_dict(),
+            }
+
+        all_states['Optimizer'] = self.optimizer.state_dict()
+        all_states['Global_step'] = self.global_step
+        all_states['Settings'] = { 'Config': self.config, 'Paras': self.args }
 
         if to_path is None:
             new_model_path = '{}/{}-{}.ckpt'.format(self.ckpdir, name, self.global_step)
@@ -188,6 +219,36 @@ class Runner():
         return spec_masked, pos_enc, mask_label, attn_mask, spec_stacked # (x, pos_enc, mask_label, attention_mask. y)
 
 
+    def process_dual_data(self, spec):
+        """Process training data for the dual masked acoustic model"""
+        with torch.no_grad():
+            
+            assert(len(spec) == 6), 'dataloader should return (time_masked, freq_masked, pos_enc, mask_label, attn_mask, spec_stacked)'
+            # Unpack and Hack bucket: Bucketing should cause acoustic feature to have shape 1xBxTxD'
+            time_masked = spec[0].squeeze(0)
+            freq_masked = spec[1].squeeze(0)
+            pos_enc = spec[2].squeeze(0)
+            mask_label = spec[3].squeeze(0)
+            attn_mask = spec[4].squeeze(0)
+            spec_stacked = spec[5].squeeze(0)
+
+            time_masked = time_masked.to(device=self.device)
+            freq_masked = freq_masked.to(device=self.device)
+            if pos_enc.dim() == 3:
+                # pos_enc: (batch_size, seq_len, hidden_size)
+                # GPU memory need (batch_size * seq_len * hidden_size)
+                pos_enc = pos_enc.float().to(device=self.device)
+            elif pos_enc.dim() == 2:
+                # pos_enc: (seq_len, hidden_size)
+                # GPU memory only need (seq_len * hidden_size) even after expanded
+                pos_enc = pos_enc.float().to(device=self.device).expand(time_masked.size(0), *pos_enc.size())
+            mask_label = mask_label.bool().to(device=self.device)
+            attn_mask = attn_mask.float().to(device=self.device)
+            spec_stacked = spec_stacked.to(device=self.device)
+
+        return time_masked, freq_masked, pos_enc, mask_label, attn_mask, spec_stacked # (x, pos_enc, mask_label, attention_mask. y)
+
+
     def train(self):
         ''' Self-Supervised Pre-Training of Transformer Model'''
 
@@ -211,8 +272,12 @@ class Runner():
                     if not batch_is_valid: continue
                     step += 1
                     
-                    spec_masked, pos_enc, mask_label, attn_mask, spec_stacked = self.process_data(batch)
-                    loss, pred_spec = self.model(spec_masked, pos_enc, mask_label, attn_mask, spec_stacked)
+                    if self.dual_transformer:
+                        time_masked, freq_masked, pos_enc, mask_label, attn_mask, spec_stacked = self.process_dual_data(batch)
+                        loss, pred_spec = self.model(time_masked, freq_masked, pos_enc, mask_label, attn_mask, spec_stacked)
+                    else:
+                        spec_masked, pos_enc, mask_label, attn_mask, spec_stacked = self.process_data(batch)
+                        loss, pred_spec = self.model(spec_masked, pos_enc, mask_label, attn_mask, spec_stacked)
                     
                     # Accumulate Loss
                     if self.gradient_accumulation_steps > 1:
@@ -254,15 +319,23 @@ class Runner():
 
                         if self.global_step % self.save_step == 0:
                             self.save_model('states')
-                            mask_spec = self.up_sample_frames(spec_masked[0], return_first=True)
-                            pred_spec = self.up_sample_frames(pred_spec[0], return_first=True)
-                            true_spec = self.up_sample_frames(spec_stacked[0], return_first=True)
-                            mask_spec = plot_spectrogram_to_numpy(mask_spec.data.cpu().numpy())
-                            pred_spec = plot_spectrogram_to_numpy(pred_spec.data.cpu().numpy())
-                            true_spec = plot_spectrogram_to_numpy(true_spec.data.cpu().numpy())
-                            self.log.add_image('mask_spec', mask_spec, self.global_step)
-                            self.log.add_image('pred_spec', pred_spec, self.global_step)
-                            self.log.add_image('true_spec', true_spec, self.global_step)
+                            
+                            # tensorboard log
+                            if self.dual_transformer: spec_masked = time_masked
+                            spec_list = [spec_masked, pred_spec, spec_stacked]
+                            name_list = ['mask_spec', 'pred_spec', 'true_spec']
+                            if self.dual_transformer: 
+                                spec_list.insert(1, freq_masked)
+                                name_list.insert(1, 'mask_freq')
+                                name_list[0] = 'mask_time'
+                            
+                            for i in range(len(spec_list)):
+                                spec = self.up_sample_frames(spec_list[i][0], return_first=True)
+                                spec = plot_spectrogram_to_numpy(spec.data.cpu().numpy())
+                                self.log.add_image(name_list[i], spec, self.global_step)
+
+                            # if self.dual_transformer:
+                            #     self.model.PhoneticTransformer.PhoneRecognizer.set_num_updates(self.global_step//1000)
 
                         loss_val = 0
                         pbar.update(1)
