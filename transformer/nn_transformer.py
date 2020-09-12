@@ -19,7 +19,6 @@ import torch.nn as nn
 from functools import lru_cache
 from distutils.util import strtobool
 from transformer.model import TransformerConfig, TransformerModel
-from utility.preprocessor import OnlinePreprocessor
 
 
 ###############
@@ -92,18 +91,6 @@ class TRANSFORMER(nn.Module):
             self.weight = nn.Parameter(torch.ones(self.num_layers) / self.num_layers)
 
         # Build model
-        if 'online' in self.config:
-            def get_preprocessor(online_config):
-                # load the same preprocessor as pretraining stage
-                upstream_feat = online_config['input']
-                upstream_feat['channel'] = 0
-                preprocessor = OnlinePreprocessor(**online_config, feat_list=[upstream_feat])
-                upstream_feat = preprocessor()[0]
-                upstream_input_dim = upstream_feat.size(-1)
-                return preprocessor, upstream_input_dim
-            preprocessor, inp_dim = get_preprocessor(self.config['online'])
-            self.preprocessor = preprocessor
-
         self.inp_dim = inp_dim if inp_dim > 0 else self.config['transformer']['input_dim']
         self.device = torch.device('cuda') if torch.cuda.is_available() else torch.device('cpu')
         self.model = TransformerModel(self.model_config, self.inp_dim).to(self.device)
@@ -294,9 +281,6 @@ class TRANSFORMER(nn.Module):
 
 
     def forward(self, x):
-        if 'online' in self.config:
-            x = self.preprocessor(x.transpose(1, 2))[0]
-
         if self.no_grad:
             with torch.no_grad():
                 self.model.eval()
