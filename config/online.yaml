@@ -13,7 +13,9 @@ max_time: 40000
 target_level: -25
 # pretrained utterances are first scaled to the same decibel level
 noise_proportion: 0.5
-# stochastically add gaussian noise to input waveforms
+# stochastically add noise to input waveforms
+noise_type: 'gaussian'
+# 'gaussian' or noise data root path
 snrs: [3, 6, 9]
 # sample a noise level for each noise addition
 
