@@ -28,7 +28,7 @@ runner:
 model:                                                  # downstream model config
   
   linear:
-    hidden_size: 768
+    hidden_size: 0                                      # when linear: True, the hidden_size is ignored
     drop: 0.0                                           # The dropout ratio, not used when `linear` is set to `True`.
     select_hidden: 'upstream'                           # support modes: ['upstream', 'last', 'first', 'average', 'weighted_sum', 'weighted_sum_norm', int], this only have effect when a shape of (batch_size, num_layer, seq_len, feature_dim) is feed to the network
     sequencial: False
@@ -37,7 +37,7 @@ model:                                                  # downstream model confi
     concat: 1                                           # `int`, must be an odd number. Concatenation of this amount of windows to match the average size of a phoneme. Set to 1 for no concatenation, set to 9 to concat 4 previous and 4 future frames.
 
   1hidden:
-    hidden_size: 768
+    hidden_size: 768                                    # hidden size of classifier
     drop: 0.0                                           # The dropout ratio, not used when `linear` is set to `True`.
     select_hidden: 'upstream'                           # support modes: ['upstream', 'last', 'first', 'average', 'weighted_sum', 'weighted_sum_norm', int], this only have effect when a shape of (batch_size, num_layer, seq_len, feature_dim) is feed to the network
     sequencial: False
@@ -46,7 +46,7 @@ model:                                                  # downstream model confi
     concat: 1                                           # `int`, must be an odd number. Concatenation of this amount of windows to match the average size of a phoneme. Set to 1 for no concatenation, set to 9 to concat 4 previous and 4 future frames.
   
   concat:
-    hidden_size: 768
+    hidden_size: 0                                      # when linear: True, the hidden_size is ignored
     drop: 0.0                                           # The dropout ratio, not used when `linear` is set to `True`.
     select_hidden: 'upstream'                           # support modes: ['upstream', 'last', 'first', 'average', 'weighted_sum', 'weighted_sum_norm', int], this only have effect when a shape of (batch_size, num_layer, seq_len, feature_dim) is feed to the network
     sequencial: False
