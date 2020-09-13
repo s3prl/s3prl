@@ -57,6 +57,18 @@ class Runner():
         
         self.downstream_model.train()
 
+        if self.args.resume is not None:
+            self.load_model(self.args.resume)
+
+
+    def load_model(self, ckptpth):
+        ckpt = torch.load(ckptpth)
+        if self.args.fine_tune:
+            self.upstream_model.load_state_dict(ckpt['Upstream'])
+        self.downstream_model.load_state_dict(ckpt['Downstream'])
+        self.optimizer.load_state_dict(ckpt['Optimizer'])
+        self.global_step = ckpt['Global_step']
+
 
     def save_model(self, name='states', save_best=None):
         
@@ -89,6 +101,8 @@ class Runner():
         ''' Training of downstream tasks'''
 
         pbar = tqdm(total=int(self.config['total_steps']))
+        pbar.n = self.global_step - 1
+
         corrects = 0
         valids = 0
         best_acc = 0.0

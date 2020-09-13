@@ -133,6 +133,17 @@ class Runner():
         else:
             raise NotImplementedError()
 
+        if self.args.resume is not None:
+            self.load_model(self.args.resume)
+
+
+    def load_model(self, ckptpth):
+        ckpt = torch.load(ckptpth)
+        self.model.Transformer.load_state_dict(ckpt['Transformer'])
+        self.model.SpecHead.load_state_dict(ckpt['SpecHead'])
+        self.optimizer.load_state_dict(ckpt['Optimizer'])
+        self.global_step = ckpt['Global_step']
+
 
     def save_model(self, name='states', to_path=None):
         if self.dual_transformer:
@@ -253,6 +264,8 @@ class Runner():
         ''' Self-Supervised Pre-Training of Transformer Model'''
 
         pbar = tqdm(total=self.total_steps)
+        pbar.n = self.global_step - 1
+
         while self.global_step <= self.total_steps:
 
             progress = tqdm(self.dataloader, desc="Iteration")

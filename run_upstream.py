@@ -12,6 +12,7 @@
 ###############
 import os
 import yaml
+import glob
 import torch
 import random
 import argparse
@@ -19,6 +20,7 @@ import numpy as np
 from shutil import copyfile
 from dataloader import get_Dataloader, get_online_Dataloader
 from utility.helper import parse_prune_heads
+from argparse import Namespace
 
 
 #################
@@ -36,12 +38,13 @@ if S3PRL_PATH not in sys.path:
 def get_upstream_args():
     
     parser = argparse.ArgumentParser(description='Argument Parser for Upstream Models of the S3PLR project.')
+    parser.add_argument('--resume', help='Specify the downstream checkpoint path for continual training')
 
     # required
     parser.add_argument('--run',  choices=['transformer', 'apc'], help='Select pre-training task. \
                         For the transformer models, which type of pre-training (mockingjay, tera, aalbert, etc) \
-                        is determined by config file.', required=True)
-    parser.add_argument('--config', type=str, help='Path to experiment config.', required=True)
+                        is determined by config file.')
+    parser.add_argument('--config', type=str, help='Path to experiment config.')
 
     # ckpt and logging
     parser.add_argument('--name', default=None, type=str, help='Name for logging.', required=False)
@@ -57,12 +60,32 @@ def get_upstream_args():
 
     # parse
     args = parser.parse_args()
-    setattr(args, 'gpu', not args.cpu)
-    config = yaml.load(open(args.config, 'r'), Loader=yaml.FullLoader)
-    parse_prune_heads(config)
-    if args.online_config is not None:
-        online_config = yaml.load(open(args.online_config, 'r'), Loader=yaml.FullLoader)
-        config['online'] = online_config
+    if args.resume is None:
+        setattr(args, 'gpu', not args.cpu)
+        config = yaml.load(open(args.config, 'r'), Loader=yaml.FullLoader)
+        parse_prune_heads(config)
+        if args.online_config is not None:
+            online_config = yaml.load(open(args.online_config, 'r'), Loader=yaml.FullLoader)
+            config['online'] = online_config
+    else:
+        if os.path.isdir(args.resume):
+            ckpts = glob.glob(f'{args.resume}/*.ckpt')
+            assert len(ckpts) > 0
+            ckpts = sorted(ckpts, key=lambda pth: int(pth.split('-')[-1].split('.')[0]))
+            resume_ckpt = ckpts[-1]
+        else:
+            resume_ckpt = args.resume
+
+        def update_args(old, new):
+            old_dict = vars(old)
+            new_dict = vars(new)
+            old_dict.update(new_dict)
+            return Namespace(**old_dict)
+
+        ckpt = torch.load(resume_ckpt, map_location='cpu')
+        args = update_args(args, ckpt['Settings']['Paras'])
+        config = ckpt['Settings']['Config']
+        setattr(args, 'resume', resume_ckpt)
     
     return args, config
 

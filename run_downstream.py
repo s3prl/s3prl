@@ -12,6 +12,7 @@
 ###############
 import os
 import yaml
+import glob
 import torch
 import random
 import argparse
@@ -21,6 +22,7 @@ from dataloader import get_Dataloader
 from transformer.nn_transformer import TRANSFORMER, DUAL_TRANSFORMER
 from downstream.model import dummy_upstream, LinearClassifier, RnnClassifier
 from downstream.runner import Runner
+from argparse import Namespace
 
 
 """
@@ -49,9 +51,10 @@ if S3PRL_PATH not in sys.path:
 def get_downstream_args():
     
     parser = argparse.ArgumentParser(description='Argument Parser for Downstream Tasks of the S3PLR project.')
+    parser.add_argument('--resume', help='Specify the downstream checkpoint path for continual training')
     
     # required
-    parser.add_argument('--run',  choices=['phone_linear', 'phone_1hidden', 'phone_concat', 'speaker_frame', 'speaker_utterance'], help='select task.', required=True)
+    parser.add_argument('--run',  choices=['phone_linear', 'phone_1hidden', 'phone_concat', 'speaker_frame', 'speaker_utterance'], help='select task.')
 
     # upstream settings
     parser.add_argument('--ckpt', default='', type=str, help='Path to upstream pre-trained checkpoint, required if using other than baseline', required=False)
@@ -70,9 +73,29 @@ def get_downstream_args():
 
     # parse
     args = parser.parse_args()
-    setattr(args, 'gpu', not args.cpu)
-    setattr(args, 'task', args.phone_set if 'phone' in args.run else 'speaker')
-    config = yaml.load(open(args.config, 'r'), Loader=yaml.FullLoader)
+    if args.resume is None:
+        setattr(args, 'gpu', not args.cpu)
+        setattr(args, 'task', args.phone_set if 'phone' in args.run else 'speaker')
+        config = yaml.load(open(args.config, 'r'), Loader=yaml.FullLoader)
+    else:
+        if os.path.isdir(args.resume):
+            ckpts = glob.glob(f'{args.resume}/*.ckpt')
+            assert len(ckpts) > 0
+            ckpts = sorted(ckpts, key=lambda pth: int(pth.split('-')[-1].split('.')[0]))
+            resume_ckpt = ckpts[-1]
+        else:
+            resume_ckpt = args.resume
+
+        def update_args(old, new):
+            old_dict = vars(old)
+            new_dict = vars(new)
+            old_dict.update(new_dict)
+            return Namespace(**old_dict)
+
+        ckpt = torch.load(resume_ckpt, map_location='cpu')
+        args = update_args(args, ckpt['Settings']['Paras'])
+        config = ckpt['Settings']['Config']
+        setattr(args, 'resume', resume_ckpt)
     
     return args, config
 
