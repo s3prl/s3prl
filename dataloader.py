@@ -36,18 +36,30 @@ SPEAKER_THRESHOLD = 0
 ##############################################
 # Online: Only support pretraining currently #
 ##############################################
-def get_online_Dataloader(args, config, is_train=True):
-    # create waveform dataset
-    dataset = OnlineDataset(**config['online'])
-    
+def get_online_Dataloader(args, config, is_train=True, with_speaker=False):
+
     # create dataloader for extracting features
-    def collate_fn(samples):
+    def collate_wav_fn(samples):
         # samples: [(seq_len, channel), ...]
         samples = pad_sequence(samples, batch_first=True)
         # samples: (batch_size, max_len, channel)
         return samples.transpose(-1, -2).contiguous()
         # return: (batch_size, channel, max_len)
+
+    # create dataloader for extracting features
+    def collate_wav_speaker_fn(samples):
+        wavs, speakers = [[samples[i][j] for i in range(len(samples))] for j in range(len(samples[0]))]
+        wavs = pad_sequence(wavs, batch_first=True)
+        return wavs.unsqueeze(0), torch.LongTensor(speakers).unsqueeze(0)
         
+    # create waveform dataset
+    if not with_speaker:
+        dataset = OnlineDataset(**config['online'])
+        collate_fn = collate_wav_fn
+    else:
+        dataset = OnlineSpeakerDataset(**config['online'])
+        collate_fn = collate_wav_speaker_fn
+
     dataloader = DataLoader(dataset, batch_size=config['dataloader']['batch_size'],
                             shuffle=is_train, num_workers=config['dataloader']['n_jobs'],
                             pin_memory=True, collate_fn=collate_fn)
@@ -135,6 +147,29 @@ class OnlineDataset(Dataset):
     def __len__(self):
         return len(self.filepths)
 
+
+class OnlineSpeakerDataset(OnlineDataset):
+    def __init__(self, roots, sample_rate, max_time, target_level=-25, noise_proportion=0, noise_type='gaussian', snrs=[3], eps=1e-8, n_jobs=12, **kwargs):
+        super().__init__(roots, sample_rate, max_time, target_level=-25, noise_proportion=0, noise_type='gaussian', snrs=[3], eps=1e-8)
+        
+        self.filepth2speaker = {}
+        for filepth in self.filepths:
+            self.filepth2speaker[filepth] = int(os.path.basename(os.path.dirname(os.path.dirname(filepth))))
+        
+        speakers_unique = torch.unique(torch.LongTensor(list(self.filepth2speaker.values())))
+        self.idx2speaker = {}
+        self.speaker2idx = {}
+        for idx, speaker in enumerate(speakers_unique):
+            self.idx2speaker[idx] = speaker.item()
+            self.speaker2idx[speaker.item()] = idx
+
+        self.class_num = len(list(self.speaker2idx.keys()))
+        
+    def __getitem__(self, idx):
+        speaker = self.speaker2idx[self.filepth2speaker[self.filepths[idx]]]
+        wavs = super().__getitem__(idx)
+        return wavs, speaker
+            
 
 def load_libri_data(npy_path, npy_root=None, libri_root=None, online_config=None):
     if online_config is None:
