@@ -634,6 +634,7 @@ class Speaker_Dataset(Dataset):
         print('[Dataset] - Computing speaker class...')
         speakers = self.get_all_speakers(X)
         self.speaker2idx = self.compute_speaker2idx(speakers)
+        self.idx2speaker = {value : key for key, value in self.speaker2idx.items()}
         self.class_num = len(self.speaker2idx)
 
         # Crop seqs that are too long

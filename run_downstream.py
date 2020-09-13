@@ -67,6 +67,7 @@ def get_downstream_args():
     parser.add_argument('--inference_spec', action='store_true')
     parser.add_argument('--inference_split', default='test')
     parser.add_argument('--sample_num', type=int, default=5)
+    parser.add_argument('--assign_speaker', type=int, default=-1)
     
     # Options
     parser.add_argument('--name', default=None, type=str, help='Name of current experiment.', required=False)
