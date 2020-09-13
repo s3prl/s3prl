@@ -20,7 +20,7 @@ import numpy as np
 from shutil import copyfile
 from dataloader import get_Dataloader
 from transformer.nn_transformer import TRANSFORMER, DUAL_TRANSFORMER
-from downstream.model import dummy_upstream, LinearClassifier, RnnClassifier
+from downstream.model import dummy_upstream, LinearClassifier, RnnClassifier, SpecHead
 from downstream.runner import Runner
 from argparse import Namespace
 
@@ -63,6 +63,10 @@ def get_downstream_args():
     parser.add_argument('--fine_tune', action='store_true', help='Whether to fine tune the transformer model with downstream task.', required=False)
     parser.add_argument('--weighted_sum', action='store_true', help='Whether to use weighted sum on the transformer model with downstream task.', required=False)
     parser.add_argument('--cmvn', action='store_true')
+    
+    parser.add_argument('--inference_spec', action='store_true')
+    parser.add_argument('--inference_split', default='test')
+    parser.add_argument('--sample_num', type=int, default=5)
     
     # Options
     parser.add_argument('--name', default=None, type=str, help='Name of current experiment.', required=False)
@@ -187,7 +191,9 @@ def get_downstream_model(args, input_dim, class_num, config):
     model_name = args.run.split('_')[-1].replace('frame', 'linear') # support names: ['linear', '1hidden', 'concat', 'utterance']
     model_config = config['model'][model_name]
 
-    if args.task == 'speaker' and 'utterance' in args.run:
+    if args.inference_spec:
+        downstream_model = SpecHead(args.ckpt)
+    elif args.task == 'speaker' and 'utterance' in args.run:
         downstream_model = RnnClassifier(input_dim, class_num, model_config)
     else:
         downstream_model = LinearClassifier(input_dim, class_num, model_config)
@@ -238,6 +244,11 @@ def main():
                     downstream=downstream_model, 
                     expdir=expdir)
     runner.set_model()
+
+    if args.inference_spec:
+        runner.generate()
+        return
+
     runner.train()
 
 

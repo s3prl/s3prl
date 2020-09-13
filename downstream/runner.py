@@ -19,6 +19,7 @@ from torch.optim import Adam
 from tensorboardX import SummaryWriter
 from downstream.solver import get_optimizer
 from utility.mask_operations import *
+from utility.preprocessor import OnlinePreprocessor
 
 
 ##########
@@ -291,3 +292,47 @@ class Runner():
         self.downstream_model.train()
 
         return average_loss, eval_acc, all_logits
+
+
+    def generate(self):
+        ''' Testing of downstream tasks'''
+
+        self.upstream_model.eval()
+        self.downstream_model.eval()
+        
+        dataset = self.dataloader[self.args.inference_split].dataset
+        sample_indices = range(0, dataset.__len__(), dataset.__len__() // self.args.sample_num)
+        for indice in tqdm(list(sample_indices), desc="Iteration"):
+            features, labels = dataset[indice]
+            with torch.no_grad():
+                # features: (1, batch_size, seq_len, feature)
+                # dimension of labels depend on task and dataset, but the first dimention is always trivial due to bucketing, eg. (1, ...)
+                wav_inp = features.squeeze(0).to(device=self.device, dtype=torch.float32)
+                phase_inp = self.upstream_model.preprocessor(wav_inp.transpose(1, 2), feat_list=[
+                    OnlinePreprocessor.get_feat_config('phase', 0)
+                ])[0]
+
+                features = self.upstream_model(wav_inp)
+
+                # Since zero padding technique, some timestamps of features are not valid
+                # For each timestamps, we mark 1 on valid timestamps, and 0 otherwise
+                # This variable can be useful for frame-wise metric, like phoneme recognition or speaker verification
+                # label_mask: (batch_size, seq_len), LongTensor
+                labels = labels.squeeze(0).to(device=self.device)
+                label_mask = (features.sum(dim=-1) != 0).type(torch.LongTensor).to(device=self.device, dtype=torch.long)
+                valid_lengths = label_mask.sum(dim=1)
+
+                if self.args.cmvn:
+                    features = mask_normalize(features, label_mask.unsqueeze(-1))
+
+                linear_out = self.downstream_model(features)
+                wav_out = self.upstream_model.preprocessor.istft(linear_out, phase_inp)
+            
+                for idx, (wi, wo) in enumerate(zip(wav_inp, wav_out)):
+                    self.log.add_audio(f'{indice}-input.wav', wi.reshape(-1, 1), global_step=self.global_step,
+                                        sample_rate=self.upstream_model.preprocessor._sample_rate)
+                    self.log.add_audio(f'{indice}-output.wav', wo.reshape(-1, 1), global_step=self.global_step,
+                                        sample_rate=self.upstream_model.preprocessor._sample_rate)
+
+
+        self.log.close()

@@ -13,6 +13,7 @@
 import torch
 from torch import nn
 from torch.nn.utils.rnn import pack_padded_sequence
+from transformer.model import TransformerConfig, TransformerSpecPredictionHead
 from utility.mask_operations import *
 
 
@@ -361,3 +362,27 @@ class example_classifier(nn.Module):
         loss = self.criterion(result, labels)
 
         return loss
+
+
+class SpecHead(nn.Module):
+    def __init__(self, ckpt, activation='ReLU', eps=1e-8, **kwargs):
+        super(SpecHead, self).__init__()
+        assert ckpt != ''
+        ckpt = torch.load(ckpt, map_location='cpu')
+        trans_config = TransformerConfig(ckpt['Settings']['Config'])
+        trans_spechead = TransformerSpecPredictionHead(trans_config, ckpt['SpecHead']['output.bias'].size(-1))
+        trans_spechead.load_state_dict(ckpt['SpecHead'])
+        
+        self.spechead = trans_spechead
+        self.eps = eps
+
+        target_config = ckpt['Settings']['Config']['online']['target']
+        self.log = False if 'log' not in target_config else target_config['log']
+        self.act = eval(f'nn.{activation}()')
+
+    def forward(self, features, **kwargs):
+        predicted, _ = self.spechead(features)
+        if self.log:
+            predicted = predicted.exp()
+        predicted = self.act(predicted)
+        return predicted
