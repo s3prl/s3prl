@@ -18,6 +18,7 @@ from tqdm import tqdm
 from torch.optim import Adam
 from tensorboardX import SummaryWriter
 from downstream.solver import get_optimizer
+from utility.mask_operations import *
 
 
 ##########
@@ -133,6 +134,9 @@ class Runner():
                     labels = labels.squeeze(0).to(device=self.device)  # labels can be torch.long or torch.float (regression)
                     label_mask = (features.sum(dim=-1) != 0).type(torch.LongTensor).to(device=self.device, dtype=torch.long)
                     valid_lengths = label_mask.sum(dim=1)
+
+                    if self.args.cmvn:
+                        features = mask_normalize(features, label_mask.unsqueeze(-1))
 
                     if 'utterance' in self.args.run:
                         # labels: (batch_size, )
@@ -251,6 +255,9 @@ class Runner():
                     labels = labels.squeeze(0).to(device=self.device)
                     label_mask = (features.sum(dim=-1) != 0).type(torch.LongTensor).to(device=self.device, dtype=torch.long)
                     valid_lengths = label_mask.sum(dim=1)
+
+                    if self.args.cmvn:
+                        features = mask_normalize(features, label_mask.unsqueeze(-1))
 
                     if 'utterance' in self.args.run:
                         # labels: (batch_size, )

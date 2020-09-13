@@ -13,6 +13,7 @@
 import torch
 from torch import nn
 from torch.nn.utils.rnn import pack_padded_sequence
+from utility.mask_operations import *
 
 
 #####################
@@ -287,7 +288,11 @@ class RnnClassifier(nn.Module):
             # cause h_n directly contains info for final states
             # it will be easier to use h_n as extracted embedding
         else:
-            hidden = features.mean(dim=1)
+            length_masks = get_length_masks(valid_lengths).unsqueeze(-1)
+            min_length = min(length_masks.size(1), features.size(1))
+            length_masks = length_masks[:, :min_length, :]
+            features = features[:, :min_length, :]
+            hidden = mask_mean(features, length_masks).squeeze(1)
         
         for linear in self.post_linears:
             hidden = linear(hidden)
