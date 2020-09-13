@@ -308,7 +308,7 @@ class TRANSFORMER(TransformerBaseWrapper):
 
     def forward(self, x):
         if 'online' in self.config:
-            x = self.preprocessor(x.transpose(1, 2))[0]
+            x = self.preprocessor(x.transpose(1, 2).contiguous())[0]
 
         if self.no_grad:
             with torch.no_grad():
