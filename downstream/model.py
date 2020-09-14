@@ -283,7 +283,7 @@ class RnnClassifier(nn.Module):
             features = self.dropout(features)
 
         if self.rnn is not None:
-            packed = pack_padded_sequence(features, valid_lengths, batch_first=True, enforce_sorted=True)
+            packed = pack_padded_sequence(features, valid_lengths, batch_first=True, enforce_sorted=False)
             _, h_n = self.rnn(packed)
             hidden = h_n[-1, :, :]
             # cause h_n directly contains info for final states
@@ -327,14 +327,15 @@ class RnnClassifier(nn.Module):
 
 
 class LinearDisentangler(nn.Module):
-    def __init__(self, upstream_dim=768, hidden_size=758, **kwargs):
+    def __init__(self, upstream_dim=768, **kwargs):
         super(LinearDisentangler, self).__init__()
-        self.speaker = nn.Linear(upstream_dim, hidden_size)
-        self.no_speaker = nn.Linear(upstream_dim, hidden_size)
+        self.speaker = nn.Linear(upstream_dim, upstream_dim)
+        self.no_speaker = nn.Linear(upstream_dim, upstream_dim)
 
-    def forward(self, features):
-        speaker = self.speaker(features)
-        no_speaker = self.no_speaker(features)
+    def forward(self, features, **kwargs):
+        speaker = self.speaker(features.mean(dim=1, keepdim=True))
+        normalized_features = mask_normalize(features, features.sum(dim=-1, keepdim=True) != 0)
+        no_speaker = self.no_speaker(normalized_features)
         return speaker, no_speaker, speaker + no_speaker
 
 
@@ -343,7 +344,7 @@ class MeanClassifier(nn.Module):
         super(MeanClassifier, self).__init__()
         self.project = nn.Linear(input_dim, class_num)
     
-    def forward(self, features):
+    def forward(self, features, **kwargs):
         return self.project(features.mean(dim=1))
 
 

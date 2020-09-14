@@ -402,8 +402,8 @@ class Runner():
         pbar = tqdm(total=int(self.config['total_steps']))
         pbar.n = self.global_step - 1
 
-        d_loses = 0.0
-        c_loses = 0.0
+        c_loses = []
+        d_loses = []
 
         while self.global_step <= int(self.config['total_steps']):
 
@@ -430,36 +430,46 @@ class Runner():
                     label_mask = (features.sum(dim=-1) != 0).type(torch.LongTensor).to(device=self.device, dtype=torch.long)
                     valid_lengths = label_mask.sum(dim=1)
 
-                    no_speaker, speaker, reconstructed_representation = self.disentangler(features)
+                    speaker, no_speaker, reconstructed_representation = self.disentangler(features)
                     reconstructed_spec = self.downstream_model(reconstructed_representation)
-                    d_loss = F.l1_loss((reconstructed_spec + 1e-8).log(), (real_spec + 1e-8).log())
-                    speaker_prediction = self.classifier(no_speaker)
+                    d_loss = F.l1_loss((reconstructed_spec + 1e-8).log(), real_spec)
+                    speaker_prediction = self.classifier(no_speaker, valid_lengths=valid_lengths)
                     c_loss = F.cross_entropy(speaker_prediction, labels)
 
                     # record
-                    c_loses += c_loss.item() / self.config['classifier_iteration']
-                    d_loses += d_loss.item() / self.config['disentangler_iteration']
+                    c_loses.append(c_loss.item())
+                    d_loses.append(d_loss.item())
 
-                    if self.global_step % self.config['classifier_iteration'] == 0:
-                        c_loss.backward()
-                        self.classifier_optimizer.step()
+                    if self.global_step % self.config['time_scale'] > 0:
                         self.classifier_optimizer.zero_grad()
+                        c_loss.backward()
+                        grad_norm = torch.nn.utils.clip_grad_norm_(self.classifier.parameters(), \
+                                                                   float(self.config['gradient_clipping']))
+                        if torch.isnan(grad_norm) or torch.isinf(grad_norm):
+                            print('[CLASSIFIER] NAN or INF when clipping gradient')
+                            continue
+                        self.classifier_optimizer.step()
 
-                    if self.global_step % self.config['disentangler_iteration'] == 0:
-                        d_loss.backward()
-                        self.disentangler_optimizier.step()
-                        self.disentangler_optimizier.zero_grad()
+                    else:
+                        self.disentangler_optimizer.zero_grad()
+                        (d_loss - c_loss).backward()
+                        grad_norm = torch.nn.utils.clip_grad_norm_(self.disentangler.parameters(), \
+                                                                   float(self.config['gradient_clipping']))
+                        if torch.isnan(grad_norm) or torch.isinf(grad_norm):
+                            print('[DISENTANGLER] NAN or INF when clipping gradient')
+                            continue
+                        self.disentangler_optimizer.step()
                     
                     # logging
                     if self.global_step % int(self.config['log_step']) == 0:
                         # Log
-                        c_los = c_loses / int(self.config['log_step'])
-                        d_los = d_loses / int(self.config['log_step'])
+                        c_los = torch.Tensor(c_loses).mean().item()
+                        d_los = torch.Tensor(d_loses).mean().item()
                         self.log.add_scalar('classifier loss', c_los, self.global_step)
                         self.log.add_scalar('disentangler loss', d_los, self.global_step)
                         pbar.set_description('c_los %.5f, d_los %.5f' % (c_los, d_los))
-                        c_loses = 0.0
-                        d_loses = 0.0
+                        c_loses = []
+                        d_loses = []
 
                 except RuntimeError as e:
                     if 'CUDA out of memory' in str(e):
