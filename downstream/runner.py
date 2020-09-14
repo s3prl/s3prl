@@ -29,7 +29,7 @@ from downstream.model import *
 ##########
 class Runner():
     ''' Handler for complete training and evaluation progress of downstream models '''
-    def __init__(self, args, runner_config, dataloader, upstream, downstream, expdir):
+    def __init__(self, args, config, dataloader, upstream, downstream, expdir):
 
         self.device = torch.device('cuda') if (args.gpu and torch.cuda.is_available()) else torch.device('cpu')
         if torch.cuda.is_available(): print('[Runner] - CUDA is available!')
@@ -38,7 +38,8 @@ class Runner():
         self.log = SummaryWriter(expdir)
 
         self.args = args
-        self.config = runner_config
+        self.all_config = config
+        self.config = config['runner']
         self.dataloader = dataloader
         self.upstream_model = upstream.to(self.device)
         self.downstream_model = downstream.to(self.device)
@@ -46,11 +47,11 @@ class Runner():
 
         if args.disentangle:
             upstream_dim = upstream.config['transformer']['hidden_size']
-            self.disentangler = eval(args.disentangler)(upstream_dim, **runner_config[args.disentangler]
-                                                        if args.disentangler in runner_config else {}).to(self.device)
+            self.disentangler = eval(args.disentangler)(upstream_dim, **self.config[args.disentangler]
+                                                        if args.disentangler in self.config else {}).to(self.device)
             _, no_speaker, _ = self.disentangler(torch.randn(1, 100, upstream_dim).to(self.device))
-            self.classifier = eval(args.classifier)(no_speaker.size(-1), dataloader['train'].dataset.class_num, **runner_config[args.classifier]
-                                                    if args.classifier in runner_config else {}).to(self.device)
+            self.classifier = eval(args.classifier)(no_speaker.size(-1), dataloader['train'].dataset.class_num, **self.config[args.classifier]
+                                                    if args.classifier in self.config else {}).to(self.device)
 
     def set_model(self):
 
@@ -84,8 +85,15 @@ class Runner():
         ckpt = torch.load(ckptpth)
         if self.args.fine_tune:
             self.upstream_model.load_state_dict(ckpt['Upstream'])
-        self.downstream_model.load_state_dict(ckpt['Downstream'])
-        self.optimizer.load_state_dict(ckpt['Optimizer'])
+
+        if self.args.disentangle:
+            self.disentangler.load_state_dict(ckpt['Disentangler'])
+            self.classifier.load_state_dict(ckpt['Classifier'])
+            self.disentangler_optimizer.load_state_dict(ckpt['Disentangler_optimizer'])
+            self.classifier_optimizer.load_state_dict(ckpt['Classifier_optimizer'])
+        else:
+            self.downstream_model.load_state_dict(ckpt['Downstream'])
+            self.optimizer.load_state_dict(ckpt['Optimizer'])
         self.global_step = ckpt['Global_step']
 
 
@@ -97,10 +105,24 @@ class Runner():
             'Optimizer': self.optimizer.state_dict(),
             'Global_step': self.global_step,
             'Settings': {
-                'Config': self.config,
+                'Config': self.all_config,
                 'Paras': self.args,
             },
         }
+        
+        if self.args.disentangle:
+            all_states = {
+                'Upstream': self.upstream_model.state_dict() if self.args.fine_tune else None,
+                'Disentangler': self.disentangler.state_dict(),
+                'Classifier': self.classifier.state_dict(),
+                'Disentangler_optimizer': self.disentangler_optimizer.state_dict(),
+                'Classifier_optimizer': self.classifier_optimizer.state_dict(),
+                'Global_step': self.global_step,
+                'Settings': {
+                    'Config': self.all_config,
+                    'Paras': self.args,
+                },
+            }   
 
         if save_best is not None:
             model_path = f'{self.expdir}/{save_best}.ckpt'
@@ -405,6 +427,7 @@ class Runner():
         c_loses = []
         c_acces = []
         d_loses = []
+        best_d_los = 100
 
         while self.global_step <= int(self.config['total_steps']):
 
@@ -475,6 +498,10 @@ class Runner():
                         pbar.set_description('c_los %.5f, c_acc %.5f, d_los %.5f' % (c_los, c_acc, d_los))
                         c_loses = []
                         d_loses = []
+
+                    if self.global_step % int(self.config['save_step']) == 0 and d_los < best_d_los:
+                        self.save_model()
+                        best_d_los = d_los
 
                 except RuntimeError as e:
                     if 'CUDA out of memory' in str(e):
