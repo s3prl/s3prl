@@ -38,7 +38,11 @@ runner:
       hidden_size: 64                                      # size of hidden layer, set to 0 for no rnn and we average over time
       post_linear_dims: []
       drop: 0.2                                           # The dropout ratio, not used when `pre_linear_dims: []` and `hidden_size: 0` and `post_linear_dims: []`, since the model is a linear utterance-wise classifier
-
+  SelfAttentionClassifier:
+    {}
+  Conv1dClassifier:
+    kernel_size: 7
+    channel_num: 128
 
 
 model:                                                  # downstream model config

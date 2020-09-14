@@ -362,6 +362,18 @@ class SelfAttentionClassifier(nn.Module):
         return logits
 
 
+class Conv1dClassifier(nn.Module):
+    def __init__(self, input_dim, class_num, kernel_size=7, channel_num=128, **kwargs):
+        super(Conv1dClassifier, self).__init__()
+        self.conv1d = nn.Conv1d(input_dim, channel_num, kernel_size, padding=(kernel_size - 1) // 2)
+        self.classifier = nn.Linear(channel_num, class_num)
+
+    def forward(self, features, **kwargs):
+        patterns = self.conv1d(features.transpose(1, 2)).transpose(1, 2)
+        logits = self.classifier(patterns.mean(dim=1)).squeeze(-1)
+        return logits
+
+
 ##################
 # DUMMY UPSTREAM #
 ##################
