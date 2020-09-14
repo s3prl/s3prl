@@ -27,6 +27,8 @@ runner:
   time_scale: 1000000000000
   LinearDisentangler:
     {}
+  MeanDisentangler:
+    {}
   MeanClassifier:
     {}
   RnnClassifier:

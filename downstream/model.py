@@ -339,6 +339,18 @@ class LinearDisentangler(nn.Module):
         return speaker, no_speaker, speaker + no_speaker
 
 
+class MeanDisentangler(nn.Module):
+    def __init__(self, upstream_dim=768, **kwargs):
+        super(MeanDisentangler, self).__init__()
+        self.no_speaker = nn.Linear(upstream_dim, upstream_dim)
+
+    def forward(self, features, **kwargs):
+        speaker = features.mean(dim=1, keepdim=True)
+        normalized_features = mask_normalize(features, features.sum(dim=-1, keepdim=True) != 0)
+        no_speaker = self.no_speaker(normalized_features)
+        return speaker, no_speaker, speaker + no_speaker
+
+
 class MeanClassifier(nn.Module):
     def __init__(self, input_dim, class_num, **kwargs):
         super(MeanClassifier, self).__init__()
