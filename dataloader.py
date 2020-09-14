@@ -168,6 +168,8 @@ class OnlineSpeakerDataset(OnlineDataset):
         self.filepths = new_filepths
         
         speakers_unique = torch.unique(torch.LongTensor(list(self.filepth2speaker.values())))
+        print(f'[OnlineSpeakerDataset] - {len(speakers_unique)} speakers found')
+
         self.idx2speaker = {}
         self.speaker2idx = {}
         for idx, speaker in enumerate(speakers_unique):
