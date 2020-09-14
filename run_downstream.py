@@ -53,6 +53,7 @@ def get_downstream_args():
     
     parser = argparse.ArgumentParser(description='Argument Parser for Downstream Tasks of the S3PLR project.')
     parser.add_argument('--resume', help='Specify the downstream checkpoint path for continual training')
+    parser.add_argument('--probe', action='store_true')
     
     # required
     parser.add_argument('--run',  choices=['phone_linear', 'phone_1hidden', 'phone_concat', 'speaker_frame', 'speaker_utterance'], help='select task.')

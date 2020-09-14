@@ -475,7 +475,7 @@ class Runner():
                             continue
                         self.classifier_optimizer.step()
 
-                    else:
+                    elif not self.args.probe:
                         self.disentangler_optimizer.zero_grad()
                         boundary_c_loss = torch.min(c_loss, c_loss.new_ones(1) * self.config['no_speaker_max'])
                         (d_loss - self.config['no_speaker_ratio'] * boundary_c_loss).backward()
@@ -492,14 +492,17 @@ class Runner():
                         c_los = torch.Tensor(c_loses).mean().item()
                         c_acc = torch.Tensor(c_acces).mean().item()
                         d_los = torch.Tensor(d_loses).mean().item()
-                        self.log.add_scalar('classifier loss', c_los, self.global_step)
-                        self.log.add_scalar('classifier accuracy', c_acc, self.global_step)
-                        self.log.add_scalar('disentangler loss', d_los, self.global_step)
+
+                        if not self.args.probe:
+                            self.log.add_scalar('classifier loss', c_los, self.global_step)
+                            self.log.add_scalar('classifier accuracy', c_acc, self.global_step)
+                            self.log.add_scalar('disentangler loss', d_los, self.global_step)
+
                         pbar.set_description('c_los %.5f, c_acc %.5f, d_los %.5f' % (c_los, c_acc, d_los))
                         c_loses = []
                         d_loses = []
 
-                    if self.global_step % int(self.config['save_step']) == 0 and d_los < best_d_los:
+                    if self.global_step % int(self.config['save_step']) == 0 and d_los < best_d_los and not self.args.probe:
                         self.save_model()
                         best_d_los = d_los
 
