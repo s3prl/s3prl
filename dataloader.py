@@ -152,9 +152,20 @@ class OnlineSpeakerDataset(OnlineDataset):
     def __init__(self, roots, sample_rate, max_time, target_level=-25, noise_proportion=0, noise_type='gaussian', snrs=[3], eps=1e-8, n_jobs=12, **kwargs):
         super().__init__(roots, sample_rate, max_time, target_level=-25, noise_proportion=0, noise_type='gaussian', snrs=[3], eps=1e-8)
         
+        with open('data/cpc_phone/test_split.txt', 'r') as handle:
+            files = handle.readlines()
+            test_speakers = torch.LongTensor([int(pth.split('-')[0]) for pth in files]).unique()
+            speaker_is_test = torch.zeros(test_speakers.max() + 1)
+            speaker_is_test[test_speakers] = 1
+
         self.filepth2speaker = {}
-        for filepth in self.filepths:
-            self.filepth2speaker[filepth] = int(os.path.basename(os.path.dirname(os.path.dirname(filepth))))
+        new_filepths = []
+        for filepth in tqdm(self.filepths):
+            speaker = int(os.path.basename(os.path.dirname(os.path.dirname(filepth))))
+            if speaker >= len(speaker_is_test) or speaker_is_test[speaker]:
+                new_filepths.append(filepth)
+                self.filepth2speaker[filepth] = speaker
+        self.filepths = new_filepths
         
         speakers_unique = torch.unique(torch.LongTensor(list(self.filepth2speaker.values())))
         self.idx2speaker = {}
