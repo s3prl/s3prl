@@ -348,6 +348,20 @@ class MeanClassifier(nn.Module):
         return self.project(features.mean(dim=1))
 
 
+class SelfAttentionClassifier(nn.Module):
+    def __init__(self, input_dim, class_num, **kwargs):
+        super(SelfAttentionClassifier, self).__init__()
+        self.importance = nn.Linear(input_dim, 1)
+        self.classifier = nn.Linear(input_dim, class_num)
+
+    def forward(self, features, **kwargs):
+        seq_len = features.shape[1]
+        attention = F.softmax(self.importance(features).squeeze(-1)).unsqueeze(-1)
+        pooled = torch.sum(features * attention, dim=1)
+        logits = self.classifier(pooled)
+        return logits
+
+
 ##################
 # DUMMY UPSTREAM #
 ##################
