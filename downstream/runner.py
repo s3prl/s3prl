@@ -454,7 +454,8 @@ class Runner():
 
                     else:
                         self.disentangler_optimizer.zero_grad()
-                        (d_loss - self.config['no_speaker_ratio'] * c_loss).backward()
+                        boundary_c_loss = torch.min(c_loss, c_loss.new_ones(1) * self.config['no_speaker_max'])
+                        (d_loss - self.config['no_speaker_ratio'] * boundary_c_loss).backward()
                         grad_norm = torch.nn.utils.clip_grad_norm_(self.disentangler.parameters(), \
                                                                    float(self.config['gradient_clipping']))
                         if torch.isnan(grad_norm) or torch.isinf(grad_norm):
