@@ -326,6 +326,27 @@ class RnnClassifier(nn.Module):
         return result
 
 
+class LinearDisentangler(nn.Module):
+    def __init__(self, upstream_dim=768, hidden_size=758, **kwargs):
+        super(LinearDisentangler, self).__init__()
+        self.speaker = nn.Linear(upstream_dim, hidden_size)
+        self.no_speaker = nn.Linear(upstream_dim, hidden_size)
+
+    def forward(self, features):
+        speaker = self.speaker(features)
+        no_speaker = self.no_speaker(features)
+        return speaker, no_speaker, speaker + no_speaker
+
+
+class MeanClassifier(nn.Module):
+    def __init__(self, input_dim, class_num, **kwargs):
+        super(MeanClassifier, self).__init__()
+        self.project = nn.Linear(input_dim, class_num)
+    
+    def forward(self, features):
+        return self.project(features.mean(dim=1))
+
+
 ##################
 # DUMMY UPSTREAM #
 ##################

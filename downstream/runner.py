@@ -21,6 +21,7 @@ from tensorboardX import SummaryWriter
 from downstream.solver import get_optimizer
 from utility.mask_operations import *
 from utility.preprocessor import OnlinePreprocessor
+from downstream.model import *
 
 
 ##########
@@ -43,6 +44,13 @@ class Runner():
         self.downstream_model = downstream.to(self.device)
         self.expdir = expdir
 
+        if args.disentangle:
+            upstream_dim = upstream.config['transformer']['hidden_size']
+            self.disentangler = eval(args.disentangler)(upstream_dim, **runner_config[args.disentangler]
+                                                        if args.disentangler in runner_config else {}).to(self.device)
+            _, no_speaker, _ = self.disentangler(torch.randn(1, 100, upstream_dim).to(self.device))
+            self.classifier = eval(args.classifier)(no_speaker.size(-1), dataloader['train'].dataset.class_num, **runner_config[args.classifier]
+                                                    if args.classifier in runner_config else {}).to(self.device)
 
     def set_model(self):
 
@@ -59,6 +67,14 @@ class Runner():
             self.optimizer = Adam(self.downstream_model.parameters(), lr=float(self.config['learning_rate']), betas=(0.9, 0.999))
         
         self.downstream_model.train()
+
+        if self.args.disentangle:
+            self.disentangler_optimizer = Adam(self.disentangler.parameters(), lr=float(self.config['learning_rate']), betas=(0.9, 0.999))
+            self.classifier_optimizer = Adam(self.classifier.parameters(), lr=float(self.config['learning_rate']), betas=(0.9, 0.999))
+            self.upstream_model.eval()
+            self.downstream_model.eval()
+            self.disentangler.train()
+            self.classifier.train()
 
         if self.args.resume is not None:
             self.load_model(self.args.resume)
@@ -377,4 +393,86 @@ class Runner():
                                         sample_rate=self.upstream_model.preprocessor._sample_rate)
 
 
+        self.log.close()
+
+
+    def disentangle(self):
+        ''' Training of downstream tasks'''
+
+        pbar = tqdm(total=int(self.config['total_steps']))
+        pbar.n = self.global_step - 1
+
+        d_loses = 0.0
+        c_loses = 0.0
+
+        while self.global_step <= int(self.config['total_steps']):
+
+            for features, labels in tqdm(self.dataloader['train'], desc="Iteration"):
+                try:
+                    if self.global_step > int(self.config['total_steps']): break
+                    
+                    # features: (1, batch_size, seq_len, feature)
+                    # dimension of labels depend on task and dataset, but the first dimention is always trivial due to bucketing, eg. (1, ...)
+                    features = features.squeeze(0).to(device=self.device, dtype=torch.float32)
+                    real_spec = self.upstream_model.preprocessor(features.transpose(1, 2).contiguous())[1]
+                    if self.args.fine_tune:
+                        features = self.upstream_model(features)
+                    else:
+                        with torch.no_grad():
+                            features = self.upstream_model(features)
+
+                    # Since zero padding technique, some timestamps of features are not valid
+                    # For each timestamps, we mark 1 on valid timestamps, and 0 otherwise
+                    # This variable can be useful for frame-wise metric, like phoneme recognition or speaker verification
+                    # label_mask: (batch_size, seq_len), LongTensor
+                    # valid_lengths: (batch_size), LongTensor
+                    labels = labels.squeeze(0).to(device=self.device)  # labels can be torch.long or torch.float (regression)
+                    label_mask = (features.sum(dim=-1) != 0).type(torch.LongTensor).to(device=self.device, dtype=torch.long)
+                    valid_lengths = label_mask.sum(dim=1)
+
+                    no_speaker, speaker, reconstructed_representation = self.disentangler(features)
+                    reconstructed_spec = self.downstream_model(reconstructed_representation)
+                    d_loss = F.l1_loss((reconstructed_spec + 1e-8).log(), (real_spec + 1e-8).log())
+                    speaker_prediction = self.classifier(no_speaker)
+                    c_loss = F.cross_entropy(speaker_prediction, labels)
+
+                    # record
+                    c_loses += c_loss.item() / self.config['classifier_iteration']
+                    d_loses += d_loss.item() / self.config['disentangler_iteration']
+
+                    if self.global_step % self.config['classifier_iteration'] == 0:
+                        c_loss.backward()
+                        self.classifier_optimizer.step()
+                        self.classifier_optimizer.zero_grad()
+
+                    if self.global_step % self.config['disentangler_iteration'] == 0:
+                        d_loss.backward()
+                        self.disentangler_optimizier.step()
+                        self.disentangler_optimizier.zero_grad()
+                    
+                    # logging
+                    if self.global_step % int(self.config['log_step']) == 0:
+                        # Log
+                        c_los = c_loses / int(self.config['log_step'])
+                        d_los = d_loses / int(self.config['log_step'])
+                        self.log.add_scalar('classifier loss', c_los, self.global_step)
+                        self.log.add_scalar('disentangler loss', d_los, self.global_step)
+                        pbar.set_description('c_los %.5f, d_los %.5f' % (c_los, d_los))
+                        c_loses = 0.0
+                        d_loses = 0.0
+
+                except RuntimeError as e:
+                    if 'CUDA out of memory' in str(e):
+                        print('[Runner] - CUDA out of memory at step: ', self.global_step)
+                    elif 'worker' in str(e):
+                        print('[Runner] - Dataloader worker not available at step: ', self.global_step)
+                    else:
+                        raise
+                    torch.cuda.empty_cache()
+                    self.optimizer.zero_grad()
+
+                pbar.update(1)
+                self.global_step += 1
+                
+        pbar.close()
         self.log.close()

@@ -13,13 +13,14 @@
 import os
 import yaml
 import glob
+import copy
 import torch
 import random
 import argparse
 import numpy as np
 from shutil import copyfile
-from dataloader import get_Dataloader
-from transformer.nn_transformer import TRANSFORMER, DUAL_TRANSFORMER
+from dataloader import get_Dataloader, get_online_Dataloader
+from transformer.nn_transformer import TRANSFORMER
 from downstream.model import dummy_upstream, LinearClassifier, RnnClassifier, SpecHead
 from downstream.runner import Runner
 from argparse import Namespace
@@ -68,6 +69,10 @@ def get_downstream_args():
     parser.add_argument('--inference_split', default='test')
     parser.add_argument('--sample_num', type=int, default=5)
     parser.add_argument('--assign_speaker', type=int, default=-1)
+
+    parser.add_argument('--disentangle', action='store_true')
+    parser.add_argument('--classifier', default='MeanClassifier')
+    parser.add_argument('--disentangler', default='LinearDisentangler')
     
     # Options
     parser.add_argument('--name', default=None, type=str, help='Name of current experiment.', required=False)
@@ -159,6 +164,19 @@ def get_dataloader(args, dataloader_config):
     if 'online' in pretrain_config:
         dataloader_config['online_config'] = pretrain_config['online']
 
+    if args.disentangle:
+        newroots = []
+        for root in pretrain_config['online']['roots']:
+            keyword = 'LibriSpeech'
+            index = root.find(keyword) + len(keyword)
+            newroot = f'{dataloader_config["libri_root"]}/{root[index:]}'
+            assert os.path.exists(newroot)
+            newroots.append(newroot)
+        pretrain_config['online']['roots'] = newroots
+        
+        train_loader = get_online_Dataloader(args, pretrain_config, with_speaker=True)
+        return train_loader, None, None
+
     if not os.path.exists(dataloader_config['data_path']):
         raise RuntimeError('[run_downstream] - Data path not valid:', dataloader_config['data_path'])    
     print('[run_downstream] - Loading input data: ' + str(dataloader_config['train_set']) + ' from ' + dataloader_config['data_path'])
@@ -192,7 +210,7 @@ def get_downstream_model(args, input_dim, class_num, config):
     model_name = args.run.split('_')[-1].replace('frame', 'linear') # support names: ['linear', '1hidden', 'concat', 'utterance']
     model_config = config['model'][model_name]
 
-    if args.inference_spec:
+    if args.inference_spec or args.disentangle:
         downstream_model = SpecHead(args.ckpt)
     elif args.task == 'speaker' and 'utterance' in args.run:
         downstream_model = RnnClassifier(input_dim, class_num, model_config)
@@ -248,9 +266,10 @@ def main():
 
     if args.inference_spec:
         runner.generate()
-        return
-
-    runner.train()
+    elif args.disentangle:
+        runner.disentangle()
+    else:
+        runner.train()
 
 
 if __name__ == '__main__':

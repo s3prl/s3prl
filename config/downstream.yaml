@@ -24,6 +24,13 @@ runner:
   evaluation: 'dev'                                     # can be 'dev' or 'test', show inference results and saves the best model
   max_keep: 2                                           # maximum number of model ckpt to keep during training
 
+  disentangler_iteration: 3
+  classifier_iteration: 1
+  LinearDisentangler:
+    hidden_size: 768
+  MeanClassifier:
+    {}
+
 
 model:                                                  # downstream model config
   
