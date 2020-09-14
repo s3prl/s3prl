@@ -24,7 +24,8 @@ runner:
   evaluation: 'dev'                                     # can be 'dev' or 'test', show inference results and saves the best model
   max_keep: 2                                           # maximum number of model ckpt to keep during training
 
-  time_scale: 1000000000000
+  time_scale: 10
+  no_speaker_ratio: 0.1
   LinearDisentangler:
     {}
   MeanDisentangler:
