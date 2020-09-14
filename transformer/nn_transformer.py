@@ -122,9 +122,11 @@ class TransformerBaseWrapper(nn.Module):
 
     def get_preprocessor(self, online_config):
         # load the same preprocessor as pretraining stage
-        upstream_feat = online_config['input']
-        upstream_feat['channel'] = 0
-        preprocessor = OnlinePreprocessor(**online_config, feat_list=[upstream_feat])
+        upstream_input_feat = online_config['input']
+        upstream_input_feat['channel'] = 0
+        upstream_target_feat = online_config['target']
+        upstream_target_feat['channel'] = 0
+        preprocessor = OnlinePreprocessor(**online_config, feat_list=[upstream_input_feat, upstream_target_feat])
         upstream_feat = preprocessor()[0]
         upstream_input_dim = upstream_feat.size(-1)
         return preprocessor, upstream_input_dim
