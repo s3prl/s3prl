@@ -403,6 +403,7 @@ class Runner():
         pbar.n = self.global_step - 1
 
         c_loses = []
+        c_acces = []
         d_loses = []
 
         while self.global_step <= int(self.config['total_steps']):
@@ -438,6 +439,7 @@ class Runner():
 
                     # record
                     c_loses.append(c_loss.item())
+                    c_acces.append((speaker_prediction.argmax(dim=-1) == labels).float().mean().item())
                     d_loses.append(d_loss.item())
 
                     if self.global_step % self.config['time_scale'] > 0:
@@ -464,10 +466,12 @@ class Runner():
                     if self.global_step % int(self.config['log_step']) == 0:
                         # Log
                         c_los = torch.Tensor(c_loses).mean().item()
+                        c_acc = torch.Tensor(c_acces).mean().item()
                         d_los = torch.Tensor(d_loses).mean().item()
                         self.log.add_scalar('classifier loss', c_los, self.global_step)
+                        self.log.add_scalar('classifier accuracy', c_acc, self.global_step)
                         self.log.add_scalar('disentangler loss', d_los, self.global_step)
-                        pbar.set_description('c_los %.5f, d_los %.5f' % (c_los, d_los))
+                        pbar.set_description('c_los %.5f, c_acc %.5f, d_los %.5f' % (c_los, c_acc, d_los))
                         c_loses = []
                         d_loses = []
 

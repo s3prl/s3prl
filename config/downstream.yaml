@@ -18,7 +18,7 @@ runner:
   warmup_proportion: 0.07                               # Proportion of training to perform linear rate warmup.
   gradient_clipping: 1.0                                # Maximum gradient norm
   total_steps: 500000                                   # total steps for training, a step is a batch of update
-  log_step: 1000                                        # log training status every this amount of training steps
+  log_step: 100                                        # log training status every this amount of training steps
   save_step: 2000                                       # save model every this amount of training steps
   dev_step: 10000                                       # evaluate every this amount of training steps
   evaluation: 'dev'                                     # can be 'dev' or 'test', show inference results and saves the best model
