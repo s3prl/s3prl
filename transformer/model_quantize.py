@@ -399,7 +399,9 @@ class LinearLayer(DummyLayer):
         self.use_activation = use_activation
         self.activation = nn.GELU()
 
-    def forward(self, x):
+    def forward(self, x, sequence_data=True):
+        if not sequence_data: # [N, hidden_size]
+            x = x.unsqueeze(1) # [N, 1, hidden_size]
         x = self.linear(x)
         if self.use_activation:
             x = self.activation(x)

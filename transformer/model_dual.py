@@ -34,6 +34,7 @@ class DualTransformerConfig(TransformerConfig):
         self.phone_type = config['dual_transformer']['phone_type']
         self.phone_size = config['dual_transformer']['phone_size']
         self.phone_dim = config['dual_transformer']['phone_dim']
+        self.speaker_type = config['dual_transformer']['speaker_type']
         self.speaker_size = config['dual_transformer']['speaker_size']
         self.speaker_dim = config['dual_transformer']['speaker_dim']
         self.pre_train = config['dual_transformer']['pre_train']
@@ -240,9 +241,16 @@ class TransformerSpeakerEncoder(TransformerInitModel):
         super(TransformerSpeakerEncoder, self).__init__(config, output_attentions)
         self.Transformer = TransformerModel(config, input_dim, output_attentions=output_attentions,
                                             keep_multihead_output=keep_multihead_output)
-        self.GlobalStyleToken = GlobalStyleTokenLayer(config.hidden_size, config.speaker_size, config.speaker_dim)
+        if config.speaker_type == 'gst':
+            self.SpeakerRecognizer = GlobalStyleTokenLayer(config.hidden_size, config.speaker_size, config.speaker_dim)
+        elif config.speaker_type == 'linear':
+            self.SpeakerRecognizer = LinearLayer(config.hidden_size, config.speaker_dim)
+        elif config.phone_type == 'none':
+            self.PhoneRecognizer = DummyLayer(config.speaker_dim)
+        else:
+            raise NotImplementedError
         self.apply(self.init_Transformer_weights)
-        self.out_dim = self.GlobalStyleToken.out_dim
+        self.out_dim = self.SpeakerRecognizer.out_dim
 
     def forward(self, spec_input, pos_enc, attention_mask=None, output_all_encoded_layers=False, head_mask=None):
         outputs = self.Transformer(spec_input, pos_enc, attention_mask,
@@ -254,7 +262,7 @@ class TransformerSpeakerEncoder(TransformerInitModel):
         else:
             sequence_output = outputs
         sequence_output = sequence_output.mean(dim=1)
-        speaker_code = self.GlobalStyleToken(sequence_output, sequence_data=False)
+        speaker_code = self.SpeakerRecognizer(sequence_output, sequence_data=False)
 
         if self.output_attentions:
             return all_attentions, speaker_code
