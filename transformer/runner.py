@@ -148,7 +148,7 @@ class Runner():
                 pass
             try: # store speaker encoder if exist
                 all_states['SpeakerTransformer'] = self.model.SpeakerTransformer.Transformer.state_dict() if not self.args.multi_gpu else self.model.module.SpeakerTransformer.Transformer.state_dict()
-                all_states['SpeakerLayer'] = self.model.SpeakerTransformer.GlobalStyleToken.state_dict() if not self.args.multi_gpu else self.model.module.SpeakerTransformer.GlobalStyleToken.state_dict()
+                all_states['SpeakerLayer'] = self.model.SpeakerTransformer.SpeakerRecognizer.state_dict() if not self.args.multi_gpu else self.model.module.SpeakerTransformer.SpeakerRecognizer.state_dict()
             except:
                 pass
         else:
