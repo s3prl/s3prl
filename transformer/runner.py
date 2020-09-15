@@ -61,7 +61,7 @@ class Runner():
         # model
         self.transformer_config = config['transformer']
         self.dr = config['transformer']['downsample_rate']
-        self.dual_transformer = config['transformer']['dual_transformer']
+        self.dual_transformer = config['transformer']['dual_transformer'] if 'dual_transformer' in config['transformer'] else None
         if 'online' in config:
             print(f'[Runner] - Using features extracted on-the-fly')
             feat_list = [config['online']['input'], config['online']['target']]

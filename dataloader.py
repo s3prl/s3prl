@@ -55,17 +55,23 @@ def get_online_Dataloader(args, config, is_train=True):
 
 
 class OnlineDataset(Dataset):
-    def __init__(self, roots, sample_rate, max_time, target_level, noise_proportion, snrs, **kwargs):
-        self.load_config = [sample_rate, max_time, target_level]
+    def __init__(self, roots, sample_rate, max_time, target_level=-25, noise_proportion=0, noise_type='gaussian', snrs=[3], eps=1e-8, **kwargs):
+        self.sample_rate = sample_rate
+        self.max_time = max_time
+        self.target_level = target_level
+        self.eps = eps
 
         self.filepths = []
         for root in roots:
             self.filepths += find_files(root)
         assert len(self.filepths) > 0, 'No audio file detected'
-        
+
         self.noise_proportion = noise_proportion
         self.snrs = snrs
-        self.noise_sampler = torch.distributions.Normal(0, 1)
+        if noise_type == 'gaussian':
+            self.noise_sampler = torch.distributions.Normal(0, 1)
+        else:
+            self.noise_wavpths = find_files(noise_type)
     
     @classmethod
     def normalize_wav_decibel(cls, audio, target_level):
@@ -88,18 +94,35 @@ class OnlineDataset(Dataset):
         return wav
 
     def __getitem__(self, idx):
-        wav = OnlineDataset.load_data(self.filepths[idx], *self.load_config)
+        load_config = [self.sample_rate, self.max_time, self.target_level]
+        wav = OnlineDataset.load_data(self.filepths[idx], *load_config)
 
         # build input
         dice = random.random()
         if dice < self.noise_proportion:
-            noise = self.noise_sampler.sample(wav.shape)
+            if hasattr(self, 'noise_sampler'):
+                noise = self.noise_sampler.sample(wav.shape)
+            elif hasattr(self, 'noise_wavpths'):
+                sample_rate_ok = False
+                while not sample_rate_ok:
+                    noise_idx = random.randint(0, len(self.noise_wavpths) - 1)
+                    noise, noise_sr = torchaudio.load(self.noise_wavpths[noise_idx])
+                    sample_rate_ok = noise_sr == self.sample_rate
+                assert noise_sr == self.sample_rate
+                noise = noise.squeeze(0)
+                times = wav.size(-1) // noise.size(-1)
+                remainder = wav.size(-1) % noise.size(-1)
+                noise_expanded = noise.unsqueeze(0).expand(times, -1).reshape(-1)
+                noise = torch.cat([noise_expanded, noise[:remainder]], dim=-1)
+                assert noise.size(-1) == wav.size(-1)
+
             snr = float(self.snrs[random.randint(0, len(self.snrs) - 1)])
             snr_exp = 10.0 ** (snr / 10.0)
             wav_power = wav.pow(2).sum()
             noise_power = noise.pow(2).sum()
-            scalar = (wav_power / (snr_exp * noise_power)).pow(0.5)
+            scalar = (wav_power / (snr_exp * noise_power + self.eps)).pow(0.5)
             wav_inp = wav + scalar * noise
+            assert torch.isnan(wav_inp).sum() == 0 and torch.isinf(wav_inp).sum() == 0
         else:
             wav_inp = wav
 
