@@ -272,8 +272,9 @@ class RnnClassifier(nn.Module):
                 features = features[:, select_hidden, :, :]
 
         sample_rate = self.config['sample_rate']
-        features = features[:, torch.arange(0, seq_len, sample_rate), :]
-        valid_lengths /= sample_rate
+        if sample_rate > 1:
+            features = features[:, torch.arange(0, seq_len, sample_rate), :]
+            valid_lengths = valid_lengths // sample_rate
 
         for linear in self.pre_linears:
             features = linear(features)
