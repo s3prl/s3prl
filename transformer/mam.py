@@ -121,7 +121,7 @@ def process_train_MAM_data(spec, config=None):
             attn_mask[idx, spec_len[idx]:] = 0
 
             if reconstruct_all:
-                mask_label[idx, :, :] = 1
+                mask_label[idx, :spec_len[idx], :] = 1
 
             if mask_consecutive_max == 0:
                 continue
