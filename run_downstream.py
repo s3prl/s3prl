@@ -59,6 +59,7 @@ def get_downstream_args():
     parser.add_argument('--input_dim', default=0, type=int, help='Input dimension used to initialize transformer models', required=False)
     parser.add_argument('--fine_tune', action='store_true', help='Whether to fine tune the transformer model with downstream task.', required=False)
     parser.add_argument('--weighted_sum', action='store_true', help='Whether to use weighted sum on the transformer model with downstream task.', required=False)
+    parser.add_argument('--dual_mode',choices=['phone', 'speaker', 'phone speaker'], default='phone', help='Whether to use weighted sum on the transformer model with downstream task.', required=False)
     
     # Options
     parser.add_argument('--name', default=None, type=str, help='Name of current experiment.', required=False)
@@ -106,7 +107,7 @@ def get_upstream_model(args):
         upstream_model = TRANSFORMER(options, args.input_dim)
     
     elif args.upstream == 'dual_transformer':
-        upstream_model = DUAL_TRANSFORMER(options, args.input_dim, mode='phone' if 'phone' in args.run else 'speaker')
+        upstream_model = DUAL_TRANSFORMER(options, args.input_dim, mode=args.dual_mode)
         
     elif args.upstream == 'apc':
         raise NotImplementedError

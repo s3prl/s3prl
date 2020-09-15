@@ -19,8 +19,10 @@ import numpy as np
 import torch.nn as nn
 from functools import lru_cache
 from distutils.util import strtobool
-from transformer.model import TransformerConfig, TransformerModel
 from utility.preprocessor import OnlinePreprocessor
+from transformer.model import TransformerConfig, TransformerModel
+from transformer.model_dual import DualTransformerConfig
+from transformer.model_dual import TransformerPhoneticEncoder, TransformerSpeakerEncoder
 
 
 ###############
@@ -317,6 +319,81 @@ class TRANSFORMER(TransformerBaseWrapper):
                 x = self._forward(x)
         else:
             x = self._forward(x)
+        return x
+
+
+####################
+# DUAL TRANSFORMER #
+####################
+class DUAL_TRANSFORMER(TransformerBaseWrapper):
+    def __init__(self, options, inp_dim, config=None, mode='phone'):
+        super(DUAL_TRANSFORMER, self).__init__(options, inp_dim, config)
+
+        del self.model_config
+        self.model_config = DualTransformerConfig(self.config)
+        self.out_dim = 0 # This attribute is for pytorch-kaldi
+        self.mode = mode # can be 'phone', 'speaker', or 'phone speaker'
+        
+        # Build model
+        if 'phone' in self.mode:
+            self.PhoneticTransformer = TransformerPhoneticEncoder(self.model_config, self.inp_dim).to(self.device)
+            self.PhoneticTransformer.eval() if self.no_grad else self.PhoneticTransformer.train()
+        
+        if 'speaker' in self.mode:
+            self.SpeakerTransformer = TransformerSpeakerEncoder(self.model_config, self.inp_dim).to(self.device)
+            self.SpeakerTransformer.eval() if self.no_grad else self.SpeakerTransformer.train()
+        
+        # Load from a PyTorch state_dict
+        load = bool(strtobool(options["load_pretrain"]))
+        if load and 'phone' in self.mode:
+            self.PhoneticTransformer.Transformer = self.load_model(self.PhoneticTransformer.Transformer, 
+                                                                   self.all_states['PhoneticTransformer'])
+            self.PhoneticTransformer.PhoneRecognizer.load_state_dict(self.all_states['PhoneticLayer'])
+            self.out_dim += self.model_config.phone_dim
+            print('[Phonetic Transformer] - Number of parameters: ' + str(sum(p.numel() for p in self.PhoneticTransformer.parameters() if p.requires_grad)))
+
+        if load and 'speaker' in self.mode:
+            self.SpeakerTransformer.Transformer = self.load_model(self.SpeakerTransformer.Transformer, 
+                                                                   self.all_states['SpeakerTransformer'])
+            try:
+                self.SpeakerTransformer.GlobalStyleToken.load_state_dict(self.all_states['SpeakerLayer'])
+            except:
+                self.SpeakerTransformer.SpeakerRecognizer.load_state_dict(self.all_states['SpeakerLayer'])
+            self.out_dim += self.model_config.speaker_dim
+            print('[Speaker Transformer] - Number of parameters: ' + str(sum(p.numel() for p in self.SpeakerTransformer.parameters() if p.requires_grad)))
+
+
+    def _dual_forward(self, x):
+        if 'phone' in self.mode and 'speaker' in self.mode:
+            self.model = self.PhoneticTransformer
+            phonetic_code = self._forward(x)
+            self.model = self.SpeakerTransformer
+            speaker_code = self._forward(x)
+            speaker_code = speaker_code.repeat(1, phonetic_code.size(1), 1)
+            if self.model_config.combine == 'concat':
+                x = torch.cat((phonetic_code, speaker_code), dim=2)
+            elif self.model_config.combine == 'add':
+                x = phonetic_code + speaker_code
+            else:
+                raise NotImplementedError
+
+        elif 'phone' in self.mode:
+            self.model = self.PhoneticTransformer
+            x = self._forward(x)
+        elif 'speaker' in self.mode:
+            self.model = self.SpeakerTransformer
+            x = self._forward(x)
+        else:
+            raise NotImplementedError
+        return x
+
+
+    def forward(self, x):
+        if self.no_grad:
+            with torch.no_grad():
+                x = self._dual_forward(x)
+        else:
+            x = self._dual_forward(x)
         return x
 
 
