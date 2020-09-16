@@ -4,7 +4,7 @@
 
 [![GitHub](https://img.shields.io/github/license/andi611/Self-Supervised-Speech-Pretraining-and-Representation-Learning)](https://en.wikipedia.org/wiki/MIT_License)
 [![Contributions welcome](https://img.shields.io/badge/contributions-welcome-brightgreen.svg)](CONTRIBUTING.md)
-[![Bitbucket open issues](https://img.shields.io/bitbucket/issues/andi611/Self-Supervised-Speech-Pretraining-and-Representation-Learning)](https://github.com/andi611/Self-Supervised-Speech-Pretraining-and-Representation-Learning/issues)
+[![Bitbucket open issues](https://img.shields.io/github/issues/andi611/Self-Supervised-Speech-Pretraining-and-Representation-Learning)](https://github.com/andi611/Self-Supervised-Speech-Pretraining-and-Representation-Learning/issues)
 
 Table of Contents
 ------------------------------------
