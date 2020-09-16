@@ -353,10 +353,13 @@ class TransformerEncoder(nn.Module):
 
 
 class TransformerSpecPredictionHead(nn.Module):
-    def __init__(self, config, output_dim):
+    def __init__(self, config, output_dim, input_dim=None):
         super(TransformerSpecPredictionHead, self).__init__()
         self.output_dim = output_dim
-        self.dense = nn.Linear(config.hidden_size, config.hidden_size)
+        if input_dim is None:
+            self.dense = nn.Linear(config.hidden_size, config.hidden_size)
+        else:
+            self.dense = nn.Linear(input_dim, config.hidden_size)
         if isinstance(config.hidden_act, str) or (sys.version_info[0] == 2 and isinstance(config.hidden_act, unicode)):
             self.transform_act_fn = ACT2FN[config.hidden_act]
         else:

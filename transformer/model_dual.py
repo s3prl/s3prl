@@ -29,6 +29,7 @@ class DualTransformerConfig(TransformerConfig):
         super(DualTransformerConfig, self).__init__(config)
         
         self.dual_transformer = config['transformer']['dual_transformer']
+        self.decoder = config['dual_transformer']['decoder']
         self.intermediate_pe = config['dual_transformer']['intermediate_pe']
         self.combine = config['dual_transformer']['combine']
         self.phone_type = config['dual_transformer']['phone_type']
@@ -37,6 +38,7 @@ class DualTransformerConfig(TransformerConfig):
         self.speaker_type = config['dual_transformer']['speaker_type']
         self.speaker_size = config['dual_transformer']['speaker_size']
         self.speaker_dim = config['dual_transformer']['speaker_dim']
+        self.average_pooling = config['dual_transformer']['average_pooling']
         self.pre_train = config['dual_transformer']['pre_train']
 
 
@@ -99,10 +101,12 @@ class DualTransformerForMaskedAcousticModel(TransformerInitModel):
         super(DualTransformerForMaskedAcousticModel, self).__init__(config, output_attentions)
         
         assert config.dual_transformer, 'This config attribute should be set to True!'
+        self.decoder = config.decoder
         self.use_pe = config.intermediate_pe
         self.combine = config.combine
         self.phone_dim = config.phone_dim
         self.speaker_dim = config.speaker_dim
+        self.average_pooling = config.average_pooling
         if config.combine == 'concat':
             code_dim = self.phone_dim + self.speaker_dim
         elif config.combine == 'add':
@@ -110,13 +114,14 @@ class DualTransformerForMaskedAcousticModel(TransformerInitModel):
             code_dim = self.phone_dim
         else:
             raise NotImplementedError
-
-        self.SPE = nn.Parameter(torch.FloatTensor([1.0])) # Scaled positional encoding (SPE) introduced in https://arxiv.org/abs/1809.08895
-        self.SpecTransformer = TransformerModel(config, input_dim=code_dim,
-                                                output_attentions=output_attentions,
-                                                keep_multihead_output=keep_multihead_output,
-                                                with_input_module=True if self.use_pe else False)
-        self.SpecHead = TransformerSpecPredictionHead(config, output_dim if output_dim is not None else input_dim)
+        
+        if self.decoder:
+            if self.use_pe: self.SPE = nn.Parameter(torch.FloatTensor([1.0])) # Scaled positional encoding (SPE) introduced in https://arxiv.org/abs/1809.08895
+            self.SpecTransformer = TransformerModel(config, input_dim=code_dim,
+                                                    output_attentions=output_attentions,
+                                                    keep_multihead_output=keep_multihead_output,
+                                                    with_input_module=True if self.use_pe else False)
+        self.SpecHead = TransformerSpecPredictionHead(config, output_dim if output_dim is not None else input_dim, code_dim if self.decoder else None)
 
         if self.phone_dim > 0: self.PhoneticTransformer = TransformerPhoneticEncoder(config, input_dim, output_attentions, keep_multihead_output)
         if self.speaker_dim > 0: self.SpeakerTransformer = TransformerSpeakerEncoder(config, input_dim, output_attentions, keep_multihead_output)
@@ -143,13 +148,13 @@ class DualTransformerForMaskedAcousticModel(TransformerInitModel):
         if self.output_attentions: 
             phonetic_attentions, phonetic_code = phonetic_outputs
             speaker_attentions, speaker_code = speaker_outputs
-            all_attentions = (phonetic_attentions, speaker_attentions)
+            all_attentions = [phonetic_attentions, speaker_attentions]
         else:
             phonetic_code = phonetic_outputs
             speaker_code = speaker_outputs
         
         # replicate code
-        if self.speaker_dim > 0: 
+        if self.speaker_dim > 0 and self.average_pooling: 
             speaker_code = speaker_code.repeat(1, phonetic_code.size(1), 1)
         
         # combine code 
@@ -165,14 +170,18 @@ class DualTransformerForMaskedAcousticModel(TransformerInitModel):
             raise NotImplementedError
 
         # decoder forward
-        outputs = self.SpecTransformer(code, (self.SPE * pos_enc) if self.use_pe else None,
-                                       attention_mask=attention_mask,
-                                       output_all_encoded_layers=False,
-                                       head_mask=head_mask)
-        if self.output_attentions:
-            all_attentions, sequence_output = outputs
+        if self.decoder:
+            outputs = self.SpecTransformer(code, (self.SPE * pos_enc) if self.use_pe else None,
+                                        attention_mask=attention_mask,
+                                        output_all_encoded_layers=False,
+                                        head_mask=head_mask)
+            if self.output_attentions:
+                decoder_attentions, sequence_output = outputs
+                all_attentions.append(decoder_attentions)
+            else:
+                sequence_output = outputs
         else:
-            sequence_output = outputs
+            sequence_output = code
         pred_spec, pred_state = self.SpecHead(sequence_output)
 
         # compute objective
@@ -235,7 +244,7 @@ class TransformerPhoneticEncoder(TransformerInitModel):
 class TransformerSpeakerEncoder(TransformerInitModel):
     '''
     spec_input --- [batch_size, sequence_length, feature_dimension]
-    sequence_output --- [batch_size, 1, speaker_dim]
+    sequence_output --- [batch_size, 1, speaker_dim] or [batch_size, sequence_length, speaker_dim]
     '''
     def __init__(self, config, input_dim, output_attentions=False, keep_multihead_output=False):
         super(TransformerSpeakerEncoder, self).__init__(config, output_attentions)
@@ -249,6 +258,7 @@ class TransformerSpeakerEncoder(TransformerInitModel):
             self.PhoneRecognizer = DummyLayer(config.speaker_dim)
         else:
             raise NotImplementedError
+        self.average_pooling = config.average_pooling
         self.apply(self.init_Transformer_weights)
         self.out_dim = self.SpeakerRecognizer.out_dim
 
@@ -261,8 +271,9 @@ class TransformerSpeakerEncoder(TransformerInitModel):
             all_attentions, sequence_output = outputs
         else:
             sequence_output = outputs
-        sequence_output = sequence_output.mean(dim=1)
-        speaker_code = self.SpeakerRecognizer(sequence_output, sequence_data=False)
+        if self.average_pooling:
+            sequence_output = sequence_output.mean(dim=1)
+        speaker_code = self.SpeakerRecognizer(sequence_output, sequence_data=False if self.average_pooling else True)
 
         if self.output_attentions:
             return all_attentions, speaker_code

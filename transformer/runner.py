@@ -136,21 +136,17 @@ class Runner():
 
     def save_model(self, name='states', to_path=None):
         if self.dual_transformer:
-            all_states = {
-                'SpecHead': self.model.SpecHead.state_dict() if not self.args.multi_gpu else self.model.module.SpecHead.state_dict(),
-                'SpecTransformer': self.model.SpecTransformer.state_dict() if not self.args.multi_gpu else self.model.module.SpecTransformer.state_dict(),
-                'SPE': self.model.SPE if not self.args.multi_gpu else self.model.module.SPE,
-            }
-            try: # store phonetic encoder if exist
+            all_states = { 'SpecHead': self.model.SpecHead.state_dict() if not self.args.multi_gpu else self.model.module.SpecHead.state_dict() }
+            if hasattr(self.model, 'SpecTransformer'):
+                all_states['SpecTransformer'] = self.model.SpecTransformer.state_dict() if not self.args.multi_gpu else self.model.module.SpecTransformer.state_dict()
+            if hasattr(self.model, 'SPE'):
+                all_states['SPE'] = self.model.SPE if not self.args.multi_gpu else self.model.module.SPE
+            if hasattr(self.model, 'PhoneticTransformer'): 
                 all_states['PhoneticTransformer'] = self.model.PhoneticTransformer.Transformer.state_dict() if not self.args.multi_gpu else self.model.module.PhoneticTransformer.Transformer.state_dict()
                 all_states['PhoneticLayer'] = self.model.PhoneticTransformer.PhoneRecognizer.state_dict() if not self.args.multi_gpu else self.model.module.PhoneticTransformer.PhoneRecognizer.state_dict()
-            except:
-                pass
-            try: # store speaker encoder if exist
+            if hasattr(self.model, 'SpeakerTransformer'): 
                 all_states['SpeakerTransformer'] = self.model.SpeakerTransformer.Transformer.state_dict() if not self.args.multi_gpu else self.model.module.SpeakerTransformer.Transformer.state_dict()
                 all_states['SpeakerLayer'] = self.model.SpeakerTransformer.SpeakerRecognizer.state_dict() if not self.args.multi_gpu else self.model.module.SpeakerTransformer.SpeakerRecognizer.state_dict()
-            except:
-                pass
         else:
             all_states = {
                 'SpecHead': self.model.SpecHead.state_dict() if not self.args.multi_gpu else self.model.module.SpecHead.state_dict(),

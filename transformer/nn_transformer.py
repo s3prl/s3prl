@@ -333,6 +333,7 @@ class DUAL_TRANSFORMER(TransformerBaseWrapper):
         self.model_config = DualTransformerConfig(self.config)
         self.out_dim = 0 # This attribute is for pytorch-kaldi
         self.mode = mode # can be 'phone', 'speaker', or 'phone speaker'
+        assert self.mode in 'phone speaker'
         
         # Build model
         if 'phone' in self.mode:
