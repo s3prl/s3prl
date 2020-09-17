@@ -1,10 +1,26 @@
-# 🦜 The S3PRL Toolkit
-- The **S**elf-**S**upervised **S**peech **P**re-training and **R**epresentation **L**earning Toolkit
-- Official Implementation in PyTorch
-
-[![GitHub](https://img.shields.io/github/license/andi611/Self-Supervised-Speech-Pretraining-and-Representation-Learning)](https://en.wikipedia.org/wiki/MIT_License)
-[![Contributions welcome](https://img.shields.io/badge/contributions-welcome-brightgreen.svg)](CONTRIBUTING.md)
-[![Bitbucket open issues](https://img.shields.io/github/issues/andi611/Self-Supervised-Speech-Pretraining-and-Representation-Learning)](https://github.com/andi611/Self-Supervised-Speech-Pretraining-and-Representation-Learning/issues)
+<div align="center">
+    <br>
+    <img src="https://i.imgur.com/lWjuQER.png" width="553"/>
+    <p>
+    The Self-Supervised Speech Pre-training and Representation Learning Toolkit Toolkit 🦜, built on PyTorch, for developing self-supervised learning upstream models on a wide variety of downstream tasks.
+    </p>
+    <hr/>
+</div>
+<p align="center">
+    <a href="https://github.com/andi611/Self-Supervised-Speech-Pretraining-and-Representation-Learning/actions">
+        <img alt="Build" src="https://github.com/allenai/allennlp/workflows/Master/badge.svg?event=push&branch=master">
+    </a>
+    <a href="https://en.wikipedia.org/wiki/MIT_License">
+        <img alt="License" src="https://img.shields.io/github/license/andi611/Self-Supervised-Speech-Pretraining-and-Representation-Learning">
+    </a>
+    <a href="#development-pattern-for-contributors">
+        <img alt="Codecov" src="https://img.shields.io/badge/contributions-welcome-brightgreen.svg">
+    </a>
+    <a href="https://github.com/andi611/Self-Supervised-Speech-Pretraining-and-Representation-Learning/issues">
+        <img alt="Bitbucket open issues" src="https://img.shields.io/github/issues/andi611/Self-Supervised-Speech-Pretraining-and-Representation-Learning">
+    </a>
+    <br/>
+</p>
 
 Table of Contents
 ------------------------------------
