@@ -1,6 +1,6 @@
 <div align="center">
     <br>
-    <img src="https://i.imgur.com/lWjuQER.png" width="553"/>
+    <img src="https://i.imgur.com/lWjuQER.png" width="900"/>
     <p>
     The Self-Supervised Speech Pre-training and Representation Learning Toolkit Toolkit 🦜, built on PyTorch, for developing self-supervised learning upstream models on a wide variety of downstream tasks.
     </p>
