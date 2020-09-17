@@ -382,20 +382,11 @@ def neg_batch_l2(x, y, B, S):
 ################
 # Other LAYERS #
 ################
-class DummyLayer(nn.Module):
-    def __init__(self, vq_dim):
-        super(DummyLayer, self).__init__()
-        # Required attributes
-        self.out_dim = vq_dim
-
-    def forward(self, x):
-        return x
-
-
-class LinearLayer(DummyLayer):
-    def __init__(self, input_dim, vq_dim, use_activation=True):
-        super(LinearLayer, self).__init__(vq_dim)
-        self.linear = nn.Linear(input_dim, vq_dim)
+class LinearLayer(nn.Module):
+    def __init__(self, input_dim, out_dim, use_activation=True):
+        super(LinearLayer, self).__init__()
+        self.out_dim = out_dim # Required attributes
+        self.linear = nn.Linear(input_dim, out_dim)
         self.use_activation = use_activation
         self.activation = nn.GELU()
 
@@ -416,8 +407,8 @@ class LinearLayer(DummyLayer):
 
 class GlobalStyleTokenLayer(nn.Module):
     '''
-    inputs --- [N, hidden_size] if sequence_data=False else [N, T, hidden_size]
-    outputs --- [N, 1, hidden_size] if sequence_data=False else [N, T, hidden_size]
+    inputs --- [N, 1, hidden_size] or [N, T, hidden_size]
+    outputs --- [N, 1, hidden_size] or [N, T, hidden_size]
     '''
 
     def __init__(self, input_dim, token_num, hidden_size, num_heads=8):
@@ -430,12 +421,8 @@ class GlobalStyleTokenLayer(nn.Module):
         self.out_dim = hidden_size
 
 
-    def forward(self, inputs, sequence_data=True):
+    def forward(self, query):
         N = inputs.size(0)
-        if not sequence_data:
-            query = inputs.unsqueeze(1) # [N, 1, hidden_size]
-        else:
-            query = inputs # [N, T, hidden_size]
         keys = F.tanh(self.embed).unsqueeze(0).expand(N, -1, -1)  # [N, token_num, hidden_size]
         style_embed = self.attention(query, keys)
 

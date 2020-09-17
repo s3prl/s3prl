@@ -18,8 +18,7 @@ import torch.nn.functional as F
 from transformer.model import TransformerConfig, TransformerInitModel
 from transformer.model import TransformerSpecPredictionHead, TransformerModel
 from transformer.model_quantize import VectorQuantizeLayer_GB, VectorQuantizeLayer_L2
-from transformer.model_quantize import LinearLayer, DummyLayer
-from transformer.model_quantize import GlobalStyleTokenLayer
+from transformer.model_quantize import GlobalStyleTokenLayer, LinearLayer
 
 
 class DualTransformerConfig(TransformerConfig):
@@ -107,14 +106,20 @@ class DualTransformerForMaskedAcousticModel(TransformerInitModel):
         self.phone_dim = config.phone_dim
         self.speaker_dim = config.speaker_dim
         self.average_pooling = config.average_pooling
+
+        # build encoder
+        if self.phone_dim != 0: self.PhoneticTransformer = TransformerPhoneticEncoder(config, input_dim, output_attentions, keep_multihead_output)
+        if self.speaker_dim != 0: self.SpeakerTransformer = TransformerSpeakerEncoder(config, input_dim, output_attentions, keep_multihead_output)
+
         if config.combine == 'concat':
-            code_dim = self.phone_dim + self.speaker_dim
+            code_dim = self.PhoneticTransformer.out_dim + self.SpeakerTransformer.out_dim
         elif config.combine == 'add':
-            assert self.phone_dim == self.speaker_dim
-            code_dim = self.phone_dim
+            assert self.PhoneticTransformer.out_dim == self.SpeakerTransformer.out_dim
+            code_dim = self.PhoneticTransformer.out_dim
         else:
             raise NotImplementedError
         
+        # build decoder
         if self.decoder:
             if self.use_pe: self.SPE = nn.Parameter(torch.FloatTensor([1.0])) # Scaled positional encoding (SPE) introduced in https://arxiv.org/abs/1809.08895
             self.SpecTransformer = TransformerModel(config, input_dim=code_dim,
@@ -123,24 +128,21 @@ class DualTransformerForMaskedAcousticModel(TransformerInitModel):
                                                     with_input_module=True if self.use_pe else False)
         self.SpecHead = TransformerSpecPredictionHead(config, output_dim if output_dim is not None else input_dim, code_dim if self.decoder else None)
 
-        if self.phone_dim > 0: self.PhoneticTransformer = TransformerPhoneticEncoder(config, input_dim, output_attentions, keep_multihead_output)
-        if self.speaker_dim > 0: self.SpeakerTransformer = TransformerSpeakerEncoder(config, input_dim, output_attentions, keep_multihead_output)
-
+        # weight handling
         if len(config.pre_train) > 0:
             all_states = torch.load(config.pre_train, map_location='cpu')
-            if self.phone_dim > 0: self.PhoneticTransformer.Transformer = load_model(self.PhoneticTransformer.Transformer, all_states['Transformer'])
-            if self.speaker_dim > 0: self.SpeakerTransformer.Transformer = load_model(self.SpeakerTransformer.Transformer, all_states['Transformer'])
-        
+            if self.phone_dim != 0: self.PhoneticTransformer.Transformer = load_model(self.PhoneticTransformer.Transformer, all_states['Transformer'])
+            if self.speaker_dim != 0: self.SpeakerTransformer.Transformer = load_model(self.SpeakerTransformer.Transformer, all_states['Transformer'])
         self.apply(self.init_Transformer_weights)
         self.loss = nn.L1Loss() 
 
     def forward(self, phonetic_input, speaker_input, pos_enc, mask_label=None, attention_mask=None, spec_label=None, head_mask=None):
         # dual encoder forward
-        if self.phone_dim > 0: 
+        if self.phone_dim != 0: 
             phonetic_outputs = self.PhoneticTransformer(phonetic_input, pos_enc, attention_mask, head_mask=head_mask)
         else: 
             phonetic_outputs = (None, None) if self.output_attentions else None
-        if self.speaker_dim > 0: 
+        if self.speaker_dim != 0: 
             speaker_outputs = self.SpeakerTransformer(speaker_input, pos_enc, attention_mask, head_mask=head_mask)
         else: 
             speaker_outputs = (None, None) if self.output_attentions else None
@@ -154,7 +156,7 @@ class DualTransformerForMaskedAcousticModel(TransformerInitModel):
             speaker_code = speaker_outputs
         
         # replicate code
-        if self.speaker_dim > 0 and self.average_pooling: 
+        if self.speaker_dim != 0 and self.average_pooling: 
             speaker_code = speaker_code.repeat(1, phonetic_code.size(1), 1)
         
         # combine code 
@@ -202,25 +204,26 @@ class TransformerPhoneticEncoder(TransformerInitModel):
     spec_input --- [batch_size, sequence_length, feature_dimension]
     sequence_output --- [batch_size, sequence_length, phone_dim]
     '''
-    def __init__(self, config, input_dim, output_attentions=False, keep_multihead_output=False):
+    def __init__(self, config, input_dim, output_attentions=False, keep_multihead_output=False, with_recognizer=True):
         super(TransformerPhoneticEncoder, self).__init__(config, output_attentions)
         self.Transformer = TransformerModel(config, input_dim, output_attentions=output_attentions,
                                             keep_multihead_output=keep_multihead_output)
-        if config.phone_type == 'l2':
+        if config.phone_type == 'l2' and with_recognizer:
             self.PhoneRecognizer = VectorQuantizeLayer_L2(config.hidden_size, config.phone_size, config.phone_dim)
-        elif config.phone_type == 'gb':
+        elif config.phone_type == 'gb' and with_recognizer:
             self.PhoneRecognizer = VectorQuantizeLayer_GB(config.hidden_size, config.phone_size, config.phone_dim)
-        elif config.phone_type == 'gst':
+        elif config.phone_type == 'gst' and with_recognizer:
             self.PhoneRecognizer = GlobalStyleTokenLayer(config.hidden_size, config.phone_size, config.phone_dim)
-        elif config.phone_type == 'linear':
+        elif config.phone_type == 'linear' and with_recognizer:
             self.PhoneRecognizer = LinearLayer(config.hidden_size, config.phone_dim)
-        elif config.phone_type == 'none':
-            self.PhoneRecognizer = DummyLayer(config.phone_dim)
-        else:
+        elif config.phone_type == 'none' and with_recognizer:
+            with_recognizer = False
+        elif with_recognizer:
             raise NotImplementedError
-
+        
+        self.with_recognizer = with_recognizer
         self.apply(self.init_Transformer_weights)
-        self.out_dim = self.PhoneRecognizer.out_dim
+        self.out_dim = self.PhoneRecognizer.out_dim if with_recognizer else config.hidden_size
 
     def forward(self, spec_input, pos_enc, attention_mask=None, output_all_encoded_layers=False, head_mask=None):
         outputs = self.Transformer(spec_input, pos_enc, attention_mask,
@@ -231,7 +234,11 @@ class TransformerPhoneticEncoder(TransformerInitModel):
             all_attentions, sequence_output = outputs
         else:
             sequence_output = outputs
-        phonetic_code = self.PhoneRecognizer(sequence_output)
+
+        if self.with_recognizer:
+            phonetic_code = self.PhoneRecognizer(sequence_output)
+        else:
+            phonetic_code = sequence_output
         
         if self.output_attentions:
             return all_attentions, phonetic_code
@@ -246,21 +253,23 @@ class TransformerSpeakerEncoder(TransformerInitModel):
     spec_input --- [batch_size, sequence_length, feature_dimension]
     sequence_output --- [batch_size, 1, speaker_dim] or [batch_size, sequence_length, speaker_dim]
     '''
-    def __init__(self, config, input_dim, output_attentions=False, keep_multihead_output=False):
+    def __init__(self, config, input_dim, output_attentions=False, keep_multihead_output=False, with_recognizer=True):
         super(TransformerSpeakerEncoder, self).__init__(config, output_attentions)
         self.Transformer = TransformerModel(config, input_dim, output_attentions=output_attentions,
                                             keep_multihead_output=keep_multihead_output)
-        if config.speaker_type == 'gst':
+        if config.speaker_type == 'gst' and with_recognizer:
             self.SpeakerRecognizer = GlobalStyleTokenLayer(config.hidden_size, config.speaker_size, config.speaker_dim)
-        elif config.speaker_type == 'linear':
+        elif config.speaker_type == 'linear' and with_recognizer:
             self.SpeakerRecognizer = LinearLayer(config.hidden_size, config.speaker_dim)
-        elif config.phone_type == 'none':
-            self.PhoneRecognizer = DummyLayer(config.speaker_dim)
-        else:
+        elif config.phone_type == 'none' and with_recognizer:
+            with_recognizer = False
+        elif with_recognizer:
             raise NotImplementedError
+
         self.average_pooling = config.average_pooling
+        self.with_recognizer = with_recognizer
         self.apply(self.init_Transformer_weights)
-        self.out_dim = self.SpeakerRecognizer.out_dim
+        self.out_dim = self.SpeakerRecognizer.out_dim if with_recognizer else config.hidden_size
 
     def forward(self, spec_input, pos_enc, attention_mask=None, output_all_encoded_layers=False, head_mask=None):
         outputs = self.Transformer(spec_input, pos_enc, attention_mask,
@@ -272,8 +281,12 @@ class TransformerSpeakerEncoder(TransformerInitModel):
         else:
             sequence_output = outputs
         if self.average_pooling:
-            sequence_output = sequence_output.mean(dim=1)
-        speaker_code = self.SpeakerRecognizer(sequence_output, sequence_data=False if self.average_pooling else True)
+            sequence_output = sequence_output.mean(dim=1).unsqueeze(1) # (batch_size, 1, speaker_dim)
+
+        if self.with_recognizer:
+            speaker_code = self.SpeakerRecognizer(sequence_output)
+        else:
+            speaker_code = sequence_output
 
         if self.output_attentions:
             return all_attentions, speaker_code

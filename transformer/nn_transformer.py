@@ -301,7 +301,7 @@ class TRANSFORMER(TransformerBaseWrapper):
         # Build model
         self.model = TransformerModel(self.model_config, self.inp_dim).to(self.device)
         self.model.eval() if self.no_grad else self.model.train()
-        self.out_dim = self.hidden_size # This attribute is for pytorch-kaldi
+        self.out_dim = self.hidden_size # This attribute is necessary, for pytorch-kaldi and run_downstream.py
         
         # Load from a PyTorch state_dict
         load = bool(strtobool(options["load_pretrain"]))
@@ -326,22 +326,22 @@ class TRANSFORMER(TransformerBaseWrapper):
 # DUAL TRANSFORMER #
 ####################
 class DUAL_TRANSFORMER(TransformerBaseWrapper):
-    def __init__(self, options, inp_dim, config=None, mode='phone'):
+    def __init__(self, options, inp_dim, config=None, mode='phone', with_recognizer=True):
         super(DUAL_TRANSFORMER, self).__init__(options, inp_dim, config)
 
         del self.model_config
         self.model_config = DualTransformerConfig(self.config)
-        self.out_dim = 0 # This attribute is for pytorch-kaldi
+        self.out_dim = 0 # This attribute is necessary, for pytorch-kaldi and run_downstream.py
         self.mode = mode # can be 'phone', 'speaker', or 'phone speaker'
         assert self.mode in 'phone speaker'
         
         # Build model
         if 'phone' in self.mode:
-            self.PhoneticTransformer = TransformerPhoneticEncoder(self.model_config, self.inp_dim).to(self.device)
+            self.PhoneticTransformer = TransformerPhoneticEncoder(self.model_config, self.inp_dim, with_recognizer=with_recognizer).to(self.device)
             self.PhoneticTransformer.eval() if self.no_grad else self.PhoneticTransformer.train()
         
         if 'speaker' in self.mode:
-            self.SpeakerTransformer = TransformerSpeakerEncoder(self.model_config, self.inp_dim).to(self.device)
+            self.SpeakerTransformer = TransformerSpeakerEncoder(self.model_config, self.inp_dim, with_recognizer=with_recognizer).to(self.device)
             self.SpeakerTransformer.eval() if self.no_grad else self.SpeakerTransformer.train()
         
         # Load from a PyTorch state_dict
@@ -349,18 +349,17 @@ class DUAL_TRANSFORMER(TransformerBaseWrapper):
         if load and 'phone' in self.mode:
             self.PhoneticTransformer.Transformer = self.load_model(self.PhoneticTransformer.Transformer, 
                                                                    self.all_states['PhoneticTransformer'])
-            self.PhoneticTransformer.PhoneRecognizer.load_state_dict(self.all_states['PhoneticLayer'])
-            self.out_dim += self.model_config.phone_dim
+            if hasattr(self.PhoneticTransformer, 'PhoneRecognizer'): 
+                self.PhoneticTransformer.PhoneRecognizer.load_state_dict(self.all_states['PhoneticLayer'])
+            self.out_dim += self.PhoneticTransformer.out_dim
             print('[Phonetic Transformer] - Number of parameters: ' + str(sum(p.numel() for p in self.PhoneticTransformer.parameters() if p.requires_grad)))
 
         if load and 'speaker' in self.mode:
             self.SpeakerTransformer.Transformer = self.load_model(self.SpeakerTransformer.Transformer, 
                                                                    self.all_states['SpeakerTransformer'])
-            try:
-                self.SpeakerTransformer.GlobalStyleToken.load_state_dict(self.all_states['SpeakerLayer'])
-            except:
+            if hasattr(self.SpeakerTransformer, 'SpeakerRecognizer'):
                 self.SpeakerTransformer.SpeakerRecognizer.load_state_dict(self.all_states['SpeakerLayer'])
-            self.out_dim += self.model_config.speaker_dim
+            self.out_dim += self.SpeakerTransformer.out_dim
             print('[Speaker Transformer] - Number of parameters: ' + str(sum(p.numel() for p in self.SpeakerTransformer.parameters() if p.requires_grad)))
 
 
@@ -370,7 +369,8 @@ class DUAL_TRANSFORMER(TransformerBaseWrapper):
             phonetic_code = self._forward(x)
             self.model = self.SpeakerTransformer
             speaker_code = self._forward(x)
-            speaker_code = speaker_code.repeat(1, phonetic_code.size(1), 1)
+            if self.model_config.average_pooling: 
+                speaker_code = speaker_code.repeat(1, phonetic_code.size(1), 1)
             if self.model_config.combine == 'concat':
                 x = torch.cat((phonetic_code, speaker_code), dim=2)
             elif self.model_config.combine == 'add':
