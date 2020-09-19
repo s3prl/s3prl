@@ -252,6 +252,8 @@ class KaldiDataset(Dataset):
         super(KaldiDataset, self).__init__()
 
         import kaldi_io
+        from tqdm import tqdm
+
         self.root = file_path
         self.run_mam = run_mam
         self.mam_config = mam_config
@@ -263,7 +265,7 @@ class KaldiDataset(Dataset):
         X_lens = []
         for s in sets:
             path = os.path.join(file_path, s + '/feats.scp')
-            for _, mat in kaldi_io.read_mat_scp(path): # (key, mat) is returned
+            for _, mat in tqdm(kaldi_io.read_mat_scp(path)): # (key, mat) is returned
                 if drop and max_timestep > 0: # kaldi data is already sorted
                     X.append(mat)
                     X_lens.append(mat.shape[0])
