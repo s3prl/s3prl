@@ -263,10 +263,15 @@ class KaldiDataset(Dataset):
         # Read file
         X = []
         X_lens = []
+        print('[Dataset] - Reading the Kaldi dataset into memory, this may take a while...')
         for s in sets:
-            path = os.path.join(file_path, s + '/feats.scp')
+            path = os.path.join(file_path, s + '/feats.scp') # kaldi data is already sorted
             for _, mat in tqdm(kaldi_io.read_mat_scp(path)): # (key, mat) is returned
-                if drop and max_timestep > 0: # kaldi data is already sorted
+                if drop and max_timestep > 0:
+                    if mat.shape[0] > max_timestep:
+                        X.append(mat)
+                        X_lens.append(mat.shape[0])
+                else:
                     X.append(mat)
                     X_lens.append(mat.shape[0])
 
