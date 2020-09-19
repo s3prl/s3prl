@@ -192,6 +192,8 @@ class AcousticDataset(LibriDataset):
         self.mam_config = mam_config
         self.sample_step = mam_config['max_input_length'] if 'max_input_length' in mam_config else 0
         if self.sample_step > 0: print('[Dataset] - Sampling random segments for training, sample length:', self.sample_step)
+        if not hasattr(self.mam_config, 'dual_transformer'): 
+            setattr(self.mam_config, 'dual_transformer', False)
         X = self.table['file_path'].tolist()
         X_lens = self.table['length'].tolist()
 
