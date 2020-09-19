@@ -29,7 +29,7 @@ from transformer.mam_dual import process_dual_train_MAM_data
 ############
 # CONSTANT #
 ############
-HALF_BATCHSIZE_TIME = 1000
+HALF_BATCHSIZE_TIME = 3000
 SPEAKER_THRESHOLD = 0
 
 
