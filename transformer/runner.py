@@ -143,9 +143,11 @@ class Runner():
                 all_states['SPE'] = self.model.SPE if not self.args.multi_gpu else self.model.module.SPE
             if hasattr(self.model, 'PhoneticTransformer'): 
                 all_states['PhoneticTransformer'] = self.model.PhoneticTransformer.Transformer.state_dict() if not self.args.multi_gpu else self.model.module.PhoneticTransformer.Transformer.state_dict()
+            if hasattr(self.model.PhoneticTransformer, 'PhoneRecognizer'): 
                 all_states['PhoneticLayer'] = self.model.PhoneticTransformer.PhoneRecognizer.state_dict() if not self.args.multi_gpu else self.model.module.PhoneticTransformer.PhoneRecognizer.state_dict()
             if hasattr(self.model, 'SpeakerTransformer'): 
                 all_states['SpeakerTransformer'] = self.model.SpeakerTransformer.Transformer.state_dict() if not self.args.multi_gpu else self.model.module.SpeakerTransformer.Transformer.state_dict()
+            if hasattr(self.model.SpeakerTransformer, 'SpeakerRecognizer'): 
                 all_states['SpeakerLayer'] = self.model.SpeakerTransformer.SpeakerRecognizer.state_dict() if not self.args.multi_gpu else self.model.module.SpeakerTransformer.SpeakerRecognizer.state_dict()
         else:
             all_states = {
