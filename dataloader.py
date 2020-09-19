@@ -162,8 +162,6 @@ def load_libri_data(npy_path, npy_root=None, libri_root=None, online_config=None
 #     - bucket_size  : int, batch size for each bucket
 class LibriDataset(Dataset):
     def __init__(self, file_path, sets, bucket_size, max_timestep=0, drop=False):
-        # define default length
-        self.X = []
 
         # Read file
         self.root = file_path
@@ -178,9 +176,9 @@ class LibriDataset(Dataset):
         return len(self.X)
 
 
-###############
-# MEL DATASET #
-###############
+####################
+# ACOUSTIC DATASET #
+####################
 '''
 The Acoustic dataset that loads different types of handcrafted features of the LibriSpeech corpus.
 Currently supports 'data/libri_mel160_subword5000' and 'data/libri_fmllr_cmvn' for different preprocessing features.
@@ -232,6 +230,83 @@ class AcousticDataset(LibriDataset):
             x_batch = [torch.FloatTensor(self.sample(np.load(os.path.join(self.root, x_file)))) for x_file in self.X[index]]
         else:
             x_batch = [torch.FloatTensor(np.load(os.path.join(self.root, x_file))) for x_file in self.X[index]]
+        x_pad_batch = pad_sequence(x_batch, batch_first=True)
+        if self.run_mam and self.mam_config['dual_transformer']:
+            x_pad_batch = process_dual_train_MAM_data(spec=(x_pad_batch,), config=self.mam_config)
+        elif self.run_mam:
+            x_pad_batch = process_train_MAM_data(spec=(x_pad_batch,), config=self.mam_config)
+        return x_pad_batch
+
+
+#################
+# KALDI DATASET #
+#################
+'''
+The Kaldi dataset that loads different types of Kaldi features of any corpus.
+specify 'data_path' in config. For example: ../kaldi/egs/voxceleb/v1/data/
+specify 'train_set' in config. For example: ['train']
+'''
+class KaldiDataset(Dataset):
+    
+    def __init__(self, run_mam, file_path, sets, bucket_size, max_timestep=0, drop=False, mam_config=None):
+        super(KaldiDataset, self).__init__()
+
+        import kaldi_io
+        self.root = file_path
+        self.run_mam = run_mam
+        self.mam_config = mam_config
+        self.sample_step = mam_config['max_input_length'] if 'max_input_length' in mam_config else 0
+        if self.sample_step > 0: print('[Dataset] - Sampling random segments for training, sample length:', self.sample_step)
+
+        # Read file
+        X = []
+        X_lens = []
+        for s in sets:
+            path = os.path.join(file_path, s + 'feats.scp')
+            for _, mat in kaldi_io.read_mat_scp(path): # (key, mat) is returned
+                if drop and max_timestep > 0: # kaldi data is already sorted
+                    X.append(mat)
+                    X_lens.append(mat.shape[0])
+
+        # Use bucketing to allow different batch size at run time
+        self.X = []
+        batch_x, batch_len = [], []
+
+        for x, x_len in zip(X, X_lens):
+            batch_x.append(x)
+            batch_len.append(x_len)
+            
+            # Fill in batch_x until batch is full
+            if len(batch_x) == bucket_size:
+                # Half the batch size if seq too long
+                if (bucket_size >= 2) and (max(batch_len) > HALF_BATCHSIZE_TIME) and not self.sample_step:
+                    self.X.append(batch_x[:bucket_size//2])
+                    self.X.append(batch_x[bucket_size//2:])
+                else:
+                    self.X.append(batch_x)
+                batch_x, batch_len = [], []
+        
+        # Gather the last batch
+        if len(batch_x) > 0:
+            self.X.append(batch_x)
+
+
+    def __len__(self):
+        return len(self.X)
+    
+
+    def sample(self, x):
+        if len(x) < self.sample_step: return x
+        idx = random.randint(0, len(x)-self.sample_step)
+        return x[idx:idx+self.sample_step]
+
+
+    def __getitem__(self, index):
+        # Load acoustic feature and pad
+        if self.sample_step > 0:
+            x_batch = [torch.FloatTensor(self.sample(x_data)) for x_data in self.X[index]]
+        else:
+            x_batch = [torch.FloatTensor(x_data) for x_data in self.X[index]]
         x_pad_batch = pad_sequence(x_batch, batch_first=True)
         if self.run_mam and self.mam_config['dual_transformer']:
             x_pad_batch = process_dual_train_MAM_data(spec=(x_pad_batch,), config=self.mam_config)
@@ -771,6 +846,9 @@ def get_Dataloader(split, load, data_path, batch_size, max_timestep,
     if load == 'acoustic':
         ds = AcousticDataset(run_mam=run_mam, file_path=data_path, sets=sets, max_timestep=max_timestep,
                              bucket_size=bs, drop=drop_too_long, mam_config=mam_config)
+    elif load == 'kaldi':
+        ds = KaldiDataset(run_mam=run_mam, file_path=data_path, sets=sets, max_timestep=max_timestep,
+                          bucket_size=bs, drop=drop_too_long, mam_config=mam_config)
     elif load == 'duo':
         assert(target_path is not None), '`target path` must be provided for this dataset.'
         ds = Mel_Linear_Dataset(file_path=data_path, target_path=target_path, sets=sets, max_timestep=max_timestep,

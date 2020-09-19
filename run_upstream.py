@@ -54,6 +54,7 @@ def get_upstream_args():
     parser.add_argument('--multi_gpu', action='store_true', help='Enable Multi-GPU training.')
     parser.add_argument('--test_reconstruct', action='store_true', help='Test reconstruction capability')
     parser.add_argument('--online_config', help='Explicitly specify the config of on-the-fly feature extraction')
+    parser.add_argument('--kaldi_data', default=False, type=bool, help='Whether to use the Kaldi dataset')
 
     # parse
     args = parser.parse_args()
@@ -77,8 +78,11 @@ def get_dataloader(args, config):
     print('[run_upstream] - Loading input data: ' + str(config['dataloader']['train_set']) + ' from ' + config['dataloader']['data_path'])
     print('[run_upstream] - getting train dataloader...')
 
-    load = 'duo' if bool(config['runner']['duo_feature']) else 'acoustic'
-    if load == 'duo': print('[run_upstream] - Loading duo data: ' + str(config['dataloader']['train_set']) + ' from ' + config['dataloader']['target_path'])
+    load = 'duo' if bool(config['runner']['duo_feature']) else 'kaldi' if args.kaldi_data else 'acoustic'
+    if load == 'duo': 
+        print('[run_upstream] - Loading duo data: ' + str(config['dataloader']['train_set']) + ' from ' + config['dataloader']['target_path'])
+    if load == 'kaldi':
+        print('[run_upstream] - Loading Kaldi data: ' + str(config['dataloader']['data_path']) + ' from these sets ' + str(config['dataloader']['train_set']))
     
     dataloader = get_Dataloader(split='train', load=load, use_gpu=args.gpu, 
                                 run_mam=True, mam_config=config['transformer'], **config['dataloader'])
