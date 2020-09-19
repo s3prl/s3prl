@@ -54,7 +54,7 @@ def get_upstream_args():
     parser.add_argument('--multi_gpu', action='store_true', help='Enable Multi-GPU training.')
     parser.add_argument('--test_reconstruct', action='store_true', help='Test reconstruction capability')
     parser.add_argument('--online_config', help='Explicitly specify the config of on-the-fly feature extraction')
-    parser.add_argument('--kaldi_data', default=False, type=bool, help='Whether to use the Kaldi dataset')
+    parser.add_argument('--kaldi_data', action='store_true', help='Whether to use the Kaldi dataset')
 
     # parse
     args = parser.parse_args()

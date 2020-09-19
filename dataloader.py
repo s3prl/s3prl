@@ -262,7 +262,7 @@ class KaldiDataset(Dataset):
         X = []
         X_lens = []
         for s in sets:
-            path = os.path.join(file_path, s + 'feats.scp')
+            path = os.path.join(file_path, s + '/feats.scp')
             for _, mat in kaldi_io.read_mat_scp(path): # (key, mat) is returned
                 if drop and max_timestep > 0: # kaldi data is already sorted
                     X.append(mat)
