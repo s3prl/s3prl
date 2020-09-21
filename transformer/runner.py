@@ -74,13 +74,13 @@ class Runner():
 
 
     def set_model(self):
-        print('[Runner] - Initializing Transformer model...')
-        
         # build the Transformer model with speech prediction head
         if self.dual_transformer:
+            print('[Runner] - Initializing Dual Transformer model...')
             model_config = DualTransformerConfig(self.config)
             self.model = DualTransformerForMaskedAcousticModel(model_config, self.input_dim, self.output_dim).to(self.device)
         else:
+            print('[Runner] - Initializing Transformer model...')
             model_config = TransformerConfig(self.config)
             self.model = TransformerForMaskedAcousticModel(model_config, self.input_dim, self.output_dim).to(self.device)
         self.model.train()

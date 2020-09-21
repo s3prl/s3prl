@@ -339,10 +339,12 @@ class DUAL_TRANSFORMER(TransformerBaseWrapper):
         if 'phone' in self.mode:
             self.PhoneticTransformer = TransformerPhoneticEncoder(self.model_config, self.inp_dim, with_recognizer=with_recognizer).to(self.device)
             self.PhoneticTransformer.eval() if self.no_grad else self.PhoneticTransformer.train()
+            self.model = self.PhoneticTransformer
         
         if 'speaker' in self.mode:
             self.SpeakerTransformer = TransformerSpeakerEncoder(self.model_config, self.inp_dim, with_recognizer=with_recognizer).to(self.device)
             self.SpeakerTransformer.eval() if self.no_grad else self.SpeakerTransformer.train()
+            self.model = self.SpeakerTransformer
         
         # Load from a PyTorch state_dict
         load = bool(strtobool(options["load_pretrain"]))
@@ -366,7 +368,7 @@ class DUAL_TRANSFORMER(TransformerBaseWrapper):
     def _dual_forward(self, x):
         if 'phone' in self.mode and 'speaker' in self.mode:
             self.model = self.PhoneticTransformer
-            phonetic_code = self._forward(x)
+            phonetic_code = self._forward(copy.deepcopy(x))
             self.model = self.SpeakerTransformer
             speaker_code = self._forward(x)
             if self.model_config.average_pooling: 
@@ -378,11 +380,7 @@ class DUAL_TRANSFORMER(TransformerBaseWrapper):
             else:
                 raise NotImplementedError
 
-        elif 'phone' in self.mode:
-            self.model = self.PhoneticTransformer
-            x = self._forward(x)
-        elif 'speaker' in self.mode:
-            self.model = self.SpeakerTransformer
+        elif ('phone' in self.mode) != ('speaker' in self.mode): # exclusive or
             x = self._forward(x)
         else:
             raise NotImplementedError
