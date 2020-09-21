@@ -126,7 +126,7 @@ class DualTransformerForMaskedAcousticModel(TransformerInitModel):
                                                     output_attentions=output_attentions,
                                                     keep_multihead_output=keep_multihead_output,
                                                     with_input_module=True if self.use_pe else False)
-        self.SpecHead = TransformerSpecPredictionHead(config, output_dim if output_dim is not None else input_dim, code_dim if self.decoder else None)
+        self.SpecHead = TransformerSpecPredictionHead(config, output_dim if output_dim is not None else input_dim, code_dim if not self.decoder else None)
 
         # weight handling
         if len(config.pre_train) > 0:
