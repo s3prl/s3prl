@@ -45,6 +45,7 @@ class TransformerBaseWrapper(nn.Module):
             self.config = self.all_states['Settings']['Config']
 
         # parse the options dict
+        self.load = bool(strtobool(options["load_pretrain"]))
         self.no_grad = bool(strtobool(options['no_grad']))
         self.spec_aug = bool(strtobool(options['spec_aug']))
         self.spec_aug_prev = bool(strtobool(options['spec_aug_prev']))
@@ -306,7 +307,6 @@ class TRANSFORMER(TransformerBaseWrapper):
         self.out_dim = self.hidden_size # This attribute is necessary, for pytorch-kaldi and run_downstream.py
         
         # Load from a PyTorch state_dict
-        self.load = bool(strtobool(options["load_pretrain"]))
         if self.load: 
             self.model = self.load_model(self.model, self.all_states['Transformer'])
             print('[Transformer] - Number of parameters: ' + str(sum(p.numel() for p in self.model.parameters() if p.requires_grad)))
@@ -332,7 +332,7 @@ class SPEC_TRANSFORMER(TRANSFORMER):
         super(SPEC_TRANSFORMER, self).__init__(options, inp_dim, config)
 
         # build head
-        self.SpecHead = TransformerSpecPredictionHead(config, inp_dim)
+        self.SpecHead = TransformerSpecPredictionHead(self.model_config, inp_dim).to(self.device)
         self.SpecHead.eval() if self.no_grad else self.SpecHead.train()
         
         # Load from a PyTorch state_dict
@@ -348,10 +348,10 @@ class SPEC_TRANSFORMER(TRANSFORMER):
         if self.no_grad:
             with torch.no_grad():
                 x = self._forward(x)
-                x = self.SpecHead(x)
+                x, _ = self.SpecHead(x)
         else:
             x = self._forward(x)
-            x = self.SpecHead(x)
+            x, _ = self.SpecHead(x)
         return x
 
 
