@@ -21,6 +21,7 @@ from functools import lru_cache
 from distutils.util import strtobool
 from utility.preprocessor import OnlinePreprocessor
 from transformer.model import TransformerConfig, TransformerModel
+from transformer.model import TransformerSpecPredictionHead
 from transformer.model_dual import DualTransformerConfig
 from transformer.model_dual import TransformerPhoneticEncoder, TransformerSpeakerEncoder
 
@@ -281,6 +282,7 @@ class TRANSFORMER(TransformerBaseWrapper):
             select_layer: int, select from all hidden representations, set to -1 to select the last (will only be used when weighted_sum is False)
             permute_input: str, ['True', 'False'], this attribute is for the forward method. If Ture then input ouput is in the shape of (T, B, D), if False then in (B, T, D)
         `intput_dim`: int, input dimension of model
+        `config`: optional, reads the given yaml config and not use the config stored in `ckpt_file`
 
     An example `options` dictionary:
     options = {
@@ -304,8 +306,8 @@ class TRANSFORMER(TransformerBaseWrapper):
         self.out_dim = self.hidden_size # This attribute is necessary, for pytorch-kaldi and run_downstream.py
         
         # Load from a PyTorch state_dict
-        load = bool(strtobool(options["load_pretrain"]))
-        if load: 
+        self.load = bool(strtobool(options["load_pretrain"]))
+        if self.load: 
             self.model = self.load_model(self.model, self.all_states['Transformer'])
             print('[Transformer] - Number of parameters: ' + str(sum(p.numel() for p in self.model.parameters() if p.requires_grad)))
 
@@ -319,6 +321,37 @@ class TRANSFORMER(TransformerBaseWrapper):
                 x = self._forward(x)
         else:
             x = self._forward(x)
+        return x
+
+
+####################
+# SPEC TRANSFORMER #
+####################
+class SPEC_TRANSFORMER(TRANSFORMER):
+    def __init__(self, options, inp_dim, config=None):
+        super(SPEC_TRANSFORMER, self).__init__(options, inp_dim, config)
+
+        # build head
+        self.SpecHead = TransformerSpecPredictionHead(config, inp_dim)
+        self.SpecHead.eval() if self.no_grad else self.SpecHead.train()
+        
+        # Load from a PyTorch state_dict
+        if self.load:
+            self.SpecHead.load_state_dict(self.all_states['SpecHead'])
+            print('[Spec Transformer] - Number of parameters: ' + str(sum(p.numel() for p in self.SpecHead.parameters() if p.requires_grad)))
+
+
+    def forward(self, x):
+        if 'online' in self.config:
+            x = self.preprocessor(x.transpose(1, 2).contiguous())[0]
+
+        if self.no_grad:
+            with torch.no_grad():
+                x = self._forward(x)
+                x = self.SpecHead(x)
+        else:
+            x = self._forward(x)
+            x = self.SpecHead(x)
         return x
 
 
