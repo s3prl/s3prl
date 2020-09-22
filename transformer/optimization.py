@@ -329,7 +329,7 @@ class BertLamb(Optimizer):
     """
 
     def __init__(self, params, lr=1e-3, warmup=-1, t_total=-1, schedule='warmup_linear',
-                 betas=(0.9, 0.999), eps=1e-8, weight_decay=0.0, adam=False, correct_bias=False):
+                 betas=(0.9, 0.999), eps=1e-8, weight_decay=0.0, adam=False, correct_bias=True):
         if not 0.0 <= lr:
             raise ValueError("Invalid learning rate: {}".format(lr))
         if not 0.0 <= eps:

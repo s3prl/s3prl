@@ -124,12 +124,13 @@ class Runner():
                                       warmup=self.warmup_proportion,
                                       t_total=self.total_steps,
                                       schedule='warmup_linear')
-        elif self.config['optimizer']['type'] == 'lamb':
+        elif self.config['optimizer']['type'] == 'lamb' or self.config['optimizer']['type'] == 'adamW':
             self.optimizer = BertLamb(optimizer_grouped_parameters,
                                       lr=self.learning_rate,
                                       warmup=self.warmup_proportion,
                                       t_total=self.total_steps,
-                                      schedule='warmup_linear')
+                                      schedule='warmup_linear',
+                                      correct_bias=True if self.config['optimizer']['type'] == 'adamW' else False)
         else:
             raise NotImplementedError()
 
