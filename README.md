@@ -118,28 +118,29 @@ This is an open source project called S3PRL, which stands for **S**elf-**S**uper
         - Pre-processing with the [Kaldi](https://github.com/kaldi-asr/kaldi) s5 recipe: *mfcc, fbank, fmllr*
     - WSJ: coming soon
     - Extracted features can be directly download from: [S3PRL Drive](http://www.bit.ly/drive-S3PRL)
-    - On-the-fly feature extraction using torchaudio as backend
-    - see section: *Data preporation*
+    - On-the-fly feature extraction using [torchaudio](https://pytorch.org/audio/) as backend
+    - see section: [*Data preporation*](#data-preporation)
 - **Pre-train your own self-supervised models:**
     - Implementation of various upstream algorithms.
     - Pre-train them on your own data.
-    - see section: *Train upstream models*
+    - Supporting various optimizers including: [BERT Adam](https://arxiv.org/abs/1810.04805), [LAMB](https://arxiv.org/abs/1904.00962), [AdamW](https://arxiv.org/abs/1711.05101)
+    - see section: [*Train upstream models*](#train-upstream-models)
 - **Evaluate your own pre-trained model:**
     - Easy-to-use downstream evaluation scripts.
     - Incorporate any pre-trained model of your own.
-    - see section: *Evaluating your own model*
+    - see section: [*Evaluating your own model*](#evaluating-your-own-model)
 - **Apply pre-trained models on your own task:**
     - Easy-to-use pre-trained model initialization.
     - Incorporate any downstream task with the provided pre-trained models.
     - Implemented as [PyTorch-Kaldi](https://github.com/mravanelli/pytorch-kaldi) ready DNNs.
     - Pre-trained checkpoints can be directly download from: [S3PRL Drive](http://www.bit.ly/drive-S3PRL)
-    - see section: *Using upstream models with your own task*
+    - see section: [*Using upstream models with your own task*](#using-upstream-models-with-your-own-task)
 - **Knowledge transfer of pre-trained model to downstream task:**
     - We support various methods of incoporating the pre-trained model with downstream models:
         - Extracting from the last layer
         - Learnable weighted sum extraction from all layers (similar to ELMo)
         - Fine-tuning
-    - See section: *Apply different knowledge transfer methods*
+    - See section: [*Apply different knowledge transfer methods*](#apply-different-knowledge-transfer-methods)
 
 Feel free to use or modify them, any bug report or improvement suggestion will be appreciated. If you have any questions, please contact tingweiandyliu@gmail.com. If you find this project helpful for your research, please do consider to cite [our papers](#Citation), thanks!
 
@@ -269,6 +270,10 @@ python preprocess/preprocess_timit.py --feature_type=fbank --delta=False # 80-di
 
 ### Preprocessing with Kaldi
 - To extract with Kaldi, see the supplementary wiki page for detailed instructions: [Extracting with Kaldi](https://github.com/andi611/Self-Supervised-Speech-Pretraining-and-Representation-Learning/wiki/Extracting-with-Kaldi)
+- Example codes are provided for the conversion of Kaldi .ark to .npy, which supports the format of a regular pytorch dataset.
+    - TIMIT: [preprocess/ark2timit.py](https://github.com/andi611/Self-Supervised-Speech-Pretraining-and-Representation-Learning/blob/master/preprocess/ark2timit.py)
+    - LibriSpeech: [preprocess/ark2libri.py](https://github.com/andi611/Self-Supervised-Speech-Pretraining-and-Representation-Learning/blob/master/preprocess/ark2libri.py)
+    - VoxCeleb:  [preprocess/ark2voxceleb.py](https://github.com/andi611/Self-Supervised-Speech-Pretraining-and-Representation-Learning/blob/master/preprocess/ark2voxceleb.py)
 - Or download the extracted features from here: [S3PRL Drive](http://www.bit.ly/drive-S3PRL)
 - Place the downloaded `*.zip` files under [`data/`](data/):
 ```bash
@@ -277,6 +282,7 @@ unzip libri_fmllr_cmvn.zip # features used for TERA
 ```
 
 ### On-the-fly Feature Extraction
+- This feature allow users to run training and testing with out preprocessing data, feature extraction is done during runtime.
 - Add the following argument when runing upstream/downstream scripts:
 ```bash
 --online_config=config/online.yaml
