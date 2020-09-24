@@ -303,7 +303,7 @@ class BertAdam(Optimizer):
         return loss
 
 
-class BertLamb(Optimizer):
+class Lamb(Optimizer):
     r"""Implements Lamb algorithm.
     It has been proposed in `Large Batch Optimization for Deep Learning: Training BERT in 76 minutes`_.
     Arguments:
@@ -323,13 +323,14 @@ class BertLamb(Optimizer):
             numerical stability (default: 1e-8)
         weight_decay (float, optional): weight decay (L2 penalty) (default: 0)
         adam (bool, optional): always use trust ratio = 1, which turns this into
-            Adam. Useful for comparison purposes.
+            Adam. Useful for comparison purposes. Set to True for AdamW.
+        correct_bias (bool, optional): adam-correction, no bias correction for Bert. Set to True for AdamW.
     .. _Large Batch Optimization for Deep Learning: Training BERT in 76 minutes:
         https://arxiv.org/abs/1904.00962
     """
 
     def __init__(self, params, lr=1e-3, warmup=-1, t_total=-1, schedule='warmup_linear',
-                 betas=(0.9, 0.999), eps=1e-8, weight_decay=0.0, adam=False, correct_bias=True):
+                 betas=(0.9, 0.999), eps=1e-8, weight_decay=0.0, adam=False, correct_bias=False):
         if not 0.0 <= lr:
             raise ValueError("Invalid learning rate: {}".format(lr))
         if not 0.0 <= eps:
@@ -350,7 +351,7 @@ class BertLamb(Optimizer):
                         weight_decay=weight_decay, correct_bias=correct_bias)
         self.adam = adam
 
-        super(BertLamb, self).__init__(params, defaults)
+        super(Lamb, self).__init__(params, defaults)
     
     def get_lr(self):
         lr = []

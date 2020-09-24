@@ -19,7 +19,7 @@ from tqdm import tqdm
 from tensorboardX import SummaryWriter
 from transformer.model import TransformerConfig, TransformerForMaskedAcousticModel
 from transformer.model_dual import DualTransformerConfig, DualTransformerForMaskedAcousticModel
-from transformer.optimization import BertAdam, BertLamb, WarmupLinearSchedule
+from transformer.optimization import BertAdam, Lamb, WarmupLinearSchedule
 from transformer.mam import fast_position_encoding
 from utility.audio import plot_spectrogram_to_numpy
 from transformer.mam import process_train_MAM_data
@@ -99,8 +99,9 @@ class Runner():
             {'params': [p for n, p in param_optimizer if any(nd in n for nd in no_decay)], 'weight_decay': 0.0}
             ]
 
-        if not hasattr(self.config['optimizer'], 'type'):
+        if 'type' not in self.config['optimizer']:
             self.config['optimizer']['type'] = 'adam'
+        print('[Runner] - Optimizer: ' + ('apex Fused Adam' if self.apex else str(self.config['optimizer']['type'])))
         if self.apex:
             try:
                 from apex.optimizers import FP16_Optimizer
@@ -125,11 +126,12 @@ class Runner():
                                       t_total=self.total_steps,
                                       schedule='warmup_linear')
         elif self.config['optimizer']['type'] == 'lamb' or self.config['optimizer']['type'] == 'adamW':
-            self.optimizer = BertLamb(optimizer_grouped_parameters,
+            self.optimizer = Lamb(optimizer_grouped_parameters,
                                       lr=self.learning_rate,
                                       warmup=self.warmup_proportion,
                                       t_total=self.total_steps,
                                       schedule='warmup_linear',
+                                      adam=True if self.config['optimizer']['type'] == 'adamW' else False,
                                       correct_bias=True if self.config['optimizer']['type'] == 'adamW' else False)
         else:
             raise NotImplementedError()
