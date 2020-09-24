@@ -123,7 +123,7 @@ This is an open source project called S3PRL, which stands for **S**elf-**S**uper
 - **Pre-train your own self-supervised models:**
     - Implementation of various upstream algorithms.
     - Pre-train them on your own data.
-    - Supporting various optimizers including: [BERT Adam](https://arxiv.org/abs/1810.04805), [LAMB](https://arxiv.org/abs/1904.00962), [AdamW](https://arxiv.org/abs/1711.05101)
+    - Supporting various optimizers including: [BERT Adam](https://arxiv.org/abs/1810.04805), [AdamW](https://arxiv.org/abs/1711.05101), [LAMB](https://arxiv.org/abs/1904.00962)
     - see section: [*Train upstream models*](#train-upstream-models)
 - **Evaluate your own pre-trained model:**
     - Easy-to-use downstream evaluation scripts.
@@ -571,7 +571,7 @@ Citation
 ```
 @misc{S3PRL,
   author = {Andy T. Liu and Yang Shu-wen},
-  title = {{S3PRL}: The Self-Supervised Speech Pre-training and Representation Learning Toolkit},
+  title = {S3PRL: The Self-Supervised Speech Pre-training and Representation Learning Toolkit},
   year = {2020},
   publisher = {GitHub},
   journal = {GitHub repository},
