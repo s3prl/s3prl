@@ -35,7 +35,7 @@ Table of Contents
        * [Prerequisite](#prerequisite)
        * [Getting Started](#getting-started)
        * [Setting PYTHONPATH](#setting-pythonpath)
-   * [Data preporation](#data-preporation)
+   * [Data preparation](#data-preparation)
        * [Download extracted features (RECOMMENDED)](#download-extracted-features)
        * [Preprocessing with Librosa](#preprocessing-with-librosa)
        * [Preprocessing with Kaldi](#preprocessing-with-kaldi)
@@ -119,7 +119,7 @@ This is an open source project called S3PRL, which stands for **S**elf-**S**uper
     - WSJ: coming soon
     - Extracted features can be directly download from: [S3PRL Drive](http://www.bit.ly/drive-S3PRL)
     - On-the-fly feature extraction using [torchaudio](https://pytorch.org/audio/) as backend
-    - see section: [*Data preporation*](#data-preporation)
+    - see section: [*Data preparation*](#data-preparation)
 - **Pre-train your own self-supervised models:**
     - Implementation of various upstream algorithms.
     - Pre-train them on your own data.
@@ -537,8 +537,8 @@ Also, in your config file `*.yaml`, these should be changed:
 
 Supplementary Wiki Page
 ------------------------------------
-- [Extracting with Kaldi](https://github.com/andi611/Self-Supervised-Speech-Pretraining-and-Representation-Learning/wiki/Extracting-with-Kaldi)
-- [ASR with PyTorch Kaldi](https://github.com/andi611/Self-Supervised-Speech-Pretraining-and-Representation-Learning/wiki/ASR-with-PyTorch-Kaldi)
+#### [Extracting with Kaldi](https://github.com/andi611/Self-Supervised-Speech-Pretraining-and-Representation-Learning/wiki/Extracting-with-Kaldi)
+#### [ASR with PyTorch Kaldi](https://github.com/andi611/Self-Supervised-Speech-Pretraining-and-Representation-Learning/wiki/ASR-with-PyTorch-Kaldi)
 
 [Back to Top](#table-of-contents)
 
