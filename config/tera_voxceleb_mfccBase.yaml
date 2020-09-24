@@ -22,6 +22,7 @@ transformer:
   max_input_length: 1500                                # maximum input length (0 for no restriction)
 
 optimizer: 
+  type: 'adam'                                          # modes: ['adam', 'adamW', 'lamb']
   learning_rate: "2e-4"                                 # Learning rate for opt. "4e-4" for 'data/libri_mel160_subword5000', "2e-4" for 'data/libri_fmllr_cmvn'
   loss_scale: 0                                         # Loss scale to improve fp16 numeric stability. Only used when apex is set to True. 0: dynamic loss scaling. positive power of 2: static loss scaling.
   warmup_proportion: 0.07                               # Proportion of training to perform linear rate warmup.
