@@ -422,7 +422,7 @@ class GlobalStyleTokenLayer(nn.Module):
 
 
     def forward(self, query):
-        N = inputs.size(0)
+        N = query.size(0)
         keys = F.tanh(self.embed).unsqueeze(0).expand(N, -1, -1)  # [N, token_num, hidden_size]
         style_embed = self.attention(query, keys)
 
