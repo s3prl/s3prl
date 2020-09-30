@@ -111,7 +111,11 @@ class DualTransformerForMaskedAcousticModel(TransformerInitModel):
         if self.phone_dim != 0: self.PhoneticTransformer = TransformerPhoneticEncoder(config, input_dim, output_attentions, keep_multihead_output)
         if self.speaker_dim != 0: self.SpeakerTransformer = TransformerSpeakerEncoder(config, input_dim, output_attentions, keep_multihead_output)
 
-        if config.combine == 'concat':
+        if self.phone_dim == 0 and self.speaker_dim == 0:
+            raise ValueError
+        elif self.phone_dim == 0 or self.speaker_dim == 0:
+            code_dim = max(self.phone_dim, self.speaker_dim)
+        elif config.combine == 'concat':
             code_dim = self.PhoneticTransformer.out_dim + self.SpeakerTransformer.out_dim
         elif config.combine == 'add':
             assert self.PhoneticTransformer.out_dim == self.SpeakerTransformer.out_dim
@@ -130,9 +134,11 @@ class DualTransformerForMaskedAcousticModel(TransformerInitModel):
 
         # weight handling
         if len(config.pre_train) > 0:
-            all_states = torch.load(config.pre_train, map_location='cpu')
-            if self.phone_dim != 0: self.PhoneticTransformer.Transformer = load_model(self.PhoneticTransformer.Transformer, all_states['Transformer'])
-            if self.speaker_dim != 0: self.SpeakerTransformer.Transformer = load_model(self.SpeakerTransformer.Transformer, all_states['Transformer'])
+            if len(config.pre_train) == 1: config.pre_train = [config.pre_train]
+            all_states1 = torch.load(config.pre_train[0], map_location='cpu')
+            all_states2 = torch.load(config.pre_train[-1], map_location='cpu')
+            if self.phone_dim != 0: self.PhoneticTransformer.Transformer = load_model(self.PhoneticTransformer.Transformer, all_states1['Transformer'])
+            if self.speaker_dim != 0: self.SpeakerTransformer.Transformer = load_model(self.SpeakerTransformer.Transformer, all_states2['Transformer'])
         self.apply(self.init_Transformer_weights)
         self.loss = nn.L1Loss() 
 
