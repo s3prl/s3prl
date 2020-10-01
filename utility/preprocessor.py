@@ -46,7 +46,7 @@ class OnlinePreprocessor(torch.nn.Module):
 
     @classmethod
     def get_feat_config(cls, feat_type, channel=0, log=False, delta=0, cmvn=False):
-        assert feat_type in ['complx', 'linear', 'phase', 'mel', 'mfcc']
+        assert feat_type in ['wav', 'complx', 'linear', 'phase', 'mel', 'mfcc']
         assert type(channel) is int
         assert type(log) is bool
         assert type(delta) is int and delta >= 0
@@ -68,6 +68,7 @@ class OnlinePreprocessor(torch.nn.Module):
             wavs = self._pseudo_wavs[0].view(1, 1, -1).repeat(1, max_channel_id + 1, 1)
         assert wavs.dim() >= 3
         
+        wav = wavs.unsqueeze(2)
         shape = wavs.size()
         complx = self._stft(wavs.reshape(-1, shape[-1]), window=self._window)
         complx = complx.reshape(shape[:-1] + complx.shape[-3:])
