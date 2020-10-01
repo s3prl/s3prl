@@ -22,7 +22,7 @@ from transformer.model_dual import DualTransformerConfig, DualTransformerForMask
 from transformer.optimization import BertAdam, Lamb, WarmupLinearSchedule
 from transformer.mam import fast_position_encoding
 from utility.audio import plot_spectrogram_to_numpy
-from transformer.mam import process_train_MAM_data
+from transformer.mam import process_train_MAM_data, process_wave_train_MAM_data
 from utility.preprocessor import OnlinePreprocessor
 
 
@@ -61,7 +61,8 @@ class Runner():
         # model
         self.transformer_config = config['transformer']
         self.dr = config['transformer']['downsample_rate']
-        self.dual_transformer = config['transformer']['dual_transformer'] if 'dual_transformer' in config['transformer'] else None
+        self.dual_transformer = config['transformer']['dual_transformer'] if 'dual_transformer' in config['transformer'] else False
+        self.wave_transformer = config['transformer']['wave_transformer'] if 'wave_transformer' in config['transformer'] else False
         if 'online' in config:
             print(f'[Runner] - Using features extracted on-the-fly')
             feat_list = [config['online']['input'], config['online']['target']]
@@ -80,7 +81,10 @@ class Runner():
             model_config = DualTransformerConfig(self.config)
             self.model = DualTransformerForMaskedAcousticModel(model_config, self.input_dim, self.output_dim).to(self.device)
         else:
-            print('[Runner] - Initializing Transformer model...')
+            if self.wave_transformer:
+                print('[Runner] - Initializing Wave Transformer model...')
+            else:
+                print('[Runner] - Initializing Transformer model...')
             model_config = TransformerConfig(self.config)
             self.model = TransformerForMaskedAcousticModel(model_config, self.input_dim, self.output_dim).to(self.device)
         self.model.train()
@@ -264,9 +268,13 @@ class Runner():
                 if 'online' in self.config:
                     # batch are raw waveforms
                     # batch: (batch_size, channel, max_len)
-                    specs = self.preprocessor(batch.to(device=self.device))
-                    batch = process_train_MAM_data(specs, config=self.transformer_config)
-                    
+                    if len(batch.size()) == 4: batch = batch.squeeze(0)  # Unpack and Hack bucket: Bucketing should cause returned data to have shape 1xBxTxD'
+                    feats = self.preprocessor(batch.to(device=self.device))
+                    if self.wave_transformer:
+                        batch = process_wave_train_MAM_data(feats, self.model.Transformer.input_representations.DOWNSAMPLING, config=self.transformer_config)
+                    else:
+                        batch = process_train_MAM_data(feats, config=self.transformer_config)
+
                 batch_is_valid, *batch = batch
                 try:
                     if self.global_step > self.total_steps: break
@@ -331,6 +339,9 @@ class Runner():
                                 name_list[0] = 'mask_time'
                             
                             for i in range(len(spec_list)):
+                                if i == 0 and self.wave_transformer:
+                                    self.log.add_audio(name_list[0], spec_list[0][0].data.cpu().numpy(), self.global_step, self.config['online']['sample_rate'])
+                                    continue
                                 spec = self.up_sample_frames(spec_list[i][0], return_first=True)
                                 spec = plot_spectrogram_to_numpy(spec.data.cpu().numpy())
                                 self.log.add_image(name_list[i], spec, self.global_step)
