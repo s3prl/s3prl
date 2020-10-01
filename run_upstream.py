@@ -85,7 +85,7 @@ def get_dataloader(args, config):
         print('[run_upstream] - Loading Kaldi data: ' + str(config['dataloader']['data_path']) + ' from these sets ' + str(config['dataloader']['train_set']))
     
     dataloader = get_Dataloader(split='train', load=load, use_gpu=args.gpu, 
-                                run_mam=True, mam_config=config['transformer'], **config['dataloader'])
+                                run_mam=True, mam_config=config['transformer'], **config['dataloader'], **config)
 
     return dataloader
 
@@ -109,7 +109,8 @@ def run_transformer(args, config):
         copyfile(args.online_config, os.path.join(ckpdir, args.online_config.split('/')[-1]))
 
     # get dataloader
-    if 'online' in config:
+    if 'use_online_dataset' not in config['online']: config['online']['use_online_dataset'] = True
+    if 'online' in config and config['online']['use_online_dataset']:
         dataloader = get_online_Dataloader(args, config, is_train=True)
     else:
         dataloader = get_dataloader(args, config)

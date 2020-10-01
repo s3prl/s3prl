@@ -11,6 +11,7 @@
 # IMPORTATION #
 ###############
 import os
+import copy
 import torch
 import pickle
 import random
@@ -39,6 +40,7 @@ SPEAKER_THRESHOLD = 0
 def get_online_Dataloader(args, config, is_train=True):
     # create waveform dataset
     dataset = OnlineDataset(**config['online'])
+    print('[Dataset] - Using Online Dataset.')
     
     # create dataloader for extracting features
     def collate_fn(samples):
@@ -93,11 +95,8 @@ class OnlineDataset(Dataset):
         wav = cls.normalize_wav_decibel(wav, target_level)
         return wav
 
-    def __getitem__(self, idx):
-        load_config = [self.sample_rate, self.max_time, self.target_level]
-        wav = OnlineDataset.load_data(self.filepths[idx], *load_config)
-
-        # build input
+    def apply_noise(self, wav):
+        if self.noise_proportion <= 0: return wav
         dice = random.random()
         if dice < self.noise_proportion:
             if hasattr(self, 'noise_sampler'):
@@ -125,7 +124,14 @@ class OnlineDataset(Dataset):
             assert torch.isnan(wav_inp).sum() == 0 and torch.isinf(wav_inp).sum() == 0
         else:
             wav_inp = wav
+        return wav_inp
 
+    def __getitem__(self, idx):
+        load_config = [self.sample_rate, self.max_time, self.target_level]
+        wav = OnlineDataset.load_data(self.filepths[idx], *load_config)
+
+        # build input
+        wav_inp = self.apply_noise(wav)
         # build target
         wav_tar = wav
 
@@ -185,15 +191,24 @@ Currently supports 'data/libri_mel160_subword5000' and 'data/libri_fmllr_cmvn' f
 '''
 class AcousticDataset(LibriDataset):
     
-    def __init__(self, run_mam, file_path, sets, bucket_size, max_timestep=0, drop=False, mam_config=None):
+    def __init__(self, run_mam, file_path, sets, bucket_size, max_timestep=0, drop=False, mam_config=None,
+                 libri_root=None, online_config=None):
         super(AcousticDataset, self).__init__(file_path, sets, bucket_size, max_timestep, drop)
 
         self.run_mam = run_mam
         self.mam_config = mam_config
+        self.libri_root = libri_root
+        self.online_config = online_config
         self.sample_step = mam_config['max_input_length'] if 'max_input_length' in mam_config else 0
-        if self.sample_step > 0: print('[Dataset] - Sampling random segments for training, sample length:', self.sample_step)
-        if 'dual_transformer' not in self.mam_config: 
+        
+        if self.sample_step > 0:
+            print('[Dataset] - Sampling random segments for training, sample length:', self.sample_step)
+        if 'dual_transformer' not in self.mam_config:
             self.mam_config['dual_transformer'] = False
+        if 'wave_transformer' not in self.mam_config:
+            self.mam_config['wave_transformer'] = False
+        if self.mam_config['dual_transformer'] != self.mam_config['wave_transformer']:
+            print('[Dataset] - Setup for special mode:', 'dual_transformer' if self.mam_config['dual_transformer'] else 'wave_transformer')
         X = self.table['file_path'].tolist()
         X_lens = self.table['length'].tolist()
 
@@ -229,12 +244,14 @@ class AcousticDataset(LibriDataset):
     def __getitem__(self, index):
         # Load acoustic feature and pad
         if self.sample_step > 0:
-            x_batch = [torch.FloatTensor(self.sample(np.load(os.path.join(self.root, x_file)))) for x_file in self.X[index]]
+            x_batch = [self.sample(load_libri_data(x_file, self.root, self.libri_root, self.online_config)) for x_file in self.X[index]]
         else:
-            x_batch = [torch.FloatTensor(np.load(os.path.join(self.root, x_file))) for x_file in self.X[index]]
+            x_batch = [load_libri_data(x_file, self.root, self.libri_root, self.online_config) for x_file in self.X[index]]
         x_pad_batch = pad_sequence(x_batch, batch_first=True)
         if self.run_mam and self.mam_config['dual_transformer']:
             x_pad_batch = process_dual_train_MAM_data(spec=(x_pad_batch,), config=self.mam_config)
+        elif self.run_mam and self.mam_config['wave_transformer']:
+            x_pad_batch = torch.cat([x_pad_batch, copy.deepcopy(x_pad_batch)], dim=-1).transpose(-1, -2).contiguous()
         elif self.run_mam:
             x_pad_batch = process_train_MAM_data(spec=(x_pad_batch,), config=self.mam_config)
         return x_pad_batch
@@ -828,7 +845,7 @@ class Speaker_Dataset(Dataset):
 def get_Dataloader(split, load, data_path, batch_size, max_timestep, 
                    use_gpu, n_jobs, train_set, dev_set, test_set, dev_batch_size, 
                    target_path=None, phone_path=None, seed=1337,
-                   mam_config=None, sentiment_config=None, online_config=None, libri_root=None,
+                   mam_config=None, sentiment_config=None, online=None, libri_root=None,
                    decode_beam_size=None, run_mam=False, train_proportion=1.0, **kwargs):
 
     # Decide which split to use: train/dev/test
@@ -854,7 +871,8 @@ def get_Dataloader(split, load, data_path, batch_size, max_timestep,
     # Decide which task (or dataset) to propogate through model
     if load == 'acoustic':
         ds = AcousticDataset(run_mam=run_mam, file_path=data_path, sets=sets, max_timestep=max_timestep,
-                             bucket_size=bs, drop=drop_too_long, mam_config=mam_config)
+                             bucket_size=bs, drop=drop_too_long, mam_config=mam_config,
+                             libri_root=libri_root, online_config=online)
     elif load == 'kaldi':
         ds = KaldiDataset(run_mam=run_mam, file_path=data_path, sets=sets, max_timestep=max_timestep,
                           bucket_size=bs, drop=drop_too_long, mam_config=mam_config)
@@ -878,7 +896,7 @@ def get_Dataloader(split, load, data_path, batch_size, max_timestep,
     elif load == 'speaker':
         ds = Speaker_Dataset(split=split, run_mam=run_mam, file_path=data_path, split_path=phone_path, sets=sets, max_timestep=max_timestep,
                              bucket_size=bs, drop=drop_too_long, mam_config=mam_config, seed=seed,
-                             libri_root=libri_root, online_config=online_config)
+                             libri_root=libri_root, online_config=online)
     else:
         raise NotImplementedError('Invalid `load` argument for `get_Dataloader()`!')
 

@@ -129,7 +129,7 @@ def get_upstream_model(args):
 def get_dataloader(args, dataloader_config):
     pretrain_config = torch.load(args.ckpt, map_location='cpu')['Settings']['Config']
     if 'online' in pretrain_config:
-        dataloader_config['online_config'] = pretrain_config['online']
+        dataloader_config['online'] = pretrain_config['online']
 
     if not os.path.exists(dataloader_config['data_path']):
         raise RuntimeError('[run_downstream] - Data path not valid:', dataloader_config['data_path'])    
