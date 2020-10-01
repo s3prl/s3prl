@@ -1,8 +1,10 @@
 # dataset
+use_online_dataset: False
+# use the online dataset, which supports noise augmentation on wavefrom but does not support bucketing
 roots: [
-  '/home/leo/d/datasets/LibriSpeech/train-clean-100',
-  '/home/leo/d/datasets/LibriSpeech/train-clean-360',
-  '/home/leo/d/datasets/LibriSpeech/train-other-500',
+  '/media/andi611/1TBSSD/LibriSpeech/train-clean-100',
+  '/media/andi611/1TBSSD/LibriSpeech/train-clean-360',
+  '/media/andi611/1TBSSD/LibriSpeech/train-other-500',
 ]
 sample_rate: 16000
 # Hz, all utterances prepared in roots should be in the same
@@ -12,7 +14,7 @@ max_time: 40000
 # maximum time of LibriSpeech is about 36 sec
 target_level: -25
 # pretrained utterances are first scaled to the same decibel level
-noise_proportion: 0.5
+noise_proportion: 0.0
 # stochastically add noise to input waveforms
 noise_type: 'gaussian'
 # 'gaussian' or noise data root path
@@ -23,19 +25,19 @@ snrs: [3, 6, 9]
 win_ms: 25
 hop_ms: 10
 n_freq: 201
-n_mels: 40
+n_mels: 80
 n_mfcc: 13
 
 # feature configuration
-# feat_type can be: complx, linear, mel, mfcc, phase
+# feat_type can be: wav, complx, linear, mel, mfcc, phase
 input:
-  feat_type: mel
+  feat_type: wav
   channel: 0
-  log: True
-  delta: 1
-  cmvn: True
+  log: False
+  delta: 0
+  cmvn: False
 target:
-  feat_type: linear
+  feat_type: mel
   channel: 1
   log: True
   delta: 0
