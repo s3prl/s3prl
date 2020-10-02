@@ -11,7 +11,6 @@
 # IMPORTATION #
 ###############
 import os
-import copy
 import torch
 import pickle
 import random
@@ -24,7 +23,8 @@ from torch.utils.data import DataLoader
 from torch.utils.data.dataset import Dataset
 from torch.nn.utils.rnn import pad_sequence
 from transformer.mam import process_train_MAM_data, process_test_MAM_data
-from transformer.mam import process_dual_train_MAM_data
+from transformer.mam import process_dual_train_MAM_data, process_wave_train_MAM_data
+from utility.preprocessor import OnlinePreprocessor
 
 
 ############
@@ -143,7 +143,7 @@ class OnlineDataset(Dataset):
 
 
 def load_libri_data(npy_path, npy_root=None, libri_root=None, online_config=None):
-    if online_config is None:
+    if online_config is None or libri_root is None:
         return torch.FloatTensor(np.load(os.path.join(npy_root, npy_path)))
     else:
         def get_full_libri_path(npy_path):
@@ -158,15 +158,15 @@ def load_libri_data(npy_path, npy_root=None, libri_root=None, online_config=None
 
 
 ################
-# LIBRIDATASET #
+# BASE DATASET #
 ################
-# Librispeech Dataset (works in bucketing style)
+# Base dataset, support child datasets that work in bucketing style
 # Parameters
 #     - file_path    : str, file path to dataset
 #     - split        : str, data split (train / dev / test)
 #     - max_timestep : int, max len for input (set to 0 for no restriction)
 #     - bucket_size  : int, batch size for each bucket
-class LibriDataset(Dataset):
+class BaseDataset(Dataset):
     def __init__(self, file_path, sets, bucket_size, max_timestep=0, drop=False):
 
         # Read file
@@ -186,29 +186,29 @@ class LibriDataset(Dataset):
 # ACOUSTIC DATASET #
 ####################
 '''
-The Acoustic dataset that loads different types of handcrafted features of the LibriSpeech corpus.
-Currently supports 'data/libri_mel160_subword5000' and 'data/libri_fmllr_cmvn' for different preprocessing features.
+The Acoustic dataset that loads different types of features.
+Supports sampling a sub-utterance from a long utterance.
+Supports the loading of:
+    1) preprocessed feature from `file_path`, and
+    2) on-the-fly feature extraction if given `online_config`.
 '''
-class AcousticDataset(LibriDataset):
+class AcousticDataset(BaseDataset):
     
-    def __init__(self, run_mam, file_path, sets, bucket_size, max_timestep=0, drop=False, mam_config=None,
+    def __init__(self, file_path, sets, bucket_size, max_timestep=0, drop=False, mam_config=None,
                  libri_root=None, online_config=None):
         super(AcousticDataset, self).__init__(file_path, sets, bucket_size, max_timestep, drop)
 
-        self.run_mam = run_mam
         self.mam_config = mam_config
         self.libri_root = libri_root
         self.online_config = online_config
-        self.sample_step = mam_config['max_input_length'] if 'max_input_length' in mam_config else 0
-        
+        if self.online_config is not None:
+            assert libri_root is not None
+            feat_list = [self.online_config['input'], self.online_config['target']]
+            self.preprocessor = OnlinePreprocessor(**self.online_config, feat_list=feat_list)
+        self.sample_step = mam_config['max_input_length'] if 'max_input_length' in mam_config else 0    
         if self.sample_step > 0:
             print('[Dataset] - Sampling random segments for training, sample length:', self.sample_step)
-        if 'dual_transformer' not in self.mam_config:
-            self.mam_config['dual_transformer'] = False
-        if 'wave_transformer' not in self.mam_config:
-            self.mam_config['wave_transformer'] = False
-        if self.mam_config['dual_transformer'] != self.mam_config['wave_transformer']:
-            print('[Dataset] - Setup for special mode:', 'dual_transformer' if self.mam_config['dual_transformer'] else 'wave_transformer')
+
         X = self.table['file_path'].tolist()
         X_lens = self.table['length'].tolist()
 
@@ -231,7 +231,7 @@ class AcousticDataset(LibriDataset):
                 batch_x, batch_len = [], []
         
         # Gather the last batch
-        if len(batch_x) > 0:
+        if len(batch_x) > 1:
             self.X.append(batch_x)
 
     
@@ -239,7 +239,15 @@ class AcousticDataset(LibriDataset):
         if len(x) < self.sample_step: return x
         idx = random.randint(0, len(x)-self.sample_step)
         return x[idx:idx+self.sample_step]
-
+    
+    def process_x_pad_batch(self, x_pad_batch):
+        if self.online_config is not None:
+            x_pad_batch = torch.cat([x_pad_batch, x_pad_batch], dim=-1) # (batch_size, seq_len, channel=2)
+            x_pad_batch = x_pad_batch.transpose(-1, -2).contiguous() # (batch_size, channel=2, seq_len)
+            feats = self.preprocessor(x_pad_batch)
+            return process_train_MAM_data(feats, config=self.mam_config)
+        else:
+            return process_train_MAM_data(spec=(x_pad_batch,), config=self.mam_config)
 
     def __getitem__(self, index):
         # Load acoustic feature and pad
@@ -248,13 +256,66 @@ class AcousticDataset(LibriDataset):
         else:
             x_batch = [load_libri_data(x_file, self.root, self.libri_root, self.online_config) for x_file in self.X[index]]
         x_pad_batch = pad_sequence(x_batch, batch_first=True)
-        if self.run_mam and self.mam_config['dual_transformer']:
-            x_pad_batch = process_dual_train_MAM_data(spec=(x_pad_batch,), config=self.mam_config)
-        elif self.run_mam and self.mam_config['wave_transformer']:
-            x_pad_batch = torch.cat([x_pad_batch, copy.deepcopy(x_pad_batch)], dim=-1).transpose(-1, -2).contiguous()
-        elif self.run_mam:
-            x_pad_batch = process_train_MAM_data(spec=(x_pad_batch,), config=self.mam_config)
-        return x_pad_batch
+        return self.process_x_pad_batch(x_pad_batch)
+
+
+#########################
+# DUAL ACOUSTIC DATASET #
+#########################
+'''
+The Dual Acoustic dataset that loads the (phonetic input, speaker input).
+This dataset if for the dual transformer framework.
+'''
+class DualAcousticDataset(AcousticDataset):
+    
+    def __init__(self, file_path, sets, bucket_size, max_timestep=0, drop=False, mam_config=None,
+                 libri_root=None, online_config=None):
+        super(DualAcousticDataset, self).__init__(file_path, sets, bucket_size, max_timestep, drop,
+                                                  mam_config, libri_root, online_config)
+        if 'dual_transformer' not in self.mam_config:
+            raise ValueError('Please add a new attribute in config to use this dataset -> dual_transformer: True')
+        elif self.mam_config['dual_transformer']:
+            print('[Dataset] - Setup for special mode: dual_transformer')
+        else:
+            raise ValueError('Calling the wrong dataset!')
+
+    def process_x_pad_batch(self, x_pad_batch):
+        if self.online_config is not None:
+            x_pad_batch = torch.cat([x_pad_batch, x_pad_batch], dim=-1) # (batch_size, seq_len, channel=2)
+            x_pad_batch = x_pad_batch.transpose(-1, -2).contiguous() # (batch_size, channel=2, seq_len)
+            feats = self.preprocessor(x_pad_batch)
+            return process_dual_train_MAM_data(feats, config=self.mam_config)
+        else:
+            return process_dual_train_MAM_data(spec=(x_pad_batch,), config=self.mam_config)
+
+
+#########################
+# WAVE ACOUSTIC DATASET #
+#########################
+'''
+The Wave Acoustic dataset that loads (raw waveform features, spectrogram) of the corpus root.
+Currently only support on-the-fly (online) feature extraction.
+'''
+class WaveAcousticDataset(AcousticDataset):
+    
+    def __init__(self, file_path, sets, bucket_size, max_timestep=0, drop=False, mam_config=None,
+                 libri_root=None, online_config=None):
+        super(WaveAcousticDataset, self).__init__(file_path, sets, bucket_size, max_timestep, drop,
+                                                  mam_config, libri_root, online_config)
+        if 'wave_transformer' not in self.mam_config:
+            raise ValueError('Please add a new attribute in config to use this dataset -> wave_transformer: True')
+        elif self.mam_config['wave_transformer']:
+            print('[Dataset] - Setup for special mode: wave_transformer')
+        else:
+            raise ValueError('Calling the wrong dataset!')
+        assert self.online_config is not None
+        assert hasattr(self, 'preprocessor')
+
+    def process_x_pad_batch(self, x_pad_batch):
+        x_pad_batch = torch.cat([x_pad_batch, x_pad_batch], dim=-1) # (batch_size, seq_len, channel=2)
+        x_pad_batch = x_pad_batch.transpose(-1, -2).contiguous() # (batch_size, channel=2, seq_len)
+        feats = self.preprocessor(x_pad_batch)
+        return process_wave_train_MAM_data(feats, self.online_config['sample_rate']//100, config=self.mam_config)
 
 
 #################
@@ -267,14 +328,13 @@ specify 'train_set' in config. For example: ['train']
 '''
 class KaldiDataset(Dataset):
     
-    def __init__(self, run_mam, file_path, sets, bucket_size, max_timestep=0, drop=False, mam_config=None):
+    def __init__(self, file_path, sets, bucket_size, max_timestep=0, drop=False, mam_config=None):
         super(KaldiDataset, self).__init__()
 
         import kaldi_io
         from tqdm import tqdm
 
         self.root = file_path
-        self.run_mam = run_mam
         self.mam_config = mam_config
         self.sample_step = mam_config['max_input_length'] if 'max_input_length' in mam_config else 0
         if self.sample_step > 0: print('[Dataset] - Sampling random segments for training, sample length:', self.sample_step)
@@ -313,19 +373,16 @@ class KaldiDataset(Dataset):
                 batch_x, batch_len = [], []
         
         # Gather the last batch
-        if len(batch_x) > 0:
+        if len(batch_x) > 1:
             self.X.append(batch_x)
-
 
     def __len__(self):
         return len(self.X)
     
-
     def sample(self, x):
         if len(x) < self.sample_step: return x
         idx = random.randint(0, len(x)-self.sample_step)
         return x[idx:idx+self.sample_step]
-
 
     def __getitem__(self, index):
         # Load acoustic feature and pad
@@ -334,10 +391,7 @@ class KaldiDataset(Dataset):
         else:
             x_batch = [torch.FloatTensor(x_data) for x_data in self.X[index]]
         x_pad_batch = pad_sequence(x_batch, batch_first=True)
-        if self.run_mam and self.mam_config['dual_transformer']:
-            x_pad_batch = process_dual_train_MAM_data(spec=(x_pad_batch,), config=self.mam_config)
-        elif self.run_mam:
-            x_pad_batch = process_train_MAM_data(spec=(x_pad_batch,), config=self.mam_config)
+        x_pad_batch = process_train_MAM_data(spec=(x_pad_batch,), config=self.mam_config)
         return x_pad_batch
 
 
@@ -347,7 +401,7 @@ class KaldiDataset(Dataset):
 '''
 The LibriSpeech train-clean-360 (Mel Spectrogram, Linear Spectrogram) dataset
 '''
-class Mel_Linear_Dataset(LibriDataset):
+class Mel_Linear_Dataset(BaseDataset):
     
     def __init__(self, file_path, target_path, sets, bucket_size, max_timestep=0, drop=False, mam_config=None):
         super(Mel_Linear_Dataset, self).__init__(file_path, sets, bucket_size, max_timestep, drop)
@@ -386,7 +440,7 @@ class Mel_Linear_Dataset(LibriDataset):
                 batch_t, batch_x, batch_len = [], [], []
         
         # Gather the last batch
-        if len(batch_x) > 0:
+        if len(batch_x) > 1:
             self.T.append(batch_t)
             self.X.append(batch_x)
 
@@ -407,12 +461,11 @@ class Mel_Linear_Dataset(LibriDataset):
 '''
 The LibriSpeech train-clean-360 (speech, phone) dataset
 '''
-class Mel_Phone_Dataset(LibriDataset):
+class Mel_Phone_Dataset(BaseDataset):
     
-    def __init__(self, run_mam, file_path, phone_path, sets, bucket_size, max_timestep=0, drop=False, train_proportion=1.0, mam_config=None):
+    def __init__(self, file_path, phone_path, sets, bucket_size, max_timestep=0, drop=False, train_proportion=1.0, mam_config=None):
         super(Mel_Phone_Dataset, self).__init__(file_path, sets, bucket_size, max_timestep, drop)
 
-        self.run_mam = run_mam
         self.mam_config = mam_config
         self.phone_path = phone_path
         self.class_num = len(pickle.load(open(os.path.join(phone_path, 'phone2idx.pkl'), 'rb')))
@@ -455,7 +508,7 @@ class Mel_Phone_Dataset(LibriDataset):
                     batch_x, batch_len = [], []
         
         # Gather the last batch
-        if len(batch_x) > 0:
+        if len(batch_x) > 1:
             if x not in unaligned:
                 self.X.append(batch_x)
 
@@ -474,8 +527,6 @@ class Mel_Phone_Dataset(LibriDataset):
         p_pad_batch = pad_sequence(p_batch, batch_first=True)
         x_match_batch, p_match_batch = self.match_sequence(x_pad_batch, p_pad_batch)
         # Return (x_spec, phone_label)
-        if self.run_mam:
-            x_match_batch = process_test_MAM_data(spec=(x_match_batch,), config=self.mam_config)
         return x_match_batch, p_match_batch
 
 
@@ -485,16 +536,19 @@ class Mel_Phone_Dataset(LibriDataset):
 '''
 The LibriSpeech train-clean-100 (speech, phone) dataset, idendical alignment and split with the CPC paper
 '''
-class CPC_Phone_Dataset(LibriDataset):
+class CPC_Phone_Dataset(BaseDataset):
     
-    def __init__(self, run_mam, file_path, phone_path, sets, bucket_size, max_timestep=0, drop=False, mam_config=None, split='train', seed=1337):
+    def __init__(self, file_path, phone_path, sets, bucket_size, max_timestep=0, drop=False, mam_config=None, split='train', seed=1337,
+                 libri_root=None, online_config=None):
         super(CPC_Phone_Dataset, self).__init__(file_path, sets, bucket_size, max_timestep, drop)
 
         assert('train-clean-100' in sets and len(sets) == 1) # `sets` must be ['train-clean-100']
         random.seed(seed)
-        self.run_mam = run_mam
         self.mam_config = mam_config
         self.phone_path = phone_path
+        self.libri_root = libri_root
+        self.online_config = online_config
+        if self.online_config is not None: assert libri_root is not None
         phone_file = open(os.path.join(phone_path, 'converted_aligned_phones.txt')).readlines()
         
         self.Y = {}
@@ -515,7 +569,7 @@ class CPC_Phone_Dataset(LibriDataset):
             usage_list = open(os.path.join(phone_path, 'test_split.txt')).readlines()
         else:
             raise ValueError('Invalid \'split\' argument for dataset: CPC_Phone_Dataset!')
-        usage_list = [line.strip('\n') for line in usage_list]
+        usage_list = {line.strip('\n'):None for line in usage_list}
         print('[Dataset] - Possible phone classes: ' + str(self.class_num) + ', number of data: ' + str(len(usage_list)))
 
         X = self.table['file_path'].tolist()
@@ -541,7 +595,7 @@ class CPC_Phone_Dataset(LibriDataset):
                     batch_x, batch_len = [], []
         
         # Gather the last batch
-        if len(batch_x) > 0:
+        if len(batch_x) > 1:
             if self.parse_x_name(x) in usage_list:
                 self.X.append(batch_x)
 
@@ -549,8 +603,10 @@ class CPC_Phone_Dataset(LibriDataset):
         return x.split('/')[-1].split('.')[0]
 
     def match_sequence(self, x_batch, p_batch):
-        truncated_length = min(x_batch.shape[1], p_batch.shape[1])
-        x_match_batch = x_batch[:, :truncated_length, :]
+        scale = 1 if self.online_config is None else \
+                self.online_config['sample_rate'] // 100 if self.online_config['input']['feat_type'] == 'wav' else 1
+        truncated_length = min(x_batch.shape[1]//scale, p_batch.shape[1])
+        x_match_batch = x_batch[:, :truncated_length*scale, :]
         p_match_batch = p_batch[:, :truncated_length]
         return x_match_batch, p_match_batch
 
@@ -559,22 +615,18 @@ class CPC_Phone_Dataset(LibriDataset):
 
     def __getitem__(self, index):
         # Load acoustic feature and pad
-        x_batch = [torch.FloatTensor(np.load(os.path.join(self.root, x_file))) for x_file in self.X[index]]
+        x_batch = [load_libri_data(x_file, self.root, self.libri_root, self.online_config) for x_file in self.X[index]]
         x_pad_batch = pad_sequence(x_batch, batch_first=True)
         p_batch = [torch.LongTensor(self.Y[self.parse_x_name(x_file)]) for x_file in self.X[index]]
         p_pad_batch = pad_sequence(p_batch, batch_first=True)
         x_match_batch, p_match_batch = self.match_sequence(x_pad_batch, p_pad_batch)
-        # Return (x_spec, phone_label)
-        if self.run_mam:
-            x_match_batch = process_test_MAM_data(spec=(x_match_batch,), config=self.mam_config)
-        return x_match_batch, p_match_batch
+        return x_match_batch, p_match_batch # Return (x_spec, phone_label)
 
 
 class Mosei_Dataset(Dataset):
-    def __init__(self, run_mam, split='train', bucket_size=8, train_proportion=1.0, max_timestep=0, drop=True, mam_config=None, mosei_config=None):
+    def __init__(self, split='train', bucket_size=8, train_proportion=1.0, max_timestep=0, drop=True, mam_config=None, mosei_config=None):
         
         assert(mosei_config is not None), 'MOSEI config is necessary for this dataset'
-        self.run_mam = run_mam
         self.mam_config = mam_config
         self.config = mosei_config
 
@@ -676,7 +728,7 @@ class Mosei_Dataset(Dataset):
                 batch_y, batch_x, batch_len = [], [], []
         
         # Gather the last batch
-        if len(batch_x) > 0:
+        if len(batch_x) > 1:
             self.Y.append(batch_y)
             self.X.append(batch_x)
 
@@ -700,8 +752,6 @@ class Mosei_Dataset(Dataset):
             y_batch = torch.LongTensor(self.Y[index])  # (batch, )
             # y_broadcast_int_batch = y_batch.repeat(x_pad_batch.size(1), 1).T  # (batch, seq)
 
-        if self.run_mam:
-            x_pad_batch = process_test_MAM_data(spec=(x_pad_batch,), config=self.mam_config)
         return x_pad_batch, y_batch
     
     def __len__(self):
@@ -716,14 +766,14 @@ The LibriSpeech (speech, speaker) dataset
 '''
 class Speaker_Dataset(Dataset):
     
-    def __init__(self, split, run_mam, file_path, sets, bucket_size, split_path=None, max_timestep=0, drop=False, mam_config=None, seed=1337,
+    def __init__(self, split, file_path, sets, bucket_size, split_path=None, max_timestep=0, drop=False, mam_config=None, seed=1337,
                  libri_root=None, online_config=None):        
         random.seed(seed)
-        self.run_mam = run_mam
         self.mam_config = mam_config
         self.root = file_path
         self.libri_root = libri_root
         self.online_config = online_config
+        if self.online_config is not None: assert libri_root is not None
 
         # Load the input sets
         tables = [pd.read_csv(os.path.join(file_path, s + '.csv')) for s in sets]
@@ -756,7 +806,7 @@ class Speaker_Dataset(Dataset):
                 raise NotImplementedError('Invalid `split` argument!')
             
             self.table = tables
-            usage_list = [line.strip('\n') for line in usage_list]
+            usage_list = {line.strip('\n'):None for line in usage_list}
             print('[Dataset] - Using CPC train/test splits.')
             print('[Dataset] - Possible speaker classes: ' + str(self.class_num) + ', number of data: ' + str(len(usage_list)))
 
@@ -796,7 +846,7 @@ class Speaker_Dataset(Dataset):
                         batch_x, batch_len = [], []
         
         # Gather the last batch
-        if len(batch_x) > 0:
+        if len(batch_x) > 1:
             if len(usage_list) == 0 or self.parse_x_name(x) in usage_list: # check if x is in list if list not empty
                 self.X.append(batch_x)
 
@@ -812,8 +862,6 @@ class Speaker_Dataset(Dataset):
         x_pad_batch = pad_sequence(x_batch, batch_first=True)
         # Return (x_spec, speaker_label)
         s_batch = torch.LongTensor([self.speaker2idx[self.get_speaker_from_path(x_file)] for x_file in self.X[index]])
-        if self.run_mam:
-            x_pad_batch = process_test_MAM_data(spec=(x_pad_batch,), config=self.mam_config)
         return x_pad_batch, s_batch
 
     def get_speaker_from_path(self, x):
@@ -846,7 +894,7 @@ def get_Dataloader(split, load, data_path, batch_size, max_timestep,
                    use_gpu, n_jobs, train_set, dev_set, test_set, dev_batch_size, 
                    target_path=None, phone_path=None, seed=1337,
                    mam_config=None, sentiment_config=None, online=None, libri_root=None,
-                   decode_beam_size=None, run_mam=False, train_proportion=1.0, **kwargs):
+                   decode_beam_size=None, train_proportion=1.0, **kwargs):
 
     # Decide which split to use: train/dev/test
     if split == 'train':
@@ -870,33 +918,43 @@ def get_Dataloader(split, load, data_path, batch_size, max_timestep,
 
     # Decide which task (or dataset) to propogate through model
     if load == 'acoustic':
-        ds = AcousticDataset(run_mam=run_mam, file_path=data_path, sets=sets, max_timestep=max_timestep,
+        ds = AcousticDataset(file_path=data_path, sets=sets, max_timestep=max_timestep,
                              bucket_size=bs, drop=drop_too_long, mam_config=mam_config,
                              libri_root=libri_root, online_config=online)
+    elif load == 'dual_acoustic':
+        ds = DualAcousticDataset(file_path=data_path, sets=sets, max_timestep=max_timestep,
+                                 bucket_size=bs, drop=drop_too_long, mam_config=mam_config,
+                                 libri_root=libri_root, online_config=online)
+    elif load == 'wave_acoustic':
+        ds = WaveAcousticDataset(file_path=data_path, sets=sets, max_timestep=max_timestep,
+                                 bucket_size=bs, drop=drop_too_long, mam_config=mam_config,
+                                 libri_root=libri_root, online_config=online)
     elif load == 'kaldi':
-        ds = KaldiDataset(run_mam=run_mam, file_path=data_path, sets=sets, max_timestep=max_timestep,
+        ds = KaldiDataset(file_path=data_path, sets=sets, max_timestep=max_timestep,
                           bucket_size=bs, drop=drop_too_long, mam_config=mam_config)
+    elif load == 'cpc_phone':
+        assert(phone_path is not None), '`phone path` must be provided for this dataset.'
+        ds = CPC_Phone_Dataset(file_path=data_path, phone_path=phone_path, sets=sets, max_timestep=max_timestep,
+                               bucket_size=bs, drop=drop_too_long, mam_config=mam_config, split=split, seed=seed,
+                               libri_root=libri_root, online_config=online)
+    elif load == 'speaker':
+        ds = Speaker_Dataset(file_path=data_path, split_path=phone_path, sets=sets, max_timestep=max_timestep,
+                             bucket_size=bs, drop=drop_too_long, mam_config=mam_config, split=split, seed=seed,
+                             libri_root=libri_root, online_config=online)
+    # Below are old datasets that we will eventually deprecate
     elif load == 'duo':
         assert(target_path is not None), '`target path` must be provided for this dataset.'
         ds = Mel_Linear_Dataset(file_path=data_path, target_path=target_path, sets=sets, max_timestep=max_timestep,
                                 bucket_size=bs, drop=drop_too_long, mam_config=mam_config)
     elif load == 'montreal_phone':
         assert(phone_path is not None), '`phone path` must be provided for this dataset.'
-        ds = Mel_Phone_Dataset(run_mam=run_mam, file_path=data_path, phone_path=phone_path, sets=sets, max_timestep=max_timestep,
+        ds = Mel_Phone_Dataset(file_path=data_path, phone_path=phone_path, sets=sets, max_timestep=max_timestep,
                                bucket_size=bs, drop=drop_too_long, mam_config=mam_config,
                                train_proportion=train_proportion if split != 'test' else 1.0)
-    elif load == 'cpc_phone':
-        assert(phone_path is not None), '`phone path` must be provided for this dataset.'
-        ds = CPC_Phone_Dataset(run_mam=run_mam, file_path=data_path, phone_path=phone_path, sets=sets, max_timestep=max_timestep,
-                               bucket_size=bs, drop=drop_too_long, mam_config=mam_config, split=split, seed=seed)
     elif load == 'sentiment':
         assert(sentiment_config is not None), '`sentiment config` must be provided for this dataset.'
-        ds = Mosei_Dataset(run_mam=run_mam, split=split, max_timestep=max_timestep, train_proportion=train_proportion,
+        ds = Mosei_Dataset(split=split, max_timestep=max_timestep, train_proportion=train_proportion,
                            bucket_size=bs, drop=drop_too_long, mam_config=mam_config, mosei_config=sentiment_config['mosei'])
-    elif load == 'speaker':
-        ds = Speaker_Dataset(split=split, run_mam=run_mam, file_path=data_path, split_path=phone_path, sets=sets, max_timestep=max_timestep,
-                             bucket_size=bs, drop=drop_too_long, mam_config=mam_config, seed=seed,
-                             libri_root=libri_root, online_config=online)
     else:
         raise NotImplementedError('Invalid `load` argument for `get_Dataloader()`!')
 

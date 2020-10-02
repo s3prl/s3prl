@@ -53,7 +53,7 @@ def get_upstream_args():
     parser.add_argument('--cpu', action='store_true', help='Disable GPU training.')
     parser.add_argument('--multi_gpu', action='store_true', help='Enable Multi-GPU training.')
     parser.add_argument('--test_reconstruct', action='store_true', help='Test reconstruction capability')
-    parser.add_argument('--online_config', help='Explicitly specify the config of on-the-fly feature extraction')
+    parser.add_argument('--online_config', default=None, help='Explicitly specify the config of on-the-fly feature extraction')
     parser.add_argument('--kaldi_data', action='store_true', help='Whether to use the Kaldi dataset')
 
     # parse
@@ -78,11 +78,25 @@ def get_dataloader(args, config):
     print('[run_upstream] - Loading input data: ' + str(config['dataloader']['train_set']) + ' from ' + config['dataloader']['data_path'])
     print('[run_upstream] - getting train dataloader...')
 
-    load = 'duo' if bool(config['runner']['duo_feature']) else 'kaldi' if args.kaldi_data else 'acoustic'
+    # select mode
+    try: 
+        if config['transformer']['dual_transformer'] and config['transformer']['wave_transformer']:
+            raise ValueError('`dual_transformer` and `wave_transformer` can not both be True!')
+    except: pass
+    if 'dual_transformer' in config['transformer']:
+        load = 'dual_acoustic' if config['transformer']['dual_transformer'] else 'acoustic'
+    if 'wave_transformer' in config['transformer']:
+        load = 'wave_acoustic' if config['transformer']['wave_transformer'] else 'acoustic'
+    else:
+        load = 'duo' if bool(config['runner']['duo_feature']) else 'kaldi' if args.kaldi_data else 'acoustic'
+
+    # print path info
     if load == 'duo': 
         print('[run_upstream] - Loading duo data: ' + str(config['dataloader']['train_set']) + ' from ' + config['dataloader']['target_path'])
-    if load == 'kaldi':
+    elif load == 'kaldi':
         print('[run_upstream] - Loading Kaldi data: ' + str(config['dataloader']['data_path']) + ' from these sets ' + str(config['dataloader']['train_set']))
+    elif load == 'wave_acoustic':
+        print('[run_upstream] - Loading wave data: ' + str(config['dataloader']['libri_root']) + ' from these sets ' + str(config['dataloader']['train_set']))
     
     dataloader = get_Dataloader(split='train', load=load, use_gpu=args.gpu, 
                                 run_mam=True, mam_config=config['transformer'], **config['dataloader'], **config)
@@ -109,11 +123,7 @@ def run_transformer(args, config):
         copyfile(args.online_config, os.path.join(ckpdir, args.online_config.split('/')[-1]))
 
     # get dataloader
-    if 'use_online_dataset' not in config['online']: config['online']['use_online_dataset'] = True
-    if 'online' in config and config['online']['use_online_dataset']:
-        dataloader = get_online_Dataloader(args, config, is_train=True)
-    else:
-        dataloader = get_dataloader(args, config)
+    dataloader = get_dataloader(args, config)
 
     # train
     runner = Runner(args, config, dataloader, ckpdir)

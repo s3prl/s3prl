@@ -37,7 +37,7 @@ def down_sample_frames(spec, dr):
     return spec_stacked
 
 
-@lru_cache(maxsize=1)
+@lru_cache(maxsize=128)
 def get_sinusoid_table(hidden_size):
     def cal_angle(position, hid_idx):
         return position / np.power(10000, 2 * (hid_idx // 2) / hidden_size)
@@ -99,7 +99,7 @@ def process_train_MAM_data(spec, config=None):
             source_spec = spec[0]
             target_spec = copy.deepcopy(spec[0])
         else:
-            raise NotImplementedError('Input spec sould be either (spec,) or (target_spec, source_spec), where `spec` has shape BxTxD.')
+            raise NotImplementedError('Input spec sould be either (spec,) or (source_spec, target_spec), where `spec` has shape BxTxD.')
 
         # Down sample
         spec_masked = down_sample_frames(source_spec, dr) # (batch_size, seq_len, mel_dim * dr)
@@ -251,7 +251,7 @@ def process_dual_train_MAM_data(spec, config=None):
             # create the second dual input for speaker encoder
             freq_masked = time_masked if mask_proportion == 0 and mask_frequency == 0 else copy.deepcopy(time_masked)
         else:
-            raise NotImplementedError('Input spec sould be either (spec,) or (target_spec, source_spec), where `spec` has shape BxTxD.')
+            raise NotImplementedError('Input spec sould be either (spec,) or (source_spec, target_spec), where `spec` has shape BxTxD.')
 
 
         # Record length for each uttr
@@ -340,3 +340,88 @@ def process_dual_train_MAM_data(spec, config=None):
         spec_stacked = spec_stacked.to(dtype=torch.float32)[valid_batchid]
 
     return batch_is_valid, time_masked, freq_masked, pos_enc, mask_label, attn_mask, spec_stacked
+
+
+def process_wave_train_MAM_data(feats, downsampling, config=None):
+    """Process training data for the masked acoustic model"""
+
+    dr = config['downsample_rate'] if config is not None else DR
+    hidden_size = config['hidden_size'] if config is not None else HIDDEN_SIZE
+    mask_proportion = config['mask_proportion'] if config is not None else MASK_PROPORTION
+    mask_consecutive_min = config['mask_consecutive_min'] if config is not None else MASK_CONSECUTIVE
+    mask_consecutive_max = config['mask_consecutive_max'] if config is not None else MASK_CONSECUTIVE
+    mask_allow_overlap = config['mask_allow_overlap'] if config is not None else True
+    mask_bucket_ratio = config['mask_bucket_ratio'] if config is not None else MASK_BUCKET_RATIO
+
+    with torch.no_grad():
+        if len(feats) == 2: # `source_feat` should be raw waveform and `target_spec` should be the matching spectrogram
+            source_feat = feats[0]
+            target_spec = feats[1]
+        else:
+            raise NotImplementedError('Input feats sould be either (feat,) or (source_feat, target_feat), where `feat` has shape BxTxD.')
+
+        # No down sample
+        assert(dr == 1), 'Downsampling should not be applied when using waveform as input.'
+
+        # Record length for each uttr
+
+        seq_len = source_feat.shape[1] // downsampling
+        target_spec = target_spec[:, :seq_len, :]
+        batch_size = target_spec.shape[0]
+        spec_len = (target_spec.sum(dim=-1) != 0).long().sum(dim=-1).tolist()
+        
+        pos_enc = fast_position_encoding(1, hidden_size) # (seq_len, hidden_size), dummy pos_enc with seq_len=1, not used in forward
+        mask_label = torch.zeros_like(target_spec, dtype=torch.uint8)
+        attn_mask = torch.ones((batch_size, seq_len)) # (batch_size, seq_len)
+
+        for idx in range(batch_size):
+            # zero vectors for padding dimension
+            attn_mask[idx, spec_len[idx]:] = 0
+
+            def starts_to_intervals(starts, consecutive):
+                tiled = starts.expand(consecutive, starts.size(0)).permute(1, 0)
+                offset = torch.arange(consecutive).expand_as(tiled)
+                intervals = tiled + offset
+                return intervals.view(-1)
+            
+            # time masking
+            if mask_proportion > 0:
+                mask_consecutive = random.randint(mask_consecutive_min, mask_consecutive_max)
+                valid_start_max = max(spec_len[idx] - mask_consecutive - 1, 0) # compute max valid start point for a consecutive mask
+                proportion = round(spec_len[idx] * mask_proportion / mask_consecutive)
+                if mask_allow_overlap:
+                    # draw `proportion` samples from the range (0, valid_index_range) and without replacement
+                    chosen_starts = torch.randperm(valid_start_max + 1)[:proportion]
+                else:
+                    mask_bucket_size = round(mask_consecutive * mask_bucket_ratio)
+                    rand_start = random.randint(0, min(mask_consecutive, valid_start_max))
+                    valid_starts = torch.arange(rand_start, valid_start_max + 1, mask_bucket_size)
+                    chosen_starts = valid_starts[torch.randperm(len(valid_starts))[:proportion]]
+                chosen_intervals = starts_to_intervals(chosen_starts, mask_consecutive)
+                
+                # determine whether to mask / random / or do nothing to the frame
+                dice = random.random()
+                # mask to zero
+                if dice < 0.8:
+                    source_feat[idx, chosen_intervals*downsampling, :] = 0
+                # replace to random frames
+                elif dice >= 0.8 and dice < 0.9:
+                    random_starts = torch.randperm(valid_start_max + 1)[:proportion]
+                    random_intervals = starts_to_intervals(random_starts, mask_consecutive)
+                    source_feat[idx, chosen_intervals*downsampling, :] = source_feat[idx, random_intervals*downsampling, :]
+                # do nothing
+                else:
+                    pass
+
+                # the gradients will be calculated on chosen frames
+                mask_label[idx, chosen_intervals, :] = 1
+        
+        valid_batchid = mask_label.view(batch_size, -1).sum(dim=-1).nonzero().view(-1)
+        batch_is_valid = len(valid_batchid) > 0
+        source_feat = source_feat.to(dtype=torch.float32)[valid_batchid]
+        pos_enc = pos_enc.to(dtype=torch.float32)
+        mask_label = mask_label.to(dtype=torch.bool)[valid_batchid]
+        attn_mask = attn_mask.to(dtype=torch.float32)[valid_batchid]
+        target_spec = target_spec.to(dtype=torch.float32)[valid_batchid]
+
+    return batch_is_valid, source_feat, pos_enc, mask_label, attn_mask, target_spec

@@ -34,7 +34,7 @@ class TransformerBaseWrapper(nn.Module):
     A base class for all Transformer wrappers.
     Child classes only need to implement the __init__() and forward() method.
     """
-    def __init__(self, options, inp_dim, config=None):
+    def __init__(self, options, inp_dim, config=None, online_config=None):
         super(TransformerBaseWrapper, self).__init__()
 
         # read config
@@ -63,6 +63,7 @@ class TransformerBaseWrapper(nn.Module):
         self.hidden_size = self.model_config.hidden_size
         self.num_layers = self.model_config.num_hidden_layers
         self.max_input_length = self.config['transformer']['max_input_length'] if 'max_input_length' in self.config['transformer'] else 0
+        if online_config is not None: self.config['online'] = online_config
         if 'online' in self.config:
             preprocessor, inp_dim = self.get_preprocessor(self.config['online'])
             self.preprocessor = preprocessor
@@ -143,41 +144,43 @@ class TransformerBaseWrapper(nn.Module):
         return spec_stacked
         
 
-    def process_input_data(self, spec):
+    def process_input_data(self, feat):
         """Process input data for the model"""
         
-        # add arbitary batch axis B if input `spec` has shape of TxD
-        if len(spec.shape) == 2:
-            spec = spec.unsqueeze(0)
-        # input `spec` should have shape BxTxD
-        elif len(spec.shape) != 3:
-            raise ValueError('Input argument `spec` has invalid shape: {}'.format(spec.shape))
+        # add arbitary batch axis B if input `feat` has shape of TxD
+        if len(feat.shape) == 2:
+            feat = feat.unsqueeze(0)
+        # input `feat` should have shape BxTxD
+        elif len(feat.shape) != 3:
+            raise ValueError('Input argument `feat` has invalid shape: {}'.format(feat.shape))
+        
+        scale = 1 if not 'online' in self.config else \
+                self.self.config['online']['sample_rate'] // 100 if self.config['online']['input']['feat_type'] == 'wav' else 1
 
         # Down sample
-        if self.dr > 1:
-            spec_stacked = self.down_sample_frames(spec) # (batch_size, seq_len, feature_dim * dr)
-        else:
-            spec_stacked = spec
+        if self.dr > 1 and self.inp_dim > 1: # no downsampling for waveform
+            feat = self.down_sample_frames(feat) # (batch_size, seq_len, feature_dim * dr)
 
         # Record length for each uttr
-        spec_len = (spec_stacked.sum(dim=-1) != 0).long().sum(dim=-1).tolist()
+        spec_len = (feat.sum(dim=-1) != 0).long().sum(dim=-1) // scale
+        spec_len = spec_len.tolist()
 
-        batch_size = spec_stacked.shape[0]
-        seq_len = spec_stacked.shape[1]
+        batch_size = feat.shape[0]
+        seq_len = feat.shape[1] // scale
 
         pos_enc = position_encoding(seq_len, self.hidden_size) # (seq_len, hidden_size)
         attn_mask = np.ones((batch_size, seq_len)) # (batch_size, seq_len)
 
         # zero vectors for padding dimension
-        for idx in range(len(spec_stacked)):
+        for idx in range(len(feat)):
             attn_mask[idx][spec_len[idx]:] = 0 
 
-        if self.spec_aug and self.spec_aug_prev and self.model.training:
-            spec_stacked = spec_augment(spec_stacked, mask_T=70, mask_F=4, num_T=2, num_F=2, p=1.0) # (batch_size, seq_len, feature_dim * dr)
-        spec_stacked = spec_stacked.to(device=self.device, dtype=torch.float32) # (batch_size, seq_len, feature_dim * dr)
-        pos_enc = torch.FloatTensor(pos_enc).to(device=self.device, dtype=torch.float32).expand(spec_stacked.size(0), *pos_enc.size()) # (batch_size, seq_len, hidden_size)
+        if self.spec_aug and self.spec_aug_prev and self.model.training and self.inp_dim > 1:
+            feat = spec_augment(feat, mask_T=70, mask_F=4, num_T=2, num_F=2, p=1.0) # (batch_size, seq_len, feature_dim * dr)
+        feat = feat.to(device=self.device, dtype=torch.float32) # (batch_size, seq_len, feature_dim * dr)
+        pos_enc = torch.FloatTensor(pos_enc).to(device=self.device, dtype=torch.float32).expand(feat.size(0), *pos_enc.size()) # (batch_size, seq_len, hidden_size)
         attn_mask = torch.FloatTensor(attn_mask).to(device=self.device, dtype=torch.float32) # (batch_size, seq_len)
-        return spec_stacked, pos_enc, attn_mask # (x, pos_enc, attention_mask)
+        return feat, pos_enc, attn_mask # (x, pos_enc, attention_mask)
 
 
     def tile_representations(self, reps):
@@ -223,15 +226,15 @@ class TransformerBaseWrapper(nn.Module):
 
         # forward the whole sequence at once
         if self.max_input_length == 0 or input_len <= self.max_input_length:
-            spec_stacked, pos_enc, attn_mask = self.process_input_data(x) # x shape: (B, T, D)
-            x = self.model(spec_stacked, pos_enc, attn_mask, output_all_encoded_layers=self.weighted_sum or self.select_layer != -1) # (B, T, D) or # (N, B, T, D)
+            feat, pos_enc, attn_mask = self.process_input_data(x) # x shape: (B, T, D)
+            x = self.model(feat, pos_enc, attn_mask, output_all_encoded_layers=self.weighted_sum or self.select_layer != -1) # (B, T, D) or # (N, B, T, D)
         # forward the sequence in chunks then concat
         else:
             chunks = torch.chunk(x, chunks=math.ceil(input_len / self.max_input_length), dim=1)
             x_ = []
             for chunk in chunks:
-                spec_stacked, pos_enc, attn_mask = self.process_input_data(chunk) # x shape: (B, T, D)
-                chunk = self.model(spec_stacked, pos_enc, attn_mask, output_all_encoded_layers=self.weighted_sum or self.select_layer != -1) # (B, T, D) or # (N, B, T, D)
+                feat, pos_enc, attn_mask = self.process_input_data(chunk) # x shape: (B, T, D)
+                chunk = self.model(feat, pos_enc, attn_mask, output_all_encoded_layers=self.weighted_sum or self.select_layer != -1) # (B, T, D) or # (N, B, T, D)
                 x_.append(torch.stack(chunk) if type(chunk) is list else chunk)
             x = torch.cat(x_, dim=2 if (self.weighted_sum or self.select_layer != -1) else 1)
 
@@ -246,7 +249,7 @@ class TransformerBaseWrapper(nn.Module):
         elif self.select_layer != -1:
             x = x[self.select_layer]
 
-        if self.spec_aug and not self.spec_aug_prev and self.model.training:
+        if self.spec_aug and not self.spec_aug_prev and self.model.training and self.inp_dim > 1:
             x = spec_augment(x, mask_T=70, mask_F=86, num_T=2, num_F=2, p=1.0) # (B, T, D)
 
         # If using a downsampling model, apply tile and padding
@@ -298,8 +301,8 @@ class TRANSFORMER(TransformerBaseWrapper):
         'permute_input' : 'False',
     }
     """
-    def __init__(self, options, inp_dim, config=None):
-        super(TRANSFORMER, self).__init__(options, inp_dim, config)
+    def __init__(self, options, inp_dim, config=None, online_config=None):
+        super(TRANSFORMER, self).__init__(options, inp_dim, config, online_config)
 
         # Build model
         self.model = TransformerModel(self.model_config, self.inp_dim).to(self.device)
@@ -313,9 +316,8 @@ class TRANSFORMER(TransformerBaseWrapper):
 
 
     def forward(self, x):
-        if 'online' in self.config:
+        if hasattr(self, 'preprocessor'):
             x = self.preprocessor(x.transpose(1, 2).contiguous())[0]
-
         if self.no_grad:
             with torch.no_grad():
                 x = self._forward(x)
@@ -328,8 +330,8 @@ class TRANSFORMER(TransformerBaseWrapper):
 # SPEC TRANSFORMER #
 ####################
 class SPEC_TRANSFORMER(TRANSFORMER):
-    def __init__(self, options, inp_dim, config=None):
-        super(SPEC_TRANSFORMER, self).__init__(options, inp_dim, config)
+    def __init__(self, options, inp_dim, config=None, online_config=None):
+        super(SPEC_TRANSFORMER, self).__init__(options, inp_dim, config, online_config)
 
         # build head
         self.SpecHead = TransformerSpecPredictionHead(self.model_config, inp_dim).to(self.device)
@@ -340,11 +342,9 @@ class SPEC_TRANSFORMER(TRANSFORMER):
             self.SpecHead.load_state_dict(self.all_states['SpecHead'])
             print('[Spec Transformer] - Number of parameters: ' + str(sum(p.numel() for p in self.SpecHead.parameters() if p.requires_grad)))
 
-
     def forward(self, x):
-        if 'online' in self.config:
+        if hasattr(self, 'preprocessor'):
             x = self.preprocessor(x.transpose(1, 2).contiguous())[0]
-
         if self.no_grad:
             with torch.no_grad():
                 x = self._forward(x)
@@ -399,6 +399,8 @@ class DUAL_TRANSFORMER(TransformerBaseWrapper):
 
 
     def _dual_forward(self, x):
+        if hasattr(self, 'preprocessor'):
+            x = self.preprocessor(x.transpose(1, 2).contiguous())[0]
         if 'phone' in self.mode and 'speaker' in self.mode:
             self.model = self.PhoneticTransformer
             phonetic_code = self._forward(copy.deepcopy(x))

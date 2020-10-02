@@ -60,7 +60,8 @@ def get_downstream_args():
     parser.add_argument('--fine_tune', action='store_true', help='Whether to fine tune the transformer model with downstream task.', required=False)
     parser.add_argument('--weighted_sum', action='store_true', help='Whether to use weighted sum on the transformer model with downstream task.', required=False)
     parser.add_argument('--dual_mode',choices=['phone', 'speaker', 'phone speaker'], default='phone', help='Whether to use weighted sum on the transformer model with downstream task.', required=False)
-    
+    parser.add_argument('--online_config', default=None, help='Explicitly specify the config of on-the-fly feature extraction')
+
     # Options
     parser.add_argument('--name', default=None, type=str, help='Name of current experiment.', required=False)
     parser.add_argument('--config', default='config/downstream.yaml', type=str, help='Path to downstream experiment config.', required=False)
@@ -74,6 +75,9 @@ def get_downstream_args():
     setattr(args, 'gpu', not args.cpu)
     setattr(args, 'task', args.phone_set if 'phone' in args.run else 'speaker')
     config = yaml.load(open(args.config, 'r'), Loader=yaml.FullLoader)
+    if args.online_config is not None:
+        online_config = yaml.load(open(args.online_config, 'r'), Loader=yaml.FullLoader)
+        args.online_config = online_config
     
     return args, config
 
@@ -93,18 +97,18 @@ def get_upstream_model(args):
 
     if args.upstream == 'transformer' or args.upstream == 'dual_transformer':
         options = {'ckpt_file'     : args.ckpt,
-                    'load_pretrain' : 'True',
-                    'no_grad'       : 'True' if not args.fine_tune else 'False',
-                    'dropout'       : 'default',
-                    'spec_aug'      : 'False',
-                    'spec_aug_prev' : 'True',
-                    'weighted_sum'  : 'True' if args.weighted_sum else 'False',
-                    'select_layer'  : -1,
-                    'permute_input' : 'False'
+                   'load_pretrain' : 'True',
+                   'no_grad'       : 'True' if not args.fine_tune else 'False',
+                   'dropout'       : 'default',
+                   'spec_aug'      : 'False',
+                   'spec_aug_prev' : 'True',
+                   'weighted_sum'  : 'True' if args.weighted_sum else 'False',
+                   'select_layer'  : -1,
+                   'permute_input' : 'False'
         }
 
     if args.upstream == 'transformer':
-        upstream_model = TRANSFORMER(options, args.input_dim)
+        upstream_model = TRANSFORMER(options, args.input_dim, online_config=args.online_config)
     
     elif args.upstream == 'dual_transformer':
         upstream_model = DUAL_TRANSFORMER(options, args.input_dim, mode=args.dual_mode)
@@ -130,6 +134,8 @@ def get_dataloader(args, dataloader_config):
     pretrain_config = torch.load(args.ckpt, map_location='cpu')['Settings']['Config']
     if 'online' in pretrain_config:
         dataloader_config['online'] = pretrain_config['online']
+    elif args.online_config is not None:
+        dataloader_config['online'] = args.online_config
 
     if not os.path.exists(dataloader_config['data_path']):
         raise RuntimeError('[run_downstream] - Data path not valid:', dataloader_config['data_path'])    

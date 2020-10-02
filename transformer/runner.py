@@ -22,8 +22,6 @@ from transformer.model_dual import DualTransformerConfig, DualTransformerForMask
 from transformer.optimization import BertAdam, Lamb, WarmupLinearSchedule
 from transformer.mam import fast_position_encoding
 from utility.audio import plot_spectrogram_to_numpy
-from transformer.mam import process_train_MAM_data, process_wave_train_MAM_data
-from utility.preprocessor import OnlinePreprocessor
 
 
 ##########
@@ -65,10 +63,9 @@ class Runner():
         self.wave_transformer = config['transformer']['wave_transformer'] if 'wave_transformer' in config['transformer'] else False
         if 'online' in config:
             print(f'[Runner] - Using features extracted on-the-fly')
-            feat_list = [config['online']['input'], config['online']['target']]
-            self.preprocessor = OnlinePreprocessor(**config['online'], feat_list=feat_list).to(device=self.device)
-            self.input_dim, self.output_dim = [feat.size(-1) for feat in self.preprocessor()]
+            self.input_dim, self.output_dim = [feat.size(-1) for feat in self.dataloader.dataset.preprocessor()]
         else:
+            if self.wave_transformer: raise ValueError('Wave transformer needs to be run with online feature extraction!')
             print(f'[Runner] - Using features pre-extracted and saved')
             self.input_dim = self.transformer_config['input_dim']
             self.output_dim = 1025 if self.duo_feature else None # output dim is the same as input dim if not using duo features
@@ -265,16 +262,6 @@ class Runner():
             step = 0
             loss_val = 0
             for batch in progress:
-                if 'online' in self.config:
-                    # batch are raw waveforms
-                    # batch: (batch_size, channel, max_len)
-                    if len(batch.size()) == 4: batch = batch.squeeze(0)  # Unpack and Hack bucket: Bucketing should cause returned data to have shape 1xBxTxD'
-                    feats = self.preprocessor(batch.to(device=self.device))
-                    if self.wave_transformer:
-                        batch = process_wave_train_MAM_data(feats, self.model.Transformer.input_representations.DOWNSAMPLING, config=self.transformer_config)
-                    else:
-                        batch = process_train_MAM_data(feats, config=self.transformer_config)
-
                 batch_is_valid, *batch = batch
                 try:
                     if self.global_step > self.total_steps: break
@@ -345,9 +332,6 @@ class Runner():
                                 spec = self.up_sample_frames(spec_list[i][0], return_first=True)
                                 spec = plot_spectrogram_to_numpy(spec.data.cpu().numpy())
                                 self.log.add_image(name_list[i], spec, self.global_step)
-
-                            # if self.dual_transformer:
-                            #     self.model.PhoneticTransformer.PhoneRecognizer.set_num_updates(self.global_step//1000)
 
                         loss_val = 0
                         pbar.update(1)
