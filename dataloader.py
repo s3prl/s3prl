@@ -11,6 +11,7 @@
 # IMPORTATION #
 ###############
 import os
+import re
 import torch
 import pickle
 import random
@@ -67,7 +68,7 @@ def get_online_Dataloader(args, config, is_train=True, with_speaker=False):
 
 
 class OnlineDataset(Dataset):
-    def __init__(self, roots, sample_rate, max_time, target_level=-25, noise_proportion=0, noise_type='gaussian', snrs=[3], eps=1e-8, **kwargs):
+    def __init__(self, roots, sample_rate, max_time, target_level=-25, noise_proportion=0, noise_type='gaussian', target_type='clean', snrs=[3], eps=1e-8, **kwargs):
         self.sample_rate = sample_rate
         self.max_time = max_time
         self.target_level = target_level
@@ -84,7 +85,12 @@ class OnlineDataset(Dataset):
             self.noise_sampler = torch.distributions.Normal(0, 1)
         else:
             self.noise_wavpths = find_files(noise_type)
-    
+
+        if target_type != 'clean' and os.path.isdir(target_type):
+            self.tar_filepths = find_files(target_type)
+            assert len(self.tar_filepths) > 0
+            self.regex_searcher = re.compile('fileid_\d+')
+
     @classmethod
     def normalize_wav_decibel(cls, audio, target_level):
         '''Normalize the signal to the target level'''
@@ -107,7 +113,8 @@ class OnlineDataset(Dataset):
 
     def __getitem__(self, idx):
         load_config = [self.sample_rate, self.max_time, self.target_level]
-        wav = OnlineDataset.load_data(self.filepths[idx], *load_config)
+        src_pth = self.filepths[idx]
+        wav = OnlineDataset.load_data(src_pth, *load_config)
 
         # build input
         dice = random.random()
@@ -139,7 +146,18 @@ class OnlineDataset(Dataset):
             wav_inp = wav
 
         # build target
-        wav_tar = wav
+        if not hasattr(self, 'tar_filepths'):
+            wav_tar = wav
+        else:
+            result = self.regex_searcher.search(src_pth)
+            assert result is not None
+            fileid = result.group()
+            tar_candidates = [pth for pth in self.tar_filepths if fileid in pth]
+            tar_searcher = re.compile(fileid + '\D')
+            tar_pths = [pth for pth in tar_candidates if tar_searcher.search(pth) is not None]
+            assert len(tar_pths) == 1, f'{tar_pths}'
+            tar_pth = tar_pths[0]
+            wav_tar = OnlineDataset.load_data(tar_pth, *load_config)
 
         return torch.stack([wav_inp, wav_tar], dim=-1)
         # return: (seq_len, channel=2)
