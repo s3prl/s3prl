@@ -122,17 +122,21 @@ class OnlineDataset(Dataset):
             if hasattr(self, 'noise_sampler'):
                 noise = self.noise_sampler.sample(wav.shape)
             elif hasattr(self, 'noise_wavpths'):
-                sample_rate_ok = False
-                while not sample_rate_ok:
-                    noise_idx = random.randint(0, len(self.noise_wavpths) - 1)
-                    noise, noise_sr = torchaudio.load(self.noise_wavpths[noise_idx])
-                    sample_rate_ok = noise_sr == self.sample_rate
-                assert noise_sr == self.sample_rate
+                noise_idx = random.randint(0, len(self.noise_wavpths) - 1)
+                noise, noise_sr = torchaudio.load(self.noise_wavpths[noise_idx])
+                if noise_sr != self.sample_rate:
+                    resampler = torchaudio.transforms.Resample(noise_sr, self.sample_rate)
+                    noise = resampler(noise)
+                    noise_sr = self.sample_rate
                 noise = noise.squeeze(0)
-                times = wav.size(-1) // noise.size(-1)
-                remainder = wav.size(-1) % noise.size(-1)
-                noise_expanded = noise.unsqueeze(0).expand(times, -1).reshape(-1)
-                noise = torch.cat([noise_expanded, noise[:remainder]], dim=-1)
+                if wav.size(-1) >= noise.size(-1):
+                    times = wav.size(-1) // noise.size(-1)
+                    remainder = wav.size(-1) % noise.size(-1)
+                    noise_expanded = noise.unsqueeze(0).expand(times, -1).reshape(-1)
+                    noise = torch.cat([noise_expanded, noise[:remainder]], dim=-1)
+                else:
+                    start = random.randint(0, noise.size(-1) - wav.size(-1))
+                    noise = noise[start:start + wav.size(-1)]
                 assert noise.size(-1) == wav.size(-1)
 
             snr = float(self.snrs[random.randint(0, len(self.snrs) - 1)])
