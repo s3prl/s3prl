@@ -145,3 +145,4 @@ data
 *.pkl
 *.yaml
 *.sh
+deprecated_result
