@@ -68,12 +68,13 @@ def get_online_Dataloader(args, config, is_train=True, with_speaker=False):
 
 
 class OnlineDataset(Dataset):
-    def __init__(self, roots, sample_rate, max_time, target_level=-25, noise_proportion=0,
+    def __init__(self, roots, sample_rate, max_time, target_level=-25, noise_proportion=0, io_normalization=False,
                  noise_type='gaussian', target_type='clean', snrs=[3], min_time=0, eps=1e-8, **kwargs):
         self.sample_rate = sample_rate
         self.max_time = max_time
         self.min_time = min_time
         self.target_level = target_level
+        self.io_normalization = io_normalization
         self.eps = eps
 
         self.filepths = []
@@ -168,6 +169,10 @@ class OnlineDataset(Dataset):
             assert len(tar_pths) == 1, f'{tar_pths}'
             tar_pth = tar_pths[0]
             wav_tar = OnlineDataset.load_data(tar_pth, *load_config)
+
+        if self.io_normalization:
+            wav_inp = OnlineDataset.normalize_wav_decibel(wav_inp, self.target_level)
+            wav_tar = OnlineDataset.normalize_wav_decibel(wav_tar, self.target_level)
 
         return torch.stack([wav_inp, wav_tar], dim=-1)
         # return: (seq_len, channel=2)
