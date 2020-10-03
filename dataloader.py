@@ -68,9 +68,11 @@ def get_online_Dataloader(args, config, is_train=True, with_speaker=False):
 
 
 class OnlineDataset(Dataset):
-    def __init__(self, roots, sample_rate, max_time, target_level=-25, noise_proportion=0, noise_type='gaussian', target_type='clean', snrs=[3], eps=1e-8, **kwargs):
+    def __init__(self, roots, sample_rate, max_time, target_level=-25, noise_proportion=0,
+                 noise_type='gaussian', target_type='clean', snrs=[3], min_time=0, eps=1e-8, **kwargs):
         self.sample_rate = sample_rate
         self.max_time = max_time
+        self.min_time = min_time
         self.target_level = target_level
         self.eps = eps
 
@@ -100,11 +102,15 @@ class OnlineDataset(Dataset):
         return audio
 
     @classmethod
-    def load_data(cls, wav_path, sample_rate=16000, max_time=40000, target_level=-25, **kwargs):
+    def load_data(cls, wav_path, sample_rate=16000, max_time=40000, target_level=-25, min_time=0, **kwargs):
         wav, sr = torchaudio.load(wav_path)
         assert sr == sample_rate, f'Sample rate mismatch: real {sr}, config {sample_rate}'
         wav = wav.view(-1)
         maxpoints = int(sr / 1000) * max_time
+        minpoints = int(sr / 1000) * min_time
+        if len(wav) < minpoints:
+            times = minpoints // len(wav) + 1
+            wav = wav.unsqueeze(0).expand(times, -1).reshape(-1)
         if len(wav) > maxpoints:
             start = random.randint(0, len(wav) - maxpoints)
             wav = wav[start:start + maxpoints]
@@ -112,7 +118,7 @@ class OnlineDataset(Dataset):
         return wav
 
     def __getitem__(self, idx):
-        load_config = [self.sample_rate, self.max_time, self.target_level]
+        load_config = [self.sample_rate, self.max_time, self.target_level, self.min_time]
         src_pth = self.filepths[idx]
         wav = OnlineDataset.load_data(src_pth, *load_config)
 
