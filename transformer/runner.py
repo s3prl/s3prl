@@ -80,6 +80,7 @@ class Runner():
         else:
             if self.wave_transformer:
                 print('[Runner] - Initializing Wave Transformer model...')
+                assert self.input_dim == 1
             else:
                 print('[Runner] - Initializing Transformer model...')
             model_config = TransformerConfig(self.config)

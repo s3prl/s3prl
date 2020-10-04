@@ -155,7 +155,7 @@ class TransformerBaseWrapper(nn.Module):
             raise ValueError('Input argument `feat` has invalid shape: {}'.format(feat.shape))
         
         scale = 1 if not 'online' in self.config else \
-                self.self.config['online']['sample_rate'] // 100 if self.config['online']['input']['feat_type'] == 'wav' else 1
+                self.config['online']['sample_rate'] // 100 if self.config['online']['input']['feat_type'] == 'wav' else 1
 
         # Down sample
         if self.dr > 1 and self.inp_dim > 1: # no downsampling for waveform
