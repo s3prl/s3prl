@@ -63,7 +63,7 @@ def get_online_Dataloader(args, config, is_train=True, with_speaker=False):
 
     dataloader = DataLoader(dataset, batch_size=config['dataloader']['batch_size'],
                             shuffle=is_train, num_workers=config['dataloader']['n_jobs'],
-                            pin_memory=True, collate_fn=collate_fn)
+                            pin_memory=True, collate_fn=collate_fn, drop_last=True)
     return dataloader
 
 
