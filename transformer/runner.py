@@ -371,7 +371,9 @@ class Runner():
                         loss_val = 0
                         pbar.update(1)
                         self.global_step += 1
-                        time.sleep(self.config['runner']['sleep'])
+                        sleep_time = self.config['runner'].get('sleep')
+                        if sleep_time is not None:
+                            time.sleep(sleep_time)
                         
                 except RuntimeError as e:
                     if 'CUDA out of memory' in str(e):
