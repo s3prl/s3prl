@@ -12,6 +12,7 @@
 ###############
 import os
 import math
+import time
 import torch
 import random
 import numpy as np
@@ -370,6 +371,7 @@ class Runner():
                         loss_val = 0
                         pbar.update(1)
                         self.global_step += 1
+                        time.sleep(self.config['runner']['sleep'])
                         
                 except RuntimeError as e:
                     if 'CUDA out of memory' in str(e):
