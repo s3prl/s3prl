@@ -24,6 +24,7 @@ from transformer.mam import fast_position_encoding
 from utility.audio import plot_spectrogram_to_numpy
 from transformer.mam import process_train_MAM_data
 from utility.preprocessor import OnlinePreprocessor
+from small_models import SmallModelWrapper
 
 
 ##########
@@ -77,7 +78,9 @@ class Runner():
         print('[Runner] - Initializing Transformer model...')
         
         # build the Transformer model with speech prediction head
-        if self.dual_transformer:
+        if self.config.get('small_model') is not None:
+            self.model = SmallModelWrapper(self.input_dim, self.output_dim, **self.config['small_model']).to(self.device)
+        elif self.dual_transformer:
             model_config = DualTransformerConfig(self.config)
             self.model = DualTransformerForMaskedAcousticModel(model_config, self.input_dim, self.output_dim).to(self.device)
         else:
@@ -139,14 +142,22 @@ class Runner():
 
     def load_model(self, ckptpth):
         ckpt = torch.load(ckptpth)
-        self.model.Transformer.load_state_dict(ckpt['Transformer'])
-        self.model.SpecHead.load_state_dict(ckpt['SpecHead'])
+
+        if self.config.get('small_model') is not None:
+            self.model.load_state_dict(ckpt['SmallModel'])
+        else:
+            self.model.Transformer.load_state_dict(ckpt['Transformer'])
+            self.model.SpecHead.load_state_dict(ckpt['SpecHead'])
         self.optimizer.load_state_dict(ckpt['Optimizer'])
         self.global_step = ckpt['Global_step']
 
 
     def save_model(self, name='states', to_path=None):
-        if self.dual_transformer:
+        if self.config.get('small_model') is not None:
+            all_states = {
+                'SmallModel': self.model.state_dict(),
+            }
+        elif self.dual_transformer:
             all_states = {
                 'SpecHead': self.model.SpecHead.state_dict() if not self.args.multi_gpu else self.model.module.SpecHead.state_dict(),
                 'SpecTransformer': self.model.SpecTransformer.state_dict() if not self.args.multi_gpu else self.model.module.SpecTransformer.state_dict(),
@@ -276,7 +287,8 @@ class Runner():
                 if 'online' in self.config:
                     # batch are raw waveforms
                     # batch: (batch_size, channel, max_len)
-                    specs = self.preprocessor(batch.to(device=self.device))
+                    wavs = batch.to(self.device)
+                    specs = self.preprocessor(wavs)
                     batch = process_train_MAM_data(specs, config=self.transformer_config)
                     
                 batch_is_valid, *batch = batch
@@ -285,7 +297,12 @@ class Runner():
                     if not batch_is_valid: continue
                     step += 1
                     
-                    if self.dual_transformer:
+                    if self.config.get('small_model') is not None:
+                        spec_masked, pos_enc, mask_label, attn_mask, spec_stacked = self.process_data(batch)
+                        feats_inp, linears_tar = spec_masked, spec_stacked
+                        linears_inp = self.preprocessor(wavs, feat_list=[OnlinePreprocessor.get_feat_config('linear', 0)])[0]
+                        loss, pred_spec = self.model(feats_inp=feats_inp, linears_inp=linears_inp, linears_tar=linears_tar)
+                    elif self.dual_transformer:
                         time_masked, freq_masked, pos_enc, mask_label, attn_mask, spec_stacked = self.process_dual_data(batch)
                         loss, pred_spec = self.model(time_masked, freq_masked, pos_enc, mask_label, attn_mask, spec_stacked)
                     else:
