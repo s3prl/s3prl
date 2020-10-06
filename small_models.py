@@ -16,23 +16,17 @@ class SmallModelWrapper(nn.Module):
 
 
 class L1(nn.Module):
-    def __init__(self, log=False, eps=1e-10, **kwargs):
+    def __init__(self, eps=1e-10, **kwargs):
         super().__init__()
-        self.log = log
         self.eps = eps
         self.fn = torch.nn.L1Loss()
 
     def forward(self, predicted, linear_tar, stft_length_masks, **kwargs):
         # stft_length_masks: (batch_size, max_time)
         # predicted, linear_tar: (batch_size, max_time, feat_dim)
-
         src = predicted * stft_length_masks.unsqueeze(-1)
         tar = linear_tar * stft_length_masks.unsqueeze(-1)
-
-        if self.log:
-            l1 = self.fn((src + self.eps).log(), (tar + self.eps).log())
-        else:
-            l1 = self.fn(src, tar)
+        l1 = self.fn(src, tar)
         
         return l1, {}
 
@@ -45,8 +39,8 @@ class SISDR(nn.Module):
     def forward(self, predicted, linear_tar, stft_length_masks, **kwargs):
         # stft_length_masks: (batch_size, max_time)
         # predicted, linear_tar: (batch_size, max_time, feat_dim)
-        src = predicted * stft_length_masks.unsqueeze(-1)
-        tar = linear_tar * stft_length_masks.unsqueeze(-1)
+        src = predicted.pow(0.5) * stft_length_masks.unsqueeze(-1)
+        tar = linear_tar.exp().pow(0.5) * stft_length_masks.unsqueeze(-1)
 
         src = src.flatten(start_dim=1).contiguous()
         tar = tar.flatten(start_dim=1).contiguous()
