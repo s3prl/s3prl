@@ -45,8 +45,8 @@ class SISDR(nn.Module):
     def forward(self, predicted, linear_tar, stft_length_masks, **kwargs):
         # stft_length_masks: (batch_size, max_time)
         # predicted, linear_tar: (batch_size, max_time, feat_dim)
-        src = predicted.pow(0.5) * stft_length_masks.unsqueeze(-1)
-        tar = linear_tar.pow(0.5) * stft_length_masks.unsqueeze(-1)
+        src = F.relu(predicted).pow(0.5) * stft_length_masks.unsqueeze(-1)
+        tar = F.relu(linear_tar).pow(0.5) * stft_length_masks.unsqueeze(-1)
 
         src = src.flatten(start_dim=1).contiguous()
         tar = tar.flatten(start_dim=1).contiguous()
