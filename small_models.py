@@ -16,7 +16,7 @@ class SmallModelWrapper(nn.Module):
 
 
 class L1(nn.Module):
-    def __init__(self, log=False, eps=1e-10):
+    def __init__(self, log=False, eps=1e-10, **kwargs):
         super().__init__()
         self.log = log
         self.eps = eps
