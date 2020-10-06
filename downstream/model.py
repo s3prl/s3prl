@@ -15,53 +15,41 @@ from torch import nn
 from torch.nn.utils.rnn import pack_padded_sequence
 
 
-#####################
-# LINEAR CLASSIFIER #
-#####################
-class LinearClassifier(nn.Module):
+###########################
+# FEED FORWARD CLASSIFIER #
+###########################
+class FeedForwardClassifier(nn.Module):
     def __init__(self, input_dim, class_num, dconfig):
-        super(LinearClassifier, self).__init__()
+        super(FeedForwardClassifier, self).__init__()
         
-        output_dim = class_num
-        hidden_size = dconfig['hidden_size']
-        drop = dconfig['drop']
+        # init attributes
         self.input_dim = input_dim
-
-        self.select_hidden = dconfig['select_hidden']
-        self.sequencial = dconfig['sequencial']
         self.concat = dconfig['concat']
         self.linear = dconfig['linear']
         self.num_layers = dconfig['layers']
-        self.weight = nn.Parameter(torch.ones(12) / 12)
-        assert(not (self.sequencial and self.linear))
-
         if self.concat > 1:
             assert(self.concat % 2 == 1) # concat must be an odd number
             self.input_dim *= self.concat
 
-        if self.sequencial: 
-            self.rnn = nn.GRU(input_size=self.input_dim, hidden_size=hidden_size, num_layers=1, dropout=0.1,
-                              batch_first=True, bidirectional=False)
-            self.num_layers = self.num_layers - 1
-
+        # process layers
         linears = []
         for i in range(self.num_layers):
             if i == 0 and self.num_layers == 1:
-                linears.append(nn.Linear(self.input_dim, output_dim)) # single layer
+                linears.append(nn.Linear(self.input_dim, class_num)) # single layer
             elif i == 0 and self.num_layers > 1:
-                linears.append(nn.Linear(self.input_dim, hidden_size)) # input layer of num_layer >= 2
+                linears.append(nn.Linear(self.input_dim, dconfig['hidden_size'])) # input layer of num_layer >= 2
             elif i == self.num_layers - 1 and self.num_layers > 1:
-                linears.append(nn.Linear(hidden_size, output_dim)) # output layer of num_layer >= 2
+                linears.append(nn.Linear(dconfig['hidden_size'], class_num)) # output layer of num_layer >= 2
             else: 
-                linears.append(nn.Linear(hidden_size, hidden_size)) # middle layer
+                linears.append(nn.Linear(dconfig['hidden_size'], dconfig['hidden_size'])) # middle layer
         self.linears = nn.ModuleList(linears)
         assert self.num_layers == len(self.linears)
 
         if not self.linear:
-            self.drop = nn.Dropout(p=drop)
+            self.drop = nn.Dropout(p=dconfig['drop'])
             self.act_fn = torch.nn.functional.relu
             
-        self.out_fn = nn.LogSoftmax(dim=-1)
+        self.out_fn = nn.LogSoftmax(dim=-1) # Use LogSoftmax since self.criterion combines nn.LogSoftmax() and nn.NLLLoss()
         self.criterion = nn.CrossEntropyLoss(ignore_index=-100)
 
 
@@ -102,39 +90,8 @@ class LinearClassifier(nn.Module):
 
         return torch.cat((left, right), dim=0)
 
-
-    def forward(self, features, labels=None, label_mask=None):
-        # features from transformer: (batch_size, layer, seq_len, feature_dim)
-        # features from baseline: (batch_size, seq_len, feature_dim)
-        # labels: (batch_size, seq_len), frame by frame classification
-        batch_size = features.size(0)
-        layer_num = features.size(1) if len(features.shape) == 4 else None
-        seq_len = features.size(2) if len(features.shape) == 4 else features.size(1)
-        feature_dim = features.size(3) if len(features.shape) == 4 else features.size(2)
-
-        if labels is not None and labels.dim() == 1:
-            # one label per utterance (speaker & sentiment)
-            labels = labels.unsqueeze(-1).expand(batch_size, seq_len)
-
-        if len(features.shape) == 4 and self.select_hidden != 'upstream':
-            # compute mean on transformer representations if given features from transformer
-            if self.select_hidden == 'last':
-                features = features[:, -1, :, :]
-            elif self.select_hidden == 'first':
-                features = features[:, 0, :, :]
-            elif self.select_hidden == 'average':
-                features = features.mean(dim=1)  # now simply average the representations over all layers, (batch_size, seq_len, feature_dim)
-            elif self.select_hidden == 'weighted_sum':
-                features = features.transpose(0, 1).reshape(layer_num, -1)
-                features = torch.matmul(self.weight[:layer_num], features).reshape(batch_size, seq_len, feature_dim)
-            elif self.select_hidden == 'weighted_sum_norm':
-                weights = nn.functional.softmax(self.weight[:layer_num], dim=-1)
-                features = features.transpose(0, 1).reshape(layer_num, -1)
-                features = torch.matmul(weights, features).reshape(batch_size, seq_len, feature_dim)
-            else:
-                assert type(self.select_hidden) is int
-                features = features[:, self.select_hidden, :, :]
-
+    
+    def _match_length(self, features, labels, label_mask):
         # since the down-sampling (float length be truncated to int) and then up-sampling process
         # can cause a mismatch between the seq lenth of transformer representation and that of label
         # we truncate the final few timestamp of label to make two seq equal in length
@@ -142,6 +99,16 @@ class LinearClassifier(nn.Module):
         features = features[:, :truncated_length, :]
         labels = labels[:, :truncated_length]
         label_mask = label_mask[:, :truncated_length]
+        return features, labels, label_mask
+
+
+    def forward(self, features, labels=None, label_mask=None):
+        # features: (batch_size, seq_len, feature_dim)
+        # labels: (batch_size, seq_len), frame by frame classification
+        batch_size = features.size(0)
+        seq_len = features.size(1)
+        feature_dim = features.size(2)
+        features, labels, label_mask = self._match_length(features, labels, label_mask)
         
         if self.concat > 1:
             features = features.repeat(1, 1, self.concat) # (batch_size, seq_len, feature_dim * concat)
@@ -152,9 +119,6 @@ class LinearClassifier(nn.Module):
                     features[b_idx, mid + r_idx, :] = self._roll(features[b_idx][mid + r_idx], n=r_idx)
                     features[b_idx, mid - r_idx, :] = self._roll(features[b_idx][mid - r_idx], n=-r_idx)
             features = features.permute(0, 2, 1, 3).view(batch_size, seq_len, feature_dim * self.concat) # (batch_size, seq_len, feature_dim * concat)
-        
-        if self.sequencial:
-            features, h_n = self.rnn(features)
 
         hidden = features
         for i, linear_layer in enumerate(self.linears):
@@ -193,10 +157,7 @@ class RnnClassifier(nn.Module):
 
         super(RnnClassifier, self).__init__()
         self.config = dconfig
-        self.weight = nn.Parameter(torch.ones(12) / 12)
-
-        drop = self.config['drop']
-        self.dropout = nn.Dropout(p=drop)
+        self.dropout = nn.Dropout(p=dconfig['drop'])
 
         linears = []
         last_dim = input_dim
@@ -221,11 +182,11 @@ class RnnClassifier(nn.Module):
         self.act_fn = torch.nn.functional.relu
         self.out = nn.Linear(last_dim, class_num)
         
-        mode = self.config['mode']
-        if mode == 'classification':
+        self.mode = self.config['mode']
+        if self.mode == 'classification':
             self.out_fn = nn.LogSoftmax(dim=-1)
             self.criterion = nn.CrossEntropyLoss(ignore_index=-100)
-        elif mode == 'regression':
+        elif self.mode == 'regression':
             self.criterion = nn.MSELoss()
         else:
             raise NotImplementedError('Only classification/regression modes are supported')
@@ -242,39 +203,14 @@ class RnnClassifier(nn.Module):
 
     def forward(self, features, labels=None, valid_lengths=None):
         assert(valid_lengths is not None), 'Valid_lengths is required.'
-        # features from transformer: (batch_size, layer, seq_len, feature)
-        # features from baseline: (batch_size, seq_len, feature)
+        # features: (batch_size, seq_len, feature)
         # labels: (batch_size,), one utterance to one label
         # valid_lengths: (batch_size, )
-        batch_size = features.size(0)
-        layer_num = features.size(1) if len(features.shape) == 4 else None
-        seq_len = features.size(2) if len(features.shape) == 4 else features.size(1)
-        feature_dim = features.size(3) if len(features.shape) == 4 else features.size(2)
+        seq_len = features.size(1)
 
-        select_hidden = self.config['select_hidden']
-        if len(features.shape) == 4 and select_hidden != 'upstream':
-            # compute mean on transformer representations if given features from transformer
-            if select_hidden == 'last':
-                features = features[:, -1, :, :]
-            elif select_hidden == 'first':
-                features = features[:, 0, :, :]
-            elif select_hidden == 'average':
-                features = features.mean(dim=1)  # now simply average the representations over all layers, (batch_size, seq_len, feature)
-            elif select_hidden == 'weighted_sum':
-                features = features.transpose(0, 1).reshape(layer_num, -1)
-                features = torch.matmul(self.weight[:layer_num], features).reshape(batch_size, seq_len, feature_dim)
-            elif select_hidden == 'weighted_sum_norm':
-                weights = nn.functional.softmax(self.weight[:layer_num], dim=-1)
-                features = features.transpose(0, 1).reshape(layer_num, -1)
-                features = torch.matmul(weights, features).reshape(batch_size, seq_len, feature_dim)
-            else:
-                assert type(select_hidden) is int
-                features = features[:, select_hidden, :, :]
-
-        sample_rate = self.config['sample_rate']
-        if sample_rate > 1:
-            features = features[:, torch.arange(0, seq_len, sample_rate), :]
-            valid_lengths = valid_lengths // sample_rate
+        if self.config['sample_rate'] > 1:
+            features = features[:, torch.arange(0, seq_len, self.config['sample_rate']), :]
+            valid_lengths = valid_lengths // self.config['sample_rate']
 
         for linear in self.pre_linears:
             features = linear(features)
@@ -297,21 +233,25 @@ class RnnClassifier(nn.Module):
 
         logits = self.out(hidden)
 
-        mode = self.config['mode']
-        if mode == 'classification':
+        if self.mode == 'classification':
             result = self.out_fn(logits)
             # result: (batch_size, class_num)
-        elif mode == 'regression':
+        elif self.mode == 'regression':
             result = logits.reshape(-1)
             # result: (batch_size, )
+        else:
+            raise NotImplementedError
         
         if labels is not None:
-            loss = self.criterion(result, labels)
+            if self.mode == 'classification':
+                loss = self.criterion(hidden, labels)
+            elif self.mode == 'regression':
+                loss = self.criterion(result, labels)
 
             # statistic for accuracy
-            if mode == 'classification':
+            if self.mode == 'classification':
                 correct, valid = self.statistic(result, labels)
-            elif mode == 'regression':
+            elif self.mode == 'regression':
                 # correct and valid has no meaning when in regression mode
                 # just to make the outside wrapper can correctly function
                 correct, valid = torch.LongTensor([1]), torch.LongTensor([1])

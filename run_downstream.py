@@ -19,7 +19,7 @@ import numpy as np
 from shutil import copyfile
 from dataloader import get_Dataloader
 from transformer.nn_transformer import TRANSFORMER, DUAL_TRANSFORMER
-from downstream.model import dummy_upstream, LinearClassifier, RnnClassifier
+from downstream.model import dummy_upstream, FeedForwardClassifier
 from downstream.runner import Runner
 
 
@@ -130,16 +130,19 @@ def get_upstream_model(args):
 ##################
 # GET DATALOADER #
 ##################
-def get_dataloader(args, dataloader_config):
+def get_all_dataloaders(args, dataloader_config):
     pretrain_config = torch.load(args.ckpt, map_location='cpu')['Settings']['Config']
     if 'online' in pretrain_config:
         dataloader_config['online'] = pretrain_config['online']
     elif args.online_config is not None:
         dataloader_config['online'] = args.online_config
 
-    if not os.path.exists(dataloader_config['data_path']):
+    if 'online' in dataloader_config:
+        print('[run_downstream] - Loading input with pre-trained online config: ' + str(dataloader_config['train_set']) + ' from ' + dataloader_config['libri_root'])
+    elif not os.path.exists(dataloader_config['data_path']):
         raise RuntimeError('[run_downstream] - Data path not valid:', dataloader_config['data_path'])    
-    print('[run_downstream] - Loading input data: ' + str(dataloader_config['train_set']) + ' from ' + dataloader_config['data_path'])
+    else:
+        print('[run_downstream] - Loading input data: ' + str(dataloader_config['train_set']) + ' from ' + dataloader_config['data_path'])
     
     if args.task == 'speaker':
         print('[run_downstream] - Loading speaker data: ' + str(dataloader_config['train_set']) + ' from ' + dataloader_config['data_path'])
@@ -166,16 +169,7 @@ def get_dataloader(args, dataloader_config):
 # GET DOWNSTREAM #
 ##################
 def get_downstream_model(args, input_dim, class_num, config):
-    
-    model_name = args.run.split('_')[-1].replace('frame', 'linear') # support names: ['linear', '1hidden', 'concat', 'utterance']
-    model_config = config['model'][model_name]
-
-    if args.task == 'speaker' and 'utterance' in args.run:
-        downstream_model = RnnClassifier(input_dim, class_num, model_config)
-    else:
-        downstream_model = LinearClassifier(input_dim, class_num, model_config)
-    
-    return downstream_model
+    return FeedForwardClassifier(input_dim, class_num, config['model'][args.run])
 
 
 ########
@@ -208,7 +202,7 @@ def main():
     upstream_model = get_upstream_model(args) ######### plug in your upstream pre-trained model here #########
 
     # get dataloaders
-    train_loader, dev_loader, test_loader = get_dataloader(args, config['dataloader'])
+    train_loader, dev_loader, test_loader = get_all_dataloaders(args, config['dataloader'])
 
     # get downstream model
     downstream_model = get_downstream_model(args, upstream_model.out_dim, train_loader.dataset.class_num, config)

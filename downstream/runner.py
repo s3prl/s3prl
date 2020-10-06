@@ -16,8 +16,8 @@ import torch
 import random
 from tqdm import tqdm
 from torch.optim import Adam
+from transformer.optimization import BertAdam
 from tensorboardX import SummaryWriter
-from downstream.solver import get_optimizer
 
 
 ##########
@@ -114,18 +114,18 @@ class Runner():
                     # Since zero padding technique, some timestamps of features are not valid
                     # For each timestamps, we mark 1 on valid timestamps, and 0 otherwise
                     # This variable can be useful for frame-wise metric, like phoneme recognition or speaker verification
+                    # labels: (batch_size, seq_len), LongTensor; or (batch_size), FloatTensor
                     # label_mask: (batch_size, seq_len), LongTensor
-                    # valid_lengths: (batch_size), LongTensor
                     labels = labels.squeeze(0).to(device=self.device)  # labels can be torch.long or torch.float (regression)
                     label_mask = (features.sum(dim=-1) != 0).type(torch.LongTensor).to(device=self.device, dtype=torch.long)
-                    valid_lengths = label_mask.sum(dim=1)
-
                     if 'utterance' in self.args.run:
-                        # labels: (batch_size, )
-                        loss, _, correct, valid = self.downstream_model(features, labels, valid_lengths)
-                    else:
-                        # labels: (batch_size, seq_len)
-                        loss, _, correct, valid = self.downstream_model(features, labels, label_mask)
+                        assert labels.dim() == 1
+                        features = features.mean(dim=1).unsqueeze(1) # (batch_size, seq_len=1, feature)
+                    if labels.dim() == 1:
+                        # one label per utterance (speaker & sentiment)
+                        labels = labels.unsqueeze(-1).expand(features.size(0), features.size(1))
+
+                    loss, _, correct, valid = self.downstream_model(features, labels, label_mask)
 
                     # Accumulate Loss
                     loss.backward()
@@ -213,7 +213,7 @@ class Runner():
     def evaluate(self, split):
         ''' Testing of downstream tasks'''
 
-        self.upstream_model.eval()
+        if self.args.fine_tune: self.upstream_model.eval()
         self.downstream_model.eval()
         
         valid_count = 0
@@ -236,15 +236,15 @@ class Runner():
                     # label_mask: (batch_size, seq_len), LongTensor
                     labels = labels.squeeze(0).to(device=self.device)
                     label_mask = (features.sum(dim=-1) != 0).type(torch.LongTensor).to(device=self.device, dtype=torch.long)
-                    valid_lengths = label_mask.sum(dim=1)
-
                     if 'utterance' in self.args.run:
-                        # labels: (batch_size, )
-                        loss, logits, correct, valid = self.downstream_model(features, labels, valid_lengths)
-                    else:
-                        # labels: (batch_size, seq_len)
-                        loss, logits, correct, valid = self.downstream_model(features, labels, label_mask)
-                    
+                        assert labels.dim() == 1
+                        features = features.mean(dim=1).unsqueeze(1) # (batch_size, seq_len=1, feature)
+                    if labels.dim() == 1:
+                        # one label per utterance (speaker & sentiment)
+                        labels = labels.unsqueeze(-1).expand(features.size(0), features.size(1))
+                        
+                    loss, logits, correct, valid = self.downstream_model(features, labels, label_mask)
+
                     loss_sum += loss.detach().cpu().item()
                     all_logits.append(logits)
                     correct_count += correct.item()
@@ -266,7 +266,20 @@ class Runner():
         eval_acc = correct_count * 1.0 / valid_count
         print(f'[Runner] - {split} result: loss {average_loss}, acc {eval_acc}')
         
-        self.upstream_model.train()
+        if self.args.fine_tune: self.upstream_model.train()
         self.downstream_model.train()
 
         return average_loss, eval_acc, all_logits
+
+
+def get_optimizer(params, lr, warmup_proportion, training_steps):
+    no_decay = ['bias', 'LayerNorm.bias', 'LayerNorm.weight']
+    optimizer_grouped_parameters = [
+        {'params': [p for n, p in params if not any(nd in n for nd in no_decay)], 'weight_decay': 0.01},
+        {'params': [p for n, p in params if any(nd in n for nd in no_decay)], 'weight_decay': 0.0}
+        ]
+    optimizer = BertAdam(optimizer_grouped_parameters,
+                         lr=lr,
+                         warmup=warmup_proportion,
+                         t_total=training_steps)
+    return optimizer
