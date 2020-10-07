@@ -11,12 +11,17 @@ class SmallModelWrapper(nn.Module):
 
     def forward(self, feats_inp, linears_inp, linears_tar, mask_label):
         predicted, model_results = self.model(features=feats_inp, linears=linears_inp)
-        loss, _ = self.objective(predicted, linears_tar, mask_label[:, :, 0], **model_results)
+        loss, _ = self.objective(
+            predicted=predicted,
+            linear_tar=linears_tar,
+            stft_length_masks=mask_label[:, :, 0],
+            **model_results
+        )
         return loss, predicted
 
 
 class L1(nn.Module):
-    def __init__(self, eps=1e-10):
+    def __init__(self, eps=1e-10, **kwargs):
         super().__init__()
         self.eps = eps
         self.fn = torch.nn.L1Loss()
