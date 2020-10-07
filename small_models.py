@@ -9,9 +9,9 @@ class SmallModelWrapper(nn.Module):
         self.model = eval(model['name'])(input_dim, output_dim, **model)
         self.objective = eval(objective['name'])(**objective)
 
-    def forward(self, feats_inp, linears_inp, linears_tar):
+    def forward(self, feats_inp, linears_inp, linears_tar, mask_label):
         predicted, _ = self.model(features=feats_inp, linears=linears_inp)
-        loss, _ = self.objective(predicted, linears_tar, feats_inp.sum(dim=-1) != 0)
+        loss, _ = self.objective(predicted, linears_tar, mask_label[:, :, 0])
         return loss, predicted
 
 
