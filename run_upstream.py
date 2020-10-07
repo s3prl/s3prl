@@ -11,12 +11,14 @@
 # IMPORTATION #
 ###############
 import os
+import glob
 import yaml
 import torch
 import random
 import argparse
 import numpy as np
 from shutil import copyfile
+from argparse import Namespace
 from dataloader import get_Dataloader, get_online_Dataloader
 from utility.helper import parse_prune_heads
 
@@ -37,16 +39,17 @@ def get_upstream_args():
     
     parser = argparse.ArgumentParser(description='Argument Parser for Upstream Models of the S3PLR project.')
 
-    # required
-    parser.add_argument('--run',  choices=['transformer', 'apc'], help='Select pre-training task. \
+    # required, set either (--run and --config) or (--resume)
+    parser.add_argument('--run', default=None, choices=['transformer', 'apc'], help='Select pre-training task. \
                         For the transformer models, which type of pre-training (mockingjay, tera, aalbert, etc) \
-                        is determined by config file.', required=True)
-    parser.add_argument('--config', type=str, help='Path to experiment config.', required=True)
+                        is determined by config file.')
+    parser.add_argument('--config', default=None, type=str, help='Path to experiment config.')
+    parser.add_argument('--resume', default=None, help='Specify the upstream checkpoint path to resume training')
 
     # ckpt and logging
-    parser.add_argument('--name', default=None, type=str, help='Name for logging.', required=False)
-    parser.add_argument('--ckpdir', default='', type=str, help='Path to store checkpoint result, if empty then default is used.', required=False)
-    parser.add_argument('--seed', default=1337, type=int, help='Random seed for reproducable results.', required=False)
+    parser.add_argument('--name', default=None, type=str, help='Name for logging.')
+    parser.add_argument('--ckpdir', default='', type=str, help='Path to store checkpoint result, if empty then default is used.')
+    parser.add_argument('--seed', default=1337, type=int, help='Random seed for reproducable results.')
     
     # Options
     parser.add_argument('--test', default='', type=str, help='Input path to the saved model ckpt for testing.')
@@ -58,12 +61,33 @@ def get_upstream_args():
 
     # parse
     args = parser.parse_args()
-    setattr(args, 'gpu', not args.cpu)
-    config = yaml.load(open(args.config, 'r'), Loader=yaml.FullLoader)
-    parse_prune_heads(config)
-    if args.online_config is not None:
-        online_config = yaml.load(open(args.online_config, 'r'), Loader=yaml.FullLoader)
-        config['online'] = online_config
+    if args.resume is None:
+        assert args.run is not None and args.config is not None, '`--run` and `--config` must be given if `--resume` is not provided'
+        setattr(args, 'gpu', not args.cpu)
+        config = yaml.load(open(args.config, 'r'), Loader=yaml.FullLoader)
+        parse_prune_heads(config)
+        if args.online_config is not None:
+            online_config = yaml.load(open(args.online_config, 'r'), Loader=yaml.FullLoader)
+            config['online'] = online_config
+    else:
+        if os.path.isdir(args.resume):
+            ckpts = glob.glob(f'{args.resume}/*.ckpt')
+            assert len(ckpts) > 0
+            ckpts = sorted(ckpts, key=lambda pth: int(pth.split('-')[-1].split('.')[0]))
+            resume_ckpt = ckpts[-1]
+        else:
+            resume_ckpt = args.resume
+
+        def update_args(old, new):
+            old_dict = vars(old)
+            new_dict = vars(new)
+            old_dict.update(new_dict)
+            return Namespace(**old_dict)
+
+        ckpt = torch.load(resume_ckpt, map_location='cpu')
+        args = update_args(args, ckpt['Settings']['Paras'])
+        config = ckpt['Settings']['Config']
+        setattr(args, 'resume', resume_ckpt)        
     
     return args, config
 
