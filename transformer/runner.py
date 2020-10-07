@@ -300,7 +300,7 @@ class Runner():
                     
                     if self.config.get('small_model') is not None:
                         spec_masked, pos_enc, mask_label, attn_mask, spec_stacked = self.process_data(batch)
-                        feats_inp, linears_tar = spec_masked, spec_stacked.exp()
+                        feats_inp, linears_tar = spec_masked, spec_stacked
                         linears_inp = self.preprocessor(wavs, feat_list=[OnlinePreprocessor.get_feat_config('linear', 0)])[0]
                         loss, pred_spec = self.model(feats_inp=feats_inp, linears_inp=linears_inp, linears_tar=linears_tar)
                     elif self.dual_transformer:
