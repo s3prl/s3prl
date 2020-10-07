@@ -115,34 +115,3 @@ class LSTM(nn.Module):
         log_predicted = self.scaling_layer(predicted)
         return log_predicted.exp(), {'log_predicted': log_predicted}
 
-
-class Conv2D(nn.Module):
-    def __init__(self, input_size=201, output_size=201, hidden_size=201, kernel=7, num_layers=3):
-        super(Conv2D, self).__init__()
-        prev_size = 1
-        self.convs = nn.ModuleList()
-        for i in range(num_layers):
-            self.convs.append(
-                nn.Sequential(
-                    nn.Conv2d(prev_size, hidden_size, kernel, padding=int((kernel-1)/2)),
-                    nn.InstanceNorm2d(num_features=hidden_size, momentum=0.01, eps=1e-03, affine=True),
-                    nn.LeakyReLU(),
-                )
-            )
-            prev_size = hidden_size
-
-        self.denoiser = nn.Linear(hidden_size, 1)
-        self.scaling_layer = nn.Sequential(
-            nn.Linear(input_size, output_size),
-            nn.ReLU(),
-        )
-    
-    def forward(self, features, **kwargs):
-        # features: (batch_size, seqlen, input_size)
-        conv_feats = features.unsqueeze(-1).transpose(1, -1)
-        for conv in self.convs:
-            conv_feats = conv(conv_feats)
-        # conv_feats: (batch_size, hidden_size, input_size, seqlen)
-        denoised_feats = self.denoiser(conv_feats.transpose(1, -1)).squeeze(-1)
-        denoised_linear = self.scaling_layer(denoised_feats)
-        return denoised_linear, {}
