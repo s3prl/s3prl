@@ -69,7 +69,7 @@ def get_online_Dataloader(args, config, is_train=True, with_speaker=False):
 
 class OnlineDataset(Dataset):
     def __init__(self, roots, sample_rate, max_time, target_level=-25, noise_proportion=0, io_normalization=False,
-                 noise_type='gaussian', target_type='clean', snrs=[3], min_time=0, eps=1e-8, **kwargs):
+                 noise_type='gaussian', target_type='clean', channel3=None, snrs=[3], min_time=0, eps=1e-8, **kwargs):
         self.sample_rate = sample_rate
         self.max_time = max_time
         self.min_time = min_time
@@ -93,6 +93,9 @@ class OnlineDataset(Dataset):
             self.tar_filepths = find_files(target_type)
             assert len(self.tar_filepths) > 0
             self.regex_searcher = re.compile('fileid_\d+')
+        
+        if channel3 is not None and os.path.isdir(channel3):
+            self.channel3_filepths = find_files(channel3)
 
     @classmethod
     def normalize_wav_decibel(cls, audio, target_level):
@@ -118,6 +121,28 @@ class OnlineDataset(Dataset):
         wav = cls.normalize_wav_decibel(wav, target_level)
         return wav
 
+    @classmethod
+    def add_noise(cls, speech, noise, snrs, eps=1e-10):
+        # speech, noise: (batch_size, seqlen)
+        if speech.size(-1) >= noise.size(-1):
+            times = speech.size(-1) // noise.size(-1)
+            remainder = speech.size(-1) % noise.size(-1)
+            noise_expanded = noise.unsqueeze(-2).expand(-1, times, -1).reshape(speech.size(0), -1)
+            noise = torch.cat([noise_expanded, noise[:, :remainder]], dim=-1)
+        else:
+            start = random.randint(0, noise.size(-1) - speech.size(-1))
+            noise = noise[:, start:start + speech.size(-1)]
+        assert noise.size(-1) == speech.size(-1)
+
+        snr = float(snrs[random.randint(0, len(snrs) - 1)])
+        snr_exp = 10.0 ** (snr / 10.0)
+        speech_power = speech.pow(2).sum(dim=-1, keepdim=True)
+        noise_power = noise.pow(2).sum(dim=-1, keepdim=True)
+        scalar = (speech_power / (snr_exp * noise_power + eps)).pow(0.5)
+        noisy = speech + scalar * noise
+        assert torch.isnan(noisy).sum() == 0 and torch.isinf(noisy).sum() == 0 
+        return noisy
+
     def __getitem__(self, idx):
         load_config = [self.sample_rate, self.max_time, self.target_level, self.min_time]
         src_pth = self.filepths[idx]
@@ -136,23 +161,7 @@ class OnlineDataset(Dataset):
                     noise = resampler(noise)
                     noise_sr = self.sample_rate
                 noise = noise.squeeze(0)
-                if wav.size(-1) >= noise.size(-1):
-                    times = wav.size(-1) // noise.size(-1)
-                    remainder = wav.size(-1) % noise.size(-1)
-                    noise_expanded = noise.unsqueeze(0).expand(times, -1).reshape(-1)
-                    noise = torch.cat([noise_expanded, noise[:remainder]], dim=-1)
-                else:
-                    start = random.randint(0, noise.size(-1) - wav.size(-1))
-                    noise = noise[start:start + wav.size(-1)]
-                assert noise.size(-1) == wav.size(-1)
-
-            snr = float(self.snrs[random.randint(0, len(self.snrs) - 1)])
-            snr_exp = 10.0 ** (snr / 10.0)
-            wav_power = wav.pow(2).sum()
-            noise_power = noise.pow(2).sum()
-            scalar = (wav_power / (snr_exp * noise_power + self.eps)).pow(0.5)
-            wav_inp = wav + scalar * noise
-            assert torch.isnan(wav_inp).sum() == 0 and torch.isinf(wav_inp).sum() == 0
+            wav_inp = OnlineDataset.add_noise(wav.unsqueeze(0), noise.unsqueeze(0), self.snrs, self.eps).squeeze(0)
         else:
             wav_inp = wav
 
@@ -174,7 +183,14 @@ class OnlineDataset(Dataset):
             wav_inp = OnlineDataset.normalize_wav_decibel(wav_inp, self.target_level)
             wav_tar = OnlineDataset.normalize_wav_decibel(wav_tar, self.target_level)
 
-        return torch.stack([wav_inp, wav_tar], dim=-1)
+        wavs = torch.stack([wav_inp, wav_tar], dim=-1)
+        
+        wav_channel3 = torch.zeros_like(wav_inp)
+        if hasattr(self, 'channel3_filepths'):
+            wav_channel3 = OnlineDataset.load_data(random.sample(self.channel3_filepths, 1)[0], *load_config).view(-1)
+            return wavs, wav_channel3
+
+        return wavs
         # return: (seq_len, channel=2)
 
     def __len__(self):
