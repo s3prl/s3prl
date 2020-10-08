@@ -4,10 +4,11 @@ import torch.nn.functional as F
 
 
 class SmallModelWrapper(nn.Module):
-    def __init__(self, input_dim, output_dim, model, objective, **kwargs):
+    def __init__(self, input_dim, output_dim, model, objective, eps=1e-10, **kwargs):
         super(SmallModelWrapper, self).__init__()
         self.model = eval(model['name'])(input_dim, output_dim, **model)
         self.objective = eval(objective['name'])(**objective)
+        self.eps = eps
 
     def forward(self, feats_inp, linears_inp, linears_tar, mask_label):
         predicted, model_results = self.model(features=feats_inp, linears=linears_inp)
@@ -17,7 +18,7 @@ class SmallModelWrapper(nn.Module):
             stft_length_masks=mask_label[:, :, 0],
             **model_results
         )
-        return loss, predicted
+        return loss, (predicted + self.eps).log()
 
 
 class L1(nn.Module):
