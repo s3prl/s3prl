@@ -89,7 +89,8 @@ class OnlineDataset(Dataset):
         else:
             self.noise_wavpths = find_files(noise_type)
 
-        if target_type != 'clean' and os.path.isdir(target_type):
+        self.target_type = target_type
+        if os.path.isdir(target_type):
             self.tar_filepths = find_files(target_type)
             assert len(self.tar_filepths) > 0
             self.regex_searcher = re.compile('fileid_\d+')
@@ -139,9 +140,10 @@ class OnlineDataset(Dataset):
         speech_power = speech.pow(2).sum(dim=-1, keepdim=True)
         noise_power = noise.pow(2).sum(dim=-1, keepdim=True)
         scalar = (speech_power / (snr_exp * noise_power + eps)).pow(0.5)
-        noisy = speech + scalar * noise
+        scaled_noise = scalar * noise
+        noisy = speech + scaled_noise
         assert torch.isnan(noisy).sum() == 0 and torch.isinf(noisy).sum() == 0 
-        return noisy
+        return noisy, scaled_noise
 
     def __getitem__(self, idx):
         load_config = [self.sample_rate, self.max_time, self.target_level, self.min_time]
@@ -161,13 +163,18 @@ class OnlineDataset(Dataset):
                     noise = resampler(noise)
                     noise_sr = self.sample_rate
                 noise = noise.squeeze(0)
-            wav_inp = OnlineDataset.add_noise(wav.unsqueeze(0), noise.unsqueeze(0), self.snrs, self.eps).squeeze(0)
+            noisy, scaled_noise = OnlineDataset.add_noise(wav.unsqueeze(0), noise.unsqueeze(0), self.snrs, self.eps)
+            noisy, scaled_noise = noisy.squeeze(0), scaled_noise.squeeze(0)
+            wav_inp = noisy
         else:
             wav_inp = wav
 
         # build target
-        if not hasattr(self, 'tar_filepths'):
+        if self.target_type == 'clean':
             wav_tar = wav
+        elif self.target_type == 'noise':
+            assert 'scaled_noise' in locals()
+            wav_tar = scaled_noise
         else:
             result = self.regex_searcher.search(src_pth)
             assert result is not None
