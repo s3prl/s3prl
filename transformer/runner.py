@@ -13,10 +13,12 @@
 import os
 import math
 import time
+import copy
 import torch
 import random
 import numpy as np
 from tqdm import tqdm
+from functools import partial
 from tensorboardX import SummaryWriter
 from transformer.model import TransformerConfig, TransformerForMaskedAcousticModel
 from transformer.model_dual import DualTransformerConfig, DualTransformerForMaskedAcousticModel
@@ -26,6 +28,23 @@ from utility.audio import plot_spectrogram_to_numpy
 from transformer.mam import process_train_MAM_data
 from utility.preprocessor import OnlinePreprocessor
 from small_models import SmallModelWrapper
+
+
+def logging(logger, step, tag, data, mode='scalar', preprocessor=None):
+    if type(data) is torch.Tensor:
+        data = data.detach().cpu()
+
+    if mode == 'scalar':
+        # data is a int or float
+        logger.add_scalar(tag, data, global_step=step)
+    elif mode == 'audio':
+        # data: (seqlen, )
+        assert preprocessor is not None
+        data = data / data.abs().max().item()
+        # log wavform
+        logger.add_audio(f'{tag}.wav', data.reshape(-1, 1), global_step=step, sample_rate=preprocessor._sample_rate)
+    else:
+        raise NotImplementedError
 
 
 ##########
@@ -278,6 +297,7 @@ class Runner():
         pbar = tqdm(total=self.total_steps)
         pbar.n = self.global_step - 1
 
+        logging_temp = partial(logging, logger=self.log, preprocessor=copy.deepcopy(self.preprocessor).cpu())
         while self.global_step <= self.total_steps:
 
             progress = tqdm(self.dataloader, desc="Iteration")
@@ -368,6 +388,17 @@ class Runner():
                                 spec = self.up_sample_frames(spec_list[i][0], return_first=True)
                                 spec = plot_spectrogram_to_numpy(spec.data.cpu().numpy())
                                 self.log.add_image(name_list[i], spec, self.global_step)
+                            
+                            if self.config['transformer']['downsample_rate'] == 1 and 'online' in self.config:
+                                phase_inp, phase_tar = self.preprocessor(wavs, feat_list=[
+                                    OnlinePreprocessor.get_feat_config(feat_type='phase', channel=0),
+                                    OnlinePreprocessor.get_feat_config(feat_type='phase', channel=1)
+                                ])
+                                wav_predicted = self.preprocessor.istft(pred_spec.exp(), phase_inp)
+                                wav_target = self.preprocessor.istft(spec_stacked.exp(), phase_tar)
+                                logging_temp(step=self.global_step, tag='input', data=wavs[0, 0, :], mode='audio')
+                                logging_temp(step=self.global_step, tag='target', data=wav_target[0], mode='audio')
+                                logging_temp(step=self.global_step, tag='predicted', data=wav_predicted[0], mode='audio')
 
                             # if self.dual_transformer:
                             #     self.model.PhoneticTransformer.PhoneRecognizer.set_num_updates(self.global_step//1000)
