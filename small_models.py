@@ -18,7 +18,7 @@ class SmallModelWrapper(nn.Module):
             stft_length_masks=mask_label[:, :, 0],
             **model_results
         )
-        return loss, (predicted + self.eps).log()
+        return loss, predicted
 
 
 class L1(nn.Module):

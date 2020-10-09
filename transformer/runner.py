@@ -17,6 +17,9 @@ import copy
 import torch
 import random
 import numpy as np
+import torch
+import torch.nn as nn
+import torch.nn.functional as F
 from tqdm import tqdm
 from functools import partial
 from tensorboardX import SummaryWriter
@@ -319,6 +322,7 @@ class Runner():
                     step += 1
                     
                     if self.config.get('small_model') is not None:
+                        # spec_masked, spec_stacked should be both in linear-scale without log
                         spec_masked, pos_enc, mask_label, attn_mask, spec_stacked = self.process_data(batch)
                         linears_inp = self.preprocessor(wavs, feat_list=[OnlinePreprocessor.get_feat_config('linear', 0)])[0]
                         loss, pred_spec = self.model(
@@ -327,6 +331,8 @@ class Runner():
                             linears_tar=spec_stacked,
                             mask_label=mask_label,
                         )
+                        pred_spec = (F.relu(pred_spec) + 1e-12).log()
+                        spec_stacked = (F.relu(spec_stacked) + 1e-12).log()
                     elif self.dual_transformer:
                         time_masked, freq_masked, pos_enc, mask_label, attn_mask, spec_stacked = self.process_dual_data(batch)
                         loss, pred_spec = self.model(time_masked, freq_masked, pos_enc, mask_label, attn_mask, spec_stacked)
