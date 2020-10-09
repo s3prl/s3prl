@@ -32,6 +32,8 @@ from transformer.mam import process_train_MAM_data
 from utility.preprocessor import OnlinePreprocessor
 from small_models import SmallModelWrapper
 
+LOG_WAV_NUM = 6
+
 
 def logging(logger, step, tag, data, mode='scalar', preprocessor=None):
     if type(data) is torch.Tensor:
@@ -402,9 +404,10 @@ class Runner():
                                 ])
                                 wav_predicted = self.preprocessor.istft(pred_spec.exp(), phase_inp)
                                 wav_target = self.preprocessor.istft(spec_stacked.exp(), phase_tar)
-                                logging_temp(step=self.global_step, tag='input', data=wavs[0, 0, :], mode='audio')
-                                logging_temp(step=self.global_step, tag='target', data=wav_target[0], mode='audio')
-                                logging_temp(step=self.global_step, tag='predicted', data=wav_predicted[0], mode='audio')
+                                for i in range(LOG_WAV_NUM):
+                                    logging_temp(step=self.global_step, tag=f'input-{i}', data=wavs[i, 0, :], mode='audio')
+                                    logging_temp(step=self.global_step, tag=f'target-{i}', data=wav_target[i], mode='audio')
+                                    logging_temp(step=self.global_step, tag=f'predicted-{i}', data=wav_predicted[i], mode='audio')
 
                             # if self.dual_transformer:
                             #     self.model.PhoneticTransformer.PhoneRecognizer.set_num_updates(self.global_step//1000)
