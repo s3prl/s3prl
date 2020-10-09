@@ -299,13 +299,13 @@ class Runner():
     def train(self):
         ''' Self-Supervised Pre-Training of Transformer Model'''
 
-        pbar = tqdm(total=self.total_steps)
+        pbar = tqdm(total=self.total_steps, dynamic_ncols=True)
         pbar.n = self.global_step - 1
 
         logging_temp = partial(logging, logger=self.log, preprocessor=copy.deepcopy(self.preprocessor).cpu())
         while self.global_step <= self.total_steps:
 
-            progress = tqdm(self.dataloader, desc="Iteration")
+            progress = tqdm(self.dataloader, desc="Iteration", dynamic_ncols=True)
 
             step = 0
             loss_val = 0
