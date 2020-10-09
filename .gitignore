@@ -144,5 +144,6 @@ data
 *.png
 *.pkl
 *.yaml
+*.txt
 *.sh
 deprecated_result
