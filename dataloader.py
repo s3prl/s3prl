@@ -223,7 +223,7 @@ class AcousticDataset(BaseDataset):
             # Fill in batch_x until batch is full
             if len(batch_x) == bucket_size:
                 # Half the batch size if seq too long
-                if (bucket_size >= 2) and (max(batch_len) > HALF_BATCHSIZE_TIME) and not self.sample_step:
+                if (bucket_size >= 2) and (max(batch_len) > HALF_BATCHSIZE_TIME) and self.sample_step > 0:
                     self.X.append(batch_x[:bucket_size//2])
                     self.X.append(batch_x[bucket_size//2:])
                 else:

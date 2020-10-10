@@ -23,6 +23,10 @@ from joblib import Parallel, delayed
 from utility.audio import extract_feature, num_mels, num_mfcc, num_freq
 
 
+SETS = ['train', 'dev', 'test'] # change these to match your dataset
+# SETS = ['train-clean-100', 'train-clean-360', 'train-other-500', 'dev-clean', 'dev-other', 'test-clean', 'test-other']#
+
+
 ##################
 # BOOLEAB STRING #
 ##################
@@ -59,11 +63,10 @@ def get_preprocess_args():
 #######################
 def acoustic_preprocess(args, tr_set, dim, audio_extention):
     
-    sets = ['train', 'dev', 'test']
     for i, s in enumerate(tr_set):
         print('')
         print('Preprocessing data in: ', s, end='')
-        todo = list(Path(s).rglob('*' + audio_extention)) # '*.flac'
+        todo = list(Path(os.path.join(args.data_root, s)).rglob('*' + audio_extention)) # '*.flac'
         print(len(todo), 'audio files found.')
 
         if args.name == 'None':
@@ -71,7 +74,7 @@ def acoustic_preprocess(args, tr_set, dim, audio_extention):
         else:
             output_dir = os.path.join(args.output_path, args.name)
         if not os.path.exists(output_dir): os.makedirs(output_dir)
-        cur_path = os.path.join(output_dir, sets[i])
+        cur_path = os.path.join(output_dir, tr_set[i])
         if not os.path.exists(cur_path): os.makedirs(cur_path)
 
         print('Extracting acoustic feature...', flush=True)
@@ -80,10 +83,10 @@ def acoustic_preprocess(args, tr_set, dim, audio_extention):
                                             save_feature=os.path.join(cur_path, str(file).split('/')[-1].replace(audio_extention, ''))) for file in tqdm(todo))
 
         # sort by len
-        sorted_todo = [os.path.join(sets[i], str(todo[idx]).split('/')[-1].replace(audio_extention, '.npy')) for idx in reversed(np.argsort(tr_x))]
+        sorted_todo = [os.path.join(tr_set[i], str(todo[idx]).split('/')[-1].replace(audio_extention, '.npy')) for idx in reversed(np.argsort(tr_x))]
         # Dump data
         df = pd.DataFrame(data={'file_path':[fp for fp in sorted_todo], 'length':list(reversed(sorted(tr_x))), 'label':None})
-        df.to_csv(os.path.join(output_dir, sets[i] + '.csv'))
+        df.to_csv(os.path.join(output_dir, tr_set[i] + '.csv'))
 
     print('All done, saved at', output_dir, 'exit.')
 
@@ -101,14 +104,10 @@ def main():
     print('Delta: ', args.delta, '. Delta Delta: ', args.delta_delta, '. Cmvn: ', args.apply_cmvn)
 
     # Select data sets
-    print('This scipts will preprocess the following data sets :')
-    sets = ['train', 'dev', 'test']
-    for idx, s in enumerate(sets):
+    for idx, s in enumerate(SETS):
         print('\t', idx, ':', s)
-
-    tr_set = []
-    for i in range(len(sets)):
-        tr_set.append(input(f'Please enter the path to the directory that contains all the \'{sets[i]}\' data (for example data/MyDataset/{sets[i]}): '))
+    tr_set = input('Please enter the index of splits you wish to use preprocess. (seperate with space): ')
+    tr_set = [SETS[int(t)] for t in tr_set.split(' ')]
 
     # Acoustic Feature Extraction & Make Data Table
     acoustic_preprocess(args, tr_set, dim, args.audio_extention)
