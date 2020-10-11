@@ -223,7 +223,7 @@ class AcousticDataset(BaseDataset):
             # Fill in batch_x until batch is full
             if len(batch_x) == bucket_size:
                 # Half the batch size if seq too long
-                if (bucket_size >= 2) and (max(batch_len) > HALF_BATCHSIZE_TIME) and self.sample_step > 0:
+                if (bucket_size >= 2) and (max(batch_len) > HALF_BATCHSIZE_TIME) and self.sample_step == 0:
                     self.X.append(batch_x[:bucket_size//2])
                     self.X.append(batch_x[bucket_size//2:])
                 else:
@@ -365,7 +365,7 @@ class KaldiDataset(Dataset):
             # Fill in batch_x until batch is full
             if len(batch_x) == bucket_size:
                 # Half the batch size if seq too long
-                if (bucket_size >= 2) and (max(batch_len) > HALF_BATCHSIZE_TIME) and not self.sample_step:
+                if (bucket_size >= 2) and (max(batch_len) > HALF_BATCHSIZE_TIME) and self.sample_step == 0:
                     self.X.append(batch_x[:bucket_size//2])
                     self.X.append(batch_x[bucket_size//2:])
                 else:
@@ -603,8 +603,7 @@ class CPC_Phone_Dataset(BaseDataset):
         return x.split('/')[-1].split('.')[0]
 
     def match_sequence(self, x_batch, p_batch):
-        scale = 1 if self.online_config is None else \
-                self.online_config['sample_rate'] // 100 if self.online_config['input']['feat_type'] == 'wav' else 1
+        scale = 1 if self.online_config is None else self.online_config['sample_rate'] // 100
         truncated_length = min(x_batch.shape[1]//scale, p_batch.shape[1])
         x_match_batch = x_batch[:, :truncated_length*scale, :]
         p_match_batch = p_batch[:, :truncated_length]
