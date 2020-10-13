@@ -79,6 +79,7 @@ class OnlineDataset(Dataset):
         self.target_level = target_level
         self.io_normalization = io_normalization
         self.deterministic_mapping = deterministic_mapping
+        self.sample_num = sample_num
         self.eps = eps
 
         if fileroot is not None and filelist is not None:
@@ -89,15 +90,8 @@ class OnlineDataset(Dataset):
             for root in roots:
                 filepths += find_files(root)
             assert len(filepths) > 0, 'No audio file detected'
-            filepths = sorted(filepths)
-
-        if sample_num is not None:
-            assert type(sample_num) is int
-            if sample_num <= len(filepths):
-                filepths = random.sample(filepths, sample_num)
-            else:
-                duplicated = filepths * (sample_num // len(filepths) + 1)
-                filepths = duplicated[:sample_num]
+        filepths = sorted(filepths)
+        random.shuffle(filepths)
         
         self.filepths = filepths
         self.random_ids = list(range(MAX_RANDOM_ID))
@@ -166,7 +160,15 @@ class OnlineDataset(Dataset):
         assert torch.isnan(noisy).sum() == 0 and torch.isinf(noisy).sum() == 0 
         return noisy, scaled_noise
 
+    def get_subset(self, ratio=0.2):
+        subset = copy.deepcopy(self)
+        subset.sample_num = round(len(subset.filepths) * ratio)
+        return subset
+
     def __getitem__(self, idx):
+        if idx >= len(self.filepths):
+            idx = idx % len(self.filepths)
+
         load_config = [self.sample_rate, self.max_time, self.target_level, self.min_time]
         src_pth = self.filepths[idx]
         wav = OnlineDataset.load_data(src_pth, *load_config)
@@ -226,7 +228,7 @@ class OnlineDataset(Dataset):
         # return: (seq_len, channel=2)
 
     def __len__(self):
-        return len(self.filepths)
+        return self.sample_num
 
 
 class OnlineSpeakerDataset(OnlineDataset):
