@@ -32,6 +32,7 @@ from transformer.mam_dual import process_dual_train_MAM_data
 ############
 HALF_BATCHSIZE_TIME = 1000
 SPEAKER_THRESHOLD = 0
+MAX_RANDOM_ID = 10000000
 
 
 ##############################################
@@ -69,25 +70,45 @@ def get_online_Dataloader(args, config, is_train=True, with_speaker=False):
 
 class OnlineDataset(Dataset):
     def __init__(self, roots, sample_rate, max_time, target_level=-25, noise_proportion=0, io_normalization=False,
-                 noise_type='gaussian', target_type='clean', channel3=None, snrs=[3], min_time=0, eps=1e-8, **kwargs):
+                 noise_type='gaussian', target_type='clean', channel3=None, deterministic_mapping=False,
+                 snrs=[3], min_time=0, eps=1e-8, fileroot=None, filelist=None, sample_num=None, **kwargs):
+        random.seed(0)
         self.sample_rate = sample_rate
         self.max_time = max_time
         self.min_time = min_time
         self.target_level = target_level
         self.io_normalization = io_normalization
+        self.deterministic_mapping = deterministic_mapping
         self.eps = eps
 
-        self.filepths = []
-        for root in roots:
-            self.filepths += find_files(root)
-        assert len(self.filepths) > 0, 'No audio file detected'
+        if fileroot is not None and filelist is not None:
+            with open(filelist, 'r') as handle:
+                filepths = [f'{fileroot}/{line[:-1]}' for line in handle.readlines()]
+        else:
+            filepths = []
+            for root in roots:
+                filepths += find_files(root)
+            assert len(filepths) > 0, 'No audio file detected'
+            filepths = sorted(filepths)
+
+        if sample_num is not None:
+            assert type(sample_num) is int
+            if sample_num <= len(filepths):
+                filepths = random.sample(filepths, sample_num)
+            else:
+                duplicated = filepths * (sample_num // len(filepths) + 1)
+                filepths = duplicated[:sample_num]
+        
+        self.filepths = filepths
+        self.random_ids = list(range(MAX_RANDOM_ID))
+        random.shuffle(self.random_ids)
 
         self.noise_proportion = noise_proportion
         self.snrs = snrs
         if noise_type == 'gaussian':
             self.noise_sampler = torch.distributions.Normal(0, 1)
         else:
-            self.noise_wavpths = find_files(noise_type)
+            self.noise_wavpths = sorted(find_files(noise_type))
 
         self.target_type = target_type
         if os.path.isdir(target_type):
@@ -156,14 +177,18 @@ class OnlineDataset(Dataset):
             if hasattr(self, 'noise_sampler'):
                 noise = self.noise_sampler.sample(wav.shape)
             elif hasattr(self, 'noise_wavpths'):
-                noise_idx = random.randint(0, len(self.noise_wavpths) - 1)
+                if self.deterministic_mapping:
+                    noise_idx = self.random_ids[idx] % len(self.noise_wavpths)
+                else:
+                    noise_idx = random.randint(0, len(self.noise_wavpths) - 1)
                 noise, noise_sr = torchaudio.load(self.noise_wavpths[noise_idx])
                 if noise_sr != self.sample_rate:
                     resampler = torchaudio.transforms.Resample(noise_sr, self.sample_rate)
                     noise = resampler(noise)
                     noise_sr = self.sample_rate
                 noise = noise.squeeze(0)
-            noisy, scaled_noise = OnlineDataset.add_noise(wav.unsqueeze(0), noise.unsqueeze(0), self.snrs, self.eps)
+            snrs = [self.snrs[self.random_ids[idx] % len(self.snrs)]] if self.deterministic_mapping else self.snrs
+            noisy, scaled_noise = OnlineDataset.add_noise(wav.unsqueeze(0), noise.unsqueeze(0), snrs, self.eps)
             noisy, scaled_noise = noisy.squeeze(0), scaled_noise.squeeze(0)
             wav_inp = noisy
         else:
