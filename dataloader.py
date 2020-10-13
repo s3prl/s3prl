@@ -12,6 +12,7 @@
 ###############
 import os
 import re
+import copy
 import torch
 import pickle
 import random
@@ -163,7 +164,7 @@ class OnlineDataset(Dataset):
 
     def get_subset(self, ratio=0.2):
         subset = copy.deepcopy(self)
-        subset.sample_num = round(len(subset.filepths) * ratio)
+        subset.sample_num = round(self.sample_num * ratio)
         return subset
 
     def __getitem__(self, idx):
