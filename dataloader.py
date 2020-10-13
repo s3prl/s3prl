@@ -79,7 +79,6 @@ class OnlineDataset(Dataset):
         self.target_level = target_level
         self.io_normalization = io_normalization
         self.deterministic_mapping = deterministic_mapping
-        self.sample_num = sample_num
         self.eps = eps
 
         if fileroot is not None and filelist is not None:
@@ -94,6 +93,8 @@ class OnlineDataset(Dataset):
         random.shuffle(filepths)
         
         self.filepths = filepths
+        self.sample_num = len(filepths) if sample_num is None else sample_num
+
         self.random_ids = list(range(MAX_RANDOM_ID))
         random.shuffle(self.random_ids)
 
