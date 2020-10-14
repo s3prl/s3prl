@@ -89,7 +89,6 @@ class OnlineDataset(Dataset):
             filepths = []
             for root in roots:
                 filepths += find_files(root)
-            assert len(filepths) > 0, 'No audio file detected'
         filepths = sorted(filepths)
         random.shuffle(filepths)
         
@@ -175,10 +174,18 @@ class OnlineDataset(Dataset):
         return subset
 
     def __getitem__(self, idx):
+        load_config = [self.sample_rate, self.max_time, self.target_level, self.min_time, self.target_type]
+
+        if len(self.filepths) == 0:
+            wavs = torch.zeros(16000, 2)
+            if hasattr(self, 'channel3_filepths'):
+                wav_channel3 = OnlineDataset.load_data(random.sample(self.channel3_filepths, 1)[0], *load_config[:-1]).view(-1)
+                return wavs, wav_channel3
+            return wavs
+
         if idx >= len(self.filepths):
             idx = idx % len(self.filepths)
 
-        load_config = [self.sample_rate, self.max_time, self.target_level, self.min_time, self.target_type]
         src_pth = self.filepths[idx]
         wav = OnlineDataset.load_data(src_pth, *load_config)
 
@@ -228,7 +235,6 @@ class OnlineDataset(Dataset):
 
         wavs = torch.stack([wav_inp, wav_tar], dim=-1)
         
-        wav_channel3 = torch.zeros_like(wav_inp)
         if hasattr(self, 'channel3_filepths'):
             wav_channel3 = OnlineDataset.load_data(random.sample(self.channel3_filepths, 1)[0], *load_config[:-1]).view(-1)
             return wavs, wav_channel3
