@@ -113,7 +113,12 @@ class OnlineDataset(Dataset):
             self.regex_searcher = re.compile('fileid_\d+')
         
         if channel3 is not None and os.path.isdir(channel3):
-            self.channel3_filepths = find_files(channel3)
+            if os.path.isdir(channel3):
+                self.channel3_filepths = find_files(channel3)
+            elif os.path.isfile(channel3):
+                assert fileroot is not None
+                with open(channel3, 'r') as handle:
+                    filepths = [f'{fileroot}/{line[:-1]}' for line in handle.readlines()]
 
     @classmethod
     def normalize_wav_decibel(cls, audio, target_level):
