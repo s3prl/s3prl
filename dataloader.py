@@ -129,7 +129,7 @@ class OnlineDataset(Dataset):
         return audio
 
     @classmethod
-    def load_data(cls, wav_path, sample_rate=16000, max_time=40000, target_level=-25, min_time=0, **kwargs):
+    def load_data(cls, wav_path, sample_rate=16000, max_time=40000, target_level=-25, min_time=0, target_type='clean', **kwargs):
         wav, sr = torchaudio.load(wav_path)
         assert sr == sample_rate, f'Sample rate mismatch: real {sr}, config {sample_rate}'
         wav = wav.view(-1)
@@ -141,7 +141,9 @@ class OnlineDataset(Dataset):
         if len(wav) > maxpoints:
             start = random.randint(0, len(wav) - maxpoints)
             wav = wav[start:start + maxpoints]
-        wav = cls.normalize_wav_decibel(wav, target_level)
+        if not os.path.isdir(target_type):
+            # if is directory, means files are already mixed, no need for normalization
+            wav = cls.normalize_wav_decibel(wav, target_level)
         return wav
 
     @classmethod
@@ -176,7 +178,7 @@ class OnlineDataset(Dataset):
         if idx >= len(self.filepths):
             idx = idx % len(self.filepths)
 
-        load_config = [self.sample_rate, self.max_time, self.target_level, self.min_time]
+        load_config = [self.sample_rate, self.max_time, self.target_level, self.min_time, self.target_type]
         src_pth = self.filepths[idx]
         wav = OnlineDataset.load_data(src_pth, *load_config)
 
@@ -228,7 +230,7 @@ class OnlineDataset(Dataset):
         
         wav_channel3 = torch.zeros_like(wav_inp)
         if hasattr(self, 'channel3_filepths'):
-            wav_channel3 = OnlineDataset.load_data(random.sample(self.channel3_filepths, 1)[0], *load_config).view(-1)
+            wav_channel3 = OnlineDataset.load_data(random.sample(self.channel3_filepths, 1)[0], *load_config[:-1]).view(-1)
             return wavs, wav_channel3
 
         return wavs
