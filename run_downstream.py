@@ -12,11 +12,13 @@
 ###############
 import os
 import yaml
+import glob
 import torch
 import random
 import argparse
 import numpy as np
 from shutil import copyfile
+from argparse import Namespace
 from dataloader import get_Dataloader
 from transformer.nn_transformer import TRANSFORMER, DUAL_TRANSFORMER
 from downstream.model import dummy_upstream, FeedForwardClassifier
@@ -50,16 +52,17 @@ def get_downstream_args():
     
     parser = argparse.ArgumentParser(description='Argument Parser for Downstream Tasks of the S3PLR project.')
     
-    # required
-    parser.add_argument('--run',  choices=['phone_linear', 'phone_1hidden', 'phone_concat', 'speaker_frame', 'speaker_utterance'], help='select task.', required=True)
+    # required, set either --run  or --resume
+    parser.add_argument('--run',  choices=['phone_linear', 'phone_1hidden', 'phone_concat', 'speaker_frame', 'speaker_utterance'], help='select task.')
+    parser.add_argument('--resume', help='Specify the downstream checkpoint path for continual training')
 
     # upstream settings
-    parser.add_argument('--ckpt', default='', type=str, help='Path to upstream pre-trained checkpoint, required if using other than baseline', required=False)
-    parser.add_argument('--upstream', choices=['dual_transformer', 'transformer', 'apc', 'baseline'], default='baseline', help='Whether to use upstream models for speech representation or fine-tune.', required=False)
-    parser.add_argument('--input_dim', default=0, type=int, help='Input dimension used to initialize transformer models', required=False)
-    parser.add_argument('--fine_tune', action='store_true', help='Whether to fine tune the transformer model with downstream task.', required=False)
-    parser.add_argument('--weighted_sum', action='store_true', help='Whether to use weighted sum on the transformer model with downstream task.', required=False)
-    parser.add_argument('--dual_mode',choices=['phone', 'speaker', 'phone speaker'], default='phone', help='Whether to use weighted sum on the transformer model with downstream task.', required=False)
+    parser.add_argument('--ckpt', default='', type=str, help='Path to upstream pre-trained checkpoint, required if using other than baseline')
+    parser.add_argument('--upstream', choices=['dual_transformer', 'transformer', 'apc', 'baseline'], default='baseline', help='Whether to use upstream models for speech representation or fine-tune.')
+    parser.add_argument('--input_dim', default=0, type=int, help='Input dimension used to initialize transformer models')
+    parser.add_argument('--fine_tune', action='store_true', help='Whether to fine tune the transformer model with downstream task.')
+    parser.add_argument('--weighted_sum', action='store_true', help='Whether to use weighted sum on the transformer model with downstream task.')
+    parser.add_argument('--dual_mode',choices=['phone', 'speaker', 'phone speaker'], default='phone', help='Whether to use weighted sum on the transformer model with downstream task.')
     parser.add_argument('--online_config', default=None, help='Explicitly specify the config of on-the-fly feature extraction')
 
     # Options
@@ -72,9 +75,30 @@ def get_downstream_args():
 
     # parse
     args = parser.parse_args()
-    setattr(args, 'gpu', not args.cpu)
-    setattr(args, 'task', args.phone_set if 'phone' in args.run else 'speaker')
-    config = yaml.load(open(args.config, 'r'), Loader=yaml.FullLoader)
+    if args.resume is None:
+        setattr(args, 'gpu', not args.cpu)
+        setattr(args, 'task', args.phone_set if 'phone' in args.run else 'speaker')
+        config = yaml.load(open(args.config, 'r'), Loader=yaml.FullLoader)
+    else:
+        if os.path.isdir(args.resume):
+            ckpts = glob.glob(f'{args.resume}/*.ckpt')
+            assert len(ckpts) > 0
+            ckpts = sorted(ckpts, key=lambda pth: int(pth.split('-')[-1].split('.')[0]))
+            resume_ckpt = ckpts[-1]
+        else:
+            resume_ckpt = args.resume
+
+        def update_args(old, new):
+            old_dict = vars(old)
+            new_dict = vars(new)
+            old_dict.update(new_dict)
+            return Namespace(**old_dict)
+
+        ckpt = torch.load(resume_ckpt, map_location='cpu')
+        args = update_args(args, ckpt['Settings']['Paras'])
+        config = ckpt['Settings']['Config']
+        setattr(args, 'resume', resume_ckpt)
+        
     if args.online_config is not None:
         online_config = yaml.load(open(args.online_config, 'r'), Loader=yaml.FullLoader)
         args.online_config = online_config
