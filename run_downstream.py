@@ -53,8 +53,8 @@ def get_downstream_args():
     parser = argparse.ArgumentParser(description='Argument Parser for Downstream Tasks of the S3PLR project.')
     
     # required, set either --run  or --resume
-    parser.add_argument('--run',  choices=['phone_linear', 'phone_1hidden', 'phone_concat', 'speaker_frame', 'speaker_utterance'], help='select task.')
-    parser.add_argument('--resume', help='Specify the downstream checkpoint path for continual training')
+    parser.add_argument('--run', default=None, choices=['phone_linear', 'phone_1hidden', 'phone_concat', 'speaker_frame', 'speaker_utterance'], help='select task.')
+    parser.add_argument('--resume', default=None, help='Specify the downstream checkpoint path to resume training')
 
     # upstream settings
     parser.add_argument('--ckpt', default='', type=str, help='Path to upstream pre-trained checkpoint, required if using other than baseline')
@@ -76,6 +76,8 @@ def get_downstream_args():
     # parse
     args = parser.parse_args()
     if args.resume is None:
+        assert args.run is not None, '`--run` must be given if `--resume` is not provided'
+        if args.upstream != 'baseline': assert args.ckpt != '', '`--ckpt` must be given if `--upstream` is not baseline'
         setattr(args, 'gpu', not args.cpu)
         setattr(args, 'task', args.phone_set if 'phone' in args.run else 'speaker')
         config = yaml.load(open(args.config, 'r'), Loader=yaml.FullLoader)
@@ -98,7 +100,7 @@ def get_downstream_args():
         args = update_args(args, ckpt['Settings']['Paras'])
         config = ckpt['Settings']['Config']
         setattr(args, 'resume', resume_ckpt)
-        
+
     if args.online_config is not None:
         online_config = yaml.load(open(args.online_config, 'r'), Loader=yaml.FullLoader)
         args.online_config = online_config
