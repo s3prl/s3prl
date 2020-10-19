@@ -460,6 +460,18 @@ from downstream.model import example_classifier
 from downstream.solver import get_optimizer
 
 # setup the transformer model
+"""
+`options`: a python dictionary containing the following keys:
+    ckpt_file: str, a path specifying the pre-trained ckpt file
+    load_pretrain: str, ['True', 'False'], whether to load pre-trained weights
+    no_grad: str, ['True', 'False'], whether to have gradient flow over this class
+    dropout: float/str, use float to modify dropout value during downstream finetune, or use the str `default` for pre-train default values
+    spec_aug: str, ['True', 'False'], whether to apply SpecAugment on inputs (used for ASR training)
+    spec_aug_prev: str, ['True', 'False'], apply spec augment on input acoustic features if True, else apply on output representations (used for ASR training)
+    weighted_sum: str, ['True', 'False'], whether to use a learnable weighted sum to integrate hidden representations from all layers, if False then use the last
+    select_layer: int, select from all hidden representations, set to -1 to select the last (will only be used when weighted_sum is False)
+    permute_input: str, ['True', 'False'], this attribute is for the forward method. If Ture then input ouput is in the shape of (T, B, D), if False then in (B, T, D)
+"""
 options = {
     'ckpt_file'     : './result/result_transformer/tera/fmllrBase960-F-N-K-libri/states-1000000.ckpt',
     'load_pretrain' : 'True',
@@ -469,9 +481,9 @@ options = {
     'spec_aug_prev' : 'True',
     'weighted_sum'  : 'False',
     'select_layer'  : -1,
+    'permute_input' : 'False',
 }
-transformer = TRANSFORMER(options=options, inp_dim=40)
-transformer.permute_input = False # Set to False to take input as (B, T, D), otherwise take (T, B, D)
+transformer = TRANSFORMER(options=options, inp_dim=0) # set `inpu_dim=0` to auto load the `inp_dim` from `ckpt_file`
 
 # setup your downstream class model
 classifier = example_classifier(input_dim=768, hidden_dim=128, class_num=2).cuda()
