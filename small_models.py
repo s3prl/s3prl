@@ -93,7 +93,7 @@ class Residual(nn.Module):
 
 class LSTM(nn.Module):
     def __init__(self, input_size=201, output_size=201, hidden_size=201, num_layers=3, bidirectional=False,
-                 activation='ReLU', **kwargs):
+                 activation='Identity', **kwargs):
         super(LSTM, self).__init__()
         self.lstm = nn.LSTM(input_size=input_size, hidden_size=hidden_size,
                             num_layers=num_layers, batch_first=True, bidirectional=bidirectional)
