@@ -890,7 +890,7 @@ class Speaker_Dataset(Dataset):
 # GET DATALOADER #
 ##################
 def get_Dataloader(split, load, data_path, batch_size, max_timestep, 
-                   use_gpu, n_jobs, train_set, dev_set, test_set, dev_batch_size, 
+                   use_gpu, n_jobs, train_set, dev_set=[], test_set=[], dev_batch_size=0, 
                    target_path=None, phone_path=None, seed=1337,
                    mam_config=None, sentiment_config=None, online=None, libri_root=None,
                    decode_beam_size=None, train_proportion=1.0, **kwargs):
