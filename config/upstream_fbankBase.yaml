@@ -19,7 +19,7 @@ transformer:
   noise_proportion: 0.15                                # for this percentage of the time, Gaussian noise will be applied on all frames during MAM training, set to 0 for no noise
   prune_headids: None                                   # Usage: 0,1,2,12-15 will prune headids [0,1,2,12,13,14]. headids = layerid * head_num + headid_in_layer
   share_layer: False                                    # Share layer weights
-  max_input_length: 0                                   # maximum input length (0 for no restriction)
+  max_input_length: 1500                                # maximum input length (0 for no restriction)
   pre_layer_norm: False                                 # apply the pre layer normalization technique introduced in: https://arxiv.org/abs/2002.04745
 
 
@@ -28,30 +28,27 @@ optimizer:
   learning_rate: "2e-4"                                 # Learning rate for opt. "4e-4" for 'data/libri_mel160_subword5000', "2e-4" for 'data/libri_fmllr_cmvn'
   loss_scale: 0                                         # Loss scale to improve fp16 numeric stability. Only used when apex is set to True. 0: dynamic loss scaling. positive power of 2: static loss scaling.
   warmup_proportion: 0.07                               # Proportion of training to perform linear rate warmup.
-  gradient_accumulation_steps: 3                        # Number of updates steps to accumulate before performing a backward/update pass
+  gradient_accumulation_steps: 4                        # Number of updates steps to accumulate before performing a backward/update pass
   gradient_clipping: 3.0                                # Maximum gradient norm
 
 
 dataloader:
   n_jobs: 12                                            # Subprocess used for torch Dataloader
-  batch_size: 12                                        # training batch size, 12 for pre-train, 6 for cpc exp
+  batch_size: 8                                         # training batch size, 12 for pre-train, 6 for cpc exp
   dev_batch_size: 12                                    # used for dev/test splits
-  max_timestep: 1500                                    # Max length for audio feature (0 for no restriction), 1500 for pre-train, 3000 for downstream tasks
+  max_timestep: 0                                       # Max length for audio feature (0 for no restriction), 1500 for pre-train, 3000 for downstream tasks
   
   # LIBRISEECH SETTINGS
   data_path: 'data/libri_fbank_cmvn'                    # Source data path, 'data/libri_fmllr_cmvn', or 'data/libri_mfcc_cmvn', or 'data/libri_mel160_subword5000' for different preprocessing features
   target_path: ''                                       # Target data path, not used when `duo_deature:False`. For reconstruction to a different feature type, for example set dataset to 'libri_linear1025_subword5000'.
   phone_path: 'data/cpc_phone'                          # phone boundary label data path for the phone classification task. set to 'data/libri_phone' or 'data/cpc_phone'
-  train_set: ['train-clean-100']                        # ['train-clean-100', 'train-clean-360', 'train-other-500'] for pre-training. ['train-clean-360'] or ['train-clean-100'] for libri phone exp or cpc phone exp, respectively.
-  dev_set: ['dev-clean']                                #
-  test_set: ['test-clean']                              #
-  train_proportion: 1.0                                 # Currently only effect the `phone classification task`, use this percent of `train_set` for downstream task training to demonstrate mockingjay generality
+  train_set: ['train-clean-100', 'train-clean-360', 'train-other-500'] # can be the subset of ['train-clean-100', 'train-clean-360', 'train-other-500']
 
 
 runner:
   # Training options
   apex: False                                           # Use APEX (see https://github.com/NVIDIA/apex for more details)
-  total_steps: 200000                                   # total steps for training, a step is a batch of update
+  total_steps: 1000000                                  # total steps for training, a step is a batch of update
   log_step: 2500                                        # log training status every this amount of training steps
   save_step: 10000                                      # save model every this amount of training steps
   duo_feature: False                                    # Use different input / output features during training

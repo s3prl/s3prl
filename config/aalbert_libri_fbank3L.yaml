@@ -20,6 +20,8 @@ transformer:
   prune_headids: None                                   # Usage: 0,1,2,12-15 will prune headids [0,1,2,12,13,14]. headids = layerid * head_num + headid_in_layer
   share_layer: True                                     # Share layer weights
   max_input_length: 0                                   # maximum input length (0 for no restriction)
+  pre_layer_norm: False                                 # apply the pre layer normalization technique introduced in: https://arxiv.org/abs/2002.04745
+
 
 optimizer: 
   type: 'adam'                                          # modes: ['adam', 'adamW', 'lamb'] 
@@ -40,11 +42,8 @@ dataloader:
   data_path: 'data/libri_fbank_cmvn'                    # Source data path, 'data/libri_fmllr_cmvn', or 'data/libri_mfcc_cmvn', or 'data/libri_mel160_subword5000' for different preprocessing features
   target_path: ''                                       # Target data path, not used when `duo_deature:False`. For reconstruction to a different feature type, for example set dataset to 'libri_linear1025_subword5000'.
   phone_path: 'data/cpc_phone'                          # phone boundary label data path for the phone classification task. set to 'data/libri_phone' or 'data/cpc_phone'
-  train_set: ['train-clean-100']                        # ['train-clean-100', 'train-clean-360', 'train-other-500'] for pre-training. ['train-clean-360'] or ['train-clean-100'] for libri phone exp or cpc phone exp, respectively.
-  dev_set: ['dev-clean']                                #
-  test_set: ['test-clean']                              #
-  train_proportion: 1.0                                 # Currently only effect the `phone classification task`, use this percent of `train_set` for downstream task training to demonstrate mockingjay generality
-
+  train_set: ['train-clean-100']                        # can be the subset of ['train-clean-100', 'train-clean-360', 'train-other-500']
+  
 
 runner:
   # Training options

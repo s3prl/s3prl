@@ -20,6 +20,8 @@ transformer:
   prune_headids: None                                   # Usage: 0,1,2,12-15 will prune headids [0,1,2,12,13,14]. headids = layerid * head_num + headid_in_layer
   share_layer: False                                    # Share layer weights
   max_input_length: 1500                                # maximum input length (0 for no restriction)
+  pre_layer_norm: False                                 # apply the pre layer normalization technique introduced in: https://arxiv.org/abs/2002.04745
+
 
 optimizer: 
   type: 'adam'                                          # modes: ['adam', 'adamW', 'lamb']
@@ -41,9 +43,6 @@ dataloader:
   target_path: ''                                       # Target data path, not used when `duo_deature:False`. For reconstruction to a different feature type, for example set dataset to 'libri_linear1025_subword5000'.
   phone_path: ''                                        # phone boundary label data path for the phone classification task. set to 'data/libri_phone' or 'data/cpc_phone'
   train_set: ['train']                                  # can be a set like: ['train', 'dev', 'test'], this will be joined with `data_path`, for example: '../kaldi/egs/voxceleb/v1/data/' + 'train/'
-  dev_set: ['dev-clean']                                #
-  test_set: ['test-clean']                              #
-  train_proportion: 1.0                                 # Currently only effect the `phone classification task`, use this percent of `train_set` for downstream task training to demonstrate mockingjay generality
 
 
 runner:
