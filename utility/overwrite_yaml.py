@@ -8,7 +8,7 @@ new_ckpt_pth = sys.argv[3]
 
 ckpt = torch.load(ckpt_pth, map_location='cpu')
 with open(config_pth, 'r') as handle:
-    config = yaml.load(config_pth, Loader=yaml.FullLoader)
+    config = yaml.load(open(config_pth, 'r'), Loader=yaml.FullLoader)
 
 ckpt['Settings']['Config'] = config
 torch.save(ckpt, new_ckpt_pth)
