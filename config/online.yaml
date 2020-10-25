@@ -1,6 +1,4 @@
 # dataset
-use_online_dataset: False
-# use the online dataset, which supports noise augmentation on wavefrom but does not support bucketing
 roots: [
   '/media/andi611/1TBSSD/LibriSpeech/train-clean-100',
   '/media/andi611/1TBSSD/LibriSpeech/train-clean-360',
@@ -31,14 +29,14 @@ n_mfcc: 13
 # feature configuration
 # feat_type can be: wav, complx, linear, mel, mfcc, phase
 input:
-  feat_type: wav
+  feat_type: mel
   channel: 0
-  log: False
+  log: True
   delta: 0
-  cmvn: False
+  cmvn: True
 target:
   feat_type: mel
   channel: 1
   log: True
   delta: 0
-  cmvn: False
+  cmvn: True

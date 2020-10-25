@@ -249,21 +249,23 @@ data_path: 'data/libri_fmllr_cmvn'
 - The extracted data, which is ready for training, will be stored under the same [`data/`](data/) directory by default. 
 ```bash
 # To preprocess different acoustic features, options are:
-python preprocess/preprocess_libri.py --feature_type=linear --delta=False # 1025-dim
-python preprocess/preprocess_libri.py --feature_type=mfcc --delta=True --delta_delta=True # 39-dim
-python preprocess/preprocess_libri.py --feature_type=fbank --delta=False # 80-dim
+python preprocess/preprocess_libri.py --feature_type=mfcc --delta=True --delta_delta=True # this generates: /data/libri_mfcc39, window_size=25ms, stride=10ms
+python preprocess/preprocess_libri.py --feature_type=fbank --delta=False # this generates: /data/libri_fbank80, window_size=25ms, stride=10ms
+python preprocess/preprocess_libri.py --feature_type=fbank --delta=True # this generates: /data/libri_fbank160, window_size=25ms, stride=10ms
 # features used for old Mockingjay pre-trained models (also for the Montreal phone set)
-python preprocess/preprocess_libri.py --feature_type=mel --data_path=../data/LibriSpeech # 160-dim
+python preprocess/preprocess_libri.py --feature_type=linear --delta=False # 1025-dim, window_size=50ms, stride=12.5ms
+python preprocess/preprocess_libri.py --feature_type=mel --delta=True # 160-dim, window_size=50ms, stride=12.5ms
 ```
 
 #### TIMIT
 - Download the [TIMIT](https://catalog.ldc.upenn.edu/LDC93S1) dataset and place under [`data/`](data/): `data/timit`. 
 - Follow the command used above:
 ```bash
-python preprocess/preprocess_timit.py --feature_type=mel --data_path=../data/LibriSpeech # 160-dim
-python preprocess/preprocess_timit.py --feature_type=linear --delta=False # 1025-dim
-python preprocess/preprocess_timit.py --feature_type=mfcc --delta=True --delta_delta=True # 39-dim
-python preprocess/preprocess_timit.py --feature_type=fbank --delta=False # 80-dim
+python preprocess/preprocess_timit.py --feature_type=fbank --delta=False # 80-dim, window_size=25ms, stride=10ms
+python preprocess/preprocess_timit.py --feature_type=mfcc --delta=True --delta_delta=True # 39-dim, window_size=25ms, stride=10ms
+# old preprocessing settings:
+python preprocess/preprocess_timit.py --feature_type=mel --data_path=../data/LibriSpeech # 160-dim, window_size=50ms, stride=12.5ms
+python preprocess/preprocess_timit.py --feature_type=linear --delta=False # 1025-dim, window_size=50ms, stride=12.5ms
 ```
 
 ------------------------------------
@@ -281,9 +283,22 @@ cd data/
 unzip libri_fmllr_cmvn.zip # features used for TERA
 ```
 
-### On-the-fly Feature Extraction
-- This feature allow users to run training and testing with out preprocessing data, feature extraction is done during runtime.
-- Add the following argument when runing upstream/downstream scripts:
+### On-the-fly Feature Extraction (RECOMMANDED)
+- This feature allow users to run training and testing with out preprocessing data, feature extraction is done during runtime (This will not increase your training time!).
+- In your `config/x.yaml`, add this line under the `dataloader` attribute:
+```yaml
+dataloader:
+    libri_root: '/media/andi611/1TBSSD/S3PRL/data/LibriSpeech/' # change this to your own path
+```
+- To **enable bucketing** (optional, but substantially increase training efficiency), you need to run this script to get all the length of the training data. Next change the following attribute in your `config/x.yaml`:
+```bash
+python preprocess/generate_len_for_bucket.py --data_root=data/LibriSpeech/ # this generates: /data/len_for_bucket
+```
+```yaml
+dataloader:
+    data_path: '/data/len_for_bucket'
+```
+- Finally, add the following argument when runing upstream/downstream scripts:
 ```bash
 --online_config=config/online.yaml
 ```
@@ -303,9 +318,9 @@ unzip converted_aligned_phones.zip
 ```yaml
 phone_path: 'data/cpc_phone'
 ```
-- ***Warning:** these phone alignments correspond to a feature/label for every 10ms, you need to use features with windows of 25 ms and an overlap of 10 ms, we recommend the [Kaldi extracted features](http://www.bit.ly/drive-S3PRL).*
+- ***IMPORTANT:** these phone alignments correspond to a feature/label for every 10ms, you need to use features with windows of 25 ms and an overlap of 10 ms, we recommend the [Kaldi extracted features](http://www.bit.ly/drive-S3PRL).*
 
-#### Montreal Phone Set
+#### Montreal Phone Set (for old Mockingjay pre-trained models)
 - 72 phone classes, this set is considered in the Mockingjay paper.
 - To use the [Montreal Forced Aligner](https://montreal-forced-aligner.readthedocs.io/en/latest/) phone alignment data, download the `libri_alignment.zip` from [S3PRL Drive](http://www.bit.ly/drive-S3PRL) and place under the [`data/`](data/) directory:
 ```bash
@@ -318,7 +333,7 @@ python preprocess/preprocess_alignment.py
 ```yaml
 phone_path: 'data/libri_phone'
 ```
-- ***Warning:** we recommand you use `preprocess/preprocess_libri.py --feature_type=mel` to extract matching features.*
+- ***Warning:** you need to use `preprocess/preprocess_libri.py --feature_type=mel` to extract matching features.*
 
 [Back to Top](#table-of-contents)
 
@@ -332,10 +347,10 @@ Train upstream models
 
 ### Train your own Mockingjay
 ```python
-# Mockingjay LARGE (mel->linear), 360 hr
-python run_upstream.py --run=transformer --config=config/mockingjay_libri_linearLarge.yaml --name=mockingjay_linearLarge
-# Mockingjay BASE (mel->mel), 360 hr
-python run_upstream.py --run=transformer --config=config/mockingjay_libri_linearLarge.yaml --name=mockingjay_linearLarge
+# Mockingjay BASE, 360 hr
+python run_upstream.py --run=transformer --config=config/mockingjay_libri_fbankBase.yaml --name=mockingjay_fbankBase
+# Mockingjay LARGE, 360 hr
+python run_upstream.py --run=transformer --config=config/mockingjay_libri_fbankLarge.yaml --name=mockingjay_fbankLarge
 ```
 ### Train your own TERA
 ```python

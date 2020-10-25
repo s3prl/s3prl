@@ -38,7 +38,7 @@ dataloader:
   max_timestep: 3000                                    # Max length for audio feature (0 for no restriction)
   
   # LIBRISEECH SETTINGS
-  data_path: 'data/libri_mel160_subword5000'            # Source data path, 'data/libri_mel160_subword5000' or 'data/libri_fmllr_cmvn' for different preprocessing features
+  data_path: 'data/libri_fbank160'                      # Source data path, run: `python preprocess/preprocess_libri.py --feature_type=fbank --delta=True`
   target_path: ''                                       # Target data path for reconstruction to a different feature type, for example linear spectrograms
   phone_path: 'data/libri_phone'                        # phone boundary label data path for the phone classification task. set to 'data/libri_phone' or 'data/cpc_phone'
   train_set: ['train-clean-360']                        # can be the subset of ['train-clean-100', 'train-clean-360', 'train-other-500']
