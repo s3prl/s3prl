@@ -248,12 +248,12 @@ data_path: 'data/libri_fmllr_cmvn'
 - Download the [LibriSpeech](http://www.openslr.org/12) dataset and place under [`data/`](data/): `data/LibriSpeech`. 
 - The extracted data, which is ready for training, will be stored under the same [`data/`](data/) directory by default. 
 ```bash
-# features used for Mockingjay
-python preprocess/preprocess_libri.py --feature_type=mel --data_path=../data/LibriSpeech # 160-dim
 # To preprocess different acoustic features, options are:
 python preprocess/preprocess_libri.py --feature_type=linear --delta=False # 1025-dim
 python preprocess/preprocess_libri.py --feature_type=mfcc --delta=True --delta_delta=True # 39-dim
 python preprocess/preprocess_libri.py --feature_type=fbank --delta=False # 80-dim
+# features used for old Mockingjay pre-trained models (also for the Montreal phone set)
+python preprocess/preprocess_libri.py --feature_type=mel --data_path=../data/LibriSpeech # 160-dim
 ```
 
 #### TIMIT
