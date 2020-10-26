@@ -1,3 +1,5 @@
+# root data path for online feature extraction (used when bucketing is available)
+libri_root: '/media/andi611/1TBSSD/LibriSpeech/'
 # dataset
 roots: [
   '/media/andi611/1TBSSD/LibriSpeech/train-clean-100',

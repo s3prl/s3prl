@@ -194,15 +194,14 @@ Supports the loading of:
 '''
 class AcousticDataset(BaseDataset):
     
-    def __init__(self, file_path, sets, bucket_size, max_timestep=0, drop=False, mam_config=None,
-                 libri_root=None, online_config=None):
+    def __init__(self, file_path, sets, bucket_size, max_timestep=0, drop=False, mam_config=None, online_config=None):
         super(AcousticDataset, self).__init__(file_path, sets, bucket_size, max_timestep, drop)
 
         self.mam_config = mam_config
-        self.libri_root = libri_root
         self.online_config = online_config
+        self.libri_root = None
         if self.online_config is not None:
-            assert libri_root is not None
+            self.libri_root = self.online_config['libri_root']
             feat_list = [self.online_config['input'], self.online_config['target']]
             self.preprocessor = OnlinePreprocessor(**self.online_config, feat_list=feat_list)
         self.sample_step = mam_config['max_input_length'] if 'max_input_length' in mam_config else 0    
@@ -268,10 +267,9 @@ This dataset if for the dual transformer framework.
 '''
 class DualAcousticDataset(AcousticDataset):
     
-    def __init__(self, file_path, sets, bucket_size, max_timestep=0, drop=False, mam_config=None,
-                 libri_root=None, online_config=None):
+    def __init__(self, file_path, sets, bucket_size, max_timestep=0, drop=False, mam_config=None, online_config=None):
         super(DualAcousticDataset, self).__init__(file_path, sets, bucket_size, max_timestep, drop,
-                                                  mam_config, libri_root, online_config)
+                                                  mam_config, online_config)
         if 'dual_transformer' not in self.mam_config:
             raise ValueError('Please add a new attribute in config to use this dataset -> dual_transformer: True')
         elif self.mam_config['dual_transformer']:
@@ -298,10 +296,9 @@ Currently only support on-the-fly (online) feature extraction.
 '''
 class WaveAcousticDataset(AcousticDataset):
     
-    def __init__(self, file_path, sets, bucket_size, max_timestep=0, drop=False, mam_config=None,
-                 libri_root=None, online_config=None):
+    def __init__(self, file_path, sets, bucket_size, max_timestep=0, drop=False, mam_config=None, online_config=None):
         super(WaveAcousticDataset, self).__init__(file_path, sets, bucket_size, max_timestep, drop,
-                                                  mam_config, libri_root, online_config)
+                                                  mam_config, online_config)
         if 'wave_transformer' not in self.mam_config:
             raise ValueError('Please add a new attribute in config to use this dataset -> wave_transformer: True')
         elif self.mam_config['wave_transformer']:
@@ -538,17 +535,16 @@ The LibriSpeech train-clean-100 (speech, phone) dataset, idendical alignment and
 '''
 class CPC_Phone_Dataset(BaseDataset):
     
-    def __init__(self, file_path, phone_path, sets, bucket_size, max_timestep=0, drop=False, mam_config=None, split='train', seed=1337,
-                 libri_root=None, online_config=None):
+    def __init__(self, file_path, phone_path, sets, bucket_size, max_timestep=0, 
+                 drop=False, mam_config=None, split='train', seed=1337, online_config=None):
         super(CPC_Phone_Dataset, self).__init__(file_path, sets, bucket_size, max_timestep, drop)
 
         assert('train-clean-100' in sets and len(sets) == 1) # `sets` must be ['train-clean-100']
         random.seed(seed)
         self.mam_config = mam_config
         self.phone_path = phone_path
-        self.libri_root = libri_root
         self.online_config = online_config
-        if self.online_config is not None: assert libri_root is not None
+        self.libri_root = self.online_config['libri_root'] if self.online_config is not None else None
         phone_file = open(os.path.join(phone_path, 'converted_aligned_phones.txt')).readlines()
         
         self.Y = {}
@@ -765,14 +761,12 @@ The LibriSpeech (speech, speaker) dataset
 '''
 class Speaker_Dataset(Dataset):
     
-    def __init__(self, split, file_path, sets, bucket_size, split_path=None, max_timestep=0, drop=False, mam_config=None, seed=1337,
-                 libri_root=None, online_config=None):        
+    def __init__(self, split, file_path, sets, bucket_size, split_path=None, max_timestep=0, drop=False, mam_config=None, seed=1337, online_config=None):        
         random.seed(seed)
         self.mam_config = mam_config
         self.root = file_path
-        self.libri_root = libri_root
         self.online_config = online_config
-        if self.online_config is not None: assert libri_root is not None
+        self.libri_root = self.online_config['libri_root'] if self.online_config is not None else None
 
         # Load the input sets
         tables = [pd.read_csv(os.path.join(file_path, s + '.csv')) for s in sets]
@@ -892,7 +886,7 @@ class Speaker_Dataset(Dataset):
 def get_Dataloader(split, load, data_path, batch_size, max_timestep, 
                    use_gpu, n_jobs, train_set, dev_set=[], test_set=[], dev_batch_size=0, 
                    target_path=None, phone_path=None, seed=1337,
-                   mam_config=None, sentiment_config=None, online=None, libri_root=None,
+                   mam_config=None, sentiment_config=None, online=None,
                    decode_beam_size=None, train_proportion=1.0, **kwargs):
 
     # Decide which split to use: train/dev/test
@@ -918,28 +912,23 @@ def get_Dataloader(split, load, data_path, batch_size, max_timestep,
     # Decide which task (or dataset) to propogate through model
     if load == 'acoustic':
         ds = AcousticDataset(file_path=data_path, sets=sets, max_timestep=max_timestep,
-                             bucket_size=bs, drop=drop_too_long, mam_config=mam_config,
-                             libri_root=libri_root, online_config=online)
+                             bucket_size=bs, drop=drop_too_long, mam_config=mam_config, online_config=online)
     elif load == 'dual_acoustic':
         ds = DualAcousticDataset(file_path=data_path, sets=sets, max_timestep=max_timestep,
-                                 bucket_size=bs, drop=drop_too_long, mam_config=mam_config,
-                                 libri_root=libri_root, online_config=online)
+                                 bucket_size=bs, drop=drop_too_long, mam_config=mam_config, online_config=online)
     elif load == 'wave_acoustic':
         ds = WaveAcousticDataset(file_path=data_path, sets=sets, max_timestep=max_timestep,
-                                 bucket_size=bs, drop=drop_too_long, mam_config=mam_config,
-                                 libri_root=libri_root, online_config=online)
+                                 bucket_size=bs, drop=drop_too_long, mam_config=mam_config, online_config=online)
     elif load == 'kaldi':
         ds = KaldiDataset(file_path=data_path, sets=sets, max_timestep=max_timestep,
                           bucket_size=bs, drop=drop_too_long, mam_config=mam_config)
     elif load == 'cpc_phone':
         assert(phone_path is not None), '`phone path` must be provided for this dataset.'
         ds = CPC_Phone_Dataset(file_path=data_path, phone_path=phone_path, sets=sets, max_timestep=max_timestep,
-                               bucket_size=bs, drop=drop_too_long, mam_config=mam_config, split=split, seed=seed,
-                               libri_root=libri_root, online_config=online)
+                               bucket_size=bs, drop=drop_too_long, mam_config=mam_config, split=split, seed=seed, online_config=online)
     elif load == 'speaker':
         ds = Speaker_Dataset(file_path=data_path, split_path=phone_path, sets=sets, max_timestep=max_timestep,
-                             bucket_size=bs, drop=drop_too_long, mam_config=mam_config, split=split, seed=seed,
-                             libri_root=libri_root, online_config=online)
+                             bucket_size=bs, drop=drop_too_long, mam_config=mam_config, split=split, seed=seed, online_config=online)
     # Below are old datasets that we will eventually deprecate
     elif load == 'duo':
         assert(target_path is not None), '`target path` must be provided for this dataset.'

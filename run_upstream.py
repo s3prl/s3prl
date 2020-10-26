@@ -120,8 +120,12 @@ def get_dataloader(args, config):
     elif load == 'kaldi':
         print('[run_upstream] - Loading Kaldi data: ' + str(config['dataloader']['data_path']) + ' from these sets ' + str(config['dataloader']['train_set']))
     elif load == 'wave_acoustic':
-        print('[run_upstream] - Loading wave data: ' + str(config['dataloader']['libri_root']) + ' from these sets ' + str(config['dataloader']['train_set']))
-    
+        print('[run_upstream] - Loading wave data: ' + str(config['online']['libri_root']) + ' from these sets ' + str(config['dataloader']['train_set']))
+    elif load == 'acoustic' and 'online' in config:
+        print('[run_upstream] - Using online data from root: ' + str(config['online']['libri_root']))
+    elif load == 'acoustic':
+        print('[run_upstream] - Loading data: ' + str(config['dataloader']['data_path']) + ' from these sets ' + str(config['dataloader']['train_set']))
+
     dataloader = get_Dataloader(split='train', load=load, use_gpu=args.gpu, 
                                 run_mam=True, mam_config=config['transformer'], **config['dataloader'], **config)
 

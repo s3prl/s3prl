@@ -285,20 +285,16 @@ unzip libri_fmllr_cmvn.zip # features used for TERA
 
 ### On-the-fly Feature Extraction (RECOMMANDED)
 - This feature allow users to run training and testing with out preprocessing data, feature extraction is done during runtime (This will not increase your training time!).
-- In your `config/x.yaml`, add this line under the `dataloader` attribute:
-```yaml
-dataloader:
-    libri_root: '/media/andi611/1TBSSD/S3PRL/data/LibriSpeech/' # change this to your own path
-```
-- To **enable bucketing** (optional, but substantially increase training efficiency), you need to run this script to get all the length of the training data. Next change the following attribute in your `config/x.yaml`:
+- To **enable bucketing** (optional, but substantially increase training efficiency), you need to run this script to get all the length of the training data.
 ```bash
 python preprocess/generate_len_for_bucket.py --data_root=data/LibriSpeech/ # this generates: /data/len_for_bucket
 ```
+Next change the following attribute in your `config/upstream.yaml` and `config/downstream.yaml`:
 ```yaml
 dataloader:
     data_path: '/data/len_for_bucket'
 ```
-- Finally, add the following argument when runing upstream/downstream scripts:
+- Finally, add the following argument when runing upstream/downstream scripts (pre-trained checkpoints will automatically use their saved `online.yaml` during pre-training, so no need to specify for pre-trained checkpoints):
 ```bash
 --online_config=config/online.yaml
 ```

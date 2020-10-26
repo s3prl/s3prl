@@ -164,7 +164,7 @@ def get_all_dataloaders(args, dataloader_config):
         dataloader_config['online'] = args.online_config
 
     if 'online' in dataloader_config:
-        print('[run_downstream] - Loading input with pre-trained online config: ' + str(dataloader_config['train_set']) + ' from ' + dataloader_config['libri_root'])
+        print('[run_downstream] - Loading input with pre-trained online config: ' + str(dataloader_config['train_set']) + ' from ' + dataloader_config['online']['libri_root'])
     elif not os.path.exists(dataloader_config['data_path']):
         raise RuntimeError('[run_downstream] - Data path not valid:', dataloader_config['data_path'])    
     else:
