@@ -25,7 +25,7 @@ from tensorboardX import SummaryWriter
 ##########
 class Runner():
     ''' Handler for complete training and evaluation progress of downstream models '''
-    def __init__(self, args, runner_config, dataloader, upstream, downstream, expdir):
+    def __init__(self, args, config, dataloader, upstream, downstream, expdir):
 
         self.device = torch.device('cuda') if (args.gpu and torch.cuda.is_available()) else torch.device('cpu')
         if torch.cuda.is_available(): print('[Runner] - CUDA is available!')
@@ -34,7 +34,8 @@ class Runner():
         self.log = SummaryWriter(expdir)
 
         self.args = args
-        self.config = runner_config
+        self.all_config = config
+        self.config = self.all_config['runner']
         self.dataloader = dataloader
         self.upstream_model = upstream.to(self.device)
         self.downstream_model = downstream.to(self.device)
@@ -78,7 +79,7 @@ class Runner():
             'Optimizer': self.optimizer.state_dict(),
             'Global_step': self.global_step,
             'Settings': {
-                'Config': self.config,
+                'Config': self.all_config,
                 'Paras': self.args,
             },
         }

@@ -235,7 +235,7 @@ def main():
 
     # train
     runner = Runner(args=args,
-                    runner_config=config['runner'],
+                    config=config,
                     dataloader= {'train':train_loader, 'dev':dev_loader, 'test':test_loader}, 
                     upstream=upstream_model, 
                     downstream=downstream_model, 
