@@ -83,7 +83,7 @@ def get_downstream_args():
         config = yaml.load(open(args.config, 'r'), Loader=yaml.FullLoader)
     else:
         if os.path.isdir(args.resume):
-            ckpts = glob.glob(f'{args.resume}/*.ckpt')
+            ckpts = glob.glob(f'{args.resume}/states-*.ckpt')
             assert len(ckpts) > 0
             ckpts = sorted(ckpts, key=lambda pth: int(pth.split('-')[-1].split('.')[0]))
             resume_ckpt = ckpts[-1]
