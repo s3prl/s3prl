@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*- #
 """*********************************************************************************************"""
-#   FileName     [ example_use_pretrained_model_without_preprocessing.py ]
+#   FileName     [ tutorial_use_pretrained_model_without_preprocessing.py ]
 #   Synopsis     [ an example code of using the wrapper class for downstream feature extraction or finetune ]
 #   Author       [ Andy T. Liu (Andi611) ]
 #   Copyright    [ Copyleft(c), Speech Lab, NTU, Taiwan ]
@@ -37,7 +37,7 @@ from transformer.nn_transformer import TRANSFORMER
     permute_input: str, ['True', 'False'], this attribute is for the forward method. If Ture then input ouput is in the shape of (T, B, D), if False then in (B, T, D)
 """
 options = {
-    'ckpt_file'     : './result/result_transformer/on-the-fly-fbankBase960-b12-T-libri/states-1000000.ckpt',
+    'ckpt_file'     : './result/result_transformer/on-the-fly-melBase960-b12-T-libri/states-1000000.ckpt',
     'load_pretrain' : 'True',
     'no_grad'       : 'True',
     'dropout'       : 'default',
