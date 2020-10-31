@@ -15,6 +15,7 @@ import math
 import yaml
 import torch
 import random
+import torchaudio
 import numpy as np
 import torch.nn as nn
 from functools import lru_cache
@@ -125,6 +126,29 @@ class TransformerBaseWrapper(nn.Module):
         except: 
             raise RuntimeError('[Transformer] - Pre-trained weights NOT loaded!')
 
+
+    @classmethod
+    def normalize_wav_decibel(cls, audio, target_level):
+        '''Normalize the signal to the target level'''
+        rms = audio.pow(2).mean().pow(0.5)
+        scalar = (10 ** (target_level / 20)) / (rms + 1e-10)
+        audio = audio * scalar
+        return audio
+
+
+    @classmethod
+    def load_data(cls, wav_path, sample_rate=16000, max_time=40000, target_level=-25, **kwargs):
+        wav, sr = torchaudio.load(wav_path)
+        assert sr == sample_rate, f'Sample rate mismatch: real {sr}, config {sample_rate}'
+        wav = wav.view(-1)
+        maxpoints = int(sr / 1000) * max_time
+        if len(wav) > maxpoints:
+            start = random.randint(0, len(wav) - maxpoints)
+            wav = wav[start:start + maxpoints]
+        wav = cls.normalize_wav_decibel(wav, target_level)
+        return wav.unsqueeze(-1)
+
+
     def get_preprocessor(self, online_config):
         # load the same preprocessor as pretraining stage
         upstream_input_feat = online_config['input']
@@ -135,6 +159,7 @@ class TransformerBaseWrapper(nn.Module):
         upstream_feat = preprocessor()[0]
         upstream_input_dim = upstream_feat.size(-1)
         return preprocessor, upstream_input_dim
+
 
     def down_sample_frames(self, spec):
         spec = spec.contiguous()
