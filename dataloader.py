@@ -936,6 +936,7 @@ def get_Dataloader(split, load, data_path, batch_size, max_timestep,
                                 bucket_size=bs, drop=drop_too_long, mam_config=mam_config)
     elif load == 'montreal_phone':
         assert(phone_path is not None), '`phone path` must be provided for this dataset.'
+        assert('cpc' not in phone_path), 'This dataset is for the Montreal phone labels.'
         ds = Mel_Phone_Dataset(file_path=data_path, phone_path=phone_path, sets=sets, max_timestep=max_timestep,
                                bucket_size=bs, drop=drop_too_long, mam_config=mam_config,
                                train_proportion=train_proportion if split != 'test' else 1.0)
