@@ -283,7 +283,7 @@ cd data/
 unzip libri_fmllr_cmvn.zip # features used for TERA
 ```
 
-### On-the-fly Feature Extraction (RECOMMANDED)
+### On-the-fly Feature Extraction (RECOMMENDED)
 - This feature allow users to run training and testing with out preprocessing data, feature extraction is done during runtime (This will not increase your training time!).
 - To **enable bucketing** (optional, but substantially increase training efficiency), you need to run this script to get all the length of the training data.
 ```bash
