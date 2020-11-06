@@ -112,7 +112,8 @@ def process_train_MAM_data(spec, config=None):
         seq_len = spec_stacked.shape[1]
         
         pos_enc = fast_position_encoding(seq_len, hidden_size) # (seq_len, hidden_size)
-        mask_label = torch.zeros_like(spec_stacked, dtype=torch.uint8)
+        mask_label = torch.zeros_like(spec_stacked, dtype=torch.uint8) \
+                     if mask_proportion != 0 and mask_frequency != 0 else torch.ones_like(spec_stacked, dtype=torch.uint8)
         attn_mask = torch.ones((batch_size, seq_len)) # (batch_size, seq_len)
 
         for idx in range(batch_size):
@@ -347,11 +348,6 @@ def process_wave_train_MAM_data(feats, downsampling, config=None):
 
     dr = config['downsample_rate'] if config is not None else DR
     hidden_size = config['hidden_size'] if config is not None else HIDDEN_SIZE
-    mask_proportion = config['mask_proportion'] if config is not None else MASK_PROPORTION
-    mask_consecutive_min = config['mask_consecutive_min'] if config is not None else MASK_CONSECUTIVE
-    mask_consecutive_max = config['mask_consecutive_max'] if config is not None else MASK_CONSECUTIVE
-    mask_allow_overlap = config['mask_allow_overlap'] if config is not None else True
-    mask_bucket_ratio = config['mask_bucket_ratio'] if config is not None else MASK_BUCKET_RATIO
 
     with torch.no_grad():
         if len(feats) == 2: # `source_feat` should be raw waveform and `target_spec` should be the matching spectrogram
@@ -368,53 +364,10 @@ def process_wave_train_MAM_data(feats, downsampling, config=None):
         seq_len = source_feat.shape[1] // downsampling
         target_spec = target_spec[:, :seq_len, :]
         batch_size = target_spec.shape[0]
-        spec_len = (target_spec.sum(dim=-1) != 0).long().sum(dim=-1).tolist()
         
-        pos_enc = fast_position_encoding(1, hidden_size) # (seq_len, hidden_size), dummy pos_enc with seq_len=1, not used in forward
-        mask_label = torch.zeros_like(target_spec, dtype=torch.uint8)
+        pos_enc = fast_position_encoding(seq_len, hidden_size) # (seq_len, hidden_size)
+        mask_label = torch.ones_like(target_spec, dtype=torch.uint8)
         attn_mask = torch.ones((batch_size, seq_len)) # (batch_size, seq_len)
-
-        for idx in range(batch_size):
-            # zero vectors for padding dimension
-            attn_mask[idx, spec_len[idx]:] = 0
-
-            def starts_to_intervals(starts, consecutive):
-                tiled = starts.expand(consecutive, starts.size(0)).permute(1, 0)
-                offset = torch.arange(consecutive).expand_as(tiled)
-                intervals = tiled + offset
-                return intervals.view(-1)
-            
-            # time masking
-            if mask_proportion > 0:
-                mask_consecutive = random.randint(mask_consecutive_min, mask_consecutive_max)
-                valid_start_max = max(spec_len[idx] - mask_consecutive - 1, 0) # compute max valid start point for a consecutive mask
-                proportion = round(spec_len[idx] * mask_proportion / mask_consecutive)
-                if mask_allow_overlap:
-                    # draw `proportion` samples from the range (0, valid_index_range) and without replacement
-                    chosen_starts = torch.randperm(valid_start_max + 1)[:proportion]
-                else:
-                    mask_bucket_size = round(mask_consecutive * mask_bucket_ratio)
-                    rand_start = random.randint(0, min(mask_consecutive, valid_start_max))
-                    valid_starts = torch.arange(rand_start, valid_start_max + 1, mask_bucket_size)
-                    chosen_starts = valid_starts[torch.randperm(len(valid_starts))[:proportion]]
-                chosen_intervals = starts_to_intervals(chosen_starts, mask_consecutive)
-                
-                # determine whether to mask / random / or do nothing to the frame
-                dice = random.random()
-                # mask to zero
-                if dice < 0.8:
-                    source_feat[idx, chosen_intervals*downsampling, :] = 0
-                # replace to random frames
-                elif dice >= 0.8 and dice < 0.9:
-                    random_starts = torch.randperm(valid_start_max + 1)[:proportion]
-                    random_intervals = starts_to_intervals(random_starts, mask_consecutive)
-                    source_feat[idx, chosen_intervals*downsampling, :] = source_feat[idx, random_intervals*downsampling, :]
-                # do nothing
-                else:
-                    pass
-
-                # the gradients will be calculated on chosen frames
-                mask_label[idx, chosen_intervals, :] = 1
         
         valid_batchid = mask_label.view(batch_size, -1).sum(dim=-1).nonzero().view(-1)
         batch_is_valid = len(valid_batchid) > 0
