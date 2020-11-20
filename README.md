@@ -39,7 +39,7 @@ Table of Contents
        * [Download extracted features (RECOMMENDED)](#download-extracted-features)
        * [Preprocessing with Librosa](#preprocessing-with-librosa)
        * [Preprocessing with Kaldi](#preprocessing-with-kaldi)
-       * [On-the-fly Feature Extraction](#on-the-fly-feature-extraction)
+       * [On-the-fly Feature Extraction (RECOMMENDED)](#on-the-fly-feature-extraction)
        * [Downstream Task Preprocessing](#downstream-task-preprocessing)
    * [Train upstream models](#train-upstream-models)
        * [Train your own Mockingjay](#train-your-own-mockingjay)
@@ -283,7 +283,7 @@ cd data/
 unzip libri_fmllr_cmvn.zip # features used for TERA
 ```
 
-### On-the-fly Feature Extraction (RECOMMENDED)
+### On-the-fly Feature Extraction
 - This feature allow users to run training and testing with out preprocessing data, feature extraction is done during runtime (This will not increase your training time!).
 - To **enable bucketing** (optional, but substantially increase training efficiency), you need to run this script to get all the length of the training data.
 ```bash
