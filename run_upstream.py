@@ -103,24 +103,13 @@ def get_dataloader(args, config):
     print('[run_upstream] - getting train dataloader...')
 
     # select mode
-    try: 
-        if config['transformer']['dual_transformer'] and config['transformer']['wave_transformer']:
-            raise ValueError('`dual_transformer` and `wave_transformer` can not both be True!')
-    except: pass
-    if 'dual_transformer' in config['transformer']:
-        load = 'dual_acoustic' if config['transformer']['dual_transformer'] else 'acoustic'
-    if 'wave_transformer' in config['transformer']:
-        load = 'wave_acoustic' if config['transformer']['wave_transformer'] else 'acoustic'
-    else:
-        load = 'duo' if bool(config['runner']['duo_feature']) else 'kaldi' if args.kaldi_data else 'acoustic'
+    load = 'duo' if bool(config['runner']['duo_feature']) else 'kaldi' if args.kaldi_data else 'acoustic'
 
     # print path info
     if load == 'duo': 
         print('[run_upstream] - Loading duo data: ' + str(config['dataloader']['train_set']) + ' from ' + config['dataloader']['target_path'])
     elif load == 'kaldi':
         print('[run_upstream] - Loading Kaldi data: ' + str(config['dataloader']['data_path']) + ' from these sets ' + str(config['dataloader']['train_set']))
-    elif load == 'wave_acoustic':
-        print('[run_upstream] - Loading wave data: ' + str(config['online']['libri_root']) + ' from these sets ' + str(config['dataloader']['train_set']))
     elif load == 'acoustic' and 'online' in config:
         print('[run_upstream] - Using online data from root: ' + str(config['online']['libri_root']))
     elif load == 'acoustic':
