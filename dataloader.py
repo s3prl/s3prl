@@ -22,8 +22,6 @@ from librosa.util import find_files
 from torch.utils.data import DataLoader
 from torch.utils.data.dataset import Dataset
 from torch.nn.utils.rnn import pad_sequence
-from transformer.mam import process_train_MAM_data, process_test_MAM_data
-from transformer.mam import process_dual_train_MAM_data, process_wave_train_MAM_data
 from utility.preprocessor import OnlinePreprocessor
 
 
@@ -256,63 +254,6 @@ class AcousticDataset(BaseDataset):
             x_batch = [load_libri_data(x_file, self.root, self.libri_root, self.online_config) for x_file in self.X[index]]
         x_pad_batch = pad_sequence(x_batch, batch_first=True)
         return self.process_x_pad_batch(x_pad_batch)
-
-
-#########################
-# DUAL ACOUSTIC DATASET #
-#########################
-'''
-The Dual Acoustic dataset that loads the (phonetic input, speaker input).
-This dataset if for the dual transformer framework.
-'''
-class DualAcousticDataset(AcousticDataset):
-    
-    def __init__(self, file_path, sets, bucket_size, max_timestep=0, drop=False, mam_config=None, online_config=None):
-        super(DualAcousticDataset, self).__init__(file_path, sets, bucket_size, max_timestep, drop,
-                                                  mam_config, online_config)
-        if 'dual_transformer' not in self.mam_config:
-            raise ValueError('Please add a new attribute in config to use this dataset -> dual_transformer: True')
-        elif self.mam_config['dual_transformer']:
-            print('[Dataset] - Setup for special mode: dual_transformer')
-        else:
-            raise ValueError('Calling the wrong dataset!')
-
-    def process_x_pad_batch(self, x_pad_batch):
-        if self.online_config is not None:
-            x_pad_batch = torch.cat([x_pad_batch, x_pad_batch], dim=-1) # (batch_size, seq_len, channel=2)
-            x_pad_batch = x_pad_batch.transpose(-1, -2).contiguous() # (batch_size, channel=2, seq_len)
-            feats = self.preprocessor(x_pad_batch)
-            return process_dual_train_MAM_data(feats, config=self.mam_config)
-        else:
-            return process_dual_train_MAM_data(spec=(x_pad_batch,), config=self.mam_config)
-
-
-#########################
-# WAVE ACOUSTIC DATASET #
-#########################
-'''
-The Wave Acoustic dataset that loads (raw waveform features, spectrogram) of the corpus root.
-Currently only support on-the-fly (online) feature extraction.
-'''
-class WaveAcousticDataset(AcousticDataset):
-    
-    def __init__(self, file_path, sets, bucket_size, max_timestep=0, drop=False, mam_config=None, online_config=None):
-        super(WaveAcousticDataset, self).__init__(file_path, sets, bucket_size, max_timestep, drop,
-                                                  mam_config, online_config)
-        if 'wave_transformer' not in self.mam_config:
-            raise ValueError('Please add a new attribute in config to use this dataset -> wave_transformer: True')
-        elif self.mam_config['wave_transformer']:
-            print('[Dataset] - Setup for special mode: wave_transformer')
-        else:
-            raise ValueError('Calling the wrong dataset!')
-        assert self.online_config is not None
-        assert hasattr(self, 'preprocessor')
-
-    def process_x_pad_batch(self, x_pad_batch):
-        x_pad_batch = torch.cat([x_pad_batch, x_pad_batch], dim=-1) # (batch_size, seq_len, channel=2)
-        x_pad_batch = x_pad_batch.transpose(-1, -2).contiguous() # (batch_size, channel=2, seq_len)
-        feats = self.preprocessor(x_pad_batch)
-        return process_wave_train_MAM_data(feats, self.online_config['sample_rate']//100, config=self.mam_config)
 
 
 #################
@@ -913,12 +854,6 @@ def get_Dataloader(split, load, data_path, batch_size, max_timestep,
     if load == 'acoustic':
         ds = AcousticDataset(file_path=data_path, sets=sets, max_timestep=max_timestep,
                              bucket_size=bs, drop=drop_too_long, mam_config=mam_config, online_config=online)
-    elif load == 'dual_acoustic':
-        ds = DualAcousticDataset(file_path=data_path, sets=sets, max_timestep=max_timestep,
-                                 bucket_size=bs, drop=drop_too_long, mam_config=mam_config, online_config=online)
-    elif load == 'wave_acoustic':
-        ds = WaveAcousticDataset(file_path=data_path, sets=sets, max_timestep=max_timestep,
-                                 bucket_size=bs, drop=drop_too_long, mam_config=mam_config, online_config=online)
     elif load == 'kaldi':
         ds = KaldiDataset(file_path=data_path, sets=sets, max_timestep=max_timestep,
                           bucket_size=bs, drop=drop_too_long, mam_config=mam_config)
