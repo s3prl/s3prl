@@ -23,6 +23,7 @@ from torch.utils.data import DataLoader
 from torch.utils.data.dataset import Dataset
 from torch.nn.utils.rnn import pad_sequence
 from utility.preprocessor import OnlinePreprocessor
+from transformer.mam import process_train_MAM_data, process_test_MAM_data
 
 
 ############
