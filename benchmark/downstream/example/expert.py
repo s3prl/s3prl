@@ -18,9 +18,9 @@ class DownstreamExpert(nn.Module):
 
     Note 1.
         dataloaders should output in the following format:
-        
+
         [[wav1, wav2, ...], your_other_contents, ...]
-        
+
         where wav1, wav2 ... are in variable length
         and wav1 is in torch.FloatTensor
     """
@@ -104,7 +104,7 @@ class DownstreamExpert(nn.Module):
         labels = torch.LongTensor(utterance_labels).to(features.device)
         loss = self.objective(predicted, labels)
 
-        predicted_classid = predicted.max(dim=-1).indices        
+        predicted_classid = predicted.max(dim=-1).indices
         records['acc'] += (predicted_classid == labels).cpu().float().tolist()
 
         if not self.training:
