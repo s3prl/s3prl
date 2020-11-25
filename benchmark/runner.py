@@ -26,6 +26,7 @@ class Runner():
         
         self.init_ckpt = torch.load(self.args.past_exp, map_location='cpu') if self.args.past_exp else {}
 
+        # set upstream
         module_path = f'benchmark.upstream.{args.upstream}.expert'
         Upstream = getattr(importlib.import_module(module_path), 'UpstreamExpert')
         self.upstream = Upstream(
@@ -37,6 +38,7 @@ class Runner():
             print('[Runner] - Loading upstream weights from the previous experiment')
             self.upstream.load_state_dict(init_upstream)
 
+        # set downstream
         module_path = f'benchmark.downstream.{args.downstream}.expert'
         Downstream = getattr(importlib.import_module(module_path), 'DownstreamExpert')
         self.downstream = Downstream(
