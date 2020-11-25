@@ -14,7 +14,7 @@ optimizer:
   warmup_proportion: 0.07
   gradient_clipping: 1
 
-downstream:
+downstream_expert:
   datarc:
     num_workers: 12
     train_batch_size: 6

@@ -41,7 +41,7 @@ class Runner():
         self.downstream = Downstream(
             self.upstream.get_output_dim(),
             **vars(self.args),
-            **self.config['downstream']
+            **self.config['downstream_expert']
         ).to(self.args.device)
 
         if init_downstream := self.init_ckpt.get('Downstream'):
