@@ -30,10 +30,14 @@ class Upstream(nn.Module):
     def forward(self, wavs):
         """
         Args:
-            wavs: list of unpadded wavs
+            wavs:
+                list of unpadded wavs [wav1, wav2, ...]
+                each wav is in torch.FloatTensor and already
+                put in the device assigned by command-line args
 
         Return:
-            features: (batch_size, extracted_seqlen, feature_dim)        
+            features:
+                (batch_size, extracted_seqlen, feature_dim)        
         """
 
         wavs = pad_sequence(wavs, batch_first=True)
