@@ -7,11 +7,11 @@ import torch
 import torch.nn as nn
 from torch.utils.data import DataLoader
 
-from benchmark.tasks.example.model import Model
-from benchmark.tasks.example.dataset import RandomDataset
+from benchmark.downstream.example.model import Model
+from benchmark.downstream.example.dataset import RandomDataset
 
 
-class Expert(nn.Module):
+class DownstreamExpert(nn.Module):
     """
     Used to handle task-specific operations
     eg. downstream forward, metric computation, contents to log
@@ -25,10 +25,10 @@ class Expert(nn.Module):
         and wav1 is in torch.FloatTensor
     """
 
-    def __init__(self, upstream_dim, task='Phone', datarc={}, modelrc={}, **kwargs):
-        super(Expert, self).__init__()
+    def __init__(self, upstream_dim, downstream='phone', datarc={}, modelrc={}, **kwargs):
+        super(DownstreamExpert, self).__init__()
         self.upstream_dim = upstream_dim
-        self.task = task
+        self.downstream = downstream
         self.datarc = datarc
         self.modelrc = modelrc
 
@@ -87,7 +87,7 @@ class Expert(nn.Module):
 
             logger:
                 Tensorboard SummaryWriter, given here for logging/debugging
-                convenience, please use "self.task/your_content_name" as key
+                convenience, please use "self.downstream/your_content_name" as key
                 name to log your customized contents
 
             global_step:
@@ -105,10 +105,7 @@ class Expert(nn.Module):
         loss = self.objective(predicted, labels)
 
         predicted_classid = predicted.max(dim=-1).indices        
-        same = (predicted_classid == labels)
-        acc = same.long().sum().item() / labels.size(0)
-
-        records['acc'].append(acc)
+        records['acc'] += (predicted_classid == labels).cpu().float().tolist()
 
         if not self.training:
             # some evaluation-only processing, eg. decoding

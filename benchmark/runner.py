@@ -26,7 +26,8 @@ class Runner():
         
         self.init_ckpt = torch.load(self.args.past_exp, map_location='cpu') if self.args.past_exp else {}
 
-        Upstream = getattr(importlib.import_module(f'benchmark.upstreams.{args.upstream}.upstream'), 'Upstream')
+        module_path = f'benchmark.upstream.{args.upstream}.expert'
+        Upstream = getattr(importlib.import_module(module_path), 'UpstreamExpert')
         self.upstream = Upstream(
             self.args.upstream_ckpt,
             self.args.upstream_config
@@ -35,26 +36,27 @@ class Runner():
         if init_upstream := self.init_ckpt.get('Upstream'):
             self.upstream.load_state_dict(init_upstream)
 
-        Expert = getattr(importlib.import_module(f'benchmark.tasks.{args.task}.expert'), 'Expert')
-        self.expert = Expert(
+        module_path = f'benchmark.downstream.{args.downstream}.expert'
+        Downstream = getattr(importlib.import_module(module_path), 'DownstreamExpert')
+        self.downstream = Downstream(
             self.upstream.get_output_dim(),
             **vars(self.args),
             **self.config['expert']
         ).to(self.args.device)
 
-        if init_expert := self.init_ckpt.get('Expert'):
-            self.expert.load_state_dict(init_expert)
+        if init_downstream := self.init_ckpt.get('Downstream'):
+            self.downstream.load_state_dict(init_downstream)
 
 
     def train(self):
         # set model train/eval modes
-        self.expert.train()
+        self.downstream.train()
         self.upstream.eval()
         if self.args.upstream_trainable:
             self.upstream.train()
 
         # choose models to optimize
-        optimized_models = [self.expert]
+        optimized_models = [self.downstream]
         if self.args.upstream_trainable:
             optimized_models.append(self.upstream)
 
@@ -73,7 +75,7 @@ class Runner():
                 self.evaluate(split, pbar.n)
 
         # prepare data
-        dataloader = self.expert.get_train_dataloader()
+        dataloader = self.downstream.get_train_dataloader()
 
         all_loss = []
         records = defaultdict(list)
@@ -90,14 +92,14 @@ class Runner():
                         with torch.no_grad():
                             features = self.upstream(wavs)
 
-                    loss = self.expert(features, *others, records=records, logger=self.logger, global_step=pbar.n)
+                    loss = self.downstream(features, *others, records=records, logger=self.logger, global_step=pbar.n)
                     loss.backward()
 
                     # record loss
                     all_loss.append(loss.item())
 
                     # gradient clipping
-                    paras = list(self.expert.parameters())
+                    paras = list(self.downstream.parameters())
                     if self.args.upstream_trainable:
                         paras += list(self.upstream.parameters())
                     grad_norm = torch.nn.utils.clip_grad_norm_(paras, self.config['optimizer']['gradient_clipping'])
@@ -112,10 +114,10 @@ class Runner():
                     # logging
                     if (pbar.n + 1) % self.config['runner']['log_step'] == 0:
                         average_loss = torch.FloatTensor(all_loss).mean().item()
-                        self.logger.add_scalar(f'{self.args.task}/train-loss', average_loss, global_step=pbar.n)
+                        self.logger.add_scalar(f'{self.args.downstream}/train-loss', average_loss, global_step=pbar.n)
                         for key, values in records.items():
                             average = torch.FloatTensor(values).mean().item()
-                            self.logger.add_scalar(f'{self.args.task}/train-{key}', average, global_step=pbar.n)
+                            self.logger.add_scalar(f'{self.args.downstream}/train-{key}', average, global_step=pbar.n)
                         all_loss = []
                         records = defaultdict(list)
 
@@ -127,7 +129,7 @@ class Runner():
                     # save checkpoint
                     if (pbar.n + 1) % self.config['runner']['save_step'] == 0:
                         all_states = {
-                            'Expert': self.expert.state_dict(),
+                            'Downstream': self.downstream.state_dict(),
                             'Optimizer': optimizer.state_dict(),
                             'Step': pbar.n,
                             'Args': self.args,
@@ -170,13 +172,13 @@ class Runner():
         torch.cuda.empty_cache()
 
         # record original train/eval states and set all models to eval
-        expert_training = self.expert.training
+        downstream_training = self.downstream.training
         upstream_training = self.upstream.training
-        self.expert.eval()
+        self.downstream.eval()
         self.upstream.eval()
 
         # prepare data
-        dataloader = eval(f'self.expert.get_{split}_dataloader')()
+        dataloader = eval(f'self.downstream.get_{split}_dataloader')()
 
         # main evaluation block
         all_loss = []
@@ -187,19 +189,19 @@ class Runner():
             with torch.no_grad():
                 features = self.upstream(wavs)
 
-            loss = self.expert(features, *others, records=records, logger=self.logger, global_step=global_step)
+            loss = self.downstream(features, *others, records=records, logger=self.logger, global_step=global_step)
             all_loss.append(loss.item())
         
         # logging
         average_loss = torch.FloatTensor(all_loss).mean().item()
-        self.logger.add_scalar(f'{self.args.task}/{split}-loss', average_loss, global_step=global_step)
+        self.logger.add_scalar(f'{self.args.downstream}/{split}-loss', average_loss, global_step=global_step)
         for key, values in records.items():
             average = torch.FloatTensor(values).mean().item()
-            self.logger.add_scalar(f'{self.args.task}/{split}-{key}', average, global_step=global_step)
+            self.logger.add_scalar(f'{self.args.downstream}/{split}-{key}', average, global_step=global_step)
 
         # prepare back to training
         torch.cuda.empty_cache()
-        if expert_training:
-            self.expert.train()
+        if downstream_training:
+            self.downstream.train()
         if upstream_training:
             self.upstream.train()

@@ -12,13 +12,13 @@ EXAMPLE_OUTPUT_DIM = 128
 EXAMPLE_WAV_LEN = 1000
 
 
-class Upstream(nn.Module):
+class UpstreamExpert(nn.Module):
     """
     Pre-trained weights should be loaded
     """
 
     def __init__(self, ckpt, config, **kwargs):
-        super(Upstream, self).__init__()
+        super(UpstreamExpert, self).__init__()
         self.output_dim = EXAMPLE_OUTPUT_DIM
         self.linear = nn.Linear(MEL_SPEC_DIM, self.output_dim)
 
