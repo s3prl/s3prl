@@ -1,0 +1,24 @@
+runner:
+  log_step: 100
+  eval_step: 250
+  save_step: 250
+  max_keep: 1
+  eval_splits:
+    - dev
+    - test
+
+optimizer:
+  total_steps: 20000
+  optimizer_type: Adam
+  lr: 2.0e-4
+  warmup_proportion: 0.07
+  gradient_clipping: 1
+
+downstream:
+  datarc:
+    num_workers: 12
+    train_batch_size: 6
+    eval_batch_size: 12
+
+  modelrc:
+    input_dim: 256
