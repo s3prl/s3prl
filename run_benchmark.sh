@@ -1,10 +1,10 @@
 #!/bin/bash
 
 # start a new training experiment
-python3 run_benchmark.py --mode train --config benchmark/downstream/example/config.yaml --downstream example --upstream example --upstream_trainable --expname HelloWorld
+python3 run_benchmark.py -m train -c benchmark/downstream/example/config.yaml -d example -u example -f -n HelloWorld
 
 # resume a checkpoint
-python3 run_benchmark.py --mode train --past_exp [ckpt]
+python3 run_benchmark.py -m train -e [ckpt]
 
 # test a checkpoint
-python3 run_benchmark.py --mode evaluate --past_exp [ckpt]
+python3 run_benchmark.py -m evaluate -e [ckpt]

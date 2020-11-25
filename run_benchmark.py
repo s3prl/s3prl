@@ -17,28 +17,28 @@ def get_benchmark_args():
     parser = argparse.ArgumentParser()
 
     # train or test for this experiment
-    parser.add_argument('--mode', choices=['train', 'evaluate'])
+    parser.add_argument('-m', '--mode', choices=['train', 'evaluate'])
 
     # use a ckpt as the experiment initialization
     # if set, all the following args and config will be overwrited by the ckpt, except args.mode
-    parser.add_argument('--past_exp')
+    parser.add_argument('-e', '--past_exp')
 
     # configuration for the experiment, including runner and downstream
-    parser.add_argument('--config')
+    parser.add_argument('-c', '--config')
 
     # downstream settings
-    parser.add_argument('--downstream', choices=['example', 'phone'])
+    parser.add_argument('-d', '--downstream', choices=['example', 'phone'])
 
     # upstream settings
-    parser.add_argument('--upstream', choices=['example', 'mfcc', 'mockingjay', 'apc'])
-    parser.add_argument('--upstream_ckpt')
-    parser.add_argument('--upstream_config')
-    parser.add_argument('--upstream_trainable', action='store_true')
+    parser.add_argument('-u', '--upstream', choices=['example', 'mfcc', 'mockingjay', 'apc'])
+    parser.add_argument('-k', '--upstream_ckpt')
+    parser.add_argument('-g', '--upstream_config')
+    parser.add_argument('-f', '--upstream_trainable', action='store_true')
 
     # experiment directory, choose one to specify
     # expname uses the default root directory: result/benchmark
-    parser.add_argument('--expdir')
-    parser.add_argument('--expname')
+    parser.add_argument('-p', '--expdir')
+    parser.add_argument('-n', '--expname')
 
     # options
     parser.add_argument('--seed', default=1337, type=int)
