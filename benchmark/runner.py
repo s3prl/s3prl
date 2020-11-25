@@ -34,7 +34,8 @@ class Runner():
             self.args.upstream_config
         ).to(self.args.device)
 
-        if init_upstream := self.init_ckpt.get('Upstream'):
+        init_upstream = self.init_ckpt.get('Upstream')
+        if init_upstream:
             print('[Runner] - Loading upstream weights from the previous experiment')
             self.upstream.load_state_dict(init_upstream)
 
@@ -47,7 +48,8 @@ class Runner():
             **self.config['downstream_expert']
         ).to(self.args.device)
 
-        if init_downstream := self.init_ckpt.get('Downstream'):
+        init_downstream = self.init_ckpt.get('Downstream')
+        if init_downstream:
             print('[Runner] - Loading downstream weights from the previous experiment')
             self.downstream.load_state_dict(init_downstream)
 
@@ -66,13 +68,15 @@ class Runner():
 
         # set optimizer
         optimizer = get_optimizer(optimized_models, **self.config['optimizer'])
-        if init_optimizer := self.init_ckpt.get('Optimizer'):
+        init_optimizer = self.init_ckpt.get('Optimizer')
+        if init_optimizer:
             print('[Runner] - Loading optimizer weights from the previous experiment')
             optimizer.load_state_dict(init_optimizer)
 
         # set progress bar
         pbar = tqdm(total=self.config['optimizer']['total_steps'], desc='overall')
-        if init_step := self.init_ckpt.get('Step'):
+        init_step = self.init_ckpt.get('Step')
+        if init_step:
             pbar.n = init_step - 1
 
         if self.args.eval_init:
