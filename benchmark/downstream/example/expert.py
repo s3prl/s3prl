@@ -13,7 +13,7 @@ from benchmark.downstream.example.dataset import RandomDataset
 
 class DownstreamExpert(nn.Module):
     """
-    Used to handle task-specific operations
+    Used to handle downstream-specific operations
     eg. downstream forward, metric computation, contents to log
 
     Note 1.
