@@ -34,6 +34,7 @@ class Runner():
         ).to(self.args.device)
 
         if init_upstream := self.init_ckpt.get('Upstream'):
+            print('[Runner] - Loading upstream weights from the previous experiment')
             self.upstream.load_state_dict(init_upstream)
 
         module_path = f'benchmark.downstream.{args.downstream}.expert'
@@ -45,6 +46,7 @@ class Runner():
         ).to(self.args.device)
 
         if init_downstream := self.init_ckpt.get('Downstream'):
+            print('[Runner] - Loading downstream weights from the previous experiment')
             self.downstream.load_state_dict(init_downstream)
 
 
@@ -63,6 +65,7 @@ class Runner():
         # set optimizer
         optimizer = get_optimizer(optimized_models, **self.config['optimizer'])
         if init_optimizer := self.init_ckpt.get('Optimizer'):
+            print('[Runner] - Loading optimizer weights from the previous experiment')
             optimizer.load_state_dict(init_optimizer)
 
         # set progress bar
