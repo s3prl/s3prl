@@ -8,7 +8,6 @@ import importlib
 import numpy as np
 from shutil import copyfile
 from argparse import Namespace
-from ipdb import set_trace
 
 from benchmark.runner import Runner
 
