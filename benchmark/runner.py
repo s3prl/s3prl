@@ -5,13 +5,13 @@ import random
 import importlib
 from collections import defaultdict
 
+import torch
+import torch.nn as nn
 import numpy as np
 from tqdm import tqdm
 from tensorboardX import SummaryWriter
 
-import torch
-import torch.nn as nn
-from benchmark.optimizers import get_optimizer
+from benchmark import optimizers
 
 
 class Runner():
@@ -60,6 +60,17 @@ class Runner():
         return downstream
 
 
+    def _get_optimizer(self, optimized_models):
+        get_optimizer = eval(f'optimizers.get_{self.config["optimizer"]["name"]}')
+        optimizer = get_optimizer(optimized_models, **self.config['optimizer'])
+
+        init_optimizer = self.init_ckpt.get('Optimizer')
+        if init_optimizer:
+            print('[Runner] - Loading optimizer weights from the previous experiment')
+            optimizer.load_state_dict(init_optimizer)
+        return optimizer
+
+
     def train(self):
         # set model train/eval modes
         self.downstream.train()
@@ -67,17 +78,11 @@ class Runner():
         if self.args.upstream_trainable:
             self.upstream.train()
 
-        # choose models to optimize
+        # set optimizer
         optimized_models = [self.downstream]
         if self.args.upstream_trainable:
             optimized_models.append(self.upstream)
-
-        # set optimizer
-        optimizer = get_optimizer(optimized_models, **self.config['optimizer'])
-        init_optimizer = self.init_ckpt.get('Optimizer')
-        if init_optimizer:
-            print('[Runner] - Loading optimizer weights from the previous experiment')
-            optimizer.load_state_dict(init_optimizer)
+        optimizer = self._get_optimizer(optimized_models)
 
         # set progress bar
         pbar = tqdm(total=self.config['optimizer']['total_steps'], desc='overall')

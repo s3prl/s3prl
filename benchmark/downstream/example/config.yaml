@@ -9,7 +9,7 @@ runner:
 
 optimizer:
   total_steps: 20000
-  optimizer_type: Adam
+  name: Adam
   lr: 2.0e-4
   warmup_proportion: 0.07
   gradient_clipping: 1
