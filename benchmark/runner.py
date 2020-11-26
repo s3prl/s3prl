@@ -90,7 +90,7 @@ class Runner():
         if init_step:
             pbar.n = init_step + 1
 
-        if self.args.eval_init:
+        if self.args.eval_init and not self.args.init_ckpt:
             for split in self.config['runner']['eval_splits']:
                 self.evaluate(split, pbar.n)
 
