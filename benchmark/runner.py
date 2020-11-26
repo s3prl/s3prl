@@ -167,7 +167,7 @@ class Runner():
                                     os.remove(ckpt_pth)
 
                         check_ckpt_num(self.args.expdir)
-                        torch.save(all_states, f'{self.args.expdir}/states-{pbar.n}.ckpt')                        
+                        torch.save(all_states, f'{self.args.expdir}/states-{pbar.n}.ckpt')
 
                 except RuntimeError as e:
                     if 'CUDA out of memory' in str(e):
