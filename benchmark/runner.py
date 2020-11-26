@@ -88,7 +88,7 @@ class Runner():
         pbar = tqdm(total=self.config['optimizer']['total_steps'], desc='overall')
         init_step = self.init_ckpt.get('Step')
         if init_step:
-            pbar.n = init_step - 1
+            pbar.n = init_step + 1
 
         if self.args.eval_init:
             for split in self.config['runner']['eval_splits']:
@@ -144,7 +144,7 @@ class Runner():
                     # evaluation
                     if (pbar.n + 1) % self.config['runner']['eval_step'] == 0:
                         for split in self.config['runner']['eval_splits']:
-                            self.evaluate(split, pbar.n)                        
+                            self.evaluate(split, pbar.n)
 
                     # save checkpoint
                     if (pbar.n + 1) % self.config['runner']['save_step'] == 0:
