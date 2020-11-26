@@ -23,13 +23,16 @@ class Runner():
         self.args = args
         self.config = config
         self.logger = SummaryWriter(args.expdir)
-        
-        self.init_ckpt = torch.load(self.args.past_exp, map_location='cpu') if self.args.past_exp else {}
 
-        # set upstream
-        module_path = f'benchmark.upstream.{args.upstream}.expert'
+        self.init_ckpt = torch.load(self.args.past_exp, map_location='cpu') if self.args.past_exp else {}
+        self.upstream = self._get_upstream()
+        self.downstream = self._get_downstream()
+
+
+    def _get_upstream(self):
+        module_path = f'benchmark.upstream.{self.args.upstream}.expert'
         Upstream = getattr(importlib.import_module(module_path), 'UpstreamExpert')
-        self.upstream = Upstream(
+        upstream = Upstream(
             self.args.upstream_ckpt,
             self.args.upstream_config
         ).to(self.args.device)
@@ -37,12 +40,14 @@ class Runner():
         init_upstream = self.init_ckpt.get('Upstream')
         if init_upstream:
             print('[Runner] - Loading upstream weights from the previous experiment')
-            self.upstream.load_state_dict(init_upstream)
+            upstream.load_state_dict(init_upstream)
+        return upstream
 
-        # set downstream
-        module_path = f'benchmark.downstream.{args.downstream}.expert'
+
+    def _get_downstream(self):
+        module_path = f'benchmark.downstream.{self.args.downstream}.expert'
         Downstream = getattr(importlib.import_module(module_path), 'DownstreamExpert')
-        self.downstream = Downstream(
+        downstream = Downstream(
             self.upstream.get_output_dim(),
             **vars(self.args),
             **self.config['downstream_expert']
@@ -51,7 +56,8 @@ class Runner():
         init_downstream = self.init_ckpt.get('Downstream')
         if init_downstream:
             print('[Runner] - Loading downstream weights from the previous experiment')
-            self.downstream.load_state_dict(init_downstream)
+            downstream.load_state_dict(init_downstream)
+        return downstream
 
 
     def train(self):
