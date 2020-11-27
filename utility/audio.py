@@ -276,6 +276,7 @@ def plot_attention(attn, path):
 
 def normalize_wav_decibel(audio, target_level):
     '''Normalize the signal to the target level'''
+    if target_level == 0: return audio
     rms = audio.pow(2).mean().pow(0.5)
     scalar = (10 ** (target_level / 20)) / (rms + 1e-10)
     audio = audio * scalar
