@@ -105,7 +105,8 @@ class Runner():
                     if pbar.n >= pbar.total:
                         break
                     
-                    wavs = [wav.to(self.args.device) for wav in wavs]
+                    if wavs.size(0) == 1: wavs = wavs.squeeze(0) # hack bucketing
+                    wavs = wavs.to(self.args.device)
                     if self.args.upstream_trainable:
                         features = self.upstream(wavs)
                     else:
