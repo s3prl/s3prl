@@ -23,13 +23,13 @@ def get_benchmark_args():
     parser.add_argument('-e', '--past_exp')
 
     # configuration for the experiment, including runner and downstream
-    parser.add_argument('-c', '--config')
+    parser.add_argument('-c', '--config', default=None)
 
     # downstream settings
-    parser.add_argument('-d', '--downstream', choices=['example', 'phone'])
+    parser.add_argument('-d', '--downstream', choices=['example', 'phone_linear'])
 
     # upstream settings
-    parser.add_argument('-u', '--upstream', choices=['example', 'mfcc', 'mockingjay', 'apc'])
+    parser.add_argument('-u', '--upstream', choices=['example', 'mfcc', 'mockingjay', 'tera', 'apc'])
     parser.add_argument('-k', '--upstream_ckpt')
     parser.add_argument('-g', '--upstream_config')
     parser.add_argument('-f', '--upstream_trainable', action='store_true')
@@ -77,6 +77,8 @@ def get_benchmark_args():
             args.expdir = f'result/benchmark/{args.expname}'
         os.makedirs(args.expdir, exist_ok=True)
 
+        if args.config is None:
+            args.config = f'benchmark/downstream/{args.downstream}/config.yaml'
         copyfile(args.config, f'{args.expdir}/{args.config.split("/")[-1]}')
         with open(args.config, 'r') as file:
             config = yaml.load(file, Loader=yaml.FullLoader)
