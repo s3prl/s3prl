@@ -11,4 +11,4 @@ class Model(nn.Module):
     def forward(self, features):
         pooled = features.mean(dim=1)
         predicted = self.linear(pooled)
-        return F.log_softmax(predicted, dim=-1)
+        return predicted

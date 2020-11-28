@@ -23,7 +23,7 @@ def get_benchmark_args():
     parser.add_argument('-e', '--past_exp')
 
     # configuration for the experiment, including runner and downstream
-    parser.add_argument('-c', '--config', default=None)
+    parser.add_argument('-c', '--config')
 
     # downstream settings
     parser.add_argument('-d', '--downstream', choices=['example', 'phone_linear'])
