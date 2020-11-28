@@ -55,14 +55,14 @@ class DownstreamExpert(nn.Module):
         return DataLoader(
             dataset, batch_size=1, # for bucketing
             shuffle=True, num_workers=self.datarc['num_workers'],
-            drop_last=False, pin_memory=True
+            drop_last=False, pin_memory=True, collate_fn=dataset.collate_fn
         )
 
     def _get_eval_dataloader(self, dataset):
         return DataLoader(
             dataset, batch_size=1, # for bucketing
             shuffle=False, num_workers=self.datarc['num_workers'],
-            drop_last=False, pin_memory=True
+            drop_last=False, pin_memory=True, collate_fn=dataset.collate_fn
         )
 
     # Interface
@@ -121,10 +121,8 @@ class DownstreamExpert(nn.Module):
             loss:
                 the loss to be optimized, should not be detached
         """
-        if labels.size(0) == 1: labels = labels.squeeze(0) # hack bucketing
         labels = torch.LongTensor(labels).to(features.device)
 
-        
         predicted = self.model(features)
         predicted, labels = self._match_length(predicted, labels) # match the predicted instead of features
 
