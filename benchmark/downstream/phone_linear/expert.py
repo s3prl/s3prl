@@ -1,12 +1,24 @@
+# -*- coding: utf-8 -*- #
+"""*********************************************************************************************"""
+#   FileName     [ expert.py ]
+#   Synopsis     [ the phone dataset ]
+#   Author       [ S3PRL ]
+#   Copyright    [ Copyleft(c), Speech Lab, NTU, Taiwan ]
+"""*********************************************************************************************"""
+
+
+###############
+# IMPORTATION #
+###############
 import os
 import math
 import torch
 import random
-
+#-------------#
 import torch
 import torch.nn as nn
 from torch.utils.data import DataLoader
-
+#-------------#
 from benchmark.downstream.phone_linear.model import Model
 from benchmark.downstream.phone_linear.dataset import PhoneDataset
 
