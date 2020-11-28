@@ -105,7 +105,7 @@ class DownstreamExpert(nn.Module):
         loss = self.objective(predicted, labels)
 
         predicted_classid = predicted.max(dim=-1).indices
-        records['acc'] += (predicted_classid == labels).cpu().float().tolist()
+        records['acc'] += (predicted_classid == labels).view(-1).cpu().float().tolist()
 
         if not self.training:
             # some evaluation-only processing, eg. decoding
