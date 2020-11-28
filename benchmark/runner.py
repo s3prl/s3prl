@@ -205,8 +205,9 @@ class Runner():
         all_loss = []
         records = defaultdict(list)
         for wavs, *others in tqdm(dataloader, dynamic_ncols=True, desc=split):
-
-            wavs = [wav.to(self.args.device) for wav in wavs]
+            
+            if wavs.size(0) == 1: wavs = wavs.squeeze(0) # hack bucketing
+            wavs = wavs.to(self.args.device)
             with torch.no_grad():
                 features = self.upstream(wavs)
 
