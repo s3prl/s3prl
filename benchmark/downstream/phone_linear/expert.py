@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*- #
 """*********************************************************************************************"""
 #   FileName     [ expert.py ]
-#   Synopsis     [ the phone dataset ]
+#   Synopsis     [ the phone linear downstream wrapper ]
 #   Author       [ S3PRL ]
 #   Copyright    [ Copyleft(c), Speech Lab, NTU, Taiwan ]
 """*********************************************************************************************"""
