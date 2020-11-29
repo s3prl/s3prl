@@ -381,7 +381,7 @@ class SPEC_TRANSFORMER(TRANSFORMER):
 #######################
 # POSITIONAL ENCODING #
 #######################
-MAX_SEQLEN = 5000
+MAX_SEQLEN = 10000
 @lru_cache(maxsize=1)
 def get_sinusoid_table(hidden_size):
     def _cal_angle(position, hid_idx):
