@@ -1,4 +1,7 @@
 runner:
+  total_steps: 20000
+  gradient_clipping: 1
+
   log_step: 100
   eval_step: 250
   save_step: 250
@@ -8,11 +11,12 @@ runner:
     - test
 
 optimizer:
-  total_steps: 20000
   name: Adam
   lr: 2.0e-4
-  warmup_proportion: 0.07
-  gradient_clipping: 1
+
+scheduler:
+  name: cosine_with_hard_restarts_schedule_with_warmup
+  num_warmup_steps: 70
 
 downstream_expert:
   datarc:

@@ -1,10 +1,23 @@
-from torch.optim.lr_scheduler import LambdaLR
-from torch.optim import Optimizer
-import torch
+import copy
 import math
 import random
-import numpy as np
 from typing import Callable, Iterable, Tuple
+
+import torch
+import numpy as np
+from torch.optim import Optimizer
+from torch.optim.lr_scheduler import LambdaLR
+
+
+def get_scheduler(optimizer, total_steps, scheduler_config):
+    scheduler_config = copy.deepcopy(scheduler_config)
+    scheduler_name = scheduler_config.pop('name')
+    scheduler = eval(f'get_{scheduler_name}')(
+        optimizer,
+        num_training_steps=total_steps,
+        **scheduler_config
+    )
+    return scheduler
 
 
 def get_cosine_with_hard_restarts_schedule_with_warmup(

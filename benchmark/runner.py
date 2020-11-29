@@ -11,7 +11,8 @@ import numpy as np
 from tqdm import tqdm
 from tensorboardX import SummaryWriter
 
-from benchmark import optimizers
+from benchmark.optimizers import get_optimizer
+from benchmark.schedulers import get_scheduler
 
 
 class Runner():
@@ -61,14 +62,31 @@ class Runner():
 
 
     def _get_optimizer(self, optimized_models):
-        get_optimizer = eval(f'optimizers.get_{self.config["optimizer"]["name"]}')
-        optimizer = get_optimizer(optimized_models, **self.config['optimizer'])
+        optimizer = get_optimizer(
+            optimized_models, 
+            self.config['runner']['total_steps'],
+            self.config['optimizer']
+        )
 
         init_optimizer = self.init_ckpt.get('Optimizer')
         if init_optimizer:
             print('[Runner] - Loading optimizer weights from the previous experiment')
             optimizer.load_state_dict(init_optimizer)
         return optimizer
+
+
+    def _get_scheduler(self, optimizer):
+        scheduler = get_scheduler(
+            optimizer,
+            self.config['runner']['total_steps'],
+            self.config['scheduler']
+        )
+
+        init_scheduler = self.init_ckpt.get('Scheduler')
+        if init_scheduler:
+            print('[Runner] - Loading scheduler weights from the previous experiment')
+            scheduler.load_state_dict(init_scheduler)
+        return scheduler
 
 
     def train(self):
@@ -84,8 +102,13 @@ class Runner():
             optimized_models.append(self.upstream)
         optimizer = self._get_optimizer(optimized_models)
 
+        # set scheduler
+        scheduler = None
+        if self.config.get('scheduler'):
+            scheduler = self._get_scheduler(optimizer)
+
         # set progress bar
-        pbar = tqdm(total=self.config['optimizer']['total_steps'], desc='overall')
+        pbar = tqdm(total=self.config['runner']['total_steps'], desc='overall')
         init_step = self.init_ckpt.get('Step')
         if init_step:
             pbar.n = init_step + 1
@@ -118,7 +141,7 @@ class Runner():
                     paras = list(self.downstream.parameters())
                     if self.args.upstream_trainable:
                         paras += list(self.upstream.parameters())
-                    grad_norm = torch.nn.utils.clip_grad_norm_(paras, self.config['optimizer']['gradient_clipping'])
+                    grad_norm = torch.nn.utils.clip_grad_norm_(paras, self.config['runner']['gradient_clipping'])
 
                     # optimize
                     if math.isnan(grad_norm):
@@ -126,6 +149,9 @@ class Runner():
                     else:
                         optimizer.step()
                     optimizer.zero_grad()
+
+                    if scheduler:
+                        scheduler.step()
 
                     # logging
                     if (pbar.n + 1) % self.config['runner']['log_step'] == 0:
@@ -151,6 +177,10 @@ class Runner():
                             'Args': self.args,
                             'Config': self.config,
                         }
+
+                        if scheduler:
+                            all_states['Scheduler'] = scheduler.state_dict()
+
                         if self.args.upstream_trainable:
                             all_states['Upstream'] = self.upstream.state_dict()
 

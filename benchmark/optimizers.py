@@ -1,8 +1,20 @@
+import copy
+
 import torch
 import torch.nn as nn
-
 from torch.optim import Adam
 from transformer.optimization import BertAdam, Lamb
+
+
+def get_optimizer(optimized_models, total_steps, optimizer_config):
+    optimizer_config = copy.deepcopy(optimizer_config)
+    optimizer_name = optimizer_config.pop('name')
+    optimizer = eval(f'get_{optimizer_name}')(
+        optimized_models,
+        total_steps=total_steps,
+        **optimizer_config
+    )
+    return optimizer
 
 
 def get_grouped_parameters(optimized_models):
