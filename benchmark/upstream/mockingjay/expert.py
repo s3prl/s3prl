@@ -63,10 +63,16 @@ class UpstreamExpert(nn.Module):
             features:
                 (batch_size, extracted_seqlen, feature_dim)        
         """
+        wav_lengths = [len(wav) for wav in wavs]
 
         wavs = pad_sequence(wavs, batch_first=True)
         for i in range(wavs.size(0)): 
             wavs[i] = TRANSFORMER.normalize_wav_decibel(wavs[i], self.transformer.config['online']['target_level'])
         wavs = wavs.unsqueeze(-1) # (batch_size, audio_len) -> (batch_size, audio_len, 1)
         features = self.transformer(wavs) # (batch_size, extracted_seqlen, feature_dim)
+
+        ratio = len(features[0]) / wav_lengths[0]
+        feat_lengths = [round(l * ratio) for l in wav_lengths]
+        features = [f[:l] for f, l in zip(features, feat_lengths)]
+
         return features

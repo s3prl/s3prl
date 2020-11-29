@@ -99,7 +99,8 @@ class DownstreamExpert(nn.Module):
         """
         Args:
             features:
-                the features extracted by upstream
+                list of unpadded features [feat1, feat2, ...]
+                each feat is in torch.FloatTensor and already
                 put in the device assigned by command-line args
 
             labels:
@@ -121,6 +122,7 @@ class DownstreamExpert(nn.Module):
             loss:
                 the loss to be optimized, should not be detached
         """
+        features = pad_sequence(features, batch_first=True)
         labels = torch.LongTensor(labels).to(features.device)
 
         predicted = self.model(features)
