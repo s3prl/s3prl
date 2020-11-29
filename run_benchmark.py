@@ -42,7 +42,6 @@ def get_benchmark_args():
     # options
     parser.add_argument('--seed', default=1337, type=int)
     parser.add_argument('--device', default='cuda')
-    parser.add_argument('--eval_init', action='store_true')
 
     args = parser.parse_args()
 

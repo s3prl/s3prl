@@ -90,10 +90,6 @@ class Runner():
         if init_step:
             pbar.n = init_step + 1
 
-        if self.args.eval_init and self.args.init_ckpt is None:
-            for split in self.config['runner']['eval_splits']:
-                self.evaluate(split, pbar.n)
-
         # prepare data
         dataloader = self.downstream.get_train_dataloader()
 
