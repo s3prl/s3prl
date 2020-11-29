@@ -27,14 +27,6 @@ class DownstreamExpert(nn.Module):
     """
     Used to handle downstream-specific operations
     eg. downstream forward, metric computation, contents to log
-
-    Note 1.
-        dataloaders should output in the following format:
-
-        [[wav1, wav2, ...], your_other_contents, ...]
-
-        where wav1, wav2 ... are in variable length
-        and wav1 is in torch.FloatTensor
     """
 
     def __init__(self, upstream_dim, downstream='phone_linear', datarc={}, modelrc={}, **kwargs):
@@ -64,6 +56,16 @@ class DownstreamExpert(nn.Module):
             shuffle=False, num_workers=self.datarc['num_workers'],
             drop_last=False, pin_memory=True, collate_fn=dataset.collate_fn
         )
+
+    """
+    Datalaoder Specs:
+        Each dataloader should output in the following format:
+
+        [[wav1, wav2, ...], your_other_contents1, your_other_contents2, ...]
+
+        where wav1, wav2 ... are in variable length
+        and each wav is torch.FloatTensor in cpu with sample rate 16000
+    """
 
     # Interface
     def get_train_dataloader(self):
