@@ -14,7 +14,8 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 
-
+import IPython
+import pdb
 #########
 # MODEL #
 #########
@@ -34,8 +35,8 @@ class Mean(nn.Module):
         '''
         agg_vec_list = []
         for i in range(len(feature)):
-            length = torch.nonzero(feature[i] < 0, as_tuple=False)[0][0] + 1
-            agg_vec=torch.mean(feature[i], dim=0)
+            length = torch.nonzero(att_mask[i] < 0, as_tuple=False)[0][0] + 1
+            agg_vec=torch.mean(feature[i][:length], dim=0)
             agg_vec_list.append(agg_vec)
         return torch.stack(agg_vec_list)
 
@@ -93,7 +94,7 @@ class Model(nn.Module):
     def __init__(self, input_dim, agg_module, output_class_num):
         super(Model, self).__init__()
         
-        # agg_module current support [ "SAP", "Mean" ]
+        # agg_module: current support [ "SAP", "Mean" ]
         # init attributes
         self.agg_method = eval(agg_module)(input_dim)
         self.linear = nn.Linear(input_dim, output_class_num)          
@@ -102,4 +103,6 @@ class Model(nn.Module):
     def forward(self, features, att_mask):
         utterance_vector = self.agg_method(features, att_mask)
         predicted = self.linear(utterance_vector)
-        return F.log_softmax(predicted, dim=-1) # Use LogSoftmax since self.criterion combines nn.LogSoftmax() and nn.NLLLoss()
+        
+        return F.log_softmax(predicted, dim=-1) 
+        # Use LogSoftmax since self.criterion combines nn.LogSoftmax() and nn.NLLLoss()

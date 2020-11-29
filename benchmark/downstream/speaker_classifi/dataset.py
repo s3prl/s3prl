@@ -14,14 +14,13 @@ import time
 
 # Voxceleb 1 Speaker Identification
 class SpeakerClassifiDataset(Dataset):
-    def __init__(self, file_path, mode,meta_data=None, proportion=None):
+    def __init__(self, mode, file_path, meta_data):
 
         self.root = file_path
-        self.proportion = proportion
         self.speaker_num = 1251
         self.meta_data =meta_data
         self.usage_list = open(self.meta_data, "r").readlines()
-        self.dataset = eval("self.".fomat(mode))()        
+        self.dataset = eval("self.{}".format(mode))()        
         self.label = self.build_label(self.dataset)
     
     # file_path/id0001/asfsafs/xxx.wav
@@ -77,6 +76,8 @@ class SpeakerClassifiDataset(Dataset):
         
         wav, sr = torchaudio.load(self.dataset[idx])
         length = wav.shape[0]
+        wav = wav.squeeze(0)
+  
         return wav, torch.tensor([length]), torch.tensor([self.label[idx]]).long()
         
     def collate_fn(self, samples):
