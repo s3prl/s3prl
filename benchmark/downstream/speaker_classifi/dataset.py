@@ -14,7 +14,7 @@ import time
 
 # Voxceleb 1 Speaker Identification
 class SpeakerClassifiDataset(Dataset):
-    def __init__(self, file_path, meta_data=None, mode, proportion=None):
+    def __init__(self, file_path, mode,meta_data=None, proportion=None):
 
         self.root = file_path
         self.proportion = proportion
