@@ -26,10 +26,10 @@ def get_benchmark_args():
     parser.add_argument('-c', '--config')
 
     # downstream settings
-    parser.add_argument('-d', '--downstream', choices=['example', 'phone_linear'])
+    parser.add_argument('-d', '--downstream', choices=os.listdir('benchmark/downstream'))
 
     # upstream settings
-    parser.add_argument('-u', '--upstream', choices=['example', 'mfcc', 'mockingjay', 'tera', 'apc'])
+    parser.add_argument('-u', '--upstream', choices=os.listdir('benchmark/upstream'))
     parser.add_argument('-k', '--upstream_ckpt')
     parser.add_argument('-g', '--upstream_config')
     parser.add_argument('-f', '--upstream_trainable', action='store_true')
