@@ -6,6 +6,7 @@ import random
 import torch
 import torch.nn as nn
 from torch.utils.data import DataLoader
+from torch.nn.utils.rnn import pad_sequence
 
 from benchmark.downstream.example.model import Model
 from benchmark.downstream.example.dataset import RandomDataset
@@ -15,14 +16,6 @@ class DownstreamExpert(nn.Module):
     """
     Used to handle downstream-specific operations
     eg. downstream forward, metric computation, contents to log
-
-    Note 1.
-        dataloaders should output in the following format:
-
-        [[wav1, wav2, ...], your_other_contents, ...]
-
-        where wav1, wav2 ... are in variable length
-        and wav1 is in torch.FloatTensor
     """
 
     def __init__(self, upstream_dim, downstream='phone', datarc={}, modelrc={}, **kwargs):
@@ -55,6 +48,16 @@ class DownstreamExpert(nn.Module):
             collate_fn=dataset.collate_fn
         )
 
+    """
+    Datalaoder Specs:
+        Each dataloader should output in the following format:
+
+        [[wav1, wav2, ...], your_other_contents1, your_other_contents2, ...]
+
+        where wav1, wav2 ... are in variable length
+        and each wav is torch.FloatTensor in cpu with sample rate 16000
+    """
+
     # Interface
     def get_train_dataloader(self):
         return self._get_train_dataloader(self.train_dataset)
@@ -73,7 +76,8 @@ class DownstreamExpert(nn.Module):
         """
         Args:
             features:
-                the features extracted by upstream
+                list of unpadded features [feat1, feat2, ...]
+                each feat is in torch.FloatTensor and already
                 put in the device assigned by command-line args
 
             utterance_labels, ... :
@@ -97,7 +101,7 @@ class DownstreamExpert(nn.Module):
             loss:
                 the loss to be optimized, should not be detached
         """
-
+        features = pad_sequence(features, batch_first=True)
         features = self.connector(features)
         predicted = self.model(features)
 
