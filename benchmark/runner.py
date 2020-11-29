@@ -165,7 +165,7 @@ class Runner():
 
                     # evaluation
                     if (pbar.n + 1) % self.config['runner']['eval_step'] == 0:
-                        for split in self.config['runner']['eval_splits']:
+                        for split in self.config['runner']['eval_dataloaders']:
                             self.evaluate(split, pbar.n)
 
                     # save checkpoint

@@ -6,7 +6,7 @@ runner:
   eval_step: 250
   save_step: 250
   max_keep: 1
-  eval_splits:
+  eval_dataloaders:
     - dev
     - test
 
