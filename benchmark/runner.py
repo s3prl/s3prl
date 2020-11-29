@@ -123,6 +123,7 @@ class Runner():
 
         while pbar.n < pbar.total:
             for wavs, *others in tqdm(dataloader, dynamic_ncols=True, desc='train'):
+                # try/except block for forward/backward
                 try:
                     if pbar.n >= pbar.total:
                         break
@@ -143,84 +144,89 @@ class Runner():
                     )
                     gradient_accumulate_steps = self.config['runner'].get('gradient_accumulate_steps')
                     (loss / gradient_accumulate_steps).backward()
-                    backward_steps += 1
-                    if backward_steps % gradient_accumulate_steps > 0:
-                        continue
-
-                    # record loss
-                    all_loss.append(loss.item())
-
-                    # gradient clipping
-                    paras = list(self.downstream.parameters())
-                    if self.args.upstream_trainable:
-                        paras += list(self.upstream.parameters())
-                    grad_norm = torch.nn.utils.clip_grad_norm_(paras, self.config['runner']['gradient_clipping'])
-
-                    # optimize
-                    if math.isnan(grad_norm):
-                        print(f'[Runner] - Error : grad norm is NaN at step {pbar.n}')
-                    else:
-                        optimizer.step()
-                    optimizer.zero_grad()
-
-                    if scheduler:
-                        scheduler.step()
-
-                    # logging
-                    if (pbar.n + 1) % self.config['runner']['log_step'] == 0:
-                        # log loss
-                        average_loss = torch.FloatTensor(all_loss).mean().item()
-                        self.logger.add_scalar(f'{prefix}loss', average_loss, global_step=pbar.n)
-                        all_loss = []
-
-                        # log customized contents
-                        self.downstream.log_records(
-                            records = records,
-                            logger = self.logger,
-                            prefix = prefix,
-                            global_step = pbar.n
-                        )
-                        records = defaultdict(list)
-
-                    # evaluation
-                    if (pbar.n + 1) % self.config['runner']['eval_step'] == 0:
-                        for split in self.config['runner']['eval_dataloaders']:
-                            self.evaluate(split, pbar.n)
-
-                    # save checkpoint
-                    if (pbar.n + 1) % self.config['runner']['save_step'] == 0:
-                        all_states = {
-                            'Downstream': self.downstream.state_dict(),
-                            'Optimizer': optimizer.state_dict(),
-                            'Step': pbar.n,
-                            'Args': self.args,
-                            'Config': self.config,
-                        }
-
-                        if scheduler:
-                            all_states['Scheduler'] = scheduler.state_dict()
-
-                        if self.args.upstream_trainable:
-                            all_states['Upstream'] = self.upstream.state_dict()
-
-                        def check_ckpt_num(directory):
-                            max_keep = self.config['runner']['max_keep']
-                            ckpt_pths = glob.glob(f'{directory}/states-*.ckpt')
-                            if len(ckpt_pths) >= max_keep:
-                                ckpt_pths = sorted(ckpt_pths, key=lambda pth: int(pth.split('-')[-1].split('.')[0]))
-                                for ckpt_pth in ckpt_pths[:len(ckpt_pths) - max_keep + 1]:
-                                    os.remove(ckpt_pth)
-
-                        check_ckpt_num(self.args.expdir)
-                        torch.save(all_states, f'{self.args.expdir}/states-{pbar.n}.ckpt')
 
                 except RuntimeError as e:
                     if 'CUDA out of memory' in str(e):
                         print(f'[Runner] - CUDA out of memory at step {pbar.n}')
+                        torch.cuda.empty_cache()
+                        optimizer.zero_grad()
+                        continue
                     else:
                         raise
-                    torch.cuda.empty_cache()
-                    optimizer.zero_grad()
+                
+                # whether to accumulate gradient
+                backward_steps += 1
+                if backward_steps % gradient_accumulate_steps > 0:
+                    continue
+
+                # record loss
+                all_loss.append(loss.item())
+                del loss
+
+                # gradient clipping
+                paras = list(self.downstream.parameters())
+                if self.args.upstream_trainable:
+                    paras += list(self.upstream.parameters())
+                grad_norm = torch.nn.utils.clip_grad_norm_(paras, self.config['runner']['gradient_clipping'])
+
+                # optimize
+                if math.isnan(grad_norm):
+                    print(f'[Runner] - Error : grad norm is NaN at step {pbar.n}')
+                else:
+                    optimizer.step()
+                optimizer.zero_grad()
+
+                # adjust learning rate
+                if scheduler:
+                    scheduler.step()
+
+                # logging
+                if (pbar.n + 1) % self.config['runner']['log_step'] == 0:
+                    # log loss
+                    average_loss = torch.FloatTensor(all_loss).mean().item()
+                    self.logger.add_scalar(f'{prefix}loss', average_loss, global_step=pbar.n)
+                    all_loss = []
+
+                    # log customized contents
+                    self.downstream.log_records(
+                        records = records,
+                        logger = self.logger,
+                        prefix = prefix,
+                        global_step = pbar.n
+                    )
+                    records = defaultdict(list)
+
+                # evaluation
+                if (pbar.n + 1) % self.config['runner']['eval_step'] == 0:
+                    for split in self.config['runner']['eval_dataloaders']:
+                        self.evaluate(split, pbar.n)
+
+                # save checkpoint
+                if (pbar.n + 1) % self.config['runner']['save_step'] == 0:
+                    all_states = {
+                        'Downstream': self.downstream.state_dict(),
+                        'Optimizer': optimizer.state_dict(),
+                        'Step': pbar.n,
+                        'Args': self.args,
+                        'Config': self.config,
+                    }
+
+                    if scheduler:
+                        all_states['Scheduler'] = scheduler.state_dict()
+
+                    if self.args.upstream_trainable:
+                        all_states['Upstream'] = self.upstream.state_dict()
+
+                    def check_ckpt_num(directory):
+                        max_keep = self.config['runner']['max_keep']
+                        ckpt_pths = glob.glob(f'{directory}/states-*.ckpt')
+                        if len(ckpt_pths) >= max_keep:
+                            ckpt_pths = sorted(ckpt_pths, key=lambda pth: int(pth.split('-')[-1].split('.')[0]))
+                            for ckpt_pth in ckpt_pths[:len(ckpt_pths) - max_keep + 1]:
+                                os.remove(ckpt_pth)
+
+                    check_ckpt_num(self.args.expdir)
+                    torch.save(all_states, f'{self.args.expdir}/states-{pbar.n}.ckpt')
 
                 pbar.update(1)
 
