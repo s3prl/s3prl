@@ -32,7 +32,7 @@ def get_grouped_parameters(optimized_models):
     return grouped_parameters
 
 
-def get_BertAdam(optimized_models, lr=2e-4, total_steps=20000, warmup_proportion=0.07, **kwargs):
+def get_BertAdam_with_schedule(optimized_models, lr=2e-4, total_steps=20000, warmup_proportion=0.07, **kwargs):
     grouped_parameters = get_grouped_parameters(optimized_models)
     optimizer = BertAdam(grouped_parameters, lr=lr,
                          warmup=warmup_proportion,
@@ -40,7 +40,7 @@ def get_BertAdam(optimized_models, lr=2e-4, total_steps=20000, warmup_proportion
     return optimizer
 
 
-def get_AdamW(optimized_models, lr=2e-4, total_steps=20000, warmup_proportion=0.07, **kwargs):
+def get_AdamW_with_schedule(optimized_models, lr=2e-4, total_steps=20000, warmup_proportion=0.07, **kwargs):
     grouped_parameters = get_grouped_parameters(optimized_models)
     optimizer = Lamb(grouped_parameters,
                      lr=lr,
@@ -51,7 +51,7 @@ def get_AdamW(optimized_models, lr=2e-4, total_steps=20000, warmup_proportion=0.
     return optimizer
 
 
-def get_Lamb(optimized_models, lr=2e-4, total_steps=20000, warmup_proportion=0.07, **kwargs):
+def get_Lamb_with_schedule(optimized_models, lr=2e-4, total_steps=20000, warmup_proportion=0.07, **kwargs):
     grouped_parameters = get_grouped_parameters(optimized_models)
     optimizer = Lamb(grouped_parameters,
                      lr=lr,
@@ -69,7 +69,7 @@ def get_Adam(optimized_models, lr=2e-4, **kwargs):
     return Adam(params, lr=lr, betas=(0.9, 0.999))
 
 
-def get_AdamW_no_scheduling(optimized_models, lr=2e-4, **kwargs):
+def get_AdamW(optimized_models, lr=2e-4, **kwargs):
     params = []
     for m in optimized_models:
         params += list(m.parameters())
