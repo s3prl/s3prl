@@ -117,6 +117,7 @@ class Runner():
         dataloader = self.downstream.get_train_dataloader()
 
         all_loss = []
+        backward_steps = 0
         records = defaultdict(list)
         while pbar.n < pbar.total:
             for wavs, *others in tqdm(dataloader, dynamic_ncols=True, desc='train'):
@@ -132,7 +133,11 @@ class Runner():
                             features = self.upstream(wavs)
 
                     loss = self.downstream(features, *others, records=records, logger=self.logger, global_step=pbar.n)
-                    loss.backward()
+                    gradient_accumulate_steps = self.config['runner'].get('gradient_accumulate_steps')
+                    (loss / gradient_accumulate_steps).backward()
+                    backward_steps += 1
+                    if backward_steps % gradient_accumulate_steps > 0:
+                        continue
 
                     # record loss
                     all_loss.append(loss.item())
