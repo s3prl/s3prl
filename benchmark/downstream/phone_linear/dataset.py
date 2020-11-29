@@ -21,7 +21,7 @@ import torch.nn as nn
 from torch.nn.utils.rnn import pad_sequence
 from torch.utils.data.dataset import Dataset
 #-------------#
-from utility.audio import load_wav
+import torchaudio
 
 
 HALF_BATCHSIZE_TIME = 2000
@@ -101,16 +101,18 @@ class PhoneDataset(Dataset):
         libri_path = os.path.join(libri_root, subfolder, filedirs[0], filedirs[1], f'{filename}.flac')
         return libri_path
 
-    def _load_libri_data(self, npy_path, libri_root):
+    def _load_wav(self, npy_path, libri_root):
         full_libri_path = self._get_full_libri_path(npy_path, libri_root)
-        return load_wav(full_libri_path, self.sample_rate)
+        wav, sr = torchaudio.load(full_libri_path)
+        assert sr == self.sample_rate, f'Sample rate mismatch: real {sr}, config {self.sample_rate}'
+        return wav.view(-1)
 
     def __len__(self):
         return len(self.X)
 
     def __getitem__(self, index):
         # Load acoustic feature and pad
-        wav_batch = [self._load_libri_data(x_file, self.libri_root) for x_file in self.X[index]]
+        wav_batch = [self._load_wav(x_file, self.libri_root) for x_file in self.X[index]]
         wav_pad_batch = pad_sequence(wav_batch, batch_first=True)
         label_batch = [torch.LongTensor(self.Y[self._parse_x_name(x_file)]) for x_file in self.X[index]]
         label_pad_batch = pad_sequence(label_batch, batch_first=True)

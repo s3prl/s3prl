@@ -124,11 +124,11 @@ class DownstreamExpert(nn.Module):
             loss:
                 the loss to be optimized, should not be detached
         """
-        features = pad_sequence(features, batch_first=True)
+        features = torch.stack(features, dim=0) # list of tensors -> tensors
         labels = torch.LongTensor(labels).to(features.device)
 
+        features, labels = self._match_length(features, labels)
         predicted = self.model(features)
-        predicted, labels = self._match_length(predicted, labels) # match the predicted instead of features
 
         # cause logits are in (batch, seq, class) and labels are in (batch, seq)
         # nn.CrossEntropyLoss expect to have (N, class) and (N,) as input

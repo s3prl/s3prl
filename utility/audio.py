@@ -17,7 +17,6 @@ import random
 import numpy as np
 #-------------#
 import librosa
-import torchaudio
 from scipy import signal
 #-------------#
 import matplotlib
@@ -272,24 +271,3 @@ def plot_attention(attn, path):
     plt.imshow(attn)
     plt.savefig(path, format='png')
     plt.close()
-
-
-def normalize_wav_decibel(audio, target_level):
-    '''Normalize the signal to the target level'''
-    if target_level == 0: return audio
-    rms = audio.pow(2).mean().pow(0.5)
-    scalar = (10 ** (target_level / 20)) / (rms + 1e-10)
-    audio = audio * scalar
-    return audio
-
-
-def load_wav(wav_path, sample_rate=16000, target_level=0, max_time=9999999, **kwargs):
-    wav, sr = torchaudio.load(wav_path)
-    assert sr == sample_rate, f'Sample rate mismatch: real {sr}, config {sample_rate}'
-    wav = wav.view(-1)
-    maxpoints = int(sr / 1000) * max_time
-    if len(wav) > maxpoints:
-        start = random.randint(0, len(wav) - maxpoints)
-        wav = wav[start:start + maxpoints]
-    wav = normalize_wav_decibel(wav, target_level)
-    return wav
