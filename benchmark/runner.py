@@ -119,6 +119,8 @@ class Runner():
         all_loss = []
         backward_steps = 0
         records = defaultdict(list)
+        prefix = f'{self.args.downstream}/train-'
+
         while pbar.n < pbar.total:
             for wavs, *others in tqdm(dataloader, dynamic_ncols=True, desc='train'):
                 try:
@@ -132,7 +134,13 @@ class Runner():
                         with torch.no_grad():
                             features = self.upstream(wavs)
 
-                    loss = self.downstream(features, *others, records=records, logger=self.logger, global_step=pbar.n)
+                    loss = self.downstream(
+                        features, *others,
+                        records = records,
+                        logger = self.logger,
+                        prefix = prefix,
+                        global_step = pbar.n
+                    )
                     gradient_accumulate_steps = self.config['runner'].get('gradient_accumulate_steps')
                     (loss / gradient_accumulate_steps).backward()
                     backward_steps += 1
@@ -160,12 +168,18 @@ class Runner():
 
                     # logging
                     if (pbar.n + 1) % self.config['runner']['log_step'] == 0:
+                        # log loss
                         average_loss = torch.FloatTensor(all_loss).mean().item()
-                        self.logger.add_scalar(f'{self.args.downstream}/train-loss', average_loss, global_step=pbar.n)
-                        for key, values in records.items():
-                            average = torch.FloatTensor(values).mean().item()
-                            self.logger.add_scalar(f'{self.args.downstream}/train-{key}', average, global_step=pbar.n)
+                        self.logger.add_scalar(f'{prefix}loss', average_loss, global_step=pbar.n)
                         all_loss = []
+
+                        # log customized contents
+                        self.downstream.log_records(
+                            records = records,
+                            logger = self.logger,
+                            prefix = prefix,
+                            global_step = pbar.n
+                        )
                         records = defaultdict(list)
 
                     # evaluation
@@ -234,21 +248,36 @@ class Runner():
         # main evaluation block
         all_loss = []
         records = defaultdict(list)
+        prefix = f'{self.args.downstream}/{split}-'
+
         for wavs, *others in tqdm(dataloader, dynamic_ncols=True, desc=split):
 
             wavs = [wav.to(self.args.device) for wav in wavs]
             with torch.no_grad():
                 features = self.upstream(wavs)
 
-            loss = self.downstream(features, *others, records=records, logger=self.logger, global_step=global_step)
+            loss = self.downstream(
+                features, *others,
+                records = records,
+                logger = self.logger,
+                prefix = prefix,
+                global_step = global_step
+            )
             all_loss.append(loss.item())
         
-        # logging
+        # log loss
         average_loss = torch.FloatTensor(all_loss).mean().item()
-        self.logger.add_scalar(f'{self.args.downstream}/{split}-loss', average_loss, global_step=global_step)
-        for key, values in records.items():
-            average = torch.FloatTensor(values).mean().item()
-            self.logger.add_scalar(f'{self.args.downstream}/{split}-{key}', average, global_step=global_step)
+        self.logger.add_scalar(f'{prefix}loss', average_loss, global_step=global_step)
+        all_loss = []
+
+        # log customized contents
+        self.downstream.log_records(
+            records = records,
+            logger = self.logger,
+            prefix = prefix,
+            global_step = global_step
+        )
+        records = defaultdict(list)
 
         # prepare back to training
         torch.cuda.empty_cache()

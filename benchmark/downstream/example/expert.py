@@ -18,10 +18,9 @@ class DownstreamExpert(nn.Module):
     eg. downstream forward, metric computation, contents to log
     """
 
-    def __init__(self, upstream_dim, downstream='phone', datarc={}, modelrc={}, **kwargs):
+    def __init__(self, upstream_dim, datarc={}, modelrc={}, **kwargs):
         super(DownstreamExpert, self).__init__()
         self.upstream_dim = upstream_dim
-        self.downstream = downstream
         self.datarc = datarc
         self.modelrc = modelrc
 
@@ -72,7 +71,7 @@ class DownstreamExpert(nn.Module):
 
     # Interface
     def forward(self, features, utterance_labels,
-                records=None, logger=None, global_step=0):
+                records, logger, prefix, global_step):
         """
         Args:
             features:
@@ -86,13 +85,18 @@ class DownstreamExpert(nn.Module):
                 same device as features
 
             records:
-                defaultdict(list), by appending scalars into records,
-                these scalars will be averaged and logged on Tensorboard
+                defaultdict(list), by appending contents into records,
+                these contents can be averaged and logged on Tensorboard
+                later by self.log_records every log_step
 
             logger:
-                Tensorboard SummaryWriter, given here for logging/debugging
-                convenience, please use "self.downstream/your_content_name" as key
-                name to log your customized contents
+                Tensorboard SummaryWriter, given here for logging/debugging convenience
+                please use f'{prefix}your_content_name' as key name
+                to log your customized contents
+
+            prefix:
+                used to indicate downstream and train/test on Tensorboard
+                eg. 'phone/train-'
 
             global_step:
                 global_step in runner, which is helpful for Tensorboard logging
@@ -116,3 +120,30 @@ class DownstreamExpert(nn.Module):
             pass
 
         return loss
+
+    # interface
+    def log_records(self, records, logger, prefix, global_step):
+        """
+        Args:
+            records:
+                defaultdict(list), contents already appended
+
+            logger:
+                Tensorboard SummaryWriter
+                please use f'{prefix}your_content_name' as key name
+                to log your customized contents
+
+            prefix:
+                used to indicate downstream and train/test on Tensorboard
+                eg. 'phone/train-'
+
+            global_step:
+                global_step in runner, which is helpful for Tensorboard logging
+        """
+        for key, values in records.items():
+            average = torch.FloatTensor(values).mean().item()
+            logger.add_scalar(
+                f'{prefix}{key}',
+                average,
+                global_step=global_step
+            )
