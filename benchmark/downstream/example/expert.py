@@ -55,7 +55,7 @@ class DownstreamExpert(nn.Module):
         [[wav1, wav2, ...], your_other_contents1, your_other_contents2, ...]
 
         where wav1, wav2 ... are in variable length
-        and each wav is torch.FloatTensor in cpu with sample rate 16000
+        each wav is torch.FloatTensor in cpu with dim()==1 and sample_rate==16000
     """
 
     # Interface
