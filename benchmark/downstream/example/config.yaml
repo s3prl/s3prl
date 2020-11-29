@@ -14,6 +14,8 @@ optimizer:
   name: Adam
   lr: 2.0e-4
 
+# comment the whole scheduler config block
+# to disable learning rate scheduling
 scheduler:
   name: cosine_with_hard_restarts_schedule_with_warmup
   num_warmup_steps: 70
