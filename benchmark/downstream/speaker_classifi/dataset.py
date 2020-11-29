@@ -28,7 +28,6 @@ class SpeakerClassifiDataset(Dataset):
     def build_label(self, train_path_list):
 
         y = []
-
         for path in train_path_list:
             id_string = path.split("/")[-3]
             y.append(int(id_string[2:]) - 10001)
@@ -38,7 +37,6 @@ class SpeakerClassifiDataset(Dataset):
     def train(self):
 
         dataset = []
-
         for string in self.usage_list:
             pair = string.split()
             index = pair[0]
@@ -51,7 +49,6 @@ class SpeakerClassifiDataset(Dataset):
     def dev(self):
 
         dataset = []
-
         for string in self.usage_list:
             pair = string.split()
             index = pair[0]
@@ -64,7 +61,6 @@ class SpeakerClassifiDataset(Dataset):
     def test(self):
 
         dataset = []
-
         for string in self.usage_list:
             pair = string.split()
             index = pair[0]
