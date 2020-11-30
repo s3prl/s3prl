@@ -39,7 +39,7 @@ class DownstreamExpert(nn.Module):
         self.dev_dataset = PhoneDataset('dev', self.datarc['eval_batch_size'], **datarc)
         self.test_dataset = PhoneDataset('test', self.datarc['eval_batch_size'], **datarc)
 
-        self.model = Model(input_dim=self.upstream_dim, output_class_num=self.train_dataset.class_num)
+        self.model = Model(input_dim=self.upstream_dim, output_class_num=self.train_dataset.class_num, **modelrc)
         self.objective = nn.CrossEntropyLoss()
 
     def _get_train_dataloader(self, dataset):

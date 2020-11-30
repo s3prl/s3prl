@@ -18,7 +18,7 @@ import torch.nn as nn
 # MODEL #
 #########
 class Model(nn.Module):
-    def __init__(self, input_dim, output_class_num):
+    def __init__(self, input_dim, output_class_num, **kwargs):
         super(Model, self).__init__()
         
         # init attributes
