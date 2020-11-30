@@ -78,13 +78,15 @@ def get_benchmark_args():
 
         if args.config is None:
             args.config = f'benchmark/downstream/{args.downstream}/config.yaml'
-        copyfile(args.config, f'{args.expdir}/{args.config.split("/")[-1]}')
         with open(args.config, 'r') as file:
             config = yaml.load(file, Loader=yaml.FullLoader)
+        copyfile(args.config, f'{args.expdir}/config.yaml')
         
         default_upstream_config = f'benchmark/upstream/{args.upstream}/config.yaml'
         if args.upstream_config is None and os.path.isfile(default_upstream_config):
             args.upstream_config = default_upstream_config
+        if os.path.isfile(args.upstream_config):
+            copyfile(args.upstream_config, f'{args.expdir}/upstream_config.yaml')
 
     return args, config
 
