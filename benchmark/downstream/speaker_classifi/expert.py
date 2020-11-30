@@ -86,7 +86,7 @@ class DownstreamExpert(nn.Module):
 
     # Interface
     def forward(self, features, lengths, labels,
-                records=None, logger=None, global_step=0):
+                records=None, logger=None, prefix=None, global_step=0):
         """
         Args:
             features:
@@ -135,3 +135,29 @@ class DownstreamExpert(nn.Module):
             pass
 
         return loss
+        # interface
+    def log_records(self, records, logger, prefix, global_step):
+        """
+        Args:
+            records:
+                defaultdict(list), contents already appended
+
+            logger:
+                Tensorboard SummaryWriter
+                please use f'{prefix}your_content_name' as key name
+                to log your customized contents
+
+            prefix:
+                used to indicate downstream and train/test on Tensorboard
+                eg. 'phone/train-'
+
+            global_step:
+                global_step in runner, which is helpful for Tensorboard logging
+        """
+        for key, values in records.items():
+            average = torch.FloatTensor(values).mean().item()
+            logger.add_scalar(
+                f'{prefix}{key}',
+                average,
+                global_step=global_step
+            )
