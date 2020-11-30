@@ -104,6 +104,7 @@ class DownstreamExpert(nn.Module):
         Return:
             loss:
                 the loss to be optimized, should not be detached
+                a single scalar in torch.FloatTensor
         """
         features = pad_sequence(features, batch_first=True)
         features = self.connector(features)
