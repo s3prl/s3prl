@@ -147,3 +147,7 @@ class DownstreamExpert(nn.Module):
                 average,
                 global_step=global_step
             )
+
+        if not self.training:
+            # some evaluation-only processing, eg. decoding
+            pass
