@@ -145,3 +145,5 @@ data
 *.pkl
 *.yaml
 *.sh
+*.pt
+*.tar
