@@ -31,7 +31,7 @@ def get_benchmark_args():
     # upstream settings
     parser.add_argument('-u', '--upstream', choices=os.listdir('benchmark/upstream'))
     parser.add_argument('-k', '--upstream_ckpt')
-    parser.add_argument('-g', '--upstream_config')
+    parser.add_argument('-g', '--upstream_config', default='')
     parser.add_argument('-f', '--upstream_trainable', action='store_true')
 
     # experiment directory, choose one to specify
