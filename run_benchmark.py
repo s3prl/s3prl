@@ -83,7 +83,7 @@ def get_benchmark_args():
         copyfile(args.config, f'{args.expdir}/config.yaml')
         
         default_upstream_config = f'benchmark/upstream/{args.upstream}/config.yaml'
-        if args.upstream_config is '' and os.path.isfile(default_upstream_config):
+        if args.upstream_config == '' and os.path.isfile(default_upstream_config):
             args.upstream_config = default_upstream_config
         if os.path.isfile(args.upstream_config):
             copyfile(args.upstream_config, f'{args.expdir}/upstream_config.yaml')
