@@ -113,7 +113,7 @@ def process_train_MAM_data(spec, config=None):
         
         pos_enc = fast_position_encoding(seq_len, hidden_size) # (seq_len, hidden_size)
         mask_label = torch.zeros_like(spec_stacked, dtype=torch.uint8) \
-                     if mask_proportion != 0 and mask_frequency != 0 else torch.ones_like(spec_stacked, dtype=torch.uint8)
+                     if mask_proportion != 0 or mask_frequency != 0 else torch.ones_like(spec_stacked, dtype=torch.uint8)
         attn_mask = torch.ones((batch_size, seq_len)) # (batch_size, seq_len)
 
         for idx in range(batch_size):
