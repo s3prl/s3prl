@@ -66,12 +66,15 @@ class DownstreamExpert(nn.Module):
 
     """
     Datalaoder Specs:
-        Each dataloader should output in the following format:
+        Each dataloader should output a list in the following format:
 
         [[wav1, wav2, ...], your_other_contents1, your_other_contents2, ...]
 
         where wav1, wav2 ... are in variable length
-        each wav is torch.FloatTensor in cpu with dim()==1 and sample_rate==16000
+        each wav is torch.FloatTensor in cpu with:
+            1. dim() == 1
+            2. sample_rate == 16000
+            3. directly loaded by torchaudio without any preprocessing
     """
 
     # Interface
