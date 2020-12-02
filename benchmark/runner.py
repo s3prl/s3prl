@@ -50,8 +50,8 @@ class Runner():
         Downstream = getattr(importlib.import_module(module_path), 'DownstreamExpert')
         downstream = Downstream(
             self.upstream.get_output_dim(),
-            **vars(self.args),
-            **self.config['downstream_expert']
+            self.config['downstream_expert'],
+            **vars(self.args)
         ).to(self.args.device)
 
         init_downstream = self.init_ckpt.get('Downstream')

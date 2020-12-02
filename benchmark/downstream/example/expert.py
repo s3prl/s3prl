@@ -18,19 +18,36 @@ class DownstreamExpert(nn.Module):
     eg. downstream forward, metric computation, contents to log
     """
 
-    def __init__(self, upstream_dim, datarc={}, modelrc={}, **kwargs):
+    def __init__(self, upstream_dim, downstream_expert, **kwargs):
+        """
+        Args:
+            upstream_dim: int
+                Different upstream will give different representation dimension
+                You might want to first project them to a same dimension
+            
+            downstream_expert: dict
+                The 'downstream_expert' field specified in your downstream config file
+                eg. benchmark/downstream/example/config.yaml
+
+            **kwargs: dict
+                The arguments specified by the argparser in run_benchmark.py
+                in case you need it.
+        """
+
         super(DownstreamExpert, self).__init__()
         self.upstream_dim = upstream_dim
-        self.datarc = datarc
-        self.modelrc = modelrc
+        self.datarc = downstream_expert['datarc']
+        self.modelrc = downstream_expert['modelrc']
 
-        self.train_dataset = RandomDataset(**datarc)
-        self.dev_dataset = RandomDataset(**datarc)
-        self.test_dataset = RandomDataset(**datarc)
+        self.train_dataset = RandomDataset(**self.datarc)
+        self.dev_dataset = RandomDataset(**self.datarc)
+        self.test_dataset = RandomDataset(**self.datarc)
 
-        self.connector = nn.Linear(upstream_dim, modelrc['input_dim'])
+        self.connector = nn.Linear(upstream_dim, self.modelrc['input_dim'])
         self.model = Model(
-            **modelrc, output_class_num=self.train_dataset.class_num)
+            output_class_num=self.train_dataset.class_num,
+            **self.modelrc
+        )
         self.objective = nn.CrossEntropyLoss()
 
     def _get_train_dataloader(self, dataset):
