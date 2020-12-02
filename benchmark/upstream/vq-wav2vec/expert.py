@@ -37,18 +37,6 @@ class UpstreamExpert(nn.Module):
             codewords, _ = self.model.vector_quantizer.forward_idx(z)
             # codewords: (batch_size, feat_dim, seqlen) in torch.FloatTensor
 
-        elif self.feature_selection == 'learnable_codewords':
-            _, codes = self.model.vector_quantizer.forward_idx(z)
-            # codes: (batch_size, seqlen, 2) in torch.LongTensor
-
-            # set up the learnable embedding table
-            code_num_per_book = cp['args'].vq_vars
-            embedding_list = [nn.Embedding(code_num_per_book, z.size(-1)) for i in range(codes.size(-1))]
-            self.embeddings = nn.ModuleList(embedding_list)
-
-            learnable_codewords = self._forward_embedding(codes)
-            # learnable_codewords: (batch_size, feat_dim, seqlen)
-
         pseudo_features = eval(self.feature_selection).transpose(1, 2)
         self.output_dim = pseudo_features.size(-1)
 
@@ -87,13 +75,6 @@ class UpstreamExpert(nn.Module):
         if self.feature_selection == 'codewords':
             codewords, _ = self.model.vector_quantizer.forward_idx(z)
             # codewords: (batch_size, feat_dim, seqlen) in torch.FloatTensor
-
-        elif self.feature_selection == 'learnable_codewords':
-            _, codes = self.model.vector_quantizer.forward_idx(z)
-            # codes: (batch_size, seqlen, 2) in torch.LongTensor
-
-            learnable_codewords = self._forward_embedding(codes)
-            # learnable_codewords: (batch_size, feat_dim, seqlen)
 
         features = eval(self.feature_selection).transpose(1, 2)
         ratio = padded_wav.size(1) / features.size(1)

@@ -1,2 +1,2 @@
-# z or codewords or learnable_codewords
-feature_selection: learnable_codewords
+# z, codewords
+feature_selection: codewords
