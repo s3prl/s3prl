@@ -191,7 +191,7 @@ python3 run_benchmark.py -m evaluate -e [ckpt]
 
 ## Documentation
 - 先以我們這個 team 的成員讀完能知道要怎麼從無到有跑出合理數字為目標，未來 Leo 會再修成面向所有使用者的樣子。
-- 各個 task 請寫在上方 `Downstream documentation` 的相對應欄位，歡迎在該欄位上標記任何你想要的個人資訊。
+- 各個 task 請寫在上方 `Downstream documentation` 的相對應欄位，歡迎在該欄位上寫上任何你想要註記的個人資訊。
 
 ## Run experiments
 To be discussed.
