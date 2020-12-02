@@ -90,7 +90,7 @@ class DownstreamExpert(nn.Module):
         return self._get_eval_dataloader(self.test_dataset)
 
     # Interface
-    def forward(self, features, utterance_labels,
+    def forward(self, features, your_other_contents1,
                 records, logger, prefix, global_step):
         """
         Args:
@@ -99,10 +99,10 @@ class DownstreamExpert(nn.Module):
                 each feat is in torch.FloatTensor and already
                 put in the device assigned by command-line args
 
-            utterance_labels, ... :
-                in the order defined by your dataset and collate_fn
-                these are all in cpu, and you can move them to the
-                same device as features
+            your_other_contents1, ... :
+                in the order defined by your dataloader (dataset + collate_fn)
+                these are all in cpu, and you can move them to the same device
+                as features
 
             records:
                 defaultdict(list), by appending contents into records,
@@ -130,6 +130,7 @@ class DownstreamExpert(nn.Module):
         features = self.connector(features)
         predicted = self.model(features)
 
+        utterance_labels = your_other_contents1
         labels = torch.LongTensor(utterance_labels).to(features.device)
         loss = self.objective(predicted, labels)
 
