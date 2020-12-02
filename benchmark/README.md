@@ -175,7 +175,7 @@ To be discussed.
 
 ```bash
 # train
-python3 run_benchmark.py -m train -n PhoneExp -u example -d phone -c benchmark/downstream/phone/config.yaml
+python3 run_benchmark.py -m train -n PhoneFbank -u baseline -d phone -c benchmark/downstream/phone/config.yaml
 
 # resume training
 python3 run_benchmark.py -m train -e [ckpt]
