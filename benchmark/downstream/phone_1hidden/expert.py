@@ -19,8 +19,8 @@ class DownstreamExpert(PhoneExpert):
     Basically the same as the phone linear expert
     """
 
-    def __init__(self, upstream_dim, datarc={}, modelrc={}, **kwargs):
-        super(DownstreamExpert, self).__init__(upstream_dim, datarc, modelrc, **kwargs)
+    def __init__(self, upstream_dim, downstream_expert, **kwargs):
+        super(DownstreamExpert, self).__init__(upstream_dim, downstream_expert, **kwargs)
         
         delattr(self, 'model')
-        self.model = Model(input_dim=self.upstream_dim, output_class_num=self.train_dataset.class_num, **modelrc)
+        self.model = Model(input_dim=self.upstream_dim, output_class_num=self.train_dataset.class_num, **self.modelrc)

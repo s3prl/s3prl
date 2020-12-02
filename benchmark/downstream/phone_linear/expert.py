@@ -29,17 +29,17 @@ class DownstreamExpert(nn.Module):
     eg. downstream forward, metric computation, contents to log
     """
 
-    def __init__(self, upstream_dim, datarc={}, modelrc={}, **kwargs):
+    def __init__(self, upstream_dim, downstream_expert, **kwargs):
         super(DownstreamExpert, self).__init__()
         self.upstream_dim = upstream_dim
-        self.datarc = datarc
-        self.modelrc = modelrc
+        self.datarc = downstream_expert['datarc']
+        self.modelrc = downstream_expert['modelrc']
 
-        self.train_dataset = PhoneDataset('train', self.datarc['train_batch_size'], **datarc)
-        self.dev_dataset = PhoneDataset('dev', self.datarc['eval_batch_size'], **datarc)
-        self.test_dataset = PhoneDataset('test', self.datarc['eval_batch_size'], **datarc)
+        self.train_dataset = PhoneDataset('train', self.datarc['train_batch_size'], **self.datarc)
+        self.dev_dataset = PhoneDataset('dev', self.datarc['eval_batch_size'], **self.datarc)
+        self.test_dataset = PhoneDataset('test', self.datarc['eval_batch_size'], **self.datarc)
 
-        self.model = Model(input_dim=self.upstream_dim, output_class_num=self.train_dataset.class_num, **modelrc)
+        self.model = Model(input_dim=self.upstream_dim, output_class_num=self.train_dataset.class_num, **self.modelrc)
         self.objective = nn.CrossEntropyLoss()
 
     def _get_train_dataloader(self, dataset):
