@@ -44,20 +44,20 @@ class DownstreamExpert(nn.Module):
         and wav1 is in torch.FloatTensor
     """
 
-    def __init__(self, upstream_dim, downstream='speaker_classifi', datarc={}, modelrc={}, **kwargs):
+    def __init__(self, upstream_dim, downstream_expert, **kwargs):
         super(DownstreamExpert, self).__init__()
         self.upstream_dim = upstream_dim
-        self.downstream = downstream
-        self.datarc = datarc
-        self.modelrc = modelrc
+        self.downstream = downstream_expert
+        self.datarc = downstream_expert['datarc']
+        self.modelrc = downstream_expert['modelrc']
 
-        self.train_dataset = SpeakerVerifi_train(datarc['train']['file_path'], datarc['train']['max_timestep'],datarc['train']['utter_number'])
-        self.dev_dataset = SpeakerVerifi_dev(datarc['dev']['file_path'], datarc['dev']['max_timestep'], datarc['dev']['meta_data'])
-        self.test_dataset = SpeakerVerifi_test(datarc['test']['file_path'], datarc['test']['meta_data'])
+        self.train_dataset = SpeakerVerifi_train(self.datarc['train']['file_path'], self.datarc['train']['max_timestep'],self.datarc['train']['utter_number'])
+        self.dev_dataset = SpeakerVerifi_dev(self.datarc['dev']['file_path'], self.datarc['dev']['max_timestep'],self. datarc['dev']['meta_data'])
+        self.test_dataset = SpeakerVerifi_test(self.datarc['test']['file_path'], self.datarc['test']['meta_data'])
         
-        self.connector = nn.Linear(upstream_dim, modelrc['input_dim'])
+        self.connector = nn.Linear(upstream_dim,self.modelrc['input_dim'])
 
-        self.model = Model(input_dim=modelrc['input_dim'], agg_module=self.modelrc['agg_module'])
+        self.model = Model(input_dim=self.modelrc['input_dim'], agg_module=self.modelrc['agg_module'])
         self.objective = GE2E()
         self.score_fn  = nn.CosineSimilarity(dim=-1)
         self.eval_metric = EER

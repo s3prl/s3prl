@@ -42,20 +42,20 @@ class DownstreamExpert(nn.Module):
         and wav1 is in torch.FloatTensor
     """
 
-    def __init__(self, upstream_dim, downstream='speaker_classifi', datarc={}, modelrc={}, **kwargs):
+    def __init__(self, upstream_dim, downstream_expert, **kwargs):
         super(DownstreamExpert, self).__init__()
         self.upstream_dim = upstream_dim
-        self.downstream = downstream
-        self.datarc = datarc
-        self.modelrc = modelrc
+        self.downstream = downstream_expert
+        self.datarc = downstream_expert['datarc']
+        self.modelrc = downstream_expert['modelrc']
 
-        self.train_dataset = SpeakerClassifiDataset('train', datarc['file_path'], datarc['meta_data'])
-        self.dev_dataset = SpeakerClassifiDataset('dev', datarc['file_path'], datarc['meta_data'])
-        self.test_dataset = SpeakerClassifiDataset('test', datarc['file_path'], datarc['meta_data'])
+        self.train_dataset = SpeakerClassifiDataset('train', self.datarc['file_path'], self.datarc['meta_data'])
+        self.dev_dataset = SpeakerClassifiDataset('dev', self.datarc['file_path'], self.datarc['meta_data'])
+        self.test_dataset = SpeakerClassifiDataset('test', self.datarc['file_path'], self.datarc['meta_data'])
         
-        self.connector = nn.Linear(upstream_dim, modelrc['input_dim'])
+        self.connector = nn.Linear(self.upstream_dim, self.modelrc['input_dim'])
 
-        self.model = Model(input_dim=modelrc['input_dim'], agg_module=self.modelrc['agg_module'],output_class_num=self.train_dataset.speaker_num)
+        self.model = Model(input_dim=self.modelrc['input_dim'], agg_module=self.modelrc['agg_module'],output_class_num=self.train_dataset.speaker_num)
         self.objective = nn.CrossEntropyLoss()
 
     def _get_train_dataloader(self, dataset):
