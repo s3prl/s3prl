@@ -93,6 +93,10 @@ class DownstreamExpert(nn.Module):
     def forward(self, features, your_other_contents1,
                 records, logger, prefix, global_step):
         """
+        This function will be used in both train/dev/test, you can use
+        self.training (bool) to control the different behavior for
+        training or evaluation (dev/test)
+
         Args:
             features:
                 list of unpadded features [feat1, feat2, ...]
@@ -105,9 +109,15 @@ class DownstreamExpert(nn.Module):
                 as features
 
             records:
-                defaultdict(list), by appending contents into records,
+                defaultdict(list), by dumping contents into records,
                 these contents can be averaged and logged on Tensorboard
-                later by self.log_records every log_step
+                later by self.log_records
+
+                Note1. benchmark/runner.py will call self.log_records
+                    1. every log_step during training
+                    2. once after evalute the whole dev/test dataloader
+
+                Note2. log_step is defined in your downstream config
 
             logger:
                 Tensorboard SummaryWriter, given here for logging/debugging convenience
@@ -146,9 +156,13 @@ class DownstreamExpert(nn.Module):
     # interface
     def log_records(self, records, logger, prefix, global_step):
         """
+        This function will be used in both train/dev/test, you can use
+        self.training (bool) to control the different behavior for
+        training or evaluation (dev/test)
+
         Args:
             records:
-                defaultdict(list), contents already appended
+                defaultdict(list), contents already prepared by self.forward
 
             logger:
                 Tensorboard SummaryWriter
