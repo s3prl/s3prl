@@ -2,7 +2,7 @@
 
 
 # Minimum run-up
-Using the following commands, you can always run the benchmark codes without upstream/downstream dependency: checkpoints, dataset, etc...
+Using the following commands, you can always run the benchmark codes without upstream/downstream dependency. eg. checkpoints, dataset.
 
 ### Start a new downstream training experiment
 - Example (pseudo) upstream + example downstream
