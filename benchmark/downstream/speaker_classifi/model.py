@@ -24,13 +24,13 @@ from transformer.model import TransformerEncoder
 #########
 
 class Identity(nn.Module):
-    def __init__(self, out_dim):
+    def __init__(self, **kwargs):
         super(Identity, self).__init__()
         # simply take mean operator / no additional parameters
 
     def forward(self, feature, att_mask, head_mask, **kwargs):
 
-        return feature
+        return [feature]
 
 class Mean(nn.Module):
 
