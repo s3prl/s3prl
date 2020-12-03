@@ -23,7 +23,7 @@ class DownstreamExpert(nn.Module):
         Args:
             upstream_dim: int
                 Different upstream will give different representation dimension
-                You might want to first project them to a same dimension
+                You might want to first project them to the same dimension
             
             downstream_expert: dict
                 The 'downstream_expert' field specified in your downstream config file
