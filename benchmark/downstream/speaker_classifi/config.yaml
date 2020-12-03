@@ -1,0 +1,34 @@
+runner:
+  total_steps: 50000
+  gradient_clipping: 1
+  gradient_accumulate_steps: 48
+
+  log_step: 100
+  eval_step: 1000
+  save_step: 1000
+  max_keep: 1
+  eval_dataloaders: 
+    - dev
+    - test
+  
+optimizer: 
+  name: AdamW
+  lr: 4.0e-4
+
+# comment the whole scheduler config block to disable learning rate scheduling
+scheduler:
+  name: linear_schedule_with_warmup
+  num_warmup_steps: 1000
+
+downstream_expert: 
+  datarc:
+    file_path: /home/pohan/data/librispeech/vox1_dev/wav
+    meta_data: /home/pohan/data/librispeech/vox1_test/veri_test_class.txt
+    num_workers: 12
+    train_batch_size: 1
+    eval_batch_size: 1
+
+
+  modelrc: 
+    input_dim: 256
+    agg_module: SAP
