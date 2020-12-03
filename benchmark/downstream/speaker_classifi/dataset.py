@@ -75,8 +75,8 @@ class SpeakerClassifiDataset(Dataset):
     def __getitem__(self, idx):
         
         wav, sr = torchaudio.load(self.dataset[idx])
-        length = wav.shape[0]
         wav = wav.squeeze(0)
+        length = wav.shape[0]
   
         return wav, torch.tensor([length]), torch.tensor([self.label[idx]]).long()
         
