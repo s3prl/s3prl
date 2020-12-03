@@ -23,6 +23,7 @@ from torch.nn.utils.rnn import pad_sequence
 from benchmark.downstream.speaker_classifi.model import Model
 from benchmark.downstream.speaker_classifi.dataset import SpeakerClassifiDataset
 
+from argparse import Namespace
 
 import IPython
 import pdb
@@ -55,7 +56,7 @@ class DownstreamExpert(nn.Module):
         
         self.connector = nn.Linear(self.upstream_dim, self.modelrc['input_dim'])
 
-        self.model = Model(input_dim=self.modelrc['input_dim'], agg_module=self.modelrc['agg_module'],output_class_num=self.train_dataset.speaker_num)
+        self.model = Model(input_dim=self.modelrc['input_dim'], agg_module=self.modelrc['agg_module'],output_class_num=self.train_dataset.speaker_num, config=self.modelrc)
         self.objective = nn.CrossEntropyLoss()
 
     def _get_train_dataloader(self, dataset):

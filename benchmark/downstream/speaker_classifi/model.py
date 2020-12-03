@@ -16,6 +16,9 @@ import torch.nn.functional as F
 
 import IPython
 import pdb
+from argparse import Namespace
+from transformer.model import TransformerEncoder
+
 #########
 # MODEL #
 #########
@@ -91,17 +94,23 @@ class SelfAttentionPooling(nn.Module):
         return utter_rep
 
 class Model(nn.Module):
-    def __init__(self, input_dim, agg_module, output_class_num):
+    def __init__(self, input_dim, agg_module, output_class_num, config):
         super(Model, self).__init__()
         
         # agg_module: current support [ "SAP", "Mean" ]
         # init attributes
         self.agg_method = eval(agg_module)(input_dim)
-        self.linear = nn.Linear(input_dim, output_class_num)          
+        self.linear = nn.Linear(input_dim, output_class_num)
+        
+        # two standard transformer encoder layer
+        self.model= eval(config['module'])(Namespace(**config['hparams']))
+        self.head_mask = [None] * config['hparams']['num_hidden_layers']        
 
 
     def forward(self, features, att_mask):
-        utterance_vector = self.agg_method(features, att_mask)
+
+        features = self.model(features,att_mask.unsqueeze(1), head_mask=self.head_mask, output_all_encoded_layers=False)
+        utterance_vector = self.agg_method(features[0], att_mask)
         predicted = self.linear(utterance_vector)
         
         return F.log_softmax(predicted, dim=-1) 
