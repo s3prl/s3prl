@@ -10,12 +10,6 @@
 ###############
 # IMPORTATION #
 ###############
-import os
-import math
-import torch
-import random
-#-------------#
-import torch
 import torch.nn as nn
 from torch.nn.utils.rnn import pad_sequence
 #-------------#
