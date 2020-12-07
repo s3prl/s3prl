@@ -30,4 +30,5 @@ downstream_expert:
     sample_rate: 16000 # this should not be changed, and this should match the sr of the audio in `libri_root`
     train_dev_seed: 1337
 
-  modelrc: None
+  modelrc: 
+    none: None
