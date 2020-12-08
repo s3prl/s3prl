@@ -24,7 +24,7 @@ from transformer.model import TransformerEncoder
 #########
 
 class Identity(nn.Module):
-    def __init__(self, **kwargs):
+    def __init__(self, config, **kwargs):
         super(Identity, self).__init__()
         # simply take mean operator / no additional parameters
 
@@ -112,13 +112,12 @@ class Model(nn.Module):
         self.linear = nn.Linear(input_dim, output_class_num)
         
         # two standard transformer encoder layer
-        self.model= eval(config['module'])(Namespace(**config['hparams']))
-        self.head_mask = [None] * config['hparams']['num_hidden_layers']        
+        self.model= eval(config['module'])(config=Namespace(**config['hparams']),)
+        self.head_mask = [None] * config['hparams']['num_hidden_layers']         
 
 
     def forward(self, features, att_mask):
-
-        features = self.model(features,att_mask.unsqueeze(1), head_mask=self.head_mask, output_all_encoded_layers=False)
+        features = self.model(features,att_mask.unsqueeze(1).unsqueeze(1), head_mask=self.head_mask, output_all_encoded_layers=False)
         utterance_vector = self.agg_method(features[0], att_mask)
         predicted = self.linear(utterance_vector)
         
