@@ -1,19 +1,24 @@
 # -*- coding: utf-8 -*- #
 """*********************************************************************************************"""
 #   FileName     [ expert.py ]
-#   Synopsis     [ the mockingjay wrapper ]
-#   Author       [ S3PRL ]
-#   Copyright    [ Copyleft(c), Speech Lab, NTU, Taiwan ]
+#   Synopsis     [ the pase wrapper ]
+#   Author       [ santi-pdp/pase ]
+#   Reference    [ https://github.com/santi-pdp/pase/blob/master/pase ]
 """*********************************************************************************************"""
 
 
 ###############
 # IMPORTATION #
 ###############
+import torch
 import torch.nn as nn
 from torch.nn.utils.rnn import pad_sequence
 #-------------#
-from transformer.nn_transformer import TRANSFORMER
+from pase.models.frontend import wf_builder
+
+
+SAMPLE_RATE = 16000
+EXAMPLE_SEC = 5
 
 
 ####################
@@ -21,24 +26,19 @@ from transformer.nn_transformer import TRANSFORMER
 ####################
 class UpstreamExpert(nn.Module):
     """
-    The Mockingjay wrapper
+    The PASE wrapper
     """
 
     def __init__(self, ckpt, config, **kwargs):
         super(UpstreamExpert, self).__init__() 
-        options = {'ckpt_file'     : ckpt,
-                   'load_pretrain' : 'True',
-                   'no_grad'       : 'True',
-                   'dropout'       : 'default',
-                   'spec_aug'      : 'False',
-                   'spec_aug_prev' : 'True',
-                   'weighted_sum'  : 'False',
-                   'select_layer'  : -1,
-                   'permute_input' : 'False' }
 
-        self.transformer = TRANSFORMER(options, inp_dim=-1)
-        self.output_dim = self.transformer.out_dim
-        assert hasattr(self.transformer, 'preprocessor'), 'This wrapper only supports `on-the-fly` ckpt with built in preprocessors.'
+        self.pase = wf_builder(config)
+        self.pase.load_pretrained(ckpt, load_last=True, verbose=False)
+
+        # pseudo_input = torch.randn(1, 1, SAMPLE_RATE * EXAMPLE_SEC)
+        # r = self.pase(pseudo_input) # size will be (1, 256, 625), which are 625 frames of 256 dims each
+        self.output_dim = 256 # r.size(1)
+        raise RuntimeError('There are some import errors with the PASE repo, see this issue: https://github.com/santi-pdp/pase/issues/114.')
 
     # Interface
     def get_output_dim(self):
@@ -58,12 +58,11 @@ class UpstreamExpert(nn.Module):
                 (batch_size, extracted_seqlen, feature_dim)        
         """
         wav_lengths = [len(wav) for wav in wavs]
-
         wavs = pad_sequence(wavs, batch_first=True)
-        for i in range(wavs.size(0)): 
-            wavs[i] = TRANSFORMER.normalize_wav_decibel(wavs[i], self.transformer.config['online']['target_level'])
-        wavs = wavs.unsqueeze(-1) # (batch_size, audio_len) -> (batch_size, audio_len, 1)
-        features = self.transformer(wavs) # (batch_size, extracted_seqlen, feature_dim)
+        wavs = wavs.unsqueeze(1) # (batch_size, audio_len) -> (batch_size, 1, audio_len)
+
+        features = self.pase(wavs) # (batch_size, feature_dim, extracted_seqlen)
+        features = features.permute(0, 2, 1).contiguous() # (batch_size, extracted_seqlen, feature_dim)
 
         ratio = len(features[0]) / wav_lengths[0]
         feat_lengths = [round(l * ratio) for l in wav_lengths]

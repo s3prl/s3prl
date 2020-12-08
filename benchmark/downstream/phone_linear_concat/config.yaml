@@ -1,5 +1,5 @@
 runner:
-  total_steps: 500000
+  total_steps: 1000000
   gradient_clipping: 1
   gradient_accumulate_steps: 1
 
@@ -17,7 +17,7 @@ optimizer:
 
 scheduler:
   name: linear_schedule_with_warmup
-  num_warmup_steps: 50000
+  num_warmup_steps: 100000
 
 downstream_expert:
   datarc:
