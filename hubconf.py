@@ -8,7 +8,7 @@
 
 
 dependencies = ['torch', 'torchaudio', 'numpy']
-from transformer.nn_transformer import TRANSFORMER
+from transformer.nn_transformer import TRANSFORMER as _TRANSFORMER
 
 
 options = {'load_pretrain' : 'True',
@@ -39,7 +39,7 @@ def mockingjay(ckpt=None, **kwargs):
         torch.hub.download_url_to_file(ckpt_url, ckpt, progress=True)
     options['ckpt_file'] = ckpt
 
-    model = TRANSFORMER(options, inp_dim=-1)
+    model = _TRANSFORMER(options, inp_dim=-1)
     return model
 
 
@@ -61,7 +61,7 @@ def tera(ckpt=None, **kwargs):
         torch.hub.download_url_to_file(ckpt_url, ckpt, progress=True)
     options['ckpt_file'] = ckpt
 
-    model = TRANSFORMER(options, inp_dim=-1)
+    model = _TRANSFORMER(options, inp_dim=-1)
     return model
 
 
@@ -83,5 +83,5 @@ def audio_albert(ckpt=None, **kwargs):
         torch.hub.download_url_to_file(ckpt_url, ckpt, progress=True)
     options['ckpt_file'] = ckpt
 
-    model = TRANSFORMER(options, inp_dim=-1)
+    model = _TRANSFORMER(options, inp_dim=-1)
     return model
