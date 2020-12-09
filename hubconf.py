@@ -6,9 +6,9 @@
 #   Copyright    [ Copyleft(c), Speech Lab, NTU, Taiwan ]
 """*********************************************************************************************"""
 
-
-dependencies = ['torch', 'torchaudio', 'numpy']
+import torch
 from transformer.nn_transformer import TRANSFORMER as _TRANSFORMER
+dependencies = ['torch', 'torchaudio', 'numpy']
 
 
 options = {'load_pretrain' : 'True',
