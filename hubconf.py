@@ -6,9 +6,11 @@
 #   Copyright    [ Copyleft(c), Speech Lab, NTU, Taiwan ]
 """*********************************************************************************************"""
 
+import os
+import gdown
 import torch
 from transformer.nn_transformer import TRANSFORMER as _TRANSFORMER
-dependencies = ['torch', 'torchaudio', 'numpy']
+dependencies = ['torch', 'torchaudio', 'numpy', 'gdown']
 
 
 options = {'load_pretrain' : 'True',
@@ -34,11 +36,11 @@ def mockingjay(ckpt=None, **kwargs):
     """
 
     if ckpt is None:
-        ckpt_url = 'https://drive.google.com/u/1/uc?id=1MoF_poVUaL3tKe1tbrQuDIbsC38IMpnH&export=download'
-        ckpt = torch.hub.load_state_dict_from_url(ckpt_url, progress=True)
-    else:
-        ckpt = torch.load(ckpt, map_location='cpu')
-
+        ckpt_url = 'https://drive.google.com/u/1/uc?id=1MoF_poVUaL3tKe1tbrQuDIbsC38IMpnH'
+        ckpt = f'{torch.hub.get_dir()}/mockingjay.ckpt'
+        gdown.cached_download(ckpt_url, ckpt)
+    
+    ckpt = torch.load(ckpt, map_location='cpu')
     options['ckpt_file'] = ckpt
     model = _TRANSFORMER(options, inp_dim=-1)
     return model
@@ -55,13 +57,13 @@ def tera(ckpt=None, **kwargs):
         >>> path2ckpt = 'on-the-fly-melBase960-b128-d03-T-C-libri.ckpt'
         >>> model = torch.hub.load(repo, 'mockingjay', ckpt=path2ckpt)
     """
-    
-    if ckpt is None:
-        ckpt_url = 'https://drive.google.com/u/1/uc?id=1A9Fs2k3aekY4_6I2GD4tBtjx_v0mV_k4&export=download'
-        ckpt = torch.hub.load_state_dict_from_url(ckpt_url, progress=True)
-    else:
-        ckpt = torch.load(ckpt, map_location='cpu')
 
+    if ckpt is None:
+        ckpt_url = 'https://drive.google.com/u/1/uc?id=1A9Fs2k3aekY4_6I2GD4tBtjx_v0mV_k4'
+        ckpt = f'{torch.hub.get_dir()}/tera.ckpt'
+        gdown.cached_download(ckpt_url, ckpt)
+    
+    ckpt = torch.load(ckpt, map_location='cpu')
     options['ckpt_file'] = ckpt
     model = _TRANSFORMER(options, inp_dim=-1)
     return model
@@ -80,11 +82,11 @@ def audio_albert(ckpt=None, **kwargs):
     """
 
     if ckpt is None:
-        ckpt_url = 'https://drive.google.com/u/1/uc?id=todo&export=download'
-        ckpt = torch.hub.load_state_dict_from_url(ckpt_url, progress=True)
-    else:
-        ckpt = torch.load(ckpt, map_location='cpu')
-
+        ckpt_url = 'https://drive.google.com/u/1/uc?id=1A9Fs2k3aekY4_6I2GD4tBtjx_v0mV_k4'
+        ckpt = f'{torch.hub.get_dir()}/audio_albert.ckpt'
+        gdown.cached_download(ckpt_url, ckpt)
+    
+    ckpt = torch.load(ckpt, map_location='cpu')
     options['ckpt_file'] = ckpt
     model = _TRANSFORMER(options, inp_dim=-1)
     return model
