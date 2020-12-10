@@ -35,10 +35,11 @@ def mockingjay(ckpt=None, **kwargs):
 
     if ckpt is None:
         ckpt_url = 'https://drive.google.com/u/1/uc?id=1MoF_poVUaL3tKe1tbrQuDIbsC38IMpnH&export=download'
-        ckpt = 'on-the-fly-melBase960-b12-d01-T-libri.ckpt'
-        torch.hub.download_url_to_file(ckpt_url, ckpt, progress=True)
-    options['ckpt_file'] = ckpt
+        ckpt = torch.hub.load_state_dict_from_url(ckpt_url, progress=True)
+    else:
+        ckpt = torch.load(ckpt, map_location='cpu')
 
+    options['ckpt_file'] = ckpt
     model = _TRANSFORMER(options, inp_dim=-1)
     return model
 
@@ -57,10 +58,11 @@ def tera(ckpt=None, **kwargs):
     
     if ckpt is None:
         ckpt_url = 'https://drive.google.com/u/1/uc?id=1A9Fs2k3aekY4_6I2GD4tBtjx_v0mV_k4&export=download'
-        ckpt = 'on-the-fly-melBase960-b128-d03-T-C-libri.ckpt'
-        torch.hub.download_url_to_file(ckpt_url, ckpt, progress=True)
-    options['ckpt_file'] = ckpt
+        ckpt = torch.hub.load_state_dict_from_url(ckpt_url, progress=True)
+    else:
+        ckpt = torch.load(ckpt, map_location='cpu')
 
+    options['ckpt_file'] = ckpt
     model = _TRANSFORMER(options, inp_dim=-1)
     return model
 
@@ -79,9 +81,10 @@ def audio_albert(ckpt=None, **kwargs):
 
     if ckpt is None:
         ckpt_url = 'https://drive.google.com/u/1/uc?id=todo&export=download'
-        ckpt = 'todo.ckpt'
-        torch.hub.download_url_to_file(ckpt_url, ckpt, progress=True)
-    options['ckpt_file'] = ckpt
+        ckpt = torch.hub.load_state_dict_from_url(ckpt_url, progress=True)
+    else:
+        ckpt = torch.load(ckpt, map_location='cpu')
 
+    options['ckpt_file'] = ckpt
     model = _TRANSFORMER(options, inp_dim=-1)
     return model
