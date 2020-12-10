@@ -39,8 +39,7 @@ def mockingjay(ckpt=None, **kwargs):
         ckpt_url = 'https://drive.google.com/u/1/uc?id=1MoF_poVUaL3tKe1tbrQuDIbsC38IMpnH'
         ckpt = f'{torch.hub.get_dir()}/mockingjay.ckpt'
         gdown.cached_download(ckpt_url, ckpt)
-    
-    ckpt = torch.load(ckpt, map_location='cpu')
+
     options['ckpt_file'] = ckpt
     model = _TRANSFORMER(options, inp_dim=-1)
     return model
@@ -62,8 +61,7 @@ def tera(ckpt=None, **kwargs):
         ckpt_url = 'https://drive.google.com/u/1/uc?id=1A9Fs2k3aekY4_6I2GD4tBtjx_v0mV_k4'
         ckpt = f'{torch.hub.get_dir()}/tera.ckpt'
         gdown.cached_download(ckpt_url, ckpt)
-    
-    ckpt = torch.load(ckpt, map_location='cpu')
+
     options['ckpt_file'] = ckpt
     model = _TRANSFORMER(options, inp_dim=-1)
     return model
@@ -85,8 +83,7 @@ def audio_albert(ckpt=None, **kwargs):
         ckpt_url = 'https://drive.google.com/u/1/uc?id=1A9Fs2k3aekY4_6I2GD4tBtjx_v0mV_k4'
         ckpt = f'{torch.hub.get_dir()}/audio_albert.ckpt'
         gdown.cached_download(ckpt_url, ckpt)
-    
-    ckpt = torch.load(ckpt, map_location='cpu')
+
     options['ckpt_file'] = ckpt
     model = _TRANSFORMER(options, inp_dim=-1)
     return model
