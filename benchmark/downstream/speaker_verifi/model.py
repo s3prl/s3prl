@@ -47,6 +47,7 @@ class SAP(nn.Module):
         super(SAP, self).__init__()
 
         # Setup
+        self.act_fn = nn.Tanh()
         self.sap_layer = SelfAttentionPooling(out_dim)
     
     def forward(self, feature, att_mask):
@@ -57,6 +58,7 @@ class SAP(nn.Module):
             att_mask   - [BxTx1]     Attention Mask logits
         '''
         #Encode
+        feature = self.act_fn(feature)
         sap_vec = self.sap_layer(feature, att_mask)
 
         return sap_vec
@@ -70,6 +72,7 @@ class SelfAttentionPooling(nn.Module):
     def __init__(self, input_dim):
         super(SelfAttentionPooling, self).__init__()
         self.W = nn.Linear(input_dim, 1)
+        self.softmax = nn.functional.softmax
     def forward(self, batch_rep, att_mask):
         """
         input:
@@ -82,10 +85,10 @@ class SelfAttentionPooling(nn.Module):
         utter_rep: size (N, H)
         """
         seq_len = batch_rep.shape[1]
-        softmax = nn.functional.softmax
+        
         att_logits = self.W(batch_rep).squeeze(-1)
         att_logits = att_mask + att_logits
-        att_w = softmax(att_logits, dim=-1).unsqueeze(-1)
+        att_w = self.softmax(att_logits, dim=-1).unsqueeze(-1)
         utter_rep = torch.sum(batch_rep * att_w, dim=1)
 
         return utter_rep

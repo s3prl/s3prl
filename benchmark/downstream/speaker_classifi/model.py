@@ -59,6 +59,7 @@ class SAP(nn.Module):
         super(SAP, self).__init__()
 
         # Setup
+        self.act_fn = nn.Tanh()
         self.sap_layer = SelfAttentionPooling(out_dim)
     
     def forward(self, feature, att_mask):
@@ -69,6 +70,7 @@ class SAP(nn.Module):
             att_mask   - [BxTx1]     Attention Mask logits
         '''
         #Encode
+        feature = self.act_fn(feature)
         sap_vec = self.sap_layer(feature, att_mask)
 
         return sap_vec
