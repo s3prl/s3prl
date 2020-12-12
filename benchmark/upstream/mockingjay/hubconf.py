@@ -1,14 +1,16 @@
+import os
 import torch
 
 from hubconf import _gdown
 from .expert import UpstreamExpert as _UpstreamExpert
 
 
-def mockingjay(ckpt=None, *args, **kwargs):
+def mockingjay(ckpt, *args, **kwargs):
     """
     The Mockingjay model
         ckpt (str): kwargs, path to the pretrained weights of the model.
     """
+    assert os.path.isfile(ckpt)
     upstream = _UpstreamExpert(ckpt)
     return upstream
 

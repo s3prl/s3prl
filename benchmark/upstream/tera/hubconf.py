@@ -1,14 +1,16 @@
+import os
 import torch
 
 from hubconf import _gdown
 from .expert import UpstreamExpert as _UpstreamExpert
 
 
-def tera(ckpt=None, *args, **kwargs):
+def tera(ckpt, *args, **kwargs):
     """
     The TERA model
         ckpt (str): kwargs, path to the pretrained weights of the model.
     """
+    assert os.path.isfile(ckpt)
     upstream = _UpstreamExpert(ckpt)
     return upstream
 
