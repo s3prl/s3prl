@@ -1,1 +1,1 @@
-from benchmark.upstream.apc.expert import UpstreamExpert
+from ..apc.expert import UpstreamExpert

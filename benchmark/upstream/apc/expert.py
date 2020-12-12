@@ -8,8 +8,8 @@ import torch
 import torch.nn as nn
 from torch.nn.utils.rnn import pad_sequence
 
-from benchmark.upstream.apc.apc import APC
-from benchmark.upstream.apc.audio import create_transform
+from .apc import APC
+from .audio import create_transform
 
 EXAMPLE_FEAT_SEQLEN = 1000
 

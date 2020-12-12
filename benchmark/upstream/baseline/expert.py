@@ -7,7 +7,7 @@ import random
 import torch
 import torch.nn as nn
 
-from benchmark.upstream.baseline.extracter import get_extracter
+from .extracter import get_extracter
 
 
 class UpstreamExpert(nn.Module):
