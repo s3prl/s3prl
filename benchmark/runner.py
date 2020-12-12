@@ -226,7 +226,7 @@ class Runner():
                                 os.remove(ckpt_pth)
 
                     check_ckpt_num(self.args.expdir)
-                    torch.save(all_states, f'{self.args.expdir}/states-{pbar.n}.ckpt')
+                    torch.save(all_states, f'{self.args.expdir}/states-{pbar.n+1}.ckpt')
 
                 pbar.update(1)
 

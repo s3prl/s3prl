@@ -7,7 +7,7 @@ import torch
 import torch.nn as nn
 from torch.nn.utils.rnn import pad_sequence
 
-from fairseq.models.wav2vec import Wav2Vec2Model
+import fairseq
 
 SAMPLE_RATE = 16000
 EXAMPLE_SEC = 5
@@ -21,9 +21,8 @@ class UpstreamExpert(nn.Module):
     def __init__(self, ckpt_path, config_path, **kwargs):
         super(UpstreamExpert, self).__init__()
 
-        cp = torch.load(ckpt_path)
-        self.model = Wav2Vec2Model.build_model(cp['args'], task=None)
-        self.model.load_state_dict(cp['model'])
+        model, cfg, task = fairseq.checkpoint_utils.load_model_ensemble_and_task([ckpt_path])
+        self.model = model[0]
 
         pseudo_input = torch.randn(1, SAMPLE_RATE * EXAMPLE_SEC)
         padding_mask = torch.zeros(1, SAMPLE_RATE * EXAMPLE_SEC).long().bool()
