@@ -111,7 +111,7 @@ class Runner():
         pbar = tqdm(total=self.config['runner']['total_steps'], desc='overall')
         init_step = self.init_ckpt.get('Step')
         if init_step:
-            pbar.n = init_step + 1
+            pbar.n = init_step
 
         # prepare data
         dataloader = self.downstream.get_train_dataloader()
@@ -226,7 +226,7 @@ class Runner():
                                 os.remove(ckpt_pth)
 
                     check_ckpt_num(self.args.expdir)
-                    torch.save(all_states, f'{self.args.expdir}/states-{pbar.n+1}.ckpt')
+                    torch.save(all_states, f'{self.args.expdir}/states-{pbar.n + 1}.ckpt')
 
                 pbar.update(1)
 
