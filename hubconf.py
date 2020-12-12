@@ -1,89 +1,35 @@
 # -*- coding: utf-8 -*- #
-"""*********************************************************************************************"""
-#   FileName     [ hubconf.py ]
-#   Synopsis     [ interface to Pytorch Hub: https://pytorch.org/docs/stable/hub.html#torch-hub ]
-#   Author       [ S3PRL ]
-#   Copyright    [ Copyleft(c), Speech Lab, NTU, Taiwan ]
-"""*********************************************************************************************"""
+"""************************************************************************************************
+   FileName     [ hubconf.py ]
+   Synopsis     [ interface to Pytorch Hub: https://pytorch.org/docs/stable/hub.html#torch-hub ]
+   Author       [ S3PRL ]
+   Copyright    [ Copyleft(c), Speech Lab, NTU, Taiwan ]
+************************************************************************************************"""
 
 import os
-import gdown
+import importlib
+
 import torch
-from transformer.nn_transformer import TRANSFORMER as _TRANSFORMER
-dependencies = ['torch', 'torchaudio', 'numpy', 'gdown']
+import gdown
+dependencies = ['torch', 'gdown']
 
 
-options = {'load_pretrain' : 'True',
-           'no_grad'       : 'True',
-           'dropout'       : 'default',
-           'spec_aug'      : 'False',
-           'spec_aug_prev' : 'True',
-           'weighted_sum'  : 'False',
-           'select_layer'  : -1,
-           'permute_input' : 'False' }
+def _gdown(filename, url, use_cache):
+    filepath = f'{torch.hub.get_dir()}/{filename}'
+    if not os.path.isfile(filepath) or not use_cache:
+        print(f'Downloading file to {filepath}')
+        gdown.download(url, filepath, use_cookies=False)
+    else:
+        print(f'Using cache found in {filepath}')
+    return filepath
 
 
-# mockingjay is the name of entrypoint
-def mockingjay(ckpt=None, **kwargs):
-    """
-    The Mockingjay model
-    ckpt (str): kwargs, path to the pretrained weights of the model,
-                if None is given a default ckpt will be downloaded.
-    Usage:
-        >>> repo = 'andi611/Self-Supervised-Speech-Pretraining-and-Representation-Learning'
-        >>> path2ckpt = 'on-the-fly-melBase960-b12-d01-T-libri.ckpt'
-        >>> model = torch.hub.load(repo, 'mockingjay', ckpt=path2ckpt)
-    """
-
-    if ckpt is None:
-        ckpt_url = 'https://drive.google.com/u/1/uc?id=1MoF_poVUaL3tKe1tbrQuDIbsC38IMpnH'
-        ckpt = f'{torch.hub.get_dir()}/mockingjay.ckpt'
-        gdown.cached_download(ckpt_url, ckpt)
-
-    options['ckpt_file'] = ckpt
-    model = _TRANSFORMER(options, inp_dim=-1)
-    return model
-
-
-# tera is the name of entrypoint
-def tera(ckpt=None, **kwargs):
-    """
-    The TERA model
-    ckpt (str): kwargs, path to the pretrained weights of the model,
-                if None is given a default ckpt will be downloaded.
-    Usage:
-        >>> repo = 'andi611/Self-Supervised-Speech-Pretraining-and-Representation-Learning'
-        >>> path2ckpt = 'on-the-fly-melBase960-b128-d03-T-C-libri.ckpt'
-        >>> model = torch.hub.load(repo, 'mockingjay', ckpt=path2ckpt)
-    """
-
-    if ckpt is None:
-        ckpt_url = 'https://drive.google.com/u/1/uc?id=1A9Fs2k3aekY4_6I2GD4tBtjx_v0mV_k4'
-        ckpt = f'{torch.hub.get_dir()}/tera.ckpt'
-        gdown.cached_download(ckpt_url, ckpt)
-
-    options['ckpt_file'] = ckpt
-    model = _TRANSFORMER(options, inp_dim=-1)
-    return model
-
-
-# audio_albert is the name of entrypoint
-def audio_albert(ckpt=None, **kwargs):
-    """
-    The Audio ALBERT model
-    ckpt (str): kwargs, path to the pretrained weights of the model,
-                if not given a default ckpt will be downloaded.
-    Usage:
-        >>> repo = 'andi611/Self-Supervised-Speech-Pretraining-and-Representation-Learning'
-        >>> path2ckpt = 'todo.ckpt'
-        >>> model = torch.hub.load(repo, 'mockingjay', ckpt=path2ckpt)
-    """
-
-    if ckpt is None:
-        ckpt_url = 'https://drive.google.com/u/1/uc?id=1A9Fs2k3aekY4_6I2GD4tBtjx_v0mV_k4'
-        ckpt = f'{torch.hub.get_dir()}/audio_albert.ckpt'
-        gdown.cached_download(ckpt_url, ckpt)
-
-    options['ckpt_file'] = ckpt
-    model = _TRANSFORMER(options, inp_dim=-1)
-    return model
+for upstream_dir in os.listdir('benchmark/upstream'):
+    hubconf_path = os.path.join('benchmark/upstream', upstream_dir, 'hubconf.py')
+    if os.path.isfile(hubconf_path):
+        module_path = f'benchmark.upstream.{upstream_dir}.hubconf'
+        _module = importlib.import_module(module_path)
+        for variable_name in dir(_module):
+            _variable = getattr(_module, variable_name)
+            if callable(_variable) and variable_name[0] != '_':
+                globals()[variable_name] = _variable
