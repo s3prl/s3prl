@@ -26,7 +26,9 @@ def _gdown(filename, url, refresh):
     return filepath
 
 
-def _url_wrapper(cls, ckpt=None, config=None, refresh=False):
+def _url_wrapper(cls, ckpt=None, config=None, refresh=False, *args, **kwargs):
+    """Preprocess the URL specified in ckpt/config into local file path after downloading"""
+
     def url_to_filename(url):
         assert type(url) is str
         m = hashlib.sha256()
@@ -41,10 +43,12 @@ def _url_wrapper(cls, ckpt=None, config=None, refresh=False):
 
     ckpt = url_to_path(ckpt, refresh)
     config = url_to_path(config, refresh)    
-    return cls(ckpt=ckpt, config=config)
+    return cls(ckpt=ckpt, config=config, *args, **kwargs)
 
 
-def _gdriveid_wrapper(cls, ckpt=None, config=None, refresh=False):
+def _gdriveid_wrapper(cls, ckpt=None, config=None, refresh=False, *args, **kwargs):
+    """Preprocess the Google drive id specified in ckpt/config into local file path after downloading"""
+
     def gdriveid_to_url(gdriveid):
         if type(gdriveid) is str and len(gdriveid) > 0:
             return f'https://drive.google.com/uc?id={gdriveid}'
@@ -53,7 +57,7 @@ def _gdriveid_wrapper(cls, ckpt=None, config=None, refresh=False):
 
     ckpt = gdriveid_to_url(ckpt)
     config = gdriveid_to_url(config)
-    return _url_wrapper(cls, ckpt, config, refresh)
+    return _url_wrapper(cls, ckpt, config, refresh, *args, **kwargs)
 
 
 for upstream_dir in os.listdir('benchmark/upstream'):

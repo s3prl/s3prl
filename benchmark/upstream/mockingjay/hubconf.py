@@ -1,6 +1,6 @@
 import os
 import torch
-from functools import partial, update_wrapper
+from functools import partial as _partial
 
 from hubconf import _url_wrapper, _gdriveid_wrapper
 from .expert import UpstreamExpert as _UpstreamExpert
@@ -18,7 +18,7 @@ def mockingjay(ckpt, *args, **kwargs):
     return upstream
 
 
-mockingjay_url = partial(_url_wrapper, cls=mockingjay)
+mockingjay_url = _partial(_url_wrapper, cls=mockingjay)
 mockingjay_url.__doc__ =\
 f"""
     The {MODEL} model from url
@@ -27,7 +27,7 @@ f"""
 """
 
 
-mockingjay_gdriveid = partial(_gdriveid_wrapper, cls=mockingjay)
+mockingjay_gdriveid = _partial(_gdriveid_wrapper, cls=mockingjay)
 mockingjay_gdriveid.__doc__ =\
 f"""
     The {MODEL} model from google drive id
