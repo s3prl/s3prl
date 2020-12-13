@@ -21,29 +21,37 @@ def get_benchmark_args():
 
     # use a ckpt as the experiment initialization
     # if set, all the following args and config will be overwrited by the ckpt, except args.mode
-    parser.add_argument('-e', '--past_exp')
+    parser.add_argument('-e', '--past_exp', metavar='{CKPT_PATH,CKPT_DIR}', help='Resume training from a checkpoint for evaluate it')
 
     # configuration for the experiment, including runner and downstream
-    parser.add_argument('-c', '--config')
+    parser.add_argument('-c', '--config', help='The yaml file for configuring the whole experiment except the upstream model')
 
     # downstream settings
-    parser.add_argument('-d', '--downstream', choices=os.listdir('benchmark/downstream'))
+    parser.add_argument('-d', '--downstream', choices=os.listdir('benchmark/downstream'), help='\
+        Typically downstream dataset need manual preparation.\
+        Please check benchmark/README.md for details'
+    )
 
     # upstream settings
     upstreams = [attr for attr in dir(hubconf) if callable(getattr(hubconf, attr)) and attr[0] != '_']
-    parser.add_argument('-u', '--upstream', choices=upstreams)
-    parser.add_argument('-k', '--upstream_ckpt')
-    parser.add_argument('-g', '--upstream_config', default='')
-    parser.add_argument('-f', '--upstream_trainable', action='store_true')
+    parser.add_argument('-u', '--upstream', choices=upstreams, help='\
+        Some upstream variants need local ckpt or config file.\
+        Some download needed files on-the-fly and cache them.\
+        Please check benchmark/README.md for details'
+    )
+    parser.add_argument('-r', '--upstream_refresh', action='store_true', help='Re-download cached files for on-the-fly upstream variants')
+    parser.add_argument('-k', '--upstream_ckpt', help='Only set when the specified upstream need it')
+    parser.add_argument('-g', '--upstream_config', default='', help='Only set when the specified upstream need it')
+    parser.add_argument('-f', '--upstream_trainable', action='store_true', help='Fine-tune, set upstream.train(). Default is upstream.eval()')
 
     # experiment directory, choose one to specify
     # expname uses the default root directory: result/benchmark
-    parser.add_argument('-p', '--expdir')
-    parser.add_argument('-n', '--expname')
+    parser.add_argument('-n', '--expname', help='Save experiment at result/benchmark/expname')
+    parser.add_argument('-p', '--expdir', help='Save experiment at expdir')
 
     # options
     parser.add_argument('--seed', default=1337, type=int)
-    parser.add_argument('--device', default='cuda')
+    parser.add_argument('--device', default='cuda', help='model.to(device)')
 
     args = parser.parse_args()
 
