@@ -38,6 +38,9 @@ class Runner():
             self.args.upstream_config
         ).to(self.args.device)
 
+        assert hasattr(upstream, 'forward')
+        assert hasattr(upstream, 'get_output_dim')
+
         init_upstream = self.init_ckpt.get('Upstream')
         if init_upstream:
             print('[Runner] - Loading upstream weights from the previous experiment')
@@ -53,6 +56,12 @@ class Runner():
             self.config['downstream_expert'],
             **vars(self.args)
         ).to(self.args.device)
+
+        assert hasattr(downstream, 'get_train_dataloader')
+        assert hasattr(downstream, 'get_dev_dataloader')
+        assert hasattr(downstream, 'get_test_dataloader')
+        assert hasattr(downstream, 'forward')
+        assert hasattr(downstream, 'log_records')
 
         init_downstream = self.init_ckpt.get('Downstream')
         if init_downstream:
