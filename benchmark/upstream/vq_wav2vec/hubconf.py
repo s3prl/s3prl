@@ -6,7 +6,7 @@ from .expert import UpstreamExpert as _UpstreamExpert
 
 
 def vq_wav2vec(ckpt, config, *args, **kwargs):
-    f"""
+    """
         The model from local ckpt
             ckpt (str): PATH
             config (str): PATH
@@ -17,7 +17,7 @@ def vq_wav2vec(ckpt, config, *args, **kwargs):
 
 
 def vq_wav2vec_url(ckpt, refresh=False, *args, **kwargs):
-    f"""
+    """
         The model from google drive id
             ckpt (str): URL
             config (str): PATH
@@ -27,7 +27,7 @@ def vq_wav2vec_url(ckpt, refresh=False, *args, **kwargs):
 
 
 def vq_wav2vec_default(refresh=False, *args, **kwargs):
-    f"""
+    """
         The default model - Large model with context vector
             config (str): PATH
             refresh (bool): whether to download ckpt/config again if existed
@@ -36,7 +36,7 @@ def vq_wav2vec_default(refresh=False, *args, **kwargs):
 
 
 def vq_wav2vec_gumbel(refresh=False, *args, **kwargs):
-    f"""
+    """
         The Gumbel model
             config (str): PATH
             refresh (bool): whether to download ckpt/config again if existed
@@ -46,7 +46,7 @@ def vq_wav2vec_gumbel(refresh=False, *args, **kwargs):
 
 
 def vq_wav2vec_kmeans(refresh=False, *args, **kwargs):
-    f"""
+    """
         The K-means model
             config (str): PATH
             refresh (bool): whether to download ckpt/config again if existed

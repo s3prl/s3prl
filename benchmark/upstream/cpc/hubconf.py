@@ -6,7 +6,7 @@ from .expert import UpstreamExpert as _UpstreamExpert
 
 
 def cpc(ckpt, *args, **kwargs):
-    f"""
+    """
         The model from local ckpt
             ckpt (str): PATH
     """
@@ -15,7 +15,7 @@ def cpc(ckpt, *args, **kwargs):
 
 
 def cpc_url(ckpt, refresh=False, *args, **kwargs):
-    f"""
+    """
         The model from URL
             ckpt (str): URL
     """
@@ -23,7 +23,7 @@ def cpc_url(ckpt, refresh=False, *args, **kwargs):
 
 
 def cpc_default(refresh=False, *args, **kwargs):
-    f"""
+    """
         The model from official repository
     """
     kwargs['ckpt'] = 'https://dl.fbaipublicfiles.com/librilight/CPC_checkpoints/60k_epoch4-d0f474de.pt'

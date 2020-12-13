@@ -3,7 +3,7 @@ from ..apc.hubconf import apc_gdriveid as vq_apc_gdriveid
 
 
 def vq_apc_default(refresh=False, *args, **kwargs):
-    f"""
+    """
         The default model
             refresh (bool): whether to download ckpt/config again if existed
     """

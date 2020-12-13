@@ -6,7 +6,7 @@ from .expert import UpstreamExpert as _UpstreamExpert
 
 
 def npc(ckpt, *args, **kwargs):
-    f"""
+    """
         The model from local ckpt
             ckpt (str): PATH
     """
@@ -15,7 +15,7 @@ def npc(ckpt, *args, **kwargs):
 
 
 def npc_gdriveid(ckpt, refresh=False, *args, **kwargs):
-    f"""
+    """
         The model from google drive id
             ckpt (str): The unique id in the google drive share link
             refresh (bool): whether to download ckpt/config again if existed
@@ -24,7 +24,7 @@ def npc_gdriveid(ckpt, refresh=False, *args, **kwargs):
 
 
 def npc_default(refresh=False, *args, **kwargs):
-    f"""
+    """
         The default model
             refresh (bool): whether to download ckpt/config again if existed
     """

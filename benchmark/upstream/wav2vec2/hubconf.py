@@ -6,7 +6,7 @@ from .expert import UpstreamExpert as _UpstreamExpert
 
 
 def wav2vec2(ckpt, *args, **kwargs):
-    f"""
+    """
         The model from local ckpt
             ckpt (str): PATH
     """
@@ -15,7 +15,7 @@ def wav2vec2(ckpt, *args, **kwargs):
 
 
 def wav2vec2_url(ckpt, refresh=False, *args, **kwargs):
-    f"""
+    """
         The model from google drive id
             ckpt (str): URL
             refresh (bool): whether to download ckpt/config again if existed
@@ -24,7 +24,7 @@ def wav2vec2_url(ckpt, refresh=False, *args, **kwargs):
 
 
 def wav2vec2_default(refresh=False, *args, **kwargs):
-    f"""
+    """
         The default model - Base
             refresh (bool): whether to download ckpt/config again if existed
     """
@@ -32,7 +32,7 @@ def wav2vec2_default(refresh=False, *args, **kwargs):
 
 
 def wav2vec2_base(refresh=False, *args, **kwargs):
-    f"""
+    """
         The Base model
             refresh (bool): whether to download ckpt/config again if existed
     """
@@ -41,7 +41,7 @@ def wav2vec2_base(refresh=False, *args, **kwargs):
 
 
 def wav2vec2_large(refresh=False, *args, **kwargs):
-    f"""
+    """
         The Large model
             refresh (bool): whether to download ckpt/config again if existed
     """
