@@ -16,10 +16,10 @@ class UpstreamExpert(nn.Module):
     Support: spectrogram, fbank, mfcc
     """
 
-    def __init__(self, ckpt, config_path, **kwargs):
+    def __init__(self, config, **kwargs):
         super(UpstreamExpert, self).__init__()
 
-        with open(config_path, 'r') as file:
+        with open(config, 'r') as file:
             config = yaml.load(file, Loader=yaml.FullLoader)
 
         self.extracter, self.output_dim = get_extracter(config)
