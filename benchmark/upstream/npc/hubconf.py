@@ -1,14 +1,14 @@
 import os
 import torch
 
-from hubconf import _gdown
+from utility.download import _gdriveids_to_filepaths
 from .expert import UpstreamExpert as _UpstreamExpert
 
 
 def npc(ckpt, config, *args, **kwargs):
-    """
-    The Mockingjay model
-        ckpt (str): kwargs, path to the pretrained weights of the model.
+    f"""
+        The model from local ckpt
+            ckpt (str): PATH
     """
     assert os.path.isfile(ckpt)
     assert os.path.isfile(config)
@@ -16,13 +16,21 @@ def npc(ckpt, config, *args, **kwargs):
     return upstream
 
 
+def npc_gdriveid(ckpt, config, refresh=False, *args, **kwargs):
+    f"""
+        The model from google drive id
+            ckpt (str): The unique id in the google drive share link
+            config (str): The unique id in the google drive share link
+            refresh (bool): whether to download ckpt/config again if existed
+    """
+    return npc(*_gdriveids_to_filepaths(ckpt, config, refresh=refresh))
+
+
 def npc_default(refresh=False, *args, **kwargs):
+    f"""
+        The default model
+            refresh (bool): whether to download ckpt/config again if existed
     """
-    The default npc model
-        refresh (bool): whether to download ckpt/config again if existed
-    """
-    ckpt_url = 'https://drive.google.com/uc?id=1oNmdVEcFMtNt4Rrllxs3ulrEk5TJdioW'
-    config_url = 'https://drive.google.com/uc?id=1ZrfpE0K6us_daQeJTwVENGZn8a4MiPaB'
-    ckpt = _gdown('npc_default.ckpt', ckpt_url, refresh)
-    config = _gdown('npc_default.yaml', config_url, refresh)
-    return npc(ckpt, config)
+    ckpt = '1oNmdVEcFMtNt4Rrllxs3ulrEk5TJdioW'
+    config = '1ZrfpE0K6us_daQeJTwVENGZn8a4MiPaB'
+    return npc_gdriveid(ckpt, config, refresh=refresh)
