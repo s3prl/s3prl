@@ -4,33 +4,40 @@ from .expert import UpstreamExpert as _UpstreamExpert
 
 
 def baseline(config, *args, **kwargs):
+    """
+        Baseline feature
+            config: PATH
+    """
     assert os.path.isfile(config)
-    return _UpstreamExpert(config)
+    return _UpstreamExpert(config, *args, **kwargs)
 
 
 def baseline_default(*args, **kwargs):
     """
         Default baseline feature - Fbank, or Mel-scale spectrogram
     """
-    return _UpstreamExpert('benchmark/upstream/baseline/fbank.yaml')
+    return baseline_fbank(*args, **kwargs)
 
 
-def spectrogram(*args, **kwargs):
+def baseline_spectrogram(*args, **kwargs):
     """
         Baseline feature - Linear-scale spectrogram
     """
-    return _UpstreamExpert('benchmark/upstream/baseline/spectrogram.yaml')
+    kwargs['config'] = 'benchmark/upstream/baseline/spectrogram.yaml'
+    return baseline(*args, **kwargs)
 
 
-def fbank(*args, **kwargs):
+def baseline_fbank(*args, **kwargs):
     """
         Baseline feature - Fbank, or Mel-scale spectrogram
     """
-    return _UpstreamExpert('benchmark/upstream/baseline/fbank.yaml')
+    kwargs['config'] = 'benchmark/upstream/baseline/fbank.yaml'
+    return baseline(*args, **kwargs)
 
 
-def mfcc(*args, **kwargs):
+def baseline_mfcc(*args, **kwargs):
     """
         Baseline feature - MFCC
     """
-    return _UpstreamExpert('benchmark/upstream/baseline/mfcc.yaml')
+    kwargs['config'] = 'benchmark/upstream/baseline/mfcc.yaml'
+    return baseline(*args, **kwargs)

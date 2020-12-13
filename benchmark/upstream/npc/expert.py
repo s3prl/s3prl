@@ -19,11 +19,10 @@ class UpstreamExpert(nn.Module):
     The expert of NPC
     """
 
-    def __init__(self, ckpt, config, **kwargs):
+    def __init__(self, ckpt, **kwargs):
         super(UpstreamExpert, self).__init__()
-
-        with open(config, 'r') as file:
-            config = yaml.load(file, Loader=yaml.FullLoader)
+        ckpt = torch.load(ckpt, map_location='cpu')
+        config = ckpt['config']
 
         self.preprocessor, feat_dim = create_transform(config['data']['audio'])
 
@@ -31,7 +30,6 @@ class UpstreamExpert(nn.Module):
         self.model = NPC(feat_dim, **config['model']['paras'])
         
         # load pretrained-weights
-        ckpt = torch.load(ckpt, map_location='cpu')
         self.model.load_state_dict(ckpt['model'])
 
         pseudo_input = torch.randn(1, EXAMPLE_FEAT_SEQLEN, feat_dim)

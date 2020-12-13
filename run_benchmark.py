@@ -1,4 +1,5 @@
 import os
+import re
 import yaml
 import glob
 import torch
@@ -41,7 +42,7 @@ def get_benchmark_args():
     )
     parser.add_argument('-r', '--upstream_refresh', action='store_true', help='Re-download cached files for on-the-fly upstream variants')
     parser.add_argument('-k', '--upstream_ckpt', metavar='{PATH,URL,GOOGLE_DRIVE_ID}', help='Only set when the specified upstream need it')
-    parser.add_argument('-g', '--upstream_config', default='', metavar='{PATH,URL,GOOGLE_DRIVE_ID}', help='Only set when the specified upstream need it')
+    parser.add_argument('-g', '--upstream_config', default='', metavar='PATH', help='Only set when the specified upstream need it')
     parser.add_argument('-f', '--upstream_trainable', action='store_true', help='Fine-tune, set upstream.train(). Default is upstream.eval()')
 
     # experiment directory, choose one to specify
@@ -92,7 +93,9 @@ def get_benchmark_args():
             config = yaml.load(file, Loader=yaml.FullLoader)
         copyfile(args.config, f'{args.expdir}/config.yaml')
         
-        default_upstream_config = f'benchmark/upstream/{args.upstream}/config.yaml'
+        upstream_dirs = [u for u in os.listdir('benchmark/upstream/') if re.search(f'^{u}_|^{u}$', args.upstream)]
+        assert len(upstream_dirs) == 1
+        default_upstream_config = f'benchmark/upstream/{upstream_dirs[0]}/config.yaml'
         if args.upstream_config == '' and os.path.isfile(default_upstream_config):
             args.upstream_config = default_upstream_config
         if os.path.isfile(args.upstream_config):

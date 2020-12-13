@@ -10,4 +10,5 @@ def audio_albert_default(refresh=False, *args, **kwargs):
             refresh (bool): whether to download ckpt/config again if existed
     """
     raise NotImplementedError
-    return audio_albert_gdriveid('TBD', refresh=refresh)
+    kwargs['ckpt'] = 'TBD'
+    return audio_albert_gdriveid(refresh=refresh, *args, **kwargs)

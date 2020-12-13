@@ -5,25 +5,22 @@ from utility.download import _gdriveids_to_filepaths
 from .expert import UpstreamExpert as _UpstreamExpert
 
 
-def npc(ckpt, config, *args, **kwargs):
+def npc(ckpt, *args, **kwargs):
     f"""
         The model from local ckpt
             ckpt (str): PATH
     """
     assert os.path.isfile(ckpt)
-    assert os.path.isfile(config)
-    upstream = _UpstreamExpert(ckpt, config)
-    return upstream
+    return _UpstreamExpert(ckpt, *args, **kwargs)
 
 
-def npc_gdriveid(ckpt, config, refresh=False, *args, **kwargs):
+def npc_gdriveid(ckpt, refresh=False, *args, **kwargs):
     f"""
         The model from google drive id
             ckpt (str): The unique id in the google drive share link
-            config (str): The unique id in the google drive share link
             refresh (bool): whether to download ckpt/config again if existed
     """
-    return npc(*_gdriveids_to_filepaths(ckpt, config, refresh=refresh))
+    return npc(_gdriveids_to_filepaths(ckpt, refresh=refresh), *args, **kwargs)
 
 
 def npc_default(refresh=False, *args, **kwargs):
@@ -31,6 +28,5 @@ def npc_default(refresh=False, *args, **kwargs):
         The default model
             refresh (bool): whether to download ckpt/config again if existed
     """
-    ckpt = '1oNmdVEcFMtNt4Rrllxs3ulrEk5TJdioW'
-    config = '1ZrfpE0K6us_daQeJTwVENGZn8a4MiPaB'
-    return npc_gdriveid(ckpt, config, refresh=refresh)
+    kwargs['ckpt'] = '1YS81RctXE8aR8GVmA0cFjkb_ruCQXYip'
+    return npc_gdriveid(refresh=refresh, *args, **kwargs)

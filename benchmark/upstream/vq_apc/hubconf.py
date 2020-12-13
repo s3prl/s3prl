@@ -7,6 +7,5 @@ def vq_apc_default(refresh=False, *args, **kwargs):
         The default model
             refresh (bool): whether to download ckpt/config again if existed
     """
-    ckpt = '1swpF6nCLU2xVWRmwbt0s2w0BkQ8ys2iy'
-    config = '1aH13mvds_ZERD5pI0NfOTBtFhbKQL_0_'
-    return vq_apc_gdriveid(ckpt, config, refresh=refresh)
+    kwargs['ckpt'] = '1MlrHTKIA1HHs8FPbMN64f0O-7wWMBthF'
+    return vq_apc_gdriveid(refresh=refresh, *args, **kwargs)

@@ -11,7 +11,7 @@ def cpc(ckpt, *args, **kwargs):
             ckpt (str): PATH
     """
     assert os.path.isfile(ckpt)
-    return _UpstreamExpert(ckpt)
+    return _UpstreamExpert(ckpt, *args, **kwargs)
 
 
 def cpc_url(ckpt, refresh=False, *args, **kwargs):
@@ -19,12 +19,12 @@ def cpc_url(ckpt, refresh=False, *args, **kwargs):
         The model from URL
             ckpt (str): URL
     """
-    return cpc(_urls_to_filepaths(ckpt))
+    return cpc(_urls_to_filepaths(ckpt), *args, **kwargs)
 
 
 def cpc_default(refresh=False, *args, **kwargs):
     f"""
         The model from official repository
     """
-    ckpt = 'https://dl.fbaipublicfiles.com/librilight/CPC_checkpoints/60k_epoch4-d0f474de.pt'
-    return cpc_url(ckpt, refresh=refresh)
+    kwargs['ckpt'] = 'https://dl.fbaipublicfiles.com/librilight/CPC_checkpoints/60k_epoch4-d0f474de.pt'
+    return cpc_url(refresh=refresh, *args, **kwargs)

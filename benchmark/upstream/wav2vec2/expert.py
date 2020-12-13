@@ -18,10 +18,10 @@ class UpstreamExpert(nn.Module):
     The expert of Wav2vec 2.0
     """
 
-    def __init__(self, ckpt_path, config_path, **kwargs):
+    def __init__(self, ckpt, **kwargs):
         super(UpstreamExpert, self).__init__()
 
-        model, cfg, task = fairseq.checkpoint_utils.load_model_ensemble_and_task([ckpt_path])
+        model, cfg, task = fairseq.checkpoint_utils.load_model_ensemble_and_task([ckpt])
         self.model = model[0]
 
         pseudo_input = torch.randn(1, SAMPLE_RATE * EXAMPLE_SEC)
