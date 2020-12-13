@@ -18,7 +18,7 @@ class UpstreamExpert(nn.Module):
     Pre-trained weights should be loaded
     """
 
-    def __init__(self, ckpt=None, config=None, **kwargs):
+    def __init__(self, *args, **kwargs):
         super(UpstreamExpert, self).__init__()
         self.output_dim = EXAMPLE_OUTPUT_DIM
         self.melspectrogram = MelSpectrogram(sample_rate=SAMPLE_RATE, n_mels=MEL_SPEC_DIM)
