@@ -40,8 +40,8 @@ def get_benchmark_args():
         Please check benchmark/README.md for details'
     )
     parser.add_argument('-r', '--upstream_refresh', action='store_true', help='Re-download cached files for on-the-fly upstream variants')
-    parser.add_argument('-k', '--upstream_ckpt', help='Only set when the specified upstream need it')
-    parser.add_argument('-g', '--upstream_config', default='', help='Only set when the specified upstream need it')
+    parser.add_argument('-k', '--upstream_ckpt', metavar='{PATH,URL,GOOGLE_DRIVE_ID}', help='Only set when the specified upstream need it')
+    parser.add_argument('-g', '--upstream_config', default='', metavar='{PATH,URL,GOOGLE_DRIVE_ID}', help='Only set when the specified upstream need it')
     parser.add_argument('-f', '--upstream_trainable', action='store_true', help='Fine-tune, set upstream.train(). Default is upstream.eval()')
 
     # experiment directory, choose one to specify
