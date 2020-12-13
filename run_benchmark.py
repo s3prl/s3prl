@@ -9,6 +9,7 @@ import numpy as np
 from shutil import copyfile
 from argparse import Namespace
 
+import hubconf
 from benchmark.runner import Runner
 
 
@@ -29,7 +30,8 @@ def get_benchmark_args():
     parser.add_argument('-d', '--downstream', choices=os.listdir('benchmark/downstream'))
 
     # upstream settings
-    parser.add_argument('-u', '--upstream', choices=os.listdir('benchmark/upstream'))
+    upstreams = [attr for attr in dir(hubconf) if callable(getattr(hubconf, attr)) and attr[0] != '_']
+    parser.add_argument('-u', '--upstream', choices=upstreams)
     parser.add_argument('-k', '--upstream_ckpt')
     parser.add_argument('-g', '--upstream_config', default='')
     parser.add_argument('-f', '--upstream_trainable', action='store_true')

@@ -31,11 +31,10 @@ class Runner():
 
 
     def _get_upstream(self):
-        module_path = f'benchmark.upstream.{self.args.upstream}.expert'
-        Upstream = getattr(importlib.import_module(module_path), 'UpstreamExpert')
+        Upstream = getattr(importlib.import_module('hubconf'), self.args.upstream)
         upstream = Upstream(
-            self.args.upstream_ckpt,
-            self.args.upstream_config
+            ckpt = self.args.upstream_ckpt,
+            config = self.args.upstream_config,
         ).to(self.args.device)
 
         assert hasattr(upstream, 'forward')
