@@ -18,7 +18,7 @@ def vq_apc(ckpt, config, *args, **kwargs):
 
 def vq_apc_default(refresh=False, *args, **kwargs):
     """
-    The default apc model
+    The default vq_apc model
         refresh (bool): whether to download ckpt/config again if existed
     """
     ckpt_url = 'https://drive.google.com/uc?id=1swpF6nCLU2xVWRmwbt0s2w0BkQ8ys2iy'
