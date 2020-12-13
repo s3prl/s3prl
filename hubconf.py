@@ -9,7 +9,6 @@
 import os
 import hashlib
 import importlib
-from functools import partial
 
 import torch
 import gdown
@@ -26,13 +25,21 @@ def _gdown(filename, url, refresh):
     return filepath
 
 
-def _url_wrapper(cls, ckpt=None, config=None, refresh=False, *args, **kwargs):
-    """Preprocess the URL specified in ckpt/config into local file path after downloading"""
+def _url_preprocessor(*args, refresh=False):
+    """
+    Preprocess the URL specified in *args into local file paths after downloading
+    
+    Args:
+        Any number of URLs (1 ~ any)
+    
+    Return:
+        Same number of downloaded file paths
+    """
 
     def url_to_filename(url):
         assert type(url) is str
         m = hashlib.sha256()
-        m.update(str.encode(ckpt))
+        m.update(str.encode(url))
         return str(m.hexdigest())
 
     def url_to_path(url, refresh):
@@ -41,13 +48,20 @@ def _url_wrapper(cls, ckpt=None, config=None, refresh=False, *args, **kwargs):
         else:
             return None
 
-    ckpt = url_to_path(ckpt, refresh)
-    config = url_to_path(config, refresh)    
-    return cls(ckpt=ckpt, config=config, *args, **kwargs)
+    paths = [url_to_path(url, refresh) for url in args]
+    return paths if len(paths) > 1 else paths[0]
 
 
-def _gdriveid_wrapper(cls, ckpt=None, config=None, refresh=False, *args, **kwargs):
-    """Preprocess the Google drive id specified in ckpt/config into local file path after downloading"""
+def _gdriveid_preprocessor(*args, refresh=False):
+    """
+    Preprocess the Google Drive id specified in *args into local file paths after downloading
+    
+    Args:
+        Any number of Google Drive ids (1 ~ any)
+    
+    Return:
+        Same number of downloaded file paths
+    """
 
     def gdriveid_to_url(gdriveid):
         if type(gdriveid) is str and len(gdriveid) > 0:
@@ -55,9 +69,7 @@ def _gdriveid_wrapper(cls, ckpt=None, config=None, refresh=False, *args, **kwarg
         else:
             return None
 
-    ckpt = gdriveid_to_url(ckpt)
-    config = gdriveid_to_url(config)
-    return _url_wrapper(cls, ckpt, config, refresh, *args, **kwargs)
+    return _url_preprocessor(*[gdriveid_to_url(gid) for gid in args], refresh=refresh)
 
 
 for upstream_dir in os.listdir('benchmark/upstream'):

@@ -1,8 +1,7 @@
 import os
 import torch
-from functools import partial as _partial
 
-from hubconf import _url_wrapper, _gdriveid_wrapper
+from hubconf import _url_preprocessor, _gdriveid_preprocessor
 from .expert import UpstreamExpert as _UpstreamExpert
 
 MODEL = 'Mockingjay'
@@ -18,22 +17,22 @@ def mockingjay(ckpt, *args, **kwargs):
     return upstream
 
 
-mockingjay_url = _partial(_url_wrapper, cls=mockingjay)
-mockingjay_url.__doc__ =\
-f"""
-    The {MODEL} model from url
-        ckpt (str): URL
-        refresh (bool): whether to download ckpt/config again if existed
-"""
+def mockingjay_url(ckpt, refresh=False, *args, **kwargs):
+    f"""
+        The {MODEL} model from url
+            ckpt (str): URL
+            refresh (bool): whether to download ckpt/config again if existed
+    """
+    return mockingjay(_url_preprocessor(ckpt, refresh=refresh))
 
 
-mockingjay_gdriveid = _partial(_gdriveid_wrapper, cls=mockingjay)
-mockingjay_gdriveid.__doc__ =\
-f"""
-    The {MODEL} model from google drive id
-        ckpt (str): The unique id in the google drive share link
-        refresh (bool): whether to download ckpt/config again if existed
-"""
+def mockingjay_gdriveid(ckpt, refresh=False, *args, **kwargs):
+    f"""
+        The {MODEL} model from google drive id
+            ckpt (str): The unique id in the google drive share link
+            refresh (bool): whether to download ckpt/config again if existed
+    """
+    return mockingjay(_gdriveid_preprocessor(ckpt, refresh=refresh))
 
 
 def mockingjay_default(refresh=False, *args, **kwargs):
@@ -41,4 +40,4 @@ def mockingjay_default(refresh=False, *args, **kwargs):
         The default {MODEL} model
             refresh (bool): whether to download ckpt/config again if existed
     """
-    return mockingjay_gdriveid(ckpt='1MoF_poVUaL3tKe1tbrQuDIbsC38IMpnH', refresh=refresh)
+    return mockingjay_gdriveid('1MoF_poVUaL3tKe1tbrQuDIbsC38IMpnH', refresh=refresh)
