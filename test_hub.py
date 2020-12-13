@@ -1,10 +1,14 @@
 import argparse
 import torch
 
+import hubconf
+
+
 parser = argparse.ArgumentParser()
-parser.add_argument('--model', default='mockingjay_default', help='The model variant')
-parser.add_argument('--force_reload', action='store_true', help='Whether to re-download contents')
+upstreams = [attr for attr in dir(hubconf) if callable(getattr(hubconf, attr)) and attr[0] != '_']
+parser.add_argument('--upstream', choices=upstreams, required=True)
+parser.add_argument('--refresh', action='store_true', help='Whether to re-download upstream contents')
 args = parser.parse_args()
 
-REPO = 'andi611/Self-Supervised-Speech-Pretraining-and-Representation-Learning:hub'
-model = torch.hub.load(REPO, args.model, force_reload=args.force_reload, use_cache=not args.force_reload)
+REPO = 'andi611/Self-Supervised-Speech-Pretraining-and-Representation-Learning:benchmark'
+model = torch.hub.load(REPO, args.upstream, force_reload=args.refresh, refresh=args.refresh)
