@@ -8,6 +8,13 @@ def baseline(config, *args, **kwargs):
     return _UpstreamExpert(config)
 
 
+def baseline_default(*args, **kwargs):
+    """
+        Default baseline feature - Fbank, or Mel-scale spectrogram
+    """
+    return _UpstreamExpert('benchmark/upstream/baseline/fbank.yaml')
+
+
 def spectrogram(*args, **kwargs):
     """
         Baseline feature - Linear-scale spectrogram
