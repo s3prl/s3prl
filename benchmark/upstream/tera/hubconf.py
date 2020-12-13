@@ -15,11 +15,11 @@ def tera(ckpt, *args, **kwargs):
     return upstream
 
 
-def tera_default(use_cache=True, *args, **kwargs):
+def tera_default(refresh=False, *args, **kwargs):
     """
     The TERA model from https://drive.google.com/u/1/uc?id=1A9Fs2k3aekY4_6I2GD4tBtjx_v0mV_k4
-        use_cache (bool): whether to download ckpt/config again if existed
+        refresh (bool): whether to download ckpt/config again if existed
     """
     url = 'https://drive.google.com/u/1/uc?id=1A9Fs2k3aekY4_6I2GD4tBtjx_v0mV_k4'
-    ckpt = _gdown('tera_default.ckpt', url, use_cache)
+    ckpt = _gdown('tera_default.ckpt', url, refresh)
     return tera(ckpt)

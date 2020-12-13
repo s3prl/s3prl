@@ -14,9 +14,9 @@ import gdown
 dependencies = ['torch', 'gdown']
 
 
-def _gdown(filename, url, use_cache):
+def _gdown(filename, url, refresh):
     filepath = f'{torch.hub.get_dir()}/{filename}'
-    if not os.path.isfile(filepath) or not use_cache:
+    if not os.path.isfile(filepath) or refresh:
         print(f'Downloading file to {filepath}')
         gdown.download(url, filepath, use_cookies=False)
     else:

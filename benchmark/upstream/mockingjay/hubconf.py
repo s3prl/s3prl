@@ -15,11 +15,11 @@ def mockingjay(ckpt, *args, **kwargs):
     return upstream
 
 
-def mockingjay_default(use_cache=True, *args, **kwargs):
+def mockingjay_default(refresh=False, *args, **kwargs):
     """
     The Mockingjay model from https://drive.google.com/u/1/uc?id=1MoF_poVUaL3tKe1tbrQuDIbsC38IMpnH
-        use_cache (bool): whether to download ckpt/config again if existed
+        refresh (bool): whether to download ckpt/config again if existed
     """
     url = 'https://drive.google.com/u/1/uc?id=1MoF_poVUaL3tKe1tbrQuDIbsC38IMpnH'
-    ckpt = _gdown('mockingjay_default.ckpt', url, use_cache)
+    ckpt = _gdown('mockingjay_default.ckpt', url, refresh)
     return mockingjay(ckpt)
