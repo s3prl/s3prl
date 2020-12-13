@@ -25,7 +25,7 @@ def _gdown(filename, url, refresh):
     return filepath
 
 
-def _url_preprocessor(*args, refresh=False):
+def _urls_to_filepaths(*args, refresh=False):
     """
     Preprocess the URL specified in *args into local file paths after downloading
     
@@ -52,7 +52,7 @@ def _url_preprocessor(*args, refresh=False):
     return paths if len(paths) > 1 else paths[0]
 
 
-def _gdriveid_preprocessor(*args, refresh=False):
+def _gdriveids_to_filepaths(*args, refresh=False):
     """
     Preprocess the Google Drive id specified in *args into local file paths after downloading
     
@@ -69,7 +69,7 @@ def _gdriveid_preprocessor(*args, refresh=False):
         else:
             return None
 
-    return _url_preprocessor(*[gdriveid_to_url(gid) for gid in args], refresh=refresh)
+    return _urls_to_filepaths(*[gdriveid_to_url(gid) for gid in args], refresh=refresh)
 
 
 for upstream_dir in os.listdir('benchmark/upstream'):
