@@ -19,10 +19,10 @@ class UpstreamExpert(nn.Module):
     The expert of APC
     """
 
-    def __init__(self, ckpt, config_path, **kwargs):
+    def __init__(self, ckpt, config, **kwargs):
         super(UpstreamExpert, self).__init__()
 
-        with open(config_path, 'r') as file:
+        with open(config, 'r') as file:
             config = yaml.load(file, Loader=yaml.FullLoader)
 
         self.preprocessor, feat_dim = create_transform(config['data']['audio'])
