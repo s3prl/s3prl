@@ -18,14 +18,14 @@ class UpstreamExpert(nn.Module):
     The expert of vq-Wav2vec
     """
 
-    def __init__(self, ckpt_path, config_path, **kwargs):
+    def __init__(self, ckpt, config, **kwargs):
         super(UpstreamExpert, self).__init__()
 
-        with open(config_path, 'r') as file:
+        with open(config, 'r') as file:
             self.config = yaml.load(file, Loader=yaml.FullLoader)
         self.feature_selection = self.config['feature_selection']
 
-        cp = torch.load(ckpt_path)
+        cp = torch.load(ckpt)
         self.model = Wav2VecModel.build_model(cp['args'], task=None)
         self.model.load_state_dict(cp['model'])
 

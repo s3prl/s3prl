@@ -24,7 +24,7 @@ class UpstreamExpert(nn.Module):
     The Mockingjay wrapper
     """
 
-    def __init__(self, ckpt, config, **kwargs):
+    def __init__(self, ckpt, config=None, **kwargs):
         super(UpstreamExpert, self).__init__() 
         options = {'ckpt_file'     : ckpt,
                    'load_pretrain' : 'True',

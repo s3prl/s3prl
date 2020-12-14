@@ -31,12 +31,15 @@ class Runner():
 
 
     def _get_upstream(self):
-        module_path = f'benchmark.upstream.{self.args.upstream}.expert'
-        Upstream = getattr(importlib.import_module(module_path), 'UpstreamExpert')
+        Upstream = getattr(importlib.import_module('hubconf'), self.args.upstream)
         upstream = Upstream(
-            self.args.upstream_ckpt,
-            self.args.upstream_config
+            refresh = self.args.upstream_refresh,
+            ckpt = self.args.upstream_ckpt,
+            config = self.args.upstream_config,
         ).to(self.args.device)
+
+        assert hasattr(upstream, 'forward')
+        assert hasattr(upstream, 'get_output_dim')
 
         init_upstream = self.init_ckpt.get('Upstream')
         if init_upstream:
@@ -53,6 +56,12 @@ class Runner():
             self.config['downstream_expert'],
             **vars(self.args)
         ).to(self.args.device)
+
+        assert hasattr(downstream, 'get_train_dataloader')
+        assert hasattr(downstream, 'get_dev_dataloader')
+        assert hasattr(downstream, 'get_test_dataloader')
+        assert hasattr(downstream, 'forward')
+        assert hasattr(downstream, 'log_records')
 
         init_downstream = self.init_ckpt.get('Downstream')
         if init_downstream:
@@ -111,7 +120,7 @@ class Runner():
         pbar = tqdm(total=self.config['runner']['total_steps'], desc='overall')
         init_step = self.init_ckpt.get('Step')
         if init_step:
-            pbar.n = init_step + 1
+            pbar.n = init_step
 
         # prepare data
         dataloader = self.downstream.get_train_dataloader()
@@ -226,7 +235,7 @@ class Runner():
                                 os.remove(ckpt_pth)
 
                     check_ckpt_num(self.args.expdir)
-                    torch.save(all_states, f'{self.args.expdir}/states-{pbar.n+1}.ckpt')
+                    torch.save(all_states, f'{self.args.expdir}/states-{pbar.n + 1}.ckpt')
 
                 pbar.update(1)
 

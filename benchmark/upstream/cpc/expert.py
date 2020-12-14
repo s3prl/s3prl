@@ -3,10 +3,15 @@ import math
 import yaml
 import torch
 import random
+import argparse
 
 import torch
 import torch.nn as nn
 from torch.nn.utils.rnn import pad_sequence
+
+from .model import CPCModel as cpcmodel
+from .cpc_default_config import get_default_cpc_config
+from .feature_loader import getEncoder, getAR, loadArgs
 
 SAMPLE_RATE = 16000
 EXAMPLE_SEC = 3
@@ -18,10 +23,17 @@ class UpstreamExpert(nn.Module):
     The expert of CPC
     """
 
-    def __init__(self, ckpt, config_path, **kwargs):
+    def __init__(self, ckpt, **kwargs):
         super(UpstreamExpert, self).__init__()
 
-        self.model = torch.hub.load('facebookresearch/CPC_audio', 'CPC_audio', pretrained=True)
+        locArgs = get_default_cpc_config()
+        checkpoint = torch.load(ckpt, map_location='cpu')
+        loadArgs(locArgs, argparse.Namespace(**checkpoint["config"]))
+
+        encoderNet = getEncoder(locArgs)
+        arNet = getAR(locArgs)
+        self.model = cpcmodel(encoderNet, arNet)
+        self.model.load_state_dict(checkpoint["weights"], strict=False)
 
         pseudo_input = torch.randn(EXAMPLE_BATCH_SIZE, SAMPLE_RATE * EXAMPLE_SEC)
         pseudo_output = self.model(pseudo_input.unsqueeze(1), None)[0]

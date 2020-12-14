@@ -10,4 +10,4 @@
 ###############
 # IMPORTATION #
 ###############
-from benchmark.upstream.mockingjay.expert import UpstreamExpert
+from ..mockingjay.expert import UpstreamExpert
