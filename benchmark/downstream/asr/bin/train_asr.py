@@ -202,7 +202,7 @@ class Solver(BaseSolver):
                 self.step+=1
                 
                 # Logger
-                if (self.step==1) or (self.step%self.PROGRESS_STEP==0):
+                if self.step % self.PROGRESS_STEP == 0:
                     self.progress('Tr stat | Loss - {:.2f} | Grad. Norm - {:.2f} | {}'\
                             .format(total_loss.cpu().item(),grad_norm,self.timer.show()))
                     self.write_log('emb_loss',{'tr':emb_loss})
@@ -226,7 +226,7 @@ class Solver(BaseSolver):
                         self.write_log('fuse_temp',{'temp':self.emb_decoder.get_temp()})
 
                 # Validation
-                if (self.step==1) or (self.step%self.valid_step == 0):
+                if self.step % self.valid_step == 0:
                     if type(self.dv_set) is list:
                         for dv_id in range(len(self.dv_set)):
                             self.validate(self.dv_set[dv_id], self.dv_names[dv_id])
