@@ -39,20 +39,6 @@ class BaseSolver(nn.Module):
         # Plugin list
         self.emb_decoder = None
 
-        self.transfer_learning = False
-        # Transfer Learning
-        if (self.config.get('transfer', None) is not None) and mode == 'train':
-            self.transfer_learning = True
-            self.train_enc = self.config['transfer']['train_enc']
-            self.train_dec = self.config['transfer']['train_dec']
-            self.fix_enc   = [i for i in range(4) if i not in self.config['transfer']['train_enc'] ]
-            self.fix_dec   = not self.config['transfer']['train_dec']
-            log_name = '_T_{}_{}'.format(''.join([str(l) for l in self.train_enc]), '1' if self.train_dec else '0')
-            self.save_name = '_tune-{}-{}'.format(''.join([str(l) for l in self.train_enc]), '1' if self.train_dec else '0')
-            
-            if self.paras.seed > 0:
-                self.save_name += '-sd' + str(self.paras.seed)
-            
         if mode == 'train':
             # Filepath setup
             os.makedirs(paras.ckpdir, exist_ok=True)
@@ -60,7 +46,7 @@ class BaseSolver(nn.Module):
             os.makedirs(self.ckpdir, exist_ok=True)
 
             # Logger settings
-            self.logdir = os.path.join(paras.logdir,self.exp_name + (log_name if self.transfer_learning else ''))
+            self.logdir = os.path.join(paras.logdir,self.exp_name)
             self.log = SummaryWriter(self.logdir, flush_secs = self.TB_FLUSH_FREQ)
             self.timer = Timer()
 
@@ -124,8 +110,7 @@ class BaseSolver(nn.Module):
             ### resume training
             if self.mode == 'train':
                 self.step = ckpt['global_step']
-                if self.transfer_learning == False:
-                    self.optimizer.load_opt_state_dict(ckpt['optimizer'])
+                self.optimizer.load_opt_state_dict(ckpt['optimizer'])
                 self.verbose('Load ckpt from {}, restarting at step {}'.format(self.paras.load,self.step))
             else:
                 for k,v in ckpt.items():

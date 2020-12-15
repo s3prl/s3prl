@@ -98,25 +98,12 @@ class Solver(BaseSolver):
         # Enable AMP if needed
         self.enable_apex()
         
-        # Transfer Learning
-        if self.transfer_learning:
-            self.verbose('Apply transfer learning: ')
-            self.verbose('      Train encoder layers: {}'.format(self.train_enc))
-            self.verbose('      Train decoder:        {}'.format(self.train_dec))
-            self.verbose('      Save name:            {}'.format(self.save_name))
-        
         # Automatically load pre-trained model if self.paras.load is given
         self.load_ckpt()
 
     def exec(self):
         ''' Training End-to-end ASR system '''
         self.verbose('Total training steps {}.'.format(human_format(self.max_step)))
-        if self.transfer_learning:
-            self.model.encoder.fix_layers(self.fix_enc)
-            if self.fix_dec and self.model.enable_att:
-                self.model.decoder.fix_layers()
-            if self.fix_dec and self.model.enable_ctc:
-                self.model.fix_ctc_layer()
         
         self.n_epochs = 0
         self.timer.set()
@@ -309,23 +296,15 @@ class Solver(BaseSolver):
             dev_cer[task] = sum(dev_cer[task])/len(dev_cer[task])
             if dev_er[task] < self.best_wer[task][_name]:
                 self.best_wer[task][_name] = dev_er[task]
-                self.save_checkpoint('best_{}_{}.pth'.format(task, _name + (self.save_name if self.transfer_learning else '')), 
+                self.save_checkpoint('best_{}_{}.pth'.format(task, _name), 
                                     self.val_mode,dev_er[task],_name)
             if self.step >= self.max_step:
-                self.save_checkpoint('last_{}_{}.pth'.format(task, _name + (self.save_name if self.transfer_learning else '')), 
+                self.save_checkpoint('last_{}_{}.pth'.format(task, _name), 
                                     self.val_mode,dev_er[task],_name)
             self.write_log(self.WER,{'dv_'+task+'_'+_name.lower():dev_wer[task]})
             self.write_log(   'cer',{'dv_'+task+'_'+_name.lower():dev_cer[task]})
-            # if self.transfer_learning:
-            #     print('[{}] WER {:.4f} / CER {:.4f} on {}'.format(human_format(self.step), dev_wer[task], dev_cer[task], _name))
 
         # Resume training
         self.model.train()
-        if self.transfer_learning:
-            self.model.encoder.fix_layers(self.fix_enc)
-            if self.fix_dec and self.model.enable_att:
-                self.model.decoder.fix_layers()
-            if self.fix_dec and self.model.enable_ctc:
-                self.model.fix_ctc_layer()
         
         if self.emb_decoder is not None: self.emb_decoder.train()
