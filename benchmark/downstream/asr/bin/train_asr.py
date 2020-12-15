@@ -99,6 +99,48 @@ class Solver(BaseSolver):
         # Automatically load pre-trained model if self.paras.load is given
         self.load_ckpt()
 
+    def forward(self, feat, txt, global_step):
+        feat = pad_sequence(feat, batch_first=True)
+        feat_len = torch.LongTensor([len(f) for f in feat]).to(feat.device)
+        txt = txt.to(feat.device)
+        txt_len = torch.sum(txt!=0,dim=-1)
+        self.timer.cnt('rd')
+
+        # Pre-step : update tf_rate/lr_rate and do zero_grad
+        tf_rate = self.tf_rate(global_step)
+        self.optimizer.pre_step(global_step)
+
+        # Forward model
+        # Note: txt should NOT start w/ <sos>
+        ctc_output, encode_len, att_output, _, _ = \
+            self.model(feat, feat_len, max(txt_len), tf_rate=tf_rate,
+                       teacher=txt, get_dec_state=False)
+
+        # Compute all objectives
+        total_loss = 0
+        if ctc_output is not None:
+            if self.paras.cudnn_ctc:
+                ctc_loss = self.ctc_loss(ctc_output.transpose(0,1), 
+                                         txt.to_sparse().values().to(device='cpu',dtype=torch.int32),
+                                         [ctc_output.shape[1]]*len(ctc_output),
+                                         #[int(encode_len.max()) for _ in encode_len],
+                                         txt_len.cpu().tolist())
+            else:
+                ctc_loss = self.ctc_loss(ctc_output.transpose(0,1), txt, encode_len, txt_len)
+            total_loss += ctc_loss*self.model.ctc_weight
+            del encode_len
+
+        if att_output is not None:
+            #print(att_output.shape)
+            b,t,_ = att_output.shape
+            att_loss = self.seq_loss(att_output.view(b*t,-1),txt.view(-1))
+            # Sum each uttr and devide by length then mean over batch
+            # att_loss = torch.mean(torch.sum(att_loss.view(b,t),dim=-1)/torch.sum(txt!=0,dim=-1).float())
+            total_loss += att_loss*(1-self.model.ctc_weight)
+        
+        self.timer.cnt('fw')
+        return total_loss
+
     def exec(self):
         ''' Training End-to-end ASR system '''
         self.verbose('Total training steps {}.'.format(human_format(self.max_step)))
@@ -116,46 +158,12 @@ class Solver(BaseSolver):
             # Renew dataloader to enable random sampling 
             
             for data in self.tr_set:
-                # Pre-step : update tf_rate/lr_rate and do zero_grad
-                tf_rate = self.tf_rate(self.step)
-                self.optimizer.pre_step(self.step)
-                total_loss = 0
                 
                 # Fetch data
-                feat, feat_len, txt, txt_len = self.fetch_data(data, train=True)
-            
-                self.timer.cnt('rd')
-                # Forward model
-                # Note: txt should NOT start w/ <sos>
-                ctc_output, encode_len, att_output, _, _ = \
-                    self.model(feat, feat_len, max(txt_len), tf_rate=tf_rate,
-                               teacher=txt, get_dec_state=False)
+                _, feat, feat_len, txt = data
+                feat = [f[:l].to(self.device) for f, l in zip(feat, feat_len)]
 
-                #print(ctc_output.shape)
-                # Compute all objectives
-                if ctc_output is not None:
-                    if self.paras.cudnn_ctc:
-                        ctc_loss = self.ctc_loss(ctc_output.transpose(0,1), 
-                                                 txt.to_sparse().values().to(device='cpu',dtype=torch.int32),
-                                                 [ctc_output.shape[1]]*len(ctc_output),
-                                                 #[int(encode_len.max()) for _ in encode_len],
-                                                 txt_len.cpu().tolist())
-                    else:
-                        ctc_loss = self.ctc_loss(ctc_output.transpose(0,1), txt, encode_len, txt_len)
-                    total_loss += ctc_loss*self.model.ctc_weight
-                    del encode_len
-
-                if att_output is not None:
-                    #print(att_output.shape)
-                    b,t,_ = att_output.shape
-                    att_loss = self.seq_loss(att_output.view(b*t,-1),txt.view(-1))
-                    # Sum each uttr and devide by length then mean over batch
-                    # att_loss = torch.mean(torch.sum(att_loss.view(b,t),dim=-1)/torch.sum(txt!=0,dim=-1).float())
-                    total_loss += att_loss*(1-self.model.ctc_weight)
-
-                self.timer.cnt('fw')
-
-                # Backprop
+                total_loss = self.forward(feat, txt, self.step)
                 grad_norm = self.backward(total_loss)             
 
                 self.step+=1
