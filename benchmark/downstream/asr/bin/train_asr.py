@@ -1,5 +1,6 @@
-import yaml
+from collections import defaultdict
 
+import yaml
 import torch
 import torch.nn as nn
 from torch.nn.utils.rnn import pad_sequence
@@ -99,13 +100,8 @@ class Solver(BaseSolver):
         # Automatically load pre-trained model if self.paras.load is given
         self.load_ckpt()
 
-    def forward(self, feat, txt, global_step):
-        feat = pad_sequence(feat, batch_first=True)
-        feat_len = torch.LongTensor([len(f) for f in feat]).to(feat.device)
-        txt = txt.to(feat.device)
-        txt_len = torch.sum(txt!=0,dim=-1)
-        self.timer.cnt('rd')
 
+    def _forward_train(self, feat, feat_len, txt, txt_len, global_step):
         # Pre-step : update tf_rate/lr_rate and do zero_grad
         tf_rate = self.tf_rate(global_step)
         self.optimizer.pre_step(global_step)
@@ -141,6 +137,50 @@ class Solver(BaseSolver):
         self.timer.cnt('fw')
         return total_loss
 
+
+    def _forward_validate(self, feat, feat_len, txt, txt_len, global_step, records):
+        # Forward model
+        with torch.no_grad():
+            ctc_output, encode_len, att_output, att_align, dec_state = \
+                self.model(feat, feat_len, int(max(txt_len)*self.DEV_STEP_RATIO))
+
+        if att_output is not None:
+            records['att_wer'].append(cal_er(self.tokenizer,att_output,txt,mode='wer'))
+            records['att_cer'].append(cal_er(self.tokenizer,att_output,txt,mode='cer'))
+            records['att_er'].append(cal_er(self.tokenizer,att_output,txt,mode=self.val_mode))
+        if ctc_output is not None:
+            records['ctc_wer'].append(cal_er(self.tokenizer,ctc_output,txt,mode='wer',ctc=True))
+            records['ctc_cer'].append(cal_er(self.tokenizer,ctc_output,txt,mode='cer',ctc=True))
+            records['ctc_er'].append(cal_er(self.tokenizer,ctc_output,txt,mode=self.val_mode,ctc=True))
+        
+        # TODO
+        # Show some example on tensorboard
+        # if i == len(_dv_set)//2:
+        #     for i in range(min(len(txt),self.DEV_N_EXAMPLE)):
+        #         if self.step==1:
+        #             self.write_log('true_text_{}_{}'.format(_name, i),self.tokenizer.decode(txt[i].tolist()))
+        #         if att_output is not None:
+        #             self.write_log('att_align_{}_{}'.format(_name, i),feat_to_fig(att_align[i,0,:,:].cpu().detach()))
+        #             self.write_log('att_text_{}_{}'.format(_name, i),self.tokenizer.decode(att_output[i].argmax(dim=-1).tolist()))
+        #         if ctc_output is not None:
+        #             self.write_log('ctc_text_{}_{}'.format(_name, i),self.tokenizer.decode(ctc_output[i].argmax(dim=-1).tolist(),
+        #                                                                                             ignore_repeat=True))
+        return 0
+
+
+    def forward(self, feat, txt, **kwargs):
+        feat = pad_sequence(feat, batch_first=True)
+        feat_len = torch.LongTensor([len(f) for f in feat]).to(feat.device)
+        txt = txt.to(feat.device)
+        txt_len = torch.sum(txt!=0,dim=-1)
+        self.timer.cnt('rd')
+
+        if self.training:
+            return self._forward_train(feat, feat_len, txt, txt_len, **kwargs)
+        else:
+            return self._forward_validate(feat, feat_len, txt, txt_len, **kwargs)
+
+
     def exec(self):
         ''' Training End-to-end ASR system '''
         self.verbose('Total training steps {}.'.format(human_format(self.max_step)))
@@ -163,8 +203,8 @@ class Solver(BaseSolver):
                 _, feat, feat_len, txt = data
                 feat = [f[:l].to(self.device) for f, l in zip(feat, feat_len)]
 
-                total_loss = self.forward(feat, txt, self.step)
-                grad_norm = self.backward(total_loss)             
+                total_loss = self.forward(feat, txt, global_step=self.step)
+                grad_norm = self.backward(total_loss)
 
                 self.step+=1
                 
@@ -228,64 +268,47 @@ class Solver(BaseSolver):
         print('[INFO] Finished training after', human_format(self.max_step), 'steps.')
         
     def validate(self, _dv_set, _name):
-        # Eval mode
-        self.model.eval()
-        dev_wer = {'att':[],'ctc':[]}
-        dev_cer = {'att':[],'ctc':[]}
-        dev_er  = {'att':[],'ctc':[]}
+        print(f'Evaluating {_name} set.')
 
+        # Eval mode
+        self.eval()
+        self.model.eval()
+
+        records = defaultdict(list)
         for i,data in enumerate(_dv_set):
             self.progress('Valid step - {}/{}'.format(i+1,len(_dv_set)))
             # Fetch data
-            feat, feat_len, txt, txt_len = self.fetch_data(data)
+            _, feat, feat_len, txt = data
+            feat = [f[:l].to(self.device) for f, l in zip(feat, feat_len)]
 
-            # Forward model
-            with torch.no_grad():
-                ctc_output, encode_len, att_output, att_align, dec_state = \
-                    self.model(feat, feat_len, int(max(txt_len)*self.DEV_STEP_RATIO))
+            # Forward
+            self.forward(feat, txt, global_step=self.step, records=records)
 
-            if att_output is not None:
-                dev_wer['att'].append(cal_er(self.tokenizer,att_output,txt,mode='wer'))
-                dev_cer['att'].append(cal_er(self.tokenizer,att_output,txt,mode='cer'))
-                dev_er['att'].append(cal_er(self.tokenizer,att_output,txt,mode=self.val_mode))
-            if ctc_output is not None:
-                dev_wer['ctc'].append(cal_er(self.tokenizer,ctc_output,txt,mode='wer',ctc=True))
-                dev_cer['ctc'].append(cal_er(self.tokenizer,ctc_output,txt,mode='cer',ctc=True))
-                dev_er['ctc'].append(cal_er(self.tokenizer,ctc_output,txt,mode=self.val_mode,ctc=True))
-            
-            # Show some example on tensorboard
-            if i == len(_dv_set)//2:
-                for i in range(min(len(txt),self.DEV_N_EXAMPLE)):
-                    if self.step==1:
-                        self.write_log('true_text_{}_{}'.format(_name, i),self.tokenizer.decode(txt[i].tolist()))
-                    if att_output is not None:
-                        self.write_log('att_align_{}_{}'.format(_name, i),feat_to_fig(att_align[i,0,:,:].cpu().detach()))
-                        self.write_log('att_text_{}_{}'.format(_name, i),self.tokenizer.decode(att_output[i].argmax(dim=-1).tolist()))
-                    if ctc_output is not None:
-                        self.write_log('ctc_text_{}_{}'.format(_name, i),self.tokenizer.decode(ctc_output[i].argmax(dim=-1).tolist(),
-                                                                                                       ignore_repeat=True))
-        
         # Ckpt if performance improves
         tasks = []
-        if len(dev_er['att']) > 0:
+        if len(records['att_er']) > 0:
             tasks.append('att')
-        if len(dev_er['ctc']) > 0:
+        if len(records['ctc_er']) > 0:
             tasks.append('ctc')
 
         for task in tasks:
-            dev_er[task] = sum(dev_er[task])/len(dev_er[task])
-            dev_wer[task] = sum(dev_wer[task])/len(dev_wer[task])
-            dev_cer[task] = sum(dev_cer[task])/len(dev_cer[task])
-            if dev_er[task] < self.best_wer[task][_name]:
-                self.best_wer[task][_name] = dev_er[task]
+            def get_average(numbers):
+                return torch.FloatTensor(numbers).mean().item()
+
+            avg_er = get_average(records[f'{task}_er'])
+            avg_wer = get_average(records[f'{task}_wer'])
+            avg_cer = get_average(records[f'{task}_cer'])
+
+            if avg_er < self.best_wer[task][_name]:
+                self.best_wer[task][_name] = avg_er
                 self.save_checkpoint('best_{}_{}.pth'.format(task, _name), 
-                                    self.val_mode,dev_er[task],_name)
+                                    self.val_mode,avg_er,_name)
             if self.step >= self.max_step:
                 self.save_checkpoint('last_{}_{}.pth'.format(task, _name), 
-                                    self.val_mode,dev_er[task],_name)
-            self.write_log(self.WER,{'dv_'+task+'_'+_name.lower():dev_wer[task]})
-            self.write_log(   'cer',{'dv_'+task+'_'+_name.lower():dev_cer[task]})
+                                    self.val_mode,avg_er,_name)
+            self.write_log(self.WER,{'dv_'+task+'_'+_name.lower():avg_wer})
+            self.write_log(   'cer',{'dv_'+task+'_'+_name.lower():avg_cer})
 
         # Resume training
         self.model.train()
-
+        self.train()
