@@ -78,18 +78,6 @@ class Solver(BaseSolver):
             self.seq_loss = torch.nn.CrossEntropyLoss(ignore_index=0)
         self.ctc_loss = torch.nn.CTCLoss(blank=0, zero_infinity=False) # Note: zero_infinity=False is unstable?
 
-        # Plug-ins
-        self.emb_fuse = False
-        self.emb_reg = ('emb' in self.config) and (self.config['emb']['enable'])
-        if self.emb_reg:
-            from src.plugin import EmbeddingRegularizer
-            self.emb_decoder = EmbeddingRegularizer(self.tokenizer, self.model.dec_dim, **self.config['emb']).to(self.device)
-            model_paras.append({'params':self.emb_decoder.parameters()})
-            self.emb_fuse = self.emb_decoder.apply_fuse
-            if self.emb_fuse:
-                self.seq_loss = torch.nn.NLLLoss(ignore_index=0)
-            self.verbose(self.emb_decoder.create_msg())
-
         # Optimizer
         self.optimizer = Optimizer(model_paras, **self.config['hparas'])
         self.lr_scheduler = self.optimizer.lr_scheduler
@@ -116,7 +104,7 @@ class Solver(BaseSolver):
 
 
         while self.step< self.max_step:
-            ctc_loss, att_loss, emb_loss = None, None, None
+            ctc_loss, att_loss = None, None
             # Renew dataloader to enable random sampling 
             
             for data in self.tr_set:
@@ -130,18 +118,9 @@ class Solver(BaseSolver):
                 self.timer.cnt('rd')
                 # Forward model
                 # Note: txt should NOT start w/ <sos>
-                ctc_output, encode_len, att_output, att_align, dec_state = \
-                    self.model( feat, feat_len, max(txt_len), tf_rate=tf_rate,
-                                    teacher=txt, get_dec_state=self.emb_reg)
-                # Clear not used objects
-                del att_align
-
-                # Plugins
-                if self.emb_reg:
-                    emb_loss, fuse_output = self.emb_decoder( dec_state, att_output, label=txt) 
-                    total_loss += self.emb_decoder.weight*emb_loss
-                else:
-                    del dec_state
+                ctc_output, encode_len, att_output, _, _ = \
+                    self.model(feat, feat_len, max(txt_len), tf_rate=tf_rate,
+                               teacher=txt, get_dec_state=False)
 
                 ''' early stopping ctc'''
                 if self.early_stoping:
@@ -165,7 +144,6 @@ class Solver(BaseSolver):
                 if att_output is not None:
                     #print(att_output.shape)
                     b,t,_ = att_output.shape
-                    att_output = fuse_output if self.emb_fuse else att_output
                     att_loss = self.seq_loss(att_output.view(b*t,-1),txt.view(-1))
                     # Sum each uttr and devide by length then mean over batch
                     # att_loss = torch.mean(torch.sum(att_loss.view(b,t),dim=-1)/torch.sum(txt!=0,dim=-1).float())
@@ -182,7 +160,6 @@ class Solver(BaseSolver):
                 if self.step % self.PROGRESS_STEP == 0:
                     self.progress('Tr stat | Loss - {:.2f} | Grad. Norm - {:.2f} | {}'\
                             .format(total_loss.cpu().item(),grad_norm,self.timer.show()))
-                    self.write_log('emb_loss',{'tr':emb_loss})
                     if att_output is not None:
                         self.write_log('loss',{'tr_att':att_loss})
                         self.write_log(self.WER,{'tr_att':cal_er(self.tokenizer,att_output,txt)})
@@ -197,11 +174,6 @@ class Solver(BaseSolver):
                     #     self.write_log('spec_train',feat_to_fig(feat[0].transpose(0,1).cpu().detach(), spec=True))
                     #del total_loss
                     
-                    if self.emb_fuse: 
-                        if self.emb_decoder.fuse_learnable:
-                            self.write_log('fuse_lambda',{'emb':self.emb_decoder.get_weight()})
-                        self.write_log('fuse_temp',{'temp':self.emb_decoder.get_temp()})
-
                 # Validation
                 if self.step % self.valid_step == 0:
                     if type(self.dv_set) is list:
@@ -246,7 +218,6 @@ class Solver(BaseSolver):
     def validate(self, _dv_set, _name):
         # Eval mode
         self.model.eval()
-        if self.emb_decoder is not None: self.emb_decoder.eval()
         dev_wer = {'att':[],'ctc':[]}
         dev_cer = {'att':[],'ctc':[]}
         dev_er  = {'att':[],'ctc':[]}
@@ -259,8 +230,7 @@ class Solver(BaseSolver):
             # Forward model
             with torch.no_grad():
                 ctc_output, encode_len, att_output, att_align, dec_state = \
-                    self.model( feat, feat_len, int(max(txt_len)*self.DEV_STEP_RATIO), 
-                                    emb_decoder=self.emb_decoder)
+                    self.model(feat, feat_len, int(max(txt_len)*self.DEV_STEP_RATIO))
 
             if att_output is not None:
                 dev_wer['att'].append(cal_er(self.tokenizer,att_output,txt,mode='wer'))
@@ -306,5 +276,4 @@ class Solver(BaseSolver):
 
         # Resume training
         self.model.train()
-        
-        if self.emb_decoder is not None: self.emb_decoder.train()
+
