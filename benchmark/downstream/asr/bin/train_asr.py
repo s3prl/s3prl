@@ -1,6 +1,8 @@
+import yaml
+
 import torch
 import torch.nn as nn
-import yaml
+from torch.nn.utils.rnn import pad_sequence
 
 from src.solver import BaseSolver
 
@@ -78,6 +80,14 @@ class Solver(BaseSolver):
             self.seq_loss = torch.nn.CrossEntropyLoss(ignore_index=0)
         self.ctc_loss = torch.nn.CTCLoss(blank=0, zero_infinity=False) # Note: zero_infinity=False is unstable?
 
+        # Scheduled sampling
+        def get_sampling_scheduler(tf_start=1, tf_end=1, tf_step=1, tf_step_start=0, **kwargs):
+            return lambda step: max(
+                tf_end, 
+                tf_start-(tf_start-tf_end)*(step-tf_step_start)/tf_step if step >= tf_step_start else 1
+            )
+        self.tf_rate = get_sampling_scheduler(**self.config['hparas'])
+
         # Optimizer
         self.optimizer = Optimizer(model_paras, **self.config['hparas'])
         self.lr_scheduler = self.optimizer.lr_scheduler
@@ -107,7 +117,8 @@ class Solver(BaseSolver):
             
             for data in self.tr_set:
                 # Pre-step : update tf_rate/lr_rate and do zero_grad
-                tf_rate = self.optimizer.pre_step(self.step)
+                tf_rate = self.tf_rate(self.step)
+                self.optimizer.pre_step(self.step)
                 total_loss = 0
                 
                 # Fetch data

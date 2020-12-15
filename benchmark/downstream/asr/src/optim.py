@@ -2,15 +2,8 @@ import torch
 import numpy as np
 import torch.optim.lr_scheduler as LR
 class Optimizer():
-    def __init__(self, parameters, optimizer, lr, eps, lr_scheduler, 
-                    tf_start=1, tf_end=1, tf_step=1, tf_step_start=0, 
+    def __init__(self, parameters, optimizer, lr, eps, lr_scheduler,
                     weight_decay=0, amsgrad=False, **kwargs):
-        
-        # Setup teacher forcing scheduler
-        self.tf_type = tf_end!=1
-        self.tf_rate = lambda step: max(tf_end, 
-            tf_start-(tf_start-tf_end)*(step-tf_step_start)/tf_step if step >= tf_step_start else 1)
-
         # Setup torch optimizer
         self.opt_type = optimizer
         self.init_lr = lr
@@ -42,7 +35,6 @@ class Optimizer():
                 param_group['lr'] = cur_lr
         '''
         self.opt.zero_grad()
-        return self.tf_rate(step)
     
     def get_lr(self, step):
         if self.lr_scheduler is not None:
@@ -54,5 +46,5 @@ class Optimizer():
         self.opt.step()
 
     def create_msg(self):
-        return ['Optim.spec.| Algo. = {}\t| Lr = {}\t (schedule = {})| Scheduled sampling = {}'\
-                   .format(self.opt_type, self.init_lr, self.sch_type, self.tf_type)]
+        return ['Optim.spec.| Algo. = {}\t| Lr = {}\t (schedule = {})'\
+                   .format(self.opt_type, self.init_lr, self.sch_type)]
