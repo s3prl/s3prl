@@ -101,7 +101,7 @@ class Solver(BaseSolver):
         self.load_ckpt()
 
 
-    def _forward_train(self, feat, feat_len, txt, txt_len, global_step):
+    def _forward_train(self, feat, feat_len, txt, txt_len, global_step, logger, prefix='asr/train-'):
         # Pre-step : update tf_rate/lr_rate and do zero_grad
         tf_rate = self.tf_rate(global_step)
         self.optimizer.pre_step(global_step)
@@ -133,12 +133,27 @@ class Solver(BaseSolver):
             # Sum each uttr and devide by length then mean over batch
             # att_loss = torch.mean(torch.sum(att_loss.view(b,t),dim=-1)/torch.sum(txt!=0,dim=-1).float())
             total_loss += att_loss*(1-self.model.ctc_weight)
+
+        if self.step % self.PROGRESS_STEP == 0:
+            logger.add_scalar(f'{prefix}loss', total_loss.item(), global_step=global_step)
+
+            if att_output is not None:
+                logger.add_scalar(f'{prefix}att-loss', att_loss.item(), global_step=global_step)
+                logger.add_scalar(f'{prefix}att-{self.WER}', cal_er(self.tokenizer,att_output,txt), global_step=global_step)
+                logger.add_scalar(f'{prefix}att-cer', cal_er(self.tokenizer,att_output,txt,mode='cer'), global_step=global_step)
+            if ctc_output is not None:
+                logger.add_scalar(f'{prefix}ctc-loss', ctc_loss.item(), global_step=global_step)
+                logger.add_scalar(f'{prefix}ctc-{self.WER}', cal_er(self.tokenizer,att_output,txt,ctc=True), global_step=global_step)
+                logger.add_scalar(f'{prefix}ctc-cer', cal_er(self.tokenizer,att_output,txt,mode='cer',ctc=True), global_step=global_step)
+                
+                text = self.tokenizer.decode(ctc_output[0].argmax(dim=-1).tolist(), ignore_repeat=True)
+                logger.add_text(f'{prefix}ctc-text', text, global_step=global_step)
         
         self.timer.cnt('fw')
         return total_loss
 
 
-    def _forward_validate(self, feat, feat_len, txt, txt_len, global_step, records):
+    def _forward_validate(self, feat, feat_len, txt, txt_len, global_step, records, logger, prefix='asr/test-', batch_idx=0):
         # Forward model
         with torch.no_grad():
             ctc_output, encode_len, att_output, att_align, dec_state = \
@@ -153,18 +168,16 @@ class Solver(BaseSolver):
             records['ctc_cer'].append(cal_er(self.tokenizer,ctc_output,txt,mode='cer',ctc=True))
             records['ctc_er'].append(cal_er(self.tokenizer,ctc_output,txt,mode=self.val_mode,ctc=True))
         
-        # TODO
         # Show some example on tensorboard
-        # if i == len(_dv_set)//2:
-        #     for i in range(min(len(txt),self.DEV_N_EXAMPLE)):
-        #         if self.step==1:
-        #             self.write_log('true_text_{}_{}'.format(_name, i),self.tokenizer.decode(txt[i].tolist()))
-        #         if att_output is not None:
-        #             self.write_log('att_align_{}_{}'.format(_name, i),feat_to_fig(att_align[i,0,:,:].cpu().detach()))
-        #             self.write_log('att_text_{}_{}'.format(_name, i),self.tokenizer.decode(att_output[i].argmax(dim=-1).tolist()))
-        #         if ctc_output is not None:
-        #             self.write_log('ctc_text_{}_{}'.format(_name, i),self.tokenizer.decode(ctc_output[i].argmax(dim=-1).tolist(),
-        #                                                                                             ignore_repeat=True))
+        if batch_idx == len(self.dv_set)//2:
+            for i in range(min(len(txt),self.DEV_N_EXAMPLE)):
+                logger.add_text(f'{prefix}true-text-{i}', self.tokenizer.decode(txt[i].tolist()), global_step=global_step)
+                if att_output is not None:
+                    img, form = feat_to_fig(att_align[i,0,:,:].cpu().detach())
+                    logger.add_image(f'{prefix}att-align-{i}', img, global_step=global_step, dataformats=form)
+                    logger.add_text(f'{prefix}att-text-{i}', self.tokenizer.decode(att_output[i].argmax(dim=-1).tolist()), global_step=global_step)
+                if ctc_output is not None:
+                    logger.add_text(f'{prefix}ctc-text-{i}', self.tokenizer.decode(ctc_output[i].argmax(dim=-1).tolist(), ignore_repeat=True), global_step=global_step)
         return 0
 
 
@@ -191,8 +204,7 @@ class Solver(BaseSolver):
         batch_size = self.config['data']['corpus']['batch_size']
         stop_step = len(self.tr_set)*stop_epoch//batch_size
         
-
-
+        records = defaultdict(list)
         while self.step< self.max_step:
             ctc_loss, att_loss = None, None
             # Renew dataloader to enable random sampling 
@@ -203,29 +215,11 @@ class Solver(BaseSolver):
                 _, feat, feat_len, txt = data
                 feat = [f[:l].to(self.device) for f, l in zip(feat, feat_len)]
 
-                total_loss = self.forward(feat, txt, global_step=self.step)
+                total_loss = self.forward(feat, txt, global_step=self.step, logger=self.log, prefix='asr/train-')
                 grad_norm = self.backward(total_loss)
 
                 self.step+=1
-                
-                # Logger
-                if self.step % self.PROGRESS_STEP == 0:
-                    self.progress('Tr stat | Loss - {:.2f} | Grad. Norm - {:.2f} | {}'\
-                            .format(total_loss.cpu().item(),grad_norm,self.timer.show()))
-                    if att_output is not None:
-                        self.write_log('loss',{'tr_att':att_loss})
-                        self.write_log(self.WER,{'tr_att':cal_er(self.tokenizer,att_output,txt)})
-                        self.write_log(   'cer',{'tr_att':cal_er(self.tokenizer,att_output,txt,mode='cer')})
-                    if ctc_output is not None:
-                        self.write_log('loss',{'tr_ctc':ctc_loss})
-                        self.write_log(self.WER,{'tr_ctc':cal_er(self.tokenizer,ctc_output,txt,ctc=True)})
-                        self.write_log(   'cer',{'tr_ctc':cal_er(self.tokenizer,ctc_output,txt,mode='cer',ctc=True)})
-                        self.write_log('ctc_text_train',self.tokenizer.decode(ctc_output[0].argmax(dim=-1).tolist(),
-                                                                                                ignore_repeat=True))
-                    # if self.step==1 or self.step % (self.PROGRESS_STEP * 5) == 0:
-                    #     self.write_log('spec_train',feat_to_fig(feat[0].transpose(0,1).cpu().detach(), spec=True))
-                    #del total_loss
-                    
+
                 # Validation
                 if self.step % self.valid_step == 0:
                     if type(self.dv_set) is list:
@@ -282,7 +276,7 @@ class Solver(BaseSolver):
             feat = [f[:l].to(self.device) for f, l in zip(feat, feat_len)]
 
             # Forward
-            self.forward(feat, txt, global_step=self.step, records=records)
+            self.forward(feat, txt, global_step=self.step, records=records, logger=self.log, prefix=f'asr/{_name}', batch_idx=i)
 
         # Ckpt if performance improves
         tasks = []
@@ -306,8 +300,9 @@ class Solver(BaseSolver):
             if self.step >= self.max_step:
                 self.save_checkpoint('last_{}_{}.pth'.format(task, _name), 
                                     self.val_mode,avg_er,_name)
-            self.write_log(self.WER,{'dv_'+task+'_'+_name.lower():avg_wer})
-            self.write_log(   'cer',{'dv_'+task+'_'+_name.lower():avg_cer})
+
+            self.log.add_scalar(f'asr/{_name}-{task}-{self.WER}'.lower(), avg_wer, global_step=self.step)
+            self.log.add_scalar(f'asr/{_name}-{task}-cer'.lower(), avg_cer, global_step=self.step)
 
         # Resume training
         self.model.train()
