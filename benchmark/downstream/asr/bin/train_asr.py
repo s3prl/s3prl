@@ -23,6 +23,7 @@ class Solver(BaseSolver):
         self.val_mode = self.config['hparas']['val_mode'].lower()
         self.WER = 'per' if self.val_mode == 'per' else 'wer'
 
+
     def fetch_data(self, data, train=False):
         ''' Move data to device and compute text seq. length'''
         # feat: B x T x D
@@ -33,6 +34,7 @@ class Solver(BaseSolver):
         txt_len = torch.sum(txt!=0,dim=-1)
         
         return feat, feat_len, txt, txt_len
+
 
     def load_data(self):
         ''' Load data for training/validation, store tokenizer and input/output shape'''
@@ -58,6 +60,7 @@ class Solver(BaseSolver):
             for name in self.dv_names:
                 self.best_wer['att'][name] = 3.0
                 self.best_wer['ctc'][name] = 3.0
+
 
     def set_model(self):
         ''' Setup ASR model and optimizer '''
@@ -197,21 +200,11 @@ class Solver(BaseSolver):
     def exec(self):
         ''' Training End-to-end ASR system '''
         self.verbose('Total training steps {}.'.format(human_format(self.max_step)))
-        
-        self.n_epochs = 0
         self.timer.set()
-        stop_epoch = 10
-        batch_size = self.config['data']['corpus']['batch_size']
-        stop_step = len(self.tr_set)*stop_epoch//batch_size
         
         records = defaultdict(list)
         while self.step< self.max_step:
-            ctc_loss, att_loss = None, None
-            # Renew dataloader to enable random sampling 
-            
             for data in self.tr_set:
-                
-                # Fetch data
                 _, feat, feat_len, txt = data
                 feat = [f[:l].to(self.device) for f, l in zip(feat, feat_len)]
 
@@ -227,10 +220,8 @@ class Solver(BaseSolver):
                             self.validate(self.dv_set[dv_id], self.dv_names[dv_id])
                     else:
                         self.validate(self.dv_set, self.dv_names)
-                if self.step % (len(self.tr_set)// batch_size)==0: # one epoch
-                    print('Have finished epoch: ', self.n_epochs)
-                    self.n_epochs +=1
-                    
+                
+                # Lr scheduling
                 if self.lr_scheduler == None:
                     lr = self.optimizer.opt.param_groups[0]['lr']
                     
@@ -244,23 +235,14 @@ class Solver(BaseSolver):
                         print('[INFO]     at step:', self.step )
                         print('[INFO]   lr reduce to', lr)
 
-
-                    #self.lr_scheduler.step(total_loss)
-                # End of step
-                # if self.step % EMPTY_CACHE_STEP == 0:
-                    # Empty cuda cache after every fixed amount of steps
-                torch.cuda.empty_cache() # https://github.com/pytorch/pytorch/issues/13246#issuecomment-529185354
+                torch.cuda.empty_cache()
                 self.timer.set()
-                if self.step > self.max_step: break
-            
-            
-            
-            #update lr_scheduler
-            
+                if self.step > self.max_step: break            
             
         self.log.close()
         print('[INFO] Finished training after', human_format(self.max_step), 'steps.')
-        
+
+
     def validate(self, _dv_set, _name):
         print(f'Evaluating {_name} set.')
 
@@ -271,11 +253,10 @@ class Solver(BaseSolver):
         records = defaultdict(list)
         for i,data in enumerate(_dv_set):
             self.progress('Valid step - {}/{}'.format(i+1,len(_dv_set)))
-            # Fetch data
+
             _, feat, feat_len, txt = data
             feat = [f[:l].to(self.device) for f, l in zip(feat, feat_len)]
 
-            # Forward
             self.forward(feat, txt, global_step=self.step, records=records, logger=self.log, prefix=f'asr/{_name}', batch_idx=i)
 
         # Ckpt if performance improves
