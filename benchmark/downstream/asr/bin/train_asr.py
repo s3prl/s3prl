@@ -17,8 +17,6 @@ class Solver(BaseSolver):
     def __init__(self,config,paras,mode):
         super().__init__(config,paras,mode)
 
-        # Curriculum learning affects data loader
-        self.curriculum = self.config['hparas']['curriculum']
         self.val_mode = self.config['hparas']['val_mode'].lower()
         self.WER = 'per' if self.val_mode == 'per' else 'wer'
 
@@ -37,8 +35,7 @@ class Solver(BaseSolver):
         ''' Load data for training/validation, store tokenizer and input/output shape'''
         self.tr_set, self.dv_set, self.feat_dim, self.vocab_size, self.tokenizer, msg = \
                          load_dataset(self.paras.njobs, self.paras.gpu, self.paras.pin_memory, 
-                                      self.curriculum>0,
-                                      **self.config['data'])
+                                      False, **self.config['data'])
         self.verbose(msg)
 
         # Dev set sames
@@ -134,13 +131,6 @@ class Solver(BaseSolver):
         while self.step< self.max_step:
             ctc_loss, att_loss, emb_loss = None, None, None
             # Renew dataloader to enable random sampling 
-            
-            if self.curriculum>0 and n_epochs==self.curriculum:
-                self.verbose('Curriculum learning ends after {} epochs, starting random sampling.'.format(n_epochs))
-                self.tr_set, _, _, _, _, _ = \
-                         load_dataset(self.paras.njobs, self.paras.gpu, self.paras.pin_memory, 
-                                      False, **self.config['data'])
-            
             
             for data in self.tr_set:
                 # Pre-step : update tf_rate/lr_rate and do zero_grad
