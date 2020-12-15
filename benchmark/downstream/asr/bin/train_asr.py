@@ -95,8 +95,6 @@ class Solver(BaseSolver):
         
         self.n_epochs = 0
         self.timer.set()
-        '''early stopping for ctc '''
-        self.early_stoping = self.config['hparas']['early_stopping']
         stop_epoch = 10
         batch_size = self.config['data']['corpus']['batch_size']
         stop_step = len(self.tr_set)*stop_epoch//batch_size
@@ -122,11 +120,6 @@ class Solver(BaseSolver):
                     self.model(feat, feat_len, max(txt_len), tf_rate=tf_rate,
                                teacher=txt, get_dec_state=False)
 
-                ''' early stopping ctc'''
-                if self.early_stoping:
-                    if self.step > stop_step:
-                        ctc_output = None
-                        self.model.ctc_weight = 0
                 #print(ctc_output.shape)
                 # Compute all objectives
                 if ctc_output is not None:
