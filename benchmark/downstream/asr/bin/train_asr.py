@@ -104,7 +104,9 @@ class Solver(BaseSolver):
         self.load_ckpt()
 
 
-    def _forward_train(self, feat, feat_len, txt, txt_len, global_step, logger, prefix='asr/train-'):
+    def _forward_train(self, feat, feat_len, txt, txt_len, logger, global_step,
+                       prefix='asr/train-', **kwargs):
+
         # Pre-step : update tf_rate/lr_rate and do zero_grad
         tf_rate = self.tf_rate(global_step)
         self.optimizer.pre_step(global_step)
@@ -137,7 +139,7 @@ class Solver(BaseSolver):
             # att_loss = torch.mean(torch.sum(att_loss.view(b,t),dim=-1)/torch.sum(txt!=0,dim=-1).float())
             total_loss += att_loss*(1-self.model.ctc_weight)
 
-        if self.step % self.PROGRESS_STEP == 0:
+        if global_step % self.PROGRESS_STEP == 0:
             logger.add_scalar(f'{prefix}loss', total_loss.item(), global_step=global_step)
 
             if att_output is not None:
@@ -156,7 +158,8 @@ class Solver(BaseSolver):
         return total_loss
 
 
-    def _forward_validate(self, feat, feat_len, txt, txt_len, global_step, records, logger, prefix='asr/test-', batch_idx=0):
+    def _forward_validate(self, feat, feat_len, txt, txt_len, logger, global_step,
+                          records, prefix, batch_id, batch_num, **kwargs):
         # Forward model
         with torch.no_grad():
             ctc_output, encode_len, att_output, att_align, dec_state = \
@@ -172,7 +175,7 @@ class Solver(BaseSolver):
             records['ctc_er'].append(cal_er(self.tokenizer,ctc_output,txt,mode=self.val_mode,ctc=True))
         
         # Show some example on tensorboard
-        if batch_idx == len(self.dv_set)//2:
+        if batch_idx == batch_num // 2:
             for i in range(min(len(txt),self.DEV_N_EXAMPLE)):
                 logger.add_text(f'{prefix}true-text-{i}', self.tokenizer.decode(txt[i].tolist()), global_step=global_step)
                 if att_output is not None:
@@ -204,11 +207,12 @@ class Solver(BaseSolver):
         
         records = defaultdict(list)
         while self.step< self.max_step:
-            for data in self.tr_set:
+            for batch_id, data in enumerate(self.tr_set):
                 _, feat, feat_len, txt = data
                 feat = [f[:l].to(self.device) for f, l in zip(feat, feat_len)]
 
-                total_loss = self.forward(feat, txt, global_step=self.step, logger=self.log, prefix='asr/train-')
+                total_loss = self.forward(feat, txt, global_step=self.step, logger=self.log, prefix='asr/train-',
+                                          batch_id=batch_id, batch_num=len(self.tr_set))
                 grad_norm = self.backward(total_loss)
 
                 self.step+=1
