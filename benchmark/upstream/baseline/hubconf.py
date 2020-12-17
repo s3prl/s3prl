@@ -23,7 +23,7 @@ def baseline_spectrogram(*args, **kwargs):
     """
         Baseline feature - Linear-scale spectrogram
     """
-    kwargs['config'] = 'benchmark/upstream/baseline/spectrogram.yaml'
+    kwargs['config'] = os.path.join(os.path.dirname(__file__), 'spectrogram.yaml')
     return baseline(*args, **kwargs)
 
 
@@ -31,7 +31,7 @@ def baseline_fbank(*args, **kwargs):
     """
         Baseline feature - Fbank, or Mel-scale spectrogram
     """
-    kwargs['config'] = 'benchmark/upstream/baseline/fbank.yaml'
+    kwargs['config'] = os.path.join(os.path.dirname(__file__), 'fbank.yaml')
     return baseline(*args, **kwargs)
 
 
@@ -39,5 +39,5 @@ def baseline_mfcc(*args, **kwargs):
     """
         Baseline feature - MFCC
     """
-    kwargs['config'] = 'benchmark/upstream/baseline/mfcc.yaml'
+    kwargs['config'] = os.path.join(os.path.dirname(__file__), 'mfcc.yaml')
     return baseline(*args, **kwargs)
