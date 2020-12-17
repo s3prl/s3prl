@@ -1,5 +1,6 @@
 from collections import defaultdict
 
+import os
 import yaml
 import torch
 import torch.nn as nn
@@ -175,7 +176,7 @@ class Solver(BaseSolver):
             records['ctc_er'].append(cal_er(self.tokenizer,ctc_output,txt,mode=self.val_mode,ctc=True))
         
         # Show some example on tensorboard
-        if batch_idx == batch_num // 2:
+        if batch_id == batch_num // 2:
             for i in range(min(len(txt),self.DEV_N_EXAMPLE)):
                 logger.add_text(f'{prefix}true-text-{i}', self.tokenizer.decode(txt[i].tolist()), global_step=global_step)
                 if att_output is not None:
@@ -198,6 +199,37 @@ class Solver(BaseSolver):
             return self._forward_train(feat, feat_len, txt, txt_len, **kwargs)
         else:
             return self._forward_validate(feat, feat_len, txt, txt_len, **kwargs)
+
+
+    def log_records(self, records, logger, prefix, global_step, **kwargs):
+        avgs = {}
+        for key, item in records.items():
+            avgs[key] = torch.FloatTensor(records[key]).mean().item()
+        
+        tasks = []
+        if 'att_er' in avgs:
+            tasks.append('att')
+        if 'ctc_er' in avgs:
+            tasks.append('ctc')
+
+        split = prefix.split('/')[-1][:-1]
+        save_paths = []
+        for task in tasks:
+            avg_er = avgs[f'{task}_er']
+            avg_wer = avgs[f'{task}_wer']
+            avg_cer = avgs[f'{task}_cer']
+
+            if avg_er < self.best_wer[task][split]:
+                self.best_wer[task][split] = avg_er
+                save_paths.append(f'best_{task}_{split}.ckpt')
+
+            if global_step >= self.max_step:
+                save_paths.append(f'last_{task}_{split}.ckpt')
+
+            self.log.add_scalar(f'asr/{split}-{task}-{self.WER}'.lower(), avg_wer, global_step=global_step)
+            self.log.add_scalar(f'asr/{split}-{task}-cer'.lower(), avg_cer, global_step=global_step)
+
+        return save_paths
 
 
     def exec(self):
@@ -261,33 +293,12 @@ class Solver(BaseSolver):
             _, feat, feat_len, txt = data
             feat = [f[:l].to(self.device) for f, l in zip(feat, feat_len)]
 
-            self.forward(feat, txt, global_step=self.step, records=records, logger=self.log, prefix=f'asr/{_name}', batch_idx=i)
+            self.forward(feat, txt, global_step=self.step, records=records, logger=self.log, prefix=f'asr/{_name}-',
+                         batch_id=i, batch_num=len(_dv_set))
 
-        # Ckpt if performance improves
-        tasks = []
-        if len(records['att_er']) > 0:
-            tasks.append('att')
-        if len(records['ctc_er']) > 0:
-            tasks.append('ctc')
-
-        for task in tasks:
-            def get_average(numbers):
-                return torch.FloatTensor(numbers).mean().item()
-
-            avg_er = get_average(records[f'{task}_er'])
-            avg_wer = get_average(records[f'{task}_wer'])
-            avg_cer = get_average(records[f'{task}_cer'])
-
-            if avg_er < self.best_wer[task][_name]:
-                self.best_wer[task][_name] = avg_er
-                self.save_checkpoint('best_{}_{}.pth'.format(task, _name), 
-                                    self.val_mode,avg_er,_name)
-            if self.step >= self.max_step:
-                self.save_checkpoint('last_{}_{}.pth'.format(task, _name), 
-                                    self.val_mode,avg_er,_name)
-
-            self.log.add_scalar(f'asr/{_name}-{task}-{self.WER}'.lower(), avg_wer, global_step=self.step)
-            self.log.add_scalar(f'asr/{_name}-{task}-cer'.lower(), avg_cer, global_step=self.step)
+        filepaths = self.log_records(records=records, logger=self.log, prefix=f'asr/{_name}-', global_step=self.step)
+        for filepath in filepaths:
+            torch.save(self.state_dict(), os.path.join(self.ckpdir, filepath))
 
         # Resume training
         self.model.train()
