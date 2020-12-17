@@ -104,8 +104,6 @@ def load_dataset(n_jobs, use_gpu, pin_memory, ascending, corpus, audio, text):
     ''' Prepare dataloader for training/validation'''
     # Audio feature extractor
     '''convert to mel-spectrogram'''
-    audio_transform_tr, feat_dim = create_transform(audio.copy(), 'train')
-    audio_transform_dv, feat_dim = create_transform(audio.copy(), 'dev')
 
     # Text tokenizer
     tokenizer = load_text_encoder(**text)
@@ -113,8 +111,8 @@ def load_dataset(n_jobs, use_gpu, pin_memory, ascending, corpus, audio, text):
     tr_set, dv_set, tr_loader_bs, dv_loader_bs, mode, data_msg = create_dataset(tokenizer,ascending,**corpus)
     
     # Collect function
-    collect_tr = partial(collect_audio_batch, audio_transform=audio_transform_tr, mode=mode)
-    collect_dv = partial(collect_audio_batch, audio_transform=audio_transform_dv, mode='test')
+    collect_tr = partial(collect_audio_batch, mode=mode)
+    collect_dv = partial(collect_audio_batch, mode='test')
     
     # Shuffle/drop applied to training set only
     shuffle = (mode=='train' and not ascending)
@@ -135,9 +133,9 @@ def load_dataset(n_jobs, use_gpu, pin_memory, ascending, corpus, audio, text):
                         num_workers=n_jobs, pin_memory=pin_memory)
     
     # Messages to show
-    data_msg.append('I/O spec.  | Audio Feature = {}\t| Feature Dim = {}\t| Token Type = {}\t| Vocab Size = {}'\
-                    .format(audio['feat_type'],feat_dim,tokenizer.token_type,tokenizer.vocab_size))
-    return tr_set, dv_set, feat_dim, tokenizer.vocab_size, tokenizer, data_msg
+    data_msg.append('I/O spec.  | Token Type = {}\t| Vocab Size = {}'\
+                    .format(tokenizer.token_type,tokenizer.vocab_size))
+    return tr_set, dv_set, tokenizer.vocab_size, tokenizer, data_msg
 
 def load_textset(n_jobs, use_gpu, pin_memory, corpus, text):
     # Text tokenizer

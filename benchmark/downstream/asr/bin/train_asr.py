@@ -24,6 +24,9 @@ class Solver(BaseSolver):
         self.val_mode = self.config['hparas']['val_mode'].lower()
         self.WER = 'per' if self.val_mode == 'per' else 'wer'
 
+        self.upstream = torch.hub.load('andi611/Self-Supervised-Speech-Pretraining-and-Representation-Learning:benchmark', 'baseline_fbank')
+        self.upstream.to(device=self.device)
+        self.feat_dim = self.upstream.get_output_dim()
 
     def fetch_data(self, data, train=False):
         ''' Move data to device and compute text seq. length'''
@@ -39,7 +42,7 @@ class Solver(BaseSolver):
 
     def load_data(self):
         ''' Load data for training/validation, store tokenizer and input/output shape'''
-        self.tr_set, self.dv_set, self.feat_dim, self.vocab_size, self.tokenizer, msg = \
+        self.tr_set, self.dv_set, self.vocab_size, self.tokenizer, msg = \
                          load_dataset(self.paras.njobs, self.paras.gpu, self.paras.pin_memory, 
                                       False, **self.config['data'])
         self.verbose(msg)
@@ -235,8 +238,8 @@ class Solver(BaseSolver):
         records = defaultdict(list)
         while self.step< self.max_step:
             for batch_id, data in enumerate(self.tr_set):
-                _, feat, feat_len, txt = data
-                feat = [f[:l].to(self.device) for f, l in zip(feat, feat_len)]
+                wavs, txt, _ = data
+                feat = self.upstream([wav.to(self.device) for wav in wavs])
 
                 total_loss = self.forward(feat, txt, global_step=self.step, logger=self.log, prefix='asr/train-',
                                           batch_id=batch_id, batch_num=len(self.tr_set))
@@ -285,8 +288,8 @@ class Solver(BaseSolver):
         for i,data in enumerate(_dv_set):
             self.progress('Valid step - {}/{}'.format(i+1,len(_dv_set)))
 
-            _, feat, feat_len, txt = data
-            feat = [f[:l].to(self.device) for f, l in zip(feat, feat_len)]
+            wavs, txt, _ = data
+            feat = self.upstream([wav.to(self.device) for wav in wavs])
 
             self.forward(feat, txt, global_step=self.step, records=records, logger=self.log, prefix=f'asr/{_name}-',
                          batch_id=i, batch_num=len(_dv_set))
