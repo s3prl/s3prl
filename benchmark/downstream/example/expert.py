@@ -91,7 +91,7 @@ class DownstreamExpert(nn.Module):
 
     # Interface
     def forward(self, features, your_other_contents1,
-                records, logger, prefix, global_step):
+                records, logger, prefix, global_step, **kwargs):
         """
         This function will be used in both train/dev/test, you can use
         self.training (bool) to control the different behavior for
@@ -154,7 +154,7 @@ class DownstreamExpert(nn.Module):
         return loss
 
     # interface
-    def log_records(self, records, logger, prefix, global_step):
+    def log_records(self, records, logger, prefix, global_step, **kwargs):
         """
         This function will be used in both train/dev/test, you can use
         self.training (bool) to control the different behavior for

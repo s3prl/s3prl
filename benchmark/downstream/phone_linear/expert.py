@@ -78,6 +78,17 @@ class DownstreamExpert(nn.Module):
     def get_test_dataloader(self):
         return self._get_eval_dataloader(self.test_dataset)
 
+    def _tile_representations(self, reps, factor):
+        """ 
+        Tile up the representations by `factor`.
+        Input - sequence of representations, shape: (batch_size, seq_len, feature_dim)
+        Output - sequence of tiled representations, shape: (batch_size, seq_len * factor, feature_dim)
+        """
+        assert len(reps.shape) == 3, 'Input argument `reps` has invalid shape: {}'.format(reps.shape)
+        tiled_reps = reps.repeat(1, 1, factor)
+        tiled_reps = tiled_reps.reshape(reps.size(0), reps.size(1)*factor, reps.size(2))
+        return tiled_reps
+
     def _match_length(self, inputs, labels):
         """
         Since the upstream extraction process can sometimes cause a mismatch
@@ -87,6 +98,12 @@ class DownstreamExpert(nn.Module):
         Note that the length of labels should never be changed.
         """
         input_len, label_len = inputs.size(1), labels.size(-1)
+
+        factor = int(round(label_len / input_len))
+        if factor > 1:
+            inputs = self._tile_representations(inputs, factor)
+            input_len = inputs.size(1)
+
         if input_len > label_len:
             inputs = inputs[:, :label_len, :]
         elif input_len < label_len:

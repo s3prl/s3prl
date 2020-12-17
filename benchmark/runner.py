@@ -52,8 +52,8 @@ class Runner():
         module_path = f'benchmark.downstream.{self.args.downstream}.expert'
         Downstream = getattr(importlib.import_module(module_path), 'DownstreamExpert')
         downstream = Downstream(
-            self.upstream.get_output_dim(),
-            self.config['downstream_expert'],
+            upstream_dim = self.upstream.get_output_dim(),
+            **self.config,
             **vars(self.args)
         ).to(self.args.device)
 
@@ -131,7 +131,7 @@ class Runner():
         prefix = f'{self.args.downstream}/train-'
 
         while pbar.n < pbar.total:
-            for wavs, *others in tqdm(dataloader, dynamic_ncols=True, desc='train'):
+            for batch_id, (wavs, *others) in enumerate(tqdm(dataloader, dynamic_ncols=True, desc='train')):
                 # try/except block for forward/backward
                 try:
                     if pbar.n >= pbar.total:
@@ -149,7 +149,9 @@ class Runner():
                         records = records,
                         logger = self.logger,
                         prefix = prefix,
-                        global_step = pbar.n
+                        global_step = pbar.n,
+                        batch_id = batch_id,
+                        batch_num = len(dataloader),
                     )
                     gradient_accumulate_steps = self.config['runner'].get('gradient_accumulate_steps')
                     (loss / gradient_accumulate_steps).backward()
@@ -201,7 +203,9 @@ class Runner():
                         records = records,
                         logger = self.logger,
                         prefix = prefix,
-                        global_step = pbar.n
+                        global_step = pbar.n,
+                        batch_id = batch_id,
+                        batch_num = len(dataloader),
                     )
                     records = defaultdict(list)
 
@@ -265,7 +269,7 @@ class Runner():
         records = defaultdict(list)
         prefix = f'{self.args.downstream}/{split}-'
 
-        for wavs, *others in tqdm(dataloader, dynamic_ncols=True, desc=split):
+        for batch_id, (wavs, *others) in enumerate(tqdm(dataloader, dynamic_ncols=True, desc=split)):
 
             wavs = [wav.to(self.args.device) for wav in wavs]
             with torch.no_grad():
@@ -276,7 +280,9 @@ class Runner():
                 records = records,
                 logger = self.logger,
                 prefix = prefix,
-                global_step = global_step
+                global_step = global_step,
+                batch_id = batch_id,
+                batch_num = len(dataloader),
             )
             all_loss.append(loss.item())
         
@@ -290,7 +296,9 @@ class Runner():
             records = records,
             logger = self.logger,
             prefix = prefix,
-            global_step = global_step
+            global_step = global_step,
+            batch_id = batch_id,
+            batch_num = len(dataloader),
         )
         records = defaultdict(list)
 
