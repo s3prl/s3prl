@@ -97,6 +97,18 @@ class Solver(BaseSolver):
         # Automatically load pre-trained model if self.paras.load is given
         self.load_ckpt()
 
+    
+    def get_train_dataloader():
+        return self.tr_set
+
+
+    def get_dev_dataloader():
+        return self.dv_set
+
+
+    def get_test_dataloader():
+        raise NotImplementedError
+
 
     def _forward_train(self, feat, feat_len, txt, txt_len, logger, global_step,
                        prefix='asr/train-', **kwargs):
