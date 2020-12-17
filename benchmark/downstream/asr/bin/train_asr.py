@@ -25,19 +25,20 @@ class Solver(BaseSolver):
         self.WER = 'per' if self.val_mode == 'per' else 'wer'
 
         self.upstream = torch.hub.load('andi611/Self-Supervised-Speech-Pretraining-and-Representation-Learning:benchmark', 'baseline_fbank')
-        self.upstream.to(device=self.device)
         self.feat_dim = self.upstream.get_output_dim()
+        self.load_data()
+        self.set_model()
 
-    def fetch_data(self, data, train=False):
-        ''' Move data to device and compute text seq. length'''
-        # feat: B x T x D
-        _, feat, feat_len, txt = data
-        feat = feat.to(self.device)
-        feat_len = feat_len.to(self.device)
-        txt = txt.to(self.device)
-        txt_len = torch.sum(txt!=0,dim=-1)
+    # def fetch_data(self, data, train=False):
+    #     ''' Move data to device and compute text seq. length'''
+    #     # feat: B x T x D
+    #     _, feat, feat_len, txt = data
+    #     feat = feat.to(self.device)
+    #     feat_len = feat_len.to(self.device)
+    #     txt = txt.to(self.device)
+    #     txt_len = torch.sum(txt!=0,dim=-1)
         
-        return feat, feat_len, txt, txt_len
+    #     return feat, feat_len, txt, txt_len
 
 
     def load_data(self):
@@ -61,7 +62,7 @@ class Solver(BaseSolver):
         # Model
         #print(self.feat_dim) #160
         batch_size = self.config['data']['corpus']['batch_size']//2
-        self.model = ASR(self.feat_dim, self.vocab_size, batch_size, **self.config['model']).to(self.device)
+        self.model = ASR(self.feat_dim, self.vocab_size, batch_size, **self.config['model'])
 
 
 
