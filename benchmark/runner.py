@@ -52,8 +52,8 @@ class Runner():
         module_path = f'benchmark.downstream.{self.args.downstream}.expert'
         Downstream = getattr(importlib.import_module(module_path), 'DownstreamExpert')
         downstream = Downstream(
-            self.upstream.get_output_dim(),
-            self.config['downstream_expert'],
+            upstream_dim = self.upstream.get_output_dim(),
+            **self.config,
             **vars(self.args)
         ).to(self.args.device)
 
