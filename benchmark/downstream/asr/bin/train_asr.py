@@ -51,15 +51,6 @@ class Solver(BaseSolver):
                 self.dv_names.append(ds[0])
         else:
             self.dv_names = self.config['data']['corpus']['dev_split'][0]
-        
-        # Logger settings
-        if type(self.dv_names) is str:
-            self.register_buffer(f'best_er_att_{self.dv_names}', torch.ones(1) * 3.0)
-            self.register_buffer(f'best_er_ctc_{self.dv_names}', torch.ones(1) * 3.0)
-        else:
-            for name in self.dv_names:
-                self.register_buffer(f'best_er_att_{name}', torch.ones(1) * 3.0)
-                self.register_buffer(f'best_er_ctc_{name}', torch.ones(1) * 3.0)
 
 
     def set_model(self):
@@ -219,8 +210,12 @@ class Solver(BaseSolver):
             avg_cer = avgs[f'{task}_cer']
 
             buffer_name = f'best_er_{task}_{split}'
-            if avg_er < getattr(self, buffer_name):
-                getattr(self, buffer_name).fill_(avg_er)
+            if not hasattr(self, buffer_name):
+                self.register_buffer(buffer_name, torch.ones(1) * 3.0)
+
+            buffer = getattr(self, buffer_name)
+            if avg_er < buffer:
+                buffer.fill_(avg_er)
                 save_paths.append(f'best_{task}_{split}.ckpt')
 
             if global_step >= self.max_step:
