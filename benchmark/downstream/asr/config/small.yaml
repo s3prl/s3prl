@@ -23,7 +23,7 @@ data:
     time_aug: False
   text:
     mode: 'character'                     # 'character'/'word == phone'/'subword'
-    vocab_file: 'corpus/librispeech_char.txt'
+    vocab_file: '/home/leo/d/Benchmarking/S3PRL/benchmark/downstream/asr/corpus/librispeech_char.txt'
 
 hparas:                                   # Experiment hyper-parameters
   valid_step: 2000

@@ -244,7 +244,7 @@ class Solver(BaseSolver):
                 feat = self.upstream([wav.to(self.device) for wav in wavs])
 
                 total_loss = self.forward(feat, txt, global_step=self.step, logger=self.log, prefix='asr/train-',
-                                          batch_id=batch_id, batch_num=len(self.tr_set))
+                                          batch_id=batch_id, batch_num=len(self.tr_set), log_step=self.PROGRESS_STEP)
                 grad_norm = self.backward(total_loss)
 
                 self.step+=1
