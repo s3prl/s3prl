@@ -151,6 +151,7 @@ class Runner():
                         logger = self.logger,
                         prefix = prefix,
                         global_step = pbar.n,
+                        log_step = self.config['runner']['log_step'],
                         batch_id = batch_id,
                         batch_num = len(dataloader),
                     )
@@ -205,6 +206,7 @@ class Runner():
                         logger = self.logger,
                         prefix = prefix,
                         global_step = pbar.n,
+                        log_step = self.config['runner']['log_step'],
                         batch_id = batch_id,
                         batch_num = len(dataloader),
                     )
@@ -287,6 +289,7 @@ class Runner():
                 logger = self.logger,
                 prefix = prefix,
                 global_step = global_step,
+                log_step = self.config['runner']['log_step'],
                 batch_id = batch_id,
                 batch_num = len(dataloader),
             )
@@ -303,6 +306,7 @@ class Runner():
             logger = self.logger,
             prefix = prefix,
             global_step = global_step,
+            log_step = self.config['runner']['log_step'],
             batch_id = batch_id,
             batch_num = len(dataloader),
         )
