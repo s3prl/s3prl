@@ -74,12 +74,12 @@ class Solver(BaseSolver):
         self.ctc_loss = torch.nn.CTCLoss(blank=0, zero_infinity=False) # Note: zero_infinity=False is unstable?
 
         # Scheduled sampling
-        def get_sampling_scheduler(tf_start=1, tf_end=1, tf_step=1, tf_step_start=0, **kwargs):
+        def get_teacher_forcing_scheduler(tf_start=1, tf_end=1, tf_step=1, tf_step_start=0, **kwargs):
             return lambda step: max(
                 tf_end, 
                 tf_start-(tf_start-tf_end)*(step-tf_step_start)/tf_step if step >= tf_step_start else 1
             )
-        self.tf_rate = get_sampling_scheduler(**self.config['hparas'])
+        self.tf_scheduler = get_teacher_forcing_scheduler(**self.config['hparas'])
 
         # Optimizer
         self.optimizer = Optimizer(model_paras, **self.config['hparas'])
@@ -109,7 +109,7 @@ class Solver(BaseSolver):
                        log_step, prefix='asr/train-', **kwargs):
 
         # Pre-step : update tf_rate/lr_rate and do zero_grad
-        tf_rate = self.tf_rate(global_step)
+        tf_rate = self.tf_scheduler(global_step)
         self.optimizer.pre_step(global_step)
 
         # Forward model
