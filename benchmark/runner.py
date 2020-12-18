@@ -11,8 +11,8 @@ import numpy as np
 from tqdm import tqdm
 from tensorboardX import SummaryWriter
 
-from benchmark.optimizers import get_optimizer
-from benchmark.schedulers import get_scheduler
+from optimizers import get_optimizer
+from schedulers import get_scheduler
 
 
 class Runner():
