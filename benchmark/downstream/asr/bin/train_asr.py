@@ -210,22 +210,21 @@ class Solver(BaseSolver):
 
     def log_records(self, records, logger, prefix, global_step, **kwargs):
         if not self.training:
-            avgs = {}
-            for key, item in records.items():
-                avgs[key] = torch.FloatTensor(records[key]).mean().item()
-            
             tasks = []
-            if 'att_er' in avgs:
+            if 'att_er' in records:
                 tasks.append('att')
-            if 'ctc_er' in avgs:
+            if 'ctc_er' in records:
                 tasks.append('ctc')
 
             split = prefix.split('/')[-1][:-1]
             save_paths = []
             for task in tasks:
-                avg_er = avgs[f'{task}_er']
-                avg_wer = avgs[f'{task}_wer']
-                avg_cer = avgs[f'{task}_cer']
+                def get_average(numbers):
+                    return torch.FloatTensor(numbers).mean().item()
+
+                avg_er = get_average(records[f'{task}_er'])
+                avg_wer = get_average(records[f'{task}_wer'])
+                avg_cer = get_average(records[f'{task}_cer'])
 
                 buffer_name = f'best_er_{task}_{split}'
                 if not hasattr(self, buffer_name):
