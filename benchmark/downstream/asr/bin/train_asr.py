@@ -29,16 +29,10 @@ class Solver(BaseSolver):
         self.load_data()
         self.set_model()
 
-    # def fetch_data(self, data, train=False):
-    #     ''' Move data to device and compute text seq. length'''
-    #     # feat: B x T x D
-    #     _, feat, feat_len, txt = data
-    #     feat = feat.to(self.device)
-    #     feat_len = feat_len.to(self.device)
-    #     txt = txt.to(self.device)
-    #     txt_len = torch.sum(txt!=0,dim=-1)
-        
-    #     return feat, feat_len, txt, txt_len
+        self.register_buffer('best_er_att_dev', torch.ones(1) * 3.0)
+        self.register_buffer('best_er_ctc_dev', torch.ones(1) * 3.0)
+        self.register_buffer('best_er_att_test', torch.ones(1) * 3.0)
+        self.register_buffer('best_er_ctc_test', torch.ones(1) * 3.0)
 
 
     def load_data(self):
@@ -224,11 +218,7 @@ class Solver(BaseSolver):
                 avg_wer = get_average(records[f'{task}_wer'])
                 avg_cer = get_average(records[f'{task}_cer'])
 
-                buffer_name = f'best_er_{task}_{split}'
-                if not hasattr(self, buffer_name):
-                    self.register_buffer(buffer_name, torch.ones(1) * 3.0)
-
-                buffer = getattr(self, buffer_name)
+                buffer = getattr(self, f'best_er_{task}_{split}')
                 if avg_er < buffer:
                     buffer.fill_(avg_er)
                     save_paths.append(f'best_{task}_{split}.ckpt')
