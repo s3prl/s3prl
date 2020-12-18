@@ -98,7 +98,7 @@ class SpeakerVerifi_train(Dataset):
             wavs.extend(samples[0])
             lengths.extend(samples[1])
 
-        return wavs, lengths, -1
+        return wavs, lengths, -1,
 
 
 class SpeakerVerifi_dev(Dataset):

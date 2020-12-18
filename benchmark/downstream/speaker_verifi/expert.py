@@ -59,11 +59,10 @@ class DownstreamExpert(nn.Module):
         
         self.connector = nn.Linear(upstream_dim,self.modelrc['input_dim'])
 
-        self.model = Model(input_dim=self.modelrc['input_dim'], agg_module=self.modelrc['agg_module'])
+        self.model = Model(input_dim=self.modelrc['input_dim'], agg_module=self.modelrc['agg_module'],  config=self.modelrc)
         self.objective = GE2E()
         self.score_fn  = nn.CosineSimilarity(dim=-1)
         self.eval_metric = EER
-        self.timer = time
 
     def _get_train_dataloader(self, dataset):
         return DataLoader(
