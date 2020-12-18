@@ -49,7 +49,7 @@ class DownstreamExpert(nn.Module):
         parser.add_argument('--load', default=None, type=str, help='Load pre-trained model (for training only)', required=False)
         parser.add_argument('--seed', default=0, type=int, help='Random seed for reproducable results.', required=False)
         parser.add_argument('--cudnn-ctc', action='store_true', help='Switches CTC backend from torch to cudnn')
-        parser.add_argument('--njobs', default=4, type=int, help='Number of threads for dataloader/decoding.', required=False)
+        parser.add_argument('--njobs', default=16, type=int, help='Number of threads for dataloader/decoding.', required=False)
         parser.add_argument('--cpu', action='store_true', help='Disable GPU training.')
         parser.add_argument('--no-pin', action='store_true', help='Disable pin-memory for dataloader')
         parser.add_argument('--test', action='store_true', help='Test the model.')

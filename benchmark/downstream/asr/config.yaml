@@ -49,7 +49,7 @@ downstream_expert:
       vocab_file: 'benchmark/downstream/asr/corpus/librispeech_char.txt'
 
   hparas:                                   # Experiment hyper-parameters
-    valid_step: 10
+    valid_step: 2000
     max_step: 200000
     tf_start: 1.0
     tf_end: 1.0
@@ -71,7 +71,7 @@ downstream_expert:
       vgg_low_filt: -1
       module: 'LSTM'                        # 'LSTM'/'GRU'/'Transformer'
       bidirection: True
-      dim: [10, 10, 10, 10, 10]
+      dim: [1280, 1280, 1280, 1280, 1280]
       dropout: [0.3, 0.3,0.3,0.3,0.3]
       layer_norm: [False, False, False, False, False]
       proj: [True,True,True,True, True]           # Linear projection + Tanh after each rnn layer
@@ -90,3 +90,4 @@ downstream_expert:
       dim: 1024
       layer: 2
       dropout: 0
+
