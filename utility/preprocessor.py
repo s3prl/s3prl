@@ -29,7 +29,7 @@ class OnlinePreprocessor(torch.nn.Module):
         self._magphase = partial(torchaudio.functional.magphase, power=2)
         self._melscale = MelScale(sample_rate=sample_rate, n_mels=n_mels)
         self._mfcc_trans = MFCC(sample_rate=sample_rate, n_mfcc=n_mfcc, log_mels=True, melkwargs=self._win_args)
-        self._istft = partial(torchaudio.functional.istft, **self._win_args, **self._stft_args)
+        self._istft = partial(torch.istft, **self._win_args, **self._stft_args)
         
         self.feat_list = feat_list
         self.register_buffer('_pseudo_wavs', torch.randn(N_SAMPLED_PSEUDO_WAV, sample_rate))
