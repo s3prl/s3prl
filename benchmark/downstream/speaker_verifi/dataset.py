@@ -32,20 +32,31 @@ from joblib import Parallel, delayed
 from torch.utils.data import Dataset
 from librosa.util import find_files
 
+import IPython
+import pdb
+
 
 # Voxceleb 1 + 2 
 # preprocessing need seperate folder to dev, train, test
 class SpeakerVerifi_train(Dataset):
-    def __init__(self, directory_path,max_timestep=16000*5,utter_sample=5):
+    def __init__(self, file_path, max_timestep=16000*5, meta_data=None, utter_number=5):
 
-        self.root = directory_path
-        self.all_speakers = [f.path for f in os.scandir(self.root) if f.is_dir()]
-        self.utter_number = utter_sample
+        self.roots = file_path
+        self.root_key = list(self.roots.keys())
+        
+        # extract dev speaker and store in self.black_list_spealers
+        with open(meta_data, "r") as f:
+            self.black_list_speakers = f.read().splitlines()
+
+        # calculate speakers and support to remove black list speaker
+        self.all_speakers = \
+            [f.path for key in self.root_key for f in os.scandir(self.roots[key]) if f.is_dir() and f.path.split("/")[-1] not in self.black_list_speakers]
+        
+        self.utter_number = utter_number
         self.necessary_dict = self.processing()
         self.dataset = self.necessary_dict['spk_paths'] 
         self.max_timestep = max_timestep
         
-
     def processing(self):
         
         speaker_num = len(self.all_speakers)
@@ -91,9 +102,9 @@ class SpeakerVerifi_train(Dataset):
 
 
 class SpeakerVerifi_dev(Dataset):
-    def __init__(self, directory_path, max_timestep, meta_data=None):
+    def __init__(self, file_path, max_timestep, meta_data=None):
 
-        self.root = directory_path
+        self.root = file_path
         self.meta_data = meta_data
         self.necessary_dict = self.processing()
         self.max_timestep = max_timestep
@@ -101,7 +112,8 @@ class SpeakerVerifi_dev(Dataset):
         
     def processing(self):
         pair_table = []
-        usage_list = open(self.meta_data, "r").readlines()
+        with open(self.meta_data, "r") as f:
+            usage_list = f.readlines()
         for pair in usage_list:
             list_pair = pair.split()
             pair_1= os.path.join(self.root, list_pair[1])
@@ -167,16 +179,17 @@ class SpeakerVerifi_dev(Dataset):
 
 
 class SpeakerVerifi_test(Dataset):
-    def __init__(self, directory_path,meta_data=None):
+    def __init__(self, file_path,meta_data=None):
 
-        self.root = directory_path
+        self.root = file_path
         self.meta_data = meta_data
         self.necessary_dict = self.processing()
         self.dataset = self.necessary_dict['pair_table'] 
         
     def processing(self):
         pair_table = []
-        usage_list = open(self.meta_data, "r").readlines()
+        with open(self.meta_data, "r") as f:
+            usage_list = f.readlines()
         for pair in usage_list:
             list_pair = pair.split()
             pair_1= os.path.join(self.root, list_pair[1])

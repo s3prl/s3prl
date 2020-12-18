@@ -1,11 +1,11 @@
 runner:
-  total_steps: 50000
+  total_steps: 100000
   gradient_clipping: 1
   gradient_accumulate_steps: 1
 
-  log_step: 10
-  eval_step: 10
-  save_step: 10
+  log_step: 100
+  eval_step: 1000
+  save_step: 1000
   max_keep: 1
   eval_dataloaders: 
     - dev
@@ -24,19 +24,25 @@ downstream_expert:
   # we need to split data into three part
   datarc:
     train:
-      file_path: /home/pohan/data/librispeech/vox2_dev/dev/aac
-      utter_number: 2
-      max_timestep: 80000
+      file_path: 
+        # Voxceleb1: /home/pohan/data/librispeech/vox1_dev/wav
+        Voxceleb2: /home/pohan/data/librispeech/vox2_dev/wav
+      meta_data: /home/pohan/bigdata/Self-Supervised-Speech-Pretraining-and-Representation-Learning/benchmark/downstream/speaker_verifi/dev_meta_data/dev_speaker_ids.txt
+      utter_number: 10
+      max_timestep: 128000
+    
     test:
       file_path: /home/pohan/data/librispeech/vox1_test/wav
       meta_data: /home/pohan/data/librispeech/vox1_test/veri_test.txt
+    
     dev:
-      file_path: /home/pohan/data/librispeech/vox1_train_verifi/wav
-      meta_data: /home/pohan/data/librispeech/vox1_train_verifi/valid_pairs_too_large.txt
-      max_timestep: 128000
-    train_batch_size: 2
-    eval_batch_size: 1
-    num_workers: 12
+      file_path: /home/pohan/data/librispeech/vox1_dev/wav
+      meta_data: /home/pohan/bigdata/Self-Supervised-Speech-Pretraining-and-Representation-Learning/benchmark/downstream/speaker_verifi/dev_meta_data/dev_meta_data.txt
+      max_timestep: 131200
+    
+    train_batch_size: 8
+    eval_batch_size: 8
+    num_workers: 8
 
   modelrc: 
     input_dim: 256
