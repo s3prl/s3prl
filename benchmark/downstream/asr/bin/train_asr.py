@@ -191,7 +191,8 @@ class Solver(BaseSolver):
                     logger.add_text(f'{prefix}att-text-{i}', self.tokenizer.decode(att_output[i].argmax(dim=-1).tolist()), global_step=global_step)
                 if ctc_output is not None:
                     logger.add_text(f'{prefix}ctc-text-{i}', self.tokenizer.decode(ctc_output[i].argmax(dim=-1).tolist(), ignore_repeat=True), global_step=global_step)
-        return 0
+
+        return feat.new_zeros(1)
 
 
     def forward(self, feat, txt, *args, **kwargs):
@@ -208,39 +209,40 @@ class Solver(BaseSolver):
 
 
     def log_records(self, records, logger, prefix, global_step, **kwargs):
-        avgs = {}
-        for key, item in records.items():
-            avgs[key] = torch.FloatTensor(records[key]).mean().item()
-        
-        tasks = []
-        if 'att_er' in avgs:
-            tasks.append('att')
-        if 'ctc_er' in avgs:
-            tasks.append('ctc')
+        if not self.training:
+            avgs = {}
+            for key, item in records.items():
+                avgs[key] = torch.FloatTensor(records[key]).mean().item()
+            
+            tasks = []
+            if 'att_er' in avgs:
+                tasks.append('att')
+            if 'ctc_er' in avgs:
+                tasks.append('ctc')
 
-        split = prefix.split('/')[-1][:-1]
-        save_paths = []
-        for task in tasks:
-            avg_er = avgs[f'{task}_er']
-            avg_wer = avgs[f'{task}_wer']
-            avg_cer = avgs[f'{task}_cer']
+            split = prefix.split('/')[-1][:-1]
+            save_paths = []
+            for task in tasks:
+                avg_er = avgs[f'{task}_er']
+                avg_wer = avgs[f'{task}_wer']
+                avg_cer = avgs[f'{task}_cer']
 
-            buffer_name = f'best_er_{task}_{split}'
-            if not hasattr(self, buffer_name):
-                self.register_buffer(buffer_name, torch.ones(1) * 3.0)
+                buffer_name = f'best_er_{task}_{split}'
+                if not hasattr(self, buffer_name):
+                    self.register_buffer(buffer_name, torch.ones(1) * 3.0)
 
-            buffer = getattr(self, buffer_name)
-            if avg_er < buffer:
-                buffer.fill_(avg_er)
-                save_paths.append(f'best_{task}_{split}.ckpt')
+                buffer = getattr(self, buffer_name)
+                if avg_er < buffer:
+                    buffer.fill_(avg_er)
+                    save_paths.append(f'best_{task}_{split}.ckpt')
 
-            if global_step >= self.max_step:
-                save_paths.append(f'last_{task}_{split}.ckpt')
+                if global_step >= self.max_step:
+                    save_paths.append(f'last_{task}_{split}.ckpt')
 
-            self.log.add_scalar(f'asr/{split}-{task}-{self.WER}'.lower(), avg_wer, global_step=global_step)
-            self.log.add_scalar(f'asr/{split}-{task}-cer'.lower(), avg_cer, global_step=global_step)
+                logger.add_scalar(f'asr/{split}-{task}-{self.WER}'.lower(), avg_wer, global_step=global_step)
+                logger.add_scalar(f'asr/{split}-{task}-cer'.lower(), avg_cer, global_step=global_step)
 
-        return save_paths
+            return save_paths
 
 
     def exec(self):
