@@ -93,9 +93,9 @@ def get_benchmark_args():
             config = yaml.load(file, Loader=yaml.FullLoader)
         copyfile(args.config, f'{args.expdir}/config.yaml')
         
-        upstream_dirs = [u for u in os.listdir('benchmark/upstream/') if re.search(f'^{u}_|^{u}$', args.upstream)]
+        upstream_dirs = [u for u in os.listdir('upstream/') if re.search(f'^{u}_|^{u}$', args.upstream)]
         assert len(upstream_dirs) == 1
-        default_upstream_config = f'benchmark/upstream/{upstream_dirs[0]}/config.yaml'
+        default_upstream_config = f'upstream/{upstream_dirs[0]}/config.yaml'
         if args.upstream_config == '' and os.path.isfile(default_upstream_config):
             args.upstream_config = default_upstream_config
         if os.path.isfile(args.upstream_config):
