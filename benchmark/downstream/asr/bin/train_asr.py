@@ -112,7 +112,7 @@ class Solver(BaseSolver):
 
 
     def _forward_train(self, feat, feat_len, txt, txt_len, logger, global_step,
-                       prefix='asr/train-', **kwargs):
+                       log_step, prefix='asr/train-', **kwargs):
 
         # Pre-step : update tf_rate/lr_rate and do zero_grad
         tf_rate = self.tf_rate(global_step)
@@ -146,9 +146,7 @@ class Solver(BaseSolver):
             # att_loss = torch.mean(torch.sum(att_loss.view(b,t),dim=-1)/torch.sum(txt!=0,dim=-1).float())
             total_loss += att_loss*(1-self.model.ctc_weight)
 
-        if global_step % self.PROGRESS_STEP == 0:
-            logger.add_scalar(f'{prefix}loss', total_loss.item(), global_step=global_step)
-
+        if global_step % log_step == 0:
             if att_output is not None:
                 logger.add_scalar(f'{prefix}att-loss', att_loss.item(), global_step=global_step)
                 logger.add_scalar(f'{prefix}att-{self.WER}', cal_er(self.tokenizer,att_output,txt), global_step=global_step)
