@@ -25,7 +25,7 @@ downstream_expert:
   datarc:
     train:
       file_path: 
-        Voxceleb1: /home/pohan/data/librispeech/vox1_dev/wav
+        Voxceleb1: /home/pohan/data/librispeech/vox1_train_verifi/wav
         Voxceleb2: /home/pohan/data/librispeech/vox2_dev/wav
       meta_data: /home/pohan/bigdata/Self-Supervised-Speech-Pretraining-and-Representation-Learning/benchmark/downstream/speaker_verifi/dev_meta_data/dev_speaker_ids.txt
       utter_number: 10
@@ -36,7 +36,7 @@ downstream_expert:
       meta_data: /home/pohan/data/librispeech/vox1_test/veri_test.txt
     
     dev:
-      file_path: /home/pohan/data/librispeech/vox1_dev/wav
+      file_path: /home/pohan/data/librispeech/vox1_train_verifi/wav
       meta_data: /home/pohan/bigdata/Self-Supervised-Speech-Pretraining-and-Representation-Learning/benchmark/downstream/speaker_verifi/dev_meta_data/dev_meta_data.txt
       max_timestep: 131200
     
