@@ -6,13 +6,13 @@ import torch
 import torch.nn as nn
 from torch.nn.utils.rnn import pad_sequence
 
-from src.solver import BaseSolver
+from benchmark.downstream.asr.src.solver import BaseSolver
 
-from src.asr import ASR
-from src.optim import Optimizer
-from src.data import load_dataset
-from src.util import human_format, cal_er, feat_to_fig, LabelSmoothingLoss
-from src.audio import Delta, Postprocess, Augment
+from benchmark.downstream.asr.src.asr import ASR
+from benchmark.downstream.asr.src.optim import Optimizer
+from benchmark.downstream.asr.src.data import load_dataset
+from benchmark.downstream.asr.src.util import human_format, cal_er, feat_to_fig, LabelSmoothingLoss
+from benchmark.downstream.asr.src.audio import Delta, Postprocess, Augment
 
 EMPTY_CACHE_STEP = 100
 
@@ -99,15 +99,15 @@ class Solver(BaseSolver):
         self.load_ckpt()
 
     
-    def get_train_dataloader():
+    def get_train_dataloader(self):
         return self.tr_set
 
 
-    def get_dev_dataloader():
+    def get_dev_dataloader(self):
         return self.dv_set
 
 
-    def get_test_dataloader():
+    def get_test_dataloader(self):
         raise NotImplementedError
 
 
@@ -194,7 +194,7 @@ class Solver(BaseSolver):
         return 0
 
 
-    def forward(self, feat, txt, **kwargs):
+    def forward(self, feat, txt, *args, **kwargs):
         feat = pad_sequence(feat, batch_first=True)
         feat_len = torch.LongTensor([len(f) for f in feat]).to(feat.device)
         txt = txt.to(feat.device)

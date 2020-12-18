@@ -1,13 +1,15 @@
 import torch
 import numpy as np
 from functools import partial
-from src.text import load_text_encoder
-from src.audio import create_transform
 from torch.utils.data import DataLoader
 from torch.nn.utils.rnn import pad_sequence
 import torch.nn.functional as F
 from os.path import join
-from src.collect_batch import collect_audio_batch, collect_text_batch
+
+from benchmark.downstream.asr.src.text import load_text_encoder
+from benchmark.downstream.asr.src.audio import create_transform
+from benchmark.downstream.asr.src.collect_batch import collect_audio_batch, collect_text_batch
+
 
 def create_dataset(tokenizer, ascending, name, path, bucketing, batch_size, 
                    train_split=None, dev_split=None, test_split=None, read_audio=False):
@@ -15,9 +17,9 @@ def create_dataset(tokenizer, ascending, name, path, bucketing, batch_size,
 
     # Recognize corpus
     if name.lower() == 'librispeech':
-        from corpus.preprocess_librispeech import LibriDataset as Dataset
+        from benchmark.downstream.asr.corpus.preprocess_librispeech import LibriDataset as Dataset
     elif name.lower() == 'dlhlp':
-        from corpus.preprocess_dlhlp import DLHLPDataset as Dataset
+        from benchmark.downstream.asr.corpus.preprocess_dlhlp import DLHLPDataset as Dataset
     else:
         raise NotImplementedError
 
@@ -37,7 +39,7 @@ def create_dataset(tokenizer, ascending, name, path, bucketing, batch_size,
                 dev_dir = ''
                 if ds[0].lower() == 'librispeech':
                     dev_dir = join(path, 'LibriSpeech')
-                    from corpus.preprocess_librispeech import LibriDataset as DevDataset
+                    from benchmark.downstream.asr.corpus.preprocess_librispeech import LibriDataset as DevDataset
                 else:
                     raise NotImplementedError(ds[0])
                 dv_set.append(DevDataset(dev_dir,ds,tokenizer, 1))

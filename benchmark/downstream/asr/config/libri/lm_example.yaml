@@ -1,0 +1,30 @@
+data:
+  corpus:                                 # Pass to dataloader
+    # The following depends on corpus
+    name: 'Librispeech'                   # Specify corpus
+    path: 'data/LibriSpeech'
+    train_split: ['librispeech-lm-norm.txt'] # Official LM src from LibriSpeech
+    dev_split: ['dev-clean']
+    bucketing: True
+    batch_size: 32
+  text:
+    mode: 'subword'                     # 'character'/'word'/'subword'
+    vocab_file: 'tests/sample_data/subword-16k.model'
+
+hparas:                                   # Experiment hyper-parameters
+  valid_step: 10000
+  max_step: 100000000
+  optimizer: 'Adam'
+  lr: 0.0001
+  eps: 0.00000001
+  lr_scheduler: 'fixed'                    # 'fixed'/'warmup'
+  
+model:                                     # Model architecture
+  emb_tying: False                         # https://arxiv.org/pdf/1608.05859.pdf
+  emb_dim: 1024
+  module: 'LSTM'                           # 'LSTM'/'GRU'
+  dim: 1024
+  n_layers: 2
+  dropout: 0.5
+  
+  

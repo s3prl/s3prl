@@ -6,8 +6,8 @@ import torch.nn as nn
 import torch.nn.functional as F
 from torch.distributions.categorical import Categorical
 
-from src.util import init_weights, init_gate
-from src.module import VGGExtractor, VGGExtractor_LN, VGGExtractor2, FreqVGGExtractor, FreqVGGExtractor2, \
+from benchmark.downstream.asr.src.util import init_weights, init_gate
+from benchmark.downstream.asr.src.module import VGGExtractor, VGGExtractor_LN, VGGExtractor2, FreqVGGExtractor, FreqVGGExtractor2, \
                         RNNLayer, ScaleDotAttention, LocationAwareAttention, liGRU, act_fun, liGRU_layer
 
 class ASR(nn.Module):

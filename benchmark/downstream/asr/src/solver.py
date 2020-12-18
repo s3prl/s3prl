@@ -7,8 +7,8 @@ import torch
 import torch.nn as nn
 from torch.utils.tensorboard import SummaryWriter
 
-from src.option import default_hparas
-from src.util import human_format, Timer
+from benchmark.downstream.asr.src.option import default_hparas
+from benchmark.downstream.asr.src.util import human_format, Timer
 
 class BaseSolver(nn.Module):
     ''' 
