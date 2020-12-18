@@ -136,6 +136,7 @@ class Runner():
                 try:
                     if pbar.n >= pbar.total:
                         break
+                    pbar.update(1)
 
                     wavs = [wav.to(self.args.device) for wav in wavs]
                     if self.args.upstream_trainable:
@@ -192,7 +193,7 @@ class Runner():
                     scheduler.step()
 
                 # logging
-                if (pbar.n + 1) % self.config['runner']['log_step'] == 0:
+                if pbar.n % self.config['runner']['log_step'] == 0:
                     # log loss
                     average_loss = torch.FloatTensor(all_loss).mean().item()
                     self.logger.add_scalar(f'{prefix}loss', average_loss, global_step=pbar.n)
@@ -212,11 +213,11 @@ class Runner():
                 # evaluation and save checkpoint
                 save_names = []
 
-                if (pbar.n + 1) % self.config['runner']['eval_step'] == 0:
+                if pbar.n % self.config['runner']['eval_step'] == 0:
                     for split in self.config['runner']['eval_dataloaders']:
                         save_names += self.evaluate(split, pbar.n)
 
-                if (pbar.n + 1) % self.config['runner']['save_step'] == 0:
+                if pbar.n % self.config['runner']['save_step'] == 0:
                     def check_ckpt_num(directory):
                         max_keep = self.config['runner']['max_keep']
                         ckpt_pths = glob.glob(f'{directory}/states-*.ckpt')
@@ -225,13 +226,13 @@ class Runner():
                             for ckpt_pth in ckpt_pths[:len(ckpt_pths) - max_keep + 1]:
                                 os.remove(ckpt_pth)
                     check_ckpt_num(self.args.expdir)
-                    save_names.append(f'states-{pbar.n + 1}.ckpt')
+                    save_names.append(f'states-{pbar.n}.ckpt')
 
                 if len(save_names) > 0:
                     all_states = {
                         'Downstream': self.downstream.state_dict(),
                         'Optimizer': optimizer.state_dict(),
-                        'Step': pbar.n + 1,
+                        'Step': pbar.n,
                         'Args': self.args,
                         'Config': self.config,
                     }
@@ -247,8 +248,6 @@ class Runner():
                     for i, path in enumerate(save_paths):
                         print(f'{i + 1}. {path}')
                         torch.save(all_states, path)
-
-                pbar.update(1)
 
         pbar.close()
 
