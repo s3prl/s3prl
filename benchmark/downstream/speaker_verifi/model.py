@@ -17,7 +17,7 @@ from functools import lru_cache
 import IPython
 import pdb
 from argparse import Namespace
-from transformer.model import TransformerEncoder
+from upstream.mockingjay.model import TransformerEncoder
 
 #########
 # MODEL #
