@@ -13,7 +13,7 @@
 import torch.nn as nn
 from torch.nn.utils.rnn import pad_sequence
 #-------------#
-from transformer.nn_transformer import TRANSFORMER
+from .builder import PretrainedTransformer
 
 
 ####################
@@ -36,7 +36,7 @@ class UpstreamExpert(nn.Module):
                    'select_layer'  : -1,
                    'permute_input' : 'False' }
 
-        self.transformer = TRANSFORMER(options, inp_dim=-1)
+        self.transformer = PretrainedTransformer(options, inp_dim=-1)
         self.output_dim = self.transformer.out_dim
         assert hasattr(self.transformer, 'preprocessor'), 'This wrapper only supports `on-the-fly` ckpt with built in preprocessors.'
 
@@ -61,7 +61,7 @@ class UpstreamExpert(nn.Module):
 
         wavs = pad_sequence(wavs, batch_first=True)
         for i in range(wavs.size(0)): 
-            wavs[i] = TRANSFORMER.normalize_wav_decibel(wavs[i], self.transformer.config['online']['target_level'])
+            wavs[i] = PretrainedTransformer.normalize_wav_decibel(wavs[i], self.transformer.config['online']['target_level'])
         wavs = wavs.unsqueeze(-1) # (batch_size, audio_len) -> (batch_size, audio_len, 1)
         features = self.transformer(wavs) # (batch_size, extracted_seqlen, feature_dim)
 

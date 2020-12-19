@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*- #
 """*********************************************************************************************"""
-#   FileName     [ transformer/nn_transformer.py ]
-#   Synopsis     [ wrapper class for downstream feature extraction or finetune ]
+#   FileName     [ builder.py ]
+#   Synopsis     [ build the transformer model for downstream usage ]
 #   Author       [ Andy T. Liu (Andi611) ]
 #   Copyright    [ Copyleft(c), Speech Lab, NTU, Taiwan ]
 """*********************************************************************************************"""
@@ -21,20 +21,20 @@ import torch.nn as nn
 from functools import lru_cache
 from distutils.util import strtobool
 from utility.preprocessor import OnlinePreprocessor
-from transformer.model import TransformerConfig, TransformerModel
-from transformer.model import TransformerSpecPredictionHead
+from .model import TransformerConfig, TransformerModel
+from .model import TransformerSpecPredictionHead
 
 
-###############
-# TRANSFORMER #
-###############
-class TransformerBaseWrapper(nn.Module):
+#######################
+# TRANSFORMER BUILDER #
+#######################
+class TransformerBuilder(nn.Module):
     """ 
-    A base class for all Transformer wrappers.
+    A builder class for all pre-trained Transformer.
     Child classes only need to implement the __init__() and forward() method.
     """
-    def __init__(self, options, inp_dim, config=None, online_config=None):
-        super(TransformerBaseWrapper, self).__init__()
+    def __init__(self, options, inp_dim, config=None, online_config=None, verbose=False):
+        super(TransformerBuilder, self).__init__()
 
         # read config
         if config is not None:
@@ -69,13 +69,13 @@ class TransformerBaseWrapper(nn.Module):
         self.inp_dim = inp_dim if inp_dim > 0 else self.config['transformer']['input_dim']
         self.device = torch.device('cuda') if torch.cuda.is_available() else torch.device('cpu')
         
-        if self.max_input_length > 0: print('[Transformer] - Maximum input length: ', self.max_input_length)
+        if self.max_input_length > 0 and verbose: print('[Transformer] - Maximum input length: ', self.max_input_length)
         if not (self.select_layer in list(range(-1, self.num_layers))): raise RuntimeError('Out of range int for \'select_layer\'!')
         if self.weighted_sum:
             self.weight = nn.Parameter(torch.ones(self.num_layers) / self.num_layers)
 
 
-    def load_model(self, transformer_model, state_dict):
+    def load_model(self, transformer_model, state_dict, verbose=False):
         try:
             old_keys = []
             new_keys = []
@@ -118,7 +118,7 @@ class TransformerBaseWrapper(nn.Module):
             if len(error_msgs) > 0:
                 raise RuntimeError('Error(s) in loading state_dict for {}:\n\t{}'.format(
                                     transformer_model.__class__.__name__, '\n\t'.join(error_msgs)))
-            print('[Transformer] - Pre-trained weights loaded!')
+            if verbose: print('[Transformer] - Pre-trained weights loaded!')
             return transformer_model
 
         except: 
@@ -286,10 +286,10 @@ class TransformerBaseWrapper(nn.Module):
         return x # (B, T, D) or (T, B, D)
 
 
-###############
-# TRANSFORMER #
-###############
-class TRANSFORMER(TransformerBaseWrapper):
+##########################
+# PRETRAINED TRANSFORMER #
+##########################
+class PretrainedTransformer(TransformerBuilder):
     """
     Use this class to extract features from the Transformer model,
     or to finetune the pre-trained Transformer with any downstream tasks.
@@ -324,8 +324,8 @@ class TRANSFORMER(TransformerBaseWrapper):
         'permute_input' : 'False',
     }
     """
-    def __init__(self, options, inp_dim, config=None, online_config=None):
-        super(TRANSFORMER, self).__init__(options, inp_dim, config, online_config)
+    def __init__(self, options, inp_dim, config=None, online_config=None, verbose=False):
+        super(PretrainedTransformer, self).__init__(options, inp_dim, config, online_config, verbose)
 
         # Build model
         self.model = TransformerModel(self.model_config, self.inp_dim).to(self.device)
@@ -334,8 +334,8 @@ class TRANSFORMER(TransformerBaseWrapper):
         
         # Load from a PyTorch state_dict
         if self.load: 
-            self.model = self.load_model(self.model, self.all_states['Transformer'])
-            print('[Transformer] - Number of parameters: ' + str(sum(p.numel() for p in self.model.parameters() if p.requires_grad)))
+            self.model = self.load_model(self.model, self.all_states['Transformer'], verbose)
+            if verbose: print('[Transformer] - Number of parameters: ' + str(sum(p.numel() for p in self.model.parameters() if p.requires_grad)))
 
 
     def forward(self, x):
@@ -349,12 +349,12 @@ class TRANSFORMER(TransformerBaseWrapper):
         return x
 
 
-####################
-# SPEC TRANSFORMER #
-####################
-class SPEC_TRANSFORMER(TRANSFORMER):
-    def __init__(self, options, inp_dim, config=None, online_config=None):
-        super(SPEC_TRANSFORMER, self).__init__(options, inp_dim, config, online_config)
+####################################
+# PRETRAINED TRANSFORMER WITH HEAD #
+####################################
+class PretrainedTransformerWithHead(PretrainedTransformer):
+    def __init__(self, options, inp_dim, config=None, online_config=None, verbose=False):
+        super(PretrainedTransformerWithHead, self).__init__(options, inp_dim, config, online_config, verbose)
 
         # build head
         self.SpecHead = TransformerSpecPredictionHead(self.model_config, inp_dim).to(self.device)
@@ -363,7 +363,7 @@ class SPEC_TRANSFORMER(TRANSFORMER):
         # Load from a PyTorch state_dict
         if self.load:
             self.SpecHead.load_state_dict(self.all_states['SpecHead'])
-            print('[Spec Transformer] - Number of parameters: ' + str(sum(p.numel() for p in self.SpecHead.parameters() if p.requires_grad)))
+            if verbose: print('[Spec Transformer] - Number of parameters: ' + str(sum(p.numel() for p in self.SpecHead.parameters() if p.requires_grad)))
 
     def forward(self, x):
         if hasattr(self, 'preprocessor'):

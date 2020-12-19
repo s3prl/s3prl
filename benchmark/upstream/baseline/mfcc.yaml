@@ -1,7 +1,0 @@
-kaldi:
-  # spectrogram, fbank, mfcc
-  feat_type: mfcc
-
-delta:
-  order: 2
-  win_length: 5
