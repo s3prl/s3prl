@@ -22,7 +22,6 @@ from torch.nn.utils.rnn import pad_sequence
 #-------------#
 from benchmark.downstream.speaker_classifi.model import Model
 from benchmark.downstream.speaker_classifi.dataset import SpeakerClassifiDataset
-
 from argparse import Namespace
 
 import IPython
