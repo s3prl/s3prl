@@ -1,4 +1,5 @@
 import torch
+import torchaudio
 import numpy as np
 from torch.nn.utils.rnn import pad_sequence
 import torch.nn.functional as F
@@ -7,7 +8,7 @@ HALF_BATCHSIZE_AUDIO_LEN = 800 # Batch size will be halfed if the longest wavefi
 # Note: Bucketing may cause random sampling to be biased (less sampled for those length > HALF_BATCHSIZE_AUDIO_LEN )
 HALF_BATCHSIZE_TEXT_LEN = 150
 
-def collect_audio_batch(batch, audio_transform, mode):
+def collect_audio_batch(batch, mode):
     '''Collects a batch, should be list of tuples (audio_path <str>, list of int token <list>) 
        e.g. [(file1,txt1),(file2,txt2),...] '''
     
@@ -18,34 +19,30 @@ def collect_audio_batch(batch, audio_transform, mode):
     # For each bucket, the first audio must be the longest one
     # But for multi-dataset, this is not the case !!!!
     
-    if HALF_BATCHSIZE_AUDIO_LEN < 3500 and mode == 'train':
-        first_len = audio_transform(str(batch[0][0])).shape[0]
-        if first_len > HALF_BATCHSIZE_AUDIO_LEN:
-            batch = batch[::2]
+    # if HALF_BATCHSIZE_AUDIO_LEN < 3500 and mode == 'train':
+    #     first_len = audio_transform(str(batch[0][0])).shape[0]
+    #     if first_len > HALF_BATCHSIZE_AUDIO_LEN:
+    #         batch = batch[::2]
     
     # Read batch
-    file, audio_feat, audio_len, text = [],[],[],[]
+    file, audio_wav, audio_len, text = [],[],[],[]
     with torch.no_grad():
         for index, b in enumerate(batch):
             if type(b[0]) is str:
                 file.append(str(b[0]).split('/')[-1].split('.')[0])
-                feat = audio_transform(str(b[0]))
+                wav, sr = torchaudio.load(str(b[0]))
             else:
                 file.append('dummy')
-                feat = audio_transform(str(b[0]))
-            audio_feat.append(feat)
-            audio_len.append(len(feat))
+                wav, sr = torchaudio.load(str(b[0]))
+            wav = wav.squeeze()
+            audio_wav.append(wav)
+            audio_len.append(len(wav))
             text.append(torch.LongTensor(b[1]))
     # Descending audio length within each batch
-    audio_len, file, audio_feat, text = zip(*[(feat_len,f_name,feat,txt) \
-        for feat_len,f_name,feat,txt in zip(audio_len,file,audio_feat,text)])
-    #print(len(audio_feat))
-    # Zero-padding
-    audio_feat = pad_sequence(audio_feat, batch_first=True)
+    audio_len, file, audio_wav, text = zip(*[(feat_len,f_name,wav,txt) \
+        for feat_len,f_name,wav,txt in zip(audio_len,file,audio_wav,text)])
     text = pad_sequence(text, batch_first=True)
-    audio_len = torch.LongTensor(audio_len)
-    
-    return file, audio_feat, audio_len, text
+    return audio_wav, text, file
 
 def collect_text_batch(batch, mode):
     '''Collects a batch of text, should be list of list of int token 

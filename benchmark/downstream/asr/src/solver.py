@@ -4,12 +4,13 @@ import abc
 import math
 import yaml
 import torch
+import torch.nn as nn
 from torch.utils.tensorboard import SummaryWriter
 
-from src.option import default_hparas
-from src.util import human_format, Timer
+from benchmark.downstream.asr.src.option import default_hparas
+from benchmark.downstream.asr.src.util import human_format, Timer
 
-class BaseSolver():
+class BaseSolver(nn.Module):
     ''' 
     Prototype Solver for all kinds of tasks
     Arguments
@@ -17,6 +18,8 @@ class BaseSolver():
         paras  - argparse outcome
     '''
     def __init__(self, config, paras, mode):
+        super(BaseSolver, self).__init__()
+
         # General Settings
         self.config = config
         self.paras = paras
@@ -33,23 +36,6 @@ class BaseSolver():
             if mode == 'train':
                 self.exp_name += '_sd{}'.format(paras.seed)
 
-        # Plugin list
-        self.emb_decoder = None
-
-        self.transfer_learning = False
-        # Transfer Learning
-        if (self.config.get('transfer', None) is not None) and mode == 'train':
-            self.transfer_learning = True
-            self.train_enc = self.config['transfer']['train_enc']
-            self.train_dec = self.config['transfer']['train_dec']
-            self.fix_enc   = [i for i in range(4) if i not in self.config['transfer']['train_enc'] ]
-            self.fix_dec   = not self.config['transfer']['train_dec']
-            log_name = '_T_{}_{}'.format(''.join([str(l) for l in self.train_enc]), '1' if self.train_dec else '0')
-            self.save_name = '_tune-{}-{}'.format(''.join([str(l) for l in self.train_enc]), '1' if self.train_dec else '0')
-            
-            if self.paras.seed > 0:
-                self.save_name += '-sd' + str(self.paras.seed)
-            
         if mode == 'train':
             # Filepath setup
             os.makedirs(paras.ckpdir, exist_ok=True)
@@ -57,7 +43,7 @@ class BaseSolver():
             os.makedirs(self.ckpdir, exist_ok=True)
 
             # Logger settings
-            self.logdir = os.path.join(paras.logdir,self.exp_name + (log_name if self.transfer_learning else ''))
+            self.logdir = os.path.join(paras.logdir,self.exp_name)
             self.log = SummaryWriter(self.logdir, flush_secs = self.TB_FLUSH_FREQ)
             self.timer = Timer()
 
@@ -111,8 +97,6 @@ class BaseSolver():
             # Load weights
             ckpt = torch.load(self.paras.load, map_location=self.device if self.mode=='train' else 'cpu')
             self.model.load_state_dict(ckpt['model'])
-            if self.emb_decoder is not None:
-                self.emb_decoder.load_state_dict(ckpt['emb_decoder'])
             #if self.amp:
             #    amp.load_state_dict(ckpt['amp'])
 
@@ -121,16 +105,13 @@ class BaseSolver():
             ### resume training
             if self.mode == 'train':
                 self.step = ckpt['global_step']
-                if self.transfer_learning == False:
-                    self.optimizer.load_opt_state_dict(ckpt['optimizer'])
+                self.optimizer.load_opt_state_dict(ckpt['optimizer'])
                 self.verbose('Load ckpt from {}, restarting at step {}'.format(self.paras.load,self.step))
             else:
                 for k,v in ckpt.items():
                     if type(v) is float:
                         metric, score = k,v
                 self.model.eval()
-                if self.emb_decoder is not None:
-                    self.emb_decoder.eval()
                 self.verbose('Evaluation target = {} (recorded {} = {:.2f} %)'.format(self.paras.load,metric,score * 100))
 
     def verbose(self,msg):
@@ -189,8 +170,6 @@ class BaseSolver():
         # Additional modules to save
         #if self.amp:
         #    full_dict['amp'] = self.amp_lib.state_dict()
-        if self.emb_decoder is not None:
-            full_dict['emb_decoder'] = self.emb_decoder.state_dict()
 
         torch.save(full_dict, ckpt_path)
         if len(name) > 0:

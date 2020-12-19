@@ -1,11 +1,11 @@
 runner:
-  total_steps: 50000
+  total_steps: 100000
   gradient_clipping: 1
   gradient_accumulate_steps: 1
 
-  log_step: 10
-  eval_step: 10
-  save_step: 10
+  log_step: 100
+  eval_step: 1000
+  save_step: 1000
   max_keep: 1
   eval_dataloaders: 
     - dev
@@ -24,20 +24,41 @@ downstream_expert:
   # we need to split data into three part
   datarc:
     train:
-      file_path: /home/pohan/data/librispeech/vox2_dev/dev/aac
-      utter_number: 2
-      max_timestep: 80000
+      file_path: 
+        Voxceleb1: /home/pohan/data/librispeech/vox1_train_verifi/wav
+        Voxceleb2: /home/pohan/data/librispeech/vox2_dev/wav
+      meta_data: /home/pohan/bigdata/Self-Supervised-Speech-Pretraining-and-Representation-Learning/benchmark/downstream/speaker_verifi/dev_meta_data/dev_speaker_ids.txt
+      utter_number: 10
+      max_timestep: 128000
+    
     test:
       file_path: /home/pohan/data/librispeech/vox1_test/wav
       meta_data: /home/pohan/data/librispeech/vox1_test/veri_test.txt
+    
     dev:
       file_path: /home/pohan/data/librispeech/vox1_train_verifi/wav
-      meta_data: /home/pohan/data/librispeech/vox1_train_verifi/valid_pairs_too_large.txt
-      max_timestep: 128000
-    train_batch_size: 2
-    eval_batch_size: 1
-    num_workers: 12
+      meta_data: /home/pohan/bigdata/Self-Supervised-Speech-Pretraining-and-Representation-Learning/benchmark/downstream/speaker_verifi/dev_meta_data/dev_meta_data.txt
+      max_timestep: 131200
+    
+    train_batch_size: 8
+    eval_batch_size: 8
+    num_workers: 8
 
-  modelrc: 
+  modelrc:
+    module:
+      Identity
+    hparams:
+      hidden_size: 256                                      # Size of the encoder layers and the pooler layer.
+      num_hidden_layers: 1                                  # Number of hidden layers in the Transformer encoder.
+      num_attention_heads: 8                               # Number of attention heads for each attention layer in the Transformer encoder.
+      intermediate_size: 1024                               # The size of the "intermediate" (i.e., feed-forward) layer in the Transformer encoder.
+      hidden_act: "gelu"                                    # The non-linear activation function (function or string) in the encoder and pooler. If string, "gelu", "relu" and "swish" are supported.
+      hidden_dropout_prob: 0.1                              # The dropout probabilitiy for all fully connected layers in the embeddings, encoder, and pooler.
+      attention_probs_dropout_prob: 0.1                     # The dropout ratio for the attention probabilities.
+      initializer_range: 0.02                               # The sttdev of the truncated_normal_initializer for initializing all weight matrices.
+      layer_norm_eps: 1.0e-12                              # The epsilon used by LayerNorm.
+      share_layer: False                                    # Share layer weights
+      max_input_length: 0                                   # maximum input length (0 for no restriction)
+      pre_layer_norm: False                                 # apply the pre layer normalization technique introduced in: https://arxiv.org/abs/2002.04745
     input_dim: 256
     agg_module: SAP

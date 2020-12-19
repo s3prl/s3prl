@@ -112,8 +112,8 @@ class DownstreamExpert(nn.Module):
         return inputs, labels
 
     # Interface
-    def forward(self, features, labels,
-                records, logger, prefix, global_step):
+    def forward(self, features, labels, records,
+                logger, prefix, global_step, **kwargs):
         """
         Args:
             features:
@@ -163,7 +163,7 @@ class DownstreamExpert(nn.Module):
         return loss
 
     # interface
-    def log_records(self, records, logger, prefix, global_step):
+    def log_records(self, records, logger, prefix, global_step, **kwargs):
         """
         Args:
             records:

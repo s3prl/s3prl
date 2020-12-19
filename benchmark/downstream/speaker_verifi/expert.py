@@ -14,6 +14,7 @@ import os
 import math
 import torch
 import random
+import time
 #-------------#
 import torch
 import torch.nn as nn
@@ -50,14 +51,15 @@ class DownstreamExpert(nn.Module):
         self.downstream = downstream_expert
         self.datarc = downstream_expert['datarc']
         self.modelrc = downstream_expert['modelrc']
+        self.seed = kwargs['seed']
 
-        self.train_dataset = SpeakerVerifi_train(self.datarc['train']['file_path'], self.datarc['train']['max_timestep'],self.datarc['train']['utter_number'])
-        self.dev_dataset = SpeakerVerifi_dev(self.datarc['dev']['file_path'], self.datarc['dev']['max_timestep'],self. datarc['dev']['meta_data'])
-        self.test_dataset = SpeakerVerifi_test(self.datarc['test']['file_path'], self.datarc['test']['meta_data'])
+        self.train_dataset = SpeakerVerifi_train(**self.datarc['train'])
+        self.dev_dataset = SpeakerVerifi_dev(**self.datarc['dev'])
+        self.test_dataset = SpeakerVerifi_test(**self.datarc['test'])
         
         self.connector = nn.Linear(upstream_dim,self.modelrc['input_dim'])
 
-        self.model = Model(input_dim=self.modelrc['input_dim'], agg_module=self.modelrc['agg_module'])
+        self.model = Model(input_dim=self.modelrc['input_dim'], agg_module=self.modelrc['agg_module'],  config=self.modelrc)
         self.objective = GE2E()
         self.score_fn  = nn.CosineSimilarity(dim=-1)
         self.eval_metric = EER
@@ -90,7 +92,7 @@ class DownstreamExpert(nn.Module):
 
     # Interface
     def forward(self, features, lengths, labels,
-                records=None, logger=None, prefix=None, global_step=0):
+                records=None, logger=None, prefix=None, global_step=0, **kwargs):
         """
         Args:
             features:
@@ -116,6 +118,7 @@ class DownstreamExpert(nn.Module):
             loss:
                 the loss to be optimized, should not be detached
         """
+        
         features_pad = pad_sequence(features, batch_first=True)
         
         attention_mask = [torch.ones((feature.shape[0])) for feature in features] 
@@ -143,8 +146,8 @@ class DownstreamExpert(nn.Module):
             ylabels = torch.stack(labels).cpu().detach().long().tolist()
 
             if len(ylabels) > 1:
-                records['scores'].extends(scores)
-                records['ylabels'].extends(ylabels)
+                records['scores'].extend(scores)
+                records['ylabels'].extend(ylabels)
             else:
                 records['scores'].append(scores)
                 records['ylabels'].append(ylabels)
@@ -152,7 +155,7 @@ class DownstreamExpert(nn.Module):
             return torch.tensor(0)
 
         # interface
-    def log_records(self, records, logger, prefix, global_step):
+    def log_records(self, records, logger, prefix, global_step, **kwargs):
         """
         Args:
             records:

@@ -582,6 +582,9 @@ class ResidualCNN(nn.Module):
 class VGGExtractor_LN(nn.Module):
     def __init__(self,input_dim):
         super(VGGExtractor_LN, self).__init__()
+        self.connector = nn.Linear(input_dim, FBANK_SIZE * 3)
+        input_dim = FBANK_SIZE * 3
+
         self.init_dim = 64
         self.hide_dim = 128
         #print(input_dim)
@@ -636,6 +639,7 @@ class VGGExtractor_LN(nn.Module):
         return feature,feat_len
 
     def forward(self,feature,feat_len):
+        feature = self.connector(feature)
         # Feature shape BSxTxD -> BS x CH(num of delta) x T x D(acoustic feature dim)
         feature, feat_len = self.view_input(feature,feat_len)
         #print(feature.shape)

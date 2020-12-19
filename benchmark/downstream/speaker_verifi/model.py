@@ -16,9 +16,20 @@ import torch.nn.functional as F
 from functools import lru_cache
 import IPython
 import pdb
+from argparse import Namespace
+from transformer.model import TransformerEncoder
+
 #########
 # MODEL #
 #########
+class Identity(nn.Module):
+    def __init__(self, config, **kwargs):
+        super(Identity, self).__init__()
+        # simply take mean operator / no additional parameters
+
+    def forward(self, feature, att_mask, head_mask, **kwargs):
+
+        return feature
 
 class Mean(nn.Module):
 
@@ -94,16 +105,20 @@ class SelfAttentionPooling(nn.Module):
         return utter_rep
 
 class Model(nn.Module):
-    def __init__(self, input_dim, agg_module):
+    def __init__(self, input_dim, agg_module, config):
         super(Model, self).__init__()
         
         # agg_module: current support [ "SAP", "Mean" ]
         # init attributes
         self.agg_method = eval(agg_module)(input_dim)
-      
+        
+        self.model= eval(config['module'])(config=Namespace(**config['hparams']),)
+        self.head_mask = [None] * config['hparams']['num_hidden_layers']         
+
 
 
     def forward(self, features, att_mask):
+        features = self.model(features,att_mask[:,None,None], head_mask=self.head_mask, output_all_encoded_layers=False)
         utterance_vector = self.agg_method(features, att_mask)
 
         return utterance_vector

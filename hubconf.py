@@ -15,8 +15,9 @@ import torch
 dependencies = ['torch']
 
 
-hubconf_search_root = '.'
-hubconfs = [str(p) for p in pathlib.Path(hubconf_search_root).rglob('hubconf.py')]
+search_root = os.path.dirname(__file__)
+hubconfs = [str(p) for p in pathlib.Path(search_root).rglob('hubconf.py')]
+hubconfs = [os.path.relpath(p, search_root) for p in hubconfs]
 hubconfs.remove('hubconf.py')  # remove the root hubconf.py
 
 for hubconf in hubconfs:

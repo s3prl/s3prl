@@ -11,8 +11,8 @@ import numpy as np
 from tqdm import tqdm
 from tensorboardX import SummaryWriter
 
-from benchmark.optimizers import get_optimizer
-from benchmark.schedulers import get_scheduler
+from optimizers import get_optimizer
+from schedulers import get_scheduler
 
 
 class Runner():
@@ -136,6 +136,7 @@ class Runner():
                 try:
                     if pbar.n >= pbar.total:
                         break
+                    pbar.update(1)
 
                     wavs = [wav.to(self.args.device) for wav in wavs]
                     if self.args.upstream_trainable:
@@ -150,6 +151,7 @@ class Runner():
                         logger = self.logger,
                         prefix = prefix,
                         global_step = pbar.n,
+                        log_step = self.config['runner']['log_step'],
                         batch_id = batch_id,
                         batch_num = len(dataloader),
                     )
@@ -192,7 +194,7 @@ class Runner():
                     scheduler.step()
 
                 # logging
-                if (pbar.n + 1) % self.config['runner']['log_step'] == 0:
+                if pbar.n % self.config['runner']['log_step'] == 0:
                     # log loss
                     average_loss = torch.FloatTensor(all_loss).mean().item()
                     self.logger.add_scalar(f'{prefix}loss', average_loss, global_step=pbar.n)
@@ -204,18 +206,31 @@ class Runner():
                         logger = self.logger,
                         prefix = prefix,
                         global_step = pbar.n,
+                        log_step = self.config['runner']['log_step'],
                         batch_id = batch_id,
                         batch_num = len(dataloader),
                     )
                     records = defaultdict(list)
 
-                # evaluation
-                if (pbar.n + 1) % self.config['runner']['eval_step'] == 0:
-                    for split in self.config['runner']['eval_dataloaders']:
-                        self.evaluate(split, pbar.n)
+                # evaluation and save checkpoint
+                save_names = []
 
-                # save checkpoint
-                if (pbar.n + 1) % self.config['runner']['save_step'] == 0:
+                if pbar.n % self.config['runner']['eval_step'] == 0:
+                    for split in self.config['runner']['eval_dataloaders']:
+                        save_names += self.evaluate(split, pbar.n)
+
+                if pbar.n % self.config['runner']['save_step'] == 0:
+                    def check_ckpt_num(directory):
+                        max_keep = self.config['runner']['max_keep']
+                        ckpt_pths = glob.glob(f'{directory}/states-*.ckpt')
+                        if len(ckpt_pths) >= max_keep:
+                            ckpt_pths = sorted(ckpt_pths, key=lambda pth: int(pth.split('-')[-1].split('.')[0]))
+                            for ckpt_pth in ckpt_pths[:len(ckpt_pths) - max_keep + 1]:
+                                os.remove(ckpt_pth)
+                    check_ckpt_num(self.args.expdir)
+                    save_names.append(f'states-{pbar.n}.ckpt')
+
+                if len(save_names) > 0:
                     all_states = {
                         'Downstream': self.downstream.state_dict(),
                         'Optimizer': optimizer.state_dict(),
@@ -230,18 +245,11 @@ class Runner():
                     if self.args.upstream_trainable:
                         all_states['Upstream'] = self.upstream.state_dict()
 
-                    def check_ckpt_num(directory):
-                        max_keep = self.config['runner']['max_keep']
-                        ckpt_pths = glob.glob(f'{directory}/states-*.ckpt')
-                        if len(ckpt_pths) >= max_keep:
-                            ckpt_pths = sorted(ckpt_pths, key=lambda pth: int(pth.split('-')[-1].split('.')[0]))
-                            for ckpt_pth in ckpt_pths[:len(ckpt_pths) - max_keep + 1]:
-                                os.remove(ckpt_pth)
-
-                    check_ckpt_num(self.args.expdir)
-                    torch.save(all_states, f'{self.args.expdir}/states-{pbar.n + 1}.ckpt')
-
-                pbar.update(1)
+                    save_paths = [os.path.join(self.args.expdir, name) for name in save_names]
+                    print(f'[Runner] - Save the checkpoint to:')
+                    for i, path in enumerate(save_paths):
+                        print(f'{i + 1}. {path}')
+                        torch.save(all_states, path)
 
         pbar.close()
 
@@ -281,6 +289,7 @@ class Runner():
                 logger = self.logger,
                 prefix = prefix,
                 global_step = global_step,
+                log_step = self.config['runner']['log_step'],
                 batch_id = batch_id,
                 batch_num = len(dataloader),
             )
@@ -292,11 +301,12 @@ class Runner():
         all_loss = []
 
         # log customized contents
-        self.downstream.log_records(
+        save_names = self.downstream.log_records(
             records = records,
             logger = self.logger,
             prefix = prefix,
             global_step = global_step,
+            log_step = self.config['runner']['log_step'],
             batch_id = batch_id,
             batch_num = len(dataloader),
         )
@@ -308,3 +318,5 @@ class Runner():
             self.downstream.train()
         if upstream_training:
             self.upstream.train()
+
+        return [] if type(save_names) is not list else save_names

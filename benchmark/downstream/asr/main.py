@@ -65,7 +65,5 @@ else:
         from bin.train_asr import Solver
         mode = 'train'
 
-solver = Solver(config,paras,mode)
-solver.load_data()
-solver.set_model()
+solver = Solver(config,paras,mode).cuda()
 solver.exec()

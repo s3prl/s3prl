@@ -1,13 +1,15 @@
 import torch
 import numpy as np
 from functools import partial
-from src.text import load_text_encoder
-from src.audio import create_transform
 from torch.utils.data import DataLoader
 from torch.nn.utils.rnn import pad_sequence
 import torch.nn.functional as F
 from os.path import join
-from src.collect_batch import collect_audio_batch, collect_text_batch
+
+from benchmark.downstream.asr.src.text import load_text_encoder
+from benchmark.downstream.asr.src.audio import create_transform
+from benchmark.downstream.asr.src.collect_batch import collect_audio_batch, collect_text_batch
+
 
 def create_dataset(tokenizer, ascending, name, path, bucketing, batch_size, 
                    train_split=None, dev_split=None, test_split=None, read_audio=False):
@@ -15,9 +17,9 @@ def create_dataset(tokenizer, ascending, name, path, bucketing, batch_size,
 
     # Recognize corpus
     if name.lower() == 'librispeech':
-        from corpus.preprocess_librispeech import LibriDataset as Dataset
+        from benchmark.downstream.asr.corpus.preprocess_librispeech import LibriDataset as Dataset
     elif name.lower() == 'dlhlp':
-        from corpus.preprocess_dlhlp import DLHLPDataset as Dataset
+        from benchmark.downstream.asr.corpus.preprocess_dlhlp import DLHLPDataset as Dataset
     else:
         raise NotImplementedError
 
@@ -37,7 +39,7 @@ def create_dataset(tokenizer, ascending, name, path, bucketing, batch_size,
                 dev_dir = ''
                 if ds[0].lower() == 'librispeech':
                     dev_dir = join(path, 'LibriSpeech')
-                    from corpus.preprocess_librispeech import LibriDataset as DevDataset
+                    from benchmark.downstream.asr.corpus.preprocess_librispeech import LibriDataset as DevDataset
                 else:
                     raise NotImplementedError(ds[0])
                 dv_set.append(DevDataset(dev_dir,ds,tokenizer, 1))
@@ -104,8 +106,6 @@ def load_dataset(n_jobs, use_gpu, pin_memory, ascending, corpus, audio, text):
     ''' Prepare dataloader for training/validation'''
     # Audio feature extractor
     '''convert to mel-spectrogram'''
-    audio_transform_tr, feat_dim = create_transform(audio.copy(), 'train')
-    audio_transform_dv, feat_dim = create_transform(audio.copy(), 'dev')
 
     # Text tokenizer
     tokenizer = load_text_encoder(**text)
@@ -113,8 +113,8 @@ def load_dataset(n_jobs, use_gpu, pin_memory, ascending, corpus, audio, text):
     tr_set, dv_set, tr_loader_bs, dv_loader_bs, mode, data_msg = create_dataset(tokenizer,ascending,**corpus)
     
     # Collect function
-    collect_tr = partial(collect_audio_batch, audio_transform=audio_transform_tr, mode=mode)
-    collect_dv = partial(collect_audio_batch, audio_transform=audio_transform_dv, mode='test')
+    collect_tr = partial(collect_audio_batch, mode=mode)
+    collect_dv = partial(collect_audio_batch, mode='test')
     
     # Shuffle/drop applied to training set only
     shuffle = (mode=='train' and not ascending)
@@ -135,9 +135,9 @@ def load_dataset(n_jobs, use_gpu, pin_memory, ascending, corpus, audio, text):
                         num_workers=n_jobs, pin_memory=pin_memory)
     
     # Messages to show
-    data_msg.append('I/O spec.  | Audio Feature = {}\t| Feature Dim = {}\t| Token Type = {}\t| Vocab Size = {}'\
-                    .format(audio['feat_type'],feat_dim,tokenizer.token_type,tokenizer.vocab_size))
-    return tr_set, dv_set, feat_dim, tokenizer.vocab_size, tokenizer, data_msg
+    data_msg.append('I/O spec.  | Token Type = {}\t| Vocab Size = {}'\
+                    .format(tokenizer.token_type,tokenizer.vocab_size))
+    return tr_set, dv_set, tokenizer.vocab_size, tokenizer, data_msg
 
 def load_textset(n_jobs, use_gpu, pin_memory, corpus, text):
     # Text tokenizer

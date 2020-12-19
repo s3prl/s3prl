@@ -1,0 +1,59 @@
+data:
+  corpus:                                 
+    name: 'Librispeech'                   # Specify corpus
+    path: 'data/LibriSpeech'          # Path to raw LibriSpeech dataset
+    train_split: ['train-clean-100','train-clean-360'] # Name of data splits to be used as training set
+    dev_split: ['dev-clean']              # Name of data splits to be used as validation set
+    bucketing: True                       # Enable/Disable bucketing 
+    batch_size: 16
+  audio:                                  # Attributes of audio feature
+    feat_type: 'fbank'
+    feat_dim:  40
+    frame_length: 25                      # ms
+    frame_shift: 10                       # ms
+    dither: 0                             # random dither audio, 0: no dither
+    apply_cmvn: True
+    delta_order: 2                        # 0: do nothing, 1: add delta, 2: add delta and accelerate
+    delta_window_size: 2
+  text:
+    mode: 'subword'                       # 'character'/'word'/'subword'
+    vocab_file: 'tests/sample_data/subword-16k.model'
+
+hparas:                                   # Experiment hyper-parameters
+  valid_step: 5000
+  max_step: 1000001
+  tf_start: 1.0
+  tf_end: 1.0
+  tf_step: 500000
+  optimizer: 'Adadelta'
+  lr: 1.0
+  eps: 0.00000001                         # 1e-8
+  lr_scheduler: 'fixed'                   # 'fixed'/'warmup'
+  curriculum: 0
+
+model:                                    # Model architecture
+  ctc_weight: 0.5                         # Weight for CTC loss
+  encoder:
+    prenet: 'vgg'                         # 'vgg'/'cnn'/''
+    # vgg: True                             # 4x reduction on time feature extraction
+    module: 'LSTM'                        # 'LSTM'/'GRU'/'Transformer'
+    bidirection: True
+    dim: [512,512,512,512,512]
+    dropout: [0,0,0,0,0]
+    layer_norm: [False,False,False,False,False]
+    proj: [True,True,True,True,True]      # Linear projection + Tanh after each rnn layer
+    sample_rate: [1,1,1,1,1]
+    sample_style: 'drop'                  # 'drop'/'concat'
+  attention:
+    mode: 'loc'                           # 'dot'/'loc'
+    dim: 300
+    num_head: 1
+    v_proj: False                         # if False and num_head>1, encoder state will be duplicated for each head
+    temperature: 0.5                      # scaling factor for attention
+    loc_kernel_size: 100                  # just for mode=='loc'
+    loc_kernel_num: 10                    # just for mode=='loc'
+  decoder:
+    module: 'LSTM'                        # 'LSTM'/'GRU'/'Transformer'
+    dim: 512
+    layer: 1
+    dropout: 0
