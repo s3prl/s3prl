@@ -33,6 +33,7 @@ def check_model_equiv(model1, model2):
             return False
     return True
 
+
 def copyParams(module_src, module_dest):
     params1 = module_src.named_parameters()
     params2 = module_dest.named_parameters()
@@ -41,40 +42,52 @@ def copyParams(module_src, module_dest):
         if name1 in dict_params2:
             dict_params2[name1].data.copy_(param1.data)
 
-input_ckpt = sys.argv[1]
 
-# load model with old setting
-from transformer.nn_transformer import TRANSFORMER
-options = {'ckpt_file'     : input_ckpt,
-            'load_pretrain' : 'True',
-            'no_grad'       : 'True',
-            'dropout'       : 'default',
-            'spec_aug'      : 'False',
-            'spec_aug_prev' : 'True',
-            'weighted_sum'  : 'False',
-            'select_layer'  : -1,
-            'permute_input' : 'False' }
-old_transformer = TRANSFORMER(options, inp_dim=-1)
+def main():
 
-# build model with new setting
-from upstream.mockingjay.model import TransformerForMaskedAcousticModel
-model = TransformerForMaskedAcousticModel(old_transformer.model_config, old_transformer.inp_dim, old_transformer.inp_dim).to(torch.device('cuda'))
+    input_ckpt = sys.argv[1]
 
-# load old to new
-assert not check_model_equiv(old_transformer.model, model.Transformer)
-copyParams(old_transformer.model, model.Transformer)
-assert check_model_equiv(old_transformer.model, model.Transformer)
-global_step = old_transformer.all_states['Global_step']
-settings = old_transformer.all_states['Settings']
+    # load model with old setting
+    from transformer.nn_transformer import SPEC_TRANSFORMER
+    options = {'ckpt_file'     : input_ckpt,
+                'load_pretrain' : 'True',
+                'no_grad'       : 'True',
+                'dropout'       : 'default',
+                'spec_aug'      : 'False',
+                'spec_aug_prev' : 'True',
+                'weighted_sum'  : 'False',
+                'select_layer'  : -1,
+                'permute_input' : 'False' }
+    old_transformer = SPEC_TRANSFORMER(options, inp_dim=-1)
 
-# save
-all_states = {
-    'SpecHead': model.SpecHead.state_dict(),
-    'Transformer': model.Transformer.state_dict(),
-    'Global_step': global_step,
-    'Settings': settings
-}
-new_ckpt_path = input_ckpt.replace('.ckpt', '-new.ckpt')
-torch.save(all_states, new_ckpt_path)
+    # build model with new setting
+    from upstream.mockingjay.model import TransformerForMaskedAcousticModel
+    model = TransformerForMaskedAcousticModel(old_transformer.model_config, old_transformer.inp_dim, old_transformer.inp_dim).to(torch.device('cuda'))
 
-print('Done fixing ckpt: ', input_ckpt, 'to: ', new_ckpt_path)
+    # load old to new
+    assert not check_model_equiv(old_transformer.model, model.Transformer)
+    copyParams(old_transformer.model, model.Transformer)
+    assert check_model_equiv(old_transformer.model, model.Transformer)
+
+    assert not check_model_equiv(old_transformer.SpecHead, model.SpecHead)
+    copyParams(old_transformer.SpecHead, model.SpecHead)
+    assert check_model_equiv(old_transformer.SpecHead, model.SpecHead)
+
+    global_step = old_transformer.all_states['Global_step']
+    settings = old_transformer.all_states['Settings']
+
+    # save
+    all_states = {
+        'SpecHead': model.SpecHead.state_dict(),
+        'Transformer': model.Transformer.state_dict(),
+        'Global_step': global_step,
+        'Settings': settings
+    }
+    new_ckpt_path = input_ckpt.replace('.ckpt', '-new.ckpt')
+    torch.save(all_states, new_ckpt_path)
+
+    print('Done fixing ckpt: ', input_ckpt, 'to: ', new_ckpt_path)
+
+
+if __name__ == '__main__':
+    main()
