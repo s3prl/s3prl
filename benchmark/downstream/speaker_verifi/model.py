@@ -17,7 +17,7 @@ from functools import lru_cache
 import IPython
 import pdb
 from argparse import Namespace
-from transformer.model import TransformerEncoder
+from upstream.mockingjay.model import TransformerEncoder
 
 #########
 # MODEL #
@@ -29,7 +29,7 @@ class Identity(nn.Module):
 
     def forward(self, feature, att_mask, head_mask, **kwargs):
 
-        return feature
+        return [feature]
 
 class Mean(nn.Module):
 
@@ -119,7 +119,7 @@ class Model(nn.Module):
 
     def forward(self, features, att_mask):
         features = self.model(features,att_mask[:,None,None], head_mask=self.head_mask, output_all_encoded_layers=False)
-        utterance_vector = self.agg_method(features, att_mask)
+        utterance_vector = self.agg_method(features[0], att_mask)
 
         return utterance_vector
 
