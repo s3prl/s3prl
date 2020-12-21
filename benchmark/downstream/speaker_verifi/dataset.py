@@ -31,10 +31,17 @@ from os.path import join, getsize
 from joblib import Parallel, delayed
 from torch.utils.data import Dataset
 from librosa.util import find_files
-
+from functools import lru_cache 
+import audiosegment
 import IPython
 import pdb
+import os
+import glob
+import pkg_resources
+import six
+import time
 
+torchaudio.set_audio_backend("sox_io")
 
 # Voxceleb 1 + 2 
 # preprocessing need seperate folder to dev, train, test
@@ -54,7 +61,14 @@ class SpeakerVerifi_train(Dataset):
         
         self.utter_number = utter_number
         self.necessary_dict = self.processing()
-        self.dataset = self.necessary_dict['spk_paths'] 
+        self.dataset = self.necessary_dict['spk_paths']
+        
+        start = time.time()
+        self.file_list = {}
+        for x in tqdm(self.dataset):
+            self.file_list[x] = find_files(x, ext='wav')
+        end = time.time()
+        print(f"search all folders need {end-start} seconds")
         self.max_timestep = max_timestep
         
     def processing(self):
@@ -67,13 +81,23 @@ class SpeakerVerifi_train(Dataset):
 
 
     def __getitem__(self, idx):
-        
-        path = random.sample(find_files(self.dataset[idx], ext=['wav']), self.utter_number)
+        path = random.sample(self.file_list[self.dataset[idx]], self.utter_number)
 
         x_list = []
         length_list = []
 
         for i in range(len(path)):
+            # si,ei = torchaudio.backend.sox_backend.info(path[i])
+            # length = si.length
+            # if length > self.max_timestep:
+            #     length = self.max_timestep
+            #     start = random.randint(0,length - self.max_timestep)
+            #     duration = self.max_timestep
+            # else:
+            #     start = 0
+            #     duration = length
+            # print(duration, start)
+            # wav, sr = torchaudio.load(path[i], num_frames=duration,offset=start)
             wav, sr = torchaudio.load(path[i])
             wav = wav.squeeze(0)
             length = wav.shape[0]
