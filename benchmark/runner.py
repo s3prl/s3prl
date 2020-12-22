@@ -70,9 +70,9 @@ class Runner():
         return downstream
 
 
-    def _get_optimizer(self, optimized_models):
+    def _get_optimizer(self, model_params):
         optimizer = get_optimizer(
-            optimized_models, 
+            model_params, 
             self.config['runner']['total_steps'],
             self.config['optimizer']
         )
@@ -106,10 +106,10 @@ class Runner():
             self.upstream.train()
 
         # set optimizer
-        optimized_models = [self.downstream]
+        model_params = [self.downstream]
         if self.args.upstream_trainable:
-            optimized_models.append(self.upstream)
-        optimizer = self._get_optimizer(optimized_models)
+            model_params.append(self.upstream)
+        optimizer = self._get_optimizer(model_params)
 
         # set scheduler
         scheduler = None
