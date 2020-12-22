@@ -5,7 +5,7 @@ import random
 
 import torch
 import torch.nn as nn
-from torch.utils.data import DataLoader
+from torch.utils.data import DataLoader, ConcatDataset
 from torch.nn.utils.rnn import pad_sequence
 
 from benchmark.downstream.audio_snips.model import Model
@@ -44,9 +44,25 @@ class DownstreamExpert(nn.Module):
         
         self.get_dataset()
 
-        self.train_dataset = AudioSLUDataset(self.train_df, self.base_path, self.Sy_intent)
-        self.dev_dataset = AudioSLUDataset(self.valid_df, self.base_path, self.Sy_intent)
-        self.test_dataset = AudioSLUDataset(self.test_df, self.base_path, self.Sy_intent)
+        self.train_dataset = []
+        self.dev_dataset = []
+        self.test_dataset = []
+
+        for speaker_name in self.datarc['train_speakers']:
+            self.train_dataset.append(AudioSLUDataset(self.train_df, self.base_path, self.Sy_intent, speaker_name))
+            self.dev_dataset.append(AudioSLUDataset(self.valid_df, self.base_path, self.Sy_intent, speaker_name))
+
+        for speaker_name in self.datarc['test_speakers']:
+            self.test_dataset.append(AudioSLUDataset(self.test_df, self.base_path, self.Sy_intent, speaker_name))
+
+        self.collate_fn = self.train_dataset[0].collate_fn
+        
+
+        # speaker_name = 'Aditi'
+
+        # self.train_dataset = AudioSLUDataset(self.train_df, self.base_path, self.Sy_intent, speaker_name)
+        # self.dev_dataset = AudioSLUDataset(self.valid_df, self.base_path, self.Sy_intent, speaker_name)
+        # self.test_dataset = AudioSLUDataset(self.test_df, self.base_path, self.Sy_intent, speaker_name)
 
         self.connector = nn.Linear(upstream_dim, self.modelrc['input_dim'])
         self.model = Model(input_dim=self.modelrc['input_dim'], agg_module=self.modelrc['agg_module'],output_dim=sum(self.values_per_slot), config=self.modelrc)
@@ -77,14 +93,14 @@ class DownstreamExpert(nn.Module):
         return DataLoader(
             dataset, batch_size=self.datarc['train_batch_size'],
             shuffle=True, num_workers=self.datarc['num_workers'],
-            collate_fn=dataset.collate_fn
+            collate_fn=self.collate_fn
         )
 
     def _get_eval_dataloader(self, dataset):
         return DataLoader(
             dataset, batch_size=self.datarc['eval_batch_size'],
             shuffle=False, num_workers=self.datarc['num_workers'],
-            collate_fn=dataset.collate_fn
+            collate_fn=self.collate_fn
         )
 
     """
@@ -102,15 +118,15 @@ class DownstreamExpert(nn.Module):
 
     # Interface
     def get_train_dataloader(self):
-        return self._get_train_dataloader(self.train_dataset)
+        return self._get_train_dataloader(ConcatDataset(self.train_dataset))
 
     # Interface
     def get_dev_dataloader(self):
-        return self._get_eval_dataloader(self.dev_dataset)
+        return self._get_eval_dataloader(ConcatDataset(self.dev_dataset))
 
     # Interface
     def get_test_dataloader(self):
-        return self._get_eval_dataloader(self.test_dataset)
+        return self._get_eval_dataloader(ConcatDataset(self.test_dataset))
 
     # Interface
     def forward(self, features, labels,

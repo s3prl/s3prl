@@ -125,5 +125,5 @@ class Model(nn.Module):
         utterance_vector = self.agg_method(features[0], att_mask)
         predicted = self.linear(utterance_vector)
         
-        return predicted
+        return F.log_softmax(predicted, dim=-1)
         # Use LogSoftmax since self.criterion combines nn.LogSoftmax() and nn.NLLLoss()
