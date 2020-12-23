@@ -6,7 +6,9 @@ import gdown
 
 
 def _gdown(filename, url, refresh):
-    filepath = f'{torch.hub.get_dir()}/{filename}'
+    dirpath = torch.hub.get_dir()
+    os.makedirs(dirpath, exist_ok=True)
+    filepath = f'{dirpath}/{filename}'
     if not os.path.isfile(filepath) or refresh:
         gdown.download(url, filepath, use_cookies=False)
     else:
