@@ -22,23 +22,46 @@ CLASSES = [
 EFFECTS = [["channels", "1"], ["rate", "16000"], ["gain", "-3.0"]]
 
 
-class SpeechCommandsDataset(Dataset):
-    """12-class Speech Commands training and validation dataset."""
+class SpeechCommandsBaseDataset(Dataset):
+    """12-class Speech Commands base dataset."""
+
+    def __init__(self):
+        self.class2index = {CLASSES[i]: i for i in range(len(CLASSES))}
+        self.class_num = 12
+        self.data = []
+
+    def __getitem__(self, idx):
+        class_name, audio_path = self.data[idx]
+        wav, _ = apply_effects_file(str(audio_path), EFFECTS)
+        wav = wav.squeeze(0)
+        return wav, self.class2index[class_name]
+
+    def __len__(self):
+        return len(self.data)
+
+    def collate_fn(self, samples):
+        """Collate a mini-batch of data."""
+        wavs, labels = zip(*samples)
+        return wavs, labels
+
+
+class SpeechCommandsDataset(SpeechCommandsBaseDataset):
+    """Training and validation dataset."""
 
     def __init__(self, data_list, **kwargs):
-        data_root_path = Path(kwargs["speech_commands_root"])
-
-        class2index = {CLASSES[i]: i for i in range(len(CLASSES))}
+        super().__init__()
 
         data = [
             (class_name, audio_path)
-            if class_name in class2index.keys()
+            if class_name in self.class2index.keys()
             else ("_unknown_", audio_path)
             for class_name, audio_path in data_list
         ]
         data += [
             ("_silence_", audio_path)
-            for audio_path in (data_root_path / "_background_noise_").glob("*.wav")
+            for audio_path in Path(
+                kwargs["speech_commands_root"], "_background_noise_"
+            ).glob("*.wav")
         ]
 
         class_counts = {class_name: 0 for class_name in CLASSES}
@@ -49,61 +72,29 @@ class SpeechCommandsDataset(Dataset):
             len(data) / class_counts[class_name] for class_name, _ in data
         ]
 
-        self.data_root_path = data_root_path
         self.data = data
-        self.class2index = class2index
         self.sample_weights = sample_weights
-        self.class_num = 12
 
     def __getitem__(self, idx):
-        class_name, audio_path = self.data[idx]
-        wav, _ = apply_effects_file(str(audio_path), EFFECTS)
-        wav = wav.squeeze(0)
+        wav, label = super().__getitem__(idx)
 
         # _silence_ audios are longer than 1 sec.
-        if class_name == "_silence_":
+        if label == self.class2index["_silence_"]:
             random_offset = randint(0, len(wav) - 16000)
             wav = wav[random_offset : random_offset + 16000]
 
-        return wav, self.class2index[class_name]
-
-    def __len__(self):
-        return len(self.data)
-
-    def collate_fn(self, samples):
-        wavs, labels = [], []
-        for wav, label in samples:
-            wavs.append(wav)
-            labels.append(label)
-        return wavs, labels
+        return wav, label
 
 
-class SpeechCommandsTestingDataset(Dataset):
-    """12-class Speech Commands testing dataset."""
+class SpeechCommandsTestingDataset(SpeechCommandsBaseDataset):
+    """Testing dataset."""
 
     def __init__(self, **kwargs):
-        data_root_path = Path(kwargs["speech_commands_test_root"])
-        self.class2index = {CLASSES[i]: i for i in range(len(CLASSES))}
+        super().__init__()
+
         self.data = [
             (class_dir.name, audio_path)
-            for class_dir in data_root_path.iterdir()
+            for class_dir in Path(kwargs["speech_commands_test_root"]).iterdir()
             if class_dir.is_dir()
             for audio_path in class_dir.glob("*.wav")
         ]
-        self.class_num = 12
-
-    def __getitem__(self, idx):
-        class_name, audio_path = self.data[idx]
-        wav, _ = apply_effects_file(str(audio_path), EFFECTS)
-        wav = wav.squeeze(0)
-        return wav, self.class2index[class_name]
-
-    def __len__(self):
-        return len(self.data)
-
-    def collate_fn(self, samples):
-        wavs, labels = [], []
-        for wav, label in samples:
-            wavs.append(wav)
-            labels.append(label)
-        return wavs, labels

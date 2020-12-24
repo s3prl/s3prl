@@ -128,10 +128,6 @@ class DownstreamExpert(nn.Module):
         predicted_classid = predicted.max(dim=-1).indices
         records["acc"] += (predicted_classid == labels).view(-1).cpu().float().tolist()
 
-        if not self.training:
-            # some evaluation-only processing, eg. decoding
-            pass
-
         return loss
 
     # interface
@@ -160,10 +156,6 @@ class DownstreamExpert(nn.Module):
         for key, values in records.items():
             average = torch.FloatTensor(values).mean().item()
             logger.add_scalar(f"{prefix}{key}", average, global_step=global_step)
-
-        if not self.training:
-            # some evaluation-only processing, eg. decoding
-            pass
 
 
 def split_dataset(
