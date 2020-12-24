@@ -93,16 +93,16 @@ class PhoneDataset(Dataset):
     def _parse_x_name(self, x):
         return x.split('/')[-1].split('.')[0]
 
-    def _get_full_libri_path(self, npy_path, libri_root):
+    def _get_full_libri_path(self, npy_path):
         # remove .npy
         path = ''.join(npy_path.split('.')[:-1])
         subfolder, filename = path.split('/')
         filedirs = filename.split('-')
-        libri_path = os.path.join(libri_root, subfolder, filedirs[0], filedirs[1], f'{filename}.flac')
+        libri_path = os.path.join(self.libri_root, subfolder, filedirs[0], filedirs[1], f'{filename}.flac')
         return libri_path
 
-    def _load_wav(self, npy_path, libri_root):
-        full_libri_path = self._get_full_libri_path(npy_path, libri_root)
+    def _load_wav(self, npy_path):
+        full_libri_path = self._get_full_libri_path(npy_path)
         wav, sr = torchaudio.load(full_libri_path)
         assert sr == self.sample_rate, f'Sample rate mismatch: real {sr}, config {self.sample_rate}'
         return wav.view(-1)
@@ -112,7 +112,7 @@ class PhoneDataset(Dataset):
 
     def __getitem__(self, index):
         # Load acoustic feature and pad
-        wav_batch = [self._load_wav(x_file, self.libri_root) for x_file in self.X[index]]
+        wav_batch = [self._load_wav(x_file) for x_file in self.X[index]]
         wav_pad_batch = pad_sequence(wav_batch, batch_first=True)
         label_batch = [torch.LongTensor(self.Y[self._parse_x_name(x_file)]) for x_file in self.X[index]]
         label_pad_batch = pad_sequence(label_batch, batch_first=True)
