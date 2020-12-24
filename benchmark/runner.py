@@ -244,9 +244,9 @@ class Runner():
                         all_states['Upstream'] = self.upstream.state_dict()
 
                     save_paths = [os.path.join(self.args.expdir, name) for name in save_names]
-                    print(f'[Runner] - Save the checkpoint to:')
+                    tqdm.write(f'[Runner] - Save the checkpoint to:')
                     for i, path in enumerate(save_paths):
-                        print(f'{i + 1}. {path}')
+                        tqdm.write(f'{i + 1}. {path}')
                         torch.save(all_states, path)
 
                 pbar.update(1)
