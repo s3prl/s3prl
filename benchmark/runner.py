@@ -117,7 +117,7 @@ class Runner():
             scheduler = self._get_scheduler(optimizer)
 
         # set progress bar
-        pbar = tqdm(total=self.config['runner']['total_steps'], desc='overall')
+        pbar = tqdm(total=self.config['runner']['total_steps'], dynamic_ncols=True, desc='overall')
         init_step = self.init_ckpt.get('Step')
         if init_step:
             pbar.n = init_step
@@ -207,8 +207,6 @@ class Runner():
                         prefix = prefix,
                         global_step = global_step,
                         log_step = self.config['runner']['log_step'],
-                        batch_id = batch_id,
-                        batch_num = len(dataloader),
                     )
                     records = defaultdict(list)
 
@@ -309,8 +307,6 @@ class Runner():
             prefix = prefix,
             global_step = global_step,
             log_step = self.config['runner']['log_step'],
-            batch_id = batch_id,
-            batch_num = len(dataloader),
         )
         records = defaultdict(list)
 
