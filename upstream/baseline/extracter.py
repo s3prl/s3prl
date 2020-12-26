@@ -32,7 +32,7 @@ class ExtractAudioFeature(nn.Module):
     def forward(self, waveform):
         # waveform: (time, )
         x = self.extract_fn(
-            waveform.unsqueeze(0),
+            waveform.view(1, -1),
             sample_frequency = SAMPLE_RATE,
             **self.kwargs
         )
