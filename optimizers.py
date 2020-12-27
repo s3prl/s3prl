@@ -85,6 +85,15 @@ def get_AdamW(model_params, lr=2e-4, **kwargs):
     return optimizer
 
 
+def get_TorchOptim(model_params, torch_optim_name, **kwargs):
+    params = []
+    for m in model_params:
+        params += list(m.parameters())
+    Opt_class = getattr(torch.optim, torch_optim_name)
+    optim = Opt_class(**kwargs)
+    return optim
+
+
 class AdamW(Optimizer):
     """
     Implements Adam algorithm with weight decay fix as introduced in
