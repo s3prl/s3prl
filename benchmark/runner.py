@@ -166,15 +166,15 @@ class Runner():
                         continue
                     else:
                         raise
+
+                # record loss
+                all_loss.append(loss.item())
+                del loss
                 
                 # whether to accumulate gradient
                 backward_steps += 1
                 if backward_steps % gradient_accumulate_steps > 0:
                     continue
-
-                # record loss
-                all_loss.append(loss.item())
-                del loss
 
                 # gradient clipping
                 paras = list(self.downstream.parameters())
