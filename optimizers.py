@@ -90,7 +90,9 @@ def get_TorchOptim(model_params, torch_optim_name, **kwargs):
     for m in model_params:
         params += list(m.parameters())
     Opt_class = getattr(torch.optim, torch_optim_name)
-    optim = Opt_class(**kwargs)
+
+    kwargs.pop('total_steps')
+    optim = Opt_class(params, **kwargs)
     return optim
 
 
