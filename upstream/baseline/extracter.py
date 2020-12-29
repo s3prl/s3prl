@@ -15,7 +15,7 @@ def get_extracter(config):
     transforms = [
         ExtractAudioFeature(**config.get('kaldi', {})),
         Delta(**config.get('delta', {})),
-        CMVN(),
+        CMVN(**config.get('cmvn', {})),
     ]
     extracter = nn.Sequential(*transforms)
     output_dim = extracter(torch.randn(EXAMPLE_SEC * SAMPLE_RATE)).size(-1)
@@ -27,7 +27,7 @@ class ExtractAudioFeature(nn.Module):
     def __init__(self, feat_type='fbank', **kwargs):
         super(ExtractAudioFeature, self).__init__()
         self.extract_fn = eval(f'torchaudio.compliance.kaldi.{feat_type}')
-        self.kwargs = kwargs
+        self.kwargs = kwargs[feat_type]
 
     def forward(self, waveform):
         # waveform: (time, )
@@ -59,10 +59,14 @@ class Delta(nn.Module):
 
 
 class CMVN(nn.Module):
-    def __init__(self, eps=1e-10):
+    def __init__(self, use_cmvn, eps=1e-10):
         super(CMVN, self).__init__()
         self.eps = eps
+        self.use_cmvn = use_cmvn
 
     def forward(self, x):
         # x: (feat_seqlen, feat_dim)
-        return (x - x.mean(dim=0, keepdim=True)) / (self.eps + x.std(dim=0, keepdim=True))
+        if self.use_cmvn:
+            x = (x - x.mean(dim=0, keepdim=True)) / (self.eps + x.std(dim=0, keepdim=True))
+        return x
+
