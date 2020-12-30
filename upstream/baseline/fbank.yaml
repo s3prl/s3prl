@@ -7,7 +7,7 @@ kaldi:
     use_log_fbank: True
 
 delta:
-  order: 1
+  order: 2
   win_length: 5
 
 cmvn:

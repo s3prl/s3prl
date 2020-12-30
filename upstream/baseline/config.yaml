@@ -17,7 +17,7 @@ kaldi:
     frame_shift: 10.0
 
 delta:
-  order: 1
+  order: 2
   win_length: 5
 
 cmvn:
