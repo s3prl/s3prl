@@ -181,10 +181,10 @@ class DownstreamExpert(nn.Module):
             global_step:
                 global_step in runner, which is helpful for Tensorboard logging
         """
-        for key, values in records.items():
-            average = torch.FloatTensor(values).mean().item()
-            logger.add_scalar(
-                f'{prefix}{key}',
-                average,
-                global_step=global_step
-            )
+        average = torch.FloatTensor(records['acc']).mean().item()
+        logger.add_scalar(
+            f'{prefix}acc',
+            average,
+            global_step=global_step
+        )
+        records['logging_acc'] = average # for the `logging` in runner
