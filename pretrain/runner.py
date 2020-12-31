@@ -52,7 +52,7 @@ class Runner():
                             self.args.device,
                             self.args.multi_gpu).to(self.args.device)
 
-
+        assert hasattr(upstream, 'device')
         assert hasattr(upstream, 'forward')
         assert hasattr(upstream, 'load_model')
         assert hasattr(upstream, 'add_state_to_save')
