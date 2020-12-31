@@ -14,6 +14,7 @@ import os
 import math
 import torch
 import random
+import logging
 #-------------#
 import torch
 import torch.nn as nn
@@ -29,7 +30,7 @@ class DownstreamExpert(nn.Module):
     eg. downstream forward, metric computation, contents to log
     """
 
-    def __init__(self, upstream_dim, downstream_expert, **kwargs):
+    def __init__(self, upstream_dim, downstream_expert, expdir, **kwargs):
         super(DownstreamExpert, self).__init__()
         self.upstream_dim = upstream_dim
         self.datarc = downstream_expert['datarc']
@@ -41,6 +42,8 @@ class DownstreamExpert(nn.Module):
 
         self.model = Model(input_dim=self.upstream_dim, output_class_num=self.train_dataset.class_num, **self.modelrc)
         self.objective = nn.CrossEntropyLoss()
+
+        logging.basicConfig(filename=os.path.join(expdir, 'log.log'), level=logging.INFO)
 
     def _get_train_dataloader(self, dataset):
         return DataLoader(
@@ -187,4 +190,4 @@ class DownstreamExpert(nn.Module):
             average,
             global_step=global_step
         )
-        records['logging_acc'] = average # for the `logging` in runner
+        logging.info(f'{prefix}|step:{global_step}|acc:{average}')

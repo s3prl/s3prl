@@ -2,7 +2,6 @@ import os
 import math
 import glob
 import random
-import logging
 import importlib
 from collections import defaultdict
 
@@ -25,7 +24,6 @@ class Runner():
         self.args = args
         self.config = config
         self.logger = SummaryWriter(args.expdir)
-        logging.basicConfig(filename=os.path.join(args.expdir, 'log.log'), level=logging.INFO)
 
         self.init_ckpt = torch.load(self.args.past_exp, map_location='cpu') if self.args.past_exp else {}
         self.upstream = self._get_upstream()
@@ -163,7 +161,6 @@ class Runner():
                 except RuntimeError as e:
                     if 'CUDA out of memory' in str(e):
                         print(f'[Runner] - CUDA out of memory at step {global_step}')
-                        logging.warning(f'{prefix}|step:{global_step}|CUDA out of memory')
                         torch.cuda.empty_cache()
                         optimizer.zero_grad()
                         continue
@@ -188,7 +185,6 @@ class Runner():
                 # optimize
                 if math.isnan(grad_norm):
                     print(f'[Runner] - grad norm is NaN at step {global_step}')
-                    logging.warning(f'{prefix}|step:{global_step}|grad norm is NaN')
                 else:
                     optimizer.step()
                 optimizer.zero_grad()
@@ -202,7 +198,6 @@ class Runner():
                     # log loss
                     average_loss = torch.FloatTensor(all_loss).mean().item()
                     self.logger.add_scalar(f'{prefix}loss', average_loss, global_step=global_step)
-                    logging.info(f'{prefix}|step:{global_step}|loss:{average_loss}')
                     all_loss = []
 
                     # log customized contents
@@ -213,10 +208,6 @@ class Runner():
                         global_step = global_step,
                         log_step = self.config['runner']['log_step'],
                     )
-                    for key, value in records.items():
-                        if 'logging' in key:
-                            logging.info(f'{prefix}|step:{global_step}|{key}:{value}')
-                    
                     records = defaultdict(list)
 
                 # evaluation and save checkpoint
@@ -256,7 +247,6 @@ class Runner():
                     tqdm.write(f'[Runner] - Save the checkpoint to:')
                     for i, path in enumerate(save_paths):
                         tqdm.write(f'{i + 1}. {path}')
-                        logging.info(f'{prefix}|step:{global_step}|save_checkpoint:{i+1}.{path}')
                         torch.save(all_states, path)
 
                 pbar.update(1)
@@ -308,7 +298,6 @@ class Runner():
         # log loss
         average_loss = torch.FloatTensor(all_loss).mean().item()
         self.logger.add_scalar(f'{prefix}loss', average_loss, global_step=global_step)
-        logging.info(f'{prefix}|step:{global_step}|loss:{average_loss}')
         all_loss = []
 
         # log customized contents
@@ -319,9 +308,6 @@ class Runner():
             global_step = global_step,
             log_step = self.config['runner']['log_step'],
         )
-        for key, value in records.items():
-            if 'logging' in key:
-                logging.info(f'{prefix}|step:{global_step}|{key}:{value}')
         records = defaultdict(list)
 
         # prepare back to training
