@@ -141,6 +141,7 @@ class Runner():
                                                   records=records,
                                                   global_step=global_step,
                                                   log_step=self.config['runner']['log_step'])
+                    if self.args.multi_gpu: loss = loss.sum()
                     (loss / gradient_accumulate_steps).backward()
 
                 except RuntimeError as e:
@@ -183,16 +184,16 @@ class Runner():
                     all_loss = []
 
                     # log lr
-                    self.logger.add_scalar(f'{prefix}lr', optimizer.get_lr()[0], global_step)
+                    self.logger.add_scalar(f'{prefix}lr', optimizer.get_lr()[0], global_step=global_step)
                     # log norm
-                    self.logger.add_scalar(f'{prefix}gradient norm', grad_norm, global_step)
+                    self.logger.add_scalar(f'{prefix}gradient norm', grad_norm, global_step=global_step)
 
                     # log customized contents
                     self.upstream.log_records(
                         records=records,
                         logger=self.logger,
                         prefix=prefix,
-                        global_step = global_step,
+                        global_step=global_step,
                     )
                     records = defaultdict(list)
 
