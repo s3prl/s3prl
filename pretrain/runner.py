@@ -48,10 +48,11 @@ class Runner():
         module_path = f'pretrain.{self.args.upstream}.pretrain_expert'
         Upstream = getattr(importlib.import_module(module_path), 'UpstreamPretrainExpert')
         upstream = Upstream(self.config['pretrain_expert']['datarc'], 
-                            self.args.upstream_config, 
+                            self.args.upstream_config,
+                            self.args.device,
                             self.args.multi_gpu).to(self.args.device)
 
-        assert hasattr(upstream, 'device')
+
         assert hasattr(upstream, 'forward')
         assert hasattr(upstream, 'load_model')
         assert hasattr(upstream, 'add_state_to_save')
@@ -96,14 +97,15 @@ class Runner():
         self.upstream.train()
 
         # prepare data
+        gradient_accumulate_steps = self.config['runner']['gradient_accumulate_steps']
         print('[Runner] - Accumulated batch size:', 
-              self.config['pretrain_expert']['datarc']['train_batch_size'] * self.config['runner']['gradient_accumulate_steps'])
+              self.config['pretrain_expert']['datarc']['train_batch_size'] * gradient_accumulate_steps)
         dataloader = self.upstream.get_train_dataloader()
 
         # set epoch
         n_epochs = self.config['runner']['n_epochs']
         if n_epochs > 0: 
-            total_steps = int(n_epochs * len(dataloader.dataset))
+            total_steps = int(n_epochs * len(dataloader.dataset) / gradient_accumulate_steps)
             self.config['runner']['total_steps'] = total_steps
             print(f'[Runner] - Training for {n_epochs} epochs, whichi is equivalent to {total_steps} steps')
 
@@ -139,7 +141,7 @@ class Runner():
                                                   records=records,
                                                   global_step=global_step,
                                                   log_step=self.config['runner']['log_step'])
-                    (loss / self.config['runner']['gradient_accumulate_steps']).backward()
+                    (loss / gradient_accumulate_steps).backward()
 
                 except RuntimeError as e:
                     if 'CUDA out of memory' in str(e):
@@ -156,7 +158,7 @@ class Runner():
                 
                 # whether to accumulate gradient
                 backward_steps += 1
-                if backward_steps % self.config['runner']['gradient_accumulate_steps'] > 0:
+                if backward_steps % gradient_accumulate_steps > 0:
                     continue
 
                 # gradient clipping

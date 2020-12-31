@@ -12,6 +12,7 @@
 ###############
 import yaml
 #-------------#
+import torch
 import torch.nn as nn
 from torch.utils.data import DataLoader
 #-------------#
@@ -30,10 +31,11 @@ class UpstreamPretrainExpert(nn.Module):
     The Mockingjay pretrain expert
     """
 
-    def __init__(self, datarc, upstream_config, multi_gpu=False, **kwargs):
+    def __init__(self, datarc, upstream_config, device='cuda', multi_gpu=False, **kwargs):
         super(UpstreamPretrainExpert, self).__init__()
 
         self.datarc = datarc
+        self.device = device
         self.multi_gpu = multi_gpu
         self.upstream_config = yaml.load(open(upstream_config, 'r'), Loader=yaml.FullLoader)
         print('[UpstreamPretrainExpert] - Using upstream config from:', upstream_config)
@@ -68,13 +70,6 @@ class UpstreamPretrainExpert(nn.Module):
             shuffle=True, num_workers=self.datarc['num_workers'],
             drop_last=False, pin_memory=True, collate_fn=dataset.collate_fn
         )
-
-    @property
-    def device(self):
-        devices = ({param.device for param in self.model.parameters()} | {buf.device for buf in self.buffers()})
-        if len(devices) != 1:
-            raise RuntimeError('Cannot determine device: {} different devices found'.format(len(devices)))
-        return next(iter(devices))
 
     # Interface
     def load_model(self, all_states):
