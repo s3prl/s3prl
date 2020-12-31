@@ -103,7 +103,9 @@ class Runner():
         # set epoch
         n_epochs = self.config['runner']['n_epochs']
         if n_epochs > 0: 
-            self.config['runner']['total_steps'] = int(n_epochs * len(dataloader.dataset))
+            total_steps = int(n_epochs * len(dataloader.dataset))
+            self.config['runner']['total_steps'] = total_steps
+            print(f'[Runner] - Training for {n_epochs} epochs, whichi is equivalent to {total_steps} steps')
 
         # set optimizer
         model_params = [self.upstream]

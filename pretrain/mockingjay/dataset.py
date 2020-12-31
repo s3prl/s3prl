@@ -48,6 +48,7 @@ class AcousticDataset(Dataset):
         self.root = file_path
         tables = [pd.read_csv(os.path.join(file_path, s + '.csv')) for s in sets]
         self.table = pd.concat(tables, ignore_index=True).sort_values(by=['length'], ascending=False)
+        print('[Dataset] - Training data from these sets:', str(sets))
 
         # Crop seqs that are too long
         if drop and max_timestep > 0:
@@ -55,6 +56,7 @@ class AcousticDataset(Dataset):
 
         X = self.table['file_path'].tolist()
         X_lens = self.table['length'].tolist()
+        print('[Dataset] - Number of individual training instances:', len(X))
 
         # Use bucketing to allow different batch size at run time
         self.X = []
@@ -97,7 +99,8 @@ class AcousticDataset(Dataset):
             return torch.FloatTensor(np.load(os.path.join(self.root, npy_path)))
         else:
             wav, _ = torchaudio.load(self._get_full_libri_path(npy_path))
-            return self.extracter(wav)
+            feat = self.extracter(wav.squeeze())
+            return feat
 
     def __len__(self):
         return len(self.X)
