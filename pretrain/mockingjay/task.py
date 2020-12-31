@@ -127,7 +127,8 @@ def generate_masked_acoustic_model_data(spec, config):
 
             # frequency masking
             if config['mask_frequency'] > 0:
-                rand_bandwidth = random.randint(0, config['mask_frequency'])
+                max_width = int(spec_stacked.shape[2] * config['mask_frequency'])
+                rand_bandwidth = random.randint(0, max_width)
                 chosen_starts = torch.randperm(spec_masked.shape[2] - rand_bandwidth)[:1]
                 chosen_intervals = starts_to_intervals(chosen_starts, rand_bandwidth)
                 spec_masked[idx, :, chosen_intervals] = 0
