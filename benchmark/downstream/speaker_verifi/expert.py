@@ -63,7 +63,7 @@ class DownstreamExpert(nn.Module):
         self.eval_metric = EER
 
     def _get_train_dataloader(self, dataset):
-        return self.train_dataset.getDataLoader(batchSize=1, type='sequential', numWorkers=0)
+        return self.train_dataset.getDataLoader(batchSize=1, numWorkers=4)
 
     def _get_eval_dataloader(self, dataset):
         return DataLoader(

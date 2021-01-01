@@ -18,6 +18,7 @@ import numpy as np
 import pandas as pd
 #-------------#
 import torch
+import multiprocessing
 import torch.nn as nn
 from torch.nn.utils.rnn import pad_sequence
 from torch.utils.data.dataset import Dataset
@@ -54,7 +55,7 @@ max_timestep = int(16000 * 8)
 # Voxceleb 1 + 2 
 # preprocessing need seperate folder to dev, train, test
 class AudioBatchData(Dataset):
-    def __init__(self, file_path, max_timestep=16000*5, meta_data=None, utter_number=5, sizeWindow=1,nProcessLoader=10, MAX_SIZE_LOADED=20, batch_size=16, repeat=5):
+    def __init__(self, file_path, max_timestep=16000*5, meta_data=None, utter_number=5, sizeWindow=1,nProcessLoader=100, MAX_SIZE_LOADED=1000, batch_size=16, repeat=5):
 
         self.roots = file_path
         self.root_key = list(self.roots.keys())
@@ -71,7 +72,7 @@ class AudioBatchData(Dataset):
         self.necessary_dict = self.processing()
         self.dataset = self.necessary_dict['spk_paths']
         self.batch_size = batch_size
-        self.sizeWindow = sizeWindow
+        self.sizeWindow = utter_number * batch_size
         self.MAX_SIZE_LOADED= MAX_SIZE_LOADED
         self.repeat = repeat
 
@@ -105,26 +106,21 @@ class AudioBatchData(Dataset):
         start, packageSize = 0, 0
         for index, speaker_id in tqdm(enumerate(self.all_speakers)):
             # take negative ids
-            all_ids = random.sample(self.all_speakers[:index] + self.all_speakers[index+1:], self.batch_size-1)
+            # all_ids = random.sample(self.all_speakers[:index] + self.all_speakers[index+1:], self.batch_size-1)
             
             # take positive id
             positive_id = speaker_id
-            all_ids.append(positive_id)
             all_paths = []
-            for idx in all_ids:
-                paths=random.sample(self.file_list[idx], self.utter_number)
-                all_paths.extend(paths)
-                # all_paths = list(map(Path,all_paths))
-
-            self.batched_paths.append(all_paths)
-            packageSize += 1
-            if packageSize > self.MAX_SIZE_LOADED:
-                self.packageIndex.append([start, index])
+            paths=random.sample(self.file_list[positive_id], self.utter_number)
+            self.batched_paths.extend(paths)
+            packageSize += len(paths)
+            if packageSize >= self.MAX_SIZE_LOADED:
+                self.packageIndex.append([start, (index+1)*self.utter_number])
                 self.totSize += packageSize
-                start, packageSize = index, 0
+                start, packageSize = (index+1)*self.utter_number, 0
         
         if packageSize > 0:
-            self.packageIndex.append([start, len(self.all_speakers)])
+            self.packageIndex.append([start, len(self.all_speakers)*self.utter_number])
             self.totSize += packageSize
 
         print(f'Scanned {self.totSize} sequences '
@@ -152,24 +148,23 @@ class AudioBatchData(Dataset):
         self.clear()
         if not first:
             self.currentPack = self.nextPack
-            start_time = time.time()
-            print('Joining pool')
-            # self.r.wait()                
+            # print('Joining pool')
+            # start_time = time.time()
+            # self.r.join()           
+            # print(f'Joined process, elapsed={time.time()-start_time:.3f} secs')
             self.nextData = self.r
             self.parseNextDataBlock()
-            print(f'Joined process, elapsed={time.time()-start_time:.3f} secs')
             del self.nextData
         self.nextPack = (self.currentPack + 1) % len(self.packageIndex)
         seqStart, seqEnd = self.packageIndex[self.nextPack]
         if self.nextPack == 0 and len(self.packageIndex) > 1:
-            self.prepare()
-        # print(seqStart, seqEnd)
-        # IPython.embed()
-        # pdb.set_trace()
+            self.prepare()        
+        start_time = time.time()
+        print('Joining pool')
         with concurrent.futures.ThreadPoolExecutor(self.nProcessLoader) as multithread:
-            self.r = multithread.map(loadFile_thread_exec,self.batched_paths[seqStart:seqEnd])
-                            
-    
+            self.r = multithread.map(loadFile,self.batched_paths[seqStart:seqEnd])
+        print(f'Joined process, elapsed={time.time()-start_time:.3f} secs')
+
     def parseNextDataBlock(self):
 
         # To accelerate the process a bit
@@ -196,10 +191,6 @@ class AudioBatchData(Dataset):
                 tmpData.append(batch_seq)
                 tmpLength.append(batch_length)
 
-            # if repeat == sample_num-2:
-            #     del batch_seq
-            #     del batch_length
-
         self.data = tmpData
         self.length = tmpLength
 
@@ -210,19 +201,17 @@ class AudioBatchData(Dataset):
 
     def __getitem__(self, index):
 
+
         if index < 0 or index >= len(self.data) - self.sizeWindow - 1:
             # print(index)
             pass
-
-        x_list = self.data[index:(self.sizeWindow+index)][0]
-        length_list = self.length[index:(self.sizeWindow+index)][0]
-
-        # print(x_list)
-        # print(length_list)
+            
+        x_list = self.data[index:(self.sizeWindow+index)]
+        length_list = self.length[index:(self.sizeWindow+index)]
 
         return x_list, length_list
     
-    def getDataLoader(self, batchSize, type, numWorkers=0,
+    def getDataLoader(self, batchSize, numWorkers=0,
                       onLoop=-1):
         r"""
         Get a batch sampler for the current dataset.
@@ -241,7 +230,8 @@ class AudioBatchData(Dataset):
                                    at the begining of each iteration
         """
         nLoops = len(self.packageIndex)
-        totSize = self.totSize // (self.sizeWindow * batchSize)
+        totSize = self.totSize // (self.utter_number)
+
         if onLoop >= 0:
             self.currentPack = onLoop - 1
             self.loadNextPack()
@@ -249,15 +239,15 @@ class AudioBatchData(Dataset):
 
         def samplerCall():
             offset = 0
-            return self.getBaseSampler(type, batchSize, offset)
+            return self.getBaseSampler(batchSize, offset)
 
         return AudioLoader(self, samplerCall, nLoops, self.loadNextPack,
                            totSize, numWorkers)
     
-    def getBaseSampler(self, type, batchSize, offset):
+    def getBaseSampler(self, batchSize, offset):
 
         sampler = UniformAudioSampler(len(self.data), self.sizeWindow,
-                                      offset)
+                                      self.utter_number, batchSize, offset)
         return BatchSampler(sampler, batchSize, True)
 
 def collate_fn(data_sample):
@@ -271,40 +261,23 @@ def collate_fn(data_sample):
 
     return wavs, lengths, -1,
     
-def loadFile(data_list):
+def loadFile(data):
+    # print(data)
+    transformer = Transformer()
+    transformer.norm()
+    transformer.silence(silence_threshold=1, min_silence_duration=0.1)
+    transformer.set_output_format(rate=16000, bits=16, channels=1)
+    wav = transformer.build_array(input_filepath=str(data))
+    wav = torch.tensor(wav / (2 ** 15)).float()
+    length = len(wav)
+    if length > max_timestep:
+        start = 0
+        end = max_timestep
+        length = max_timestep
+        wav=wav[start:end]
+    length = torch.tensor(length).long()
 
-    wav_list=[]
-    length_list=[]
-    # print(len(data_list))
-    for i in trange(len(data_list)):
-        wavs = []
-        lengths = []
-        for j in range(len(data_list[i])):
-            fullPath = data_list[i][j]
-            # print("data is ", data[i][j])
-            # print(fullPath)
-            transformer = Transformer()
-            transformer.norm()
-            transformer.silence(silence_threshold=1, min_silence_duration=0.1)
-            transformer.set_output_format(rate=16000, bits=16, channels=1)
-            wav = transformer.build_array(input_filepath=str(fullPath))
-            wav = torch.tensor(wav / (2 ** 15)).float()
-            # print(fullPath)
-            # wav =torch.randn(16000*8)
-            # wav=torch.tensor(sf.read(fullPath)[0]).float()
-            length = len(wav)
-            if length > max_timestep:
-                start = 0
-                end = max_timestep
-                length = max_timestep
-                wav=wav[start:end]
-            wavs.append(wav)
-            lengths.append(torch.tensor(length).long())
-        wav_list.append(wavs)
-        length_list.append(lengths)
-        
-
-    return wav_list, length_list
+    return wav, length
 
 def loadFile_thread_exec(data):
     
@@ -327,8 +300,8 @@ def loadFile_thread_exec(data):
         # wav=torch.tensor(sf.read(fullPath)[0]).float()
         length = len(wav)
         if length > max_timestep:
-            start = 0
-            end = max_timestep
+            start = random.randint(0 , int(length -max_timestep))
+            end = start+max_timestep
             length = max_timestep
             wav=wav[start:end]
         wavs.append(wav)
@@ -347,9 +320,12 @@ class UniformAudioSampler(Sampler):
     def __init__(self,
                  dataSize,
                  sizeWindow,
+                 utter_number,
+                 batch_size,
                  offset):
 
-        self.len = dataSize // sizeWindow
+        self.utter_number = utter_number
+        self.len = dataSize // self.utter_number - batch_size
         self.sizeWindow = sizeWindow
         self.offset = offset
         if self.offset > 0:
@@ -357,7 +333,7 @@ class UniformAudioSampler(Sampler):
 
     def __iter__(self):
         return iter((self.offset
-                     + self.sizeWindow * torch.randperm(self.len)).tolist())
+                     + self.utter_number * torch.randperm(self.len)).tolist())
 
     def __len__(self):
         return self.len
