@@ -104,10 +104,7 @@ class AudioBatchData(Dataset):
         start_time = time.time()
 
         start, packageSize = 0, 0
-        for index, speaker_id in tqdm(enumerate(self.all_speakers)):
-            # take negative ids
-            # all_ids = random.sample(self.all_speakers[:index] + self.all_speakers[index+1:], self.batch_size-1)
-            
+        for index, speaker_id in tqdm(enumerate(self.all_speakers)):            
             # take positive id
             positive_id = speaker_id
             all_paths = []
@@ -148,10 +145,6 @@ class AudioBatchData(Dataset):
         self.clear()
         if not first:
             self.currentPack = self.nextPack
-            # print('Joining pool')
-            # start_time = time.time()
-            # self.r.join()           
-            # print(f'Joined process, elapsed={time.time()-start_time:.3f} secs')
             self.nextData = self.r
             self.parseNextDataBlock()
             del self.nextData
@@ -172,8 +165,6 @@ class AudioBatchData(Dataset):
         tmpLength = []
 
         for batch_seq, batch_length in self.nextData:
-            # batch_seq = self.nextData[0][index]
-            # batch_length = self.nextData[1][index]
             tmpData.append(batch_seq)
             tmpLength.append(batch_length)
             
@@ -281,23 +272,17 @@ def loadFile(data):
 
 def loadFile_thread_exec(data):
     
-    # print(len(data_list))
     wavs = []
     lengths = []
     for i in range(len(data)):
         
         fullPath = data[i]
-        # print("data is ", data[i][j])
-        # print(fullPath)
         transformer = Transformer()
         transformer.norm()
         transformer.silence(silence_threshold=1, min_silence_duration=0.1)
         transformer.set_output_format(rate=16000, bits=16, channels=1)
         wav = transformer.build_array(input_filepath=str(fullPath))
         wav = torch.tensor(wav / (2 ** 15)).float()
-        # print(fullPath)
-        # wav =torch.randn(16000*8)
-        # wav=torch.tensor(sf.read(fullPath)[0]).float()
         length = len(wav)
         if length > max_timestep:
             start = random.randint(0 , int(length -max_timestep))
@@ -306,9 +291,6 @@ def loadFile_thread_exec(data):
             wav=wav[start:end]
         wavs.append(wav)
         lengths.append(torch.tensor(length).long())
-        # wav_list.append(wavs)
-        # length_list.append(lengths)
-        
 
     return wavs, lengths
 
