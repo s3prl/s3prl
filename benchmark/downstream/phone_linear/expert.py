@@ -12,7 +12,6 @@
 ###############
 import os
 import math
-import torch
 import random
 import logging
 #-------------#
