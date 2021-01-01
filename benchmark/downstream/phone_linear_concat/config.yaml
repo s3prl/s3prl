@@ -25,7 +25,7 @@ downstream_expert:
     train_batch_size: 16 
     eval_batch_size: 16
     libri_root: '/media/andi611/1TBSSD/LibriSpeech/'
-    phone_path: 'data/cpc_phone'
+    phone_path: 'benchmark/downstream/phone_linear/data'
     bucket_file: 'data/len_for_bucket'
     sample_rate: 16000 # this should not be changed, and this should match the sr of the audio in `libri_root`
     train_dev_seed: 1337
