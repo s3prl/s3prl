@@ -28,8 +28,8 @@ downstream_expert:
         Voxceleb1: ../librispeech/vox1_train_verifi/wav
         Voxceleb2: ../librispeech/vox2_dev/wav
       meta_data: ./benchmark/downstream/speaker_verifi/dev_meta_data/dev_speaker_ids.txt
-      utter_number: 5
-      max_timestep: 128000
+      utter_number: 10
+      max_timestep: 48000
     
     test:
       file_path: ../librispeech/vox1_test/wav
@@ -40,7 +40,7 @@ downstream_expert:
       meta_data: ./benchmark/downstream/speaker_verifi/dev_meta_data/dev_meta_data.txt
       max_timestep: 131200
     
-    train_batch_size: 16
+    train_batch_size: 10
     eval_batch_size: 1
     num_workers: 8
 
@@ -49,8 +49,8 @@ downstream_expert:
       Identity
     hparams:
       hidden_size: 256                                      # Size of the encoder layers and the pooler layer.
-      num_hidden_layers: 2                                  # Number of hidden layers in the Transformer encoder.
-      num_attention_heads: 8                               # Number of attention heads for each attention layer in the Transformer encoder.
+      num_hidden_layers: 1                                  # Number of hidden layers in the Transformer encoder.
+      num_attention_heads: 4                               # Number of attention heads for each attention layer in the Transformer encoder.
       intermediate_size: 1024                               # The size of the "intermediate" (i.e., feed-forward) layer in the Transformer encoder.
       hidden_act: "gelu"                                    # The non-linear activation function (function or string) in the encoder and pooler. If string, "gelu", "relu" and "swish" are supported.
       hidden_dropout_prob: 0.1                              # The dropout probabilitiy for all fully connected layers in the embeddings, encoder, and pooler.

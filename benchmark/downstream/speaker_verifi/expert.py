@@ -23,10 +23,9 @@ from torch.utils.data import DataLoader
 from torch.nn.utils.rnn import pad_sequence
 #-------------#
 from benchmark.downstream.speaker_verifi.model import Model
-from benchmark.downstream.speaker_verifi.dataset import SpeakerVerifi_train, SpeakerVerifi_test, SpeakerVerifi_dev
+from benchmark.downstream.speaker_verifi.dataset import AudioBatchData, SpeakerVerifi_test, SpeakerVerifi_dev
 from benchmark.downstream.speaker_verifi.model import GE2E
 from benchmark.downstream.speaker_verifi.utils import EER, compute_metrics
-
 import IPython
 import pdb
 
@@ -53,10 +52,9 @@ class DownstreamExpert(nn.Module):
         self.modelrc = downstream_expert['modelrc']
         self.seed = kwargs['seed']
 
-        self.train_dataset = SpeakerVerifi_train(**self.datarc['train'])
+        self.train_dataset = AudioBatchData(**self.datarc['train'],batch_size=self.datarc['train_batch_size'])
         self.dev_dataset = SpeakerVerifi_dev(**self.datarc['dev'])
         self.test_dataset = SpeakerVerifi_test(**self.datarc['test'])
-        
         self.connector = nn.Linear(upstream_dim,self.modelrc['input_dim'])
 
         self.model = Model(input_dim=self.modelrc['input_dim'], agg_module=self.modelrc['agg_module'],  config=self.modelrc)
@@ -65,11 +63,7 @@ class DownstreamExpert(nn.Module):
         self.eval_metric = EER
 
     def _get_train_dataloader(self, dataset):
-        return DataLoader(
-            dataset, batch_size=self.datarc['train_batch_size'], 
-            shuffle=True, num_workers=self.datarc['num_workers'],
-            collate_fn=dataset.collate_fn
-        )
+        return self.train_dataset.getDataLoader(batchSize=1, numWorkers=4)
 
     def _get_eval_dataloader(self, dataset):
         return DataLoader(
@@ -118,7 +112,6 @@ class DownstreamExpert(nn.Module):
             loss:
                 the loss to be optimized, should not be detached
         """
-        
         features_pad = pad_sequence(features, batch_first=True)
         
         attention_mask = [torch.ones((feature.shape[0])) for feature in features] 
