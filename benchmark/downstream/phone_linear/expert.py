@@ -149,7 +149,7 @@ class DownstreamExpert(nn.Module):
                 the loss to be optimized, should not be detached
         """
         features = torch.stack(features, dim=0) # list of tensors -> tensors
-        labels = torch.LongTensor(labels).to(features.device)
+        labels = labels.to(features.device)
 
         features, labels = self._match_length(features, labels)
         predicted = self.model(features)
