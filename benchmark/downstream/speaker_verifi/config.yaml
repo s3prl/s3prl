@@ -29,7 +29,7 @@ downstream_expert:
         Voxceleb2: ../librispeech/vox2_dev/wav
       meta_data: ./benchmark/downstream/speaker_verifi/dev_meta_data/dev_speaker_ids.txt
       utter_number: 10
-      max_timestep: 48000
+      max_timestep: 128000
     
     test:
       file_path: ../librispeech/vox1_test/wav
@@ -46,7 +46,7 @@ downstream_expert:
 
   modelrc:
     module:
-      Identity
+      TransformerEncoder
     hparams:
       hidden_size: 256                                      # Size of the encoder layers and the pooler layer.
       num_hidden_layers: 1                                  # Number of hidden layers in the Transformer encoder.
