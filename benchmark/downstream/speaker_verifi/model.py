@@ -46,7 +46,10 @@ class Mean(nn.Module):
         '''
         agg_vec_list = []
         for i in range(len(feature)):
-            length = torch.nonzero(att_mask[i] < 0, as_tuple=False)[0][0] + 1
+            if torch.nonzero(att_mask[i] < 0, as_tuple=False).size(0) == 0:
+                length = len(feature[i])
+            else:
+                length = torch.nonzero(att_mask[i] < 0, as_tuple=False)[0] + 1
             agg_vec=torch.mean(feature[i][:length], dim=0)
             agg_vec_list.append(agg_vec)
         return torch.stack(agg_vec_list)
