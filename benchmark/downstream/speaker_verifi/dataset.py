@@ -148,9 +148,9 @@ class AudioBatchData(Dataset):
         if not first:
             start_time = time.time()
             self.currentPack = self.nextPack
-            print('Joining pool')
+            # print('Joining pool')
             self.r.wait()
-            print(f'Joined process, elapsed={time.time()-start_time:.3f} secs')            
+            # print(f'Joined process, elapsed={time.time()-start_time:.3f} secs')            
             self.nextData = self.r.get()
             self.parseNextDataBlock()
             del self.nextData
