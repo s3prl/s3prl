@@ -43,6 +43,7 @@ class DownstreamExpert(nn.Module):
         self.objective = nn.CrossEntropyLoss()
 
         logging.basicConfig(filename=os.path.join(expdir, 'log.log'), level=logging.INFO)
+        self.best_average = 0
 
     def _get_train_dataloader(self, dataset):
         return DataLoader(
@@ -190,3 +191,7 @@ class DownstreamExpert(nn.Module):
             global_step=global_step
         )
         logging.info(f'{prefix}|step:{global_step}|acc:{average}')
+        if 'dev' in prefix:
+            if average > self.best_average:
+                self.best_average = average
+                return 'states-best-dev.ckpt'
