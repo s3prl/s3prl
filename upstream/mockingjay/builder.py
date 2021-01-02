@@ -18,9 +18,10 @@ import random
 import torchaudio
 import numpy as np
 import torch.nn as nn
+from torch.nn.utils.rnn import pad_sequence
 from functools import lru_cache
 from distutils.util import strtobool
-from utility.preprocessor import OnlinePreprocessor
+from upstream.baseline.extracter import get_extracter
 from .model import TransformerConfig, TransformerModel
 from .model import TransformerSpecPredictionHead
 
@@ -33,7 +34,7 @@ class TransformerBuilder(nn.Module):
     A builder class for all pre-trained Transformer.
     Child classes only need to implement the __init__() and forward() method.
     """
-    def __init__(self, options, inp_dim, config=None, online_config=None, verbose=False):
+    def __init__(self, options, inp_dim, config=None, on_the_fly_config=None, verbose=False):
         super(TransformerBuilder, self).__init__()
 
         # read config
@@ -41,7 +42,7 @@ class TransformerBuilder(nn.Module):
             self.config = yaml.load(open(config, 'r'), Loader=yaml.FullLoader)
         else:
             self.all_states = torch.load(options["ckpt_file"], map_location='cpu')
-            self.config = self.all_states['Settings']['Config']
+            self.config = self.all_states['Config']
 
         # parse the options dict
         self.load = bool(strtobool(options["load_pretrain"]))
@@ -57,17 +58,17 @@ class TransformerBuilder(nn.Module):
             self.config['transformer']['attention_probs_dropout_prob'] = float(options['dropout'])
 
         # Set model config
-        self.model_config = TransformerConfig(self.config)
-        self.dr = self.model_config.downsample_rate
+        self.model_config = TransformerConfig(self.config['transformer'])
         self.hidden_size = self.model_config.hidden_size
         self.num_layers = self.model_config.num_hidden_layers
-        self.max_input_length = self.config['transformer']['max_input_length'] if 'max_input_length' in self.config['transformer'] else 0
-        if online_config is not None: self.config['online'] = online_config
-        if 'online' in self.config:
-            preprocessor, inp_dim = self.get_preprocessor(self.config['online'])
-            self.preprocessor = preprocessor
-        self.inp_dim = inp_dim if inp_dim > 0 else self.config['transformer']['input_dim']
-        self.device = torch.device('cuda') if torch.cuda.is_available() else torch.device('cpu')
+        self.max_input_length = self.config['task']['sequence_length']
+
+        if on_the_fly_config is not None:
+            self.config['audio'] = yaml.load(open(on_the_fly_config, 'r'), Loader=yaml.FullLoader)
+        if 'audio' in self.config:
+            self.extracter, self.inp_dim = get_extracter(self.config['audio'])
+        else:
+            self.extracter, self.inp_dim = None, self.config['transformer']['input_dim']
         
         if self.max_input_length > 0 and verbose: print('[Transformer] - Maximum input length: ', self.max_input_length)
         if not (self.select_layer in list(range(-1, self.num_layers))): raise RuntimeError('Out of range int for \'select_layer\'!')
@@ -123,48 +124,6 @@ class TransformerBuilder(nn.Module):
 
         except: 
             raise RuntimeError('[Transformer] - Pre-trained weights NOT loaded!')
-
-
-    @classmethod
-    def normalize_wav_decibel(cls, audio, target_level):
-        '''Normalize the signal to the target level'''
-        rms = audio.pow(2).mean().pow(0.5)
-        scalar = (10 ** (target_level / 20)) / (rms + 1e-10)
-        audio = audio * scalar
-        return audio
-
-
-    @classmethod
-    def load_data(cls, wav_path, sample_rate=16000, max_time=40000, target_level=-25, **kwargs):
-        wav, sr = torchaudio.load(wav_path)
-        assert sr == sample_rate, f'Sample rate mismatch: real {sr}, config {sample_rate}'
-        wav = wav.view(-1)
-        maxpoints = int(sr / 1000) * max_time
-        if len(wav) > maxpoints:
-            start = random.randint(0, len(wav) - maxpoints)
-            wav = wav[start:start + maxpoints]
-        wav = cls.normalize_wav_decibel(wav, target_level)
-        return wav.unsqueeze(-1)
-
-
-    def get_preprocessor(self, online_config):
-        # load the same preprocessor as pretraining stage
-        upstream_input_feat = online_config['input']
-        upstream_input_feat['channel'] = 0
-        upstream_target_feat = online_config['target']
-        upstream_target_feat['channel'] = 0
-        preprocessor = OnlinePreprocessor(**online_config, feat_list=[upstream_input_feat, upstream_target_feat])
-        upstream_feat = preprocessor()[0]
-        upstream_input_dim = upstream_feat.size(-1)
-        return preprocessor, upstream_input_dim
-
-
-    def down_sample_frames(self, spec):
-        spec = spec.contiguous()
-        left_over = spec.shape[1] % self.dr
-        if left_over != 0: spec = spec[:, :-left_over, :]
-        spec_stacked = spec.view(spec.shape[0], spec.shape[1]//self.dr, spec.shape[2]*self.dr)
-        return spec_stacked
         
 
     def process_input_data(self, feat):
@@ -176,20 +135,13 @@ class TransformerBuilder(nn.Module):
         # input `feat` should have shape BxTxD
         elif len(feat.shape) != 3:
             raise ValueError('Input argument `feat` has invalid shape: {}'.format(feat.shape))
-        
-        scale = 1 if not 'online' in self.config else \
-                self.config['online']['sample_rate'] // 100 if self.config['online']['input']['feat_type'] == 'wav' else 1
-
-        # Down sample
-        if self.dr > 1 and self.inp_dim > 1: # no downsampling for waveform
-            feat = self.down_sample_frames(feat) # (batch_size, seq_len, feature_dim * dr)
 
         # Record length for each uttr
-        spec_len = (feat.sum(dim=-1) != 0).long().sum(dim=-1) // scale
+        spec_len = (feat.sum(dim=-1) != 0).long().sum(dim=-1)
         spec_len = spec_len.tolist()
 
         batch_size = feat.shape[0]
-        seq_len = feat.shape[1] // scale
+        seq_len = feat.shape[1]
 
         pos_enc = position_encoding(seq_len, self.hidden_size) # (seq_len, hidden_size)
         attn_mask = np.ones((batch_size, seq_len)) # (batch_size, seq_len)
@@ -200,46 +152,10 @@ class TransformerBuilder(nn.Module):
 
         if self.spec_aug and self.spec_aug_prev and self.model.training and self.inp_dim > 1:
             feat = spec_augment(feat, mask_T=70, mask_F=4, num_T=2, num_F=2, p=1.0) # (batch_size, seq_len, feature_dim * dr)
-        feat = feat.to(device=self.device, dtype=torch.float32) # (batch_size, seq_len, feature_dim * dr)
-        pos_enc = torch.FloatTensor(pos_enc).to(device=self.device, dtype=torch.float32).expand(feat.size(0), *pos_enc.size()) # (batch_size, seq_len, hidden_size)
-        attn_mask = torch.FloatTensor(attn_mask).to(device=self.device, dtype=torch.float32) # (batch_size, seq_len)
+        feat = feat.to(dtype=torch.float32) # (batch_size, seq_len, feature_dim * dr)
+        pos_enc = torch.FloatTensor(pos_enc).to(device=feat.device, dtype=torch.float32).expand(feat.size(0), *pos_enc.size()) # (batch_size, seq_len, hidden_size)
+        attn_mask = torch.FloatTensor(attn_mask).to(device=feat.device, dtype=torch.float32) # (batch_size, seq_len)
         return feat, pos_enc, attn_mask # (x, pos_enc, attention_mask)
-
-
-    def tile_representations(self, reps):
-        """ 
-        Tile up the speech representations to match the amount of input frames.
-        Input - encoded_layers shape: (batch_size, sequence_length, hidden_size)
-        Output - tiled_encoded_layers shape: (batch_size, sequence_length * downsample_rate, hidden_size)
-        """
-        if len(reps.shape) != 3:
-            raise ValueError('Input argument `reps` has invalid shape: {}'.format(reps.shape))
-
-        tiled_reps = reps.repeat(1, 1, self.dr)
-        tiled_reps = tiled_reps.reshape(reps.size(0), reps.size(1)*self.dr, reps.size(2))
-        return tiled_reps # (batch_size, sequence_length * downsample_rate, hidden_size)
-
-
-    def upsample(self, x, input_len):
-        # Compute padding to compromise the downsample loss
-        left_over = input_len % self.dr
-        if left_over % 2 == 0:
-            left_pad = left_over // 2
-            right_pad = left_pad
-        else:
-            left_pad = left_over // 2
-            right_pad = left_over // 2 + 1
-        
-        x = self.tile_representations(x)
-
-        # padding
-        x = x.permute(0, 2, 1).contiguous() # (B, T, D) -> (B, D, T)
-        padding = nn.ReplicationPad1d((left_pad, right_pad))
-        x = padding(x)
-        
-        x = x.permute(0, 2, 1).contiguous() # (B, D, T) -> (B, T, D)
-        return x
-
 
     def _forward(self, x):
 
@@ -274,10 +190,6 @@ class TransformerBuilder(nn.Module):
 
         if self.spec_aug and not self.spec_aug_prev and self.model.training and self.inp_dim > 1:
             x = spec_augment(x, mask_T=70, mask_F=86, num_T=2, num_F=2, p=1.0) # (B, T, D)
-
-        # If using a downsampling model, apply tile and padding
-        if self.dr > 1:
-            x = self.upsample(x, input_len) # (B, T, D)
         
         # permute to output
         if self.permute_input:
@@ -328,7 +240,7 @@ class PretrainedTransformer(TransformerBuilder):
         super(PretrainedTransformer, self).__init__(options, inp_dim, config, online_config, verbose)
 
         # Build model
-        self.model = TransformerModel(self.model_config, self.inp_dim).to(self.device)
+        self.model = TransformerModel(self.model_config, self.inp_dim)
         self.model.eval() if self.no_grad else self.model.train()
         self.out_dim = self.hidden_size # This attribute is necessary, for pytorch-kaldi and run_downstream.py
         
@@ -339,8 +251,9 @@ class PretrainedTransformer(TransformerBuilder):
 
 
     def forward(self, x):
-        if hasattr(self, 'preprocessor'):
-            x = self.preprocessor(x.transpose(1, 2).contiguous())[0]
+        if self.extracter is not None:
+            x = [self.extracter(x_i) for x_i in x]
+            x = pad_sequence(x, batch_first=True)
         if self.no_grad:
             with torch.no_grad():
                 x = self._forward(x)
@@ -357,7 +270,7 @@ class PretrainedTransformerWithHead(PretrainedTransformer):
         super(PretrainedTransformerWithHead, self).__init__(options, inp_dim, config, online_config, verbose)
 
         # build head
-        self.SpecHead = TransformerSpecPredictionHead(self.model_config, inp_dim).to(self.device)
+        self.SpecHead = TransformerSpecPredictionHead(self.model_config, inp_dim)
         self.SpecHead.eval() if self.no_grad else self.SpecHead.train()
         
         # Load from a PyTorch state_dict
@@ -366,8 +279,9 @@ class PretrainedTransformerWithHead(PretrainedTransformer):
             if verbose: print('[Spec Transformer] - Number of parameters: ' + str(sum(p.numel() for p in self.SpecHead.parameters() if p.requires_grad)))
 
     def forward(self, x):
-        if hasattr(self, 'preprocessor'):
-            x = self.preprocessor(x.transpose(1, 2).contiguous())[0]
+        if self.extracter is not None:
+            x = [self.extracter(x_i) for x_i in x]
+            x = pad_sequence(x, batch_first=True)
         if self.no_grad:
             with torch.no_grad():
                 x = self._forward(x)
