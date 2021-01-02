@@ -22,6 +22,7 @@ from torch.nn.utils.rnn import pad_sequence
 from functools import lru_cache
 from distutils.util import strtobool
 from upstream.baseline.extracter import get_extracter
+from utility.preprocessor import OnlinePreprocessor
 from .model import TransformerConfig, TransformerModel
 from .model import TransformerSpecPredictionHead
 
@@ -66,7 +67,11 @@ class TransformerBuilder(nn.Module):
         if on_the_fly_config is not None:
             self.config['audio'] = yaml.load(open(on_the_fly_config, 'r'), Loader=yaml.FullLoader)
         if 'audio' in self.config:
-            self.extracter, self.inp_dim = get_extracter(self.config['audio'])
+            if 'kaldi' in self.config['audio']:
+                self.extracter, self.inp_dim = get_extracter(self.config['audio'])
+            else:
+                self.extracter, self.inp_dim = self._get_online_preprocessor(self.config['audio'])
+                self.target_level = self.config['audio']['target_level']
         else:
             self.extracter, self.inp_dim = None, self.config['transformer']['input_dim']
         
@@ -74,6 +79,26 @@ class TransformerBuilder(nn.Module):
         if not (self.select_layer in list(range(-1, self.num_layers))): raise RuntimeError('Out of range int for \'select_layer\'!')
         if self.weighted_sum:
             self.weight = nn.Parameter(torch.ones(self.num_layers) / self.num_layers)
+
+
+    def _get_online_preprocessor(self, online_config):
+        # load the same preprocessor as pretraining stage
+        upstream_input_feat = online_config['input']
+        upstream_input_feat['channel'] = 0
+        upstream_target_feat = online_config['target']
+        upstream_target_feat['channel'] = 0
+        preprocessor = OnlinePreprocessor(**online_config, feat_list=[upstream_input_feat, upstream_target_feat])
+        upstream_feat = preprocessor()[0]
+        upstream_input_dim = upstream_feat.size(-1)
+        return preprocessor, upstream_input_dim
+
+
+    def _normalize_wav_decibel(self, wav):
+        '''Normalize the signal to the target level'''
+        rms = wav.pow(2).mean().pow(0.5)
+        scalar = (10 ** (self.target_level / 20)) / (rms + 1e-10)
+        wav = wav * scalar
+        return wav
 
 
     def load_model(self, transformer_model, state_dict, verbose=False):
@@ -156,6 +181,7 @@ class TransformerBuilder(nn.Module):
         pos_enc = torch.FloatTensor(pos_enc).to(device=feat.device, dtype=torch.float32).expand(feat.size(0), *pos_enc.size()) # (batch_size, seq_len, hidden_size)
         attn_mask = torch.FloatTensor(attn_mask).to(device=feat.device, dtype=torch.float32) # (batch_size, seq_len)
         return feat, pos_enc, attn_mask # (x, pos_enc, attention_mask)
+
 
     def _forward(self, x):
 
@@ -252,8 +278,14 @@ class PretrainedTransformer(TransformerBuilder):
 
     def forward(self, x):
         if self.extracter is not None:
-            x = [self.extracter(x_i) for x_i in x]
-            x = pad_sequence(x, batch_first=True)
+            if 'kaldi' in self.config['audio']:
+                x = [self.extracter(x_i) for x_i in x]
+                x = pad_sequence(x, batch_first=True)
+            else:
+                x = [self._normalize_wav_decibel(x_i) for x_i in x]
+                x = pad_sequence(x, batch_first=True)
+                x = x.unsqueeze(1) # (batch_size, audio_len) -> (batch_size, 1, audio_len)
+                x = self.extracter(x)[0]
         if self.no_grad:
             with torch.no_grad():
                 x = self._forward(x)
@@ -280,8 +312,14 @@ class PretrainedTransformerWithHead(PretrainedTransformer):
 
     def forward(self, x):
         if self.extracter is not None:
-            x = [self.extracter(x_i) for x_i in x]
-            x = pad_sequence(x, batch_first=True)
+            if 'kaldi' in self.config['audio']:
+                x = [self.extracter(x_i) for x_i in x]
+                x = pad_sequence(x, batch_first=True)
+            else:
+                x = [self._normalize_wav_decibel(x_i) for x_i in x]
+                x = pad_sequence(x, batch_first=True)
+                x = x.unsqueeze(1) # (batch_size, audio_len) -> (batch_size, 1, audio_len)
+                x = self.extracter(x)[0]
         if self.no_grad:
             with torch.no_grad():
                 x = self._forward(x)
