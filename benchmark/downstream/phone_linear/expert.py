@@ -41,12 +41,9 @@ class DownstreamExpert(nn.Module):
         self.model = Model(input_dim=self.upstream_dim, output_class_num=self.train_dataset.class_num, **self.modelrc)
         self.objective = nn.CrossEntropyLoss()
 
-        self.logging = open(os.path.join(expdir, 'log.log'), 'w')
+        self.logging = os.path.join(expdir, 'log.log')
         self.best_dev = 0
         self.best_test = 0
-
-    def __del__(self):
-        self.logging.close()
 
     def _get_train_dataloader(self, dataset):
         return DataLoader(
@@ -194,7 +191,8 @@ class DownstreamExpert(nn.Module):
             average,
             global_step=global_step
         )
-        self.logging.write(f'{prefix}|step:{global_step}|acc:{average}\n')
+        with open(self.logging, "w") as f:
+            f.write(f'{prefix}|step:{global_step}|acc:{average}\n')
 
         if 'dev' in prefix and average > self.best_dev:
             self.best_dev = average
