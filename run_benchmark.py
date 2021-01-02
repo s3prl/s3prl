@@ -13,6 +13,8 @@ from argparse import Namespace
 import hubconf
 from benchmark.runner import Runner
 
+import torch.multiprocessing 
+torch.multiprocessing.set_sharing_strategy('file_system')
 
 def get_benchmark_args():
     parser = argparse.ArgumentParser()
