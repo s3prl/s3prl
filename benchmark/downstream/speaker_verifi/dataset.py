@@ -119,7 +119,7 @@ class AudioBatchData(Dataset):
                 start, packageSize = (index+1)*self.utter_number, 0
         
         if packageSize > 0:
-            self.packageIndex.append([start, len(self.all_speakers)*self.utter_number])
+            self.packageIndex.append([start, (len(self.all_speakers)*self.utter_number)-1])
             self.totSize += packageSize
 
         print(f'Scanned {self.totSize} sequences '
