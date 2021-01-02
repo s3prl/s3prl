@@ -25,18 +25,23 @@ task:
   noise_proportion: 0.15                                # for this percentage of the time, Gaussian noise will be applied on all frames during MAM training, set to 0 for no noise
 
 audio:
-  kaldi:
-    feat_type: fbank
+  target_level: -25                                     # pretrained utterances are first scaled to the same decibel level
+  win_ms: 25
+  hop_ms: 10
+  n_freq: 201
+  n_mels: 80
+  n_mfcc: 13
 
-    fbank:
-      num_mel_bins: 80
-      frame_length: 25.0
-      frame_shift: 10.0
-      use_log_fbank: True
-
-  delta:
-    order: 2
-    win_length: 5
-
-  cmvn:
-    use_cmvn: True
+  input:
+    feat_type: mel                                      # feat_type can be: wav, complx, linear, mel, mfcc, phase
+    channel: 0
+    log: True
+    delta: 0
+    cmvn: True
+    
+  target:
+    feat_type: mel                                      # feat_type can be: wav, complx, linear, mel, mfcc, phase
+    channel: 1
+    log: True
+    delta: 0
+    cmvn: True
