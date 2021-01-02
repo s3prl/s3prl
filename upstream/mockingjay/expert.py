@@ -37,12 +37,11 @@ class UpstreamExpert(nn.Module):
                    'permute_input' : 'False' }
 
         self.transformer = PretrainedTransformer(options, inp_dim=-1)
-        self.output_dim = self.transformer.out_dim
         assert hasattr(self.transformer, 'extracter'), 'This wrapper only supports `on-the-fly` ckpt with built in feature extracters.'
 
     # Interface
     def get_output_dim(self):
-        return self.output_dim
+        return self.transformer.out_dim
 
     # Interface
     def forward(self, wavs):
