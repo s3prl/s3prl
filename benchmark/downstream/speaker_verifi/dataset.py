@@ -43,6 +43,7 @@ import os
 import glob
 import pkg_resources
 import six
+from multiprocessing import get_context
 import time
 from multiprocessing import Pool
 import soundfile as sf
@@ -55,7 +56,7 @@ max_timestep = int(16000 * 8)
 # Voxceleb 1 + 2 
 # preprocessing need seperate folder to dev, train, test
 class AudioBatchData(Dataset):
-    def __init__(self, file_path, max_timestep=16000*5, meta_data=None, utter_number=5, sizeWindow=1,nProcessLoader=100, MAX_SIZE_LOADED=1000, batch_size=16, repeat=5):
+    def __init__(self, file_path, max_timestep=16000*5, meta_data=None, utter_number=5, sizeWindow=1,nProcessLoader=2, MAX_SIZE_LOADED=4000, batch_size=16, repeat=2):
 
         self.roots = file_path
         self.root_key = list(self.roots.keys())
@@ -64,7 +65,7 @@ class AudioBatchData(Dataset):
         with open(meta_data, "r") as f:
             self.black_list_speakers = f.read().splitlines()
 
-        # calculate speakers and support to remove black list speaker
+        # calculate speakers and support to remove black list speaker (dev)
         self.all_speakers = \
             [f.path for key in self.root_key for f in os.scandir(self.roots[key]) if f.is_dir() and f.path.split("/")[-1] not in self.black_list_speakers]
         
@@ -75,6 +76,8 @@ class AudioBatchData(Dataset):
         self.sizeWindow = utter_number * batch_size
         self.MAX_SIZE_LOADED= MAX_SIZE_LOADED
         self.repeat = repeat
+        self.reload_pool = get_context('spawn').Pool(nProcessLoader)
+
 
         start = time.time()
         self.file_list = {}
@@ -87,7 +90,6 @@ class AudioBatchData(Dataset):
 
         # prepare n processor for load chunk data from disk
         self.nProcessLoader = nProcessLoader
-        # self.reload_pool = concurrent.futures.ThreadPoolExecutor(nProcessLoader)
         self.packageIndex, self.totSize = [], 0
         self.batched_paths = []
         start = time.time()
@@ -117,7 +119,7 @@ class AudioBatchData(Dataset):
                 start, packageSize = (index+1)*self.utter_number, 0
         
         if packageSize > 0:
-            self.packageIndex.append([start, len(self.all_speakers)*self.utter_number])
+            self.packageIndex.append([start, (len(self.all_speakers)*self.utter_number)-1])
             self.totSize += packageSize
 
         print(f'Scanned {self.totSize} sequences '
@@ -144,19 +146,21 @@ class AudioBatchData(Dataset):
     def loadNextPack(self, first=False):
         self.clear()
         if not first:
+            start_time = time.time()
             self.currentPack = self.nextPack
-            self.nextData = self.r
+            # print('Joining pool')
+            self.r.wait()
+            # print(f'Joined process, elapsed={time.time()-start_time:.3f} secs')            
+            self.nextData = self.r.get()
             self.parseNextDataBlock()
             del self.nextData
         self.nextPack = (self.currentPack + 1) % len(self.packageIndex)
         seqStart, seqEnd = self.packageIndex[self.nextPack]
         if self.nextPack == 0 and len(self.packageIndex) > 1:
-            self.prepare()        
-        start_time = time.time()
-        print('Joining pool')
-        with concurrent.futures.ThreadPoolExecutor(self.nProcessLoader) as multithread:
-            self.r = multithread.map(loadFile,self.batched_paths[seqStart:seqEnd])
-        print(f'Joined process, elapsed={time.time()-start_time:.3f} secs')
+            self.prepare()    
+        datalist = self.batched_paths[seqStart:seqEnd]
+        self.r=self.reload_pool.map_async(loadFile,datalist)
+
 
     def parseNextDataBlock(self):
 
@@ -253,7 +257,6 @@ def collate_fn(data_sample):
     return wavs, lengths, -1,
     
 def loadFile(data):
-    # print(data)
     transformer = Transformer()
     transformer.norm()
     transformer.silence(silence_threshold=1, min_silence_duration=0.1)
