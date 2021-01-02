@@ -196,7 +196,7 @@ class DownstreamExpert(nn.Module):
 
         if 'dev' in prefix and average > self.best_dev:
             self.best_dev = average
-            return ['states-best-dev.ckpt']
+            return ['best-states-dev.ckpt']
         if 'test' in prefix and average > self.best_test:
             self.best_test = average
-            return ['states-best-test.ckpt']
+            return ['best-states-test.ckpt']
