@@ -4,8 +4,8 @@ runner:
   gradient_clipping: 5.0
   gradient_accumulate_steps: 8
 
-  log_step: 50000
-  save_step: 50000
+  log_step: 500
+  save_step: 500
   max_keep: 2
 
 optimizer:

@@ -12,9 +12,7 @@
 ###############
 import os
 import math
-import torch
 import random
-import logging
 #-------------#
 import torch
 import torch.nn as nn
@@ -43,7 +41,9 @@ class DownstreamExpert(nn.Module):
         self.model = Model(input_dim=self.upstream_dim, output_class_num=self.train_dataset.class_num, **self.modelrc)
         self.objective = nn.CrossEntropyLoss()
 
-        logging.basicConfig(filename=os.path.join(expdir, 'log.log'), level=logging.INFO)
+        self.logging = os.path.join(expdir, 'log.log')
+        self.best_dev = 0
+        self.best_test = 0
 
     def _get_train_dataloader(self, dataset):
         return DataLoader(
@@ -149,7 +149,7 @@ class DownstreamExpert(nn.Module):
                 the loss to be optimized, should not be detached
         """
         features = torch.stack(features, dim=0) # list of tensors -> tensors
-        labels = torch.LongTensor(labels).to(features.device)
+        labels = labels.to(features.device)
 
         features, labels = self._match_length(features, labels)
         predicted = self.model(features)
@@ -185,9 +185,18 @@ class DownstreamExpert(nn.Module):
                 global_step in runner, which is helpful for Tensorboard logging
         """
         average = torch.FloatTensor(records['acc']).mean().item()
+
         logger.add_scalar(
             f'{prefix}acc',
             average,
             global_step=global_step
         )
-        logging.info(f'{prefix}|step:{global_step}|acc:{average}')
+        with open(self.logging, 'a') as f:
+            f.write(f'{prefix}|step:{global_step}|acc:{average}\n')
+
+        if 'dev' in prefix and average > self.best_dev:
+            self.best_dev = average
+            return ['best-states-dev.ckpt']
+        if 'test' in prefix and average > self.best_test:
+            self.best_test = average
+            return ['best-states-test.ckpt']

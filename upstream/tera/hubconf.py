@@ -30,3 +30,38 @@ def tera_default(refresh=False, *args, **kwargs):
     """
     kwargs['ckpt'] = '1MoF_poVUaL3tKe1tbrQuDIbsC38IMpnH'
     return tera_gdriveid(refresh=refresh, *args, **kwargs)
+
+
+def tera_fbankBase_time_100hr(refresh=False, *args, **kwargs):
+    kwargs['ckpt'] = '1zS_r-24ir81f_SrEW5-qvKN9DNog-yEV'
+    return tera_gdriveid(refresh=refresh, *args, **kwargs)
+
+
+def tera_fbankBase_freq_100hr(refresh=False, *args, **kwargs):
+    kwargs['ckpt'] = '1CpxVvdTQpRA3iIDWpa7HFjPFzzm7YeTZ'
+    return tera_gdriveid(refresh=refresh, *args, **kwargs)
+
+    
+def tera_fbankBase_time_freq_100hr(refresh=False, *args, **kwargs):
+    kwargs['ckpt'] = '1gaLkpG9knX64kcawdc5R7VazgOz25QKx'
+    return tera_gdriveid(refresh=refresh, *args, **kwargs)
+
+
+def tera_fbankBase_time_freq_mag_100hr(refresh=False, *args, **kwargs):
+    kwargs['ckpt'] = '1CjGPGdrg66OrM8DcpK5pThE8p8OsU8bA'
+    return tera_gdriveid(refresh=refresh, *args, **kwargs)
+
+
+def tera_fbankBase_time_mag_100hr(refresh=False, *args, **kwargs):
+    kwargs['ckpt'] = 'todo'
+    return tera_gdriveid(refresh=refresh, *args, **kwargs)
+
+
+def tera_fbankBase_freq_mag_100hr(refresh=False, *args, **kwargs):
+    kwargs['ckpt'] = 'todo'
+    return tera_gdriveid(refresh=refresh, *args, **kwargs)
+
+
+def tera_fbankBase_mag_100hr(refresh=False, *args, **kwargs):
+    kwargs['ckpt'] = 'todo'
+    return tera_gdriveid(refresh=refresh, *args, **kwargs)

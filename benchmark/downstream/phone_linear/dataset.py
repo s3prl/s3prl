@@ -13,11 +13,9 @@
 import os
 import random
 #-------------#
-import numpy as np
 import pandas as pd
 #-------------#
 import torch
-import torch.nn as nn
 from torch.nn.utils.rnn import pad_sequence
 from torch.utils.data.dataset import Dataset
 #-------------#
@@ -38,7 +36,6 @@ class PhoneDataset(Dataset):
         self.libri_root = libri_root
         self.phone_path = phone_path
         self.sample_rate = sample_rate
-        self.scale = self.sample_rate // 100
         self.class_num = 41 # NOTE: pre-computed, should not need change
 
         self.Y = {}
