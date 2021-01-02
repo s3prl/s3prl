@@ -109,6 +109,9 @@ class Runner():
             self.config['runner']['total_steps'] = total_steps
             print(f'[Runner] - Training for {n_epochs} epochs, whichi is equivalent to {total_steps} steps')
 
+        assert self.config['runner']['total_steps'] > self.config['runner']['log_step']
+        assert self.config['runner']['total_steps'] > self.config['runner']['save_step']
+
         # set optimizer
         model_params = [self.upstream]
         optimizer = self._get_optimizer(model_params)

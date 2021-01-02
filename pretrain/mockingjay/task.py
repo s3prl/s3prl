@@ -69,18 +69,22 @@ def generate_masked_acoustic_model_data(spec, config):
     with torch.no_grad():
 
         # Start
-        spec_masked = spec # (batch_size, seq_len, feat_dim)
-        spec_stacked = copy.deepcopy(spec) # (batch_size, seq_len, feat_dim)
+        if len(spec) == 2: # if self.duo_feature: dataloader will output `source_spec` and `target_spec`
+            spec_masked = spec[0]
+            spec_target = spec[1]
+        else:
+            spec_masked = spec # (batch_size, seq_len, feat_dim)
+            spec_target = copy.deepcopy(spec) # (batch_size, seq_len, feat_dim)
 
         # Record length for each uttr
-        spec_len = (spec_stacked.sum(dim=-1) != 0).long().sum(dim=-1).tolist()
-        batch_size = spec_stacked.shape[0]
-        seq_len = spec_stacked.shape[1]
+        spec_len = (spec_target.sum(dim=-1) != 0).long().sum(dim=-1).tolist()
+        batch_size = spec_target.shape[0]
+        seq_len = spec_target.shape[1]
         
         pos_enc = fast_position_encoding(seq_len, config['position_encoding_size']) # (seq_len, position_encoding_size)
-        mask_label = torch.zeros_like(spec_stacked, dtype=torch.uint8) \
+        mask_label = torch.zeros_like(spec_target, dtype=torch.uint8) \
                      if config['mask_proportion'] != 0 or config['mask_frequency'] != 0 \
-                     else torch.ones_like(spec_stacked, dtype=torch.uint8)
+                     else torch.ones_like(spec_target, dtype=torch.uint8)
         attn_mask = torch.ones((batch_size, seq_len)) # (batch_size, seq_len)
 
         for idx in range(batch_size):
@@ -127,7 +131,7 @@ def generate_masked_acoustic_model_data(spec, config):
 
             # frequency masking
             if config['mask_frequency'] > 0:
-                max_width = int(spec_stacked.shape[2] * config['mask_frequency'])
+                max_width = int(spec_target.shape[2] * config['mask_frequency'])
                 rand_bandwidth = random.randint(0, max_width)
                 chosen_starts = torch.randperm(spec_masked.shape[2] - rand_bandwidth)[:1]
                 chosen_intervals = starts_to_intervals(chosen_starts, rand_bandwidth)
@@ -148,6 +152,6 @@ def generate_masked_acoustic_model_data(spec, config):
         pos_enc = pos_enc.to(dtype=torch.float32)
         mask_label = mask_label.to(dtype=torch.bool)[valid_batchid]
         attn_mask = attn_mask.to(dtype=torch.float32)[valid_batchid]
-        spec_stacked = spec_stacked.to(dtype=torch.float32)[valid_batchid]
+        spec_target = spec_target.to(dtype=torch.float32)[valid_batchid]
 
-    return spec_masked, pos_enc, mask_label, attn_mask, spec_stacked
+    return spec_masked, pos_enc, mask_label, attn_mask, spec_target
