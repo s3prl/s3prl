@@ -191,7 +191,7 @@ class DownstreamExpert(nn.Module):
             average,
             global_step=global_step
         )
-        with open(self.logging, "w") as f:
+        with open(self.logging, 'a') as f:
             f.write(f'{prefix}|step:{global_step}|acc:{average}\n')
 
         if 'dev' in prefix and average > self.best_dev:
