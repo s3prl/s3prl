@@ -32,8 +32,8 @@ def tera_default(refresh=False, *args, **kwargs):
     return tera_gdriveid(refresh=refresh, *args, **kwargs)
 
 
-def tera_fbankBase_time_100hr(refresh=False, *args, **kwargs):
-    kwargs['ckpt'] = '1zS_r-24ir81f_SrEW5-qvKN9DNog-yEV'
+def tera_logMelBase_time_100hr(refresh=False, *args, **kwargs):
+    kwargs['ckpt'] = '1HPX3BYbIMbj9bGRPhRVPLrVHn1RZ8mBK'
     return tera_gdriveid(refresh=refresh, *args, **kwargs)
 
 
