@@ -35,7 +35,7 @@ class TransformerBuilder(nn.Module):
     A builder class for all pre-trained Transformer.
     Child classes only need to implement the __init__() and forward() method.
     """
-    def __init__(self, options, inp_dim, config=None, on_the_fly_config=None, verbose=False):
+    def __init__(self, options, inp_dim=-1, config=None, on_the_fly_config=None, verbose=False):
         super(TransformerBuilder, self).__init__()
 
         # read config
@@ -72,6 +72,8 @@ class TransformerBuilder(nn.Module):
             else:
                 self.extracter, self.inp_dim = self._get_online_preprocessor(self.config['audio'])
                 self.target_level = self.config['audio']['target_level']
+        elif inp_dim != -1:
+            self.extracter, self.inp_dim = None, inp_dim
         else:
             self.extracter, self.inp_dim = None, self.config['transformer']['input_dim']
         
@@ -302,7 +304,8 @@ class PretrainedTransformerWithHead(PretrainedTransformer):
         super(PretrainedTransformerWithHead, self).__init__(options, inp_dim, config, online_config, verbose)
 
         # build head
-        self.SpecHead = TransformerSpecPredictionHead(self.model_config, inp_dim)
+
+        self.SpecHead = TransformerSpecPredictionHead(self.model_config, self.inp_dim)
         self.SpecHead.eval() if self.no_grad else self.SpecHead.train()
         
         # Load from a PyTorch state_dict
