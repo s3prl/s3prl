@@ -72,9 +72,11 @@ def generate_masked_acoustic_model_data(spec, config):
         if len(spec) == 2: # if self.duo_feature: dataloader will output `source_spec` and `target_spec`
             spec_masked = spec[0]
             spec_target = spec[1]
+        elif len(spec) == 1:
+            spec_masked = spec[0] # (batch_size, seq_len, feat_dim)
+            spec_target = copy.deepcopy(spec[0]) # (batch_size, seq_len, feat_dim)
         else:
-            spec_masked = spec # (batch_size, seq_len, feat_dim)
-            spec_target = copy.deepcopy(spec) # (batch_size, seq_len, feat_dim)
+            raise ValueError
 
         # Record length for each uttr
         spec_len = (spec_target.sum(dim=-1) != 0).long().sum(dim=-1).tolist()

@@ -122,7 +122,7 @@ class KaldiAcousticDataset(AcousticDataset):
         # Load acoustic feature and pad
         x_batch = [self._sample(self._load_feat(x_file)) for x_file in self.X[index]]
         x_pad_batch = pad_sequence(x_batch, batch_first=True)
-        return generate_masked_acoustic_model_data(spec=x_pad_batch, config=self.task_config)
+        return generate_masked_acoustic_model_data(spec=(x_pad_batch,), config=self.task_config)
 
 
 class OnlineAcousticDataset(AcousticDataset):
@@ -153,8 +153,8 @@ class OnlineAcousticDataset(AcousticDataset):
         if self.libri_root is not None:
             x_pad_batch = torch.cat([x_pad_batch, x_pad_batch], dim=-1) # (batch_size, seq_len, channel=2)
             x_pad_batch = x_pad_batch.transpose(-1, -2).contiguous() # (batch_size, channel=2, seq_len)
-            x_pad_batch = self.extracter(x_pad_batch)
-        return generate_masked_acoustic_model_data(x_pad_batch, config=self.task_config)
+            feat_list = self.extracter(x_pad_batch)
+        return generate_masked_acoustic_model_data(feat_list, config=self.task_config)
 
     def __getitem__(self, index):
         # Load acoustic feature and pad
