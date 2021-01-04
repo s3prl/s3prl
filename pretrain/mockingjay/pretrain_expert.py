@@ -16,10 +16,11 @@ import torch
 import torch.nn as nn
 from torch.utils.data import DataLoader
 #-------------#
-from pretrain.mockingjay.dataset import AcousticDataset
+from pretrain.mockingjay.dataset import KaldiAcousticDataset, OnlineAcousticDataset
 from upstream.mockingjay.model import TransformerConfig, TransformerInitModel
 from upstream.mockingjay.model import TransformerSpecPredictionHead, TransformerModel
 from upstream.baseline.extracter import get_extracter
+from utility.preprocessor import OnlinePreprocessor
 from utility.audio import plot_spectrogram_to_numpy
 
 
@@ -40,12 +41,19 @@ class UpstreamPretrainExpert(nn.Module):
         self.upstream_config = yaml.load(open(upstream_config, 'r'), Loader=yaml.FullLoader)
         print('[UpstreamPretrainExpert] - Using upstream config from:', upstream_config)
         
-        if 'audio' in self.upstream_config and 'libri_root' in self.datarc:
-            print('[UpstreamPretrainExpert] - Using features extracted on-the-fly')
+        if 'libri_root' in self.datarc and 'kaldi' in self.upstream_config['audio']:
+            print('[UpstreamPretrainExpert] - Using kaldi feature extracter, on-the-fly feature extraction')
             extracter, input_dim = get_extracter(self.upstream_config['audio'])
+            output_dim = None
+        elif 'libri_root' in self.datarc:
+            print('[UpstreamPretrainExpert] - Using online preprocessor, on-the-fly feature extraction')
+            feat_list = [self.upstream_config['audio']['input'], self.upstream_config['audio']['target']]
+            extracter = OnlinePreprocessor(**self.upstream_config['audio'], feat_list=feat_list)
+            input_dim, output_dim = [feat.size(-1) for feat in extracter()]
         else:
             print('[UpstreamPretrainExpert] - Using features pre-extracted and saved')
             extracter, input_dim = None, self.upstream_config['transformer']['input_dim']
+            output_dim = None
         print('[UpstreamPretrainExpert] - Input dim:', input_dim)
         
         self.dataloader = self._get_train_dataloader(extracter)
@@ -53,7 +61,7 @@ class UpstreamPretrainExpert(nn.Module):
         print('[UpstreamPretrainExpert] - Initializing model...')
         model_config = TransformerConfig(self.upstream_config['transformer'])
         setattr(model_config, 'loss', self.upstream_config['task']['loss'])
-        self.model = TransformerForMaskedAcousticModel(model_config, input_dim, output_dim=None)
+        self.model = TransformerForMaskedAcousticModel(model_config, input_dim, output_dim=output_dim)
 
         if self.multi_gpu:
             self.model = torch.nn.DataParallel(self.model)
@@ -61,10 +69,17 @@ class UpstreamPretrainExpert(nn.Module):
         print('[UpstreamPretrainExpert] - Number of parameters: ' + str(sum(p.numel() for p in self.model.parameters() if p.requires_grad)))
 
     def _get_train_dataloader(self, extracter):
-        dataset = AcousticDataset(extracter,
-                                  self.upstream_config['task'],
-                                  self.datarc['train_batch_size'],
-                                  **self.datarc)
+        if 'libri_root' in self.datarc and 'kaldi' not in self.upstream_config['audio']:
+            dataset = OnlineAcousticDataset(extracter,
+                                            self.upstream_config['task'],
+                                            self.datarc['train_batch_size'],
+                                            target_level=self.upstream_config['audio']['target_level'],
+                                            **self.datarc)
+        else:
+            dataset = KaldiAcousticDataset(extracter,
+                                           self.upstream_config['task'],
+                                           self.datarc['train_batch_size'],
+                                           **self.datarc)
         return DataLoader(
             dataset, batch_size=1, # for bucketing
             shuffle=True, num_workers=self.datarc['num_workers'],
@@ -94,7 +109,7 @@ class UpstreamPretrainExpert(nn.Module):
         """
         Args:
             data:
-                [spec_masked, pos_enc, mask_label, attn_mask, spec_stacked]
+                [spec_masked, pos_enc, mask_label, attn_mask, spec_target]
             
             records:
                 defaultdict(list), by appending contents into records,
@@ -105,7 +120,7 @@ class UpstreamPretrainExpert(nn.Module):
             loss        
         """
 
-        spec_masked, pos_enc, mask_label, attn_mask, spec_stacked = data[0], data[1], data[2], data[3], data[4]
+        spec_masked, pos_enc, mask_label, attn_mask, spec_target = data[0], data[1], data[2], data[3], data[4]
         spec_masked = spec_masked.to(self.device)
         
         if pos_enc.dim() == 3:
@@ -119,12 +134,12 @@ class UpstreamPretrainExpert(nn.Module):
 
         mask_label = mask_label.bool().to(self.device)
         attn_mask = attn_mask.float().to(self.device)
-        spec_stacked = spec_stacked.to(self.device)
+        spec_target = spec_target.to(self.device)
         
-        loss, pred_spec = self.model(spec_masked, pos_enc, mask_label, attn_mask, spec_stacked)
+        loss, pred_spec = self.model(spec_masked, pos_enc, mask_label, attn_mask, spec_target)
 
         if global_step % log_step == 0:
-            spec_list = [spec_masked, pred_spec, spec_stacked]
+            spec_list = [spec_masked, pred_spec, spec_target]
             name_list = ['mask_spec', 'pred_spec', 'true_spec']
             
             for i in range(len(spec_list)):

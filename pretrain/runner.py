@@ -109,6 +109,9 @@ class Runner():
             self.config['runner']['total_steps'] = total_steps
             print(f'[Runner] - Training for {n_epochs} epochs, whichi is equivalent to {total_steps} steps')
 
+        assert self.config['runner']['total_steps'] > self.config['runner']['log_step']
+        assert self.config['runner']['total_steps'] > self.config['runner']['save_step']
+
         # set optimizer
         model_params = [self.upstream]
         optimizer = self._get_optimizer(model_params)
@@ -124,7 +127,7 @@ class Runner():
         if init_step:
             pbar.n = init_step
 
-        all_loss = []
+        all_loss = 0
         backward_steps = 0
         records = defaultdict(list)
         prefix = f'{self.args.upstream}/train-'
@@ -141,8 +144,11 @@ class Runner():
                                                   records=records,
                                                   global_step=global_step,
                                                   log_step=self.config['runner']['log_step'])
-                    if self.args.multi_gpu: loss = loss.sum()
-                    (loss / gradient_accumulate_steps).backward()
+                    if gradient_accumulate_steps > 1:
+                        loss = loss / gradient_accumulate_steps
+                    if self.args.multi_gpu:
+                        loss = loss.sum()
+                    loss.backward()
 
                 except RuntimeError as e:
                     if 'CUDA out of memory' in str(e):
@@ -154,7 +160,7 @@ class Runner():
                         raise
 
                 # record loss
-                all_loss.append(loss.item())
+                all_loss += loss.item()
                 del loss
                 
                 # whether to accumulate gradient
@@ -179,10 +185,7 @@ class Runner():
                 # logging
                 if global_step % self.config['runner']['log_step'] == 0 or pbar.n == pbar.total -1:
                     # log loss
-                    average_loss = torch.FloatTensor(all_loss).mean().item()
-                    self.logger.add_scalar(f'{prefix}loss', average_loss, global_step=global_step)
-                    all_loss = []
-
+                    self.logger.add_scalar(f'{prefix}loss', all_loss, global_step=global_step)
                     # log lr
                     self.logger.add_scalar(f'{prefix}lr', optimizer.get_lr()[0], global_step=global_step)
                     # log norm
@@ -222,7 +225,8 @@ class Runner():
                     save_path = os.path.join(self.args.expdir, name)
                     tqdm.write(f'[Runner] - Save the checkpoint to: {save_path}')
                     torch.save(all_states, save_path)
-                        
+                
+                all_loss = 0      
                 pbar.update(1)
 
         pbar.close()

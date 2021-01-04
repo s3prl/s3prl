@@ -79,12 +79,6 @@ class AcousticDataset(Dataset):
         # Gather the last batch
         if len(batch_x) > 1: 
             self.X.append(batch_x)
-    
-    def _sample(self, x):
-        if self.sample_length <= 0: return x
-        if len(x) < self.sample_length: return x
-        idx = random.randint(0, len(x)-self.sample_length)
-        return x[idx:idx+self.sample_length]
 
     def _get_full_libri_path(self, npy_path):
         # remove .npy
@@ -94,6 +88,28 @@ class AcousticDataset(Dataset):
         libri_path = os.path.join(self.libri_root, subfolder, filedirs[0], filedirs[1], f'{filename}.flac')
         return libri_path
 
+    def _sample(self, x):
+        if self.sample_length <= 0: return x
+        if len(x) < self.sample_length: return x
+        idx = random.randint(0, len(x)-self.sample_length)
+        return x[idx:idx+self.sample_length]
+
+    def __len__(self):
+        return len(self.X)
+
+    def collate_fn(self, items):
+        items = items[0] # hack bucketing
+        assert(len(items) == 5), '__getitem__ should return (spec_masked, pos_enc, mask_label, attn_mask, spec_stacked)'
+        return items
+
+
+class KaldiAcousticDataset(AcousticDataset):
+    
+    def __init__(self, extracter, task_config, bucket_size, file_path, sets, 
+                 max_timestep=0, drop=False, libri_root=None, **kwargs):
+        super(KaldiAcousticDataset, self).__init__(extracter, task_config, bucket_size, file_path, sets, 
+                 max_timestep, drop, libri_root, **kwargs)
+
     def _load_feat(self, npy_path):
         if self.libri_root is None:
             return torch.FloatTensor(np.load(os.path.join(self.root, npy_path)))
@@ -102,16 +118,46 @@ class AcousticDataset(Dataset):
             feat = self.extracter(wav.squeeze())
             return feat
 
-    def __len__(self):
-        return len(self.X)
+    def __getitem__(self, index):
+        # Load acoustic feature and pad
+        x_batch = [self._sample(self._load_feat(x_file)) for x_file in self.X[index]]
+        x_pad_batch = pad_sequence(x_batch, batch_first=True)
+        return generate_masked_acoustic_model_data(spec=(x_pad_batch,), config=self.task_config)
+
+
+class OnlineAcousticDataset(AcousticDataset):
+    
+    def __init__(self, extracter, task_config, bucket_size, file_path, sets, 
+                 max_timestep=0, drop=False, libri_root=None, target_level=-25, **kwargs):
+        super(OnlineAcousticDataset, self).__init__(extracter, task_config, bucket_size, file_path, sets, 
+                 max_timestep, drop, libri_root, **kwargs)
+        self.target_level = target_level
+        self.sample_length = self.sample_length * 160
+    
+    def _normalize_wav_decibel(self, wav):
+        '''Normalize the signal to the target level'''
+        rms = wav.pow(2).mean().pow(0.5)
+        scalar = (10 ** (self.target_level / 20)) / (rms + 1e-10)
+        wav = wav * scalar
+        return wav
+
+    def _load_feat(self, npy_path):
+        if self.libri_root is None:
+            return torch.FloatTensor(np.load(os.path.join(self.root, npy_path)))
+        else:
+            wav, _ = torchaudio.load(self._get_full_libri_path(npy_path))
+            wav = self._normalize_wav_decibel(wav.squeeze())
+            return wav.unsqueeze(-1) # (seq_len, channel=1)
+
+    def _process_x_pad_batch(self, x_pad_batch):
+        if self.libri_root is not None:
+            x_pad_batch = torch.cat([x_pad_batch, x_pad_batch], dim=-1) # (batch_size, seq_len, channel=2)
+            x_pad_batch = x_pad_batch.transpose(-1, -2).contiguous() # (batch_size, channel=2, seq_len)
+            feat_list = self.extracter(x_pad_batch)
+        return generate_masked_acoustic_model_data(feat_list, config=self.task_config)
 
     def __getitem__(self, index):
         # Load acoustic feature and pad
         x_batch = [self._sample(self._load_feat(x_file)) for x_file in self.X[index]]
         x_pad_batch = pad_sequence(x_batch, batch_first=True)
-        return generate_masked_acoustic_model_data(spec=x_pad_batch, config=self.task_config)
-
-    def collate_fn(self, items):
-        items = items[0] # hack bucketing
-        assert(len(items) == 5), '__getitem__ should return (spec_masked, pos_enc, mask_label, attn_mask, spec_stacked)'
-        return items
+        return self._process_x_pad_batch(x_pad_batch)

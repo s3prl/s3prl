@@ -32,13 +32,13 @@ def tera_default(refresh=False, *args, **kwargs):
     return tera_gdriveid(refresh=refresh, *args, **kwargs)
 
 
-def tera_fbankBase_time_100hr(refresh=False, *args, **kwargs):
-    kwargs['ckpt'] = '1zS_r-24ir81f_SrEW5-qvKN9DNog-yEV'
+def tera_logMelBase_AdamW_time_100hr(refresh=False, *args, **kwargs):
+    kwargs['ckpt'] = '1cXLXeY2JOcT4ktxjNN_5feURaNSsGAli'
     return tera_gdriveid(refresh=refresh, *args, **kwargs)
 
 
-def tera_fbankBase_freq_100hr(refresh=False, *args, **kwargs):
-    kwargs['ckpt'] = '1CpxVvdTQpRA3iIDWpa7HFjPFzzm7YeTZ'
+def tera_logMelBase_AdamW_freq_100hr(refresh=False, *args, **kwargs):
+    kwargs['ckpt'] = '1HPX3BYbIMbj9bGRPhRVPLrVHn1RZ8mBK'
     return tera_gdriveid(refresh=refresh, *args, **kwargs)
 
     
