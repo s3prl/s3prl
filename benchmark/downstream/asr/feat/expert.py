@@ -16,7 +16,7 @@ class UpstreamExpert(nn.Module):
     Pre-trained weights should be loaded
     """
 
-    def __init__(self, config, *args, **kwargs):
+    def __init__(self, config, mode, *args, **kwargs):
         super(UpstreamExpert, self).__init__()
         
         with open(config, 'r') as file:
@@ -26,7 +26,7 @@ class UpstreamExpert(nn.Module):
         self.audio_transform, self.feat_dim = create_transform(
             audio.copy(),
             post_process=True,
-            mode='train',
+            mode=mode,
             read_audio=False,
         )
 
