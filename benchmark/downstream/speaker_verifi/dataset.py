@@ -56,7 +56,7 @@ max_timestep = int(16000 * 8)
 # Voxceleb 1 + 2 
 # preprocessing need seperate folder to dev, train, test
 class AudioBatchData(Dataset):
-    def __init__(self, file_path, max_timestep=16000*5, meta_data=None, utter_number=5, sizeWindow=1,nProcessLoader=2, MAX_SIZE_LOADED=4000, batch_size=16, repeat=2):
+    def __init__(self, file_path, max_timestep=16000*5, meta_data=None, utter_number=5, sizeWindow=1,nProcessLoader=2, MAX_SIZE_LOADED=4000, batch_size=16):
 
         self.roots = file_path
         self.root_key = list(self.roots.keys())
@@ -107,20 +107,16 @@ class AudioBatchData(Dataset):
 
         start, packageSize = 0, 0
         for index, speaker_id in tqdm(enumerate(self.all_speakers)):            
-            # take positive id
+            # take speaker id
             positive_id = speaker_id
             all_paths = []
             paths=random.sample(self.file_list[positive_id], self.utter_number)
             self.batched_paths.extend(paths)
             packageSize += len(paths)
             if packageSize >= self.MAX_SIZE_LOADED:
-                self.packageIndex.append([start, (index+1)*self.utter_number])
+                self.packageIndex.append([start, index*self.utter_number])
                 self.totSize += packageSize
-                start, packageSize = (index+1)*self.utter_number, 0
-        
-        if packageSize > 0:
-            self.packageIndex.append([start, (len(self.all_speakers)*self.utter_number)-1])
-            self.totSize += packageSize
+                start, packageSize = index*self.utter_number, 0
 
         print(f'Scanned {self.totSize} sequences '
               f'in {time.time() - start_time:.2f} seconds')
@@ -177,15 +173,6 @@ class AudioBatchData(Dataset):
         
         sample_num=len(tmpData)
 
-        for _ in range(self.repeat):
-            for index in range(sample_num):
-                batch_seq = tmpData[index]
-                batch_length = tmpLength[index]
-                tmpData.append(batch_seq)
-                tmpLength.append(batch_length)
-                tmpData.append(batch_seq)
-                tmpLength.append(batch_length)
-
         self.data = tmpData
         self.length = tmpLength
 
@@ -225,7 +212,7 @@ class AudioBatchData(Dataset):
                                    at the begining of each iteration
         """
         nLoops = len(self.packageIndex)
-        totSize = self.totSize // (self.utter_number)
+        totSize = self.totSize // (self.utter_number) - batchSize
 
         if onLoop >= 0:
             self.currentPack = onLoop - 1
@@ -259,7 +246,7 @@ def collate_fn(data_sample):
 def loadFile(data):
     transformer = Transformer()
     transformer.norm()
-    transformer.silence(silence_threshold=1, min_silence_duration=0.1)
+    # transformer.silence(silence_threshold=1, min_silence_duration=0.1)
     transformer.set_output_format(rate=16000, bits=16, channels=1)
     wav = transformer.build_array(input_filepath=str(data))
     wav = torch.tensor(wav / (2 ** 15)).float()
@@ -310,7 +297,7 @@ class UniformAudioSampler(Sampler):
                  offset):
 
         self.utter_number = utter_number
-        self.len = dataSize // self.utter_number - batch_size
+        self.len = (dataSize // self.utter_number) - batch_size
         self.sizeWindow = sizeWindow
         self.offset = offset
         if self.offset > 0:
@@ -368,75 +355,6 @@ class AudioLoader(object):
                 yield x
             if i < self.nLoop - 1:
                 self.updateCall()
-# class SpeakerVerifi_train(Dataset):
-#     def __init__(self, file_path, max_timestep=16000*5, meta_data=None, utter_number=5):
-
-#         self.roots = file_path
-#         self.root_key = list(self.roots.keys())
-        
-#         # extract dev speaker and store in self.black_list_spealers
-#         with open(meta_data, "r") as f:
-#             self.black_list_speakers = f.read().splitlines()
-
-#         # calculate speakers and support to remove black list speaker
-#         self.all_speakers = \
-#             [f.path for key in self.root_key for f in os.scandir(self.roots[key]) if f.is_dir() and f.path.split("/")[-1] not in self.black_list_speakers]
-        
-#         self.utter_number = utter_number
-#         self.necessary_dict = self.processing()
-#         self.dataset = self.necessary_dict['spk_paths']
-        
-#         start = time.time()
-#         self.file_list = {}
-#         for x in tqdm(self.dataset):
-#             self.file_list[x] = find_files(x, ext='wav')
-#         end = time.time()
-
-#         print(f"search all audio file need {end-start} seconds")
-#         self.max_timestep = max_timestep
-        
-#     def processing(self):
-        
-#         speaker_num = len(self.all_speakers)
-#         return {"spk_paths":self.all_speakers,"total_spk_num":speaker_num,"pair_table":None}
-    
-#     def __len__(self):
-#         return self.necessary_dict['total_spk_num']
-
-
-#     def __getitem__(self, idx):
-#         path = random.sample(self.file_list[self.dataset[idx]], self.utter_number)
-
-#         x_list = []
-#         length_list = []
-
-#         for i in range(len(path)):
-#             wav, sr = torchaudio.load(path[i])
-#             wav = wav.squeeze(0)
-#             length = wav.shape[0]
-
-#             if length > self.max_timestep:
-#                 length = self.max_timestep
-#                 start = random.randint(0,length - self.max_timestep)
-#                 wav = wav[start:start+self.max_timestep]
-
-#             x_list.append(wav)
-#             length_list.append(torch.tensor(length).long())
-
-#         return x_list, length_list
-    
-#     def collate_fn(self,data_sample):
-
-#         wavs = []
-#         lengths = []
-#         indexes = []
-
-#         for samples in data_sample:
-#             wavs.extend(samples[0])
-#             lengths.extend(samples[1])
-
-#         return wavs, lengths, -1,
-
 
 class SpeakerVerifi_dev(Dataset):
     def __init__(self, file_path, max_timestep, meta_data=None):
