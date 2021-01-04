@@ -27,6 +27,7 @@ import os
 import torch
 import random
 import torchaudio
+from functools import partial
 from tqdm import trange
 from tqdm import tqdm
 from pathlib import Path
@@ -75,7 +76,6 @@ class AudioBatchData(Dataset):
         self.batch_size = batch_size
         self.sizeWindow = utter_number * batch_size
         self.MAX_SIZE_LOADED= MAX_SIZE_LOADED
-        self.repeat = repeat
         self.reload_pool = get_context('spawn').Pool(nProcessLoader)
 
 
@@ -144,9 +144,7 @@ class AudioBatchData(Dataset):
         if not first:
             start_time = time.time()
             self.currentPack = self.nextPack
-            # print('Joining pool')
             self.r.wait()
-            # print(f'Joined process, elapsed={time.time()-start_time:.3f} secs')            
             self.nextData = self.r.get()
             self.parseNextDataBlock()
             del self.nextData
@@ -155,7 +153,8 @@ class AudioBatchData(Dataset):
         if self.nextPack == 0 and len(self.packageIndex) > 1:
             self.prepare()    
         datalist = self.batched_paths[seqStart:seqEnd]
-        self.r=self.reload_pool.map_async(loadFile,datalist)
+        loadFile_fn = partial(loadFile, max_timestep=self.max_timestep)
+        self.r=self.reload_pool.map_async(loadFile_fn,datalist)
 
 
     def parseNextDataBlock(self):
@@ -243,7 +242,7 @@ def collate_fn(data_sample):
 
     return wavs, lengths, -1,
     
-def loadFile(data):
+def loadFile(data, max_timestep):
     transformer = Transformer()
     transformer.norm()
     # transformer.silence(silence_threshold=1, min_silence_duration=0.1)
@@ -297,7 +296,7 @@ class UniformAudioSampler(Sampler):
                  offset):
 
         self.utter_number = utter_number
-        self.len = (dataSize // self.utter_number) - batch_size
+        self.len = (dataSize // self.utter_number) - 1
         self.sizeWindow = sizeWindow
         self.offset = offset
         if self.offset > 0:

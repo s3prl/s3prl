@@ -46,7 +46,7 @@ downstream_expert:
 
   modelrc:
     module:
-      TransformerEncoder                                    # downstream model option: TransformerEncoder, Identity, If TransformerEncoder will follow the hparams set the transformer encoder to be the downstream model, and Identity will simply pass the pretrained feature
+      Identity                                   # downstream model option: TransformerEncoder, Identity, If TransformerEncoder will follow the hparams set the transformer encoder to be the downstream model, and Identity will simply pass the pretrained feature
     hparams:
       hidden_size: 256                                      # Size of the encoder layers and the pooler layer.
       num_hidden_layers: 1                                  # Number of hidden layers in the Transformer encoder.
