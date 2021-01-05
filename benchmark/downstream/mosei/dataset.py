@@ -31,7 +31,7 @@ class MOSEIDataset(Dataset):
         label = random.randint(0, self.class_num - 1)
         '''
 
-        return wav, torch.tensor(label).long()
+        return wav.view(-1), torch.tensor(label).long()
 
     def __len__(self):
         return len(self.data)
