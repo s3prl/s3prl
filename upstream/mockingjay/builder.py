@@ -71,7 +71,7 @@ class TransformerBuilder(nn.Module):
                 self.extracter, self.inp_dim = get_extracter(self.config['audio'])
                 self.spec_dim = self.inp_dim
             else:
-                self.extracter, self.inp_dim, self.spec_dim = get_preprocessor(self.config['audio'])
+                self.extracter, self.inp_dim, self.spec_dim = get_preprocessor(self.config['audio'], process_input_only=True)
                 self.target_level = self.config['audio']['target_level']
         elif inp_dim != -1:
             self.extracter, self.inp_dim, self.spec_dim = None, inp_dim, inp_dim

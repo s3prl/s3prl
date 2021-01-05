@@ -8,7 +8,23 @@ from torchaudio.functional import magphase, compute_deltas
 N_SAMPLED_PSEUDO_WAV = 2
 
 
-def get_preprocessor(audio_config, take_first_channel=True):
+def get_preprocessor(audio_config, take_first_channel=True, process_input_only=False):
+    """
+        Args:
+            take_first_channel:
+                bool
+                If True, the preprocessor takes input as: (*, channel=1, waveform_len),
+                    where `input` and `target` are taken from the same channel (i.e. the same and single waveform).
+                If False, the preprocessor takes input as: (*, channel=2, waveform_len),
+                    where `input` and `target` are taken from the specified channel (i.e. multiple correlated views of the same waveform).
+                    For example: preprocessor_input = torch.cat([wav_aug1.unsqueeze(1), wav_aug2.unsqueeze(1)], dim=1) # shape: (batch_size, channel=2, seq_len)     
+            process_input_only:
+                bool
+                If True, the preprocessor will process `input`
+                If False, the preprocessor will process both `input` and `target`
+    """
+    assert not (take_first_channel == False and process_input_only == True)
+
     input_feat = audio_config['input']
     target_feat = audio_config['target']
     if take_first_channel:
@@ -16,8 +32,12 @@ def get_preprocessor(audio_config, take_first_channel=True):
         target_feat['channel'] = 0
 
     preprocessor = OnlinePreprocessor(**audio_config, feat_list=[input_feat, target_feat])
-    input_dim, output_dim = [feat.size(-1) for feat in preprocessor()]
-    return preprocessor, input_dim, output_dim
+    input_dim, target_dim = [feat.size(-1) for feat in preprocessor()]
+    
+    if process_input_only:
+        del preprocessor
+        preprocessor = OnlinePreprocessor(**audio_config, feat_list=[input_feat])
+    return preprocessor, input_dim, target_dim
 
 
 class OnlinePreprocessor(torch.nn.Module):
