@@ -25,6 +25,9 @@ def get_preprocessor(audio_config, take_first_channel=True, process_input_only=F
     """
     assert not (take_first_channel == False and process_input_only == True)
 
+    if not 'target' in audio_config:
+        audio_config['target'] = audio_config['input']
+        
     input_feat = audio_config['input']
     target_feat = audio_config['target']
     if take_first_channel:
