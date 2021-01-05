@@ -4,7 +4,21 @@ from functools import partial
 from torchaudio.transforms import Spectrogram, MelScale, MFCC
 from torchaudio.functional import magphase, compute_deltas
 
+
 N_SAMPLED_PSEUDO_WAV = 2
+
+
+def get_preprocessor(audio_config, take_first_channel=True):
+    input_feat = audio_config['input']
+    target_feat = audio_config['target']
+    if take_first_channel:
+        input_feat['channel'] = 0
+        target_feat['channel'] = 0
+
+    preprocessor = OnlinePreprocessor(**audio_config, feat_list=[input_feat, target_feat])
+    input_dim, output_dim = [feat.size(-1) for feat in preprocessor()]
+    return preprocessor, input_dim, output_dim
+
 
 class OnlinePreprocessor(torch.nn.Module):
     def __init__(self, sample_rate=16000, win_ms=25, hop_ms=10, n_freq=201, n_mels=40, n_mfcc=13, feat_list=None, eps=1e-10, **kwargs):
