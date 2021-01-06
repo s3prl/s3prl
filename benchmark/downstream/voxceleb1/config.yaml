@@ -1,3 +1,5 @@
+
+# this voxceleb1 is doing speaker classification task!
 runner:
   total_steps: 500000
   gradient_clipping: 1

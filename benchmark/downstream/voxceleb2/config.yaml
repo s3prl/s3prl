@@ -1,3 +1,5 @@
+
+# this voxceleb2 is doing speaker verification task!
 runner:
   total_steps: 100000
   gradient_clipping: 1
