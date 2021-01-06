@@ -25,7 +25,7 @@ from upstream.mockingjay.model import TransformerEncoder
 class Identity(nn.Module):
     def __init__(self, config, **kwargs):
         super(Identity, self).__init__()
-        # simply take mean operator / no additional parameters
+        # simply pass pretrained vector
 
     def forward(self, feature, att_mask, head_mask, **kwargs):
 
@@ -35,15 +35,19 @@ class Mean(nn.Module):
 
     def __init__(self, out_dim):
         super(Mean, self).__init__()
+        self.act_fn = nn.Tanh()
+        self.linear = nn.Linear(out_dim, out_dim)
         # simply take mean operator / no additional parameters
 
     def forward(self, feature, att_mask):
 
         ''' 
+        we use 1 hidden layer and applied mean pooling in the end to generate utterance-level representation
         Arguments
             feature - [BxTxD]   Acoustic feature with shape 
             att_mask   - [BxTx1]     Attention Mask logits
         '''
+        feature=self.linear(self.act_fn(feature))
         agg_vec_list = []
         for i in range(len(feature)):
             if torch.nonzero(att_mask[i] < 0, as_tuple=False).size(0) == 0:

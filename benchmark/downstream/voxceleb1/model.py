@@ -36,6 +36,8 @@ class Mean(nn.Module):
 
     def __init__(self, out_dim):
         super(Mean, self).__init__()
+        self.act_fn = nn.Tanh()
+        self.linear = nn.Linear(out_dim, out_dim)
         # simply take mean operator / no additional parameters
 
     def forward(self, feature, att_mask):
@@ -45,6 +47,7 @@ class Mean(nn.Module):
             feature - [BxTxD]   Acoustic feature with shape 
             att_mask   - [BxTx1]     Attention Mask logits
         '''
+        feature=self.act_fn(feature)
         agg_vec_list = []
         for i in range(len(feature)):
             if torch.nonzero(att_mask[i] < 0, as_tuple=False).size(0) == 0:
