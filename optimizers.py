@@ -16,20 +16,20 @@ from torch.optim.optimizer import required
 logger = logging.getLogger(__name__)
 
 
-def get_optimizer(optimized_models, total_steps, optimizer_config):
+def get_optimizer(model_params, total_steps, optimizer_config):
     optimizer_config = copy.deepcopy(optimizer_config)
     optimizer_name = optimizer_config.pop('name')
     optimizer = eval(f'get_{optimizer_name}')(
-        optimized_models,
+        model_params,
         total_steps=total_steps,
         **optimizer_config
     )
     return optimizer
 
 
-def get_grouped_parameters(optimized_models):
+def get_grouped_parameters(model_params):
     named_params = []
-    for m in optimized_models:
+    for m in model_params:
         named_params += list(m.named_parameters())
 
     no_decay = ['bias', 'LayerNorm.bias', 'LayerNorm.weight']
@@ -40,16 +40,16 @@ def get_grouped_parameters(optimized_models):
     return grouped_parameters
 
 
-def get_BertAdam_with_schedule(optimized_models, lr=2e-4, total_steps=20000, warmup_proportion=0.07, **kwargs):
-    grouped_parameters = get_grouped_parameters(optimized_models)
+def get_BertAdam_with_schedule(model_params, lr=2e-4, total_steps=20000, warmup_proportion=0.07, **kwargs):
+    grouped_parameters = get_grouped_parameters(model_params)
     optimizer = BertAdam(grouped_parameters, lr=lr,
                          warmup=warmup_proportion,
                          t_total=total_steps)
     return optimizer
 
 
-def get_AdamW_with_schedule(optimized_models, lr=2e-4, total_steps=20000, warmup_proportion=0.07, **kwargs):
-    grouped_parameters = get_grouped_parameters(optimized_models)
+def get_AdamW_with_schedule(model_params, lr=2e-4, total_steps=20000, warmup_proportion=0.07, **kwargs):
+    grouped_parameters = get_grouped_parameters(model_params)
     optimizer = Lamb(grouped_parameters,
                      lr=lr,
                      warmup=warmup_proportion,
@@ -59,8 +59,8 @@ def get_AdamW_with_schedule(optimized_models, lr=2e-4, total_steps=20000, warmup
     return optimizer
 
 
-def get_Lamb_with_schedule(optimized_models, lr=2e-4, total_steps=20000, warmup_proportion=0.07, **kwargs):
-    grouped_parameters = get_grouped_parameters(optimized_models)
+def get_Lamb_with_schedule(model_params, lr=2e-4, total_steps=20000, warmup_proportion=0.07, **kwargs):
+    grouped_parameters = get_grouped_parameters(model_params)
     optimizer = Lamb(grouped_parameters,
                      lr=lr,
                      warmup=warmup_proportion,
@@ -70,19 +70,30 @@ def get_Lamb_with_schedule(optimized_models, lr=2e-4, total_steps=20000, warmup_
     return optimizer
 
 
-def get_Adam(optimized_models, lr=2e-4, **kwargs):
+def get_Adam(model_params, lr=2e-4, **kwargs):
     params = []
-    for m in optimized_models:
+    for m in model_params:
         params += list(m.parameters())
     return Adam(params, lr=lr, betas=(0.9, 0.999))
 
 
-def get_AdamW(optimized_models, lr=2e-4, **kwargs):
+def get_AdamW(model_params, lr=2e-4, **kwargs):
     params = []
-    for m in optimized_models:
+    for m in model_params:
         params += list(m.parameters())
     optimizer = AdamW(params, lr=lr)
     return optimizer
+
+
+def get_TorchOptim(model_params, torch_optim_name, **kwargs):
+    params = []
+    for m in model_params:
+        params += list(m.parameters())
+    Opt_class = getattr(torch.optim, torch_optim_name)
+
+    kwargs.pop('total_steps')
+    optim = Opt_class(params, **kwargs)
+    return optim
 
 
 class AdamW(Optimizer):

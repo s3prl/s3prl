@@ -1,0 +1,47 @@
+transformer:
+  input_dim: -1                                         # `int`, for pre-extracted features: 39 for mfcc, 40 for fmllr, 80 for fbank, 160 for mel, irrelevent if on-the-fly extraction is used
+  hidden_size: 768                                      # Size of the encoder layers and the pooler layer.
+  num_hidden_layers: 3                                  # Number of hidden layers in the Transformer encoder.
+  num_attention_heads: 12                               # Number of attention heads for each attention layer in the Transformer encoder.
+  intermediate_size: 3072                               # The size of the "intermediate" (i.e., feed-forward) layer in the Transformer encoder.
+  hidden_act: gelu                                      # The non-linear activation function (function or string) in the encoder and pooler. If string, "gelu", "relu" and "swish" are supported.
+  hidden_dropout_prob: 0.3                              # The dropout probabilitiy for all fully connected layers in the embeddings, encoder, and pooler.
+  attention_probs_dropout_prob: 0.3                     # The dropout ratio for the attention probabilities.
+  initializer_range: 0.02                               # The sttdev of the truncated_normal_initializer for initializing all weight matrices.
+  layer_norm_eps: 1.e-12                                # The epsilon used by LayerNorm.
+  share_layer: False                                    # Share layer weights
+  pre_layer_norm: False                                 # To apply the pre layer normalization technique introduced in: https://arxiv.org/abs/2002.04745
+
+task:
+  loss: L1                                              # L1 or MSE
+  sequence_length: 1500                                 # The maximum input sequence length for the transformer model (0 for no restriction)                                   
+  position_encoding_size: 768                           # this should be identical to `hidden_size`
+  mask_proportion: 0.15                                 # mask this percentage of all spectrogram frames in each sequence at random during MAM training                        
+  mask_consecutive_min: 7                               # mask this amount of consecutive frames
+  mask_consecutive_max: 7                               # mask this amount of consecutive frames
+  mask_allow_overlap: True                              # allow overlap masking
+  mask_bucket_ratio: 1.5                                # only used when overlap is not allowed. sample a mask from each bucket in size of [sampled mask_consecutive * mask_bucket_ratio]
+  mask_frequency: 0.0                                   # mask maximum this percentage of frequency bands, set to 0 for no frequency mask
+  noise_proportion: 0.0                                 # for this percentage of the time, Gaussian noise will be applied on all frames during MAM training, set to 0 for no noise
+
+audio:
+  target_level: -25                                     # pretrained utterances are first scaled to the same decibel level
+  win_ms: 25
+  hop_ms: 10
+  n_freq: 201
+  n_mels: 80
+  n_mfcc: 13
+
+  input:
+    feat_type: mel                                      # feat_type can be: wav, complx, linear, mel, mfcc, phase
+    channel: 0
+    log: True
+    delta: 0
+    cmvn: True
+    
+  target:
+    feat_type: mel                                      # feat_type can be: wav, complx, linear, mel, mfcc, phase
+    channel: 1
+    log: True
+    delta: 0
+    cmvn: True

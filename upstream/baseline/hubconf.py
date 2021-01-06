@@ -16,7 +16,8 @@ def baseline_default(*args, **kwargs):
     """
         Default baseline feature - Fbank, or Mel-scale spectrogram
     """
-    return baseline_fbank(*args, **kwargs)
+    kwargs['config'] = os.path.join(os.path.dirname(__file__), 'config.yaml')
+    return baseline(*args, **kwargs)
 
 
 def baseline_spectrogram(*args, **kwargs):

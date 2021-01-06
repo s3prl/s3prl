@@ -2,7 +2,7 @@ import os
 import torch
 
 from utility.download import _gdriveids_to_filepaths
-from .expert import UpstreamExpert as _UpstreamExpert
+from upstream.mockingjay.expert import UpstreamExpert as _UpstreamExpert
 
 
 def mockingjay(ckpt, *args, **kwargs):

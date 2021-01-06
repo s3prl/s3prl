@@ -70,9 +70,9 @@ class Runner():
         return downstream
 
 
-    def _get_optimizer(self, optimized_models):
+    def _get_optimizer(self, model_params):
         optimizer = get_optimizer(
-            optimized_models, 
+            model_params, 
             self.config['runner']['total_steps'],
             self.config['optimizer']
         )
@@ -106,10 +106,10 @@ class Runner():
             self.upstream.train()
 
         # set optimizer
-        optimized_models = [self.downstream]
+        model_params = [self.downstream]
         if self.args.upstream_trainable:
-            optimized_models.append(self.upstream)
-        optimizer = self._get_optimizer(optimized_models)
+            model_params.append(self.upstream)
+        optimizer = self._get_optimizer(model_params)
 
         # set scheduler
         scheduler = None
@@ -117,7 +117,7 @@ class Runner():
             scheduler = self._get_scheduler(optimizer)
 
         # set progress bar
-        pbar = tqdm(total=self.config['runner']['total_steps'], desc='overall')
+        pbar = tqdm(total=self.config['runner']['total_steps'], dynamic_ncols=True, desc='overall')
         init_step = self.init_ckpt.get('Step')
         if init_step:
             pbar.n = init_step
@@ -136,7 +136,7 @@ class Runner():
                 try:
                     if pbar.n >= pbar.total:
                         break
-                    pbar.update(1)
+                    global_step = pbar.n + 1
 
                     wavs = [wav.to(self.args.device) for wav in wavs]
                     if self.args.upstream_trainable:
@@ -150,7 +150,7 @@ class Runner():
                         records = records,
                         logger = self.logger,
                         prefix = prefix,
-                        global_step = pbar.n,
+                        global_step = global_step,
                         log_step = self.config['runner']['log_step'],
                         batch_id = batch_id,
                         batch_num = len(dataloader),
@@ -160,21 +160,21 @@ class Runner():
 
                 except RuntimeError as e:
                     if 'CUDA out of memory' in str(e):
-                        print(f'[Runner] - CUDA out of memory at step {pbar.n}')
+                        print(f'[Runner] - CUDA out of memory at step {global_step}')
                         torch.cuda.empty_cache()
                         optimizer.zero_grad()
                         continue
                     else:
                         raise
+
+                # record loss
+                all_loss.append(loss.item())
+                del loss
                 
                 # whether to accumulate gradient
                 backward_steps += 1
                 if backward_steps % gradient_accumulate_steps > 0:
                     continue
-
-                # record loss
-                all_loss.append(loss.item())
-                del loss
 
                 # gradient clipping
                 paras = list(self.downstream.parameters())
@@ -184,7 +184,7 @@ class Runner():
 
                 # optimize
                 if math.isnan(grad_norm):
-                    print(f'[Runner] - Error : grad norm is NaN at step {pbar.n}')
+                    print(f'[Runner] - grad norm is NaN at step {global_step}')
                 else:
                     optimizer.step()
                 optimizer.zero_grad()
@@ -194,10 +194,10 @@ class Runner():
                     scheduler.step()
 
                 # logging
-                if pbar.n % self.config['runner']['log_step'] == 0:
+                if global_step % self.config['runner']['log_step'] == 0:
                     # log loss
                     average_loss = torch.FloatTensor(all_loss).mean().item()
-                    self.logger.add_scalar(f'{prefix}loss', average_loss, global_step=pbar.n)
+                    self.logger.add_scalar(f'{prefix}loss', average_loss, global_step=global_step)
                     all_loss = []
 
                     # log customized contents
@@ -205,21 +205,19 @@ class Runner():
                         records = records,
                         logger = self.logger,
                         prefix = prefix,
-                        global_step = pbar.n,
+                        global_step = global_step,
                         log_step = self.config['runner']['log_step'],
-                        batch_id = batch_id,
-                        batch_num = len(dataloader),
                     )
                     records = defaultdict(list)
 
                 # evaluation and save checkpoint
                 save_names = []
 
-                if pbar.n % self.config['runner']['eval_step'] == 0:
+                if global_step % self.config['runner']['eval_step'] == 0:
                     for split in self.config['runner']['eval_dataloaders']:
-                        save_names += self.evaluate(split, pbar.n)
+                        save_names += self.evaluate(split, global_step)
 
-                if pbar.n % self.config['runner']['save_step'] == 0:
+                if global_step % self.config['runner']['save_step'] == 0:
                     def check_ckpt_num(directory):
                         max_keep = self.config['runner']['max_keep']
                         ckpt_pths = glob.glob(f'{directory}/states-*.ckpt')
@@ -228,13 +226,13 @@ class Runner():
                             for ckpt_pth in ckpt_pths[:len(ckpt_pths) - max_keep + 1]:
                                 os.remove(ckpt_pth)
                     check_ckpt_num(self.args.expdir)
-                    save_names.append(f'states-{pbar.n}.ckpt')
+                    save_names.append(f'states-{global_step}.ckpt')
 
                 if len(save_names) > 0:
                     all_states = {
                         'Downstream': self.downstream.state_dict(),
                         'Optimizer': optimizer.state_dict(),
-                        'Step': pbar.n,
+                        'Step': global_step,
                         'Args': self.args,
                         'Config': self.config,
                     }
@@ -246,10 +244,12 @@ class Runner():
                         all_states['Upstream'] = self.upstream.state_dict()
 
                     save_paths = [os.path.join(self.args.expdir, name) for name in save_names]
-                    print(f'[Runner] - Save the checkpoint to:')
+                    tqdm.write(f'[Runner] - Save the checkpoint to:')
                     for i, path in enumerate(save_paths):
-                        print(f'{i + 1}. {path}')
+                        tqdm.write(f'{i + 1}. {path}')
                         torch.save(all_states, path)
+
+                pbar.update(1)
 
         pbar.close()
 
@@ -307,8 +307,6 @@ class Runner():
             prefix = prefix,
             global_step = global_step,
             log_step = self.config['runner']['log_step'],
-            batch_id = batch_id,
-            batch_num = len(dataloader),
         )
         records = defaultdict(list)
 

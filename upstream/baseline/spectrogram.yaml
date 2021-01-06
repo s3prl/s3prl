@@ -1,7 +1,12 @@
 kaldi:
-  # spectrogram, fbank, mfcc
   feat_type: spectrogram
+  spectrogram:
+    frame_length: 25.0
+    frame_shift: 10.0
 
 delta:
-  order: 2
+  order: 0
   win_length: 5
+
+cmvn:
+  use_cmvn: True

@@ -18,16 +18,18 @@ EXAMPLE_WAV_MAX_SEC = 10
 
 
 class AudioSLUDataset(Dataset):
-    def __init__(self, df, base_path, Sy_intent):
+    def __init__(self, df, base_path, Sy_intent, speaker_name):
         self.df = df
         self.base_path = base_path
         self.max_length = SAMPLE_RATE * EXAMPLE_WAV_MAX_SEC
         self.Sy_intent = Sy_intent
+        self.speaker_name = speaker_name
+
     def __len__(self):
         return len(self.df)
 
     def __getitem__(self, idx):
-        wav_path = os.path.join(self.base_path, 'audio_Aditi', 'snips',self.df.loc[idx]['u_id']+'.mp3')
+        wav_path = os.path.join(self.base_path, 'audio_'+self.speaker_name , 'snips',self.df.loc[idx]['u_id']+'.mp3')
         wav, sr = torchaudio.load(wav_path)
 
         wav = wav.squeeze(0)
@@ -48,4 +50,7 @@ class AudioSLUDataset(Dataset):
             labels.append(label)
 
         return wavs, labels
+
+
+        
 

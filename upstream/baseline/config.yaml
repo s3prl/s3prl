@@ -1,7 +1,24 @@
 kaldi:
-  # spectrogram, fbank, mfcc
-  feat_type: fbank
+  feat_type: fbank # types to select: spectrogram, fbank, mfcc
+
+  spectrogram:
+    frame_length: 25.0
+    frame_shift: 10.0
+
+  fbank:
+    num_mel_bins: 80
+    frame_length: 25.0
+    frame_shift: 10.0
+    use_log_fbank: True
+
+  mfcc:
+    num_ceps: 13
+    frame_length: 25.0
+    frame_shift: 10.0
 
 delta:
   order: 2
   win_length: 5
+
+cmvn:
+  use_cmvn: True

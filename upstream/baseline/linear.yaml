@@ -1,0 +1,12 @@
+win_ms: 25
+hop_ms: 10
+n_freq: 201
+n_mels: 80
+n_mfcc: 13
+
+input:
+  feat_type: linear # feat_type can be: wav, complx, linear, mel, mfcc, phase
+  channel: 0
+  log: True
+  delta: 0
+  cmvn: True
