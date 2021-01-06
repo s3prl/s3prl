@@ -42,7 +42,7 @@ downstream_expert:
     
     train_batch_size: 10
     eval_batch_size: 1
-    num_workers: 8
+    num_workers: 7
 
   modelrc:
     module:

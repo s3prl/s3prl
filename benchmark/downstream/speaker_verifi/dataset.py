@@ -57,7 +57,7 @@ max_timestep = int(16000 * 8)
 # Voxceleb 1 + 2 
 # preprocessing need seperate folder to dev, train, test
 class AudioBatchData(Dataset):
-    def __init__(self, file_path, max_timestep=16000*5, meta_data=None, utter_number=5, sizeWindow=1,nProcessLoader=2, MAX_SIZE_LOADED=4000, batch_size=16):
+    def __init__(self, file_path, max_timestep=16000*5, meta_data=None, utter_number=5, sizeWindow=1,nProcessLoader=1, MAX_SIZE_LOADED=4000, batch_size=16):
 
         self.roots = file_path
         self.root_key = list(self.roots.keys())
@@ -170,6 +170,9 @@ class AudioBatchData(Dataset):
             del batch_seq
             del batch_length
         
+        tmpData = pad_sequence(tmpData, batch_first=True)
+        tmpLength = torch.stack(tmpLength)
+        
         sample_num=len(tmpData)
 
         self.data = tmpData
@@ -186,9 +189,17 @@ class AudioBatchData(Dataset):
         if index < 0 or index >= len(self.data) - self.sizeWindow - 1:
             # print(index)
             pass
+    
+        xs = self.data[index:(self.sizeWindow+index)]
+        lengths = self.length[index:(self.sizeWindow+index)]
+
+        x_list = []
+        length_list = []
+
+        for index in range(len(xs)):
             
-        x_list = self.data[index:(self.sizeWindow+index)]
-        length_list = self.length[index:(self.sizeWindow+index)]
+            x_list.append(xs[index, :lengths[index]])
+            length_list.append(lengths[index])
 
         return x_list, length_list
     
@@ -280,7 +291,6 @@ def loadFile_thread_exec(data):
             wav=wav[start:end]
         wavs.append(wav)
         lengths.append(torch.tensor(length).long())
-
     return wavs, lengths
 
 
