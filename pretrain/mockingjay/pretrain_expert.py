@@ -20,7 +20,7 @@ from pretrain.mockingjay.dataset import KaldiAcousticDataset, OnlineAcousticData
 from upstream.mockingjay.model import TransformerConfig, TransformerInitModel
 from upstream.mockingjay.model import TransformerSpecPredictionHead, TransformerModel
 from upstream.baseline.extracter import get_extracter
-from utility.preprocessor import OnlinePreprocessor
+from upstream.baseline.preprocessor import get_preprocessor
 from utility.audio import plot_spectrogram_to_numpy
 
 
@@ -47,9 +47,7 @@ class UpstreamPretrainExpert(nn.Module):
             output_dim = None
         elif 'libri_root' in self.datarc:
             print('[UpstreamPretrainExpert] - Using online preprocessor, on-the-fly feature extraction')
-            feat_list = [self.upstream_config['audio']['input'], self.upstream_config['audio']['target']]
-            extracter = OnlinePreprocessor(**self.upstream_config['audio'], feat_list=feat_list)
-            input_dim, output_dim = [feat.size(-1) for feat in extracter()]
+            extracter, input_dim, output_dim = get_preprocessor(self.upstream_config['audio'])
         else:
             print('[UpstreamPretrainExpert] - Using features pre-extracted and saved')
             extracter, input_dim = None, self.upstream_config['transformer']['input_dim']

@@ -63,5 +63,6 @@ class UpstreamExpert(nn.Module):
         feat_lengths = torch.LongTensor(feat_lengths)
 
         predicted_BxLxM, features = self.model(features, feat_lengths, self.training)
+        features = [f[:l] for f, l in zip(features, feat_lengths)]
 
         return features

@@ -147,12 +147,11 @@ class OnlineAcousticDataset(AcousticDataset):
         else:
             wav, _ = torchaudio.load(self._get_full_libri_path(npy_path))
             wav = self._normalize_wav_decibel(wav.squeeze())
-            return wav.unsqueeze(-1) # (seq_len, channel=1)
+            return wav # (seq_len)
 
     def _process_x_pad_batch(self, x_pad_batch):
         if self.libri_root is not None:
-            x_pad_batch = torch.cat([x_pad_batch, x_pad_batch], dim=-1) # (batch_size, seq_len, channel=2)
-            x_pad_batch = x_pad_batch.transpose(-1, -2).contiguous() # (batch_size, channel=2, seq_len)
+            x_pad_batch = x_pad_batch.unsqueeze(1) # (batch_size, channel=1, seq_len)
             feat_list = self.extracter(x_pad_batch)
         return generate_masked_acoustic_model_data(feat_list, config=self.task_config)
 

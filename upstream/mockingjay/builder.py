@@ -22,7 +22,7 @@ from torch.nn.utils.rnn import pad_sequence
 from functools import lru_cache
 from distutils.util import strtobool
 from upstream.baseline.extracter import get_extracter
-from utility.preprocessor import OnlinePreprocessor
+from upstream.baseline.preprocessor import get_preprocessor
 from .model import TransformerConfig, TransformerModel
 from .model import TransformerSpecPredictionHead
 
@@ -69,30 +69,19 @@ class TransformerBuilder(nn.Module):
         if 'audio' in self.config:
             if 'kaldi' in self.config['audio']:
                 self.extracter, self.inp_dim = get_extracter(self.config['audio'])
+                self.spec_dim = self.inp_dim
             else:
-                self.extracter, self.inp_dim = self._get_online_preprocessor(self.config['audio'])
+                self.extracter, self.inp_dim, self.spec_dim = get_preprocessor(self.config['audio'], process_input_only=True)
                 self.target_level = self.config['audio']['target_level']
         elif inp_dim != -1:
-            self.extracter, self.inp_dim = None, inp_dim
+            self.extracter, self.inp_dim, self.spec_dim = None, inp_dim, inp_dim
         else:
-            self.extracter, self.inp_dim = None, self.config['transformer']['input_dim']
+            self.extracter, self.inp_dim, self.spec_dim = None, self.config['transformer']['input_dim'], self.config['transformer']['input_dim']
         
         if self.max_input_length > 0 and verbose: print('[Transformer] - Maximum input length: ', self.max_input_length)
         if not (self.select_layer in list(range(-1, self.num_layers))): raise RuntimeError('Out of range int for \'select_layer\'!')
         if self.weighted_sum:
             self.weight = nn.Parameter(torch.ones(self.num_layers) / self.num_layers)
-
-
-    def _get_online_preprocessor(self, online_config):
-        # load the same preprocessor as pretraining stage
-        upstream_input_feat = online_config['input']
-        upstream_input_feat['channel'] = 0
-        upstream_target_feat = online_config['target']
-        upstream_target_feat['channel'] = 0
-        preprocessor = OnlinePreprocessor(**online_config, feat_list=[upstream_input_feat, upstream_target_feat])
-        upstream_feat = preprocessor()[0]
-        upstream_input_dim = upstream_feat.size(-1)
-        return preprocessor, upstream_input_dim
 
 
     def _normalize_wav_decibel(self, wav):
@@ -304,8 +293,7 @@ class PretrainedTransformerWithHead(PretrainedTransformer):
         super(PretrainedTransformerWithHead, self).__init__(options, inp_dim, config, online_config, verbose)
 
         # build head
-
-        self.SpecHead = TransformerSpecPredictionHead(self.model_config, self.inp_dim)
+        self.SpecHead = TransformerSpecPredictionHead(self.model_config, self.spec_dim)
         self.SpecHead.eval() if self.no_grad else self.SpecHead.train()
         
         # Load from a PyTorch state_dict
