@@ -22,10 +22,10 @@ import numpy as np
 from torch.utils.data import DataLoader
 from torch.nn.utils.rnn import pad_sequence
 #-------------#
-from benchmark.downstream.speaker_verifi.model import Model
-from benchmark.downstream.speaker_verifi.dataset import AudioBatchData, SpeakerVerifi_test, SpeakerVerifi_dev
-from benchmark.downstream.speaker_verifi.model import GE2E
-from benchmark.downstream.speaker_verifi.utils import EER, compute_metrics
+from benchmark.downstream.voxceleb2.model import Model
+from benchmark.downstream.voxceleb2.dataset import AudioBatchData, SpeakerVerifi_test, SpeakerVerifi_dev
+from benchmark.downstream.voxceleb2.model import GE2E
+from benchmark.downstream.voxceleb2.utils import EER, compute_metrics
 import IPython
 import pdb
 
