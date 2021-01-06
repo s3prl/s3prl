@@ -42,11 +42,12 @@ downstream_expert:
     
     train_batch_size: 10
     eval_batch_size: 1
-    num_workers: 7
+    num_workers: 7 # need to be you total cpu count -1, because we will open a process to load data into memory (chunk).
 
   modelrc:
     module:
-      Identity                                   # downstream model option: TransformerEncoder, Identity, If TransformerEncoder will follow the hparams set the transformer encoder to be the downstream model, and Identity will simply pass the pretrained feature
+      Identity                                   # downstream model option: TransformerEncoder, Identity, 
+      #If set TransformerEncoder, it will follow the hparams to set the transformer encoder and compile it to  be the downstream model, and Identity will simply pass the pretrained feature.
     hparams:
       hidden_size: 256                                      # Size of the encoder layers and the pooler layer.
       num_hidden_layers: 1                                  # Number of hidden layers in the Transformer encoder.
