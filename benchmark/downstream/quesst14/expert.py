@@ -1,5 +1,6 @@
 """Downstream expert for Query-by-Example Spoken Term Detection on QUESST 2014."""
 
+from collections import defaultdict
 from concurrent.futures import ProcessPoolExecutor
 
 import pyximport
@@ -68,7 +69,32 @@ class DownstreamExpert(nn.Module):
         docs = records["features"][self.test_dataset.n_queries :]
         query_names = records["audio_names"][: self.test_dataset.n_queries]
         doc_names = records["audio_names"][self.test_dataset.n_queries :]
+        results = defaultdict(list)
+        scores = []
 
+        # Calculate matching scores
+        with ProcessPoolExecutor(self.datarc["num_workers"]) as executor:
+            futures = []
+
+            for query, query_name in zip(queries, query_names):
+                query_name = query_name.replace(".wav", "")
+                for doc, doc_name in zip(docs, doc_names):
+                    doc_name = doc_name.replace(".wav", "")
+                    futures.append(
+                        executor.submit(match, query, doc, query_name, doc_name)
+                    )
+
+            for future in tqdm(futures, ncols=0, desc="DTW"):
+                query_name, doc_name, score = future.result()
+                results[query_name].append((doc_name, score))
+                scores.append(score)
+
+        # Determine score threshold
+        scores = sorted(scores)
+        score_thresh = scores[int(0.99 * len(scores))]
+        score_min = scores[0]
+
+        # Build XML tree
         xml_tree = etree.Element(
             "stdlist",
             termlist_filename="benchmark.stdlist.xml",
@@ -77,39 +103,30 @@ class DownstreamExpert(nn.Module):
             index_size="1",
             system_id="benchmark",
         )
-
-        for query, query_name in tqdm(
-            zip(queries, query_names), total=len(queries), ncols=0, desc="Queries"
-        ):
+        for query_name, doc_scores in results.items():
             term_list = etree.SubElement(
                 xml_tree,
                 "detected_termlist",
-                termid=query_name.replace(".wav", ""),
+                termid=query_name,
                 term_search_time="1.0",
                 oov_term_count="1",
             )
+            for doc_name, score in doc_scores:
+                etree.SubElement(
+                    term_list,
+                    "term",
+                    file=doc_name,
+                    channel="1",
+                    tbeg="0.000",
+                    dur="0.00",
+                    score=f"{score - score_min:.4f}",
+                    decision="YES" if score > score_thresh else "NO",
+                )
 
-            with ProcessPoolExecutor(self.datarc["num_workers"]) as executor:
-                futures = []
-
-                for doc in docs:
-                    futures.append(executor.submit(segmental_dtw, query, doc))
-
-                for future, doc_name in zip(
-                    tqdm(futures, ncols=0, position=1, leave=False, desc="Documents",),
-                    doc_names,
-                ):
-                    cost = future.result()
-                    score = -1 * cost
-                    term = etree.SubElement(
-                        term_list,
-                        "term",
-                        file=doc_name.replace(".wav", ""),
-                        channel="1",
-                        tbeg="0.000",
-                        dur="0.00",
-                        score=f"{score:.2f}",
-                        decision="YES" if score > 10.0 else "NO",
-                    )
-
+        # Output XML
         print(etree.tostring(xml_tree, encoding="UTF-8", pretty_print=True).decode())
+
+
+def match(query, doc, query_name, doc_name):
+    cost = segmental_dtw(query, doc)
+    return query_name, doc_name, -1 * cost
