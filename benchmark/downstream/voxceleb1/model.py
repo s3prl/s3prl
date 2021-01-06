@@ -47,7 +47,7 @@ class Mean(nn.Module):
             feature - [BxTxD]   Acoustic feature with shape 
             att_mask   - [BxTx1]     Attention Mask logits
         '''
-        feature=self.act_fn(feature)
+        feature=self.linear(self.act_fn(feature))
         agg_vec_list = []
         for i in range(len(feature)):
             if torch.nonzero(att_mask[i] < 0, as_tuple=False).size(0) == 0:

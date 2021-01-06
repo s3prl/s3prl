@@ -20,8 +20,8 @@ import torch.nn as nn
 from torch.utils.data import DataLoader
 from torch.nn.utils.rnn import pad_sequence
 #-------------#
-from benchmark.downstream.speaker_classifi.model import Model
-from benchmark.downstream.speaker_classifi.dataset import SpeakerClassifiDataset
+from benchmark.downstream.voxceleb1.model import Model
+from benchmark.downstream.voxceleb1.dataset import SpeakerClassifiDataset
 from argparse import Namespace
 
 import IPython
@@ -86,7 +86,7 @@ class DownstreamExpert(nn.Module):
 
     # Interface
     def forward(self, features, lengths, labels,
-                records=None, logger=None, prefix=None, global_step=0):
+                records=None, logger=None, prefix=None, global_step=0, **kwargs):
         """
         Args:
             features:
@@ -136,7 +136,7 @@ class DownstreamExpert(nn.Module):
 
         return loss
         # interface
-    def log_records(self, records, logger, prefix, global_step):
+    def log_records(self, records, logger, prefix, global_step, **kwargs):
         """
         Args:
             records:
