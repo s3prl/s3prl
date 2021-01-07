@@ -28,5 +28,18 @@ def mockingjay_default(refresh=False, *args, **kwargs):
         The default model
             refresh (bool): whether to download ckpt/config again if existed
     """
-    kwargs['ckpt'] = '1MoF_poVUaL3tKe1tbrQuDIbsC38IMpnH'
+    kwargs['ckpt'] = '1-JwGlb3JXXnnXqKL9WVtbv34RR0o6BAX'
+    return mockingjay_gdriveid(refresh=refresh, *args, **kwargs)
+
+
+def mockingjay_logMelBase_AdamW_b32_200k_100hr(refresh=False, *args, **kwargs):
+    """
+        Feature: 80-dim log Mel
+        Optimizer: AdamW
+        Batch size: 32
+        Total steps: 200k
+        Unlabled speech: 100hr
+        Usage note: this is identical to `-u tera_logMelBase_time_AdamW_b32_200k_100hr`
+    """
+    kwargs['ckpt'] = '1-JwGlb3JXXnnXqKL9WVtbv34RR0o6BAX'
     return mockingjay_gdriveid(refresh=refresh, *args, **kwargs)
