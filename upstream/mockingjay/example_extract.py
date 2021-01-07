@@ -27,7 +27,7 @@ model
 """
 device = 'cuda'
 Upstream = getattr(importlib.import_module('hubconf'), 'mockingjay_default')
-model = Upstream().to(device)
+model = Upstream(refresh=True).to(device)
 
 # example_wavs: a batch of audio in wav:  (batch_size, wav_time_step)
 example_wavs = [torch.zeros(160000, dtype=torch.float).to(device) for _ in range(16)]
