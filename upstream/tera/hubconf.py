@@ -45,32 +45,6 @@ def tera_logMelBase_time_AdamW_b32_200k_100hr(refresh=False, *args, **kwargs):
     return tera_gdriveid(refresh=refresh, *args, **kwargs)
 
 
-def tera_logMelBase_time_freq_AdamW_b32_200k_100hr(refresh=False, *args, **kwargs):
-    """
-        Feature: 80-dim log Mel
-        Alteration: time + freq
-        Optimizer: AdamW
-        Batch size: 32
-        Total steps: 200k
-        Unlabled Speech: 100hr
-    """
-    kwargs['ckpt'] = '1g2RBcl4xxvpDtA7eeSIGgygNrMGMUxu2'
-    return tera_gdriveid(refresh=refresh, *args, **kwargs)
-
-
-def tera_logMelBase_time_freq_mag_AdamW_b32_200k_100hr(refresh=False, *args, **kwargs):
-    """
-        Feature: 80-dim log Mel
-        Alteration: time + freq + mag
-        Optimizer: AdamW
-        Batch size: 32
-        Total steps: 200k
-        Unlabled Speech: 100hr
-    """
-    kwargs['ckpt'] = '12gUQ6RHyujPp7ZoSsr3t1xrsySsoxVOd'
-    return tera_gdriveid(refresh=refresh, *args, **kwargs)
-
-
 def tera_logMelBase_freq_AdamW_b32_200k_100hr(refresh=False, *args, **kwargs):
     """
         Feature: 80-dim log Mel
@@ -84,6 +58,32 @@ def tera_logMelBase_freq_AdamW_b32_200k_100hr(refresh=False, *args, **kwargs):
     return tera_gdriveid(refresh=refresh, *args, **kwargs)
 
 
+def tera_logMelBase_mag_AdamW_b32_200k_100hr(refresh=False, *args, **kwargs):
+    """
+        Feature: 80-dim log Mel
+        Alteration: mag
+        Optimizer: AdamW
+        Batch size: 32
+        Total steps: 200k
+        Unlabled Speech: 100hr
+    """
+    kwargs['ckpt'] = 'todo'
+    return tera_gdriveid(refresh=refresh, *args, **kwargs)
+
+
+def tera_logMelBase_time_freq_AdamW_b32_200k_100hr(refresh=False, *args, **kwargs):
+    """
+        Feature: 80-dim log Mel
+        Alteration: time + freq
+        Optimizer: AdamW
+        Batch size: 32
+        Total steps: 200k
+        Unlabled Speech: 100hr
+    """
+    kwargs['ckpt'] = '1g2RBcl4xxvpDtA7eeSIGgygNrMGMUxu2'
+    return tera_gdriveid(refresh=refresh, *args, **kwargs)
+
+
 def tera_logMelBase_time_mag_AdamW_b32_200k_100hr(refresh=False, *args, **kwargs):
     """
         Feature: 80-dim log Mel
@@ -94,4 +94,30 @@ def tera_logMelBase_time_mag_AdamW_b32_200k_100hr(refresh=False, *args, **kwargs
         Unlabled Speech: 100hr
     """
     kwargs['ckpt'] = '1eQrzJ138OXqMTQfNEl_rsT1Y_GTMj0mQ'
+    return tera_gdriveid(refresh=refresh, *args, **kwargs)
+
+
+def tera_logMelBase_freq_mag_AdamW_b32_200k_100hr(refresh=False, *args, **kwargs):
+    """
+        Feature: 80-dim log Mel
+        Alteration: freq + mag
+        Optimizer: AdamW
+        Batch size: 32
+        Total steps: 200k
+        Unlabled Speech: 100hr
+    """
+    kwargs['ckpt'] = 'todo'
+    return tera_gdriveid(refresh=refresh, *args, **kwargs)
+
+
+def tera_logMelBase_time_freq_mag_AdamW_b32_200k_100hr(refresh=False, *args, **kwargs):
+    """
+        Feature: 80-dim log Mel
+        Alteration: time + freq + mag
+        Optimizer: AdamW
+        Batch size: 32
+        Total steps: 200k
+        Unlabled Speech: 100hr
+    """
+    kwargs['ckpt'] = '12gUQ6RHyujPp7ZoSsr3t1xrsySsoxVOd'
     return tera_gdriveid(refresh=refresh, *args, **kwargs)
