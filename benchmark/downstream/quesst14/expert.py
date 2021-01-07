@@ -1,7 +1,7 @@
 """Downstream expert for Query-by-Example Spoken Term Detection on QUESST 2014."""
 
 from collections import defaultdict
-from concurrent.futures import ProcessPoolExecutor
+from concurrent.futures import ProcessPoolExecutor, as_completed
 
 import pyximport
 import numpy as np
@@ -84,7 +84,7 @@ class DownstreamExpert(nn.Module):
                         executor.submit(match, query, doc, query_name, doc_name)
                     )
 
-            for future in tqdm(futures, ncols=0, desc="DTW"):
+            for future in tqdm(as_completed(futures), total=len(futures), ncols=0, desc="DTW"):
                 query_name, doc_name, score = future.result()
                 results[query_name].append((doc_name, score))
                 scores.append(score)
