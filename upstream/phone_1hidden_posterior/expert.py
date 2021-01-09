@@ -17,7 +17,7 @@ import random
 import torch
 import torch.nn as nn
 #-------------#
-from benchmark.downstream.phone_linear.model import Model
+from benchmark.downstream.phone_1hidden.model import Model
 
 REPO = 'andi611/Self-Supervised-Speech-Pretraining-and-Representation-Learning:benchmark'
 PHONE_CLASSES = 41
@@ -37,6 +37,17 @@ class UpstreamExpert(nn.Module):
         )
         self.modelrc = ckpt['Config']['downstream_expert']['modelrc']
         self.model = Model(input_dim=self.upstream.get_output_dim(), output_class_num=PHONE_CLASSES, **self.modelrc)
+
+        def update_keys(state_dict):
+            for key in list(state_dict.keys()):
+                pattern = 'model.'
+                if pattern in key:
+                    new_key = key[len(pattern):]
+                    state_dict[new_key] = state_dict[key]
+                state_dict.pop(key)
+            return state_dict
+        
+        self.model.load_state_dict(update_keys(ckpt['Downstream']))
 
     def get_output_dim(self):
         return PHONE_CLASSES
@@ -58,13 +69,11 @@ class UpstreamExpert(nn.Module):
         """
         features = self.upstream(wavs)
         lengths = torch.LongTensor([len(f) for f in features])
-        length_masks = torch.lt(torch.arange(lengths.max()).unsqueeze(0), lengths.unsqueeze(-1))
-        length_masks = length_masks.to(features[0].device)
 
         features = torch.nn.utils.rnn.pad_sequence(features, batch_first=True)
-        predicted = self.model(features) * length_masks.unsqueeze(-1)
+        predicted = self.model(features)
 
-        normalized = torch.nn.functional.softmax(predicted, dim=-1)
+        normalized = predicted.softmax(dim=-1)
         normalized = [n[:l] for n, l in zip(normalized, lengths)]
 
         return normalized
