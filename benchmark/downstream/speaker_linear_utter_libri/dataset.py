@@ -131,9 +131,8 @@ class SpeakerDataset(Dataset):
     def __getitem__(self, index):
         # Load acoustic feature and pad
         wav_batch = [self._load_wav(x_file) for x_file in self.X[index]]
-        wav_pad_batch = pad_sequence(wav_batch, batch_first=True)
         label_batch = torch.LongTensor([self.speaker2idx[self._get_speaker_from_path(x_file)] for x_file in self.X[index]])
-        return wav_pad_batch, label_batch # bucketing, return ((wavs, labels))
+        return wav_batch, label_batch # bucketing, return ((wavs, labels))
 
     def collate_fn(self, items):
         return items[0][0], items[0][1] # hack bucketing, return (wavs, labels)

@@ -11,6 +11,7 @@
 # IMPORTATION #
 ###############
 import torch
+from torch.nn.utils.rnn import pad_sequence
 #-------------#
 from benchmark.downstream.speaker_linear_utter_libri.expert import DownstreamExpert as SpeakerExpert
 
@@ -57,7 +58,10 @@ class DownstreamExpert(SpeakerExpert):
             loss:
                 the loss to be optimized, should not be detached
         """
-        features = torch.stack(features, dim=0) # list of tensors -> tensors
+        lengths = torch.LongTensor([len(l) for l in features])
+        length_masks = torch.lt(torch.arange(lengths.max()).unsqueeze(0), lengths.unsqueeze(-1)).to(features[0].device)
+
+        features = pad_sequence(features, batch_first=True) # list of tensors -> tensors
         labels = labels.unsqueeze(-1).expand(features.size(0), features.size(1)).to(features.device)
 
         predicted = self.model(features)
@@ -69,6 +73,6 @@ class DownstreamExpert(SpeakerExpert):
         loss = self.objective(predicted.reshape(-1, class_num), labels.reshape(-1))
 
         predicted_classid = predicted.max(dim=-1).indices
-        records['acc'] += (predicted_classid == labels).view(-1).cpu().float().tolist()
+        records['acc'] += ((predicted_classid == labels) * length_masks).view(-1).cpu().float().tolist()
 
         return loss
