@@ -59,7 +59,6 @@ class DownstreamExpert(SpeakerExpert):
                 the loss to be optimized, should not be detached
         """
         lengths = torch.LongTensor([len(l) for l in features])
-        length_masks = torch.lt(torch.arange(lengths.max()).unsqueeze(0), lengths.unsqueeze(-1)).to(features[0].device)
 
         features = pad_sequence(features, batch_first=True) # list of tensors -> tensors
         labels = labels.unsqueeze(-1).expand(features.size(0), features.size(1)).to(features.device)

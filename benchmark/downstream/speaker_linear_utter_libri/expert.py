@@ -122,7 +122,9 @@ class DownstreamExpert(nn.Module):
         loss = self.objective(predicted, labels)
 
         predicted_classid = predicted.max(dim=-1).indices
-        records['acc'] += (predicted_classid == labels).view(-1).cpu().float().tolist()
+        sames = (predicted_classid == labels)
+        for s, l in zip(sames, lengths):
+            records['acc'] += s[:l].tolist()
 
         return loss
 
