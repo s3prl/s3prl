@@ -73,6 +73,8 @@ class DownstreamExpert(SpeakerExpert):
         loss = self.objective(predicted.reshape(-1, class_num), labels.reshape(-1))
 
         predicted_classid = predicted.max(dim=-1).indices
-        records['acc'] += ((predicted_classid == labels) * length_masks).view(-1).cpu().float().tolist()
+        sames = (predicted_classid == labels)
+        for s, l in zip(sames, lengths):
+            records['acc'] += s[:l].tolist()
 
         return loss
