@@ -17,6 +17,7 @@ import random
 import torch
 import torch.nn as nn
 from torch.utils.data import DataLoader
+from torch.nn.utils.rnn import pad_sequence
 #-------------#
 from benchmark.downstream.phone_linear.model import Model
 from benchmark.downstream.phone_linear.dataset import PhoneDataset
@@ -148,8 +149,11 @@ class DownstreamExpert(nn.Module):
             loss:
                 the loss to be optimized, should not be detached
         """
-        features = torch.stack(features, dim=0) # list of tensors -> tensors
-        labels = labels.to(features.device)
+        lengths = torch.LongTensor([len(l) for l in labels])
+        length_masks = torch.lt(torch.arange(lengths.max()).unsqueeze(0), lengths.unsqueeze(-1)).to(features[0].device)
+
+        features = pad_sequence(features, batch_first=True)
+        labels = pad_sequence(labels, batch_first=True, padding_value=-100).to(features.device)
 
         features, labels = self._match_length(features, labels)
         predicted = self.model(features)
@@ -161,7 +165,7 @@ class DownstreamExpert(nn.Module):
         loss = self.objective(predicted.reshape(-1, class_num), labels.reshape(-1))
 
         predicted_classid = predicted.max(dim=-1).indices
-        records['acc'] += (predicted_classid == labels).view(-1).cpu().float().tolist()
+        records['acc'] += ((predicted_classid == labels) * length_masks).view(-1).cpu().float().tolist()
 
         return loss
 
