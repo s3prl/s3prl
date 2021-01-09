@@ -64,7 +64,7 @@ class UpstreamExpert(nn.Module):
         features = torch.nn.utils.rnn.pad_sequence(features, batch_first=True)
         predicted = self.model(features) * length_masks.unsqueeze(-1)
 
-        normalized = predicted / (predicted.sum(dim=-1, keepdim=True) + 1e-8)
+        normalized = torch.nn.functional.softmax(predicted, dim=-1)
         normalized = [n[:l] for n, l in zip(normalized, lengths)]
 
         return normalized
