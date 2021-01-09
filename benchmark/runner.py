@@ -283,17 +283,17 @@ class Runner():
             with torch.no_grad():
                 features = self.upstream(wavs)
 
-            loss = self.downstream(
-                features, *others,
-                records = records,
-                logger = self.logger,
-                prefix = prefix,
-                global_step = global_step,
-                log_step = self.config['runner']['log_step'],
-                batch_id = batch_id,
-                batch_num = len(dataloader),
-            )
-            all_loss.append(loss.item())
+                loss = self.downstream(
+                    features, *others,
+                    records = records,
+                    logger = self.logger,
+                    prefix = prefix,
+                    global_step = global_step,
+                    log_step = self.config['runner']['log_step'],
+                    batch_id = batch_id,
+                    batch_num = len(dataloader),
+                )
+                all_loss.append(loss.item())
         
         # log loss
         average_loss = torch.FloatTensor(all_loss).mean().item()
