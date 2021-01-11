@@ -115,7 +115,7 @@ class DownstreamExpert(nn.Module):
             loss:
                 the loss to be optimized, should not be detached
         """
-        lengths = torch.LongTensor([len(l) for l in features])
+
         features = torch.stack([f.mean(dim=0) for f in features], dim=0) # (batch_size, seq_len, feature_dim) -> (batch_size, feature_dim)
         labels = labels.to(features.device)
 
@@ -123,9 +123,7 @@ class DownstreamExpert(nn.Module):
         loss = self.objective(predicted, labels)
 
         predicted_classid = predicted.max(dim=-1).indices
-        sames = (predicted_classid == labels)
-        for s, l in zip(sames, lengths):
-            records['acc'] += s[:l].tolist()
+        records['acc'] += (predicted_classid == labels).view(-1).cpu().float().tolist()
 
         return loss
 
