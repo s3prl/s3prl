@@ -24,12 +24,12 @@ scheduler:
 
 downstream_expert: 
   datarc:
-    file_path: /groups/public/benchmark_datasets/speaker_classifi/wav
-    meta_data: /groups/public/benchmark_datasets/speaker_classifi/veri_test_class.txt
-    num_workers: 8
-    max_timestep: 128000
+    file_path: /home/pohan/data/librispeech/vox1_dev/wav
+    meta_data: /home/pohan/data/librispeech/vox1_test/veri_test_class.txt
+    num_workers: 12
     train_batch_size: 10
-    eval_batch_size: 4
+    eval_batch_size: 1
+    max_timestep: 128000
 
 
   modelrc:
