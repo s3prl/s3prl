@@ -49,7 +49,7 @@ class DownstreamExpert(nn.Module):
         self.datarc = downstream_expert['datarc']
         self.modelrc = downstream_expert['modelrc']
 
-        self.train_dataset = SpeakerClassifiDataset('train', self.datarc['file_path'], self.datarc['meta_data'])
+        self.train_dataset = SpeakerClassifiDataset('train', self.datarc['file_path'], self.datarc['meta_data'], self.datarc['max_timestep'])
         self.dev_dataset = SpeakerClassifiDataset('dev', self.datarc['file_path'], self.datarc['meta_data'])
         self.test_dataset = SpeakerClassifiDataset('test', self.datarc['file_path'], self.datarc['meta_data'])
         
