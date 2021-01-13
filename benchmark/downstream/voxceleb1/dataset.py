@@ -81,7 +81,7 @@ class SpeakerClassifiDataset(Dataset):
 
         if self.max_timestep !=None:
             if length > self.max_timestep:
-                start = random.randint(0, length-self.max_timestep)
+                start = random.randint(0, int(length-self.max_timestep))
                 wav = wav[start:start+self.max_timestep]
                 length = self.max_timestep
   
