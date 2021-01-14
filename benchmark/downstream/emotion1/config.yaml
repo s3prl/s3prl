@@ -28,7 +28,7 @@ downstream_expert:
     train_batch_size: 4
     eval_batch_size: 4
     num_workers: 12
-    valid_ratio: 0.1
+    valid_ratio: 0.2
 
   modelrc:
     input_dim: 40
