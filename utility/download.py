@@ -6,7 +6,7 @@ import gdown
 
 
 def _gdown(filename, url, refresh):
-    dirpath = torch.hub.get_dir()
+    dirpath = f'{torch.hub.get_dir()}/s3prl_cache'
     os.makedirs(dirpath, exist_ok=True)
     filepath = f'{dirpath}/{filename}'
     if not os.path.isfile(filepath) or refresh:
