@@ -5,7 +5,7 @@ from utility.download import _urls_to_filepaths
 from .expert import UpstreamExpert as _UpstreamExpert
 
 
-def vq_wav2vec(ckpt, config, *args, **kwargs):
+def vq_wav2vec_local(ckpt, config, *args, **kwargs):
     """
         The model from local ckpt
             ckpt (str): PATH
@@ -23,10 +23,10 @@ def vq_wav2vec_url(ckpt, refresh=False, *args, **kwargs):
             config (str): PATH
             refresh (bool): whether to download ckpt/config again if existed
     """
-    return vq_wav2vec(_urls_to_filepaths(ckpt, refresh=refresh), *args, **kwargs)
+    return vq_wav2vec_local(_urls_to_filepaths(ckpt, refresh=refresh), *args, **kwargs)
 
 
-def vq_wav2vec_default(refresh=False, *args, **kwargs):
+def vq_wav2vec(refresh=False, *args, **kwargs):
     """
         The default model - Large model with context vector
             config (str): PATH

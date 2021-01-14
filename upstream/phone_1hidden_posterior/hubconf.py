@@ -5,7 +5,7 @@ from utility.download import _gdriveids_to_filepaths
 from .expert import UpstreamExpert as _UpstreamExpert
 
 
-def phone_1hidden_posterior(ckpt, *args, **kwargs):
+def phone_1hidden_posterior_local(ckpt, *args, **kwargs):
     """
         The model from local ckpt
             ckpt (str): PATH
@@ -20,7 +20,7 @@ def phone_1hidden_posterior_gdriveid(ckpt, refresh=False, *args, **kwargs):
             ckpt (str): The unique id in the google drive share link
             refresh (bool): whether to download ckpt/config again if existed
     """
-    return phone_1hidden_posterior(_gdriveids_to_filepaths(ckpt, refresh=refresh), *args, **kwargs)
+    return phone_1hidden_posterior_local(_gdriveids_to_filepaths(ckpt, refresh=refresh), *args, **kwargs)
 
 
 def phone_1hidden_posterior_tera(refresh=False, *args, **kwargs):

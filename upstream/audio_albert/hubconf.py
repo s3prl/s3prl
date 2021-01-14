@@ -1,10 +1,7 @@
-from utility.download import _gdriveids_to_filepaths
-
-from ..mockingjay.hubconf import mockingjay as audio_albert
+from ..mockingjay.hubconf import mockingjay_local as audio_albert_local
 from ..mockingjay.hubconf import mockingjay_gdriveid as audio_albert_gdriveid
 
-
-def audio_albert_default(refresh=False, *args, **kwargs):
+def audio_albert(refresh=False, *args, **kwargs):
     """
         The default model
             refresh (bool): whether to download ckpt/config again if existed

@@ -1,8 +1,8 @@
-from ..apc.hubconf import apc as vq_apc
+from ..apc.hubconf import apc_local as vq_apc_local
 from ..apc.hubconf import apc_gdriveid as vq_apc_gdriveid
 
 
-def vq_apc_default(refresh=False, *args, **kwargs):
+def vq_apc(refresh=False, *args, **kwargs):
     """
         The default model
             refresh (bool): whether to download ckpt/config again if existed

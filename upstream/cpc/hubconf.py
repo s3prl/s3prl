@@ -5,7 +5,7 @@ from utility.download import _urls_to_filepaths
 from .expert import UpstreamExpert as _UpstreamExpert
 
 
-def cpc(ckpt, *args, **kwargs):
+def cpc_local(ckpt, *args, **kwargs):
     """
         The model from local ckpt
             ckpt (str): PATH
@@ -19,10 +19,10 @@ def cpc_url(ckpt, refresh=False, *args, **kwargs):
         The model from URL
             ckpt (str): URL
     """
-    return cpc(_urls_to_filepaths(ckpt), *args, **kwargs)
+    return cpc_local(_urls_to_filepaths(ckpt), *args, **kwargs)
 
 
-def cpc_default(refresh=False, *args, **kwargs):
+def cpc(refresh=False, *args, **kwargs):
     """
         The model from official repository
     """
