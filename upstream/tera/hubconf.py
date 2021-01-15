@@ -146,6 +146,19 @@ def tera_logMelBase_time_AdamW_b32_1m_960hr(refresh=False, *args, **kwargs):
     return tera_gdriveid(refresh=refresh, *args, **kwargs)
 
 
+def tera_logMelBase_time_AdamW_b32_500k_960hr(refresh=False, *args, **kwargs):
+    """
+        Feature: 80-dim log Mel
+        Alteration: time
+        Optimizer: AdamW
+        Batch size: 32
+        Total steps: 500k
+        Unlabled Speech: 960hr
+    """
+    kwargs['ckpt'] = '1ZGDeQUoiUapRGuhvUBmJaE-XTyDceCHf'
+    return tera_gdriveid(refresh=refresh, *args, **kwargs)
+
+
 def tera_logMelBase_freq_AdamW_b32_1m_960hr(refresh=False, *args, **kwargs):
     """
         Feature: 80-dim log Mel
@@ -155,7 +168,7 @@ def tera_logMelBase_freq_AdamW_b32_1m_960hr(refresh=False, *args, **kwargs):
         Total steps: 1M
         Unlabled Speech: 960hr
     """
-    kwargs['ckpt'] = ''
+    kwargs['ckpt'] = '1MezF4LHnu-E8ZQF_pN6Jy7rEp8R0PmQu'
     return tera_gdriveid(refresh=refresh, *args, **kwargs)
 
 
@@ -168,7 +181,7 @@ def tera_logMelBase_mag_AdamW_b32_1m_960hr(refresh=False, *args, **kwargs):
         Total steps: 1M
         Unlabled Speech: 960hr
     """
-    kwargs['ckpt'] = ''
+    kwargs['ckpt'] = '1DPI3G34_TI0_DwkckDteH5QKx43y1R7u'
     return tera_gdriveid(refresh=refresh, *args, **kwargs)
 
 
@@ -194,7 +207,7 @@ def tera_logMelBase_time_mag_AdamW_b32_1m_960hr(refresh=False, *args, **kwargs):
         Total steps: 1M
         Unlabled Speech: 960hr
     """
-    kwargs['ckpt'] = ''
+    kwargs['ckpt'] = '1Uwlfcmwab8EL-dniBaI7AkVyAEHsLXnm'
     return tera_gdriveid(refresh=refresh, *args, **kwargs)
 
 
@@ -220,5 +233,5 @@ def tera_logMelBase_time_freq_mag_AdamW_b32_1m_960hr(refresh=False, *args, **kwa
         Total steps: 1M
         Unlabled Speech: 960hr
     """
-    kwargs['ckpt'] = ''
+    kwargs['ckpt'] = '1AcH73Us51OkYM5NqT-zoNM55w4Gwu5vB'
     return tera_gdriveid(refresh=refresh, *args, **kwargs)
