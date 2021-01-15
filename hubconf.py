@@ -22,7 +22,13 @@ hubconfs.remove('hubconf.py')  # remove the root hubconf.py
 
 for hubconf in hubconfs:
     module_name = '.'.join(str(hubconf).split('.')[:-1]).replace('/', '.')
-    _module = importlib.import_module(module_name)
+    try:
+        _module = importlib.import_module(module_name)
+    except RuntimeError as e:
+        print(str(e))
+        print(f'[hubconf] import error - {module_name}')
+        continue
+
     for variable_name in dir(_module):
         _variable = getattr(_module, variable_name)
         if callable(_variable) and variable_name[0] != '_':
