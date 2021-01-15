@@ -24,7 +24,7 @@ for hubconf in hubconfs:
     module_name = '.'.join(str(hubconf).split('.')[:-1]).replace('/', '.')
     try:
         _module = importlib.import_module(module_name)
-    except RuntimeError as e:
+    except ModuleNotFoundError as e:
         print(str(e))
         print(f'[hubconf] import error - {module_name}')
         continue
