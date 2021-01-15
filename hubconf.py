@@ -25,8 +25,7 @@ for hubconf in hubconfs:
     try:
         _module = importlib.import_module(module_name)
     except ModuleNotFoundError as e:
-        print(str(e))
-        print(f'[hubconf] import error - {module_name}')
+        print(f'[hubconf] can not import {module_name}: {str(e)}... Pass.')
         continue
 
     for variable_name in dir(_module):
