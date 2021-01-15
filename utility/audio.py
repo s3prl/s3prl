@@ -13,13 +13,17 @@
 ###############
 # IMPORTATION #
 ###############
-import librosa
+import random
 import numpy as np
+#-------------#
+import librosa
+from scipy import signal
+#-------------#
 import matplotlib
 matplotlib.use("Agg")
 import matplotlib.pylab as plt
 from matplotlib.colors import SymLogNorm
-from scipy import signal
+#-------------#
 import warnings
 warnings.filterwarnings("ignore")
 # NOTE: there are warnings for MFCC extraction due to librosa's issue

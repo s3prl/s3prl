@@ -1,0 +1,44 @@
+import os
+import torch
+
+from utility.download import _urls_to_filepaths
+from .expert import UpstreamExpert as _UpstreamExpert
+
+
+def wav2vec_local(ckpt, feature_selection, *args, **kwargs):
+    """
+        The model from local ckpt
+            ckpt (str): PATH
+            feature_selection (str): 'c' or 'z'
+    """
+    assert os.path.isfile(ckpt)
+    return _UpstreamExpert(ckpt, feature_selection)
+
+
+def wav2vec_url(ckpt, refresh=False, *args, **kwargs):
+    """
+        The model from google drive id
+            ckpt (str): URL
+            feature_selection (str): 'c' or 'z'
+            refresh (bool): whether to download ckpt/config again if existed
+    """
+    return wav2vec_local(_urls_to_filepaths(ckpt, refresh=refresh), *args, **kwargs)
+
+
+def wav2vec(refresh=False, *args, **kwargs):
+    """
+        The default model - Large model
+            feature_selection (str): 'c' or 'z'
+            refresh (bool): whether to download ckpt/config again if existed
+    """
+    return wav2vec_large(refresh=refresh, *args, **kwargs)
+
+
+def wav2vec_large(refresh=False, *args, **kwargs):
+    """
+        The Large model
+            feature_selection (str): 'c' or 'z'
+            refresh (bool): whether to download ckpt/config again if existed
+    """
+    kwargs['ckpt'] = 'https://dl.fbaipublicfiles.com/fairseq/wav2vec/wav2vec_large.pt'
+    return wav2vec_url(refresh=refresh, *args, **kwargs)

@@ -14,8 +14,8 @@
 import os
 import sys
 import pickle
-import librosa
 import argparse
+import torchaudio
 import numpy as np
 import pandas as pd
 from tqdm import tqdm
@@ -57,8 +57,8 @@ def get_preprocess_args():
 # EXTRACT LENGTH #
 ##################
 def extract_length(input_file):
-    y, _ = librosa.load(input_file)
-    return len(y)
+    wav, _ = torchaudio.load(input_file)
+    return wav.size(-1)
 
 
 ###################

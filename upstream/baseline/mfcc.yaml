@@ -1,0 +1,13 @@
+kaldi:
+  feat_type: mfcc
+  mfcc:
+    num_ceps: 13
+    frame_length: 25.0
+    frame_shift: 10.0
+
+delta:
+  order: 2
+  win_length: 5
+
+cmvn:
+  use_cmvn: True

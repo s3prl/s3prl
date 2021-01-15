@@ -1,0 +1,34 @@
+runner:
+  total_steps: 500000
+  gradient_clipping: 1
+  gradient_accumulate_steps: 1
+
+  log_step: 5000
+  eval_step: 10000
+  save_step: 10000
+  max_keep: 1
+  eval_dataloaders:
+    - dev
+    - test
+
+optimizer:
+  name: AdamW
+  lr: 2.e-4
+
+scheduler:
+  name: linear_schedule_with_warmup
+  num_warmup_steps: 50000
+
+downstream_expert:
+  datarc:
+    num_workers: 6
+    train_batch_size: 16 
+    eval_batch_size: 16
+    libri_root: '/media/andi611/1TBSSD/LibriSpeech/'
+    split_file: 'benchmark/downstream/speaker_linear_utter_libri/data'
+    bucket_file: 'data/len_for_bucket'
+    sample_rate: 16000 # this should not be changed, and this should match the sr of the audio in `libri_root`
+    train_dev_seed: 1337
+
+  modelrc: 
+    none: None

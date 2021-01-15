@@ -1,0 +1,14 @@
+kaldi:
+  feat_type: fbank
+  fbank:
+    num_mel_bins: 80
+    frame_length: 25.0
+    frame_shift: 10.0
+    use_log_fbank: True
+
+delta:
+  order: 2
+  win_length: 5
+
+cmvn:
+  use_cmvn: True
