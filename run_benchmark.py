@@ -40,9 +40,9 @@ def get_benchmark_args():
         Some download needed files on-the-fly and cache them.\
         Please check benchmark/README.md for details'
     )
-    parser.add_argument('-r', '--upstream_refresh', action='store_true', help='Re-download cached files for on-the-fly upstream variants')
+    parser.add_argument('-s', '--upstream_feature_selection', help='Specify the layer to be extracted as the representation')
+    parser.add_argument('-r', '--upstream_refresh', action='store_true', help='Re-download cached ckpts for on-the-fly upstream variants')
     parser.add_argument('-k', '--upstream_ckpt', metavar='{PATH,URL,GOOGLE_DRIVE_ID}', help='Only set when the specified upstream need it')
-    parser.add_argument('-g', '--upstream_config', default='', metavar='PATH', help='Only set when the specified upstream need it')
     parser.add_argument('-f', '--upstream_trainable', action='store_true', help='Fine-tune, set upstream.train(). Default is upstream.eval()')
 
     # experiment directory, choose one to specify
@@ -92,13 +92,6 @@ def get_benchmark_args():
         with open(args.config, 'r') as file:
             config = yaml.load(file, Loader=yaml.FullLoader)
         copyfile(args.config, f'{args.expdir}/config.yaml')
-        
-        upstream_dir = '_'.join(args.upstream.split('_')[:-1])
-        default_upstream_config = f'upstream/{upstream_dir}/config.yaml'
-        if args.upstream_config == '' and os.path.isfile(default_upstream_config):
-            args.upstream_config = default_upstream_config
-        if os.path.isfile(args.upstream_config):
-            copyfile(args.upstream_config, f'{args.expdir}/upstream_config.yaml')
 
     return args, config
 

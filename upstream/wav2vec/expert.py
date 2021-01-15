@@ -18,7 +18,7 @@ class UpstreamExpert(nn.Module):
     The expert of Wav2vec
     """
 
-    def __init__(self, ckpt, config, **kwargs):
+    def __init__(self, ckpt, feature_selection, **kwargs):
         super(UpstreamExpert, self).__init__()
 
         cp = torch.load(ckpt)
@@ -29,9 +29,7 @@ class UpstreamExpert(nn.Module):
         z = self.model.feature_extractor(pseudo_input)
         c = self.model.feature_aggregator(z)
 
-        with open(config, 'r') as file:
-            self.config = yaml.load(file, Loader=yaml.FullLoader)
-        self.feature_selection = self.config['feature_selection']
+        self.feature_selection = feature_selection
         self.output_dim = eval(self.feature_selection).transpose(1, 2).size(-1)
 
     # Interface

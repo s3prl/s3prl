@@ -33,9 +33,9 @@ class Runner():
     def _get_upstream(self):
         Upstream = getattr(importlib.import_module('hubconf'), self.args.upstream)
         upstream = Upstream(
+            feature_selection = self.args.upstream_feature_selection,
             refresh = self.args.upstream_refresh,
             ckpt = self.args.upstream_ckpt,
-            config = self.args.upstream_config,
         ).to(self.args.device)
 
         assert hasattr(upstream, 'forward')

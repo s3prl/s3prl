@@ -5,22 +5,21 @@ from utility.download import _urls_to_filepaths
 from .expert import UpstreamExpert as _UpstreamExpert
 
 
-def wav2vec_local(ckpt, config, *args, **kwargs):
+def wav2vec_local(ckpt, feature_selection, *args, **kwargs):
     """
         The model from local ckpt
             ckpt (str): PATH
-            config (str): PATH
+            feature_selection (str): 'c' or 'z'
     """
     assert os.path.isfile(ckpt)
-    assert os.path.isfile(config)
-    return _UpstreamExpert(ckpt, config)
+    return _UpstreamExpert(ckpt, feature_selection)
 
 
 def wav2vec_url(ckpt, refresh=False, *args, **kwargs):
     """
         The model from google drive id
             ckpt (str): URL
-            config (str): PATH
+            feature_selection (str): 'c' or 'z'
             refresh (bool): whether to download ckpt/config again if existed
     """
     return wav2vec_local(_urls_to_filepaths(ckpt, refresh=refresh), *args, **kwargs)
@@ -29,7 +28,7 @@ def wav2vec_url(ckpt, refresh=False, *args, **kwargs):
 def wav2vec(refresh=False, *args, **kwargs):
     """
         The default model - Large model
-            config (str): PATH
+            feature_selection (str): 'c' or 'z'
             refresh (bool): whether to download ckpt/config again if existed
     """
     return wav2vec_large(refresh=refresh, *args, **kwargs)
@@ -38,7 +37,7 @@ def wav2vec(refresh=False, *args, **kwargs):
 def wav2vec_large(refresh=False, *args, **kwargs):
     """
         The Large model
-            config (str): PATH
+            feature_selection (str): 'c' or 'z'
             refresh (bool): whether to download ckpt/config again if existed
     """
     kwargs['ckpt'] = 'https://dl.fbaipublicfiles.com/fairseq/wav2vec/wav2vec_large.pt'
