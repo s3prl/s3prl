@@ -5,7 +5,7 @@ from utility.download import _urls_to_filepaths
 from .expert import UpstreamExpert as _UpstreamExpert
 
 
-def wav2vec_local(ckpt, feature_selection, *args, **kwargs):
+def wav2vec_local(ckpt, feature_selection='c', *args, **kwargs):
     """
         The model from local ckpt
             ckpt (str): PATH
