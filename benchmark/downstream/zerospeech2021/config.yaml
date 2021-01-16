@@ -1,0 +1,59 @@
+runner:
+  total_steps: 20000
+  gradient_clipping: 1
+  gradient_accumulate_steps: 5
+
+  log_step: 10
+  eval_step: 250
+  save_step: 250
+  max_keep: 1
+  eval_dataloaders:
+    - dev
+    - test
+
+optimizer:
+  name: AdamW
+  lr: 2.0e-4
+
+# comment the whole scheduler config block
+# to disable learning rate scheduling
+scheduler:
+  name: linear_schedule_with_warmup
+  num_warmup_steps: 1400
+
+downstream_expert:
+  datarc:
+    data_dir: /home/godiclili/zerospeech2021-dataset
+    # phonetic (aka acoustic) / lexical / semantic / syntactic 
+    task: semantic
+    num_workers: 12
+    train_batch_size: 3
+    eval_batch_size: 3
+
+    phonetic:
+      split:  dev   # dev / test
+      dev:    clean # clean / other
+      test:   clean # clean / other
+    lexical:
+      split:  dev   # dev / test
+    semantic:
+      split:  dev   # dev / test
+      dev:    librispeech # librispeech / synthetic
+      test:   librispeech # librispeech / synthetic
+    syntactic:
+      split:  dev   # dev / test
+
+  modelrc:
+    phonetic:
+      feature_dim: 32
+      precision: 4 # None (full float precision) / int > 0 (number of decimal places in output)
+    lexical:
+    semantic: 
+      feature_dim: 32
+      precision: 4
+    syntactic:
+
+  subdir: /home/godiclili/zerospeech2021-submission
+    
+
+
