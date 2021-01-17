@@ -12,6 +12,13 @@ def baseline_local(config, *args, **kwargs):
     return _UpstreamExpert(config, *args, **kwargs)
 
 
+def baseline(*args, **kwargs):
+    """
+        Baseline feature - Fbank, or Mel-scale spectrogram
+    """
+    return fbank(*args, **kwargs)
+
+
 def spectrogram(*args, **kwargs):
     """
         Baseline feature - Linear-scale spectrogram
