@@ -9,7 +9,7 @@
 
 """
 Usage:
-    `python utility/get_best_score.py result/benchmark/example/log.log dev test +`
+    `python utility/get_best_score.py result/downstream/example/log.log dev test +`
 
 This will find the `test` score ranked by the best `dev` score.
 +: higher is better

@@ -17,9 +17,8 @@ import random
 import torch
 import torch.nn as nn
 #-------------#
-from benchmark.downstream.phone_1hidden.model import Model
+from downstream.phone_1hidden.model import Model
 
-REPO = 'andi611/Self-Supervised-Speech-Pretraining-and-Representation-Learning:benchmark'
 PHONE_CLASSES = 41
 
 
@@ -32,7 +31,7 @@ class UpstreamExpert(nn.Module):
         super(UpstreamExpert, self).__init__()
         ckpt = torch.load(ckpt, map_location='cpu')
 
-        self.upstream = torch.hub.load(REPO, ckpt['Args'].upstream,
+        self.upstream = torch.hub.load('s3prl/s3prl', ckpt['Args'].upstream,
             force_reload=True,
         )
         self.modelrc = ckpt['Config']['downstream_expert']['modelrc']

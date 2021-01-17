@@ -1,0 +1,34 @@
+runner:
+  total_steps: 20000
+  gradient_clipping: 1
+  gradient_accumulate_steps: 5
+
+  log_step: 10
+  eval_step: 250
+  save_step: 250
+  max_keep: 1
+  eval_dataloaders:
+    - dev
+    - test
+
+optimizer:
+  name: AdamW
+  lr: 2.0e-4
+
+# comment the whole scheduler config block
+# to disable learning rate scheduling
+scheduler:
+  name: linear_schedule_with_warmup
+  num_warmup_steps: 1400
+
+downstream_expert:
+  datarc:
+    data_dir: /home/godiclili/Audio
+    label_dir: ./downstream/mosei/utility/CMU_MOSEI_Labels.csv
+    num_class: 2
+    num_workers: 12
+    train_batch_size: 3
+    eval_batch_size: 3
+
+  modelrc:
+    input_dim: 256

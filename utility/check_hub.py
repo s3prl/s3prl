@@ -14,16 +14,14 @@ parser.add_argument('--refresh', action='store_true', help='Whether to re-downlo
 
 args = parser.parse_args()
 
-REPO = 'andi611/Self-Supervised-Speech-Pretraining-and-Representation-Learning:benchmark'
-
 if args.mode == 'list':
-    print(torch.hub.list(REPO, force_reload=args.refresh))
+    print(torch.hub.list('s3prl/s3prl', force_reload=args.refresh))
 
 elif args.mode == 'help':
-    print(torch.hub.help(REPO, args.upstream, force_reload=args.refresh))
+    print(torch.hub.help('s3prl/s3prl', args.upstream, force_reload=args.refresh))
 
 elif args.mode == 'load':
     print(torch.hub.load(
-        REPO, args.upstream, force_reload=args.refresh,
+        's3prl/s3prl', args.upstream, force_reload=args.refresh,
         ckpt=args.ckpt, config=args.config, refresh=args.refresh
     ))
