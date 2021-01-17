@@ -3,6 +3,7 @@ import math
 import glob
 import random
 import importlib
+from pathlib import Path
 from collections import defaultdict
 
 import torch
@@ -251,6 +252,7 @@ class Runner():
 
                 pbar.update(1)
 
+        Path(f'{self.args.expdir}/train_finished').touch(exist_ok=True)
         pbar.close()
 
 

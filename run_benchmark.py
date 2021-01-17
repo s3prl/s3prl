@@ -49,12 +49,25 @@ def get_benchmark_args():
     # expname uses the default root directory: result/benchmark
     parser.add_argument('-n', '--expname', help='Save experiment at result/benchmark/expname')
     parser.add_argument('-p', '--expdir', help='Save experiment at expdir')
+    parser.add_argument('-a', '--auto_resume', action='store_true', help='Auto-resume if the expdir contains checkpoints')
 
     # options
     parser.add_argument('--seed', default=1337, type=int)
     parser.add_argument('--device', default='cuda', help='model.to(device)')
 
     args = parser.parse_args()
+
+    if args.expdir is None:
+        args.expdir = f'result/benchmark/{args.expname}'
+
+    if os.path.isfile(f'{args.expdir}/{args.mode}_finished'):
+        exit(0)
+
+    if args.auto_resume:
+        if os.path.isdir(args.expdir):
+            ckpt_pths = glob.glob(f'{args.expdir}/states-*.ckpt')
+            if len(ckpt_pths) > 0:
+                args.past_exp = args.expdir
 
     if args.past_exp:
         # determine checkpoint path
@@ -65,7 +78,9 @@ def get_benchmark_args():
             ckpt_pth = ckpt_pths[-1]
         else:
             ckpt_pth = args.past_exp
-        
+
+        print(f'[Runner] - Resume from {ckpt_pth}')
+
         # load checkpoint
         ckpt = torch.load(ckpt_pth, map_location='cpu')
 
@@ -83,8 +98,7 @@ def get_benchmark_args():
         args.past_exp = ckpt_pth
 
     else:
-        if args.expdir is None:
-            args.expdir = f'result/benchmark/{args.expname}'
+        print('[Runner] - Start a new experiment')
         os.makedirs(args.expdir, exist_ok=True)
 
         if args.config is None:
