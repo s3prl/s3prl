@@ -38,12 +38,15 @@ class DownstreamExpert(nn.Module):
         self.upstream_dim = upstream_dim
         self.datarc = downstream_expert['datarc']
         self.modelrc = downstream_expert['modelrc']
+
         DATA_ROOT = os.environ.get("EMOTION_ROOT")
+        FOLD = f'Session{os.environ.get("EMOTION_FOLD")}'
+
         train_path = os.path.join(
-            DATA_ROOT, 'meta_data', self.datarc['session'], 'train_meta_data.json')
+            DATA_ROOT, 'meta_data', FOLD, 'train_meta_data.json')
         print(train_path)
         test_path = os.path.join(
-            DATA_ROOT, 'meta_data', self.datarc['session'], 'test_meta_data.json')
+            DATA_ROOT, 'meta_data', FOLD, 'test_meta_data.json')
 
         dataset = IEMOCAPDataset(DATA_ROOT, train_path, self.datarc['pre_load'])
         trainlen = int((1 - self.datarc['valid_ratio']) * len(dataset))
@@ -55,6 +58,11 @@ class DownstreamExpert(nn.Module):
 
         self.model = Model(input_dim=self.modelrc['input_dim'], agg_module=self.modelrc['agg_module'],output_class_num=dataset.class_num, config=self.modelrc)
         self.objective = nn.CrossEntropyLoss()
+
+
+    def get_downstream_name(self):
+        return f'emotion_prob{os.environ.get("EMOTION_FOLD")}'
+
 
     def _get_train_dataloader(self, dataset):
         return DataLoader(

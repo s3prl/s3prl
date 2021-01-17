@@ -30,6 +30,11 @@ class Runner():
         self.upstream = self._get_upstream()
         self.downstream = self._get_downstream()
 
+        # set up the downstream name used by Tensorboard
+        self.downstream_name = self.args.downstream
+        if hasattr(self.downstream, 'get_downstream_name'):
+            self.downstream_name = self.downstream.get_downstream_name()
+
 
     def _get_upstream(self):
         Upstream = getattr(importlib.import_module('hubconf'), self.args.upstream)
@@ -129,7 +134,7 @@ class Runner():
         all_loss = []
         backward_steps = 0
         records = defaultdict(list)
-        prefix = f'{self.args.downstream}/train-'
+        prefix = f'{self.downstream_name}/train-'
 
         while pbar.n < pbar.total:
             for batch_id, (wavs, *others) in enumerate(tqdm(dataloader, dynamic_ncols=True, desc='train')):
@@ -277,7 +282,7 @@ class Runner():
         # main evaluation block
         all_loss = []
         records = defaultdict(list)
-        prefix = f'{self.args.downstream}/{split}-'
+        prefix = f'{self.downstream_name}/{split}-'
 
         for batch_id, (wavs, *others) in enumerate(tqdm(dataloader, dynamic_ncols=True, desc=split)):
 

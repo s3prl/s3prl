@@ -23,7 +23,6 @@ scheduler:
 
 downstream_expert:
   datarc:
-    session: Session2
     pre_load: True
     train_batch_size: 4
     eval_batch_size: 4
