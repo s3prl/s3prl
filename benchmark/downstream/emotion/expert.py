@@ -8,8 +8,8 @@ import torch.nn as nn
 from torch.utils.data import DataLoader, random_split
 from torch.nn.utils.rnn import pad_sequence
 
-from benchmark.downstream.emotion1.model import Model
-from benchmark.downstream.emotion1.dataset import IEMOCAPDataset, collate_fn
+from .model import Model
+from .dataset import IEMOCAPDataset, collate_fn
 
 
 class DownstreamExpert(nn.Module):
