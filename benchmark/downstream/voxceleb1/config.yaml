@@ -17,10 +17,10 @@ optimizer:
   name: AdamW
   lr: 4.0e-4
 
-# comment the whole scheduler config block to disable learning rate scheduling
-scheduler:
-  name: linear_schedule_with_warmup
-  num_warmup_steps: 5000
+# # comment the whole scheduler config block to disable learning rate scheduling
+# scheduler:
+#   name: linear_schedule_with_warmup
+#   num_warmup_steps: 5000
 
 downstream_expert: 
   datarc:
