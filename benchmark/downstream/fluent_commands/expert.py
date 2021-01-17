@@ -49,7 +49,7 @@ class DownstreamExpert(nn.Module):
         self.test_dataset = FluentCommandsDataset(self.test_df, self.base_path, self.Sy_intent)
 
         self.connector = nn.Linear(upstream_dim, self.modelrc['input_dim'])
-        self.model = Model(input_dim=self.modelrc['input_dim'], agg_module=self.modelrc['agg_module'],output_dim=sum(self.values_per_slot), config=self.modelrc)
+        self.model = Model(input_dim=self.modelrc['input_dim'], agg_module=self.modelrc['agg_module'],output_class_num=sum(self.values_per_slot), config=self.modelrc)
         self.objective = nn.CrossEntropyLoss()
 
     def get_dataset(self):
@@ -167,7 +167,7 @@ class DownstreamExpert(nn.Module):
         attention_mask_pad = (1.0 - attention_mask_pad) * -100000.0
 
         features_pad = self.connector(features_pad)
-        intent_logits = self.model(features_pad, attention_mask_pad.cuda())
+        intent_logits = self.model(features_pad, attention_mask_pad.to(features_pad.device))
 
         intent_loss = 0
         start_index = 0

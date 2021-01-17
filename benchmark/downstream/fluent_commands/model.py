@@ -36,6 +36,8 @@ class Mean(nn.Module):
 
     def __init__(self, out_dim):
         super(Mean, self).__init__()
+        self.act_fn = nn.Tanh()
+        self.linear = nn.Linear(out_dim, out_dim)
         # simply take mean operator / no additional parameters
 
     def forward(self, feature, att_mask):
@@ -45,9 +47,13 @@ class Mean(nn.Module):
             feature - [BxTxD]   Acoustic feature with shape 
             att_mask   - [BxTx1]     Attention Mask logits
         '''
+        feature=self.linear(self.act_fn(feature))
         agg_vec_list = []
         for i in range(len(feature)):
-            length = torch.nonzero(att_mask[i] < 0, as_tuple=False)[0][0] + 1
+            if torch.nonzero(att_mask[i] < 0, as_tuple=False).size(0) == 0:
+                length = len(feature[i])
+            else:
+                length = torch.nonzero(att_mask[i] < 0, as_tuple=False)[0] + 1
             agg_vec=torch.mean(feature[i][:length], dim=0)
             agg_vec_list.append(agg_vec)
         return torch.stack(agg_vec_list)
@@ -105,23 +111,21 @@ class SelfAttentionPooling(nn.Module):
         return utter_rep
 
 class Model(nn.Module):
-    def __init__(self, input_dim, agg_module, output_dim, config):
+    def __init__(self, input_dim, agg_module, output_class_num, config):
         super(Model, self).__init__()
         
         # agg_module: current support [ "SAP", "Mean" ]
         # init attributes
         self.agg_method = eval(agg_module)(input_dim)
-        self.linear = nn.Linear(input_dim, output_dim)
+        self.linear = nn.Linear(input_dim, output_class_num)
         
         # two standard transformer encoder layer
-        self.model= eval(config['module'])(Namespace(**config['hparams']))
-        self.head_mask = [None] * config['hparams']['num_hidden_layers']        
+        self.model= eval(config['module'])(config=Namespace(**config['hparams']),)
+        self.head_mask = [None] * config['hparams']['num_hidden_layers']         
 
 
     def forward(self, features, att_mask):
-
-        #IPython.embed()
-        features = self.model(features,att_mask.unsqueeze(-1), head_mask=self.head_mask, output_all_encoded_layers=False)
+        features = self.model(features,att_mask[:,None,None], head_mask=self.head_mask, output_all_encoded_layers=False)
         utterance_vector = self.agg_method(features[0], att_mask)
         predicted = self.linear(utterance_vector)
         

@@ -30,7 +30,7 @@ downstream_expert:
 
   modelrc:
     module:
-      TransformerEncoder
+      Identity
     hparams:
       hidden_size: 512                                      # Size of the encoder layers and the pooler layer.
       num_hidden_layers: 2                                  # Number of hidden layers in the Transformer encoder.
@@ -44,5 +44,5 @@ downstream_expert:
       share_layer: False                                    # Share layer weights
       max_input_length: 0                                   # maximum input length (0 for no restriction)
       pre_layer_norm: False                                 # apply the pre layer normalization technique introduced in: https://arxiv.org/abs/2002.04745
-    input_dim: 512
-    agg_module: SAP
+    input_dim: 256
+    agg_module: Mean
