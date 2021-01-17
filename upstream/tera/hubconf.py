@@ -28,8 +28,7 @@ def tera(refresh=False, *args, **kwargs):
         The default model
             refresh (bool): whether to download ckpt/config again if existed
     """
-    kwargs['ckpt'] = '1g2RBcl4xxvpDtA7eeSIGgygNrMGMUxu2'
-    return tera_gdriveid(refresh=refresh, *args, **kwargs)
+    return tera_logMelBase_time_freq_mag_AdamW_b32_1m_960hr(refresh, *args, **kwargs)
 
 
 ##########
