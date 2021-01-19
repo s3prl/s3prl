@@ -7,8 +7,6 @@ import torch
 import torch.nn as nn
 from torch.nn.utils.rnn import pad_sequence
 
-from fairseq.models.wav2vec import Wav2VecModel
-
 SAMPLE_RATE = 16000
 EXAMPLE_SEC = 5
 
@@ -22,9 +20,8 @@ class UpstreamExpert(nn.Module):
         super(UpstreamExpert, self).__init__()
         self.feature_selection = feature_selection
 
-        cp = torch.load(ckpt)
-        self.model = Wav2VecModel.build_model(cp['args'], task=None)
-        self.model.load_state_dict(cp['model'])
+        model, cfg, task = fairseq.checkpoint_utils.load_model_ensemble_and_task([ckpt])
+        self.model = model[0]
 
         pseudo_input = torch.randn(1, SAMPLE_RATE * EXAMPLE_SEC)
         z = self.model.feature_extractor(pseudo_input)
