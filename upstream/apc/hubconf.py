@@ -1,7 +1,7 @@
 import os
 import torch
 
-from utility.download import _gdriveids_to_filepaths
+from utility.download import _gdriveids_to_filepaths, _urls_to_filepaths
 from .expert import UpstreamExpert as _UpstreamExpert
 
 
@@ -23,10 +23,18 @@ def apc_gdriveid(ckpt, refresh=False, *args, **kwargs):
     return apc_local(_gdriveids_to_filepaths(ckpt, refresh=refresh), *args, **kwargs)
 
 
+def apc_url(ckpt, refresh=False, *args, **kwargs):
+    """
+        The model from URL
+            ckpt (str): URL
+    """
+    return apc_local(_urls_to_filepaths(ckpt, refresh=refresh), *args, **kwargs)
+
+
 def apc(refresh=False, *args, **kwargs):
     """
         The default model
             refresh (bool): whether to download ckpt/config again if existed
     """
-    kwargs['ckpt'] = '1JXb3cJ38JMOQkorwGN_s2pwK_ig_u90A'
-    return apc_gdriveid(refresh=refresh, *args, **kwargs)
+    kwargs['ckpt'] = 'http://140.112.21.12:8000/apc/apc_360hr.ckpt'
+    return apc_url(refresh=refresh, *args, **kwargs)

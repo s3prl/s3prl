@@ -1,7 +1,7 @@
 import os
 import torch
 
-from utility.download import _gdriveids_to_filepaths
+from utility.download import _gdriveids_to_filepaths, _urls_to_filepaths
 from upstream.tera.expert import UpstreamExpert as _UpstreamExpert
 
 
@@ -21,6 +21,14 @@ def tera_gdriveid(ckpt, refresh=False, *args, **kwargs):
             refresh (bool): whether to download ckpt/config again if existed
     """
     return tera_local(_gdriveids_to_filepaths(ckpt, refresh=refresh), *args, **kwargs)
+
+
+def tera_url(ckpt, refresh=False, *args, **kwargs):
+    """
+        The model from URL
+            ckpt (str): URL
+    """
+    return tera_local(_urls_to_filepaths(ckpt, refresh=refresh), *args, **kwargs)
 
 
 def tera(refresh=False, *args, **kwargs):
@@ -141,8 +149,8 @@ def tera_logMelBase_time_AdamW_b32_1m_960hr(refresh=False, *args, **kwargs):
         Total steps: 1M
         Unlabled Speech: 960hr
     """
-    kwargs['ckpt'] = '1XTQQBuj9qFHb1MErlu76zb3GeUu3GJ0f'
-    return tera_gdriveid(refresh=refresh, *args, **kwargs)
+    kwargs['ckpt'] = 'http://140.112.21.12:8000/tera/logMelBase_time_AdamW_b32_1m_960hr/states-1000000.ckpt'
+    return tera_url(refresh=refresh, *args, **kwargs)
 
 
 def tera_logMelBase_time_AdamW_b32_500k_960hr(refresh=False, *args, **kwargs):
@@ -232,5 +240,5 @@ def tera_logMelBase_time_freq_mag_AdamW_b32_1m_960hr(refresh=False, *args, **kwa
         Total steps: 1M
         Unlabled Speech: 960hr
     """
-    kwargs['ckpt'] = '1AcH73Us51OkYM5NqT-zoNM55w4Gwu5vB'
-    return tera_gdriveid(refresh=refresh, *args, **kwargs)
+    kwargs['ckpt'] = 'http://140.112.21.12:8000/tera/logMelBase_time_freq_mag_AdamW_b32_1m_960hr/states-1000000.ckpt'
+    return tera_url(refresh=refresh, *args, **kwargs)
