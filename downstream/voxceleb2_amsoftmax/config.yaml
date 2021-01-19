@@ -8,19 +8,19 @@ runner:
   log_step: 100
   eval_step: 1000
   save_step: 1000
-  max_keep: 4
+  max_keep: 1
   eval_dataloaders: 
     - dev
     - test
   
 optimizer: 
   name: AdamW
-  lr: 4.0e-4
+  lr: 5.0e-5
 
 # # comment the whole scheduler config block to disable learning rate scheduling
-# scheduler:
-#   name: linear_schedule_with_warmup
-#   num_warmup_steps: 5000
+scheduler:
+  name: linear_schedule_with_warmup
+  num_warmup_steps: 5000
 
 downstream_expert: 
   datarc:
