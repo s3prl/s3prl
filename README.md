@@ -86,6 +86,9 @@ We support an all-in-one unified interface for numerous speech pretrained models
     - Described in ["Audio ALBERT: A Lite BERT for Self-supervised Learning of Audio Representation"](https://arxiv.org/abs/2005.08575)
     - *Transformer based, BERT-style masked reconstruction loss*
     - Submitted to [INTERSPEECH 2020](http://www.interspeech2020.org/).
+- **CPC**
+    - Described in ["Representation Learning with Contrastive Predictive Coding"](https://arxiv.org/abs/1807.03748)
+    - Checkpoints are available in this [repo](https://github.com/facebookresearch/CPC_audio)
 - **APC**
     - Described in ["An Unsupervised Autoregressive Model for Speech Representation Learning"](https://arxiv.org/abs/1904.03240)
     - *RNN based, unidirectional reconstruction loss*
