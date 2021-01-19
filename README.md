@@ -70,6 +70,9 @@ This is an open source project called S3PRL, which stands for **S**elf-**S**uper
 ------------------------------------
 
 ### Upstream Models
+
+We support an all-in-one unified interface for numerous speech pretrained models by **torch.hub**. Models with pretrained weights can be easily loaded by calling `torch.hub.load('s3prl/s3prl', MODEL_NAME)` in your python scripts. Check [here](https://docs.google.com/presentation/d/1n2Twz8YEmX67k6Vs_9aIzR6arVacnWzEFZNxBl-jsKU/edit?usp=sharing) for the example usage.
+
 - **Mockingjay**
     - Described in ["Mockingjay: Unsupervised Speech Representation Learning with Deep Bidirectional Transformer Encoders"](https://arxiv.org/abs/1910.12638)
     - *Transformer based, BERT-style masked reconstruction loss*
@@ -86,7 +89,22 @@ This is an open source project called S3PRL, which stands for **S**elf-**S**uper
 - **APC**
     - Described in ["An Unsupervised Autoregressive Model for Speech Representation Learning"](https://arxiv.org/abs/1904.03240)
     - *RNN based, unidirectional reconstruction loss*
-    - Accepted by [INTERSPEECH 2019](https://interspeech2019.org/) as an oral session.
+    - Checkpoints are pretrained by this [repo](https://github.com/Alexander-H-Liu/NPC)
+- **VQ-APC**
+    - Described in ["Vector-Quantized Autoregressive Predictive Coding"](https://arxiv.org/abs/2005.08392)
+    - Checkpoints are pretrained by this [repo](https://github.com/Alexander-H-Liu/NPC)
+- **NPC**
+    - Described in ["Non-Autoregressive Predictive Coding for Learning Speech Representations from Local Dependencies"](https://arxiv.org/abs/2011.00406)
+    - Checkpoints are pretrained by this [repo](https://github.com/Alexander-H-Liu/NPC)
+- **wav2vec**
+    - Described in ["wav2vec: Unsupervised Pre-training for Speech Recognition"](https://arxiv.org/abs/1904.05862)
+    - Checkpoints are available in [fairseq](https://github.com/pytorch/fairseq/blob/master/examples/wav2vec/README.md)
+- **vq-wav2vec**
+    - Described in ["vq-wav2vec: Self-Supervised Learning of Discrete Speech Representations"](https://arxiv.org/abs/1910.05453)
+    - Checkpoints are available in [fairseq](https://github.com/pytorch/fairseq/blob/master/examples/wav2vec/README.md)
+- **wav2vec 2.0**
+    - Described in ["wav2vec 2.0: A Framework for Self-Supervised Learning of Speech Representations"](https://arxiv.org/abs/2006.11477)
+    - Checkpoints are available in [fairseq](https://github.com/pytorch/fairseq/blob/master/examples/wav2vec/README.md)
 
 ------------------------------------
 
