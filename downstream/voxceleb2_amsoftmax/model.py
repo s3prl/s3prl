@@ -111,13 +111,12 @@ class SelfAttentionPooling(nn.Module):
         return utter_rep
 
 class Model(nn.Module):
-    def __init__(self, input_dim, agg_module, output_class_num, config):
+    def __init__(self, input_dim, agg_module, config):
         super(Model, self).__init__()
         
         # agg_module: current support [ "SAP", "Mean" ]
         # init attributes
         self.agg_method = eval(agg_module)(input_dim)
-        self.linear = nn.Linear(input_dim, output_class_num)
         
         # two standard transformer encoder layer
         self.model= eval(config['module'])(config=Namespace(**config['hparams']),)
@@ -127,7 +126,39 @@ class Model(nn.Module):
     def forward(self, features, att_mask):
         features = self.model(features,att_mask[:,None,None], head_mask=self.head_mask, output_all_encoded_layers=False)
         utterance_vector = self.agg_method(features[0], att_mask)
-        predicted = self.linear(utterance_vector)
         
-        return predicted
-        # Use LogSoftmax since self.criterion combines nn.LogSoftmax() and nn.NLLLoss()
+        return utterance_vector
+
+
+class AdMSoftmaxLoss(nn.Module):
+
+    def __init__(self, in_features, out_features, s=30.0, m=0.4):
+        '''
+        AM Softmax Loss
+        '''
+        super(AdMSoftmaxLoss, self).__init__()
+        self.s = s
+        self.m = m
+        self.in_features = in_features
+        self.out_features = out_features
+        self.fc = nn.Linear(in_features, out_features, bias=False)
+
+    def forward(self, x, labels):
+        '''
+        input shape (N, in_features)
+        '''
+        assert len(x) == len(labels)
+        assert torch.min(labels) >= 0
+        assert torch.max(labels) < self.out_features
+        
+        for W in self.fc.parameters():
+            W = F.normalize(W, dim=1)
+
+        x = F.normalize(x, dim=1)
+
+        wf = self.fc(x)
+        numerator = self.s * (torch.diagonal(wf.transpose(0, 1)[labels]) - self.m)
+        excl = torch.cat([torch.cat((wf[i, :y], wf[i, y+1:])).unsqueeze(0) for i, y in enumerate(labels)], dim=0)
+        denominator = torch.exp(numerator) + torch.sum(torch.exp(self.s * excl), dim=1)
+        L = numerator - torch.log(denominator)
+        return -torch.mean(L)

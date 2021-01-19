@@ -14,16 +14,17 @@ import os
 import math
 import torch
 import random
+import numpy as np
 #-------------#
 import torch
 import torch.nn as nn
 from torch.utils.data import DataLoader
 from torch.nn.utils.rnn import pad_sequence
 #-------------#
-from .model import Model
-from .dataset import SpeakerClassifiDataset
+from .model import Model, AdMSoftmaxLoss
+from .dataset import SpeakerVerifi_train, SpeakerVerifi_dev, SpeakerVerifi_test
 from argparse import Namespace
-
+from .utils import EER, compute_metrics
 import IPython
 import pdb
 
@@ -49,14 +50,17 @@ class DownstreamExpert(nn.Module):
         self.datarc = downstream_expert['datarc']
         self.modelrc = downstream_expert['modelrc']
 
-        self.train_dataset = SpeakerClassifiDataset('train', self.datarc['file_path'], self.datarc['meta_data'], self.datarc['max_timestep'])
-        self.dev_dataset = SpeakerClassifiDataset('dev', self.datarc['file_path'], self.datarc['meta_data'])
-        self.test_dataset = SpeakerClassifiDataset('test', self.datarc['file_path'], self.datarc['meta_data'])
+        self.train_dataset = SpeakerVerifi_train(self.datarc['train']['file_path'], self.datarc['train']['meta_data'], self.datarc['train']['max_timestep'])
+        self.dev_dataset = SpeakerVerifi_dev(self.datarc['dev']['file_path'], self.datarc['dev']['meta_data'])
+        self.test_dataset = SpeakerVerifi_test(self.datarc['test']['file_path'], self.datarc['test']['meta_data'])
         
         self.connector = nn.Linear(self.upstream_dim, self.modelrc['input_dim'])
 
-        self.model = Model(input_dim=self.modelrc['input_dim'], agg_module=self.modelrc['agg_module'],output_class_num=self.train_dataset.speaker_num, config=self.modelrc)
-        self.objective = nn.CrossEntropyLoss()
+        self.model = Model(input_dim=self.modelrc['input_dim'], agg_module=self.modelrc['agg_module'], config=self.modelrc)
+        self.objective = AdMSoftmaxLoss(self.modelrc['input_dim'], self.train_dataset.speaker_num, s=30.0, m=0.4)
+
+        self.score_fn  = nn.CosineSimilarity(dim=-1)
+        self.eval_metric = EER
 
     def _get_train_dataloader(self, dataset):
         return DataLoader(
@@ -121,21 +125,33 @@ class DownstreamExpert(nn.Module):
         attention_mask_pad = (1.0 - attention_mask_pad) * -100000.0
 
         features_pad = self.connector(features_pad)
-        predicted = self.model(features_pad, attention_mask_pad.cuda())
+        agg_vec = self.model(features_pad, attention_mask_pad.cuda())
 
-        labels = torch.LongTensor(labels).to(features_pad.device)
-        loss = self.objective(predicted, labels)
+        if self.training:
 
-        predicted_classid = predicted.max(dim=-1).indices
-        records['acc'] += (predicted_classid == labels).view(-1).cpu().float().tolist()
+            labels = torch.LongTensor(labels).to(features_pad.device)
+            loss = self.objective(agg_vec, labels)
+            
+            return loss
 
+        else:
+            # normalize to unit vector 
+            agg_vec = agg_vec / (torch.norm(agg_vec, dim=-1).unsqueeze(-1))
 
-        if not self.training:
-            # some evaluation-only processing, eg. decoding
-            pass
+            vec1, vec2 = self.separate_data(agg_vec, labels)
+            scores = self.score_fn(vec1,vec2).squeeze().cpu().detach().tolist()
+            ylabels = torch.stack(labels).cpu().detach().long().tolist()
 
-        return loss
-        # interface
+            if len(ylabels) > 1:
+                records['scores'].extend(scores)
+                records['ylabels'].extend(ylabels)
+            else:
+                records['scores'].append(scores)
+                records['ylabels'].append(ylabels)
+
+            return torch.tensor(0)
+
+    # interface
     def log_records(self, records, logger, prefix, global_step, **kwargs):
         """
         Args:
@@ -154,10 +170,22 @@ class DownstreamExpert(nn.Module):
             global_step:
                 global_step in runner, which is helpful for Tensorboard logging
         """
-        for key, values in records.items():
-            average = torch.FloatTensor(values).mean().item()
+        if not self.training:
+
+            EER_result =self.eval_metric(np.array(records['ylabels']), np.array(records['scores']))
+
+            records['EER'] = EER_result[0]
+
             logger.add_scalar(
-                f'{prefix}{key}',
-                average,
+                f'{prefix}'+'EER',
+                records['EER'],
                 global_step=global_step
             )
+        
+    def separate_data(self, agg_vec, ylabel):
+
+        total_num = len(ylabel) 
+        feature1 = agg_vec[:total_num]
+        feature2 = agg_vec[total_num:]
+        
+        return feature1, feature2
