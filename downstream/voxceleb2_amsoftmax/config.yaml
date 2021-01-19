@@ -1,7 +1,7 @@
 
 # this voxceleb1 is doing speaker classification task!
 runner:
-  total_steps: 500000
+  total_steps: 10000
   gradient_clipping: 1
   gradient_accumulate_steps: 5
 
@@ -15,19 +15,19 @@ runner:
   
 optimizer: 
   name: AdamW
-  lr: 5.0e-5
+  lr: 5.0e-3
 
 # # comment the whole scheduler config block to disable learning rate scheduling
 scheduler:
   name: linear_schedule_with_warmup
-  num_warmup_steps: 5000
+  num_warmup_steps: 6000
 
 downstream_expert: 
   datarc:
     train:
       file_path: 
-        # Voxceleb1: ../librispeech/vox1_train_verifi/wav
-        Voxceleb2: ../librispeech/vox2_dev/wav
+        Voxceleb1: /groups/public/VoxCeleb1/dev
+        # Voxceleb2: /groups/public/VoxCeleb2/dev/wav/
       meta_data: ./downstream/voxceleb2_amsoftmax/dev_meta_data/dev_speaker_ids.txt
       max_timestep: 128000
 
