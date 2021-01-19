@@ -5,13 +5,15 @@ from utility.download import _urls_to_filepaths
 from .expert import UpstreamExpert as _UpstreamExpert
 
 
-def wav2vec_local(ckpt, feature_selection='c', *args, **kwargs):
+def wav2vec_local(ckpt, feature_selection=None, *args, **kwargs):
     """
         The model from local ckpt
             ckpt (str): PATH
             feature_selection (str): 'c' or 'z'
     """
     assert os.path.isfile(ckpt)
+    if feature_selection not in ['c', 'z']:
+        feature_selection = 'c'
     return _UpstreamExpert(ckpt, feature_selection)
 
 
