@@ -9,11 +9,11 @@ def vq_wav2vec_local(ckpt, feature_selection=None, *args, **kwargs):
     """
         The model from local ckpt
             ckpt (str): PATH
-            feature_selection (str): 'z' or 'codewords'
+            feature_selection (str): 'z' (default) or 'codewords'
     """
     assert os.path.isfile(ckpt)
     if feature_selection not in ['z', 'codewords']:
-        feature_selection = 'codewords'
+        feature_selection = 'z'
     return _UpstreamExpert(ckpt, feature_selection, *args, **kwargs)
 
 

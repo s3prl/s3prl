@@ -9,7 +9,7 @@ def wav2vec_local(ckpt, feature_selection=None, *args, **kwargs):
     """
         The model from local ckpt
             ckpt (str): PATH
-            feature_selection (str): 'c' or 'z'
+            feature_selection (str): 'c' (default) or 'z'
     """
     assert os.path.isfile(ckpt)
     if feature_selection not in ['c', 'z']:
