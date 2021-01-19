@@ -36,7 +36,7 @@ class Mean(nn.Module):
 
     def __init__(self, out_dim):
         super(Mean, self).__init__()
-        self.act_fn = nn.Tanh()
+        self.act_fn = nn.ReLU()
         self.linear = nn.Linear(out_dim, out_dim)
         # simply take mean operator / no additional parameters
 
