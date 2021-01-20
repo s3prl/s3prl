@@ -2,6 +2,7 @@ import os
 import torch
 
 from utility.download import _gdriveids_to_filepaths
+from upstream.mockingjay.expert import UpstreamExpert as _UpstreamExpert
 from ..tera.hubconf import tera_logMelBase_time_AdamW_b32_1m_960hr as mockingjay_logMelBase_AdamW_b32_1m_960hr
 
 
