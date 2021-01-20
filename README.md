@@ -22,6 +22,12 @@
     <br/>
 </p>
 
+Announcement
+------------------------------------
+We are migrating to a new version to be more flexible and scalable for both pretraining and downstream tasks. If you encounter issues and wish to switch back to the previous generation, please consider checkout to the tag `v0.1.0` by `git checkout v0.1.0`. We apologize for your inconvience and thank you for your support. We promise do our best to make self-supervised speech pretraining more easily accessible. Pull requests are welcome!
+
+------------------------------------
+
 Table of Contents
 ------------------------------------
 
