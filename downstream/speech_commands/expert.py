@@ -1,6 +1,7 @@
 """Downstream expert for Spoken Term Detection on Speech Commands."""
 
 import re
+import os
 import hashlib
 from pathlib import Path
 from typing import List, Tuple, Union
@@ -20,7 +21,7 @@ class DownstreamExpert(nn.Module):
     eg. downstream forward, metric computation, contents to log
     """
 
-    def __init__(self, upstream_dim: int, downstream_expert: dict, **kwargs):
+    def __init__(self, upstream_dim: int, downstream_expert: dict, expdir: str, **kwargs):
         super(DownstreamExpert, self).__init__()
         self.upstream_dim = upstream_dim
         self.datarc = downstream_expert["datarc"]
@@ -38,6 +39,8 @@ class DownstreamExpert(nn.Module):
             **self.modelrc,
         )
         self.objective = nn.CrossEntropyLoss()
+
+        self.logging = os.path.join(expdir, 'log.log')
 
     def _get_balanced_dataloader(self, dataset, drop_last=False):
         return DataLoader(
@@ -91,6 +94,8 @@ class DownstreamExpert(nn.Module):
         for key, values in records.items():
             average = torch.FloatTensor(values).mean().item()
             logger.add_scalar(f"{prefix}{key}", average, global_step=global_step)
+            with open(self.logging, 'a') as f:
+                f.write(f'{prefix}|step:{global_step}|{key}:{average}\n')
 
 
 def split_dataset(
