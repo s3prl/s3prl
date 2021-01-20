@@ -5,18 +5,24 @@ import torch
 import gdown
 
 
-def _gdown(filename, url, refresh):
+def _download(filename, url, refresh, agent):
     dirpath = f'{torch.hub.get_dir()}/s3prl_cache'
     os.makedirs(dirpath, exist_ok=True)
     filepath = f'{dirpath}/{filename}'
     if not os.path.isfile(filepath) or refresh:
-        gdown.download(url, filepath, use_cookies=False)
+        if agent == 'wget':
+            os.system(f'wget {url} -O {filepath}')
+        elif agent == 'gdown':
+            gdown.download(url, filepath, use_cookies=False)
+        else:
+            print('[Download] - Unknown download agent. Only \'wget\' and \'gdown\' are supported.')
+            raise NotImplementedError
     else:
         print(f'Using cache found in {filepath}\nfor {url}')
     return filepath
 
 
-def _urls_to_filepaths(*args, refresh=False):
+def _urls_to_filepaths(*args, refresh=False, agent='wget'):
     """
     Preprocess the URL specified in *args into local file paths after downloading
     
@@ -35,7 +41,7 @@ def _urls_to_filepaths(*args, refresh=False):
 
     def url_to_path(url, refresh):
         if type(url) is str and len(url) > 0:
-            return _gdown(url_to_filename(url), url, refresh)
+            return _download(url_to_filename(url), url, refresh, agent=agent)
         else:
             return None
 
@@ -60,4 +66,4 @@ def _gdriveids_to_filepaths(*args, refresh=False):
         else:
             return None
 
-    return _urls_to_filepaths(*[gdriveid_to_url(gid) for gid in args], refresh=refresh)
+    return _urls_to_filepaths(*[gdriveid_to_url(gid) for gid in args], refresh=refresh, agent='gdown')
