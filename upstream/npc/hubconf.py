@@ -36,5 +36,13 @@ def npc(refresh=False, *args, **kwargs):
         The default model
             refresh (bool): whether to download ckpt/config again if existed
     """
-    kwargs['ckpt'] = 'http://140.112.21.12:8000/npc/npc_360hr.ckpt'
+    return npc_360hr(refresh=refresh, *args, **kwargs)
+
+
+def npc_360hr(refresh=False, *args, **kwargs):
+    """
+        The default model
+            refresh (bool): whether to download ckpt/config again if existed
+    """
+    kwargs['ckpt'] = 'https://www.dropbox.com/s/o4zpjz6xncbij8p/npc_default.ckpt?dl=0'
     return npc_url(refresh=refresh, *args, **kwargs)

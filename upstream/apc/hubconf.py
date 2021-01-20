@@ -36,5 +36,13 @@ def apc(refresh=False, *args, **kwargs):
         The default model
             refresh (bool): whether to download ckpt/config again if existed
     """
-    kwargs['ckpt'] = 'http://140.112.21.12:8000/apc/apc_360hr.ckpt'
+    return apc_360hr(refresh=refresh, *args, **kwargs)
+
+
+def apc_360hr(refresh=False, *args, **kwargs):
+    """
+        The default model
+            refresh (bool): whether to download ckpt/config again if existed
+    """
+    kwargs['ckpt'] = 'https://www.dropbox.com/s/mcq82c0x62h9004/apc_default.ckpt?dl=0'
     return apc_url(refresh=refresh, *args, **kwargs)
