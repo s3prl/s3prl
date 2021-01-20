@@ -71,7 +71,7 @@ This is an open source project called S3PRL, which stands for **S**elf-**S**uper
 
 ### Upstream Models
 
-We support an all-in-one unified interface for numerous speech pretrained models by **torch.hub**. Models with pretrained weights can be easily loaded by calling `torch.hub.load('s3prl/s3prl', MODEL_NAME)` in your python scripts. Check [here](https://docs.google.com/presentation/d/1n2Twz8YEmX67k6Vs_9aIzR6arVacnWzEFZNxBl-jsKU/edit?usp=sharing) for the example usage.
+We provide an all-in-one unified interface for numerous speech pretrained models by **torch.hub**. Models with pretrained weights can be easily loaded by calling `torch.hub.load('s3prl/s3prl', MODEL_NAME)` in your python scripts. Check [here](https://docs.google.com/presentation/d/1n2Twz8YEmX67k6Vs_9aIzR6arVacnWzEFZNxBl-jsKU/edit?usp=sharing) for the example usage.
 
 - **Mockingjay**
     - Described in ["Mockingjay: Unsupervised Speech Representation Learning with Deep Bidirectional Transformer Encoders"](https://arxiv.org/abs/1910.12638)
