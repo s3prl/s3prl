@@ -140,7 +140,7 @@ def generate_masked_acoustic_model_data(spec, config):
                 spec_masked[idx, :, chosen_intervals] = 0
                 
                 # the gradients will be calculated on chosen frames
-                mask_label[idx, :, chosen_intervals] = 1   
+                mask_label[idx, :spec_len[idx], chosen_intervals] = 1   
 
         if config['noise_proportion'] > 0:
             # noise augmentation
