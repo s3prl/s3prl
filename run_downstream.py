@@ -54,6 +54,7 @@ def get_downstream_args():
     # options
     parser.add_argument('--seed', default=1337, type=int)
     parser.add_argument('--device', default='cuda', help='model.to(device)')
+    parser.add_argument('--tqdm_file', default='stderr')
 
     args = parser.parse_args()
 
