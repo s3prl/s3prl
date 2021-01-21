@@ -24,7 +24,7 @@ class UpstreamExpert(nn.Module):
     The Mockingjay wrapper
     """
 
-    def __init__(self, ckpt, config=None, **kwargs):
+    def __init__(self, ckpt, feature_selection, **kwargs):
         super(UpstreamExpert, self).__init__() 
         options = {'ckpt_file'     : ckpt,
                    'load_pretrain' : 'True',
@@ -33,7 +33,7 @@ class UpstreamExpert(nn.Module):
                    'spec_aug'      : 'False',
                    'spec_aug_prev' : 'True',
                    'weighted_sum'  : 'False',
-                   'select_layer'  : -1,
+                   'select_layer'  : int(feature_selection),
                    'permute_input' : 'False' }
 
         self.transformer = PretrainedTransformer(options, inp_dim=-1)
