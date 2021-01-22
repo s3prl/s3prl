@@ -18,7 +18,7 @@ class DownstreamExpert(nn.Module):
     eg. downstream forward, metric computation, contents to log
     """
 
-    def __init__(self, upstream_dim, downstream_expert, **kwargs):
+    def __init__(self, upstream_dim, downstream_expert, downstream_variant, **kwargs):
         """
         Args:
             upstream_dim: int
@@ -28,6 +28,10 @@ class DownstreamExpert(nn.Module):
             downstream_expert: dict
                 The 'downstream_expert' field specified in your downstream config file
                 eg. downstream/example/config.yaml
+            
+            downstream_variant: str
+                fold id for testing when cross validation
+                available values: fold1, fold2, fold3, fold4, fold5
 
             **kwargs: dict
                 The arguments specified by the argparser in run_downstream.py
@@ -39,14 +43,14 @@ class DownstreamExpert(nn.Module):
         self.datarc = downstream_expert['datarc']
         self.modelrc = downstream_expert['modelrc']
 
-        DATA_ROOT = os.environ.get("EMOTION_ROOT")
-        FOLD = f'Session{os.environ.get("EMOTION_FOLD")}'
+        DATA_ROOT = self.datarc['root']
+        self.fold = downstream_variant
 
         train_path = os.path.join(
-            DATA_ROOT, 'meta_data', FOLD, 'train_meta_data.json')
+            DATA_ROOT, 'meta_data', self.fold.replace('fold', 'Session'), 'train_meta_data.json')
         print(train_path)
         test_path = os.path.join(
-            DATA_ROOT, 'meta_data', FOLD, 'test_meta_data.json')
+            DATA_ROOT, 'meta_data', self.fold.replace('fold', 'Session'), 'test_meta_data.json')
 
         dataset = IEMOCAPDataset(DATA_ROOT, train_path, self.datarc['pre_load'])
         trainlen = int((1 - self.datarc['valid_ratio']) * len(dataset))
@@ -63,7 +67,7 @@ class DownstreamExpert(nn.Module):
 
 
     def get_downstream_name(self):
-        return f'emotion{os.environ.get("EMOTION_FOLD")}'
+        return self.fold.replace('fold', 'emotion')
 
 
     def _get_train_dataloader(self, dataset):

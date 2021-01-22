@@ -32,6 +32,7 @@ def get_downstream_args():
         Typically downstream dataset need manual preparation.\
         Please check downstream/README.md for details'
     )
+    parser.add_argument('-v', '--downstream_variant', help='Downstream vairants given the same expert')
 
     # upstream settings
     upstreams = [attr for attr in dir(hubconf) if callable(getattr(hubconf, attr)) and attr[0] != '_']
