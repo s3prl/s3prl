@@ -2,7 +2,7 @@
 """*********************************************************************************************"""
 #   FileName     [ example_extract.py ]
 #   Synopsis     [ an example code of using the wrapper class for downstream feature extraction ]
-#   Author       [ Andy T. Liu (Andi611) ]
+#   Author       [ S3PRL ]
 #   Copyright    [ Copyleft(c), Speech Lab, NTU, Taiwan ]
 """*********************************************************************************************"""
 
@@ -26,7 +26,7 @@ model
         list of unpadded representations [rep1, rep2, ...]
 """
 device = 'cuda'
-Upstream = getattr(importlib.import_module('hubconf'), 'tera_default')
+Upstream = getattr(importlib.import_module('hubconf'), 'tera')
 model = Upstream(refresh=True).to(device)
 
 # example_wavs: a batch of audio in wav:  (batch_size, wav_time_step)

@@ -26,7 +26,7 @@ model
         list of unpadded representations [rep1, rep2, ...]
 """
 device = 'cuda'
-Upstream = getattr(importlib.import_module('hubconf'), 'mockingjay')
+Upstream = getattr(importlib.import_module('hubconf'), 'wav2vec2')
 model = Upstream(refresh=True).to(device)
 
 # example_wavs: a batch of audio in wav:  (batch_size, wav_time_step)
