@@ -2,14 +2,15 @@
 
 from collections import defaultdict
 from concurrent.futures import ProcessPoolExecutor, as_completed
+from pathlib import Path
 
-import pyximport
 import numpy as np
+import pyximport
 import torch
 import torch.nn as nn
+from lxml import etree
 from torch.utils.data import DataLoader
 from tqdm import tqdm
-from lxml import etree
 
 pyximport.install(setup_args={"include_dirs": np.get_include()})
 
@@ -23,10 +24,13 @@ class DownstreamExpert(nn.Module):
     eg. downstream forward, metric computation, contents to log
     """
 
-    def __init__(self, upstream_dim: int, downstream_expert: dict, **kwargs):
+    def __init__(
+        self, upstream_dim: int, downstream_expert: dict, expdir: str, **kwargs
+    ):
         super(DownstreamExpert, self).__init__()
         self.upstream_dim = upstream_dim
         self.datarc = downstream_expert["datarc"]
+        self.expdir = Path(expdir)
         self.test_dataset = QUESST14Dataset(**self.datarc)
 
     def _get_dataloader(self, dataset):
@@ -53,10 +57,15 @@ class DownstreamExpert(nn.Module):
 
     # Interface
     def forward(
-        self, features, audio_names, records, **kwargs,
+        self,
+        features,
+        audio_names,
+        records,
+        **kwargs,
     ):
         for feature, audio_name in zip(features, audio_names):
             feature = feature.detach().cpu().numpy().astype(np.double)
+            # feature = feature[feature.argmax(1) != 0]
             records["features"].append(feature)
             records["audio_names"].append(audio_name)
 
@@ -84,7 +93,9 @@ class DownstreamExpert(nn.Module):
                         executor.submit(match, query, doc, query_name, doc_name)
                     )
 
-            for future in tqdm(as_completed(futures), total=len(futures), ncols=0, desc="DTW"):
+            for future in tqdm(
+                as_completed(futures), total=len(futures), ncols=0, desc="DTW"
+            ):
                 query_name, doc_name, score = future.result()
                 results[query_name].append((doc_name, score))
                 scores.append(score)
@@ -95,7 +106,7 @@ class DownstreamExpert(nn.Module):
         score_min = scores[0]
 
         # Build XML tree
-        xml_tree = etree.Element(
+        root = etree.Element(
             "stdlist",
             termlist_filename="benchmark.stdlist.xml",
             indexing_time="1.00",
@@ -105,7 +116,7 @@ class DownstreamExpert(nn.Module):
         )
         for query_name, doc_scores in results.items():
             term_list = etree.SubElement(
-                xml_tree,
+                root,
                 "detected_termlist",
                 termid=query_name,
                 term_search_time="1.0",
@@ -124,7 +135,12 @@ class DownstreamExpert(nn.Module):
                 )
 
         # Output XML
-        print(etree.tostring(xml_tree, encoding="UTF-8", pretty_print=True).decode())
+        tree = etree.ElementTree(root)
+        tree.write(
+            str(self.expdir / "benchmark.stdlist.xml"),
+            encoding="UTF-8",
+            pretty_print=True,
+        )
 
 
 def match(query, doc, query_name, doc_name):
