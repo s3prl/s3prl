@@ -1,5 +1,4 @@
 import os
-import sys
 import math
 import glob
 import random
@@ -26,7 +25,6 @@ class Runner():
         self.args = args
         self.config = config
         self.logger = SummaryWriter(args.expdir)
-        self.tqdm_file = eval(f'sys.{self.args.tqdm_file}')
 
         self.init_ckpt = torch.load(self.args.past_exp, map_location='cpu') if self.args.past_exp else {}
         self.upstream = self._get_upstream()
@@ -125,7 +123,7 @@ class Runner():
             scheduler = self._get_scheduler(optimizer)
 
         # set progress bar
-        pbar = tqdm(total=self.config['runner']['total_steps'], dynamic_ncols=True, desc='overall', file=self.tqdm_file)
+        pbar = tqdm(total=self.config['runner']['total_steps'], dynamic_ncols=True, desc='overall')
         init_step = self.init_ckpt.get('Step')
         if init_step:
             pbar.n = init_step
@@ -139,7 +137,7 @@ class Runner():
         prefix = f'{self.downstream_name}/train-'
 
         while pbar.n < pbar.total:
-            for batch_id, (wavs, *others) in enumerate(tqdm(dataloader, dynamic_ncols=True, desc='train', file=self.tqdm_file)):
+            for batch_id, (wavs, *others) in enumerate(tqdm(dataloader, dynamic_ncols=True, desc='train')):
                 # try/except block for forward/backward
                 try:
                     if pbar.n >= pbar.total:
@@ -252,9 +250,9 @@ class Runner():
                         all_states['Upstream'] = self.upstream.state_dict()
 
                     save_paths = [os.path.join(self.args.expdir, name) for name in save_names]
-                    tqdm.write(f'[Runner] - Save the checkpoint to:', file=self.tqdm_file)
+                    tqdm.write(f'[Runner] - Save the checkpoint to:')
                     for i, path in enumerate(save_paths):
-                        tqdm.write(f'{i + 1}. {path}', file=self.tqdm_file)
+                        tqdm.write(f'{i + 1}. {path}')
                         torch.save(all_states, path)
 
                 pbar.update(1)
@@ -286,7 +284,7 @@ class Runner():
         records = defaultdict(list)
         prefix = f'{self.downstream_name}/{split}-'
 
-        for batch_id, (wavs, *others) in enumerate(tqdm(dataloader, dynamic_ncols=True, desc=split, file=self.tqdm_file)):
+        for batch_id, (wavs, *others) in enumerate(tqdm(dataloader, dynamic_ncols=True, desc=split)):
 
             wavs = [wav.to(self.args.device) for wav in wavs]
             with torch.no_grad():
