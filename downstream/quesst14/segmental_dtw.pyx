@@ -5,7 +5,7 @@ import numpy as np
 cimport numpy as np
 import cython
 
-from libc.math cimport fabs, fmin, fmax, pow, sqrt
+from libc.math cimport fabs, fmin, fmax, pow, sqrt, log
 from libc.float cimport DBL_MAX
 
 
@@ -138,3 +138,13 @@ cdef inline double l2_norm(double[:] a, double[:] b):
         dist += pow(a[i] - b[i], 2.0)
 
     return sqrt(dist)
+
+
+cdef inline double negative_log_dot(double[:] a, double[:] b):
+    cdef double dist = 0.
+    cdef int i
+
+    for i in range(a.shape[0]):
+        dist += (a[i] * b[i])
+
+    return -log(dist)
