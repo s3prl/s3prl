@@ -27,7 +27,7 @@ class SpeakerVerifi_train(Dataset):
 
         # calculate speakers and support to remove black list speaker (dev)
         self.all_speakers = \
-            [f.path for key in self.root_key for f in os.scandir(self.roots[key]) if f.is_dir() and f.path.split("/")[-1] not in self.black_list_speakers]
+            [f.path for key in self.root_key for f in os.scandir(self.roots[key]) if f.is_dir()]
         self.speaker_num = len(self.all_speakers)
         self.necessary_dict = self.processing()
         self.label_mapping_spk_id = {}
