@@ -2,7 +2,7 @@
     <br>
     <img src="https://github.com/andi611/Self-Supervised-Speech-Pretraining-and-Representation-Learning/blob/master/file/S3PRL-logo.png" width="900"/>
     <p>
-    S3PRL: The Self-Supervised Speech Pre-training and Representation Learning Toolkit Toolkit 🦜, built on PyTorch, for developing self-supervised learning upstream models on a wide variety of downstream tasks.
+    S3PRL: The Self-Supervised Speech Pre-training and Representation Learning Speech Toolkit 🦜, built on PyTorch, for developing self-supervised learning upstream models on a wide variety of downstream tasks.
     </p>
     <hr/>
 </div>
