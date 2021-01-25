@@ -3,10 +3,10 @@
 ## 1-for-all interface
 We provide an all-in-one unified interface for numerous speech pretrained models.
 All the models take input / output of the same format:
-- **input**: list of unpadded wavs `[wav1, wav2, ...]`, each wav is in torch.FloatTensor
-- **output**: list of unpadded representations `[rep1, rep2, ...]`, each erp is of the shape: (extracted_seqlen, feature_dim)
+- **input**: list of unpadded wavs `[wav1, wav2, ...]`, each wav is in `torch.FloatTensor`
+- **output**: list of unpadded representations `[rep1, rep2, ...]`, each erp is of the shape `(extracted_seqlen, feature_dim)`
 
-## Easy Setup
+## Use upstream models in your own project
 Models with pretrained weights are provided with a convenient [torch.hub](https://pytorch.org/docs/stable/hub.html) interface.
 Use `torch.hub.load('s3prl/s3prl', MODEL_NAME)` in your python scripts to build a pre-trained upstream model.
 Here is a simple example:
@@ -14,17 +14,12 @@ Here is a simple example:
 import torch
 model = torch.hub.load('s3prl/s3prl', 'tera')
 wavs = [torch.zeros(160000, dtype=torch.float) for _ in range(16)]
-repr = model(wavs)
+reps = model(wavs)
 ```
-Check [here](https://docs.google.com/presentation/d/1n2Twz8YEmX67k6Vs_9aIzR6arVacnWzEFZNxBl-jsKU/edit?usp=sharing) for a detailed tutorial.
+There are also example codes under each upstream directory (`upstream/*/example_extract.py`) for your reference. In addition, here is a **detailed tutorial: [slides](https://docs.google.com/presentation/d/1n2Twz8YEmX67k6Vs_9aIzR6arVacnWzEFZNxBl-jsKU/edit?usp=sharing)**
 
 ## Available Upstream Models
-Below is a list of available upstream models that we currently support. The `name` field is the tag we used in this repo to specify different models. In other words, different upstream are identified with the exact string of their `name`, for example:
-```python
-model_1 = torch.hub.load('s3prl/s3prl', 'cpc')
-model_2 = torch.hub.load('s3prl/s3prl', 'tera')
-model_3 = torch.hub.load('s3prl/s3prl', 'wav2vec2')
-```
+Below is a list of available upstream models that we currently support. 
 
 ### Ordered in publication date
 Publication Date | Model | name | Paper | Input | Pre-train | Ckpt | Repo 
@@ -32,15 +27,31 @@ Publication Date | Model | name | Paper | Input | Pre-train | Ckpt | Repo
 10 Jul 2018 | CPC | cpc | [arxiv](https://arxiv.org/abs/1807.03748) | wave | [LibriLight-60k](https://github.com/facebookresearch/libri-light) | X | [FAIR](https://github.com/facebookresearch/CPC_audio)
 5 Apr 2019 | APC | apc | [arxiv](https://arxiv.org/abs/1904.03240) | mel | [LibriSpeech-360](http://www.openslr.org/12) | O | [APC](https://github.com/iamyuanchung/Autoregressive-Predictive-Coding)
 6 Apr 2019 | PASE | pase | [arxiv](https://arxiv.org/abs/1904.03416) | wave | [LibriSpeech-960](http://www.openslr.org/12) | X | [PASE](https://github.com/santi-pdp/pase)
-11 Apr 2019 | wav2vec | wav2vec | [arxiv](https://arxiv.org/abs/1904.05862) | wave | [LibriSpeech-960](http://www.openslr.org/12) | O | [Fairseq](https://github.com/pytorch/fairseq)
-12 Oct 2019 | vq-wav2vec | vq_wav2vec | [arxiv](https://arxiv.org/abs/1910.05453) | wave | [LibriSpeech-960](http://www.openslr.org/12) | O | [Fairseq](https://github.com/pytorch/fairseq)
+11 Apr 2019 | Wav2Vec | wav2vec | [arxiv](https://arxiv.org/abs/1904.05862) | wave | [LibriSpeech-960](http://www.openslr.org/12) | O | [Fairseq](https://github.com/pytorch/fairseq)
+12 Oct 2019 | VQ-Wav2Vec | vq_wav2vec | [arxiv](https://arxiv.org/abs/1910.05453) | wave | [LibriSpeech-960](http://www.openslr.org/12) | O | [Fairseq](https://github.com/pytorch/fairseq)
 25 Oct 2019 | Mockingjay | mockingjay | [arxiv](https://arxiv.org/abs/1910.12638) | mel | [LibriSpeech-960](http://www.openslr.org/12) | O | [S3PRL](https://github.com/andi611/Self-Supervised-Speech-Pretraining-and-Representation-Learning)
 7 Feb 2020 | Modified-CPC | cpc | [arxiv](https://arxiv.org/abs/2002.02848) | wave | [LibriLight-60k](https://github.com/facebookresearch/libri-light) | O | [FAIR](https://github.com/facebookresearch/CPC_audio)
 17 May 2020 | VQ-APC | vq_apc | [arxiv](https://arxiv.org/abs/2005.08392) | mel | [LibriSpeech-360](http://www.openslr.org/12) | O | [NPC](https://github.com/iamyuanchung/Autoregressive-Predictive-Coding)
 18 May 2020 | Audio Albert | audio_albert | [arxiv](https://arxiv.org/abs/2005.08575) | mel | [LibriSpeech-960](http://www.openslr.org/12) | X | [S3PRL](https://github.com/andi611/Self-Supervised-Speech-Pretraining-and-Representation-Learning)
-20 Jun 2020 | wav2vec 2.0 | wav2vec2 | [arxiv](https://arxiv.org/abs/2006.11477) | wave | [LibriSpeech-960](http://www.openslr.org/12) | O | [Fairseq](https://github.com/pytorch/fairseq)
+20 Jun 2020 | Wav2Vec 2.0 | wav2vec2 | [arxiv](https://arxiv.org/abs/2006.11477) | wave | [LibriSpeech-960](http://www.openslr.org/12) | O | [Fairseq](https://github.com/pytorch/fairseq)
 12 Jul 2020 | TERA | tera | [arxiv](https://arxiv.org/abs/2007.06028) | mel | [LibriSpeech-960](http://www.openslr.org/12) | O | [S3PRL](https://github.com/andi611/Self-Supervised-Speech-Pretraining-and-Representation-Learning)
 1 Nov 2020 | NPC | npc | [arxiv](https://arxiv.org/abs/2011.00406) | mel | [LibriSpeech-360](http://www.openslr.org/12) | O | [NPC](https://github.com/iamyuanchung/Autoregressive-Predictive-Coding)
+
+The `name` field is the tag we used in this repo to specify different models. In other words, different upstream are identified with the exact string of their `name`. For example, this is how you call an upstream through the hub:
+```python
+model_1 = torch.hub.load('s3prl/s3prl', 'cpc') # build the CPC model with pre-trained weights
+model_2 = torch.hub.load('s3prl/s3prl', 'tera') # build the TERA model with pre-trained weights
+model_3 = torch.hub.load('s3prl/s3prl', 'wav2vec2') # build the Wav2Vec 2.0 model with pre-trained weights
+```
+For example, this is how you specifing them in the command of downstream training scripts (more details of downstream tasks can be found [here](https://github.com/s3prl/s3prl/tree/master/downstream#downstream-tasks):
+```bash
+python run_downstream.py -m train -u npc -d example -n NameOfExp # Using the NPC model with pre-trained weights on downstream tasks
+```
+You can get a list of all available upstream `name`s through the following:
+```python
+import torch
+print(torch.hub.list('s3prl/s3prl'))
+```
 
 ### Ordered in different style of losses
 - **Mockingjay**
