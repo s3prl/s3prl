@@ -1,12 +1,12 @@
 runner:
-  n_epochs: 100
-  total_steps: -1
+  n_epochs: -1
+  total_steps: 1000000
   gradient_clipping: 5.0
-  gradient_accumulate_steps: 128
+  gradient_accumulate_steps: 4
 
-  log_step: 50
-  save_step: 200
-  max_keep: 2
+  log_step: 50000
+  save_step: 50000
+  max_keep: 5
 
 optimizer:
   name: AdamW_with_schedule

@@ -1,12 +1,12 @@
 runner:
   n_epochs: -1
-  total_steps: 200000
+  total_steps: 1000000
   gradient_clipping: 5.0
-  gradient_accumulate_steps: 1
+  gradient_accumulate_steps: 4
 
-  log_step: 5000
-  save_step: 10000
-  max_keep: 20
+  log_step: 50000
+  save_step: 50000
+  max_keep: 5
 
 optimizer:
   name: AdamW_with_schedule
@@ -16,7 +16,7 @@ optimizer:
 pretrain_expert:
   datarc:
     num_workers: 8
-    train_batch_size: 32
+    train_batch_size: 8
     max_timestep: 0 # Max length for audio feature (0 for no restriction)
     libri_root: '/media/andi611/1TBSSD/LibriSpeech/' # If raw libri data is provided, use on-the-fly feature extraction, else use the pre-extracted features under `file_path`
     file_path: 'data/len_for_bucket' # Pre-extracted features path. When using on-the-fly feature extraction, this is used to provide length for bucketing.
