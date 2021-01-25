@@ -21,7 +21,7 @@ class DownstreamExpert(nn.Module):
     eg. downstream forward, metric computation, contents to log
     """
 
-    def __init__(self, upstream_dim, downstream_expert, **kwargs):
+    def __init__(self, upstream_dim, downstream_expert, expdir, **kwargs):
         """
         Args:
             upstream_dim: int
@@ -51,6 +51,8 @@ class DownstreamExpert(nn.Module):
         self.connector = nn.Linear(upstream_dim, self.modelrc['input_dim'])
         self.model = Model(input_dim=self.modelrc['input_dim'], agg_module=self.modelrc['agg_module'],output_class_num=sum(self.values_per_slot), config=self.modelrc)
         self.objective = nn.CrossEntropyLoss()
+
+        self.logging = os.path.join(expdir, 'log.log')
 
     def get_dataset(self):
         self.base_path = self.datarc['file_path']
@@ -224,6 +226,8 @@ class DownstreamExpert(nn.Module):
                 average,
                 global_step=global_step
             )
+            with open(self.logging, 'a') as f:
+                f.write(f'{prefix}|step:{global_step}|{key}:{average}\n')
 
         if not self.training:
             # some evaluation-only processing, eg. decoding
