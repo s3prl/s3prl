@@ -18,7 +18,7 @@ class DownstreamExpert(nn.Module):
     eg. downstream forward, metric computation, contents to log
     """
 
-    def __init__(self, upstream_dim, downstream_expert, downstream_variant, **kwargs):
+    def __init__(self, upstream_dim, downstream_expert, downstream_variant, expdir, **kwargs):
         """
         Args:
             upstream_dim: int
@@ -47,7 +47,7 @@ class DownstreamExpert(nn.Module):
         self.fold = downstream_variant
         if self.fold is None:
             self.fold = 'fold1'
-            print(f'[Expert] - using the default fold {self.fold}, use `--downstream_variant` to change fold.')
+            print(f'[Expert] - using the default fold `{self.fold}`, use `--downstream_variant` to change fold.')
 
         train_path = os.path.join(
             DATA_ROOT, 'meta_data', self.fold.replace('fold', 'Session'), 'train_meta_data.json')
@@ -67,6 +67,8 @@ class DownstreamExpert(nn.Module):
 
         self.model = Model(input_dim=self.modelrc['input_dim'], agg_module=self.modelrc['agg_module'],output_class_num=dataset.class_num, config=self.modelrc)
         self.objective = nn.CrossEntropyLoss()
+
+        self.logging = os.path.join(expdir, 'log.log')
 
 
     def get_downstream_name(self):
@@ -213,6 +215,8 @@ class DownstreamExpert(nn.Module):
                 average,
                 global_step=global_step
             )
+            with open(self.logging, 'a') as f:
+                f.write(f'{prefix}|step:{global_step}|{key}:{average}\n')
 
         if not self.training:
             # some evaluation-only processing, eg. decoding
