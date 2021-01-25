@@ -17,14 +17,18 @@ What's New
 
 Introduction
 ------------------------------------
-This is an open source project called S3PRL, which stands for **S**elf-**S**upervised **S**peech **P**re-training and **R**epresentation **L**earning. In this toolkit, various *upstream* self-supervised speech models are implemented with easy-to-load setups, and *downstream* evaluation tasks are available with easy-to-use scripts. Below is an intuitive illustration on how this toolkit may help you:
+* This is an open source toolkit called S3PRL, which stands for **S**elf-**S**upervised **S**peech **P**re-training and **R**epresentation **L**earning.
+* In this toolkit, various *upstream* self-supervised speech models are available with easy-to-load setups, and *downstream* evaluation tasks are available with easy-to-use scripts.
+* Below is an intuitive illustration on how this toolkit may help you:
 
 <img src="https://github.com/andi611/Self-Supervised-Speech-Pretraining-and-Representation-Learning/blob/master/file/S3PRL-interface.png" width="900"/>
 
 - **View the list of *upstreams* we support: [Upstream README](https://github.com/s3prl/s3prl/tree/master/upstream#upstream-models)**
 - **View the list of *downstreams* we support: [Downstream README](https://github.com/s3prl/s3prl/tree/master/downstream#downstream-tasks)**
 
-Feel free to use or modify our toolkit in your research, any bug report or improvement suggestion will be appreciated. If you have any questions, please [open up a new issue](https://github.com/s3prl/s3prl/issues). If you find this toolkit helpful to your research, please do consider to cite [our papers](#Citation), thanks!
+* Feel free to use or modify our toolkit in your research, any bug report or improvement suggestion will be appreciated.
+* If you have any questions, please [open up a new issue](https://github.com/s3prl/s3prl/issues).
+* If you find this toolkit helpful to your research, please do consider to cite [our papers](#Citation), thanks!
 
 <details><summary>List of papers that used our toolkit (Feel free to add your own paper by making a pull request)</summary><p>
 
@@ -91,8 +95,8 @@ Table of Contents
 <!--ts-->
    * [Table of contents](#table-of-contents)
    * [Installation](#installation)
-   * [Using Upstreams](https://github.com/s3prl/s3prl/tree/master/upstream#upstream-models)
-   * [Using Downstreams](https://github.com/s3prl/s3prl/tree/master/downstream#downstream-tasks)
+   * [Using upstreams](https://github.com/s3prl/s3prl/tree/master/upstream#upstream-models)
+   * [Using downstreams](https://github.com/s3prl/s3prl/tree/master/downstream#downstream-tasks)
    * [Train upstream models](#train-upstream-models)
    * [Development pattern for contributors](#development-pattern-for-contributors)
    * [Reference](#reference)
@@ -104,15 +108,32 @@ Table of Contents
 Installation
 ------------------------------------
 
-- **Python** >= 3.6
-- **PyTorch** version >= 1.7.0
-- For training new models, you'll also need computing power (**high-end GPU**) and memory space (both RAM/GPU's RAM).
-- To install fairseq and develop locally:
+* **Python** >= 3.6
+* **PyTorch** version >= 1.7.0
+* For pre-training new upstream models, you'll also need high-end GPU(s).
+* To develop locally, install s3prl by:
 ```bash=
 git clone https://github.com/s3prl/s3prl.git
 cd s3prl
 pip install -r requirements.txt
 ```
+* To use upstream models with the hub interface, cloning this repo is not required, only the `requirements.txt` need to be met.
+
+[Back to Top](#table-of-contents)
+
+------------------------------------
+
+Using upstreams
+------------------------------------
+- Instructions are documented here: [Upstream README](https://github.com/s3prl/s3prl/tree/master/upstream#upstream-models)
+
+[Back to Top](#table-of-contents)
+
+------------------------------------
+
+Using downstreams
+------------------------------------
+- Instructions are documented here: [Downstream README](https://github.com/s3prl/s3prl/tree/master/downstream#downstream-tasks)
 
 [Back to Top](#table-of-contents)
 
@@ -131,8 +152,9 @@ Development pattern for contributors
 ------------------------------------
 1. [Create a personal fork](https://help.github.com/articles/fork-a-repo/) of the [main S3PRL repository](https://github.com/andi611/Self-Supervised-Speech-Pretraining-and-Representation-Learning) in GitHub.
 2. Make your changes in a named branch different from `master`, e.g. you create a branch `new-awesome-feature`.
-3. [Generate a pull request](https://help.github.com/articles/creating-a-pull-request/) through the Web interface of GitHub.
-4. Please verify that your code is free of basic mistakes, we appreciate any contribution!
+3. Contact us if you have any questions during development.
+4. [Generate a pull request](https://help.github.com/articles/creating-a-pull-request/) through the Web interface of GitHub.
+5. Please verify that your code is free of basic mistakes, we appreciate any contribution!
 
 [Back to Top](#table-of-contents)
 
