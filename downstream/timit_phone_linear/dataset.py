@@ -30,9 +30,10 @@ HALF_BATCHSIZE_TIME = 2000
 #################
 class PhoneDataset(Dataset):
     
-    def __init__(self, split, bucket_size, phone_path, bucket_file, sample_rate=16000, train_dev_seed=1337, **kwargs):
+    def __init__(self, split, bucket_size, data_root, phone_path, bucket_file, sample_rate=16000, train_dev_seed=1337, **kwargs):
         super(PhoneDataset, self).__init__()
         
+        self.data_root = data_root
         self.phone_path = phone_path
         self.sample_rate = sample_rate
         self.class_num = 39 # NOTE: pre-computed, should not need change
@@ -53,7 +54,7 @@ class PhoneDataset(Dataset):
             usage_list = open(os.path.join(phone_path, 'test_split.txt')).readlines()
         else:
             raise ValueError('Invalid \'split\' argument for dataset: PhoneDataset!')
-        usage_list = {line.strip('\n'):None for line in usage_list}
+        usage_list = {line.split('-')[-1].strip('\n'):None for line in usage_list}
         print('[Dataset] - # phone classes: ' + str(self.class_num) + ', number of data for ' + split + ': ' + str(len(usage_list)))
 
         # Read table for bucketing
@@ -90,7 +91,7 @@ class PhoneDataset(Dataset):
         return x.split('/')[-1].split('.')[0]
 
     def _load_wav(self, wav_path):
-        wav, sr = torchaudio.load(wav_path)
+        wav, sr = torchaudio.load(os.path.join(self.data_root, wav_path))
         assert sr == self.sample_rate, f'Sample rate mismatch: real {sr}, config {self.sample_rate}'
         return wav.view(-1)
 
