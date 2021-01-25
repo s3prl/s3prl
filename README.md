@@ -2,7 +2,7 @@
     <br>
     <img src="https://github.com/andi611/Self-Supervised-Speech-Pretraining-and-Representation-Learning/blob/master/file/S3PRL-logo.png" width="900"/>
     <p>
-    S3PRL: The Self-Supervised Speech Pre-training and Representation Learning Speech Toolkit 🦜, built on PyTorch, for developing self-supervised learning upstream models on a wide variety of downstream tasks.
+    S3PRL: The Self-Supervised Speech Pre-training and Representation Learning Speech Toolkit 🦜, built on PyTorch, an 1-for-all interface for a wide variety of self-supervised upstream models and speech downstream tasks.
     </p>
     <hr/>
 </div>
@@ -22,9 +22,24 @@
     <br/>
 </p>
 
-Announcement
+Updates
 ------------------------------------
-We are migrating to a new version to be more flexible and scalable for both pretraining and downstream tasks. If you encounter issues and wish to switch back to the previous generation, please consider checkout to the tag `v0.1.0` by `git checkout v0.1.0`. We apologize for your inconvience and thank you for your support. We promise do our best to make self-supervised speech pretraining more easily accessible. Pull requests are welcome!
+- We are migrating to a newer version for a more general, flexible, and scalable code. See the introduction below for more information!
+- The legacy verison can be accessed by checking out to the tag `v0.1.0`: `git checkout v0.1.0`.
+- Any suggestions or pull requests are welcome!
+
+------------------------------------
+
+Introduction
+------------------------------------
+This is an open source project called S3PRL, which stands for **S**elf-**S**upervised **S**peech **P**re-training and **R**epresentation **L**earning. In this toolkit, various *upstream* self-supervised speech models are implemented with easy-to-load setups, and *downstream* evaluation tasks are available with easy-to-use scripts. Below is an intuitive illustration on how this toolkit may help you:
+
+<img src="https://github.com/andi611/Self-Supervised-Speech-Pretraining-and-Representation-Learning/blob/master/file/S3PRL-interface.png" width="900"/>
+
+- View the list of *upstreams* we support: [Upstream README](https://github.com/s3prl/s3prl/tree/master/upstream#upstream-models)
+- View the list of *downstreams* we support: [Downstream README](https://github.com/s3prl/s3prl/tree/master/downstream#downstream-tasks)
+
+Feel free to use or modify our toolkit in your research, any bug report or improvement suggestion will be appreciated. If you have any questions, please [open up a new issue](https://github.com/s3prl/s3prl/issues). If you find this toolkit helpful to your research, please do consider to cite [our papers](#Citation), thanks!
 
 ------------------------------------
 
@@ -33,14 +48,7 @@ Table of Contents
 
 <!--ts-->
    * [Table of contents](#table-of-contents)
-   * [Introduction](#introduction)
-       * [Upstream Models](#upstream-models)
-       * [Downstream Tasks](#downstream-tasks)
-       * [Usage Highlight](#usage-highlight)
    * [Installation](#installation)
-       * [Prerequisite](#prerequisite)
-       * [Getting Started](#getting-started)
-       * [Setting PYTHONPATH](#setting-pythonpath)
    * [Data preparation](#data-preparation)
        * [Download extracted features (RECOMMENDED)](#download-extracted-features)
        * [Preprocessing with Librosa](#preprocessing-with-librosa)
@@ -51,7 +59,6 @@ Table of Contents
        * [Train your own Mockingjay](#train-your-own-mockingjay)
        * [Train your own TERA](#train-your-own-tera)
        * [Train your own AALBERT](#train-your-own-aalbert)
-       * [Train your own APC](#train-your-own-apc)
    * [Downstream evaluations](#downstream-evaluations)
        * [Evaluating upstream models with phone classification](#evaluating-upstream-models-with-phone-classification)
        * [Evaluating upstream models with speaker recognition](#evaluating-upstream-models-with-speaker-recognition)
@@ -69,179 +76,19 @@ Table of Contents
    * [Citation](#citation)
 <!--te-->
 
-Introduction
-------------------------------------
-This is an open source project called S3PRL, which stands for **S**elf-**S**upervised **S**peech **P**re-training and **R**epresentation **L**earning. In this toolkit, various *upstream* self-supervised speech models are implemented with easy-to-load setups, and *downstream* evaluation tasks are available with easy-to-use scripts. Below is an intuitive illustration on how this toolkit may help you:
-
-<img src="https://github.com/andi611/Self-Supervised-Speech-Pretraining-and-Representation-Learning/blob/master/file/S3PRL-interface.png" width="900"/>
-
 ------------------------------------
 
-### Upstream Models
-
-We provide an all-in-one unified interface for numerous speech pretrained models by **torch.hub**. Models with pretrained weights can be easily loaded by calling `torch.hub.load('s3prl/s3prl', MODEL_NAME)` in your python scripts. Check [here](https://docs.google.com/presentation/d/1n2Twz8YEmX67k6Vs_9aIzR6arVacnWzEFZNxBl-jsKU/edit?usp=sharing) for the example usage.
-
-- **Mockingjay**
-    - Described in ["Mockingjay: Unsupervised Speech Representation Learning with Deep Bidirectional Transformer Encoders"](https://arxiv.org/abs/1910.12638)
-    - *Transformer based, BERT-style masked reconstruction loss*
-    - These papers used our implementations: [Adversarial Defense](https://arxiv.org/abs/2006.03214), [Understanding Self-attention](https://arxiv.org/abs/2006.03265)
-    - Accepted by [ICASSP 2020](https://2020.ieeeicassp.org/) as an oral lecture.
-- **TERA**
-    - Described in ["TERA: Self-Supervised Learning of Transformer Encoder Representation for Speech"](https://arxiv.org/abs/2007.06028)
-    - *Transformer based, multi-target alteration reconstruction loss*
-    - Submitted to [IEEE/ACM TASLP](https://ieeexplore.ieee.org/xpl/RecentIssue.jsp?punumber=6570655).
-- **Audio ALBERT**
-    - Described in ["Audio ALBERT: A Lite BERT for Self-supervised Learning of Audio Representation"](https://arxiv.org/abs/2005.08575)
-    - *Transformer based, BERT-style masked reconstruction loss*
-    - Submitted to [INTERSPEECH 2020](http://www.interspeech2020.org/).
-- **CPC**
-    - Described in ["Representation Learning with Contrastive Predictive Coding"](https://arxiv.org/abs/1807.03748)
-    - Checkpoints are available in this [repo](https://github.com/facebookresearch/CPC_audio)
-- **APC**
-    - Described in ["An Unsupervised Autoregressive Model for Speech Representation Learning"](https://arxiv.org/abs/1904.03240)
-    - *RNN based, unidirectional reconstruction loss*
-    - Checkpoints are pretrained by this [repo](https://github.com/Alexander-H-Liu/NPC)
-- **VQ-APC**
-    - Described in ["Vector-Quantized Autoregressive Predictive Coding"](https://arxiv.org/abs/2005.08392)
-    - Checkpoints are pretrained by this [repo](https://github.com/Alexander-H-Liu/NPC)
-- **NPC**
-    - Described in ["Non-Autoregressive Predictive Coding for Learning Speech Representations from Local Dependencies"](https://arxiv.org/abs/2011.00406)
-    - Checkpoints are pretrained by this [repo](https://github.com/Alexander-H-Liu/NPC)
-- **wav2vec**
-    - Described in ["wav2vec: Unsupervised Pre-training for Speech Recognition"](https://arxiv.org/abs/1904.05862)
-    - Checkpoints are available in [fairseq](https://github.com/pytorch/fairseq/blob/master/examples/wav2vec/README.md)
-- **vq-wav2vec**
-    - Described in ["vq-wav2vec: Self-Supervised Learning of Discrete Speech Representations"](https://arxiv.org/abs/1910.05453)
-    - Checkpoints are available in [fairseq](https://github.com/pytorch/fairseq/blob/master/examples/wav2vec/README.md)
-- **wav2vec 2.0**
-    - Described in ["wav2vec 2.0: A Framework for Self-Supervised Learning of Speech Representations"](https://arxiv.org/abs/2006.11477)
-    - Checkpoints are available in [fairseq](https://github.com/pytorch/fairseq/blob/master/examples/wav2vec/README.md)
-
-------------------------------------
-
-### Downstream Tasks
-- **Phone classification:** 
-    - *Linear* classifiers
-    - *1 Hidden* classifiers
-    - *Concat* classifiers
-    - 41 phone classes on LibriSpeech `train-clean-100` with fixed train/test splits
-    - Proposed and used in the [CPC](https://arxiv.org/abs/1807.03748) and [TERA]() paper.
-- **Speaker recognition:** 
-    - *Frame-wise* linear classifier
-    - *Utterance-wise* linear classifier
-    - 251 speaker classes on LibriSpeech `train-clean-100` with fixed train/test splits
-    - Proposed and used in the [CPC](https://arxiv.org/abs/1807.03748), [AALBERT](https://arxiv.org/abs/2005.08575) and [TERA]() paper.
-- **ASR speech recognition:** 
-    - *Hybrid DNN/HMM* speech recognition systems with the [PyTorch-Kaldi Toolkit](https://github.com/mravanelli/pytorch-kaldi)
-    - We provide pre-trained models (as the DNN part of hybrid DNN/HMM) with initializers that are PyTorch-Kaldi ready.
-- **Sentiment classification on spoken content:** 
-    - simple *one-layer RNN* classifier on MOSEI dataset
-    - Proposed and used in [Mockingjay](https://arxiv.org/abs/1910.12638).
-
-------------------------------------
-
-### Usage Highlight
-- **Acoustic feature extraction scripts:**
-    - LibriSpeech and TIMIT:
-        - Pre-processing with [Lirbosa](https://librosa.github.io/librosa/): *mfcc, fbank, mel, linear*
-        - Pre-processing with the [Kaldi](https://github.com/kaldi-asr/kaldi) s5 recipe: *mfcc, fbank, fmllr*
-    - WSJ: coming soon
-    - Extracted features can be directly download from: [S3PRL Drive](http://www.bit.ly/drive-S3PRL)
-    - On-the-fly feature extraction using [torchaudio](https://pytorch.org/audio/) as backend
-    - see section: [*Data preparation*](#data-preparation)
-- **Pre-train your own self-supervised models:**
-    - Implementation of various upstream algorithms.
-    - Pre-train them on your own data.
-    - Supporting various optimizers including: [BERT Adam](https://arxiv.org/abs/1810.04805), [AdamW](https://arxiv.org/abs/1711.05101), [LAMB](https://arxiv.org/abs/1904.00962)
-    - see section: [*Train upstream models*](#train-upstream-models)
-- **Evaluate your own pre-trained model:**
-    - Easy-to-use downstream evaluation scripts.
-    - Incorporate any pre-trained model of your own.
-    - see section: [*Evaluating your own model*](#evaluating-your-own-model)
-- **Apply pre-trained models on your own task:**
-    - Easy-to-use pre-trained model initialization.
-    - Incorporate any downstream task with the provided pre-trained models.
-    - Implemented as [PyTorch-Kaldi](https://github.com/mravanelli/pytorch-kaldi) ready DNNs.
-    - Pre-trained checkpoints can be directly download from: [S3PRL Drive](http://www.bit.ly/drive-S3PRL)
-    - see section: [*Using upstream models with your own task*](#using-upstream-models-with-your-own-task)
-- **Knowledge transfer of pre-trained model to downstream task:**
-    - We support various methods of incoporating the pre-trained model with downstream models:
-        - Extracting from the last layer
-        - Learnable weighted sum extraction from all layers (similar to ELMo)
-        - Fine-tuning
-    - See section: [*Apply different knowledge transfer methods*](#apply-different-knowledge-transfer-methods)
-
-Feel free to use or modify them, any bug report or improvement suggestion will be appreciated. If you have any questions, please contact tingweiandyliu@gmail.com. If you find this project helpful for your research, please do consider to cite [our papers](#Citation), thanks!
-
-[Back to Top](#table-of-contents)
-
-------------------------------------
 Installation
 ------------------------------------
 
-### Prerequisite
-- **Python** 3 or above
-- **PyTorch** 1.3.0 or above
-- Computing power (**high-end GPU**) and memory space (both RAM/GPU's RAM) is extremely important if you'd like to train your own model.
-- Required packages and their use are listed below, and also in [requirements.txt](requirements.txt):
-```
-joblib           # parallel feature extraction & decoding
-librosa          # feature extraction
-scipy            # feature extraction
-tqdm             # verbosity
-yaml             # config parser
-numpy            # array computation
-pandas           # data management
-tensorboardX     # logger & monitor
-torch            # model & learning
-matplotlib       # visualization
-Pillow           # visualization
-```
-The above packages can be installed by the command: `pip install -r requirements.txt`
-
-- Here we list optional packages that need special attention, and we recommend you to install them manually:
-```
-ipdb             # debugger (Optional)
-apex             # faster optimization (Optional and non-essential, only needed if enabled in config)
-pydub            # audio segmentation (Optional, for MOSEI dataset preprocessing only)
-Kaldi            # feature extraction (Optional, if you want to extract features by yourself)
-PyTorch-Kaldi    # for hybrid ASR training (Optional)
-```
-For the installation and usage of Kaldi and PyTorch-Kaldi, see our supplementary wiki page: [Extracting with Kaldi](https://github.com/andi611/Self-Supervised-Speech-Pretraining-and-Representation-Learning/wiki/Extracting-with-Kaldi) and [ASR with PyTorch-Kalid](https://github.com/andi611/Self-Supervised-Speech-Pretraining-and-Representation-Learning/wiki/ASR-with-PyTorch-Kaldi)
-
-------------------------------------
-
-### Getting Started
-- Clone this repo:
-`git clone https://github.com/andi611/Self-Supervised-Speech-Pretraining-and-Representation-Learning.git`
-
-------------------------------------
-
-### Setting PYTHONPATH
-#### Linux
-- If you have any importing errors, try the following.
-- Also, to use the codes in this repo from another project (e.g. PyTorch-Kaldi), you have to set a global path.
-- Open the file `~/.bashrc` in your text editor – e.g. `subl ~/.bashrc`;
-- Add the following line to the end:
-```bash
-export PYTHONPATH="/your_abs_path/Self-Supervised-Speech-Pretraining-and-Representation-Learning:$PYTHONPATH"
-```
-*Make sure you change it to your own path.*
-- Restart your terminal application to read in the new settings, and type this to check if everything is working: `echo $PYTHONPATH`
-- Now in any python environment or .py file, we can do the following in any directory:
-```python
-from transformer.nn_transformer import TRANSFORMER
-```
-- Read the [documentation](https://bic-berkeley.github.io/psych-214-fall-2016/using_pythonpath.html) if you run into any problem.
-
-#### Windows
-- For Windows, add the following lines to your .py code:
-```python
-import sys
-# set this to your own path
-S3PRL_PATH = "C:\\Users\\ANDYLIU\\Self-Supervised-Speech-Pretraining-and-Representation-Learning"
-if S3PRL_PATH not in sys.path:
-    sys.path.append(S3PRL_PATH)
+- **Python** >= 3.6
+- **PyTorch** version >= 1.7.0
+- For training new models, you'll also need computing power (**high-end GPU**) and memory space (both RAM/GPU's RAM).
+- To install fairseq and develop locally:
+```bash=
+git clone https://github.com/s3prl/s3prl.git
+cd s3prl
+pip install -r requirements.txt
 ```
 
 [Back to Top](#table-of-contents)
@@ -366,37 +213,8 @@ phone_path: 'data/libri_phone'
 
 Train upstream models
 ------------------------------------
-- For the pre-training of each model, we provide default configs files `*.yaml` under the [`config/`](config/) directory. However, you may change them according to your needs.
-- *Warning*: the parameters may not strictly follow the original papers, please verify carefully if you need them to be identical.
-- The argument `--name` is used for distinction only, you can use whatever name you want.
-
-### Train your own Mockingjay
-```python
-# Mockingjay BASE, 360 hr
-python run_upstream.py --run=transformer --config=config/mockingjay_libri_fbankBase.yaml --name=mockingjay_fbankBase
-# Mockingjay LARGE, 360 hr
-python run_upstream.py --run=transformer --config=config/mockingjay_libri_fbankLarge.yaml --name=mockingjay_fbankLarge
-```
-### Train your own TERA
-```python
-# TERA-Base: time + channel + mag, 960 hr
-python run_upstream.py --run=transformer --config=config/tera_libri_fmllrBase.yaml --name=tera_fmllrBase
-# TERA-Medium: time + channel + mag, 960 hr
-python run_upstream.py --run=transformer --config=config/tera_libri_fmllrMedium.yaml --name=tera_fmllrMedium
-# TERA-Large: time + channel + mag, 960 hr
-python run_upstream.py --run=transformer --config=config/tera_libri_fmllrLarge.yaml --name=tera_fmllrLarge
-```
-### Train your own AALBERT
-```python
-# AALBERT-3L, 100 hr
-python run_upstream.py --run=transformer --config=config/aalbert_libri_fbank3L.yaml --name=aalbert_fbank3L
-# AALBERT-6L, 360 hr
-python run_upstream.py --run=transformer --config=config/aalbert_libri_fbank6L.yaml --name=aalbert_fbank6L
-```
-### Train your own APC
-```python
-python run_upstream.py --run=apc
-```
+- If you wish to train your own upstream models, 
+please follow the instructions here: [Pretrain README](https://github.com/s3prl/s3prl/tree/master/pretrain)
 
 [Back to Top](#table-of-contents)
 
