@@ -35,14 +35,13 @@ class PhoneDataset(Dataset):
         
         self.phone_path = phone_path
         self.sample_rate = sample_rate
-        self.class_num = 39 # NOTE: pre-computed with the below commented code, should not need change
+        self.class_num = 39 # NOTE: pre-computed, should not need change
 
-        # self.Y = {}
-        # phone_file = open(os.path.join(phone_path, 'converted_aligned_phones.txt')).readlines()
-        # for line in phone_file:
-        #     line = line.strip('\n').split(' ')
-        #     self.Y[line[0]] = [int(p) for p in line[1:]]
-        # assert len(self.Y) == self.class_num
+        self.Y = {}
+        phone_file = open(os.path.join(phone_path, 'converted_aligned_phones.txt')).readlines()
+        for line in phone_file:
+            line = line.strip('\n').split(' ')
+            self.Y[line[0]] = [int(p) for p in line[1:]]
         
         if split == 'train' or split == 'dev':
             usage_list = open(os.path.join(phone_path, 'train_split.txt')).readlines()
