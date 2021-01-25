@@ -1,0 +1,29 @@
+runner:
+  total_steps: 100000
+  gradient_clipping: 1
+  gradient_accumulate_steps: 1
+
+  log_step: 5000
+  eval_step: 5000
+  save_step: 5000
+  max_keep: 1
+  eval_dataloaders:
+    - dev
+    - test
+
+optimizer:
+  name: Adam
+  lr: 2.e-4
+
+downstream_expert:
+  datarc:
+    num_workers: 8
+    train_batch_size: 16 
+    eval_batch_size: 16
+    phone_path: './downstream/timit_phone_linear/data'
+    bucket_file: 'data/len_for_bucket_timit'
+    sample_rate: 16000 # this should not be changed, and this should match the sr of the audio in `libri_root`
+    train_dev_seed: 1337
+
+  modelrc: 
+    none: None
