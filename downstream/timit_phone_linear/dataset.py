@@ -42,7 +42,7 @@ class PhoneDataset(Dataset):
         phone_file = open(os.path.join(phone_path, 'converted_aligned_phones.txt')).readlines()
         for line in phone_file:
             line = line.strip('\n').split(' ')
-            self.Y[line[0]] = [int(p) for p in line[1:]]
+            self.Y[line[0].split('-')[-1]] = [int(p) for p in line[1:]]
         
         if split == 'train' or split == 'dev':
             usage_list = open(os.path.join(phone_path, 'train_split.txt')).readlines()
