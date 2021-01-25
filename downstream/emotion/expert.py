@@ -45,13 +45,18 @@ class DownstreamExpert(nn.Module):
 
         DATA_ROOT = self.datarc['root']
         self.fold = downstream_variant
+        if self.fold is None:
+            self.fold = 'fold1'
+            print(f'[Expert] - using the default fold {self.fold}, use `--downstream_variant` to change fold.')
 
         train_path = os.path.join(
             DATA_ROOT, 'meta_data', self.fold.replace('fold', 'Session'), 'train_meta_data.json')
-        print(train_path)
+        print(f'[Expert] - Training path: {train_path}')
+
         test_path = os.path.join(
             DATA_ROOT, 'meta_data', self.fold.replace('fold', 'Session'), 'test_meta_data.json')
-
+        print(f'[Expert] - Testing path: {test_path}')
+        
         dataset = IEMOCAPDataset(DATA_ROOT, train_path, self.datarc['pre_load'])
         trainlen = int((1 - self.datarc['valid_ratio']) * len(dataset))
         lengths = [trainlen, len(dataset) - trainlen]
