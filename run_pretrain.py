@@ -75,10 +75,8 @@ def get_pretrain_args():
             return Namespace(**old_dict)
 
         # overwrite args and config
-        mode = args.mode
         args = update_args(args, ckpt['Args'])
         config = ckpt['Config']
-        args.mode = mode
         args.past_exp = ckpt_pth
 
     else:
