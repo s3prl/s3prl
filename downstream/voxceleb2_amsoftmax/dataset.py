@@ -4,6 +4,7 @@ import numpy as np
 from librosa.util import find_files
 from torchaudio import load
 from torch import nn
+from pathlib import Path
 import os 
 import IPython 
 import pdb
@@ -12,6 +13,7 @@ import torchaudio
 import sys
 import time
 import tqdm
+import pickle
 
 # Voxceleb 2 Speaker verification
 class SpeakerVerifi_train(Dataset):
@@ -20,28 +22,51 @@ class SpeakerVerifi_train(Dataset):
         self.roots = file_path
         self.root_key = list(self.roots.keys())
         self.max_timestep = max_timestep
+        self.dataset = []
+        self.all_speakers = []
 
-        # extract dev speaker and store in self.black_list_spealers
-        with open(meta_data, "r") as f:
-            self.black_list_speakers = f.read().splitlines()
+        for key in self.root_key:
+            
+            cache_path = f"./downstream/voxceleb2_amsoftmax/cache_wav_paths/cache_{key}.p"
+            p = Path(self.roots[key])
+            # loca cache_path if file exists
+            if os.path.isfile(cache_path):
 
-        # calculate speakers and support to remove black list speaker (dev)
-        self.all_speakers = \
-            [f.path for key in self.root_key for f in os.scandir(self.roots[key]) if f.is_dir()]
+                # cache dict = 
+                #{"speaker_id1":["wav_a_path1","wav_a_path2",...],"speaker_id2":["wav_b_path1", "wav_b_path2", ....],...}
+                cache_wavs_dict = pickle.load(open(cache_path,"rb"))
+                self.all_speakers.extend(list(cache_wavs_dict.keys()))
+                for speaker_id in list(cache_wavs_dict.keys()):
+                    for wavs in cache_wavs_dict[speaker_id]:
+                        self.dataset.append(str(p / speaker_id / wavs))
+
+            else:
+
+                speaker_wav_dict = {}
+                # calculate speakers and support to remove black list speaker (dev)
+                speaker_dirs = [f.path.split("/")[-1] for f in os.scandir(self.roots[key]) if f.is_dir()]
+                self.all_speakers.extend(speaker_dirs)
+                    
+                print("search all wavs paths")
+                start = time.time()
+
+                for speaker in tqdm.tqdm(speaker_dirs):
+                    speaker_dir =  p / speaker
+                    wav_list=find_files(speaker_dir)
+                    speaker_wav_dict[speaker] = []
+                    for wav in wav_list:
+                        self.dataset.append(str(speaker_dir/wav))
+                        speaker_wav_dict[speaker].append("/".join(wav.split("/")[-2:]))
+                end = time.time() 
+                print(f"search all wavs paths costs {end-start} seconds")
+                print(f"save wav paths to {cache_path}! so we can directly load all_path in next time!")
+                pickle.dump(speaker_wav_dict, open(cache_path,"wb"))    
+
         self.speaker_num = len(self.all_speakers)
         self.necessary_dict = self.processing()
         self.label_mapping_spk_id = {}
         # speaker id  map to speaker num
         self.build_label_mapping()
-
-        print("search all wavs paths")
-        start = time.time()
-        self.dataset = []
-        for speaker in tqdm.tqdm(self.all_speakers):
-            wav_list=find_files(speaker)
-            self.dataset.extend(wav_list)
-        end = time.time() 
-        print(f"search all wavs paths costs {end-start} seconds")
 
         self.label=self.build_label(self.dataset)
 
