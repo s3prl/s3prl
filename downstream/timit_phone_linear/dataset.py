@@ -42,7 +42,7 @@ class PhoneDataset(Dataset):
         phone_file = open(os.path.join(phone_path, 'converted_aligned_phones.txt')).readlines()
         for line in phone_file:
             line = line.strip('\n').split(' ')
-            self.Y[line[0].split('-')[-1]] = [int(p) for p in line[1:]]
+            self.Y[line[0]] = [int(p) for p in line[1:]]
         
         if split == 'train' or split == 'dev':
             usage_list = open(os.path.join(phone_path, 'train_split.txt')).readlines()
@@ -54,7 +54,7 @@ class PhoneDataset(Dataset):
             usage_list = open(os.path.join(phone_path, 'test_split.txt')).readlines()
         else:
             raise ValueError('Invalid \'split\' argument for dataset: PhoneDataset!')
-        usage_list = {line.split('-')[-1].strip('\n'):None for line in usage_list}
+        usage_list = {line.strip('\n'):None for line in usage_list}
         print('[Dataset] - # phone classes: ' + str(self.class_num) + ', number of data for ' + split + ': ' + str(len(usage_list)))
 
         # Read table for bucketing
@@ -88,7 +88,7 @@ class PhoneDataset(Dataset):
                 self.X.append(batch_x)
 
     def _parse_x_name(self, x):
-        return x.split('/')[-1].split('.')[0]
+        return '-'.join(x.split('.')[0].split('/')[1:])
 
     def _load_wav(self, wav_path):
         wav, sr = torchaudio.load(os.path.join(self.data_root, wav_path))
