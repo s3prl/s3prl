@@ -80,14 +80,6 @@ class AcousticDataset(Dataset):
         if len(batch_x) > 1: 
             self.X.append(batch_x)
 
-    def _get_full_libri_path(self, npy_path):
-        # remove .npy
-        path = ''.join(npy_path.split('.')[:-1])
-        subfolder, filename = path.split('/')
-        filedirs = filename.split('-')
-        libri_path = os.path.join(self.libri_root, subfolder, filedirs[0], filedirs[1], f'{filename}.flac')
-        return libri_path
-
     def _sample(self, x):
         if self.sample_length <= 0: return x
         if len(x) < self.sample_length: return x
@@ -110,11 +102,11 @@ class KaldiAcousticDataset(AcousticDataset):
         super(KaldiAcousticDataset, self).__init__(extracter, task_config, bucket_size, file_path, sets, 
                  max_timestep, drop, libri_root, **kwargs)
 
-    def _load_feat(self, npy_path):
+    def _load_feat(self, feat_path):
         if self.libri_root is None:
-            return torch.FloatTensor(np.load(os.path.join(self.root, npy_path)))
+            return torch.FloatTensor(np.load(os.path.join(self.root, feat_path)))
         else:
-            wav, _ = torchaudio.load(self._get_full_libri_path(npy_path))
+            wav, _ = torchaudio.load(os.path.join(self.libri_root, feat_path))
             feat = self.extracter(wav.squeeze())
             return feat
 
@@ -141,11 +133,11 @@ class OnlineAcousticDataset(AcousticDataset):
         wav = wav * scalar
         return wav
 
-    def _load_feat(self, npy_path):
+    def _load_feat(self, feat_path):
         if self.libri_root is None:
-            return torch.FloatTensor(np.load(os.path.join(self.root, npy_path)))
+            return torch.FloatTensor(np.load(os.path.join(self.root, feat_path)))
         else:
-            wav, _ = torchaudio.load(self._get_full_libri_path(npy_path))
+            wav, _ = torchaudio.load(os.path.join(self.libri_root, feat_path))
             wav = self._normalize_wav_decibel(wav.squeeze())
             return wav # (seq_len)
 
