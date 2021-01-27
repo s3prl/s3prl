@@ -45,6 +45,9 @@ class Runner():
 
 
     def _get_upstream(self):
+        init_upstream = self.init_ckpt.get('Config')
+        if init_upstream:
+            self.args.upstream_config = init_upstream
         module_path = f'pretrain.{self.args.upstream}.pretrain_expert'
         Upstream = getattr(importlib.import_module(module_path), 'UpstreamPretrainExpert')
         upstream = Upstream(self.config['pretrain_expert']['datarc'], 

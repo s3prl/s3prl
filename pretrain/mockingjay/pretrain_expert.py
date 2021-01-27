@@ -38,8 +38,15 @@ class UpstreamPretrainExpert(nn.Module):
         self.datarc = datarc
         self.device = device
         self.multi_gpu = multi_gpu
-        self.upstream_config = yaml.load(open(upstream_config, 'r'), Loader=yaml.FullLoader)
-        print('[UpstreamPretrainExpert] - Using upstream config from:', upstream_config)
+
+        if type(upstream_config) == str:
+            self.upstream_config = yaml.load(open(upstream_config, 'r'), Loader=yaml.FullLoader)
+            print('[UpstreamPretrainExpert] - Using upstream config from:', upstream_config)
+        elif type(upstream_config) == dict:
+            self.upstream_config = upstream_config
+            print('[UpstreamPretrainExpert] - Using upstream config from the previous experiment.')
+        else:
+            raise ValueError
         
         if 'libri_root' in self.datarc and 'kaldi' in self.upstream_config['audio']:
             print('[UpstreamPretrainExpert] - Using kaldi feature extracter, on-the-fly feature extraction')
