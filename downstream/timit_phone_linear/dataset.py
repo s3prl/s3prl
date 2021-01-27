@@ -23,6 +23,11 @@ import torchaudio
 
 
 HALF_BATCHSIZE_TIME = 2000
+TEST_SPEAKERS = [ # Core test set from timit/readme.doc
+'mdab0', 'mwbt0', 'felc0', 'mtas1', 'mwew0', 'fpas0',
+'mjmp0', 'mlnt0', 'fpkt0', 'mlll0', 'mtls0', 'fjlm0',
+'mbpm0', 'mklt0', 'fnlp0', 'mcmj0', 'mjdh0', 'fmgd0',
+'mgrt0', 'mnjm0', 'fdhc0', 'mjln0', 'mpam0', 'fmld0']
 
 
 #################
@@ -44,14 +49,17 @@ class PhoneDataset(Dataset):
             line = line.strip('\n').split(' ')
             self.Y[line[0]] = [int(p) for p in line[1:]]
         
-        if split == 'train' or split == 'dev':
+        if split == 'train':
             usage_list = open(os.path.join(phone_path, 'train_split.txt')).readlines()
-            random.seed(train_dev_seed)
-            random.shuffle(usage_list)
-            percent = int(len(usage_list)*0.9)
-            usage_list = usage_list[:percent] if split == 'train' else usage_list[percent:]
-        elif split == 'test':
-            usage_list = open(os.path.join(phone_path, 'test_split.txt')).readlines()
+        elif split == 'test' or split == 'dev':
+            test_list, dev_list = [], []
+            full_test_list = open(os.path.join(phone_path, 'test_split.txt')).readlines()
+            for line in full_test_list:
+                if line.split('-')[1].lower() in TEST_SPEAKERS:
+                    test_list.append(line)
+                else:
+                    dev_list.append(line)
+            usage_list = test_list if split == 'test' else dev_list
         else:
             raise ValueError('Invalid \'split\' argument for dataset: PhoneDataset!')
         usage_list = {line.strip('\n'):None for line in usage_list}
