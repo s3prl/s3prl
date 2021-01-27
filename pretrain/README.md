@@ -59,3 +59,10 @@ python run_pretrain.py -u mockingjay -g pretrain/mockingjay/config_model.yaml -n
 python run_pretrain.py -u tera -g pretrain/tera/config_model.yaml -n YourModelName
 ```
 - Everything else is identical to the above.
+
+### Audio ALBERT
+- Command:
+```bash
+python run_pretrain.py -u audio_albert -g pretrain/audio_albert/config_model.yaml -n YourModelName
+```
+- Everything else is identical to the above.
