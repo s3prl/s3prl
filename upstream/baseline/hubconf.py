@@ -41,3 +41,19 @@ def mfcc(*args, **kwargs):
     """
     kwargs['config'] = os.path.join(os.path.dirname(__file__), 'mfcc.yaml')
     return baseline_local(*args, **kwargs)
+
+
+def mel(*args, **kwargs):
+    """
+        Baseline feature - Mel
+    """
+    kwargs['config'] = os.path.join(os.path.dirname(__file__), 'mel.yaml')
+    return baseline_local(*args, **kwargs)
+
+
+def linear(*args, **kwargs):
+    """
+        Baseline feature - Linear
+    """
+    kwargs['config'] = os.path.join(os.path.dirname(__file__), 'linear.yaml')
+    return baseline_local(*args, **kwargs)
