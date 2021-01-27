@@ -23,11 +23,14 @@ import torchaudio
 
 
 HALF_BATCHSIZE_TIME = 2000
-TEST_SPEAKERS = [ # Core test set from timit/readme.doc
+TEST_SPEAKERS = [
 'mdab0', 'mwbt0', 'felc0', 'mtas1', 'mwew0', 'fpas0',
 'mjmp0', 'mlnt0', 'fpkt0', 'mlll0', 'mtls0', 'fjlm0',
 'mbpm0', 'mklt0', 'fnlp0', 'mcmj0', 'mjdh0', 'fmgd0',
 'mgrt0', 'mnjm0', 'fdhc0', 'mjln0', 'mpam0', 'fmld0']
+# Core test set from timit/readme.doc
+# Reference1: https://github.com/awni/speech/issues/22
+# Reference2: https://github.com/awni/speech/tree/master/examples/timit
 
 
 #################
@@ -49,16 +52,16 @@ class PhoneDataset(Dataset):
             line = line.strip('\n').split(' ')
             self.Y[line[0]] = [int(p) for p in line[1:]]
         
-        if split == 'train':
+        if split == 'train': # 462 speakers
             usage_list = open(os.path.join(phone_path, 'train_split.txt')).readlines()
         elif split == 'test' or split == 'dev':
             test_list, dev_list = [], []
             full_test_list = open(os.path.join(phone_path, 'test_split.txt')).readlines()
             for line in full_test_list:
                 if line.split('-')[1].lower() in TEST_SPEAKERS:
-                    test_list.append(line)
+                    test_list.append(line) # 24 core test speakers
                 else:
-                    dev_list.append(line)
+                    dev_list.append(line) # 50 held-out speakers from test
             usage_list = test_list if split == 'test' else dev_list
         else:
             raise ValueError('Invalid \'split\' argument for dataset: PhoneDataset!')
