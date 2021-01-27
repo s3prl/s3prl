@@ -1,0 +1,23 @@
+runner:
+  n_epochs: -1
+  total_steps: 1000000
+  gradient_clipping: 5.0
+  gradient_accumulate_steps: 1
+
+  log_step: 50000
+  save_step: 50000
+  max_keep: 5
+
+optimizer:
+  name: AdamW_with_schedule
+  lr: 2.e-4
+  warmup_proportion: 0.07
+
+pretrain_expert:
+  datarc:
+    num_workers: 8
+    train_batch_size: 32
+    max_timestep: 0 # Max length for audio feature (0 for no restriction)
+    libri_root: '/work/a129195789/LibriSpeech/' # If raw libri data is provided, use on-the-fly feature extraction, else use the pre-extracted features under `file_path`
+    file_path: 'data/len_for_bucket' # Pre-extracted features path. When using on-the-fly feature extraction, this is used to provide length for bucketing.
+    sets: ['train-clean-100', 'train-clean-360', 'train-other-500'] # can be the subset of ['train-clean-100', 'train-clean-360', 'train-other-500']
