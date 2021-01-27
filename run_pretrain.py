@@ -76,7 +76,7 @@ def get_pretrain_args():
 
         # overwrite args and config
         args = update_args(args, ckpt['Args'])
-        config = ckpt['Config']
+        config = ckpt['Runner']
         args.past_exp = ckpt_pth
 
     else:
