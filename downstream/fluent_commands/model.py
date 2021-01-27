@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*- #
 """*********************************************************************************************"""
 #   FileName     [ model.py ]
-#   Synopsis     [ the linear model ]
+#   Synopsis     [ the fluent command downstream model ]
 #   Author       [ S3PRL ]
 #   Copyright    [ Copyleft(c), Speech Lab, NTU, Taiwan ]
 """*********************************************************************************************"""
@@ -10,27 +10,24 @@
 ###############
 # IMPORTATION #
 ###############
+import pdb
+import IPython
+from argparse import Namespace
+
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
 
-import IPython
-import pdb
-from argparse import Namespace
 from upstream.mockingjay.model import TransformerEncoder
 
-#########
-# MODEL #
-#########
 
 class Identity(nn.Module):
     def __init__(self, config, **kwargs):
         super(Identity, self).__init__()
         # simply take mean operator / no additional parameters
-
     def forward(self, feature, att_mask, head_mask, **kwargs):
-
         return [feature]
+
 
 class Mean(nn.Module):
 
@@ -44,8 +41,8 @@ class Mean(nn.Module):
 
         ''' 
         Arguments
-            feature - [BxTxD]   Acoustic feature with shape 
-            att_mask   - [BxTx1]     Attention Mask logits
+            feature - [BxTxD] Acoustic feature with shape 
+            att_mask - [BxTx1]     Attention Mask logits
         '''
         feature=self.linear(self.act_fn(feature))
         agg_vec_list = []
@@ -57,6 +54,7 @@ class Mean(nn.Module):
             agg_vec=torch.mean(feature[i][:length], dim=0)
             agg_vec_list.append(agg_vec)
         return torch.stack(agg_vec_list)
+
 
 class SAP(nn.Module):
     ''' Self Attention Pooling module incoporate attention mask'''
@@ -72,14 +70,15 @@ class SAP(nn.Module):
 
         ''' 
         Arguments
-            feature - [BxTxD]   Acoustic feature with shape 
-            att_mask   - [BxTx1]     Attention Mask logits
+            feature - [BxTxD] Acoustic feature with shape 
+            att_mask - [BxTx1] Attention Mask logits
         '''
-        #Encode
+        # Encode
         feature = self.act_fn(feature)
         sap_vec = self.sap_layer(feature, att_mask)
 
         return sap_vec
+
 
 class SelfAttentionPooling(nn.Module):
     """
@@ -90,6 +89,7 @@ class SelfAttentionPooling(nn.Module):
     def __init__(self, input_dim):
         super(SelfAttentionPooling, self).__init__()
         self.W = nn.Linear(input_dim, 1)
+
     def forward(self, batch_rep, att_mask):
         """
         input:
@@ -101,14 +101,13 @@ class SelfAttentionPooling(nn.Module):
         return:
         utter_rep: size (N, H)
         """
-        seq_len = batch_rep.shape[1]
         softmax = nn.functional.softmax
         att_logits = self.W(batch_rep).squeeze(-1)
         att_logits = att_mask + att_logits
         att_w = softmax(att_logits, dim=-1).unsqueeze(-1)
         utter_rep = torch.sum(batch_rep * att_w, dim=1)
-
         return utter_rep
+
 
 class Model(nn.Module):
     def __init__(self, input_dim, agg_module, output_class_num, config):
@@ -123,11 +122,9 @@ class Model(nn.Module):
         self.model= eval(config['module'])(config=Namespace(**config['hparams']),)
         self.head_mask = [None] * config['hparams']['num_hidden_layers']         
 
-
     def forward(self, features, att_mask):
         features = self.model(features,att_mask[:,None,None], head_mask=self.head_mask, output_all_encoded_layers=False)
         utterance_vector = self.agg_method(features[0], att_mask)
         predicted = self.linear(utterance_vector)
         
-        return predicted
-        # Use LogSoftmax since self.criterion combines nn.LogSoftmax() and nn.NLLLoss()
+        return predicted # Use LogSoftmax since self.criterion combines nn.LogSoftmax() and nn.NLLLoss()
