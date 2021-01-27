@@ -93,8 +93,12 @@ class UpstreamPretrainExpert(nn.Module):
 
     # Interface
     def load_model(self, all_states):
-        self.model.Transformer.load_state_dict(all_states['Transformer'])
-        self.model.SpecHead.load_state_dict(all_states['SpecHead'])
+        if self.multi_gpu:
+            self.model.module.Transformer.load_state_dict(all_states['Transformer'])
+            self.model.module.SpecHead.load_state_dict(all_states['SpecHead'])
+        else:
+            self.model.Transformer.load_state_dict(all_states['Transformer'])
+            self.model.SpecHead.load_state_dict(all_states['SpecHead'])
 
     # Interface
     def add_state_to_save(self, all_states):
