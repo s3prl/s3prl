@@ -112,6 +112,7 @@ class Runner():
             self.config['runner']['total_steps'] = total_steps
             print(f'[Runner] - Training for {n_epochs} epochs, whichi is equivalent to {total_steps} steps')
         else:
+            total_steps = self.config['runner']['total_steps']
             n_epochs = int(total_steps * gradient_accumulate_steps / len(dataloader.dataset))
             print(f'[Runner] - Training for {total_steps} steps, whichi is approximately {n_epochs} epochs')
 
