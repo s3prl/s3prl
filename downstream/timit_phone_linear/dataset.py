@@ -75,7 +75,7 @@ class PhoneDataset(Dataset):
 
         # Read table for bucketing
         assert os.path.isdir(bucket_file), 'Please first run `preprocess/generate_len_for_bucket.py to get bucket file.'
-        table = pd.read_csv(os.path.join(bucket_file, 'TEST.csv' if split == 'test' else 'TRAIN.csv')).sort_values(by=['length'], ascending=False)
+        table = pd.read_csv(os.path.join(bucket_file, 'TRAIN.csv' if split == 'train' else 'TEST.csv')).sort_values(by=['length'], ascending=False)
         X = table['file_path'].tolist()
         X_lens = table['length'].tolist()
 
