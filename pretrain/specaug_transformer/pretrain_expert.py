@@ -27,21 +27,18 @@ class UpstreamPretrainExpert(MockingjayPretrainExpert):
     def __init__(self, datarc, upstream_config, device='cuda', multi_gpu=False, **kwargs):
         super(UpstreamPretrainExpert, self).__init__(datarc, upstream_config, device, multi_gpu, **kwargs)
 
-    # Interface
-    def get_train_dataloader(self):
+    def _get_train_dataloader(self, extracter):
         if 'libri_root' in self.datarc and 'kaldi' not in self.upstream_config['audio']:
-            dataset = OnlineAcousticDataset(self.extracter,
+            dataset = OnlineAcousticDataset(extracter,
                                             self.upstream_config['task'],
                                             self.datarc['train_batch_size'],
                                             target_level=self.upstream_config['audio']['target_level'],
                                             **self.datarc)
         else:
-            dataset = KaldiAcousticDataset(self.extracter,
+            dataset = KaldiAcousticDataset(extracter,
                                            self.upstream_config['task'],
                                            self.datarc['train_batch_size'],
                                            **self.datarc)
-        return DataLoader(
-            dataset, batch_size=1, # for bucketing
-            shuffle=True, num_workers=self.datarc['num_workers'],
-            drop_last=False, pin_memory=True, collate_fn=dataset.collate_fn
-        )
+        self.dataloader = DataLoader(dataset, batch_size=1, # for bucketing
+                                     shuffle=True, num_workers=self.datarc['num_workers'],
+                                     drop_last=False, pin_memory=True, collate_fn=dataset.collate_fn)

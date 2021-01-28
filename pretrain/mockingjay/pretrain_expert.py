@@ -50,16 +50,18 @@ class UpstreamPretrainExpert(nn.Module):
         
         if 'libri_root' in self.datarc and 'kaldi' in self.upstream_config['audio']:
             print('[UpstreamPretrainExpert] - Using kaldi feature extracter, on-the-fly feature extraction')
-            self.extracter, input_dim = get_extracter(self.upstream_config['audio'])
+            extracter, input_dim = get_extracter(self.upstream_config['audio'])
             output_dim = None
         elif 'libri_root' in self.datarc:
             print('[UpstreamPretrainExpert] - Using online preprocessor, on-the-fly feature extraction')
-            self.extracter, input_dim, output_dim = get_preprocessor(self.upstream_config['audio'])
+            extracter, input_dim, output_dim = get_preprocessor(self.upstream_config['audio'])
         else:
             print('[UpstreamPretrainExpert] - Using features pre-extracted and saved')
-            self.extracter, input_dim = None, self.upstream_config['transformer']['input_dim']
+            extracter, input_dim = None, self.upstream_config['transformer']['input_dim']
             output_dim = None
         print('[UpstreamPretrainExpert] - Input dim:', input_dim)
+
+        self._get_train_dataloader(extracter)
 
         print('[UpstreamPretrainExpert] - Initializing model...')
         model_config = TransformerConfig(self.upstream_config['transformer'])
@@ -70,6 +72,22 @@ class UpstreamPretrainExpert(nn.Module):
             self.model = torch.nn.DataParallel(self.model)
             print('[UpstreamPretrainExpert] - Multi-GPU training Enabled: ' + str(torch.cuda.device_count()))
         print('[UpstreamPretrainExpert] - Number of parameters: ' + str(sum(p.numel() for p in self.model.parameters() if p.requires_grad)))
+
+    def _get_train_dataloader(self, extracter):
+        if 'libri_root' in self.datarc and 'kaldi' not in self.upstream_config['audio']:
+            dataset = OnlineAcousticDataset(extracter,
+                                            self.upstream_config['task'],
+                                            self.datarc['train_batch_size'],
+                                            target_level=self.upstream_config['audio']['target_level'],
+                                            **self.datarc)
+        else:
+            dataset = KaldiAcousticDataset(extracter,
+                                           self.upstream_config['task'],
+                                           self.datarc['train_batch_size'],
+                                           **self.datarc)
+        self.dataloader = DataLoader(dataset, batch_size=1, # for bucketing
+                                     shuffle=True, num_workers=self.datarc['num_workers'],
+                                     drop_last=False, pin_memory=True, collate_fn=dataset.collate_fn)
 
     # Interface
     def load_model(self, all_states):
@@ -91,22 +109,7 @@ class UpstreamPretrainExpert(nn.Module):
 
     # Interface
     def get_train_dataloader(self):
-        if 'libri_root' in self.datarc and 'kaldi' not in self.upstream_config['audio']:
-            dataset = OnlineAcousticDataset(self.extracter,
-                                            self.upstream_config['task'],
-                                            self.datarc['train_batch_size'],
-                                            target_level=self.upstream_config['audio']['target_level'],
-                                            **self.datarc)
-        else:
-            dataset = KaldiAcousticDataset(self.extracter,
-                                           self.upstream_config['task'],
-                                           self.datarc['train_batch_size'],
-                                           **self.datarc)
-        return DataLoader(
-            dataset, batch_size=1, # for bucketing
-            shuffle=True, num_workers=self.datarc['num_workers'],
-            drop_last=False, pin_memory=True, collate_fn=dataset.collate_fn
-        )
+        return self.dataloader
 
     # Interface
     def forward(self, data, records={}, global_step=0, log_step=1000, **kwargs):

@@ -17,8 +17,8 @@ import torch
 from torch.nn.utils.rnn import pad_sequence
 import torchaudio
 #-------------#
-from pretrain.mockingjay.task import KaldiAcousticDataset as _KaldiAcousticDataset
-from pretrain.mockingjay.task import OnlineAcousticDataset as _OnlineAcousticDataset
+from pretrain.mockingjay.dataset import KaldiAcousticDataset as _KaldiAcousticDataset
+from pretrain.mockingjay.dataset import OnlineAcousticDataset as _OnlineAcousticDataset
 from pretrain.specaug_transformer.task import generate_spec_aug_data
 
 
