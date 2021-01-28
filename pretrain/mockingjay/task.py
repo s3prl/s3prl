@@ -93,7 +93,7 @@ def generate_masked_acoustic_model_data(spec, config):
             # zero vectors for padding dimension
             attn_mask[idx, spec_len[idx]:] = 0
 
-            def starts_to_intervals(starts, consecutive):
+            def _starts_to_intervals(starts, consecutive):
                 tiled = starts.expand(consecutive, starts.size(0)).permute(1, 0)
                 offset = torch.arange(consecutive).expand_as(tiled)
                 intervals = tiled + offset
@@ -112,7 +112,7 @@ def generate_masked_acoustic_model_data(spec, config):
                     rand_start = random.randint(0, min(mask_consecutive, valid_start_max))
                     valid_starts = torch.arange(rand_start, valid_start_max + 1, mask_bucket_size)
                     chosen_starts = valid_starts[torch.randperm(len(valid_starts))[:proportion]]
-                chosen_intervals = starts_to_intervals(chosen_starts, mask_consecutive)
+                chosen_intervals = _starts_to_intervals(chosen_starts, mask_consecutive)
                 
                 # determine whether to mask / random / or do nothing to the frame
                 dice = random.random()
@@ -122,7 +122,7 @@ def generate_masked_acoustic_model_data(spec, config):
                 # replace to random frames
                 elif dice >= 0.8 and dice < 0.9:
                     random_starts = torch.randperm(valid_start_max + 1)[:proportion]
-                    random_intervals = starts_to_intervals(random_starts, mask_consecutive)
+                    random_intervals = _starts_to_intervals(random_starts, mask_consecutive)
                     spec_masked[idx, chosen_intervals, :] = spec_masked[idx, random_intervals, :]
                 # do nothing
                 else:
@@ -136,7 +136,7 @@ def generate_masked_acoustic_model_data(spec, config):
                 max_width = int(spec_target.shape[2] * config['mask_frequency'])
                 rand_bandwidth = random.randint(0, max_width)
                 chosen_starts = torch.randperm(spec_masked.shape[2] - rand_bandwidth)[:1]
-                chosen_intervals = starts_to_intervals(chosen_starts, rand_bandwidth)
+                chosen_intervals = _starts_to_intervals(chosen_starts, rand_bandwidth)
                 spec_masked[idx, :, chosen_intervals] = 0
                 
                 # the gradients will be calculated on chosen frames

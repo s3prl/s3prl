@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*- #
 """*********************************************************************************************"""
 #   FileName     [ dataset.py ]
-#   Synopsis     [ the acoustic dataset that will apply the designed pre-training task ]
+#   Synopsis     [ the general acoustic dataset, and the datasets that apply the mask reconstruction task ]
 #   Author       [ S3PRL ]
 #   Copyright    [ Copyleft(c), Speech Lab, NTU, Taiwan ]
 """*********************************************************************************************"""
@@ -17,7 +17,6 @@ import numpy as np
 import pandas as pd
 #-------------#
 import torch
-import torch.nn as nn
 from torch.nn.utils.rnn import pad_sequence
 from torch.utils.data.dataset import Dataset
 import torchaudio
