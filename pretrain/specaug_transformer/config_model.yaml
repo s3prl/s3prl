@@ -1,0 +1,45 @@
+transformer:
+  input_dim: -1                                         # `int`, for pre-extracted features: 39 for mfcc, 40 for fmllr, 80 for fbank, 160 for mel, irrelevent if on-the-fly extraction is used
+  hidden_size: 768                                      # Size of the encoder layers and the pooler layer.
+  num_hidden_layers: 3                                  # Number of hidden layers in the Transformer encoder.
+  num_attention_heads: 12                               # Number of attention heads for each attention layer in the Transformer encoder.
+  intermediate_size: 3072                               # The size of the "intermediate" (i.e., feed-forward) layer in the Transformer encoder.
+  hidden_act: gelu                                      # The non-linear activation function (function or string) in the encoder and pooler. If string, "gelu", "relu" and "swish" are supported.
+  hidden_dropout_prob: 0.1                              # The dropout probabilitiy for all fully connected layers in the embeddings, encoder, and pooler.
+  attention_probs_dropout_prob: 0.1                     # The dropout ratio for the attention probabilities.
+  initializer_range: 0.02                               # The sttdev of the truncated_normal_initializer for initializing all weight matrices.
+  layer_norm_eps: 1.e-12                                # The epsilon used by LayerNorm.
+  share_layer: False                                    # Share layer weights
+  pre_layer_norm: False                                 # To apply the pre layer normalization technique introduced in: https://arxiv.org/abs/2002.04745
+
+task:
+  loss: L1                                              # L1 or MSE
+  sequence_length: 1500                                 # The maximum input sequence length for the transformer model (0 for no restriction)                                   
+  position_encoding_size: 768                           # this should be identical to `hidden_size`
+  mask_T: 100                                           # the time mask parameter T described in the SpecAugment paper, we use default values based on the LD Policy (In paper: T=100)
+  mask_F: 9                                             # the frequency mask parameter F described in the SpecAugment paper, we use default values based on the LD Policy (In paper: F=27:D=80*3 => F=9:D=80, where D is acoustic dimension)
+  num_T: 2                                              # the number of time masks applied (In paper: mT=2)
+  num_F: 2                                              # the number of frequency masks applied (In paper: mF=2)
+  p: 1.0                                                # upper bound ratio (In paper: p=1.0)
+
+audio:
+  target_level: -25                                     # pretrained utterances are first scaled to the same decibel level
+  win_ms: 25
+  hop_ms: 10
+  n_freq: 201
+  n_mels: 80
+  n_mfcc: 13
+
+  input:
+    feat_type: mel                                      # feat_type can be: wav, complx, linear, mel, mfcc, phase
+    channel: 0
+    log: True
+    delta: 0
+    cmvn: True
+    
+  target:
+    feat_type: mel                                      # feat_type can be: wav, complx, linear, mel, mfcc, phase
+    channel: 1
+    log: True
+    delta: 0
+    cmvn: True
