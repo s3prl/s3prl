@@ -45,11 +45,11 @@ def get_preprocess_args():
     
     parser = argparse.ArgumentParser(description='preprocess arguments for any dataset.')
 
-    parser.add_argument('--data_root', default='../LibriSpeech/', type=str, help='Path to store output', required=False)
-    parser.add_argument('--output_path', default='./data/', type=str, help='Path to store output', required=False)
-    parser.add_argument('--audio_extention', default='.flac', type=str, help='audio file type (.wav / .flac / .mp3 / etc)', required=False)
+    parser.add_argument('-i', '--input_data', default='../LibriSpeech/', type=str, help='Path to your LibriSpeech directory', required=False)
+    parser.add_argument('-o', '--output_path', default='./data/', type=str, help='Path to store output', required=False)
+    parser.add_argument('-a', '--audio_extension', default='.flac', type=str, help='audio file type (.wav / .flac / .mp3 / etc)', required=False)
+    parser.add_argument('-n', '--name', default='len_for_bucket', type=str, help='Name of the output directory', required=False)
     parser.add_argument('--n_jobs', default=-1, type=int, help='Number of jobs used for feature extraction', required=False)
-    parser.add_argument('--name', default='len_for_bucket', type=str, help='Name of the output directory', required=False)
 
     args = parser.parse_args()
     return args
@@ -70,7 +70,7 @@ def generate_length(args, tr_set, audio_extention):
     
     for i, s in enumerate(tr_set):
         print('')
-        todo = list(Path(os.path.join(args.data_root,s)).rglob('*' + audio_extention)) # '*.flac'
+        todo = list(Path(os.path.join(args.input_data, s)).rglob('*' + audio_extention)) # '*.flac'
         print(f'Preprocessing data in: {s}, {len(todo)} audio files found.')
 
         output_dir = os.path.join(args.output_path, args.name)
@@ -96,9 +96,9 @@ def main():
     # get arguments
     args = get_preprocess_args()
     
-    if 'librispeech' in args.data_root.lower():
+    if 'librispeech' in args.input_data.lower():
         SETS = ['train-clean-100', 'train-clean-360', 'train-other-500', 'dev-clean', 'dev-other', 'test-clean', 'test-other']
-    elif 'timit' in args.data_root.lower():
+    elif 'timit' in args.input_data.lower():
         SETS = ['TRAIN', 'TEST']
 
     # Select data sets

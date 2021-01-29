@@ -99,7 +99,7 @@ def main():
     mel_dim = num_mels * (1 + int(args.delta) + int(args.delta_delta))
     mfcc_dim = num_mfcc * (1 + int(args.delta) + int(args.delta_delta))
     dim = num_freq if args.feature_type == 'linear' else (mfcc_dim if args.feature_type == 'mfcc' else mel_dim)
-    print('Delta: ', args.delta, '. Delta Delta: ', args.delta_delta, '. Cmvn: ', args.cmvn)
+    print('Delta: ', args.delta, '. Delta Delta: ', args.delta_delta, '. Cmvn: ', args.apply_cmvn)
 
     # Process data
     preprocess(args, dim)
