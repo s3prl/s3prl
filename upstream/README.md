@@ -128,8 +128,8 @@ Use `torch.hub.load('s3prl/s3prl', Name)` in your python scripts to build a pre-
 ```python
 import torch
 upstream = torch.hub.load('s3prl/s3prl', 'tera')
-wavs = [torch.zeros(160000, dtype=torch.float) for _ in range(16)]
-reps = upstream(wavs)
+wavs = [torch.zeros(160000, dtype=torch.float) for _ in range(16)] # list of unpadded wavs `[wav1, wav2, ...]`, each wav is in `torch.FloatTensor`
+reps = upstream(wavs) # list of unpadded representations `[rep1, rep2, ...]`, each erp is of the shape `(extracted_seqlen, feature_dim)`
 ```
 
 * <details><summary>Click here to see an example code with argument parser</summary><p>
