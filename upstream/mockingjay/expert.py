@@ -28,7 +28,7 @@ class UpstreamExpert(nn.Module):
         super(UpstreamExpert, self).__init__() 
         options = {'ckpt_file'     : ckpt,
                    'load_pretrain' : 'True',
-                   'no_grad'       : 'True',
+                   'no_grad'       : 'False',
                    'dropout'       : 'default',
                    'spec_aug'      : 'False',
                    'spec_aug_prev' : 'True',
