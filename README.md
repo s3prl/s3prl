@@ -23,8 +23,8 @@ Introduction
 
 <img src="https://github.com/andi611/Self-Supervised-Speech-Pretraining-and-Representation-Learning/blob/master/file/S3PRL-interface.png" width="900"/>
 
-- **View the list of *upstreams* we support: [Upstream README](https://github.com/s3prl/s3prl/tree/master/upstream#upstream-models)**
-- **View the list of *downstreams* we support: [Downstream README](https://github.com/s3prl/s3prl/tree/master/downstream#downstream-tasks)**
+- **View the list of *upstreams* we support: [Upstream README](https://github.com/s3prl/s3prl/blob/master/upstream/README.md)**
+- **View the list of *downstreams* we support: [Downstream README](https://github.com/s3prl/s3prl/tree/master/downstream/README.md)**
 
 * Feel free to use or modify our toolkit in your research, any bug report or improvement suggestion will be appreciated.
 * If you have any questions, please [open up a new issue](https://github.com/s3prl/s3prl/issues).
@@ -95,8 +95,8 @@ Table of Contents
 <!--ts-->
    * [Table of contents](#table-of-contents)
    * [Installation](#installation)
-   * [Using upstreams](https://github.com/s3prl/s3prl/tree/master/upstream#upstream-models)
-   * [Using downstreams](https://github.com/s3prl/s3prl/tree/master/downstream#downstream-tasks)
+   * [Using upstreams](https://github.com/s3prl/s3prl/tree/master/upstream/README.md)
+   * [Using downstreams](https://github.com/s3prl/s3prl/tree/master/downstream/README.md)
    * [Train upstream models](#train-upstream-models)
    * [Development pattern for contributors](#development-pattern-for-contributors)
    * [Reference](#reference)
@@ -125,7 +125,7 @@ pip install -r requirements.txt
 
 Using upstreams
 ------------------------------------
-- Instructions are documented here: [Upstream README](https://github.com/s3prl/s3prl/tree/master/upstream#upstream-models)
+- Instructions are documented here: [Upstream README](https://github.com/s3prl/s3prl/tree/master/upstream/README.md)
 
 [Back to Top](#table-of-contents)
 
@@ -133,7 +133,8 @@ Using upstreams
 
 Using downstreams
 ------------------------------------
-- Instructions are documented here: [Downstream README](https://github.com/s3prl/s3prl/tree/master/downstream#downstream-tasks)
+- *Warning: we are still developing and testing some downstream tasks, documentation of a task will be added once it has been fully tested.*
+- Instructions are documented here: [Downstream README](https://github.com/s3prl/s3prl/tree/master/downstream/README.md)
 
 [Back to Top](#table-of-contents)
 
@@ -142,7 +143,7 @@ Using downstreams
 Train upstream models
 ------------------------------------
 - If you wish to train your own upstream models, 
-please follow the instructions here: [Pretrain README](https://github.com/s3prl/s3prl/tree/master/pretrain)
+please follow the instructions here: [Pretrain README](https://github.com/s3prl/s3prl/tree/master/pretrain/README.md)
 
 [Back to Top](#table-of-contents)
 
