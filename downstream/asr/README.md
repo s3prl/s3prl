@@ -5,4 +5,4 @@ Since ASR is a complicated system including LM training and beam search decoding
 - Delay the feature extraction part from dataloader to training loop, and accelerate it by GPU either for fbank extraction or pretrained feature extraction.
 - Support distributed data parallel to enable large batch size finetuning, since some pretrained models can be huge like wav2vec2.
 
-One can refer to the README in [s3prl/End-to-end-ASR-Pytorch](https://github.com/s3prl/End-to-end-ASR-Pytorch) for more details and hope this answer your question!
+One can refer to the README in [s3prl/End-to-end-ASR-Pytorch](https://github.com/s3prl/End-to-end-ASR-Pytorch) for more details.
