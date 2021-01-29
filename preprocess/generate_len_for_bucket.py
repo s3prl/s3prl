@@ -66,11 +66,11 @@ def extract_length(input_file):
 ###################
 # GENERATE LENGTH #
 ###################
-def generate_length(args, tr_set, audio_extention):
+def generate_length(args, tr_set, audio_extension):
     
     for i, s in enumerate(tr_set):
         print('')
-        todo = list(Path(os.path.join(args.input_data, s)).rglob('*' + audio_extention)) # '*.flac'
+        todo = list(Path(os.path.join(args.input_data, s)).rglob('*' + audio_extension)) # '*.flac'
         print(f'Preprocessing data in: {s}, {len(todo)} audio files found.')
 
         output_dir = os.path.join(args.output_path, args.name)
@@ -108,7 +108,7 @@ def main():
     tr_set = [SETS[int(t)] for t in tr_set.split(' ')]
 
     # Acoustic Feature Extraction & Make Data Table
-    generate_length(args, tr_set, args.audio_extention)
+    generate_length(args, tr_set, args.audio_extension)
 
 
 if __name__ == '__main__':
