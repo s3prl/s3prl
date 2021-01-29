@@ -51,7 +51,7 @@ def get_pretrain_args():
     # options
     parser.add_argument('--seed', default=1337, type=int)
     parser.add_argument('--device', default='cuda', help='model.to(device)')
-    parser.add_argument('--multi_gpu', default=False, help='whether to activate distributed training')
+    parser.add_argument('--multi_gpu', action='store_true', help='Enables multi-GPU training')
 
     args = parser.parse_args()
 
