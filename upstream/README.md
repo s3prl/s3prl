@@ -1,5 +1,17 @@
 # Upstream Models
 
+Table of Contents
+------------------------------------
+
+<!--ts-->
+   * [Table of contents](#table-of-contents)
+   * [1-for-all interface](#1-for-all-interface)
+   * [Upstream Self-Supervised Models](#upstream-self-supervised-models)
+   * [Upstream Acoustic Feature Extracters](#upstream-acoustic-feature-extracters)
+<!--te-->
+
+------------------------------------
+
 ## 1-for-all interface
 We provide an all-in-one unified interface for numerous speech pretrained models.
 **All the upstream models take input / output of the same format:**
@@ -71,6 +83,10 @@ Publication Date | Model | name | Paper | Input | Stride | Pre-train | Ckpt | Re
     - Checkpoints are provided by this repo: [fairseq](https://github.com/pytorch/fairseq/blob/master/examples/wav2vec/README.md)
 </p></details>
 
+[Back to Top](#table-of-contents)
+
+------------------------------------
+
 ### How to specify your upstream
 The `Name` field is the tag we used in this repo to specify different models. In other words, different upstream are identified with the exact string of their `Name`. For example, this is how you call an upstream through the hub:
 ```python
@@ -88,10 +104,18 @@ import torch
 print(torch.hub.list('s3prl/s3prl'))
 ```
 
+[Back to Top](#table-of-contents)
+
+------------------------------------
+
 ### Knowing your upstream model
 * **Input**: The `Input` field shows which type of input the upstream model takes. *Note that although there are a varity of input types, but our interface always you to always feed waveform  as input* (`list of unpadded wavs [wav1, wav2, ...]`). For upstream models that use input other than wav (e.g. Mel), the preprocessing process is done on-the-fly during model forward. Rest assured that this will not increase your runtime.
 * **Pre-train**: The `Pre-train` field tells on which data the upstream model was pre-trained, so you can make acceptable plug-in of certain model into certain pipeline.
 * **Stride**: The `Stride` field shows the timeframe that each extracted feature encodes. In other words, the upstream model extracts a representation every `Stride` (ms).
+
+[Back to Top](#table-of-contents)
+
+------------------------------------
 
 ### Use upstream models in your own project
 * Models with pretrained weights are provided with a convenient [torch.hub](https://pytorch.org/docs/stable/hub.html) interface.
@@ -148,6 +172,10 @@ reps = upstream(wavs)
 * There are also example codes under each upstream directory (`upstream/*/example_extract.py`) for your reference. 
 * In addition, here is a **detailed tutorial: [slides](https://docs.google.com/presentation/d/1n2Twz8YEmX67k6Vs_9aIzR6arVacnWzEFZNxBl-jsKU/edit?usp=sharing)**
 
+[Back to Top](#table-of-contents)
+
+------------------------------------
+
 ## Upstream Acoustic Feature Extracters
 | Feature | Name | Default Dim | Hop | Window | Backend |
 | -------- | -------- | -------- | -------- | -------- | -------- |
@@ -156,6 +184,10 @@ reps = upstream(wavs)
 | MFCC | mfcc | 13 + delta1 + delta2 | 10ms | 25ms | torchaudio-kaldi |
 | Mel | mel | 80 | 10ms | 25ms | torchaudio |
 | Linear | linear | 201 | 10ms | 25ms | torchaudio |
+
+[Back to Top](#table-of-contents)
+
+------------------------------------
 
 ### Knowing your feature extracter
 * **Name**: The `Name` field is the tag we used in this repo to specify different acoustic features. In other words, different features are identified with the exact string of their `Name`. For example, this is how you call an feature extracter through the hub:
@@ -171,6 +203,10 @@ python run_downstream.py -m train -u mfcc -d example -n NameOfExp # Using the MF
 * **Default Dim**: The `default dim` field tells the number of dimension a particular feature has by default. The dim can be changed by modifying the config files, they can be found at `s3prl/upstream/baseline/*.yaml`. Feel free to change them to fit your situation.
 
 * **Backend**: The `backend` field tells how the feature extraction is based on. The `torchaudio-kaldi` backend matches the input/output of Kaldi’s compute-spectrogram-feats, see [torchaudio.compliance.kaldi](https://pytorch.org/audio/stable/compliance.kaldi.html) for more information. The `torchaudio` backend uses standard preprocessing procedures, see [torchaudio.transforms](https://pytorch.org/audio/stable/transforms.html) for more information.
+
+[Back to Top](#table-of-contents)
+
+------------------------------------
 
 ### Use feature extracters in your own project
 Feature extracters with default config are provided with a convenient [torch.hub](https://pytorch.org/docs/stable/hub.html) interface.
@@ -191,3 +227,7 @@ extracter = torch.hub.load('s3prl/s3prl',
 wavs = [torch.zeros(160000, dtype=torch.float) for _ in range(16)]
 mfcc = extracter(wavs)
 ```
+
+[Back to Top](#table-of-contents)
+
+------------------------------------
