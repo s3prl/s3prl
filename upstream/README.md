@@ -7,7 +7,12 @@ Table of Contents
    * [Table of contents](#table-of-contents)
    * [1-for-all interface](#1-for-all-interface)
    * [Upstream Self-Supervised Models](#upstream-self-supervised-models)
+      * [How to specify your upstream model](#how-to-specify-your-upstream-model)
+      * [Knowing your upstream model](#knowing-your-upstream-model)
+      * [Use upstream models in your own project](#use-upstream-models-in-your-own-project)
    * [Upstream Acoustic Feature Extracters](#upstream-acoustic-feature-extracters)
+      * [Knowing your feature extracter](#knowing-your-feature-extracter)
+      * [Use feature extracters in your own project](#use-feature-extracters-in-your-own-project)
 <!--te-->
 
 ------------------------------------
@@ -87,7 +92,7 @@ Publication Date | Model | name | Paper | Input | Stride | Pre-train | Ckpt | Re
 
 ------------------------------------
 
-### How to specify your upstream
+### How to specify your upstream model
 The `Name` field is the tag we used in this repo to specify different models. In other words, different upstream are identified with the exact string of their `Name`. For example, this is how you call an upstream through the hub:
 ```python
 model_1 = torch.hub.load('s3prl/s3prl', 'cpc') # build the CPC model with pre-trained weights
