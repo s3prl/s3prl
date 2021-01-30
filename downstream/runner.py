@@ -14,6 +14,7 @@ from tensorboardX import SummaryWriter
 
 from optimizers import get_optimizer
 from schedulers import get_scheduler
+from utility.helper import count_parameters
 
 
 class Runner():
@@ -43,6 +44,7 @@ class Runner():
             refresh = self.args.upstream_refresh,
             ckpt = self.args.upstream_ckpt,
         ).to(self.args.device)
+        print(f'[Runner] - Upstream has {count_parameters(upstream)} parameters')
 
         assert hasattr(upstream, 'forward')
         assert hasattr(upstream, 'get_output_dim')
@@ -62,6 +64,7 @@ class Runner():
             **self.config,
             **vars(self.args)
         ).to(self.args.device)
+        print(f'[Runner] - Downstream has {count_parameters(downstream)} parameters')
 
         assert hasattr(downstream, 'get_train_dataloader')
         assert hasattr(downstream, 'get_dev_dataloader')
