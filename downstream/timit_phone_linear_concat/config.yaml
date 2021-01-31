@@ -1,11 +1,11 @@
 runner:
-  total_steps: 300000
+  total_steps: 500000
   gradient_clipping: 1
   gradient_accumulate_steps: 1
 
   log_step: 5000
-  eval_step: 5000
-  save_step: 5000
+  eval_step: 10000
+  save_step: 10000
   max_keep: 1
   eval_dataloaders:
     - dev
@@ -26,5 +26,5 @@ downstream_expert:
     sample_rate: 16000 # this should not be changed, and this should match the sr of the audio in `libri_root`
     train_dev_seed: 1337
 
-  modelrc: 
-    none: None
+  modelrc:
+    concat_n_frames: 9
