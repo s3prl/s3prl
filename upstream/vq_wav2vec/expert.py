@@ -18,9 +18,8 @@ class UpstreamExpert(nn.Module):
     The expert of vq-Wav2vec
     """
 
-    def __init__(self, ckpt, feature_selection, **kwargs):
+    def __init__(self, ckpt, **kwargs):
         super(UpstreamExpert, self).__init__()
-        self.feature_selection = feature_selection
 
         cp = torch.load(ckpt)
         self.model = Wav2VecModel.build_model(cp['args'], task=None)
@@ -30,11 +29,7 @@ class UpstreamExpert(nn.Module):
         z = self.model.feature_extractor(pseudo_input)
         # z: (batch_size, feat_dim, seqlen)
 
-        if self.feature_selection == 'codewords':
-            codewords, _ = self.model.vector_quantizer.forward_idx(z)
-            # codewords: (batch_size, feat_dim, seqlen) in torch.FloatTensor
-
-        pseudo_features = eval(self.feature_selection).transpose(1, 2)
+        pseudo_features = z.transpose(1, 2)
         self.output_dim = pseudo_features.size(-1)
 
     def _forward_embedding(self, codes):
@@ -69,11 +64,7 @@ class UpstreamExpert(nn.Module):
         z = self.model.feature_extractor(padded_wav)
         # z: (batch_size, feat_dim, seqlen)
 
-        if self.feature_selection == 'codewords':
-            codewords, _ = self.model.vector_quantizer.forward_idx(z)
-            # codewords: (batch_size, feat_dim, seqlen) in torch.FloatTensor
-
-        features = eval(self.feature_selection).transpose(1, 2)
+        features = z.transpose(1, 2)
         ratio = padded_wav.size(1) / features.size(1)
         feat_lengths = [round(wav_len / ratio) for wav_len in wav_lengths]
 
