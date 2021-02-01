@@ -10,7 +10,7 @@
       ![](https://i.imgur.com/PdAOXjq.png)
 2) **(IMPORTANT)** Generate the meta data directory `len_for_bucket/` for bucketing to accelerate training: 
 ```bash
-python3 preprocess/generate_len_for_bucket.py --data_root=PATH_TO_YOUR/LibriSpeech/
+python3 preprocess/generate_len_for_bucket.py -i PATH_TO_YOUR/LibriSpeech/
 ```
 
 ## Step 2) Modifiy runner config
