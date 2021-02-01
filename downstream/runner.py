@@ -45,8 +45,10 @@ class Runner():
             ckpt = self.args.upstream_ckpt,
         ).to(self.args.device)
 
-        upstream([torch.randn(16000).to(self.args.device)])[0].sum().backward()
+        upstream([torch.randn(16000, requires_grad=True).to(self.args.device)])[0].sum().backward()
+        print(f'[Runner] - Upstream model architecture: {upstream}')
         print(f'[Runner] - Upstream has {count_used_parameters(upstream)} parameters')
+        print(f'[Runner] - Upstream output dimension: {upstream.get_output_dim()}')
         upstream.zero_grad()
 
         assert hasattr(upstream, 'forward')
@@ -67,6 +69,8 @@ class Runner():
             **self.config,
             **vars(self.args)
         ).to(self.args.device)
+
+        print(f'[Runner] - Downstream model architecture: {downstream}')
         print(f'[Runner] - Downstream has {count_parameters(downstream)} parameters')
 
         assert hasattr(downstream, 'get_train_dataloader')
