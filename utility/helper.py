@@ -16,6 +16,10 @@ import torch
 def count_parameters(model):
     return sum(p.numel() for p in model.parameters() if p.requires_grad)
 
+def count_used_parameters(model):
+    # The model should be at least backward once
+    return sum(p.numel() for p in model.parameters() if p.grad is not None)
+
 
 #####################
 # PARSE PRUNE HEADS #

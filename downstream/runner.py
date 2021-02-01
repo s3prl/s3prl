@@ -14,7 +14,7 @@ from tensorboardX import SummaryWriter
 
 from optimizers import get_optimizer
 from schedulers import get_scheduler
-from utility.helper import count_parameters
+from utility.helper import count_parameters, count_used_parameters
 
 
 class Runner():
@@ -44,7 +44,10 @@ class Runner():
             refresh = self.args.upstream_refresh,
             ckpt = self.args.upstream_ckpt,
         ).to(self.args.device)
-        print(f'[Runner] - Upstream has {count_parameters(upstream)} parameters')
+
+        upstream([torch.randn(16000).to(self.args.device)])[0].sum().backward()
+        print(f'[Runner] - Upstream has {count_used_parameters(upstream)} parameters')
+        upstream.zero_grad()
 
         assert hasattr(upstream, 'forward')
         assert hasattr(upstream, 'get_output_dim')
