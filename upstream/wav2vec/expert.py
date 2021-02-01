@@ -37,6 +37,10 @@ class UpstreamExpert(nn.Module):
         return self.output_dim
 
     # Interface
+    def get_downsample_rate(self):
+        return 160
+
+    # Interface
     def forward(self, wavs):
         """
         Args:

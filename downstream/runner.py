@@ -16,6 +16,8 @@ from optimizers import get_optimizer
 from schedulers import get_scheduler
 from utility.helper import count_parameters, count_used_parameters
 
+SAMPLE_RATE = 16000
+
 
 class Runner():
     """
@@ -45,14 +47,17 @@ class Runner():
             ckpt = self.args.upstream_ckpt,
         ).to(self.args.device)
 
+        assert hasattr(upstream, 'forward')
+        assert hasattr(upstream, 'get_output_dim')
+        assert hasattr(upstream, 'get_downsample_rate')
+
         upstream([torch.randn(16000, requires_grad=True).to(self.args.device)])[0].sum().backward()
         print(f'[Runner] - Upstream model architecture: {upstream}')
         print(f'[Runner] - Upstream has {count_used_parameters(upstream)} parameters')
         print(f'[Runner] - Upstream output dimension: {upstream.get_output_dim()}')
+        downsample = upstream.get_downsample_rate()
+        print(f'[Runner] - Upstream downsample rate: {downsample} ({downsample / SAMPLE_RATE * 1000} ms/frame)')
         upstream.zero_grad()
-
-        assert hasattr(upstream, 'forward')
-        assert hasattr(upstream, 'get_output_dim')
 
         init_upstream = self.init_ckpt.get('Upstream')
         if init_upstream:
