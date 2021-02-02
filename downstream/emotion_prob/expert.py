@@ -2,6 +2,7 @@ import os
 import math
 import torch
 import random
+from collections import defaultdict
 
 import torch
 import torch.nn as nn
@@ -69,6 +70,7 @@ class DownstreamExpert(nn.Module):
         self.objective = nn.CrossEntropyLoss()
 
         self.logging = os.path.join(expdir, 'log.log')
+        self.best = defaultdict(lambda: 0)
 
 
     def get_downstream_name(self):
@@ -215,8 +217,12 @@ class DownstreamExpert(nn.Module):
                 average,
                 global_step=global_step
             )
+            message = f'{prefix}|step:{global_step}|{key}:{average}\n'
+            if average > self.best[prefix]:
+                message = f'best|{message}'
+                self.best[prefix] = average
             with open(self.logging, 'a') as f:
-                f.write(f'{prefix}|step:{global_step}|{key}:{average}\n')
+                f.write(message)
 
         if not self.training:
             # some evaluation-only processing, eg. decoding
