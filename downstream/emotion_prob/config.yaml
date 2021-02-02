@@ -1,7 +1,7 @@
 runner:
   total_steps: 100000
   gradient_clipping: 1
-  gradient_accumulate_steps: 1
+  gradient_accumulate_steps: 4
 
   log_step: 10
   eval_step: 250
@@ -25,8 +25,8 @@ downstream_expert:
   datarc:
     root: ../datasets/IEMOCAP
     pre_load: True
-    train_batch_size: 32
-    eval_batch_size: 32
+    train_batch_size: 8
+    eval_batch_size: 8
     num_workers: 12
     valid_ratio: 0.2
 
