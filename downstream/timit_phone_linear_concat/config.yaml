@@ -22,7 +22,7 @@ downstream_expert:
     eval_batch_size: 16
     data_root: '/work/a129195789/TIMIT/'
     phone_path: './downstream/timit_phone_linear/data'
-    bucket_file: './data/len_for_bucket_timit' # run: `python preprocess/generate_len_for_bucket.py --data_root ../TIMIT --audio_extention .WAV --name len_for_bucket_timit`
+    bucket_file: './data/len_for_bucket_timit' # run: `python preprocess/generate_len_for_bucket.py -i your_path_to/TIMIT -a .WAV -n len_for_bucket_timit`
     sample_rate: 16000 # this should not be changed, and this should match the sr of the audio in `libri_root`
     train_dev_seed: 1337
 
