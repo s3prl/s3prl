@@ -1,7 +1,7 @@
 runner:
   total_steps: 100000
   gradient_clipping: 1
-  gradient_accumulate_steps: 16
+  gradient_accumulate_steps: 1
 
   log_step: 10
   eval_step: 250
@@ -17,16 +17,16 @@ optimizer:
 
 # comment the whole scheduler config block
 # to disable learning rate scheduling
-scheduler:
-  name: linear_schedule_with_warmup
-  num_warmup_steps: 1400
+# scheduler:
+#   name: linear_schedule_with_warmup
+#   num_warmup_steps: 1400
 
 downstream_expert:
   datarc:
-    root: /groups/public/benchmark/IEMOCAP
+    root: ../datasets/IEMOCAP
     pre_load: True
-    train_batch_size: 4
-    eval_batch_size: 4
+    train_batch_size: 32
+    eval_batch_size: 32
     num_workers: 12
     valid_ratio: 0.2
 
