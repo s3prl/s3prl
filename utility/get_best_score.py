@@ -29,9 +29,15 @@ import sys
 def main():
 
     log_file = str(sys.argv[1])
-    rank_by = str(sys.argv[2])
-    target = str(sys.argv[3])
-    large_or_small = str(sys.argv[4])
+    
+    if len(sys.argv) == 4:
+        rank_by = str(sys.argv[2])
+        target = str(sys.argv[3])
+        large_or_small = str(sys.argv[4])
+    else:
+        rank_by = 'dev'
+        target = 'test'
+        large_or_small = '+'
 
     best_record = [-99999, 0, None]
     if large_or_small == '-': best_record[0] *= -1
