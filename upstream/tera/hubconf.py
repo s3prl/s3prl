@@ -39,7 +39,28 @@ def tera(refresh=False, *args, **kwargs):
         The default model
             refresh (bool): whether to download ckpt/config again if existed
     """
-    return tera_logMelBase_time_freq_AdamW_b32_1m_960hr(refresh, *args, **kwargs)
+    return tera_logMelBase_T_F_AdamW_b32_1m_960hr(refresh, *args, **kwargs)
+
+
+###########
+# ALIASES #
+###########
+
+
+def tera_100hr(refresh=False, *args, **kwargs):
+    """
+        The tera base model on 100hr
+            refresh (bool): whether to download ckpt/config again if existed
+    """
+    return tera_logMelBase_T_F_AdamW_b32_200k_100hr(refresh, *args, **kwargs)
+
+
+def tera_960hr(refresh=False, *args, **kwargs):
+    """
+        The tera base model on 960hr
+            refresh (bool): whether to download ckpt/config again if existed
+    """
+    return tera_logMelBase_T_F_AdamW_b32_1m_960hr_seq3k(refresh, *args, **kwargs)
 
 
 ##########
@@ -47,20 +68,7 @@ def tera(refresh=False, *args, **kwargs):
 ##########
 
 
-def tera_logMelBase_time_AdamW_b32_200k_100hr(refresh=False, *args, **kwargs):
-    """
-        Feature: 80-dim log Mel
-        Alteration: time
-        Optimizer: AdamW
-        Batch size: 32
-        Total steps: 200k
-        Unlabled Speech: 100hr
-    """
-    kwargs['ckpt'] = 'https://www.dropbox.com/s/luorglf8mdg67l2/states-200000.ckpt?dl=0'
-    return tera_url(refresh=refresh, *args, **kwargs)
-
-
-def tera_logMelBase_freq_AdamW_b32_200k_100hr(refresh=False, *args, **kwargs):
+def tera_logMelBase_F_AdamW_b32_200k_100hr(refresh=False, *args, **kwargs):
     """
         Feature: 80-dim log Mel
         Alteration: freq
@@ -73,7 +81,7 @@ def tera_logMelBase_freq_AdamW_b32_200k_100hr(refresh=False, *args, **kwargs):
     return tera_url(refresh=refresh, *args, **kwargs)
 
 
-def tera_logMelBase_mag_AdamW_b32_200k_100hr(refresh=False, *args, **kwargs):
+def tera_logMelBase_M_AdamW_b32_200k_100hr(refresh=False, *args, **kwargs):
     """
         Feature: 80-dim log Mel
         Alteration: mag
@@ -86,7 +94,7 @@ def tera_logMelBase_mag_AdamW_b32_200k_100hr(refresh=False, *args, **kwargs):
     return tera_url(refresh=refresh, *args, **kwargs)
 
 
-def tera_logMelBase_time_freq_AdamW_b32_200k_100hr(refresh=False, *args, **kwargs):
+def tera_logMelBase_T_F_AdamW_b32_200k_100hr(refresh=False, *args, **kwargs):
     """
         Feature: 80-dim log Mel
         Alteration: time + freq
@@ -99,7 +107,7 @@ def tera_logMelBase_time_freq_AdamW_b32_200k_100hr(refresh=False, *args, **kwarg
     return tera_url(refresh=refresh, *args, **kwargs)
 
 
-def tera_logMelBase_time_mag_AdamW_b32_200k_100hr(refresh=False, *args, **kwargs):
+def tera_logMelBase_T_M_AdamW_b32_200k_100hr(refresh=False, *args, **kwargs):
     """
         Feature: 80-dim log Mel
         Alteration: time + mag
@@ -112,7 +120,7 @@ def tera_logMelBase_time_mag_AdamW_b32_200k_100hr(refresh=False, *args, **kwargs
     return tera_url(refresh=refresh, *args, **kwargs)
 
 
-def tera_logMelBase_freq_mag_AdamW_b32_200k_100hr(refresh=False, *args, **kwargs):
+def tera_logMelBase_F_M_AdamW_b32_200k_100hr(refresh=False, *args, **kwargs):
     """
         Feature: 80-dim log Mel
         Alteration: freq + mag
@@ -125,7 +133,7 @@ def tera_logMelBase_freq_mag_AdamW_b32_200k_100hr(refresh=False, *args, **kwargs
     return tera_url(refresh=refresh, *args, **kwargs)
 
 
-def tera_logMelBase_time_freq_mag_AdamW_b32_200k_100hr(refresh=False, *args, **kwargs):
+def tera_logMelBase_T_F_M_AdamW_b32_200k_100hr(refresh=False, *args, **kwargs):
     """
         Feature: 80-dim log Mel
         Alteration: time + freq + mag
@@ -143,46 +151,7 @@ def tera_logMelBase_time_freq_mag_AdamW_b32_200k_100hr(refresh=False, *args, **k
 ##########
 
 
-def tera_logMelBase_time_AdamW_b32_1m_960hr(refresh=False, *args, **kwargs):
-    """
-        Feature: 80-dim log Mel
-        Alteration: time
-        Optimizer: AdamW
-        Batch size: 32
-        Total steps: 1M
-        Unlabled Speech: 960hr
-    """
-    kwargs['ckpt'] = 'https://www.dropbox.com/s/jzx0xggk663jev6/states-1000000.ckpt?dl=0'
-    return tera_url(refresh=refresh, *args, **kwargs)
-
-
-def tera_logMelBase_freq_AdamW_b32_1m_960hr(refresh=False, *args, **kwargs):
-    """
-        Feature: 80-dim log Mel
-        Alteration: freq
-        Optimizer: AdamW
-        Batch size: 32
-        Total steps: 1M
-        Unlabled Speech: 960hr
-    """
-    kwargs['ckpt'] = 'https://www.dropbox.com/s/vj047t6257gi1al/states-1000000.ckpt?dl=0'
-    return tera_url(refresh=refresh, *args, **kwargs)
-
-
-def tera_logMelBase_mag_AdamW_b32_1m_960hr(refresh=False, *args, **kwargs):
-    """
-        Feature: 80-dim log Mel
-        Alteration: mag
-        Optimizer: AdamW
-        Batch size: 32
-        Total steps: 1M
-        Unlabled Speech: 960hr
-    """
-    kwargs['ckpt'] = 'https://www.dropbox.com/s/k3cye2cxcsuplrw/states-1000000.ckpt?dl=0'
-    return tera_url(refresh=refresh, *args, **kwargs)
-
-
-def tera_logMelBase_time_freq_AdamW_b32_1m_960hr(refresh=False, *args, **kwargs):
+def tera_logMelBase_T_F_AdamW_b32_1m_960hr(refresh=False, *args, **kwargs):
     """
         Feature: 80-dim log Mel
         Alteration: time + freq
@@ -195,42 +164,31 @@ def tera_logMelBase_time_freq_AdamW_b32_1m_960hr(refresh=False, *args, **kwargs)
     return tera_url(refresh=refresh, *args, **kwargs)
 
 
-def tera_logMelBase_time_mag_AdamW_b32_1m_960hr(refresh=False, *args, **kwargs):
+def tera_logMelBase_T_F_AdamW_b32_1m_960hr_drop1(refresh=False, *args, **kwargs):
     """
         Feature: 80-dim log Mel
-        Alteration: time + mag
+        Alteration: time + freq
         Optimizer: AdamW
         Batch size: 32
         Total steps: 1M
         Unlabled Speech: 960hr
+        Differences: Dropout of 0.1 (instead of 0.3)
     """
-    kwargs['ckpt'] = 'https://www.dropbox.com/s/i3p2ulhd7robwcl/states-1000000.ckpt?dl=0'
+    kwargs['ckpt'] = 'https://www.dropbox.com/s/2ekbt2gxlkbvfz0/states-1000000.ckpt?dl=0'
     return tera_url(refresh=refresh, *args, **kwargs)
 
 
-def tera_logMelBase_freq_mag_AdamW_b32_1m_960hr(refresh=False, *args, **kwargs):
+def tera_logMelBase_T_F_AdamW_b32_1m_960hr_seq3k(refresh=False, *args, **kwargs):
     """
         Feature: 80-dim log Mel
-        Alteration: freq + mag
+        Alteration: time + freq
         Optimizer: AdamW
         Batch size: 32
         Total steps: 1M
         Unlabled Speech: 960hr
+        Differences: sequence length of 3k (instead of 1.5k)
     """
-    kwargs['ckpt'] = ''
-    return tera_url(refresh=refresh, *args, **kwargs)
-
-
-def tera_logMelBase_time_freq_mag_AdamW_b32_1m_960hr(refresh=False, *args, **kwargs):
-    """
-        Feature: 80-dim log Mel
-        Alteration: time + freq + mag
-        Optimizer: AdamW
-        Batch size: 32
-        Total steps: 1M
-        Unlabled Speech: 960hr
-    """
-    kwargs['ckpt'] = 'https://www.dropbox.com/s/vbagkhl2tgh7fff/states-1000000.ckpt?dl=0'
+    kwargs['ckpt'] = 'todo'
     return tera_url(refresh=refresh, *args, **kwargs)
 
 
@@ -239,7 +197,7 @@ def tera_logMelBase_time_freq_mag_AdamW_b32_1m_960hr(refresh=False, *args, **kwa
 #####################
 
 
-def tera_fbankBase_time_freq_AdamW_b32_200k_100hr(refresh=False, *args, **kwargs):
+def tera_fbankBase_T_F_AdamW_b32_200k_100hr(refresh=False, *args, **kwargs):
     """
         Feature: 240-dim fbank
         Alteration: time + freq

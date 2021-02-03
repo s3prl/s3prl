@@ -1,9 +1,8 @@
 import os
 import torch
 
-from utility.download import _gdriveids_to_filepaths
+from utility.download import _gdriveids_to_filepaths, _urls_to_filepaths
 from upstream.mockingjay.expert import UpstreamExpert as _UpstreamExpert
-from ..tera.hubconf import tera_logMelBase_time_AdamW_b32_1m_960hr as mockingjay_logMelBase_AdamW_b32_1m_960hr
 
 
 def mockingjay_local(ckpt, feature_selection=None, *args, **kwargs):
@@ -27,9 +26,102 @@ def mockingjay_gdriveid(ckpt, refresh=False, *args, **kwargs):
     return mockingjay_local(_gdriveids_to_filepaths(ckpt, refresh=refresh), *args, **kwargs)
 
 
+def mockingjay_url(ckpt, refresh=False, *args, **kwargs):
+    """
+        The model from URL
+            ckpt (str): URL
+    """
+    return mockingjay_local(_urls_to_filepaths(ckpt, refresh=refresh), *args, **kwargs)
+
+
 def mockingjay(refresh=False, *args, **kwargs):
     """
         The default model
             refresh (bool): whether to download ckpt/config again if existed
     """
-    return mockingjay_logMelBase_AdamW_b32_1m_960hr(refresh=refresh, *args, **kwargs)
+    return mockingjay_960hr(refresh=refresh, *args, **kwargs)
+
+
+###########
+# ALIASES #
+###########
+
+
+def mockingjay_100hr(refresh=False, *args, **kwargs):
+    """
+        The mockingjay base model on 100hr
+            refresh (bool): whether to download ckpt/config again if existed
+    """
+    return mockingjay_logMelBase_T_AdamW_b32_200k_100hr(refresh=refresh, *args, **kwargs)
+
+
+def mockingjay_960hr(refresh=False, *args, **kwargs):
+    """
+        The mockingjay base model on 960hr
+            refresh (bool): whether to download ckpt/config again if existed
+    """
+    return mockingjay_logMelBase_T_AdamW_b32_1m_960hr_seq3k(refresh=refresh, *args, **kwargs)
+
+
+##########
+# 100 HR #
+##########
+
+
+def mockingjay_logMelBase_T_AdamW_b32_200k_100hr(refresh=False, *args, **kwargs):
+    """
+        Feature: 80-dim log Mel
+        Alteration: time
+        Optimizer: AdamW
+        Batch size: 32
+        Total steps: 200k
+        Unlabled Speech: 100hr
+    """
+    kwargs['ckpt'] = 'https://www.dropbox.com/s/luorglf8mdg67l2/states-200000.ckpt?dl=0'
+    return mockingjay_url(refresh=refresh, *args, **kwargs)
+
+
+##########
+# 960 HR #
+##########
+
+
+def mockingjay_logMelBase_T_AdamW_b32_1m_960hr(refresh=False, *args, **kwargs):
+    """
+        Feature: 80-dim log Mel
+        Alteration: time
+        Optimizer: AdamW
+        Batch size: 32
+        Total steps: 1M
+        Unlabled Speech: 960hr
+    """
+    kwargs['ckpt'] = 'https://www.dropbox.com/s/jzx0xggk663jev6/states-1000000.ckpt?dl=0'
+    return mockingjay_url(refresh=refresh, *args, **kwargs)
+
+
+def mockingjay_logMelBase_T_AdamW_b32_1m_960hr_drop1(refresh=False, *args, **kwargs):
+    """
+        Feature: 80-dim log Mel
+        Alteration: time
+        Optimizer: AdamW
+        Batch size: 32
+        Total steps: 1M
+        Unlabled Speech: 960hr
+        Differences: Dropout of 0.1 (instead of 0.3)
+    """
+    kwargs['ckpt'] = 'https://www.dropbox.com/s/7f9z6dzc7oix6qv/states-1000000.ckpt?dl=0'
+    return mockingjay_url(refresh=refresh, *args, **kwargs)
+
+
+def mockingjay_logMelBase_T_AdamW_b32_1m_960hr_seq3k(refresh=False, *args, **kwargs):
+    """
+        Feature: 80-dim log Mel
+        Alteration: time
+        Optimizer: AdamW
+        Batch size: 32
+        Total steps: 1M
+        Unlabled Speech: 960hr
+        Differences: sequence length of 3k (instead of 1.5k)
+    """
+    kwargs['ckpt'] = 'https://www.dropbox.com/s/qnnvdrai2tfmjmh/states-1000000.ckpt?dl=0'
+    return mockingjay_url(refresh=refresh, *args, **kwargs)
