@@ -35,7 +35,7 @@ model = Upstream(refresh=True).to(device)
 
 # below is an example of using a local checkpoint
 try:
-    path = './s3prl/mockingjay/logMelBase-T-AdamW-b32-1m-960hr/states-1000000.ckpt'
+    path = './s3prl/mockingjay/logMelBase-T-AdamW-b32-200k-100hr/states-200000.ckpt'
     Upstream_local = getattr(importlib.import_module('hubconf'), 'mockingjay_local')
     model_local = Upstream_local(ckpt=path).to(device)
 except:
