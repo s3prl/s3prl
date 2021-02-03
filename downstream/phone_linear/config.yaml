@@ -15,16 +15,12 @@ optimizer:
   name: AdamW
   lr: 2.e-4
 
-scheduler:
-  name: linear_schedule_with_warmup
-  num_warmup_steps: 50000
-
 downstream_expert:
   datarc:
-    num_workers: 6
-    train_batch_size: 16 
-    eval_batch_size: 16
-    libri_root: '/media/andi611/1TBSSD/LibriSpeech/'
+    num_workers: 8
+    train_batch_size: 32 
+    eval_batch_size: 32
+    libri_root: '/work/a129195789/LibriSpeech/'
     phone_path: './downstream/phone_linear/data'
     bucket_file: 'data/len_for_bucket'
     sample_rate: 16000 # this should not be changed, and this should match the sr of the audio in `libri_root`
