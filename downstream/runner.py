@@ -22,7 +22,7 @@ SAMPLE_RATE = 16000
 class Runner():
     """
     Used to handle high-level concepts of a ML experiment
-    eg. training loop, evaluation loop, upstream propagation, optimization, tensorboard logging, checkpoint saving
+    eg. training loop, evaluation loop, upstream propagation, optimization, logging, checkpoint saving
     """
     def __init__(self, args, config):
         self.args = args
@@ -32,11 +32,6 @@ class Runner():
         self.init_ckpt = torch.load(self.args.past_exp, map_location='cpu') if self.args.past_exp else {}
         self.upstream = self._get_upstream()
         self.downstream = self._get_downstream()
-
-        # set up the downstream name used by Tensorboard
-        self.downstream_name = self.args.downstream
-        if hasattr(self.downstream, 'get_downstream_name'):
-            self.downstream_name = self.downstream.get_downstream_name()
 
 
     def _get_upstream(self):
@@ -78,9 +73,7 @@ class Runner():
         print(f'[Runner] - Downstream model architecture: {downstream}')
         print(f'[Runner] - Downstream has {count_parameters(downstream)} parameters')
 
-        assert hasattr(downstream, 'get_train_dataloader')
-        assert hasattr(downstream, 'get_dev_dataloader')
-        assert hasattr(downstream, 'get_test_dataloader')
+        assert hasattr(downstream, 'get_dataloader')
         assert hasattr(downstream, 'forward')
         assert hasattr(downstream, 'log_records')
 
@@ -144,13 +137,11 @@ class Runner():
             pbar.n = init_step
 
         # prepare data
-        dataloader = self.downstream.get_train_dataloader()
+        dataloader = self.downstream.get_dataloader('train')
 
-        all_loss = []
+        batch_ids = []
         backward_steps = 0
         records = defaultdict(list)
-        prefix = f'{self.downstream_name}/train-'
-
         while pbar.n < pbar.total:
             for batch_id, (wavs, *others) in enumerate(tqdm(dataloader, dynamic_ncols=True, desc='train')):
                 # try/except block for forward/backward
@@ -160,24 +151,22 @@ class Runner():
                     global_step = pbar.n + 1
 
                     wavs = [wav.to(self.args.device) for wav in wavs]
-                    if self.args.upstream_trainable:
+                    if self.upstream.training:
                         features = self.upstream(wavs)
                     else:
                         with torch.no_grad():
                             features = self.upstream(wavs)
 
                     loss = self.downstream(
+                        'train',
                         features, *others,
                         records = records,
-                        logger = self.logger,
-                        prefix = prefix,
-                        global_step = global_step,
-                        log_step = self.config['runner']['log_step'],
-                        batch_id = batch_id,
-                        batch_num = len(dataloader),
                     )
+                    batch_ids.append(batch_id)
+
                     gradient_accumulate_steps = self.config['runner'].get('gradient_accumulate_steps')
                     (loss / gradient_accumulate_steps).backward()
+                    del loss
 
                 except RuntimeError as e:
                     if 'CUDA out of memory' in str(e):
@@ -188,10 +177,6 @@ class Runner():
                     else:
                         raise
 
-                # record loss
-                all_loss.append(loss.item())
-                del loss
-                
                 # whether to accumulate gradient
                 backward_steps += 1
                 if backward_steps % gradient_accumulate_steps > 0:
@@ -216,27 +201,23 @@ class Runner():
 
                 # logging
                 if global_step % self.config['runner']['log_step'] == 0:
-                    # log loss
-                    average_loss = torch.FloatTensor(all_loss).mean().item()
-                    self.logger.add_scalar(f'{prefix}loss', average_loss, global_step=global_step)
-                    all_loss = []
-
-                    # log customized contents
                     self.downstream.log_records(
+                        'train',
                         records = records,
                         logger = self.logger,
-                        prefix = prefix,
                         global_step = global_step,
-                        log_step = self.config['runner']['log_step'],
+                        batch_ids = batch_ids,
+                        total_batch_num = len(dataloader),
                     )
+                    batch_ids = []
                     records = defaultdict(list)
 
                 # evaluation and save checkpoint
                 save_names = []
 
                 if global_step % self.config['runner']['eval_step'] == 0:
-                    for split in self.config['runner']['eval_dataloaders']:
-                        save_names += self.evaluate(split, global_step)
+                    for mode in self.config['runner']['eval_dataloaders']:
+                        save_names += self.evaluate(mode, global_step)
 
                 if global_step % self.config['runner']['save_step'] == 0:
                     def check_ckpt_num(directory):
@@ -276,7 +257,7 @@ class Runner():
         pbar.close()
 
 
-    def evaluate(self, split='test', global_step=0):
+    def evaluate(self, mode='test', global_step=0):
         # fix seed to guarantee the same evaluation protocol across steps 
         random.seed(self.args.seed)
         np.random.seed(self.args.seed)
@@ -292,44 +273,31 @@ class Runner():
         self.upstream.eval()
 
         # prepare data
-        dataloader = eval(f'self.downstream.get_{split}_dataloader')()
+        dataloader = self.downstream.get_dataloader(mode)
 
-        # main evaluation block
-        all_loss = []
+        batch_ids = []
         records = defaultdict(list)
-        prefix = f'{self.downstream_name}/{split}-'
-
-        for batch_id, (wavs, *others) in enumerate(tqdm(dataloader, dynamic_ncols=True, desc=split)):
+        for batch_id, (wavs, *others) in enumerate(tqdm(dataloader, dynamic_ncols=True, desc=mode)):
 
             wavs = [wav.to(self.args.device) for wav in wavs]
             with torch.no_grad():
                 features = self.upstream(wavs)
-
-                loss = self.downstream(
+                self.downstream(
+                    mode,
                     features, *others,
                     records = records,
-                    logger = self.logger,
-                    prefix = prefix,
-                    global_step = global_step,
-                    log_step = self.config['runner']['log_step'],
-                    batch_id = batch_id,
-                    batch_num = len(dataloader),
                 )
-                all_loss.append(loss.item())
-        
-        # log loss
-        average_loss = torch.FloatTensor(all_loss).mean().item()
-        self.logger.add_scalar(f'{prefix}loss', average_loss, global_step=global_step)
-        all_loss = []
+                batch_ids.append(batch_id)
 
-        # log customized contents
         save_names = self.downstream.log_records(
+            mode,
             records = records,
             logger = self.logger,
-            prefix = prefix,
             global_step = global_step,
-            log_step = self.config['runner']['log_step'],
+            batch_ids = batch_ids,
+            total_batch_num = len(dataloader),
         )
+        batch_ids = []
         records = defaultdict(list)
 
         # prepare back to training

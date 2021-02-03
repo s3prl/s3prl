@@ -18,7 +18,7 @@ class DownstreamExpert(nn.Module):
     eg. downstream forward, metric computation, contents to log
     """
 
-    def __init__(self, upstream_dim, downstream_expert, **kwargs):
+    def __init__(self, upstream_dim, downstream_expert, expdir, **kwargs):
         """
         Args:
             upstream_dim: int
@@ -29,9 +29,17 @@ class DownstreamExpert(nn.Module):
                 The 'downstream_expert' field specified in your downstream config file
                 eg. downstream/example/config.yaml
 
+            expdir: string
+                The expdir from command-line argument, you should save all results into
+                this directory, like some logging files.
+
             **kwargs: dict
-                The arguments specified by the argparser in run_downstream.py
-                in case you need it.
+                All the arguments specified by the argparser in run_downstream.py
+                and all the other fields in config.yaml, in case you need it.
+                
+                Note1. Feel free to add new argument for __init__ as long as it is
+                a command-line argument or a config field. You can check the constructor
+                code in downstream/runner.py
         """
 
         super(DownstreamExpert, self).__init__()
@@ -50,12 +58,41 @@ class DownstreamExpert(nn.Module):
         )
         self.objective = nn.CrossEntropyLoss()
 
+
+    # Interface
+    def get_dataloader(self, mode):
+        """
+        Args:
+            mode: string
+                'train', 'dev' or 'test'
+
+        Return:
+            a torch.utils.data.DataLoader returning each batch in the format of:
+
+            [wav1, wav2, ...], your_other_contents1, your_other_contents2, ...
+
+            where wav1, wav2 ... are in variable length
+            each wav is torch.FloatTensor in cpu with:
+                1. dim() == 1
+                2. sample_rate == 16000
+                3. directly loaded by torchaudio
+        """
+
+        if mode == 'train':
+            return self._get_train_dataloader(self.train_dataset)            
+        elif mode == 'dev':
+            return self._get_eval_dataloader(self.dev_dataset)
+        elif mode == 'test':
+            return self._get_eval_dataloader(self.test_dataset)
+
+
     def _get_train_dataloader(self, dataset):
         return DataLoader(
             dataset, batch_size=self.datarc['train_batch_size'],
             shuffle=True, num_workers=self.datarc['num_workers'],
             collate_fn=dataset.collate_fn
         )
+
 
     def _get_eval_dataloader(self, dataset):
         return DataLoader(
@@ -64,40 +101,14 @@ class DownstreamExpert(nn.Module):
             collate_fn=dataset.collate_fn
         )
 
-    """
-    Datalaoder Specs:
-        Each dataloader should output a list in the following format:
-
-        [[wav1, wav2, ...], your_other_contents1, your_other_contents2, ...]
-
-        where wav1, wav2 ... are in variable length
-        each wav is torch.FloatTensor in cpu with:
-            1. dim() == 1
-            2. sample_rate == 16000
-            3. directly loaded by torchaudio without any preprocessing
-    """
 
     # Interface
-    def get_train_dataloader(self):
-        return self._get_train_dataloader(self.train_dataset)
-
-    # Interface
-    def get_dev_dataloader(self):
-        return self._get_eval_dataloader(self.dev_dataset)
-
-    # Interface
-    def get_test_dataloader(self):
-        return self._get_eval_dataloader(self.test_dataset)
-
-    # Interface
-    def forward(self, features, your_other_contents1,
-                records, logger, prefix, global_step, **kwargs):
+    def forward(self, mode, features, your_other_contents1, records, **kwargs):
         """
-        This function will be used in both train/dev/test, you can use
-        self.training (bool) to control the different behavior for
-        training or evaluation (dev/test)
-
         Args:
+            mode: string
+                'train', 'dev' or 'test' for this forward step
+
             features:
                 list of unpadded features [feat1, feat2, ...]
                 each feat is in torch.FloatTensor and already
@@ -109,27 +120,16 @@ class DownstreamExpert(nn.Module):
                 as features
 
             records:
-                defaultdict(list), by dumping contents into records,
+                defaultdict(list), by appending contents into records,
                 these contents can be averaged and logged on Tensorboard
-                later by self.log_records
+                later by self.log_records (also customized by you)
 
                 Note1. downstream/runner.py will call self.log_records
-                    1. every log_step during training
+                    1. every `log_step` during training
                     2. once after evalute the whole dev/test dataloader
 
-                Note2. log_step is defined in your downstream config
-
-            logger:
-                Tensorboard SummaryWriter, given here for logging/debugging convenience
-                please use f'{prefix}your_content_name' as key name
-                to log your customized contents
-
-            prefix:
-                used to indicate downstream and train/test on Tensorboard
-                eg. 'phone/train-'
-
-            global_step:
-                global_step in runner, which is helpful for Tensorboard logging
+                Note2. `log_step` is defined in your downstream config
+                eg. downstream/example/config.yaml
 
         Return:
             loss:
@@ -145,22 +145,26 @@ class DownstreamExpert(nn.Module):
         loss = self.objective(predicted, labels)
 
         predicted_classid = predicted.max(dim=-1).indices
-        records['acc'] += (predicted_classid == labels).view(-1).cpu().float().tolist()
 
-        if not self.training:
-            # some evaluation-only processing, eg. decoding
-            pass
+        records['loss'].append(loss.item())
+        records['acc'] += (predicted_classid == labels).view(-1).cpu().float().tolist()
 
         return loss
 
-    # interface
-    def log_records(self, records, logger, prefix, global_step, **kwargs):
-        """
-        This function will be used in both train/dev/test, you can use
-        self.training (bool) to control the different behavior for
-        training or evaluation (dev/test)
 
+    # interface
+    def log_records(self, mode, records, logger, global_step, batch_ids, total_batch_num, **kwargs):
+        """
         Args:
+            mode: string
+                'train':
+                    records and batchids contain contents for `log_step` batches
+                    `log_step` is defined in your downstream config
+                    eg. downstream/example/config.yaml
+
+                'dev' or 'test' :
+                    records and batchids contain contents for the entire evaluation dataset
+
             records:
                 defaultdict(list), contents already prepared by self.forward
 
@@ -169,21 +173,27 @@ class DownstreamExpert(nn.Module):
                 please use f'{prefix}your_content_name' as key name
                 to log your customized contents
 
-            prefix:
-                used to indicate downstream and train/test on Tensorboard
-                eg. 'phone/train-'
-
             global_step:
-                global_step in runner, which is helpful for Tensorboard logging
+                The global_step when training, which is helpful for Tensorboard logging
+
+            batch_ids:
+                The batches contained in records when enumerating over the dataloader
+
+            total_batch_num:
+                The total amount of batches in the dataloader
+        
+        Return:
+            a list of string
+                Each string is a filename we wish to use to save the current model
+                according to the evaluation result, like the best.ckpt on the dev set
+                You can return nothing or an empty list when no need to save the checkpoint
         """
         for key, values in records.items():
             average = torch.FloatTensor(values).mean().item()
             logger.add_scalar(
-                f'{prefix}{key}',
+                f'example/{mode}-{key}',
                 average,
                 global_step=global_step
             )
 
-        if not self.training:
-            # some evaluation-only processing, eg. decoding
-            pass
+        return [f'best-{mode}.ckpt']

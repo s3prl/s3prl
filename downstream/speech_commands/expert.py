@@ -65,19 +65,18 @@ class DownstreamExpert(nn.Module):
         )
 
     # Interface
-    def get_train_dataloader(self):
-        return self._get_balanced_dataloader(self.train_dataset, drop_last=True)
+    def get_dataloader(self, mode):
+        if mode == 'train':
+            return self._get_balanced_dataloader(self.train_dataset, drop_last=True)
+        elif mode == 'dev':
+            return self._get_balanced_dataloader(self.dev_dataset, drop_last=False)
+        elif mode == 'test':
+            return self._get_dataloader(self.test_dataset)
+        else:
+            raise NotImplementedError
 
     # Interface
-    def get_dev_dataloader(self):
-        return self._get_balanced_dataloader(self.dev_dataset, drop_last=False)
-
-    # Interface
-    def get_test_dataloader(self):
-        return self._get_dataloader(self.test_dataset)
-
-    # Interface
-    def forward(self, features, labels, records, logger, prefix, global_step, **kwargs):
+    def forward(self, mode, features, labels, records, **kwargs):
         features = pad_sequence(features, batch_first=True)
         predicted = self.model(features)
 
@@ -85,15 +84,16 @@ class DownstreamExpert(nn.Module):
         loss = self.objective(predicted, labels)
 
         predicted_classid = predicted.max(dim=-1).indices
+        records["loss"].append(loss.item())
         records["acc"] += (predicted_classid == labels).view(-1).cpu().float().tolist()
-
         return loss
 
     # interface
-    def log_records(self, records, logger, prefix, global_step, **kwargs):
+    def log_records(self, mode, records, logger, global_step, batch_ids, total_batch_num, **kwargs):
+        prefix = f'speech_commands/{mode}'
         for key, values in records.items():
             average = torch.FloatTensor(values).mean().item()
-            logger.add_scalar(f"{prefix}{key}", average, global_step=global_step)
+            logger.add_scalar(f'{prefix}-{key}', average, global_step=global_step)
             with open(self.logging, 'a') as f:
                 f.write(f'{prefix}|step:{global_step}|{key}:{average}\n')
 
