@@ -174,8 +174,8 @@ class DownstreamExpert(nn.Module):
 
             logger:
                 Tensorboard SummaryWriter
-                please use f'{prefix}your_content_name' as key name
-                to log your customized contents
+                please use f'{your_task_name}/{mode}-{key}' as key name to log your contents,
+                preventing conflict with the logging of other tasks
 
             global_step:
                 The global_step when training, which is helpful for Tensorboard logging
