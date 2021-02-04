@@ -7,6 +7,7 @@ import torch
 import torch.nn as nn
 from torch.nn.utils.rnn import pad_sequence
 
+import fairseq
 from fairseq.models.wav2vec import Wav2VecModel
 
 SAMPLE_RATE = 16000
@@ -20,6 +21,7 @@ class UpstreamExpert(nn.Module):
 
     def __init__(self, ckpt, **kwargs):
         super(UpstreamExpert, self).__init__()
+        assert fairseq.__version__ == '0.10.2'
 
         cp = torch.load(ckpt)
         self.model = Wav2VecModel.build_model(cp['args'], task=None)

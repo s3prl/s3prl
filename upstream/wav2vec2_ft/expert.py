@@ -20,7 +20,7 @@ class UpstreamExpert(nn.Module):
 
     def __init__(self, ckpt, **kwargs):
         super(UpstreamExpert, self).__init__()
-        assert fairseq.__version__ == '0.10.1'
+        assert fairseq.__version__ == '0.10.2'
 
         # fix CTC-finetuned head weights
         # This fix is only compatible with fairseq==0.10.1

@@ -11,3 +11,5 @@ torchaudio>=0.4.0
 matplotlib==2.2.3
 Pillow>=6.2.2
 numba==0.48
+fairseq==0.10.2
+gdown
