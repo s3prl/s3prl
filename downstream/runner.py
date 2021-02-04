@@ -29,7 +29,7 @@ class Runner():
         self.config = config
         self.logger = SummaryWriter(args.expdir)
 
-        self.init_ckpt = torch.load(self.args.past_exp, map_location='cpu') if self.args.past_exp else {}
+        self.init_ckpt = torch.load(self.args.init_ckpt, map_location='cpu') if self.args.init_ckpt else {}
         self.upstream = self._get_upstream()
         self.downstream = self._get_downstream()
 
