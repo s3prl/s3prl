@@ -66,6 +66,7 @@ class Runner():
         Downstream = getattr(importlib.import_module(module_path), 'DownstreamExpert')
         downstream = Downstream(
             upstream_dim = self.upstream.get_output_dim(),
+            upstream_rate = self.upstream.get_downsample_rate(),
             **self.config,
             **vars(self.args)
         ).to(self.args.device)

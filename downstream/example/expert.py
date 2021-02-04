@@ -18,12 +18,16 @@ class DownstreamExpert(nn.Module):
     eg. downstream forward, metric computation, contents to log
     """
 
-    def __init__(self, upstream_dim, downstream_expert, expdir, **kwargs):
+    def __init__(self, upstream_dim, upstream_rate, downstream_expert, expdir, **kwargs):
         """
         Args:
             upstream_dim: int
                 Different upstream will give different representation dimension
                 You might want to first project them to the same dimension
+
+            upstream_rate: int
+                160: for upstream with 10 ms per frame
+                320: for upstream with 20 ms per frame
             
             downstream_expert: dict
                 The 'downstream_expert' field specified in your downstream config file
