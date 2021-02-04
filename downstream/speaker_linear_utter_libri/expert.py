@@ -153,7 +153,7 @@ class DownstreamExpert(nn.Module):
             average,
             global_step=global_step
         )
-        message = f'{prefix}|step:{global_step}|{key}:{average}\n'
+        message = f'{prefix}|step:{global_step}|acc:{average}\n'
         save_ckpt = []
         if average > self.best[prefix]:
             self.best[prefix] = average
