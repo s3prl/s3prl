@@ -60,7 +60,7 @@ def mockingjay_960hr(refresh=False, *args, **kwargs):
         The mockingjay base model on 960hr
             refresh (bool): whether to download ckpt/config again if existed
     """
-    return mockingjay_logMelBase_T_AdamW_b32_1m_960hr_seq3k(refresh=refresh, *args, **kwargs)
+    return mockingjay_logMelBase_T_AdamW_b32_1m_960hr_drop1(refresh=refresh, *args, **kwargs)
 
 
 ##########
