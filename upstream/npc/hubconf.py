@@ -41,8 +41,17 @@ def npc(refresh=False, *args, **kwargs):
 
 def npc_360hr(refresh=False, *args, **kwargs):
     """
-        The default model
+        The npc standard model on 360hr
             refresh (bool): whether to download ckpt/config again if existed
     """
     kwargs['ckpt'] = 'https://www.dropbox.com/s/o4zpjz6xncbij8p/npc_default.ckpt?dl=0'
+    return npc_url(refresh=refresh, *args, **kwargs)
+
+
+def npc_960hr(refresh=False, *args, **kwargs):
+    """
+        The npc standard model on 960hr
+            refresh (bool): whether to download ckpt/config again if existed
+    """
+    kwargs['ckpt'] = 'https://www.dropbox.com/s/7ep0v60ym136bpb/npc_960hr.ckpt?dl=0'
     return npc_url(refresh=refresh, *args, **kwargs)
