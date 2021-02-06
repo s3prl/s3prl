@@ -43,6 +43,7 @@ class Runner():
         Upstream = getattr(importlib.import_module('hubconf'), self.args.upstream)
         upstream = Upstream(
             feature_selection = self.args.upstream_feature_selection,
+            model_config = self.args.upstream_model_config,
             refresh = self.args.upstream_refresh,
             ckpt = self.args.upstream_ckpt,
         ).to(self.args.device)

@@ -42,6 +42,7 @@ def get_downstream_args():
         Please check downstream/README.md for details'
     )
     parser.add_argument('-s', '--upstream_feature_selection', help='Specify the layer to be extracted as the representation')
+    parser.add_argument('-g', '--upstream_model_config', help='The config file for constructing the pretrained model')
     parser.add_argument('-r', '--upstream_refresh', action='store_true', help='Re-download cached ckpts for on-the-fly upstream variants')
     parser.add_argument('-k', '--upstream_ckpt', metavar='{PATH,URL,GOOGLE_DRIVE_ID}', help='Only set when the specified upstream need it')
     parser.add_argument('-f', '--upstream_trainable', action='store_true', help='Fine-tune, set upstream.train(). Default is upstream.eval()')
@@ -107,6 +108,9 @@ def get_downstream_args():
         with open(args.config, 'r') as file:
             config = yaml.load(file, Loader=yaml.FullLoader)
         copyfile(args.config, f'{args.expdir}/config.yaml')
+
+        if args.upstream_model_config is not None and os.path.isfile(args.upstream_model_config):
+            copyfile(args.upstream_model_config, f'{args.expdir}/upstream_model.yaml')
 
     return args, config
 
