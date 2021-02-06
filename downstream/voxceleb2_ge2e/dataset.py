@@ -28,8 +28,8 @@ import torch
 import random
 import torchaudio
 from functools import partial
-from tqdm import trange
-from tqdm import tqdm
+from tqdm.auto import trange
+from tqdm.auto import tqdm
 from pathlib import Path
 from os.path import join, getsize
 from joblib import Parallel, delayed

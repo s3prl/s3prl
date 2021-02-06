@@ -10,7 +10,7 @@ import torch
 import torch.nn as nn
 from lxml import etree
 from torch.utils.data import DataLoader
-from tqdm import tqdm
+from tqdm.auto import tqdm
 
 pyximport.install(setup_args={"include_dirs": np.get_include()})
 
