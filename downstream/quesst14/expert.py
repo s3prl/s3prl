@@ -35,7 +35,7 @@ class DownstreamExpert(nn.Module):
             input_dim=upstream_dim,
             **self.modelrc,
         )
-        self.objective = nn.MSELoss()
+        self.objective = nn.CosineEmbeddingLoss()
 
     def _get_dataloader(self, dataset):
         return DataLoader(
@@ -80,13 +80,9 @@ class DownstreamExpert(nn.Module):
         audio_tensors = torch.stack(features[: len(features) // 2])
         query_tensors = torch.stack(features[len(features) // 2 :])
         labels = torch.stack(labels).to(audio_tensors.device)
-        # print(audio_tensors.shape, query_tensors.shape, labels.shape)
         audio_embs = self.model(audio_tensors)
         query_embs = self.model(query_tensors)
-        # print(audio_embs.shape, query_embs.shape)
-        similarities = torch.sum(audio_embs * query_embs, dim=-1, keepdim=True)
-        # print(similarities.shape)
-        return self.objective(similarities, labels)
+        return self.objective(audio_embs, query_embs, labels)
 
     # interface
     def log_records(self, records, **kwargs):
@@ -159,8 +155,3 @@ class DownstreamExpert(nn.Module):
         #     encoding="UTF-8",
         #     pretty_print=True,
         # )
-
-
-# def match(query, doc, query_name, doc_name):
-#     cost = segmental_dtw(query, doc)
-#     return query_name, doc_name, -1 * cost
