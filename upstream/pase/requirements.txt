@@ -1,0 +1,12 @@
+cupy-cuda102
+SoundFile
+scikit_learn
+pynvrtc==8.0
+pysptk==0.1.16
+webrtcvad==2.0.10
+python_speech_features==0.6
+git+https://github.com/santi-pdp/ahoproc_tools.git
+git+https://github.com/s3prl/pytorch-qrnn
+git+https://github.com/detly/gammatone
+git+https://github.com/pswietojanski/kaldi-io-for-python.git
+git+https://github.com/s3prl/pase.git
