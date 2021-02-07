@@ -14,7 +14,7 @@ import os
 import pickle
 import kaldi_io
 import numpy as np
-from tqdm.auto import tqdm
+from tqdm import tqdm
 
 
 ############

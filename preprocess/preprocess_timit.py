@@ -17,7 +17,7 @@ import pickle
 import argparse
 import numpy as np
 import pandas as pd
-from tqdm.auto import tqdm
+from tqdm import tqdm
 from pathlib import Path
 from joblib import Parallel, delayed
 from utility.audio import extract_feature, num_mels, num_mfcc, num_freq

@@ -9,7 +9,7 @@ from collections import defaultdict
 import torch
 import torch.nn as nn
 import numpy as np
-from tqdm.auto import tqdm
+from tqdm import tqdm
 from tensorboardX import SummaryWriter
 
 from optimizers import get_optimizer

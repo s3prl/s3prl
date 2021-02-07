@@ -15,7 +15,7 @@ import math
 import glob
 import random
 import importlib
-from tqdm.auto import tqdm
+from tqdm import tqdm
 from collections import defaultdict
 #-------------#
 import torch
