@@ -1,9 +1,9 @@
 
 # this voxceleb1 is doing speaker classification task!
 runner:
-  total_steps: 200000
+  total_steps: 500000
   gradient_clipping: 1
-  gradient_accumulate_steps: 5
+  gradient_accumulate_steps: 1
 
   log_step: 500
   eval_step: 1000
@@ -15,31 +15,54 @@ runner:
   
 optimizer: 
   name: AdamW
-  lr: 4.0e-4
+  lr: 1.0e-4
 
 # # comment the whole scheduler config block to disable learning rate scheduling
-# scheduler:
-#   name: linear_schedule_with_warmup
-#   num_warmup_steps: 5000
+scheduler:
+  name: linear_schedule_with_warmup
+  num_warmup_steps: 5000
+
+# comment the whole augmentation config block to disable augmentation when training!!
+augmentation:
+  type: 3 # 1: train aug 2: use pretrain aug module 3:previous specaug 4: no aug(only means no aug on spectrogram)
+
+  specaug: # arg meaning please refer to src/audio.py: class Augment # only valid if type==3
+    T: 40
+    num_masks: 1
+    replace_with_zero: False
+    F: 27
+
+  trainable_aug: # arg meaning please refer to src/augmentation.py: class TrainableAugment # only valid if type==1,2
+    model:
+      T_num_masks: 1
+      F_num_masks: 1
+      # noise_dim: None
+      dim: [3, 3]
+      replace_with_zero: False
+      width_init_bias: -3.
+    optimizer:
+      optimizer: 'AdamW'
+      lr: 1.0
+      amsgrad: True
 
 downstream_expert: 
   datarc:
     file_path: /home/pohan/data/librispeech/vox1_dev/wav
     meta_data: /home/pohan/data/librispeech/vox1_test/veri_test_class.txt
-    num_workers: 12
-    train_batch_size: 10
+    num_workers: 2
+    train_batch_size: 16
     eval_batch_size: 1
-    max_timestep: 128000
+    max_timestep: 80000
 
 
   modelrc:
     module:
-      Identity 
+      TransformerEncoder
     hparams:
-      hidden_size: 256                                      # Size of the encoder layers and the pooler layer.
+      hidden_size: 768                                      # Size of the encoder layers and the pooler layer.
       num_hidden_layers: 3                                  # Number of hidden layers in the Transformer encoder.
-      num_attention_heads: 4                               # Number of attention heads for each attention layer in the Transformer encoder.
-      intermediate_size: 1024                               # The size of the "intermediate" (i.e., feed-forward) layer in the Transformer encoder.
+      num_attention_heads: 12                               # Number of attention heads for each attention layer in the Transformer encoder.
+      intermediate_size: 3072                               # The size of the "intermediate" (i.e., feed-forward) layer in the Transformer encoder.
       hidden_act: "gelu"                                    # The non-linear activation function (function or string) in the encoder and pooler. If string, "gelu", "relu" and "swish" are supported.
       hidden_dropout_prob: 0.1                              # The dropout probabilitiy for all fully connected layers in the embeddings, encoder, and pooler.
       attention_probs_dropout_prob: 0.1                     # The dropout ratio for the attention probabilities.
@@ -48,5 +71,5 @@ downstream_expert:
       share_layer: False                                    # Share layer weights
       max_input_length: 0                                   # maximum input length (0 for no restriction)
       pre_layer_norm: False                                 # apply the pre layer normalization technique introduced in: https://arxiv.org/abs/2002.04745
-    input_dim: 256
-    agg_module: Mean
+    input_dim: 768
+    agg_module: SAP

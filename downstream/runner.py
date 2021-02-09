@@ -11,10 +11,16 @@ import torch.nn as nn
 import numpy as np
 from tqdm.auto import tqdm
 from tensorboardX import SummaryWriter
+from torch.nn.utils.rnn import pad_sequence
 
 from optimizers import get_optimizer
 from schedulers import get_scheduler
 from utility.helper import count_parameters, count_used_parameters
+
+import IPython
+import pdb
+from data_aug.augmentation import TrainableAugment 
+from data_aug.search import Search
 
 SAMPLE_RATE = 16000
 
@@ -117,8 +123,6 @@ class Runner():
             print('[Runner] - Loading scheduler weights from the previous experiment')
             scheduler.load_state_dict(init_scheduler)
         return scheduler
-
-
     def train(self):
         # set model train/eval modes
         self.downstream.train()
@@ -142,7 +146,17 @@ class Runner():
         init_step = self.init_ckpt.get('Step')
         if init_step:
             pbar.n = init_step
+        
 
+        if self.config.get('augmentation'):
+            self.aug_model = TrainableAugment(self.config['augmentation']['type'], \
+                self.config['augmentation']['trainable_aug']['model'], \
+                self.config['augmentation']['trainable_aug']['optimizer']).to(self.args.device)
+
+            if self.config['augmentation']['type'] == 1: # 1: for trainable augmentation
+                dev_dataloader=self.downstream.get_dev_dataloader()
+                # create search object
+                self.search = Search(self.downstream, self.aug_model)
         # prepare data
         dataloader = self.downstream.get_train_dataloader()
 
@@ -165,6 +179,12 @@ class Runner():
                     else:
                         with torch.no_grad():
                             features = self.upstream(wavs)
+
+                    if self.config.get('augmentation'):
+                        feature_lens = torch.stack([torch.FloatTensor([len(feature)]).squeeze().to(self.args.device) for feature in features])
+                        feature_tensors = pad_sequence(features,batch_first=True)
+                        features=self.aug_model(feature_tensors,feature_lens)
+                        features=[features[index, :int(feature_lens[index])] for index in range(len(features))]
 
                     loss = self.downstream(
                         features, *others,
@@ -213,6 +233,22 @@ class Runner():
                 # adjust learning rate
                 if scheduler:
                     scheduler.step()
+
+                
+                if self.config.get('augmentation') and self.config['augmentation']['type'] == 1:
+                    self.aug_model.optimizer_zero_grad()
+
+                    dv_data = next(iter(dev_dataloader))
+                    dev_wavs = [dev_wav.to(self.args.device) for dev_wav in dv_data[0]]
+                    with torch.no_grad():
+                        dv_features = self.upstream(dev_wavs)
+
+                    dv_lens = [torch.FloatTensor([len(dv_feat)]).squeeze().to(self.args.device) for dv_feat in dv_features]
+                    dv_tensors = pad_sequence(dv_features, batch_first=True)
+                    train_data = [feature_tensors, feature_lens,*others]
+                    valid_data = [dv_tensors, dv_lens, *(dv_data[1:])]
+                    self.search.unrolled_backward(train_data, valid_data,optimizer.param_groups[0]['lr'], optimizer, self.downstream)
+                    self.aug_model.step()
 
                 # logging
                 if global_step % self.config['runner']['log_step'] == 0:
