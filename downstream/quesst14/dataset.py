@@ -92,7 +92,7 @@ class SWS2013Dataset(Dataset):
 
         audio_tensor = audio_tensor.squeeze(0)
         query_tensor = tensor2segment(pair["query_tensor"], self.max_dur)
-        label = torch.FloatTensor([1 if idx < len(self.positive_pairs) else -1])
+        label = torch.LongTensor([1 if idx < len(self.positive_pairs) else -1])
 
         return audio_tensor, query_tensor, label
 

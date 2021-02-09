@@ -1,3 +1,4 @@
+import torch
 import torch.nn as nn
 import torch.nn.functional as F
 
@@ -17,10 +18,13 @@ class Model(nn.Module):
             num_layers=num_layers,
             batch_first=True,
         )
+        self.attention_linear = nn.Linear(hid_dim, 1)
 
     def forward(self, features):
         hiddens = F.relu(self.connector(features))
         outputs, _ = self.rnn(hiddens)
-        embeds = outputs.mean(dim=-1)
-        embeds = embeds.div(embeds.norm(2, keepdim=True))
+        embeds = torch.tanh(outputs)
+        attention_weights = F.softmax(self.attention_linear(embeds), dim=1)
+        embeds = torch.sum(embeds * attention_weights, dim=1)
+        embeds = embeds.div(embeds.norm(2, dim=-1, keepdim=True))
         return embeds
