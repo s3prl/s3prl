@@ -11,7 +11,7 @@ from lxml import etree
 from torch.utils.data import DataLoader, WeightedRandomSampler
 from tqdm import tqdm
 
-from .dataset import QUESST14Dataset, SWS2013Dataset
+from .dataset import SWS2013Dataset
 from .model import Model
 
 
@@ -88,70 +88,3 @@ class DownstreamExpert(nn.Module):
     def log_records(self, records, **kwargs):
         """Perform DTW and save results."""
         pass
-        # queries = records["features"][: self.test_dataset.n_queries]
-        # docs = records["features"][self.test_dataset.n_queries :]
-        # query_names = records["audio_names"][: self.test_dataset.n_queries]
-        # doc_names = records["audio_names"][self.test_dataset.n_queries :]
-        # results = defaultdict(list)
-        # scores = []
-
-        # # Calculate matching scores
-        # with ProcessPoolExecutor(self.datarc["num_workers"]) as executor:
-        #     futures = []
-
-        #     for query, query_name in zip(queries, query_names):
-        #         query_name = query_name.replace(".wav", "")
-        #         for doc, doc_name in zip(docs, doc_names):
-        #             doc_name = doc_name.replace(".wav", "")
-        #             futures.append(
-        #                 executor.submit(match, query, doc, query_name, doc_name)
-        #             )
-
-        #     for future in tqdm(
-        #         as_completed(futures), total=len(futures), ncols=0, desc="DTW"
-        #     ):
-        #         query_name, doc_name, score = future.result()
-        #         results[query_name].append((doc_name, score))
-        #         scores.append(score)
-
-        # # Determine score threshold
-        # scores = sorted(scores)
-        # score_thresh = scores[int(0.99 * len(scores))]
-        # score_min = scores[0]
-
-        # # Build XML tree
-        # root = etree.Element(
-        #     "stdlist",
-        #     termlist_filename="benchmark.stdlist.xml",
-        #     indexing_time="1.00",
-        #     language="english",
-        #     index_size="1",
-        #     system_id="benchmark",
-        # )
-        # for query_name, doc_scores in results.items():
-        #     term_list = etree.SubElement(
-        #         root,
-        #         "detected_termlist",
-        #         termid=query_name,
-        #         term_search_time="1.0",
-        #         oov_term_count="1",
-        #     )
-        #     for doc_name, score in doc_scores:
-        #         etree.SubElement(
-        #             term_list,
-        #             "term",
-        #             file=doc_name,
-        #             channel="1",
-        #             tbeg="0.000",
-        #             dur="0.00",
-        #             score=f"{score - score_min:.4f}",
-        #             decision="YES" if score > score_thresh else "NO",
-        #         )
-
-        # # Output XML
-        # tree = etree.ElementTree(root)
-        # tree.write(
-        #     str(self.expdir / "benchmark.stdlist.xml"),
-        #     encoding="UTF-8",
-        #     pretty_print=True,
-        # )

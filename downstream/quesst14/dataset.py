@@ -5,20 +5,9 @@ from collections import defaultdict
 from pathlib import Path
 
 import torch
-import torchaudio
 from torch.utils.data.dataset import Dataset
 from torchaudio.sox_effects import apply_effects_file, apply_effects_tensor
 from tqdm import tqdm
-
-EFFECTS = [
-    ["channels", "1"],
-    ["rate", "16000"],
-    ["norm"],
-    ["vad", "-T", "0.05", "-p", "0.1"],
-    ["reverse"],
-    ["vad", "-T", "0.05", "-p", "0.1"],
-    ["reverse"],
-]
 
 
 class SWS2013Dataset(Dataset):
@@ -77,14 +66,6 @@ class SWS2013Dataset(Dataset):
                     )
 
         print(f"[SWS2013] # of positive pairs: {len(positive_pairs)}")
-
-        # decide segment length
-        # query_lens, durs = [], []
-        # for pos_pair in positive_pairs:
-        #     durs.append(pos_pair["duration"])
-        #     query_lens.append(len(pos_pair["query_tensor"]))
-        # print(sorted(query_lens, reverse=True)[:40])
-        # print(sorted(durs, reverse=True)[:40])
 
         self.audio_dir = dataset_root / "Audio"
         self.audio2dur = audio2dur
@@ -238,45 +219,45 @@ def tensor2segment(tensor, tgt_dur, sample_rate=16000):
     return audio_tensor.squeeze(0)
 
 
-class QUESST14Dataset(Dataset):
-    """QUESST 2014 dataset (English-only)."""
+# class QUESST14Dataset(Dataset):
+#     """QUESST 2014 dataset (English-only)."""
 
-    def __init__(self, **kwargs):
-        dataset_root = Path(kwargs["dataset_root"])
-        doc_paths = english_audio_paths(dataset_root, "language_key_utterances.lst")
-        query_paths = english_audio_paths(dataset_root, "language_key_eval.lst")
+#     def __init__(self, **kwargs):
+#         dataset_root = Path(kwargs["dataset_root"])
+#         doc_paths = english_audio_paths(dataset_root, "language_key_utterances.lst")
+#         query_paths = english_audio_paths(dataset_root, "language_key_eval.lst")
 
-        self.dataset_root = dataset_root
-        self.n_queries = len(query_paths)
-        self.n_docs = len(doc_paths)
-        self.data = query_paths + doc_paths
+#         self.dataset_root = dataset_root
+#         self.n_queries = len(query_paths)
+#         self.n_docs = len(doc_paths)
+#         self.data = query_paths + doc_paths
 
-    def __len__(self):
-        return len(self.data)
+#     def __len__(self):
+#         return len(self.data)
 
-    def __getitem__(self, idx):
-        audio_path = self.data[idx]
-        wav, _ = apply_effects_file(str(audio_path), EFFECTS)
-        wav = wav.squeeze(0)
-        assert len(wav) >= 400
-        return wav, audio_path.name
+#     def __getitem__(self, idx):
+#         audio_path = self.data[idx]
+#         wav, _ = apply_effects_file(str(audio_path), EFFECTS)
+#         wav = wav.squeeze(0)
+#         assert len(wav) >= 400
+#         return wav, audio_path.name
 
-    def collate_fn(self, samples):
-        """Collate a mini-batch of data."""
-        wavs, audio_names = zip(*samples)
-        return wavs, audio_names
+#     def collate_fn(self, samples):
+#         """Collate a mini-batch of data."""
+#         wavs, audio_names = zip(*samples)
+#         return wavs, audio_names
 
 
-def english_audio_paths(dataset_root_path, lst_name):
-    """Extract English audio paths."""
-    audio_paths = []
+# def english_audio_paths(dataset_root_path, lst_name):
+#     """Extract English audio paths."""
+#     audio_paths = []
 
-    with open(dataset_root_path / "scoring" / lst_name) as f:
-        for line in f:
-            audio_path, lang = tuple(line.strip().split())
-            if lang != "nnenglish":
-                continue
-            audio_path = re.sub(r"^.*?\/", "", audio_path)
-            audio_paths.append(dataset_root_path / audio_path)
+#     with open(dataset_root_path / "scoring" / lst_name) as f:
+#         for line in f:
+#             audio_path, lang = tuple(line.strip().split())
+#             if lang != "nnenglish":
+#                 continue
+#             audio_path = re.sub(r"^.*?\/", "", audio_path)
+#             audio_paths.append(dataset_root_path / audio_path)
 
-    return audio_paths
+#     return audio_paths
