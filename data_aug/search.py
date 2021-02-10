@@ -142,16 +142,6 @@ class Search(object):
         hessian = [(p-n) / (2.*eps) for p, n in zip(dalpha_pos, dalpha_neg)]
         return hessian
 
-    def _get_model_input(self, data):
-        feat, feat_len, txt, txt_len, tf_rate, stop_step = data
-        return [feat, feat_len, max(txt_len), tf_rate, txt] 
-
-    def _get_calc_loss_input(self, data, model_output):
-        feat, feat_len, txt, txt_len, tf_rate, stop_step = data
-        ctc_output, encode_len, att_output, att_align, dec_state = model_output
-        return [ctc_output, encode_len, att_output, txt, txt_len, stop_step]
-
-
 def sgd_forward(w, g, model_optim, model_optim_parameter):
     return g
 

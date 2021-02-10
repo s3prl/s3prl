@@ -157,6 +157,9 @@ class Runner():
                 dev_dataloader=self.downstream.get_dev_dataloader()
                 # create search object
                 self.search = Search(self.downstream, self.aug_model)
+            
+            if self.config['augmentation']['type'] == 2:
+                self.aug_model.load_ckpt(self.config['augmentation']['ckpt_path'])
         # prepare data
         dataloader = self.downstream.get_train_dataloader()
 

@@ -6,8 +6,8 @@ runner:
   gradient_accumulate_steps: 1
 
   log_step: 500
-  eval_step: 1000
-  save_step: 1000
+  eval_step: 5000
+  save_step: 5000
   max_keep: 4
   eval_dataloaders: 
     - dev
@@ -24,7 +24,7 @@ scheduler:
 
 # comment the whole augmentation config block to disable augmentation when training!!
 augmentation:
-  type: 3 # 1: train aug 2: use pretrain aug module 3:previous specaug 4: no aug(only means no aug on spectrogram)
+  type: 1 # 1: train aug 2: use pretrain aug module 3:previous specaug 4: no aug(only means no aug on spectrogram)
 
   specaug: # arg meaning please refer to src/audio.py: class Augment # only valid if type==3
     T: 40
@@ -42,15 +42,19 @@ augmentation:
       width_init_bias: -3.
     optimizer:
       optimizer: 'AdamW'
-      lr: 1.0
+      lr: 1.0e-4
       amsgrad: True
+  
+  ckpt_path: your_aug_model_path.ckpt
+    
 
 downstream_expert: 
   datarc:
     file_path: /home/pohan/data/librispeech/vox1_dev/wav
     meta_data: /home/pohan/data/librispeech/vox1_test/veri_test_class.txt
-    num_workers: 2
+    num_workers: 4
     train_batch_size: 16
+    dev_batch_size: 4
     eval_batch_size: 1
     max_timestep: 80000
 

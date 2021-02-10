@@ -50,7 +50,7 @@ class DownstreamExpert(nn.Module):
         self.modelrc = downstream_expert['modelrc']
 
         self.train_dataset = SpeakerClassifiDataset('train', self.datarc['file_path'], self.datarc['meta_data'], self.datarc['max_timestep'])
-        self.dev_dataset = SpeakerClassifiDataset('dev', self.datarc['file_path'], self.datarc['meta_data'])
+        self.dev_dataset = SpeakerClassifiDataset('dev', self.datarc['file_path'], self.datarc['meta_data'], self.datarc['max_timestep'])
         self.test_dataset = SpeakerClassifiDataset('test', self.datarc['file_path'], self.datarc['meta_data'])
         
         self.connector = nn.Linear(self.upstream_dim, self.modelrc['input_dim'])
@@ -72,13 +72,20 @@ class DownstreamExpert(nn.Module):
             collate_fn=dataset.collate_fn
         )
 
+    def _get_dev_dataloader(self, dataset):
+        return DataLoader(
+            dataset, batch_size=self.datarc['dev_batch_size'],
+            shuffle=False, num_workers=self.datarc['num_workers'],
+            collate_fn=dataset.collate_fn
+        )
+
     # Interface
     def get_train_dataloader(self):
         return self._get_train_dataloader(self.train_dataset)
 
     # Interface
     def get_dev_dataloader(self):
-        return self._get_eval_dataloader(self.dev_dataset)
+        return self._get_dev_dataloader(self.dev_dataset)
 
     # Interface
     def get_test_dataloader(self):
