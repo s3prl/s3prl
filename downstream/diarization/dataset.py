@@ -22,6 +22,24 @@ from torch.utils.data.dataset import Dataset
 import torchaudio
 
 
+def _count_frames(data_len, size, step):
+    # no padding at edges, last remaining samples are ignored
+    return int((data_len - size + step) / step)
+
+
+def _gen_frame_indices(
+        data_length, size=2000, step=2000,
+        use_last_samples=False,
+        label_delay=0,
+        subsampling=1):
+    i = -1
+    for i in range(_count_frames(data_length, size, step)):
+        yield i * step, i * step + size
+    if use_last_samples and i * step + size < data_length:
+        if data_length - (i + 1) * step - subsampling * label_delay > 0:
+            yield (i + 1) * step, data_length
+
+
 #######################
 # Diarization Dataset #
 #######################
@@ -32,7 +50,6 @@ class DiarizationDataset(Dataset):
             data_dir,
             dtype=np.float32,
             chunk_size=2000,
-            context_size=0,
             frame_shift=256,
             subsampling=1,
             rate=16000,
@@ -44,13 +61,11 @@ class DiarizationDataset(Dataset):
         ):
         super(DiarizationDataset, self).__init__()
 
-        elf.data_dir = data_dir
+        self.data_dir = data_dir
         self.dtype = dtype
         self.chunk_size = chunk_size
-        self.context_size = context_size
         self.frame_shift = frame_shift
         self.subsampling = subsampling
-        self.input_transform = input_transform
         self.n_speakers = n_speakers
         self.chunk_indices = []
         self.label_delay = label_delay
@@ -82,13 +97,9 @@ class DiarizationDataset(Dataset):
             ed,
             self.frame_shift,
             self.n_speakers)
-        # Y = feature.transform(Y, self.input_transform)
-        # Y_spliced = feature.splice(Y, self.context_size)
-        # Y_ss, T_ss = feature.subsample(Y_spliced, T, self.subsampling)
         return Y_ss, T_ss
     
     def _get_labeled_speech(self,         
-        kaldi_obj,
         rec, start, end, frame_shift,
         n_speakers=None,
         use_speaker_id=False):
@@ -98,7 +109,6 @@ class DiarizationDataset(Dataset):
         given recording id and start/end times
 
         Args:
-            kaldi_obj (KaldiData)
             rec (str): recording id
             start (int): start frame index
             end (int): end frame index
@@ -111,26 +121,26 @@ class DiarizationDataset(Dataset):
             T: label
                 (n_frmaes, n_speakers)-shaped np.int32 array.
         """
-        data, rate = kaldi_obj.load_wav(
+        data, rate = self.data.load_wav(
             rec, start * frame_shift, end * frame_shift)
-        filtered_segments = kaldi_obj.segments[rec]
-        # filtered_segments = kaldi_obj.segments[kaldi_obj.segments['rec'] == rec]
+        filtered_segments = self.data.segments[rec]
+        # filtered_segments = self.data.segments[self.data.segments['rec'] == rec]
         speakers = np.unique(
-                [kaldi_obj.utt2spk[seg['utt']] for seg
+                [self.data.utt2spk[seg['utt']] for seg
                     in filtered_segments]).tolist()
         if n_speakers is None:
             n_speakers = len(speakers)
         T = np.zeros((Y.shape[0], n_speakers), dtype=np.int32)
 
         if use_speaker_id:
-            all_speakers = sorted(kaldi_obj.spk2utt.keys())
+            all_speakers = sorted(self.data.spk2utt.keys())
             S = np.zeros((Y.shape[0], len(all_speakers)), dtype=np.int32)
 
         for seg in filtered_segments:
-            speaker_index = speakers.index(kaldi_obj.utt2spk[seg['utt']])
+            speaker_index = speakers.index(self.data.utt2spk[seg['utt']])
             if use_speaker_id:
                 all_speaker_index = all_speakers.index(
-                    kaldi_obj.utt2spk[seg['utt']])
+                    self.data.utt2spk[seg['utt']])
             start_frame = np.rint(
                     seg['st'] * rate / frame_shift).astype(int)
             end_frame = np.rint(

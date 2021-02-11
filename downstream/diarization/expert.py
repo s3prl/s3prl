@@ -44,7 +44,7 @@ class DownstreamExpert(nn.Module):
         self.dev_dataset = DiarizationDataset(self.datarc['dev_dir'], **self.datarc)
         self.test_dataset = DiarizationDataset(self.datarc['test_dir'], **self.datarc)
 
-        self.model = Model(input_dim=self.upstream_dim, output_class_num=self.datarc['speaker_num'], **self.modelrc)
+        self.model = Model(input_dim=self.upstream_dim, output_class_num=self.datarc['num_speakers'], **self.modelrc)
         self.objective = pit_loss
 
         self.logging = os.path.join(expdir, 'log.log')
