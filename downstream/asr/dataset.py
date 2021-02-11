@@ -33,7 +33,7 @@ HALF_BATCHSIZE_TIME = 2000
 ####################
 class SequenceDataset(Dataset):
     
-    def __init__(self, split, bucket_size, libri_root, bucket_file, sample_rate=16000, train_dev_seed=1337, **kwargs):
+    def __init__(self, split, bucket_size, libri_root, bucket_file, sample_rate=16000, train_dev_seed=1337, dict_path=None, **kwargs):
         super(SequenceDataset, self).__init__()
         
         self.libri_root = libri_root
@@ -68,6 +68,8 @@ class SequenceDataset(Dataset):
         X = table_list['file_path'].tolist()
         X_lens = table_list['length'].tolist()
 
+        assert len(X) != 0, f"0 data found for {split}"
+
         # Transcripts
         Y = self._load_transcript(X)
 
@@ -78,10 +80,26 @@ class SequenceDataset(Dataset):
         Y = {key: Y[key] for key in usage_list}
 
         # dictionary, symbol list
-        self.dictionary = self._build_dictionary(Y)
+        if dict_path is None:
+            dict_path = os.path.join(bucket_file, 'dict.pt')
+
+        if split == "train":
+            self.dictionary = self._build_dictionary(Y)
+            torch.save(self.dictionary, dict_path)
+        else:
+            assert os.path.exists(dict_path)
+            self.dictionary = torch.load(
+                dict_path,
+                map_location=lambda storage, loc: storage
+            )
         self.symbols = self.dictionary.symbols
 
-        self.Y = {k: self.dictionary.encode_line(v).long() for k, v in Y.items()}
+        self.Y = {
+            k: self.dictionary.encode_line(
+                v, line_tokenizer=lambda x: x.split()
+            ).long() 
+            for k, v in Y.items()
+        }
 
         # Use bucketing to allow different batch sizes at run time
         self.X = []
