@@ -1,0 +1,37 @@
+runner:
+  total_steps: 500000
+  gradient_clipping: 1
+  gradient_accumulate_steps: 1
+
+  log_step: 5000
+  eval_step: 10000
+  save_step: 10000
+  max_keep: 1
+  eval_dataloaders:
+    - dev
+    - test
+
+optimizer:
+  name: AdamW
+  lr: 2.e-4
+
+downstream_expert:
+  datarc:
+    num_workers: 8
+    train_batch_size: 32 
+    eval_batch_size: 32
+    chunk_size: 4000
+    frame_shift: 320 # this should be aligned with upstrema model
+    subsampling: 5
+    label_delay: 0
+    num_speakers: 2
+    train_dir: data/libri2mix_train
+    dev_dir: data/libri2mix_dev
+    test_dir: data/libri2mix_test
+    sample_rate: 16000 
+    train_dev_seed: 1337
+    max_frame_num: 4000
+
+  modelrc: 
+    rnn_layers: 0
+    hidden_state: 512
