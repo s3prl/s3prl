@@ -33,6 +33,12 @@ class Runner():
         self.upstream = self._get_upstream()
         self.downstream = self._get_downstream()
 
+        if "specaug_conf" in config:
+            from downstream.asr.specaug import SpecAug
+            self.specaug = SpecAug(**config["specaug_conf"])
+        else:
+            self.specaug = None
+
 
     def _get_upstream(self):
         Upstream = getattr(importlib.import_module('hubconf'), self.args.upstream)
@@ -157,6 +163,9 @@ class Runner():
                     else:
                         with torch.no_grad():
                             features = self.upstream(wavs)
+
+                    if self.specaug:
+                        featrues, _ = self.specaug(features)
 
                     loss = self.downstream(
                         'train',

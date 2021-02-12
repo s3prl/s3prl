@@ -1,0 +1,41 @@
+runner:
+  total_steps: 20000
+  gradient_clipping: 1
+  gradient_accumulate_steps: 2
+
+  log_step: 10
+  eval_step: 20
+  save_step: 20
+  max_keep: 1
+  eval_dataloaders:
+    - dev
+    - test
+
+optimizer:
+  name: AdamW
+  lr: 2.0e-4
+
+# comment the whole scheduler config block
+# to disable learning rate scheduling
+scheduler:
+  name: linear_schedule_with_warmup
+  num_warmup_steps: 1400
+
+downstream_expert:
+  datarc:
+    num_workers: 8
+    train_batch_size: 32 
+    eval_batch_size: 32
+    libri_root: '/home/ubuntu/corpora/LibriSpeech/LibriSpeech'
+    phone_path: './downstream/asr/data'
+    bucket_file: 'data/len_for_bucket'
+    sample_rate: 16000 # this should not be changed, and this should match the sr of the audio in `libri_root`
+    train_dev_seed: 1337
+
+  specaug_conf:
+    apply_time_warp: true
+    apply_time_mask: true
+    apply_freq_mask: true
+
+  modelrc:
+    input_dim: 256
