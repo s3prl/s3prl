@@ -33,12 +33,6 @@ class Runner():
         self.upstream = self._get_upstream()
         self.downstream = self._get_downstream()
 
-        if "specaug_conf" in config:
-            from downstream.asr.specaug import SpecAug
-            self.specaug = SpecAug(**config["specaug_conf"])
-        else:
-            self.specaug = None
-
 
     def _get_upstream(self):
         Upstream = getattr(importlib.import_module('hubconf'), self.args.upstream)
@@ -137,6 +131,12 @@ class Runner():
         if self.config.get('scheduler'):
             scheduler = self._get_scheduler(optimizer)
 
+        # set specaug
+        specaug = None
+        if self.config.get('specaug'):
+            from .specaug import SpecAug
+            specaug = SpecAug(**self.config["specaug"])
+
         # set progress bar
         pbar = tqdm(total=self.config['runner']['total_steps'], dynamic_ncols=True, desc='overall')
         init_step = self.init_ckpt.get('Step')
@@ -164,8 +164,8 @@ class Runner():
                         with torch.no_grad():
                             features = self.upstream(wavs)
 
-                    if self.specaug:
-                        featrues, _ = self.specaug(features)
+                    if specaug:
+                        featrues, _ = specaug(features)
 
                     loss = self.downstream(
                         'train',

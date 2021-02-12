@@ -8,7 +8,7 @@ import torch.nn as nn
 from torch.utils.data import DataLoader
 from torch.nn.utils.rnn import pad_sequence
 
-from .model import Model
+from .model import Wav2Letter
 from .dataset import SequenceDataset
 
 
@@ -48,6 +48,7 @@ class DownstreamExpert(nn.Module):
 
         super(DownstreamExpert, self).__init__()
         self.upstream_dim = upstream_dim
+        self.upstream_rate = upstream_rate
         self.datarc = downstream_expert['datarc']
         self.modelrc = downstream_expert['modelrc']
 
@@ -55,13 +56,15 @@ class DownstreamExpert(nn.Module):
         self.dev_dataset = SequenceDataset("dev", self.datarc['eval_batch_size'], **self.datarc)
         self.test_dataset = SequenceDataset("test", self.datarc['eval_batch_size'], **self.datarc)
 
-        self.connector = nn.Linear(upstream_dim, self.modelrc['input_dim'])
-        self.model = Model(
-            output_class_num=self.train_dataset.class_num,
-            **self.modelrc
+        self.projector = nn.Linear(upstream_dim, self.modelrc['project_dim'])
+        model_cls = eval(self.modelrc['select'])
+        model_conf = self.modelrc[self.modelrc['select']]
+        self.model = model_cls(
+            input_dim = self.modelrc['project_dim'],
+            output_dim = len(self.train_dataset.symbols),
+            upstream_rate = upstream_rate,
+            **model_conf,
         )
-        self.objective = nn.CrossEntropyLoss()
-
 
     # Interface
     def get_dataloader(self, mode):
@@ -92,7 +95,7 @@ class DownstreamExpert(nn.Module):
 
     def _get_train_dataloader(self, dataset):
         return DataLoader(
-            dataset, batch_size=self.datarc['train_batch_size'],
+            dataset, batch_size=1,
             shuffle=True, num_workers=self.datarc['num_workers'],
             collate_fn=dataset.collate_fn
         )
@@ -100,14 +103,14 @@ class DownstreamExpert(nn.Module):
 
     def _get_eval_dataloader(self, dataset):
         return DataLoader(
-            dataset, batch_size=self.datarc['eval_batch_size'],
+            dataset, batch_size=1,
             shuffle=False, num_workers=self.datarc['num_workers'],
             collate_fn=dataset.collate_fn
         )
 
 
     # Interface
-    def forward(self, mode, features, your_other_contents1, records, **kwargs):
+    def forward(self, mode, features, labels, records, **kwargs):
         """
         Args:
             mode: string
@@ -140,21 +143,17 @@ class DownstreamExpert(nn.Module):
                 the loss to be optimized, should not be detached
                 a single scalar in torch.FloatTensor
         """
-        features = pad_sequence(features, batch_first=True)
-        features = self.connector(features)
-        predicted = self.model(features)
+        device = features[0].device
+        features_len = torch.IntTensor([len(feat) for feat in features])
+        labels_len = torch.IntTensor([len(label) for label in labels]).to(device=device)
+        features = pad_sequence(features, batch_first=True).to(device=device)
+        labels = pad_sequence(labels, batch_first=True).to(device=device)
 
-        utterance_labels = your_other_contents1
-        labels = torch.LongTensor(utterance_labels).to(features.device)
-        loss = self.objective(predicted, labels)
-
-        predicted_classid = predicted.max(dim=-1).indices
-
-        records['loss'].append(loss.item())
-        records['acc'] += (predicted_classid == labels).view(-1).cpu().float().tolist()
-
-        return loss
-
+        features = self.projector(features)
+        lprobs, lprobs_len = self.model(features, features_len)
+        
+        loss_placeholder = torch.zeros(1, requires_grad=True).to(device)
+        return loss_placeholder
 
     # interface
     def log_records(self, mode, records, logger, global_step, batch_ids, total_batch_num, **kwargs):
