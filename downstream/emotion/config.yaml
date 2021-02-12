@@ -17,13 +17,13 @@ optimizer:
 
 # comment the whole scheduler config block
 # to disable learning rate scheduling
-scheduler:
-  name: linear_schedule_with_warmup
-  num_warmup_steps: 1400
+# scheduler:
+#   name: linear_schedule_with_warmup
+#   num_warmup_steps: 1400
 
 downstream_expert:
   datarc:
-    root: /groups/public/benchmark/IEMOCAP
+    root: /path/to/IEMOCAP
     pre_load: True
     train_batch_size: 4
     eval_batch_size: 4
@@ -31,9 +31,14 @@ downstream_expert:
     valid_ratio: 0.2
 
   modelrc:
-    input_dim: 40
-    hidden_dim: 80
-    kernel_size: 5
-    padding: 2
-    pooling: 5
-    dropout: 0.4
+    select: LinearModel
+    DeepModel:
+      model_type: CNNSelfAttention
+      input_dim: 256
+      hidden_dim: 80
+      kernel_size: 5
+      padding: 2
+      pooling: 5
+      dropout: 0.4
+    LinearModel:
+      input_dim: 256
