@@ -1,5 +1,8 @@
+import math
+
 import torch
 import torch.nn as nn
+from torch.nn.utils.rnn import pad_sequence
 
 
 class SelfAttentionPooling(nn.Module):
@@ -178,30 +181,38 @@ class DeepNet(nn.Module):
         return predicted
 
 
-class Model(nn.Module):
+class DeepModel(nn.Module):
     def __init__(
         self,
-        input_dim,
-        hidden_dim,
-        kernel_size,
-        padding,
+        model_type,
         pooling,
-        dropout,
-        output_class_num,
         **kwargs
     ):
-        super(Model, self).__init__()
-        self.model = CNNSelfAttention(
-            input_dim,
-            hidden_dim,
-            kernel_size,
-            padding,
-            pooling,
-            dropout,
-            output_class_num,
-            **kwargs
-        )
+        super(DeepModel, self).__init__()
+        self.pooling = pooling
+        self.model = eval(model_type)(pooling=pooling, **kwargs)
 
-    def forward(self, features, att_mask):
-        predicted = self.model(features, att_mask)
+    def forward(self, features, features_len):
+        attention_mask = [
+            torch.ones(math.ceil((l / self.pooling)))
+            for l in features_len
+        ]
+        attention_mask = pad_sequence(attention_mask, batch_first=True)
+        attention_mask = (1.0 - attention_mask) * -100000.0
+        attention_mask = attention_mask.to(features.device)
+        predicted = self.model(features, attention_mask)
+        return predicted
+
+
+class LinearModel(nn.Module):
+    def __init__(self, input_dim, output_class_num, **kwargs):
+        super(LinearModel, self).__init__()
+        self.model = nn.Linear(input_dim, output_class_num)
+    
+    def forward(self, features, features_len):
+        device = features.device
+        len_masks = torch.lt(torch.arange(features_len.max()).unsqueeze(0).to(device), features_len.unsqueeze(1))
+        features = features * len_masks.unsqueeze(-1)
+        utter_feature = features.sum(dim=1) / features_len.unsqueeze(-1).float()
+        predicted = self.model(utter_feature)
         return predicted

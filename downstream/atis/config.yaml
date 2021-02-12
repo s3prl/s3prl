@@ -23,7 +23,7 @@ scheduler:
 
 downstream_expert:
   datarc:
-    file_path: /home/raytz/Disk/data/atis
+    file_path: /path/to/atis
     num_workers: 12
     train_batch_size: 1
     eval_batch_size: 1
