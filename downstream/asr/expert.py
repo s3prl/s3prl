@@ -53,8 +53,6 @@ class DownstreamExpert(nn.Module):
         self.modelrc = downstream_expert['modelrc']
 
         self.train_dataset = SequenceDataset("train", self.datarc['train_batch_size'], **self.datarc)
-        self.dev_dataset = SequenceDataset("dev", self.datarc['eval_batch_size'], **self.datarc)
-        self.test_dataset = SequenceDataset("test", self.datarc['eval_batch_size'], **self.datarc)
 
         self.projector = nn.Linear(upstream_dim, self.modelrc['project_dim'])
         model_cls = eval(self.modelrc['select'])
@@ -86,11 +84,11 @@ class DownstreamExpert(nn.Module):
         """
 
         if mode == 'train':
-            return self._get_train_dataloader(self.train_dataset)            
-        elif mode == 'dev':
-            return self._get_eval_dataloader(self.dev_dataset)
-        elif mode == 'test':
-            return self._get_eval_dataloader(self.test_dataset)
+            return self._get_train_dataloader(self.train_dataset)
+        else:
+            if not hasattr(self, f'{mode}_dataset'):
+                setattr(self, f'{mode}_dataset', SequenceDataset(mode, self.datarc['eval_batch_size'], **self.datarc))
+            return self._get_eval_dataloader(getattr(self, f'{mode}_dataset'))
 
 
     def _get_train_dataloader(self, dataset):

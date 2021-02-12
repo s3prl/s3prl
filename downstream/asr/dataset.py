@@ -39,26 +39,24 @@ class SequenceDataset(Dataset):
         
         self.libri_root = libri_root
         self.sample_rate = SAMPLE_RATE
+        self.split_sets = kwargs[split]
 
         # Read table for bucketing
         assert os.path.isdir(bucket_file), 'Please first run `python3 preprocess/generate_len_for_bucket.py -h` to get bucket file.'
 
         # Wavs
-        if split in ["train", "dev", "test"]:
-            table_list = []
-            for item in self.split_sets[split]:
-                file_path = os.path.join(bucket_file, item + ".csv")
-                if os.path.exists(file_path):
-                    table_list.append(
-                        pd.read_csv(file_path)
-                    )
-                else:
-                    logging.warning(f'{item} is not found in bucket_file: {bucket_file}, skipping it.')
+        table_list = []
+        for item in self.split_sets:
+            file_path = os.path.join(bucket_file, item + ".csv")
+            if os.path.exists(file_path):
+                table_list.append(
+                    pd.read_csv(file_path)
+                )
+            else:
+                logging.warning(f'{item} is not found in bucket_file: {bucket_file}, skipping it.')
 
-            table_list = pd.concat(table_list)
-            table_list = table_list.sort_values(by=['length'], ascending=False)
-        else:
-            raise ValueError('Invalid \'split\' argument for dataset: SequenceDataset!')
+        table_list = pd.concat(table_list)
+        table_list = table_list.sort_values(by=['length'], ascending=False)
 
         X = table_list['file_path'].tolist()
         X_lens = table_list['length'].tolist()
