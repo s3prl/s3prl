@@ -13,6 +13,7 @@
 import os
 import math
 import random
+from collections import defaultdict
 #-------------#
 import torch
 import torch.nn as nn
@@ -43,8 +44,7 @@ class DownstreamExpert(nn.Module):
         self.objective = nn.CrossEntropyLoss()
 
         self.logging = os.path.join(expdir, 'log.log')
-        self.best_dev = 0
-        self.best_test = 0
+        self.best = defaultdict(lambda: 0)
 
     def _get_train_dataloader(self, dataset):
         return DataLoader(
@@ -196,12 +196,14 @@ class DownstreamExpert(nn.Module):
             average,
             global_step=global_step
         )
+        message = f'{prefix}|step:{global_step}|acc:{average}\n'
+        save_ckpt = []
+        if average > self.best[prefix]:
+            self.best[prefix] = average
+            message = f'best|{message}'
+            name = prefix.split('/')[-1].split('-')[0]
+            save_ckpt.append(f'best-states-{name}.ckpt')
         with open(self.logging, 'a') as f:
-            f.write(f'{prefix}|step:{global_step}|acc:{average}\n')
-
-        if 'dev' in prefix and average > self.best_dev:
-            self.best_dev = average
-            return ['best-states-dev.ckpt']
-        if 'test' in prefix and average > self.best_test:
-            self.best_test = average
-            return ['best-states-test.ckpt']
+            f.write(message)
+        
+        return save_ckpt
