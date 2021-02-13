@@ -61,7 +61,7 @@ class DownstreamExpert(nn.Module):
             **self.modelrc
         )
         self.objective = nn.CrossEntropyLoss()
-
+        self.register_buffer('best_score', torch.zeros(1))
 
     # Interface
     def get_dataloader(self, mode):
@@ -192,6 +192,7 @@ class DownstreamExpert(nn.Module):
                 according to the evaluation result, like the best.ckpt on the dev set
                 You can return nothing or an empty list when no need to save the checkpoint
         """
+        save_names = []
         for key, values in records.items():
             average = torch.FloatTensor(values).mean().item()
             logger.add_scalar(
@@ -199,5 +200,7 @@ class DownstreamExpert(nn.Module):
                 average,
                 global_step=global_step
             )
-
-        return [f'best-{mode}.ckpt']
+            if mode == 'dev' and key == 'acc' and average > self.best_score:
+                self.best_score = torch.ones(1) * average
+                save_names.append(f'{mode}-best.ckpt')
+        return save_names
