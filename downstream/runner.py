@@ -149,17 +149,24 @@ class Runner():
         
 
         if self.config.get('augmentation'):
-            self.aug_model = TrainableAugment(self.config['augmentation']['type'], \
-                self.config['augmentation']['trainable_aug']['model'], \
-                self.config['augmentation']['trainable_aug']['optimizer']).to(self.args.device)
 
             if self.config['augmentation']['type'] == 1: # 1: for trainable augmentation
+                self.aug_model = TrainableAugment(self.config['augmentation']['type'], \
+                self.config['augmentation']['trainable_aug']['model'], \
+                self.config['augmentation']['trainable_aug']['optimizer']).to(self.args.device)
                 dev_dataloader=self.downstream.get_dev_dataloader()
                 # create search object
                 self.search = Search(self.downstream, self.aug_model)
             
             if self.config['augmentation']['type'] == 2:
+                self.aug_model = TrainableAugment(self.config['augmentation']['type'], \
+                self.config['augmentation']['trainable_aug']['model'], \
+                self.config['augmentation']['trainable_aug']['optimizer']).to(self.args.device)
                 self.aug_model.load_ckpt(self.config['augmentation']['ckpt_path'])
+            
+            if self.config['augmentation']['type'] == 3:
+                self.aug_model = TrainableAugment(self.config['augmentation']['type'], \
+                self.config['augmentation']['specaug'],None).to(self.args.device)
         # prepare data
         dataloader = self.downstream.get_train_dataloader()
 
@@ -183,11 +190,14 @@ class Runner():
                         with torch.no_grad():
                             features = self.upstream(wavs)
 
-                    if self.config.get('augmentation'):
+                    if self.config.get('augmentation') and self.config['augmentation']['type'] in [1,2]:
                         feature_lens = torch.stack([torch.FloatTensor([len(feature)]).squeeze().to(self.args.device) for feature in features])
                         feature_tensors = pad_sequence(features,batch_first=True)
                         features=self.aug_model(feature_tensors,feature_lens)
                         features=[features[index, :int(feature_lens[index])] for index in range(len(features))]
+                    
+                    if self.config.get("augmentation") and self.config['augmentation']['type'] ==3:
+                        features = [self.aug_model(feat) for feat in features]
 
                     loss = self.downstream(
                         features, *others,

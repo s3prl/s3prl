@@ -2,21 +2,112 @@ import os
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
+import random
+
+'''
+new Augment function
+'''
+class Augment(nn.Module):
+    def __init__(self, T=40, num_masks=1, replace_with_zero=False, F=27):#ori: T = 40
+        super(Augment, self).__init__()    
+        self.T=T
+        self.num_masks=num_masks
+        self.replace_with_zero=replace_with_zero
+        self.F=F
+        self.spec=None
+    #@torch.jit.script_method
+    def forward(self, spec):
+        spec = spec.permute(1, 0)
+
+        spec = self.time_mask(spec, T=self.T, num_masks=self.num_masks, replace_with_zero=self.replace_with_zero)
+        spec = self.freq_mask(spec, F=self.F, num_masks=self.num_masks, replace_with_zero=self.replace_with_zero)
+        spec = spec.permute(1, 0)
+        
+        return spec
+    def normalize(self, spec):
+        spec = (spec-spec.mean())/spec.std()
+        return spec        
+
+    def time_mask(self, spec, T=100, num_masks=1, replace_with_zero=False):
+        cloned = spec
+        len_spectro = cloned.shape[1]
+        
+        for i in range(0, num_masks):
+            t = torch.randint(0, self.T, (1,)).item()
+            t_zero = torch.randint(0, len_spectro-t, (1,)).item()
+            # avoids randrange error if values are equal and range is empty
+            if (t_zero == t_zero + t): return cloned
+            mask_end = torch.randint(t_zero, t_zero+t, (1, )).item()
+
+            if (replace_with_zero): cloned[:,t_zero:mask_end] = 0
+            else: cloned[:,t_zero:mask_end] = cloned.mean()
+        return cloned
+
+    def freq_mask(self, spec, F=27, num_masks=1, replace_with_zero=False):
+        cloned = spec
+        num_mel_channels = cloned.shape[0]
+
+        for i in range(0, num_masks):
+            f = random.randrange(0, F)
+            f_zero = random.randrange(0, num_mel_channels - f)
+
+            # avoids randrange error if values are equal and range is empty
+            if (f_zero == f_zero + f): return cloned
+
+            mask_end = random.randrange(f_zero, f_zero + f)
+            if (replace_with_zero): cloned[f_zero:mask_end, :] = 0
+            else: cloned[f_zero:mask_end, :] = cloned.mean()
+
+        return cloned
+
+    def tensor_to_img(self, spectrogram, filename):
+        spectrogram = self.to_db_scale(spectrogram)
+        spectrogram = spectrogram.detach().numpy()
+        #print(spectrogram[0])
+        plt.figure(figsize=(14,1)) # arbitrary, looks good on my screen.
+        plt.imshow(spectrogram)
+        plt.savefig(filename)
+        #plt.show()
+        #display(spectrogram.shape)
+    def to_db_scale(self, spectrogram):
+        db_sp = 20*torch.log10(spectrogram)
+        return db_sp
+
+    def time_warp(self, spec, W=5):
+        num_rows = spec.shape[1]
+        spec_len = spec.shape[2]
+        device = spec.device
+
+        y = num_rows//2
+        horizontal_line_at_ctr = spec[0][y]
+        assert len(horizontal_line_at_ctr) == spec_len
+
+        point_to_warp = horizontal_line_at_ctr[random.randrange(W, spec_len - W)]
+        assert isinstance(point_to_warp, torch.Tensor)
+
+        # Uniform distribution from (0,W) with chance to be up to W negative
+        dist_to_warp = random.randrange(-W, W)
+        src_pts, dest_pts = (torch.tensor([[[y, point_to_warp]]], device=device),
+                            torch.tensor([[[y, point_to_warp + dist_to_warp]]], device=device))
+        warped_spectro, dense_flows = sparse_image_warp(spec, src_pts, dest_pts)
+        return warped_spectro.squeeze(3)
+
+
 
 class TrainableAugment(nn.Module): 
-    def __init__(self, aug_type, model, optimizer):
+    def __init__(self, aug_type, block_config, optimizer):
         super(TrainableAugment, self).__init__()
         self.aug_type = aug_type # 1: train aug 2: use pretrain aug module 3:previous specaug 4: no aug(only means no aug on spectrogram)
-        if self.aug_type in [3,4]:
-            self.aug_model = None
+        if self.aug_type == 3:
+            self.aug_model = Augment(**block_config)
             self.optimizer = None
         elif self.aug_type == 1:
-            self.aug_model = _TrainableAugmentModel(**model)
+            self.aug_model = _TrainableAugmentModel(**block_config)
             self.aug_model.set_trainable_aug()
             opt = getattr(torch.optim, optimizer.pop('optimizer', 'sgd'))
             self.optimizer = opt(self.aug_model.parameters(), **optimizer)
         elif self.aug_type == 2:
-            self.aug_model = _TrainableAugmentModel(**model)
+            self.aug_model = _TrainableAugmentModel(**block_config)
             self.aug_model.disable_trainable_aug()
             self.optimizer = None
         else:
@@ -25,9 +116,11 @@ class TrainableAugment(nn.Module):
     def get_new_noise(self, feat):
         return self.aug_model.get_new_noise(feat)
 
-    def forward(self, feat, feat_len, noise=None):
+    def forward(self, feat, feat_len=None, noise=None):
         if self.aug_type == 1 or self.aug_type == 2:
             feat = self.aug_model(feat, feat_len, noise=noise)
+        if self.aug_type == 3:
+            feat = self.aug_model(feat)
         return feat
 
     def step(self):

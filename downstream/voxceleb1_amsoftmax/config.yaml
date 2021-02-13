@@ -22,30 +22,30 @@ scheduler:
   name: linear_schedule_with_warmup
   num_warmup_steps: 5000
 
-# comment the whole augmentation config block to disable augmentation when training!!
-# augmentation:
-#   type: 1 # 1: train aug 2: use pretrain aug module 3:previous specaug 4: no aug(only means no aug on spectrogram)
+#comment the whole augmentation config block to disable augmentation when training!!
+augmentation:
+  type: 1 # 1: train aug 2: use pretrain aug module 3:previous specaug 4: no aug(only means no aug on spectrogram)
 
-#   specaug: # arg meaning please refer to src/audio.py: class Augment # only valid if type==3
-#     T: 40
-#     num_masks: 1
-#     replace_with_zero: False
-#     F: 27
+  specaug: # arg meaning please refer to src/audio.py: class Augment # only valid if type==3
+    T: 40
+    num_masks: 1
+    replace_with_zero: False
+    F: 27
 
-#   trainable_aug: # arg meaning please refer to src/augmentation.py: class TrainableAugment # only valid if type==1,2
-#     model:
-#       T_num_masks: 1
-#       F_num_masks: 1
-#       # noise_dim: None
-#       dim: [3, 3]
-#       replace_with_zero: False
-#       width_init_bias: -3.
-#     optimizer:
-#       optimizer: 'AdamW'
-#       lr: 1.0e-4
-#       amsgrad: True
+  trainable_aug: # arg meaning please refer to src/augmentation.py: class TrainableAugment # only valid if type==1,2
+    model:
+      T_num_masks: 1
+      F_num_masks: 1
+      # noise_dim: None
+      dim: [3, 3]
+      replace_with_zero: False
+      width_init_bias: -3.
+    optimizer:
+      optimizer: 'AdamW'
+      lr: 1.0e-4
+      amsgrad: True
   
-#   ckpt_path: your_aug_model_path.ckpt
+  ckpt_path: your_aug_model_path.ckpt
     
 
 downstream_expert: 
