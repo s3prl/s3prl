@@ -283,11 +283,15 @@ class Runner():
                 # evaluation and save checkpoint
                 save_names = []
 
+                if self.config.get('augmentation') and self.config['augmentation']['type'] ==1:
+                    save_augs = []
+
                 if global_step % self.config['runner']['eval_step'] == 0:
                     for split in self.config['runner']['eval_dataloaders']:
                         save_names += self.evaluate(split, global_step)
 
                 if global_step % self.config['runner']['save_step'] == 0:
+
                     def check_ckpt_num(directory):
                         max_keep = self.config['runner']['max_keep']
                         ckpt_pths = glob.glob(f'{directory}/states-*.ckpt')
@@ -295,8 +299,21 @@ class Runner():
                             ckpt_pths = sorted(ckpt_pths, key=lambda pth: int(pth.split('-')[-1].split('.')[0]))
                             for ckpt_pth in ckpt_pths[:len(ckpt_pths) - max_keep + 1]:
                                 os.remove(ckpt_pth)
+
+                    def check_ckpt_num_aug(directory):
+                        max_keep = self.config['runner']['max_keep']
+                        ckpt_pths = glob.glob(f'{directory}/augment-*.ckpt')
+                        if len(ckpt_pths) >= max_keep:
+                            ckpt_pths = sorted(ckpt_pths, key=lambda pth: int(pth.split('-')[-1].split('.')[0]))
+                            for ckpt_pth in ckpt_pths[:len(ckpt_pths) - max_keep + 1]:
+                                os.remove(ckpt_pth)
+
                     check_ckpt_num(self.args.expdir)
                     save_names.append(f'states-{global_step}.ckpt')
+
+                    if self.config.get('augmentation') and self.config['augmentation']['type'] ==1:
+                        check_ckpt_num_aug(self.args.expdir)
+                        save_augs.append(f'augment-{global_step}.ckpt')
 
                 if len(save_names) > 0:
                     all_states = {
@@ -318,6 +335,12 @@ class Runner():
                     for i, path in enumerate(save_paths):
                         tqdm.write(f'{i + 1}. {path}')
                         torch.save(all_states, path)
+                    
+                    if self.config.get('augmentation') and self.config['augmentation']['type'] ==1:
+                        save_aug_paths = [os.path.join(self.args.expdir, name) for name in save_augs]
+                        for i, path in enumerate(save_aug_paths):
+                            tqdm.write(f'{i + 1}. {path}')
+                            self.aug_model.save_ckpt(path)
 
                 pbar.update(1)
 

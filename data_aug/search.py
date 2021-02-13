@@ -82,8 +82,6 @@ class Search(object):
         feature_list = [valid_tensor[index, :int(valid_data[1][index])] for index in range(len(valid_tensor))]
         loss = self.v_model(feature_list, *valid_data[2:],records={'acc':[]})
 
-        # model_output = self.v_model(*self._get_model_input(valid_data))
-        # loss = get_loss_func(*self._get_calc_loss_input(valid_data, model_output)) # L_trn(w)
 
         # compute gradient
         dw = torch.autograd.grad(loss, self.v_model.parameters())
@@ -117,8 +115,6 @@ class Search(object):
         aug_feature_tensor = aug_train_data[0]
         aug_feature_list = [aug_feature_tensor[index, :int(train_data[1][index])] for index in range(len(aug_feature_tensor))]
         loss = self.model(aug_feature_list, *train_data[2:],records={'acc':[]})
-        # model_output = self.model(*self._get_model_input(aug_train_data))
-        # loss = get_loss_func(*self._get_calc_loss_input(train_data, model_output)) # L_trn(w)
         dalpha_pos = torch.autograd.grad(loss, self.aug_model.parameters()) # dalpha { L_trn(w+) }
 
         # w- = w - eps*dw`
@@ -130,8 +126,6 @@ class Search(object):
         aug_feature_tensor = aug_train_data[0]
         aug_feature_list = [aug_feature_tensor[index, :int(train_data[1][index])] for index in range(len(aug_feature_tensor))]
         loss = self.model(aug_feature_list, *train_data[2:],records={'acc':[]})
-        # model_output = self.model(*self._get_model_input(aug_train_data))
-        # loss = get_loss_func(*self._get_calc_loss_input(train_data, model_output)) # L_trn(w)
         dalpha_neg = torch.autograd.grad(loss, self.aug_model.parameters()) # dalpha { L_trn(w-) }
 
         # recover w
@@ -144,9 +138,6 @@ class Search(object):
 
 def sgd_forward(w, g, model_optim, model_optim_parameter):
     return g
-
-# def sgd_backward(w, g, model_optim, model_optim_parameter):
-#     return 1
 
 def momentum_forward(w, g, model_optim, model_optim_parameter):
     m = model_optim.state[w].get('momentum_buffer', 0.) * model_optim_parameter['w_momentum']
