@@ -63,6 +63,7 @@ class DownstreamExpert(nn.Module):
             upstream_rate = upstream_rate,
             **model_conf,
         )
+        self.register_buffer('best_score', torch.ones(1) * 100)
 
     # Interface
     def get_dataloader(self, mode):
@@ -151,6 +152,7 @@ class DownstreamExpert(nn.Module):
         lprobs, lprobs_len = self.model(features, features_len)
         
         loss_placeholder = torch.zeros(1, requires_grad=True).to(device)
+        records['loss'].append(loss_placeholder.item())
         return loss_placeholder
 
     # interface
@@ -189,12 +191,15 @@ class DownstreamExpert(nn.Module):
                 according to the evaluation result, like the best.ckpt on the dev set
                 You can return nothing or an empty list when no need to save the checkpoint
         """
+        save_names = []
         for key, values in records.items():
             average = torch.FloatTensor(values).mean().item()
             logger.add_scalar(
-                f'example/{mode}-{key}',
+                f'asr/{mode}-{key}',
                 average,
                 global_step=global_step
             )
-
-        return [f'best-{mode}.ckpt']
+            if mode == 'dev' and key == 'loss' and average < self.best_score:
+                self.best_score = torch.ones(1) * average
+                save_names.append(f'{mode}-best.ckpt')
+        return save_names
