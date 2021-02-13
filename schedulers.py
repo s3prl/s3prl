@@ -187,11 +187,10 @@ def get_noam_decay_schedule_with_warmup(optimizer, num_warmup_steps, num_trainin
     """
 
     def lr_lambda(current_step: int):
-        if current_step < num_warmup_steps:
-            return float(current_step) / float(max(1, num_warmup_steps))
+
         return (
             768 ** (-0.5) *
-            min(current_step ** (-0.5), current_step * num_warmup_steps**(-1.5)))
+            min(float(max(1, current_step)) ** (-0.5), float(max(1, current_step)) * num_warmup_steps**(-1.5)))
 
     return LambdaLR(optimizer, lr_lambda, last_epoch)
 
