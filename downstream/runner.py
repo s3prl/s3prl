@@ -224,8 +224,8 @@ class Runner():
                 save_names = []
 
                 if global_step % self.config['runner']['eval_step'] == 0:
-                    for mode in self.config['runner']['eval_dataloaders']:
-                        save_names += self.evaluate(mode, global_step)
+                    for split in self.config['runner']['eval_dataloaders']:
+                        save_names += self.evaluate(split, global_step)
 
                 if global_step % self.config['runner']['save_step'] == 0:
                     def check_ckpt_num(directory):
@@ -265,7 +265,9 @@ class Runner():
         pbar.close()
 
 
-    def evaluate(self, mode='test', global_step=0):
+    def evaluate(self, split=None, global_step=0):
+        split = split or self.args.evaluate_split
+
         # fix seed to guarantee the same evaluation protocol across steps 
         random.seed(self.args.seed)
         np.random.seed(self.args.seed)
@@ -281,24 +283,24 @@ class Runner():
         self.upstream.eval()
 
         # prepare data
-        dataloader = self.downstream.get_dataloader(mode)
+        dataloader = self.downstream.get_dataloader(split)
 
         batch_ids = []
         records = defaultdict(list)
-        for batch_id, (wavs, *others) in enumerate(tqdm(dataloader, dynamic_ncols=True, desc=mode)):
+        for batch_id, (wavs, *others) in enumerate(tqdm(dataloader, dynamic_ncols=True, desc=split)):
 
             wavs = [wav.to(self.args.device) for wav in wavs]
             with torch.no_grad():
                 features = self.upstream(wavs)
                 self.downstream(
-                    mode,
+                    split,
                     features, *others,
                     records = records,
                 )
                 batch_ids.append(batch_id)
 
         save_names = self.downstream.log_records(
-            mode,
+            split,
             records = records,
             logger = self.logger,
             global_step = global_step,

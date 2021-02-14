@@ -9,8 +9,6 @@ runner:
   max_keep: 1
   eval_dataloaders:
     - dev
-    - test-clean
-    - test-other
 
 optimizer:
   name: AdamW

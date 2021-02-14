@@ -19,9 +19,11 @@ def get_downstream_args():
 
     # train or test for this experiment
     parser.add_argument('-m', '--mode', choices=['train', 'evaluate'], required=True)
+    parser.add_argument('-t', '--evaluate_split', default='test')
 
     # use a ckpt as the experiment initialization
-    # if set, all the following args and config will be overwrited by the ckpt, except args.mode
+    # if set, all the args and config below this line will be overwrited by the ckpt
+    # if a directory is specified, the latest ckpt will be used by default
     parser.add_argument('-e', '--past_exp', metavar='{CKPT_PATH,CKPT_DIR}', help='Resume training from a checkpoint')
 
     # only load the parameters in the checkpoint without overwriting arguments and config, this is for evaluation
@@ -89,18 +91,19 @@ def get_downstream_args():
         # load checkpoint
         ckpt = torch.load(ckpt_pth, map_location='cpu')
 
-        def update_args(old, new):
-            old_dict = vars(old)
+        def update_args(old, new, preserve_list=None):
+            out_dict = vars(old)
             new_dict = vars(new)
-            old_dict.update(new_dict)
-            return Namespace(**old_dict)
+            assert out_dict.keys() == new_dict.keys()
+            for key in list(out_dict.keys()):
+                if key not in preserve_list:
+                    out_dict[key] = new_dict[key]
+            return Namespace(**out_dict)
 
         # overwrite args and config
-        mode = args.mode
-        args = update_args(args, ckpt['Args'])
-        config = ckpt['Config']
-        args.mode = mode
+        args = update_args(args, ckpt['Args'], preserve_list=['mode', 'evaluate_split'])
         args.init_ckpt = ckpt_pth
+        config = ckpt['Config']
 
     else:
         print('[Runner] - Start a new experiment')
