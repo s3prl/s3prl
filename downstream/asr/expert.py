@@ -66,11 +66,11 @@ class DownstreamExpert(nn.Module):
         self.register_buffer('best_score', torch.ones(1) * 100)
 
     # Interface
-    def get_dataloader(self, mode):
+    def get_dataloader(self, split):
         """
         Args:
-            mode: string
-                'train', 'dev' or 'test'
+            split: string
+                The name of the dataloader, can be train/dev/test-clean/test-other for asr
 
         Return:
             a torch.utils.data.DataLoader returning each batch in the format of:
@@ -84,12 +84,12 @@ class DownstreamExpert(nn.Module):
                 3. directly loaded by torchaudio
         """
 
-        if mode == 'train':
+        if split == 'train':
             return self._get_train_dataloader(self.train_dataset)
         else:
-            if not hasattr(self, f'{mode}_dataset'):
-                setattr(self, f'{mode}_dataset', SequenceDataset(mode, self.datarc['eval_batch_size'], **self.datarc))
-            return self._get_eval_dataloader(getattr(self, f'{mode}_dataset'))
+            if not hasattr(self, f'{split}_dataset'):
+                setattr(self, f'{split}_dataset', SequenceDataset(split, self.datarc['eval_batch_size'], **self.datarc))
+            return self._get_eval_dataloader(getattr(self, f'{split}_dataset'))
 
 
     def _get_train_dataloader(self, dataset):
@@ -109,11 +109,11 @@ class DownstreamExpert(nn.Module):
 
 
     # Interface
-    def forward(self, mode, features, labels, records, **kwargs):
+    def forward(self, split, features, labels, records, **kwargs):
         """
         Args:
-            mode: string
-                'train', 'dev' or 'test' for this forward step
+            split: string
+                The name of the dataloader, can be train/dev/test-clean/test-other for asr
 
             features:
                 list of unpadded features [feat1, feat2, ...]
@@ -156,16 +156,16 @@ class DownstreamExpert(nn.Module):
         return loss_placeholder
 
     # interface
-    def log_records(self, mode, records, logger, global_step, batch_ids, total_batch_num, **kwargs):
+    def log_records(self, split, records, logger, global_step, batch_ids, total_batch_num, **kwargs):
         """
         Args:
-            mode: string
+            split: string
                 'train':
                     records and batchids contain contents for `log_step` batches
                     `log_step` is defined in your downstream config
                     eg. downstream/example/config.yaml
 
-                'dev' or 'test' :
+                'dev' or 'test-clean' or 'test-other' :
                     records and batchids contain contents for the entire evaluation dataset
 
             records:
@@ -173,7 +173,7 @@ class DownstreamExpert(nn.Module):
 
             logger:
                 Tensorboard SummaryWriter
-                please use f'{your_task_name}/{mode}-{key}' as key name to log your contents,
+                please use f'{your_task_name}/{split}-{key}' as key name to log your contents,
                 preventing conflict with the logging of other tasks
 
             global_step:
@@ -195,11 +195,11 @@ class DownstreamExpert(nn.Module):
         for key, values in records.items():
             average = torch.FloatTensor(values).mean().item()
             logger.add_scalar(
-                f'asr/{mode}-{key}',
+                f'asr/{split}-{key}',
                 average,
                 global_step=global_step
             )
-            if mode == 'dev' and key == 'loss' and average < self.best_score:
+            if split == 'dev' and key == 'loss' and average < self.best_score:
                 self.best_score = torch.ones(1) * average
-                save_names.append(f'{mode}-best.ckpt')
+                save_names.append(f'{split}-best.ckpt')
         return save_names
