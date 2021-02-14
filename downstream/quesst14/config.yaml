@@ -16,6 +16,10 @@ optimizer:
   lr: 2.0e-4
 
 downstream_expert:
+  metric: "L2"
+  # metric: "L1"
+  # metric: "cos"
+  max_workers: -1
   datarc:
     dataset_root: /corpora/quesst14Database
     num_workers: 8
