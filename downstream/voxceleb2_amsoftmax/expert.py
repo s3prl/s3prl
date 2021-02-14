@@ -115,7 +115,7 @@ class DownstreamExpert(nn.Module):
         return self._get_eval_dataloader(self.test_dataset)
 
     # Interface
-    def forward(self, mode, features, your_other_contents1, records, **kwargs):
+    def forward(self, mode, features, length, labels, records, **kwargs):
         """
         Args:
             features:
@@ -123,7 +123,7 @@ class DownstreamExpert(nn.Module):
                 put in the device assigned by command-line args
 
             labels:
-                the frame-wise phone labels
+                the speaker labels
 
             records:
                 defaultdict(list), by appending scalars into records,
@@ -143,7 +143,11 @@ class DownstreamExpert(nn.Module):
         """
         features_pad = pad_sequence(features, batch_first=True)
         
-        attention_mask = [torch.ones((feature.shape[0])) for feature in features] 
+        if self.modelrc['module'] == "XVector":
+            attention_mask = [torch.ones((feature.shape[0]-14)) for feature in features]
+        else:
+            attention_mask = [torch.ones((feature.shape[0])) for feature in features]
+
 
         attention_mask_pad = pad_sequence(attention_mask,batch_first=True)
 
@@ -202,7 +206,7 @@ class DownstreamExpert(nn.Module):
             records['EER'] = EER_result[0]
 
             logger.add_scalar(
-                f'{prefix}'+'EER',
+                f'{mode}-'+'EER',
                 records['EER'],
                 global_step=global_step
             )
