@@ -23,7 +23,7 @@ optimizer:
 
 downstream_expert:
   datarc:
-    file_path: /home/raytz/Disk/data/fluent_speech_commands_dataset
+    file_path: /path/to/fluent_speech_commands_dataset
     num_workers: 12
     train_batch_size: 1
     eval_batch_size: 1
