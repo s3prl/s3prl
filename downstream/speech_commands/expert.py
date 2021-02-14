@@ -41,6 +41,7 @@ class DownstreamExpert(nn.Module):
         self.objective = nn.CrossEntropyLoss()
 
         self.logging = os.path.join(expdir, 'log.log')
+        self.register_buffer('best_score', torch.zeros(1))
 
     def _get_balanced_dataloader(self, dataset, drop_last=False):
         return DataLoader(
@@ -65,19 +66,18 @@ class DownstreamExpert(nn.Module):
         )
 
     # Interface
-    def get_train_dataloader(self):
-        return self._get_balanced_dataloader(self.train_dataset, drop_last=True)
+    def get_dataloader(self, mode):
+        if mode == 'train':
+            return self._get_balanced_dataloader(self.train_dataset, drop_last=True)
+        elif mode == 'dev':
+            return self._get_balanced_dataloader(self.dev_dataset, drop_last=False)
+        elif mode == 'test':
+            return self._get_dataloader(self.test_dataset)
+        else:
+            raise NotImplementedError
 
     # Interface
-    def get_dev_dataloader(self):
-        return self._get_balanced_dataloader(self.dev_dataset, drop_last=False)
-
-    # Interface
-    def get_test_dataloader(self):
-        return self._get_dataloader(self.test_dataset)
-
-    # Interface
-    def forward(self, features, labels, records, logger, prefix, global_step, **kwargs):
+    def forward(self, mode, features, labels, records, **kwargs):
         features = pad_sequence(features, batch_first=True)
         predicted = self.model(features)
 
@@ -85,17 +85,28 @@ class DownstreamExpert(nn.Module):
         loss = self.objective(predicted, labels)
 
         predicted_classid = predicted.max(dim=-1).indices
+        records["loss"].append(loss.item())
         records["acc"] += (predicted_classid == labels).view(-1).cpu().float().tolist()
-
         return loss
 
     # interface
-    def log_records(self, records, logger, prefix, global_step, **kwargs):
+    def log_records(self, mode, records, logger, global_step, **kwargs):
+        save_names = []
         for key, values in records.items():
             average = torch.FloatTensor(values).mean().item()
-            logger.add_scalar(f"{prefix}{key}", average, global_step=global_step)
+            logger.add_scalar(
+                f'speech_commands/{mode}-{key}',
+                average,
+                global_step=global_step
+            )
             with open(self.logging, 'a') as f:
-                f.write(f'{prefix}|step:{global_step}|{key}:{average}\n')
+                if key == 'acc':
+                    f.write(f'{mode} at step {global_step}: {average}\n')
+                    if mode == 'dev' and average > self.best_score:
+                        self.best_score = torch.ones(1) * average
+                        f.write(f'New best on {mode} at step {global_step}: {average}\n')
+                        save_names.append(f'{mode}-best.ckpt')
+        return save_names
 
 
 def split_dataset(

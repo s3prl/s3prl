@@ -18,11 +18,14 @@ def get_downstream_args():
     parser = argparse.ArgumentParser()
 
     # train or test for this experiment
-    parser.add_argument('-m', '--mode', choices=['train', 'evaluate'])
+    parser.add_argument('-m', '--mode', choices=['train', 'evaluate'], required=True)
 
     # use a ckpt as the experiment initialization
     # if set, all the following args and config will be overwrited by the ckpt, except args.mode
-    parser.add_argument('-e', '--past_exp', metavar='{CKPT_PATH,CKPT_DIR}', help='Resume training from a checkpoint for evaluate it')
+    parser.add_argument('-e', '--past_exp', metavar='{CKPT_PATH,CKPT_DIR}', help='Resume training from a checkpoint')
+
+    # only load the parameters in the checkpoint without overwriting arguments and config, this is for evaluation
+    parser.add_argument('-i', '--init_ckpt', metavar='CKPT_PATH', help='Load the checkpoint for evaluation')
 
     # configuration for the experiment, including runner and downstream
     parser.add_argument('-c', '--config', help='The yaml file for configuring the whole experiment except the upstream model')
@@ -97,7 +100,7 @@ def get_downstream_args():
         args = update_args(args, ckpt['Args'])
         config = ckpt['Config']
         args.mode = mode
-        args.past_exp = ckpt_pth
+        args.init_ckpt = ckpt_pth
 
     else:
         print('[Runner] - Start a new experiment')

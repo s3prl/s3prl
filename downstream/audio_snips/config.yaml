@@ -23,7 +23,7 @@ scheduler:
 
 downstream_expert:
   datarc:
-    file_path: /home/raytz/Disk/data/audio_slu
+    file_path: /path/to/audio_slu
     train_speakers: 
       - Aditi
       - Amy

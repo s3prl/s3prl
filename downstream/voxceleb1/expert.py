@@ -24,25 +24,14 @@ from .model import Model
 from .dataset import SpeakerClassifiDataset
 from argparse import Namespace
 
-import IPython
-import pdb
-
 
 class DownstreamExpert(nn.Module):
     """
     Used to handle downstream-specific operations
     eg. downstream forward, metric computation, contents to log
-
-    Note 1.
-        dataloaders should output in the following format:
-
-        [[wav1, wav2, ...], your_other_contents, ...]
-
-        where wav1, wav2 ... are in variable length
-        and wav1 is in torch.FloatTensor
     """
 
-    def __init__(self, upstream_dim, downstream_expert, **kwargs):
+    def __init__(self, upstream_dim, downstream_expert, expdir, **kwargs):
         super(DownstreamExpert, self).__init__()
         self.upstream_dim = upstream_dim
         self.downstream = downstream_expert
@@ -57,6 +46,9 @@ class DownstreamExpert(nn.Module):
 
         self.model = Model(input_dim=self.modelrc['input_dim'], agg_module=self.modelrc['agg_module'],output_class_num=self.train_dataset.speaker_num, config=self.modelrc)
         self.objective = nn.CrossEntropyLoss()
+        
+        self.logging = os.path.join(expdir, 'log.log')
+        self.register_buffer('best_score', torch.zeros(1))
 
     def _get_train_dataloader(self, dataset):
         return DataLoader(
@@ -72,46 +64,21 @@ class DownstreamExpert(nn.Module):
             collate_fn=dataset.collate_fn
         )
 
-    # Interface
     def get_train_dataloader(self):
         return self._get_train_dataloader(self.train_dataset)
 
-    # Interface
     def get_dev_dataloader(self):
         return self._get_eval_dataloader(self.dev_dataset)
 
-    # Interface
     def get_test_dataloader(self):
         return self._get_eval_dataloader(self.test_dataset)
 
     # Interface
-    def forward(self, features, lengths, labels,
-                records=None, logger=None, prefix=None, global_step=0, **kwargs):
-        """
-        Args:
-            features:
-                the features extracted by upstream
-                put in the device assigned by command-line args
+    def get_dataloader(self, mode):
+        return eval(f'self.get_{mode}_dataloader')()
 
-            labels:
-                the frame-wise phone labels
-
-            records:
-                defaultdict(list), by appending scalars into records,
-                these scalars will be averaged and logged on Tensorboard
-
-            logger:
-                Tensorboard SummaryWriter, given here for logging/debugging
-                convenience, please use "self.downstream/your_content_name" as key
-                name to log your customized contents
-
-            global_step:
-                global_step in runner, which is helpful for Tensorboard logging
-
-        Return:
-            loss:
-                the loss to be optimized, should not be detached
-        """
+    # Interface
+    def forward(self, mode, features, lengths, labels, records, **kwargs):
         features_pad = pad_sequence(features, batch_first=True)
         
         attention_mask = [torch.ones((feature.shape[0])) for feature in features] 
@@ -128,36 +95,25 @@ class DownstreamExpert(nn.Module):
 
         predicted_classid = predicted.max(dim=-1).indices
         records['acc'] += (predicted_classid == labels).view(-1).cpu().float().tolist()
-
-
-        if not self.training:
-            # some evaluation-only processing, eg. decoding
-            pass
+        records['loss'].append(loss.item())
 
         return loss
-        # interface
-    def log_records(self, records, logger, prefix, global_step, **kwargs):
-        """
-        Args:
-            records:
-                defaultdict(list), contents already appended
 
-            logger:
-                Tensorboard SummaryWriter
-                please use f'{prefix}your_content_name' as key name
-                to log your customized contents
-
-            prefix:
-                used to indicate downstream and train/test on Tensorboard
-                eg. 'phone/train-'
-
-            global_step:
-                global_step in runner, which is helpful for Tensorboard logging
-        """
+    # interface
+    def log_records(self, mode, records, logger, global_step, **kwargs):
+        save_names = []
         for key, values in records.items():
             average = torch.FloatTensor(values).mean().item()
             logger.add_scalar(
-                f'{prefix}{key}',
+                f'voxceleb1/{mode}-{key}',
                 average,
                 global_step=global_step
             )
+            with open(self.logging, 'a') as f:
+                if key == 'acc':
+                    f.write(f'{mode} at step {global_step}: {average}\n')
+                    if mode == 'dev' and average > self.best_score:
+                        self.best_score = torch.ones(1) * average
+                        f.write(f'New best on {mode} at step {global_step}: {average}\n')
+                        save_names.append(f'{mode}-best.ckpt')
+        return save_names
