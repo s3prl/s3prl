@@ -26,7 +26,7 @@ downstream_expert:
   datarc:
     train:
       file_path: 
-        Voxceleb1: /groups/public/VoxCeleb1/dev
+        Voxceleb1: ../librispeech/vox1_train_verifi/wav
         # Voxceleb2: /groups/public/VoxCeleb2/dev/wav/
       meta_data: ./downstream/voxceleb2_amsoftmax/dev_meta_data/dev_speaker_ids.txt
       max_timestep: 128000
@@ -46,7 +46,7 @@ downstream_expert:
 
   modelrc:
     module:
-      Identity 
+      XVector 
     hparams:
       hidden_size: 256                                      # Size of the encoder layers and the pooler layer.
       num_hidden_layers: 3                                  # Number of hidden layers in the Transformer encoder.
@@ -60,5 +60,6 @@ downstream_expert:
       share_layer: False                                    # Share layer weights
       max_input_length: 0                                   # maximum input length (0 for no restriction)
       pre_layer_norm: False                                 # apply the pre layer normalization technique introduced in: https://arxiv.org/abs/2002.04745
-    input_dim: 256
-    agg_module: Mean
+    input_dim: 512
+    agg_dim: 1500
+    agg_module: SAP

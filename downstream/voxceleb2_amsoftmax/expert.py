@@ -56,11 +56,37 @@ class DownstreamExpert(nn.Module):
         
         self.connector = nn.Linear(self.upstream_dim, self.modelrc['input_dim'])
 
-        self.model = Model(input_dim=self.modelrc['input_dim'], agg_module=self.modelrc['agg_module'], config=self.modelrc)
-        self.objective = AdMSoftmaxLoss(self.modelrc['input_dim'], self.train_dataset.speaker_num, s=30.0, m=0.4)
+        self.model = Model(input_dim=self.modelrc['agg_dim'], agg_module=self.modelrc['agg_module'], config=self.modelrc)
+        self.objective = AdMSoftmaxLoss(self.modelrc['agg_dim'], self.train_dataset.speaker_num, s=30.0, m=0.4)
 
         self.score_fn  = nn.CosineSimilarity(dim=-1)
         self.eval_metric = EER
+
+    # Interface
+    def get_dataloader(self, mode):
+        """
+        Args:
+            mode: string
+                'train', 'dev' or 'test'
+
+        Return:
+            a torch.utils.data.DataLoader returning each batch in the format of:
+
+            [wav1, wav2, ...], your_other_contents1, your_other_contents2, ...
+
+            where wav1, wav2 ... are in variable length
+            each wav is torch.FloatTensor in cpu with:
+                1. dim() == 1
+                2. sample_rate == 16000
+                3. directly loaded by torchaudio
+        """
+
+        if mode == 'train':
+            return self._get_train_dataloader(self.train_dataset)            
+        elif mode == 'dev':
+            return self._get_eval_dataloader(self.dev_dataset)
+        elif mode == 'test':
+            return self._get_eval_dataloader(self.test_dataset)
 
     def _get_train_dataloader(self, dataset):
         return DataLoader(
@@ -89,8 +115,7 @@ class DownstreamExpert(nn.Module):
         return self._get_eval_dataloader(self.test_dataset)
 
     # Interface
-    def forward(self, features, lengths, labels,
-                records=None, logger=None, prefix=None, global_step=0, **kwargs):
+    def forward(self, mode, features, your_other_contents1, records, **kwargs):
         """
         Args:
             features:
@@ -152,7 +177,7 @@ class DownstreamExpert(nn.Module):
             return torch.tensor(0)
 
     # interface
-    def log_records(self, records, logger, prefix, global_step, **kwargs):
+    def log_records(self, mode, records, logger, global_step, batch_ids, total_batch_num, **kwargs):
         """
         Args:
             records:
