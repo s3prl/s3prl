@@ -50,6 +50,29 @@ class DownstreamExpert(nn.Module):
         self.logging = os.path.join(expdir, 'log.log')
         self.best = defaultdict(lambda: 0)
 
+    # Interface
+    def get_dataloader(self, mode):
+        """
+        Args:
+            mode: string
+                'train', 'dev' or 'test'
+        Return:
+            a torch.utils.data.DataLoader returning each batch in the format of:
+            [wav1, wav2, ...], your_other_contents1, your_other_contents2, ...
+            where wav1, wav2 ... are in variable length
+            each wav is torch.FloatTensor in cpu with:
+                1. dim() == 1
+                2. sample_rate == 16000
+                3. directly loaded by torchaudio
+        """
+
+        if mode == 'train':
+            return self._get_train_dataloader(self.train_dataset)            
+        elif mode == 'dev':
+            return self._get_eval_dataloader(self.dev_dataset)
+        elif mode == 'test':
+            return self._get_eval_dataloader(self.test_dataset)
+
     def _get_train_dataloader(self, dataset):
         return DataLoader(
             dataset, batch_size=self.train_batch_size,
@@ -187,6 +210,7 @@ class DownstreamExpert(nn.Module):
                  + speaker_error) / speaker_scored,
             )
 
+        records['loss'].append(loss.item())
         records['acc'] += [ACC]
         records['der'] += [DER]
 
