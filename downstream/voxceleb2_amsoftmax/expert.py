@@ -21,7 +21,7 @@ import torch.nn as nn
 from torch.utils.data import DataLoader
 from torch.nn.utils.rnn import pad_sequence
 #-------------#
-from .model import Model, AdMSoftmaxLoss
+from .model import Model, AdMSoftmaxLoss, UtteranceModel
 from .dataset import SpeakerVerifi_train, SpeakerVerifi_dev, SpeakerVerifi_test
 from argparse import Namespace
 from .utils import EER, compute_metrics
@@ -55,9 +55,9 @@ class DownstreamExpert(nn.Module):
         self.test_dataset = SpeakerVerifi_test(self.datarc['test']['file_path'], self.datarc['test']['meta_data'])
         
         self.connector = nn.Linear(self.upstream_dim, self.modelrc['input_dim'])
-
-        self.model = Model(input_dim=self.modelrc['agg_dim'], agg_module=self.modelrc['agg_module'], config=self.modelrc)
-        self.objective = AdMSoftmaxLoss(self.modelrc['agg_dim'], self.train_dataset.speaker_num, s=30.0, m=0.4)
+        self.UtteranceExtractor = UtteranceModel(self.modelrc['input_dim'], self.modelrc['input_dim'])
+        self.model = Model(input_dim=self.modelrc['input_dim'], agg_dim=self.modelrc['agg_dim'], agg_module=self.modelrc['agg_module'], config=self.modelrc)
+        self.objective = AdMSoftmaxLoss(self.modelrc['input_dim'], self.train_dataset.speaker_num, s=30.0, m=0.4)
 
         self.score_fn  = nn.CosineSimilarity(dim=-1)
         self.eval_metric = EER
@@ -157,7 +157,7 @@ class DownstreamExpert(nn.Module):
         agg_vec = self.model(features_pad, attention_mask_pad.cuda())
 
         if self.training:
-
+            agg_vec = self.UtteranceExtractor(agg_vec)
             labels = torch.LongTensor(labels).to(features_pad.device)
             loss = self.objective(agg_vec, labels)
             

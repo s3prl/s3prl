@@ -34,10 +34,10 @@ class Identity(nn.Module):
 
 class Mean(nn.Module):
 
-    def __init__(self, out_dim):
+    def __init__(self, out_dim, input_dim):
         super(Mean, self).__init__()
         self.act_fn = nn.ReLU()
-        self.linear = nn.Linear(out_dim, out_dim)
+        self.linear = nn.Linear(input_dim, out_dim)
         # simply take mean operator / no additional parameters
 
     def forward(self, feature, att_mask):
@@ -61,11 +61,12 @@ class Mean(nn.Module):
 class SAP(nn.Module):
     ''' Self Attention Pooling module incoporate attention mask'''
 
-    def __init__(self, out_dim):
+    def __init__(self, out_dim, input_dim):
         super(SAP, self).__init__()
 
         # Setup
-        self.act_fn = nn.Tanh()
+        self.act_fn = nn.ReLU()
+        self.linear = nn.Linear(input_dim, out_dim)
         self.sap_layer = SelfAttentionPooling(out_dim)
     
     def forward(self, feature, att_mask):
@@ -76,6 +77,8 @@ class SAP(nn.Module):
             att_mask   - [BxTx1]     Attention Mask logits
         '''
         #Encode
+        feature = self.act_fn(feature)
+        feature = self.linear(feature)
         feature = self.act_fn(feature)
         sap_vec = self.sap_layer(feature, att_mask)
 
@@ -111,24 +114,35 @@ class SelfAttentionPooling(nn.Module):
         return utter_rep
 
 class Model(nn.Module):
-    def __init__(self, input_dim, agg_module, config):
+    def __init__(self, input_dim, agg_dim, agg_module, config):
         super(Model, self).__init__()
         
         # agg_module: current support [ "SAP", "Mean" ]
         # init attributes
-        self.agg_method = eval(agg_module)(input_dim)
+        self.agg_method = eval(agg_module)(input_dim, agg_dim)
         
         # two standard transformer encoder layer
         self.model= eval(config['module'])(config=Namespace(**config['hparams']),)
         self.head_mask = [None] * config['hparams']['num_hidden_layers']         
-
-
     def forward(self, features, att_mask):
         features = self.model(features,att_mask[:,None,None], head_mask=self.head_mask, output_all_encoded_layers=False)
         utterance_vector = self.agg_method(features[0], att_mask)
         
         return utterance_vector
 
+class UtteranceModel(nn.Module):
+    def __init__(self, in_feature, out_dim):
+        super(UtteranceModel,self).__init__()
+        self.linear1 = nn.Linear(in_feature, out_dim)
+        self.linear2 = nn.Linear(out_dim,out_dim)
+        self.act_fn = nn.ReLU()
+    def forward(self, x):
+        hid = self.linear1(x)
+        hid = self.act_fn(hid)
+        hid = self.linear2(hid)
+        hid = self.act_fn(hid)
+
+        return hid
 
 class AdMSoftmaxLoss(nn.Module):
 
