@@ -11,12 +11,24 @@
 # IMPORTATION #
 ###############
 import torch
+import numpy as np
+from itertools import permutations
+
+
+# compute mask to remove the padding positions
+def create_length_mask(length, max_len, num_output, device):
+    batch_size = len(length)
+    mask = torch.zeros(batch_size, max_len, num_output)
+    for i in range(batch_size):
+        mask[i, :length[i], :] = 1
+    mask = mask.to(device)
+    return mask
 
 
 # compute loss for a single permutation
 def pit_loss_single_permute(output, label, length):
     bce_loss = torch.nn.BCEWithLogitsLoss(reduction='none')
-    mask = create_length_mask(length, label.size(1), label.size(2))
+    mask = create_length_mask(length, label.size(1), label.size(2), label.device)
     loss = bce_loss(output, label)
     loss = loss * mask
     loss = torch.sum(torch.mean(loss, dim=2), dim=1)
@@ -26,6 +38,7 @@ def pit_loss_single_permute(output, label, length):
 
 def pit_loss(output, label, length):
     num_output = label.size(2)
+    device = label.device
     permute_list = [np.array(p) for p in permutations(range(num_output))]
     loss_list = []
     for p in permute_list:

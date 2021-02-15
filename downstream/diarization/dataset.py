@@ -13,7 +13,9 @@
 import os
 import random
 #-------------#
+import numpy as np
 import pandas as pd
+import soundfile as sf
 #-------------#
 import torch
 from torch.nn.utils.rnn import pad_sequence
@@ -54,10 +56,9 @@ class DiarizationDataset(Dataset):
             subsampling=1,
             rate=16000,
             input_transform=None,
-            use_last_samples=False,
+            use_last_samples=True,
             label_delay=0,
-            n_speakers=None,
-            max_frame_num=2000,
+            num_speakers=None,
         ):
         super(DiarizationDataset, self).__init__()
 
@@ -66,12 +67,11 @@ class DiarizationDataset(Dataset):
         self.chunk_size = chunk_size
         self.frame_shift = frame_shift
         self.subsampling = subsampling
-        self.n_speakers = n_speakers
+        self.n_speakers = num_speakers
         self.chunk_indices = []
         self.label_delay = label_delay
-        self.max_frame_num = max_frame_num
 
-        self.data = kaldi_data.KaldiData(self.data_dir)
+        self.data = KaldiData(self.data_dir)
 
         # make chunk indices: filepath, start_frame, end_frame
         for rec in self.data.wavs:
@@ -91,16 +91,15 @@ class DiarizationDataset(Dataset):
     def __getitem__(self, i):
         rec, st, ed = self.chunk_indices[i]
         Y, T = self._get_labeled_speech(
-            self.data,
             rec,
             st,
             ed,
-            self.frame_shift,
             self.n_speakers)
-        return Y_ss, T_ss
+        # TODO: add subsampling here
+        return Y, T
     
     def _get_labeled_speech(self,         
-        rec, start, end, frame_shift,
+        rec, start, end,
         n_speakers=None,
         use_speaker_id=False):
         """ Extracts speech chunks and corresponding labels
@@ -112,17 +111,17 @@ class DiarizationDataset(Dataset):
             rec (str): recording id
             start (int): start frame index
             end (int): end frame index
-            frame_shift (int): number of shift samples
             n_speakers (int): number of speakers
                 if None, the value is given from data
         Returns:
-            Y: speech chunk
+            data: speech chunk
                 (n_samples)
             T: label
                 (n_frmaes, n_speakers)-shaped np.int32 array.
         """
         data, rate = self.data.load_wav(
-            rec, start * frame_shift, end * frame_shift)
+            rec, start * self.frame_shift, end * self.frame_shift)
+        frame_num = end - start
         filtered_segments = self.data.segments[rec]
         # filtered_segments = self.data.segments[self.data.segments['rec'] == rec]
         speakers = np.unique(
@@ -130,11 +129,11 @@ class DiarizationDataset(Dataset):
                     in filtered_segments]).tolist()
         if n_speakers is None:
             n_speakers = len(speakers)
-        T = np.zeros((Y.shape[0], n_speakers), dtype=np.int32)
+        T = np.zeros((frame_num, n_speakers), dtype=np.int32)
 
         if use_speaker_id:
             all_speakers = sorted(self.data.spk2utt.keys())
-            S = np.zeros((Y.shape[0], len(all_speakers)), dtype=np.int32)
+            S = np.zeros((frame_num, len(all_speakers)), dtype=np.int32)
 
         for seg in filtered_segments:
             speaker_index = speakers.index(self.data.utt2spk[seg['utt']])
@@ -142,9 +141,9 @@ class DiarizationDataset(Dataset):
                 all_speaker_index = all_speakers.index(
                     self.data.utt2spk[seg['utt']])
             start_frame = np.rint(
-                    seg['st'] * rate / frame_shift).astype(int)
+                    seg['st'] * rate / self.frame_shift).astype(int)
             end_frame = np.rint(
-                    seg['et'] * rate / frame_shift).astype(int)
+                    seg['et'] * rate / self.frame_shift).astype(int)
             rel_start = rel_end = None
             if start <= start_frame and start_frame < end:
                 rel_start = start_frame - start
@@ -156,25 +155,22 @@ class DiarizationDataset(Dataset):
                     S[rel_start:rel_end, all_speaker_index] = 1
 
         if use_speaker_id:
-            return Y, T, S
+            return data, T, S
         else:
-            return Y, T
+            return data, T
     
     def collate_fn(self, batch):
         batch_size = len(batch)
-        feat_dim = batch[0][0].shape[1]
-        len_list = [len(batch[i][0]) for i in range(batch_size)]
-        feat = np.zeros((batch_size, self.max_len, feat_dim))
-        label = np.zeros((batch_size, self.max_len, 2))
+        len_list = [len(batch[i][1]) for i in range(batch_size)]
+        wav = []
+        label = []
         for i in range(batch_size):
             length = len_list[i]
-            feat[i, :length, :] = batch[i][0]
-            label[i, :length, :] = batch[i][1]
+            wav.append(torch.from_numpy(batch[i][0]))
+            label.append(torch.from_numpy(batch[i][1]).float())
         length = np.array(len_list)
-        feat = torch.from_numpy(feat)
-        label = torch.from_numpy(label)
         length = torch.from_numpy(length)
-        return feat, label, length
+        return wav, label, length
 
 
 #######################
@@ -186,24 +182,24 @@ class KaldiData:
     def __init__(self, data_dir):
         """Load kaldi data directory."""
         self.data_dir = data_dir
-        self.segments = self.load_segments_rechash(
+        self.segments = self._load_segments_rechash(
             os.path.join(self.data_dir, 'segments'))
-        self.utt2spk = self.load_utt2spk(
+        self.utt2spk = self._load_utt2spk(
             os.path.join(self.data_dir, 'utt2spk'))
-        self.wavs = self.load_wav_scp(
+        self.wavs = self._load_wav_scp(
             os.path.join(self.data_dir, 'wav.scp'))
-        self.reco2dur = self.load_reco2dur(
+        self.reco2dur = self._load_reco2dur(
             os.path.join(self.data_dir, 'reco2dur'))
-        self.spk2utt = self.load_spk2utt(
+        self.spk2utt = self._load_spk2utt(
             os.path.join(self.data_dir, 'spk2utt'))
 
     def load_wav(self, recid, start=0, end=None):
         """Load wavfile given recid, start time and end time."""
-        data, rate = load_wav(
+        data, rate = self._load_wav(
             self.wavs[recid], start, end)
         return data, rate
 
-    def load_segments(self, segments_file):
+    def _load_segments(self, segments_file):
         """Load segments file as array."""
         if not os.path.exists(segments_file):
             return None
@@ -216,7 +212,7 @@ class KaldiData:
             ndmin=1)
 
 
-    def load_segments_hash(self, segments_file):
+    def _load_segments_hash(self, segments_file):
         """Load segments file as dict with uttid index."""
         ret = {}
         if not os.path.exists(segments_file):
@@ -227,7 +223,7 @@ class KaldiData:
         return ret
 
 
-    def load_segments_rechash(self, segments_file):
+    def _load_segments_rechash(self, segments_file):
         """Load segments file as dict with recid index."""
         ret = {}
         if not os.path.exists(segments_file):
@@ -240,14 +236,13 @@ class KaldiData:
         return ret
 
 
-    def load_wav_scp(self, wav_scp_file):
+    def _load_wav_scp(self, wav_scp_file):
         """Return dictionary { rec: wav_rxfilename }."""
         lines = [line.strip().split(None, 1) for line in open(wav_scp_file)]
         return {x[0]: x[1] for x in lines}
 
 
-    @lru_cache(maxsize=1)
-    def load_wav(self, wav_rxfilename, start=0, end=None):
+    def _load_wav(self, wav_rxfilename, start=0, end=None):
         """This function reads audio file and return data in numpy.float32 array.
         "lru_cache" holds recently loaded audio so that can be called
         many times on the same audio file.
@@ -278,13 +273,13 @@ class KaldiData:
         return data, samplerate
 
 
-    def load_utt2spk(self, utt2spk_file):
+    def _load_utt2spk(self, utt2spk_file):
         """Returns dictionary { uttid: spkid }."""
         lines = [line.strip().split(None, 1) for line in open(utt2spk_file)]
         return {x[0]: x[1] for x in lines}
 
 
-    def load_spk2utt(self, spk2utt_file):
+    def _load_spk2utt(self, spk2utt_file):
         """Returns dictionary { spkid: list of uttids }."""
         if not os.path.exists(spk2utt_file):
             return None
@@ -292,7 +287,7 @@ class KaldiData:
         return {x[0]: x[1:] for x in lines}
 
 
-    def load_reco2dur(self, reco2dur_file):
+    def _load_reco2dur(self, reco2dur_file):
         """Returns dictionary { recid: duration }."""
         if not os.path.exists(reco2dur_file):
             return None
@@ -300,7 +295,7 @@ class KaldiData:
         return {x[0]: float(x[1]) for x in lines}
 
 
-    def process_wav(self, wav_rxfilename, process):
+    def _process_wav(self, wav_rxfilename, process):
         """This function returns preprocessed wav_rxfilename.
         Args:
             wav_rxfilename:
@@ -317,7 +312,7 @@ class KaldiData:
         return 'cat {0} | {1} |'.format(wav_rxfilename, process)
 
 
-    def extract_segments(self, wavs, segments=None):
+    def _extract_segments(self, wavs, segments=None):
         """This function returns generator of segmented audio.
         Yields (utterance id, numpy.float32 array).
         TODO?: sampling rate is not converted.

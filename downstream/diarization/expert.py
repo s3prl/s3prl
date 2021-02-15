@@ -35,20 +35,21 @@ class DownstreamExpert(nn.Module):
         super(DownstreamExpert, self).__init__()
         self.upstream_dim = upstream_dim
         self.datarc = downstream_expert['datarc']
+        self.loaderrc = downstream_expert['loaderrc']
         self.modelrc = downstream_expert['modelrc']
 
-        self.train_batch_size = self.datarc['train_batchsize']
-        self.eval_batch_size = self.datarc['eval_batchsize']
+        self.train_batch_size = self.loaderrc['train_batchsize']
+        self.eval_batch_size = self.loaderrc['eval_batchsize']
 
-        self.train_dataset = DiarizationDataset(self.datarc['train_dir'], **self.datarc)
-        self.dev_dataset = DiarizationDataset(self.datarc['dev_dir'], **self.datarc)
-        self.test_dataset = DiarizationDataset(self.datarc['test_dir'], **self.datarc)
+        self.train_dataset = DiarizationDataset(self.loaderrc['train_dir'], **self.datarc)
+        self.dev_dataset = DiarizationDataset(self.loaderrc['dev_dir'], **self.datarc)
+        self.test_dataset = DiarizationDataset(self.loaderrc['test_dir'], **self.datarc)
 
         self.model = Model(input_dim=self.upstream_dim, output_class_num=self.datarc['num_speakers'], **self.modelrc)
         self.objective = pit_loss
 
         self.logging = os.path.join(expdir, 'log.log')
-        self.best = defaultdict(lambda: 0)
+        self.register_buffer('best_score', torch.zeros(1))
 
     # Interface
     def get_dataloader(self, mode):
@@ -76,14 +77,14 @@ class DownstreamExpert(nn.Module):
     def _get_train_dataloader(self, dataset):
         return DataLoader(
             dataset, batch_size=self.train_batch_size,
-            shuffle=True, num_workers=self.datarc['num_workers'],
+            shuffle=True, num_workers=self.loaderrc['num_workers'],
             drop_last=False, pin_memory=True, collate_fn=dataset.collate_fn
         )
 
     def _get_eval_dataloader(self, dataset):
         return DataLoader(
             dataset, batch_size=1, # for bucketing
-            shuffle=False, num_workers=self.datarc['num_workers'],
+            shuffle=False, num_workers=self.loaderrc['num_workers'],
             drop_last=False, pin_memory=True, collate_fn=dataset.collate_fn
         )
 
@@ -128,7 +129,7 @@ class DownstreamExpert(nn.Module):
         - if len(inputs) < len(labels), we duplicate the last timestep of inputs to match the length of labels
         Note that the length of labels should never be changed.
         """
-        input_len, label_len = inputs.size(1), labels.size(-1)
+        input_len, label_len = inputs.size(1), labels.size(1)
 
         factor = int(round(label_len / input_len))
         if factor > 1:
@@ -143,10 +144,12 @@ class DownstreamExpert(nn.Module):
         return inputs, labels
 
     # Interface
-    def forward(self, features, labels, records,
-                logger, prefix, global_step, **kwargs):
+    def forward(self, mode, features, labels, lengths, records, **kwargs):
         """
         Args:
+            mode: string
+                'train', 'dev' or 'test' for this forward step
+
             features:
                 list of unpadded features [feat1, feat2, ...]
                 each feat is in torch.FloatTensor and already
@@ -160,27 +163,14 @@ class DownstreamExpert(nn.Module):
                 these contents can be averaged and logged on Tensorboard
                 later by self.log_records every log_step
 
-            logger:
-                Tensorboard SummaryWriter, given here for logging/debugging convenience
-                please use f'{prefix}your_content_name' as key name
-                to log your customized contents
-
-            prefix:
-                used to indicate downstream and train/test on Tensorboard
-                eg. 'diar/train-'
-
-            global_step:
-                global_step in runner, which is helpful for Tensorboard logging
-
         Return:
             loss:
                 the loss to be optimized, should not be detached
         """
-        lengths = torch.LongTensor([len(l) for l in labels])
+        lengths = torch.LongTensor(lengths)
 
         features = pad_sequence(features, batch_first=True)
-        labels = pad_sequence(labels, batch_first=True, padding_value=-100).to(features.device)
-
+        labels = pad_sequence(labels, batch_first=True, padding_value=0).to(features.device)
         features, labels = self._match_length(features, labels)
         predicted = self.model(features)
 
@@ -188,14 +178,14 @@ class DownstreamExpert(nn.Module):
         # nn.CrossEntropyLoss expect to have (N, class) and (N,) as input
         # here we flatten logits and labels in order to apply nn.CrossEntropyLoss
         class_num = predicted.size(-1)
-        loss, perm_idx, perm_list = self.objective(predicted.reshape(-1, class_num), labels.reshape(-1))
+        loss, perm_idx, perm_list = self.objective(predicted, labels, lengths)
 
         # get the best label permutation
-        label_perm = get_label_perm(label, perm_idx, perm_list)
+        label_perm = get_label_perm(labels, perm_idx, perm_list)
 
         (correct, num_frames, speech_scored, speech_miss, speech_falarm,
             speaker_scored, speaker_miss, speaker_falarm,
-            speaker_error) = calc_diarization_error(output, label_perm, length)
+            speaker_error) = calc_diarization_error(predicted, label_perm, lengths)
 
         if speech_scored > 0 and speaker_scored > 0 and num_frames > 0:
             SAD_MR, SAD_FR, MI, FA, CF, ACC, DER = (
@@ -209,7 +199,10 @@ class DownstreamExpert(nn.Module):
                  + speaker_falarm
                  + speaker_error) / speaker_scored,
             )
-
+        else:
+            SAD_MR, SAD_FR, MI, FA, CF, ACC, DER = 0, 0, 0, 0, 0, 0, 0
+        # debug
+        print("SAD_MR {}, SAD_FR {}, MI {}, FA {}, CF {}, ACC {}, DER {}".format(SAD_MR, SAD_FR, MI, FA, CF, ACC, DER))
         records['loss'].append(loss.item())
         records['acc'] += [ACC]
         records['der'] += [DER]
@@ -217,9 +210,17 @@ class DownstreamExpert(nn.Module):
         return loss
 
     # interface
-    def log_records(self, records, logger, prefix, global_step, **kwargs):
+    def log_records(self, mode, records, logger, global_step, batch_ids, total_batch_num, **kwargs):
         """
         Args:
+            mode: string
+                'train':
+                    records and batchids contain contents for `log_step` batches
+                    `log_step` is defined in your downstream config
+                    eg. downstream/example/config.yaml
+                'dev' or 'test' :
+                    records and batchids contain contents for the entire evaluation dataset
+
             records:
                 defaultdict(list), contents already appended
 
@@ -228,35 +229,39 @@ class DownstreamExpert(nn.Module):
                 please use f'{prefix}your_content_name' as key name
                 to log your customized contents
 
-            prefix:
-                used to indicate downstream and train/test on Tensorboard
-                eg. 'phone/train-'
-
             global_step:
-                global_step in runner, which is helpful for Tensorboard logging
+                The global_step when training, which is helpful for Tensorboard logging
+
+            batch_ids:
+                The batches contained in records when enumerating over the dataloader
+
+            total_batch_num:
+                The total amount of batches in the dataloader
+
+        Return:
+            a list of string
+                Each string is a filename we wish to use to save the current model
+                according to the evaluation result, like the best.ckpt on the dev set
+                You can return nothing or an empty list when no need to save the checkpoint
+
         """
         average_acc = torch.FloatTensor(records['acc']).mean().item()
         average_der = torch.FloatTensor(records['der']).mean().item()
 
         logger.add_scalar(
-            f'{prefix}acc',
+            f'acc',
             average_acc,
             global_step=global_step
         )
         logger.add_scalar(
-            f'{prefix}der',
+            f'der',
             average_der,
             global_step=global_step
         )
-        message = f'{prefix}|step:{global_step}|acc:{average_acc}|der:{average_der}\n'
         save_ckpt = []
-        if average_acc > self.best[prefix]:
-            self.best[prefix] = average
-            message = f'best|{message}'
+        if mode == 'dev' and average_acc > self.best_score:
+            self.best_score = torch.ones(1) * average
             name = prefix.split('/')[-1].split('-')[0]
             save_ckpt.append(f'best-states-{name}.ckpt')
-
-        with open(self.logging, 'a') as f:
-            f.write(message)
         
         return save_ckpt
