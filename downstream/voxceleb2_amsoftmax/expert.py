@@ -55,7 +55,6 @@ class DownstreamExpert(nn.Module):
         self.test_dataset = SpeakerVerifi_test(self.datarc['test']['file_path'], self.datarc['test']['meta_data'])
         
         self.connector = nn.Linear(self.upstream_dim, self.modelrc['input_dim'])
-        self.UtteranceExtractor = UtteranceModel(self.modelrc['input_dim'], self.modelrc['input_dim'])
         self.model = Model(input_dim=self.modelrc['input_dim'], agg_dim=self.modelrc['agg_dim'], agg_module=self.modelrc['agg_module'], config=self.modelrc)
         self.objective = AdMSoftmaxLoss(self.modelrc['input_dim'], self.train_dataset.speaker_num, s=30.0, m=0.4)
 
@@ -157,7 +156,6 @@ class DownstreamExpert(nn.Module):
         agg_vec = self.model(features_pad, attention_mask_pad.cuda())
 
         if self.training:
-            agg_vec = self.UtteranceExtractor(agg_vec)
             labels = torch.LongTensor(labels).to(features_pad.device)
             loss = self.objective(agg_vec, labels)
             
