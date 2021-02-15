@@ -79,7 +79,6 @@ class SAP(nn.Module):
         #Encode
         feature = self.act_fn(feature)
         feature = self.linear(feature)
-        feature = self.act_fn(feature)
         sap_vec = self.sap_layer(feature, att_mask)
 
         return sap_vec
