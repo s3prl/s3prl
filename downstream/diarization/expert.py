@@ -202,7 +202,7 @@ class DownstreamExpert(nn.Module):
         else:
             SAD_MR, SAD_FR, MI, FA, CF, ACC, DER = 0, 0, 0, 0, 0, 0, 0
         # debug
-        print("SAD_MR {}, SAD_FR {}, MI {}, FA {}, CF {}, ACC {}, DER {}".format(SAD_MR, SAD_FR, MI, FA, CF, ACC, DER))
+        # print("SAD_MR {}, SAD_FR {}, MI {}, FA {}, CF {}, ACC {}, DER {}".format(SAD_MR, SAD_FR, MI, FA, CF, ACC, DER))
         records['loss'].append(loss.item())
         records['acc'] += [ACC]
         records['der'] += [DER]
@@ -258,10 +258,10 @@ class DownstreamExpert(nn.Module):
             average_der,
             global_step=global_step
         )
+        print('mode {}, acc {}, der {}'.format(mode, average_acc, average_der))
         save_ckpt = []
         if mode == 'dev' and average_acc > self.best_score:
-            self.best_score = torch.ones(1) * average
-            name = prefix.split('/')[-1].split('-')[0]
-            save_ckpt.append(f'best-states-{name}.ckpt')
+            self.best_score = torch.ones(1) * average_acc
+            save_ckpt.append(f'best-states-{mode}.ckpt')
         
         return save_ckpt

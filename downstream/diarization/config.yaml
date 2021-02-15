@@ -1,5 +1,5 @@
 runner:
-  total_steps: 500000
+  total_steps: 30000
   gradient_clipping: 1
   gradient_accumulate_steps: 1
 
@@ -17,21 +17,21 @@ optimizer:
 
 downstream_expert:
   datarc:
-    num_workers: 8
-    train_batch_size: 32 
-    eval_batch_size: 32
-    chunk_size: 4000
-    frame_shift: 320 # this should be aligned with upstrema model
-    subsampling: 5
+    chunk_size: 2000
+    frame_shift: 160 # this should be aligned with upstrema model
+    subsampling: 1
     label_delay: 0
     num_speakers: 2
-    train_dir: data/libri2mix_train
-    dev_dir: data/libri2mix_dev
-    test_dir: data/libri2mix_test
-    sample_rate: 16000 
-    train_dev_seed: 1337
-    max_frame_num: 4000
+    rate: 16000
+
+  loaderrc:
+    num_workers: 8
+    train_batchsize: 32
+    eval_batchsize: 1
+    train_dir: ./downstream/diarization/data/train
+    dev_dir: ./downstream/diarization/data/dev
+    test_dir: ./downstream/diarization/data/test
 
   modelrc: 
-    rnn_layers: 0
-    hidden_state: 512
+    rnn_layers: 1
+    hidden_size: 512
