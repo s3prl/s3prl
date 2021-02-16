@@ -13,3 +13,4 @@ matplotlib>=3.3.4
 Pillow>=6.2.2
 numba==0.48
 gdown>=3.12.2
+cython==0.29.21

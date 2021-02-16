@@ -1,15 +1,10 @@
-"""Downstream expert for Query-by-Example Spoken Term Detection on QUESST 2014."""
+"""Downstream expert for Query-by-Example Spoken Term Detection on SWS 2013."""
 
-from collections import defaultdict
-from concurrent.futures import ProcessPoolExecutor, as_completed
 from pathlib import Path
 
-import numpy as np
 import torch
 import torch.nn as nn
-from lxml import etree
 from torch.utils.data import DataLoader, WeightedRandomSampler
-from tqdm import tqdm
 
 from .dataset import SWS2013Dataset
 from .model import Model
@@ -37,18 +32,8 @@ class DownstreamExpert(nn.Module):
         )
         self.objective = nn.CosineEmbeddingLoss()
 
-    def _get_dataloader(self, dataset):
-        return DataLoader(
-            dataset,
-            shuffle=False,
-            batch_size=self.datarc["batch_size"],
-            drop_last=False,
-            num_workers=self.datarc["num_workers"],
-            collate_fn=dataset.collate_fn,
-        )
-
     # Interface
-    def get_train_dataloader(self):
+    def get_dataloader(self, mode):
         return DataLoader(
             self.train_dataset,
             sampler=WeightedRandomSampler(
@@ -62,16 +47,9 @@ class DownstreamExpert(nn.Module):
         )
 
     # Interface
-    def get_dev_dataloader(self):
-        return None
-
-    # Interface
-    def get_test_dataloader(self):
-        return None
-
-    # Interface
     def forward(
         self,
+        mode,
         features,
         labels,
         records,
@@ -80,11 +58,18 @@ class DownstreamExpert(nn.Module):
         audio_tensors = torch.stack(features[: len(features) // 2])
         query_tensors = torch.stack(features[len(features) // 2 :])
         labels = torch.stack(labels).to(audio_tensors.device)
+        
         audio_embs = self.model(audio_tensors)
         query_embs = self.model(query_tensors)
-        return self.objective(audio_embs, query_embs, labels)
+        loss = self.objective(audio_embs, query_embs, labels)
+
+        records["loss"].append(loss.item())
+
+        return loss
 
     # interface
-    def log_records(self, records, **kwargs):
-        """Perform DTW and save results."""
-        pass
+    def log_records(self, mode, records, logger, global_step, **kwargs):
+        prefix = f"sws2013/{mode}"
+        for key, val in records.items():
+            average = sum(val) / len(val)
+            logger.add_scalar(f'{prefix}-{key}', average, global_step=global_step)
