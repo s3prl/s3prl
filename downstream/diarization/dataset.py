@@ -2,6 +2,7 @@
 """*********************************************************************************************"""
 #   FileName     [ dataset.py ]
 #   Synopsis     [ the speaker diarization dataset ]
+#   Source       [ Refactored from https://github.com/hitachi-speech/EEND ]
 #   Author       [ Jiatong Shi ]
 #   Copyright    [ Copyleft(c), Johns Hopkins University ]
 """*********************************************************************************************"""
