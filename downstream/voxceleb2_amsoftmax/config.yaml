@@ -1,13 +1,13 @@
 
 # this voxceleb1 is doing speaker classification task!
 runner:
-  total_steps: 10000
+  total_steps: 100000
   gradient_clipping: 1
-  gradient_accumulate_steps: 5
+  gradient_accumulate_steps: 1
 
   log_step: 100
-  eval_step: 1000
-  save_step: 1000
+  eval_step: 100
+  save_step: 100
   max_keep: 1
   eval_dataloaders: 
     - dev
@@ -24,12 +24,18 @@ scheduler:
 
 downstream_expert: 
   datarc:
+    vad_config:
+      silence_threshold: 1
+      min_silence_duration: 0.1
+    segment_config:
+      window: 48000
+      stride: 16000
     train:
       file_path: 
         Voxceleb1: ../librispeech/vox1_train_verifi/wav
         # Voxceleb2: /groups/public/VoxCeleb2/dev/wav/
       meta_data: ./downstream/voxceleb2_amsoftmax/dev_meta_data/dev_speaker_ids.txt
-      max_timestep: 128000
+      max_timestep: 48000
 
     test:
       file_path: ../librispeech/vox1_test/wav
@@ -38,11 +44,10 @@ downstream_expert:
     dev:
       file_path: ../librispeech/vox1_train_verifi/wav
       meta_data: ./downstream/voxceleb2_amsoftmax/dev_meta_data/dev_meta_data.txt
-      max_timestep: 131200
     
     train_batch_size: 10
-    eval_batch_size: 1
-    num_workers: 7 # need to be you total cpu count -1, because we will open a process to load data into memory (chunk).
+    eval_batch_size: 10
+    num_workers: 10 # need to be you total cpu count -1, because we will open a process to load data into memory (chunk).
 
   modelrc:
     module:
@@ -63,3 +68,4 @@ downstream_expert:
     input_dim: 512
     agg_dim: 1500
     agg_module: SAP
+    backend: CSD

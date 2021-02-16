@@ -50,9 +50,9 @@ class DownstreamExpert(nn.Module):
         self.datarc = downstream_expert['datarc']
         self.modelrc = downstream_expert['modelrc']
 
-        self.train_dataset = SpeakerVerifi_train(self.datarc['train']['file_path'], self.datarc['train']['meta_data'], self.datarc['train']['max_timestep'])
-        self.dev_dataset = SpeakerVerifi_dev(self.datarc['dev']['file_path'], self.datarc['dev']['meta_data'])
-        self.test_dataset = SpeakerVerifi_test(self.datarc['test']['file_path'], self.datarc['test']['meta_data'])
+        self.train_dataset = SpeakerVerifi_train(self.datarc['vad_config'], **self.datarc['train'])
+        self.dev_dataset = SpeakerVerifi_dev(self.datarc['vad_config'], self.datarc["segment_config"], **self.datarc['dev'])
+        self.test_dataset = SpeakerVerifi_test(self.datarc['vad_config'],self.datarc["segment_config"], **self.datarc['test'])
         
         self.connector = nn.Linear(self.upstream_dim, self.modelrc['input_dim'])
         self.model = Model(input_dim=self.modelrc['input_dim'], agg_dim=self.modelrc['agg_dim'], agg_module=self.modelrc['agg_module'], config=self.modelrc)
@@ -114,7 +114,7 @@ class DownstreamExpert(nn.Module):
         return self._get_eval_dataloader(self.test_dataset)
 
     # Interface
-    def forward(self, mode, features, length, labels, records, **kwargs):
+    def forward(self, mode, features, labels, pair_list, utterid_list, seg_num_list,  records, **kwargs):
         """
         Args:
             features:
@@ -165,16 +165,23 @@ class DownstreamExpert(nn.Module):
             # normalize to unit vector 
             agg_vec = agg_vec / (torch.norm(agg_vec, dim=-1).unsqueeze(-1))
 
-            vec1, vec2 = self.separate_data(agg_vec, labels)
-            scores = self.score_fn(vec1,vec2).squeeze().cpu().detach().tolist()
-            ylabels = torch.stack(labels).cpu().detach().long().tolist()
+            if len(labels) >1:
 
-            if len(ylabels) > 1:
-                records['scores'].extend(scores)
-                records['ylabels'].extend(ylabels)
+                agg_vec_list = [vec for vec in agg_vec]
+                for index in range(len(agg_vec)):
+                    records[f'utterid_{utterid_list[index]}'].append(agg_vec[index])
+                    records[f'utterid_info'].append(f'utterid_{utterid_list[index]}')
+                    records[f'pairid_info'].append(f'pairid_{pair_list[index]}')
+                    records[f'pairid_{pair_list[index]}'].append(f'utterid_{utterid_list[index]}')
+                    records[f'pairid_{pair_list[index]}_label'].append(labels[index])
+         
             else:
-                records['scores'].append(scores)
-                records['ylabels'].append(ylabels)
+                records[f'utterid_{utterid_list[0]}'].append(agg_vec[0])
+                records[f'utterid_info'].append(f'utterid_{utterid_list[0]}')
+                records[f'pairid_info'].append(f'pairid_{pair_list[0]}')
+                records[f'pairid_{pair_list[0]}'].append(f'utterid_{utterid_list[0]}')
+                records[f'pairid_{pair_list[0]}_label'].append(labels[0])
+
 
             return torch.tensor(0)
 
@@ -198,6 +205,7 @@ class DownstreamExpert(nn.Module):
                 global_step in runner, which is helpful for Tensorboard logging
         """
         if not self.training:
+            records = self.declutter(records)
 
             EER_result =self.eval_metric(np.array(records['ylabels']), np.array(records['scores']))
 
@@ -208,11 +216,23 @@ class DownstreamExpert(nn.Module):
                 records['EER'],
                 global_step=global_step
             )
-        
-    def separate_data(self, agg_vec, ylabel):
+    def declutter(self, records):
+        utterance_ids = set(records['utterid_info'])
+        for index in utterance_ids:
+            records[index] = torch.mean(torch.stack(records[index]),dim=0)
+        pair_ids = set(records['pairid_info'])
+        for index in pair_ids:
+            wav_set = list(set(records[index]))
+            if len(wav_set) == 1:
+                wav1 = records[wav_set[0]]
+                wav2 = records[wav_set[0]]
+            else:
+                wav1 = records[wav_set[0]]
+                wav2 = records[wav_set[1]]
+            score = self.score_fn(wav1,wav2).squeeze().cpu().detach().tolist()
+            ylabel = list(set(records[f"{index}_label"]))[0]
+            records['ylabels'].append(ylabel)
+            records['scores'].append(score)
+        return records
 
-        total_num = len(ylabel) 
-        feature1 = agg_vec[:total_num]
-        feature2 = agg_vec[total_num:]
         
-        return feature1, feature2

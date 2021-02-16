@@ -14,14 +14,16 @@ import sys
 import time
 import tqdm
 import pickle
+from sox import Transformer
 
 # Voxceleb 2 Speaker verification
 class SpeakerVerifi_train(Dataset):
-    def __init__(self, file_path, meta_data, max_timestep=None):
+    def __init__(self, vad_config, file_path, meta_data, max_timestep=None):
 
         self.roots = file_path
         self.root_key = list(self.roots.keys())
         self.max_timestep = max_timestep
+        self.vad_c = vad_config 
         self.dataset = []
         self.all_speakers = []
 
@@ -54,9 +56,21 @@ class SpeakerVerifi_train(Dataset):
                     speaker_dir =  p / speaker
                     wav_list=find_files(speaker_dir)
                     speaker_wav_dict[speaker] = []
+                    
                     for wav in wav_list:
-                        self.dataset.append(str(speaker_dir/wav))
-                        speaker_wav_dict[speaker].append("/".join(wav.split("/")[-2:]))
+                        transformer = Transformer()
+                        transformer.norm()
+                        transformer.silence(silence_threshold=self.vad_c['silence_threshold'], min_silence_duration=self.vad_c['min_silence_duration'])
+                        transformer.set_output_format(rate=16000, bits=16, channels=1)
+                        wav_array = transformer.build_array(input_filepath=str(speaker_dir/wav))
+                        wav_tensor = torch.tensor(wav_array / (2 ** 15)).float()
+
+                        if wav_tensor.shape[0] > 0: 
+                            self.dataset.append(str(speaker_dir/wav))
+                            speaker_wav_dict[speaker].append("/".join(wav.split("/")[-2:]))
+                        else:
+                            self.dataset.append(str(speaker_dir/wav))
+                            speaker_wav_dict[speaker].append("/".join(wav.split("/")[-2:]))
                 end = time.time() 
                 print(f"search all wavs paths costs {end-start} seconds")
                 print(f"save wav paths to {cache_path}! so we can directly load all_path in next time!")
@@ -109,167 +123,227 @@ class SpeakerVerifi_train(Dataset):
     
     def __getitem__(self, idx):
         
-        wav, sr = torchaudio.load(self.dataset[idx])
-        wav = wav.squeeze(0)
+        transformer = Transformer()
+        transformer.norm()    
+        transformer.silence(silence_threshold=self.vad_c['silence_threshold'], min_silence_duration=self.vad_c['min_silence_duration'])
+        transformer.set_output_format(rate=16000, bits=16, channels=1)
+        wav = transformer.build_array(input_filepath=self.dataset[idx])
+        wav = torch.tensor(wav / (2 ** 15)).float()
         length = wav.shape[0]
 
         if self.max_timestep !=None:
             if length > self.max_timestep:
                 start = random.randint(0, int(length-self.max_timestep))
                 wav = wav[start:start+self.max_timestep]
-                length = self.max_timestep
   
-        return wav, torch.tensor([length]), torch.tensor([self.label[idx]]).long()
+        return wav, torch.tensor([self.label[idx]]).long()
         
     def collate_fn(self, samples):
         
-        wavs, lengths, labels = [], [], []
+        wavs, labels = [], []
+        None_list1= []
+        None_list2= []        
+        None_list3= []
 
-        for wav,length,label in samples:
+        for wav,label in samples:
             wavs.append(wav)
-            lengths.append(length)
             labels.append(label)
-        return wavs, lengths, labels
+            None_list1.append(None)
+            None_list2.append(None)
+            None_list3.append(None)
+
+        return wavs, labels, None_list1, None_list2, None_list3
 
 
 
 class SpeakerVerifi_dev(Dataset):
-    def __init__(self, file_path, meta_data, max_timestep=None):
+    def __init__(self, vad_config, segment_config, file_path, meta_data):
 
         self.root = file_path
         self.meta_data = meta_data
-        self.necessary_dict = self.processing()
-        self.max_timestep = max_timestep
-        self.dataset = self.necessary_dict['pair_table'] 
+        self.segment_config = segment_config
+        self.vad_c = vad_config
+        self.pair_dict = self.preprocessing()
+
+        cache_path = f"./downstream/voxceleb2_amsoftmax/cache_wav_paths/cache_dev_segment.p"
+        # loca cache_path if file exists
+        if os.path.isfile(cache_path):
+            self.dataset=pickle.load(open(cache_path,"rb"))
+        else:
+            self.dataset = self.segment_processing()
+            pickle.dump(self.dataset, open(cache_path,"wb"))
+
+    
+    def segment_processing(self):
+        wav_list = self.pair_dict['wav_table']
+        utterance_id = 0
+        segment_list = []
+        print("processing test set to segments")
+        for wav_info in tqdm.tqdm(wav_list):
+            label_info = wav_info[0]
+            pair_info = wav_info[1]
+            transformer = Transformer()
+            transformer.norm()    
+            transformer.silence(silence_threshold=self.vad_c['silence_threshold'], min_silence_duration=self.vad_c['min_silence_duration'])
+            transformer.set_output_format(rate=16000, bits=16, channels=1)
+            wav = transformer.build_array(input_filepath=wav_info[2])
+            wav = torch.tensor(wav / (2 ** 15)).float()
+            index_end = len(wav) -self.segment_config["window"]
+            segment_num = index_end // self.segment_config['stride']
+
+            for index in range(0, index_end, self.segment_config['stride']):
+                # segment=wav[index:index+self.segment_config['window']]
+                segment_list.append([int(label_info), pair_info, str(utterance_id), segment_num, index, index+self.segment_config['window'], wav_info[2]])
+
+            utterance_id += 1
+            
+        return segment_list
+
         
-    def processing(self):
-        pair_table = []
+    def preprocessing(self):
+        wav_table = []
+        pair_id = 0 
         with open(self.meta_data, "r") as f:
             usage_list = f.readlines()
         for pair in usage_list:
             list_pair = pair.split()
             pair_1= os.path.join(self.root, list_pair[1])
             pair_2= os.path.join(self.root, list_pair[2])
-            one_pair = [list_pair[0],pair_1,pair_2 ]
-            pair_table.append(one_pair)
-        return {"spk_paths":None,"total_spk_num":None,"pair_table":pair_table}
+            
+            wav1 = (list_pair[0], str(pair_id), pair_1)
+            wav2 = (list_pair[0], str(pair_id), pair_2)
+            
+            wav_table.append(wav1)
+            wav_table.append(wav2)
+            
+            pair_id +=1
+
+        return {"wav_table":wav_table}
 
     def __len__(self):
-        return len(self.necessary_dict['pair_table'])
+        return len(self.dataset)
 
     def __getitem__(self, idx):
-        y_label, x1_path, x2_path = self.dataset[idx]
-        wav1, _ = torchaudio.load(x1_path)
-        wav2, _ = torchaudio.load(x2_path)
+        label_info, pair_id, utter_id, seg_info, start, end, path = self.dataset[idx]
+        transformer = Transformer()
+        transformer.norm()    
+        transformer.silence(silence_threshold=self.vad_c['silence_threshold'], min_silence_duration=self.vad_c['min_silence_duration'])
+        transformer.set_output_format(rate=16000, bits=16, channels=1)
+        wav = transformer.build_array(input_filepath=path)
+        wav = torch.tensor(wav / (2 ** 15)).float()
+        seg_tensor = wav[start:end]
 
-        wav1 = wav1.squeeze(0)
-        wav2 = wav2.squeeze(0)
+        return label_info, pair_id, utter_id, seg_info, seg_tensor
 
-        length1 = wav1.shape[0]
-        if self.max_timestep!=None:
-            if length1 > self.max_timestep:
-                length1 = self.max_timestep
-                start = random.randint(0,length1 - self.max_timestep)
-                wav1 = wav1[start:start+self.max_timestep]
-
-        length2 = wav2.shape[0]
-
-        if self.max_timestep!=None:
-            if length2 > self.max_timestep:
-                length2 = self.max_timestep
-                start = random.randint(0,length2 - self.max_timestep)
-                wav2 = wav1[start:start+self.max_timestep]
-
-
-        return wav1, wav2, \
-        torch.tensor(length1), torch.tensor(length2), \
-        torch.tensor(int(y_label[0])),
     
     def collate_fn(self, data_sample):
-        wavs1 = []
-        wavs2 = []
-        lengths1 = []
-        lengths2 = []
-        ylabels = []
+        label_list = []
+        pair_list = []
+        utterid_list = []
+        seg_num_list = []
+        seg_tensor_list = []
 
         for samples in data_sample:
-            wavs1.append(samples[0])
-            wavs2.append(samples[1])
-            lengths1.append(samples[2])
-            lengths2.append(samples[3])
-            ylabels.append(samples[4])
+            label_list.append(samples[0])
+            pair_list.append(samples[1])
+            utterid_list.append(samples[2])
+            seg_num_list.append(samples[3])
+            seg_tensor_list.append(samples[4])
 
-        all_wavs = []
-        all_wavs.extend(wavs1)
-        all_wavs.extend(wavs2)
-
-        all_lengths = []
-        all_lengths.extend(lengths1)
-        all_lengths.extend(lengths2)
-
-        return all_wavs, all_lengths, ylabels
-
-
+        return seg_tensor_list, label_list, pair_list, utterid_list, seg_num_list
 
 class SpeakerVerifi_test(Dataset):
-    def __init__(self, file_path,meta_data=None):
-
+    def __init__(self, vad_config, segment_config, file_path, meta_data):
+    
         self.root = file_path
         self.meta_data = meta_data
-        self.necessary_dict = self.processing()
-        self.dataset = self.necessary_dict['pair_table'] 
+        self.segment_config = segment_config
+        self.vad_c = vad_config
+        self.pair_dict = self.preprocessing()
+
+        cache_path = f"./downstream/voxceleb2_amsoftmax/cache_wav_paths/cache_test_segment.p"
+        # loca cache_path if file exists
+        if os.path.isfile(cache_path):
+            self.dataset=pickle.load(open(cache_path,"rb"))
+        else:
+            self.dataset = self.segment_processing()
+            pickle.dump(self.dataset, open(cache_path,"wb"))
+    
+    def segment_processing(self):
+        wav_list = self.pair_dict['wav_table']
+        utterance_id = 0
+        segment_list = []
+        print("processing test set to segments")
+        for wav_info in tqdm.tqdm(wav_list):
+            label_info = wav_info[0]
+            pair_info = wav_info[1]
+            transformer = Transformer()
+            transformer.norm()    
+            transformer.silence(silence_threshold=self.vad_c['silence_threshold'], min_silence_duration=self.vad_c['min_silence_duration'])
+            transformer.set_output_format(rate=16000, bits=16, channels=1)
+            wav = transformer.build_array(input_filepath=wav_info[2])
+            wav = torch.tensor(wav / (2 ** 15)).float()
+            index_end = len(wav) -self.segment_config["window"]
+            segment_num = index_end // self.segment_config['stride']
+
+            for index in range(0, index_end, self.segment_config['stride']):
+                # segment=wav[index:index+self.segment_config['window']]
+                segment_list.append([int(label_info), pair_info, str(utterance_id), segment_num, index, index+self.segment_config['window'], wav_info[2]])
+
+            utterance_id += 1
+            
+        return segment_list
+
         
-    def processing(self):
-        pair_table = []
+    def preprocessing(self):
+        wav_table = []
+        pair_id = 0 
         with open(self.meta_data, "r") as f:
             usage_list = f.readlines()
         for pair in usage_list:
             list_pair = pair.split()
             pair_1= os.path.join(self.root, list_pair[1])
             pair_2= os.path.join(self.root, list_pair[2])
-            one_pair = [list_pair[0],pair_1,pair_2 ]
-            pair_table.append(one_pair)
-        return {"spk_paths":None,"total_spk_num":None,"pair_table":pair_table}
+            
+            wav1 = (list_pair[0], str(pair_id), pair_1)
+            wav2 = (list_pair[0], str(pair_id), pair_2)
+            
+            wav_table.append(wav1)
+            wav_table.append(wav2)
+            
+            pair_id +=1
+
+        return {"wav_table":wav_table}
 
     def __len__(self):
-        return len(self.necessary_dict['pair_table'])
+        return len(self.dataset)
 
     def __getitem__(self, idx):
-        y_label, x1_path, x2_path = self.dataset[idx]
-        wav1, _ = torchaudio.load(x1_path)
-        wav2, _ = torchaudio.load(x2_path)
+        label_info, pair_id, utter_id, seg_info, start, end, path = self.dataset[idx]
+        transformer = Transformer()
+        transformer.norm()    
+        transformer.silence(silence_threshold=self.vad_c['silence_threshold'], min_silence_duration=self.vad_c['min_silence_duration'])
+        transformer.set_output_format(rate=16000, bits=16, channels=1)
+        wav = transformer.build_array(input_filepath=path)
+        wav = torch.tensor(wav / (2 ** 15)).float()
+        seg_tensor = wav[start:end]
 
-        wav1 = wav1.squeeze(0)
-        wav2 = wav2.squeeze(0)
+        return label_info, pair_id, utter_id, seg_info, seg_tensor
 
-        length1 = wav1.shape[0]
-        length2 = wav2.shape[0]
-
-        return wav1, wav2, \
-        torch.tensor(length1), torch.tensor(length2), \
-        torch.tensor(int(y_label[0])),
     
     def collate_fn(self, data_sample):
-        wavs1 = []
-        wavs2 = []
-        lengths1 = []
-        lengths2 = []
-        ylabels = []
+        label_list = []
+        pair_list = []
+        utterid_list = []
+        seg_num_list = []
+        seg_tensor_list = []
 
         for samples in data_sample:
-            wavs1.append(samples[0])
-            wavs2.append(samples[1])
-            lengths1.append(samples[2])
-            lengths2.append(samples[3])
-            ylabels.append(samples[4])
+            label_list.append(samples[0])
+            pair_list.append(samples[1])
+            utterid_list.append(samples[2])
+            seg_num_list.append(samples[3])
+            seg_tensor_list.append(samples[4])
 
-        all_wavs = []
-        all_wavs.extend(wavs1)
-        all_wavs.extend(wavs2)
-
-        all_lengths = []
-        all_lengths.extend(lengths1)
-        all_lengths.extend(lengths2)
-
-        return all_wavs, all_lengths, ylabels
+        return seg_tensor_list, label_list, pair_list, utterid_list, seg_num_list
 
