@@ -109,7 +109,9 @@ class TrainableAugment(nn.Module):
         elif self.aug_type == 2:
             self.aug_model = _TrainableAugmentModel(**block_config)
             self.aug_model.disable_trainable_aug()
-            self.optimizer = None
+            opt = getattr(torch.optim, optimizer.pop('optimizer', 'sgd'))
+            self.optimizer = opt(self.aug_model.parameters(), **optimizer)
+            
         else:
             raise NotImplementedError
 
