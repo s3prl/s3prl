@@ -24,7 +24,7 @@ scheduler:
 
 #comment the whole augmentation config block to disable augmentation when training!!
 augmentation:
-  type: 1 # 1: train aug 2: use pretrain aug module 3:previous specaug 4: no aug(only means no aug on spectrogram)
+  type: 2 # 1: train aug 2: use pretrain aug module 3:previous specaug 4: no aug(only means no aug on spectrogram)
 
   specaug: # arg meaning please refer to src/audio.py: class Augment # only valid if type==3
     T: 40
@@ -45,7 +45,7 @@ augmentation:
       lr: 1.0e-4
       amsgrad: True
   
-  ckpt_path: your_aug_model_path.ckpt
+  ckpt_path: result/downstream/speaker_classification_darong_amsoftmax_trainable_aug/augment-100000.ckpt
     
 
 downstream_expert: 
