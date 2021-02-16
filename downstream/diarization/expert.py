@@ -249,16 +249,16 @@ class DownstreamExpert(nn.Module):
         average_der = torch.FloatTensor(records['der']).mean().item()
 
         logger.add_scalar(
-            f'acc',
+            f'diarization/{mode}-acc',
             average_acc,
             global_step=global_step
         )
         logger.add_scalar(
-            f'der',
+            f'diarization/{mode}-der',
             average_der,
             global_step=global_step
         )
-        print('mode {}, acc {}, der {}'.format(mode, average_acc, average_der))
+
         save_ckpt = []
         if mode == 'dev' and average_acc > self.best_score:
             self.best_score = torch.ones(1) * average_acc
