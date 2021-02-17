@@ -65,12 +65,10 @@ class SpeakerVerifi_train(Dataset):
                         wav_array = transformer.build_array(input_filepath=str(speaker_dir/wav))
                         wav_tensor = torch.tensor(wav_array / (2 ** 15)).float()
 
-                        if wav_tensor.shape[0] > 0: 
+                        if wav_tensor.shape[0] > self.vad_c['min_sec']: 
                             self.dataset.append(str(speaker_dir/wav))
                             speaker_wav_dict[speaker].append("/".join(wav.split("/")[-2:]))
-                        else:
-                            self.dataset.append(str(speaker_dir/wav))
-                            speaker_wav_dict[speaker].append("/".join(wav.split("/")[-2:]))
+
                 end = time.time() 
                 print(f"search all wavs paths costs {end-start} seconds")
                 print(f"save wav paths to {cache_path}! so we can directly load all_path in next time!")
@@ -191,9 +189,12 @@ class SpeakerVerifi_dev(Dataset):
             index_end = len(wav) -self.segment_config["window"]
             segment_num = index_end // self.segment_config['stride']
 
-            for index in range(0, index_end, self.segment_config['stride']):
-                # segment=wav[index:index+self.segment_config['window']]
-                segment_list.append([int(label_info), pair_info, str(utterance_id), segment_num, index, index+self.segment_config['window'], wav_info[2]])
+            if index_end < 0:
+                segment_list.append([int(label_info), pair_info, str(utterance_id), segment_num, 0, len(wav), wav_info[2]])
+            else:
+                for index in range(0, index_end, self.segment_config['stride']):
+                    # segment=wav[index:index+self.segment_config['window']]
+                    segment_list.append([int(label_info), pair_info, str(utterance_id), segment_num, index, index+self.segment_config['window'], wav_info[2]])
 
             utterance_id += 1
             
@@ -286,10 +287,14 @@ class SpeakerVerifi_test(Dataset):
             index_end = len(wav) -self.segment_config["window"]
             segment_num = index_end // self.segment_config['stride']
 
-            for index in range(0, index_end, self.segment_config['stride']):
-                # segment=wav[index:index+self.segment_config['window']]
-                segment_list.append([int(label_info), pair_info, str(utterance_id), segment_num, index, index+self.segment_config['window'], wav_info[2]])
+            if index_end < 0:
+                segment_list.append([int(label_info), pair_info, str(utterance_id), segment_num, 0, len(wav), wav_info[2]])
+            else:
+                for index in range(0, index_end, self.segment_config['stride']):
+                    # segment=wav[index:index+self.segment_config['window']]
+                    segment_list.append([int(label_info), pair_info, str(utterance_id), segment_num, index, index+self.segment_config['window'], wav_info[2]])
 
+            utterance_id += 1
             utterance_id += 1
             
         return segment_list
