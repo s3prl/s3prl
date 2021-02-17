@@ -219,17 +219,22 @@ class DownstreamExpert(nn.Module):
     def declutter(self, records):
         utterance_ids = set(records['utterid_info'])
         for index in utterance_ids:
-            records[index] = torch.stack(records[index])
+            records[index] = torch.mean(torch.stack(records[index]),dim=0)
         pair_ids = set(records['pairid_info'])
         for index in pair_ids:
             wav_set = list(set(records[index]))
             if len(wav_set) == 1:
-                wavs1 = records[wav_set[0]][None,:]
-                wavs2 = records[wav_set[0]][:,None]
+                # wavs1 = records[wav_set[0]][None,:]
+                # wavs2 = records[wav_set[0]][:,None]                
+                wavs1 = records[wav_set[0]]
+                wavs2 = records[wav_set[0]]
             else:
-                wavs1 = records[wav_set[0]][None,:]
-                wavs2 = records[wav_set[1]][:,None]
-            score = torch.mean(self.score_fn(wav1,wav2)).squeeze().cpu().detach().tolist()
+                # wavs1 = records[wav_set[0]][None,:]
+                # wavs2 = records[wav_set[1]][:,None]
+                wavs1 = records[wav_set[0]]
+                wavs2 = records[wav_set[1]]
+            # score = torch.mean(self.score_fn(wavs1,wavs2)).squeeze().cpu().detach().tolist()
+            score = self.score_fn(wavs1,wavs2).squeeze().cpu().detach().tolist()
             ylabel = list(set(records[f"{index}_label"]))[0]
             records['ylabels'].append(ylabel)
             records['scores'].append(score)

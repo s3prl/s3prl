@@ -3,39 +3,40 @@
 runner:
   total_steps: 100000
   gradient_clipping: 1
-  gradient_accumulate_steps: 1
+  gradient_accumulate_steps: 5
 
-  log_step: 100
-  eval_step: 100
-  save_step: 100
+  log_step: 500
+  eval_step: 4000
+  save_step: 4000
   max_keep: 1
   eval_dataloaders: 
     - dev
     - test
   
 optimizer: 
-  name: AdamW
-  lr: 5.0e-3
+  name: Adam
+  lr: 5.0e-4
 
 # # comment the whole scheduler config block to disable learning rate scheduling
-scheduler:
-  name: linear_schedule_with_warmup
-  num_warmup_steps: 6000
+# scheduler:
+#   name: linear_schedule_with_warmup
+#   num_warmup_steps: 6000
 
 downstream_expert: 
   datarc:
     vad_config:
       silence_threshold: 1
       min_silence_duration: 0.1
+      min_sec: 24000
     segment_config:
-      window: 48000
-      stride: 16000
+      window: 128000
+      stride: 64000
     train:
       file_path: 
         Voxceleb1: ../librispeech/vox1_train_verifi/wav
         # Voxceleb2: /groups/public/VoxCeleb2/dev/wav/
       meta_data: ./downstream/voxceleb2_amsoftmax/dev_meta_data/dev_speaker_ids.txt
-      max_timestep: 48000
+      max_timestep: 128000
 
     test:
       file_path: ../librispeech/vox1_test/wav
@@ -47,7 +48,7 @@ downstream_expert:
     
     train_batch_size: 10
     eval_batch_size: 10
-    num_workers: 10 # need to be you total cpu count -1, because we will open a process to load data into memory (chunk).
+    num_workers: 8 
 
   modelrc:
     module:
