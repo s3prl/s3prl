@@ -14,7 +14,14 @@ import sys
 import time
 import tqdm
 import pickle
-from sox import Transformer
+from torchaudio.sox_effects import apply_effects_file
+
+EFFECTS = [
+["channels", "1"],
+["rate", "16000"],
+["gain", "-3.0"],
+["silence", "1", "0.1", "0.1%", "-1", "0.1", "0.1%"],
+]
 
 # Voxceleb 2 Speaker verification
 class SpeakerVerifi_train(Dataset):
@@ -29,7 +36,7 @@ class SpeakerVerifi_train(Dataset):
 
         for key in self.root_key:
             
-            cache_path = f"./downstream/voxceleb2_amsoftmax/cache_wav_paths/cache_{key}.p"
+            cache_path = f"./downstream/voxceleb2_amsoftmax_segment_eval/cache_wav_paths/cache_{key}.p"
             p = Path(self.roots[key])
             # loca cache_path if file exists
             if os.path.isfile(cache_path):
@@ -56,23 +63,20 @@ class SpeakerVerifi_train(Dataset):
                     speaker_dir =  p / speaker
                     wav_list=find_files(speaker_dir)
                     speaker_wav_dict[speaker] = []
-                    
-                    for wav in wav_list:
-                        transformer = Transformer()
-                        transformer.norm()
-                        transformer.silence(silence_threshold=self.vad_c['silence_threshold'], min_silence_duration=self.vad_c['min_silence_duration'])
-                        transformer.set_output_format(rate=16000, bits=16, channels=1)
-                        wav_array = transformer.build_array(input_filepath=str(speaker_dir/wav))
-                        wav_tensor = torch.tensor(wav_array / (2 ** 15)).float()
 
-                        if wav_tensor.shape[0] > self.vad_c['min_sec']: 
+                    for wav in wav_list:
+
+                        wav, _ = apply_effects_file(str(speaker_dir/wav), EFFECTS)
+                        wav = wav.squeeze(0)
+                        length = wav.shape[0]
+
+                        if length > self.vad_c['min_sec']: 
                             self.dataset.append(str(speaker_dir/wav))
                             speaker_wav_dict[speaker].append("/".join(wav.split("/")[-2:]))
-
                 end = time.time() 
                 print(f"search all wavs paths costs {end-start} seconds")
                 print(f"save wav paths to {cache_path}! so we can directly load all_path in next time!")
-                pickle.dump(speaker_wav_dict, open(cache_path,"wb"))    
+                pickle.dump(speaker_wav_dict, open(cache_path,"wb"))   
 
         self.speaker_num = len(self.all_speakers)
         self.necessary_dict = self.processing()
@@ -103,36 +107,21 @@ class SpeakerVerifi_train(Dataset):
             y.append(self.label_mapping_spk_id[id_string])
 
         return y
-    
-    def train(self):
-
-        dataset = []
-        for string in self.usage_list:
-            pair = string.split()
-            index = pair[0]
-            x = os.path.join(self.root, pair[1])
-            if int(index) == 1:
-                dataset.append(x)
-                
-        return dataset
 
     def __len__(self):
         return len(self.dataset)
     
     def __getitem__(self, idx):
-        
-        transformer = Transformer()
-        transformer.norm()    
-        transformer.silence(silence_threshold=self.vad_c['silence_threshold'], min_silence_duration=self.vad_c['min_silence_duration'])
-        transformer.set_output_format(rate=16000, bits=16, channels=1)
-        wav = transformer.build_array(input_filepath=self.dataset[idx])
-        wav = torch.tensor(wav / (2 ** 15)).float()
+        wav, _ = torchaudio.load(self.dataset[idx])
+        # wav, _ = apply_effects_file(self.dataset[idx], EFFECTS)
+        wav = wav.squeeze(0)
         length = wav.shape[0]
-
+        
         if self.max_timestep !=None:
             if length > self.max_timestep:
                 start = random.randint(0, int(length-self.max_timestep))
                 wav = wav[start:start+self.max_timestep]
+                length = self.max_timestep
   
         return wav, torch.tensor([self.label[idx]]).long()
         
@@ -163,7 +152,7 @@ class SpeakerVerifi_dev(Dataset):
         self.vad_c = vad_config
         self.pair_dict = self.preprocessing()
 
-        cache_path = f"./downstream/voxceleb2_amsoftmax/cache_wav_paths/cache_dev_segment.p"
+        cache_path = f"./downstream/voxceleb2_amsoftmax_segment_eval/cache_wav_paths/cache_dev_segment.p"
         # loca cache_path if file exists
         if os.path.isfile(cache_path):
             self.dataset=pickle.load(open(cache_path,"rb"))
@@ -180,12 +169,10 @@ class SpeakerVerifi_dev(Dataset):
         for wav_info in tqdm.tqdm(wav_list):
             label_info = wav_info[0]
             pair_info = wav_info[1]
-            transformer = Transformer()
-            transformer.norm()    
-            transformer.silence(silence_threshold=self.vad_c['silence_threshold'], min_silence_duration=self.vad_c['min_silence_duration'])
-            transformer.set_output_format(rate=16000, bits=16, channels=1)
-            wav = transformer.build_array(input_filepath=wav_info[2])
-            wav = torch.tensor(wav / (2 ** 15)).float()
+
+            wav, _ = apply_effects_file(wav_info[2], EFFECTS)
+            wav = wav.squeeze(0)
+
             index_end = len(wav) -self.segment_config["window"]
             segment_num = index_end // self.segment_config['stride']
 
@@ -193,7 +180,6 @@ class SpeakerVerifi_dev(Dataset):
                 segment_list.append([int(label_info), pair_info, str(utterance_id), segment_num, 0, len(wav), wav_info[2]])
             else:
                 for index in range(0, index_end, self.segment_config['stride']):
-                    # segment=wav[index:index+self.segment_config['window']]
                     segment_list.append([int(label_info), pair_info, str(utterance_id), segment_num, index, index+self.segment_config['window'], wav_info[2]])
 
             utterance_id += 1
@@ -226,12 +212,9 @@ class SpeakerVerifi_dev(Dataset):
 
     def __getitem__(self, idx):
         label_info, pair_id, utter_id, seg_info, start, end, path = self.dataset[idx]
-        transformer = Transformer()
-        transformer.norm()    
-        transformer.silence(silence_threshold=self.vad_c['silence_threshold'], min_silence_duration=self.vad_c['min_silence_duration'])
-        transformer.set_output_format(rate=16000, bits=16, channels=1)
-        wav = transformer.build_array(input_filepath=path)
-        wav = torch.tensor(wav / (2 ** 15)).float()
+        wav, _ = torchaudio.load(path)
+        # wav, _ = apply_effects_file(path, EFFECTS)
+        wav = wav.squeeze(0)
         seg_tensor = wav[start:end]
 
         return label_info, pair_id, utter_id, seg_info, seg_tensor
@@ -262,7 +245,7 @@ class SpeakerVerifi_test(Dataset):
         self.vad_c = vad_config
         self.pair_dict = self.preprocessing()
 
-        cache_path = f"./downstream/voxceleb2_amsoftmax/cache_wav_paths/cache_test_segment.p"
+        cache_path = f"./downstream/voxceleb2_amsoftmax_segment_eval/cache_wav_paths/cache_test_segment.p"
         # loca cache_path if file exists
         if os.path.isfile(cache_path):
             self.dataset=pickle.load(open(cache_path,"rb"))
@@ -278,12 +261,10 @@ class SpeakerVerifi_test(Dataset):
         for wav_info in tqdm.tqdm(wav_list):
             label_info = wav_info[0]
             pair_info = wav_info[1]
-            transformer = Transformer()
-            transformer.norm()    
-            transformer.silence(silence_threshold=self.vad_c['silence_threshold'], min_silence_duration=self.vad_c['min_silence_duration'])
-            transformer.set_output_format(rate=16000, bits=16, channels=1)
-            wav = transformer.build_array(input_filepath=wav_info[2])
-            wav = torch.tensor(wav / (2 ** 15)).float()
+            wav, _ = torchaudio.load(wav_info[2])
+            # wav, _ = apply_effects_file(wav_info[2], EFFECTS)
+            wav = wav.squeeze(0)
+
             index_end = len(wav) -self.segment_config["window"]
             segment_num = index_end // self.segment_config['stride']
 
@@ -291,10 +272,8 @@ class SpeakerVerifi_test(Dataset):
                 segment_list.append([int(label_info), pair_info, str(utterance_id), segment_num, 0, len(wav), wav_info[2]])
             else:
                 for index in range(0, index_end, self.segment_config['stride']):
-                    # segment=wav[index:index+self.segment_config['window']]
                     segment_list.append([int(label_info), pair_info, str(utterance_id), segment_num, index, index+self.segment_config['window'], wav_info[2]])
 
-            utterance_id += 1
             utterance_id += 1
             
         return segment_list
@@ -325,12 +304,10 @@ class SpeakerVerifi_test(Dataset):
 
     def __getitem__(self, idx):
         label_info, pair_id, utter_id, seg_info, start, end, path = self.dataset[idx]
-        transformer = Transformer()
-        transformer.norm()    
-        transformer.silence(silence_threshold=self.vad_c['silence_threshold'], min_silence_duration=self.vad_c['min_silence_duration'])
-        transformer.set_output_format(rate=16000, bits=16, channels=1)
-        wav = transformer.build_array(input_filepath=path)
-        wav = torch.tensor(wav / (2 ** 15)).float()
+        
+        wav, _ = torchaudio.load(path)
+        # wav, _ = apply_effects_file(path, EFFECTS)
+        wav = wav.squeeze(0)
         seg_tensor = wav[start:end]
 
         return label_info, pair_id, utter_id, seg_info, seg_tensor

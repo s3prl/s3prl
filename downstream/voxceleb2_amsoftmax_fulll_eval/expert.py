@@ -53,6 +53,9 @@ class DownstreamExpert(nn.Module):
         self.train_dataset = SpeakerVerifi_train(self.datarc['vad_config'], **self.datarc['train'])
         self.dev_dataset = SpeakerVerifi_dev(self.datarc['vad_config'], **self.datarc['dev'])
         self.test_dataset = SpeakerVerifi_test(self.datarc['vad_config'], **self.datarc['test'])
+
+        self.train_dataset_plda = SpeakerVerifi_train(self.datarc['vad_config'], **self.datarc['train_plda'])
+        self.test_dataset_plda = SpeakerVerifi_dev(self.datarc['vad_config'], **self.datarc['test_plda'])
         
         self.connector = nn.Linear(self.upstream_dim, self.modelrc['input_dim'])
         self.model = Model(input_dim=self.modelrc['input_dim'], agg_dim=self.modelrc['agg_dim'], agg_module=self.modelrc['agg_module'], config=self.modelrc)
@@ -86,6 +89,10 @@ class DownstreamExpert(nn.Module):
             return self._get_eval_dataloader(self.dev_dataset)
         elif mode == 'test':
             return self._get_eval_dataloader(self.test_dataset)
+        elif mode == "train_plda":
+            return self._get_train_plda_dataloader(self.train_dataset_plda) 
+        elif mode == "test_plda":
+            return self._get_train_plda_dataloader(self.test_dataset_plda)
 
     def _get_train_dataloader(self, dataset):
         return DataLoader(
@@ -114,7 +121,7 @@ class DownstreamExpert(nn.Module):
         return self._get_eval_dataloader(self.test_dataset)
 
     # Interface
-    def forward(self, mode, features, length, labels, records, **kwargs):
+    def forward(self, mode, features, utter_idx, labels, records, **kwargs):
         """
         Args:
             features:
@@ -140,6 +147,7 @@ class DownstreamExpert(nn.Module):
             loss:
                 the loss to be optimized, should not be detached
         """
+
         features_pad = pad_sequence(features, batch_first=True)
         
         if self.modelrc['module'] == "XVector":
