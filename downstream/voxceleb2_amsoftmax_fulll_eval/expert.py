@@ -22,7 +22,7 @@ from torch.utils.data import DataLoader
 from torch.nn.utils.rnn import pad_sequence
 #-------------#
 from .model import Model, AdMSoftmaxLoss, UtteranceModel
-from .dataset import SpeakerVerifi_train, SpeakerVerifi_dev, SpeakerVerifi_test
+from .dataset import SpeakerVerifi_train, SpeakerVerifi_dev, SpeakerVerifi_test, SpeakerVerifi_plda
 from argparse import Namespace
 from .utils import EER, compute_metrics
 import IPython
@@ -54,8 +54,8 @@ class DownstreamExpert(nn.Module):
         self.dev_dataset = SpeakerVerifi_dev(self.datarc['vad_config'], **self.datarc['dev'])
         self.test_dataset = SpeakerVerifi_test(self.datarc['vad_config'], **self.datarc['test'])
 
-        self.train_dataset_plda = SpeakerVerifi_train(self.datarc['vad_config'], **self.datarc['train_plda'])
-        self.test_dataset_plda = SpeakerVerifi_dev(self.datarc['vad_config'], **self.datarc['test_plda'])
+        self.train_dataset_plda = SpeakerVerifi_plda(self.datarc['vad_config'], **self.datarc['train_plda'])
+        self.test_dataset_plda = SpeakerVerifi_plda(self.datarc['vad_config'], **self.datarc['test_plda'])
         
         self.connector = nn.Linear(self.upstream_dim, self.modelrc['input_dim'])
         self.model = Model(input_dim=self.modelrc['input_dim'], agg_dim=self.modelrc['agg_dim'], agg_module=self.modelrc['agg_module'], config=self.modelrc)
@@ -90,9 +90,9 @@ class DownstreamExpert(nn.Module):
         elif mode == 'test':
             return self._get_eval_dataloader(self.test_dataset)
         elif mode == "train_plda":
-            return self._get_train_plda_dataloader(self.train_dataset_plda) 
+            return self._get_train_dataloader(self.train_dataset_plda) 
         elif mode == "test_plda":
-            return self._get_train_plda_dataloader(self.test_dataset_plda)
+            return self._get_train_dataloader(self.test_dataset_plda)
 
     def _get_train_dataloader(self, dataset):
         return DataLoader(
@@ -106,7 +106,8 @@ class DownstreamExpert(nn.Module):
             dataset, batch_size=self.datarc['eval_batch_size'],
             shuffle=False, num_workers=self.datarc['num_workers'],
             collate_fn=dataset.collate_fn
-        )
+        )    
+
 
     # Interface
     def get_train_dataloader(self):
@@ -163,13 +164,13 @@ class DownstreamExpert(nn.Module):
         features_pad = self.connector(features_pad)
         agg_vec = self.model(features_pad, attention_mask_pad.cuda())
 
-        if self.training:
+        if mode=="train":
             labels = torch.LongTensor(labels).to(features_pad.device)
             loss = self.objective(agg_vec, labels)
             
             return loss
-
-        else:
+        
+        if mode == "dev" or mode == "test":
             # normalize to unit vector 
             agg_vec = agg_vec / (torch.norm(agg_vec, dim=-1).unsqueeze(-1))
 
@@ -183,6 +184,12 @@ class DownstreamExpert(nn.Module):
             else:
                 records['scores'].append(scores)
                 records['ylabels'].append(ylabels)
+            return torch.tensor(0)
+        
+        if mode == "train_plda" or "test_plda":
+
+            print(f"batch_agg_vec shape: {agg_vec.shape}")
+            print(f"utterance_id: {utter_idx}")
 
             return torch.tensor(0)
 
