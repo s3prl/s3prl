@@ -67,8 +67,8 @@ class SpeakerVerifi_plda(Dataset):
                     wav_list=find_files(speaker_dir)
                     speaker_wav_dict[speaker] = []
                     for wav in wav_list:
-                        wav_sample, _ = torchaudio.load(str(speaker_dir/wav))
-                        # wav, _ = apply_effects_file(str(speaker_dir/wav), EFFECTS)
+                        # wav_sample, _ = torchaudio.load(str(speaker_dir/wav))
+                        wav_sample, _ = apply_effects_file(str(speaker_dir/wav), EFFECTS)
                         wav_sample = wav_sample.squeeze(0)
                         length = wav_sample.shape[0]
 
@@ -183,10 +183,10 @@ class SpeakerVerifi_train(Dataset):
                     wav_list=find_files(speaker_dir)
                     speaker_wav_dict[speaker] = []
                     for wav in wav_list:
-                        wav, _ = torchaudio.load(str(speaker_dir/wav))
-                        # wav, _ = apply_effects_file(str(speaker_dir/wav), EFFECTS)
-                        wav = wav.squeeze(0)
-                        length = wav.shape[0]
+                        # wav_sample, _ = torchaudio.load(str(speaker_dir/wav))
+                        wav_sample, _ = apply_effects_file(str(speaker_dir/wav), EFFECTS)
+                        wav_sample = wav_sample.squeeze(0)
+                        length = wav_sample.shape[0]
 
                         if length > self.vad_c['min_sec']:
                             utterance_id = "/".join(str(speaker_dir/wav).split("/")[-3:]).replace(".wav","").replace("/","-") 
@@ -231,8 +231,8 @@ class SpeakerVerifi_train(Dataset):
         return len(self.dataset)
     
     def __getitem__(self, idx):
-        wav, _ = torchaudio.load(self.dataset[idx][0])
-        # wav, _ = apply_effects_file(self.dataset[idx], EFFECTS)
+        # wav, _ = torchaudio.load(self.dataset[idx][0])
+        wav, _ = apply_effects_file(self.dataset[idx][0], EFFECTS)
         wav = wav.squeeze(0)
         length = wav.shape[0]
         
@@ -282,12 +282,11 @@ class SpeakerVerifi_dev(Dataset):
 
     def __getitem__(self, idx):
         y_label, x1_path, x2_path = self.dataset[idx]
-        wav1, _ = torchaudio.load(x1_path)
-        wav2, _ = torchaudio.load(x2_path)
+        # wav1, _ = torchaudio.load(x1_path)
+        # wav2, _ = torchaudio.load(x2_path)
 
-        # wav1, _ = apply_effects_file(x1_path, EFFECTS)
-        
-        # wav2, _ = apply_effects_file(x2_path, EFFECTS)
+        wav1, _ = apply_effects_file(x1_path, EFFECTS)
+        wav2, _ = apply_effects_file(x2_path, EFFECTS)
 
         wav1 = wav1.squeeze(0)
         wav2 = wav2.squeeze(0)
@@ -369,7 +368,6 @@ class SpeakerVerifi_test(Dataset):
         wav2, _ = torchaudio.load(x2_path)
 
         # wav1, _ = apply_effects_file(x1_path, EFFECTS)
-        
         # wav2, _ = apply_effects_file(x2_path, EFFECTS)
 
         wav1 = wav1.squeeze(0)

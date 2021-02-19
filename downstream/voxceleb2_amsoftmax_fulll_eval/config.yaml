@@ -1,7 +1,7 @@
 
 # this voxceleb1 is doing speaker classification task!
 runner:
-  total_steps: 100000
+  total_steps: 150000
   gradient_clipping: 1
   gradient_accumulate_steps: 5
 
@@ -14,8 +14,8 @@ runner:
     - test
   
 optimizer: 
-  name: Adam
-  lr: 5.0e-4
+  name: AdamW
+  lr: 1.0e-4
 
 # # comment the whole scheduler config block to disable learning rate scheduling
 # scheduler:
