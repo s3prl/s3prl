@@ -14,7 +14,7 @@ runner:
     - test
   
 optimizer: 
-  name: AdamW
+  name: Adam
   lr: 1.0e-4
 
 # # comment the whole scheduler config block to disable learning rate scheduling

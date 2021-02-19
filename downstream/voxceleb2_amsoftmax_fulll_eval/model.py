@@ -65,7 +65,7 @@ class SAP(nn.Module):
         super(SAP, self).__init__()
 
         # Setup
-        self.act_fn = nn.ReLU()
+        # self.act_fn = nn.ReLU()
         self.linear = nn.Linear(input_dim, out_dim)
         self.sap_layer = SelfAttentionPooling(out_dim)
     
@@ -77,7 +77,7 @@ class SAP(nn.Module):
             att_mask   - [BxTx1]     Attention Mask logits
         '''
         #Encode
-        feature = self.act_fn(feature)
+        # feature = self.act_fn(feature)
         feature = self.linear(feature)
         sap_vec = self.sap_layer(feature, att_mask)
 
