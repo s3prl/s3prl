@@ -3,6 +3,7 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 import random
+import matplotlib.pyplot as plt
 
 '''
 new Augment function
@@ -143,6 +144,18 @@ class TrainableAugment(nn.Module):
             "aug_optimizer": self.optimizer.state_dict()
         }
         torch.save(full_dict, ckpt_path)
+    
+    def tensor_to_img(self, spectrogram, filename):
+        # spectrogram = self.to_db_scale(spectrogram)
+        spectrogram = spectrogram.detach().numpy()
+        #print(spectrogram[0])
+        plt.figure(figsize=(12,10)) # arbitrary, looks good on my screen.
+        plt.imshow(spectrogram)
+        plt.savefig(filename)
+    
+    def to_db_scale(self, spectrogram):
+        db_sp = 20*torch.log10(spectrogram)
+        return db_sp
 
 class _TrainableAugmentModel(nn.Module):
     def __init__(self, T_num_masks=1, F_num_masks=1, noise_dim=None, dim=[10, 10, 10], replace_with_zero=False, width_init_bias=-3.):

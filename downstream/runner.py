@@ -192,9 +192,23 @@ class Runner():
 
                     if self.config.get('augmentation') and self.config['augmentation']['type'] in [1,2]:
                         feature_lens = torch.stack([torch.FloatTensor([len(feature)]).squeeze().to(self.args.device) for feature in features])
+                        
+                        count = 0
+                        for x in features:
+                            before_augment = x.transpose(0,1)
+                            self.aug_model.tensor_to_img(before_augment.cpu(), f"./data_aug/aug_picture/before_augment_num_{count}.png")
+                            count +=1
                         feature_tensors = pad_sequence(features,batch_first=True)
                         features=self.aug_model(feature_tensors,feature_lens)
                         features=[features[index, :int(feature_lens[index])] for index in range(len(features))]
+                        
+                        count = 0
+                        for x in features:
+                            self.aug_model.tensor_to_img(x.transpose(0,1).cpu(),f"./data_aug/aug_picture/after_augment_num_{count}.png")
+                            count +=1
+                        
+                        # IPython.embed()
+                        exit()
                     
                     if self.config.get("augmentation") and self.config['augmentation']['type'] ==3:
                         features = [self.aug_model(feat) for feat in features]
