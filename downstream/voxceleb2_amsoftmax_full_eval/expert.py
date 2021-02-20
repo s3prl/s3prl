@@ -14,6 +14,7 @@ import os
 import math
 import torch
 import random
+import kaldi_io
 import numpy as np
 #-------------#
 import torch
@@ -43,7 +44,7 @@ class DownstreamExpert(nn.Module):
         and wav1 is in torch.FloatTensor
     """
 
-    def __init__(self, upstream_dim, downstream_expert, **kwargs):
+    def __init__(self, upstream_dim, downstream_expert, evaluate_split, expdir, **kwargs):
         super(DownstreamExpert, self).__init__()
         self.upstream_dim = upstream_dim
         self.downstream = downstream_expert
@@ -63,6 +64,9 @@ class DownstreamExpert(nn.Module):
 
         self.score_fn  = nn.CosineSimilarity(dim=-1)
         self.eval_metric = EER
+
+        if 'plda' in evaluate_split:
+            self.ark = open(f'{expdir}/{evaluate_split}.rep.ark', 'wb')
 
     # Interface
     def get_dataloader(self, mode):
@@ -187,11 +191,9 @@ class DownstreamExpert(nn.Module):
             return torch.tensor(0)
         
         if mode == "train_plda" or "test_plda":
-
-            print(f"batch_agg_vec shape: {agg_vec.shape}")
-            print(f"utterance_id: {utter_idx}")
-
-            return torch.tensor(0)
+            for key, vec in zip(utter_idx, agg_vec):
+                vec = vec.view(-1).detach().cpu().numpy()
+                kaldi_io.write_vec_flt(self.ark, vec, key=key)
 
     # interface
     def log_records(self, mode, records, logger, global_step, batch_ids, total_batch_num, **kwargs):
@@ -212,7 +214,7 @@ class DownstreamExpert(nn.Module):
             global_step:
                 global_step in runner, which is helpful for Tensorboard logging
         """
-        if not self.training:
+        if mode in ['dev', 'test']:
 
             EER_result =self.eval_metric(np.array(records['ylabels']), np.array(records['scores']))
 
@@ -223,6 +225,10 @@ class DownstreamExpert(nn.Module):
                 records['EER'],
                 global_step=global_step
             )
+            print(f'{mode} ERR: {records["EER"]}')
+        
+        elif 'plda' in mode:
+            self.ark.close()
         
     def separate_data(self, agg_vec, ylabel):
 
