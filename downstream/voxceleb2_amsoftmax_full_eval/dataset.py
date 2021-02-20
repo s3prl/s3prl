@@ -116,8 +116,7 @@ class SpeakerVerifi_plda(Dataset):
         return len(self.dataset)
     
     def __getitem__(self, idx):
-        # wav, _ = torchaudio.load(str(self.dataset[idx][0]))
-        wav, _ = apply_effects_file(str(self.dataset[0]), EFFECTS)
+        wav, _ = apply_effects_file(str(self.dataset[idx][0]), EFFECTS)
         wav = wav.squeeze(0)
         length = wav.shape[0]
 

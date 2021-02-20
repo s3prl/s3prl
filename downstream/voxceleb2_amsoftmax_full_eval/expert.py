@@ -65,7 +65,7 @@ class DownstreamExpert(nn.Module):
         self.score_fn  = nn.CosineSimilarity(dim=-1)
         self.eval_metric = EER
 
-        if 'plda' in evaluate_split:
+        if evaluate_split in ['train_plda', 'test_plda']:
             self.ark = open(f'{expdir}/{evaluate_split}.rep.ark', 'wb')
 
     # Interface
@@ -94,9 +94,9 @@ class DownstreamExpert(nn.Module):
         elif mode == 'test':
             return self._get_eval_dataloader(self.test_dataset)
         elif mode == "train_plda":
-            return self._get_train_dataloader(self.train_dataset_plda) 
+            return self._get_eval_dataloader(self.train_dataset_plda) 
         elif mode == "test_plda":
-            return self._get_train_dataloader(self.test_dataset_plda)
+            return self._get_eval_dataloader(self.test_dataset_plda)
 
     def _get_train_dataloader(self, dataset):
         return DataLoader(
@@ -155,7 +155,7 @@ class DownstreamExpert(nn.Module):
 
         features_pad = pad_sequence(features, batch_first=True)
         
-        if self.modelrc['module'] == "XVector":
+        if self.modelrc['module'] == 'XVector':
             attention_mask = [torch.ones((feature.shape[0]-14)) for feature in features]
         else:
             attention_mask = [torch.ones((feature.shape[0])) for feature in features]
@@ -168,13 +168,13 @@ class DownstreamExpert(nn.Module):
         features_pad = self.connector(features_pad)
         agg_vec = self.model(features_pad, attention_mask_pad.cuda())
 
-        if mode=="train":
+        if mode == 'train':
             labels = torch.LongTensor(labels).to(features_pad.device)
             loss = self.objective(agg_vec, labels)
             
             return loss
         
-        if mode == "dev" or mode == "test":
+        elif mode in ['dev', 'test']:
             # normalize to unit vector 
             agg_vec = agg_vec / (torch.norm(agg_vec, dim=-1).unsqueeze(-1))
 
@@ -190,7 +190,7 @@ class DownstreamExpert(nn.Module):
                 records['ylabels'].append(ylabels)
             return torch.tensor(0)
         
-        if mode == "train_plda" or "test_plda":
+        elif mode in ['train_plda', 'test_plda']:
             for key, vec in zip(utter_idx, agg_vec):
                 vec = vec.view(-1).detach().cpu().numpy()
                 kaldi_io.write_vec_flt(self.ark, vec, key=key)
@@ -227,7 +227,7 @@ class DownstreamExpert(nn.Module):
             )
             print(f'{mode} ERR: {records["EER"]}')
         
-        elif 'plda' in mode:
+        elif mode in ['train_plda', 'test_plda']:
             self.ark.close()
         
     def separate_data(self, agg_vec, ylabel):
