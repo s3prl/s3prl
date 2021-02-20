@@ -121,7 +121,7 @@ class Model(nn.Module):
         self.agg_method = eval(agg_module)(input_dim, agg_dim)
         
         # two standard transformer encoder layer
-        self.model= eval(config['module'])(config=Namespace(**config['hparams']),)
+        self.model= eval(config['module'])(config=Namespace(**config['hparams']),agg_dim=agg_dim)
         self.head_mask = [None] * config['hparams']['num_hidden_layers']         
     def forward(self, features, att_mask):
         features = self.model(features,att_mask[:,None,None], head_mask=self.head_mask, output_all_encoded_layers=False)
@@ -250,7 +250,7 @@ class TDNN(nn.Module):
         return x
 
 class XVector(nn.Module):
-    def __init__(self, config, **kwargs):
+    def __init__(self, config, agg_dim=1500, **kwargs):
         super(XVector, self).__init__()
         # simply take mean operator / no additional parameters
         self.module = nn.Sequential(
@@ -258,7 +258,7 @@ class XVector(nn.Module):
             TDNN(input_dim=512, output_dim=512, context_size=3, dilation=2),
             TDNN(input_dim=512, output_dim=512, context_size=3, dilation=3),
             TDNN(input_dim=512, output_dim=512, context_size=1, dilation=1),
-            TDNN(input_dim=512, output_dim=1500, context_size=1, dilation=1),
+            TDNN(input_dim=512, output_dim=agg_dim, context_size=1, dilation=1),
         )
 
     def forward(self, feature, att_mask, head_mask, **kwargs):
