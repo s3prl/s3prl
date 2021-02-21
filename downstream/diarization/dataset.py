@@ -43,6 +43,15 @@ def _gen_frame_indices(
             yield (i + 1) * step, data_length
 
 
+def _gen_chunk_indices(data_len, chunk_size):
+    step = chunk_size
+    start = 0
+    while start < data_len:
+        end = min(data_len, start + chunk_size)
+        yield start, end
+        start += step
+
+
 #######################
 # Diarization Dataset #
 #######################
@@ -50,6 +59,7 @@ class DiarizationDataset(Dataset):
 
     def __init__(
             self,
+            mode,
             data_dir,
             dtype=np.float32,
             chunk_size=2000,
@@ -63,13 +73,14 @@ class DiarizationDataset(Dataset):
         ):
         super(DiarizationDataset, self).__init__()
 
+        self.mode = mode
         self.data_dir = data_dir
         self.dtype = dtype
         self.chunk_size = chunk_size
         self.frame_shift = frame_shift
         self.subsampling = subsampling
         self.n_speakers = num_speakers
-        self.chunk_indices = []
+        self.chunk_indices = [] if mode != "test" else {}
         self.label_delay = label_delay
 
         self.data = KaldiData(self.data_dir)
@@ -78,27 +89,54 @@ class DiarizationDataset(Dataset):
         for rec in self.data.wavs:
             data_len = int(self.data.reco2dur[rec] * rate / frame_shift)
             data_len = int(data_len / self.subsampling)
-            for st, ed in _gen_frame_indices(
-                    data_len, chunk_size, chunk_size, use_last_samples,
-                    label_delay=self.label_delay,
-                    subsampling=self.subsampling):
-                self.chunk_indices.append(
+            if mode == "test":
+                self.chunk_indices[rec] = []
+            if mode != "test":
+                for st, ed in _gen_frame_indices(
+                        data_len, chunk_size, chunk_size, use_last_samples,
+                        label_delay=self.label_delay,
+                        subsampling=self.subsampling):
+                    self.chunk_indices.append(
                         (rec, st * self.subsampling, ed * self.subsampling))
-        print(len(self.chunk_indices), " chunks")
+            else:
+                for st, ed in _gen_chunk_indices(data_len, chunk_size):
+                    self.chunk_indices[rec].append(
+                        (rec, st * self.subsampling, ed * self.subsampling))
+        
+        if mode != "test":
+            print(len(self.chunk_indices), " chunks")
+        else:
+            self.rec_list = list(self.chunk_indices.keys())
+            print(len(self.rec_list), " recordings") 
             
     def __len__(self):
-        return len(self.chunk_indices)
+        return len(self.rec_list) \
+            if type(self.chunk_indices) == dict \
+            else len(self.chunk_indices)
 
     def __getitem__(self, i):
-        rec, st, ed = self.chunk_indices[i]
-        Y, T = self._get_labeled_speech(
-            rec,
-            st,
-            ed,
-            self.n_speakers)
-        # TODO: add subsampling here
-        return Y, T
-    
+        if mode != "test":
+            rec, st, ed = self.chunk_indices[i]
+            Y, T = self._get_labeled_speech(
+                rec,
+                st,
+                ed,
+                self.n_speakers)
+            # TODO: add subsampling here
+            return Y, T
+        else:
+            chunks = self.chunk_indices[self.rec_list[i]]
+            Ys, Ts = [], []
+            for (rec, st, ed) in chunks:
+                Y, T = self._get_labeled_speech(
+                    rec,
+                    st,
+                    ed,
+                    self.n_speakers)
+                Ys.append(Y)
+                Ts.append(T)
+            return Ys, Ts, self.rec_list[i]
+
     def _get_labeled_speech(self,         
         rec, start, end,
         n_speakers=None,
@@ -171,7 +209,22 @@ class DiarizationDataset(Dataset):
             label.append(torch.from_numpy(batch[i][1]).float())
         length = np.array(len_list)
         length = torch.from_numpy(length)
-        return wav, label, length
+        return wav, label, length, None
+    
+    def collate_fn_rec_infer(self, batch):
+        assert len(batch) == 1 # each batch should contain one recording
+        chunk_num = batch[0][1]
+        len_list = [len(batch[0][1][i]) for i in range(chunk_num)]
+        wav = []
+        label = []
+        for i in range(batch_size):
+            length = len_list[i]
+            wav.append(torch.from_numpy(batch[0][0]).float())
+            label.append(torch.from_numpy(batch[0][1]).float())
+        length = np.array(len_list)
+        length = torch.from_numpy(length)
+        rec_id = batch[0][2]
+        return wav, label, length, rec_id
 
 
 #######################
