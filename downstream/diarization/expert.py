@@ -13,6 +13,7 @@
 import os
 import math
 import random
+import h5py
 from collections import defaultdict
 #-------------#
 import torch
@@ -37,13 +38,29 @@ class DownstreamExpert(nn.Module):
         self.datarc = downstream_expert['datarc']
         self.loaderrc = downstream_expert['loaderrc']
         self.modelrc = downstream_expert['modelrc']
+        self.scorerc = downstream_expert['scorerc']
 
         self.train_batch_size = self.loaderrc['train_batchsize']
         self.eval_batch_size = self.loaderrc['eval_batchsize']
 
-        self.train_dataset = DiarizationDataset(self.loaderrc['train_dir'], **self.datarc)
-        self.dev_dataset = DiarizationDataset(self.loaderrc['dev_dir'], **self.datarc)
-        self.test_dataset = DiarizationDataset(self.loaderrc['test_dir'], **self.datarc)
+        self.score_dir = self.scorerc["score_dir"]
+        self.save_predictions = self.scorerc["save_predictions"]
+
+        if not os.path.exists(self.score_dir) and self.save_predictions:
+            os.makedirs(os.path.join(self.score_dir, "predictions"))
+
+        self.train_dataset = DiarizationDataset(
+            mode="train", 
+            self.loaderrc['train_dir'],
+            **self.datarc)
+        self.dev_dataset = DiarizationDataset(
+            mode="dev", 
+            self.loaderrc['dev_dir'], 
+            **self.datarc)
+        self.test_dataset = DiarizationDataset(
+            mode="test", 
+            self.loaderrc['test_dir'], 
+            **self.datarc)
 
         self.model = Model(input_dim=self.upstream_dim, output_class_num=self.datarc['num_speakers'], **self.modelrc)
         self.objective = pit_loss
@@ -70,23 +87,9 @@ class DownstreamExpert(nn.Module):
         if mode == 'train':
             return self._get_train_dataloader(self.train_dataset)            
         elif mode == 'dev':
-            return self._get_eval_dataloader(self.dev_dataset)
+            return self._get_dev_dataloader(self.dev_dataset)
         elif mode == 'test':
-            return self._get_eval_dataloader(self.test_dataset)
-
-    def _get_train_dataloader(self, dataset):
-        return DataLoader(
-            dataset, batch_size=self.train_batch_size,
-            shuffle=True, num_workers=self.loaderrc['num_workers'],
-            drop_last=False, pin_memory=True, collate_fn=dataset.collate_fn
-        )
-
-    def _get_eval_dataloader(self, dataset):
-        return DataLoader(
-            dataset, batch_size=1, # for bucketing
-            shuffle=False, num_workers=self.loaderrc['num_workers'],
-            drop_last=False, pin_memory=True, collate_fn=dataset.collate_fn
-        )
+            return self._get_test_dataloader(self.test_dataset)
 
     """
     Datalaoder Specs:
@@ -98,17 +101,26 @@ class DownstreamExpert(nn.Module):
         each wav is torch.FloatTensor in cpu with dim()==1 and sample_rate==16000
     """
 
-    # Interface
-    def get_train_dataloader(self):
-        return self._get_train_dataloader(self.train_dataset)
+    def _get_train_dataloader(self, dataset):
+        return DataLoader(
+            dataset, batch_size=self.train_batch_size,
+            shuffle=True, num_workers=self.loaderrc['num_workers'],
+            drop_last=False, pin_memory=True, collate_fn=dataset.collate_fn
+        )
 
-    # Interface
-    def get_dev_dataloader(self):
-        return self._get_eval_dataloader(self.dev_dataset)
-
-    # Interface
-    def get_test_dataloader(self):
-        return self._get_eval_dataloader(self.test_dataset)
+    def _get_dev_dataloader(self, dataset):
+        return DataLoader(
+            dataset, batch_size=self.eval_batch_size,
+            shuffle=False, num_workers=self.loaderrc['num_workers'],
+            drop_last=False, pin_memory=True, collate_fn=dataset.collate_fn
+        )
+    
+    def _get_test_dataloader(self, dataset):
+        return DataLoader(
+            dataset, batch_size=1,
+            shuffle=False, num_workers=self.loaderrc['num_workers'],
+            drop_last=False, pin_memory=True, collate_fn=dataset.collate_fn_rec_infer
+        )
 
     def _tile_representations(self, reps, factor):
         """ 
@@ -144,7 +156,7 @@ class DownstreamExpert(nn.Module):
         return inputs, labels
 
     # Interface
-    def forward(self, mode, features, labels, lengths, records, **kwargs):
+    def forward(self, mode, features, labels, lengths, rec_id, records, **kwargs):
         """
         Args:
             mode: string
@@ -157,6 +169,9 @@ class DownstreamExpert(nn.Module):
 
             labels:
                 the frame-wise speaker labels
+
+            rec_id:
+                related recording id, use for inference
 
             records:
                 defaultdict(list), by appending contents into records,
@@ -207,6 +222,12 @@ class DownstreamExpert(nn.Module):
         records['acc'] += [ACC]
         records['der'] += [DER]
 
+        if mode == "test" and self.save_predictions:
+            predict = predicted.data.cpu().numpy()
+            predict = np.vstack(list(predict))
+            outpath = os.path.join(self.score_dir, "predictions", rec_id + ".h5")
+            with h5py.File(outpath, 'w') as wf:
+                wf.create_dataset('T_hat', data=predict)
         return loss
 
     # interface

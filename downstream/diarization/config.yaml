@@ -31,6 +31,10 @@ downstream_expert:
     train_dir: ./downstream/diarization/data/train
     dev_dir: ./downstream/diarization/data/dev
     test_dir: ./downstream/diarization/data/test
+  
+    scorerc:
+      scoring_dir: ".downstream/diarization/scoring"
+      save_predictions: True
 
   modelrc: 
     rnn_layers: 1
