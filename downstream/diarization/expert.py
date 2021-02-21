@@ -258,6 +258,7 @@ class DownstreamExpert(nn.Module):
             average_der,
             global_step=global_step
         )
+        print("mode {} acc {} der {}".format(mode, average_acc, average_der))
 
         save_ckpt = []
         if mode == 'dev' and average_acc > self.best_score:

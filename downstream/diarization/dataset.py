@@ -167,7 +167,7 @@ class DiarizationDataset(Dataset):
         label = []
         for i in range(batch_size):
             length = len_list[i]
-            wav.append(torch.from_numpy(batch[i][0]))
+            wav.append(torch.from_numpy(batch[i][0]).float())
             label.append(torch.from_numpy(batch[i][1]).float())
         length = np.array(len_list)
         length = torch.from_numpy(length)
