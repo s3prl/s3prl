@@ -14,6 +14,7 @@ import os
 import math
 import random
 import h5py
+import numpy as np
 from collections import defaultdict
 #-------------#
 import torch
@@ -50,15 +51,15 @@ class DownstreamExpert(nn.Module):
             os.makedirs(os.path.join(self.score_dir, "predictions"))
 
         self.train_dataset = DiarizationDataset(
-            mode="train", 
+            "train", 
             self.loaderrc['train_dir'],
             **self.datarc)
         self.dev_dataset = DiarizationDataset(
-            mode="dev", 
+            "dev", 
             self.loaderrc['dev_dir'], 
             **self.datarc)
         self.test_dataset = DiarizationDataset(
-            mode="test", 
+            "test", 
             self.loaderrc['test_dir'], 
             **self.datarc)
 
@@ -225,6 +226,7 @@ class DownstreamExpert(nn.Module):
         if mode == "test" and self.save_predictions:
             predict = predicted.data.cpu().numpy()
             predict = np.vstack(list(predict))
+            predict = 1 / (1 + np.exp(-predict))
             outpath = os.path.join(self.score_dir, "predictions", rec_id + ".h5")
             with h5py.File(outpath, 'w') as wf:
                 wf.create_dataset('T_hat', data=predict)

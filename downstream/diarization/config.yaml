@@ -32,9 +32,9 @@ downstream_expert:
     dev_dir: ./downstream/diarization/data/dev
     test_dir: ./downstream/diarization/data/test
   
-    scorerc:
-      scoring_dir: ".downstream/diarization/scoring"
-      save_predictions: True
+  scorerc:
+    score_dir: ./downstream/diarization/baseline_scoring
+    save_predictions: True
 
   modelrc: 
     rnn_layers: 1

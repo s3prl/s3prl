@@ -115,7 +115,7 @@ class DiarizationDataset(Dataset):
             else len(self.chunk_indices)
 
     def __getitem__(self, i):
-        if mode != "test":
+        if self.mode != "test":
             rec, st, ed = self.chunk_indices[i]
             Y, T = self._get_labeled_speech(
                 rec,
@@ -213,14 +213,14 @@ class DiarizationDataset(Dataset):
     
     def collate_fn_rec_infer(self, batch):
         assert len(batch) == 1 # each batch should contain one recording
-        chunk_num = batch[0][1]
+        chunk_num = len(batch[0][1])
         len_list = [len(batch[0][1][i]) for i in range(chunk_num)]
         wav = []
         label = []
-        for i in range(batch_size):
+        for i in range(chunk_num):
             length = len_list[i]
-            wav.append(torch.from_numpy(batch[0][0]).float())
-            label.append(torch.from_numpy(batch[0][1]).float())
+            wav.append(torch.from_numpy(batch[0][0][i]).float())
+            label.append(torch.from_numpy(batch[0][1][i]).float())
         length = np.array(len_list)
         length = torch.from_numpy(length)
         rec_id = batch[0][2]
