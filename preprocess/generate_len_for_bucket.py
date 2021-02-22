@@ -69,6 +69,13 @@ def extract_length(input_file):
 def generate_length(args, tr_set, audio_extension):
     
     for i, s in enumerate(tr_set):
+        if os.path.isdir(os.path.join(args.input_data, s.lower())):
+            s = s.lower()
+        elif os.path.isdir(os.path.join(args.input_data, s.upper())):
+            s = s.upper()
+        else:
+            assert NotImplementedError
+
         print('')
         todo = list(Path(os.path.join(args.input_data, s)).rglob('*' + audio_extension)) # '*.flac'
         print(f'Preprocessing data in: {s}, {len(todo)} audio files found.')
@@ -83,7 +90,7 @@ def generate_length(args, tr_set, audio_extension):
         sorted_todo = [os.path.join(s, str(todo[idx]).split(s+'/')[-1]) for idx in reversed(np.argsort(tr_x))]
         # Dump data
         df = pd.DataFrame(data={'file_path':[fp for fp in sorted_todo], 'length':list(reversed(sorted(tr_x))), 'label':None})
-        df.to_csv(os.path.join(output_dir, tr_set[i] + '.csv'))
+        df.to_csv(os.path.join(output_dir, tr_set[i].upper() + '.csv'))
 
     print('All done, saved at', output_dir, 'exit.')
 
