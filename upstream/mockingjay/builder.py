@@ -167,7 +167,7 @@ class TransformerBuilder(nn.Module):
             attn_mask[idx][spec_len[idx]:] = 0 
 
         if self.spec_aug and self.spec_aug_prev and self.model.training and self.inp_dim > 1:
-            feat = spec_augment(feat, mask_T=70, mask_F=4, num_T=2, num_F=2, p=1.0) # (batch_size, seq_len, feature_dim * dr)
+            feat = spec_augment(feat, mask_T=70, mask_F=9, num_T=2, num_F=2, p=1.0) # (batch_size, seq_len, feature_dim * dr)
         feat = feat.to(dtype=torch.float32) # (batch_size, seq_len, feature_dim * dr)
         pos_enc = torch.FloatTensor(pos_enc).to(device=feat.device, dtype=torch.float32).expand(feat.size(0), *pos_enc.size()) # (batch_size, seq_len, hidden_size)
         attn_mask = torch.FloatTensor(attn_mask).to(device=feat.device, dtype=torch.float32) # (batch_size, seq_len)
@@ -360,14 +360,14 @@ Input:
               (In paper: T=100, we use 70 since we are training on the 100 hr subset only)
     `mask_F`: the frequency mask parameter F described in the SpecAugment paper, 
               we use default values based on the LD Policy
-              (In paper: F=27:D=80*3 -> F=4.5:D=40, where D is acoustic dimension)
+              (In paper: F=27:D=80*3 -> F=9:D=80, where D is acoustic dimension)
     `num_T` : the number of time masks applied (In paper: mT=2)
     `num_F` : the number of frequency masks applied (In paper: mF=2)
     `p` : upper bound ratio (In paper: p=1.0)
 Output:
     `spec`: augmented frames, with shape: (batch_size, seq_len, feature_dim)
 """
-def spec_augment(spec, mask_T=70, mask_F=4, num_T=2, num_F=2, p=1.0):
+def spec_augment(spec, mask_T=70, mask_F=9, num_T=2, num_F=2, p=1.0):
 
     def _start_to_intervals(starts, consecutive):
         tiled = starts.expand(consecutive, starts.size(0)).permute(1, 0)
