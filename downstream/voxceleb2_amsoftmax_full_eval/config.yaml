@@ -1,21 +1,22 @@
 
 # this voxceleb1 is doing speaker classification task!
 runner:
-  total_steps: 100000
-  gradient_clipping: 1
+  total_steps: 50000
+  gradient_clipping: 1.0e+3
   gradient_accumulate_steps: 5
 
   log_step: 500
-  eval_step: 4000
-  save_step: 4000
+  eval_step: 2
+  save_step: 2
   max_keep: 1
   eval_dataloaders: 
     - dev
     - test
   
 optimizer: 
-  name: Adam
+  name: AdamW
   lr: 1.0e-4
+  weight_decay: 1.0e-5
 
 # # comment the whole scheduler config block to disable learning rate scheduling
 # scheduler:
@@ -24,59 +25,50 @@ optimizer:
 
 downstream_expert: 
   datarc:
+    # In first time, we filter out utterances which shorter than two sec. (change config just influenced by cache files)
+    # If you change min_sec, you need to delete cache file you create and rerun the code, so that the effect will apply.
     vad_config:
       min_sec: 32000
-
-    train:
-      file_path:
-        Voxceleb1: ../librispeech/vox1_train_verifi/wav
-        # Voxceleb2: /groups/public/VoxCeleb2/dev/wav/
-      meta_data: downstream/voxceleb2_amsoftmax_full_eval/dev_meta_data/dev_speaker_ids.txt
-      max_timestep: 128000
-
-    train_plda:
-      file_path:
-        Voxceleb1_train_plda: ../librispeech/vox1_train_verifi/wav
-        # Voxceleb2: /groups/public/VoxCeleb2/dev/wav/
-      meta_data: downstream/voxceleb2_amsoftmax_full_eval/dev_meta_data/dev_speaker_ids.txt
-      max_timestep: 128000
-
-    test_plda:
-      file_path:
-        Voxceleb1_test_plda: ../librispeech/vox1_test/wav
-        # Voxceleb2: /groups/public/VoxCeleb2/dev/wav/
-      meta_data: downstream/voxceleb2_amsoftmax_full_eval/dev_meta_data/dev_speaker_ids.txt
-      max_timestep: 128000
-
-    test:
-      file_path: ../librispeech/vox1_test/wav
-      meta_data: /home/pohan/data/librispeech/vox1_test/veri_test.txt
     
-    dev:
-      file_path: ../librispeech/vox1_train_verifi/wav
-      meta_data: ./downstream/voxceleb2_amsoftmax_full_eval/dev_meta_data/dev_meta_data.txt
-    
+    dev_root: ../librispeech/vox1_train_verifi/wav
+    test_root:  ../librispeech/vox1_test/wav
+
+    train_meta_data: ./downstream/voxceleb2_amsoftmax_full_eval/dev_meta_data/dev_speaker_ids.txt
+    dev_meta_data: ./downstream/voxceleb2_amsoftmax_full_eval/dev_meta_data/dev_meta_data.txt
+    test_meta_data: /home/pohan/data/librispeech/vox1_test/veri_test.txt
+
+    max_timestep: 128000
     train_batch_size: 10
     eval_batch_size: 1
     num_workers: 8 
 
   modelrc:
     module:
-      XVector 
-    hparams:
-      hidden_size: 256                                      # Size of the encoder layers and the pooler layer.
-      num_hidden_layers: 3                                  # Number of hidden layers in the Transformer encoder.
-      num_attention_heads: 4                               # Number of attention heads for each attention layer in the Transformer encoder.
-      intermediate_size: 1024                               # The size of the "intermediate" (i.e., feed-forward) layer in the Transformer encoder.
-      hidden_act: "gelu"                                    # The non-linear activation function (function or string) in the encoder and pooler. If string, "gelu", "relu" and "swish" are supported.
-      hidden_dropout_prob: 0.1                              # The dropout probabilitiy for all fully connected layers in the embeddings, encoder, and pooler.
-      attention_probs_dropout_prob: 0.1                     # The dropout ratio for the attention probabilities.
-      initializer_range: 0.02                               # The sttdev of the truncated_normal_initializer for initializing all weight matrices.
-      layer_norm_eps: 1.0e-12                              # The epsilon used by LayerNorm.
-      share_layer: False                                    # Share layer weights
-      max_input_length: 0                                   # maximum input length (0 for no restriction)
-      pre_layer_norm: False                                 # apply the pre layer normalization technique introduced in: https://arxiv.org/abs/2002.04745
+      Identity  # support to [ XVector, Identity ]
     input_dim: 512
-    agg_dim: 1500
-    agg_module: SAP
-    backend: CSD
+    agg_module: SP # support for ASP / SP / AP / MP 
+                   # (Attentive Statistic Pooling / Statistic Pooling / Attentive Pooling / Mean Pooling)
+    
+    module_config:
+      # You can comment it if you do not use this. To demo the usage, we will show all case.
+      XVector:
+        agg_dim: 1500
+        dropout_p: 0.0
+        batch_norm: False
+      
+      Identity:
+        do_nothing: None
+        # do nothing    
+    
+    ObjectiveLoss: AMSoftmaxLoss # You can specify config to AMSoftmaxLoss or SoftmaxLoss
+    
+    LossConfig:
+      # You can comment it if you do not use this. To demo the usage of SoftmaxLoss, we will show all case.
+      SoftmaxLoss:
+        in_features: 512
+    
+      # You can comment it if you do not use this. To demo the usage of AMSoftmaxLoss, we will show all case.
+      AMSoftmaxLoss:
+        in_features: 512
+        s: 30.0
+        m: 0.4
