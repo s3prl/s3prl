@@ -1,0 +1,35 @@
+runner:
+  total_steps: 500000
+  gradient_clipping: 1
+  gradient_accumulate_steps: 1
+
+  log_step: 1000
+  eval_step: 1000
+  save_step: 1000
+  max_keep: 1
+  eval_dataloaders:
+    - dev
+    - test
+
+optimizer:
+  name: AdamW
+  lr: 2.e-4
+
+downstream_expert:
+  datarc:
+    num_workers: 8
+    train_batch_size: 16 
+    eval_batch_size: 16
+    data_root: /share/corpus/timit
+    phone_path: './downstream/timit_phone_linear/data'
+    bucket_file: './data/len_for_bucket_timit' # run: `python preprocess/generate_len_for_bucket.py -i your_path_to/TIMIT -a .WAV -n len_for_bucket_timit`
+    sample_rate: 16000 # this should not be changed, and this should match the sr of the audio in `libri_root`
+    train_dev_seed: 1337
+
+  modelrc:
+    select: ConvBank
+    ConvBank:
+      kernels: [3, 5, 7]
+      cnn_size: 32
+      hidden_size: 64
+      dropout: 0.5
