@@ -21,13 +21,24 @@ import torch.nn as nn
 from torch.utils.data import DataLoader
 from torch.nn.utils.rnn import pad_sequence
 #-------------#
-from .model import Model, AdMSoftmaxLoss, UtteranceModel
+from .model import Model, AMSoftmaxLoss, SoftmaxLoss, UtteranceExtractor
 from .dataset import SpeakerVerifi_train, SpeakerVerifi_dev, SpeakerVerifi_test, SpeakerVerifi_plda
 from argparse import Namespace
 from .utils import EER, compute_metrics
 import IPython
 import pdb
 
+def decide_utter_input_dim(agg_module_name, modelrc):
+    if agg_module_name =="ASP":
+        utter_input_dim = modelrc['input_dim']*2
+    elif agg_module_name == "SP":
+        # after aggregate to utterance vector, the vector hidden dimension will become 2 * aggregate dimension.
+        utter_input_dim = modelrc['agg_dim']*2
+    elif agg_module_name == "MP":
+        utter_input_dim = modelrc['agg_dim']
+    else:
+        utter_input_dim = modelrc['input_dim']
+    return utter_input_dim
 
 class DownstreamExpert(nn.Module):
     """
@@ -45,22 +56,69 @@ class DownstreamExpert(nn.Module):
 
     def __init__(self, upstream_dim, downstream_expert, **kwargs):
         super(DownstreamExpert, self).__init__()
+        # config
         self.upstream_dim = upstream_dim
         self.downstream = downstream_expert
         self.datarc = downstream_expert['datarc']
         self.modelrc = downstream_expert['modelrc']
 
-        self.train_dataset = SpeakerVerifi_train(self.datarc['vad_config'], **self.datarc['train'])
-        self.dev_dataset = SpeakerVerifi_dev(self.datarc['vad_config'], **self.datarc['dev'])
-        self.test_dataset = SpeakerVerifi_test(self.datarc['vad_config'], **self.datarc['test'])
+        #############################################################################################
 
-        self.train_dataset_plda = SpeakerVerifi_plda(self.datarc['vad_config'], **self.datarc['train_plda'])
-        self.test_dataset_plda = SpeakerVerifi_plda(self.datarc['vad_config'], **self.datarc['test_plda'])
+        # dataset
+        train_config = {"vad_config":self.datarc['vad_config'], "file_path": [self.datarc['dev_root']], 
+                        "key_list":["Voxceleb1"], "meta_data": self.datarc['train_meta_data'], 
+                        "max_timestep": self.datarc["max_timestep"]}
+
+        self.train_dataset = SpeakerVerifi_train(**train_config)
+
+        dev_config = {"vad_config":self.datarc['vad_config'], "file_path": [self.datarc['dev_root']], 
+            "meta_data": self.datarc['dev_meta_data']}
         
-        self.connector = nn.Linear(self.upstream_dim, self.modelrc['input_dim'])
-        self.model = Model(input_dim=self.modelrc['input_dim'], agg_dim=self.modelrc['agg_dim'], agg_module=self.modelrc['agg_module'], config=self.modelrc)
-        self.objective = AdMSoftmaxLoss(self.modelrc['input_dim'], self.train_dataset.speaker_num, s=30.0, m=0.4)
+        self.dev_dataset = SpeakerVerifi_dev(**dev_config)
 
+        test_config = {"vad_config":self.datarc['vad_config'], "file_path": [self.datarc['test_root']], 
+            "meta_data": self.datarc['test_meta_data']}
+        
+        self.test_dataset = SpeakerVerifi_test(**test_config)
+
+        train_plda_config = {"vad_config":self.datarc['vad_config'], "file_path": [self.datarc['dev_root']], 
+            "key_list":["Voxceleb1_train_plda"], "meta_data": self.datarc['dev_meta_data']}
+
+        self.train_dataset_plda = SpeakerVerifi_plda(**train_plda_config)
+
+        test_plda_config = {"vad_config":self.datarc['vad_config'], "file_path": [self.datarc['test_root']], 
+            "key_list":["Voxceleb1_test_plda"], "meta_data": self.datarc['dev_meta_data']}
+
+        self.test_dataset_plda = SpeakerVerifi_plda(**test_plda_config)
+
+
+        #########################################################################################################
+        
+        # module
+        self.connector = nn.Linear(self.upstream_dim, self.modelrc['input_dim'])
+        
+        # downstream model
+        if self.modelrc["module_config"][self.modelrc['module']].get("agg_dim"):
+            self.modelrc['agg_dim'] = self.modelrc["module_config"][self.modelrc['module']]["agg_dim"]
+        else:
+            self.modelrc['agg_dim'] = self.modelrc['input_dim']
+        
+        ModelConfig = {"input_dim": self.modelrc['input_dim'], "agg_dim": self.modelrc['agg_dim'],
+                       "agg_module": self.modelrc['agg_module'], "module": self.modelrc['module'], 
+                       "hparams": self.modelrc["module_config"][self.modelrc['module']]}
+        
+        # downstream model extractor include aggregation module
+        self.model = Model(**ModelConfig)
+
+        utter_input_dim = decide_utter_input_dim(self.modelrc["agg_module"], self.modelrc)
+
+        # after extract utterance level vector, put it to utterance extractor (XVector Architecture)
+        self.utterance_extractor= UtteranceExtractor(utter_input_dim, self.modelrc['input_dim'])
+
+        # SoftmaxLoss loss or AMSoftmaxLoss
+        self.objective = eval(self.modelrc['ObjectiveLoss'])(speaker_num=self.train_dataset.speaker_num, 
+                                                            **self.modelrc['LossConfig'][self.modelrc['ObjectiveLoss']])
+        # utils
         self.score_fn  = nn.CosineSimilarity(dim=-1)
         self.eval_metric = EER
 
@@ -152,28 +210,32 @@ class DownstreamExpert(nn.Module):
         features_pad = pad_sequence(features, batch_first=True)
         
         if self.modelrc['module'] == "XVector":
+            # since XVector will substract total sequence length, we directly substract 14.
             attention_mask = [torch.ones((feature.shape[0]-14)) for feature in features]
         else:
             attention_mask = [torch.ones((feature.shape[0])) for feature in features]
 
-
         attention_mask_pad = pad_sequence(attention_mask,batch_first=True)
-
         attention_mask_pad = (1.0 - attention_mask_pad) * -100000.0
 
         features_pad = self.connector(features_pad)
         agg_vec = self.model(features_pad, attention_mask_pad.cuda())
 
         if mode=="train":
+
             labels = torch.LongTensor(labels).to(features_pad.device)
+            agg_vec = self.utterance_extractor(agg_vec)
             loss = self.objective(agg_vec, labels)
             
             return loss
         
         if mode == "dev" or mode == "test":
-            # normalize to unit vector 
+            # pass utterance extactor
+            agg_vec = self.utterance_extractor.inference(agg_vec)
+            # normalize to unit vector
             agg_vec = agg_vec / (torch.norm(agg_vec, dim=-1).unsqueeze(-1))
 
+            # separate batched data to pair data.
             vec1, vec2 = self.separate_data(agg_vec, labels)
             scores = self.score_fn(vec1,vec2).squeeze().cpu().detach().tolist()
             ylabels = torch.stack(labels).cpu().detach().long().tolist()

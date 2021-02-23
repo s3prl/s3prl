@@ -27,19 +27,19 @@ EFFECTS = [
 
 # Voxceleb 2 Speaker verification with plda
 class SpeakerVerifi_plda(Dataset):
-    def __init__(self, vad_config, file_path, meta_data, max_timestep=None):
+    def __init__(self, vad_config, file_path, key_list, meta_data, max_timestep=None):
     
         self.roots = file_path
-        self.root_key = list(self.roots.keys())
+        self.root_key = key_list
         self.max_timestep = max_timestep
         self.vad_c = vad_config 
         self.dataset = []
         self.all_speakers = []
         
-        for key in self.root_key:
+        for index in range(len(self.root_key)):
             
-            cache_path = f"./downstream/voxceleb2_amsoftmax_full_eval/cache_wav_paths/cache_{key}.p"
-            p = Path(self.roots[key])
+            cache_path = f"./downstream/voxceleb2_amsoftmax_full_eval/cache_wav_paths/cache_{self.root_key[index]}.p"
+            p = Path(self.roots[index])
             # loca cache_path if file exists
             if os.path.isfile(cache_path):
 
@@ -56,7 +56,7 @@ class SpeakerVerifi_plda(Dataset):
 
                 speaker_wav_dict = {}
                 # calculate speakers and support to remove black list speaker (dev)
-                speaker_dirs = [f.path.split("/")[-1] for f in os.scandir(self.roots[key]) if f.is_dir()]
+                speaker_dirs = [f.path.split("/")[-1] for f in os.scandir(self.roots[index]) if f.is_dir()]
                 self.all_speakers.extend(speaker_dirs)
                     
                 print("search all wavs paths")
@@ -67,7 +67,6 @@ class SpeakerVerifi_plda(Dataset):
                     wav_list=find_files(speaker_dir)
                     speaker_wav_dict[speaker] = []
                     for wav in wav_list:
-                        # wav_sample, _ = torchaudio.load(str(speaker_dir/wav))
                         wav_sample, _ = apply_effects_file(str(speaker_dir/wav), EFFECTS)
                         wav_sample = wav_sample.squeeze(0)
                         length = wav_sample.shape[0]
@@ -116,7 +115,6 @@ class SpeakerVerifi_plda(Dataset):
         return len(self.dataset)
     
     def __getitem__(self, idx):
-        # wav, _ = torchaudio.load(str(self.dataset[idx][0]))
         wav, _ = apply_effects_file(str(self.dataset[0]), EFFECTS)
         wav = wav.squeeze(0)
         length = wav.shape[0]
@@ -143,19 +141,19 @@ class SpeakerVerifi_plda(Dataset):
 
 # Voxceleb 2 Speaker verification
 class SpeakerVerifi_train(Dataset):
-    def __init__(self, vad_config, file_path, meta_data, max_timestep=None):
+    def __init__(self, vad_config, key_list, file_path, meta_data, max_timestep=None):
     
         self.roots = file_path
-        self.root_key = list(self.roots.keys())
+        self.root_key = key_list
         self.max_timestep = max_timestep
         self.vad_c = vad_config 
         self.dataset = []
         self.all_speakers = []
 
-        for key in self.root_key:
+        for index in range(len(self.root_key)):
             
-            cache_path = f"./downstream/voxceleb2_amsoftmax_full_eval/cache_wav_paths/cache_{key}.p"
-            p = Path(self.roots[key])
+            cache_path = f"./downstream/voxceleb2_amsoftmax_full_eval/cache_wav_paths/cache_{self.root_key[index]}.p"
+            p = Path(self.roots[index])
             # loca cache_path if file exists
             if os.path.isfile(cache_path):
 
@@ -172,7 +170,7 @@ class SpeakerVerifi_train(Dataset):
 
                 speaker_wav_dict = {}
                 # calculate speakers and support to remove black list speaker (dev)
-                speaker_dirs = [f.path.split("/")[-1] for f in os.scandir(self.roots[key]) if f.is_dir()]
+                speaker_dirs = [f.path.split("/")[-1] for f in os.scandir(self.roots[index]) if f.is_dir()]
                 self.all_speakers.extend(speaker_dirs)
                     
                 print("search all wavs paths")
@@ -183,7 +181,6 @@ class SpeakerVerifi_train(Dataset):
                     wav_list=find_files(speaker_dir)
                     speaker_wav_dict[speaker] = []
                     for wav in wav_list:
-                        # wav_sample, _ = torchaudio.load(str(speaker_dir/wav))
                         wav_sample, _ = apply_effects_file(str(speaker_dir/wav), EFFECTS)
                         wav_sample = wav_sample.squeeze(0)
                         length = wav_sample.shape[0]
@@ -231,7 +228,6 @@ class SpeakerVerifi_train(Dataset):
         return len(self.dataset)
     
     def __getitem__(self, idx):
-        # wav, _ = torchaudio.load(self.dataset[idx][0])
         wav, _ = apply_effects_file(self.dataset[idx][0], EFFECTS)
         wav = wav.squeeze(0)
         length = wav.shape[0]
@@ -282,8 +278,6 @@ class SpeakerVerifi_dev(Dataset):
 
     def __getitem__(self, idx):
         y_label, x1_path, x2_path = self.dataset[idx]
-        # wav1, _ = torchaudio.load(x1_path)
-        # wav2, _ = torchaudio.load(x2_path)
 
         wav1, _ = apply_effects_file(x1_path, EFFECTS)
         wav2, _ = apply_effects_file(x2_path, EFFECTS)
@@ -364,8 +358,6 @@ class SpeakerVerifi_test(Dataset):
 
     def __getitem__(self, idx):
         y_label, x1_path, x2_path = self.dataset[idx]
-        # wav1, _ = torchaudio.load(x1_path)
-        # wav2, _ = torchaudio.load(x2_path)
 
         wav1, _ = apply_effects_file(x1_path, EFFECTS)
         wav2, _ = apply_effects_file(x2_path, EFFECTS)
