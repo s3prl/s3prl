@@ -6,9 +6,11 @@
 #   Copyright    [ Copyleft(c), Johns Hopkins University ]
 #   *********************************************************************************************"""
 
-scoring_dir="downstream/diarization/baseline_scoring"
+scoring_dir="downstream/diarization/wav2vec2_scoring"
 infer_dir="${scoring_dir}/predictions"
 test_set="downstream/diarization/data/test"
+# directory where you cloned dscore (https://github.com/nryant/dscore)
+dscore_dir=/export/c06/jiatong/dia_workspace/dscore
 
 frame_shift=160
 sr=16000
@@ -22,10 +24,14 @@ for med in 1 11; do
         python downstream/diarization/make_rttm.py --median=$med --threshold=$th \
             --frame_shift=${frame_shift} --subsampling=1 --sampling_rate=${sr} \
             $scoring_log_dir/file_list $scoring_dir/hyp_${th}_$med.rttm
-        md-eval.pl -c 0.25 \
-            -r ${test_set}/rttm \
-            -s $scoring_dir/hyp_${th}_$med.rttm > $scoring_dir/result_th${th}_med${med}_collar0.25 2>/dev/null || exit
+        python ${dscore_dir}/score.py -r ${test_set}/rttm -s $scoring_dir/hyp_${th}_$med.rttm \
+            > $scoring_dir/result_th${th}_med${med} 2>/dev/null || exit
+    #     md-eval.pl -c 0.25 \
+    #         -r ${test_set}/rttm \
+    #         -s $scoring_dir/hyp_${th}_$med.rttm > $scoring_dir/result_th${th}_med${med}_collar0.25 2>/dev/null || exit
     done
 done
 
-grep OVER $scoring_dir/result_th0.[^_]*_med[^_]*_collar0.25 | grep -v nooverlap | sort -nrk 7 | tail -n 1 
+grep OVER $scoring_dir/result_th0.[^_]*_med[^_]* \
+     | sort -nrk 4 \
+     | tail -n 1 | awk -F '[[:space:]][[:space:]]+' '{print $1 "\t" $2}'

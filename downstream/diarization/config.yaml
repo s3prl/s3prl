@@ -33,7 +33,7 @@ downstream_expert:
     test_dir: ./downstream/diarization/data/test
   
   scorerc:
-    score_dir: ./downstream/diarization/baseline_scoring
+    score_dir: ./downstream/diarization/wav2vec2_scoring
     save_predictions: True
 
   modelrc: 
