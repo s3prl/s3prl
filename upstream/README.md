@@ -127,8 +127,9 @@ print(torch.hub.list('s3prl/s3prl'))
 Use `torch.hub.load('s3prl/s3prl', Name)` in your python scripts to build a pre-trained upstream model. Here is a simple example:
 ```python
 import torch
-upstream = torch.hub.load('s3prl/s3prl', 'tera')
-wavs = [torch.zeros(160000, dtype=torch.float) for _ in range(16)] # list of unpadded wavs `[wav1, wav2, ...]`, each wav is in `torch.FloatTensor`
+device = 'cuda' # or cpu
+upstream = torch.hub.load('s3prl/s3prl', 'tera').to(device)
+wavs = [torch.zeros(160000, dtype=torch.float).to(device) for _ in range(16)] # list of unpadded wavs `[wav1, wav2, ...]`, each wav is in `torch.FloatTensor`
 reps = upstream(wavs) # list of unpadded representations `[rep1, rep2, ...]`, each erp is of the shape `(extracted_seqlen, feature_dim)`
 ```
 
@@ -226,10 +227,11 @@ mfcc = extracter(wavs)
 To use with a modified config:
 ```python
 import torch
+device = 'cuda' # or cpu
 extracter = torch.hub.load('s3prl/s3prl',
                            'baseline_local',
-                            config='upstream/baseline/mfcc.yaml')
-wavs = [torch.zeros(160000, dtype=torch.float) for _ in range(16)]
+                            config='upstream/baseline/mfcc.yaml').to(device)
+wavs = [torch.zeros(160000, dtype=torch.float).to(device) for _ in range(16)]
 mfcc = extracter(wavs)
 ```
 
