@@ -78,7 +78,7 @@ class PhoneDataset(Dataset):
         batch_x, batch_len = [], []
 
         for x, x_len in zip(X, X_lens):
-            if self._parse_x_name(x) in usage_list:
+            if self._parse_x_name(x).upper() in usage_list:
                 batch_x.append(x)
                 batch_len.append(x_len)
                 
@@ -111,7 +111,7 @@ class PhoneDataset(Dataset):
     def __getitem__(self, index):
         # Load acoustic feature and pad
         wav_batch = [self._load_wav(x_file) for x_file in self.X[index]]
-        label_batch = [torch.LongTensor(self.Y[self._parse_x_name(x_file)]) for x_file in self.X[index]]
+        label_batch = [torch.LongTensor(self.Y[self._parse_x_name(x_file).upper()]) for x_file in self.X[index]]
         return wav_batch, label_batch # bucketing, return ((wavs, labels))
 
     def collate_fn(self, items):
