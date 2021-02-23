@@ -14,6 +14,7 @@ import os
 import math
 import torch
 import random
+import kaldi_io
 import numpy as np
 #-------------#
 import torch
@@ -54,7 +55,7 @@ class DownstreamExpert(nn.Module):
         and wav1 is in torch.FloatTensor
     """
 
-    def __init__(self, upstream_dim, downstream_expert, **kwargs):
+    def __init__(self, upstream_dim, downstream_expert, evaluate_split, expdir, **kwargs):
         super(DownstreamExpert, self).__init__()
         # config
         self.upstream_dim = upstream_dim
@@ -122,6 +123,9 @@ class DownstreamExpert(nn.Module):
         self.score_fn  = nn.CosineSimilarity(dim=-1)
         self.eval_metric = EER
 
+        if evaluate_split in ['train_plda', 'test_plda']:
+            self.ark = open(f'{expdir}/{evaluate_split}.rep.ark', 'wb')
+
     # Interface
     def get_dataloader(self, mode):
         """
@@ -148,9 +152,9 @@ class DownstreamExpert(nn.Module):
         elif mode == 'test':
             return self._get_eval_dataloader(self.test_dataset)
         elif mode == "train_plda":
-            return self._get_train_dataloader(self.train_dataset_plda) 
+            return self._get_eval_dataloader(self.train_dataset_plda) 
         elif mode == "test_plda":
-            return self._get_train_dataloader(self.test_dataset_plda)
+            return self._get_eval_dataloader(self.test_dataset_plda)
 
     def _get_train_dataloader(self, dataset):
         return DataLoader(
@@ -209,8 +213,12 @@ class DownstreamExpert(nn.Module):
 
         features_pad = pad_sequence(features, batch_first=True)
         
+<<<<<<< HEAD
         if self.modelrc['module'] == "XVector":
             # since XVector will substract total sequence length, we directly substract 14.
+=======
+        if self.modelrc['module'] == 'XVector':
+>>>>>>> origin/voxceleb1_tdnn
             attention_mask = [torch.ones((feature.shape[0]-14)) for feature in features]
         else:
             attention_mask = [torch.ones((feature.shape[0])) for feature in features]
@@ -221,18 +229,15 @@ class DownstreamExpert(nn.Module):
         features_pad = self.connector(features_pad)
         agg_vec = self.model(features_pad, attention_mask_pad.cuda())
 
-        if mode=="train":
-
+        if mode == 'train':
             labels = torch.LongTensor(labels).to(features_pad.device)
             agg_vec = self.utterance_extractor(agg_vec)
             loss = self.objective(agg_vec, labels)
             
             return loss
         
-        if mode == "dev" or mode == "test":
-            # pass utterance extactor
-            agg_vec = self.utterance_extractor.inference(agg_vec)
-            # normalize to unit vector
+        elif mode in ['dev', 'test']:
+            # normalize to unit vector 
             agg_vec = agg_vec / (torch.norm(agg_vec, dim=-1).unsqueeze(-1))
 
             # separate batched data to pair data.
@@ -248,12 +253,10 @@ class DownstreamExpert(nn.Module):
                 records['ylabels'].append(ylabels)
             return torch.tensor(0)
         
-        if mode == "train_plda" or "test_plda":
-
-            print(f"batch_agg_vec shape: {agg_vec.shape}")
-            print(f"utterance_id: {utter_idx}")
-
-            return torch.tensor(0)
+        elif mode in ['train_plda', 'test_plda']:
+            for key, vec in zip(utter_idx, agg_vec):
+                vec = vec.view(-1).detach().cpu().numpy()
+                kaldi_io.write_vec_flt(self.ark, vec, key=key)
 
     # interface
     def log_records(self, mode, records, logger, global_step, batch_ids, total_batch_num, **kwargs):
@@ -274,7 +277,7 @@ class DownstreamExpert(nn.Module):
             global_step:
                 global_step in runner, which is helpful for Tensorboard logging
         """
-        if not self.training:
+        if mode in ['dev', 'test']:
 
             EER_result =self.eval_metric(np.array(records['ylabels']), np.array(records['scores']))
 
@@ -285,6 +288,10 @@ class DownstreamExpert(nn.Module):
                 records['EER'],
                 global_step=global_step
             )
+            print(f'{mode} ERR: {records["EER"]}')
+        
+        elif mode in ['train_plda', 'test_plda']:
+            self.ark.close()
         
     def separate_data(self, agg_vec, ylabel):
 
