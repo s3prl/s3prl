@@ -23,158 +23,261 @@ from upstream.mockingjay.model import TransformerEncoder
 # MODEL #
 #########
 
-class Identity(nn.Module):
-    def __init__(self, config, **kwargs):
-        super(Identity, self).__init__()
-        # simply take mean operator / no additional parameters
+# Pooling Methods
 
-    def forward(self, feature, att_mask, head_mask, **kwargs):
+class MP(nn.Module):
 
-        return [feature]
+    def __init__(self, out_dim, input_dim, **kwargs):
+        super(MP, self).__init__()
+        # simply MeanPooling / no additional parameters
 
-class Mean(nn.Module):
-
-    def __init__(self, out_dim, input_dim):
-        super(Mean, self).__init__()
-        self.act_fn = nn.ReLU()
-        self.linear = nn.Linear(input_dim, out_dim)
-        # simply take mean operator / no additional parameters
-
-    def forward(self, feature, att_mask):
+    def forward(self, feature_BxTxH, att_mask_BxT, **kwargs):
 
         ''' 
         Arguments
-            feature - [BxTxD]   Acoustic feature with shape 
-            att_mask   - [BxTx1]     Attention Mask logits
+            feature_BxTxH - [BxTxH]   Acoustic feature with shape 
+            att_mask_BxT   - [BxT]     Attention Mask logits
         '''
-        feature=self.linear(self.act_fn(feature))
         agg_vec_list = []
-        for i in range(len(feature)):
-            if torch.nonzero(att_mask[i] < 0, as_tuple=False).size(0) == 0:
-                length = len(feature[i])
+        for i in range(len(feature_BxTxH)):
+            if torch.nonzero(att_mask_BxT[i] < 0, as_tuple=False).size(0) == 0:
+                length = len(feature_BxTxH[i])
             else:
-                length = torch.nonzero(att_mask[i] < 0, as_tuple=False)[0] + 1
-            agg_vec=torch.mean(feature[i][:length], dim=0)
+                length = torch.nonzero(att_mask_BxT[i] < 0, as_tuple=False)[0] + 1
+            agg_vec=torch.mean(feature_BxTxH[i][:length], dim=0)
             agg_vec_list.append(agg_vec)
         return torch.stack(agg_vec_list)
 
-class SAP(nn.Module):
-    ''' Self Attention Pooling module incoporate attention mask'''
+class AP(nn.Module):
+    ''' Attentive Pooling module incoporate attention mask'''
 
-    def __init__(self, out_dim, input_dim):
-        super(SAP, self).__init__()
+    def __init__(self, out_dim, input_dim, **kwargs):
+        super(AP, self).__init__()
 
         # Setup
-        # self.act_fn = nn.ReLU()
         self.linear = nn.Linear(input_dim, out_dim)
-        self.sap_layer = SelfAttentionPooling(out_dim)
+        self.sap_layer = AttentivePooling(out_dim)
     
-    def forward(self, feature, att_mask):
+    def forward(self, feature_BxTxH, att_mask_BxT):
 
         ''' 
         Arguments
-            feature - [BxTxD]   Acoustic feature with shape 
-            att_mask   - [BxTx1]     Attention Mask logits
+            feature_BxTxH - [BxTxH]   Acoustic feature with shape 
+            att_mask_BxT   - [BxT]     Attention Mask logits
         '''
         #Encode
-        # feature = self.act_fn(feature)
-        feature = self.linear(feature)
-        sap_vec = self.sap_layer(feature, att_mask)
+        feature_BxTxH = self.linear(feature_BxTxH)
+        sap_vec, _ = self.sap_layer(feature_BxTxH, att_mask_BxT)
 
         return sap_vec
 
-class SelfAttentionPooling(nn.Module):
+class ASP(nn.Module):
+    ''' Attentive Statistic Pooling module incoporate attention mask'''
+
+    def __init__(self, out_dim, input_dim, **kwargs):
+        super(ASP, self).__init__()
+
+        # Setup
+        self.linear = nn.Linear(input_dim, out_dim)
+        self.ap_layer = AttentivePooling(out_dim)
+    
+    def forward(self, feature_BxTxH, att_mask_BxT):
+
+        ''' 
+        Arguments
+            feature_BxTxH - [BxTxH]   Acoustic feature with shape 
+            att_mask_BxT   - [BxT]     Attention Mask logits
+        '''
+        #Encode
+        # feature = self.act_fn(feature)
+        feature_BxTxH = self.linear(feature_BxTxH)
+        sap_vec, att_w = self.ap_layer(feature_BxTxH, att_mask_BxT)
+        variance = torch.sqrt(torch.sum(att_w * feature_BxTxH * feature_BxTxH, dim=1) - sap_vec**2)
+        statistic_pooling = torch.cat([sap_vec, variance], dim=-1)
+
+        return statistic_pooling
+
+class SP(nn.Module):
+    ''' Statistic Pooling incoporate attention mask'''
+
+    def __init__(self, out_dim, input_dim, **kwargs):
+        super(SP, self).__init__()
+
+        # Setup
+        self.mp_layer = MP(None, None)
+    
+    def forward(self, feature_BxTxH, att_mask_BxT):
+
+        ''' 
+        Arguments
+            feature - [BxTxH]   Acoustic feature with shape 
+            att_mask   - [BxT]     Attention Mask logits
+        '''
+        #Encode
+        mean_vec = self.mp_layer(feature_BxTxH, att_mask_BxT)
+        variance_vec_list = []
+        for i in range(len(feature_BxTxH)):
+            if torch.nonzero(att_mask_BxT[i] < 0, as_tuple=False).size(0) == 0:
+                length = len(feature_BxTxH[i])
+            else:
+                length = torch.nonzero(att_mask_BxT[i] < 0, as_tuple=False)[0] + 1
+            variances = torch.sqrt(torch.mean(feature_BxTxH[i][:length] **2, dim=0) - mean_vec[i] **2)
+            variance_vec_list.append(variances)
+        var_vec = torch.stack(variance_vec_list)
+
+        statistic_pooling = torch.cat([mean_vec, var_vec], dim=-1)
+
+        return statistic_pooling
+
+class AttentivePooling(nn.Module):
     """
-    Implementation of SelfAttentionPooling 
-    Original Paper: Self-Attention Encoding and Pooling for Speaker Recognition
-    https://arxiv.org/pdf/2008.01077v1.pdf
+    Implementation of Attentive Pooling 
     """
-    def __init__(self, input_dim):
-        super(SelfAttentionPooling, self).__init__()
+    def __init__(self, input_dim, **kwargs):
+        super(AttentivePooling, self).__init__()
+        self.W_a = nn.Linear(input_dim, input_dim)
         self.W = nn.Linear(input_dim, 1)
+        self.act_fn = nn.ReLU()
+        self.softmax = nn.functional.softmax
     def forward(self, batch_rep, att_mask):
         """
         input:
-        batch_rep : size (N, T, H), N: batch size, T: sequence length, H: Hidden dimension
+        batch_rep : size (B, T, H), B: batch size, T: sequence length, H: Hidden dimension
         
         attention_weight:
-        att_w : size (N, T, 1)
+        att_w : size (B, T, 1)
         
         return:
-        utter_rep: size (N, H)
+        utter_rep: size (B, H)
         """
-        seq_len = batch_rep.shape[1]
-        softmax = nn.functional.softmax
-        att_logits = self.W(batch_rep).squeeze(-1)
+        att_logits = self.W(self.act_fn(self.W_a(batch_rep))).squeeze(-1)
         att_logits = att_mask + att_logits
-        att_w = softmax(att_logits, dim=-1).unsqueeze(-1)
+        att_w = self.softmax(att_logits, dim=-1).unsqueeze(-1)
         utter_rep = torch.sum(batch_rep * att_w, dim=1)
 
-        return utter_rep
+        return utter_rep, att_w
 
+
+# General Interface
 class Model(nn.Module):
-    def __init__(self, input_dim, agg_dim, agg_module, config):
+    def __init__(self, input_dim, agg_dim, agg_module, module, hparams):
         super(Model, self).__init__()
         
-        # agg_module: current support [ "SAP", "Mean" ]
-        # init attributes
+        # support for XVector(standard architecture), Identity (do nothing)
+        # Framewise Extractor
+        self.Framewise_Extractor= eval(module)(**hparams)
+
+        # agg_module: 
+        # current support:
+        # [ "AP" (Attentive Pooling), "MP" (Mean Pooling), "SP" (Statistic Pooling), "SAP" (Statistic Attentive Pooling) ]
         self.agg_method = eval(agg_module)(input_dim, agg_dim)
+
+        # dummy for transformer encoder architecture
+    def forward(self, features_BxTxH, att_mask_BxT):
         
-        # two standard transformer encoder layer
-        self.model= eval(config['module'])(config=Namespace(**config['hparams']),agg_dim=agg_dim)
-        self.head_mask = [None] * config['hparams']['num_hidden_layers']         
-    def forward(self, features, att_mask):
-        features = self.model(features,att_mask[:,None,None], head_mask=self.head_mask, output_all_encoded_layers=False)
-        utterance_vector = self.agg_method(features[0], att_mask)
+        features_BxTxH = self.Framewise_Extractor(features_BxTxH, att_mask_BxT[:,None,None])
+        utterance_vector = self.agg_method(features_BxTxH[0], att_mask_BxT)
         
         return utterance_vector
 
-class UtteranceModel(nn.Module):
+# General Interface
+class UtteranceExtractor(nn.Module):
     def __init__(self, in_feature, out_dim):
-        super(UtteranceModel,self).__init__()
+        super(UtteranceExtractor,self).__init__()
         self.linear1 = nn.Linear(in_feature, out_dim)
         self.linear2 = nn.Linear(out_dim,out_dim)
         self.act_fn = nn.ReLU()
-    def forward(self, x):
-        hid = self.linear1(x)
-        hid = self.act_fn(hid)
-        hid = self.linear2(hid)
-        hid = self.act_fn(hid)
+    def forward(self, x_BxH):
+        hid_BxH = self.linear1(x_BxH)
+        hid_BxH = self.act_fn(hid_BxH)
+        hid_BxH = self.linear2(hid_BxH)
+
+        return hid_BxH
+    
+    def inference(self, x_BxH):
+        hid = self.linear1(x_BxH)
 
         return hid
 
-class AdMSoftmaxLoss(nn.Module):
+class Identity(nn.Module):
+    def __init__(self, **kwargs):
+        super(Identity, self).__init__()
+        # simply forward / no additional parameters
 
-    def __init__(self, in_features, out_features, s=30.0, m=0.4):
+    def forward(self, feature_BxTxH, att_mask_BxTx1x1, **kwargs):
+
+        return [feature_BxTxH]
+
+class XVector(nn.Module):
+    def __init__(self, agg_dim, dropout_p, batch_norm, **kwargs):
+        super(XVector, self).__init__()
+        # simply take mean operator / no additional parameters
+        self.module = nn.Sequential(
+            TDNN(input_dim=512, output_dim=512, context_size=5, dilation=1, batch_norm=batch_norm, dropout_p=dropout_p),
+            TDNN(input_dim=512, output_dim=512, context_size=3, dilation=2, batch_norm=batch_norm, dropout_p=dropout_p),
+            TDNN(input_dim=512, output_dim=512, context_size=3, dilation=3, batch_norm=batch_norm, dropout_p=dropout_p),
+            TDNN(input_dim=512, output_dim=512, context_size=1, dilation=1, batch_norm=batch_norm, dropout_p=dropout_p),
+            TDNN(input_dim=512, output_dim=agg_dim, context_size=1, dilation=1, batch_norm=batch_norm, dropout_p=dropout_p),
+        )
+
+    def forward(self, feature_BxTxH, att_mask_BxTx1x1, **kwargs):
+
+        feature_BxTxH=self.module(feature_BxTxH)
+        return [feature_BxTxH]
+
+
+class AMSoftmaxLoss(nn.Module):
+
+    def __init__(self, in_features, speaker_num, s=30.0, m=0.4):
         '''
         AM Softmax Loss
         '''
-        super(AdMSoftmaxLoss, self).__init__()
+        super(AMSoftmaxLoss, self).__init__()
         self.s = s
         self.m = m
-        self.in_features = in_features
-        self.out_features = out_features
-        self.fc = nn.Linear(in_features, out_features, bias=False)
+        self.speaker_num = speaker_num
+        self.fc = nn.Linear(in_features, speaker_num, bias=False)
 
-    def forward(self, x, labels):
+    def forward(self, x_BxH, labels_B):
         '''
-        input shape (N, in_features)
+        x shape: (B, H)
+        labels shape: (B)
         '''
-        assert len(x) == len(labels)
-        assert torch.min(labels) >= 0
-        assert torch.max(labels) < self.out_features
+        assert len(x_BxH) == len(labels_B)
+        assert torch.min(labels_B) >= 0
+        assert torch.max(labels_B) < self.speaker_num
         
         for W in self.fc.parameters():
             W = F.normalize(W, dim=1)
 
-        x = F.normalize(x, dim=1)
+        x_BxH = F.normalize(x_BxH, dim=1)
 
-        wf = self.fc(x)
-        numerator = self.s * (torch.diagonal(wf.transpose(0, 1)[labels]) - self.m)
-        excl = torch.cat([torch.cat((wf[i, :y], wf[i, y+1:])).unsqueeze(0) for i, y in enumerate(labels)], dim=0)
+        wf = self.fc(x_BxH)
+        numerator = self.s * (torch.diagonal(wf.transpose(0, 1)[labels_B]) - self.m)
+        excl = torch.cat([torch.cat((wf[i, :y], wf[i, y+1:])).unsqueeze(0) for i, y in enumerate(labels_B)], dim=0)
         denominator = torch.exp(numerator) + torch.sum(torch.exp(self.s * excl), dim=1)
         L = numerator - torch.log(denominator)
         return -torch.mean(L)
+
+class SoftmaxLoss(nn.Module):
+    
+    def __init__(self, in_features, speaker_num):
+        '''
+        Softmax Loss
+        '''
+        super(SoftmaxLoss, self).__init__()
+        self.fc = nn.Linear(in_features, speaker_num)
+        self.loss = nn.CrossEntropyLoss()
+
+    def forward(self, x_BxH, labels_B):
+        '''
+        x shape: (B, H)
+        labels shape: (B)
+        '''
+        logits_BxSpn = self.fc(x_BxH)
+        loss = self.loss(logits_BxSpn, labels_B)
+        
+        return loss
     
 class TDNN(nn.Module):
         
@@ -185,7 +288,7 @@ class TDNN(nn.Module):
                     context_size=5,
                     stride=1,
                     dilation=1,
-                    batch_norm=True,
+                    batch_norm=False,
                     dropout_p=0.0
                 ):
         '''
@@ -216,51 +319,35 @@ class TDNN(nn.Module):
         if self.dropout_p:
             self.drop = nn.Dropout(p=self.dropout_p)
         
-    def forward(self, x):
+    def forward(self, x_BxTxH):
         '''
-        input: size (batch, seq_len, input_features)
-        outpu: size (batch, new_seq_len, output_features)
+        input: size (batch B, seq_len T, input_features H)
+        outpu: size (batch B, new_seq_len T*, output_features H)
         '''
 
-        _, _, d = x.shape
+        _, _, d = x_BxTxH.shape
         assert (d == self.input_dim), 'Input dimension was wrong. Expected ({}), got ({})'.format(self.input_dim, d)
-        x = x.unsqueeze(1)
+        x_BxTxH = x_BxTxH.unsqueeze(1)
 
         # Unfold input into smaller temporal contexts
-        x = F.unfold(
-                        x, 
+        x_BxTxH = F.unfold(
+                        x_BxTxH, 
                         (self.context_size, self.input_dim), 
                         stride=(1,self.input_dim), 
                         dilation=(self.dilation,1)
                     )
 
         # N, output_dim*context_size, new_t = x.shape
-        x = x.transpose(1,2)
-        x = self.kernel(x)
-        x = self.nonlinearity(x)
+        x_BxTxH = x_BxTxH.transpose(1,2)
+        x_BxTxH = self.kernel(x_BxTxH)
+        x_BxTxH = self.nonlinearity(x_BxTxH)
         
         if self.dropout_p:
-            x = self.drop(x)
+            x_BxTxH = self.drop(x_BxTxH)
 
         if self.batch_norm:
-            x = x.transpose(1,2)
-            x = self.bn(x)
-            x = x.transpose(1,2)
+            x_BxTxH = x_BxTxH.transpose(1,2)
+            x_BxTxH = self.bn(x_BxTxH)
+            x_BxTxH = x_BxTxH.transpose(1,2)
 
-        return x
-
-class XVector(nn.Module):
-    def __init__(self, config, agg_dim=1500, **kwargs):
-        super(XVector, self).__init__()
-        # simply take mean operator / no additional parameters
-        self.module = nn.Sequential(
-            TDNN(input_dim=512, output_dim=512, context_size=5, dilation=1),
-            TDNN(input_dim=512, output_dim=512, context_size=3, dilation=2),
-            TDNN(input_dim=512, output_dim=512, context_size=3, dilation=3),
-            TDNN(input_dim=512, output_dim=512, context_size=1, dilation=1),
-            TDNN(input_dim=512, output_dim=agg_dim, context_size=1, dilation=1),
-        )
-
-    def forward(self, feature, att_mask, head_mask, **kwargs):
-        feature=self.module(feature)
-        return [feature]
+        return x_BxTxH
