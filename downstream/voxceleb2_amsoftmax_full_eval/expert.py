@@ -95,8 +95,8 @@ class DownstreamExpert(nn.Module):
             self.modelrc['agg_dim'] = self.modelrc['input_dim']
         
         ModelConfig = {"input_dim": self.modelrc['input_dim'], "agg_dim": self.modelrc['agg_dim'],
-                       "agg_module": self.modelrc['agg_module'], "module": self.modelrc['module'], 
-                       "hparams": self.modelrc["module_config"][self.modelrc['module']], "utterance_module":self.modelrc["utter_module"]}
+                       "agg_module_name": self.modelrc['agg_module'], "module_name": self.modelrc['module'], 
+                       "hparams": self.modelrc["module_config"][self.modelrc['module']], "utterance_module_name":self.modelrc["utter_module"]}
         
         # downstream model extractor include aggregation module
         self.model = Model(**ModelConfig)

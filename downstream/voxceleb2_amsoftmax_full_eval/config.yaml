@@ -1,7 +1,7 @@
 
 # this voxceleb1 is doing speaker classification task!
 runner:
-  total_steps: 50000
+  total_steps: 100000
   gradient_clipping: 1.0e+3
   gradient_accumulate_steps: 5
 
@@ -16,7 +16,7 @@ runner:
 optimizer: 
   name: AdamW
   lr: 1.0e-4
-  weight_decay: 1.0e-3
+  # weight_decay: 1.0e-4
 
 # # comment the whole scheduler config block to disable learning rate scheduling
 # scheduler:
