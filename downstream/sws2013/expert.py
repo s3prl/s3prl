@@ -4,6 +4,7 @@ from pathlib import Path
 
 import torch
 import torch.nn as nn
+import torch.nn.functional as F
 from torch.utils.data import DataLoader, WeightedRandomSampler
 
 from .dataset import SWS2013Dataset
@@ -20,25 +21,32 @@ class DownstreamExpert(nn.Module):
         self, upstream_dim: int, downstream_expert: dict, expdir: str, **kwargs
     ):
         super(DownstreamExpert, self).__init__()
+        
+        # Config setup
         self.upstream_dim = upstream_dim
         self.datarc = downstream_expert["datarc"]
         self.modelrc = downstream_expert["modelrc"]
-        self.expdir = Path(expdir)
-        self.train_dataset = SWS2013Dataset(**self.datarc)
+        self.lossrc = downstream_expert["lossrc"]
 
+        # Result dir setup, used to save output XML file
+        self.expdir = Path(expdir)
+
+        # Dataset, model, loss setup
+        self.train_dataset = SWS2013Dataset(**self.datarc)
         self.model = Model(
             input_dim=upstream_dim,
             **self.modelrc,
         )
-        self.objective = nn.CosineEmbeddingLoss()
+        self.objective = nn.CosineEmbeddingLoss(**self.lossrc)
 
     # Interface
     def get_dataloader(self, mode):
         return DataLoader(
             self.train_dataset,
             sampler=WeightedRandomSampler(
-                self.train_dataset.sample_weights,
-                len(self.train_dataset.sample_weights),
+                weights=self.train_dataset.sample_weights,
+                num_samples=len(self.train_dataset.sample_weights),
+                replacement=True,
             ),
             batch_size=self.datarc["batch_size"],
             drop_last=True,
@@ -57,17 +65,24 @@ class DownstreamExpert(nn.Module):
     ):
         audio_tensors = torch.stack(features[: len(features) // 2])
         query_tensors = torch.stack(features[len(features) // 2 :])
-        labels = torch.stack(labels).to(audio_tensors.device)
+        labels = torch.cat(labels).to(audio_tensors.device)
         
         audio_embs = self.model(audio_tensors)
         query_embs = self.model(query_tensors)
-        loss = self.objective(audio_embs, query_embs, labels)
 
+        # cosine embedding loss
+        loss = self.objective(audio_embs, query_embs, labels)
         records["loss"].append(loss.item())
+
+        with torch.no_grad():
+            # cosine similarity
+            similarities = F.cosine_similarity(audio_embs, query_embs)
+            records["similarity-positive"] += similarities[labels > 0].tolist()
+            records["similarity-negative"] += similarities[labels < 0].tolist()
 
         return loss
 
-    # interface
+    # Interface
     def log_records(self, mode, records, logger, global_step, **kwargs):
         prefix = f"sws2013/{mode}"
         for key, val in records.items():

@@ -1,11 +1,11 @@
 runner:
-  total_steps: 100000
+  total_steps: 50000
   gradient_clipping: 1
   gradient_accumulate_steps: 1
 
   log_step: 100
   eval_step: 1000000
-  save_step: 1000000
+  save_step: 5000
   max_keep: 1
   eval_dataloaders:
     - dev
@@ -13,7 +13,7 @@ runner:
 
 optimizer:
   name: AdamW
-  lr: 2.0e-4
+  lr: 1.0e-5
 
 # comment the whole scheduler config block
 # to disable learning rate scheduling
@@ -29,5 +29,6 @@ downstream_expert:
     batch_size: 16
   modelrc:
     bottleneck_dim: 256
-    hidden_dim: 512
-    num_layers: 2
+    hidden_dim: 1024
+  lossrc:
+    margin: -1.0
