@@ -96,13 +96,13 @@ class DownstreamExpert(nn.Module):
         
         ModelConfig = {"input_dim": self.modelrc['input_dim'], "agg_dim": self.modelrc['agg_dim'],
                        "agg_module": self.modelrc['agg_module'], "module": self.modelrc['module'], 
-                       "hparams": self.modelrc["module_config"][self.modelrc['module']], "utter_module":self.modelrc["utter_module"]}
+                       "hparams": self.modelrc["module_config"][self.modelrc['module']], "utterance_module":self.modelrc["utter_module"]}
         
         # downstream model extractor include aggregation module
         self.model = Model(**ModelConfig)
 
 
-        # SoftmaxLoss loss or AMSoftmaxLoss
+        # SoftmaxLoss or AMSoftmaxLoss
         objective_config = {"speaker_num": self.train_dataset.speaker_num, 
                             "hidden_dim": self.modelrc['input_dim'], 
                             **self.modelrc['LossConfig'][self.modelrc['ObjectiveLoss']]}
