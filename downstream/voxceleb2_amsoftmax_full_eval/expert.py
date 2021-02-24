@@ -213,12 +213,8 @@ class DownstreamExpert(nn.Module):
 
         features_pad = pad_sequence(features, batch_first=True)
         
-<<<<<<< HEAD
         if self.modelrc['module'] == "XVector":
             # since XVector will substract total sequence length, we directly substract 14.
-=======
-        if self.modelrc['module'] == 'XVector':
->>>>>>> origin/voxceleb1_tdnn
             attention_mask = [torch.ones((feature.shape[0]-14)) for feature in features]
         else:
             attention_mask = [torch.ones((feature.shape[0])) for feature in features]

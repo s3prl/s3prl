@@ -46,6 +46,7 @@ class MP(nn.Module):
                 length = torch.nonzero(att_mask_BxT[i] < 0, as_tuple=False)[0] + 1
             agg_vec=torch.mean(feature_BxTxH[i][:length], dim=0)
             agg_vec_list.append(agg_vec)
+
         return torch.stack(agg_vec_list)
 
 class AP(nn.Module):
@@ -176,7 +177,7 @@ class Model(nn.Module):
     def forward(self, features_BxTxH, att_mask_BxT):
         
         features_BxTxH = self.Framewise_Extractor(features_BxTxH, att_mask_BxT[:,None,None])
-        utterance_vector = self.agg_method(features_BxTxH[0], att_mask_BxT)
+        utterance_vector = self.agg_method(features_BxTxH, att_mask_BxT)
         
         return utterance_vector
 
@@ -206,7 +207,7 @@ class Identity(nn.Module):
 
     def forward(self, feature_BxTxH, att_mask_BxTx1x1, **kwargs):
 
-        return [feature_BxTxH]
+        return feature_BxTxH
 
 class XVector(nn.Module):
     def __init__(self, agg_dim, dropout_p, batch_norm, **kwargs):
@@ -223,7 +224,7 @@ class XVector(nn.Module):
     def forward(self, feature_BxTxH, att_mask_BxTx1x1, **kwargs):
 
         feature_BxTxH=self.module(feature_BxTxH)
-        return [feature_BxTxH]
+        return feature_BxTxH
 
 
 class AMSoftmaxLoss(nn.Module):
