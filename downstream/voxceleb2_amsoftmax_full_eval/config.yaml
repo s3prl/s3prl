@@ -6,9 +6,9 @@ runner:
   gradient_accumulate_steps: 5
 
   log_step: 500
-  eval_step: 2
-  save_step: 2
-  max_keep: 1
+  eval_step: 2000
+  save_step: 2000
+  max_keep: 4
   eval_dataloaders: 
     - dev
     - test
@@ -44,7 +44,7 @@ downstream_expert:
 
   modelrc:
     module:
-      Identity  # support to [ XVector, Identity ]
+      XVector  # support to [ XVector, Identity ]
     input_dim: 512
     agg_module: SP # support for ASP / SP / AP / MP 
                    # (Attentive Statistic Pooling / Statistic Pooling / Attentive Pooling / Mean Pooling)
@@ -53,22 +53,21 @@ downstream_expert:
       # You can comment it if you do not use this. To demo the usage, we will show all case.
       XVector:
         agg_dim: 1500
-        dropout_p: 0.0
-        batch_norm: False
+        dropout_p: 0.1
+        batch_norm: True
       
       Identity:
-        do_nothing: None
+        no_args: True
         # do nothing    
     
-    ObjectiveLoss: AMSoftmaxLoss # You can specify config to AMSoftmaxLoss or SoftmaxLoss
+    ObjectiveLoss: SoftmaxLoss # You can specify config to AMSoftmaxLoss or SoftmaxLoss
     
     LossConfig:
       # You can comment it if you do not use this. To demo the usage of SoftmaxLoss, we will show all case.
-      SoftmaxLoss:
-        in_features: 512
+      SoftmaxLoss: 
+        no_args: True
     
       # You can comment it if you do not use this. To demo the usage of AMSoftmaxLoss, we will show all case.
       AMSoftmaxLoss:
-        in_features: 512
         s: 30.0
         m: 0.4

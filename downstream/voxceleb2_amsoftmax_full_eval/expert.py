@@ -23,7 +23,7 @@ from torch.utils.data import DataLoader
 from torch.nn.utils.rnn import pad_sequence
 #-------------#
 from .model import Model, AMSoftmaxLoss, SoftmaxLoss, UtteranceExtractor
-from .dataset import SpeakerVerifi_train, SpeakerVerifi_dev, SpeakerVerifi_test, SpeakerVerifi_plda
+from .dataset import SpeakerVerifi_train, SpeakerVerifi_test, SpeakerVerifi_plda
 from argparse import Namespace
 from .utils import EER, compute_metrics
 import IPython
@@ -72,12 +72,12 @@ class DownstreamExpert(nn.Module):
 
         self.train_dataset = SpeakerVerifi_train(**train_config)
 
-        dev_config = {"vad_config":self.datarc['vad_config'], "file_path": [self.datarc['dev_root']], 
+        dev_config = {"vad_config":self.datarc['vad_config'], "file_path": self.datarc['dev_root'], 
             "meta_data": self.datarc['dev_meta_data']}
         
-        self.dev_dataset = SpeakerVerifi_dev(**dev_config)
+        self.dev_dataset = SpeakerVerifi_test(**dev_config)
 
-        test_config = {"vad_config":self.datarc['vad_config'], "file_path": [self.datarc['test_root']], 
+        test_config = {"vad_config":self.datarc['vad_config'], "file_path": self.datarc['test_root'], 
             "meta_data": self.datarc['test_meta_data']}
         
         self.test_dataset = SpeakerVerifi_test(**test_config)
@@ -88,7 +88,7 @@ class DownstreamExpert(nn.Module):
         self.train_dataset_plda = SpeakerVerifi_plda(**train_plda_config)
 
         test_plda_config = {"vad_config":self.datarc['vad_config'], "file_path": [self.datarc['test_root']], 
-            "key_list":["Voxceleb1_test_plda"], "meta_data": self.datarc['dev_meta_data']}
+            "key_list":["Voxceleb1_test_plda"], "meta_data": self.datarc['test_meta_data']}
 
         self.test_dataset_plda = SpeakerVerifi_plda(**test_plda_config)
 
@@ -114,11 +114,12 @@ class DownstreamExpert(nn.Module):
         utter_input_dim = decide_utter_input_dim(self.modelrc["agg_module"], self.modelrc)
 
         # after extract utterance level vector, put it to utterance extractor (XVector Architecture)
-        self.utterance_extractor= UtteranceExtractor(utter_input_dim, self.modelrc['input_dim'])
+        utterance_extractor_config = {"hidden_dim": utter_input_dim, "out_dim": self.modelrc['input_dim']}
+        self.utterance_extractor= UtteranceExtractor(**utterance_extractor_config)
 
         # SoftmaxLoss loss or AMSoftmaxLoss
-        self.objective = eval(self.modelrc['ObjectiveLoss'])(speaker_num=self.train_dataset.speaker_num, 
-                                                            **self.modelrc['LossConfig'][self.modelrc['ObjectiveLoss']])
+        objective_config = {"speaker_num": self.train_dataset.speaker_num, "hidden_dim": self.modelrc['input_dim'], **self.modelrc['LossConfig'][self.modelrc['ObjectiveLoss']]}
+        self.objective = eval(self.modelrc['ObjectiveLoss'])(**objective_config)
         # utils
         self.score_fn  = nn.CosineSimilarity(dim=-1)
         self.eval_metric = EER

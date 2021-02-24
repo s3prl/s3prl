@@ -27,7 +27,7 @@ from upstream.mockingjay.model import TransformerEncoder
 
 class MP(nn.Module):
 
-    def __init__(self, out_dim, input_dim, **kwargs):
+    def __init__(self, **kwargs):
         super(MP, self).__init__()
         # simply MeanPooling / no additional parameters
 
@@ -36,7 +36,7 @@ class MP(nn.Module):
         ''' 
         Arguments
             feature_BxTxH - [BxTxH]   Acoustic feature with shape 
-            att_mask_BxT   - [BxT]     Attention Mask logits
+            att_mask_BxT  - [BxT]     Attention Mask logits
         '''
         agg_vec_list = []
         for i in range(len(feature_BxTxH)):
@@ -52,7 +52,7 @@ class MP(nn.Module):
 class AP(nn.Module):
     ''' Attentive Pooling module incoporate attention mask'''
 
-    def __init__(self, out_dim, input_dim, **kwargs):
+    def __init__(self, out_dim, input_dim):
         super(AP, self).__init__()
 
         # Setup
@@ -64,7 +64,7 @@ class AP(nn.Module):
         ''' 
         Arguments
             feature_BxTxH - [BxTxH]   Acoustic feature with shape 
-            att_mask_BxT   - [BxT]     Attention Mask logits
+            att_mask_BxT  - [BxT]     Attention Mask logits
         '''
         #Encode
         feature_BxTxH = self.linear(feature_BxTxH)
@@ -75,7 +75,7 @@ class AP(nn.Module):
 class ASP(nn.Module):
     ''' Attentive Statistic Pooling module incoporate attention mask'''
 
-    def __init__(self, out_dim, input_dim, **kwargs):
+    def __init__(self, out_dim, input_dim):
         super(ASP, self).__init__()
 
         # Setup
@@ -87,7 +87,7 @@ class ASP(nn.Module):
         ''' 
         Arguments
             feature_BxTxH - [BxTxH]   Acoustic feature with shape 
-            att_mask_BxT   - [BxT]     Attention Mask logits
+            att_mask_BxT  - [BxT]     Attention Mask logits
         '''
         #Encode
         # feature = self.act_fn(feature)
@@ -101,18 +101,18 @@ class ASP(nn.Module):
 class SP(nn.Module):
     ''' Statistic Pooling incoporate attention mask'''
 
-    def __init__(self, out_dim, input_dim, **kwargs):
+    def __init__(self, **kwargs):
         super(SP, self).__init__()
 
         # Setup
-        self.mp_layer = MP(None, None)
+        self.mp_layer = MP()
     
     def forward(self, feature_BxTxH, att_mask_BxT):
 
         ''' 
         Arguments
             feature - [BxTxH]   Acoustic feature with shape 
-            att_mask   - [BxT]     Attention Mask logits
+            att_mask- [BxT]     Attention Mask logits
         '''
         #Encode
         mean_vec = self.mp_layer(feature_BxTxH, att_mask_BxT)
@@ -165,27 +165,29 @@ class Model(nn.Module):
         super(Model, self).__init__()
         
         # support for XVector(standard architecture), Identity (do nothing)
-        # Framewise Extractor
-        self.Framewise_Extractor= eval(module)(**hparams)
+        # Framewise FeatureExtractor
+        extractor_config = {**hparams, **{"input_dim": input_dim}}
+        self.Framewise_FeatureExtractor= eval(module)(**extractor_config)
 
         # agg_module: 
         # current support:
         # [ "AP" (Attentive Pooling), "MP" (Mean Pooling), "SP" (Statistic Pooling), "SAP" (Statistic Attentive Pooling) ]
-        self.agg_method = eval(agg_module)(input_dim, agg_dim)
+        agg_module_config = {"out_dim": input_dim, "input_dim": agg_dim}
+        self.agg_method = eval(agg_module)(**agg_module_config)
 
         # dummy for transformer encoder architecture
     def forward(self, features_BxTxH, att_mask_BxT):
         
-        features_BxTxH = self.Framewise_Extractor(features_BxTxH, att_mask_BxT[:,None,None])
+        features_BxTxH = self.Framewise_FeatureExtractor(features_BxTxH, att_mask_BxT[:,None,None])
         utterance_vector = self.agg_method(features_BxTxH, att_mask_BxT)
         
         return utterance_vector
 
 # General Interface
 class UtteranceExtractor(nn.Module):
-    def __init__(self, in_feature, out_dim):
+    def __init__(self, hidden_dim, out_dim):
         super(UtteranceExtractor,self).__init__()
-        self.linear1 = nn.Linear(in_feature, out_dim)
+        self.linear1 = nn.Linear(hidden_dim, out_dim)
         self.linear2 = nn.Linear(out_dim,out_dim)
         self.act_fn = nn.ReLU()
     def forward(self, x_BxH):
@@ -210,11 +212,11 @@ class Identity(nn.Module):
         return feature_BxTxH
 
 class XVector(nn.Module):
-    def __init__(self, agg_dim, dropout_p, batch_norm, **kwargs):
+    def __init__(self, input_dim, agg_dim, dropout_p, batch_norm, **kwargs):
         super(XVector, self).__init__()
         # simply take mean operator / no additional parameters
         self.module = nn.Sequential(
-            TDNN(input_dim=512, output_dim=512, context_size=5, dilation=1, batch_norm=batch_norm, dropout_p=dropout_p),
+            TDNN(input_dim=input_dim, output_dim=512, context_size=5, dilation=1, batch_norm=batch_norm, dropout_p=dropout_p),
             TDNN(input_dim=512, output_dim=512, context_size=3, dilation=2, batch_norm=batch_norm, dropout_p=dropout_p),
             TDNN(input_dim=512, output_dim=512, context_size=3, dilation=3, batch_norm=batch_norm, dropout_p=dropout_p),
             TDNN(input_dim=512, output_dim=512, context_size=1, dilation=1, batch_norm=batch_norm, dropout_p=dropout_p),
@@ -229,7 +231,7 @@ class XVector(nn.Module):
 
 class AMSoftmaxLoss(nn.Module):
 
-    def __init__(self, in_features, speaker_num, s=30.0, m=0.4):
+    def __init__(self, hidden_dim, speaker_num, s=30.0, m=0.4, **kwargs):
         '''
         AM Softmax Loss
         '''
@@ -237,7 +239,7 @@ class AMSoftmaxLoss(nn.Module):
         self.s = s
         self.m = m
         self.speaker_num = speaker_num
-        self.fc = nn.Linear(in_features, speaker_num, bias=False)
+        self.fc = nn.Linear(hidden_dim, speaker_num, bias=False)
 
     def forward(self, x_BxH, labels_B):
         '''
@@ -262,12 +264,12 @@ class AMSoftmaxLoss(nn.Module):
 
 class SoftmaxLoss(nn.Module):
     
-    def __init__(self, in_features, speaker_num):
+    def __init__(self, hidden_dim, speaker_num, **kwargs):
         '''
         Softmax Loss
         '''
         super(SoftmaxLoss, self).__init__()
-        self.fc = nn.Linear(in_features, speaker_num)
+        self.fc = nn.Linear(hidden_dim, speaker_num)
         self.loss = nn.CrossEntropyLoss()
 
     def forward(self, x_BxH, labels_B):
