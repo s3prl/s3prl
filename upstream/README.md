@@ -130,7 +130,8 @@ import torch
 device = 'cuda' # or cpu
 upstream = torch.hub.load('s3prl/s3prl', 'tera').to(device)
 wavs = [torch.zeros(160000, dtype=torch.float).to(device) for _ in range(16)] # list of unpadded wavs `[wav1, wav2, ...]`, each wav is in `torch.FloatTensor`
-reps = upstream(wavs) # list of unpadded representations `[rep1, rep2, ...]`, each erp is of the shape `(extracted_seqlen, feature_dim)`
+with torch.no_grad():
+    reps = upstream(wavs) # list of unpadded representations `[rep1, rep2, ...]`, each erp is of the shape `(extracted_seqlen, feature_dim)`
 ```
 
 * <details><summary>Click here to see an example code with argument parser</summary><p>
@@ -164,14 +165,14 @@ reps = upstream(wavs) # list of unpadded representations `[rep1, rep2, ...]`, ea
     )
     args = parser.parse_args()
 
-
+    device = 'cuda' # or cpu
     upstream = torch.hub.load(
         's3prl/s3prl',
         args.upstream,
         feature_selection = args.upstream_feature_selection,
         refresh = args.upstream_refresh,
         ckpt = args.upstream_ckpt,
-    )
+    ).to(device)
     ```
 </p></details>
 
@@ -219,9 +220,11 @@ Feature extracters with default config are provided with a convenient [torch.hub
 Use `torch.hub.load('s3prl/s3prl', Name)` in your python scripts to build a feature extracter with default config. Here is a simple example:
 ```python
 import torch
-extracter = torch.hub.load('s3prl/s3prl', 'mfcc')
-wavs = [torch.zeros(160000, dtype=torch.float) for _ in range(16)]
-mfcc = extracter(wavs)
+device = 'cuda' # or cpu
+extracter = torch.hub.load('s3prl/s3prl', 'mfcc').to(device)
+wavs = [torch.zeros(160000, dtype=torch.float).to(device) for _ in range(16)]
+with torch.no_grad():
+    mfcc = extracter(wavs)
 ```
 
 To use with a modified config:
@@ -232,7 +235,8 @@ extracter = torch.hub.load('s3prl/s3prl',
                            'baseline_local',
                             config='upstream/baseline/mfcc.yaml').to(device)
 wavs = [torch.zeros(160000, dtype=torch.float).to(device) for _ in range(16)]
-mfcc = extracter(wavs)
+with torch.no_grad():
+    mfcc = extracter(wavs)
 ```
 
 [Back to Top](#table-of-contents)
