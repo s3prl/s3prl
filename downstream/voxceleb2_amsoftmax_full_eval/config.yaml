@@ -16,7 +16,7 @@ runner:
 optimizer: 
   name: AdamW
   lr: 1.0e-4
-  weight_decay: 1.0e-5
+  weight_decay: 1.0e-3
 
 # # comment the whole scheduler config block to disable learning rate scheduling
 # scheduler:
@@ -48,13 +48,15 @@ downstream_expert:
     input_dim: 512
     agg_module: SP # support for ASP / SP / AP / MP 
                    # (Attentive Statistic Pooling / Statistic Pooling / Attentive Pooling / Mean Pooling)
+    utterance_module:
+      UttranceExtractor # support to [UtteranceExtractor, UtteranceIdentity]
     
     module_config:
       # You can comment it if you do not use this. To demo the usage, we will show all case.
       XVector:
         agg_dim: 1500
-        dropout_p: 0.1
-        batch_norm: True
+        dropout_p: 0.0
+        batch_norm: False
       
       Identity:
         no_args: True

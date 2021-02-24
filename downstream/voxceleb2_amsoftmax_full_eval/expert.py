@@ -29,17 +29,7 @@ from .utils import EER, compute_metrics
 import IPython
 import pdb
 
-def decide_utter_input_dim(agg_module_name, modelrc):
-    if agg_module_name =="ASP":
-        utter_input_dim = modelrc['input_dim']*2
-    elif agg_module_name == "SP":
-        # after aggregate to utterance vector, the vector hidden dimension will become 2 * aggregate dimension.
-        utter_input_dim = modelrc['agg_dim']*2
-    elif agg_module_name == "MP":
-        utter_input_dim = modelrc['agg_dim']
-    else:
-        utter_input_dim = modelrc['input_dim']
-    return utter_input_dim
+
 
 class DownstreamExpert(nn.Module):
     """
@@ -106,19 +96,17 @@ class DownstreamExpert(nn.Module):
         
         ModelConfig = {"input_dim": self.modelrc['input_dim'], "agg_dim": self.modelrc['agg_dim'],
                        "agg_module": self.modelrc['agg_module'], "module": self.modelrc['module'], 
-                       "hparams": self.modelrc["module_config"][self.modelrc['module']]}
+                       "hparams": self.modelrc["module_config"][self.modelrc['module']], "utter_module":self.modelrc["utter_module"]}
         
         # downstream model extractor include aggregation module
         self.model = Model(**ModelConfig)
 
-        utter_input_dim = decide_utter_input_dim(self.modelrc["agg_module"], self.modelrc)
-
-        # after extract utterance level vector, put it to utterance extractor (XVector Architecture)
-        utterance_extractor_config = {"hidden_dim": utter_input_dim, "out_dim": self.modelrc['input_dim']}
-        self.utterance_extractor= UtteranceExtractor(**utterance_extractor_config)
 
         # SoftmaxLoss loss or AMSoftmaxLoss
-        objective_config = {"speaker_num": self.train_dataset.speaker_num, "hidden_dim": self.modelrc['input_dim'], **self.modelrc['LossConfig'][self.modelrc['ObjectiveLoss']]}
+        objective_config = {"speaker_num": self.train_dataset.speaker_num, 
+                            "hidden_dim": self.modelrc['input_dim'], 
+                            **self.modelrc['LossConfig'][self.modelrc['ObjectiveLoss']]}
+
         self.objective = eval(self.modelrc['ObjectiveLoss'])(**objective_config)
         # utils
         self.score_fn  = nn.CosineSimilarity(dim=-1)
@@ -224,16 +212,18 @@ class DownstreamExpert(nn.Module):
         attention_mask_pad = (1.0 - attention_mask_pad) * -100000.0
 
         features_pad = self.connector(features_pad)
-        agg_vec = self.model(features_pad, attention_mask_pad.cuda())
 
         if mode == 'train':
+
+            agg_vec = self.model(features_pad, attention_mask_pad.cuda())
             labels = torch.LongTensor(labels).to(features_pad.device)
-            agg_vec = self.utterance_extractor(agg_vec)
             loss = self.objective(agg_vec, labels)
             
             return loss
         
         elif mode in ['dev', 'test']:
+            
+            agg_vec = self.model.inference(features_pad, attention_mask_pad.cuda())
             # normalize to unit vector 
             agg_vec = agg_vec / (torch.norm(agg_vec, dim=-1).unsqueeze(-1))
 

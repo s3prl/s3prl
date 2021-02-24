@@ -81,6 +81,8 @@ class ASP(nn.Module):
         # Setup
         self.linear = nn.Linear(input_dim, out_dim)
         self.ap_layer = AttentivePooling(out_dim)
+        self.project = nn.Linear(out_dim*2, input_dim)
+
     
     def forward(self, feature_BxTxH, att_mask_BxT):
 
@@ -90,22 +92,24 @@ class ASP(nn.Module):
             att_mask_BxT  - [BxT]     Attention Mask logits
         '''
         #Encode
-        # feature = self.act_fn(feature)
         feature_BxTxH = self.linear(feature_BxTxH)
         sap_vec, att_w = self.ap_layer(feature_BxTxH, att_mask_BxT)
-        variance = torch.sqrt(torch.sum(att_w * feature_BxTxH * feature_BxTxH, dim=1) - sap_vec**2)
+        variance = torch.sqrt(torch.sum(att_w * feature_BxTxH * feature_BxTxH, dim=1) - sap_vec**2 + 1e-8)
         statistic_pooling = torch.cat([sap_vec, variance], dim=-1)
+        project_vector = self.project(statistic_pooling)
 
-        return statistic_pooling
+
+        return project_vector
 
 class SP(nn.Module):
     ''' Statistic Pooling incoporate attention mask'''
 
-    def __init__(self, **kwargs):
+    def __init__(self, out_dim, input_dim, *kwargs):
         super(SP, self).__init__()
 
         # Setup
         self.mp_layer = MP()
+        self.project = nn.Linear(input_dim*2, out_dim)
     
     def forward(self, feature_BxTxH, att_mask_BxT):
 
@@ -122,13 +126,14 @@ class SP(nn.Module):
                 length = len(feature_BxTxH[i])
             else:
                 length = torch.nonzero(att_mask_BxT[i] < 0, as_tuple=False)[0] + 1
-            variances = torch.sqrt(torch.mean(feature_BxTxH[i][:length] **2, dim=0) - mean_vec[i] **2)
+            variances = torch.sqrt(torch.mean(feature_BxTxH[i][:length] **2, dim=0) - mean_vec[i] **2 + 1e-8)
             variance_vec_list.append(variances)
         var_vec = torch.stack(variance_vec_list)
 
         statistic_pooling = torch.cat([mean_vec, var_vec], dim=-1)
+        agg_vec = self.project(statistic_pooling)
 
-        return statistic_pooling
+        return agg_vec
 
 class AttentivePooling(nn.Module):
     """
@@ -161,7 +166,7 @@ class AttentivePooling(nn.Module):
 
 # General Interface
 class Model(nn.Module):
-    def __init__(self, input_dim, agg_dim, agg_module, module, hparams):
+    def __init__(self, input_dim, agg_dim, agg_module, module, utterance_module, hparams):
         super(Model, self).__init__()
         
         # support for XVector(standard architecture), Identity (do nothing)
@@ -175,32 +180,47 @@ class Model(nn.Module):
         agg_module_config = {"out_dim": input_dim, "input_dim": agg_dim}
         self.agg_method = eval(agg_module)(**agg_module_config)
 
+        # after extract utterance level vector, put it to utterance extractor (XVector Architecture)
+        utterance_extractor_config = {"hidden_dim": input_dim, "out_dim": input_dim}
+        self.utterance_extractor= eval(utterance_module)(**utterance_extractor_config)
+
         # dummy for transformer encoder architecture
     def forward(self, features_BxTxH, att_mask_BxT):
         
         features_BxTxH = self.Framewise_FeatureExtractor(features_BxTxH, att_mask_BxT[:,None,None])
         utterance_vector = self.agg_method(features_BxTxH, att_mask_BxT)
+        utterance_vector = self.utterance_extractor(utterance_vector)
         
         return utterance_vector
+    
+    def inference(self, features_BxTxH, att_mask_BxT):
+        
+        features_BxTxH = self.Framewise_FeatureExtractor(features_BxTxH, att_mask_BxT[:,None,None])
+        utterance_vector = self.agg_method(features_BxTxH, att_mask_BxT)
 
-# General Interface
+        return utterance_vector
+
 class UtteranceExtractor(nn.Module):
     def __init__(self, hidden_dim, out_dim):
         super(UtteranceExtractor,self).__init__()
-        self.linear1 = nn.Linear(hidden_dim, out_dim)
         self.linear2 = nn.Linear(out_dim,out_dim)
         self.act_fn = nn.ReLU()
     def forward(self, x_BxH):
-        hid_BxH = self.linear1(x_BxH)
-        hid_BxH = self.act_fn(hid_BxH)
+        hid_BxH = self.act_fn(x_BxH)
         hid_BxH = self.linear2(hid_BxH)
+        hid_BxH = self.act_fn(hid_BxH)
 
         return hid_BxH
-    
-    def inference(self, x_BxH):
-        hid = self.linear1(x_BxH)
 
-        return hid
+# General Interface
+class UtteranceIdentity(nn.Module):
+    def __init__(self, **kwargs):
+        super(UtteranceIdentity,self).__init__()
+        
+    def forward(self, x_BxH):
+
+        return x_BxH
+    
 
 class Identity(nn.Module):
     def __init__(self, **kwargs):
