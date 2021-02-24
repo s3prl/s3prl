@@ -181,7 +181,7 @@ class Model(nn.Module):
         self.agg_method = eval(agg_module)(**agg_module_config)
 
         # after extract utterance level vector, put it to utterance extractor (XVector Architecture)
-        utterance_extractor_config = {"hidden_dim": input_dim, "out_dim": input_dim}
+        utterance_extractor_config = {"out_dim": input_dim}
         self.utterance_extractor= eval(utterance_module)(**utterance_extractor_config)
 
         # dummy for transformer encoder architecture
@@ -201,7 +201,7 @@ class Model(nn.Module):
         return utterance_vector
 
 class UtteranceExtractor(nn.Module):
-    def __init__(self, hidden_dim, out_dim):
+    def __init__(self, out_dim, **kwargs):
         super(UtteranceExtractor,self).__init__()
         self.linear2 = nn.Linear(out_dim,out_dim)
         self.act_fn = nn.ReLU()
@@ -216,7 +216,7 @@ class UtteranceExtractor(nn.Module):
 class UtteranceIdentity(nn.Module):
     def __init__(self, **kwargs):
         super(UtteranceIdentity,self).__init__()
-        
+
     def forward(self, x_BxH):
 
         return x_BxH
