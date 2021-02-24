@@ -40,6 +40,8 @@ downstream_expert:
     libri_root: '/path/to/LibriSpeech'
     bucket_file: 'data/librispeech/len_for_bucket'
 
+    zero_infinity: True
+
   modelrc:
     project_dim: 256
     select: Wav2Letter

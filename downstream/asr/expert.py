@@ -2,14 +2,42 @@ import os
 import math
 import torch
 import random
+import editdistance
+from argparse import Namespace
 
 import torch
 import torch.nn as nn
 from torch.utils.data import DataLoader
 from torch.nn.utils.rnn import pad_sequence
 
+from examples.speech_recognition.w2l_decoder import W2lKenLMDecoder
+from examples.speech_recognition.w2l_decoder import W2lViterbiDecoder
+
 from .model import Wav2Letter
 from .dataset import SequenceDataset
+
+
+def token_to_word(text):
+    # Hard coding but it is only used here for now.
+    # Assumption that units are characters. Doesn't handle BPE.
+    # Inter-character separator is " " and inter-word separator is "|".
+    return text.replace(" ", "").replace("|", " ").strip()
+
+
+def get_decoder(decoder_args_dict, dictionary):
+    decoder_args = Namespace(**decoder_args_dict)
+
+    if decoder_args.decoder_type == "viterbi":
+        return W2lViterbiDecoder(decoder_args, dictionary)
+
+    elif decoder_args.decoder_type == "kenlm":
+        decoder_args.beam_size_token = len(dictionary)
+        if isinstance(decoder_args.unk_weight, str):
+            decoder_args.unk_weight = eval(decoder_args.unk_weight)
+        return W2lKenLMDecoder(decoder_args, dictionary)
+    
+    else:
+        raise ValueError("Only Viterbi or KenLM decoders are supported.")
 
 
 class DownstreamExpert(nn.Module):
@@ -63,6 +91,14 @@ class DownstreamExpert(nn.Module):
             upstream_rate = upstream_rate,
             **model_conf,
         )
+        self.blank = self.train_dataset.dictionary.bos()
+        self.objective = nn.CTCLoss(
+            blank=self.blank,
+            reduction="sum",
+            zero_infinity=self.datarc['zero_infinity']
+        )
+        self.decoder = get_decoder(self.datarc['decoder_args'], self.train_dataset.dictionary)
+        self.dictionary = self.train_dataset.dictionary
         self.register_buffer('best_score', torch.ones(1) * 100)
 
     # Interface
@@ -107,6 +143,62 @@ class DownstreamExpert(nn.Module):
             collate_fn=dataset.collate_fn
         )
 
+    def _compute_metrics(self, pred_tokens_batch, pred_words_batch, labels):
+        """Computes WER and UER given the prediction and true transcriptions"""
+        unit_error_sum = 0.0
+        word_error_sum = 0.0
+        unit_length_sum = 0
+        word_length_sum = 0
+
+        for pred_tokens, pred_words, label in zip(pred_tokens_batch, pred_words_batch, labels):
+            label_idx = (label != self.train_dataset.dictionary.pad()) & (
+                label != self.train_dataset.dictionary.eos()
+            )
+            target_token_ids = label[label_idx].tolist()
+            target_tokens = self.train_dataset.dictionary.string(target_token_ids)
+            target_words = token_to_word(target_tokens).split()
+
+            unit_error_sum += editdistance.eval(pred_tokens, target_tokens)
+            unit_length_sum += len(target_token_ids)
+
+            word_error_sum += editdistance.eval(pred_words, target_words)
+            word_length_sum += len(target_words)
+
+        uer, wer = 100.0, 100.0
+        if unit_length_sum > 0:
+            uer = 100.0 * unit_error_sum / unit_length_sum
+        if word_length_sum > 0:
+            uer = 100.0 * word_error_sum / word_length_sum
+
+        return uer, wer
+
+    def _decode(self, log_probs, input_lens):
+        """Decoder that take log probabilities as input and outputs decoded seq"""
+        pred_tokens_batch = []
+        pred_words_batch = []
+
+        for log_prob, in_len in zip(log_probs, input_lens):
+            log_prob = log_prob[:in_len].unsqueeze(0)
+            decoded = None
+            if self.decoder is not None:
+                decoded = self.decoder.decode(log_prob)
+                if len(decoded) >= 1:
+                    decoded = decoded[0]
+                    decoded = None if len(decoded) < 1 else decoded[0]
+            
+            pred_token_ids = log_prob.argmax(dim=-1).unique_consecutive()
+            pred_token_ids = pred_token_ids[pred_token_ids != self.blank].tolist()
+            pred_tokens = self.train_dataset.dictionary.string(pred_token_ids)
+
+            if decoded is not None and "words" in decoded:
+                pred_words = decoded["words"]
+            else:
+                pred_words = token_to_word(pred_tokens).split()
+
+            pred_tokens_batch.append(pred_tokens)
+            pred_words_batch.append(pred_words)
+
+        return pred_tokens_batch, pred_words_batch
 
     # Interface
     def forward(self, split, features, labels, records, **kwargs):
@@ -149,11 +241,24 @@ class DownstreamExpert(nn.Module):
         labels = pad_sequence(labels, batch_first=True).to(device=device)
 
         features = self.projector(features)
-        lprobs, lprobs_len = self.model(features, features_len)
-        
-        loss_placeholder = torch.zeros(1, requires_grad=True).to(device)
-        records['loss'].append(loss_placeholder.item())
-        return loss_placeholder
+        log_probs, log_probs_len = self.model(features, features_len)
+
+        loss = self.objective(
+                log_probs.transpose(0, 1), # (N, T, C) -> (T, N, C)
+                labels,
+                log_probs_len,
+                labels_len,
+            )
+        records['loss'].append(loss.item())
+
+        if not self.model.training:
+            with torch.no_grad():
+                pred_tokens_batch, pred_words_batch = self._decode(log_probs.float().contiguous().cpu(), log_probs_len)
+                uer, wer = self._compute_metrics(pred_tokens_batch, pred_words_batch, labels)
+            records['uer'].append(uer)
+            records['wer'].append(wer)
+
+        return loss
 
     # interface
     def log_records(self, split, records, logger, global_step, batch_ids, total_batch_num, **kwargs):

@@ -163,7 +163,7 @@ class Runner():
                             features = self.upstream(wavs)
 
                     if specaug:
-                        featrues, _ = specaug(features)
+                        features, _ = specaug(features)
 
                     loss = self.downstream(
                         'train',
