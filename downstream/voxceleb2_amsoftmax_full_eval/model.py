@@ -108,9 +108,8 @@ class ASP(nn.Module):
         sap_vec, att_w = self.ap_layer(feature_BxTxH, att_mask_BxT)
         variance = torch.sqrt(torch.sum(att_w * feature_BxTxH * feature_BxTxH, dim=1) - sap_vec**2 + 1e-8)
         statistic_pooling = torch.cat([sap_vec, variance], dim=-1)
-        project_vector = self.project(statistic_pooling)
 
-        return project_vector
+        return statistic_pooling
 
 class SP(nn.Module):
     ''' Statistic Pooling incoporate attention mask'''
@@ -181,7 +180,7 @@ class Model(nn.Module):
         # support for XVector(standard architecture), Identity (do nothing)
         # Framewise FeatureExtractor
         extractor_config = {**hparams, **{"input_dim": input_dim}}
-        self.Framelevel_FeatureExtractor= eval(module_name)(**extractor_config)
+        self.framelevel_feature_extractor= eval(module_name)(**extractor_config)
 
         # agg_module: 
         # current support:
@@ -189,25 +188,25 @@ class Model(nn.Module):
         agg_module_config = {"out_dim": input_dim, "input_dim": agg_dim}
         self.agg_method = eval(agg_module_name)(**agg_module_config)
 
-        utterance_input_dim=decide_utter_input_dim(agg_module_name=agg_module_name, agg_dim=agg_dim, input_dim=input_dim)
+        utterance_input_dim = decide_utter_input_dim(agg_module_name=agg_module_name, agg_dim=agg_dim, input_dim=input_dim)
 
         # after extract utterance level vector, put it to utterance extractor (XVector Architecture)
         utterance_extractor_config = {"input_dim": utterance_input_dim,"out_dim": input_dim}
-        self.UtteranceLevel_FeatureExtractor= eval(utterance_module_name)(**utterance_extractor_config)
+        self.utterancelevel_feature_extractor= eval(utterance_module_name)(**utterance_extractor_config)
 
     def forward(self, features_BxTxH, att_mask_BxT):
         
-        features_BxTxH = self.Framelevel_FeatureExtractor(features_BxTxH, att_mask_BxT[:,None,None])
+        features_BxTxH = self.framelevel_feature_extractor(features_BxTxH, att_mask_BxT[:,None,None])
         utterance_vector = self.agg_method(features_BxTxH, att_mask_BxT)
-        utterance_vector = self.UtteranceLevel_FeatureExtractor(utterance_vector)
+        utterance_vector = self.utterancelevel_feature_extractor(utterance_vector)
         
         return utterance_vector
     
     def inference(self, features_BxTxH, att_mask_BxT):
         
-        features_BxTxH = self.Framelevel_FeatureExtractor(features_BxTxH, att_mask_BxT[:,None,None])
+        features_BxTxH = self.framelevel_feature_extractor(features_BxTxH, att_mask_BxT[:,None,None])
         utterance_vector = self.agg_method(features_BxTxH, att_mask_BxT)
-        utterance_vector = self.UtteranceLevel_FeatureExtractor.inference(utterance_vector)
+        utterance_vector = self.utterancelevel_feature_extractor.inference(utterance_vector)
 
         return utterance_vector
 
