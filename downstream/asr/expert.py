@@ -13,7 +13,7 @@ from torch.nn.utils.rnn import pad_sequence
 from examples.speech_recognition.w2l_decoder import W2lKenLMDecoder
 from examples.speech_recognition.w2l_decoder import W2lViterbiDecoder
 
-from .model import Wav2Letter
+from .model import LSTMs, Wav2Letter
 from .dataset import SequenceDataset
 
 
@@ -86,9 +86,9 @@ class DownstreamExpert(nn.Module):
         model_cls = eval(self.modelrc['select'])
         model_conf = self.modelrc[self.modelrc['select']]
         self.model = model_cls(
-            input_dim = self.modelrc['project_dim'],
-            output_dim = len(self.train_dataset.symbols),
-            upstream_rate = upstream_rate,
+            self.modelrc['project_dim'],
+            len(self.train_dataset.symbols),
+            upstream_rate,
             **model_conf,
         )
         self.blank = self.train_dataset.dictionary.bos()
@@ -97,7 +97,8 @@ class DownstreamExpert(nn.Module):
             reduction="sum",
             zero_infinity=self.datarc['zero_infinity']
         )
-        self.decoder = get_decoder(self.datarc['decoder_args'], self.train_dataset.dictionary)
+        decoder_args = self.datarc.get('decoder_args')
+        self.decoder = None if decoder_args is None else get_decoder(decoder_args, self.train_dataset.dictionary)
         self.dictionary = self.train_dataset.dictionary
         self.register_buffer('best_score', torch.ones(1) * 100)
 
@@ -304,7 +305,7 @@ class DownstreamExpert(nn.Module):
                 average,
                 global_step=global_step
             )
-            if split == 'dev' and key == 'loss' and average < self.best_score:
+            if split == 'dev' and key == 'wer' and average < self.best_score:
                 self.best_score = torch.ones(1) * average
                 save_names.append(f'{split}-best.ckpt')
         return save_names

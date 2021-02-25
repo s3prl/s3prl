@@ -44,6 +44,12 @@ downstream_expert:
 
   modelrc:
     project_dim: 256
-    select: Wav2Letter
+    select: LSTMs
     Wav2Letter:
       total_rate: 320
+    LSTMs:
+      total_rate: 320
+      hidden_size: 256
+      n_layers: 3
+      dropout: 0.2
+      bidirectional: True
