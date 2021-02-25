@@ -266,11 +266,11 @@ class XVector(nn.Module):
         super(XVector, self).__init__()
         # simply take mean operator / no additional parameters
         self.module = nn.Sequential(
-            TDNN(input_dim=input_dim, output_dim=512, context_size=5, dilation=1, batch_norm=batch_norm, dropout_p=dropout_p),
-            TDNN(input_dim=512, output_dim=512, context_size=3, dilation=2, batch_norm=batch_norm, dropout_p=dropout_p),
-            TDNN(input_dim=512, output_dim=512, context_size=3, dilation=3, batch_norm=batch_norm, dropout_p=dropout_p),
-            TDNN(input_dim=512, output_dim=512, context_size=1, dilation=1, batch_norm=batch_norm, dropout_p=dropout_p),
-            TDNN(input_dim=512, output_dim=agg_dim, context_size=1, dilation=1, batch_norm=batch_norm, dropout_p=dropout_p),
+            TDNN(input_dim=input_dim, output_dim=input_dim, context_size=5, dilation=1, batch_norm=batch_norm, dropout_p=dropout_p),
+            TDNN(input_dim=input_dim, output_dim=input_dim, context_size=3, dilation=2, batch_norm=batch_norm, dropout_p=dropout_p),
+            TDNN(input_dim=input_dim, output_dim=input_dim, context_size=3, dilation=3, batch_norm=batch_norm, dropout_p=dropout_p),
+            TDNN(input_dim=input_dim, output_dim=input_dim, context_size=1, dilation=1, batch_norm=batch_norm, dropout_p=dropout_p),
+            TDNN(input_dim=input_dim, output_dim=agg_dim, context_size=1, dilation=1, batch_norm=batch_norm, dropout_p=dropout_p),
         )
 
     def forward(self, feature_BxTxH, att_mask_BxTx1x1, **kwargs):
