@@ -181,7 +181,7 @@ class Model(nn.Module):
         # support for XVector(standard architecture), Identity (do nothing)
         # Framewise FeatureExtractor
         extractor_config = {**hparams, **{"input_dim": input_dim}}
-        self.Framewise_FeatureExtractor= eval(module_name)(**extractor_config)
+        self.Framelevel_FeatureExtractor= eval(module_name)(**extractor_config)
 
         # agg_module: 
         # current support:
@@ -193,22 +193,21 @@ class Model(nn.Module):
 
         # after extract utterance level vector, put it to utterance extractor (XVector Architecture)
         utterance_extractor_config = {"input_dim": utterance_input_dim,"out_dim": input_dim}
-        self.utterance_extractor= eval(utterance_module_name)(**utterance_extractor_config)
+        self.UtteranceLevel_FeatureExtractor= eval(utterance_module_name)(**utterance_extractor_config)
 
-        # dummy for transformer encoder architecture
     def forward(self, features_BxTxH, att_mask_BxT):
         
-        features_BxTxH = self.Framewise_FeatureExtractor(features_BxTxH, att_mask_BxT[:,None,None])
+        features_BxTxH = self.Framelevel_FeatureExtractor(features_BxTxH, att_mask_BxT[:,None,None])
         utterance_vector = self.agg_method(features_BxTxH, att_mask_BxT)
-        utterance_vector = self.utterance_extractor(utterance_vector)
+        utterance_vector = self.UtteranceLevel_FeatureExtractor(utterance_vector)
         
         return utterance_vector
     
     def inference(self, features_BxTxH, att_mask_BxT):
         
-        features_BxTxH = self.Framewise_FeatureExtractor(features_BxTxH, att_mask_BxT[:,None,None])
+        features_BxTxH = self.Framelevel_FeatureExtractor(features_BxTxH, att_mask_BxT[:,None,None])
         utterance_vector = self.agg_method(features_BxTxH, att_mask_BxT)
-        utterance_vector = self.utterance_extractor.inference(utterance_vector)
+        utterance_vector = self.UtteranceLevel_FeatureExtractor.inference(utterance_vector)
 
         return utterance_vector
 
