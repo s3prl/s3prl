@@ -94,7 +94,6 @@ class DownstreamExpert(nn.Module):
         self.blank = self.train_dataset.dictionary.bos()
         self.objective = nn.CTCLoss(
             blank=self.blank,
-            reduction="sum",
             zero_infinity=self.datarc['zero_infinity']
         )
         decoder_args = self.datarc.get('decoder_args')
@@ -169,7 +168,7 @@ class DownstreamExpert(nn.Module):
         if unit_length_sum > 0:
             uer = 100.0 * unit_error_sum / unit_length_sum
         if word_length_sum > 0:
-            uer = 100.0 * word_error_sum / word_length_sum
+            wer = 100.0 * word_error_sum / word_length_sum
 
         return uer, wer
 
@@ -239,7 +238,11 @@ class DownstreamExpert(nn.Module):
         features_len = torch.IntTensor([len(feat) for feat in features])
         labels_len = torch.IntTensor([len(label) for label in labels]).to(device=device)
         features = pad_sequence(features, batch_first=True).to(device=device)
-        labels = pad_sequence(labels, batch_first=True).to(device=device)
+        labels = pad_sequence(
+            labels,
+            batch_first=True,
+            padding_value=self.train_dataset.dictionary.pad(),
+        ).to(device=device)
 
         features = self.projector(features)
         log_probs, log_probs_len = self.model(features, features_len)
@@ -300,6 +303,7 @@ class DownstreamExpert(nn.Module):
         save_names = []
         for key, values in records.items():
             average = torch.FloatTensor(values).mean().item()
+            print(f'{split} {key}: {average}')
             logger.add_scalar(
                 f'asr/{split}-{key}',
                 average,

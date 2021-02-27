@@ -173,4 +173,5 @@ class SequenceDataset(Dataset):
         return wav_batch, label_batch # bucketing, return ((wavs, labels))
 
     def collate_fn(self, items):
+        assert len(items) == 1
         return items[0][0], items[0][1] # hack bucketing, return (wavs, labels)
