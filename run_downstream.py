@@ -7,10 +7,10 @@ import random
 import argparse
 import importlib
 import numpy as np
-from shutil import copyfile
 from argparse import Namespace
 
 import hubconf
+from utility.helper import copyfile
 from downstream.runner import Runner
 
 
@@ -122,6 +122,8 @@ def get_downstream_args():
 
 
 def main():
+    torch.multiprocessing.set_sharing_strategy('file_system')
+
     # get config and arguments
     args, config = get_downstream_args()
 

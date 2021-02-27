@@ -12,14 +12,17 @@
 ###############
 import os
 import copy
-import torch
 import random
 import numpy as np
+#-------------#
+import torch
+import torchaudio
+#-------------#
 import matplotlib
 import matplotlib.pyplot as plt
 #-------------#
 plt.switch_backend('agg')
-seed = 1337
+seed = 679
 random.seed(seed)
 np.random.seed(seed)
 torch.manual_seed(seed)
@@ -28,9 +31,9 @@ torch.manual_seed(seed)
 ########
 # PATH #
 ########
-utt = 'train-clean-100/1594-135914-0032.npy'
-fmllr_dir = '../data/libri_fmllr_cmvn'
-out_dir = '../paper/visualization/'
+utt = 'train-clean-100/1594/135914/1594-135914-0032.flac'
+libri_dir = '/media/andi611/1TBSSD/LibriSpeech/'
+out_dir = './result/visualization/'
 
 
 def plot_x(x, name='x', xlabel='Frames'):
@@ -66,8 +69,11 @@ def main():
         os.makedirs(out_dir)
 
     # plot original
-    x = np.load(os.path.join(fmllr_dir, utt))
-    plot_x(x, name='fmllr', xlabel='A) Original fMLLR feature')
+    extracter = torch.hub.load('s3prl/s3prl', 'mel')
+    wav, _ = torchaudio.load(os.path.join(libri_dir, utt))
+    wavs = [wav]
+    x = extracter(wavs)[0].squeeze()
+    plot_x(x, name='x', xlabel='A) Original fMLLR feature')
 
     # to torch tensor
     x = torch.FloatTensor(x)
@@ -106,7 +112,7 @@ def main():
     plot_x(x_time_replace.data.cpu().numpy(), name='x_time_replace', xlabel='C) Replace contiguous segments with random segments')
 
     # frequency masking
-    mask_frequency = 8
+    mask_frequency = 16
     rand_bandwidth = mask_frequency #random.randint(0, mask_frequency)
     chosen_starts = torch.randperm(x.size(1) - rand_bandwidth)[:1]
     chosen_intervals = starts_to_intervals(chosen_starts, rand_bandwidth)

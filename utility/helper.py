@@ -11,6 +11,7 @@
 # IMPORTATION #
 ###############
 import torch
+import shutil
 
 
 def count_parameters(model):
@@ -19,6 +20,12 @@ def count_parameters(model):
 def count_used_parameters(model):
     # The model should be at least backward once
     return sum(p.numel() for p in model.parameters() if p.grad is not None)
+
+def copyfile(src_path, tgt_path):
+    try:
+        shutil.copyfile(src_path, tgt_path)
+    except shutil.SameFileError:
+        pass
 
 
 #####################

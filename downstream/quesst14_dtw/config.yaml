@@ -1,0 +1,26 @@
+runner:
+  total_steps: 10000
+  gradient_clipping: 1
+  gradient_accumulate_steps: 1
+
+  log_step: 100
+  eval_step: 1000000
+  save_step: 1000000
+  max_keep: 1
+  eval_dataloaders:
+    - dev
+    - test
+
+optimizer:
+  name: AdamW
+  lr: 2.0e-4
+
+downstream_expert:
+  metric: "L2"
+  # metric: "L1"
+  # metric: "cos"
+  max_workers: -1
+  datarc:
+    dataset_root: /corpora/quesst14Database
+    num_workers: 8
+    batch_size: 16

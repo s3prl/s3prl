@@ -117,7 +117,8 @@ git clone https://github.com/s3prl/s3prl.git
 cd s3prl
 pip install -r requirements.txt
 ```
-* To use upstream models with the hub interface, cloning this repo is not required, only the `requirements.txt` need to be met.
+* If you encounter error with a specific upstream model, you can look into the `README.md` under each `upsream` folder.
+* To use upstream models with the hub interface, cloning this repo is not required, only the `requirements.txt` in root directory and the one located at each `upstream` folder are needed.
 
 [Back to Top](#table-of-contents)
 

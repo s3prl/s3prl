@@ -169,4 +169,4 @@ def tera_fbankBase_T_F_AdamW_b32_200k_100hr(refresh=False, *args, **kwargs):
         Unlabled Speech: 100hr
     """
     kwargs['ckpt'] = 'https://www.dropbox.com/s/i32ob29m6afufot/states-200000.ckpt?dl=0'
-    return tera_gdriveid(refresh=refresh, *args, **kwargs)
+    return tera_url(refresh=refresh, *args, **kwargs)
