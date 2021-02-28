@@ -46,13 +46,17 @@ downstream_expert:
     zero_infinity: True
 
   modelrc:
-    project_dim: 256
-    select: LSTMs
+    project_dim: 1024
+    select: RNNs
     Wav2Letter:
       total_rate: 320
-    LSTMs:
+    RNNs:
       total_rate: 320
-      hidden_size: 256
-      n_layers: 3
-      dropout: 0.2
-      bidirectional: True
+      module: 'LSTM'                        # 'LSTM'/'GRU'
+      bidirection: True
+      dim: [1024, 1024, 1024]
+      dropout: [0.2, 0.2, 0.2]
+      layer_norm: [True, True, True]
+      proj: [True, True, True]              # Linear projection + Tanh after each rnn layer
+      sample_rate: [1, 1, 1]
+      sample_style: 'concat'                  # 'drop'/'concat'
