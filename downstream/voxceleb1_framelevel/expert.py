@@ -53,22 +53,3 @@ class DownstreamExpert(SpeakerExpert):
         records['loss'].append(loss.item())
 
         return loss
-
-    # interface
-    def log_records(self, mode, records, logger, global_step, **kwargs):
-        save_names = []
-        for key, values in records.items():
-            average = torch.FloatTensor(values).mean().item()
-            logger.add_scalar(
-                f'voxceleb1/{mode}-{key}',
-                average,
-                global_step=global_step
-            )
-            with open(self.logging, 'a') as f:
-                if key == 'acc':
-                    f.write(f'{mode} at step {global_step}: {average}\n')
-                    if mode == 'dev' and average > self.best_score:
-                        self.best_score = torch.ones(1) * average
-                        f.write(f'New best on {mode} at step {global_step}: {average}\n')
-                        save_names.append(f'{mode}-best.ckpt')
-        return save_names
