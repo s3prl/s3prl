@@ -1,0 +1,58 @@
+runner:
+  total_steps: 1000000
+  gradient_clipping: 1
+  gradient_accumulate_steps: 1
+
+  log_step: 100
+  eval_step: 1000
+  save_step: 100
+  max_keep: 1
+  eval_dataloaders:
+    - dev
+
+optimizer:
+  name: TorchOptim
+  torch_optim_name: Adam
+  lr: 1.0e-4
+
+# comment the whole scheduler config block
+# to disable learning rate scheduling
+# scheduler:
+#   name: linear_schedule_with_warmup
+#   num_warmup_steps: 1400
+
+# comment the whole specaug config block
+# to disable specaug on representation
+# specaug:
+#   apply_time_warp: true
+#   apply_time_mask: true
+#   apply_freq_mask: true
+
+downstream_expert:
+  corpus:                                 
+    name: 'snips'                   # Specify corpus
+    path: '/path/to/SNIPS'          # Path to raw LibriSpeech dataset
+
+    train: ['train']                # Name of data splits to be used as training set
+    dev: ['dev']                    # Name of data splits to be used as validation set
+    test: ['test']
+
+    bucketing: True                       # Enable/Disable bucketing 
+    batch_size: 32
+    num_workers: 12
+  text:
+    mode: 'character-slot'                       # 'character'/'word'/'subword'
+    vocab_file: 'downstream/slot_filling/character.vocab'
+    slots_file: '/path/SNIPS/slots.txt'
+  model:
+    project_dim: 1024
+    select: LSTMs
+    Wav2Letter:
+      total_rate: 320
+    LSTMs:
+      total_rate: 320
+      hidden_size: 1024
+      n_layers: 3
+      dropout: 0.2
+      bidirectional: True
+    zero_infinity: True
