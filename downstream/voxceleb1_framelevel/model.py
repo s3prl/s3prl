@@ -153,7 +153,7 @@ class Frame_1Hidden(nn.Module):
 
     
     def forward(self, features, features_len):
-        device = features.deviceq
+        device = features.device
         predicted = self.model(features)
         
         return predicted
