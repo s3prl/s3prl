@@ -14,11 +14,9 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 
-import IPython
-import pdb
 from argparse import Namespace
 from upstream.mockingjay.model import TransformerEncoder
-from downstream.model import FrameLevel_Linear, AP, MP, FrameLevel_1Hidden
+from downstream.model import FrameLevel_Linear, FrameLevel_1Hidden
 #########
 # MODEL #
 #########
@@ -140,8 +138,6 @@ class FrameLinear(nn.Module):
 
     
     def forward(self, features, features_len):
-        device = features.device
-        len_masks = torch.lt(torch.arange(features_len.max()).unsqueeze(0).to(device), features_len.unsqueeze(1))
         predicted = self.model(features)
         
         return predicted
@@ -153,7 +149,6 @@ class Frame_1Hidden(nn.Module):
 
     
     def forward(self, features, features_len):
-        device = features.device
         predicted = self.model(features)
         
         return predicted

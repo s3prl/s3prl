@@ -41,10 +41,8 @@ downstream_expert:
       padding: 2
       pooling: 5
       dropout: 0.4
-    LinearModel:
-      input_dim: 256
     UtterLinear:
       input_dim: 256
-      pooling_name: AP
+      pooling_name: AttentivePooling # Here the option you can choose: MeanPooling, AttentivePooling
     
 

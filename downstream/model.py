@@ -10,7 +10,7 @@ class FrameLevel_Linear(nn.Module):
         self.transform = nn.Linear(input_dim, class_num)
 
 
-    def forward(self, hidden_state):
+    def forward(self, hidden_state, features_len=None):
         logit = self.transform(hidden_state)
 
         return logit
@@ -22,7 +22,7 @@ class UtteranceLevel_Linear(nn.Module):
         self.transform = nn.Linear(input_dim, class_num)
     
 
-    def forward(self, hidden_state):
+    def forward(self, hidden_state, features_len=None):
         logit = self.transform(hidden_state)
 
         return logit
@@ -36,7 +36,7 @@ class FrameLevel_1Hidden(nn.Module):
         self.act_fn = eval(act_fn)()
 
 
-    def forward(self, hidden_state):
+    def forward(self, hidden_state, features_len=None):
         hidden_state = self.act_fn(hidden_state)
         hidden_state = self.hidden_layer(hidden_state)
         hidden_state = self.act_fn(hidden_state)
@@ -48,59 +48,57 @@ class FrameLevel_1Hidden(nn.Module):
 
 # Pooling Methods
 
-class MP(nn.Module):
+class MeanPooling(nn.Module):
 
     def __init__(self, **kwargs):
-        super(MP, self).__init__()
+        super(MeanPooling, self).__init__()
         # simply MeanPooling / no additional parameters
 
-    def forward(self, feature_BxTxH, att_mask_BxT, **kwargs):
+    def forward(self, feature_BxTxH, features_len, **kwargs):
 
         ''' 
         Arguments
             feature_BxTxH - [BxTxH]   Acoustic feature with shape 
-            att_mask_BxT  - [BxT]     Attention Mask logits
+            features_len  - [B] of feature length
         '''
         agg_vec_list = []
         for i in range(len(feature_BxTxH)):
-            if torch.nonzero(att_mask_BxT[i] < 0, as_tuple=False).size(0) == 0:
-                length = len(feature_BxTxH[i])
-            else:
-                length = torch.nonzero(att_mask_BxT[i] < 0, as_tuple=False)[0] + 1
-            agg_vec=torch.mean(feature_BxTxH[i][:length], dim=0)
+            agg_vec=torch.mean(feature_BxTxH[i][:features_len[i]], dim=0)
             agg_vec_list.append(agg_vec)
 
         return torch.stack(agg_vec_list)
 
-class AP(nn.Module):
+class AttentivePooling(nn.Module):
     ''' Attentive Pooling module incoporate attention mask'''
 
     def __init__(self, input_dim,**kwargs):
-        super(AP, self).__init__()
+        super(AttentivePooling, self).__init__()
 
         # Setup
-        self.sap_layer = AttentivePooling(input_dim)
+        self.sap_layer = AttentivePoolingModule(input_dim)
     
 
-    def forward(self, feature_BxTxH, att_mask_BxT):
+    def forward(self, feature_BxTxH, features_len):
 
         ''' 
         Arguments
             feature_BxTxH - [BxTxH]   Acoustic feature with shape 
-            att_mask_BxT  - [BxT]     Attention Mask logits
+            features_len  - [B] of feature length
         '''
         #Encode
-        sap_vec, _ = self.sap_layer(feature_BxTxH, att_mask_BxT)
+        device = feature_BxTxH.device
+        len_masks = torch.lt(torch.arange(features_len.max()).unsqueeze(0).to(device), features_len.unsqueeze(1))
+        sap_vec, _ = self.sap_layer(feature_BxTxH, len_masks)
 
 
         return sap_vec
 
-class AttentivePooling(nn.Module):
+class AttentivePoolingModule(nn.Module):
     """
     Implementation of Attentive Pooling 
     """
     def __init__(self, input_dim, **kwargs):
-        super(AttentivePooling, self).__init__()
+        super(AttentivePoolingModule, self).__init__()
         self.W_a = nn.Linear(input_dim, input_dim)
         self.W = nn.Linear(input_dim, 1)
         self.act_fn = nn.ReLU()

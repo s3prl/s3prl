@@ -23,8 +23,6 @@ from torch.nn.utils.rnn import pad_sequence
 from .model import Model, FrameLinear, Frame_1Hidden
 from .dataset import SpeakerClassifiDataset
 from argparse import Namespace
-import IPython
-import pdb
 
 class DownstreamExpert(nn.Module):
     """

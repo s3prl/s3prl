@@ -10,8 +10,6 @@
 ###############
 # IMPORTATION #
 ###############
-import pdb
-import IPython
 from argparse import Namespace
 
 import torch
@@ -19,7 +17,7 @@ import torch.nn as nn
 import torch.nn.functional as F
 
 from upstream.mockingjay.model import TransformerEncoder
-from downstream.model import UtteranceLevel_Linear, AP, MP
+from downstream.model import UtteranceLevel_Linear, AttentivePooling, MeanPooling
 
 class Identity(nn.Module):
     def __init__(self, config, **kwargs):
@@ -138,8 +136,7 @@ class UtterLinear(nn.Module):
     
     def forward(self, features, features_len):
         device = features.device
-        len_masks = torch.lt(torch.arange(features_len.max()).unsqueeze(0).to(device), features_len.unsqueeze(1))
-        features = self.pooling(features, len_masks)
+        features = self.pooling(features, features_len)
         predicted = self.model(features)
 
         return predicted

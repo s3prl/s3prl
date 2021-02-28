@@ -33,4 +33,4 @@ downstream_expert:
     select: UtterLinear
     UtterLinear:
       input_dim: 256
-      pooling_name: MP
+      pooling_name: MeanPooling

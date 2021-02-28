@@ -2,10 +2,8 @@ import math
 
 import torch
 import torch.nn as nn
-import IPython
-import pdb
 from torch.nn.utils.rnn import pad_sequence
-from downstream.model import UtteranceLevel_Linear, AP, MP
+from downstream.model import UtteranceLevel_Linear, AttentivePooling, MeanPooling
 
 class SelfAttentionPooling(nn.Module):
     """
@@ -205,21 +203,6 @@ class DeepModel(nn.Module):
         predicted = self.model(features, attention_mask)
         return predicted
 
-
-class LinearModel(nn.Module):
-    def __init__(self, input_dim, output_class_num, **kwargs):
-        super(LinearModel, self).__init__()
-        self.model = nn.Linear(input_dim, output_class_num)
-    
-    def forward(self, features, features_len):
-        device = features.device
-        len_masks = torch.lt(torch.arange(features_len.max()).unsqueeze(0).to(device), features_len.unsqueeze(1))
-        features = features * len_masks.unsqueeze(-1)
-        utter_feature = features.sum(dim=1) / features_len.unsqueeze(-1).float()
-        predicted = self.model(utter_feature)
-        return predicted
-
-
 class UtterLinear(nn.Module):
     def __init__(self, input_dim, output_class_num, pooling_name, **kwargs):
         super(UtterLinear, self).__init__()
@@ -228,9 +211,7 @@ class UtterLinear(nn.Module):
 
     
     def forward(self, features, features_len):
-        device = features.device
-        len_masks = torch.lt(torch.arange(features_len.max()).unsqueeze(0).to(device), features_len.unsqueeze(1))
-        features = self.pooling(features, len_masks)
+        features = self.pooling(features, features_len)
         predicted = self.model(features)
 
         return predicted
