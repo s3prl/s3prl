@@ -24,7 +24,7 @@ optimizer:
 
 downstream_expert:
   datarc:
-    root: /path/to/IEMOCAP
+    root: /groups/public/benchmark/IEMOCAP
     pre_load: True
     train_batch_size: 32
     eval_batch_size: 32
@@ -32,7 +32,7 @@ downstream_expert:
     valid_ratio: 0.2
 
   modelrc:
-    select: LinearModel
+    select: UtterLinear
     DeepModel:
       model_type: CNNSelfAttention
       input_dim: 256
@@ -43,3 +43,8 @@ downstream_expert:
       dropout: 0.4
     LinearModel:
       input_dim: 256
+    UtterLinear:
+      input_dim: 256
+      pooling_name: AP
+    
+

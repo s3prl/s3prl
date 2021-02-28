@@ -24,10 +24,13 @@ optimizer:
 
 downstream_expert:
   datarc:
-    speech_commands_root: /corpora/speech_commands_v0.01
-    speech_commands_test_root: /corpora/speech_commands_test_set_v0.01
+    speech_commands_root: /groups/public/benchmark/speech_commands/train
+    speech_commands_test_root: /groups/public/benchmark/speech_commands/test
     num_workers: 8
     batch_size: 32
 
   modelrc:
-    hidden_dim: 256
+    select: UtterLinear
+    UtterLinear:
+      input_dim: 256
+      pooling_name: MP

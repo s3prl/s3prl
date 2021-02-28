@@ -20,7 +20,7 @@ import torch.nn as nn
 from torch.utils.data import DataLoader
 from torch.nn.utils.rnn import pad_sequence
 #-------------#
-from .model import Model
+from .model import Model, UtterLinear
 from .dataset import SpeakerClassifiDataset
 from argparse import Namespace
 
@@ -42,9 +42,13 @@ class DownstreamExpert(nn.Module):
         self.dev_dataset = SpeakerClassifiDataset('dev', self.datarc['file_path'], self.datarc['meta_data'])
         self.test_dataset = SpeakerClassifiDataset('test', self.datarc['file_path'], self.datarc['meta_data'])
         
-        self.connector = nn.Linear(self.upstream_dim, self.modelrc['input_dim'])
-
-        self.model = Model(input_dim=self.modelrc['input_dim'], agg_module=self.modelrc['agg_module'],output_class_num=self.train_dataset.speaker_num, config=self.modelrc)
+        model_cls = eval(self.modelrc['select'])
+        model_conf = self.modelrc[self.modelrc['select']]
+        self.projector = nn.Linear(upstream_dim, model_conf['input_dim'])
+        self.model = model_cls(
+            output_class_num=self.train_dataset.speaker_num,
+            **model_conf,
+        )
         self.objective = nn.CrossEntropyLoss()
         
         self.logging = os.path.join(expdir, 'log.log')
@@ -79,18 +83,13 @@ class DownstreamExpert(nn.Module):
 
     # Interface
     def forward(self, mode, features, lengths, labels, records, **kwargs):
-        features_pad = pad_sequence(features, batch_first=True)
-        
-        attention_mask = [torch.ones((feature.shape[0])) for feature in features] 
+        device = features[0].device
+        features_len = torch.IntTensor([len(feat) for feat in features]).to(device=device)
+        features = pad_sequence(features, batch_first=True)
+        features = self.projector(features)
+        predicted = self.model(features, features_len)
 
-        attention_mask_pad = pad_sequence(attention_mask,batch_first=True)
-
-        attention_mask_pad = (1.0 - attention_mask_pad) * -100000.0
-
-        features_pad = self.connector(features_pad)
-        predicted = self.model(features_pad, attention_mask_pad.cuda())
-
-        labels = torch.LongTensor(labels).to(features_pad.device)
+        labels = torch.LongTensor(labels).to(features.device)
         loss = self.objective(predicted, labels)
 
         predicted_classid = predicted.max(dim=-1).indices

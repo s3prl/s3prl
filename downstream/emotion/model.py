@@ -2,8 +2,10 @@ import math
 
 import torch
 import torch.nn as nn
+import IPython
+import pdb
 from torch.nn.utils.rnn import pad_sequence
-
+from downstream.model import UtteranceLevel_Linear, AP, MP
 
 class SelfAttentionPooling(nn.Module):
     """
@@ -215,4 +217,20 @@ class LinearModel(nn.Module):
         features = features * len_masks.unsqueeze(-1)
         utter_feature = features.sum(dim=1) / features_len.unsqueeze(-1).float()
         predicted = self.model(utter_feature)
+        return predicted
+
+
+class UtterLinear(nn.Module):
+    def __init__(self, input_dim, output_class_num, pooling_name, **kwargs):
+        super(UtterLinear, self).__init__()
+        self.model = UtteranceLevel_Linear(input_dim=input_dim, class_num=output_class_num)
+        self.pooling = eval(pooling_name)(input_dim=input_dim)
+
+    
+    def forward(self, features, features_len):
+        device = features.device
+        len_masks = torch.lt(torch.arange(features_len.max()).unsqueeze(0).to(device), features_len.unsqueeze(1))
+        features = self.pooling(features, len_masks)
+        predicted = self.model(features)
+
         return predicted

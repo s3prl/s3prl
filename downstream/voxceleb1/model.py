@@ -18,7 +18,7 @@ import IPython
 import pdb
 from argparse import Namespace
 from upstream.mockingjay.model import TransformerEncoder
-
+from downstream.model import UtteranceLevel_Linear, AP, MP
 #########
 # MODEL #
 #########
@@ -131,3 +131,19 @@ class Model(nn.Module):
         
         return predicted
         # Use LogSoftmax since self.criterion combines nn.LogSoftmax() and nn.NLLLoss()
+
+
+class UtterLinear(nn.Module):
+    def __init__(self, input_dim, output_class_num, pooling_name, **kwargs):
+        super(UtterLinear, self).__init__()
+        self.model = UtteranceLevel_Linear(input_dim=input_dim, class_num=output_class_num)
+        self.pooling = eval(pooling_name)(input_dim=input_dim)
+
+    
+    def forward(self, features, features_len):
+        device = features.device
+        len_masks = torch.lt(torch.arange(features_len.max()).unsqueeze(0).to(device), features_len.unsqueeze(1))
+        features = self.pooling(features, len_masks)
+        predicted = self.model(features)
+        
+        return predicted

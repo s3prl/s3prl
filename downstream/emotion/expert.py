@@ -46,7 +46,7 @@ class DownstreamExpert(nn.Module):
 
         model_cls = eval(self.modelrc['select'])
         model_conf = self.modelrc[self.modelrc['select']]
-        self.connector = nn.Linear(upstream_dim, model_conf['input_dim'])
+        self.projector = nn.Linear(upstream_dim, model_conf['input_dim'])
         self.model = model_cls(
             output_class_num=dataset.class_num,
             **model_conf,
@@ -94,7 +94,7 @@ class DownstreamExpert(nn.Module):
         features_len = torch.IntTensor([len(feat) for feat in features]).to(device=device)
 
         features = pad_sequence(features, batch_first=True)
-        features = self.connector(features)
+        features = self.projector(features)
         predicted = self.model(features, features_len)
 
         labels = torch.LongTensor(labels).to(features.device)
