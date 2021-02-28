@@ -16,7 +16,7 @@ import torch.nn.functional as F
 
 from argparse import Namespace
 from upstream.mockingjay.model import TransformerEncoder
-from downstream.model import UtteranceLevel_Linear, AttentivePooling, MeanPooling
+from downstream.model import UtteranceLevel_Linear, AttentivePooling, MeanPooling, FrameLevel_1Hidden, FrameLevel_Linear
 #########
 # MODEL #
 #########
@@ -141,6 +141,29 @@ class UtterLinear(nn.Module):
     def forward(self, features, features_len):
         device = features.device
         features = self.pooling(features, features_len)
+        predicted = self.model(features)
+        
+        return predicted
+
+
+class FrameLinear(nn.Module):
+    def __init__(self, input_dim, output_class_num, **kwargs):
+        super(FrameLinear, self).__init__()
+        self.model = FrameLevel_Linear(input_dim=input_dim, class_num=output_class_num)
+
+    
+    def forward(self, features, features_len):
+        predicted = self.model(features)
+        
+        return predicted
+
+class Frame_1Hidden(nn.Module):
+    def __init__(self, input_dim, output_class_num, hidden_dim, act_fn, **kwargs):
+        super(Frame_1Hidden, self).__init__()
+        self.model = FrameLevel_1Hidden(input_dim=input_dim, class_num=output_class_num, hidden_dim=hidden_dim, act_fn=act_fn)
+
+    
+    def forward(self, features, features_len):
         predicted = self.model(features)
         
         return predicted

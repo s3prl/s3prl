@@ -20,66 +20,17 @@ import torch.nn as nn
 from torch.utils.data import DataLoader
 from torch.nn.utils.rnn import pad_sequence
 #-------------#
-from .model import Model, FrameLinear, Frame_1Hidden
-from .dataset import SpeakerClassifiDataset
 from argparse import Namespace
+from downstream.voxceleb1.expert import  DownstreamExpert as SpeakerExpert
 
-class DownstreamExpert(nn.Module):
+class DownstreamExpert(SpeakerExpert):
     """
     Used to handle downstream-specific operations
     eg. downstream forward, metric computation, contents to log
     """
 
     def __init__(self, upstream_dim, downstream_expert, expdir, **kwargs):
-        super(DownstreamExpert, self).__init__()
-        self.upstream_dim = upstream_dim
-        self.downstream = downstream_expert
-        self.datarc = downstream_expert['datarc']
-        self.modelrc = downstream_expert['modelrc']
-
-        self.train_dataset = SpeakerClassifiDataset('train', self.datarc['file_path'], self.datarc['meta_data'], self.datarc['max_timestep'])
-        self.dev_dataset = SpeakerClassifiDataset('dev', self.datarc['file_path'], self.datarc['meta_data'])
-        self.test_dataset = SpeakerClassifiDataset('test', self.datarc['file_path'], self.datarc['meta_data'])
-        
-        model_cls = eval(self.modelrc['select'])
-        model_conf = self.modelrc[self.modelrc['select']]
-        self.projector = nn.Linear(upstream_dim, model_conf['input_dim'])
-        self.model = model_cls(
-            output_class_num=self.train_dataset.speaker_num,
-            **model_conf,
-        )
-        self.objective = nn.CrossEntropyLoss()
-        
-        self.logging = os.path.join(expdir, 'log.log')
-        self.register_buffer('best_score', torch.zeros(1))
-
-    def _get_train_dataloader(self, dataset):
-        return DataLoader(
-            dataset, batch_size=self.datarc['train_batch_size'], 
-            shuffle=True, num_workers=self.datarc['num_workers'],
-            collate_fn=dataset.collate_fn
-        )
-
-    def _get_eval_dataloader(self, dataset):
-        return DataLoader(
-            dataset, batch_size=self.datarc['eval_batch_size'],
-            shuffle=False, num_workers=self.datarc['num_workers'],
-            collate_fn=dataset.collate_fn
-        )
-
-    def get_train_dataloader(self):
-        return self._get_train_dataloader(self.train_dataset)
-
-    def get_dev_dataloader(self):
-        return self._get_eval_dataloader(self.dev_dataset)
-
-    def get_test_dataloader(self):
-        return self._get_eval_dataloader(self.test_dataset)
-
-    # Interface
-    def get_dataloader(self, mode):
-        return eval(f'self.get_{mode}_dataloader')()
-
+        super(DownstreamExpert, self).__init__(upstream_dim, downstream_expert, expdir, **kwargs)
     # Interface
     def forward(self, mode, features, lengths, labels, records, **kwargs):
         device = features[0].device
