@@ -11,17 +11,16 @@ def collect_audio_batch(batch, split, half_batch_size_wav_len=300000):
     '''
     def audio_reader(filepath):
         wav, sample_rate = torchaudio.load(filepath)
-        return wav.reshape(-1, 1)
+        return wav.reshape(-1)
 
     # Bucketed batch should be [[(file1,txt1),(file2,txt2),...]]
     if type(batch[0]) is not tuple:
         batch = batch[0]
 
     # Make sure that batch size is reasonable
-    first_len, first_dim = audio_reader(str(batch[0][0])).shape
+    first_len = audio_reader(str(batch[0][0])).size(0)
     if split == 'train':
-        wav_half_condition = (first_dim == 1 and first_len > half_batch_size_wav_len)
-        if wav_half_condition and len(batch) > 1:
+        if first_len > half_batch_size_wav_len and len(batch) > 1:
             batch = batch[:len(batch)//2]
 
     # Read batch

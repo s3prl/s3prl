@@ -8,7 +8,7 @@ import torch.nn as nn
 from torch.utils.data import DataLoader
 from torch.nn.utils.rnn import pad_sequence
 
-from ..asr.model import LSTMs, Wav2Letter
+from ..asr.model import *
 from .text import load_text_encoder
 from .data import load_dataset
 from .utility import cal_er

@@ -40,19 +40,26 @@ downstream_expert:
     bucketing: True                       # Enable/Disable bucketing 
     batch_size: 32
     num_workers: 12
+  
   text:
     mode: 'character-slot'                       # 'character'/'word'/'subword'
     vocab_file: 'downstream/slot_filling/character.vocab'
     slots_file: '/path/SNIPS/slots.txt'
+  
   model:
     project_dim: 1024
-    select: LSTMs
+    zero_infinity: True
+
+    select: RNNs
     Wav2Letter:
       total_rate: 320
-    LSTMs:
+    RNNs:
       total_rate: 320
-      hidden_size: 1024
-      n_layers: 3
-      dropout: 0.2
-      bidirectional: True
-    zero_infinity: True
+      module: 'LSTM'                        # 'LSTM'/'GRU'
+      bidirection: True
+      dim: [1024, 1024, 1024]
+      dropout: [0.2, 0.2, 0.2]
+      layer_norm: [True, True, True]
+      proj: [True, True, True]              # Linear projection + Tanh after each rnn layer
+      sample_rate: [1, 1, 1]
+      sample_style: 'concat'                  # 'drop'/'concat'
