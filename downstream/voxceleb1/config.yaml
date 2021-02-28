@@ -3,7 +3,7 @@
 runner:
   total_steps: 200000
   gradient_clipping: 1
-  gradient_accumulate_steps: 5
+  gradient_accumulate_steps: 4
 
   log_step: 500
   eval_step: 1000
@@ -13,9 +13,10 @@ runner:
     - dev
     - test
   
-optimizer: 
-  name: AdamW
-  lr: 4.0e-4
+optimizer:
+  name: TorchOptim
+  torch_optim_name: Adam
+  lr: 1.0e-4
 
 # # comment the whole scheduler config block to disable learning rate scheduling
 # scheduler:
@@ -27,7 +28,7 @@ downstream_expert:
     file_path: /path/to/speaker_classifi/wav/
     meta_data: /path/to/speaker_classifi/veri_test_class.txt
     num_workers: 12
-    train_batch_size: 10
+    train_batch_size: 8
     eval_batch_size: 1
     max_timestep: 128000
 
