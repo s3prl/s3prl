@@ -45,6 +45,20 @@ downstream_expert:
 
     zero_infinity: True
 
+    decoder_args:
+      # See https://github.com/facebookresearch/flashlight/blob/master/flashlight/lib/text/decoder/LexiconDecoder.h#L20
+      decoder_type: 'kenlm'
+      nbest: 1
+      criterion: "ctc"
+      beam: 5
+      beam_threshold: 25
+      kenlm_model: '/path/to/KenLM'
+      lexicon: '/path/to/LibriSpeech'
+      lm_weight: 2
+      word_score: -1
+      unk_weight: -math.inf
+      sil_weight: 0
+
   modelrc:
     project_dim: 256
     select: LSTMs
