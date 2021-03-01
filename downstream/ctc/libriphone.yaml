@@ -49,7 +49,7 @@ downstream_expert:
   
   text:
     mode: 'word'                       # 'character'/'word'/'subword'
-    vocab_file: 'downstream/ctc/phoneme.vocab'
+    vocab_file: 'downstream/ctc/vocab/phoneme.txt'
   
   model:
     project_dim: 1024
