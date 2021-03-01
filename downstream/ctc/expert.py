@@ -50,7 +50,7 @@ class DownstreamExpert(nn.Module):
         ))
     
     def _get_task_name(self):
-        return f'ctc-{self.corpus['name'].lower()}'
+        return f'ctc-{self.corpus["name"].lower()}'
 
     # Interface
     def get_dataloader(self, split):

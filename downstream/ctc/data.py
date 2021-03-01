@@ -40,7 +40,7 @@ def collect_audio_batch(batch, split, half_batch_size_wav_len=300000):
     return audio_feat, text, file
 
 
-def create_dataset(split, tokenizer, name, path, bucketing, batch_size, **kwargs):
+def create_dataset(split, tokenizer, name, bucketing, batch_size, **kwargs):
     ''' Interface for creating all kinds of dataset'''
 
     # Recognize corpus
@@ -48,16 +48,18 @@ def create_dataset(split, tokenizer, name, path, bucketing, batch_size, **kwargs
         from .librispeech import LibriDataset as Dataset
     elif name.lower() == "snips":
         from .snips import SnipsDataset as Dataset
+    elif name.lower() == 'libriphone':
+        from .libriphone import LibriPhoneDataset as Dataset
     else:
         raise NotImplementedError
 
     if split == 'train':
         loader_bs = 1 if bucketing else batch_size
         bucket_size = batch_size if bucketing else 1
-        dataset = Dataset(path, kwargs['train'], tokenizer, bucket_size)
+        dataset = Dataset(kwargs['train'], tokenizer, bucket_size, **kwargs)
     else:
         loader_bs = batch_size
-        dataset = Dataset(path, kwargs[split], tokenizer, 1)
+        dataset = Dataset(kwargs[split], tokenizer, 1, **kwargs)
 
     return dataset, loader_bs
 
@@ -65,7 +67,7 @@ def create_dataset(split, tokenizer, name, path, bucketing, batch_size, **kwargs
 def load_dataset(split, tokenizer, corpus):
     ''' Prepare dataloader for training/validation'''
     num_workers = corpus.pop('num_workers', 12)
-    dataset, loader_bs = create_dataset(split, tokenizer, **corpus)
+    dataset, loader_bs = create_dataset(split, tokenizer, num_workers=num_workers, **corpus)
     collate_fn = partial(collect_audio_batch, split=split)
     dataloader = DataLoader(dataset, batch_size=loader_bs, shuffle=(split == 'train'),
                             collate_fn=collate_fn, num_workers=num_workers)
