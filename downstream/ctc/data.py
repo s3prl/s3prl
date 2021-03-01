@@ -45,11 +45,9 @@ def create_dataset(split, tokenizer, name, bucketing, batch_size, **kwargs):
 
     # Recognize corpus
     if name.lower() == "librispeech":
-        from .librispeech import LibriDataset as Dataset
+        from .corpus.librispeech import LibriDataset as Dataset
     elif name.lower() == "snips":
-        from .snips import SnipsDataset as Dataset
-    elif name.lower() == 'libriphone':
-        from .libriphone import LibriPhoneDataset as Dataset
+        from .corpus.snips import SnipsDataset as Dataset
     else:
         raise NotImplementedError
 
