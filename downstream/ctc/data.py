@@ -48,6 +48,8 @@ def create_dataset(split, tokenizer, name, bucketing, batch_size, **kwargs):
         from .corpus.librispeech import LibriDataset as Dataset
     elif name.lower() == "snips":
         from .corpus.snips import SnipsDataset as Dataset
+    elif name.lower() == 'libriphone':
+        from .corpus.libriphone import LibriPhoneDataset as Dataset
     else:
         raise NotImplementedError
 
