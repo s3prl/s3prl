@@ -27,6 +27,11 @@ optimizer:
 #   apply_time_warp: true
 #   apply_time_mask: true
 #   apply_freq_mask: true
+#   time_warp_window: 3
+#   time_mask_width_range: [0, 10]
+#   freq_mask_width_range: [0, 10]
+#   num_freq_mask: 10
+#   num_time_mask: 10
 
 downstream_expert:
   corpus:                                 
@@ -43,8 +48,8 @@ downstream_expert:
   
   text:
     mode: 'character-slot'                       # 'character'/'word'/'subword'
-    vocab_file: 'downstream/slot_filling/character.vocab'
-    slots_file: '/path/SNIPS/slots.txt'
+    vocab_file: 'downstream/ctc/character.vocab'
+    slots_file: '/path/to/SNIPS/slots.txt'
   
   model:
     project_dim: 1024
