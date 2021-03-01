@@ -11,7 +11,7 @@ from torch.nn.utils.rnn import pad_sequence
 from ..asr.model import *
 from .text import load_text_encoder
 from .data import load_dataset
-from .utility import cal_er
+from .metric import *
 
 
 class DownstreamExpert(nn.Module):
@@ -20,7 +20,7 @@ class DownstreamExpert(nn.Module):
     eg. downstream forward, metric computation, contents to log
     """
 
-    def __init__(self, upstream_dim, upstream_rate, downstream_expert, expdir, **kwargs):
+    def __init__(self, upstream_dim, upstream_rate, runner, downstream_expert, expdir, **kwargs):
         super(DownstreamExpert, self).__init__()
         self.upstream_dim = upstream_dim
         self.corpus = downstream_expert['corpus']
@@ -42,7 +42,15 @@ class DownstreamExpert(nn.Module):
             blank = self.tokenizer.pad_idx,
             zero_infinity = modelrc['zero_infinity'],
         )
-        self.register_buffer('best_score', torch.ones(1) * 100)
+        self.eval_dataloaders = runner['eval_dataloaders']
+        self.metrics = downstream_expert['metric']
+        self.metric_higher_better = downstream_expert['metric_higher_better']
+        self.register_buffer('best_score', torch.ones(1) * (
+            0 if self.metric_higher_better else 1 << 31
+        ))
+    
+    def _get_task_name(self):
+        return self.corpus['name'].lower()
 
     # Interface
     def get_dataloader(self, split):
@@ -69,10 +77,19 @@ class DownstreamExpert(nn.Module):
                 log_probs_len,
                 labels_len,
             )
-        wer, hypothesis, groundtruth = cal_er(self.tokenizer, log_probs, labels, ctc=True)
-
         records['loss'].append(loss.item())
-        records['wer'].append(wer)
+
+        pred_tokens = log_probs.argmax(dim=-1)
+        hypothesis = [self.tokenizer.decode(h.tolist(), ignore_repeat=True) for h in pred_tokens]
+        groundtruth = [self.tokenizer.decode(g.tolist()) for g in labels]
+
+        for metric in self.metrics:
+            records[metric].append(eval(metric)(
+                log_probs = log_probs,
+                log_probs_len = log_probs_len,
+                hypothesis = hypothesis,
+                groundtruth = groundtruth,
+            ))
 
         # store text for the first sample in a batch
         records['hypothesis'].append(hypothesis[0])
@@ -85,15 +102,18 @@ class DownstreamExpert(nn.Module):
     def log_records(self, split, records, logger, global_step, **kwargs):
         save_names = []
         for key, values in records.items():
-            if key in ['loss', 'wer']:
+            if type(values[0]) in [int, float, torch.Tensor]:
                 average = torch.FloatTensor(values).mean().item()
+                print(f'{split} {key}: {average}')
+
                 logger.add_scalar(
-                    f'slot_filling/{split}-{key}',
+                    f'{self._get_task_name()}/{split}-{key}',
                     average,
                     global_step=global_step
                 )
-                if key == 'wer':
-                    if split == 'dev' and average < self.best_score:
+                if key == self.metrics[0]:
+                    save_criterion = average > self.best_score if self.metric_higher_better else average < self.best_score
+                    if split == self.eval_dataloaders[0] and save_criterion:
                         self.best_score = torch.ones(1) * average
                         save_names.append(f'{split}-best.ckpt')
 
@@ -102,7 +122,7 @@ class DownstreamExpert(nn.Module):
             hypothesis = records['hypothesis'][i]
             groundtruth = records['groundtruth'][i]
             logger.add_text(
-                f'slot_filling/{split}-{filename}',
+                f'{self._get_task_name()}/{split}-{filename}',
                 f'**hypothesis**: {hypothesis}<br>**groundtruth**: {groundtruth}',
                 global_step=global_step,
             )
