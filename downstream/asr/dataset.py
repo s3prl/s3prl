@@ -153,7 +153,7 @@ class SequenceDataset(Dataset):
 
         return trsp_sequences
 
-    def _build_dictionary(self, transcripts, workers=12, threshold=-1, nwords=-1, padding_factor=8):
+    def _build_dictionary(self, transcripts, workers=1, threshold=-1, nwords=-1, padding_factor=8):
         d = Dictionary()
         transcript_list = list(transcripts.values())
         Dictionary.add_transcripts_to_dictionary(
