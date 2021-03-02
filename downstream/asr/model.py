@@ -3,19 +3,98 @@ import torch.nn as nn
 from torch.nn.utils.rnn import pack_padded_sequence, pad_packed_sequence
 
 
-class LSTMs(nn.Module):
+def downsample(x, x_len, sample_rate, sample_style):
+    batch_size, timestep, feature_dim = x.shape
+    x_len = x_len // sample_rate
+
+    if sample_style == 'drop':
+        # Drop the unselected timesteps
+        x = x[:, ::sample_rate, :].contiguous()
+    elif sample_style == 'concat':
+        # Drop the redundant frames and concat the rest according to sample rate
+        if timestep % sample_rate != 0:
+            x = x[:, :-(timestep % sample_rate), :]
+        x = x.contiguous().view(batch_size, int(
+            timestep / sample_rate), feature_dim * sample_rate)
+    else:
+        raise NotImplementedError
+    
+    return x, x_len
+
+
+class RNNLayer(nn.Module):
+    ''' RNN wrapper, includes time-downsampling'''
+
+    def __init__(self, input_dim, module, dim, bidirection, dropout, layer_norm, sample_rate, sample_style, proj):
+        super(RNNLayer, self).__init__()
+        # Setup
+        rnn_out_dim = 2*dim if bidirection else dim
+        self.out_dim = sample_rate * \
+            rnn_out_dim if sample_rate > 1 and sample_style == 'concat' else rnn_out_dim
+        self.dropout = dropout
+        self.layer_norm = layer_norm
+        self.sample_rate = sample_rate
+        self.sample_style = sample_style
+        self.proj = proj
+
+        if self.sample_style not in ['drop', 'concat']:
+            raise ValueError('Unsupported Sample Style: '+self.sample_style)
+
+        # Recurrent layer
+        self.layer = getattr(nn, module.upper())(
+            input_dim, dim, bidirectional=bidirection, num_layers=1, batch_first=True)
+
+        # Regularizations
+        if self.layer_norm:
+            self.ln = nn.LayerNorm(rnn_out_dim)
+        if self.dropout > 0:
+            self.dp = nn.Dropout(p=dropout)
+
+        # Additional projection layer
+        if self.proj:
+            self.pj = nn.Linear(rnn_out_dim, rnn_out_dim)
+
+    def forward(self, input_x, x_len):
+        # Forward RNN
+        if not self.training:
+            self.layer.flatten_parameters()
+
+        input_x = pack_padded_sequence(input_x, x_len, batch_first=True, enforce_sorted=False)
+        output, _ = self.layer(input_x)
+        output, x_len = pad_packed_sequence(output, batch_first=True)
+
+        # Normalizations
+        if self.layer_norm:
+            output = self.ln(output)
+        if self.dropout > 0:
+            output = self.dp(output)
+
+        # Perform Downsampling
+        if self.sample_rate > 1:
+            x, x_len = downsample(x, x_len, self.sample_rate, self.sample_style)
+
+        if self.proj:
+            output = torch.tanh(self.pj(output))
+
+        return output, x_len
+
+
+class RNNs(nn.Module):
     def __init__(self,
         input_size,
         output_size,
         upstream_rate,
-        hidden_size = 256,
-        n_layers = 3,
-        dropout = 0.2,
-        bidirectional = True,
+        module,
+        bidirection,
+        dim,
+        dropout,
+        layer_norm,
+        proj,
+        sample_rate,
+        sample_style,
         total_rate = 320,
-        sample_style = 'concat'
     ):
-        super(LSTMs, self).__init__()
+        super(RNNs, self).__init__()
         latest_size = input_size
 
         self.sample_rate = 1 if total_rate == -1 else round(total_rate / upstream_rate)
@@ -23,17 +102,22 @@ class LSTMs(nn.Module):
         if sample_style == 'concat':
             latest_size *= self.sample_rate
 
-        self.model = nn.LSTM(
-            input_size = latest_size,
-            hidden_size = hidden_size,
-            num_layers = n_layers,
-            batch_first = True,
-            dropout = dropout,
-            bidirectional = bidirectional,
-        )
-        latest_size = hidden_size
-        if bidirectional:
-            latest_size *= 2
+        self.rnns = nn.ModuleList()
+        for i in range(len(dim)):
+            self.rnns.append(RNNLayer(
+                latest_size,
+                module,
+                dim[i],
+                bidirection,
+                dropout[i],
+                layer_norm[i],
+                sample_rate[i],
+                sample_style,
+                proj[i],
+            ))
+            latest_size = dim[i]
+            if bidirection:
+                latest_size *= 2
 
         self.linear = nn.Linear(latest_size, output_size)
     
@@ -47,26 +131,12 @@ class LSTMs(nn.Module):
         """
         # Perform Downsampling
         if self.sample_rate > 1:
-            batch_size, timestep, x_size = x.shape
-            x_len = x_len // self.sample_rate
+            x, x_len = downsample(x, x_len, self.sample_rate, self.sample_style)
 
-            if self.sample_style == 'drop':
-                # Drop the unselected timesteps
-                output = output[:, ::self.sample_rate, :].contiguous()
-            elif self.sample_style == 'concat':
-                # Drop the redundant frames and concat the rest according to sample rate
-                if timestep % self.sample_rate != 0:
-                    x = x[:, :-(timestep % self.sample_rate), :]
-                x = x.contiguous().view(batch_size, int(
-                    timestep / self.sample_rate), x_size * self.sample_rate)
-            else:
-                raise NotImplementedError
+        for rnn in self.rnns:
+            x, x_len = rnn(x, x_len)
 
-        packed_x = pack_padded_sequence(x, x_len, batch_first=True, enforce_sorted=False)
-        packed_out, _ = self.model(packed_x)
-        out, _ = pad_packed_sequence(packed_out, batch_first=True)
-
-        logits = self.linear(out)
+        logits = self.linear(x)
         log_probs = nn.functional.log_softmax(logits, dim=-1)
 
         return log_probs, x_len        
