@@ -10,7 +10,6 @@
 ###############
 # IMPORTATION #
 ###############
-import os
 import yaml
 #-------------#
 import torch.nn as nn
@@ -30,7 +29,7 @@ class UpstreamExpert(nn.Module):
     def __init__(self, ckpt, feature_selection=-1, model_config=None, **kwargs):
         super(UpstreamExpert, self).__init__()
 
-        if model_config is not None and os.path.isfile(model_config):
+        if model_config is not None:
             print('[UpstreamExpert] - Using upstream expert config file from:', model_config) 
             with open(model_config, 'r') as file:
                 options = yaml.load(file, Loader=yaml.FullLoader)

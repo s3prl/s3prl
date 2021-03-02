@@ -14,6 +14,8 @@ def mockingjay_local(ckpt, feature_selection=None, model_config=None, *args, **k
     assert os.path.isfile(ckpt)
     if feature_selection is None:
         feature_selection = -1
+    if model_config is not None:
+        assert os.path.isfile(model_config)
     return _UpstreamExpert(ckpt, feature_selection, model_config, *args, **kwargs)
 
 
