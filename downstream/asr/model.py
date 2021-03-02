@@ -25,20 +25,15 @@ def downsample(x, x_len, sample_rate, sample_style):
 class RNNLayer(nn.Module):
     ''' RNN wrapper, includes time-downsampling'''
 
-    def __init__(self, input_dim, module, dim, bidirection, dropout, layer_norm, sample_rate, sample_style, proj):
+    def __init__(self, input_dim, module, bidirection, dim, dropout, layer_norm, sample_rate, proj):
         super(RNNLayer, self).__init__()
         # Setup
-        rnn_out_dim = 2*dim if bidirection else dim
-        self.out_dim = sample_rate * \
-            rnn_out_dim if sample_rate > 1 and sample_style == 'concat' else rnn_out_dim
+        rnn_out_dim = 2 * dim if bidirection else dim
+        self.out_dim = rnn_out_dim
         self.dropout = dropout
         self.layer_norm = layer_norm
         self.sample_rate = sample_rate
-        self.sample_style = sample_style
         self.proj = proj
-
-        if self.sample_style not in ['drop', 'concat']:
-            raise ValueError('Unsupported Sample Style: '+self.sample_style)
 
         # Recurrent layer
         self.layer = getattr(nn, module.upper())(
@@ -71,7 +66,7 @@ class RNNLayer(nn.Module):
 
         # Perform Downsampling
         if self.sample_rate > 1:
-            x, x_len = downsample(x, x_len, self.sample_rate, self.sample_style)
+            output, x_len = downsample(output, x_len, self.sample_rate, 'drop')
 
         if self.proj:
             output = torch.tanh(self.pj(output))
@@ -104,20 +99,18 @@ class RNNs(nn.Module):
 
         self.rnns = nn.ModuleList()
         for i in range(len(dim)):
-            self.rnns.append(RNNLayer(
+            rnn_layer = RNNLayer(
                 latest_size,
                 module,
-                dim[i],
                 bidirection,
+                dim[i],
                 dropout[i],
                 layer_norm[i],
                 sample_rate[i],
-                sample_style,
                 proj[i],
-            ))
-            latest_size = dim[i]
-            if bidirection:
-                latest_size *= 2
+            )
+            self.rnns.append(rnn_layer)
+            latest_size = rnn_layer.out_dim
 
         self.linear = nn.Linear(latest_size, output_size)
     
