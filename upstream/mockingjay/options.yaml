@@ -1,0 +1,22 @@
+# CHANGE IF NEEDED
+dropout       : 'default' # float/str, use float to modify dropout value during downstream finetune, or use the str `default` for pre-train default values
+spec_aug      : 'False'   # str, ['True', 'False'], whether to apply the SpecAugment technique
+spec_aug_prev : 'True'    # str, ['True', 'False'], True: apply spec augment on input (i.e. acoustic features); False: apply on output (i.e. the hidden states)
+weighted_sum  : 'False'   # str, ['True', 'False'], whether to use a learnable weighted sum to integrate hidden representations from all layers, if False then use the one specified in `select_layer`
+
+# THE FOLLOWING SHOULD NOT NEED CHANGE:
+
+# This will be given by UpstreamExpert. 
+ckpt_file     : ''        # str, a path specifying the pre-trained ckpt file
+
+# Always load the pre-trained weights. 
+load_pretrain : 'True'    # str, ['True', 'False'], whether to load pre-trained weights
+
+# Allow control for DownstreamExpert.
+no_grad       : 'False'   # str, ['True', 'False'], whether to use torch.no_grad over forward, this determines should torch build the computational graph
+
+# This will be given in UpstreamExpert.
+select_layer  : 999       # int, select from all hidden representations, set to -1 to select the last (will only be used when weighted_sum is False)
+
+# Input / output should be in the shape of (B, T, D) to port with our toolkit.
+permute_input : 'False'   # str, ['True', 'False'], this attribute is for the forward method. Ture: input / ouput of shape (T, B, D); False: input / ouput of shape (B, T, D)
