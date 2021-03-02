@@ -230,13 +230,13 @@ class PretrainedTransformer(TransformerBuilder):
         `options`: a python dictionary containing the following keys:
             ckpt_file: str, a path specifying the pre-trained ckpt file
             load_pretrain: str, ['True', 'False'], whether to load pre-trained weights
-            no_grad: str, ['True', 'False'], whether to have gradient flow over this class
+            no_grad: str, ['True', 'False'], whether to use torch.no_grad over forward, this determines should torch build the computational graph
             dropout: float/str, use float to modify dropout value during downstream finetune, or use the str `default` for pre-train default values
-            spec_aug: str, ['True', 'False'], whether to apply SpecAugment on inputs (used for ASR training)
-            spec_aug_prev: str, ['True', 'False'], apply spec augment on input acoustic features if True, else apply on output representations (used for ASR training)
-            weighted_sum: str, ['True', 'False'], whether to use a learnable weighted sum to integrate hidden representations from all layers, if False then use the last
+            spec_aug: str, ['True', 'False'], whether to apply the SpecAugment technique
+            spec_aug_prev: str, ['True', 'False'], True: apply spec augment on input (i.e. acoustic features); False: apply on output (i.e. the hidden states)
+            weighted_sum: str, ['True', 'False'], whether to use a learnable weighted sum to integrate hidden representations from all layers, if False then use the one specified in `select_layer`
             select_layer: int, select from all hidden representations, set to -1 to select the last (will only be used when weighted_sum is False)
-            permute_input: str, ['True', 'False'], this attribute is for the forward method. If Ture then input ouput is in the shape of (T, B, D), if False then in (B, T, D)
+            permute_input: str, ['True', 'False'], this attribute is for the forward method. Ture: input / ouput of shape (T, B, D); False: input / ouput of shape (B, T, D)
         `intput_dim`: int, input dimension of model
         `config`: optional, reads the given yaml config and not use the config stored in `ckpt_file`
 
