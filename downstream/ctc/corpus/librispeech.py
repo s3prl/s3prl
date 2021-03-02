@@ -19,7 +19,7 @@ def read_text(file):
 
 
 class LibriDataset(Dataset):
-    def __init__(self, split, tokenizer, bucket_size, path, num_workers=12, ascending=False, **kwargs):
+    def __init__(self, split, tokenizer, bucket_size, path, ascending=False, **kwargs):
         # Setup
         self.path = path
         self.bucket_size = bucket_size
@@ -30,14 +30,12 @@ class LibriDataset(Dataset):
             split_list = list(Path(join(path, s)).rglob("*.flac"))
             assert len(split_list) > 0, "No data found @ {}".format(join(path,s))
             file_list += split_list
-        # Read text
-        text = Parallel(n_jobs=num_workers)(
-            delayed(read_text)(str(f)) for f in file_list)
-        #text = Parallel(n_jobs=-1)(delayed(tokenizer.encode)(txt) for txt in text)
-        text = [tokenizer.encode(txt) for txt in text]
+        
+        text = []
+        for f in tqdm(file_list, desc='Read text'):
+            transcription = read_text(str(f))
+            text.append(tokenizer.encode(transcription))
 
-        # Sort dataset by text length
-        #file_len = Parallel(n_jobs=num_workers)(delayed(getsize)(f) for f in file_list)
         self.file_list, self.text = zip(*[(f_name, txt)
                                           for f_name, txt in sorted(zip(file_list, text), reverse=not ascending, key=lambda x:len(x[1]))])
 

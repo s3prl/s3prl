@@ -48,7 +48,7 @@ downstream_expert:
   
   text:
     mode: 'character'                       # 'character'/'word'/'subword'
-    vocab_file: 'downstream/ctc/character.vocab'
+    vocab_file: 'downstream/ctc/vocab/character.txt'
   
   model:
     project_dim: 1024
