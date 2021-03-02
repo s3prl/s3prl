@@ -5,7 +5,7 @@ from utility.download import _gdriveids_to_filepaths, _urls_to_filepaths
 from upstream.mockingjay.expert import UpstreamExpert as _UpstreamExpert
 
 
-def mockingjay_local(ckpt, feature_selection=None, *args, **kwargs):
+def mockingjay_local(ckpt, feature_selection=None, model_config=None, *args, **kwargs):
     """
         The model from local ckpt
             ckpt (str): PATH
@@ -14,7 +14,7 @@ def mockingjay_local(ckpt, feature_selection=None, *args, **kwargs):
     assert os.path.isfile(ckpt)
     if feature_selection is None:
         feature_selection = -1
-    return _UpstreamExpert(ckpt, feature_selection, *args, **kwargs)
+    return _UpstreamExpert(ckpt, feature_selection, model_config, *args, **kwargs)
 
 
 def mockingjay_gdriveid(ckpt, refresh=False, *args, **kwargs):

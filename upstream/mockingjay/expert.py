@@ -27,7 +27,7 @@ class UpstreamExpert(nn.Module):
     The Mockingjay wrapper
     """
 
-    def __init__(self, ckpt, feature_selection, model_config=None, **kwargs):
+    def __init__(self, ckpt, feature_selection=-1, model_config=None, **kwargs):
         super(UpstreamExpert, self).__init__()
 
         if model_config is not None and os.path.isfile(model_config):
