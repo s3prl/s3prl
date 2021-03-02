@@ -27,13 +27,12 @@ class UpstreamExpert(nn.Module):
     The Mockingjay wrapper
     """
 
-    def __init__(self, ckpt, feature_selection, upstream_model_config=None, **kwargs):
+    def __init__(self, ckpt, feature_selection, model_config=None, **kwargs):
         super(UpstreamExpert, self).__init__()
 
-        print(upstream_model_config)
-        if upstream_model_config is not None and os.path.isfile(upstream_model_config):
-            print('[UpstreamExpert] - Using upstream expert config file from:', upstream_model_config) 
-            with open(upstream_model_config, 'r') as file:
+        if model_config is not None and os.path.isfile(model_config):
+            print('[UpstreamExpert] - Using upstream expert config file from:', model_config) 
+            with open(model_config, 'r') as file:
                 options = yaml.load(file, Loader=yaml.FullLoader)
         else:
             print('[UpstreamExpert] - Using the default upstream expert config') 
