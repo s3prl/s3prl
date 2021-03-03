@@ -148,3 +148,4 @@ data
 *.sh
 *.pt
 *.tar
+*.h5
