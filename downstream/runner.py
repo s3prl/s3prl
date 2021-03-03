@@ -170,10 +170,10 @@ class Runner():
         # prepare data
         dataloader = self.downstream.get_dataloader('train')
 
-        epoch = 0
         batch_ids = []
         backward_steps = 0
         records = defaultdict(list)
+        epoch = self.init_ckpt.get('Epoch', 0)
         while pbar.n < pbar.total:
             if is_initialized():
                 dataloader.sampler.set_epoch(epoch)
@@ -280,6 +280,7 @@ class Runner():
                         'Downstream': get_model_state(self.downstream),
                         'Optimizer': optimizer.state_dict(),
                         'Step': global_step,
+                        'Epoch': epoch,
                         'Args': self.args,
                         'Config': self.config,
                     }
