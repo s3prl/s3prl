@@ -1,7 +1,20 @@
+# -*- coding: utf-8 -*- #
+"""*********************************************************************************************"""
+#   FileName     [ upstream/npc/npc.py ]
+#   Synopsis     [ the npc model]
+#   Author       [ Alexander H. Liu (https://github.com/Alexander-H-Liu) ]
+#   Reference    [ https://github.com/Alexander-H-Liu/NPC ]
+"""*********************************************************************************************"""
+
+
+###############
+# IMPORTATION #
+###############
 import copy
 import torch
 import torch.nn as nn
 from .vq import VQLayer
+
 
 class MaskConvBlock(nn.Module):
     """ Masked Convolution Blocks as described in NPC paper """
@@ -32,6 +45,7 @@ class MaskConvBlock(nn.Module):
         feat = feat.permute(0,2,1) # BxCxT -> BxTxC
         feat = self.act(feat)
         return feat
+
 
 class ConvBlock(nn.Module):
     """ Convolution Blocks as described in NPC paper """

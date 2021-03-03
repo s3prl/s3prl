@@ -1,7 +1,16 @@
-# Copyright (c) Facebook, Inc. and its affiliates.
-#
-# This source code is licensed under the MIT license found in the
-# LICENSE file in the root directory of this source tree.
+# -*- coding: utf-8 -*- #
+"""*********************************************************************************************"""
+#   FileName     [ upstream/cpc/cpc_default_config.py ]
+#   Synopsis     [ the cpc default config ]
+#   Author       [ Facebook Research ]
+#   Copyright    [ Facebook, Inc. and its affiliates ]
+#   Reference    [ https://github.com/facebookresearch/CPC_audio ]
+"""*********************************************************************************************"""
+
+
+###############
+# IMPORTATION #
+###############
 import argparse
 
 

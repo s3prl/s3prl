@@ -1,21 +1,40 @@
+# -*- coding: utf-8 -*- #
+"""*********************************************************************************************"""
+#   FileName     [ upstream/wav2vec2_ft/expert.py ]
+#   Synopsis     [ the wav2vec2 wrapper that supports ASR-fine-tuned checkpoints ]
+#   Author       [ S3PRL ]
+#   Copyright    [ Copyleft(c), Speech Lab, NTU, Taiwan ]
+"""*********************************************************************************************"""
+
+
+###############
+# IMPORTATION #
+###############
 import os
 import math
 import yaml
 import random
-
+#-------------#
 import torch
 import torch.nn as nn
 from torch.nn.utils.rnn import pad_sequence
-
+#-------------#
 import fairseq
 
+
+############
+# CONSTANT #
+############
 SAMPLE_RATE = 16000
 EXAMPLE_SEC = 5
 
 
+###################
+# UPSTREAM EXPERT #
+###################
 class UpstreamExpert(nn.Module):
     """
-    The expert of ASR-finetuned Wav2vec 2.0
+    The ASR-fine-tuned wav2vec 2.0 wrapper
     """
 
     def __init__(self, ckpt, **kwargs):

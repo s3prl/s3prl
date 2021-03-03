@@ -1,21 +1,40 @@
+# -*- coding: utf-8 -*- #
+"""*********************************************************************************************"""
+#   FileName     [ upstream/vq_wav2vec/expert.py ]
+#   Synopsis     [ the vq_wav2vec wrapper ]
+#   Author       [ S3PRL ]
+#   Copyright    [ Copyleft(c), Speech Lab, NTU, Taiwan ]
+"""*********************************************************************************************"""
+
+
+###############
+# IMPORTATION #
+###############
 import os
 import math
 import yaml
 import random
-
+#-------------#
 import torch
 import torch.nn as nn
 from torch.nn.utils.rnn import pad_sequence
-
+#-------------#
 from fairseq.models.wav2vec import Wav2VecModel
 
+
+############
+# CONSTANT #
+############
 SAMPLE_RATE = 16000
 EXAMPLE_SEC = 5
 
 
+###################
+# UPSTREAM EXPERT #
+###################
 class UpstreamExpert(nn.Module):
     """
-    The expert of vq-Wav2vec
+    The vq-wav2vec wrapper
     """
 
     def __init__(self, ckpt, **kwargs):

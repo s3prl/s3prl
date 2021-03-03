@@ -1,6 +1,18 @@
+# -*- coding: utf-8 -*- #
+"""*********************************************************************************************"""
+#   FileName     [ upstream/audio_albert/hubconf.py ]
+#   Synopsis     [ the audio albert torch hubconf ]
+#   Author       [ S3PRL ]
+#   Copyright    [ Copyleft(c), Speech Lab, NTU, Taiwan ]
+"""*********************************************************************************************"""
+
+
+###############
+# IMPORTATION #
+###############
 import os
 import torch
-
+#-------------#
 from utility.download import _gdriveids_to_filepaths, _urls_to_filepaths
 from upstream.audio_albert.expert import UpstreamExpert as _UpstreamExpert
 

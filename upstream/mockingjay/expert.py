@@ -1,8 +1,8 @@
 # -*- coding: utf-8 -*- #
 """*********************************************************************************************"""
-#   FileName     [ expert.py ]
+#   FileName     [ upstream/mockingjay/expert.py ]
 #   Synopsis     [ the mockingjay wrapper ]
-#   Author       [ S3PRL ]
+#   Author       [ Andy T. Liu (https://github.com/andi611) ]
 #   Copyright    [ Copyleft(c), Speech Lab, NTU, Taiwan ]
 """*********************************************************************************************"""
 
@@ -18,9 +18,9 @@ from torch.nn.utils.rnn import pad_sequence
 from .builder import PretrainedTransformer
 
 
-####################
-# UPSTREAM WRAPPER #
-####################
+###################
+# UPSTREAM EXPERT #
+###################
 class UpstreamExpert(nn.Module):
     """
     The Mockingjay wrapper

@@ -1,26 +1,45 @@
+# -*- coding: utf-8 -*- #
+"""*********************************************************************************************"""
+#   FileName     [ upstream/cpc/expert.py ]
+#   Synopsis     [ the cpc wrapper ]
+#   Author       [ S3PRL ]
+#   Copyright    [ Copyleft(c), Speech Lab, NTU, Taiwan ]
+"""*********************************************************************************************"""
+
+
+###############
+# IMPORTATION #
+###############
 import os
 import math
 import yaml
 import torch
 import random
 import argparse
-
+#-------------#
 import torch
 import torch.nn as nn
 from torch.nn.utils.rnn import pad_sequence
-
+#-------------#
 from .model import CPCModel as cpcmodel
 from .cpc_default_config import get_default_cpc_config
 from .feature_loader import getEncoder, getAR, loadArgs
 
+
+############
+# CONSTANT #
+############
 SAMPLE_RATE = 16000
 EXAMPLE_SEC = 3
 EXAMPLE_BATCH_SIZE = 32
 
 
+###################
+# UPSTREAM EXPERT #
+###################
 class UpstreamExpert(nn.Module):
     """
-    The expert of CPC
+    The CPC wrapper
     """
 
     def __init__(self, ckpt, **kwargs):

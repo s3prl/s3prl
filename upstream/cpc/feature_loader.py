@@ -1,12 +1,23 @@
-# Copyright (c) Facebook, Inc. and its affiliates.
-#
-# This source code is licensed under the MIT license found in the
-# LICENSE file in the root directory of this source tree.
-import torch
-import torchaudio
+# -*- coding: utf-8 -*- #
+"""*********************************************************************************************"""
+#   FileName     [ upstream/cpc/feature_loader.py ]
+#   Synopsis     [ the cpc feature loader ]
+#   Author       [ Facebook Research ]
+#   Copyright    [ Facebook, Inc. and its affiliates ]
+#   Reference    [ https://github.com/facebookresearch/CPC_audio ]
+"""*********************************************************************************************"""
+
+
+###############
+# IMPORTATION #
+###############
 import os
 import json
 import argparse
+#-------------#
+import torch
+import torchaudio
+#-------------#
 from .cpc_default_config import get_default_cpc_config
 from .model import CPCModel, ConcatenatedModel
 

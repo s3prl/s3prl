@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*- #
 """*********************************************************************************************"""
-#   FileName     [ expert.py ]
+#   FileName     [ upstream/pase/expert.py ]
 #   Synopsis     [ the pase wrapper ]
 #   Author       [ santi-pdp/pase ]
 #   Reference    [ https://github.com/santi-pdp/pase/blob/master/pase ]
@@ -13,9 +13,13 @@
 import torch
 import torch.nn as nn
 from torch.nn.utils.rnn import pad_sequence
-
+#-------------#
 from pase.models.frontend import wf_builder
 
+
+############
+# CONSTANT #
+############
 SAMPLE_RATE = 16000
 EXAMPLE_SEC = 5
 

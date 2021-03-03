@@ -1,18 +1,31 @@
+# -*- coding: utf-8 -*- #
+"""*********************************************************************************************"""
+#   FileName     [ upstream/npc/audio.py ]
+#   Synopsis     [ audio utility functions for npc ]
+#   Author       [ S3PRL / Tzu-Wei Sung (https://github.com/WindQAQ) ]
+#   Reference    [ Utterence-wised zero mean unit variance from:
+#                  https://github.com/Alexander-H-Liu/End-to-end-ASR-Pytorch/blob/master/src/audio.py ]
+"""*********************************************************************************************"""
+
+
+###############
+# IMPORTATION #
+###############
 import torch
 import torch.nn as nn
 import torchaudio
 from torchaudio.compliance import kaldi
 
+
+############
+# CONSTANT #
+############
 WINDOW_TYPE = 'hamming'
 SAMPLE_RATE = 16000
 
 
 class CMVN(torch.jit.ScriptModule):
-    '''
-        Utterence-wised zero mean unit variance from
-        https://github.com/Alexander-H-Liu/End-to-end-ASR-Pytorch/blob/master/src/audio.py
-        implemented by Tzu-Wei Sung (https://github.com/WindQAQ)
-    '''
+
     __constants__ = ["mode", "dim", "eps"]
 
     def __init__(self, mode="global", dim=2, eps=1e-10):

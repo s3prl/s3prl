@@ -1,17 +1,32 @@
+# -*- coding: utf-8 -*- #
+"""*********************************************************************************************"""
+#   FileName     [ upstream/baseline/expert.py ]
+#   Synopsis     [ the baseline wrapper ]
+#   Author       [ S3PRL ]
+#   Copyright    [ Copyleft(c), Speech Lab, NTU, Taiwan ]
+"""*********************************************************************************************"""
+
+
+###############
+# IMPORTATION #
+###############
 import os
 import math
 import yaml
 import torch
 import random
-
+#-------------#
 import torch
 import torch.nn as nn
 from torch.nn.utils.rnn import pad_sequence
-
+#-------------#
 from .extracter import get_extracter
 from .preprocessor import get_preprocessor
 
 
+###################
+# UPSTREAM EXPERT #
+###################
 class UpstreamExpert(nn.Module):
     """
     Extract baseline features from wavforms by torchaudio.compliance.kaldi or torchaudio preprocessor

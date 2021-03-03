@@ -1,12 +1,29 @@
-import copy
+# -*- coding: utf-8 -*- #
+"""*********************************************************************************************"""
+#   FileName     [ upstream/baseline/extracter.py ]
+#   Synopsis     [ the baseline feature extracter with torchaudio.compliance.kaldi as backend ]
+#   Author       [ S3PRL ]
+#   Copyright    [ Copyleft(c), Speech Lab, NTU, Taiwan ]
+"""*********************************************************************************************"""
 
+
+###############
+# IMPORTATION #
+###############
+import copy
+from collections import namedtuple
+#-------------#
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
+#-------------#
 import torchaudio
 from torchaudio import transforms
-from collections import namedtuple
 
+
+############
+# CONSTANT #
+############
 SAMPLE_RATE = 16000
 EXAMPLE_SEC = 5
 
