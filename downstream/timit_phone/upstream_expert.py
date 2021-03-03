@@ -9,7 +9,7 @@ import torch.nn as nn
 import torch.nn.functional as F
 from torch.nn.utils.rnn import pad_sequence
 
-from hubconf import *
+import hubconf
 from .model import *
 
 EXAMPLE_FEAT_SEQLEN = 1000
@@ -23,7 +23,7 @@ class UpstreamExpert(nn.Module):
         ckpt = torch.load(ckpt, map_location='cpu')
 
         args = ckpt['Args']
-        self.upstream = eval(args.upstream)()
+        self.upstream = getattr(hubconf, args.upstream)()
 
         config = ckpt['Config']
         modelrc = config['downstream_expert']['modelrc']
