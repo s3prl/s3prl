@@ -44,16 +44,17 @@ def show(message):
 
 def hack_isinstance():
     # Pytorch do not support passing a defaultdict into DDP module
-    # https://github.com/pytorch/pytorch/blob/57bffc3a8e4fee0cce31e1ff1f662ccf7b16db57/torch/nn/parallel/scatter_gather.py#L19
+    # https://github.com/pytorch/pytorch/blob/v1.7.1/torch/nn/parallel/scatter_gather.py#L19
     
-    # This hack can be resolved in torch 1.8.0, that if each DDP process use single GPU
+    # This hack can be removed after torch 1.8.0, where when each DDP process use single GPU
     # (which is the best practice) DDP will not pass args, kwargs into scatter function
-    # https://github.com/pytorch/pytorch/blob/9112f4eded60fa648b68549d87b35e95ab933fe2/torch/nn/parallel/distributed.py#L700
+    # https://github.com/pytorch/pytorch/blob/v1.7.1/torch/nn/parallel/distributed.py#L617
+    # https://github.com/pytorch/pytorch/blob/v1.8.0-rc1/torch/nn/parallel/distributed.py#L700
 
     _isinstance = builtins.isinstance
     def isinstance(obj, cls):
         if _isinstance(obj, defaultdict):
-            return issubclass(cls, defaultdict)
+            return _isinstance(obj, cls) and issubclass(cls, defaultdict)
         return _isinstance(obj, cls)
     builtins.isinstance = isinstance
 
