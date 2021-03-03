@@ -13,20 +13,16 @@ from tqdm import tqdm
 class SWS2013Dataset(Dataset):
     """SWS 2013 dataset."""
 
-    def __init__(self, **kwargs):
+    def __init__(self, split, **kwargs):
+        assert split in ["dev", "eval"]
+
         dataset_root = Path(kwargs["sws2013_root"])
-        scoring_root = Path(kwargs["sws2013_scoring_root"])
+        split_root = Path(kwargs["sws2013_scoring_root"]) / f"sws2013_{split}"
 
         # parse infos
-        audio2dur = parse_ecf(scoring_root / "sws2013_dev" / "sws2013.ecf.xml")
-        dev_q2a = parse_rttm(scoring_root / "sws2013_dev" / "sws2013_dev.rttm")
-        eval_q2a = parse_rttm(scoring_root / "sws2013_eval" / "sws2013_eval.rttm")
-        dev_q2t = find_queries(dataset_root / "dev_queries")
-        eval_q2t = find_queries(dataset_root / "eval_queries")
-
-        # merge dev and eval sets
-        query2audios = {**dev_q2a, **eval_q2a}
-        query2tensors = {**dev_q2t, **eval_q2t}
+        audio2dur = parse_ecf(split_root / "sws2013.ecf.xml")
+        query2audios = parse_rttm(split_root / f"sws2013_{split}.rttm")
+        query2tensors = find_queries(dataset_root / f"{split}_queries")
         print(f"[SWS2013] # of audios: {len(audio2dur)}")
         print(f"[SWS2013] # of queries: {len(query2tensors)}")
 

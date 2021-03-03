@@ -9,7 +9,8 @@ from torch.utils.data import DataLoader, WeightedRandomSampler
 from lxml import etree
 from tqdm import tqdm
 
-from .dataset import SWS2013Dataset
+from .sws2013_dataset import SWS2013Dataset
+from .sws2013_testset import SWS2013Testset
 from .quesst14_dataset import QUESST14Dataset
 from .model import Model
 
@@ -36,6 +37,7 @@ class DownstreamExpert(nn.Module):
 
         # Dataset, model, loss setup
         self.train_dataset = None
+        self.valid_dataset = None
         self.test_dataset = None
         self.model = Model(
             input_dim=upstream_dim,
@@ -46,7 +48,9 @@ class DownstreamExpert(nn.Module):
     # Interface
     def get_dataloader(self, mode):
         if mode == "train":
-            self.train_dataset = SWS2013Dataset(**self.datarc)
+            self.train_dataset = SWS2013Dataset("dev", **self.datarc)
+            self.valid_dataset = SWS2013Dataset("eval", **self.datarc)
+
             return DataLoader(
                 self.train_dataset,
                 sampler=WeightedRandomSampler(
@@ -60,7 +64,21 @@ class DownstreamExpert(nn.Module):
                 collate_fn=self.train_dataset.collate_fn,
             )
 
-        elif mode in ["dev", "eval"]:
+        if mode == "valid":
+            return DataLoader(
+                self.valid_dataset,
+                sampler=WeightedRandomSampler(
+                    weights=self.valid_dataset.sample_weights,
+                    num_samples=self.datarc["valid_size"],
+                    replacement=True,
+                ),
+                batch_size=self.datarc["batch_size"],
+                drop_last=True,
+                num_workers=self.datarc["num_workers"],
+                collate_fn=self.valid_dataset.collate_fn,
+            )
+
+        if mode in ["dev", "eval"]:
             self.test_dataset = QUESST14Dataset(mode, **self.datarc)
             return DataLoader(
                 self.test_dataset,
@@ -71,8 +89,18 @@ class DownstreamExpert(nn.Module):
                 collate_fn=self.test_dataset.collate_fn,
             )
 
-        else:
-            raise NotImplementedError
+        if mode == "sws2013_eval":
+            self.test_dataset = SWS2013Testset("eval", **self.datarc)
+            return DataLoader(
+                self.test_dataset,
+                shuffle=False,
+                batch_size=self.datarc["batch_size"],
+                drop_last=False,
+                num_workers=self.datarc["num_workers"],
+                collate_fn=self.test_dataset.collate_fn,
+            )
+
+        raise NotImplementedError
 
     # Interface
     def forward(
@@ -83,7 +111,7 @@ class DownstreamExpert(nn.Module):
         records,
         **kwargs,
     ):
-        if mode == "train":
+        if mode in ["train", "valid"]:
             audio_tensors = torch.stack(features[: len(features) // 2])
             query_tensors = torch.stack(features[len(features) // 2 :])
             labels = torch.cat(labels).to(audio_tensors.device)
@@ -103,7 +131,7 @@ class DownstreamExpert(nn.Module):
 
             return loss
 
-        else:
+        elif mode in ["dev", "eval", "sws2013_eval"]:
             audio_tensors = torch.stack(features)
             lengths, audio_names = labels
 
@@ -116,15 +144,20 @@ class DownstreamExpert(nn.Module):
                 records["audio_names"].append(audio_name)
                 offset += length
 
+        else:
+            raise NotImplementedError
+
     # Interface
     def log_records(self, mode, records, logger, global_step, **kwargs):
-        if mode == "train":
+        """Log training, validation information or test on a dataset."""
+
+        if mode in ["train", "valid"]:
             prefix = f"sws2013/{mode}"
             for key, val in records.items():
                 average = sum(val) / len(val)
                 logger.add_scalar(f"{prefix}-{key}", average, global_step=global_step)
 
-        else:
+        elif mode in ["dev", "eval", "sws2013_eval"]:
             query_embs = records["embs"][: self.test_dataset.n_queries]
             doc_embs = records["embs"][self.test_dataset.n_queries :]
             query_names = records["audio_names"][: self.test_dataset.n_queries]
@@ -192,3 +225,6 @@ class DownstreamExpert(nn.Module):
                 encoding="UTF-8",
                 pretty_print=True,
             )
+
+        else:
+            raise NotImplementedError
