@@ -184,7 +184,7 @@ class DownstreamExpert(nn.Module):
         for log_prob, in_len in zip(log_probs, input_lens):
             log_prob = log_prob[:in_len].unsqueeze(0)
             decoded = None
-            if self.decoder is not None:
+            if self.decoder is not None and not self.training:
                 decoded = self.decoder.decode(log_prob)
                 if len(decoded) >= 1:
                     decoded = decoded[0]
@@ -259,12 +259,11 @@ class DownstreamExpert(nn.Module):
             )
         records['loss'].append(loss.item())
 
-        if not self.model.training:
-            with torch.no_grad():
-                pred_tokens_batch, pred_words_batch = self._decode(log_probs.float().contiguous().cpu(), log_probs_len)
-                uer, wer = self._compute_metrics(pred_tokens_batch, pred_words_batch, labels)
-            records['uer'].append(uer)
-            records['wer'].append(wer)
+        with torch.no_grad():
+            pred_tokens_batch, pred_words_batch = self._decode(log_probs.float().contiguous().cpu(), log_probs_len)
+            uer, wer = self._compute_metrics(pred_tokens_batch, pred_words_batch, labels)
+        records['uer'].append(uer)
+        records['wer'].append(wer)
 
         return loss
 
