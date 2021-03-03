@@ -7,7 +7,8 @@ from argparse import Namespace
 
 import torch
 import torch.nn as nn
-from torch.utils.data import DataLoader
+from torch.utils.data import DataLoader, DistributedSampler
+from torch.distributed import is_initialized, get_rank, get_world_size
 from torch.nn.utils.rnn import pad_sequence
 
 from examples.speech_recognition.w2l_decoder import W2lKenLMDecoder
@@ -129,10 +130,13 @@ class DownstreamExpert(nn.Module):
 
 
     def _get_train_dataloader(self, dataset):
+        sampler = DistributedSampler(dataset) if is_initialized() else None
         return DataLoader(
             dataset, batch_size=1,
-            shuffle=True, num_workers=self.datarc['num_workers'],
-            collate_fn=dataset.collate_fn
+            shuffle=(sampler is None),
+            sampler=sampler,
+            num_workers=self.datarc['num_workers'],
+            collate_fn=dataset.collate_fn,
         )
 
 
