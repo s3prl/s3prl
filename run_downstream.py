@@ -10,8 +10,8 @@ import numpy as np
 from argparse import Namespace
 
 import hubconf
-from utility.helper import copyfile
 from downstream.runner import Runner
+from utility.helper import copyfile, hack_isinstance
 
 
 def get_downstream_args():
@@ -62,13 +62,16 @@ def get_downstream_args():
     parser.add_argument('--seed', default=1337, type=int)
     parser.add_argument('--device', default='cuda', help='model.to(device)')
 
+    # distributed training
+    parser.add_argument('--backend', default='nccl', help='The backend for distributed training')
+    parser.add_argument('--local_rank', type=int,
+                        help=f'The GPU id this process should use while distributed training. \
+                               None when not launched by torch.distributed.launch')
+
     args = parser.parse_args()
 
     if args.expdir is None:
         args.expdir = f'result/downstream/{args.expname}'
-
-    if os.path.isfile(f'{args.expdir}/{args.mode}_finished'):
-        exit(0)
 
     if args.auto_resume:
         if os.path.isdir(args.expdir):
@@ -101,7 +104,7 @@ def get_downstream_args():
             return Namespace(**out_dict)
 
         # overwrite args and config
-        args = update_args(args, ckpt['Args'], preserve_list=['mode', 'evaluate_split'])
+        args = update_args(args, ckpt['Args'], preserve_list=['mode', 'evaluate_split', 'local_rank'])
         args.init_ckpt = ckpt_pth
         config = ckpt['Config']
 
@@ -123,10 +126,16 @@ def get_downstream_args():
 
 def main():
     torch.multiprocessing.set_sharing_strategy('file_system')
+    hack_isinstance()
 
     # get config and arguments
     args, config = get_downstream_args()
 
+    # When torch.distributed.launch is used
+    if args.local_rank is not None:
+        torch.cuda.set_device(args.local_rank)
+        torch.distributed.init_process_group(args.backend)
+    
     # Fix seed and make backends deterministic
     random.seed(args.seed)
     np.random.seed(args.seed)

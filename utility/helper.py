@@ -12,7 +12,13 @@
 ###############
 import torch
 import shutil
+import builtins
+from collections import defaultdict
+from torch.nn.parallel import DistributedDataParallel as DDP
+from torch.distributed import is_initialized, get_rank, get_world_size
 
+def is_leader_process():
+    return not is_initialized() or get_rank() == 0
 
 def count_parameters(model):
     return sum(p.numel() for p in model.parameters() if p.requires_grad)
@@ -26,6 +32,30 @@ def copyfile(src_path, tgt_path):
         shutil.copyfile(src_path, tgt_path)
     except shutil.SameFileError:
         pass
+
+def get_model_state(model):
+    if isinstance(model, DDP):
+        return model.module.state_dict()
+    return model.state_dict()
+
+def show(message):
+    if is_leader_process():
+        print(message)
+
+def hack_isinstance():
+    # Pytorch do not support passing a defaultdict into DDP module
+    # https://github.com/pytorch/pytorch/blob/57bffc3a8e4fee0cce31e1ff1f662ccf7b16db57/torch/nn/parallel/scatter_gather.py#L19
+    
+    # This hack can be resolved in torch 1.8.0, that if each DDP process use single GPU
+    # (which is the best practice) DDP will not pass args, kwargs into scatter function
+    # https://github.com/pytorch/pytorch/blob/9112f4eded60fa648b68549d87b35e95ab933fe2/torch/nn/parallel/distributed.py#L700
+
+    _isinstance = builtins.isinstance
+    def isinstance(obj, cls):
+        if _isinstance(obj, defaultdict):
+            return issubclass(cls, defaultdict)
+        return _isinstance(obj, cls)
+    builtins.isinstance = isinstance
 
 
 #####################
