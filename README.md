@@ -59,31 +59,41 @@ Introduction
     }
     ```
   + [Audio ALBERT: A Lite BERT for Self-supervised Learning of Audio Representation (Chi et al., 2020)](https://arxiv.org/abs/2005.08575)
+    ```
+    @inproceedings{audio_albert,
+        title={Audio ALBERT: A Lite BERT for Self-supervised Learning of Audio Representation},
+        author={Po-Han Chi and Pei-Hung Chung and Tsung-Han Wu and Chun-Cheng Hsieh and Shang-Wen Li and Hung-yi Lee},
+        year={2020},
+        booktitle={SLT 2020},
+    }
+    ```
 * **Explanability**
   + [Understanding Self-Attention of Self-Supervised Audio Transformers (Yang et al., 2020)](https://arxiv.org/abs/2006.03265)
     ```
-    @misc{understandingSAT,
-        title={Understanding Self-Attention of Self-Supervised Audio Transformers},
+    @inproceedings{understanding_sat,
         author={Shu-wen Yang and Andy T. Liu and Hung-yi Lee},
-        year={2020},
-        eprint={2006.03265},
-        archivePrefix={arXiv},
-        primaryClass={cs.CL}
+        title={{Understanding Self-Attention of Self-Supervised Audio Transformers}},
+        year=2020,
+        booktitle={Proc. Interspeech 2020},
+        pages={3785--3789},
+        doi={10.21437/Interspeech.2020-2231},
+        url={http://dx.doi.org/10.21437/Interspeech.2020-2231}
     }
     ```
 * **Adversarial Attack**
   + [Defense for Black-box Attacks on Anti-spoofing Models by Self-Supervised Learning (Wu et al., 2020)](https://arxiv.org/abs/2006.03214), code for computing LNSR: [utility/observe_lnsr.py](https://github.com/s3prl/s3prl/blob/master/utility/observe_lnsr.py)
     ```
-    @misc{mockingjay_defense,
-        title={Defense for Black-box Attacks on Anti-spoofing Models by Self-Supervised Learning},
+    @inproceedings{mockingjay_defense,
         author={Haibin Wu and Andy T. Liu and Hung-yi Lee},
-        year={2020},
-        eprint={2006.03214},
-        archivePrefix={arXiv},
-        primaryClass={eess.AS}
+        title={{Defense for Black-Box Attacks on Anti-Spoofing Models by Self-Supervised Learning}},
+        year=2020,
+        booktitle={Proc. Interspeech 2020},
+        pages={3780--3784},
+        doi={10.21437/Interspeech.2020-2026},
+        url={http://dx.doi.org/10.21437/Interspeech.2020-2026}
     }
     ```
-  + [Adversarial Defense for Automatic Speaker Verification by Cascaded Self-Supervised Learning Models (Wu et al., 2021)](https://andi611.github.io/)
+  + [Adversarial Defense for Automatic Speaker Verification by Cascaded Self-Supervised Learning Models (Wu et al., 2021)](https://arxiv.org/abs/2102.07047)
 
 </p></details>
 
