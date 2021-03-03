@@ -10,9 +10,13 @@
 ###############
 # IMPORTATION #
 ###############
+import os
 import torch
 import shutil
 import builtins
+from time import time
+from pathlib import Path
+from datetime import datetime
 from collections import defaultdict
 from torch.nn.parallel import DistributedDataParallel as DDP
 from torch.distributed import is_initialized, get_rank, get_world_size
@@ -27,11 +31,13 @@ def count_used_parameters(model):
     # The model should be at least backward once
     return sum(p.numel() for p in model.parameters() if p.grad is not None)
 
-def copyfile(src_path, tgt_path):
-    try:
-        shutil.copyfile(src_path, tgt_path)
-    except shutil.SameFileError:
-        pass
+def get_time_tag():
+    return datetime.fromtimestamp(time()).strftime('%Y-%m-%d-%H-%M-%S')
+
+def backup(src_path, tgt_dir):
+    stem = Path(src_path).stem
+    suffix = Path(src_path).suffix
+    shutil.copyfile(src_path, os.path.join(tgt_dir, f'{stem}_{get_time_tag()}{suffix}'))
 
 def get_model_state(model):
     if isinstance(model, DDP):

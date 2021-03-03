@@ -1,5 +1,6 @@
 import os
 import re
+import sys
 import yaml
 import glob
 import torch
@@ -8,10 +9,11 @@ import argparse
 import importlib
 import numpy as np
 from argparse import Namespace
+from torch.distributed import is_initialized, get_world_size
 
 import hubconf
 from downstream.runner import Runner
-from utility.helper import copyfile, hack_isinstance
+from utility.helper import backup, get_time_tag, hack_isinstance, is_leader_process
 
 
 def get_downstream_args():
@@ -20,6 +22,12 @@ def get_downstream_args():
     # train or test for this experiment
     parser.add_argument('-m', '--mode', choices=['train', 'evaluate'], required=True)
     parser.add_argument('-t', '--evaluate_split', default='test')
+
+    # distributed training
+    parser.add_argument('--backend', default='nccl', help='The backend for distributed training')
+    parser.add_argument('--local_rank', type=int,
+                        help=f'The GPU id this process should use while distributed training. \
+                               None when not launched by torch.distributed.launch')
 
     # use a ckpt as the experiment initialization
     # if set, all the args and config below this line will be overwrited by the ckpt
@@ -62,12 +70,6 @@ def get_downstream_args():
     parser.add_argument('--seed', default=1337, type=int)
     parser.add_argument('--device', default='cuda', help='model.to(device)')
 
-    # distributed training
-    parser.add_argument('--backend', default='nccl', help='The backend for distributed training')
-    parser.add_argument('--local_rank', type=int,
-                        help=f'The GPU id this process should use while distributed training. \
-                               None when not launched by torch.distributed.launch')
-
     args = parser.parse_args()
 
     if args.expdir is None:
@@ -103,8 +105,12 @@ def get_downstream_args():
                     out_dict[key] = new_dict[key]
             return Namespace(**out_dict)
 
-        # overwrite args and config
-        args = update_args(args, ckpt['Args'], preserve_list=['mode', 'evaluate_split', 'local_rank'])
+        # overwrite args
+        cannot_overwrite_args = [
+            'mode', 'evaluate_split', 'backend',
+            'local_rank', 'past_exp',
+        ]
+        args = update_args(args, ckpt['Args'], preserve_list=cannot_overwrite_args)
         args.init_ckpt = ckpt_pth
         config = ckpt['Config']
 
@@ -116,10 +122,10 @@ def get_downstream_args():
             args.config = f'./downstream/{args.downstream}/config.yaml'
         with open(args.config, 'r') as file:
             config = yaml.load(file, Loader=yaml.FullLoader)
-        copyfile(args.config, f'{args.expdir}/config.yaml')
+        backup(args.config, args.expdir)
 
         if args.upstream_model_config is not None and os.path.isfile(args.upstream_model_config):
-            copyfile(args.upstream_model_config, f'{args.expdir}/upstream_model.yaml')
+            backup(args.upstream_model_config, args.expdir)
 
     return args, config
 
@@ -135,7 +141,24 @@ def main():
     if args.local_rank is not None:
         torch.cuda.set_device(args.local_rank)
         torch.distributed.init_process_group(args.backend)
+
+    if args.mode == 'train' and args.past_exp:
+        ckpt = torch.load(args.init_ckpt, map_location='cpu')
+
+        now_use_ddp = is_initialized()
+        original_use_ddp = ckpt['Args'].local_rank is not None
+        assert now_use_ddp == original_use_ddp, f'{now_use_ddp} != {original_use_ddp}'
+
+        if now_use_ddp:
+            now_world = get_world_size()
+            original_world = ckpt['WorldSize']
+            assert now_world == original_world, f'{now_world} != {original_world}'
     
+    # Save command
+    if is_leader_process():
+        with open(os.path.join(args.expdir, f'command_{get_time_tag()}.txt'), 'w') as file:
+            file.write(f'{" ".join(sys.argv)}\n')
+
     # Fix seed and make backends deterministic
     random.seed(args.seed)
     np.random.seed(args.seed)

@@ -291,6 +291,9 @@ class Runner():
                     if self.args.upstream_trainable:
                         all_states['Upstream'] = get_model_state(self.upstream)
 
+                    if is_initialized():
+                        all_states['WorldSize'] = get_world_size()
+
                     save_paths = [os.path.join(self.args.expdir, name) for name in save_names]
                     tqdm.write(f'[Runner] - Save the checkpoint to:')
                     for i, path in enumerate(save_paths):
