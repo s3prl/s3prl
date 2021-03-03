@@ -1,20 +1,22 @@
 import os
+import sys
 import math
 import glob
 import random
 import importlib
 from pathlib import Path
-from collections import defaultdict
 
 import torch
 import torch.nn as nn
 import numpy as np
 from tqdm import tqdm
 from tensorboardX import SummaryWriter
+from torch.nn.parallel import DistributedDataParallel as DDP
+from torch.distributed import is_initialized, get_rank, get_world_size
 
 from optimizers import get_optimizer
 from schedulers import get_scheduler
-from utility.helper import count_parameters
+from utility.helper import is_leader_process, count_parameters, get_model_state, show, defaultdict
 
 SAMPLE_RATE = 16000
 
@@ -27,35 +29,52 @@ class Runner():
     def __init__(self, args, config):
         self.args = args
         self.config = config
-        self.logger = SummaryWriter(args.expdir)
 
         self.init_ckpt = torch.load(self.args.init_ckpt, map_location='cpu') if self.args.init_ckpt else {}
         self.upstream = self._get_upstream()
         self.downstream = self._get_downstream()
 
+        if is_leader_process():
+            self.logger = SummaryWriter(args.expdir)
+
 
     def _get_upstream(self):
         Upstream = getattr(importlib.import_module('hubconf'), self.args.upstream)
+        upstream_refresh = self.args.upstream_refresh
+
+        if is_initialized() and get_rank() > 0:
+            torch.distributed.barrier()
+            upstream_refresh = False
+
         upstream = Upstream(
             feature_selection = self.args.upstream_feature_selection,
             model_config = self.args.upstream_model_config,
-            refresh = self.args.upstream_refresh,
+            refresh = upstream_refresh,
             ckpt = self.args.upstream_ckpt,
         ).to(self.args.device)
 
-        assert hasattr(upstream, 'forward')
-        assert hasattr(upstream, 'get_output_dim')
-        assert hasattr(upstream, 'get_downsample_rate')
+        if is_initialized() and get_rank() == 0:
+            torch.distributed.barrier()
 
-        print(f'[Runner] - Upstream model architecture: {upstream}')
-        print(f'[Runner] - Upstream output dimension: {upstream.get_output_dim()}')
+        interface_fn = ['get_output_dim', 'get_downsample_rate']
+        for fn in interface_fn:
+            assert hasattr(upstream, fn)
+
+        show(f'[Runner] - Upstream model architecture: {upstream}')
+        show(f'[Runner] - Upstream output dimension: {upstream.get_output_dim()}')
         downsample = upstream.get_downsample_rate()
-        print(f'[Runner] - Upstream downsample rate: {downsample} ({downsample / SAMPLE_RATE * 1000} ms/frame)')
+        show(f'[Runner] - Upstream downsample rate: {downsample} ({downsample / SAMPLE_RATE * 1000} ms/frame)')
 
         init_upstream = self.init_ckpt.get('Upstream')
         if init_upstream:
-            print('[Runner] - Loading upstream weights from the previous experiment')
+            show('[Runner] - Loading upstream weights from the previous experiment')
             upstream.load_state_dict(init_upstream)
+
+        if is_initialized() and self.args.upstream_trainable:
+            upstream = DDP(upstream, device_ids=[self.args.local_rank], find_unused_parameters=True)
+            for fn in interface_fn:
+                setattr(upstream, fn, getattr(upstream.module, fn))
+
         return upstream
 
 
@@ -69,17 +88,23 @@ class Runner():
             **vars(self.args)
         ).to(self.args.device)
 
-        print(f'[Runner] - Downstream model architecture: {downstream}')
-        print(f'[Runner] - Downstream has {count_parameters(downstream)} parameters')
+        show(f'[Runner] - Downstream model architecture: {downstream}')
+        show(f'[Runner] - Downstream has {count_parameters(downstream)} parameters')
 
-        assert hasattr(downstream, 'get_dataloader')
-        assert hasattr(downstream, 'forward')
-        assert hasattr(downstream, 'log_records')
+        interface_fn = ['get_dataloader', 'log_records']
+        for fn in interface_fn:
+            assert hasattr(downstream, fn)
 
         init_downstream = self.init_ckpt.get('Downstream')
         if init_downstream:
-            print('[Runner] - Loading downstream weights from the previous experiment')
+            show('[Runner] - Loading downstream weights from the previous experiment')
             downstream.load_state_dict(init_downstream)
+
+        if is_initialized():
+            downstream = DDP(downstream, device_ids=[self.args.local_rank], find_unused_parameters=True)
+            for fn in interface_fn:
+                setattr(downstream, fn, getattr(downstream.module, fn))
+
         return downstream
 
 
@@ -92,7 +117,7 @@ class Runner():
 
         init_optimizer = self.init_ckpt.get('Optimizer')
         if init_optimizer:
-            print('[Runner] - Loading optimizer weights from the previous experiment')
+            show('[Runner] - Loading optimizer weights from the previous experiment')
             optimizer.load_state_dict(init_optimizer)
         return optimizer
 
@@ -106,7 +131,7 @@ class Runner():
 
         init_scheduler = self.init_ckpt.get('Scheduler')
         if init_scheduler:
-            print('[Runner] - Loading scheduler weights from the previous experiment')
+            show('[Runner] - Loading scheduler weights from the previous experiment')
             scheduler.load_state_dict(init_scheduler)
         return scheduler
 
@@ -136,7 +161,8 @@ class Runner():
             specaug = SpecAug(**self.config["specaug"])
 
         # set progress bar
-        pbar = tqdm(total=self.config['runner']['total_steps'], dynamic_ncols=True, desc='overall')
+        tqdm_file = sys.stderr if is_leader_process() else open(os.devnull, 'w')
+        pbar = tqdm(total=self.config['runner']['total_steps'], dynamic_ncols=True, desc='overall', file=tqdm_file)
         init_step = self.init_ckpt.get('Step')
         if init_step:
             pbar.n = init_step
@@ -148,7 +174,7 @@ class Runner():
         backward_steps = 0
         records = defaultdict(list)
         while pbar.n < pbar.total:
-            for batch_id, (wavs, *others) in enumerate(tqdm(dataloader, dynamic_ncols=True, desc='train')):
+            for batch_id, (wavs, *others) in enumerate(tqdm(dataloader, dynamic_ncols=True, desc='train', file=tqdm_file)):
                 # try/except block for forward/backward
                 try:
                     if pbar.n >= pbar.total:
@@ -179,6 +205,8 @@ class Runner():
                 except RuntimeError as e:
                     if 'CUDA out of memory' in str(e):
                         print(f'[Runner] - CUDA out of memory at step {global_step}')
+                        if is_initialized():
+                            raise
                         torch.cuda.empty_cache()
                         optimizer.zero_grad()
                         continue
@@ -206,6 +234,11 @@ class Runner():
                 # adjust learning rate
                 if scheduler:
                     scheduler.step()
+
+                if not is_leader_process():
+                    batch_ids = []
+                    records = defaultdict(list)
+                    continue
 
                 # logging
                 if global_step % self.config['runner']['log_step'] == 0:
@@ -240,7 +273,7 @@ class Runner():
 
                 if len(save_names) > 0:
                     all_states = {
-                        'Downstream': self.downstream.state_dict(),
+                        'Downstream': get_model_state(self.downstream),
                         'Optimizer': optimizer.state_dict(),
                         'Step': global_step,
                         'Args': self.args,
@@ -251,7 +284,7 @@ class Runner():
                         all_states['Scheduler'] = scheduler.state_dict()
 
                     if self.args.upstream_trainable:
-                        all_states['Upstream'] = self.upstream.state_dict()
+                        all_states['Upstream'] = get_model_state(self.upstream)
 
                     save_paths = [os.path.join(self.args.expdir, name) for name in save_names]
                     tqdm.write(f'[Runner] - Save the checkpoint to:')
@@ -260,8 +293,6 @@ class Runner():
                         torch.save(all_states, path)
 
                 pbar.update(1)
-
-        Path(f'{self.args.expdir}/train_finished').touch(exist_ok=True)
         pbar.close()
 
 
