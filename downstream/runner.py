@@ -170,10 +170,14 @@ class Runner():
         # prepare data
         dataloader = self.downstream.get_dataloader('train')
 
+        epoch = 0
         batch_ids = []
         backward_steps = 0
         records = defaultdict(list)
         while pbar.n < pbar.total:
+            if is_initialized():
+                dataloader.sampler.set_epoch(epoch)
+
             for batch_id, (wavs, *others) in enumerate(tqdm(dataloader, dynamic_ncols=True, desc='train', file=tqdm_file)):
                 # try/except block for forward/backward
                 try:
@@ -293,6 +297,7 @@ class Runner():
                         torch.save(all_states, path)
 
                 pbar.update(1)
+            epoch += 1
         pbar.close()
 
 
