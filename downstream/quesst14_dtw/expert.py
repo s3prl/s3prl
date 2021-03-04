@@ -4,18 +4,14 @@ from collections import defaultdict
 from concurrent.futures import ProcessPoolExecutor, as_completed
 from pathlib import Path
 
-import numpy as np
-import pyximport
 import torch
 import torch.nn as nn
 from lxml import etree
 from torch.utils.data import DataLoader
 from tqdm import tqdm
-
-pyximport.install(setup_args={"include_dirs": np.get_include()})
+from dtw import dtw
 
 from .dataset import QUESST14Dataset
-from .segmental_dtw import segmental_dtw
 
 
 class DownstreamExpert(nn.Module):
@@ -29,8 +25,11 @@ class DownstreamExpert(nn.Module):
     ):
         super(DownstreamExpert, self).__init__()
         self.upstream_dim = upstream_dim
-        self.metric = downstream_expert["metric"]
-        self.max_workers = downstream_expert["max_workers"] if downstream_expert["max_workers"] > 0 else None
+        self.max_workers = (
+            downstream_expert["max_workers"]
+            if downstream_expert["max_workers"] > 0
+            else None
+        )
         self.datarc = downstream_expert["datarc"]
         self.expdir = Path(expdir)
         self.test_dataset = QUESST14Dataset(**self.datarc)
@@ -56,11 +55,9 @@ class DownstreamExpert(nn.Module):
         **kwargs,
     ):
         for feature, audio_name in zip(features, audio_names):
-            feature = feature.detach().cpu().numpy().astype(np.double)
+            feature = feature.detach().cpu()
             records["features"].append(feature)
             records["audio_names"].append(audio_name)
-
-        return torch.zeros(1)
 
     # interface
     def log_records(self, mode, records, **kwargs):
@@ -69,6 +66,16 @@ class DownstreamExpert(nn.Module):
         docs = records["features"][self.test_dataset.n_queries :]
         query_names = records["audio_names"][: self.test_dataset.n_queries]
         doc_names = records["audio_names"][self.test_dataset.n_queries :]
+
+        # Normalize representations
+        feats = torch.cat(records["features"])
+        feature_mean = feats.mean(0)
+        feature_std = feats.std(0)
+        feature_std[feature_std == 0.0] = 1e-9
+        queries = [((query - feature_mean) / feature_std).numpy() for query in queries]
+        docs = [((doc - feature_mean) / feature_std).numpy() for doc in docs]
+
+        # Store results
         results = defaultdict(list)
         scores = []
 
@@ -77,11 +84,15 @@ class DownstreamExpert(nn.Module):
             futures = []
 
             for query, query_name in zip(queries, query_names):
-                query_name = query_name.replace(".wav", "")
                 for doc, doc_name in zip(docs, doc_names):
-                    doc_name = doc_name.replace(".wav", "")
                     futures.append(
-                        executor.submit(match, query, doc, query_name, doc_name, self.metric)
+                        executor.submit(
+                            match,
+                            query,
+                            doc,
+                            query_name,
+                            doc_name,
+                        )
                     )
 
             for future in tqdm(
@@ -134,6 +145,24 @@ class DownstreamExpert(nn.Module):
         )
 
 
-def match(query, doc, query_name, doc_name, metric_name):
-    cost = segmental_dtw(query, doc, metric_name)
+def match(query, doc, query_name, doc_name):
+    dtw_result = dtw(
+        x=query,
+        y=doc,
+        # dist_method="correlation",
+        dist_method="cosine",
+        # dist_method="cityblock",
+        # dist_method="euclidean",
+        # dist_method="sqeuclidean",
+        # step_pattern="symmetric2",
+        step_pattern="asymmetric",
+        # step_pattern="rigid",
+        keep_internals=False,
+        # distance_only=True,
+        distance_only=False,
+        open_end=True,
+        # open_begin=False,
+        open_begin=True,
+    )
+    cost = dtw_result.normalizedDistance
     return query_name, doc_name, -1 * cost

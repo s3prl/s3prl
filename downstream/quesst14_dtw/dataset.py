@@ -9,7 +9,7 @@ EFFECTS = [
     ["channels", "1"],
     ["rate", "16000"],
     ["gain", "-3.0"],
-    ["silence", "1", "0.1", "0.1%", "-1", "0.1", "0.1%"],
+    # ["silence", "1", "0.1", "0.1%", "-1", "0.1", "0.1%"],
 ]
 
 
@@ -34,7 +34,7 @@ class QUESST14Dataset(Dataset):
         wav, _ = apply_effects_file(str(audio_path), EFFECTS)
         wav = wav.squeeze(0)
         assert len(wav) >= 400
-        return wav, audio_path.name
+        return wav, audio_path.with_suffix("").name
 
     def collate_fn(self, samples):
         """Collate a mini-batch of data."""
