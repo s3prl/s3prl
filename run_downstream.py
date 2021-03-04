@@ -71,6 +71,7 @@ def get_downstream_args():
     parser.add_argument('--device', default='cuda', help='model.to(device)')
 
     args = parser.parse_args()
+    backup_files = []
 
     if args.expdir is None:
         args.expdir = f'result/downstream/{args.expname}'
@@ -122,12 +123,12 @@ def get_downstream_args():
             args.config = f'./downstream/{args.downstream}/config.yaml'
         with open(args.config, 'r') as file:
             config = yaml.load(file, Loader=yaml.FullLoader)
-        backup(args.config, args.expdir)
+        backup_files.append(args.config)
 
         if args.upstream_model_config is not None and os.path.isfile(args.upstream_model_config):
-            backup(args.upstream_model_config, args.expdir)
+            backup_files.append(args.upstream_model_config)
 
-    return args, config
+    return args, config, backup_files
 
 
 def main():
@@ -135,7 +136,7 @@ def main():
     hack_isinstance()
 
     # get config and arguments
-    args, config = get_downstream_args()
+    args, config, backup_files = get_downstream_args()
 
     # When torch.distributed.launch is used
     if args.local_rank is not None:
@@ -158,6 +159,9 @@ def main():
     if is_leader_process():
         with open(os.path.join(args.expdir, f'command_{get_time_tag()}.txt'), 'w') as file:
             file.write(f'{" ".join(sys.argv)}\n')
+
+        for file in backup_files:
+            backup(file, args.expdir)
 
     # Fix seed and make backends deterministic
     random.seed(args.seed)
