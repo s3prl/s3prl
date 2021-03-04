@@ -15,7 +15,7 @@ fi
 scoring_dir="$1/scoring"
 infer_dir="${scoring_dir}/predictions"
 test_set="$2"
-# directory where you cloned dscore (https://github.com/nryant/dscore)
+# directory where you cloned dscore (https://github.com/ftshijt/dscore)
 dscore_dir=/export/c06/jiatong/dia_workspace/dscore
 
 frame_shift=160
