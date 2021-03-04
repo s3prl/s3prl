@@ -3,12 +3,18 @@
 #   Synopsis     [ Speaker Diarization Scoring, use NIST scoring metric ]
 #   Source       [ Refactored From https://github.com/hitachi-speech/EEND ]
 #   Author       [ Jiatong Shi ]
-#   Copyright    [ Copyleft(c), Johns Hopkins University ]
+#   Copyright    [ Copyright(c), Johns Hopkins University ]
 #   *********************************************************************************************"""
 
-scoring_dir="downstream/diarization/wav2vec2_scoring"
+if [ "$#" -ne 2 ]; then
+  echo "Usage: $0 <expdir> <test_set>"
+  echo "e.g., ./downstream/diarization/score.sh result/downstream/test data/test"
+  exit 1
+fi
+
+scoring_dir="$1/scoring"
 infer_dir="${scoring_dir}/predictions"
-test_set="downstream/diarization/data/test"
+test_set="$2"
 # directory where you cloned dscore (https://github.com/nryant/dscore)
 dscore_dir=/export/c06/jiatong/dia_workspace/dscore
 
@@ -26,12 +32,15 @@ for med in 1 11; do
             $scoring_log_dir/file_list $scoring_dir/hyp_${th}_$med.rttm
         python ${dscore_dir}/score.py -r ${test_set}/rttm -s $scoring_dir/hyp_${th}_$med.rttm \
             > $scoring_dir/result_th${th}_med${med} 2>/dev/null || exit
-    #     md-eval.pl -c 0.25 \
-    #         -r ${test_set}/rttm \
-    #         -s $scoring_dir/hyp_${th}_$med.rttm > $scoring_dir/result_th${th}_med${med}_collar0.25 2>/dev/null || exit
+
+        # NIST scoring
+        # md-eval.pl \
+        #     -r ${test_set}/rttm \
+        #     -s $scoring_dir/hyp_${th}_$med.rttm > $scoring_dir/result_th${th}_med${med}_collar0 2>/dev/null || exit
     done
 done
-
 grep OVER $scoring_dir/result_th0.[^_]*_med[^_]* \
-     | sort -nrk 4 \
-     | tail -n 1 | awk -F '[[:space:]][[:space:]]+' '{print $1 "\t" $2}'
+     | sort -nrk 7 
+# grep OVER $scoring_dir/result_th0.[^_]*_med[^_]* \
+#      | sort -nrk 4 \
+#      | tail -n 1 | awk -F '[[:space:]][[:space:]]+' '{print $1 "\t" $2}'

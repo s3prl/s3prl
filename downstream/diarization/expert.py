@@ -4,7 +4,7 @@
 #   Synopsis     [ the speaker diarization dataset ]
 #   Source       [ Refactored from https://github.com/hitachi-speech/EEND ]
 #   Author       [ Jiatong Shi ]
-#   Copyright    [ Copyleft(c), Johns Hopkins University ]
+#   Copyright    [ Copyright(c), Johns Hopkins University ]
 """*********************************************************************************************"""
 
 ###############
@@ -46,7 +46,7 @@ class DownstreamExpert(nn.Module):
         self.train_batch_size = self.loaderrc["train_batchsize"]
         self.eval_batch_size = self.loaderrc["eval_batchsize"]
 
-        self.score_dir = self.scorerc["score_dir"]
+        self.score_dir = os.path.join(expdir, "scoring")
         self.save_predictions = self.scorerc["save_predictions"]
 
         if not os.path.exists(self.score_dir) and self.save_predictions:

@@ -3,7 +3,7 @@
 #   FileName     [ model.py ]
 #   Synopsis     [ Baseline model for speaker diarization ]
 #   Author       [ Jiatong ]
-#   Copyright    [ Copyleft(c), Johns Hopkins University ]
+#   Copyright    [ Copyright(c), Johns Hopkins University ]
 """*********************************************************************************************"""
 
 
