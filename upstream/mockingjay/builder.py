@@ -1,8 +1,8 @@
 # -*- coding: utf-8 -*- #
 """*********************************************************************************************"""
-#   FileName     [ builder.py ]
+#   FileName     [ upstream/mockingjay/builder.py ]
 #   Synopsis     [ build the transformer model for downstream usage ]
-#   Author       [ Andy T. Liu (Andi611) ]
+#   Author       [ Andy T. Liu (https://github.com/andi611) ]
 #   Copyright    [ Copyleft(c), Speech Lab, NTU, Taiwan ]
 """*********************************************************************************************"""
 
@@ -167,7 +167,7 @@ class TransformerBuilder(nn.Module):
             attn_mask[idx][spec_len[idx]:] = 0 
 
         if self.spec_aug and self.spec_aug_prev and self.model.training and self.inp_dim > 1:
-            feat = spec_augment(feat, mask_T=70, mask_F=4, num_T=2, num_F=2, p=1.0) # (batch_size, seq_len, feature_dim * dr)
+            feat = spec_augment(feat, mask_T=70, mask_F=9, num_T=2, num_F=2, p=1.0) # (batch_size, seq_len, feature_dim * dr)
         feat = feat.to(dtype=torch.float32) # (batch_size, seq_len, feature_dim * dr)
         pos_enc = torch.FloatTensor(pos_enc).to(device=feat.device, dtype=torch.float32).expand(feat.size(0), *pos_enc.size()) # (batch_size, seq_len, hidden_size)
         attn_mask = torch.FloatTensor(attn_mask).to(device=feat.device, dtype=torch.float32) # (batch_size, seq_len)
@@ -230,13 +230,13 @@ class PretrainedTransformer(TransformerBuilder):
         `options`: a python dictionary containing the following keys:
             ckpt_file: str, a path specifying the pre-trained ckpt file
             load_pretrain: str, ['True', 'False'], whether to load pre-trained weights
-            no_grad: str, ['True', 'False'], whether to have gradient flow over this class
+            no_grad: str, ['True', 'False'], whether to use torch.no_grad over forward, this determines should torch build the computational graph
             dropout: float/str, use float to modify dropout value during downstream finetune, or use the str `default` for pre-train default values
-            spec_aug: str, ['True', 'False'], whether to apply SpecAugment on inputs (used for ASR training)
-            spec_aug_prev: str, ['True', 'False'], apply spec augment on input acoustic features if True, else apply on output representations (used for ASR training)
-            weighted_sum: str, ['True', 'False'], whether to use a learnable weighted sum to integrate hidden representations from all layers, if False then use the last
+            spec_aug: str, ['True', 'False'], whether to apply the SpecAugment technique
+            spec_aug_prev: str, ['True', 'False'], True: apply spec augment on input (i.e. acoustic features); False: apply on output (i.e. the hidden states)
+            weighted_sum: str, ['True', 'False'], whether to use a learnable weighted sum to integrate hidden representations from all layers, if False then use the one specified in `select_layer`
             select_layer: int, select from all hidden representations, set to -1 to select the last (will only be used when weighted_sum is False)
-            permute_input: str, ['True', 'False'], this attribute is for the forward method. If Ture then input ouput is in the shape of (T, B, D), if False then in (B, T, D)
+            permute_input: str, ['True', 'False'], this attribute is for the forward method. Ture: input / ouput of shape (T, B, D); False: input / ouput of shape (B, T, D)
         `intput_dim`: int, input dimension of model
         `config`: optional, reads the given yaml config and not use the config stored in `ckpt_file`
 
@@ -360,14 +360,14 @@ Input:
               (In paper: T=100, we use 70 since we are training on the 100 hr subset only)
     `mask_F`: the frequency mask parameter F described in the SpecAugment paper, 
               we use default values based on the LD Policy
-              (In paper: F=27:D=80*3 -> F=4.5:D=40, where D is acoustic dimension)
+              (In paper: F=27:D=80*3 -> F=9:D=80, where D is acoustic dimension)
     `num_T` : the number of time masks applied (In paper: mT=2)
     `num_F` : the number of frequency masks applied (In paper: mF=2)
     `p` : upper bound ratio (In paper: p=1.0)
 Output:
     `spec`: augmented frames, with shape: (batch_size, seq_len, feature_dim)
 """
-def spec_augment(spec, mask_T=70, mask_F=4, num_T=2, num_F=2, p=1.0):
+def spec_augment(spec, mask_T=70, mask_F=9, num_T=2, num_F=2, p=1.0):
 
     def _start_to_intervals(starts, consecutive):
         tiled = starts.expand(consecutive, starts.size(0)).permute(1, 0)

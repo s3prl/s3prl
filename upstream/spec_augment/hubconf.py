@@ -1,6 +1,18 @@
+# -*- coding: utf-8 -*- #
+"""*********************************************************************************************"""
+#   FileName     [ upstream/spec_augment/hubconf.py ]
+#   Synopsis     [ the spec augment torch hubconf ]
+#   Author       [ S3PRL ]
+#   Copyright    [ Copyleft(c), Speech Lab, NTU, Taiwan ]
+"""*********************************************************************************************"""
+
+
+###############
+# IMPORTATION #
+###############
 import os
 import torch
-
+#-------------#
 from utility.download import _gdriveids_to_filepaths, _urls_to_filepaths
 from upstream.spec_augment.expert import UpstreamExpert as _UpstreamExpert
 

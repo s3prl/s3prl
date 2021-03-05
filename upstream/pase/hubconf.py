@@ -1,6 +1,18 @@
+# -*- coding: utf-8 -*- #
+"""*********************************************************************************************"""
+#   FileName     [ upstream/pase/hubconf.py ]
+#   Synopsis     [ the pase torch hubconf ]
+#   Author       [ S3PRL ]
+#   Copyright    [ Copyleft(c), Speech Lab, NTU, Taiwan ]
+"""*********************************************************************************************"""
+
+
+###############
+# IMPORTATION #
+###############
 import os
 import torch
-
+#-------------#
 from utility.download import _gdriveids_to_filepaths, _urls_to_filepaths
 from .expert import UpstreamExpert as _UpstreamExpert
 

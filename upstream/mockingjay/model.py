@@ -1,8 +1,8 @@
 # -*- coding: utf-8 -*- #
 """*********************************************************************************************"""
-#   FileName     [ mockingjay/model.py ]
+#   FileName     [ upstream/mockingjay/model.py ]
 #   Synopsis     [ Implementation of the transformer models ]
-#   Author       [ Andy T. Liu (Andi611) ]
+#   Author       [ Andy T. Liu (https://github.com/andi611) / Hugging Face ]
 #   Copyright    [ Copyleft(c), Speech Lab, NTU, Taiwan ]
 #   Reference 1  [ https://github.com/huggingface/transformers ]
 """*********************************************************************************************"""

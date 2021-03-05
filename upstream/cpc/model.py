@@ -1,18 +1,26 @@
-# Copyright (c) Facebook, Inc. and its affiliates.
-#
-# This source code is licensed under the MIT license found in the
-# LICENSE file in the root directory of this source tree.
+# -*- coding: utf-8 -*- #
+"""*********************************************************************************************"""
+#   FileName     [ upstream/cpc/model.py ]
+#   Synopsis     [ the cpc model ]
+#   Author       [ Facebook Research ]
+#   Copyright    [ Facebook, Inc. and its affiliates ]
+#   Reference    [ https://github.com/facebookresearch/CPC_audio ]
+"""*********************************************************************************************"""
+
+
+###############
+# IMPORTATION #
+###############
+import torch
 import torch.nn as nn
 import torch.nn.functional as F
+#-------------#
 import torchaudio
 
-import torch
 
-###########################################
-# Networks
-###########################################
-
-
+############
+# NETWORKS #
+############
 class IDModule(nn.Module):
 
     def __init__(self, *args, **kwargs):

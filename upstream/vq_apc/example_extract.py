@@ -1,8 +1,8 @@
 # -*- coding: utf-8 -*- #
 """*********************************************************************************************"""
-#   FileName     [ example_extract.py ]
+#   FileName     [ upstream/vq_apc/example_extract.py ]
 #   Synopsis     [ an example code of using the wrapper class for downstream feature extraction ]
-#   Author       [ S3PRL ]
+#   Author       [ Andy T. Liu (https://github.com/andi611) ]
 #   Copyright    [ Copyleft(c), Speech Lab, NTU, Taiwan ]
 """*********************************************************************************************"""
 

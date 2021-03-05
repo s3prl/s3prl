@@ -1,16 +1,27 @@
+# -*- coding: utf-8 -*- #
+"""*********************************************************************************************"""
+#   FileName     [ upstream/apc/apc.py ]
+#   Synopsis     [ the apc and vq-apc model ]
+#   Author       [ iamyuanchung ]
+#   Reference    [ https://github.com/iamyuanchung/VQ-APC/blob/283d338/vqapc_model.py ]
+"""*********************************************************************************************"""
+
+
+###############
+# IMPORTATION #
+###############
 import copy
 import torch
 import torch.nn as nn
 from torch.nn.utils.rnn import pad_packed_sequence, pack_padded_sequence
-
+#-------------#
 from .vq import VQLayer
 
 
+#######
+# APC #
+#######
 class APC(nn.Module):
-    '''
-        APC/VQAPC modified from
-            https://github.com/iamyuanchung/VQ-APC/blob/283d338/vqapc_model.py
-    '''
     def __init__(self, input_size, hidden_size, num_layers, dropout, residual, vq=None):
         """
             input_size: an int indicating the input feature size, e.g., 80 for Mel.

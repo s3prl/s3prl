@@ -1,15 +1,32 @@
+# -*- coding: utf-8 -*- #
+"""*********************************************************************************************"""
+#   FileName     [ upstream/apc/vq.py ]
+#   Synopsis     [ the vq component for apc]
+#   Author       [ S3PRL ]
+#   Reference    [ VQ-layer modified from
+#                  https://github.com/iamyuanchung/VQ-APC/blob/283d338/vqapc_model.py ]
+"""*********************************************************************************************"""
+
+
+###############
+# IMPORTATION #
+###############
 import torch
 import numpy as np
 import torch.nn as nn
 from torch.nn.functional import gumbel_softmax
 
+
+############
+# CONSTANT #
+############
 EPS = 1e-10
 
+
+############
+# VQ LAYER #
+############
 class VQLayer(nn.Module):
-    '''
-        VQ-layer modified from
-            https://github.com/iamyuanchung/VQ-APC/blob/283d338/vqapc_model.py
-    '''
     def __init__(self, input_size, codebook_size, code_dim, gumbel_temperature):
         '''
             Defines a VQ layer that follows an RNN layer.

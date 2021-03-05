@@ -1,3 +1,15 @@
+# -*- coding: utf-8 -*- #
+"""*********************************************************************************************"""
+#   FileName     [ upstream/baseline/preprocessor.py ]
+#   Synopsis     [ the baseline feature preprocessor with torchaudio.transforms as backend ]
+#   Author       [ S3PRL ]
+#   Copyright    [ Copyleft(c), Speech Lab, NTU, Taiwan ]
+"""*********************************************************************************************"""
+
+
+###############
+# IMPORTATION #
+###############
 import torch
 import torchaudio
 from functools import partial
@@ -5,6 +17,9 @@ from torchaudio.transforms import Spectrogram, MelScale, MFCC
 from torchaudio.functional import magphase, compute_deltas
 
 
+############
+# CONSTANT #
+############
 N_SAMPLED_PSEUDO_WAV = 2
 
 

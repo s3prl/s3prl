@@ -1,3 +1,15 @@
+# -*- coding: utf-8 -*- #
+"""*********************************************************************************************"""
+#   FileName     [ upstream/vq_apc/hubconf.py ]
+#   Synopsis     [ the vq apc torch hubconf ]
+#   Author       [ S3PRL ]
+#   Copyright    [ Copyleft(c), Speech Lab, NTU, Taiwan ]
+"""*********************************************************************************************"""
+
+
+###############
+# IMPORTATION #
+###############
 from ..apc.hubconf import apc_local as vq_apc_local
 from ..apc.hubconf import apc_url as vq_apc_url
 

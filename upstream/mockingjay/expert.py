@@ -1,8 +1,8 @@
 # -*- coding: utf-8 -*- #
 """*********************************************************************************************"""
-#   FileName     [ expert.py ]
+#   FileName     [ upstream/mockingjay/expert.py ]
 #   Synopsis     [ the mockingjay wrapper ]
-#   Author       [ S3PRL ]
+#   Author       [ Andy T. Liu (https://github.com/andi611) ]
 #   Copyright    [ Copyleft(c), Speech Lab, NTU, Taiwan ]
 """*********************************************************************************************"""
 
@@ -10,31 +10,41 @@
 ###############
 # IMPORTATION #
 ###############
+import yaml
+#-------------#
 import torch.nn as nn
 from torch.nn.utils.rnn import pad_sequence
 #-------------#
 from .builder import PretrainedTransformer
 
 
-####################
-# UPSTREAM WRAPPER #
-####################
+###################
+# UPSTREAM EXPERT #
+###################
 class UpstreamExpert(nn.Module):
     """
     The Mockingjay wrapper
     """
 
-    def __init__(self, ckpt, feature_selection, **kwargs):
-        super(UpstreamExpert, self).__init__() 
-        options = {'ckpt_file'     : ckpt,
-                   'load_pretrain' : 'True',
-                   'no_grad'       : 'False',
-                   'dropout'       : 'default',
-                   'spec_aug'      : 'False',
-                   'spec_aug_prev' : 'True',
-                   'weighted_sum'  : 'False',
-                   'select_layer'  : int(feature_selection),
-                   'permute_input' : 'False' }
+    def __init__(self, ckpt, feature_selection=-1, model_config=None, **kwargs):
+        super(UpstreamExpert, self).__init__()
+
+        if model_config is not None:
+            print('[UpstreamExpert] - Using upstream expert config file from:', model_config) 
+            with open(model_config, 'r') as file:
+                options = yaml.load(file, Loader=yaml.FullLoader)
+        else:
+            print('[UpstreamExpert] - Using the default upstream expert config') 
+            options = {'load_pretrain' : 'True',
+                       'no_grad'       : 'False',
+                       'dropout'       : 'default',
+                       'spec_aug'      : 'False',
+                       'spec_aug_prev' : 'True',
+                       'weighted_sum'  : 'False',
+                       'permute_input' : 'False' }
+
+        options['ckpt_file'] = ckpt
+        options['select_layer'] = int(feature_selection)
 
         self.transformer = PretrainedTransformer(options, inp_dim=-1)
         assert hasattr(self.transformer, 'extracter'), 'This wrapper only supports `on-the-fly` ckpt with built in feature extracters.'

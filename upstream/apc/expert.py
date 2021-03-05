@@ -1,22 +1,41 @@
+# -*- coding: utf-8 -*- #
+"""*********************************************************************************************"""
+#   FileName     [ upstream/apc/expert.py ]
+#   Synopsis     [ the apc wrapper ]
+#   Author       [ S3PRL ]
+#   Copyright    [ Copyleft(c), Speech Lab, NTU, Taiwan ]
+"""*********************************************************************************************"""
+
+
+###############
+# IMPORTATION #
+###############
 import os
 import math
 import yaml
 import torch
 import random
-
+#-------------#
 import torch
 import torch.nn as nn
 from torch.nn.utils.rnn import pad_sequence
-
+#-------------#
 from .apc import APC
 from .audio import create_transform
 
+
+############
+# CONSTANT #
+############
 EXAMPLE_FEAT_SEQLEN = 1000
 
 
+###################
+# UPSTREAM EXPERT #
+###################
 class UpstreamExpert(nn.Module):
     """
-    The expert of APC
+    The APC wrapper
     """
 
     def __init__(self, ckpt, **kwargs):
