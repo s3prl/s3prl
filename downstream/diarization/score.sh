@@ -1,3 +1,4 @@
+#!/bin/bash
 #   *********************************************************************************************"""
 #   FileName     [ score.sh ]
 #   Synopsis     [ Speaker Diarization Scoring, use NIST scoring metric ]
@@ -5,6 +6,9 @@
 #   Author       [ Jiatong Shi ]
 #   Copyright    [ Copyright(c), Johns Hopkins University ]
 #   *********************************************************************************************"""
+
+set -e
+set -x
 
 if [ "$#" -ne 2 ]; then
   echo "Usage: $0 <expdir> <test_set>"
@@ -16,7 +20,7 @@ scoring_dir="$1/scoring"
 infer_dir="${scoring_dir}/predictions"
 test_set="$2"
 # directory where you cloned dscore (https://github.com/ftshijt/dscore)
-dscore_dir=/export/c06/jiatong/dia_workspace/dscore
+dscore_dir=/path/to/cloned/dscore
 
 frame_shift=160
 sr=16000
