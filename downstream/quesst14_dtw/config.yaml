@@ -1,6 +1,28 @@
 downstream_expert:
-  max_workers: -1
-  datarc:
-    dataset_root: /corpora/quesst14Database
-    num_workers: 8
-    batch_size: 16
+    # Leave it empty to max out performance
+    max_workers:
+
+    # Dimension-wise normalize SSL representations 
+    feature_normalization: True
+
+    datarc:
+        dataset_root: /corpora/quesst14Database
+        num_workers: 8
+        batch_size: 2
+
+    dtwrc:
+        ### Subsequence DTW
+        dist_method: "cosine"  #, "cityblock", or "euclidean"
+        step_pattern: asymmetric
+        keep_internals: False
+        distance_only: False
+        open_end: True
+        open_begin: True
+
+        ### Traditional DTW
+        # dist_method: "cosine"  #, "cityblock", or "euclidean"
+        # step_pattern: "symmetric2"
+        # keep_internals: False
+        # distance_only: True
+        # open_end: False
+        # open_begin: False

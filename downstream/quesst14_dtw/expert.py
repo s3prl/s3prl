@@ -6,10 +6,10 @@ from pathlib import Path
 
 import torch
 import torch.nn as nn
+from dtw import dtw
 from lxml import etree
 from torch.utils.data import DataLoader
 from tqdm import tqdm
-from dtw import dtw
 
 from .dataset import QUESST14Dataset
 
@@ -25,12 +25,10 @@ class DownstreamExpert(nn.Module):
     ):
         super(DownstreamExpert, self).__init__()
         self.upstream_dim = upstream_dim
-        self.max_workers = (
-            downstream_expert["max_workers"]
-            if downstream_expert["max_workers"] > 0
-            else None
-        )
+        self.max_workers = downstream_expert["max_workers"]
+        self.feature_normalization = downstream_expert["feature_normalization"]
         self.datarc = downstream_expert["datarc"]
+        self.dtwrc = downstream_expert["dtwrc"]
         self.expdir = Path(expdir)
         self.test_dataset = QUESST14Dataset(**self.datarc)
 
@@ -62,39 +60,34 @@ class DownstreamExpert(nn.Module):
     # interface
     def log_records(self, mode, records, **kwargs):
         """Perform DTW and save results."""
+
+        # Get precomputed queries & docs
         queries = records["features"][: self.test_dataset.n_queries]
         docs = records["features"][self.test_dataset.n_queries :]
         query_names = records["audio_names"][: self.test_dataset.n_queries]
         doc_names = records["audio_names"][self.test_dataset.n_queries :]
 
         # Normalize representations
-        feats = torch.cat(records["features"])
-        feature_mean = feats.mean(0)
-        feature_std = feats.std(0)
-        feature_std[feature_std == 0.0] = 1e-9
+        feature_mean, feature_std = 0.0, 1.0
+        if self.feature_normalization:
+            feats = torch.cat(records["features"])
+            feature_mean, feature_std = feats.mean(0), feats.std(0)
+            feature_std[feature_std == 0.0] = 1e-9
         queries = [((query - feature_mean) / feature_std).numpy() for query in queries]
         docs = [((doc - feature_mean) / feature_std).numpy() for doc in docs]
 
-        # Store results
+        # Calculate matching scores
         results = defaultdict(list)
         scores = []
-
-        # Calculate matching scores
         with ProcessPoolExecutor(max_workers=self.max_workers) as executor:
             futures = []
-
             for query, query_name in zip(queries, query_names):
                 for doc, doc_name in zip(docs, doc_names):
                     futures.append(
                         executor.submit(
-                            match,
-                            query,
-                            doc,
-                            query_name,
-                            doc_name,
+                            match, query, doc, query_name, doc_name, self.dtwrc
                         )
                     )
-
             for future in tqdm(
                 as_completed(futures), total=len(futures), ncols=0, desc="DTW"
             ):
@@ -102,7 +95,7 @@ class DownstreamExpert(nn.Module):
                 results[query_name].append((doc_name, score))
                 scores.append(score)
 
-        # Determine score threshold
+        # Determine score threshold (top 1% as YES, the rest as NO)
         scores = sorted(scores)
         score_thresh = scores[int(0.99 * len(scores))]
         score_min = scores[0]
@@ -137,32 +130,15 @@ class DownstreamExpert(nn.Module):
                 )
 
         # Output XML
-        tree = etree.ElementTree(root)
-        tree.write(
+        etree.ElementTree(root).write(
             str(self.expdir / "benchmark.stdlist.xml"),
             encoding="UTF-8",
             pretty_print=True,
         )
 
 
-def match(query, doc, query_name, doc_name):
-    dtw_result = dtw(
-        x=query,
-        y=doc,
-        # dist_method="correlation",
-        dist_method="cosine",
-        # dist_method="cityblock",
-        # dist_method="euclidean",
-        # dist_method="sqeuclidean",
-        # step_pattern="symmetric2",
-        step_pattern="asymmetric",
-        # step_pattern="rigid",
-        keep_internals=False,
-        # distance_only=True,
-        distance_only=False,
-        open_end=True,
-        # open_begin=False,
-        open_begin=True,
-    )
+def match(query, doc, query_name, doc_name, dtwrc):
+    """Match between a query and a doc."""
+    dtw_result = dtw(x=query, y=doc, **dtwrc)
     cost = dtw_result.normalizedDistance
     return query_name, doc_name, -1 * cost
