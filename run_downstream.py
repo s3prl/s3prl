@@ -41,7 +41,8 @@ def get_downstream_args():
     parser.add_argument('-c', '--config', help='The yaml file for configuring the whole experiment except the upstream model')
 
     # downstream settings
-    parser.add_argument('-d', '--downstream', choices=os.listdir('./downstream'), help='\
+    downstreams = [item for item in os.listdir('./downstream') if os.path.isfile(os.path.join('./downstream', item, 'expert.py'))]
+    parser.add_argument('-d', '--downstream', choices=downstreams, help='\
         Typically downstream dataset need manual preparation.\
         Please check downstream/README.md for details'
     )
