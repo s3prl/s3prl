@@ -1,7 +1,7 @@
 runner:
   total_steps: 30000
   gradient_clipping: 1
-  gradient_accumulate_steps: 1
+  gradient_accumulate_steps: 4
 
   log_step: 5000
   eval_step: 10000
@@ -26,11 +26,14 @@ downstream_expert:
 
   loaderrc:
     num_workers: 8
-    train_batchsize: 32
+    train_batchsize: 8
     eval_batchsize: 1
     train_dir: ./downstream/diarization/data/train
     dev_dir: ./downstream/diarization/data/dev
     test_dir: ./downstream/diarization/data/test
+  
+  scorerc:
+    save_predictions: True
 
   modelrc: 
     rnn_layers: 1
