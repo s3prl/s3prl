@@ -5,14 +5,6 @@ from torch.utils.data.dataset import Dataset
 from torchaudio.sox_effects import apply_effects_file
 
 
-EFFECTS = [
-    ["channels", "1"],
-    ["rate", "16000"],
-    ["gain", "-3.0"],
-    # ["silence", "1", "0.1", "0.1%", "-1", "0.1", "0.1%"],
-]
-
-
 class QUESST14Dataset(Dataset):
     """QUESST 2014 dataset (English-only)."""
 
@@ -31,9 +23,15 @@ class QUESST14Dataset(Dataset):
 
     def __getitem__(self, idx):
         audio_path = self.data[idx]
-        wav, _ = apply_effects_file(str(audio_path), EFFECTS)
+        wav, _ = apply_effects_file(
+            str(audio_path),
+            [
+                ["channels", "1"],
+                ["rate", "16000"],
+                ["gain", "-3.0"],
+            ],
+        )
         wav = wav.squeeze(0)
-        assert len(wav) >= 400
         return wav, audio_path.with_suffix("").name
 
     def collate_fn(self, samples):
