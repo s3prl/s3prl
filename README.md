@@ -183,6 +183,10 @@ Reference Repos
 * [CPC](https://github.com/facebookresearch/CPC_audio), Facebook AI Research.
 * [APC](https://github.com/iamyuanchung/Autoregressive-Predictive-Coding), Yu-An Chung.
 * [NPC](https://github.com/Alexander-H-Liu/NPC), Alexander-H-Liu.
+* [espnet](https://github.com/espnet/espnet), espnet.
+* [decoar](https://github.com/awslabs/speech-representations), awslabs.
+* [pase](https://github.com/santi-pdp/pase), pase.
+* [qrnn](https://github.com/salesforce/pytorch-qrnn), salesforce.
 
 [Back to Top](#table-of-contents)
 
