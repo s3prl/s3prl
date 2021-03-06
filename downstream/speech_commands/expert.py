@@ -11,7 +11,7 @@ import torch.nn as nn
 from torch.utils.data import DataLoader, WeightedRandomSampler
 from torch.nn.utils.rnn import pad_sequence
 
-from .model import Model
+from downstream.model import *
 from .dataset import SpeechCommandsDataset, SpeechCommandsTestingDataset
 
 
@@ -33,11 +33,15 @@ class DownstreamExpert(nn.Module):
         self.dev_dataset = SpeechCommandsDataset(valid_list, **self.datarc)
         self.test_dataset = SpeechCommandsTestingDataset(**self.datarc)
 
-        self.model = Model(
-            input_dim=upstream_dim,
-            output_class_num=self.train_dataset.class_num,
-            **self.modelrc,
+        model_cls = eval(self.modelrc['select'])
+        model_conf = self.modelrc.get(self.modelrc['select'], {})
+        self.projector = nn.Linear(upstream_dim, self.modelrc['projector_dim'])
+        self.model = model_cls(
+            input_dim = self.modelrc['projector_dim'],
+            output_dim = self.train_dataset.class_num,
+            **model_conf,
         )
+
         self.objective = nn.CrossEntropyLoss()
 
         self.logging = os.path.join(expdir, 'log.log')
@@ -78,8 +82,11 @@ class DownstreamExpert(nn.Module):
 
     # Interface
     def forward(self, mode, features, labels, records, **kwargs):
+        device = features[0].device
+        features_len = torch.IntTensor([len(feat) for feat in features]).to(device=device)
         features = pad_sequence(features, batch_first=True)
-        predicted = self.model(features)
+        features = self.projector(features)
+        predicted, _ = self.model(features, features_len)
 
         labels = torch.LongTensor(labels).to(features.device)
         loss = self.objective(predicted, labels)

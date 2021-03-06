@@ -1,20 +1,13 @@
+import os
 import random
 
 import torch
+import torchaudio
 import torch.nn as nn
 from torch.utils.data.dataset import Dataset
 
-
-import os
-import IPython
-import pdb
-import torchaudio
-
-
 SAMPLE_RATE = 16000
 EXAMPLE_WAV_MAX_SEC = 10
-
-
 
 
 class FluentCommandsDataset(Dataset):
@@ -48,4 +41,3 @@ class FluentCommandsDataset(Dataset):
             labels.append(label)
 
         return wavs, labels
-
