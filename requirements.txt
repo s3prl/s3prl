@@ -1,7 +1,7 @@
 torch==1.7.0
 torchaudio==0.7.0
 torchvision==0.8.0
-joblib==0.12.4
+joblib>=0.12.4
 librosa==0.7.2
 scipy>=1.5.4
 PyYAML==5.1.2
