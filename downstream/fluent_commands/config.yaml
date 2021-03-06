@@ -30,7 +30,7 @@ downstream_expert:
     eval_batch_size: 32
 
   modelrc:
-    select: UtterLinear
-    UtterLinear:
-      input_dim: 256
-      pooling_name: AttentivePooling
+    projector_dim: 256
+    select: UtteranceLevel
+    UtteranceLevel:
+      pooling: MeanPooling

@@ -2,16 +2,16 @@ import os
 import math
 import torch
 import random
+import pandas as pd
+from collections import Counter
 
 import torch
 import torch.nn as nn
 from torch.utils.data import DataLoader
 from torch.nn.utils.rnn import pad_sequence
 
-from .model import *
+from downstream.model import *
 from .dataset import FluentCommandsDataset
-import pandas as pd
-from collections import Counter
 
 
 class DownstreamExpert(nn.Module):
@@ -25,7 +25,7 @@ class DownstreamExpert(nn.Module):
         self.upstream_dim = upstream_dim
         self.datarc = downstream_expert['datarc']
         self.modelrc = downstream_expert['modelrc']
-        
+
         self.get_dataset()
 
         self.train_dataset = FluentCommandsDataset(self.train_df, self.base_path, self.Sy_intent)
@@ -33,12 +33,11 @@ class DownstreamExpert(nn.Module):
         self.test_dataset = FluentCommandsDataset(self.test_df, self.base_path, self.Sy_intent)
 
         model_cls = eval(self.modelrc['select'])
-        model_conf = self.modelrc[self.modelrc['select']]
-        
-        self.projector = nn.Linear(upstream_dim, model_conf['input_dim'])
-
+        model_conf = self.modelrc.get(self.modelrc['select'], {})
+        self.projector = nn.Linear(upstream_dim, self.modelrc['projector_dim'])
         self.model = model_cls(
-            output_class_num=sum(self.values_per_slot),
+            input_dim = self.modelrc['projector_dim'],
+            output_dim = sum(self.values_per_slot),
             **model_conf,
         )
         self.objective = nn.CrossEntropyLoss()
@@ -99,7 +98,7 @@ class DownstreamExpert(nn.Module):
         features = pad_sequence(features, batch_first=True)
 
         features = self.projector(features)
-        intent_logits = self.model(features, features_len)
+        intent_logits, _ = self.model(features, features_len)
 
         intent_loss = 0
         start_index = 0

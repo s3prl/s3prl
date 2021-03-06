@@ -11,9 +11,8 @@ import torch.nn as nn
 from torch.utils.data import DataLoader, WeightedRandomSampler
 from torch.nn.utils.rnn import pad_sequence
 
-from .model import *
+from downstream.model import *
 from .dataset import SpeechCommandsDataset, SpeechCommandsTestingDataset
-
 
 
 class DownstreamExpert(nn.Module):
@@ -35,11 +34,11 @@ class DownstreamExpert(nn.Module):
         self.test_dataset = SpeechCommandsTestingDataset(**self.datarc)
 
         model_cls = eval(self.modelrc['select'])
-        model_conf = self.modelrc[self.modelrc['select']]
-        self.projector = nn.Linear(upstream_dim, model_conf['input_dim'])
-
+        model_conf = self.modelrc.get(self.modelrc['select'], {})
+        self.projector = nn.Linear(upstream_dim, self.modelrc['projector_dim'])
         self.model = model_cls(
-            output_class_num=self.train_dataset.class_num,
+            input_dim = self.modelrc['projector_dim'],
+            output_dim = self.train_dataset.class_num,
             **model_conf,
         )
 
@@ -87,7 +86,7 @@ class DownstreamExpert(nn.Module):
         features_len = torch.IntTensor([len(feat) for feat in features]).to(device=device)
         features = pad_sequence(features, batch_first=True)
         features = self.projector(features)
-        predicted = self.model(features, features_len)
+        predicted, _ = self.model(features, features_len)
 
         labels = torch.LongTensor(labels).to(features.device)
         loss = self.objective(predicted, labels)

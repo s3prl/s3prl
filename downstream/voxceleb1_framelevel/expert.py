@@ -37,7 +37,7 @@ class DownstreamExpert(SpeakerExpert):
         features_len = torch.IntTensor([len(feat) for feat in features]).to(device=device)
         features = pad_sequence(features, batch_first=True)
         features = self.projector(features)
-        predicted = self.model(features, features_len)
+        predicted, _ = self.model(features, features_len)
 
         labels = torch.LongTensor(labels).to(features.device)
 

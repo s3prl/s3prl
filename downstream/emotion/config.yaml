@@ -32,7 +32,12 @@ downstream_expert:
     valid_ratio: 0.2
 
   modelrc:
-    select: UtterLinear
+    projector_dim: 256
+    select: UtteranceLevel
+
+    UtteranceLevel:
+      pooling: MeanPooling
+
     DeepModel:
       model_type: CNNSelfAttention
       input_dim: 256
@@ -41,8 +46,3 @@ downstream_expert:
       padding: 2
       pooling: 5
       dropout: 0.4
-    UtterLinear:
-      input_dim: 256
-      pooling_name: AttentivePooling # Here the option you can choose: MeanPooling, AttentivePooling
-    
-
