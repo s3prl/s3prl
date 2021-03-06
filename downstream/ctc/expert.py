@@ -8,6 +8,7 @@ import torch.nn as nn
 from torch.utils.data import DataLoader
 from torch.nn.utils.rnn import pad_sequence
 
+from downstream.model import *
 from ..asr.model import *
 from .text import load_text_encoder
 from .data import load_dataset
@@ -35,8 +36,8 @@ class DownstreamExpert(nn.Module):
         self.model = eval(model_select)(
             modelrc['project_dim'],
             self.tokenizer.vocab_size,
-            upstream_rate,
-            **modelrc[model_select],
+            upstream_rate=upstream_rate,
+            **modelrc.get(model_select, {}),
         )
         self.objective = nn.CTCLoss(
             blank = self.tokenizer.pad_idx,

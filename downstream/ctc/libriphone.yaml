@@ -55,7 +55,7 @@ downstream_expert:
     project_dim: 1024
     zero_infinity: True
 
-    select: RNNs
+    select: FrameLevel
     Wav2Letter:
       total_rate: 320
     RNNs:
