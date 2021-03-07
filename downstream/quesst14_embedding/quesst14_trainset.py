@@ -8,14 +8,12 @@ from pathlib import Path
 import torch
 from torch.utils.data.dataset import Dataset
 from torchaudio.sox_effects import apply_effects_file, apply_effects_tensor
-from tqdm import tqdm
 
 
 class QUESST14Trainset(Dataset):
     """QUESST 2014 training dataset."""
 
     def __init__(self, split, **kwargs):
-        split = "eval"
         dataset_root = Path(kwargs["quesst2014_root"])
         scoring_root = dataset_root / "scoring"
         split_root = scoring_root / f"groundtruth_quesst14_{split}"
@@ -163,7 +161,8 @@ def crop_segment(tensor, tgt_dur, sample_rate=16000):
 def unfold_segments(tensor, tgt_dur, sample_rate=16000):
     seg_len = int(tgt_dur * sample_rate)
     src_len = len(tensor)
-    tgt_len = seg_len if src_len <= seg_len else (src_len // seg_len + 1) * seg_len
+    hop_len = seg_len // 4
+    tgt_len = seg_len if src_len <= seg_len else (src_len // hop_len + 1) * hop_len
 
     pad_len = tgt_len - src_len
     front_pad_len = random.randint(0, pad_len)
@@ -172,6 +171,6 @@ def unfold_segments(tensor, tgt_dur, sample_rate=16000):
     padded_tensor = torch.cat(
         [torch.zeros(front_pad_len), tensor, torch.zeros(tail_pad_len)]
     )
-    segments = padded_tensor.unfold(0, seg_len, seg_len // 4).unbind(0)
+    segments = padded_tensor.unfold(0, seg_len, hop_len).unbind(0)
 
     return segments

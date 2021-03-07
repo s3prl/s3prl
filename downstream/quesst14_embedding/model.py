@@ -4,14 +4,14 @@ import torch.nn.functional as F
 
 
 class Model(nn.Module):
-    def __init__(self, input_dim, bottleneck_dim, hidden_dim, **kwargs):
+    def __init__(self, input_dim, bottleneck_dim, hidden_dim, num_layers, **kwargs):
         super(Model, self).__init__()
 
         self.connector = nn.Linear(input_dim, bottleneck_dim)
         self.rnn = nn.LSTM(
             input_size=bottleneck_dim,
             hidden_size=hidden_dim,
-            num_layers=2,
+            num_layers=num_layers,
             batch_first=True,
         )
         self.attention_linear = nn.Linear(hidden_dim, 1)

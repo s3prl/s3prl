@@ -29,3 +29,4 @@ downstream_expert:
   modelrc:
     bottleneck_dim: 256
     hidden_dim: 1024
+    num_layers: 2
