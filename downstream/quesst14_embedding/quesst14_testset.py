@@ -38,9 +38,9 @@ class QUESST14Testset(Dataset):
         )
         wav = wav.squeeze(0)
 
-        # Pad to multiple of 3 sec.
+        # Pad to multiple of 0.75 sec. to form segments
         src_len = len(wav)
-        tgt_len = 48000 if src_len <= 48000 else (src_len // 48000 + 1) * 48000
+        tgt_len = 48000 if src_len <= 48000 else (src_len // 12000 + 1) * 12000
         wav = torch.cat([wav, torch.zeros(tgt_len - src_len)])
 
         # Unfold segments
