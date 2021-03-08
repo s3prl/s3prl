@@ -80,6 +80,7 @@ class DownstreamExpert(nn.Module):
         self.upstream_rate = upstream_rate
         self.datarc = downstream_expert['datarc']
         self.modelrc = downstream_expert['modelrc']
+        self.expdir = expdir
 
         self.train_dataset = SequenceDataset("train", self.datarc['train_batch_size'], **self.datarc)
 
@@ -147,7 +148,7 @@ class DownstreamExpert(nn.Module):
             collate_fn=dataset.collate_fn
         )
 
-    def _compute_metrics(self, pred_tokens_batch, pred_words_batch, target_tokens_batch, target_words_batch):
+    def _compute_metrics(self, pred_tokens_all, pred_words_all, target_tokens_all, target_words_all):
         """Computes WER and UER given the prediction and true transcriptions"""
         unit_error_sum = 0.0
         word_error_sum = 0.0
@@ -155,7 +156,7 @@ class DownstreamExpert(nn.Module):
         word_length_sum = 0
 
         for pred_tokens, pred_words, target_tokens, target_words in zip(
-            pred_tokens_batch, pred_words_batch, target_tokens_batch, target_words_batch):
+            pred_tokens_all, pred_words_all, target_tokens_all, target_words_all):
 
             unit_error_sum += editdistance.eval(pred_tokens, target_tokens)
             unit_length_sum += len(target_tokens)
@@ -270,10 +271,10 @@ class DownstreamExpert(nn.Module):
         with torch.no_grad():
             pred_tokens_batch, pred_words_batch = self._decode(log_probs.float().contiguous().cpu(), log_probs_len)
 
-        records['target_tokens_batch'] += target_tokens_batch
-        records['target_words_batch'] += target_words_batch
-        records['pred_tokens_batch'] += pred_tokens_batch
-        records['pred_words_batch'] += pred_words_batch
+        records['target_tokens'] += target_tokens_batch
+        records['target_words'] += target_words_batch
+        records['pred_tokens'] += pred_tokens_batch
+        records['pred_words'] += pred_words_batch
 
         return loss
 
@@ -315,10 +316,10 @@ class DownstreamExpert(nn.Module):
         """
         loss = torch.FloatTensor(records['loss']).mean().item()
         uer, wer = self._compute_metrics(
-            records['target_tokens_batch'],
-            records['target_words_batch'],
-            records['pred_tokens_batch'],
-            records['pred_words_batch'],
+            records['target_tokens'],
+            records['target_words'],
+            records['pred_tokens'],
+            records['pred_words'],
         )
 
         logger.add_scalar(f'asr/{split}-loss', loss, global_step=global_step)
@@ -331,4 +332,16 @@ class DownstreamExpert(nn.Module):
         if split == 'dev-clean' and wer < self.best_score:
             self.best_score = torch.ones(1) * wer
             save_names.append(f'{split}-best.ckpt')
+
+        if 'test' in split or 'dev' in split:
+            hyp_ark = open(os.path.join(self.expdir, f'{split}-hyp.ark'), 'w')
+            ref_ark = open(os.path.join(self.expdir, f'{split}-ref.ark'), 'w')
+            for idx, (hyp, ref) in enumerate(zip(records['pred_words'], records['target_words'])):
+                hyp = ' '.join(hyp)
+                ref = ' '.join(ref)
+                hyp_ark.write(f'{idx} {hyp}\n')
+                ref_ark.write(f'{idx} {ref}\n')
+            hyp_ark.close()
+            ref_ark.close()
+
         return save_names
