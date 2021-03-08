@@ -66,3 +66,25 @@ python run_pretrain.py -u tera -g pretrain/tera/config_model.yaml -n YourModelNa
 python run_pretrain.py -u audio_albert -g pretrain/audio_albert/config_model.yaml -n YourModelName
 ```
 - Everything else is identical to the above.
+
+## Step 4) Loading the pre-trained checkpoint for downstream tasks
+### Mockingjay
+- Use the local method of `mockingjay_local` and `-k` to specify the path to your checkpoint.
+- Example command:
+```
+python run_downstream.py -m train -u mockingjay_local -k example_checkpoint/states-1000000.ckpt -d phone_linear -n ExpName
+```
+
+### TERA
+- Use the local method of `tera_local` and `-k` to specify the path to your checkpoint.
+- Example command:
+```bash
+python run_downstream.py -m train -u tera_local -k example_checkpoint/states-1000000.ckpt -d phone_linear -n ExpName
+```
+
+### AUDIO ALBERT
+- Use the local method of `audio_albert_local` and `-k` to specify the path to your checkpoint.
+- Example command:
+```bash
+python run_downstream.py -m train -u audio_albert_local -k example_checkpoint/states-1000000.ckpt -d phone_linear -n ExpName
+```
