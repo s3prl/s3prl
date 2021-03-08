@@ -147,23 +147,18 @@ class DownstreamExpert(nn.Module):
             collate_fn=dataset.collate_fn
         )
 
-    def _compute_metrics(self, pred_tokens_batch, pred_words_batch, labels):
+    def _compute_metrics(self, pred_tokens_batch, pred_words_batch, target_tokens_batch, target_words_batch):
         """Computes WER and UER given the prediction and true transcriptions"""
         unit_error_sum = 0.0
         word_error_sum = 0.0
         unit_length_sum = 0
         word_length_sum = 0
 
-        for pred_tokens, pred_words, label in zip(pred_tokens_batch, pred_words_batch, labels):
-            label_idx = (label != self.train_dataset.dictionary.pad()) & (
-                label != self.train_dataset.dictionary.eos()
-            )
-            target_token_ids = label[label_idx].tolist()
-            target_tokens = self.train_dataset.dictionary.string(target_token_ids)
-            target_words = token_to_word(target_tokens).split()
+        for pred_tokens, pred_words, target_tokens, target_words in zip(
+            pred_tokens_batch, pred_words_batch, target_tokens_batch, target_words_batch):
 
             unit_error_sum += editdistance.eval(pred_tokens, target_tokens)
-            unit_length_sum += len(target_token_ids)
+            unit_length_sum += len(target_tokens)
 
             word_error_sum += editdistance.eval(pred_words, target_words)
             word_length_sum += len(target_words)
@@ -259,11 +254,26 @@ class DownstreamExpert(nn.Module):
             )
         records['loss'].append(loss.item())
 
+        target_tokens_batch = []
+        target_words_batch = []
+        for label in labels:
+            label_idx = (label != self.train_dataset.dictionary.pad()) & (
+                label != self.train_dataset.dictionary.eos()
+            )
+            target_token_ids = label[label_idx].tolist()
+            target_tokens = self.train_dataset.dictionary.string(target_token_ids)
+            target_words = token_to_word(target_tokens).split()
+
+            target_tokens_batch.append(target_tokens)
+            target_words_batch.append(target_words)
+
         with torch.no_grad():
             pred_tokens_batch, pred_words_batch = self._decode(log_probs.float().contiguous().cpu(), log_probs_len)
-            uer, wer = self._compute_metrics(pred_tokens_batch, pred_words_batch, labels)
-        records['uer'].append(uer)
-        records['wer'].append(wer)
+
+        records['target_tokens_batch'] += target_tokens_batch
+        records['target_words_batch'] += target_words_batch
+        records['pred_tokens_batch'] += pred_tokens_batch
+        records['pred_words_batch'] += pred_words_batch
 
         return loss
 
@@ -303,16 +313,22 @@ class DownstreamExpert(nn.Module):
                 according to the evaluation result, like the best.ckpt on the dev set
                 You can return nothing or an empty list when no need to save the checkpoint
         """
+        loss = torch.FloatTensor(records['loss']).mean().item()
+        uer, wer = self._compute_metrics(
+            records['target_tokens_batch'],
+            records['target_words_batch'],
+            records['pred_tokens_batch'],
+            records['pred_words_batch'],
+        )
+
+        logger.add_scalar(f'asr/{split}-loss', loss, global_step=global_step)
+        logger.add_scalar(f'asr/{split}-uer', uer, global_step=global_step)
+        logger.add_scalar(f'asr/{split}-wer', wer, global_step=global_step)
+        print(f'{split} uer: {uer}')
+        print(f'{split} wer: {wer}')
+
         save_names = []
-        for key, values in records.items():
-            average = torch.FloatTensor(values).mean().item()
-            print(f'{split} {key}: {average}')
-            logger.add_scalar(
-                f'asr/{split}-{key}',
-                average,
-                global_step=global_step
-            )
-            if 'dev-clean' in split and key == 'wer' and average < self.best_score:
-                self.best_score = torch.ones(1) * average
-                save_names.append(f'{split}-best.ckpt')
+        if split == 'dev-clean' and wer < self.best_score:
+            self.best_score = torch.ones(1) * wer
+            save_names.append(f'{split}-best.ckpt')
         return save_names
