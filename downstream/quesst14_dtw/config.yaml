@@ -1,28 +1,33 @@
 downstream_expert:
-    # Leave it empty to max out performance
-    max_workers:
+  # Leave it empty to max out performance
+  max_workers:
 
-    # Dimension-wise normalize SSL representations 
-    feature_normalization: True
+  # Dimension-wise normalize SSL representations
+  feature_normalization: True
 
-    datarc:
-        dataset_root: /corpora/quesst14Database
-        num_workers: 8
-        batch_size: 2
+  # Specify the index of silence frame to be removed or leave it empty
+  silence_frame:
 
-    dtwrc:
-        ### Subsequence DTW
-        dist_method: "cosine"  #, "cityblock", or "euclidean"
-        step_pattern: asymmetric
-        keep_internals: False
-        distance_only: False
-        open_end: True
-        open_begin: True
+  datarc:
+    dataset_root: /corpora/quesst14Database
+    num_workers: 8
+    batch_size: 16
 
-        ### Traditional DTW
-        # dist_method: "cosine"  #, "cityblock", or "euclidean"
-        # step_pattern: "symmetric2"
-        # keep_internals: False
-        # distance_only: True
-        # open_end: False
-        # open_begin: False
+  dtwrc:
+    # Any metric defined by scipy.spatial.distance.cdist, e.g.
+    #  - "cosine"
+    #  - "cityblock"
+    #  - "euclidean"
+    #
+    # Or a special distance metric by myself:
+    #  - "cosine_exp_minmax"
+    dist_method: "cosine_exp_minmax"
+
+    # Any StepPattern in dtw-python, e.g.
+    #  - "symmetric1"
+    #  - "symmetric2" (default in dtw-python)
+    #  - "asymmetric"
+    step_pattern: "asymmetric"
+
+    # Find open-ended alignment, namely, subsequence DTW, only works with asymmetric as StepPattern
+    subsequence: True

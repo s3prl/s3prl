@@ -2,12 +2,15 @@
 
 from collections import defaultdict
 from concurrent.futures import ProcessPoolExecutor, as_completed
+from functools import partial
 from pathlib import Path
 
+import numpy as np
 import torch
 import torch.nn as nn
 from dtw import dtw
 from lxml import etree
+from scipy.spatial import distance
 from torch.utils.data import DataLoader
 from tqdm import tqdm
 
@@ -27,6 +30,7 @@ class DownstreamExpert(nn.Module):
         self.upstream_dim = upstream_dim
         self.max_workers = downstream_expert["max_workers"]
         self.feature_normalization = downstream_expert["feature_normalization"]
+        self.silence_frame = downstream_expert["silence_frame"]
         self.datarc = downstream_expert["datarc"]
         self.dtwrc = downstream_expert["dtwrc"]
         self.expdir = Path(expdir)
@@ -54,6 +58,8 @@ class DownstreamExpert(nn.Module):
     ):
         for feature, audio_name in zip(features, audio_names):
             feature = feature.detach().cpu()
+            if self.silence_frame is not None:  # remove silence frames
+                feature = feature[feature.argmax(1) != self.silence_frame]
             records["features"].append(feature)
             records["audio_names"].append(audio_name)
 
@@ -67,7 +73,7 @@ class DownstreamExpert(nn.Module):
         query_names = records["audio_names"][: self.test_dataset.n_queries]
         doc_names = records["audio_names"][self.test_dataset.n_queries :]
 
-        # Normalize representations
+        # Normalize upstream features
         feature_mean, feature_std = 0.0, 1.0
         if self.feature_normalization:
             feats = torch.cat(records["features"])
@@ -75,6 +81,25 @@ class DownstreamExpert(nn.Module):
             feature_std[feature_std == 0.0] = 1e-9
         queries = [((query - feature_mean) / feature_std).numpy() for query in queries]
         docs = [((doc - feature_mean) / feature_std).numpy() for doc in docs]
+
+        # Define distance function for DTW
+        dist_fn = (
+            cosine_exp_minmax
+            if self.dtwrc["dist_method"] == "cosine_exp_minmax"
+            else partial(distance.cdist, metric=self.dtwrc["dist_method"])
+        )
+
+        # Define DTW configurations
+        dtwrc = {
+            "step_pattern": self.dtwrc["step_pattern"],
+            "keep_internals": False,
+            "distance_only": False if self.dtwrc["subsequence"] else True,
+            "open_begin": True if self.dtwrc["subsequence"] else False,
+            "open_end": True if self.dtwrc["subsequence"] else False,
+        }
+        assert (
+            self.dtwrc["step_pattern"] == "asymmetric" or not self.dtwrc["subsequence"]
+        )  # subsequence finding only works under asymmetric setting
 
         # Calculate matching scores
         results = defaultdict(list)
@@ -85,7 +110,7 @@ class DownstreamExpert(nn.Module):
                 for doc, doc_name in zip(docs, doc_names):
                     futures.append(
                         executor.submit(
-                            match, query, doc, query_name, doc_name, self.dtwrc
+                            match, query, doc, query_name, doc_name, dist_fn, dtwrc
                         )
                     )
             for future in tqdm(
@@ -137,8 +162,17 @@ class DownstreamExpert(nn.Module):
         )
 
 
-def match(query, doc, query_name, doc_name, dtwrc):
+def match(query, doc, query_name, doc_name, dist_fn, dtwrc):
     """Match between a query and a doc."""
-    dtw_result = dtw(x=query, y=doc, **dtwrc)
+    dist = dist_fn(query, doc)
+    dtw_result = dtw(x=dist, **dtwrc)
     cost = dtw_result.normalizedDistance
     return query_name, doc_name, -1 * cost
+
+
+def cosine_exp_minmax(query, doc):
+    dist = distance.cdist(query, doc, "cosine")
+    dist = np.exp(dist) - 1
+    dist_min, dist_max = dist.min(1), dist.max(1)
+    dist = ((dist.T - dist_min) / (dist_max - dist_min)).T
+    return dist
