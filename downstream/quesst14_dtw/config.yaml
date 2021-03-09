@@ -8,6 +8,9 @@ downstream_expert:
   # Specify the index of silence frame to be removed or leave it empty
   silence_frame:
 
+  # Z-normalize the matching scores with regard to each query
+  score_normalization: True
+
   datarc:
     dataset_root: /corpora/quesst14Database
     num_workers: 8

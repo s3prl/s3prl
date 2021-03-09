@@ -30,6 +30,7 @@ class DownstreamExpert(nn.Module):
         self.upstream_dim = upstream_dim
         self.max_workers = downstream_expert["max_workers"]
         self.feature_normalization = downstream_expert["feature_normalization"]
+        self.score_normalization = downstream_expert["score_normalization"]
         self.silence_frame = downstream_expert["silence_frame"]
         self.datarc = downstream_expert["datarc"]
         self.dtwrc = downstream_expert["dtwrc"]
@@ -103,7 +104,7 @@ class DownstreamExpert(nn.Module):
 
         # Calculate matching scores
         results = defaultdict(list)
-        scores = []
+        all_scores = []
         with ProcessPoolExecutor(max_workers=self.max_workers) as executor:
             futures = []
             for query, query_name in zip(queries, query_names):
@@ -117,13 +118,30 @@ class DownstreamExpert(nn.Module):
                 as_completed(futures), total=len(futures), ncols=0, desc="DTW"
             ):
                 query_name, doc_name, score = future.result()
+                all_scores.append(score)
                 results[query_name].append((doc_name, score))
-                scores.append(score)
 
-        # Determine score threshold (top 1% as YES, the rest as NO)
-        scores = sorted(scores)
-        score_thresh = scores[int(0.99 * len(scores))]
-        score_min = scores[0]
+        if self.score_normalization:
+            # Z-normalize scores with regard to each query
+            for query_name, doc_scores in results.items():
+                names, scores = zip(*doc_scores)
+                scores = torch.FloatTensor(scores)
+                score_std = scores.std()
+                score_std[score_std == 0] = 1e-9
+                scores = (scores - scores.mean()) / score_std
+                results[query_name] = zip(names, scores.tolist())
+            # Scores above 2 STDs are seen as detected (top 2.5% as YES)
+            score_thresh = 2.0
+        else:
+            # Determine score threshold (top 1% as YES)
+            all_scores = sorted(all_scores)
+            score_thresh = all_scores[int(0.99 * len(all_scores))]
+            # Shift all scores to above 0
+            score_min = all_scores[0]
+            for query_name, doc_scores in results.items():
+                names, scores = zip(*doc_scores)
+                scores = [score - score_min for score in scores]
+                results[query_name] = zip(names, scores)
 
         # Build XML tree
         root = etree.Element(
@@ -150,7 +168,7 @@ class DownstreamExpert(nn.Module):
                     channel="1",
                     tbeg="0.000",
                     dur="0.00",
-                    score=f"{score - score_min:.4f}",
+                    score=f"{score:.4f}",
                     decision="YES" if score > score_thresh else "NO",
                 )
 
