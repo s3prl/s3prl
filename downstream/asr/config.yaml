@@ -47,6 +47,8 @@ downstream_expert:
 
     decoder_args:
       # See https://github.com/facebookresearch/flashlight/blob/master/flashlight/lib/text/decoder/LexiconDecoder.h#L20
+      # for what the options mean. Python binding exposes the same options from C++.
+      # KenLM 4-gram LM and Lexicon can be downloaded from http://www.openslr.org/11
       decoder_type: 'kenlm'
       nbest: 1
       criterion: "ctc"
