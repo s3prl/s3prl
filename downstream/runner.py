@@ -185,7 +185,7 @@ class Runner():
                         break
                     global_step = pbar.n + 1
 
-                    wavs = [wav.to(self.args.device) for wav in wavs]
+                    wavs = [torch.FloatTensor(wav).to(self.args.device) for wav in wavs]
                     if self.upstream.training:
                         features = self.upstream(wavs)
                     else:
@@ -329,7 +329,7 @@ class Runner():
         records = defaultdict(list)
         for batch_id, (wavs, *others) in enumerate(tqdm(dataloader, dynamic_ncols=True, desc=split)):
 
-            wavs = [wav.to(self.args.device) for wav in wavs]
+            wavs = [torch.FloatTensor(wav).to(self.args.device) for wav in wavs]
             with torch.no_grad():
                 features = self.upstream(wavs)
                 self.downstream(
