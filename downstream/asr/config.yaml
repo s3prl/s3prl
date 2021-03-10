@@ -48,14 +48,16 @@ downstream_expert:
     decoder_args:
       # See https://github.com/facebookresearch/flashlight/blob/master/flashlight/lib/text/decoder/LexiconDecoder.h#L20
       # for what the options mean. Python binding exposes the same options from C++.
-      # KenLM 4-gram LM and Lexicon can be downloaded from http://www.openslr.org/11
+      # KenLM is a fast LM query implementation, and it can be powered by:
+      # 1. official LibriSpeech 4-gram LM: the 4-gram.arpa file on http://www.openslr.org/11
+      # 2. fairseq style, letter-based lexicon: https://dl.fbaipublicfiles.com/fairseq/wav2vec/librispeech_lexicon.lst
       decoder_type: 'kenlm'
       nbest: 1
       criterion: "ctc"
       beam: 5
       beam_threshold: 25
       kenlm_model: '/path/to/KenLM'
-      lexicon: '/path/to/LibriSpeech'
+      lexicon: '/path/to/4-gram.arpa'
       lm_weight: 2
       word_score: -1
       unk_weight: -math.inf
