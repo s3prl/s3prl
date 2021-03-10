@@ -9,9 +9,8 @@ from torch.utils.data import DataLoader, WeightedRandomSampler
 from lxml import etree
 from tqdm import tqdm
 
-from .sws2013_dataset import SWS2013Dataset
-from .sws2013_testset import SWS2013Testset
-from .quesst14_dataset import QUESST14Dataset
+from .quesst14_trainset import QUESST14Trainset
+from .quesst14_testset import QUESST14Testset
 from .model import Model
 
 
@@ -30,27 +29,22 @@ class DownstreamExpert(nn.Module):
         self.upstream_dim = upstream_dim
         self.datarc = downstream_expert["datarc"]
         self.modelrc = downstream_expert["modelrc"]
-        self.lossrc = downstream_expert["lossrc"]
 
         # Result dir setup, used to save output XML file
         self.expdir = Path(expdir)
 
         # Dataset, model, loss setup
-        self.train_dataset = None
-        self.valid_dataset = None
+        self.train_dataset = QUESST14Trainset("dev", **self.datarc)
+        self.valid_dataset = QUESST14Trainset("eval", **self.datarc)
         self.test_dataset = None
         self.model = Model(
             input_dim=upstream_dim,
             **self.modelrc,
         )
-        self.objective = nn.CosineEmbeddingLoss(**self.lossrc)
 
     # Interface
     def get_dataloader(self, mode):
         if mode == "train":
-            self.train_dataset = SWS2013Dataset("dev", **self.datarc)
-            self.valid_dataset = SWS2013Dataset("eval", **self.datarc)
-
             return DataLoader(
                 self.train_dataset,
                 sampler=WeightedRandomSampler(
@@ -79,18 +73,7 @@ class DownstreamExpert(nn.Module):
             )
 
         if mode in ["dev", "eval"]:
-            self.test_dataset = QUESST14Dataset(mode, **self.datarc)
-            return DataLoader(
-                self.test_dataset,
-                shuffle=False,
-                batch_size=self.datarc["batch_size"],
-                drop_last=False,
-                num_workers=self.datarc["num_workers"],
-                collate_fn=self.test_dataset.collate_fn,
-            )
-
-        if mode == "sws2013_eval":
-            self.test_dataset = SWS2013Testset("eval", **self.datarc)
+            self.test_dataset = QUESST14Testset(mode, **self.datarc)
             return DataLoader(
                 self.test_dataset,
                 shuffle=False,
@@ -107,42 +90,50 @@ class DownstreamExpert(nn.Module):
         self,
         mode,
         features,
-        labels,
+        infos,
         records,
         **kwargs,
     ):
         if mode in ["train", "valid"]:
-            audio_tensors = torch.stack(features[: len(features) // 2])
-            query_tensors = torch.stack(features[len(features) // 2 :])
-            labels = torch.cat(labels).to(audio_tensors.device)
+            features = torch.stack(features)
+            prefix_sums, labels = infos
+            labels = torch.cat(labels).to(features.device)
 
-            audio_embs = self.model(audio_tensors)
-            query_embs = self.model(query_tensors)
+            embs = self.model(features)
+            query_embs = embs[: self.datarc["batch_size"]]
+            audio_embs = embs[self.datarc["batch_size"] :]
+            max_similarities = torch.empty(len(labels)).to(labels.device)
+            for i in range(self.datarc["batch_size"]):
+                similarities = F.cosine_similarity(
+                    query_embs[i : i + 1],
+                    audio_embs[prefix_sums[i] : prefix_sums[i + 1]],
+                )
+                max_similarities[i] = similarities.max()
 
             # cosine embedding loss
-            loss = self.objective(audio_embs, query_embs, labels)
-            records["loss"].append(loss.item())
+            pos_similarities = max_similarities[labels > 0]
+            neg_similarities = max_similarities[labels < 0]
+            pos_loss = (1 - pos_similarities).sum()
+            neg_loss = neg_similarities.clamp(0).sum()
+            loss = (pos_loss + neg_loss) / self.datarc["batch_size"]
 
-            with torch.no_grad():
-                # cosine similarity
-                similarities = F.cosine_similarity(audio_embs, query_embs)
-                records["similarity-positive"] += similarities[labels > 0].tolist()
-                records["similarity-negative"] += similarities[labels < 0].tolist()
+            # record information
+            records["loss"].append(loss.item())
+            records["similarity-positive"] += pos_similarities.tolist()
+            records["similarity-negative"] += neg_similarities.tolist()
 
             return loss
 
-        elif mode in ["dev", "eval", "sws2013_eval"]:
+        elif mode in ["dev", "eval"]:
             audio_tensors = torch.stack(features)
-            lengths, audio_names = labels
+            prefix_sums, audio_names = infos
 
             embs = self.model(audio_tensors)
             embs = embs.detach().cpu()
 
-            offset = 0
-            for length, audio_name in zip(lengths, audio_names):
-                records["embs"].append(embs[offset : offset + length])
-                records["audio_names"].append(audio_name)
-                offset += length
+            for i in range(len(audio_names)):
+                records["embs"].append(embs[prefix_sums[i] : prefix_sums[i + 1]])
+                records["audio_names"].append(audio_names[i])
 
         else:
             raise NotImplementedError
@@ -152,12 +143,12 @@ class DownstreamExpert(nn.Module):
         """Log training, validation information or test on a dataset."""
 
         if mode in ["train", "valid"]:
-            prefix = f"sws2013/{mode}"
+            prefix = f"quesst14_embedding/{mode}"
             for key, val in records.items():
                 average = sum(val) / len(val)
                 logger.add_scalar(f"{prefix}-{key}", average, global_step=global_step)
 
-        elif mode in ["dev", "eval", "sws2013_eval"]:
+        elif mode in ["dev", "eval"]:
             query_embs = records["embs"][: self.test_dataset.n_queries]
             doc_embs = records["embs"][self.test_dataset.n_queries :]
             query_names = records["audio_names"][: self.test_dataset.n_queries]
@@ -183,11 +174,14 @@ class DownstreamExpert(nn.Module):
                     scores.append(score)
 
                 scores = torch.stack(scores)
-                scores = (scores - scores.mean()) / (scores.std() + 1e-6)
+                if scores.std() < 0.1:
+                    scores = torch.zeros_like(scores)
+                else:
+                    scores = (scores - scores.mean()) / (scores.std() + 1e-6) + 0.5
                 results[query_name] = list(zip(doc_names, scores.tolist()))
 
             # Determine score threshold
-            score_thresh = 0
+            score_thresh = 0.5
 
             # Build XML tree
             root = etree.Element(
@@ -219,8 +213,7 @@ class DownstreamExpert(nn.Module):
                     )
 
             # Output XML
-            tree = etree.ElementTree(root)
-            tree.write(
+            etree.ElementTree(root).write(
                 str(self.expdir / "benchmark.stdlist.xml"),
                 encoding="UTF-8",
                 pretty_print=True,

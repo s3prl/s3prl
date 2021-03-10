@@ -1,26 +1,36 @@
-runner:
-  total_steps: 10000
-  gradient_clipping: 1
-  gradient_accumulate_steps: 1
-
-  log_step: 100
-  eval_step: 1000000
-  save_step: 1000000
-  max_keep: 1
-  eval_dataloaders:
-    - dev
-    - test
-
-optimizer:
-  name: AdamW
-  lr: 2.0e-4
-
 downstream_expert:
-  metric: "L2"
-  # metric: "L1"
-  # metric: "cos"
-  max_workers: -1
+  # Leave it empty to max out performance
+  max_workers:
+
+  # Dimension-wise normalize SSL representations
+  feature_normalization: True
+
+  # Specify the index of silence frame to be removed or leave it empty
+  silence_frame:
+
+  # Z-normalize the matching scores with regard to each query
+  score_normalization: True
+
   datarc:
     dataset_root: /corpora/quesst14Database
     num_workers: 8
     batch_size: 16
+
+  dtwrc:
+    # Any metric defined by scipy.spatial.distance.cdist, e.g.
+    #  - "cosine"
+    #  - "cityblock"
+    #  - "euclidean"
+    #
+    # Or a special distance metric by myself:
+    #  - "cosine_exp_minmax"
+    dist_method: "cosine_exp_minmax"
+
+    # Any StepPattern in dtw-python, e.g.
+    #  - "symmetric1"
+    #  - "symmetric2" (default in dtw-python)
+    #  - "asymmetric"
+    step_pattern: "asymmetric"
+
+    # Find open-ended alignment, namely, subsequence DTW, only works with asymmetric as StepPattern
+    subsequence: True

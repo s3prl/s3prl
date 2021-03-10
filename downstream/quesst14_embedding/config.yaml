@@ -1,5 +1,5 @@
 runner:
-  total_steps: 25000
+  total_steps: 50000
   gradient_clipping: 1
   gradient_accumulate_steps: 1
 
@@ -22,8 +22,6 @@ scheduler:
 
 downstream_expert:
   datarc:
-    sws2013_root: /corpora/sws2013Database
-    sws2013_scoring_root: /corpora/sws2013Database/scoring_atwv_sws2013
     quesst2014_root: /corpora/quesst14Database
     num_workers: 8
     batch_size: 16
@@ -31,5 +29,4 @@ downstream_expert:
   modelrc:
     bottleneck_dim: 256
     hidden_dim: 1024
-  lossrc:
-    margin: -1.0
+    num_layers: 2
