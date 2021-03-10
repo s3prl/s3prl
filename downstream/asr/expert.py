@@ -235,6 +235,7 @@ class DownstreamExpert(nn.Module):
                 a single scalar in torch.FloatTensor
         """
         device = features[0].device
+        labels = [torch.IntTensor(l) for l in labels]
         features_len = torch.IntTensor([len(feat) for feat in features])
         labels_len = torch.IntTensor([len(label) for label in labels]).to(device=device)
         features = pad_sequence(features, batch_first=True).to(device=device)

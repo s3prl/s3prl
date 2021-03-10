@@ -168,8 +168,8 @@ class SequenceDataset(Dataset):
 
     def __getitem__(self, index):
         # Load acoustic feature and pad
-        wav_batch = [self._load_wav(x_file) for x_file in self.X[index]]
-        label_batch = [self.Y[self._parse_x_name(x_file)] for x_file in self.X[index]]
+        wav_batch = [self._load_wav(x_file).numpy() for x_file in self.X[index]]
+        label_batch = [self.Y[self._parse_x_name(x_file)].numpy() for x_file in self.X[index]]
         return wav_batch, label_batch # bucketing, return ((wavs, labels))
 
     def collate_fn(self, items):
