@@ -180,7 +180,8 @@ class Runner():
                 except RuntimeError as e:
                     if 'CUDA out of memory' in str(e):
                         print(f'[Runner] - CUDA out of memory at step {global_step}')
-                        torch.cuda.empty_cache()
+                        with torch.cuda.device(self.args.device):
+                            torch.cuda.empty_cache()
                         optimizer.zero_grad()
                         continue
                     else:
@@ -281,7 +282,8 @@ class Runner():
         torch.manual_seed(self.args.seed)
         if torch.cuda.is_available():
             torch.cuda.manual_seed_all(self.args.seed)
-        torch.cuda.empty_cache()
+        with torch.cuda.device(self.args.device):
+            torch.cuda.empty_cache()
 
         # record original train/eval states and set all models to eval
         downstream_training = self.downstream.training
@@ -331,7 +333,8 @@ class Runner():
         records = defaultdict(list)
 
         # prepare back to training
-        torch.cuda.empty_cache()
+        with torch.cuda.device(self.args.device):
+            torch.cuda.empty_cache()
         if downstream_training:
             self.downstream.train()
         if upstream_training:
