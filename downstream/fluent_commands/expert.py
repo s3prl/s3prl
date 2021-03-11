@@ -94,6 +94,7 @@ class DownstreamExpert(nn.Module):
 
     # Interface
     def forward(self, mode, features, labels, records, **kwargs):
+        labels = [torch.LongTensor(label) for label in labels]
         features_len = torch.IntTensor([len(feat) for feat in features]).to(device=features[0].device)
         features = pad_sequence(features, batch_first=True)
 

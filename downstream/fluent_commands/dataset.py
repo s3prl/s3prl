@@ -3,6 +3,7 @@ import random
 
 import torch
 import torchaudio
+import numpy as np
 import torch.nn as nn
 from torch.utils.data.dataset import Dataset
 
@@ -31,7 +32,7 @@ class FluentCommandsDataset(Dataset):
             value = self.df.loc[idx][slot]
             label.append(self.Sy_intent[slot][value])
 
-        return wav, torch.tensor(label).long()
+        return wav.numpy(), np.array(label)
 
     def collate_fn(self, samples):
         wavs, labels = [], []
