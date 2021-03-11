@@ -28,7 +28,7 @@ def collect_audio_batch(batch, split, half_batch_size_wav_len=300000):
     with torch.no_grad():
         for b in batch:
             file.append(str(b[0]).split('/')[-1].split('.')[0])
-            feat = audio_reader(str(b[0]))
+            feat = audio_reader(str(b[0])).numpy()
             audio_feat.append(feat)
             audio_len.append(len(feat))
             text.append(torch.LongTensor(b[1]))
