@@ -8,10 +8,10 @@ from torchaudio.sox_effects import apply_effects_file
 class QUESST14Dataset(Dataset):
     """QUESST 2014 dataset (English-only)."""
 
-    def __init__(self, **kwargs):
+    def __init__(self, split, **kwargs):
         dataset_root = Path(kwargs["dataset_root"])
         doc_paths = english_audio_paths(dataset_root, "language_key_utterances.lst")
-        query_paths = english_audio_paths(dataset_root, "language_key_eval.lst")
+        query_paths = english_audio_paths(dataset_root, f"language_key_{split}.lst")
 
         self.dataset_root = dataset_root
         self.n_queries = len(query_paths)
