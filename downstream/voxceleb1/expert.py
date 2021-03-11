@@ -83,7 +83,7 @@ class DownstreamExpert(nn.Module):
         return eval(f'self.get_{mode}_dataloader')()
 
     # Interface
-    def forward(self, mode, features, lengths, labels, records, **kwargs):
+    def forward(self, mode, features, labels, records, **kwargs):
         device = features[0].device
         features_len = torch.IntTensor([len(feat) for feat in features]).to(device=device)
         features = pad_sequence(features, batch_first=True)

@@ -83,14 +83,11 @@ class SpeakerClassifiDataset(Dataset):
                 wav = wav[start:start+self.max_timestep]
                 length = self.max_timestep
   
-        return wav, torch.tensor([length]), torch.tensor([self.label[idx]]).long()
+        return wav.numpy(), self.label[idx]
         
-    def collate_fn(self, samples):
-        
-        wavs, lengths, labels = [], [], []
-
-        for wav,length,label in samples:
+    def collate_fn(self, samples):        
+        wavs, labels = [], []
+        for wav, label in samples:
             wavs.append(wav)
-            lengths.append(length)
             labels.append(label)
-        return wavs, lengths, labels
+        return wavs, labels
