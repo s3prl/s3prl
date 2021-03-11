@@ -207,10 +207,9 @@ class DiarizationDataset(Dataset):
         label = []
         for i in range(batch_size):
             length = len_list[i]
-            wav.append(torch.from_numpy(batch[i][0]).float())
-            label.append(torch.from_numpy(batch[i][1]).float())
+            wav.append(batch[i][0].astype(np.float32))
+            label.append(batch[i][1].astype(np.float32))
         length = np.array(len_list)
-        length = torch.from_numpy(length)
         return wav, label, length, None
 
     def collate_fn_rec_infer(self, batch):
@@ -221,10 +220,9 @@ class DiarizationDataset(Dataset):
         label = []
         for i in range(chunk_num):
             length = len_list[i]
-            wav.append(torch.from_numpy(batch[0][0][i]).float())
-            label.append(torch.from_numpy(batch[0][1][i]).float())
+            wav.append(batch[0][0][i].astype(np.float32))
+            label.append(batch[0][1][i].astype(np.float32))
         length = np.array(len_list)
-        length = torch.from_numpy(length)
         rec_id = batch[0][2]
         return wav, label, length, rec_id
 

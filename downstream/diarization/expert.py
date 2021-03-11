@@ -204,6 +204,7 @@ class DownstreamExpert(nn.Module):
             loss:
                 the loss to be optimized, should not be detached
         """
+        labels = [torch.from_numpy(label) for label in labels]
         lengths = torch.LongTensor(lengths)
 
         features = pad_sequence(features, batch_first=True)
