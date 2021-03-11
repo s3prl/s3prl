@@ -60,6 +60,7 @@ class DownstreamExpert(nn.Module):
     # Interface
     def forward(self, split, features, labels, filenames, records, **kwargs):
         device = features[0].device
+        labels = [torch.LongTensor(label) for label in labels]
         features_len = torch.IntTensor([len(feat) for feat in features])
         labels_len = torch.IntTensor([len(label) for label in labels])
         features = pad_sequence(features, batch_first=True)
@@ -118,14 +119,14 @@ class DownstreamExpert(nn.Module):
                         self.best_score = torch.ones(1) * average
                         save_names.append(f'{split}-best.ckpt')
 
-        for i in range(0, len(records['filename']), round(len(records['filename']) / 5)):
-            filename = records['filename'][i]
-            hypothesis = records['hypothesis'][i]
-            groundtruth = records['groundtruth'][i]
-            logger.add_text(
-                f'{self._get_task_name()}/{split}-{filename}',
-                f'**hypothesis**: {hypothesis}<br>**groundtruth**: {groundtruth}',
-                global_step=global_step,
-            )
+        # for i in range(0, len(records['filename']), round(len(records['filename']) / 5)):
+        #     filename = records['filename'][i]
+        #     hypothesis = records['hypothesis'][i]
+        #     groundtruth = records['groundtruth'][i]
+        #     logger.add_text(
+        #         f'{self._get_task_name()}/{split}-{filename}',
+        #         f'**hypothesis**: {hypothesis}<br>**groundtruth**: {groundtruth}',
+        #         global_step=global_step,
+        #     )
 
         return save_names

@@ -31,7 +31,7 @@ def collect_audio_batch(batch, split, half_batch_size_wav_len=300000):
             feat = audio_reader(str(b[0])).numpy()
             audio_feat.append(feat)
             audio_len.append(len(feat))
-            text.append(torch.LongTensor(b[1]))
+            text.append(torch.LongTensor(b[1]).numpy())
 
     # Descending audio length within each batch
     audio_len, file, audio_feat, text = zip(*[(feat_len, f_name, feat, txt)
