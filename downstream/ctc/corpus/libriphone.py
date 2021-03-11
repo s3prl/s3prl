@@ -1,5 +1,6 @@
 from tqdm import tqdm
 from pathlib import Path
+from collections import defaultdict
 from os.path import join, getsize, isfile
 from joblib import Parallel, delayed
 from torch.utils.data import Dataset
@@ -37,13 +38,23 @@ class LibriPhoneDataset(Dataset):
         self.bucket_size = bucket_size
 
         # create word -> phonemes mapping
-        word2phonemes = {}
+        word2phonemes_all = defaultdict(list)
         for lexicon_file in Path(lexicon).rglob('*.txt'):
             with open(lexicon_file, 'r') as file:
                 lines = [line.strip() for line in file.readlines()]
                 for line in lines:
                     word, phonemes = parse_lexicon(line, tokenizer)
-                    word2phonemes[word] = phonemes
+                    word2phonemes_all[word].append(phonemes)
+
+        # check mapping number of each word
+        word2phonemes = {}
+        for word, phonemes_all in word2phonemes_all.items():
+            if len(phonemes_all) > 1:
+                print(f'[LibriPhone] - {len(phonemes_all)} of phoneme sequences found for {word}.')
+                for idx, phonemes in enumerate(phonemes_all):
+                    print(f'{idx}. {phonemes}')
+            word2phonemes[word] = phonemes_all[0]
+        print(f'[LibriPhone] - Taking the first phoneme sequences for a deterministic behavior.')
 
         # List all wave files
         file_list = []

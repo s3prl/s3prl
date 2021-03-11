@@ -44,7 +44,7 @@ downstream_expert:
     test: ['test-clean']
 
     bucketing: True                       # Enable/Disable bucketing 
-    batch_size: 32
+    batch_size: 16
     num_workers: 24
   
   text:
@@ -52,7 +52,7 @@ downstream_expert:
     vocab_file: 'downstream/ctc/vocab/phoneme.txt'
   
   model:
-    project_dim: 1024
+    project_dim: 256
     zero_infinity: True
 
     select: FrameLevel
