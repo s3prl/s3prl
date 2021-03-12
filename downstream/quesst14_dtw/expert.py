@@ -35,10 +35,26 @@ class DownstreamExpert(nn.Module):
         self.datarc = downstream_expert["datarc"]
         self.dtwrc = downstream_expert["dtwrc"]
         self.expdir = Path(expdir)
-        self.test_dataset = QUESST14Dataset(**self.datarc)
+        self.test_dataset = None
+
+        # Upstream features normalization cannot be used with cosine_neg_log_minmax.
+        assert not (
+            self.feature_normalization
+            and self.dtwrc["dist_method"] == "cosine_neg_log_minmax"
+        ), "Upstream features normalization cannot be used with cosine_neg_log_minmax."
+
+        # Subsequence finding only works under asymmetric setting
+        assert (
+            self.dtwrc["step_pattern"] == "asymmetric" or not self.dtwrc["subsequence"]
+        ), "Subsequence finding only works under asymmetric setting."
 
     # Interface
     def get_dataloader(self, mode):
+        if mode == "dev":
+            self.test_dataset = QUESST14Dataset("dev", **self.datarc)
+        else:  # eval
+            self.test_dataset = QUESST14Dataset("eval", **self.datarc)
+
         return DataLoader(
             self.test_dataset,
             shuffle=False,
@@ -84,11 +100,12 @@ class DownstreamExpert(nn.Module):
         docs = [((doc - feature_mean) / feature_std).numpy() for doc in docs]
 
         # Define distance function for DTW
-        dist_fn = (
-            cosine_exp_minmax
-            if self.dtwrc["dist_method"] == "cosine_exp_minmax"
-            else partial(distance.cdist, metric=self.dtwrc["dist_method"])
-        )
+        if self.dtwrc["dist_method"] == "cosine_exp_minmax":
+            dist_fn = cosine_exp_minmax
+        elif self.dtwrc["dist_method"] == "cosine_neg_log_minmax":
+            dist_fn = cosine_neg_log_minmax
+        else:
+            dist_fn = partial(distance.cdist, metric=self.dtwrc["dist_method"])
 
         # Define DTW configurations
         dtwrc = {
@@ -98,16 +115,15 @@ class DownstreamExpert(nn.Module):
             "open_begin": True if self.dtwrc["subsequence"] else False,
             "open_end": True if self.dtwrc["subsequence"] else False,
         }
-        assert (
-            self.dtwrc["step_pattern"] == "asymmetric" or not self.dtwrc["subsequence"]
-        )  # subsequence finding only works under asymmetric setting
 
         # Calculate matching scores
         results = defaultdict(list)
-        all_scores = []
         with ProcessPoolExecutor(max_workers=self.max_workers) as executor:
             futures = []
             for query, query_name in zip(queries, query_names):
+                if len(query) < 5:  # Do not consider too short queries
+                    results[query_name] = [(doc_name, 0) for doc_name in doc_names]
+                    continue
                 for doc, doc_name in zip(docs, doc_names):
                     futures.append(
                         executor.submit(
@@ -118,30 +134,35 @@ class DownstreamExpert(nn.Module):
                 as_completed(futures), total=len(futures), ncols=0, desc="DTW"
             ):
                 query_name, doc_name, score = future.result()
-                all_scores.append(score)
                 results[query_name].append((doc_name, score))
 
-        if self.score_normalization:
-            # Z-normalize scores with regard to each query
-            for query_name, doc_scores in results.items():
-                names, scores = zip(*doc_scores)
-                scores = torch.FloatTensor(scores)
-                score_std = scores.std()
-                score_std[score_std == 0] = 1e-9
-                scores = (scores - scores.mean()) / score_std
-                results[query_name] = zip(names, scores.tolist())
-            # Scores above 2 STDs are seen as detected (top 2.5% as YES)
-            score_thresh = 2.0
-        else:
-            # Determine score threshold (top 1% as YES)
-            all_scores = sorted(all_scores)
-            score_thresh = all_scores[int(0.99 * len(all_scores))]
-            # Shift all scores to above 0
-            score_min = all_scores[0]
-            for query_name, doc_scores in results.items():
-                names, scores = zip(*doc_scores)
-                scores = [score - score_min for score in scores]
-                results[query_name] = zip(names, scores)
+        # Normalize scores with regard to each query
+        for query_name, doc_scores in results.items():
+            names, scores = zip(*doc_scores)
+            scores = np.array(scores)
+            if np.count_nonzero(scores) == 0:
+                pass
+            elif self.score_normalization == "z_norm":
+                score_mean = scores.mean()
+                score_std = np.clip(scores.std(), 1e-9, np.inf)
+                scores = (scores - score_mean) / score_std
+            elif self.score_normalization == "m_norm":
+                counts, edges = np.histogram(scores, bins=10)
+                largest_bin_id = np.argmax(counts)
+                score_mean = (edges[largest_bin_id] + edges[largest_bin_id + 1]) / 2
+                score_std = np.clip(scores[scores > score_mean].std(), 1e-9, np.inf)
+                scores = (scores - score_mean) / score_std
+            elif self.score_normalization == "s_norm":
+                perms = np.argsort(scores)
+                scores[perms] = np.linspace(0.0, 1.0, num=len(scores))
+            else:
+                raise NotImplementedError
+            results[query_name] = zip(names, scores)
+
+        # Scores above 2 STDs are seen as detected (top 2.5% as YES)
+        score_thresh = 2.0
+        if self.score_normalization == "s_norm":
+            score_thresh = 0.99
 
         # Build XML tree
         root = etree.Element(
@@ -191,6 +212,14 @@ def match(query, doc, query_name, doc_name, dist_fn, dtwrc):
 def cosine_exp_minmax(query, doc):
     dist = distance.cdist(query, doc, "cosine")
     dist = np.exp(dist) - 1
+    dist_min, dist_max = dist.min(1), dist.max(1)
+    dist = ((dist.T - dist_min) / (dist_max - dist_min)).T
+    return dist
+
+
+def cosine_neg_log_minmax(query, doc):
+    dist = distance.cdist(query, doc, "cosine")
+    dist = -1 * np.log(1 - dist)
     dist_min, dist_max = dist.min(1), dist.max(1)
     dist = ((dist.T - dist_min) / (dist_max - dist_min)).T
     return dist
