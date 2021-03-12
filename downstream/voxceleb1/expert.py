@@ -14,6 +14,7 @@ import os
 import math
 import torch
 import random
+import pathlib
 #-------------#
 import torch
 import torch.nn as nn
@@ -23,6 +24,7 @@ from torch.nn.utils.rnn import pad_sequence
 from .model import Model
 from .dataset import SpeakerClassifiDataset
 from argparse import Namespace
+from pathlib import Path
 
 
 class DownstreamExpert(nn.Module):
@@ -38,9 +40,11 @@ class DownstreamExpert(nn.Module):
         self.datarc = downstream_expert['datarc']
         self.modelrc = downstream_expert['modelrc']
 
-        self.train_dataset = SpeakerClassifiDataset('train', self.datarc['file_path'], self.datarc['meta_data'], self.datarc['max_timestep'])
-        self.dev_dataset = SpeakerClassifiDataset('dev', self.datarc['file_path'], self.datarc['meta_data'])
-        self.test_dataset = SpeakerClassifiDataset('test', self.datarc['file_path'], self.datarc['meta_data'])
+        root_dir = Path(self.datarc['file_path'])
+
+        self.train_dataset = SpeakerClassifiDataset('train', root_dir, self.datarc['meta_data'], self.datarc['max_timestep'])
+        self.dev_dataset = SpeakerClassifiDataset('dev', root_dir, self.datarc['meta_data'])
+        self.test_dataset = SpeakerClassifiDataset('test', root_dir, self.datarc['meta_data'])
         
         self.connector = nn.Linear(self.upstream_dim, self.modelrc['input_dim'])
 
