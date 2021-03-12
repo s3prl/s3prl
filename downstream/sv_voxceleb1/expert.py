@@ -238,6 +238,7 @@ class DownstreamExpert(nn.Module):
             agg_vec = self.model(features_pad, attention_mask_pad.cuda())
             labels = torch.LongTensor(labels).to(features_pad.device)
             loss = self.objective(agg_vec, labels)
+            records['loss'].append(loss.item())
             return loss
         
         elif mode in ['dev', 'test']:
@@ -278,7 +279,12 @@ class DownstreamExpert(nn.Module):
             global_step:
                 global_step in runner, which is helpful for Tensorboard logging
         """
-        if mode in ['dev', 'test']:
+        if mode == 'train':
+            loss = torch.FloatTensor(records['loss']).mean().item()
+            logger.add_scalar(f'sv-voxceleb1/{mode}-loss', loss, global_step=global_step)
+            print(f'sv-voxceleb1/{mode}-loss: {loss}')
+
+        elif mode in ['dev', 'test']:
             err, *others = self.eval_metric(np.array(records['labels']), np.array(records['scores']))
             logger.add_scalar(f'sv-voxceleb1/{mode}-EER', err, global_step=global_step)
             print(f'sv-voxceleb1/{mode}-ERR: {err}')
