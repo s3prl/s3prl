@@ -1,11 +1,10 @@
 runner:
-  total_steps: 1000000
+  total_steps: 200000
   gradient_clipping: 1
-  gradient_accumulate_steps: 2
-
+  gradient_accumulate_steps: 1
   log_step: 100
-  eval_step: 1000
-  save_step: 100
+  eval_step: 2000
+  save_step: 500
   max_keep: 1
   eval_dataloaders:
     - dev-clean
@@ -21,13 +20,18 @@ optimizer:
 # scheduler:
 #   name: linear_schedule_with_warmup
 #   num_warmup_steps: 1400
-
 # comment the whole specaug config block
 # to disable specaug on representation
-# specaug:
-#   apply_time_warp: true
-#   apply_time_mask: true
-#   apply_freq_mask: true
+
+specaug:
+  apply_time_warp: true
+  apply_time_mask: true
+  apply_freq_mask: true
+  time_warp_window: 5
+  time_mask_width_range: [0, 40]
+  freq_mask_width_range: [0, 50]
+  num_freq_mask: 4
+  num_time_mask: 2
 
 downstream_expert:
   datarc:
@@ -36,10 +40,9 @@ downstream_expert:
     dev-other: ['dev-other']
     test-clean: ['test-clean']
     test-other: ['test-other']
-
-    num_workers: 8
-    train_batch_size: 16
-    eval_batch_size: 16
+    num_workers: 12
+    train_batch_size: 32
+    eval_batch_size: 1
     libri_root: '/path/to/LibriSpeech'
     bucket_file: 'data/librispeech/len_for_bucket'
 
@@ -69,12 +72,12 @@ downstream_expert:
     Wav2Letter:
       total_rate: 320
     RNNs:
-      total_rate: 320
+      total_rate: -1
       module: 'LSTM'                        # 'LSTM'/'GRU'
       bidirection: True
-      dim: [1024, 1024, 1024]
-      dropout: [0.2, 0.2, 0.2]
-      layer_norm: [True, True, True]
-      proj: [True, True, True]              # Linear projection + Tanh after each rnn layer
-      sample_rate: [1, 1, 1]
+      dim: [1024]
+      dropout: [0.2]
+      layer_norm: [False]
+      proj: [False]              # Linear projection + Tanh after each rnn layer
+      sample_rate: [1]
       sample_style: 'concat'                  # 'drop'/'concat'
