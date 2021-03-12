@@ -32,7 +32,7 @@ class QUESST14Dataset(Dataset):
             ],
         )
         wav = wav.squeeze(0)
-        return wav, audio_path.with_suffix("").name
+        return wav.numpy(), audio_path.with_suffix("").name
 
     def collate_fn(self, samples):
         """Collate a mini-batch of data."""
