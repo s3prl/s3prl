@@ -240,16 +240,12 @@ class DownstreamExpert(nn.Module):
             agg_vec = agg_vec / (torch.norm(agg_vec, dim=-1).unsqueeze(-1))
 
             # separate batched data to pair data.
-            vec1, vec2 = self.separate_data(agg_vec, labels)
-            scores = self.score_fn(vec1,vec2).squeeze().cpu().detach().tolist()
-            ylabels = torch.stack(torch.LongTensor(labels)).cpu().detach().long().tolist()
+            vec1, vec2 = self.separate_data(agg_vec)
 
-            if len(ylabels) > 1:
-                records['scores'].extend(scores)
-                records['ylabels'].extend(ylabels)
-            else:
-                records['scores'].append(scores)
-                records['ylabels'].append(ylabels)
+            scores = self.score_fn(vec1, vec2).cpu().detach().tolist()
+            records['scores'].extend(scores)
+            records['labels'].extend(labels)
+
             return torch.tensor(0)
         
         elif mode in ['train_plda', 'test_plda']:
@@ -277,15 +273,16 @@ class DownstreamExpert(nn.Module):
                 global_step in runner, which is helpful for Tensorboard logging
         """
         if mode in ['dev', 'test']:
-            err, *others = self.eval_metric(np.array(records['ylabels']), np.array(records['scores']))
+            err, *others = self.eval_metric(np.array(records['labels']), np.array(records['scores']))
             logger.add_scalar(f'sv-voxceleb1/{mode}-EER', err, global_step=global_step)
             print(f'sv-voxceleb1/{mode}-ERR: {err}')
         
         elif mode in ['train_plda', 'test_plda']:
             self.ark.close()
         
-    def separate_data(self, agg_vec, ylabel):
-        total_num = len(ylabel) 
+    def separate_data(self, agg_vec):
+        assert len(agg_vec) % 2 == 0
+        total_num = len(agg_vec) // 2
         feature1 = agg_vec[:total_num]
         feature2 = agg_vec[total_num:]
         return feature1, feature2
