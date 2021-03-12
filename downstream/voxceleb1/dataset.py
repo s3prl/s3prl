@@ -9,7 +9,8 @@ import random
 import torchaudio
 import sys
 import time
-
+import glob
+import tqdm
 # Voxceleb 1 Speaker Identification
 class SpeakerClassifiDataset(Dataset):
     def __init__(self, mode, file_path, meta_data, max_timestep=None):
@@ -35,36 +36,42 @@ class SpeakerClassifiDataset(Dataset):
     def train(self):
 
         dataset = []
-        for string in self.usage_list:
+        print("search specified wav name for training set")
+        for string in tqdm.tqdm(self.usage_list):
             pair = string.split()
             index = pair[0]
-            x = os.path.join(self.root, pair[1])
             if int(index) == 1:
-                dataset.append(x)
+                x = list(self.root.glob("*/wav/" + pair[1]))
+                dataset.append(str(x[0]))
+        print("finish searching training set wav")
                 
         return dataset
         
     def dev(self):
 
         dataset = []
-        for string in self.usage_list:
+        print("search specified wav name for dev set")
+        for string in tqdm.tqdm(self.usage_list):
             pair = string.split()
             index = pair[0]
-            x = os.path.join(self.root, pair[1])
             if int(index) == 2:
-                dataset.append(x) 
+                x = list(self.root.glob("*/wav/" + pair[1]))
+                dataset.append(str(x[0])) 
+        print("finish searching dev set wav")
 
         return dataset       
 
     def test(self):
 
         dataset = []
-        for string in self.usage_list:
+        print("search specified wav name for test set")
+        for string in tqdm.tqdm(self.usage_list):
             pair = string.split()
             index = pair[0]
-            x = os.path.join(self.root, pair[1])
             if int(index) == 3:
-                dataset.append(x) 
+                x = list(self.root.glob("*/wav/" + pair[1]))
+                dataset.append(str(x[0])) 
+        print("finish searching test set wav")
 
         return dataset
 
@@ -72,7 +79,6 @@ class SpeakerClassifiDataset(Dataset):
         return len(self.dataset)
     
     def __getitem__(self, idx):
-        
         wav, sr = torchaudio.load(self.dataset[idx])
         wav = wav.squeeze(0)
         length = wav.shape[0]
