@@ -64,6 +64,23 @@ def hack_isinstance():
         return _isinstance(obj, cls)
     builtins.isinstance = isinstance
 
+def override(string, args, config):
+    options = string.split(',')
+    for option in options:
+        key, cls_value = option.split('=')
+        cls_str, value = cls_value.split(':')
+        first_field, *remaining = key.split('.')
+        if first_field == 'args':
+            assert len(remaining) == 1
+            setattr(args, remaining[0], eval(cls_str)(value))
+        elif first_field == 'config':
+            target_config = config
+            for i, field_name in enumerate(remaining):
+                if i == len(remaining) - 1:
+                    target_config[field_name] = eval(cls_str)(value)
+                else:
+                    target_config.setdefault(field_name, {})
+                    target_config = target_config[field_name]
 
 #####################
 # PARSE PRUNE HEADS #

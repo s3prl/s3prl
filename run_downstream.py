@@ -13,7 +13,7 @@ from torch.distributed import is_initialized, get_world_size
 
 import hubconf
 from downstream.runner import Runner
-from utility.helper import backup, get_time_tag, hack_isinstance, is_leader_process
+from utility.helper import backup, get_time_tag, hack_isinstance, is_leader_process, override
 
 
 def get_downstream_args():
@@ -22,6 +22,7 @@ def get_downstream_args():
     # train or test for this experiment
     parser.add_argument('-m', '--mode', choices=['train', 'evaluate'], required=True)
     parser.add_argument('-t', '--evaluate_split', default='test')
+    parser.add_argument('-o', '--override', help='Used to override args and config, this is at the highest priority')
 
     # distributed training
     parser.add_argument('--backend', default='nccl', help='The backend for distributed training')
@@ -102,16 +103,16 @@ def get_downstream_args():
         def update_args(old, new, preserve_list=None):
             out_dict = vars(old)
             new_dict = vars(new)
-            assert out_dict.keys() == new_dict.keys()
-            for key in list(out_dict.keys()):
-                if key not in preserve_list:
-                    out_dict[key] = new_dict[key]
+            for key in list(new_dict.keys()):
+                if key in preserve_list:
+                    new_dict.pop(key)
+            out_dict.update(new_dict)
             return Namespace(**out_dict)
 
         # overwrite args
         cannot_overwrite_args = [
-            'mode', 'evaluate_split', 'backend',
-            'local_rank', 'past_exp',
+            'mode', 'evaluate_split', 'override',
+            'backend', 'local_rank', 'past_exp',
         ]
         args = update_args(args, ckpt['Args'], preserve_list=cannot_overwrite_args)
         args.init_ckpt = ckpt_pth
@@ -130,6 +131,9 @@ def get_downstream_args():
         if args.upstream_model_config is not None and os.path.isfile(args.upstream_model_config):
             backup_files.append(args.upstream_model_config)
 
+    if args.override:
+        override(args.override, args, config)
+    
     return args, config, backup_files
 
 
