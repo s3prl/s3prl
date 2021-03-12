@@ -22,9 +22,11 @@ import torch
 import kaldi_io
 import numpy as np
 import torch.nn as nn
-from torch.utils.data import DataLoader
 from torch.nn.utils.rnn import pad_sequence
+from torch.utils.data import DataLoader, DistributedSampler
+from torch.distributed import is_initialized, get_rank, get_world_size
 #-------------#
+from utility.helper import is_leader_process
 from .model import Model, AMSoftmaxLoss, SoftmaxLoss, UtteranceExtractor
 from .dataset import SpeakerVerifi_train, SpeakerVerifi_test, SpeakerVerifi_plda
 from .utils import EER
@@ -128,7 +130,7 @@ class DownstreamExpert(nn.Module):
         self.score_fn  = nn.CosineSimilarity(dim=-1)
         self.eval_metric = EER
 
-        if evaluate_split in ['train_plda', 'test_plda']:
+        if evaluate_split in ['train_plda', 'test_plda'] and is_leader_process():
             self.ark = open(f'{expdir}/{evaluate_split}.rep.ark', 'wb')
 
     # Interface
@@ -162,9 +164,13 @@ class DownstreamExpert(nn.Module):
             return self._get_eval_dataloader(self.test_dataset_plda)
 
     def _get_train_dataloader(self, dataset):
+        sampler = DistributedSampler(dataset) if is_initialized() else None
         return DataLoader(
-            dataset, batch_size=self.datarc['train_batch_size'], 
-            shuffle=True, num_workers=self.datarc['num_workers'],
+            dataset,
+            batch_size=self.datarc['train_batch_size'], 
+            shuffle=(sampler is None),
+            sampler=sampler,
+            num_workers=self.datarc['num_workers'],
             collate_fn=dataset.collate_fn
         )
 
@@ -248,7 +254,7 @@ class DownstreamExpert(nn.Module):
 
             return torch.tensor(0)
         
-        elif mode in ['train_plda', 'test_plda']:
+        elif mode in ['train_plda', 'test_plda'] and is_leader_process():
             for key, vec in zip(utter_idx, agg_vec):
                 vec = vec.view(-1).detach().cpu().numpy()
                 kaldi_io.write_vec_flt(self.ark, vec, key=key)
@@ -279,7 +285,7 @@ class DownstreamExpert(nn.Module):
         
         elif mode in ['train_plda', 'test_plda']:
             self.ark.close()
-        
+
     def separate_data(self, agg_vec):
         assert len(agg_vec) % 2 == 0
         total_num = len(agg_vec) // 2
