@@ -24,8 +24,8 @@ optimizer:
 
 downstream_expert: 
   datarc:
-    file_path: /path/to/speaker_classifi/wav/
-    meta_data: /path/to/speaker_classifi/veri_test_class.txt
+    file_path: ../librispeech/voxceleb1
+    meta_data: ./downstream/voxceleb1/veri_test_class.txt
     num_workers: 12
     train_batch_size: 10
     eval_batch_size: 1
