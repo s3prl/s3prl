@@ -30,12 +30,13 @@ downstream_expert:
     vad_config:
       min_sec: 32000
     
-    dev_root: ../librispeech/vox1_train_verifi/wav
-    test_root:  ../librispeech/vox1_test/wav
+    file_path: ../librispeech/voxceleb1
+    # dev_root: ../librispeech/vox1_train_verifi/wav
+    # test_root:  ../librispeech/vox1_test/wav
 
     train_meta_data: ./downstream/voxceleb2_amsoftmax_full_eval/dev_meta_data/dev_speaker_ids.txt
     dev_meta_data: ./downstream/voxceleb2_amsoftmax_full_eval/dev_meta_data/dev_meta_data.txt
-    test_meta_data: /home/pohan/data/librispeech/vox1_test/veri_test.txt
+    test_meta_data: ./downstream/voxceleb2_amsoftmax_full_eval/veri_test.txt
 
     max_timestep: 128000
     train_batch_size: 10

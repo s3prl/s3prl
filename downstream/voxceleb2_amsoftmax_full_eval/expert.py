@@ -15,10 +15,12 @@ import math
 import torch
 import random
 import kaldi_io
+import pathlib
 import numpy as np
 #-------------#
 import torch
 import torch.nn as nn
+from pathlib import Path
 from torch.utils.data import DataLoader
 from torch.nn.utils.rnn import pad_sequence
 #-------------#
@@ -28,6 +30,7 @@ from argparse import Namespace
 from .utils import EER, compute_metrics
 import IPython
 import pdb
+
 
 
 
@@ -56,28 +59,31 @@ class DownstreamExpert(nn.Module):
         #############################################################################################
 
         # dataset
-        train_config = {"vad_config":self.datarc['vad_config'], "file_path": [self.datarc['dev_root']], 
+        train_file_path = Path(self.datarc['file_path']) / "dev" / "wav"
+        test_file_path = Path(self.datarc['file_path']) / "test" / "wav"
+        
+        train_config = {"vad_config":self.datarc['vad_config'], "file_path": [train_file_path], 
                         "key_list":["Voxceleb1"], "meta_data": self.datarc['train_meta_data'], 
                         "max_timestep": self.datarc["max_timestep"]}
 
         self.train_dataset = SpeakerVerifi_train(**train_config)
 
-        dev_config = {"vad_config":self.datarc['vad_config'], "file_path": self.datarc['dev_root'], 
+        dev_config = {"vad_config":self.datarc['vad_config'], "file_path": train_file_path, 
             "meta_data": self.datarc['dev_meta_data']}
         
         self.dev_dataset = SpeakerVerifi_test(**dev_config)
 
-        test_config = {"vad_config":self.datarc['vad_config'], "file_path": self.datarc['test_root'], 
+        test_config = {"vad_config":self.datarc['vad_config'], "file_path": test_file_path, 
             "meta_data": self.datarc['test_meta_data']}
         
         self.test_dataset = SpeakerVerifi_test(**test_config)
 
-        train_plda_config = {"vad_config":self.datarc['vad_config'], "file_path": [self.datarc['dev_root']], 
+        train_plda_config = {"vad_config":self.datarc['vad_config'], "file_path": [train_file_path], 
             "key_list":["Voxceleb1_train_plda"], "meta_data": self.datarc['dev_meta_data']}
 
         self.train_dataset_plda = SpeakerVerifi_plda(**train_plda_config)
 
-        test_plda_config = {"vad_config":self.datarc['vad_config'], "file_path": [self.datarc['test_root']], 
+        test_plda_config = {"vad_config":self.datarc['vad_config'], "file_path": [test_file_path], 
             "key_list":["Voxceleb1_test_plda"], "meta_data": self.datarc['test_meta_data']}
 
         self.test_dataset_plda = SpeakerVerifi_plda(**test_plda_config)
