@@ -40,11 +40,10 @@ class SpeakerClassifiDataset(Dataset):
         for string in tqdm.tqdm(self.usage_list):
             pair = string.split()
             index = pair[0]
-            # x = os.path.join(self.root, pair[1])
-            x = str(self.root) + "/*/wav/" + pair[1]
-            wav_list = glob.glob(x)
             if int(index) == 1:
-                dataset.append(wav_list[0])
+                x = list(self.root.glob("*/wav/" + pair[1]))
+                dataset.append(str(x[0]))
+        print("finish searching training set wav")
                 
         return dataset
         
@@ -55,11 +54,10 @@ class SpeakerClassifiDataset(Dataset):
         for string in tqdm.tqdm(self.usage_list):
             pair = string.split()
             index = pair[0]
-            x = str(self.root) + "/*/wav/" + pair[1]
-            wav_list = glob.glob(x)
-            # x = os.path.join(self.root, pair[1])
             if int(index) == 2:
-                dataset.append(wav_list[0]) 
+                x = list(self.root.glob("*/wav/" + pair[1]))
+                dataset.append(str(x[0])) 
+        print("finish searching dev set wav")
 
         return dataset       
 
@@ -70,11 +68,10 @@ class SpeakerClassifiDataset(Dataset):
         for string in tqdm.tqdm(self.usage_list):
             pair = string.split()
             index = pair[0]
-            x = str(self.root) + "/*/wav/" + pair[1]
-            wav_list = glob.glob(x)
-            x = os.path.join(self.root, pair[1])
             if int(index) == 3:
-                dataset.append(wav_list[0]) 
+                x = list(self.root.glob("*/wav/" + pair[1]))
+                dataset.append(str(x[0])) 
+        print("finish searching test set wav")
 
         return dataset
 
