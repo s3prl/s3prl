@@ -1,23 +1,21 @@
 import os
-from librosa.util import find_files
-import IPython
-import pdb
 import random
-
-roots = {"Voxceleb1": "/path/to/Voxceleb1/dev/wav"}
+import tqdm
+import argparse
+from librosa.util import find_files
+from tqdm import trange
 
 def collect_speaker_ids(roots, speaker_num):
     
     all_speaker=[ ]
-    for key in list(roots.keys()):
-        all_speaker.extend([f.path for f in os.scandir(roots[key]) if f.is_dir()])
+
+    all_speaker.extend([f.path for f in os.scandir(roots) if f.is_dir()])
     
     ids = [[speaker.split("/")[-3],speaker.split("/")[-1]] for speaker in all_speaker]
 
     vox1 = []
-    
     for id in ids:
-        if id[0] == roots["Voxceleb1"].split("/")[-2]:
+        if id[0] == roots.split("/")[-2]:
             vox1.append(id[1])
 
 
@@ -27,23 +25,16 @@ def collect_speaker_ids(roots, speaker_num):
     train_speaker = []
 
     train_speaker.extend(vox1_train)
-    train_speaker.extend(vox2)
 
     return train_speaker, dev_speaker
 
-def construct_dev_speaker_id_txt(dev_speakers,dev_txt_name):
-    f = open(dev_txt_name, "w")
-    for dev in dev_speakers:
-        f.write(dev)
-        f.write("\n")
-    f.close()
-    return
 
 def sample_wavs_and_dump_txt(root,dev_ids, numbers, meta_data_name):
     
     wav_list = []
     count_positive = 0
-    for _ in range(numbers):
+    print(f"generate {numbers} sample pairs")
+    for _ in trange(numbers):
         prob = random.random()
         if (prob > 0.5):
             dev_id_pair = random.sample(dev_ids, 2)
@@ -67,7 +58,7 @@ def sample_wavs_and_dump_txt(root,dev_ids, numbers, meta_data_name):
             count_positive +=1
 
             wav_list.append(" ".join([label, sample1, sample2]))
-    
+    print("finish, then dump file ..")
     f = open(meta_data_name,"w")
     for data in wav_list:
         f.write(data+"\n")
@@ -77,6 +68,14 @@ def sample_wavs_and_dump_txt(root,dev_ids, numbers, meta_data_name):
 
 
 if __name__ == "__main__":
-    train_speakers, dev_speakers = collect_speaker_ids(roots, 51)
-    construct_dev_speaker_id_txt(dev_speakers, "./downstream/sv_voxceleb1/dev_meta_data/dev_speaker_ids.txt")
-    wav_list = sample_wavs_and_dump_txt(roots["Voxceleb1"], dev_speakers, 4000, "./downstream/sv_voxceleb1/dev_meta_data/dev_meta_data.txt")
+    parser = argparse.ArgumentParser()
+    parser.add_argument('-s', '--seed', default=19941227)
+    parser.add_argument('-r', '--root', default="../librispeech/voxceleb1/dev/wav")
+    parser.add_argument('-n',  '--speaker_num', default=40)
+    parser.add_argument('-p',  '--sample_pair', default=80000)
+    args = parser.parse_args()
+
+    random.seed(args.seed)
+    train_speakers, dev_speakers = collect_speaker_ids(args.root, args.speaker_num)
+    wav_list = sample_wavs_and_dump_txt(args.root, dev_speakers, args.sample_pair, "./downstream/voxceleb2_amsoftmax_full_eval/dev_meta_data/dev_meta_data.txt")
+
