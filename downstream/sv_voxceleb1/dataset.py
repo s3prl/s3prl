@@ -124,17 +124,10 @@ class SpeakerVerifi_plda(Dataset):
                 wav = wav[start:start+self.max_timestep]
                 length = self.max_timestep
   
-        return wav, self.dataset[idx][1]
-        
+        return wav.numpy(), self.dataset[idx][1]
+
     def collate_fn(self, samples):
-        
-        wavs, idxes, labels = [], [], []
-
-        for wav,idx in samples:
-            wavs.append(wav)
-            idxes.append(idx)
-            labels.append(None)
-
+        wavs, idxes, labels = zip(*samples)
         return wavs, idxes, labels
 
 
@@ -236,15 +229,11 @@ class SpeakerVerifi_train(Dataset):
                 start = random.randint(0, int(length-self.max_timestep))
                 wav = wav[start:start+self.max_timestep]
   
-        return wav, self.dataset[idx][1], torch.tensor([self.label[idx]]).long()
+        return wav.numpy(), self.dataset[idx][1], self.label[idx]
         
     def collate_fn(self, samples):
-        wavs, lengths, labels = [], [], []
-        for wav,length,label in samples:
-            wavs.append(wav)
-            lengths.append(None)
-            labels.append(label)
-        return wavs, lengths, labels
+        wavs, lengths, labels = zip(*samples)
+        return wavs, None, labels
 
 
 class SpeakerVerifi_test(Dataset):
@@ -286,31 +275,9 @@ class SpeakerVerifi_test(Dataset):
         length1 = wav1.shape[0]
         length2 = wav2.shape[0]
 
-        return wav1, wav2, \
-        torch.tensor(length1), torch.tensor(length2), \
-        torch.tensor(int(y_label[0])),
+        return wav1.numpy(), wav2.numpy(), length1, length2, int(y_label[0])
     
     def collate_fn(self, data_sample):
-        wavs1 = []
-        wavs2 = []
-        lengths1 = []
-        lengths2 = []
-        ylabels = []
-
-        for samples in data_sample:
-            wavs1.append(samples[0])
-            wavs2.append(samples[1])
-            lengths1.append(None)
-            lengths2.append(None)
-            ylabels.append(samples[4])
-
-        all_wavs = []
-        all_wavs.extend(wavs1)
-        all_wavs.extend(wavs2)
-
-        all_lengths = []
-        all_lengths.extend(lengths1)
-        all_lengths.extend(lengths2)
-
-        return all_wavs, all_lengths, ylabels
-
+        wavs1, wavs2, lengths1, lengths2, ylabels = zip(*data_sample)
+        all_wavs = wavs1 + wavs2
+        return all_wavs, None, ylabels

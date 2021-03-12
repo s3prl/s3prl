@@ -242,7 +242,7 @@ class DownstreamExpert(nn.Module):
             # separate batched data to pair data.
             vec1, vec2 = self.separate_data(agg_vec, labels)
             scores = self.score_fn(vec1,vec2).squeeze().cpu().detach().tolist()
-            ylabels = torch.stack(labels).cpu().detach().long().tolist()
+            ylabels = torch.stack(torch.LongTensor(labels)).cpu().detach().long().tolist()
 
             if len(ylabels) > 1:
                 records['scores'].extend(scores)
