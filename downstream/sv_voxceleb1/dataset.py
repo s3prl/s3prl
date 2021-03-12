@@ -1,20 +1,19 @@
-import torch
-from torch.utils.data import DataLoader, Dataset
-import numpy as np 
-from librosa.util import find_files
-from torchaudio import load
-from torch import nn
-from pathlib import Path
 import os 
-import IPython 
-import pdb
-import random
-import torchaudio
 import sys
 import time
-import tqdm
+import random
 import pickle
+
+import tqdm
+import torch
+import torchaudio
+import numpy as np 
+from torch import nn
+from pathlib import Path
 from sox import Transformer
+from torchaudio import load
+from librosa.util import find_files
+from torch.utils.data import DataLoader, Dataset
 from torchaudio.sox_effects import apply_effects_file
 
 
@@ -25,7 +24,6 @@ EFFECTS = [
 ["silence", "1", "0.1", "0.1%", "-1", "0.1", "0.1%"],
 ]
 
-# Voxceleb 2 Speaker verification with plda
 class SpeakerVerifi_plda(Dataset):
     def __init__(self, vad_config, file_path, key_list, meta_data, max_timestep=None):
     
@@ -37,23 +35,25 @@ class SpeakerVerifi_plda(Dataset):
         self.all_speakers = []
         
         for index in range(len(self.root_key)):
-            
-            cache_path = f"./downstream/voxceleb2_amsoftmax_full_eval/cache_wav_paths/cache_{self.root_key[index]}.p"
+            cache_path = Path(os.path.dirname(__file__)) / 'cache_wav_paths' / f'cache_{self.root_key[index]}.p'
             p = Path(self.roots[index])
+
             # loca cache_path if file exists
             if os.path.isfile(cache_path):
-
-                # cache dict = 
-                #{"speaker_id1":["wav_a_path1","wav_a_path2",...],"speaker_id2":["wav_b_path1", "wav_b_path2", ....],...}
+                # cache dict: 
+                # {
+                #   "speaker_id1": ["wav_a_path1", "wav_a_path2", ...],
+                #   "speaker_id2": ["wav_b_path1", "wav_b_path2", ...],
+                #   ...,
+                # }
                 cache_wavs_dict = pickle.load(open(cache_path,"rb"))
                 self.all_speakers.extend(list(cache_wavs_dict.keys()))
                 for speaker_id in list(cache_wavs_dict.keys()):
                     for wavs in cache_wavs_dict[speaker_id]:
                         utterance_id = "/".join(str(p/speaker_id/wavs).split("/")[-3:]).replace(".wav","").replace("/","-")
                         self.dataset.append([str(p / speaker_id / wavs), utterance_id])
-                        
-            else:
 
+            else:
                 speaker_wav_dict = {}
                 # calculate speakers and support to remove black list speaker (dev)
                 speaker_dirs = [f.path.split("/")[-1] for f in os.scandir(self.roots[index]) if f.is_dir()]
@@ -61,7 +61,6 @@ class SpeakerVerifi_plda(Dataset):
                     
                 print("search all wavs paths")
                 start = time.time()
-
                 for speaker in tqdm.tqdm(speaker_dirs):
                     speaker_dir =  p / speaker
                     wav_list=find_files(speaker_dir)
@@ -86,15 +85,16 @@ class SpeakerVerifi_plda(Dataset):
         self.label_mapping_spk_id = {}
         # speaker id  map to speaker num
         self.build_label_mapping()
-
-        self.label=self.build_label(self.dataset)
+        self.label = self.build_label(self.dataset)
 
     def processing(self):
-        
         speaker_num = len(self.all_speakers)
-        return {"spk_paths":self.all_speakers,"total_spk_num":speaker_num,"pair_table":None}
+        return {
+            "spk_paths": self.all_speakers,
+            "total_spk_num": speaker_num,
+            "pair_table": None,
+        }
 
-    
     # file_path/id0001/asfsafs/xxx.wav
     def build_label_mapping(self):
         spk_count  = 0
@@ -102,7 +102,6 @@ class SpeakerVerifi_plda(Dataset):
             self.label_mapping_spk_id[speaker_id.split("/")[-1]] = spk_count
             spk_count +=1
         
-    
     def build_label(self,train_path_list):
         y = []
         for path in train_path_list:
@@ -151,14 +150,17 @@ class SpeakerVerifi_train(Dataset):
         self.all_speakers = []
 
         for index in range(len(self.root_key)):
-            
-            cache_path = f"./downstream/voxceleb2_amsoftmax_full_eval/cache_wav_paths/cache_{self.root_key[index]}.p"
+            cache_path = Path(os.path.dirname(__file__)) / 'cache_wav_paths' / f'cache_{self.root_key[index]}.p'
             p = Path(self.roots[index])
+
             # loca cache_path if file exists
             if os.path.isfile(cache_path):
-
-                # cache dict = 
-                #{"speaker_id1":["wav_a_path1","wav_a_path2",...],"speaker_id2":["wav_b_path1", "wav_b_path2", ....],...}
+                # cache dict: 
+                # {
+                #   "speaker_id1": ["wav_a_path1", "wav_a_path2", ...],
+                #   "speaker_id2": ["wav_b_path1", "wav_b_path2", ...],
+                #   ...,
+                # }
                 cache_wavs_dict = pickle.load(open(cache_path,"rb"))
                 self.all_speakers.extend(list(cache_wavs_dict.keys()))
                 for speaker_id in list(cache_wavs_dict.keys()):
@@ -167,15 +169,12 @@ class SpeakerVerifi_train(Dataset):
                         self.dataset.append([str(p / speaker_id / wavs), utterance_id])
 
             else:
-
                 speaker_wav_dict = {}
-                # calculate speakers and support to remove black list speaker (dev)
                 speaker_dirs = [f.path.split("/")[-1] for f in os.scandir(self.roots[index]) if f.is_dir()]
                 self.all_speakers.extend(speaker_dirs)
-                    
+
                 print("search all wavs paths")
                 start = time.time()
-
                 for speaker in tqdm.tqdm(speaker_dirs):
                     speaker_dir =  p / speaker
                     wav_list=find_files(speaker_dir)
@@ -189,7 +188,8 @@ class SpeakerVerifi_train(Dataset):
                             utterance_id = "/".join(str(speaker_dir/wav).split("/")[-3:]).replace(".wav","").replace("/","-") 
                             self.dataset.append([str(speaker_dir/wav), utterance_id])
                             speaker_wav_dict[speaker].append("/".join(wav.split("/")[-2:]))
-                end = time.time() 
+                end = time.time()
+
                 print(f"search all wavs paths costs {end-start} seconds")
                 print(f"save wav paths to {cache_path}! so we can directly load all_path in next time!")
                 pickle.dump(speaker_wav_dict, open(cache_path,"wb"))    
@@ -199,15 +199,16 @@ class SpeakerVerifi_train(Dataset):
         self.label_mapping_spk_id = {}
         # speaker id  map to speaker num
         self.build_label_mapping()
-
         self.label=self.build_label(self.dataset)
 
     def processing(self):
-        
         speaker_num = len(self.all_speakers)
-        return {"spk_paths":self.all_speakers,"total_spk_num":speaker_num,"pair_table":None}
+        return {
+            "spk_paths": self.all_speakers,
+            "total_spk_num": speaker_num,
+            "pair_table": None
+        }
 
-    
     # file_path/id0001/asfsafs/xxx.wav
     def build_label_mapping(self):
         spk_count  = 0
@@ -215,13 +216,11 @@ class SpeakerVerifi_train(Dataset):
             self.label_mapping_spk_id[speaker_id.split("/")[-1]] = spk_count
             spk_count +=1
         
-    
     def build_label(self,train_path_list):
         y = []
         for path in train_path_list:
             id_string = path[0].split("/")[-3]
             y.append(self.label_mapping_spk_id[id_string])
-
         return y
 
     def __len__(self):
@@ -240,9 +239,7 @@ class SpeakerVerifi_train(Dataset):
         return wav, self.dataset[idx][1], torch.tensor([self.label[idx]]).long()
         
     def collate_fn(self, samples):
-        
         wavs, lengths, labels = [], [], []
-
         for wav,length,label in samples:
             wavs.append(wav)
             lengths.append(None)
@@ -252,7 +249,6 @@ class SpeakerVerifi_train(Dataset):
 
 class SpeakerVerifi_test(Dataset):
     def __init__(self, vad_config, file_path, meta_data):
-        
         self.root = file_path
         self.meta_data = meta_data
         self.necessary_dict = self.processing()
@@ -269,7 +265,11 @@ class SpeakerVerifi_test(Dataset):
             pair_2= os.path.join(self.root, list_pair[2])
             one_pair = [list_pair[0],pair_1,pair_2 ]
             pair_table.append(one_pair)
-        return {"spk_paths":None,"total_spk_num":None,"pair_table":pair_table}
+        return {
+            "spk_paths": None,
+            "total_spk_num": None,
+            "pair_table": pair_table
+        }
 
     def __len__(self):
         return len(self.necessary_dict['pair_table'])

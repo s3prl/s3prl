@@ -4,7 +4,7 @@ import IPython
 import pdb
 import random
 
-roots = {"Voxceleb1":"../librispeech/voxceleb1/dev/wav"}
+roots = {"Voxceleb1": "/path/to/Voxceleb1/dev/wav"}
 
 def collect_speaker_ids(roots, speaker_num):
     
@@ -78,6 +78,5 @@ def sample_wavs_and_dump_txt(root,dev_ids, numbers, meta_data_name):
 
 if __name__ == "__main__":
     train_speakers, dev_speakers = collect_speaker_ids(roots, 51)
-    construct_dev_speaker_id_txt(dev_speakers, "./downstream/voxceleb2_amsoftmax_full_eval/dev_meta_data/dev_speaker_ids.txt")
-    wav_list = sample_wavs_and_dump_txt(roots["Voxceleb1"], dev_speakers, 4000, "./downstream/voxceleb2_amsoftmax_full_eval/dev_meta_data/dev_meta_data.txt")
-
+    construct_dev_speaker_id_txt(dev_speakers, "./downstream/sv_voxceleb1/dev_meta_data/dev_speaker_ids.txt")
+    wav_list = sample_wavs_and_dump_txt(roots["Voxceleb1"], dev_speakers, 4000, "./downstream/sv_voxceleb1/dev_meta_data/dev_meta_data.txt")

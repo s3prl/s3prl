@@ -1,5 +1,3 @@
-
-# this voxceleb1 is doing speaker classification task!
 runner:
   total_steps: 100000
   gradient_clipping: 1.0e+3
@@ -14,9 +12,9 @@ runner:
     - test
   
 optimizer: 
-  name: AdamW
+  name: TorchOptim
+  torch_optim_name: Adam
   lr: 1.0e-4
-  # weight_decay: 1.0e-4
 
 # # comment the whole scheduler config block to disable learning rate scheduling
 # scheduler:
@@ -30,13 +28,10 @@ downstream_expert:
     vad_config:
       min_sec: 32000
     
-    file_path: ../librispeech/voxceleb1
-    # dev_root: ../librispeech/vox1_train_verifi/wav
-    # test_root:  ../librispeech/vox1_test/wav
-
-    train_meta_data: ./downstream/voxceleb2_amsoftmax_full_eval/dev_meta_data/dev_speaker_ids.txt
-    dev_meta_data: ./downstream/voxceleb2_amsoftmax_full_eval/dev_meta_data/dev_meta_data.txt
-    test_meta_data: ./downstream/voxceleb2_amsoftmax_full_eval/veri_test.txt
+    file_path: /path/to/VoxCeleb1
+    train_meta_data: ./downstream/sv_voxceleb1/dev_meta_data/dev_speaker_ids.txt
+    dev_meta_data: ./downstream/sv_voxceleb1/dev_meta_data/dev_meta_data.txt
+    test_meta_data: ./downstream/sv_voxceleb1/voxceleb1_test_v2.txt
 
     max_timestep: 128000
     train_batch_size: 10
