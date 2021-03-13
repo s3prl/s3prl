@@ -1,7 +1,7 @@
 runner:
   total_steps: 1000000
   gradient_clipping: 1
-  gradient_accumulate_steps: 1
+  gradient_accumulate_steps: 2
 
   log_step: 100
   eval_step: 1000
@@ -13,7 +13,7 @@ runner:
 optimizer:
   name: TorchOptim
   torch_optim_name: Adam
-  lr: 1.0e-4
+  lr: 1.0e-2
 
 # comment the whole scheduler config block
 # to disable learning rate scheduling
@@ -36,8 +36,11 @@ optimizer:
 downstream_expert:
   corpus:                                 
     name: 'libriphone'                   # Specify corpus
-    path: '/path/to/LibriSpeech'          # Path to raw LibriSpeech dataset
-    lexicon: ./downstream/ctc/lexicon/
+    path: '/home/leo/d/datasets/LibriSpeech'          # Path to raw LibriSpeech dataset
+    lexicon:
+      # - downstream/ctc/lexicon/librispeech-lexicon.txt
+      - downstream/ctc/lexicon/librispeech-lexicon-200k-g2p.txt
+      - downstream/ctc/lexicon/librispeech-lexicon-allothers-g2p.txt
 
     train: ['train-clean-100']                # Name of data splits to be used as training set
     dev: ['dev-clean']                    # Name of data splits to be used as validation set
