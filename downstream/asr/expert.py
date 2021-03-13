@@ -315,6 +315,8 @@ class DownstreamExpert(nn.Module):
                 You can return nothing or an empty list when no need to save the checkpoint
         """
         loss = torch.FloatTensor(records['loss']).mean().item()
+        print(f'{split} loss: {loss}')
+
         uer, wer = self._compute_metrics(
             records['target_tokens'],
             records['target_words'],
