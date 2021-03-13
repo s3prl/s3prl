@@ -127,7 +127,7 @@ def slot_value_cer(hypothesis, groundtruth, **kwargs):
                             min_cer = tmp_cer
                             best_hyp_v = hyp_v
                     value_refs.append(ref_v)
-                    value_hyps.append(hyp_v)
+                    value_hyps.append(best_hyp_v)
 
     return cer(value_hyps, value_refs)
 
@@ -170,7 +170,7 @@ def slot_value_wer(hypothesis, groundtruth, **kwargs):
                             min_cer = tmp_cer
                             best_hyp_v = hyp_v
                     value_refs.append(ref_v)
-                    value_hyps.append(hyp_v)
+                    value_hyps.append(best_hyp_v)
 
     return wer(value_hyps, value_refs)
 
