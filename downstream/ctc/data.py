@@ -4,6 +4,8 @@ from functools import partial
 from torch.utils.data import DataLoader
 from torch.nn.utils.rnn import pad_sequence
 
+EVAL_BATCH_SIZE = 1
+
 
 def collect_audio_batch(batch, split, half_batch_size_wav_len=300000):
     '''Collects a batch, should be list of tuples (audio_path <str>, list of int token <list>) 
@@ -58,7 +60,7 @@ def create_dataset(split, tokenizer, name, bucketing, batch_size, **kwargs):
         bucket_size = batch_size if bucketing else 1
         dataset = Dataset(kwargs['train'], tokenizer, bucket_size, **kwargs)
     else:
-        loader_bs = batch_size
+        loader_bs = EVAL_BATCH_SIZE
         dataset = Dataset(kwargs[split], tokenizer, 1, **kwargs)
 
     return dataset, loader_bs
