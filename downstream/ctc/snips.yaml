@@ -21,17 +21,15 @@ optimizer:
 #   name: linear_schedule_with_warmup
 #   num_warmup_steps: 1400
 
-# comment the whole specaug config block
-# to disable specaug on representation
-# specaug:
-#   apply_time_warp: true
-#   apply_time_mask: true
-#   apply_freq_mask: true
-#   time_warp_window: 3
-#   time_mask_width_range: [0, 10]
-#   freq_mask_width_range: [0, 10]
-#   num_freq_mask: 10
-#   num_time_mask: 10
+specaug:
+  apply_time_warp: true
+  apply_time_mask: true
+  apply_freq_mask: true
+  time_warp_window: 5
+  time_mask_width_range: [0, 40]
+  freq_mask_width_range: [0, 50]
+  num_freq_mask: 4
+  num_time_mask: 2
 
 downstream_expert:
   corpus:                                 
@@ -59,13 +57,13 @@ downstream_expert:
     Wav2Letter:
       total_rate: 320
     RNNs:
-      total_rate: 320
+      total_rate: -1
       module: 'LSTM'                        # 'LSTM'/'GRU'
       bidirection: True
       dim: [1024, 1024, 1024]
       dropout: [0.2, 0.2, 0.2]
-      layer_norm: [True, True, True]
-      proj: [True, True, True]              # Linear projection + Tanh after each rnn layer
+      layer_norm: [False, False, False]
+      proj: [False, False, False]              # Linear projection + Tanh after each rnn layer
       sample_rate: [1, 1, 1]
       sample_style: 'concat'                  # 'drop'/'concat'
 
