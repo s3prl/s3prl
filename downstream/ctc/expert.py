@@ -87,46 +87,41 @@ class DownstreamExpert(nn.Module):
 
         for metric in self.metrics:
             records[metric].append(eval(metric)(
-                log_probs = log_probs,
-                log_probs_len = log_probs_len,
                 hypothesis = hypothesis,
                 groundtruth = groundtruth,
             ))
 
         # store text for the first sample in a batch
-        records['hypothesis'].append(hypothesis[0])
-        records['groundtruth'].append(groundtruth[0])
-        records['filename'].append(filenames[0])
+        records['hypothesis'] += hypothesis
+        records['groundtruth'] += groundtruth
+        records['filename'] += filenames
 
         return loss
 
     # interface
     def log_records(self, split, records, logger, global_step, **kwargs):
+        loss = torch.FloatTensor(records['loss']).mean().item()
+        results = {'loss': loss}
+
+        for metric in self.metrics:
+            results[metric] = eval(metric)(
+                hypothesis = records['hypothesis'],
+                groundtruth = records['groundtruth'],
+            )
+
         save_names = []
-        for key, values in records.items():
-            if type(values[0]) in [int, float, torch.Tensor]:
-                average = torch.FloatTensor(values).mean().item()
-                print(f'{split} {key}: {average}')
+        for key, value in results.items():
+            print(f'{split} {key}: {value}')
 
-                logger.add_scalar(
-                    f'{self._get_task_name()}/{split}-{key}',
-                    average,
-                    global_step=global_step
-                )
-                if key == self.metrics[0]:
-                    save_criterion = average > self.best_score if self.metric_higher_better else average < self.best_score
-                    if split == self.eval_dataloaders[0] and save_criterion:
-                        self.best_score = torch.ones(1) * average
-                        save_names.append(f'{split}-best.ckpt')
-
-        # for i in range(0, len(records['filename']), round(len(records['filename']) / 5)):
-        #     filename = records['filename'][i]
-        #     hypothesis = records['hypothesis'][i]
-        #     groundtruth = records['groundtruth'][i]
-        #     logger.add_text(
-        #         f'{self._get_task_name()}/{split}-{filename}',
-        #         f'**hypothesis**: {hypothesis}<br>**groundtruth**: {groundtruth}',
-        #         global_step=global_step,
-        #     )
+            logger.add_scalar(
+                f'{self._get_task_name()}/{split}-{key}',
+                value,
+                global_step=global_step
+            )
+            if key == self.metrics[0]:
+                save_criterion = value > self.best_score if self.metric_higher_better else value < self.best_score
+                if split == self.eval_dataloaders[0] and save_criterion:
+                    self.best_score = torch.ones(1) * value
+                    save_names.append(f'{split}-best.ckpt')
 
         return save_names
