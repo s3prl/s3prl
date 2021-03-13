@@ -12,8 +12,9 @@ runner:
     - test
 
 optimizer:
-  name: AdamW
-  lr: 2.e-4
+  name: TorchOptim
+  torch_optim_name: Adam
+  lr: 1.0e-4
 
 downstream_expert:
   datarc:
