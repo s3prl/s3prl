@@ -54,7 +54,7 @@ downstream_expert:
       # KenLM is a fast LM query implementation, and it can be powered by:
       # 1. official LibriSpeech 4-gram LM: the 4-gram.arpa file on http://www.openslr.org/11
       # 2. fairseq style, letter-based lexicon: https://dl.fbaipublicfiles.com/fairseq/wav2vec/librispeech_lexicon.lst
-      decoder_type: 'kenlm'
+      decoder_type: 'None'
       nbest: 1
       criterion: "ctc"
       beam: 5

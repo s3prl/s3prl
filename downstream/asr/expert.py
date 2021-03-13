@@ -37,8 +37,7 @@ def get_decoder(decoder_args_dict, dictionary):
             decoder_args.unk_weight = eval(decoder_args.unk_weight)
         return W2lKenLMDecoder(decoder_args, dictionary)
     
-    else:
-        raise ValueError("Only Viterbi or KenLM decoders are supported.")
+    return None
 
 
 class DownstreamExpert(nn.Module):
@@ -99,7 +98,7 @@ class DownstreamExpert(nn.Module):
             zero_infinity=self.datarc['zero_infinity']
         )
         decoder_args = self.datarc.get('decoder_args')
-        self.decoder = None if decoder_args is None else get_decoder(decoder_args, self.train_dataset.dictionary)
+        self.decoder = get_decoder(decoder_args, self.train_dataset.dictionary)
         self.dictionary = self.train_dataset.dictionary
         self.register_buffer('best_score', torch.ones(1) * 100)
 
