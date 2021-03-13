@@ -70,7 +70,9 @@ downstream_expert:
   metric_higher_better: False
   metric:  # The first metric will be used to save checkpoint
     - slot_type_f1
-    - wer
-    - cer
     - slot_value_cer
     - slot_value_wer
+    - slot_edit_f1_full
+    - slot_edit_f1_part
+    - wer
+    - cer
