@@ -1,15 +1,13 @@
 runner:
   total_steps: 100000
   gradient_clipping: 1.0e+3
-  gradient_accumulate_steps: 5
+  gradient_accumulate_steps: 1
 
   log_step: 500
-  eval_step: 2000
-  save_step: 2000
-  max_keep: 4
-  eval_dataloaders: 
-    - dev
-    - test
+  eval_step: 2500
+  save_step: 2500
+  max_keep: 50
+  eval_dataloaders: []
   
 optimizer: 
   name: TorchOptim
@@ -34,7 +32,7 @@ downstream_expert:
     test_meta_data: ./downstream/sv_voxceleb1/voxceleb1_test_v2.txt
 
     max_timestep: 128000
-    train_batch_size: 10
+    train_batch_size: 64
     eval_batch_size: 1
     num_workers: 8 
 
