@@ -11,7 +11,6 @@ def cer(hypothesis, groundtruth, **kwargs):
         tot += len(t)
     return err / tot
 
-
 def wer(hypothesis, groundtruth, **kwargs):
     err = 0
     tot = 0
@@ -36,12 +35,11 @@ def parse(hyp, ref):
     hyp_slots = gex.findall(hyp)
     ref_slots = gex.findall(ref)
 
+    ref_slots = ';'.join([':'.join([x[1], x[0]]) for x in ref_slots])
     if len(hyp_slots)>0:
         hyp_slots = ';'.join([':'.join([clean(x[1]), x[0]]) for x in hyp_slots])
-        ref_slots = ';'.join([':'.join([x[1], x[0]]) for x in ref_slots])
     else:
         hyp_slots = ''
-        ref_slots = ''
 
     ref = clean(ref)
     hyp = clean(hyp)
@@ -89,8 +87,6 @@ def slot_type_f1(hypothesis, groundtruth, **kwargs):
     return sum(F1s) / len(F1s)
 
 def slot_value_cer(hypothesis, groundtruth, **kwargs):
-    total_slot = 0
-    sf_cer = 0.0
     value_hyps = []
     value_refs = []
     for p, t in zip(hypothesis, groundtruth):
@@ -132,8 +128,6 @@ def slot_value_cer(hypothesis, groundtruth, **kwargs):
     return cer(value_hyps, value_refs)
 
 def slot_value_wer(hypothesis, groundtruth, **kwargs):
-    total_slot = 0
-    sf_cer = 0.0
     value_hyps = []
     value_refs = []
     for p, t in zip(hypothesis, groundtruth):
@@ -162,12 +156,12 @@ def slot_value_wer(hypothesis, groundtruth, **kwargs):
                     value_refs.append(ref_v)
                     value_hyps.append(hyp_v)
                 else:
-                    min_cer = 100
+                    min_wer = 100
                     best_hyp_v = ""
                     for hyp_v in hyp_dict[slot]:
-                        tmp_cer = cer([hyp_v], [ref_v])
-                        if min_cer > tmp_cer:
-                            min_cer = tmp_cer
+                        tmp_wer = wer([hyp_v], [ref_v])
+                        if min_wer > tmp_wer:
+                            min_wer = tmp_wer
                             best_hyp_v = hyp_v
                     value_refs.append(ref_v)
                     value_hyps.append(best_hyp_v)
