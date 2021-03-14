@@ -130,9 +130,7 @@ class RNNs(nn.Module):
             x, x_len = rnn(x, x_len)
 
         logits = self.linear(x)
-        log_probs = nn.functional.log_softmax(logits, dim=-1)
-
-        return log_probs, x_len        
+        return logits, x_len        
 
 
 class Wav2Letter(nn.Module):
@@ -180,5 +178,4 @@ class Wav2Letter(nn.Module):
             Tensor: Predictor tensor of dimension (batch_size, input_length, number_of_classes).
         """
         x = self.acoustic_model(x.transpose(1, 2).contiguous())
-        x = nn.functional.log_softmax(x, dim=1)
         return x.transpose(1, 2).contiguous(), x_len // self.downsample_rate

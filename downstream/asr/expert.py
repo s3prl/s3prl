@@ -245,7 +245,8 @@ class DownstreamExpert(nn.Module):
         ).to(device=device)
 
         features = self.projector(features)
-        log_probs, log_probs_len = self.model(features, features_len)
+        logits, log_probs_len = self.model(features, features_len)
+        log_probs = nn.functional.log_softmax(logits, dim=-1)
 
         loss = self.objective(
                 log_probs.transpose(0, 1), # (N, T, C) -> (T, N, C)
