@@ -75,9 +75,9 @@ downstream_expert:
       total_rate: -1
       module: 'LSTM'                        # 'LSTM'/'GRU'
       bidirection: True
-      dim: [1024]
-      dropout: [0.2]
-      layer_norm: [False]
-      proj: [False]              # Linear projection + Tanh after each rnn layer
-      sample_rate: [1]
+      dim: [1024, 1024]
+      dropout: [0.2, 0.2]
+      layer_norm: [False, False]
+      proj: [False, False]              # Linear projection + Tanh after each rnn layer
+      sample_rate: [1, 1]
       sample_style: 'concat'                  # 'drop'/'concat'
