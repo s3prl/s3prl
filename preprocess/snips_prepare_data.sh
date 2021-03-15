@@ -1,3 +1,9 @@
+#!/bin/bash
+set -e
+set -x
+
+script_dir="$(dirname "$0")"
+
 if [ -s SNIPS/all.iob.snips.txt ];then
 	echo 'Preprocessed text file exist, skip!'
 else
@@ -7,8 +13,8 @@ else
 	fi
 
 	echo 'Start preparing text files...'
-	mkdir SNIPS
-	python snips_preprocess.py text aws-lex-noisy-spoken-language-understanding SNIPS
+	mkdir -p SNIPS
+	python3 "$script_dir/snips_preprocess.py" text aws-lex-noisy-spoken-language-understanding SNIPS
 	rm SNIPS/single*
 fi
 
@@ -23,6 +29,6 @@ else
 	fi
 
 	echo 'Start converting audio files...'
-	python snips_preprocess.py audio audio_slu SNIPS
+	python "$script_dir/snips_preprocess.py" audio audio_slu SNIPS
 fi
 
