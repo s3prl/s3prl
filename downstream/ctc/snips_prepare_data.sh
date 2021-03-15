@@ -1,4 +1,4 @@
-if [ -s SNIPS/all.label.txt ];then
+if [ -s SNIPS/all.iob.snips.txt ];then
 	echo 'Preprocessed text file exist, skip!'
 else
 	if [ ! -d aws-lex-noisy-spoken-language-understanding ];then
@@ -8,11 +8,11 @@ else
 
 	echo 'Start preparing text files...'
 	mkdir SNIPS
-	python text_preprocessing.py aws-lex-noisy-spoken-language-understanding SNIPS
+	python snips_preprocess.py text aws-lex-noisy-spoken-language-understanding SNIPS
 	rm SNIPS/single*
 fi
 
-if [ -d SNIPS/valid ];then
+if [ -s SNIPS/valid/Salli-snips-valid-168.wav ];then
 	echo 'Preprocessed audio file exist, skip!'
 else
 	if [ ! -d audio_slu ];then
@@ -23,6 +23,6 @@ else
 	fi
 
 	echo 'Start converting audio files...'
-	python audio_preprocessing.py audio_slu SNIPS
+	python snips_preprocess.py audio audio_slu SNIPS
 fi
 

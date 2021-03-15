@@ -177,7 +177,7 @@ def map_and_link_snips_audio(snips_audio_dir, link_dir):
 def create_multispk_for_snips(output_dir):
     speakers = "Aditi Amy Brian Emma Geraint Ivy Joanna Joey Justin Kendra Kimberly Matthew Nicole Raveena Russell Salli".split(' ')
     dataset_info = [{'split':'test', 'num_utts':700}, {'split':'valid', 'num_utts':700}, {'split':'train', 'num_utts':13084}]
-    test_out_f = open(os.path.join(output_dir, 'all.label.txt'), 'w')
+    test_out_f = open(os.path.join(output_dir, 'all.iob.snips.txt'), 'w')
     for data in dataset_info:
         num_utts = data['num_utts']
         split = data['split']
@@ -251,7 +251,7 @@ def apply_text_norm_and_modify_slots(all_tsv, output_dir):
         # write to file
         train_file.write('%s\t%s\t%s\t%s\n' % (uttid, ' '.join(norm_texts).upper(), ' '.join(norm_slots), intent))
     train_file.close()
-    vocab_file = open(os.path.join(output_dir, 'slot.vocab'), 'w')
+    vocab_file = open(os.path.join(output_dir, 'slots.txt'), 'w')
     vocab_file.write('\n'.join(sorted(list(vocab_slot.keys()), key=lambda x:vocab_slot[x], reverse=True)))
 
 def sox_mp3_to_wav(in_root, out_root):
@@ -276,13 +276,22 @@ def sox_mp3_to_wav(in_root, out_root):
 if __name__ == '__main__':
 
     import sys, os
-    repo_dir = sys.argv[1]
-    dump_dir = sys.argv[2]
-    os.makedirs(dump_dir, exist_ok=True)
+    mode = sys.argv[1]
+    if mode == 'text':
+        repo_dir = sys.argv[2]
+        dump_dir = sys.argv[3]
+        os.makedirs(dump_dir, exist_ok=True)
 
-    content = []
-    content += open(os.path.join(repo_dir, 'data/nlu_annotation/valid')).readlines()[1:]
-    content += open(os.path.join(repo_dir, 'data/nlu_annotation/test')).readlines()[1:]
-    content += open(os.path.join(repo_dir, 'data/nlu_annotation/train')).readlines()[1:]
-    apply_text_norm_and_modify_slots(content, dump_dir)
-    create_multispk_for_snips(dump_dir)
+        content = []
+        content += open(os.path.join(repo_dir, 'data/nlu_annotation/valid')).readlines()[1:]
+        content += open(os.path.join(repo_dir, 'data/nlu_annotation/test')).readlines()[1:]
+        content += open(os.path.join(repo_dir, 'data/nlu_annotation/train')).readlines()[1:]
+        apply_text_norm_and_modify_slots(content, dump_dir)
+        create_multispk_for_snips(dump_dir)
+    elif mode == 'audio':
+        audio_dir = sys.argv[2]
+        dump_dir = sys.argv[3]
+        # Step: sox the snips *.mp3 to the correct format 
+        sox_mp3_to_wav(audio_dir, dump_dir)
+    else:
+        print('Usage: python preprocess.py [text|audio] [data_path] [dump_path]')
