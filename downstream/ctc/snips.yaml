@@ -67,7 +67,7 @@ downstream_expert:
       sample_rate: [1, 1]
       sample_style: 'concat'                  # 'drop'/'concat'
 
-  metric_higher_better: False
+  metric_higher_better: True
   metric:  # The first metric will be used to save checkpoint
     - slot_type_f1
     - slot_value_cer
