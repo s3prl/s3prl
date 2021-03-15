@@ -85,13 +85,7 @@ class DownstreamExpert(nn.Module):
         hypothesis = [self.tokenizer.decode(h.tolist(), ignore_repeat=True) for h in pred_tokens]
         groundtruth = [self.tokenizer.decode(g.tolist()) for g in labels]
 
-        for metric in self.metrics:
-            records[metric].append(eval(metric)(
-                hypothesis = hypothesis,
-                groundtruth = groundtruth,
-            ))
-
-        # store text for the first sample in a batch
+        # store all text in a batch
         records['hypothesis'] += hypothesis
         records['groundtruth'] += groundtruth
         records['filename'] += filenames
