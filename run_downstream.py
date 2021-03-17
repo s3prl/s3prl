@@ -181,7 +181,6 @@ def main():
 
     runner = Runner(args, config)
     eval(f'runner.{args.mode}')()
-    runner.logger.close()
 
 
 if __name__ == '__main__':

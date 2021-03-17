@@ -2,7 +2,9 @@ import os
 import sys
 import math
 import glob
+import shutil
 import random
+import tempfile
 import importlib
 from pathlib import Path
 
@@ -33,9 +35,6 @@ class Runner():
         self.init_ckpt = torch.load(self.args.init_ckpt, map_location='cpu') if self.args.init_ckpt else {}
         self.upstream = self._get_upstream()
         self.downstream = self._get_downstream()
-
-        if is_leader_process():
-            self.logger = SummaryWriter(args.expdir)
 
 
     def _get_upstream(self):
@@ -167,6 +166,10 @@ class Runner():
         if init_step:
             pbar.n = init_step
 
+        # set Tensorboard logging
+        if is_leader_process():
+            logger = SummaryWriter(self.args.expdir)
+
         # prepare data
         dataloader = self.downstream.get_dataloader('train')
 
@@ -249,7 +252,7 @@ class Runner():
                     self.downstream.log_records(
                         'train',
                         records = records,
-                        logger = self.logger,
+                        logger = logger,
                         global_step = global_step,
                         batch_ids = batch_ids,
                         total_batch_num = len(dataloader),
@@ -262,7 +265,7 @@ class Runner():
 
                 if global_step % self.config['runner']['eval_step'] == 0:
                     for split in self.config['runner']['eval_dataloaders']:
-                        save_names += self.evaluate(split, global_step)
+                        save_names += self.evaluate(split, logger, global_step)
 
                 if global_step % self.config['runner']['save_step'] == 0:
                     def check_ckpt_num(directory):
@@ -302,11 +305,21 @@ class Runner():
 
                 pbar.update(1)
             epoch += 1
+
         pbar.close()
+        if is_leader_process():
+            logger.close()
 
 
-    def evaluate(self, split=None, global_step=0):
-        split = split or self.args.evaluate_split
+    def evaluate(self, split=None, logger=None, global_step=0):
+        """evaluate function will always be called on a single process even during distributed training"""
+
+        # When this member function is called directly by command line
+        not_during_training = split is None and logger is None and global_step == 0
+        if not_during_training:
+            split = self.args.evaluate_split
+            tempdir = tempfile.mkdtemp()
+            logger = SummaryWriter(tempdir)
 
         # fix seed to guarantee the same evaluation protocol across steps 
         random.seed(self.args.seed)
@@ -342,7 +355,7 @@ class Runner():
         save_names = self.downstream.log_records(
             split,
             records = records,
-            logger = self.logger,
+            logger = logger,
             global_step = global_step,
             batch_ids = batch_ids,
             total_batch_num = len(dataloader),
@@ -356,5 +369,9 @@ class Runner():
             self.downstream.train()
         if upstream_training:
             self.upstream.train()
+
+        if not_during_training:
+            logger.close()
+            shutil.rmtree(tempdir)
 
         return [] if type(save_names) is not list else save_names
