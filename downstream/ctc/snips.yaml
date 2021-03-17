@@ -1,5 +1,5 @@
 runner:
-  total_steps: 1000000
+  total_steps: 200000
   gradient_clipping: 1
   gradient_accumulate_steps: 1
 
@@ -43,56 +43,56 @@ downstream_expert:
     bucketing: True                       # Enable/Disable bucketing 
     batch_size: 32
     train_speakers: 
-     - Aditi
-     - Amy
-     - Brian
-     - Emma
-     - Geraint
-     # - Ivy
-     # - Joanna
-     # - Joey
-     # - Justin
-     # - Kendra
-     # - Kimberly
-     # - Matthew
-     # - Nicole
-     # - Raveena
-     # - Russell
-     # - Salli
+    # - Aditi
+    # - Amy
+    # - Brian
+    # - Emma
+    # - Geraint
+    - Ivy
+    - Joanna
+    - Joey
+    - Justin
+    - Kendra
+    - Kimberly
+    - Matthew
+    # - Nicole
+    # - Raveena
+    # - Russell
+    - Salli
     dev_speakers:
-     # - Aditi
-     # - Amy
-     # - Brian
-     # - Emma
-     # - Geraint
-     - Ivy
-     - Joanna
-     - Joey
-     - Justin
-     - Kendra
-     # - Kimberly
-     # - Matthew
-     # - Nicole
-     # - Raveena
-     # - Russell
-     # - Salli
+    - Aditi
+    - Amy
+    # - Brian
+    # - Emma
+    - Geraint
+    # - Ivy
+    # - Joanna
+    # - Joey
+    # - Justin
+    # - Kendra
+    # - Kimberly
+    # - Matthew
+    - Nicole
+    # - Raveena
+    # - Russell
+    # - Salli
     test_speakers:
-     # - Aditi
-     # - Amy
-     # - Brian
-     # - Emma
-     # - Geraint
-     # - Ivy
-     # - Joanna
-     # - Joey
-     # - Justin
-     # - Kendra
-     - Kimberly
-     - Matthew
-     - Nicole
-     - Raveena
-     - Russell
-     - Salli
+    # - Aditi
+    # - Amy
+    - Brian
+    - Emma
+    # - Geraint
+    # - Ivy
+    # - Joanna
+    # - Joey
+    # - Justin
+    # - Kendra
+    # - Kimberly
+    # - Matthew
+    # - Nicole
+    - Raveena
+    - Russell
+    # - Salli
     num_workers: 12
   
   text:
