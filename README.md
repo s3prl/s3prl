@@ -3,6 +3,7 @@
     <br>
     <br>
     <a href="https://github.com/s3prl/s3prl/LICENSE"><img alt="MIT License" src="https://img.shields.io/badge/license-MIT-blue.svg" /></a>
+    <a href="https://creativecommons.org/licenses/by-nc/4.0/"><img alt="CC_BY_NC License" src="https://img.shields.io/badge/License-CC%20BY--NC%204.0-lightgrey.svg" /></a>
     <a href="https://github.com/s3prl/s3prl/actions"><img alt="Build" src="https://github.com/allenai/allennlp/workflows/Master/badge.svg?event=push&branch=master"></a>
     <a href="#development-pattern-for-contributors"><img alt="Codecov" src="https://img.shields.io/badge/contributions-welcome-brightgreen.svg"></a>
     <a href="https://github.com/s3prl/s3prl/issues"><img alt="Bitbucket open issues" src="https://img.shields.io/github/issues/s3prl/s3prl"></a>
@@ -185,6 +186,10 @@ Reference Repos
 * [NPC](https://github.com/Alexander-H-Liu/NPC), Alexander-H-Liu.
 
 [Back to Top](#table-of-contents)
+
+License
+------------------------------------
+The majority of S3PRL Toolkit is licensed under CC-BY-NC, however portions of the project are available under separate license terms: S3PRL is licensed under the MIT license.
 
 Citation
 ------------------------------------
