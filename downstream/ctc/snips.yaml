@@ -42,6 +42,40 @@ downstream_expert:
 
     bucketing: True                       # Enable/Disable bucketing 
     batch_size: 32
+    train_speakers: 
+     - Aditi
+     - Amy
+     # - Brian
+     # - Emma
+     # - Geraint
+     # - Ivy
+     # - Joanna
+     # - Joey
+     # - Justin
+     # - Kendra
+     # - Kimberly
+     # - Matthew
+     # - Nicole
+     # - Raveena
+     # - Russell
+     # - Salli
+    test_speakers:
+     # - Aditi
+     # - Amy
+     - Brian
+     # - Emma
+     # - Geraint
+     # - Ivy
+     # - Joanna
+     # - Joey
+     # - Justin
+     # - Kendra
+     # - Kimberly
+     # - Matthew
+     # - Nicole
+     # - Raveena
+     # - Russell
+     # - Salli
     num_workers: 12
   
   text:

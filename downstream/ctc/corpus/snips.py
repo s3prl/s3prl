@@ -10,6 +10,7 @@ class SnipsDataset(Dataset):
         # Setup
         self.path = path
         self.bucket_size = bucket_size
+        self.speaker_list = kwargs[f'{split}_speakers'] if type(split) == str else kwargs[f'{split[0]}_speakers']
 
         # Load transcription
         transcripts_file = open(join(self.path, 'all.iob.snips.txt' if '-slot' in tokenizer.token_type else 'all-trans.txt')).readlines()
@@ -24,16 +25,26 @@ class SnipsDataset(Dataset):
         file_list = []
         for s in split:
             split_list = list(Path(join(path, s)).rglob("*.wav"))
+            #for spk in self.speaker_list:
+            #    print('- '+spk)
+            #    for wav_file in tmp_split_list:
+            #        if spk in str(wav_file):
+            #            split_list.append(wav_file)
             new_list = []
             uf = 0
             for i in trange(len(split_list), desc='checking files'):
-                if str(split_list[i]).split('/')[-1].split('.wav', 1)[0].split('/')[-1] in transcripts:
-                    new_list.append(split_list[i])
+                uid = str(split_list[i]).split('/')[-1].split('.wav', 1)[0].split('/')[-1]
+                if uid in transcripts:
+                    for spk in self.speaker_list:
+                        if uid[:len(spk)] == spk:
+                            new_list.append(split_list[i])
+                            break
                 else:
                     print(split_list[i], "Not Found")
                     uf += 1
             print("%d wav file with label not found in text file!"%uf)
             split_list = new_list
+            print(f'loaded audio from {len(self.speaker_list)} speakers {str(self.speaker_list)} with {len(split_list)} examples.')
             assert len(split_list) > 0, "No data found @ {}".format(join(path,s))
             file_list += split_list
         # Read text
