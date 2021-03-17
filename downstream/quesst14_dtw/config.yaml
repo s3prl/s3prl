@@ -8,12 +8,6 @@ downstream_expert:
   # Specify the index of silence frame to be removed or leave it empty
   silence_frame:
 
-  # Normalize the matching scores with regard to each query
-  #  - "z_norm"
-  #  - "m_norm"
-  #  - "s_norm"
-  score_normalization: "z_norm"
-
   datarc:
     dataset_root: /corpora/quesst14Database
     num_workers: 8
@@ -26,9 +20,12 @@ downstream_expert:
     #  - "euclidean"
     #
     # Or some specific designed distance metrics:
-    #  - "cosine_exp_minmax"
-    #  - "cosine_neg_log_minmax"
-    dist_method: "cosine_exp_minmax"
+    #  - "cosine_exp"
+    #  - "cosine_neg_log"
+    dist_method: "cosine_exp"
+
+    # Normalize each row of distance matrix
+    minmax_norm: True
 
     # Any StepPattern in dtw-python, e.g.
     #  - "symmetric1"

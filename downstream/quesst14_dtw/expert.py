@@ -30,20 +30,16 @@ class DownstreamExpert(nn.Module):
         self.upstream_dim = upstream_dim
         self.max_workers = downstream_expert["max_workers"]
         self.feature_normalization = downstream_expert["feature_normalization"]
-        self.score_normalization = downstream_expert["score_normalization"]
         self.silence_frame = downstream_expert["silence_frame"]
         self.datarc = downstream_expert["datarc"]
         self.dtwrc = downstream_expert["dtwrc"]
         self.expdir = Path(expdir)
         self.test_dataset = None
 
-        # Upstream features normalization cannot be used with cosine_neg_log_minmax.
         assert not (
-            self.feature_normalization
-            and self.dtwrc["dist_method"] == "cosine_neg_log_minmax"
-        ), "Upstream features normalization cannot be used with cosine_neg_log_minmax."
+            self.feature_normalization and self.dtwrc["dist_method"] == "cosine_neg_log"
+        ), "Upstream features normalization cannot be used with cosine_neg_log."
 
-        # Subsequence finding only works under asymmetric setting
         assert (
             self.dtwrc["step_pattern"] == "asymmetric" or not self.dtwrc["subsequence"]
         ), "Subsequence finding only works under asymmetric setting."
@@ -94,16 +90,16 @@ class DownstreamExpert(nn.Module):
         feature_mean, feature_std = 0.0, 1.0
         if self.feature_normalization:
             feats = torch.cat(records["features"])
-            feature_mean, feature_std = feats.mean(0), feats.std(0)
-            feature_std[feature_std == 0.0] = 1e-9
+            feature_mean = feats.mean(0)
+            feature_std = torch.clamp(feats.std(0), 1e-9)
         queries = [((query - feature_mean) / feature_std).numpy() for query in queries]
         docs = [((doc - feature_mean) / feature_std).numpy() for doc in docs]
 
         # Define distance function for DTW
-        if self.dtwrc["dist_method"] == "cosine_exp_minmax":
-            dist_fn = cosine_exp_minmax
-        elif self.dtwrc["dist_method"] == "cosine_neg_log_minmax":
-            dist_fn = cosine_neg_log_minmax
+        if self.dtwrc["dist_method"] == "cosine_exp":
+            dist_fn = cosine_exp
+        elif self.dtwrc["dist_method"] == "cosine_neg_log":
+            dist_fn = cosine_neg_log
         else:
             dist_fn = partial(distance.cdist, metric=self.dtwrc["dist_method"])
 
@@ -127,7 +123,14 @@ class DownstreamExpert(nn.Module):
                 for doc, doc_name in zip(docs, doc_names):
                     futures.append(
                         executor.submit(
-                            match, query, doc, query_name, doc_name, dist_fn, dtwrc
+                            match,
+                            query,
+                            doc,
+                            query_name,
+                            doc_name,
+                            dist_fn,
+                            self.dtwrc["minmax_norm"],
+                            dtwrc,
                         )
                     )
             for future in tqdm(
@@ -140,29 +143,11 @@ class DownstreamExpert(nn.Module):
         for query_name, doc_scores in results.items():
             names, scores = zip(*doc_scores)
             scores = np.array(scores)
-            if np.count_nonzero(scores) == 0:
-                pass
-            elif self.score_normalization == "z_norm":
-                score_mean = scores.mean()
-                score_std = np.clip(scores.std(), 1e-9, np.inf)
-                scores = (scores - score_mean) / score_std
-            elif self.score_normalization == "m_norm":
-                counts, edges = np.histogram(scores, bins=10)
-                largest_bin_id = np.argmax(counts)
-                score_mean = (edges[largest_bin_id] + edges[largest_bin_id + 1]) / 2
-                score_std = np.clip(scores[scores > score_mean].std(), 1e-9, np.inf)
-                scores = (scores - score_mean) / score_std
-            elif self.score_normalization == "s_norm":
-                perms = np.argsort(scores)
-                scores[perms] = np.linspace(0.0, 1.0, num=len(scores))
-            else:
-                raise NotImplementedError
-            results[query_name] = zip(names, scores)
+            scores = (scores - scores.mean()) / np.clip(scores.std(), 1e-9, np.inf)
+            results[query_name] = list(zip(names, scores))
 
         # Scores above 2 STDs are seen as detected (top 2.5% as YES)
         score_thresh = 2.0
-        if self.score_normalization == "s_norm":
-            score_thresh = 0.99
 
         # Build XML tree
         root = etree.Element(
@@ -201,25 +186,27 @@ class DownstreamExpert(nn.Module):
         )
 
 
-def match(query, doc, query_name, doc_name, dist_fn, dtwrc):
+def match(query, doc, query_name, doc_name, dist_fn, minmax_norm, dtwrc):
     """Match between a query and a doc."""
     dist = dist_fn(query, doc)
+
+    if minmax_norm:
+        dist_min = dist.min(1)[:, np.newaxis]
+        dist_max = dist.max(1)[:, np.newaxis]
+        dist = (dist - dist_min) / np.clip(dist_max - dist_min, 1e-9, np.inf)
+
     dtw_result = dtw(x=dist, **dtwrc)
     cost = dtw_result.normalizedDistance
     return query_name, doc_name, -1 * cost
 
 
-def cosine_exp_minmax(query, doc):
+def cosine_exp(query, doc):
     dist = distance.cdist(query, doc, "cosine")
     dist = np.exp(dist) - 1
-    dist_min, dist_max = dist.min(1), dist.max(1)
-    dist = ((dist.T - dist_min) / (dist_max - dist_min)).T
     return dist
 
 
-def cosine_neg_log_minmax(query, doc):
+def cosine_neg_log(query, doc):
     dist = distance.cdist(query, doc, "cosine")
     dist = -1 * np.log(1 - dist)
-    dist_min, dist_max = dist.min(1), dist.max(1)
-    dist = ((dist.T - dist_min) / (dist_max - dist_min)).T
     return dist
