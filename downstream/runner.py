@@ -34,11 +34,6 @@ class Runner():
         self.upstream = self._get_upstream()
         self.downstream = self._get_downstream()
 
-        self.global_step = 0
-        init_step = self.init_ckpt.get('Step')
-        if init_step:
-            self.global_step = init_step
-
         if is_leader_process():
             self.logger = SummaryWriter(args.expdir)
 
@@ -168,7 +163,9 @@ class Runner():
         # set progress bar
         tqdm_file = sys.stderr if is_leader_process() else open(os.devnull, 'w')
         pbar = tqdm(total=self.config['runner']['total_steps'], dynamic_ncols=True, desc='overall', file=tqdm_file)
-        pbar.n = self.global_step
+        init_step = self.init_ckpt.get('Step')
+        if init_step:
+            pbar.n = init_step
 
         # prepare data
         dataloader = self.downstream.get_dataloader('train')
@@ -186,7 +183,7 @@ class Runner():
                 try:
                     if pbar.n >= pbar.total:
                         break
-                    self.global_step = pbar.n + 1
+                    global_step = pbar.n + 1
 
                     wavs = [torch.FloatTensor(wav).to(self.args.device) for wav in wavs]
                     if self.upstream.training:
@@ -211,7 +208,7 @@ class Runner():
 
                 except RuntimeError as e:
                     if 'CUDA out of memory' in str(e):
-                        print(f'[Runner] - CUDA out of memory at step {self.global_step}')
+                        print(f'[Runner] - CUDA out of memory at step {global_step}')
                         if is_initialized():
                             raise
                         torch.cuda.empty_cache()
@@ -233,7 +230,7 @@ class Runner():
 
                 # optimize
                 if math.isnan(grad_norm):
-                    print(f'[Runner] - grad norm is NaN at step {self.global_step}')
+                    print(f'[Runner] - grad norm is NaN at step {global_step}')
                 else:
                     optimizer.step()
                 optimizer.zero_grad()
@@ -248,12 +245,12 @@ class Runner():
                     continue
 
                 # logging
-                if self.global_step % self.config['runner']['log_step'] == 0:
+                if global_step % self.config['runner']['log_step'] == 0:
                     self.downstream.log_records(
                         'train',
                         records = records,
                         logger = self.logger,
-                        global_step = self.global_step,
+                        global_step = global_step,
                         batch_ids = batch_ids,
                         total_batch_num = len(dataloader),
                     )
@@ -263,11 +260,11 @@ class Runner():
                 # evaluation and save checkpoint
                 save_names = []
 
-                if self.global_step % self.config['runner']['eval_step'] == 0:
+                if global_step % self.config['runner']['eval_step'] == 0:
                     for split in self.config['runner']['eval_dataloaders']:
-                        save_names += self.evaluate(split)
+                        save_names += self.evaluate(split, global_step)
 
-                if self.global_step % self.config['runner']['save_step'] == 0:
+                if global_step % self.config['runner']['save_step'] == 0:
                     def check_ckpt_num(directory):
                         max_keep = self.config['runner']['max_keep']
                         ckpt_pths = glob.glob(f'{directory}/states-*.ckpt')
@@ -276,13 +273,13 @@ class Runner():
                             for ckpt_pth in ckpt_pths[:len(ckpt_pths) - max_keep + 1]:
                                 os.remove(ckpt_pth)
                     check_ckpt_num(self.args.expdir)
-                    save_names.append(f'states-{self.global_step}.ckpt')
+                    save_names.append(f'states-{global_step}.ckpt')
 
                 if len(save_names) > 0:
                     all_states = {
                         'Downstream': get_model_state(self.downstream),
                         'Optimizer': optimizer.state_dict(),
-                        'Step': self.global_step,
+                        'Step': global_step,
                         'Epoch': epoch,
                         'Args': self.args,
                         'Config': self.config,
@@ -308,7 +305,7 @@ class Runner():
         pbar.close()
 
 
-    def evaluate(self, split=None):
+    def evaluate(self, split=None, global_step=0):
         split = split or self.args.evaluate_split
 
         # fix seed to guarantee the same evaluation protocol across steps 
@@ -346,7 +343,7 @@ class Runner():
             split,
             records = records,
             logger = self.logger,
-            global_step = self.global_step,
+            global_step = global_step,
             batch_ids = batch_ids,
             total_batch_num = len(dataloader),
         )
