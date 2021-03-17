@@ -5,7 +5,7 @@ runner:
 
   log_step: 2500
   eval_step: 2500
-  save_step: 
+  save_step: 1000
   max_keep: 1
   eval_dataloaders:
     - dev
