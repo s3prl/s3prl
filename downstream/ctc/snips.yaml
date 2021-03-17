@@ -94,17 +94,19 @@ downstream_expert:
       total_rate: -1
       module: 'LSTM'                        # 'LSTM'/'GRU'
       bidirection: True
-      dim: [1024, 1024, 1024]
-      dropout: [0.2, 0.2, 0.2]
-      layer_norm: [False, False, False]
-      proj: [False, False, False]              # Linear projection + Tanh after each rnn layer
-      sample_rate: [1, 1, 1]
+      dim: [1024, 1024]
+      dropout: [0.2, 0.2]
+      layer_norm: [False, False]
+      proj: [False, False]              # Linear projection + Tanh after each rnn layer
+      sample_rate: [1, 1]
       sample_style: 'concat'                  # 'drop'/'concat'
 
-  metric_higher_better: False
+  metric_higher_better: True
   metric:  # The first metric will be used to save checkpoint
     - slot_type_f1
-    - wer
-    - cer
     - slot_value_cer
     - slot_value_wer
+    - slot_edit_f1_full
+    - slot_edit_f1_part
+    - wer
+    - cer

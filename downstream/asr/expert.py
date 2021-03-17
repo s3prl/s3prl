@@ -37,8 +37,7 @@ def get_decoder(decoder_args_dict, dictionary):
             decoder_args.unk_weight = eval(decoder_args.unk_weight)
         return W2lKenLMDecoder(decoder_args, dictionary)
     
-    else:
-        raise ValueError("Only Viterbi or KenLM decoders are supported.")
+    return None
 
 
 class DownstreamExpert(nn.Module):
@@ -99,7 +98,7 @@ class DownstreamExpert(nn.Module):
             zero_infinity=self.datarc['zero_infinity']
         )
         decoder_args = self.datarc.get('decoder_args')
-        self.decoder = None if decoder_args is None else get_decoder(decoder_args, self.train_dataset.dictionary)
+        self.decoder = get_decoder(decoder_args, self.train_dataset.dictionary)
         self.dictionary = self.train_dataset.dictionary
         self.register_buffer('best_score', torch.ones(1) * 100)
 
@@ -246,7 +245,8 @@ class DownstreamExpert(nn.Module):
         ).to(device=device)
 
         features = self.projector(features)
-        log_probs, log_probs_len = self.model(features, features_len)
+        logits, log_probs_len = self.model(features, features_len)
+        log_probs = nn.functional.log_softmax(logits, dim=-1)
 
         loss = self.objective(
                 log_probs.transpose(0, 1), # (N, T, C) -> (T, N, C)
@@ -316,6 +316,8 @@ class DownstreamExpert(nn.Module):
                 You can return nothing or an empty list when no need to save the checkpoint
         """
         loss = torch.FloatTensor(records['loss']).mean().item()
+        print(f'{split} loss: {loss}')
+
         uer, wer = self._compute_metrics(
             records['target_tokens'],
             records['target_words'],

@@ -20,7 +20,7 @@ scoring_dir="$1/scoring"
 infer_dir="${scoring_dir}/predictions"
 test_set="$2"
 # directory where you cloned dscore (https://github.com/ftshijt/dscore)
-dscore_dir=/path/to/cloned/dscore
+dscore_dir=/groups/leo1994122701/dscore
 
 frame_shift=160
 sr=16000
@@ -43,8 +43,6 @@ for med in 1 11; do
         #     -s $scoring_dir/hyp_${th}_$med.rttm > $scoring_dir/result_th${th}_med${med}_collar0 2>/dev/null || exit
     done
 done
+
 grep OVER $scoring_dir/result_th0.[^_]*_med[^_]* \
-     | sort -nrk 7 
-# grep OVER $scoring_dir/result_th0.[^_]*_med[^_]* \
-#      | sort -nrk 4 \
-#      | tail -n 1 | awk -F '[[:space:]][[:space:]]+' '{print $1 "\t" $2}'
+     | sort -nrk 4

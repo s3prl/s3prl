@@ -3,17 +3,18 @@ runner:
   gradient_clipping: 1
   gradient_accumulate_steps: 4
 
-  log_step: 5000
-  eval_step: 10000
-  save_step: 10000
+  log_step: 2000
+  eval_step: 2000
+  save_step: 2000
   max_keep: 1
   eval_dataloaders:
     - dev
     - test
 
 optimizer:
-  name: AdamW
-  lr: 2.e-4
+  name: TorchOptim
+  torch_optim_name: Adam
+  lr: 1.0e-4
 
 downstream_expert:
   datarc:

@@ -39,7 +39,7 @@ class LibriPhoneDataset(Dataset):
 
         # create word -> phonemes mapping
         word2phonemes_all = defaultdict(list)
-        for lexicon_file in Path(lexicon).rglob('*.txt'):
+        for lexicon_file in lexicon:
             with open(lexicon_file, 'r') as file:
                 lines = [line.strip() for line in file.readlines()]
                 for line in lines:

@@ -299,11 +299,11 @@ class AMSoftmaxLoss(nn.Module):
         assert torch.min(labels_B) >= 0
         assert torch.max(labels_B) < self.speaker_num
         
-        W = F.normalize(self.fc.weights, dim=1)
+        W = F.normalize(self.fc.weight, dim=1)
 
         x_BxH = F.normalize(x_BxH, dim=1)
 
-        wf = torch.mm(x_BxH, W)
+        wf = torch.mm(x_BxH, W.transpose(0,1))
         numerator = self.s * (torch.diagonal(wf.transpose(0, 1)[labels_B]) - self.m)
         excl = torch.cat([torch.cat((wf[i, :y], wf[i, y+1:])).unsqueeze(0) for i, y in enumerate(labels_B)], dim=0)
         denominator = torch.exp(numerator) + torch.sum(torch.exp(self.s * excl), dim=1)
