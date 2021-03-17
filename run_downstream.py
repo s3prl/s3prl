@@ -126,7 +126,6 @@ def get_downstream_args():
             args.config = f'./downstream/{args.downstream}/config.yaml'
         with open(args.config, 'r') as file:
             config = yaml.load(file, Loader=yaml.FullLoader)
-        backup_files.append(args.config)
 
         if args.upstream_model_config is not None and os.path.isfile(args.upstream_model_config):
             backup_files.append(args.upstream_model_config)
@@ -165,8 +164,11 @@ def main():
     
     # Save command
     if is_leader_process():
-        with open(os.path.join(args.expdir, f'command_{get_time_tag()}.txt'), 'w') as file:
-            file.write(f'{" ".join(sys.argv)}\n')
+        with open(os.path.join(args.expdir, f'args_{get_time_tag()}.yaml'), 'w') as file:
+            yaml.dump(vars(args), file)
+
+        with open(os.path.join(args.expdir, f'config_{get_time_tag()}.yaml'), 'w') as file:
+            yaml.dump(config, file)
 
         for file in backup_files:
             backup(file, args.expdir)
