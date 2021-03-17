@@ -45,14 +45,31 @@ downstream_expert:
     train_speakers: 
      - Aditi
      - Amy
-     # - Brian
-     # - Emma
-     # - Geraint
+     - Brian
+     - Emma
+     - Geraint
      # - Ivy
      # - Joanna
      # - Joey
      # - Justin
      # - Kendra
+     # - Kimberly
+     # - Matthew
+     # - Nicole
+     # - Raveena
+     # - Russell
+     # - Salli
+    dev_speakers:
+     # - Aditi
+     # - Amy
+     # - Brian
+     # - Emma
+     # - Geraint
+     - Ivy
+     - Joanna
+     - Joey
+     - Justin
+     - Kendra
      # - Kimberly
      # - Matthew
      # - Nicole
@@ -62,7 +79,7 @@ downstream_expert:
     test_speakers:
      # - Aditi
      # - Amy
-     - Brian
+     # - Brian
      # - Emma
      # - Geraint
      # - Ivy
@@ -70,12 +87,12 @@ downstream_expert:
      # - Joey
      # - Justin
      # - Kendra
-     # - Kimberly
-     # - Matthew
-     # - Nicole
-     # - Raveena
-     # - Russell
-     # - Salli
+     - Kimberly
+     - Matthew
+     - Nicole
+     - Raveena
+     - Russell
+     - Salli
     num_workers: 12
   
   text:
