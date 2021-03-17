@@ -6,11 +6,16 @@ from torchaudio import load
 from torch import nn
 import os 
 import random
+import pickle
 import torchaudio
 import sys
 import time
 import glob
 import tqdm
+
+CACHE_PATH = os.path.join(os.path.dirname(__file__), '.cache/')
+
+
 # Voxceleb 1 Speaker Identification
 class SpeakerClassifiDataset(Dataset):
     def __init__(self, mode, file_path, meta_data, max_timestep=None):
@@ -20,9 +25,22 @@ class SpeakerClassifiDataset(Dataset):
         self.meta_data =meta_data
         self.max_timestep = max_timestep
         self.usage_list = open(self.meta_data, "r").readlines()
-        self.dataset = eval("self.{}".format(mode))()        
+
+        cache_path = os.path.join(CACHE_PATH, f'{mode}.pkl')
+        if os.path.isfile(cache_path):
+            print(f'[SpeakerClassifiDataset] - Loading file paths from {cache_path}')
+            with open(cache_path, 'rb') as cache:
+                dataset = pickle.load(cache)
+        else:
+            dataset = eval("self.{}".format(mode))()
+            os.makedirs(os.path.dirname(cache_path), exist_ok=True)
+            with open(cache_path, 'wb') as cache:
+                pickle.dump(dataset, cache)
+        print(f'[SpeakerClassifiDataset] - there are {len(dataset)} files found')
+
+        self.dataset = dataset
         self.label = self.build_label(self.dataset)
-    
+
     # file_path/id0001/asfsafs/xxx.wav
     def build_label(self, train_path_list):
 
