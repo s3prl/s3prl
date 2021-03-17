@@ -1,3 +1,5 @@
+# Copyright (c) Facebook, Inc. All Rights Reserved
+
 import os
 import math
 import torch
