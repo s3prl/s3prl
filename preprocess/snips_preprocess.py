@@ -4,6 +4,7 @@ from glob import glob
 import shutil
 import re
 import tqdm
+from multiprocessing import Pool
 
 from normalise import normalise
 
@@ -254,24 +255,31 @@ def apply_text_norm_and_modify_slots(all_tsv, output_dir):
     vocab_file = open(os.path.join(output_dir, 'slots.txt'), 'w')
     vocab_file.write('\n'.join(sorted(list(vocab_slot.keys()), key=lambda x:vocab_slot[x], reverse=True)))
 
+def sox_func(inputs):
+    files, root, out_root, speaker = inputs
+    for name in tqdm.tqdm(files, desc='Process for speaker: '+speaker):
+        if name.endswith(".mp3"):
+            split = name.split('-')[1]
+            out_dir = os.path.join(out_root, split)
+            os.makedirs(out_dir, exist_ok=True)
+            orig_file = os.path.join(root, name)
+            new_file  = os.path.join(out_dir, speaker+'-'+name.split('/')[-1].split('.')[0] + '.wav')
+            bashCommand = "sox " + orig_file + " -t wav -c 1 -r 16000 -b 16 -e signed-integer " + new_file
+            r = os.popen(bashCommand).read()
+
 def sox_mp3_to_wav(in_root, out_root):
     
     os.makedirs(out_root, exist_ok=True)
+    pool = Pool(16)
+    inputs = []
     for root, dirs, files in os.walk(in_root):
-            print('[Processing] enter directory %s'%root)
-            if not len(files):
-                continue
-            speaker = root.split('/')[-2].split('_')[1]
-            print('[Processing] process %d audio files from speaker %s'%(len(files), speaker))
-            for name in tqdm.tqdm(files):
-                if name.endswith(".mp3"):
-                    split = name.split('-')[1]
-                    out_dir = os.path.join(out_root, split)
-                    os.makedirs(out_dir, exist_ok=True)
-                    orig_file = os.path.join(root, name)
-                    new_file  = os.path.join(out_dir, speaker+'-'+name.split('/')[-1].split('.')[0] + '.wav')
-                    bashCommand = "sox " + orig_file + " -t wav -c 1 -r 16000 -b 16 -e signed-integer " + new_file
-                    r = os.popen(bashCommand).read()
+        print('[Processing] enter directory %s'%root)
+        if not len(files):
+            continue
+        speaker = root.split('/')[-2].split('_')[1]
+        print('[Processing] process %d audio files from speaker %s'%(len(files), speaker))
+        inputs.append((files, root, out_root, speaker))
+    pool.map(sox_func, inputs)
 
 if __name__ == '__main__':
 
