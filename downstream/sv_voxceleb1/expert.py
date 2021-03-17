@@ -243,7 +243,6 @@ class DownstreamExpert(nn.Module):
         
         elif mode in ['dev', 'test']:
             agg_vec = self.model.inference(features_pad, attention_mask_pad.cuda())
-            # normalize to unit vector 
             agg_vec = agg_vec / (torch.norm(agg_vec, dim=-1).unsqueeze(-1))
 
             # separate batched data to pair data.
@@ -256,6 +255,9 @@ class DownstreamExpert(nn.Module):
             return torch.tensor(0)
         
         elif mode in ['train_plda', 'test_plda'] and is_leader_process():
+            agg_vec = self.model.inference(features_pad, attention_mask_pad.cuda())
+            agg_vec = agg_vec / (torch.norm(agg_vec, dim=-1).unsqueeze(-1))
+
             for key, vec in zip(utter_idx, agg_vec):
                 vec = vec.view(-1).detach().cpu().numpy()
                 kaldi_io.write_vec_flt(self.ark, vec, key=key)

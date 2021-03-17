@@ -127,8 +127,8 @@ class SpeakerVerifi_plda(Dataset):
         return wav.numpy(), self.dataset[idx][1]
 
     def collate_fn(self, samples):
-        wavs, idxes, labels = zip(*samples)
-        return wavs, idxes, labels
+        wavs, idxes = zip(*samples)
+        return wavs, idxes, None
 
 
 # Voxceleb 2 Speaker verification
