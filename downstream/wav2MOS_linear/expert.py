@@ -1,15 +1,13 @@
-import math
-import os
-import random
 import warnings
+from pathlib import Path
 
 import numpy as np
 import pandas as pd
 import scipy.stats
 import torch
 import torch.nn as nn
-from torch.nn.utils.rnn import pad_sequence
 from torch.distributed import is_initialized
+from torch.nn.utils.rnn import pad_sequence
 from torch.utils.data import DataLoader, DistributedSampler
 
 from .dataset import VCC18Dataset
@@ -19,26 +17,7 @@ warnings.filterwarnings("ignore")
 
 
 class DownstreamExpert(nn.Module):
-    """
-    Used to handle downstream-specific operations
-    eg. downstream forward, metric computation, contents to log
-    """
-
     def __init__(self, upstream_dim, downstream_expert, **kwargs):
-        """
-        Args:
-            upstream_dim: int
-                Different upstream will give different representation dimension
-                You might want to first project them to the same dimension
-
-            downstream_expert: dict
-                The 'downstream_expert' field specified in your downstream config file
-                eg. downstream/example/config.yaml
-            **kwargs: dict
-                The arguments specified by the argparser in run_downstream.py
-                in case you need it.
-        """
-
         super(DownstreamExpert, self).__init__()
         self.upstream_dim = upstream_dim
         self.datarc = downstream_expert["datarc"]
@@ -65,20 +44,6 @@ class DownstreamExpert(nn.Module):
 
     # Interface
     def get_dataloader(self, mode):
-        """
-        Args:
-            mode: string
-                'train', 'dev' or 'test'
-        Return:
-            a torch.utils.data.DataLoader returning each batch in the format of:
-            [wav1, wav2, ...], your_other_contents1, your_other_contents2, ...
-            where wav1, wav2 ... are in variable length
-            each wav is torch.FloatTensor in cpu with:
-                1. dim() == 1
-                2. sample_rate == 16000
-                3. directly loaded by torchaudio
-        """
-
         if mode == "train":
             return self._get_train_dataloader(self.train_dataset)
         elif mode == "dev":
@@ -108,41 +73,6 @@ class DownstreamExpert(nn.Module):
 
     # Interface
     def forward(self, mode, features, scores, records, **kwargs):
-        """
-        This function will be used in both train/dev/test, you can use
-        self.training (bool) to control the different behavior for
-        training or evaluation (dev/test)
-        Args:
-            features:
-                list of unpadded features [feat1, feat2, ...]
-                each feat is in torch.FloatTensor and already
-                put in the device assigned by command-line args
-            your_other_contents1, ... :
-                in the order defined by your dataloader (dataset + collate_fn)
-                these are all in cpu, and you can move them to the same device
-                as features
-            records:
-                defaultdict(list), by dumping contents into records,
-                these contents can be averaged and logged on Tensorboard
-                later by self.log_records
-                Note1. downstream/runner.py will call self.log_records
-                    1. every log_step during training
-                    2. once after evalute the whole dev/test dataloader
-                Note2. log_step is defined in your downstream config
-            logger:
-                Tensorboard SummaryWriter, given here for logging/debugging convenience
-                please use f'{prefix}your_content_name' as key name
-                to log your customized contents
-            prefix:
-                used to indicate downstream and train/test on Tensorboard
-                eg. 'phone/train-'
-            global_step:
-                global_step in runner, which is helpful for Tensorboard logging
-        Return:
-            loss:
-                the loss to be optimized, should not be detached
-                a single scalar in torch.FloatTensor
-        """
         # scores = [torch.LongTensor(score) for score in scores]
         # features_len = torch.IntTensor([len(feat) for feat in features]).to(
         #     device=features[0].device
@@ -175,24 +105,6 @@ class DownstreamExpert(nn.Module):
     def log_records(
         self, mode, records, logger, global_step, batch_ids, total_batch_num, **kwargs
     ):
-        """
-        This function will be used in both train/dev/test, you can use
-        self.training (bool) to control the different behavior for
-        training or evaluation (dev/test)
-        Args:
-            records:
-                defaultdict(list), contents already prepared by self.forward
-            logger:
-                Tensorboard SummaryWriter
-                please use f'{prefix}your_content_name' as key name
-                to log your customized contents
-            prefix:
-                used to indicate downstream and train/test on Tensorboard
-                eg. 'phone/train-'
-            global_step:
-                global_step in runner, which is helpful for Tensorboard logging
-        """
-
         save_names = []
 
         if mode == "train":
@@ -231,5 +143,5 @@ class DownstreamExpert(nn.Module):
 
 
 def preprocess(base_path, txt_file):
-    dataframe = pd.read_csv(os.path.join(base_path, txt_file), index_col=False)
+    dataframe = pd.read_csv(Path(base_path, txt_file), index_col=False)
     return dataframe
