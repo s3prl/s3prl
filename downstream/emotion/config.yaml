@@ -1,7 +1,7 @@
 runner:
   total_steps: 30000
   gradient_clipping: 1
-  gradient_accumulate_steps: 1
+  gradient_accumulate_steps: 8
 
   log_step: 500
   eval_step: 1000
@@ -26,8 +26,8 @@ downstream_expert:
   datarc:
     root: /groups/public/benchmark/IEMOCAP
     pre_load: True
-    train_batch_size: 32
-    eval_batch_size: 32
+    train_batch_size: 4
+    eval_batch_size: 4
     num_workers: 12
     valid_ratio: 0.2
 
