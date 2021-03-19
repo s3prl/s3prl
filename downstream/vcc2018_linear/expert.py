@@ -9,6 +9,7 @@ import torch.nn as nn
 from torch.distributed import is_initialized
 from torch.nn.utils.rnn import pad_sequence
 from torch.utils.data import DataLoader, DistributedSampler
+from tqdm import tqdm
 
 from .dataset import VCC18Dataset
 from .model import Model
@@ -33,13 +34,10 @@ class DownstreamExpert(nn.Module):
             preprocess(self.datarc["file_path"], "test"), self.datarc["file_path"]
         )
 
-        # model_cls = eval(self.modelrc["select"])
-        # model_conf = self.modelrc.get(self.modelrc["select"], {})
-
         self.connector = nn.Linear(upstream_dim, self.modelrc["projector_dim"])
         self.model = Model(
             input_dim=self.modelrc["projector_dim"],
-            clipping=self.modelrc["clipping"],
+            clipping=self.modelrc["clipping"] if "clipping" in self.modelrc else False,
         )
         self.objective = nn.MSELoss(reduction="none")
 
@@ -76,10 +74,6 @@ class DownstreamExpert(nn.Module):
 
     # Interface
     def forward(self, mode, features, scores, records, **kwargs):
-        # scores = [torch.LongTensor(score) for score in scores]
-        # features_len = torch.IntTensor([len(feat) for feat in features]).to(
-        #     device=features[0].device
-        # )
         device = features[0].device
         length = torch.Tensor([len(feat) for feat in features]).to(device)
 
@@ -96,9 +90,6 @@ class DownstreamExpert(nn.Module):
         ).float()
         frame_loss = (frame_loss * mask).sum(dim=-1).div(length).mean()
         loss = frame_loss + uttr_loss
-
-        # predicted_classid = predicted.max(dim=-1).indices
-        # records["acc"] += (predicted_classid == labels).view(-1).cpu().float().tolist()
 
         if mode == "train":
             records["frame loss"].append(frame_loss.item())
@@ -148,6 +139,10 @@ class DownstreamExpert(nn.Module):
             if LCC[0][1] > self.best_score:
                 self.best_score = torch.ones(1) * LCC[0][1]
                 save_names.append(f"{mode}-best.ckpt")
+
+            tqdm.write(f"[{mode}] MSE  = {MSE:.4f}")
+            tqdm.write(f"[{mode}] LCC  = {LCC[0][1]:.4f}")
+            tqdm.write(f"[{mode}] SRCC = {SRCC[0]:.4f}")
 
         return save_names
 
