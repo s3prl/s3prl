@@ -14,6 +14,7 @@ import os
 import math
 import yaml
 import random
+from packaging import version
 #-------------#
 import torch
 import torch.nn as nn
@@ -40,11 +41,16 @@ class UpstreamExpert(nn.Module):
 
     def __init__(self, ckpt, feature_selection, **kwargs):
         super(UpstreamExpert, self).__init__()
-        assert fairseq.__version__ == '0.10.2'
-
-        cp = torch.load(ckpt)
-        self.model = Wav2VecModel.build_model(cp['args'], task=None)
-        self.model.load_state_dict(cp['model'])
+        if version.parse(fairseq.__version__) > version.parse("0.10.2"):
+            model, cfg, task = fairseq.checkpoint_utils.load_model_ensemble_and_task([ckpt])
+            self.model = model[0]
+            self.model.eval()
+        elif version.parse(fairseq.__version__) == version.parse("0.10.2"):
+            cp = torch.load(ckpt)
+            self.model = Wav2VecModel.build_model(cp['args'], task=None)
+            self.model.load_state_dict(cp['model'])
+        else:
+            raise NotImplementedError
 
         pseudo_input = torch.randn(1, SAMPLE_RATE * EXAMPLE_SEC)
         z = self.model.feature_extractor(pseudo_input)
