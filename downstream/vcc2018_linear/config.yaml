@@ -1,7 +1,7 @@
 runner:
-  total_steps: 50000
+  total_steps: 40000
   gradient_clipping: 5
-  gradient_accumulate_steps: 4
+  gradient_accumulate_steps: 1
 
   log_step: 100
   eval_step: 250
@@ -13,7 +13,7 @@ runner:
 
 optimizer:
   name: Adam
-  lr: 5.0e-5
+  lr: 1.0e-4
 
 # comment the whole scheduler config block
 # to disable learning rate scheduling
@@ -24,9 +24,9 @@ scheduler:
 downstream_expert:
   datarc:
     num_workers: 8
-    train_batch_size: 4
-    eval_batch_size: 4
-    file_path: /groups/public/VCC_2018
+    train_batch_size: 16
+    eval_batch_size: 12
+    file_path: /livingrooms/public/VCC_2018
 
   modelrc:
-    projector_dim: 768
+    projector_dim: 256
