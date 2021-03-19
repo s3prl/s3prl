@@ -41,7 +41,10 @@ class DownstreamExpert(nn.Module):
         )
         self.objective = nn.MSELoss(reduction="none")
 
-        self.register_buffer("best_score", torch.zeros(1))
+        self.best_scores = {
+            "dev": -np.inf,
+            "test": -np.inf,
+        }
 
     # Interface
     def get_dataloader(self, mode):
@@ -136,8 +139,8 @@ class DownstreamExpert(nn.Module):
             SRCC = scipy.stats.spearmanr(all_true_scores.T, all_pred_scores.T)
             logger.add_scalar(f"wav2MOS/{mode}-SRCC", SRCC[0], global_step=global_step)
 
-            if LCC[0][1] > self.best_score:
-                self.best_score = torch.ones(1) * LCC[0][1]
+            if LCC[0][1] > self.best_scores[mode]:
+                self.best_scores[mode] = LCC[0][1]
                 save_names.append(f"{mode}-best.ckpt")
 
             tqdm.write(f"[{mode}] MSE  = {MSE:.4f}")
