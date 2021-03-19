@@ -6,9 +6,11 @@ class Model(nn.Module):
         super(Model, self).__init__()
         self.linear = nn.Linear(input_dim, 1)
 
-    def forward(self, features):
+    def forward(self, features, lengths):
+        lengths = lengths.unsqueeze(-1).long()
         x = self.linear(features)
         frame_score = x.squeeze(-1)
-        uttr_score = frame_score.mean(dim=-1)
+        cum_score = frame_score.cumsum(-1)
+        uttr_score = (cum_score.gather(-1, lengths - 1) / lengths).squeeze(-1)
 
         return frame_score, uttr_score

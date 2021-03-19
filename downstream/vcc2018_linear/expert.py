@@ -38,7 +38,7 @@ class DownstreamExpert(nn.Module):
 
         self.connector = nn.Linear(upstream_dim, self.modelrc["projector_dim"])
         self.model = Model(input_dim=self.modelrc["projector_dim"], **self.modelrc)
-        self.objective = nn.MSELoss()
+        self.objective = nn.MSELoss(reduction="none")
 
         self.register_buffer("best_score", torch.zeros(1))
 
@@ -77,14 +77,18 @@ class DownstreamExpert(nn.Module):
         # features_len = torch.IntTensor([len(feat) for feat in features]).to(
         #     device=features[0].device
         # )
+        device = features[0].device
+        length = torch.Tensor([len(feat) for feat in features]).to(device)
 
         features = pad_sequence(features, batch_first=True)
         features = self.connector(features)
-        frame_scores, uttr_scores = self.model(features)
+        frame_scores, uttr_scores = self.model(features, length)
 
-        scores = scores.to(features.device)
+        scores = scores.to(device)
         frame_loss = self.objective(frame_scores, scores[:, None])
-        uttr_loss = self.objective(uttr_scores, scores)
+        uttr_loss = self.objective(uttr_scores, scores).mean()
+        mask = (torch.arange(frame_loss.size(-1)).expand_as(frame_loss).to(device) < length[:, None]).float()
+        frame_loss = (frame_loss * mask).sum(dim=-1).div(length).mean()
         loss = frame_loss + uttr_loss
 
         # predicted_classid = predicted.max(dim=-1).indices
