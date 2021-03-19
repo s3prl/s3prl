@@ -38,6 +38,7 @@ class DownstreamExpert(nn.Module):
         self.model = Model(
             input_dim=self.modelrc["projector_dim"],
             clipping=self.modelrc["clipping"] if "clipping" in self.modelrc else False,
+            attention_pooling=self.modelrc["attention_pooling"] if "attention_pooling" in self.modelrc else False,
         )
         self.objective = nn.MSELoss(reduction="none")
 

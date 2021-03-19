@@ -31,3 +31,4 @@ downstream_expert:
   modelrc:
     projector_dim: 256
     clipping: True # If true, the model output will be restrict to the interval [1,5] using Tanh
+    attention_pooling: True
