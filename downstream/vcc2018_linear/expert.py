@@ -37,7 +37,10 @@ class DownstreamExpert(nn.Module):
         # model_conf = self.modelrc.get(self.modelrc["select"], {})
 
         self.connector = nn.Linear(upstream_dim, self.modelrc["projector_dim"])
-        self.model = Model(input_dim=self.modelrc["projector_dim"], **self.modelrc)
+        self.model = Model(
+            input_dim=self.modelrc["projector_dim"],
+            clipping=self.modelrc["clipping"],
+        )
         self.objective = nn.MSELoss(reduction="none")
 
         self.register_buffer("best_score", torch.zeros(1))
@@ -87,7 +90,10 @@ class DownstreamExpert(nn.Module):
         scores = scores.to(device)
         frame_loss = self.objective(frame_scores, scores[:, None])
         uttr_loss = self.objective(uttr_scores, scores).mean()
-        mask = (torch.arange(frame_loss.size(-1)).expand_as(frame_loss).to(device) < length[:, None]).float()
+        mask = (
+            torch.arange(frame_loss.size(-1)).expand_as(frame_loss).to(device)
+            < length[:, None]
+        ).float()
         frame_loss = (frame_loss * mask).sum(dim=-1).div(length).mean()
         loss = frame_loss + uttr_loss
 
