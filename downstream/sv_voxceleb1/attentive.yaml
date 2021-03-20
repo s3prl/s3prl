@@ -40,7 +40,7 @@ downstream_expert:
     module:
       XVector  # support to [ XVector, Identity ]
     input_dim: 512
-    agg_module: SP # support for ASP / SP / AP / MP 
+    agg_module: AP # support for ASP / SP / AP / MP 
                    # (Attentive Statistic Pooling / Statistic Pooling / Attentive Pooling / Mean Pooling)
     utter_module:
       UtteranceExtractor # support to [UtteranceExtractor, UtteranceIdentity]
