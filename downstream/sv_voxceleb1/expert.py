@@ -129,6 +129,7 @@ class DownstreamExpert(nn.Module):
         # utils
         self.score_fn  = nn.CosineSimilarity(dim=-1)
         self.eval_metric = EER
+        self.register_buffer('best_score', torch.ones(1) * 100)
 
         if evaluate_split in ['train_plda', 'test_plda'] and is_leader_process():
             self.ark = open(f'{expdir}/{evaluate_split}.rep.ark', 'wb')
@@ -281,6 +282,8 @@ class DownstreamExpert(nn.Module):
             global_step:
                 global_step in runner, which is helpful for Tensorboard logging
         """
+        save_names = []
+
         if mode == 'train':
             loss = torch.FloatTensor(records['loss']).mean().item()
             logger.add_scalar(f'sv-voxceleb1/{mode}-loss', loss, global_step=global_step)
@@ -290,9 +293,15 @@ class DownstreamExpert(nn.Module):
             err, *others = self.eval_metric(np.array(records['labels']), np.array(records['scores']))
             logger.add_scalar(f'sv-voxceleb1/{mode}-EER', err, global_step=global_step)
             print(f'sv-voxceleb1/{mode}-ERR: {err}')
-        
+
+            if err < self.best_score and mode == 'dev':
+                self.best_score = torch.ones(1) * err
+                save_names.append(f'{mode}-best.ckpt')
+
         elif mode in ['train_plda', 'test_plda']:
             self.ark.close()
+
+        return save_names
 
     def separate_data(self, agg_vec):
         assert len(agg_vec) % 2 == 0
