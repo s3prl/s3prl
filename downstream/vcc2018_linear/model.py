@@ -1,5 +1,6 @@
 import torch
 import torch.nn as nn
+import torch.nn.functional as F
 
 
 class SelfAttentionPooling(nn.Module):
@@ -12,7 +13,6 @@ class SelfAttentionPooling(nn.Module):
     def __init__(self, input_dim):
         super(SelfAttentionPooling, self).__init__()
         self.W = nn.Linear(input_dim, 1)
-        self.softmax = nn.functional.softmax
 
     def forward(self, features, lengths):
         """
@@ -32,7 +32,7 @@ class SelfAttentionPooling(nn.Module):
             torch.arange(logits.size(-1)).expand_as(logits).to(device) >= lengths
         ).float()
         masks[masks.bool()] = float("-inf")
-        weights = self.softmax(logits + masks).unsqueeze(-1)
+        weights = F.softmax(logits + masks).unsqueeze(-1)
         pooled_features = (features * weights).sum(dim=1)
 
         return pooled_features
@@ -42,20 +42,33 @@ class Model(nn.Module):
     def __init__(self, input_dim, clipping=False, attention_pooling=False, **kwargs):
         super(Model, self).__init__()
         self.linear = nn.Linear(input_dim, 1)
-        self.clipping = lambda x: x if clipping is False else nn.Tanh()(x) * 2 + 3
+        self.clipping = clipping
         self.pooling = SelfAttentionPooling(input_dim) if attention_pooling else None
 
     def forward(self, features, lengths):
-        lengths = lengths.unsqueeze(-1).long()
-        x = self.linear(features)
-        x = self.clipping(x)
-        frame_score = x.squeeze(-1)
+        """Forward a batch of data through model.
+
+        Args:
+            features: (batch_size, padded_length, bottleneck_dim)
+            lengths: (batch_size,)
+
+        Returns:
+            frame_scores: (batch_size, padded_length)
+            uttr_score: (batch_size, 1)
+        """
+        lengths = lengths.unsqueeze(-1).long()  # (batch_size, 1)
+        frame_scores = self.linear(features).squeeze(-1)  # (batch_size, padded_length)
+
+        if self.clipping:
+            frame_scores = torch.tanh(frame_scores) * 2 + 3
+
         if self.pooling is not None:
             uttr_features = self.pooling(features, lengths)
             uttr_score = self.linear(uttr_features)
-            uttr_score = self.clipping(uttr_score).squeeze(-1)
+            if self.clipping:
+                uttr_score = torch.tanh(uttr_score) * 2 + 3
         else:
-            cum_score = frame_score.cumsum(-1)
-            uttr_score = (cum_score.gather(-1, lengths - 1) / lengths).squeeze(-1)
+            cum_score = frame_scores.cumsum(-1)
+            uttr_score = cum_score.gather(-1, lengths - 1) / lengths
 
-        return frame_score, uttr_score
+        return frame_scores, uttr_score

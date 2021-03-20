@@ -38,7 +38,9 @@ class DownstreamExpert(nn.Module):
         self.model = Model(
             input_dim=self.modelrc["projector_dim"],
             clipping=self.modelrc["clipping"] if "clipping" in self.modelrc else False,
-            attention_pooling=self.modelrc["attention_pooling"] if "attention_pooling" in self.modelrc else False,
+            attention_pooling=self.modelrc["attention_pooling"]
+            if "attention_pooling" in self.modelrc
+            else False,
         )
         self.objective = nn.MSELoss(reduction="none")
 
@@ -79,20 +81,22 @@ class DownstreamExpert(nn.Module):
     # Interface
     def forward(self, mode, features, scores, records, **kwargs):
         device = features[0].device
-        length = torch.Tensor([len(feat) for feat in features]).to(device)
+
+        lengths = torch.Tensor([len(feat) for feat in features]).to(device)
+        scores = scores.to(device)
 
         features = pad_sequence(features, batch_first=True)
         features = self.connector(features)
-        frame_scores, uttr_scores = self.model(features, length)
+        frame_scores, uttr_scores = self.model(features, lengths)
 
-        scores = scores.to(device)
-        frame_loss = self.objective(frame_scores, scores[:, None])
+        frame_loss = self.objective(frame_scores, scores.expand_as(frame_scores))
         uttr_loss = self.objective(uttr_scores, scores).mean()
+
         mask = (
             torch.arange(frame_loss.size(-1)).expand_as(frame_loss).to(device)
-            < length[:, None]
+            < lengths[:, None]
         ).float()
-        frame_loss = (frame_loss * mask).sum(dim=-1).div(length).mean()
+        frame_loss = (frame_loss * mask).sum(dim=-1).div(lengths).mean()
         loss = frame_loss + uttr_loss
 
         if mode == "train":
@@ -101,8 +105,8 @@ class DownstreamExpert(nn.Module):
             records["total loss"].append(loss.item())
 
         if mode == "dev" or mode == "test":
-            records["pred_scores"] += uttr_scores.detach().cpu().tolist()
-            records["true_scores"] += scores.detach().cpu().tolist()
+            records["pred_scores"] += uttr_scores.detach().view(-1).cpu().tolist()
+            records["true_scores"] += scores.detach().view(-1).cpu().tolist()
 
         return loss
 
