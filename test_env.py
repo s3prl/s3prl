@@ -23,9 +23,12 @@ def test(files, args):
             repre = model([wav])[0].detach().cpu()
 
             if not torch.allclose(repre, torch.load(pth_path), atol=args.atol):
-                print(f'[torch.allclose] - Failed with {args.upstream} and {file.split("/")[-1]}')
+                print(f'[torch.allclose] - Failed with {args.upstream} and {file}')
+                assert False
             else:
                 print('[torch.allclose] - Success.')
+
+    print('[torch.allclose] - All success.')
 
 
 def extract(files, args):
@@ -60,7 +63,8 @@ def main():
 
     files = [
         'http://140.112.21.12:9000/LibriSpeech/test-clean/1089/134686/1089-134686-0000.flac',
-        'http://140.112.21.12:9000/LibriSpeech/test-clean/1089/134686/1089-134686-0000.flac',
+        'http://140.112.21.12:9000/quesst14Database/Audio/quesst14_00001.wav',
+        'http://140.112.21.12:9000/VoxCeleb1/test/wav/id10270/5r0dWxy17C8/00001.wav',
     ]
     eval(f'{args.mode}')(files, args)
 
