@@ -62,7 +62,6 @@ def main():
 
     files = [
         'http://140.112.21.12:9000/LibriSpeech/test-clean/1089/134686/1089-134686-0000.flac',
-        'http://140.112.21.12:9000/quesst14Database/Audio/quesst14_00001.wav',
         'http://140.112.21.12:9000/VoxCeleb1/test/wav/id10270/5r0dWxy17C8/00001.wav',
     ]
     eval(f'{args.mode}')(files, args)
