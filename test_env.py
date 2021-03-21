@@ -22,12 +22,9 @@ def test(files, args):
             wav = wav.view(-1).to(device=args.device)
             repre = model([wav])[0].detach().cpu()
 
-            max_atol = args.atol_min
-            while not torch.allclose(repre, torch.load(pth_path), atol=max_atol):
-                max_atol += args.atol_offset
-            
+            max_diff = max((repre - torch.load(pth_path)).abs().max().item(), 0.0001)
             with open(args.report, 'a') as handle:
-                handle.write(f'{max_atol} atol is required to pass {args.upstream} + {file}.\n')
+                handle.write(f'{max_diff} atol is required for torch.allclose to pass {args.upstream} + {file}.\n')
 
 
 def extract(files, args):
