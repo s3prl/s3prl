@@ -59,10 +59,12 @@ class Runner():
         for fn in interface_fn:
             assert hasattr(upstream, fn)
 
-        show(f'[Runner] - Upstream model architecture: {upstream}')
-        show(f'[Runner] - Upstream output dimension: {upstream.get_output_dim()}')
-        downsample = upstream.get_downsample_rate()
-        show(f'[Runner] - Upstream downsample rate: {downsample} ({downsample / SAMPLE_RATE * 1000} ms/frame)')
+        if self.args.verbose:
+            show(f'[Runner] - Upstream model architecture: {upstream}')
+            show(f'[Runner] - Upstream has {count_parameters(upstream)} parameters')
+            show(f'[Runner] - Upstream output dimension: {upstream.get_output_dim()}')
+            downsample = upstream.get_downsample_rate()
+            show(f'[Runner] - Upstream downsample rate: {downsample} ({downsample / SAMPLE_RATE * 1000} ms/frame)')
 
         init_upstream = self.init_ckpt.get('Upstream')
         if init_upstream:
@@ -87,8 +89,9 @@ class Runner():
             **vars(self.args)
         ).to(self.args.device)
 
-        show(f'[Runner] - Downstream model architecture: {downstream}')
-        show(f'[Runner] - Downstream has {count_parameters(downstream)} parameters')
+        if self.args.verbose:
+            show(f'[Runner] - Downstream model architecture: {downstream}')
+            show(f'[Runner] - Downstream has {count_parameters(downstream)} parameters')
 
         interface_fn = ['get_dataloader', 'log_records']
         for fn in interface_fn:

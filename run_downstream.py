@@ -72,6 +72,7 @@ def get_downstream_args():
     parser.add_argument('--seed', default=1337, type=int)
     parser.add_argument('--device', default='cuda', help='model.to(device)')
     parser.add_argument('--cache_dir', help='The cache directory for pretrained model downloading')
+    parser.add_argument('--verbose', action='store_true', help='Print model infomation')
 
     args = parser.parse_args()
     backup_files = []
