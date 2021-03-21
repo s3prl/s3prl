@@ -7,6 +7,7 @@ import torch
 import random
 import argparse
 import importlib
+import torchaudio
 import numpy as np
 from argparse import Namespace
 from torch.distributed import is_initialized, get_world_size
@@ -140,6 +141,7 @@ def get_downstream_args():
 
 def main():
     torch.multiprocessing.set_sharing_strategy('file_system')
+    torchaudio.set_audio_backend('sox_io')
     hack_isinstance()
 
     # get config and arguments
