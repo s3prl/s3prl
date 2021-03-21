@@ -17,18 +17,17 @@ def test(files, args):
 
     with torch.no_grad():
         for file, pth in zip(files, pths):
-            file_path, pth_path = _urls_to_filepaths(file, pth, refresh=True)
+            file_path, pth_path = _urls_to_filepaths(file, pth, refresh=args.refresh)
             wav, sr = torchaudio.load(file_path)
             wav = wav.view(-1).to(device=args.device)
             repre = model([wav])[0].detach().cpu()
 
-            if not torch.allclose(repre, torch.load(pth_path), atol=args.atol):
-                print(f'[torch.allclose] - Failed with {args.upstream} and {file}')
-                assert False
-            else:
-                print('[torch.allclose] - Success.')
-
-    print('[torch.allclose] - All success.')
+            max_atol = args.atol_min
+            while not torch.allclose(repre, torch.load(pth_path), atol=max_atol):
+                max_atol += args.atol_offset
+            
+            with open(args.report, 'a') as handle:
+                handle.write(f'{max_atol} atol is required to pass {args.upstream} + {file}.\n')
 
 
 def extract(files, args):
@@ -40,7 +39,7 @@ def extract(files, args):
 
     with torch.no_grad():
         for file in files:
-            file_path = _urls_to_filepaths(file, refresh=True)
+            file_path = _urls_to_filepaths(file, refresh=args.refresh)
             wav, sr = torchaudio.load(file_path)
             wav = wav.view(-1).to(device=args.device)
             repre = model([wav])[0].detach().cpu()
@@ -57,7 +56,10 @@ def main():
     parser.add_argument('--mode', '-m', choices=['extract', 'test'], required=True)
     parser.add_argument('--upstream', '-u', choices=upstreams, required=True)
     parser.add_argument('--extract_dir', '-d', default='./extracted')
-    parser.add_argument('--atol', '-a', type=float, default=0.02)
+    parser.add_argument('--atol_min', '-a', type=float, default=0.001)
+    parser.add_argument('--atol_offset', type=float, default=0.001)
+    parser.add_argument('--report', default='report.log')
+    parser.add_argument('--refresh', action='store_true')
     parser.add_argument('--device', default='cuda')
     args = parser.parse_args()
 
