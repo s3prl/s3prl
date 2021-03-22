@@ -65,19 +65,26 @@ def hack_isinstance():
     builtins.isinstance = isinstance
 
 def override(string, args, config):
-    options = string.split(',')
+    """
+    Example usgae:
+        -o "config.runner.total_steps=10000,,config.runner.eval_dataloaders=\"['dev', 'test']\""
+    """
+    options = string.split(',,')
     for option in options:
-        key, cls_value = option.split('=')
-        cls_str, value = cls_value.split(':')
+        option = option.strip()
+        key, value_str = option.split('=')
+        key, value_str = key.strip(), value_str.strip()
         first_field, *remaining = key.split('.')
+        print(f'[Override] - {key} = {eval(value_str)}')
+
         if first_field == 'args':
             assert len(remaining) == 1
-            setattr(args, remaining[0], eval(cls_str)(value))
+            setattr(args, remaining[0], eval(value_str))
         elif first_field == 'config':
             target_config = config
             for i, field_name in enumerate(remaining):
                 if i == len(remaining) - 1:
-                    target_config[field_name] = eval(cls_str)(value)
+                    target_config[field_name] = eval(value_str)
                 else:
                     target_config.setdefault(field_name, {})
                     target_config = target_config[field_name]
