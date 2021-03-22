@@ -17,6 +17,7 @@ from torch.nn.utils.rnn import pad_sequence
 #-------------#
 import mxnet as mx
 from speech_reps.featurize import DeCoARFeaturizer
+from utility.helper import show
 
 
 ############
@@ -41,7 +42,9 @@ class UpstreamExpert(nn.Module):
         _load_wav = torchaudio.load_wav
         def load_short_and_turn_float(*args, **kwargs):
             wav, sr = _load_wav(*args, **kwargs)
-            assert wav.dtype == torch.short, "Decoar only accepts wav format"
+            if wav.dtype is not torch.short:
+                show(f'[Warning] - Decoar only takes .wav files for the official usage.')
+                show(f'[Warning] - {args[0]} is not a .wav file')
             wav = wav.float()
             return wav, sr
         setattr(torchaudio, 'load', load_short_and_turn_float)
