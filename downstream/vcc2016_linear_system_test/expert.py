@@ -61,7 +61,6 @@ class DownstreamExpert(nn.Module):
         self.system_level_mos = pd.read_csv(
             "/livingrooms/public/VCC_2016/system_mos.csv", index_col=False
         )
-        print(self.system_level_mos)
 
     # Interface
     def get_dataloader(self, mode):
@@ -162,9 +161,6 @@ class DownstreamExpert(nn.Module):
             all_system_pred_scores = []
             all_system_true_scores = []
             for key, values in records["system"][0].items():
-                print(key)
-                print(np.mean(values))
-                print(self.system_level_mos[key].iloc[0])
                 all_system_pred_scores.append(np.mean(values))
                 all_system_true_scores.append(self.system_level_mos[key].iloc[0])
 
