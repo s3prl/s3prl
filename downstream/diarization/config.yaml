@@ -9,7 +9,6 @@ runner:
   max_keep: 1
   eval_dataloaders:
     - dev
-    - test
 
 optimizer:
   name: TorchOptim
