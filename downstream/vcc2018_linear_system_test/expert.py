@@ -181,11 +181,8 @@ class DownstreamExpert(nn.Module):
             all_pred_scores = np.array(all_pred_scores)
             all_true_scores = np.array(all_true_scores)
             MSE = np.mean((all_true_scores - all_pred_scores) ** 2)
-            logger.add_scalar(f"wav2MOS/{mode}-MSE", MSE, global_step=global_step)
             LCC = np.corrcoef(all_true_scores, all_pred_scores)
-            logger.add_scalar(f"wav2MOS/{mode}-LCC", LCC[0][1], global_step=global_step)
             SRCC = scipy.stats.spearmanr(all_true_scores.T, all_pred_scores.T)
-            logger.add_scalar(f"wav2MOS/{mode}-SRCC", SRCC[0], global_step=global_step)
 
             tqdm.write(f"[{mode}] MSE  = {MSE:.4f}")
             tqdm.write(f"[{mode}] LCC  = {LCC[0][1]:.4f}")
