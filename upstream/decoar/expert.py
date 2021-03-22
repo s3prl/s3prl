@@ -38,6 +38,14 @@ class UpstreamExpert(nn.Module):
     def __init__(self, ckpt, **kwargs):
         super(UpstreamExpert, self).__init__() 
 
+        _load_wav = torchaudio.load_wav
+        def load_short_and_turn_float(*args, **kwargs):
+            wav, sr = _load_wav(*args, **kwargs)
+            assert wav.dtype == torch.short, "Decoar only accepts wav format"
+            wav = wav.float()
+            return wav, sr
+        setattr(torchaudio, 'load', load_short_and_turn_float)
+
         # Decoar can not easily switch between cpu/gpu for now
         self.model = DeCoARWavFeaturizer(ckpt, gpu=0)
         pseudo_input = torch.randn(SAMPLE_RATE * EXAMPLE_SEC).cuda()
@@ -81,7 +89,7 @@ class DeCoARWavFeaturizer(DeCoARFeaturizer):
 
         def extract_fbank_cmvn(wav):
             fbank = torchaudio.compliance.kaldi.fbank(wav.unsqueeze(0), num_mel_bins=DECOAR_NUM_MEL_BINS)
-            cmvn = (fbank - fbank.mean(dim=-1, keepdim=True)) / (fbank.std(dim=-1, keepdim=True) + self.eps)
+            cmvn = (fbank - fbank.mean(dim=0, keepdim=True)) / (fbank.std(dim=0, keepdim=True) + self.eps)
             return cmvn
 
         raw_feats = [extract_fbank_cmvn(wav).cpu() for wav in wavs]
