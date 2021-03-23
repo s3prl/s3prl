@@ -1,3 +1,5 @@
+# Copyright (c) Facebook, Inc. All Rights Reserved
+
 # -*- coding: utf-8 -*- #
 """*********************************************************************************************"""
 #   FileName     [ upstream/vq_wav2vec/expert.py ]
@@ -14,6 +16,7 @@ import os
 import math
 import yaml
 import random
+from packaging import version
 #-------------#
 import torch
 import torch.nn as nn
@@ -40,7 +43,7 @@ class UpstreamExpert(nn.Module):
 
     def __init__(self, ckpt, feature_selection='z', **kwargs):
         super(UpstreamExpert, self).__init__()
-        assert fairseq.__version__ == '0.10.2'
+        assert version.parse(fairseq.__version__) >= version.parse("0.10.2")
         self.feature_selection = feature_selection or 'z'
 
         cp = torch.load(ckpt)

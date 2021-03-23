@@ -1,18 +1,14 @@
+# Copyright (c) Facebook, Inc. All Rights Reserved
+
 import os
-import math
-import torch
-import random
 import editdistance
 from argparse import Namespace
 
 import torch
 import torch.nn as nn
 from torch.utils.data import DataLoader, DistributedSampler
-from torch.distributed import is_initialized, get_rank, get_world_size
+from torch.distributed import is_initialized
 from torch.nn.utils.rnn import pad_sequence
-
-from examples.speech_recognition.w2l_decoder import W2lKenLMDecoder
-from examples.speech_recognition.w2l_decoder import W2lViterbiDecoder
 
 from .model import *
 from .dataset import SequenceDataset
@@ -29,14 +25,16 @@ def get_decoder(decoder_args_dict, dictionary):
     decoder_args = Namespace(**decoder_args_dict)
 
     if decoder_args.decoder_type == "viterbi":
+        from examples.speech_recognition.w2l_decoder import W2lViterbiDecoder
         return W2lViterbiDecoder(decoder_args, dictionary)
 
     elif decoder_args.decoder_type == "kenlm":
+        from examples.speech_recognition.w2l_decoder import W2lKenLMDecoder
         decoder_args.beam_size_token = len(dictionary)
         if isinstance(decoder_args.unk_weight, str):
             decoder_args.unk_weight = eval(decoder_args.unk_weight)
         return W2lKenLMDecoder(decoder_args, dictionary)
-    
+
     return None
 
 
@@ -128,7 +126,6 @@ class DownstreamExpert(nn.Module):
                 setattr(self, f'{split}_dataset', SequenceDataset(split, self.datarc['eval_batch_size'], **self.datarc))
             return self._get_eval_dataloader(getattr(self, f'{split}_dataset'))
 
-
     def _get_train_dataloader(self, dataset):
         sampler = DistributedSampler(dataset) if is_initialized() else None
         return DataLoader(
@@ -138,7 +135,6 @@ class DownstreamExpert(nn.Module):
             num_workers=self.datarc['num_workers'],
             collate_fn=dataset.collate_fn,
         )
-
 
     def _get_eval_dataloader(self, dataset):
         return DataLoader(
