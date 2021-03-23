@@ -1,3 +1,5 @@
+# Copyright (c) Facebook, Inc. All Rights Reserved
+
 # -*- coding: utf-8 -*- #
 """*********************************************************************************************"""
 #   FileName     [ upstream/vq_wav2vec/expert.py ]

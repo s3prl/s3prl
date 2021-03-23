@@ -1,16 +1,13 @@
 # Copyright (c) Facebook, Inc. All Rights Reserved
 
 import os
-import math
-import torch
-import random
 import editdistance
 from argparse import Namespace
 
 import torch
 import torch.nn as nn
 from torch.utils.data import DataLoader, DistributedSampler
-from torch.distributed import is_initialized, get_rank, get_world_size
+from torch.distributed import is_initialized
 from torch.nn.utils.rnn import pad_sequence
 
 from .model import *
@@ -37,7 +34,7 @@ def get_decoder(decoder_args_dict, dictionary):
         if isinstance(decoder_args.unk_weight, str):
             decoder_args.unk_weight = eval(decoder_args.unk_weight)
         return W2lKenLMDecoder(decoder_args, dictionary)
-    
+
     return None
 
 
@@ -129,7 +126,6 @@ class DownstreamExpert(nn.Module):
                 setattr(self, f'{split}_dataset', SequenceDataset(split, self.datarc['eval_batch_size'], **self.datarc))
             return self._get_eval_dataloader(getattr(self, f'{split}_dataset'))
 
-
     def _get_train_dataloader(self, dataset):
         sampler = DistributedSampler(dataset) if is_initialized() else None
         return DataLoader(
@@ -139,7 +135,6 @@ class DownstreamExpert(nn.Module):
             num_workers=self.datarc['num_workers'],
             collate_fn=dataset.collate_fn,
         )
-
 
     def _get_eval_dataloader(self, dataset):
         return DataLoader(

@@ -2,28 +2,25 @@
 
 # -*- coding: utf-8 -*- #
 """*********************************************************************************************"""
-#   FileName     [ upstream/wav2vec/expert.py ]
-#   Synopsis     [ the wav2vec wrapper ]
-#   Author       [ S3PRL ]
-#   Copyright    [ Copyleft(c), Speech Lab, NTU, Taiwan ]
+#   FileName     [ upstream/hubert/expert.py ]
+#   Synopsis     [ the HuBERT wrapper ]
+#   Author       [ Kushal Lakhotia ]
 """*********************************************************************************************"""
 
 
 ###############
 # IMPORTATION #
 ###############
-import os
-import math
-import yaml
-import random
 from packaging import version
-#-------------#
+
+# -------------#
 import torch
 import torch.nn as nn
+import torch.nn.functional as F
 from torch.nn.utils.rnn import pad_sequence
-#-------------#
+
+# -------------#
 import fairseq
-from fairseq.models.wav2vec import Wav2VecModel
 
 
 ############
@@ -38,28 +35,25 @@ EXAMPLE_SEC = 5
 ###################
 class UpstreamExpert(nn.Module):
     """
-    The wav2vec wrapper
+    HuBERT wrapper
     """
 
-    def __init__(self, ckpt, feature_selection, **kwargs):
+    def __init__(self, ckpt, **kwargs):
         super(UpstreamExpert, self).__init__()
-        if version.parse(fairseq.__version__) > version.parse("0.10.2"):
-            model, cfg, task = fairseq.checkpoint_utils.load_model_ensemble_and_task([ckpt])
-            self.model = model[0]
-            self.model.eval()
-        elif version.parse(fairseq.__version__) == version.parse("0.10.2"):
-            cp = torch.load(ckpt)
-            self.model = Wav2VecModel.build_model(cp['args'], task=None)
-            self.model.load_state_dict(cp['model'])
-        else:
-            raise NotImplementedError
+        assert version.parse(fairseq.__version__) >= version.parse("0.10.2")
+
+        model, cfg, task = fairseq.checkpoint_utils.load_model_ensemble_and_task([ckpt])
+        self.model = model[0]
+        self.task = task
 
         pseudo_input = torch.randn(1, SAMPLE_RATE * EXAMPLE_SEC)
-        z = self.model.feature_extractor(pseudo_input)
-        c = self.model.feature_aggregator(z)
+        pseudo_feature, padding_mask = self.model.extract_features(
+            pseudo_input,
+            padding_mask=None,
+            mask=None,
+        )
 
-        self.feature_selection = feature_selection
-        self.output_dim = eval(self.feature_selection).transpose(1, 2).size(-1)
+        self.output_dim = pseudo_feature.size(-1)
 
     # Interface
     def get_output_dim(self):
@@ -67,7 +61,7 @@ class UpstreamExpert(nn.Module):
 
     # Interface
     def get_downsample_rate(self):
-        return 160
+        return 320
 
     # Interface
     def forward(self, wavs):
@@ -84,15 +78,23 @@ class UpstreamExpert(nn.Module):
                 each feat is in torch.FloatTensor and already
                 put in the device assigned by command-line args
         """
-        wav_lengths = [len(wav) for wav in wavs]
-
+        device = wavs[0].device
+        wav_lengths = torch.LongTensor([len(wav) for wav in wavs]).to(device)
+        wav_padding_mask = ~torch.lt(
+            torch.arange(max(wav_lengths)).unsqueeze(0).to(device),
+            wav_lengths.unsqueeze(1)
+        )
         padded_wav = pad_sequence(wavs, batch_first=True)
-        z = self.model.feature_extractor(padded_wav)
-        c = self.model.feature_aggregator(z)
-        features = eval(self.feature_selection).transpose(1, 2)
 
-        ratio = padded_wav.size(1) / features.size(1)
-        feat_lengths = [round(wav_len / ratio) for wav_len in wav_lengths]
+        if self.task.cfg.normalize:
+            padded_wav = F.layer_norm(padded_wav, padded_wav.shape)
 
+        features, feat_padding_mask = self.model.extract_features(
+            padded_wav,
+            padding_mask=wav_padding_mask,
+            mask=None,
+        )
+        feat_lengths = (features.size(1) - feat_padding_mask.sum(dim=-1)).tolist()
         features = [feat[:length] for feat, length in zip(features, feat_lengths)]
+
         return features
