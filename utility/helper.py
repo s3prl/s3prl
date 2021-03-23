@@ -11,6 +11,8 @@
 # IMPORTATION #
 ###############
 import os
+import sys
+import math
 import torch
 import shutil
 import builtins
@@ -75,7 +77,7 @@ def override(string, args, config):
         key, value_str = option.split('=')
         key, value_str = key.strip(), value_str.strip()
         first_field, *remaining = key.split('.')
-        print(f'[Override] - {key} = {eval(value_str)}')
+        print(f'[Override] - {key} = {eval(value_str)}', file=sys.stderr)
 
         if first_field == 'args':
             assert len(remaining) == 1
