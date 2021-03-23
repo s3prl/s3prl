@@ -3,9 +3,9 @@ from pathlib import Path
 
 import numpy as np
 import pandas as pd
-import scipy.stats
 import torch
 import torch.nn as nn
+from scipy.stats import pearsonr, spearmanr
 from torch.distributed import is_initialized
 from torch.nn.utils.rnn import pad_sequence
 from torch.utils.data import DataLoader, DistributedSampler
@@ -136,60 +136,22 @@ class DownstreamExpert(nn.Module):
     def log_records(
         self, mode, records, logger, global_step, batch_ids, total_batch_num, **kwargs
     ):
-        save_names = []
-
-        if mode == "train":
-            avg_total_loss = torch.FloatTensor(records["total loss"]).mean().item()
-            avg_uttr_loss = torch.FloatTensor(records["utterance loss"]).mean().item()
-            avg_frame_loss = torch.FloatTensor(records["frame loss"]).mean().item()
-
-            logger.add_scalar(
-                f"wav2MOS/{mode}-total loss", avg_total_loss, global_step=global_step
-            )
-            logger.add_scalar(
-                f"wav2MOS/{mode}-utterance loss", avg_uttr_loss, global_step=global_step
-            )
-            logger.add_scalar(
-                f"wav2MOS/{mode}-frame loss", avg_frame_loss, global_step=global_step
-            )
-
-        if mode == "dev" or mode == "test":
-            # some evaluation-only processing, eg. decoding
-            all_pred_scores = records["pred_scores"]
-            all_true_scores = records["true_scores"]
-            all_pred_scores = np.array(all_pred_scores)
-            all_true_scores = np.array(all_true_scores)
-            MSE = np.mean((all_true_scores - all_pred_scores) ** 2)
-            logger.add_scalar(f"wav2MOS/{mode}-MSE", MSE, global_step=global_step)
-            LCC = np.corrcoef(all_true_scores, all_pred_scores)
-            logger.add_scalar(f"wav2MOS/{mode}-LCC", LCC[0][1], global_step=global_step)
-            SRCC = scipy.stats.spearmanr(all_true_scores.T, all_pred_scores.T)
-            logger.add_scalar(f"wav2MOS/{mode}-SRCC", SRCC[0], global_step=global_step)
-
-            if LCC[0][1] > self.best_scores[mode]:
-                self.best_scores[mode] = LCC[0][1]
-                save_names.append(f"{mode}-best.ckpt")
-
-            tqdm.write(f"[{mode}] MSE  = {MSE:.4f}")
-            tqdm.write(f"[{mode}] LCC  = {LCC[0][1]:.4f}")
-            tqdm.write(f"[{mode}] SRCC = {SRCC[0]:.4f}")
-
         if mode == "test_system":
-            # some evaluation-only processing, eg. decoding
             all_pred_scores = records["pred_scores"]
             all_true_scores = records["true_scores"]
             all_pred_scores = np.array(all_pred_scores)
             all_true_scores = np.array(all_true_scores)
             MSE = np.mean((all_true_scores - all_pred_scores) ** 2)
-            LCC = np.corrcoef(all_true_scores, all_pred_scores)
-            SRCC = scipy.stats.spearmanr(all_true_scores.T, all_pred_scores.T)
+            pearson_rho, _ = pearsonr(all_true_scores, all_pred_scores)
+            spearman_rho, _ = spearmanr(all_true_scores, all_pred_scores)
 
             tqdm.write(f"[{mode}] MSE  = {MSE:.4f}")
-            tqdm.write(f"[{mode}] LCC  = {LCC[0][1]:.4f}")
-            tqdm.write(f"[{mode}] SRCC = {SRCC[0]:.4f}")
+            tqdm.write(f"[{mode}] LCC  = {pearson_rho:.4f}")
+            tqdm.write(f"[{mode}] SRCC = {spearman_rho:.4f}")
 
             all_system_pred_scores = []
             all_system_true_scores = []
+
             for key, values in records["system"][0].items():
                 all_system_pred_scores.append(np.mean(values))
                 all_system_true_scores.append(self.system_level_mos[key].iloc[0])
@@ -198,16 +160,12 @@ class DownstreamExpert(nn.Module):
             all_system_true_scores = np.array(all_system_true_scores)
 
             MSE = np.mean((all_system_true_scores - all_system_pred_scores) ** 2)
-            LCC = np.corrcoef(all_system_true_scores, all_system_pred_scores)
-            SRCC = scipy.stats.spearmanr(
-                all_system_true_scores.T, all_system_pred_scores.T
-            )
+            pearson_rho, _ = pearsonr(all_system_true_scores, all_system_pred_scores)
+            spearman_rho, _ = spearmanr(all_system_true_scores, all_system_pred_scores)
 
             tqdm.write(f"[{mode}] System Level MSE  = {MSE:.4f}")
-            tqdm.write(f"[{mode}] System Level LCC  = {LCC[0][1]:.4f}")
-            tqdm.write(f"[{mode}] System Level SRCC = {SRCC[0]:.4f}")
-
-        return save_names
+            tqdm.write(f"[{mode}] System Level LCC  = {pearson_rho:.4f}")
+            tqdm.write(f"[{mode}] System Level SRCC = {spearman_rho:.4f}")
 
 
 def preprocess(base_path, txt_file):
