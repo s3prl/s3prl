@@ -104,12 +104,7 @@ def unfold_segments(tensor, tgt_duration, sample_rate=16000):
     )
 
     pad_lengths = tgt_lengths - src_lengths
-    front_pad_lengths = random.randint(0, pad_lengths)
-    tail_pad_lengths = pad_lengths - front_pad_lengths
-    # print(tensor.shape)
-    padded_tensor = torch.cat(
-        [torch.zeros(front_pad_lengths), tensor, torch.zeros(tail_pad_lengths)]
-    )
+    padded_tensor = torch.cat([tensor, torch.zeros(pad_lengths)])
     segments = padded_tensor.unfold(0, seg_lengths, step).unbind(0)
 
     return segments
