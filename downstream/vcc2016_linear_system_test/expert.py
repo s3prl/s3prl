@@ -54,8 +54,8 @@ class DownstreamExpert(nn.Module):
         }
 
         self.system_level_dataset = VCC16SystemLevelDataset(
-            os.listdir("/livingrooms/public/VCC_2016/unified_participant_speech"),
-            "/livingrooms/public/VCC_2016/unified_participant_speech",
+            os.listdir("/livingrooms/public/VCC_2016/unified_speech"),
+            "/livingrooms/public/VCC_2016/unified_speech",
         )
 
         self.system_level_mos = pd.read_csv(
