@@ -2,7 +2,7 @@
 """*********************************************************************************************"""
 #   FileName     [ task.py ]
 #   Synopsis     [ Masked Acoustic Model data processing for pre-training the transformer model ]
-#   Author       [ S3PRL ]
+#   Author       [ Andy T. Liu (https://github.com/andi611) ]
 #   Copyright    [ Copyleft(c), Speech Lab, NTU, Taiwan ]
 """*********************************************************************************************"""
 

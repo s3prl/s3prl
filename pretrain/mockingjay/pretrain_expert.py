@@ -2,7 +2,7 @@
 """*********************************************************************************************"""
 #   FileName     [ pretrain_expert.py ]
 #   Synopsis     [ the mockingjay pretrain expert ]
-#   Author       [ S3PRL ]
+#   Author       [ Andy T. Liu (https://github.com/andi611) ]
 #   Copyright    [ Copyleft(c), Speech Lab, NTU, Taiwan ]
 """*********************************************************************************************"""
 
