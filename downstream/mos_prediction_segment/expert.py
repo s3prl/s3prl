@@ -39,11 +39,16 @@ class DownstreamExpert(nn.Module):
         )
 
         self.vcc2018_system_mos = pd.read_csv(
-            Path(self.datarc["vcc2018_file_path"], "VCC2018_Results/system_mos_all.csv")
+            Path(
+                self.datarc["vcc2018_file_path"],
+                "VCC2018_Results/system_mos_all_trackwise.csv",
+            )
         )
 
         self.vcc2016_test_dataset = VCC16SegmentalDataset(
-            Path.iterdir(Path(self.datarc["vcc2016_file_path"], "unified_speech")),
+            list(
+                Path.iterdir(Path(self.datarc["vcc2016_file_path"], "unified_speech"))
+            ),
             Path(self.datarc["vcc2016_file_path"], "unified_speech"),
         )
 
@@ -109,7 +114,7 @@ class DownstreamExpert(nn.Module):
 
         uttr_scores = []
 
-        if mode == "train" or mode == "dev":
+        if mode == "train" or mode == "dev" or mode == "vcc2018_test":
             scores = scores.to(features.device)
             segments_loss = 0
             uttr_loss = 0
@@ -130,7 +135,7 @@ class DownstreamExpert(nn.Module):
             records["pred_scores"] += uttr_scores
             records["true_scores"] += scores.detach().cpu().tolist()
 
-        if mode == "vcc2018_test" or mode == "vcc2016_test":
+        if mode == "vcc2016_test":
             for i in range(len(prefix_sums) - 1):
                 current_segment_scores = segments_scores[
                     prefix_sums[i] : prefix_sums[i + 1]
@@ -138,13 +143,10 @@ class DownstreamExpert(nn.Module):
                 uttr_score = current_segment_scores.mean(dim=-1)
                 uttr_scores.append(uttr_score.detach().cpu())
 
-            records["pred_scores"] += uttr_scores
-            records["true_scores"] += scores.tolist()
-
         if len(records["system"]) == 0:
             records["system"].append(defaultdict(list))
-            for i in range(len(system_names)):
-                records["system"][0][system_names[i]].append(uttr_scores[i].tolist())
+        for i in range(len(system_names)):
+            records["system"][0][system_names[i]].append(uttr_scores[i].tolist())
 
         if mode == "train":
             records["segment loss"].append(segments_loss.item())

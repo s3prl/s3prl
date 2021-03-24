@@ -1,8 +1,8 @@
 # name of the experiment
-EXP_NAME=wav2MOS_linear_wav2vec2
+EXP_NAME=wav2MOS_segment_cpc_testing
 # which upstream to run. Ex. wav2vec2, npc, TERA, ...
-UPSTREAM=wav2vec2
+UPSTREAM=cpc
 # which downstream to run.
-DOWNSTREAM=vcc2018_linear
+DOWNSTREAM=mos_prediction_segment
 
-python3 run_downstream.py -m train -n $EXP_NAME -u $UPSTREAM -d $DOWNSTREAM -f
+python3 run_downstream.py -m train -n $EXP_NAME -u $UPSTREAM -d $DOWNSTREAM

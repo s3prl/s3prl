@@ -1,25 +1,26 @@
 runner:
-  total_steps: 40000
+  total_steps: 10000
   gradient_clipping: 5
   gradient_accumulate_steps: 1
 
   log_step: 100
   eval_step: 250
   save_step: 500
-  max_keep: 1
+  max_keep: 1000
   eval_dataloaders:
     - dev
-    - test
+    - vcc2018_test
+    - vcc2016_test
 
 optimizer:
   name: Adam
-  lr: 1.0e-4
+  lr: 1.0e-5
 
 # comment the whole scheduler config block
 # to disable learning rate scheduling
 scheduler:
   name: linear_schedule_with_warmup
-  num_warmup_steps: 2000
+  num_warmup_steps: 500
 
 downstream_expert:
   datarc:

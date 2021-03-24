@@ -30,7 +30,7 @@ class VCC18SegmentalDataset(Dataset):
 
         wav = wav.view(-1)
         wav_segments = unfold_segments(wav, self.segments_durations)
-        system_name = wav_name[:3]
+        system_name = wav_name[:3] + wav_name[-8:-4]
 
         return wav_segments, score, system_name
 
@@ -75,7 +75,7 @@ class VCC16SegmentalDataset(Dataset):
 
         wav = wav.view(-1)
         wav_segments = unfold_segments(wav, self.segments_durations)
-        system_name = wav_name.split("_")[0]
+        system_name = wav_name.name.split("_")[0]
 
         return wav_segments, system_name
 
