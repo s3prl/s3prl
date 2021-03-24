@@ -53,7 +53,7 @@ def mockingjay(refresh=False, *args, **kwargs):
         The default model
             refresh (bool): whether to download ckpt/config again if existed
     """
-    return mockingjay_960hr(refresh=refresh, *args, **kwargs)
+    return mockingjay_origin(refresh=refresh, *args, **kwargs)
 
 
 ###########
