@@ -2,6 +2,9 @@ import os
 import random
 import tqdm
 import argparse
+import pathlib
+import shutil
+from pathlib import Path
 from librosa.util import find_files
 from tqdm import trange
 
@@ -27,6 +30,14 @@ def collect_speaker_ids(roots, speaker_num):
     train_speaker.extend(vox1_train)
 
     return train_speaker, dev_speaker
+
+def construct_dev_speaker_id_txt(dev_speakers,dev_txt_name):
+    f = open(dev_txt_name, "w")
+    for dev in dev_speakers:
+        f.write(dev)
+        f.write("\n")
+    f.close()
+    return
 
 
 def sample_wavs_and_dump_txt(root,dev_ids, numbers, meta_data_name):
@@ -70,12 +81,24 @@ def sample_wavs_and_dump_txt(root,dev_ids, numbers, meta_data_name):
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument('-s', '--seed', default=19941227)
-    parser.add_argument('-r', '--root', default="../librispeech/voxceleb1/dev/wav")
+    parser.add_argument('-r', '--root', default="../../librispeech/voxceleb2/dev/wav")
+    parser.add_argument('-o', "--output_dir", default="../../librispeech/dev_data")
     parser.add_argument('-n',  '--speaker_num', default=40)
-    parser.add_argument('-p',  '--sample_pair', default=80000)
+    parser.add_argument('-p',  '--sample_pair', default=20000)
     args = parser.parse_args()
 
     random.seed(args.seed)
     train_speakers, dev_speakers = collect_speaker_ids(args.root, args.speaker_num)
-    wav_list = sample_wavs_and_dump_txt(args.root, dev_speakers, args.sample_pair, "./downstream/voxceleb2_amsoftmax_full_eval/dev_meta_data/dev_meta_data.txt")
+    construct_dev_speaker_id_txt(dev_speakers, "./downstream/sv_voxceleb1/dev_meta_data/dev_meta_speaker_ids.txt")
+    wav_list = sample_wavs_and_dump_txt(args.root, dev_speakers, args.sample_pair, "./downstream/sv_voxceleb1/dev_meta_data/dev_meta_data_voxceleb2.txt")
+    
+    root = Path(args.root)
 
+    pathlib.Path(args.output_dir).mkdir(parents=True, exist_ok=True)
+    new_dir = Path(args.output_dir)
+    print(f"create folder {str(new_dir)} ..")
+    pathlib.Path(Path(new_dir / "dev" / "wav")).mkdir(parents=True, exist_ok=True)
+    print(f'create folder {str(new_dir / "dev" / "wav" )} ..')
+    print(f"copy speaker_folder from {args.root}/dev/wav to {args.output_dir}/dev/wav ..")
+    for speaker_fold in tqdm.tqdm(dev_speakers):
+        shutil.copytree(root / speaker_fold, new_dir / "dev"/ "wav" / speaker_fold, dirs_exist_ok=True)
