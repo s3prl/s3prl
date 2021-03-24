@@ -197,19 +197,19 @@ class DownstreamExpert(nn.Module):
             all_true_scores = np.array(all_true_scores)
             MSE = np.mean((all_true_scores - all_pred_scores) ** 2)
             logger.add_scalar(
-                f"wav2MOS_segment/{mode}-Utterance level-MSE",
+                f"wav2MOS_segment/{mode}-Utterance level MSE",
                 MSE,
                 global_step=global_step,
             )
             pearson_rho, _ = pearsonr(all_true_scores, all_pred_scores)
             logger.add_scalar(
-                f"wav2MOS_segment/{mode}-Utterance level-LCC",
+                f"wav2MOS_segment/{mode}-Utterance level LCC",
                 pearson_rho,
                 global_step=global_step,
             )
             spearman_rho, _ = spearmanr(all_true_scores.T, all_pred_scores.T)
             logger.add_scalar(
-                f"wav2MOS_segment/{mode}-Utterance level-SRCC",
+                f"wav2MOS_segment/{mode}-Utterance level SRCC",
                 spearman_rho,
                 global_step=global_step,
             )
@@ -245,6 +245,23 @@ class DownstreamExpert(nn.Module):
             tqdm.write(f"[{mode}] System-level LCC  = {pearson_rho:.4f}")
             tqdm.write(f"[{mode}] System-level SRCC = {spearman_rho:.4f}")
 
+            logger.add_scalar(
+                f"wav2MOS_segment/{mode}-System level MSE",
+                MSE,
+                global_step=global_step,
+            )
+            logger.add_scalar(
+                f"wav2MOS_segment/{mode}-System level LCC",
+                pearson_rho,
+                global_step=global_step,
+            )
+            logger.add_scalar(
+                f"wav2MOS_segment/{mode}-System level SRCC",
+                spearman_rho,
+                global_step=global_step,
+            )
+
+        # save model
         if mode == "dev":
             if avg_total_loss < self.best_scores["dev_loss"]:
                 self.best_scores[mode] = avg_total_loss
@@ -253,7 +270,7 @@ class DownstreamExpert(nn.Module):
             if pearson_rho > self.best_scores["vcc2016_test_LCC"]:
                 self.best_scores["vcc2016_test_LCC"] = pearson_rho
                 save_names.append(f"{mode}-LCC-best.ckpt")
-            if pearson_rho > self.best_scores["vcc2016_test_SRCC"]:
+            if spearman_rho > self.best_scores["vcc2016_test_SRCC"]:
                 self.best_scores["vcc2016_test_SRCC"] = spearman_rho
                 save_names.append(f"{mode}-SRCC-best.ckpt")
 
