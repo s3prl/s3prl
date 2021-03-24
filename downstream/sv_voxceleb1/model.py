@@ -287,8 +287,9 @@ class AMSoftmaxLoss(nn.Module):
         super(AMSoftmaxLoss, self).__init__()
         self.s = s
         self.m = m
-        self.speaker_num = speaker_num
-        self.fc = nn.Linear(hidden_dim, speaker_num, bias=False)
+        self.speaker_num = speaker_num        
+        self.W = torch.nn.Parameter(torch.randn(hidden_dim, speaker_num), requires_grad=True)
+        nn.init.xavier_normal_(self.W, gain=1)
 
     def forward(self, x_BxH, labels_B):
         '''
@@ -299,11 +300,11 @@ class AMSoftmaxLoss(nn.Module):
         assert torch.min(labels_B) >= 0
         assert torch.max(labels_B) < self.speaker_num
         
-        W = F.normalize(self.fc.weight, dim=1)
+        W = F.normalize(self.W, dim=0)
 
         x_BxH = F.normalize(x_BxH, dim=1)
 
-        wf = torch.mm(x_BxH, W.transpose(0,1))
+        wf = torch.mm(x_BxH, W)
         numerator = self.s * (torch.diagonal(wf.transpose(0, 1)[labels_B]) - self.m)
         excl = torch.cat([torch.cat((wf[i, :y], wf[i, y+1:])).unsqueeze(0) for i, y in enumerate(labels_B)], dim=0)
         denominator = torch.exp(numerator) + torch.sum(torch.exp(self.s * excl), dim=1)
