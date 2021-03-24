@@ -16,3 +16,6 @@ numba==0.48
 gdown>=3.12.2
 cython==0.29.21
 packaging>=20.9
+kaldi_io
+h5py
+sox
