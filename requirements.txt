@@ -19,3 +19,5 @@ packaging>=20.9
 kaldi_io
 h5py
 sox
+dtw-python==1.1.6
+tabulate
