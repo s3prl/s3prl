@@ -68,6 +68,8 @@ class DownstreamExpert(nn.Module):
 
         self.best_scores = {
             "dev_loss": np.inf,
+            "dev_LCC": -np.inf,
+            "dev_SRCC": -np.inf,
             "vcc2016_test_LCC": -np.inf,
             "vcc2016_test_SRCC": -np.inf,
         }
@@ -266,6 +268,12 @@ class DownstreamExpert(nn.Module):
             if avg_total_loss < self.best_scores["dev_loss"]:
                 self.best_scores[mode] = avg_total_loss
                 save_names.append(f"{mode}-best.ckpt")
+            if pearson_rho > self.best_scores["dev_LCC"]:
+                self.best_scores["dev_LCC"] = pearson_rho
+                save_names.append(f"{mode}-LCC-best.ckpt")
+            if spearman_rho > self.best_scores["dev_SRCC"]:
+                self.best_scores["dev_SRCC"] = spearman_rho
+                save_names.append(f"{mode}-SRCC-best.ckpt")
         if mode == "vcc2016_test":
             if pearson_rho > self.best_scores["vcc2016_test_LCC"]:
                 self.best_scores["vcc2016_test_LCC"] = pearson_rho
