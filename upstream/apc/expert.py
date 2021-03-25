@@ -85,7 +85,7 @@ class UpstreamExpert(nn.Module):
         features = pad_sequence(features, batch_first=True)
         feat_lengths = torch.LongTensor(feat_lengths)
 
-        predicted_BxLxM, features = self.model(features, feat_lengths, self.training)
+        predicted_BxLxM, features = self.model(features, feat_lengths, testing=not self.training)
         features = [f[:l] for f, l in zip(features, feat_lengths)]
 
         return features

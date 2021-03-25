@@ -82,7 +82,7 @@ class UpstreamExpert(nn.Module):
         feat_lengths = [len(feat) for feat in features]
 
         features = pad_sequence(features, batch_first=True)
-        predicted_BxLxM, features = self.model(features, self.training)
+        predicted_BxLxM, features = self.model(features, testing=not self.training)
         features = [f[:l] for f, l in zip(features, feat_lengths)]
         
         return features
