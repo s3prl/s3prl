@@ -38,8 +38,9 @@ class UpstreamExpert(nn.Module):
     The NPC wrapper
     """
 
-    def __init__(self, ckpt, **kwargs):
+    def __init__(self, ckpt, feature_selection, **kwargs):
         super(UpstreamExpert, self).__init__()
+        self.feature_selection = feature_selection
         ckpt = torch.load(ckpt, map_location='cpu')
         config = ckpt['config']
 
@@ -77,9 +78,15 @@ class UpstreamExpert(nn.Module):
         """
         features = [self.preprocessor(wav.unsqueeze(0)) for wav in wavs]
         feat_lengths = [len(feat) for feat in features]
-
         features = pad_sequence(features, batch_first=True)
-        predicted_BxLxM, features = self.model(features, testing=not self.training)
+
+        if 'unmasked' in self.feature_selection:
+            n_layer_feat = int(self.feature_selection.split('-')[-1])
+            features = self.model.get_unmasked_feat(features, n_layer_feat)
+        elif self.feature_selection == 'masked':
+            predicted_BxLxM, features = self.model(features, testing=not self.training)
+        else:
+            raise ValueError
+
         features = [f[:l] for f, l in zip(features, feat_lengths)]
-        
         return features
