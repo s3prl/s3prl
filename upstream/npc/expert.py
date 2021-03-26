@@ -50,10 +50,7 @@ class UpstreamExpert(nn.Module):
         
         # load pretrained-weights
         self.model.load_state_dict(ckpt['model'])
-
-        pseudo_input = torch.randn(1, EXAMPLE_FEAT_SEQLEN, feat_dim)
-        predicted_BxLxM, feature = self.model(pseudo_input, testing=True)
-        self.output_dim = feature.size(-1)
+        self.output_dim = config['model']['paras']['hidden_size']
 
     # Interface
     def get_output_dim(self):
