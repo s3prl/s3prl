@@ -57,6 +57,7 @@ class DownstreamExpert(nn.Module):
         # dataset
         train_file_path = Path(self.datarc['file_path']) / "dev" / "wav"
         test_file_path = Path(self.datarc['file_path']) / "test" / "wav"
+        dev_file_path = Path(self.datarc['file_path']) / "valid" / "wav"
         
         train_config = {
             "vad_config": self.datarc['vad_config'],
@@ -69,7 +70,7 @@ class DownstreamExpert(nn.Module):
 
         dev_config = {
             "vad_config": self.datarc['vad_config'],
-            "file_path": train_file_path, 
+            "file_path": dev_file_path, 
             "meta_data": self.datarc['dev_meta_data']
         }        
         self.dev_dataset = SpeakerVerifi_test(**dev_config)
