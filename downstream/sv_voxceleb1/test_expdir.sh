@@ -16,7 +16,7 @@ if [ -z "$commands" ]; then
 fi
 
 echo Start evaluaing ckpts...
-for state_name in 20000 40000 60000 80000 100000;
+for state_name in 20000 40000 60000 80000 100000 120000 140000 160000 180000 200000;
 do
     ckpt_path="$expdir/states-$state_name.ckpt"
     log_path="$expdir/states-$state_name.result"
