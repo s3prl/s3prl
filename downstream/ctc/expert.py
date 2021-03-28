@@ -23,6 +23,7 @@ class DownstreamExpert(nn.Module):
 
     def __init__(self, upstream_dim, upstream_rate, runner, downstream_expert, expdir, **kwargs):
         super(DownstreamExpert, self).__init__()
+        self.expdir = expdir
         self.upstream_dim = upstream_dim
         self.corpus = downstream_expert['corpus']
 
@@ -118,5 +119,14 @@ class DownstreamExpert(nn.Module):
                 if split == self.eval_dataloaders[0] and save_criterion:
                     self.best_score = torch.ones(1) * value
                     save_names.append(f'{split}-best.ckpt')
+
+        if 'test' in split or 'dev' in split:
+            hyp_ark = open(os.path.join(self.expdir, f'{split}-hyp.ark'), 'w')
+            ref_ark = open(os.path.join(self.expdir, f'{split}-ref.ark'), 'w')
+            for idx, (hyp, ref) in enumerate(zip(records['hypothesis'], records['groundtruth'])):
+                hyp_ark.write(f'{idx} {hyp}\n')
+                ref_ark.write(f'{idx} {ref}\n')
+            hyp_ark.close()
+            ref_ark.close()
 
         return save_names
