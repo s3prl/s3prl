@@ -18,7 +18,9 @@ Usage:
 ###############
 # IMPORTATION #
 ###############
+import os
 import sys
+import glob
 
 
 ########
@@ -27,6 +29,10 @@ import sys
 def main():
 
     log_file = str(sys.argv[1])
+
+    ckpts = glob.glob(os.path.dirname(log_file) + '/states-*.ckpt')
+    sorted_ckpts = sorted(ckpts, key=lambda ckpt: int(ckpt.split('.')[0].split('-')[-1]))
+    print(f'The last ckpt: {sorted_ckpts[-1]}')
 
     if len(sys.argv) == 3:
         stop_step = int(sys.argv[2])
