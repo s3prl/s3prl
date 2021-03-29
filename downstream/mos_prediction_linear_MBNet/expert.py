@@ -176,6 +176,7 @@ class DownstreamExpert(nn.Module):
             records["true_scores"] += means.detach().cpu().tolist()
 
         if mode == "vcc2016_test":
+            frame_scores, uttr_scores = self.model(features, lengths)
             records["pred_scores"] += uttr_scores.detach().view(-1).cpu().tolist()
 
         if len(records["system"]) == 0:

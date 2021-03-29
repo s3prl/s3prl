@@ -98,7 +98,7 @@ class Model(nn.Module):
 
             if self.bias_net_pooling is not None:
                 y = self.bias_net_pooling(bias_features, lengths)
-                bias_uttr_score = self.bias_net_linear(y, lengths)
+                bias_uttr_score = self.bias_net_linear(y)
             else:
                 bias_cum_score = bias_frame_scores.cumsum(-1)
                 bias_uttr_score = bias_cum_score.gather(-1, lengths - 1) / lengths

@@ -55,6 +55,20 @@ class VCC18Dataset(Dataset):
             torch.stack(moss),
             torch.LongTensor(judge_ids),
         )
+        
+    def gen_idtable(self, idtable_path):
+        if idtable_path == '':
+            idtable_path = './idtable.pkl'
+        self.idtable = {}
+        count = 0
+        for i, judge_i in enumerate(self.dataframe['JUDGE']):
+            if judge_i not in self.idtable.keys():
+                self.idtable[judge_i] = count
+                count += 1
+                self.dataframe['JUDGE'][i] = self.idtable[judge_i]
+            else:
+                self.dataframe['JUDGE'][i] = self.idtable[judge_i]
+        torch.save(self.idtable, idtable_path)
 
 
 class VCC16Dataset(Dataset):
