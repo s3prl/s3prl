@@ -125,7 +125,6 @@ class DownstreamExpert(nn.Module):
 
         uttr_scores = []
         bias_scores = []
-
         if mode == "train":
             means = means.to(features.device)
             judge_ids = judge_ids.to(features.device)
@@ -152,6 +151,9 @@ class DownstreamExpert(nn.Module):
             uttr_loss /= len(prefix_sums) - 1
             bias_loss /= len(prefix_sums) - 1
             loss = self.segment_weight * segments_loss + self.bias_weight * bias_loss + uttr_loss
+            
+            # for i in range(5):
+            #     print(uttr_scores[i], bias_scores[i])
 
             records["segment loss"].append(segments_loss.item())
             records["utterance loss"].append(uttr_loss.item())
