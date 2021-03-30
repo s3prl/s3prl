@@ -200,15 +200,21 @@ class DownstreamExpert(nn.Module):
         if mode == "train":
             avg_uttr_loss = torch.FloatTensor(records["utterance loss"]).mean().item()
             avg_frame_loss = torch.FloatTensor(records["frame loss"]).mean().item()
+            avg_bias_loss = torch.FloatTensor(records["bias loss"]).mean().item()
 
             logger.add_scalar(
-                f"wav2MOS_linear/{mode}-utterance loss",
+                f"wav2MOS_linear_MBNet/{mode}-utterance loss",
                 avg_uttr_loss,
                 global_step=global_step,
             )
             logger.add_scalar(
-                f"wav2MOS_linaer/{mode}-frame loss",
+                f"wav2MOS_linear_MBNet/{mode}-frame loss",
                 avg_frame_loss,
+                global_step=global_step,
+            )
+            logger.add_scalar(
+                f"wav2MOS_linear_MBNet/{mode}-bias loss",
+                avg_bias_loss,
                 global_step=global_step,
             )
 
@@ -216,7 +222,7 @@ class DownstreamExpert(nn.Module):
             avg_total_loss = torch.FloatTensor(records["total loss"]).mean().item()
 
             logger.add_scalar(
-                f"wav2MOS_linear/{mode}-total loss",
+                f"wav2MOS_linear_MBNet/{mode}-total loss",
                 avg_total_loss,
                 global_step=global_step,
             )
@@ -233,19 +239,19 @@ class DownstreamExpert(nn.Module):
             all_true_scores = np.array(all_true_scores).reshape(-1)
             MSE = np.mean((all_true_scores - all_pred_scores) ** 2)
             logger.add_scalar(
-                f"wav2MOS_linear/{mode}-Utterance level MSE",
+                f"wav2MOS_linear_MBNet/{mode}-Utterance level MSE",
                 MSE,
                 global_step=global_step,
             )
             pearson_rho, _ = pearsonr(all_true_scores, all_pred_scores)
             logger.add_scalar(
-                f"wav2MOS_linear/{mode}-Utterance level LCC",
+                f"wav2MOS_linear_MBNet/{mode}-Utterance level LCC",
                 pearson_rho,
                 global_step=global_step,
             )
             spearman_rho, _ = spearmanr(all_true_scores.T, all_pred_scores.T)
             logger.add_scalar(
-                f"wav2MOS_linear/{mode}-Utterance level SRCC",
+                f"wav2MOS_linear_MBNet/{mode}-Utterance level SRCC",
                 spearman_rho,
                 global_step=global_step,
             )
@@ -282,17 +288,17 @@ class DownstreamExpert(nn.Module):
             tqdm.write(f"[{mode}] System-level SRCC = {spearman_rho:.4f}")
 
             logger.add_scalar(
-                f"wav2MOS_linear/{mode}-System level MSE",
+                f"wav2MOS_linear_MBNet/{mode}-System level MSE",
                 MSE,
                 global_step=global_step,
             )
             logger.add_scalar(
-                f"wav2MOS_linear/{mode}-System level LCC",
+                f"wav2MOS_linear_MBNet/{mode}-System level LCC",
                 pearson_rho,
                 global_step=global_step,
             )
             logger.add_scalar(
-                f"wav2MOS_linear/{mode}-System level SRCC",
+                f"wav2MOS_linear_MBNet/{mode}-System level SRCC",
                 spearman_rho,
                 global_step=global_step,
             )

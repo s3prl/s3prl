@@ -165,7 +165,7 @@ class DownstreamExpert(nn.Module):
                 global_step=global_step,
             )
             logger.add_scalar(
-                f"wav2MOS_linaer/{mode}-frame loss",
+                f"wav2MOS_linear/{mode}-frame loss",
                 avg_frame_loss,
                 global_step=global_step,
             )
