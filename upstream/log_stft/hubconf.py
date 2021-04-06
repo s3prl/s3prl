@@ -1,11 +1,4 @@
 # -*- coding: utf-8 -*- #
-"""*********************************************************************************************"""
-#   FileName     [ upstream/baseline/hubconf.py ]
-#   Synopsis     [ the baseline torch hubconf ]
-#   Author       [ S3PRL ]
-#   Copyright    [ Copyleft(c), Speech Lab, NTU, Taiwan ]
-"""*********************************************************************************************"""
-
 
 ###############
 # IMPORTATION #
