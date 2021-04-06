@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*- #
 """*********************************************************************************************"""
 #   FileName     [ expert.py ]
-#   Synopsis     [ the speaker diarization downstream wrapper ]
+#   Synopsis     [ the speech separation downstream wrapper ]
 #   Source       [ Reference some code from https://github.com/funcwj/uPIT-for-speech-separation and https://github.com/asteroid-team/asteroid ]
 #   Author       [ Zili Huang ]
 #   Copyright    [ Copyright(c), Johns Hopkins University ]
@@ -151,15 +151,12 @@ class DownstreamExpert(nn.Module):
             collate_fn=dataset.collate_fn,
         )
 
-    # Interface
     def get_train_dataloader(self):
         return self._get_train_dataloader(self.train_dataset)
 
-    # Interface
     def get_dev_dataloader(self):
         return self._get_eval_dataloader(self.dev_dataset)
 
-    # Interface
     def get_test_dataloader(self):
         return self._get_eval_dataloader(self.test_dataset)
 
@@ -208,10 +205,12 @@ class DownstreamExpert(nn.Module):
                 the loss to be optimized, should not be detached
         """
         
+        # match the feature length to STFT feature length
         features = match_length(features, feat_length)
         features = pack_sequence(features)
         mask = self.model(features)
 
+        # evaluate the separation quality of predict sources
         if not self.training:
             predict_stfts = [torch.squeeze(m * source_attr['stft'].to(device)) for m in mask]
             predict_stfts_np = [np.transpose(s.data.cpu().numpy()) for s in predict_stfts]
@@ -245,16 +244,12 @@ class DownstreamExpert(nn.Module):
                     records[metric] = []
                 records[metric].append(imp)
 
-        if self.loss_type == "MSE":
+        if self.loss_type == "MSE": # mean square loss
             loss = self.objective.compute_loss(mask, feat_length, source_attr, target_attr)
-        elif self.loss_type == "SISDR":
+        elif self.loss_type == "SISDR": # end-to-end SI-SNR loss
             loss = self.loss_func.compute_loss(masks, input_sizes, source_attr, wav_length, target_wav_list)
         else:
             raise ValueError("Loss type not defined.")
-        #if self.training:
-        #    print("train loss", loss)
-        #else:
-        #    print("valid loss", loss)
         return loss
 
     # interface
@@ -281,7 +276,6 @@ class DownstreamExpert(nn.Module):
         else:
             for metric in COMPUTE_METRICS:
                 avg_metric = np.mean(records[metric])
-                print("Average {} of {} utts is {:.2f}".format(metric, len(records[metric]), avg_metric))
                 records[metric] = avg_metric
 
                 logger.add_scalar(
@@ -293,7 +287,6 @@ class DownstreamExpert(nn.Module):
             save_ckpt = []
             assert 'si_sdr' in records
             if records['si_sdr'] > self.best_score:
-                print("SI-SDRi {:.2f} better than previous best number {:.2f}".format(records['si_sdr'], self.best_score))
                 self.best_score = records['si_sdr']
                 save_ckpt.append("modelbest.ckpt")
 

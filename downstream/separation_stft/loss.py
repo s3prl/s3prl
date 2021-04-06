@@ -1,3 +1,12 @@
+# -*- coding: utf-8 -*- #
+"""*********************************************************************************************"""
+#   FileName     [ loss.py ]
+#   Synopsis     [ the objective functions for speech separation ]
+#   Source       [ Use some code from https://github.com/funcwj/uPIT-for-speech-separation and https://github.com/asteroid-team/asteroid ]
+#   Author       [ Zili Huang ]
+#   Copyright    [ Copyright(c), Johns Hopkins University ]
+"""*********************************************************************************************"""
+
 import torch
 from itertools import permutations
 import torch.nn.functional as F
@@ -8,6 +17,18 @@ device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
 
 class MSELoss(object):
     def __init__(self, num_srcs, mask_type):
+        """
+        Args:
+            num_srcs (int):
+                number of sources
+
+            mask_type (str):
+                type of mask to approach, currently supporting AM, PSM and
+                NPSM. Please see Kolbæk M, Yu D, Tan Z H, et al
+                Multitalker speech separation with utterance-level permutation
+                invariant training of deep recurrent neural network
+                for details
+        """
         self.num_srcs = num_srcs
         self.mask_type = mask_type
         assert self.mask_type in ["AM", "PSM", "NPSM"]
@@ -78,11 +99,6 @@ class SISDRLoss(object):
         loss = self.loss(est_targets, targets, length=wav_length)
         return loss
 
-def length_mask(length):
-    mask = torch.zeros(len(length), max(length)).to(device)
-    for i in range(len(length)):
-        mask[i, :length[i]] = 1
-    return mask
 
 class PairwiseNegSDR(_Loss):
     r"""Base class for pairwise negative SI-SDR, SD-SDR and SNR on a batch.
@@ -174,3 +190,9 @@ def match_wave_length(x, length):
         new_x = torch.zeros(length).to(x.device)
         new_x[:x.size(0)] = x
         return new_x
+
+def length_mask(length):
+    mask = torch.zeros(len(length), max(length)).to(device)
+    for i in range(len(length)):
+        mask[i, :length[i]] = 1
+    return mask

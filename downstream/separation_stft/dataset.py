@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*- #
 """*********************************************************************************************"""
 #   FileName     [ dataset.py ]
-#   Synopsis     [ the speech separation dataset ]
+#   Synopsis     [ LibriMix speech separation dataset ]
 #   Author       [ Zili Huang ]
 #   Copyright    [ Copyright(c), Johns Hopkins University ]
 """*********************************************************************************************"""
@@ -14,7 +14,6 @@ import os
 import random
 
 import numpy as np
-import pandas as pd
 
 import torch
 from torch.nn.utils.rnn import pad_sequence
@@ -36,6 +35,38 @@ class SeparationDataset(Dataset):
         center=True,
     ):
         super(SeparationDataset, self).__init__()
+        """
+        Args:
+            data_dir (str):
+                prepared data directory
+
+            rate (int):
+                audio sample rate
+
+            src and tgt (list(str)):
+                the input and desired output.
+                LibriMix offeres different options for the users. For
+                clean source separation, src=['mix_clean'] and tgt=['s1', 's2'].
+                Please see https://github.com/JorisCos/LibriMix for details
+
+            n_fft (int):
+                length of the windowed signal after padding with zeros.
+
+            hop_length (int):
+                number of audio samples between adjacent STFT columns.
+
+            win_length (int):
+                length of window for each frame
+
+            window (str):
+                type of window function, only support Hann window now
+
+            center (bool):
+                whether to pad input on both sides so that the
+                t-th frame is centered at time t * hop_length
+
+            The STFT related parameters are the same as librosa.
+        """
 
         self.data_dir = data_dir
         self.rate = rate
@@ -52,8 +83,9 @@ class SeparationDataset(Dataset):
 
         # mix_clean (utterances only) mix_both (utterances + noise) mix_single (1 utterance + noise)
         cond_list = ["s1", "s2", "noise", "mix_clean", "mix_both", "mix_single"]
+
         # create the mapping from utterances to the audio paths
-        # reco2path[uttname][cond]
+        # reco2path[utt][cond] is the path for utterance utt with condition cond
         reco2path = {}
         for cond in src + tgt:
             assert cond in cond_list
@@ -99,6 +131,22 @@ class SeparationDataset(Dataset):
                 center = self.center))
             tgt_samp_list.append(tgt_samp)
             tgt_feat_list.append(tgt_feat)
+        """
+        reco (str):
+            name of the utterance
+
+        src_sample (ndarray):
+            audio samples for the source [T, ]
+
+        src_feat (ndarray):
+            the STFT feature map for the source with shape [T1, D]
+
+        tgt_samp_list (list(ndarray)):
+            list of audio samples for the targets
+
+        tgt_feat_list (list(ndarray)):
+            list of STFT feature map for the targets
+        """
         return reco, src_samp, src_feat, tgt_samp_list, tgt_feat_list
 
     def collate_fn(self, batch):
@@ -137,68 +185,26 @@ class SeparationDataset(Dataset):
             target_wav_list.append(pad_sequence([torch.from_numpy(sorted_batch[i][3][j]) for i in range(bs)], batch_first=True))
 
         feat_length = torch.from_numpy(np.array([stft.size(0) for stft in mix_stft_list]))
+        """
+        source_wav_list (list(tensor)):
+            list of audio samples for the source
+
+        uttname_list (list(str)):
+            list of utterance names
+
+        source_attr (dict):
+            dictionary containing magnitude and phase information for the sources
+
+        source_wav (tensor):
+            padded version of source_wav_list, with size [bs, max_T]
+
+        target_attr (dict):
+            dictionary containing magnitude and phase information for the targets
+
+        feat_length (tensor):
+            length of the STFT feature for each utterance
+
+        wav_length (tensor):
+            number of samples in each utterance
+        """
         return source_wav_list, uttname_list, source_attr, source_wav, target_attr, target_wav_list, feat_length, wav_length
-
-
-if __name__ == '__main__':
-    data_dir = "/export/c12/hzili1/tools/s3prl/downstream/separation/data/wav16k/min/train-100"
-    rate = 16000
-    src = ['mix_clean']
-    tgt = ['s1', 's2']
-    n_fft = 512
-    hop_length = 320
-    win_length = 512
-    window = "hann"
-    center = True
-    bs = 8
-    nworkers = 4
-
-    dataset = SeparationDataset(
-              data_dir=data_dir,
-              rate=rate,
-              src=src,
-              tgt=tgt,
-              n_fft=n_fft,
-              hop_length=hop_length,
-              win_length=win_length,
-              window=window,
-              center=center,
-            ) 
-    #for i, v in enumerate(dataset):
-    #    uttname, src_wav, src_feat, target_wav_list, target_feat_list = v
-    #    print(i)
-    #    print("src_wav", src_wav.shape)
-    #    print("src_feat", src_feat.shape)
-    #    print("len(target_wav_list)", len(target_wav_list))
-    #    print("len(target_feat_list)", len(target_feat_list))
-    #    print("target_wav_list[0]", target_wav_list[0].shape)
-    #    print("target_feat_list[0]", target_feat_list[0].shape)
-    #    raise ValueError("debug")
-
-    from torch.utils.data import DataLoader
-    dataloader = DataLoader(
-            dataset,
-            batch_size=bs,
-            shuffle=True,
-            num_workers=nworkers,
-            drop_last=False,
-            pin_memory=True,
-            collate_fn=dataset.collate_fn,
-        )
-    for i, info in enumerate(dataloader):
-        source_wav_list, uttname_list, source_attr, source_wav, target_attr, target_wav_list, feat_length, wav_length = info
-        print("-" * 80)
-        print("uttname_list", uttname_list)
-        print("feat_length", feat_length)
-        print("wav_length", wav_length)
-        print("source_wav_list", len(source_wav_list))
-        for j in range(len(source_wav_list)):
-            print("source_wav_list[j]", source_wav_list[j].size())
-        print("source_wav", source_wav.size())
-        print("target_wav_list", target_wav_list[0].size())
-        print("source_attr['magnitude']", source_attr['magnitude'].size())
-        print("source_attr['phase']", source_attr['phase'].size())
-        print("source_attr['stft']", source_attr['stft'].size())
-        print("target_attr['magnitude']", target_attr['magnitude'][0].size())
-        print("target_attr['phase']", target_attr['phase'][0].size())
-        break

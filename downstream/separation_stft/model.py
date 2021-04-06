@@ -1,3 +1,10 @@
+# -*- coding: utf-8 -*- #
+"""*********************************************************************************************"""
+#   FileName     [ model.py ]
+#   Synopsis     [ the RNN model for speech separation ]
+#   Source       [ The code is from https://github.com/funcwj/uPIT-for-speech-separation ]
+"""*********************************************************************************************"""
+
 import torch
 from torch.nn.utils.rnn import PackedSequence, pad_packed_sequence
 
