@@ -1,9 +1,8 @@
 # -*- coding: utf-8 -*- #
 """*********************************************************************************************"""
-#   FileName     [ upstream/baseline/expert.py ]
-#   Synopsis     [ the baseline wrapper ]
-#   Author       [ S3PRL ]
-#   Copyright    [ Copyleft(c), Speech Lab, NTU, Taiwan ]
+#   FileName     [ upstream/log_stft/expert.py ]
+#   Synopsis     [ the wrapper for STFT magnitude ]
+#   Author       [ Zili Huang ]
 """*********************************************************************************************"""
 
 
@@ -108,18 +107,3 @@ class UpstreamExpert(nn.Module):
         """
         feats = self._extractor_forward(wavs)
         return feats
-
-if __name__ == '__main__':
-    cfg_file = "spectrogram.yaml" 
-    upstream = UpstreamExpert(cfg_file)
-    print("output_dim", upstream.get_output_dim())
-    print("downsample_rate", upstream.get_downsample_rate())
-
-    fname = "/export/c06/jiatong/dia_workspace/LibriMix/Libri2Mix/wav16k/min/dev/mix_clean/1272-128104-0000_2035-147961-0014.wav"
-    import librosa
-    samps, _ = librosa.load(fname, sr=None)
-    wavs = [torch.from_numpy(samps)]
-    feats = upstream(wavs)
-    print("feats", feats[0].size())
-    print("feats", feats[0])
-    print("feats", torch.min(feats[0]))
