@@ -55,17 +55,29 @@ print(torch.hub.list('s3prl/s3prl'))
     - `phone_linear_concat` 
     - `phone_1hidden`
 - **Prepare data:**
-    1) unzip phone labels:
+    1) Download the raw [LibriSpeech](https://www.openslr.org/12) corpus and unzip.
+    ```bash=
+    cd /path/to/put/data
+    wget https://www.openslr.org/resources/12/train-clean-100.tar.gz
+    tar zxvf train-clean-100.tar.gz
+    ```
+    2) After extracting the file, you should have the file structure as following: 
     ```bash
+    LibriSpeech
+    ├── train-clean-100
+    └── README.TXT
+    ```
+    3) unzip phone labels:
+    ```bash=
     cd data/cpc_phone
     unzip converted_aligned_phones.zip
     ```
-    2)  *(Optional)* Allow bucketing to increase training efficientcy & speed, this will generate a directory called `data/len_for_bucket`:
-    ```bash
-    python3 preprocess/generate_len_for_bucket.py --data_root "your_libri_root" --output_path ./data/
+    4)  *(Optional)* Allow bucketing to increase training efficientcy & speed, this will generate a directory called `data/len_for_bucket`:
+    ```bash=
+    python preprocess/generate_len_for_bucket.py --data_root "your_libri_root" --output_path ./data/
     ```
-    3) Change the following paths under `phone_*/config.yaml` to your own:
-    ```yaml
+    5) Change the following paths under `phone_*/config.yaml` to your own:
+    ```yaml=
     libri_root: '/media/andi611/1TBSSD/LibriSpeech/'
     bucket_file: 'data/len_for_bucket'
     ```
@@ -89,7 +101,18 @@ Testing is done on-the-fly with training since it is not costly. Use the followi
 - Specified with the command: `-d ctc`
 - **Prepare data:**
     1) Download the raw [LibriSpeech](https://www.openslr.org/12) corpus and unzip.
-    2) Modify the LibriSpeech `path` in: `downstream/ctc/libriphone.yaml`
+    ```bash=
+    cd /path/to/put/data
+    wget https://www.openslr.org/resources/12/train-clean-100.tar.gz
+    tar zxvf train-clean-100.tar.gz
+    ```
+    2) After extracting the file, you should have the file structure as following: 
+    ```bash
+    LibriSpeech
+    ├── train-clean-100
+    └── README.TXT
+    ```
+    3) Modify the LibriSpeech `path` in: `downstream/ctc/libriphone.yaml`
 - **Training:**
     ```bash=
     python run_downstream.py -m train -u wav2vec2 -d ctc --config downstream/ctc/libriphone.yaml -n MyExpName -o "config.optimizer.lr=1.0e-2"
@@ -108,11 +131,22 @@ Testing is done on-the-fly with training since it is not costly. Use the followi
 - Specified with the command: `-d ctc`
 - **Prepare data:**
     1) Download the raw [LibriSpeech](https://www.openslr.org/12) corpus and unzip.
-    2) Prepare the lengths for all utterances in LibriSpeech:
+    ```bash=
+    cd /path/to/put/data
+    wget https://www.openslr.org/resources/12/train-clean-100.tar.gz
+    tar zxvf train-clean-100.tar.gz
+    ```
+    2) After extracting the file, you should have the file structure as following: 
+    ```bash
+    LibriSpeech
+    ├── train-clean-100
+    └── README.TXT
+    ```
+    3) Prepare the lengths for all utterances in LibriSpeech:
     ```bash=
     python preprocess/generate_len_for_bucket.py -i /path/to/LibriSpeech -o data/librispeech -a .flac --n_jobs 12
     ```
-    3) Modify the root path of LibriSpeech in `downstream/asr/config.yaml`
+    4) Modify the root path of LibriSpeech in `downstream/asr/config.yaml`
 - **Training:**
     ```bash=
     distributed="-m torch.distributed.launch --nproc_per_node 16";
