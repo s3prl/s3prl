@@ -276,6 +276,7 @@ class DownstreamExpert(nn.Module):
         else:
             for metric in COMPUTE_METRICS:
                 avg_metric = np.mean(records[metric])
+                print("Average {} of {} utts is {:.2f}".format(metric, len(records[metric]), avg_metric))
                 records[metric] = avg_metric
 
                 logger.add_scalar(
