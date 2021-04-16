@@ -110,7 +110,8 @@ Table of Contents
    * [Using downstreams](https://github.com/s3prl/s3prl/tree/master/downstream/README.md)
    * [Train upstream models](#train-upstream-models)
    * [Development pattern for contributors](#development-pattern-for-contributors)
-   * [Reference](#reference)
+   * [Reference Repos](#reference-repos)
+   * [License](#license)
    * [Citation](#citation)
 <!--te-->
 
@@ -189,7 +190,10 @@ Reference Repos
 
 License
 ------------------------------------
-The majority of S3PRL Toolkit is licensed under CC-BY-NC, however portions of the project are available under separate license terms: S3PRL is licensed under the MIT license.
+The majority of S3PRL Toolkit is licensed under CC-BY-NC, 
+however portions of the project are available under separate license terms: S3PRL is licensed under the MIT license.
+
+[Back to Top](#table-of-contents)
 
 Citation
 ------------------------------------
@@ -204,3 +208,5 @@ Citation
   url = {https://github.com/s3prl/s3prl}
 }
 ```
+
+[Back to Top](#table-of-contents)
