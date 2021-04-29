@@ -14,8 +14,6 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 from functools import lru_cache
-import IPython
-import pdb
 from argparse import Namespace
 from upstream.mockingjay.model import TransformerEncoder
 

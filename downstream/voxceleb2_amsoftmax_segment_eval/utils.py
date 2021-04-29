@@ -3,8 +3,6 @@ import pickle
 from scipy.optimize import brentq
 from scipy.interpolate import interp1d
 from sklearn.metrics import roc_curve ,auc
-import IPython
-import pdb
 
 from itertools import accumulate
 from functools import partial

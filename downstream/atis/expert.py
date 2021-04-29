@@ -57,8 +57,7 @@ class DownstreamExpert(nn.Module):
                 # else:
                 #     print(os.path.join(self.base_path, type_name, df[0][i].split()[0]+'.wav'))
             print(type_name, ': ', n+1)    
-            
-        #IPython.embed()
+
         train_df = pd.DataFrame(data=train_dict)
         valid_df = pd.DataFrame(data=valid_dict)
         test_df = pd.DataFrame(data=test_dict)
@@ -66,8 +65,6 @@ class DownstreamExpert(nn.Module):
 
         Sy_intent = {"intent": {}}
         values_per_slot = []
-        
-        # IPython.embed()
         
         for slot in ["intent"]:
             slot_values = Counter(train_df[slot]) + Counter(valid_df[slot]) + Counter(test_df[slot])
@@ -79,8 +76,6 @@ class DownstreamExpert(nn.Module):
         self.train_df = train_df
         self.valid_df = valid_df
         self.test_df = test_df
-
-        # IPython.embed()
 
     def _get_train_dataloader(self, dataset):
         return DataLoader(

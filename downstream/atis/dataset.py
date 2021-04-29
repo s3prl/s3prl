@@ -26,7 +26,6 @@ class AtisDataset(Dataset):
         return len(self.df)
 
     def __getitem__(self, idx):
-        #IPython.embed()
         wav_path = os.path.join(self.base_path, self.type, self.df.loc[idx]['id']+'.wav')
         wav, sr = torchaudio.load(wav_path)
         wav = wav.squeeze(0)

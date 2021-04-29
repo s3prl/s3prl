@@ -1,7 +1,5 @@
 import os
 from librosa.util import find_files
-import IPython
-import pdb
 import random
 
 roots = {"Voxceleb1":"/home/pohan/data/librispeech/vox1_train_verifi/wav", "Voxceleb2":"/home/pohan/data/librispeech/vox2_dev/wav"}
