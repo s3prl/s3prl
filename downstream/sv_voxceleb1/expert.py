@@ -81,22 +81,6 @@ class DownstreamExpert(nn.Module):
         }
         self.test_dataset = SpeakerVerifi_test(**test_config)
 
-        train_plda_config = {
-            "vad_config": self.datarc['vad_config'],
-            "file_path": [train_file_path], 
-            "key_list": ["Voxceleb1_train_plda"],
-            "meta_data": self.datarc['dev_meta_data']
-        }
-        self.train_dataset_plda = SpeakerVerifi_plda(**train_plda_config)
-
-        test_plda_config = {
-            "vad_config": self.datarc['vad_config'],
-            "file_path": [test_file_path], 
-            "key_list": ["Voxceleb1_test_plda"],
-            "meta_data": self.datarc['test_meta_data']
-        }
-        self.test_dataset_plda = SpeakerVerifi_plda(**test_plda_config)
-
         # module
         self.connector = nn.Linear(self.upstream_dim, self.modelrc['input_dim'])
 
