@@ -23,3 +23,6 @@ dtw-python==1.1.6
 tabulate
 intervaltree
 lxml
+soundfile
+pysndfx
+

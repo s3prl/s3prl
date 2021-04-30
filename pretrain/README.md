@@ -1,4 +1,5 @@
 # Pre-training  Upstream Models
+For pre-training new upstream models, you'll need high-end GPU(s).
 
 ## Step 1) Prepare data
 1) Download the LibriSpeech raw data from [here](http://www.openslr.org/12).
