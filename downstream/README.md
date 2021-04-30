@@ -8,7 +8,7 @@ Provide a _self-contained_ folder under the `downstream` folder. By _self-contai
 
 The template folder [downstream/example/](./example/) defines a pseudo downstream task, which can always be ran up by:
 
-1. [**Clone the repository and install packages**]()
+1. [**Clone the repository and install packages**](../README.md##installation)
 2. Run the pseudo task to get a feeling of the framework
 
    ```bash
@@ -21,8 +21,8 @@ The template folder [downstream/example/](./example/) defines a pseudo downstrea
 
 The toolkit supports the following benchmark. To benchmark your pretrained model please follow these sections:
 
-1. [**Clone the repository and install packages**]()
-2. [**Setup your customized upstream model**]()
+1. [**Clone the repository and install packages**](../README.md##installation)
+2. [**Setup your customized upstream model**](TBD)
 3. Follow the benchmark-specific instructions described below.
 
 ### **SUPERB:** **S**peech processing **U**niversal **PER**formance **B**enchmark
