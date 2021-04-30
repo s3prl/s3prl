@@ -27,7 +27,8 @@ The toolkit has **three major usages**:
 - Document: [**pretrain/README.md**](./pretrain/README.md)
 
 ### Upstream
-- Easily load most of the existing upstream models with pretrained weights in a unified interface.
+- Easily load most of the existing upstream models with pretrained weights in a unified I/O interface.
+- Pretrained models are registered through **torch.hub**, which means you can use these models in your own project by one-line plug-and-play without depending on this toolkit's coding style.
 - Document: [**upstream/README.md**](./upstream/README.md)
 
 ### Downstream
