@@ -1,5 +1,5 @@
 <p align="center">
-    <img src="https://github.com/andi611/Self-Supervised-Speech-Pretraining-and-Representation-Learning/blob/master/file/S3PRL-logo.png" width="900"/>
+    <img src="./file/S3PRL-logo.png" width="900"/>
     <br>
     <br>
     <a href="https://github.com/s3prl/s3prl/LICENSE"><img alt="MIT License" src="https://img.shields.io/badge/license-MIT-blue.svg" /></a>
