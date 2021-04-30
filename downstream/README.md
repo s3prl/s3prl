@@ -6,10 +6,10 @@ Self-supervised (SSL) pretrained models are not able to justify their effectiven
 
 Provide a _self-contained_ folder under the `downstream` folder. By _self-contained_ we mean there should be all the downstream specific materials under the folder, including the definition for dataset, datalader,model, and loss. How to define these materials are completely free, while the only requirement is to provide an `expert.py` file with an `DownstreamExpert` **nn.module** at the root of your downstream folder, where 3 object methods are implemented: `get_dataloader`, `forward`, and `log_records`. One can refer to [downstream/example/expert.py](./example/expert.py) for a minimum implementation and use it as an initial template for developing a new downstream task.
 
-The template folder [downstream/example/](./example/) can always be ran up by:
+The template folder [downstream/example/](./example/) defines a pseudo downstream task, which can always be ran up by:
 
 1. [**Clone the repository and install packages**]()
-2. Run the example pseudo task to get a feeling of the framework
+2. Run the pseudo task to get a feeling of the framework
 
    ```bash
    python3 run_downstream.py -u fbank -d example -n HelloWorld
@@ -27,11 +27,11 @@ The toolkit supports the following benchmark. To benchmark your pretrained model
 
 ### **SUPERB:** **S**peech processing **U**niversal **PER**formance **B**enchmark
 
-1. Follow the task-specific instructions in: [**PR**](), [**KS**](), [**IC**](), [**SID**](), [**ER**](), [**ASR**](), [**QbE**](), [**SF**](), [**SV**](), [**SD**]()
+1. Follow the task-specific instructions in: [**PR**](#pr-phoneme-recognition), [**KS**](#ks-keyword-spotting), [**IC**](#ic-intent-classification---fluent-speech-commands), [**SID**](#sid-speaker-identification), [**ER**](#er-emotion-recognition), [**ASR**](#asr-automatic-speech-recognition), [**QbE**](#qbe-query-by-example-spoken-term-detection), [**SF**](#sf-end-to-end-slot-filling---snips), [**ASV**](#asv-speaker-verification), [**SD**](#sd-speaker-diarization)
 
 # General usage
 
-All of the downstream task follow the following command pattern, with a few task-specific adjustments which are detailed in [**Task-specific usage**](#Task-specific%20usage).
+All of the downstream task follow the following command pattern, with a few task-specific adjustments which are detailed in [**Task-specific usage**](#task-specific-usage).
 
 ## Start a new downstream training experiment
 
@@ -60,7 +60,7 @@ python3 run_downstream.py -m train -n ExpName -u fbank -d example
     - latest optimization epoch
     - **state_dict** of models, optimizer, scheduler
 - `-c` or `--config` specifies the config file path. If not specified, will use the `config.yaml` under each downstream folder by default. Eg. `result/asr/config.yaml`
-- `-o` or `--override` can override any argument or config field with command line, which is at the highest priority. Please refer to the [source code](https://github.com/s3prl/s3prl/blob/ee2a7f16f85186edfa39e8319c612a3b44946a91/utility/helper.py#L69) for definition. Here is an example to override 3 fields defined in this [config file](https://github.com/s3prl/s3prl/blob/ee2a7f16f85186edfa39e8319c612a3b44946a91/downstream/asr/config.yaml):
+- `-o` or `--override` can override any argument or config field with command line, which is at the highest priority. Please refer to the [override function](../utility/helper.py) for definition. Here is an example to override 3 fields defined in this [config file](./example/config.yaml):
 
   ```bash
   -o "config.optimizer.lr=1.0e-3,,config.optimizer.name=\"AdamW\",,config.runner.eval_dataloaders=\"['dev', 'test']\""
