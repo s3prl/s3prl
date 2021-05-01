@@ -10,7 +10,7 @@ If you are interested in developing your own task, please check [**Add new downs
 
 The toolkit supports the following benchmark. To benchmark your pretrained model please follow these sections:
 
-1. [**Clone the repository and install packages**](../README.md##installation)
+1. [**Clone the repository and install packages**](../README.md#installation)
 2. [**Setup your customized upstream model**](TBD)
 3. Follow the benchmark-specific instructions described below.
 
@@ -653,7 +653,7 @@ By **self-contained** we mean there should be all the downstream specific materi
 
 The fastest way to know how the framework works is to run a minimum example, so we provide a pseudo task [downstream/example/](./example/), which can always be ran up by:
 
-1. [**Clone the repository and install packages**](../README.md##installation)
+1. [**Clone the repository and install packages**](../README.md#installation)
 2. Run the pseudo task to get a feeling of the framework
 
    ```bash
