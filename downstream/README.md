@@ -1,21 +1,10 @@
 # Downstream tasks
 
-Self-supervised (SSL) pretrained models are not able to justify their effectiveness through pretraining loss. One always has to evaluate their performance with downstream tasks. Hence, it is crucial to collect a wide range of downstream tasks and make the evaluation pipeline as easy as possible to speed up the development cycle. Basing on the tasks developed, we further select several representative ones to form the benchmark for SSL models.
+Self-supervised (SSL) pretrained models are not able to justify their effectiveness through pretraining loss. One always has to evaluate their performance with downstream tasks. Hence, it is crucial to collect a wide range of downstream tasks and make the evaluation pipeline as easy as possible to speed up the development cycle.
 
-# Add new downstream tasks
+Basing on the tasks already developed, we further select several representative ones to form the [**Benchmark**](#benchmark) for SSL models.
 
-Provide a _self-contained_ folder under the `downstream` folder. By _self-contained_ we mean there should be all the downstream specific materials under the folder, including the definition for dataset, datalader,model, and loss. How to define these materials are completely free, while the only requirement is to provide an `expert.py` file with an `DownstreamExpert` **nn.module** at the root of your downstream folder, where 3 object methods are implemented: `get_dataloader`, `forward`, and `log_records`. One can refer to [downstream/example/expert.py](./example/expert.py) for a minimum implementation and use it as an initial template for developing a new downstream task.
-
-The template folder [downstream/example/](./example/) defines a pseudo downstream task, which can always be ran up by:
-
-1. [**Clone the repository and install packages**](../README.md##installation)
-2. Run the pseudo task to get a feeling of the framework
-
-   ```bash
-   python3 run_downstream.py -u fbank -d example -n HelloWorld
-   ```
-
-**Note**. Please use _relative import_ in your downstream folder, in case we might want to rename or move the location for the `downstream` folder in future.
+If you are interested in developing your own task, please check [**Add new downstream tasks**](#add-new-downstream-tasks). Pull requests are always welcome.
 
 # Benchmark
 
@@ -653,3 +642,24 @@ do
         result/downstream/emotion_lr1e-4_$test_fold/log.log
 done
 ```
+
+# Add new downstream tasks
+
+Please first have a quick look at the [General Usage](#general-usage) to have a sense on the basic command pattern.
+
+Each downstream task is defined by a **self-contained** folder under this [downstream](./) folder, like the task ASR is defined in [downstream/asr](./asr). Once a new folder is placed under this [downstream](./) folder, says `downstream/blabla/`, you can specify to run this new downstream task with `-d blabla` option in [run_downstream.py](../run_downstream.py) script.
+
+By **self-contained** we mean there should be all the downstream specific materials under your task folder, including the definition for dataset, datalader,model, and loss. How to define these materials are completely free, while the only requirement is to provide an `expert.py` file with an `DownstreamExpert` **nn.module** at the root of your downstream folder, where 3 object methods are implemented: `get_dataloader`, `forward`, and `log_records`.
+
+The fastest way to know how the framework works is to run a minimum example, so we provide a pseudo task [downstream/example/](./example/), which can always be ran up by:
+
+1. [**Clone the repository and install packages**](../README.md##installation)
+2. Run the pseudo task to get a feeling of the framework
+
+   ```bash
+   python3 run_downstream.py -u fbank -d example -n HelloWorld
+   ```
+
+Hence, you can refer to [downstream/example/expert.py](./example/expert.py) for the minimum requirement and implementation specification. Also, you can use [downstream/example/](./example/) as an initial template for developing a new downstream task.
+
+**Note**. Please use _relative import_ in your downstream folder, in case we might want to rename or move the location for the `downstream` folder in future.
