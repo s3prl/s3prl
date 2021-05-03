@@ -956,7 +956,7 @@ python3 run_downstream.py -u fbank -d example -n HelloWorld
 
 Hence, you can refer to [downstream/example/expert.py](./example/expert.py) for the minimum requirement and implementation specification. Also, you can use [downstream/example/](./example/) as an initial template for developing a new downstream task.
 
-#### Note1
+#### Note 1
 
 Please use _relative import_ in your downstream folder, in case we might want to rename or move the location for the `downstream` folder in future.
 
