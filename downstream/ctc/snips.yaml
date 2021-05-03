@@ -37,7 +37,7 @@ downstream_expert:
     path: '/path/to/SNIPS'          # Path to raw LibriSpeech dataset
 
     train: ['train']                # Name of data splits to be used as training set
-    dev: ['dev']                    # Name of data splits to be used as validation set
+    dev: ['valid']                    # Name of data splits to be used as validation set
     test: ['test']
 
     bucketing: True                       # Enable/Disable bucketing 
