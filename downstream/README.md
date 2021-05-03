@@ -45,6 +45,7 @@ python3 run_downstream.py -m train -n ExpName -u fbank -d example
     - The available downstream can be checked by `-h`
     - Each available downstream task has its corresponding folder under `downstream/`. Eg. `-d asr` means we are using the task defined in `downstream/asr/`
     - `example` is a pseudo downstream task which is useful for testing the upstream model or as an initial template for developing a new downstream task
+- `-f` or `--upstream_trainable` enables finetuning the upstream model on the downstream task. Default: false 
 - `-n` or `--name` specifies the experiment name, all the files related to this run will be saved into **expdir**=`result/downstream/{args.name}`. (You can also use `-p` or `--expdir` to directly specify the path of **expdir**.)
     - command
     - config file
@@ -94,7 +95,7 @@ Please must remember to use `-a` when wrap with `run_while.sh`, or else you are 
 
 ## Distributed training
 
-We wrap the model with **DistributedDataParallel**. By inserting `-m torch.distributed.launch --nproc_per_node {GPU_NUM}` between `python3` and `run_downstream.py`, you can directly turn the above **training** commands into distributed training. Currently only **ASR** and **SV** support distributed training.
+We wrap the model with **DistributedDataParallel**. By inserting `-m torch.distributed.launch --nproc_per_node {GPU_NUM}` between `python3` and `run_downstream.py`, you can directly turn the above **training** commands into distributed training. Currently only [**ASR**](#asr-automatic-speech-recognition) and [**SV**](#asv-automatic-speaker-verification) support distributed training.
 
 #### First specify your GPU number
 ```bash
