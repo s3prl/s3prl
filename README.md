@@ -52,6 +52,8 @@ If you find this toolkit helpful to your research, please do consider to cite [o
 * Install generally used packages for *pretrain*, *upstream* and *downstream*:
 
 ```
+sudo apt-get install sox
+
 git clone https://github.com/s3prl/s3prl.git
 cd s3prl
 pip install -r requirements.txt
