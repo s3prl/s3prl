@@ -29,6 +29,7 @@ else
 	fi
 
 	echo 'Start converting audio files...'
+    python3 "$script_dir/snips_text_norm.py"
 	python "$script_dir/snips_preprocess.py" audio audio_slu SNIPS
 fi
 
