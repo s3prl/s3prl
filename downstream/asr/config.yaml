@@ -8,7 +8,6 @@ runner:
   max_keep: 1
   eval_dataloaders:
     - dev-clean
-    - dev-other
 
 optimizer:
   name: TorchOptim
