@@ -55,8 +55,14 @@ If you find this toolkit helpful to your research, please do consider to cite [o
 sudo apt-get install sox
 
 git clone https://github.com/s3prl/s3prl.git
-cd s3prl
+cd s3prl/
 pip install -r requirements.txt
+cd ../
+
+git clone https://github.com/pytorch/fairseq.git
+cd fairseq/
+pip install -e ./
+cd ../
 ```
 
 * Some upstream models require special dependencies. If you encounter error with a specific upstream model, you can look into the `README.md` under each `upsream` folder. Eg. `upstream/pase/README.md`
