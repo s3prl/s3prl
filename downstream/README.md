@@ -95,7 +95,7 @@ Please must remember to use `-a` when wrap with `run_while.sh`, or else you are 
 
 ## Distributed training
 
-We wrap the model with **DistributedDataParallel**. By inserting `-m torch.distributed.launch --nproc_per_node {GPU_NUM}` between `python3` and `run_downstream.py`, you can directly turn the above **training** commands into distributed training. Currently only [**ASR**](#asr-automatic-speech-recognition) and [**SV**](#asv-automatic-speaker-verification) support distributed training.
+We wrap the model with **DistributedDataParallel**. By inserting `-m torch.distributed.launch --nproc_per_node {GPU_NUM}` between `python3` and `run_downstream.py`, you can directly turn the above **training** commands into distributed training. Currently only [ASR](#asr-automatic-speech-recognition) and [ASV](#asv-automatic-speaker-verification) support distributed training.
 
 #### First specify your GPU number
 ```bash
