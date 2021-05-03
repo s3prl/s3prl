@@ -1,8 +1,8 @@
 # -*- coding: utf-8 -*- #
 """*********************************************************************************************"""
 #   FileName     [ dataset.py ]
-#   Synopsis     [ the dataset that applies the apec augment pre-training task ]
-#   Author       [ S3PRL ]
+#   Synopsis     [ the dataset that applies the spec augment pre-training task ]
+#   Author       [ Andy T. Liu (https://github.com/andi611) ]
 #   Copyright    [ Copyleft(c), Speech Lab, NTU, Taiwan ]
 """*********************************************************************************************"""
 

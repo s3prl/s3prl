@@ -38,8 +38,9 @@ class UpstreamExpert(nn.Module):
     The NPC wrapper
     """
 
-    def __init__(self, ckpt, **kwargs):
+    def __init__(self, ckpt, feature_selection, **kwargs):
         super(UpstreamExpert, self).__init__()
+        self.feature_selection = feature_selection
         ckpt = torch.load(ckpt, map_location='cpu')
         config = ckpt['config']
 
@@ -50,10 +51,7 @@ class UpstreamExpert(nn.Module):
         
         # load pretrained-weights
         self.model.load_state_dict(ckpt['model'])
-
-        pseudo_input = torch.randn(1, EXAMPLE_FEAT_SEQLEN, feat_dim)
-        predicted_BxLxM, feature = self.model(pseudo_input, testing=True)
-        self.output_dim = feature.size(-1)
+        self.output_dim = config['model']['paras']['hidden_size']
 
     # Interface
     def get_output_dim(self):
@@ -80,9 +78,15 @@ class UpstreamExpert(nn.Module):
         """
         features = [self.preprocessor(wav.unsqueeze(0)) for wav in wavs]
         feat_lengths = [len(feat) for feat in features]
-
         features = pad_sequence(features, batch_first=True)
-        predicted_BxLxM, features = self.model(features, self.training)
+
+        if 'unmasked' in self.feature_selection:
+            n_layer_feat = int(self.feature_selection.split('-')[-1])
+            features = self.model.get_unmasked_feat(features, n_layer_feat)
+        elif self.feature_selection == 'masked':
+            predicted_BxLxM, features = self.model(features, testing=not self.training)
+        else:
+            raise ValueError
+
         features = [f[:l] for f, l in zip(features, feat_lengths)]
-        
         return features

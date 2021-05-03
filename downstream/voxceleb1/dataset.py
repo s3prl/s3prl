@@ -5,12 +5,16 @@ from librosa.util import find_files
 from torchaudio import load
 from torch import nn
 import os 
-import IPython 
-import pdb
 import random
+import pickle
 import torchaudio
 import sys
 import time
+import glob
+import tqdm
+
+CACHE_PATH = os.path.join(os.path.dirname(__file__), '.cache/')
+
 
 # Voxceleb 1 Speaker Identification
 class SpeakerClassifiDataset(Dataset):
@@ -21,9 +25,22 @@ class SpeakerClassifiDataset(Dataset):
         self.meta_data =meta_data
         self.max_timestep = max_timestep
         self.usage_list = open(self.meta_data, "r").readlines()
-        self.dataset = eval("self.{}".format(mode))()        
+
+        cache_path = os.path.join(CACHE_PATH, f'{mode}.pkl')
+        if os.path.isfile(cache_path):
+            print(f'[SpeakerClassifiDataset] - Loading file paths from {cache_path}')
+            with open(cache_path, 'rb') as cache:
+                dataset = pickle.load(cache)
+        else:
+            dataset = eval("self.{}".format(mode))()
+            os.makedirs(os.path.dirname(cache_path), exist_ok=True)
+            with open(cache_path, 'wb') as cache:
+                pickle.dump(dataset, cache)
+        print(f'[SpeakerClassifiDataset] - there are {len(dataset)} files found')
+
+        self.dataset = dataset
         self.label = self.build_label(self.dataset)
-    
+
     # file_path/id0001/asfsafs/xxx.wav
     def build_label(self, train_path_list):
 
@@ -37,36 +54,42 @@ class SpeakerClassifiDataset(Dataset):
     def train(self):
 
         dataset = []
-        for string in self.usage_list:
+        print("search specified wav name for training set")
+        for string in tqdm.tqdm(self.usage_list):
             pair = string.split()
             index = pair[0]
-            x = os.path.join(self.root, pair[1])
             if int(index) == 1:
-                dataset.append(x)
+                x = list(self.root.glob("*/wav/" + pair[1]))
+                dataset.append(str(x[0]))
+        print("finish searching training set wav")
                 
         return dataset
         
     def dev(self):
 
         dataset = []
-        for string in self.usage_list:
+        print("search specified wav name for dev set")
+        for string in tqdm.tqdm(self.usage_list):
             pair = string.split()
             index = pair[0]
-            x = os.path.join(self.root, pair[1])
             if int(index) == 2:
-                dataset.append(x) 
+                x = list(self.root.glob("*/wav/" + pair[1]))
+                dataset.append(str(x[0])) 
+        print("finish searching dev set wav")
 
         return dataset       
 
     def test(self):
 
         dataset = []
-        for string in self.usage_list:
+        print("search specified wav name for test set")
+        for string in tqdm.tqdm(self.usage_list):
             pair = string.split()
             index = pair[0]
-            x = os.path.join(self.root, pair[1])
             if int(index) == 3:
-                dataset.append(x) 
+                x = list(self.root.glob("*/wav/" + pair[1]))
+                dataset.append(str(x[0])) 
+        print("finish searching test set wav")
 
         return dataset
 
@@ -74,7 +97,6 @@ class SpeakerClassifiDataset(Dataset):
         return len(self.dataset)
     
     def __getitem__(self, idx):
-        
         wav, sr = torchaudio.load(self.dataset[idx])
         wav = wav.squeeze(0)
         length = wav.shape[0]
@@ -85,14 +107,11 @@ class SpeakerClassifiDataset(Dataset):
                 wav = wav[start:start+self.max_timestep]
                 length = self.max_timestep
   
-        return wav, torch.tensor([length]), torch.tensor([self.label[idx]]).long()
+        return wav.numpy(), self.label[idx]
         
-    def collate_fn(self, samples):
-        
-        wavs, lengths, labels = [], [], []
-
-        for wav,length,label in samples:
+    def collate_fn(self, samples):        
+        wavs, labels = [], []
+        for wav, label in samples:
             wavs.append(wav)
-            lengths.append(length)
             labels.append(label)
-        return wavs, lengths, labels
+        return wavs, labels

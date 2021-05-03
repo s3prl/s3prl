@@ -50,11 +50,7 @@ class UpstreamExpert(nn.Module):
         
         # load pretrained-weights
         self.model.load_state_dict(ckpt['model'])
-
-        pseudo_input = torch.randn(1, EXAMPLE_FEAT_SEQLEN, feat_dim)
-        pseudo_lengths = torch.LongTensor([EXAMPLE_FEAT_SEQLEN])
-        predicted_BxLxM, feature = self.model(pseudo_input, pseudo_lengths, testing=True)
-        self.output_dim = feature.size(-1)
+        self.output_dim = config['model']['paras']['hidden_size']
 
     # Interface
     def get_output_dim(self):
@@ -85,7 +81,7 @@ class UpstreamExpert(nn.Module):
         features = pad_sequence(features, batch_first=True)
         feat_lengths = torch.LongTensor(feat_lengths)
 
-        predicted_BxLxM, features = self.model(features, feat_lengths, self.training)
+        predicted_BxLxM, features = self.model(features, feat_lengths, testing=not self.training)
         features = [f[:l] for f, l in zip(features, feat_lengths)]
 
         return features

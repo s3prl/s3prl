@@ -1,9 +1,10 @@
+# Copyright (c) Facebook, Inc. All Rights Reserved
+
 # -*- coding: utf-8 -*- #
 """*********************************************************************************************"""
 #   FileName     [ upstream/wav2vec2/hubconf.py ]
 #   Synopsis     [ the wav2vec 2.0 torch hubconf ]
-#   Author       [ S3PRL ]
-#   Copyright    [ Copyleft(c), Speech Lab, NTU, Taiwan ]
+#   Author       [ S3PRL / Kushal Lakhotia]
 """*********************************************************************************************"""
 
 
@@ -58,4 +59,13 @@ def wav2vec2_large(refresh=False, *args, **kwargs):
             refresh (bool): whether to download ckpt/config again if existed
     """
     kwargs['ckpt'] = 'https://dl.fbaipublicfiles.com/fairseq/wav2vec/libri960_big.pt'
+    return wav2vec2_url(refresh=refresh, *args, **kwargs)
+
+
+def wav2vec2_large_ll60k(refresh=False, *args, **kwargs):
+    """
+        The Large model trained on Libri-light 60k hours of data
+            refresh (bool): whether to download ckpt/config again if existed
+    """
+    kwargs['ckpt'] = 'https://dl.fbaipublicfiles.com/fairseq/wav2vec/wav2vec_vox_new.pt'
     return wav2vec2_url(refresh=refresh, *args, **kwargs)

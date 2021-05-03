@@ -1,20 +1,24 @@
 import os
+import sys
 import math
 import glob
+import shutil
 import random
+import tempfile
 import importlib
 from pathlib import Path
-from collections import defaultdict
 
 import torch
 import torch.nn as nn
 import numpy as np
 from tqdm import tqdm
 from tensorboardX import SummaryWriter
+from torch.nn.parallel import DistributedDataParallel as DDP
+from torch.distributed import is_initialized, get_rank, get_world_size
 
 from optimizers import get_optimizer
 from schedulers import get_scheduler
-from utility.helper import count_parameters
+from utility.helper import is_leader_process, count_parameters, get_model_state, show, defaultdict
 
 SAMPLE_RATE = 16000
 
@@ -22,45 +26,56 @@ SAMPLE_RATE = 16000
 class Runner():
     """
     Used to handle high-level concepts of a ML experiment
-    eg. training loop, evaluation loop, upstream propagation, optimization, tensorboard logging, checkpoint saving
+    eg. training loop, evaluation loop, upstream propagation, optimization, logging, checkpoint saving
     """
     def __init__(self, args, config):
         self.args = args
         self.config = config
-        self.logger = SummaryWriter(args.expdir)
 
-        self.init_ckpt = torch.load(self.args.past_exp, map_location='cpu') if self.args.past_exp else {}
+        self.init_ckpt = torch.load(self.args.init_ckpt, map_location='cpu') if self.args.init_ckpt else {}
         self.upstream = self._get_upstream()
         self.downstream = self._get_downstream()
-
-        # set up the downstream name used by Tensorboard
-        self.downstream_name = self.args.downstream
-        if hasattr(self.downstream, 'get_downstream_name'):
-            self.downstream_name = self.downstream.get_downstream_name()
 
 
     def _get_upstream(self):
         Upstream = getattr(importlib.import_module('hubconf'), self.args.upstream)
+        upstream_refresh = self.args.upstream_refresh
+
+        if is_initialized() and get_rank() > 0:
+            torch.distributed.barrier()
+            upstream_refresh = False
+
         upstream = Upstream(
             feature_selection = self.args.upstream_feature_selection,
             model_config = self.args.upstream_model_config,
-            refresh = self.args.upstream_refresh,
+            refresh = upstream_refresh,
             ckpt = self.args.upstream_ckpt,
         ).to(self.args.device)
 
-        assert hasattr(upstream, 'forward')
-        assert hasattr(upstream, 'get_output_dim')
-        assert hasattr(upstream, 'get_downsample_rate')
+        if is_initialized() and get_rank() == 0:
+            torch.distributed.barrier()
 
-        print(f'[Runner] - Upstream model architecture: {upstream}')
-        print(f'[Runner] - Upstream output dimension: {upstream.get_output_dim()}')
-        downsample = upstream.get_downsample_rate()
-        print(f'[Runner] - Upstream downsample rate: {downsample} ({downsample / SAMPLE_RATE * 1000} ms/frame)')
+        interface_fn = ['get_output_dim', 'get_downsample_rate']
+        for fn in interface_fn:
+            assert hasattr(upstream, fn)
+
+        if self.args.verbose:
+            show(f'[Runner] - Upstream model architecture: {upstream}')
+            show(f'[Runner] - Upstream has {count_parameters(upstream)} parameters')
+            show(f'[Runner] - Upstream output dimension: {upstream.get_output_dim()}')
+            downsample = upstream.get_downsample_rate()
+            show(f'[Runner] - Upstream downsample rate: {downsample} ({downsample / SAMPLE_RATE * 1000} ms/frame)')
 
         init_upstream = self.init_ckpt.get('Upstream')
         if init_upstream:
-            print('[Runner] - Loading upstream weights from the previous experiment')
+            show('[Runner] - Loading upstream weights from the previous experiment')
             upstream.load_state_dict(init_upstream)
+
+        if is_initialized() and self.args.upstream_trainable:
+            upstream = DDP(upstream, device_ids=[self.args.local_rank], find_unused_parameters=True)
+            for fn in interface_fn:
+                setattr(upstream, fn, getattr(upstream.module, fn))
+
         return upstream
 
 
@@ -69,23 +84,29 @@ class Runner():
         Downstream = getattr(importlib.import_module(module_path), 'DownstreamExpert')
         downstream = Downstream(
             upstream_dim = self.upstream.get_output_dim(),
+            upstream_rate = self.upstream.get_downsample_rate(),
             **self.config,
             **vars(self.args)
         ).to(self.args.device)
 
-        print(f'[Runner] - Downstream model architecture: {downstream}')
-        print(f'[Runner] - Downstream has {count_parameters(downstream)} parameters')
+        if self.args.verbose:
+            show(f'[Runner] - Downstream model architecture: {downstream}')
+            show(f'[Runner] - Downstream has {count_parameters(downstream)} parameters')
 
-        assert hasattr(downstream, 'get_train_dataloader')
-        assert hasattr(downstream, 'get_dev_dataloader')
-        assert hasattr(downstream, 'get_test_dataloader')
-        assert hasattr(downstream, 'forward')
-        assert hasattr(downstream, 'log_records')
+        interface_fn = ['get_dataloader', 'log_records']
+        for fn in interface_fn:
+            assert hasattr(downstream, fn)
 
         init_downstream = self.init_ckpt.get('Downstream')
         if init_downstream:
-            print('[Runner] - Loading downstream weights from the previous experiment')
+            show('[Runner] - Loading downstream weights from the previous experiment')
             downstream.load_state_dict(init_downstream)
+
+        if is_initialized():
+            downstream = DDP(downstream, device_ids=[self.args.local_rank], find_unused_parameters=True)
+            for fn in interface_fn:
+                setattr(downstream, fn, getattr(downstream.module, fn))
+
         return downstream
 
 
@@ -98,7 +119,7 @@ class Runner():
 
         init_optimizer = self.init_ckpt.get('Optimizer')
         if init_optimizer:
-            print('[Runner] - Loading optimizer weights from the previous experiment')
+            show('[Runner] - Loading optimizer weights from the previous experiment')
             optimizer.load_state_dict(init_optimizer)
         return optimizer
 
@@ -112,7 +133,7 @@ class Runner():
 
         init_scheduler = self.init_ckpt.get('Scheduler')
         if init_scheduler:
-            print('[Runner] - Loading scheduler weights from the previous experiment')
+            show('[Runner] - Loading scheduler weights from the previous experiment')
             scheduler.load_state_dict(init_scheduler)
         return scheduler
 
@@ -135,51 +156,67 @@ class Runner():
         if self.config.get('scheduler'):
             scheduler = self._get_scheduler(optimizer)
 
+        # set specaug
+        specaug = None
+        if self.config.get('specaug'):
+            from .specaug import SpecAug
+            specaug = SpecAug(**self.config["specaug"])
+
         # set progress bar
-        pbar = tqdm(total=self.config['runner']['total_steps'], dynamic_ncols=True, desc='overall')
+        tqdm_file = sys.stderr if is_leader_process() else open(os.devnull, 'w')
+        pbar = tqdm(total=self.config['runner']['total_steps'], dynamic_ncols=True, desc='overall', file=tqdm_file)
         init_step = self.init_ckpt.get('Step')
         if init_step:
             pbar.n = init_step
 
-        # prepare data
-        dataloader = self.downstream.get_train_dataloader()
+        # set Tensorboard logging
+        if is_leader_process():
+            logger = SummaryWriter(self.args.expdir)
 
-        all_loss = []
+        # prepare data
+        dataloader = self.downstream.get_dataloader('train')
+
+        batch_ids = []
         backward_steps = 0
         records = defaultdict(list)
-        prefix = f'{self.downstream_name}/train-'
-
+        epoch = self.init_ckpt.get('Epoch', 0)
         while pbar.n < pbar.total:
-            for batch_id, (wavs, *others) in enumerate(tqdm(dataloader, dynamic_ncols=True, desc='train')):
+            if is_initialized():
+                dataloader.sampler.set_epoch(epoch)
+
+            for batch_id, (wavs, *others) in enumerate(tqdm(dataloader, dynamic_ncols=True, desc='train', file=tqdm_file)):
                 # try/except block for forward/backward
                 try:
                     if pbar.n >= pbar.total:
                         break
                     global_step = pbar.n + 1
 
-                    wavs = [wav.to(self.args.device) for wav in wavs]
-                    if self.args.upstream_trainable:
+                    wavs = [torch.FloatTensor(wav).to(self.args.device) for wav in wavs]
+                    if self.upstream.training:
                         features = self.upstream(wavs)
                     else:
                         with torch.no_grad():
                             features = self.upstream(wavs)
 
+                    if specaug:
+                        features, _ = specaug(features)
+
                     loss = self.downstream(
+                        'train',
                         features, *others,
                         records = records,
-                        logger = self.logger,
-                        prefix = prefix,
-                        global_step = global_step,
-                        log_step = self.config['runner']['log_step'],
-                        batch_id = batch_id,
-                        batch_num = len(dataloader),
                     )
+                    batch_ids.append(batch_id)
+
                     gradient_accumulate_steps = self.config['runner'].get('gradient_accumulate_steps')
                     (loss / gradient_accumulate_steps).backward()
+                    del loss
 
                 except RuntimeError as e:
                     if 'CUDA out of memory' in str(e):
                         print(f'[Runner] - CUDA out of memory at step {global_step}')
+                        if is_initialized():
+                            raise
                         with torch.cuda.device(self.args.device):
                             torch.cuda.empty_cache()
                         optimizer.zero_grad()
@@ -187,10 +224,6 @@ class Runner():
                     else:
                         raise
 
-                # record loss
-                all_loss.append(loss.item())
-                del loss
-                
                 # whether to accumulate gradient
                 backward_steps += 1
                 if backward_steps % gradient_accumulate_steps > 0:
@@ -213,21 +246,22 @@ class Runner():
                 if scheduler:
                     scheduler.step()
 
+                if not is_leader_process():
+                    batch_ids = []
+                    records = defaultdict(list)
+                    continue
+
                 # logging
                 if global_step % self.config['runner']['log_step'] == 0:
-                    # log loss
-                    average_loss = torch.FloatTensor(all_loss).mean().item()
-                    self.logger.add_scalar(f'{prefix}loss', average_loss, global_step=global_step)
-                    all_loss = []
-
-                    # log customized contents
                     self.downstream.log_records(
+                        'train',
                         records = records,
-                        logger = self.logger,
-                        prefix = prefix,
+                        logger = logger,
                         global_step = global_step,
-                        log_step = self.config['runner']['log_step'],
+                        batch_ids = batch_ids,
+                        total_batch_num = len(dataloader),
                     )
+                    batch_ids = []
                     records = defaultdict(list)
 
                 # evaluation and save checkpoint
@@ -235,7 +269,7 @@ class Runner():
 
                 if global_step % self.config['runner']['eval_step'] == 0:
                     for split in self.config['runner']['eval_dataloaders']:
-                        save_names += self.evaluate(split, global_step)
+                        save_names += self.evaluate(split, logger, global_step)
 
                 if global_step % self.config['runner']['save_step'] == 0:
                     def check_ckpt_num(directory):
@@ -250,9 +284,10 @@ class Runner():
 
                 if len(save_names) > 0:
                     all_states = {
-                        'Downstream': self.downstream.state_dict(),
+                        'Downstream': get_model_state(self.downstream),
                         'Optimizer': optimizer.state_dict(),
                         'Step': global_step,
+                        'Epoch': epoch,
                         'Args': self.args,
                         'Config': self.config,
                     }
@@ -261,7 +296,10 @@ class Runner():
                         all_states['Scheduler'] = scheduler.state_dict()
 
                     if self.args.upstream_trainable:
-                        all_states['Upstream'] = self.upstream.state_dict()
+                        all_states['Upstream'] = get_model_state(self.upstream)
+
+                    if is_initialized():
+                        all_states['WorldSize'] = get_world_size()
 
                     save_paths = [os.path.join(self.args.expdir, name) for name in save_names]
                     tqdm.write(f'[Runner] - Save the checkpoint to:')
@@ -270,12 +308,23 @@ class Runner():
                         torch.save(all_states, path)
 
                 pbar.update(1)
+            epoch += 1
 
-        Path(f'{self.args.expdir}/train_finished').touch(exist_ok=True)
         pbar.close()
+        if is_leader_process():
+            logger.close()
 
 
-    def evaluate(self, split='test', global_step=0):
+    def evaluate(self, split=None, logger=None, global_step=0):
+        """evaluate function will always be called on a single process even during distributed training"""
+
+        # When this member function is called directly by command line
+        not_during_training = split is None and logger is None and global_step == 0
+        if not_during_training:
+            split = self.args.evaluate_split
+            tempdir = tempfile.mkdtemp()
+            logger = SummaryWriter(tempdir)
+
         # fix seed to guarantee the same evaluation protocol across steps 
         random.seed(self.args.seed)
         np.random.seed(self.args.seed)
@@ -292,44 +341,31 @@ class Runner():
         self.upstream.eval()
 
         # prepare data
-        dataloader = eval(f'self.downstream.get_{split}_dataloader')()
+        dataloader = self.downstream.get_dataloader(split)
 
-        # main evaluation block
-        all_loss = []
+        batch_ids = []
         records = defaultdict(list)
-        prefix = f'{self.downstream_name}/{split}-'
-
         for batch_id, (wavs, *others) in enumerate(tqdm(dataloader, dynamic_ncols=True, desc=split)):
 
-            wavs = [wav.to(self.args.device) for wav in wavs]
+            wavs = [torch.FloatTensor(wav).to(self.args.device) for wav in wavs]
             with torch.no_grad():
                 features = self.upstream(wavs)
-
-                loss = self.downstream(
+                self.downstream(
+                    split,
                     features, *others,
                     records = records,
-                    logger = self.logger,
-                    prefix = prefix,
-                    global_step = global_step,
-                    log_step = self.config['runner']['log_step'],
-                    batch_id = batch_id,
-                    batch_num = len(dataloader),
                 )
-                all_loss.append(loss.item())
-        
-        # log loss
-        average_loss = torch.FloatTensor(all_loss).mean().item()
-        self.logger.add_scalar(f'{prefix}loss', average_loss, global_step=global_step)
-        all_loss = []
+                batch_ids.append(batch_id)
 
-        # log customized contents
         save_names = self.downstream.log_records(
+            split,
             records = records,
-            logger = self.logger,
-            prefix = prefix,
+            logger = logger,
             global_step = global_step,
-            log_step = self.config['runner']['log_step'],
+            batch_ids = batch_ids,
+            total_batch_num = len(dataloader),
         )
+        batch_ids = []
         records = defaultdict(list)
 
         # prepare back to training
@@ -339,5 +375,9 @@ class Runner():
             self.downstream.train()
         if upstream_training:
             self.upstream.train()
+
+        if not_during_training:
+            logger.close()
+            shutil.rmtree(tempdir)
 
         return [] if type(save_names) is not list else save_names

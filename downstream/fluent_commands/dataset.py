@@ -1,20 +1,14 @@
+import os
 import random
 
 import torch
+import torchaudio
+import numpy as np
 import torch.nn as nn
 from torch.utils.data.dataset import Dataset
 
-
-import os
-import IPython
-import pdb
-import torchaudio
-
-
 SAMPLE_RATE = 16000
 EXAMPLE_WAV_MAX_SEC = 10
-
-
 
 
 class FluentCommandsDataset(Dataset):
@@ -38,7 +32,7 @@ class FluentCommandsDataset(Dataset):
             value = self.df.loc[idx][slot]
             label.append(self.Sy_intent[slot][value])
 
-        return wav, torch.tensor(label).long()
+        return wav.numpy(), np.array(label)
 
     def collate_fn(self, samples):
         wavs, labels = [], []
@@ -48,4 +42,3 @@ class FluentCommandsDataset(Dataset):
             labels.append(label)
 
         return wavs, labels
-

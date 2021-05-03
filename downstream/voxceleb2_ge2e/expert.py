@@ -26,8 +26,6 @@ from .model import Model
 from .dataset import AudioBatchData, SpeakerVerifi_test, SpeakerVerifi_dev
 from .model import GE2E
 from .utils import EER, compute_metrics
-import IPython
-import pdb
 
 
 class DownstreamExpert(nn.Module):
