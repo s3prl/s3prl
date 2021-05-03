@@ -69,7 +69,7 @@ def hack_isinstance():
 def override(string, args, config):
     """
     Example usgae:
-        -o "config.optimizer.lr=1.0e-3,,config.optimizer.name=\"AdamW\",,config.runner.eval_dataloaders=\"['dev', 'test']\""
+        -o "config.optimizer.lr=1.0e-3,,config.optimizer.name='AdamW',,config.runner.eval_dataloaders=['dev', 'test']"
     """
     options = string.split(',,')
     for option in options:
