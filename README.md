@@ -33,7 +33,7 @@ The toolkit has **three major usages**:
 
 ### Downstream
 - Utilize upstream models in lots of downstream tasks
-- Benchmark upstream models with *SUPERB Benchmark*
+- Benchmark upstream models with **SUPERB Benchmark**
 - Document: [**downstream/README.md**](./downstream/README.md)
 
 Below is an **intuitive illustration** on how this toolkit may help you:
