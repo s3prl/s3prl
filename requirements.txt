@@ -26,3 +26,5 @@ lxml
 soundfile
 pysndfx
 nltk
+normalise
+
