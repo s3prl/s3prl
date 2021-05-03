@@ -90,7 +90,7 @@ def generate_length(args, tr_set, audio_extension):
         sorted_todo = [os.path.join(s, str(todo[idx]).split(s+'/')[-1]) for idx in reversed(np.argsort(tr_x))]
         # Dump data
         df = pd.DataFrame(data={'file_path':[fp for fp in sorted_todo], 'length':list(reversed(sorted(tr_x))), 'label':None})
-        df.to_csv(os.path.join(output_dir, tr_set[i].upper() + '.csv'))
+        df.to_csv(os.path.join(output_dir, tr_set[i] + '.csv'))
 
     print('All done, saved at', output_dir, 'exit.')
 
