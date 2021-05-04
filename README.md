@@ -95,68 +95,124 @@ however portions of the project are available under separate license terms: S3PR
 ## Used by
 <details><summary>List of papers that used our toolkit (Feel free to add your own paper by making a pull request)</summary><p>
 
-* **Self-Supervised Pretraining**
-  + [Mockingjay: Unsupervised Speech Representation Learning with Deep Bidirectional Transformer Encoders (Liu et al., 2020)](https://arxiv.org/abs/1910.12638)
-    ```
-    @article{mockingjay,
-       title={Mockingjay: Unsupervised Speech Representation Learning with Deep Bidirectional Transformer Encoders},
-       ISBN={9781509066315},
-       url={http://dx.doi.org/10.1109/ICASSP40776.2020.9054458},
-       DOI={10.1109/icassp40776.2020.9054458},
-       journal={ICASSP 2020 - 2020 IEEE International Conference on Acoustics, Speech and Signal Processing (ICASSP)},
-       publisher={IEEE},
-       author={Liu, Andy T. and Yang, Shu-wen and Chi, Po-Han and Hsu, Po-chun and Lee, Hung-yi},
-       year={2020},
-       month={May}
-    }
-    ```
-  + [TERA: Self-Supervised Learning of Transformer Encoder Representation for Speech (Liu et al., 2020)](https://arxiv.org/abs/2007.06028)
-    ```
-    @misc{tera,
-        title={TERA: Self-Supervised Learning of Transformer Encoder Representation for Speech},
-        author={Andy T. Liu and Shang-Wen Li and Hung-yi Lee},
-        year={2020},
-        eprint={2007.06028},
+### Self-Supervised Pretraining
+
++ [Mockingjay: Unsupervised Speech Representation Learning with Deep Bidirectional Transformer Encoders (Liu et al., 2020)](https://arxiv.org/abs/1910.12638)
+  ```
+  @article{mockingjay,
+     title={Mockingjay: Unsupervised Speech Representation Learning with Deep Bidirectional Transformer Encoders},
+     ISBN={9781509066315},
+     url={http://dx.doi.org/10.1109/ICASSP40776.2020.9054458},
+     DOI={10.1109/icassp40776.2020.9054458},
+     journal={ICASSP 2020 - 2020 IEEE International Conference on Acoustics, Speech and Signal Processing (ICASSP)},
+     publisher={IEEE},
+     author={Liu, Andy T. and Yang, Shu-wen and Chi, Po-Han and Hsu, Po-chun and Lee, Hung-yi},
+     year={2020},
+     month={May}
+  }
+  ```
++ [TERA: Self-Supervised Learning of Transformer Encoder Representation for Speech (Liu et al., 2020)](https://arxiv.org/abs/2007.06028)
+  ```
+  @misc{tera,
+      title={TERA: Self-Supervised Learning of Transformer Encoder Representation for Speech},
+      author={Andy T. Liu and Shang-Wen Li and Hung-yi Lee},
+      year={2020},
+      eprint={2007.06028},
+      archivePrefix={arXiv},
+      primaryClass={eess.AS}
+  }
+  ```
++ [Audio ALBERT: A Lite BERT for Self-supervised Learning of Audio Representation (Chi et al., 2020)](https://arxiv.org/abs/2005.08575)
+  ```
+  @inproceedings{audio_albert,
+      title={Audio ALBERT: A Lite BERT for Self-supervised Learning of Audio Representation},
+      author={Po-Han Chi and Pei-Hung Chung and Tsung-Han Wu and Chun-Cheng Hsieh and Shang-Wen Li and Hung-yi Lee},
+      year={2020},
+      booktitle={SLT 2020},
+  }
+  ```
+
+### Explanability
+
++ [Understanding Self-Attention of Self-Supervised Audio Transformers (Yang et al., 2020)](https://arxiv.org/abs/2006.03265)
+  ```
+  @inproceedings{understanding_sat,
+      author={Shu-wen Yang and Andy T. Liu and Hung-yi Lee},
+      title={{Understanding Self-Attention of Self-Supervised Audio Transformers}},
+      year=2020,
+      booktitle={Proc. Interspeech 2020},
+      pages={3785--3789},
+      doi={10.21437/Interspeech.2020-2231},
+      url={http://dx.doi.org/10.21437/Interspeech.2020-2231}
+  }
+  ```
+
+### Adversarial Attack
+
++ [Defense for Black-box Attacks on Anti-spoofing Models by Self-Supervised Learning (Wu et al., 2020)](https://arxiv.org/abs/2006.03214), code for computing LNSR: [utility/observe_lnsr.py](https://github.com/s3prl/s3prl/blob/master/utility/observe_lnsr.py)
+  ```
+  @inproceedings{mockingjay_defense,
+      author={Haibin Wu and Andy T. Liu and Hung-yi Lee},
+      title={{Defense for Black-Box Attacks on Anti-Spoofing Models by Self-Supervised Learning}},
+      year=2020,
+      booktitle={Proc. Interspeech 2020},
+      pages={3780--3784},
+      doi={10.21437/Interspeech.2020-2026},
+      url={http://dx.doi.org/10.21437/Interspeech.2020-2026}
+  }
+  ```
+
++ [Adversarial Defense for Automatic Speaker Verification by Cascaded Self-Supervised Learning Models (Wu et al., 2021)](https://arxiv.org/abs/2102.07047)
+  ```
+  @misc{wu2021adversarial,
+      title={Adversarial defense for automatic speaker verification by cascaded self-supervised learning models}, 
+      author={Haibin Wu and Xu Li and Andy T. Liu and Zhiyong Wu and Helen Meng and Hung-yi Lee},
+      year={2021},
+      eprint={2102.07047},
+      archivePrefix={arXiv},
+      primaryClass={eess.AS}
+  ```
+
+### Voice Conversion
+
++ [S2VC: A Framework for Any-to-Any Voice Conversion with Self-Supervised Pretrained Representations (Lin et al., 2021)](https://arxiv.org/abs/2104.02901)
+  ```
+  @misc{lin2021s2vc,
+        title={S2VC: A Framework for Any-to-Any Voice Conversion with Self-Supervised Pretrained Representations}, 
+        author={Jheng-hao Lin and Yist Y. Lin and Chung-Ming Chien and Hung-yi Lee},
+        year={2021},
+        eprint={2104.02901},
         archivePrefix={arXiv},
         primaryClass={eess.AS}
-    }
-    ```
-  + [Audio ALBERT: A Lite BERT for Self-supervised Learning of Audio Representation (Chi et al., 2020)](https://arxiv.org/abs/2005.08575)
-    ```
-    @inproceedings{audio_albert,
-        title={Audio ALBERT: A Lite BERT for Self-supervised Learning of Audio Representation},
-        author={Po-Han Chi and Pei-Hung Chung and Tsung-Han Wu and Chun-Cheng Hsieh and Shang-Wen Li and Hung-yi Lee},
-        year={2020},
-        booktitle={SLT 2020},
-    }
-    ```
-* **Explanability**
-  + [Understanding Self-Attention of Self-Supervised Audio Transformers (Yang et al., 2020)](https://arxiv.org/abs/2006.03265)
-    ```
-    @inproceedings{understanding_sat,
-        author={Shu-wen Yang and Andy T. Liu and Hung-yi Lee},
-        title={{Understanding Self-Attention of Self-Supervised Audio Transformers}},
-        year=2020,
-        booktitle={Proc. Interspeech 2020},
-        pages={3785--3789},
-        doi={10.21437/Interspeech.2020-2231},
-        url={http://dx.doi.org/10.21437/Interspeech.2020-2231}
-    }
-    ```
-* **Adversarial Attack**
-  + [Defense for Black-box Attacks on Anti-spoofing Models by Self-Supervised Learning (Wu et al., 2020)](https://arxiv.org/abs/2006.03214), code for computing LNSR: [utility/observe_lnsr.py](https://github.com/s3prl/s3prl/blob/master/utility/observe_lnsr.py)
-    ```
-    @inproceedings{mockingjay_defense,
-        author={Haibin Wu and Andy T. Liu and Hung-yi Lee},
-        title={{Defense for Black-Box Attacks on Anti-Spoofing Models by Self-Supervised Learning}},
-        year=2020,
-        booktitle={Proc. Interspeech 2020},
-        pages={3780--3784},
-        doi={10.21437/Interspeech.2020-2026},
-        url={http://dx.doi.org/10.21437/Interspeech.2020-2026}
-    }
-    ```
-  + [Adversarial Defense for Automatic Speaker Verification by Cascaded Self-Supervised Learning Models (Wu et al., 2021)](https://arxiv.org/abs/2102.07047)
+  }
+  ```
+
+### Benchmark and Evaluation
+
++ [SUPERB: Speech processing Universal PERformance Benchmark (Yang et al., 2021)](https://arxiv.org/abs/2105.01051)
+  ```
+  @misc{yang2021superb,
+        title={SUPERB: Speech processing Universal PERformance Benchmark}, 
+        author={Shu-wen Yang and Po-Han Chi and Yung-Sung Chuang and Cheng-I Jeff Lai and Kushal Lakhotia and Yist Y. Lin and Andy T. Liu and Jiatong Shi and Xuankai Chang and Guan-Ting Lin and Tzu-Hsien Huang and Wei-Cheng Tseng and Ko-tik Lee and Da-Rong Liu and Zili Huang and Shuyan Dong and Shang-Wen Li and Shinji Watanabe and Abdelrahman Mohamed and Hung-yi Lee},
+        year={2021},
+        eprint={2105.01051},
+        archivePrefix={arXiv},
+        primaryClass={cs.CL}
+  }
+  ```
+
++ [Utilizing Self-supervised Representations for MOS Prediction (Tseng et al., 2021)](https://arxiv.org/abs/2104.03017)
+  ```
+  @misc{tseng2021utilizing,
+      title={Utilizing Self-supervised Representations for MOS Prediction}, 
+      author={Wei-Cheng Tseng and Chien-yu Huang and Wei-Tsung Kao and Yist Y. Lin and Hung-yi Lee},
+      year={2021},
+      eprint={2104.03017},
+      archivePrefix={arXiv},
+      primaryClass={eess.AS}
+  }
+  ```
+}
 
 </p></details>
 
