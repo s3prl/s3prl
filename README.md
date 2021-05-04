@@ -174,3 +174,13 @@ If you find our repository useful, please consider citing following papers.
   primaryClass={eess.AS}
 }
 ```
+```
+@misc{superb,
+  title={SUPERB: Speech processing Universal PERformance Benchmark}, 
+  author={Shu-wen Yang and Po-Han Chi and Yung-Sung Chuang and Cheng-I Jeff Lai and Kushal Lakhotia and Yist Y. Lin and Andy T. Liu and Jiatong Shi and Xuankai Chang and Guan-Ting Lin and Tzu-Hsien Huang and Wei-Cheng Tseng and Ko-tik Lee and Da-Rong Liu and Zili Huang and Shuyan Dong and Shang-Wen Li and Shinji Watanabe and Abdelrahman Mohamed and Hung-yi Lee},
+  year={2021},
+  eprint={2105.01051},
+  archivePrefix={arXiv},
+  primaryClass={cs.CL}
+}
+```
