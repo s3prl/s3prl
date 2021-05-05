@@ -22,8 +22,7 @@ class Transformer(nn.Module):
 
     def forward(self, features, decoder_input_idx):
         # feature: (T, B, *), decoder_input_idx: (T, B)
-        decoder_input = self.embedding(decoder_input_idx)
-        decoder_input = self.pos_encoding(decoder_input)
+        decoder_input = self.pos_encoding(self.embedding(decoder_input_idx))
         tgt_mask = self.model.generate_square_subsequent_mask(decoder_input_idx.size(0)).to(features.device)
         logit = self.model(features, decoder_input, tgt_mask=tgt_mask)
         predict = logit @ self.embedding.weight.transpose(0, 1)
