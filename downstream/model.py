@@ -11,17 +11,18 @@ def get_downstream_model(input_dim, output_dim, config):
 
 
 class FrameLevel(nn.Module):
-    def __init__(self, input_dim, output_dim, hiddens=[], activation='ReLU', **kwargs):
+    def __init__(self, input_dim, output_dim, hiddens=None, activation='ReLU', **kwargs):
         super().__init__()
         latest_dim = input_dim
-        hiddens = []
-        for dim in hiddens:
-            self.hiddens += [
-                nn.Linear(latest_dim, dim),
-                getattr(nn, activation)(),
-            ]
-            latest_dim = dim
-        self.hiddens = nn.Sequential(*hiddens)
+        self.hiddens = []
+        if hiddens is not None:
+            for dim in hiddens:
+                self.hiddens += [
+                    nn.Linear(latest_dim, dim),
+                    getattr(nn, activation)(),
+                ]
+                latest_dim = dim
+        self.hiddens = nn.Sequential(*self.hiddens)
         self.linear = nn.Linear(latest_dim, output_dim)
 
     def forward(self, hidden_state, features_len=None):
