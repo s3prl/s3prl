@@ -69,3 +69,12 @@ def wav2vec2_large_ll60k(refresh=False, *args, **kwargs):
     """
     kwargs['ckpt'] = 'https://dl.fbaipublicfiles.com/fairseq/wav2vec/wav2vec_vox_new.pt'
     return wav2vec2_url(refresh=refresh, *args, **kwargs)
+
+
+def wav2vec2_xlsr(refresh=False, *args, **kwargs):
+    """
+        The wav2vec 2.0 model trained on multilingual presented in https://arxiv.org/abs/2006.13979
+            refresh (bool): whether to download ckpt/config again if existed
+    """
+    kwargs['ckpt'] = 'https://dl.fbaipublicfiles.com/fairseq/wav2vec/xlsr_53_56k.pt'
+    return wav2vec2_url(refresh=refresh, *args, **kwargs)
