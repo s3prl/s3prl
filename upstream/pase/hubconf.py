@@ -44,6 +44,6 @@ def pase_plus(refresh=False, **kwargs):
         The default model
             refresh (bool): whether to download ckpt/config again if existed
     """
-    kwargs['ckpt'] = 'http://140.112.21.12:8000/pase/FE_e199.ckpt'
-    kwargs['model_config'] = 'http://140.112.21.12:8000/pase/PASE%2B.cfg'
+    kwargs['ckpt'] = 'https://www.dropbox.com/s/p8811o7eadv4pat/FE_e199.ckpt?dl=0'
+    kwargs['model_config'] = 'https://www.dropbox.com/s/2p3ouod1k0ekfxn/PASE%2B.cfg?dl=0'
     return pase_url(refresh=refresh, **kwargs)

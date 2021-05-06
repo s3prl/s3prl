@@ -27,5 +27,5 @@ def timit_posteriorgram(refresh=False, *args, **kwargs):
         The default model
             refresh (bool): whether to download ckpt/config again if existed
     """
-    kwargs['ckpt'] = 'http://140.112.21.12:8000/timit_posteriorgram/convbank.ckpt'
+    kwargs['ckpt'] = 'https://www.dropbox.com/s/fb2hkvetp26wges/convbank.ckpt?dl=0'
     return timit_posteriorgram_url(refresh=refresh, *args, **kwargs)
