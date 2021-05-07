@@ -60,16 +60,26 @@ class DownstreamExpert(nn.Module):
         self.tokenizer = sentencepiece.SentencePieceProcessor(model_file=self.tokenizerrc['model_path'])
         self.tokenizer.set_encode_extra_options("bos:eos")
 
-        self.train_dataset = STDataset(self.datarc['clip_dir'], self.datarc['train_tsv'], self.tokenizer, self.max_length)
-        self.dev_dataset = STDataset(self.datarc['clip_dir'], self.datarc['valid_tsv'], self.tokenizer, self.max_length)
-        self.test_dataset = STDataset(self.datarc['clip_dir'], self.datarc['test_tsv'], self.tokenizer, self.max_length)
-
+        self.dataset = {}
+        for split in ['train', 'dev', 'test']:
+            self.dataset[split] = STDataset(
+                self.datarc['src_lang'],
+                self.datarc['tgt_lang'],
+                split, 
+                self.datarc['root_dir'],
+                self.datarc['tsv_dir'],
+                self.tokenizer, 
+                self.max_length
+            )
+        
         self.connector = nn.Linear(upstream_dim, self.modelrc['d_model'])
+        
         self.model = Transformer(
             vocab_size = self.tokenizer.vocab_size(),
             padding_idx = self.tokenizer.pad_id(),
             **self.modelrc,
         )
+        
         self.objective = nn.CrossEntropyLoss(ignore_index=self.tokenizer.pad_id())
         self.register_buffer('best_score', torch.zeros(1))
 
@@ -93,11 +103,9 @@ class DownstreamExpert(nn.Module):
         """
 
         if mode == 'train':
-            return self._get_train_dataloader(self.train_dataset)            
-        elif mode == 'dev':
-            return self._get_eval_dataloader(self.dev_dataset)
-        elif mode == 'test':
-            return self._get_eval_dataloader(self.test_dataset)
+            return self._get_train_dataloader(self.dataset['train'])
+        else: 
+            return self._get_eval_dataloader(self.dataset[mode])
 
 
     def _get_train_dataloader(self, dataset):
@@ -161,7 +169,6 @@ class DownstreamExpert(nn.Module):
         labels = labels.to(features.device)
 
         tqdm.write(f"features size: {features.size()}, labels size: {labels.size()}")
-        input()
         if mode == 'train' or mode == 'dev':
             predicted = self.model(features, labels)
             shifted_labels = torch.cat((labels[1:], torch.full((1, labels.size(1)), self.tokenizer.pad_id()).to(predicted.device)), dim=0)
