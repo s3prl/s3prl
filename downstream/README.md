@@ -432,15 +432,27 @@ python3 utility/get_best_dev.py result/downstream/ExpName/log.log
 
 #### Prepare data
 
-1. Download data
+0. **Optional:** Preprocess Audio SNIPS from the [official version](https://github.com/aws-samples/aws-lex-noisy-spoken-language-understanding).
 
     ```bash
     # Official Audio SNIPS is in mp3 format, we will convert them to wav
-    sudo apt-get install libsox-fmt-mp3
+    # We need mp3 support on sox package (originally not supported)
+    # First ensure you have the sox installed
+    # Then install the mp3 support
 
+    # apt-get
+    apt-get install libsox-fmt-mp3
+
+    # or yum install
+    yum install soxr sox-plugins-freeworld -y
+
+    # after installing the mp3 support
     CORPORA_DIR="the root directory of all your datasets"
     ./preprocess/snips_prepare_data.sh $CORPORA_DIR
     ```
+
+1. Download the preprocessed Audio SNIPS and unzip
+    - https://drive.google.com/file/d/1oBRZd-PaCKz5iY3eZkXs5OB_ZZ4w7bbG/view?usp=sharing
 
 2. Change the paths in `downstream/ctc/snips.yaml`
 
