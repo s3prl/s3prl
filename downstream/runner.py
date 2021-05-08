@@ -16,6 +16,7 @@ from tensorboardX import SummaryWriter
 from torch.nn.parallel import DistributedDataParallel as DDP
 from torch.distributed import is_initialized, get_rank, get_world_size
 
+import hubconf
 from optimizers import get_optimizer
 from schedulers import get_scheduler
 from utility.helper import is_leader_process, count_parameters, get_model_state, show, defaultdict
@@ -38,7 +39,7 @@ class Runner():
 
 
     def _get_upstream(self):
-        Upstream = getattr(importlib.import_module('hubconf'), self.args.upstream)
+        Upstream = getattr(hubconf, self.args.upstream)
         upstream_refresh = self.args.upstream_refresh
 
         if is_initialized() and get_rank() > 0:
