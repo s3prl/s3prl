@@ -567,11 +567,14 @@ The lowest number should be reported, which should be at the bottom.
 
     ```bash
     S3PRL_DIR="root directory of your cloned s3prl"
+    CORPORA_DIR"root directory of all your datasets, which hopefully contains LibriSpeech (not necessary)"
 
     git clone https://github.com/ftshijt/LibriMix.git
     cd LibriMix
-    ./generate_librimix.sh storage_dir
-    python3 scripts/prepare_diarization.py --target_dir $S3PRL_DIR/downstream/diarization/data
+    bash generate_librimix.sh $CORPORA_DIR
+    python3 scripts/prepare_diarization.py \
+        --target_dir $S3PRL_DIR/downstream/diarization/data \
+        --source_dir $CORPORA_DIR/Libri2Mix/wav16k/max/metadata
     ```
 
 #### Train
