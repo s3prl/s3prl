@@ -27,3 +27,4 @@ soundfile
 pysndfx
 nltk
 normalise
+editdistance
