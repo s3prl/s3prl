@@ -241,7 +241,7 @@ python3 run_downstream.py -n ExpName -m train -u fbank -d asr
 #### Testing without LM
 
 ```bash
-python3 run_downstream.py -m evaluate -t "test-clean" -e result/downstream/dev-best.ckpt
+python3 run_downstream.py -m evaluate -t "test-clean" -e result/downstream/dev-clean-best.ckpt
 ```
 
 #### Testing with KenLM + LibriSpeech official 4-gram LM
