@@ -21,6 +21,7 @@ import torch.nn as nn
 from torch.nn.utils.rnn import pad_sequence
 #-------------#
 import fairseq
+from upstream.interface import UpstreamExpertInterface
 
 
 ############
@@ -33,7 +34,7 @@ EXAMPLE_SEC = 5
 ###################
 # UPSTREAM EXPERT #
 ###################
-class UpstreamExpert(nn.Module):
+class UpstreamExpert(UpstreamExpertInterface):
     """
     The wav2vec 2.0 wrapper
     """
@@ -51,12 +52,11 @@ class UpstreamExpert(nn.Module):
 
         self.output_dim = pseudo_feature.size(-1)
 
-    # Interface
-    def get_output_dim(self):
+    def output_dim(self):
         return self.output_dim
 
     # Interface
-    def get_downsample_rate(self):
+    def downsample_rate(self):
         return 320
 
     # Interface
@@ -74,6 +74,8 @@ class UpstreamExpert(nn.Module):
                 each feat is in torch.FloatTensor and already
                 put in the device assigned by command-line args
         """
+        wavs = super().normalize(wavs)
+
         device = wavs[0].device
         wav_lengths = torch.LongTensor([len(wav) for wav in wavs]).to(device)
         wav_padding_mask = ~torch.lt(

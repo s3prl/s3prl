@@ -56,15 +56,15 @@ class Runner():
         if is_initialized() and get_rank() == 0:
             torch.distributed.barrier()
 
-        interface_fn = ['get_output_dim', 'get_downsample_rate']
+        interface_fn = ['output_dim', 'downsample_rate']
         for fn in interface_fn:
             assert hasattr(upstream, fn)
 
         if self.args.verbose:
             show(f'[Runner] - Upstream model architecture: {upstream}')
             show(f'[Runner] - Upstream has {count_parameters(upstream)} parameters')
-            show(f'[Runner] - Upstream output dimension: {upstream.get_output_dim()}')
-            downsample = upstream.get_downsample_rate()
+            show(f'[Runner] - Upstream output dimension: {upstream.output_dim}')
+            downsample = upstream.downsample_rate
             show(f'[Runner] - Upstream downsample rate: {downsample} ({downsample / SAMPLE_RATE * 1000} ms/frame)')
 
         init_upstream = self.init_ckpt.get('Upstream')
@@ -84,8 +84,8 @@ class Runner():
         module_path = f'downstream.{self.args.downstream}.expert'
         Downstream = getattr(importlib.import_module(module_path), 'DownstreamExpert')
         downstream = Downstream(
-            upstream_dim = self.upstream.get_output_dim(),
-            upstream_rate = self.upstream.get_downsample_rate(),
+            upstream_dim = self.upstream.output_dim,
+            upstream_rate = self.upstream.downsample_rate,
             **self.config,
             **vars(self.args)
         ).to(self.args.device)
