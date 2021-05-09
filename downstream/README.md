@@ -4,7 +4,8 @@
 ### Introduction
 Self-supervised (SSL) pretrained models are not able to justify their effectiveness through pretraining loss. One always has to evaluate their performance with downstream tasks. Hence, it is crucial to collect a wide range of downstream tasks and make the evaluation pipeline as easy as possible to speed up the development cycle.
 
-We develop several downstream tasks for evaluating SSL models, each of them is defined by a sub-folder under this **downstream** folder. We further select representative ones to form the **benchmark**.
+We develop several downstream tasks for evaluating SSL models, each of them is defined by a sub-folder under this **downstream** folder. We further select representative ones to form the following **benchmark**:
+- [**SUPERB:** **S**peech processing **U**niversal **PER**formance **B**enchmark](https://arxiv.org/abs/2105.01051)
 
 ### How to use
 
@@ -161,7 +162,7 @@ Only the training part is powered by **DistributedDataParallel**, and we save al
 
 # SUPERB Benchmark
 
-In this section we detail the commands for reproducing the paper **SUPERB:** **S**peech processing **U**niversal **PER**formance **B**enchmark.
+In this section we detail the commands for reproducing the paper [**SUPERB:** **S**peech processing **U**niversal **PER**formance **B**enchmark](https://arxiv.org/abs/2105.01051).
 
 ## PR: Phoneme Recognition
 
