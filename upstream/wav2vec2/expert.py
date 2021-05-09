@@ -21,6 +21,7 @@ import torch.nn as nn
 from torch.nn.utils.rnn import pad_sequence
 #-------------#
 import fairseq
+from upstream.interface import UpstreamExpertInterface
 
 
 ############
@@ -33,13 +34,13 @@ EXAMPLE_SEC = 5
 ###################
 # UPSTREAM EXPERT #
 ###################
-class UpstreamExpert(nn.Module):
+class UpstreamExpert(UpstreamExpertInterface):
     """
     The wav2vec 2.0 wrapper
     """
 
     def __init__(self, ckpt, **kwargs):
-        super(UpstreamExpert, self).__init__()
+        super(UpstreamExpert, self).__init__(**kwargs)
         assert version.parse(fairseq.__version__) >= version.parse("0.10.2")
 
         model, cfg, task = fairseq.checkpoint_utils.load_model_ensemble_and_task([ckpt])
@@ -51,15 +52,12 @@ class UpstreamExpert(nn.Module):
 
         self.output_dim = pseudo_feature.size(-1)
 
-    # Interface
     def get_output_dim(self):
         return self.output_dim
 
-    # Interface
     def get_downsample_rate(self):
         return 320
 
-    # Interface
     def forward(self, wavs):
         """
         Args:
@@ -74,6 +72,8 @@ class UpstreamExpert(nn.Module):
                 each feat is in torch.FloatTensor and already
                 put in the device assigned by command-line args
         """
+        wavs = super().preprocess(wavs)
+
         device = wavs[0].device
         wav_lengths = torch.LongTensor([len(wav) for wav in wavs]).to(device)
         wav_padding_mask = ~torch.lt(
@@ -86,4 +86,6 @@ class UpstreamExpert(nn.Module):
         feat_lengths = (features.size(1) - feat_padding_mask.sum(dim=-1)).tolist()
 
         features = [feat[:length] for feat, length in zip(features, feat_lengths)]
+
+        features = super().postprocess(features)
         return features
