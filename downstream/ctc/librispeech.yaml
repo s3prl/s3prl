@@ -1,0 +1,74 @@
+runner:
+  total_steps: 1000000
+  gradient_clipping: 1
+  gradient_accumulate_steps: 1
+
+  log_step: 100
+  eval_step: 1000
+  save_step: 100
+  max_keep: 1
+  eval_dataloaders:  # The first loader will be used to save checkpoint
+    - dev
+
+optimizer:
+  name: TorchOptim
+  torch_optim_name: Adam
+  lr: 1.0e-4
+
+# comment the whole scheduler config block
+# to disable learning rate scheduling
+# scheduler:
+#   name: linear_schedule_with_warmup
+#   num_warmup_steps: 1400
+
+# comment the whole specaug config block
+# to disable specaug on representation
+# specaug:
+#   apply_time_warp: true
+#   apply_time_mask: true
+#   apply_freq_mask: true
+#   time_warp_window: 3
+#   time_mask_width_range: [0, 10]
+#   freq_mask_width_range: [0, 10]
+#   num_freq_mask: 10
+#   num_time_mask: 10
+
+downstream_expert:
+  corpus:                                 
+    name: 'librispeech'                   # Specify corpus
+    path: '/path/to/LibriSpeech'          # Path to raw LibriSpeech dataset
+
+    train: ['train-clean-100']                # Name of data splits to be used as training set
+    dev: ['dev-clean']                    # Name of data splits to be used as validation set
+    test: ['test-clean']
+
+    bucketing: True                       # Enable/Disable bucketing 
+    batch_size: 32
+    num_workers: 12
+  
+  text:
+    mode: 'character'                       # 'character'/'word'/'subword'
+    vocab_file: 'downstream/ctc/vocab/character.txt'
+  
+  model:
+    project_dim: 1024
+    zero_infinity: True
+
+    select: RNNs
+    Wav2Letter:
+      total_rate: 320
+    RNNs:
+      total_rate: 320
+      module: 'LSTM'                        # 'LSTM'/'GRU'
+      bidirection: True
+      dim: [1024, 1024, 1024]
+      dropout: [0.2, 0.2, 0.2]
+      layer_norm: [True, True, True]
+      proj: [True, True, True]              # Linear projection + Tanh after each rnn layer
+      sample_rate: [1, 1, 1]
+      sample_style: 'concat'                  # 'drop'/'concat'
+
+  metric_higher_better: False
+  metric:  # The first metric will be used to save checkpoint
+    - wer
+    - cer

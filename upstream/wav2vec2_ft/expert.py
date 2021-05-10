@@ -1,3 +1,5 @@
+# Copyright (c) Facebook, Inc. All Rights Reserved
+
 # -*- coding: utf-8 -*- #
 """*********************************************************************************************"""
 #   FileName     [ upstream/wav2vec2_ft/expert.py ]
@@ -14,6 +16,7 @@ import os
 import math
 import yaml
 import random
+from packaging import version
 #-------------#
 import torch
 import torch.nn as nn
@@ -39,7 +42,7 @@ class UpstreamExpert(nn.Module):
 
     def __init__(self, ckpt, **kwargs):
         super(UpstreamExpert, self).__init__()
-        assert fairseq.__version__ == '0.10.1'
+        assert version.parse(fairseq.__version__) >= version.parse("0.10.2")
 
         # fix CTC-finetuned head weights
         # This fix is only compatible with fairseq==0.10.1

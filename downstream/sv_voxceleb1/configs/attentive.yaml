@@ -1,0 +1,69 @@
+runner:
+  total_steps: 200000
+  gradient_clipping: 1.0e+3
+  gradient_accumulate_steps: 5
+
+  log_step: 500
+  eval_step: 10000
+  save_step: 10000
+  max_keep: 20
+  eval_dataloaders: []
+  
+optimizer: 
+  name: TorchOptim
+  torch_optim_name: AdamW
+  lr: 1.0e-4
+
+# # comment the whole scheduler config block to disable learning rate scheduling
+# scheduler:
+#   name: linear_schedule_with_warmup
+#   num_warmup_steps: 6000
+
+downstream_expert: 
+  datarc:
+    # In first time, we filter out utterances which shorter than two sec. (change config just influenced by cache files)
+    # If you change min_sec, you need to delete cache file you create and rerun the code, so that the effect will apply.
+    vad_config:
+      min_sec: 32000
+    
+    file_path: /path/to/VoxCeleb1
+    train_meta_data: ./downstream/sv_voxceleb1/dev_meta_data/dev_speaker_ids.txt
+    dev_meta_data: ./downstream/sv_voxceleb1/dev_meta_data/dev_meta_data.txt
+    test_meta_data: ./downstream/sv_voxceleb1/voxceleb1_test_v2.txt
+
+    max_timestep: 128000
+    train_batch_size: 10
+    eval_batch_size: 1
+    num_workers: 8 
+
+  modelrc:
+    module:
+      XVector  # support to [ XVector, Identity ]
+    input_dim: 512
+    agg_module: AP # support for ASP / SP / AP / MP 
+                   # (Attentive Statistic Pooling / Statistic Pooling / Attentive Pooling / Mean Pooling)
+    utter_module:
+      UtteranceExtractor # support to [UtteranceExtractor, UtteranceIdentity]
+    
+    module_config:
+      # You can comment it if you do not use this. To demo the usage, we will show all case.
+      XVector:
+        agg_dim: 1500
+        dropout_p: 0.0
+        batch_norm: False
+      
+      Identity:
+        no_args: True
+        # do nothing    
+    
+    ObjectiveLoss: SoftmaxLoss # You can specify config to AMSoftmaxLoss or SoftmaxLoss
+    
+    LossConfig:
+      # You can comment it if you do not use this. To demo the usage of SoftmaxLoss, we will show all case.
+      SoftmaxLoss: 
+        no_args: True
+    
+      # You can comment it if you do not use this. To demo the usage of AMSoftmaxLoss, we will show all case.
+      AMSoftmaxLoss:
+        s: 30.0
+        m: 0.4

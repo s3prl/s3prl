@@ -1,0 +1,77 @@
+runner:
+  total_steps: 100000
+  gradient_clipping: 1
+  gradient_accumulate_steps: 2
+
+  log_step: 100
+  eval_step: 1000
+  save_step: 100
+  max_keep: 1
+  eval_dataloaders:  # The first loader will be used to save checkpoint
+    - dev
+
+optimizer:
+  name: TorchOptim
+  torch_optim_name: Adam
+  lr: 1.0e-2
+
+# comment the whole scheduler config block
+# to disable learning rate scheduling
+# scheduler:
+#   name: linear_schedule_with_warmup
+#   num_warmup_steps: 1400
+
+# comment the whole specaug config block
+# to disable specaug on representation
+# specaug:
+#   apply_time_warp: true
+#   apply_time_mask: true
+#   apply_freq_mask: true
+#   time_warp_window: 3
+#   time_mask_width_range: [0, 10]
+#   freq_mask_width_range: [0, 10]
+#   num_freq_mask: 10
+#   num_time_mask: 10
+
+downstream_expert:
+  corpus:                                 
+    name: 'libriphone'                   # Specify corpus
+    path: '/home/leo/d/datasets/LibriSpeech'          # Path to raw LibriSpeech dataset
+    lexicon:
+      # - downstream/ctc/lexicon/librispeech-lexicon.txt
+      - downstream/ctc/lexicon/librispeech-lexicon-200k-g2p.txt
+      - downstream/ctc/lexicon/librispeech-lexicon-allothers-g2p.txt
+
+    train: ['train-clean-100']                # Name of data splits to be used as training set
+    dev: ['dev-clean']                    # Name of data splits to be used as validation set
+    test: ['test-clean']
+
+    bucketing: True                       # Enable/Disable bucketing 
+    batch_size: 16
+    num_workers: 24
+  
+  text:
+    mode: 'word'                       # 'character'/'word'/'subword'
+    vocab_file: 'downstream/ctc/vocab/phoneme.txt'
+  
+  model:
+    project_dim: 256
+    zero_infinity: True
+
+    select: FrameLevel
+    Wav2Letter:
+      total_rate: 320
+    RNNs:
+      total_rate: 320
+      module: 'LSTM'                        # 'LSTM'/'GRU'
+      bidirection: True
+      dim: [1024, 1024, 1024]
+      dropout: [0.2, 0.2, 0.2]
+      layer_norm: [True, True, True]
+      proj: [True, True, True]              # Linear projection + Tanh after each rnn layer
+      sample_rate: [1, 1, 1]
+      sample_style: 'concat'                  # 'drop'/'concat'
+
+  metric_higher_better: False
+  metric:  # The first metric will be used to save checkpoint
+    - wer

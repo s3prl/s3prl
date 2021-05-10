@@ -14,8 +14,6 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 
-import IPython
-import pdb
 from argparse import Namespace
 from upstream.mockingjay.model import TransformerEncoder
 
@@ -120,7 +118,6 @@ class Model(nn.Module):
 
     def forward(self, features, att_mask):
 
-        #IPython.embed()
         features = self.model(features,att_mask.unsqueeze(-1), head_mask=self.head_mask, output_all_encoded_layers=False)
         utterance_vector = self.agg_method(features[0], att_mask)
         predicted = self.linear(utterance_vector)

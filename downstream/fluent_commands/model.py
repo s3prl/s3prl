@@ -10,8 +10,6 @@
 ###############
 # IMPORTATION #
 ###############
-import pdb
-import IPython
 from argparse import Namespace
 
 import torch
@@ -19,7 +17,7 @@ import torch.nn as nn
 import torch.nn.functional as F
 
 from upstream.mockingjay.model import TransformerEncoder
-
+from downstream.model import UtteranceLevel_Linear, AttentivePooling, MeanPooling
 
 class Identity(nn.Module):
     def __init__(self, config, **kwargs):
@@ -128,3 +126,17 @@ class Model(nn.Module):
         predicted = self.linear(utterance_vector)
         
         return predicted # Use LogSoftmax since self.criterion combines nn.LogSoftmax() and nn.NLLLoss()
+
+class UtterLinear(nn.Module):
+    def __init__(self, input_dim, output_class_num, pooling_name, **kwargs):
+        super(UtterLinear, self).__init__()
+        self.model = UtteranceLevel_Linear(input_dim=input_dim, class_num=output_class_num)
+        self.pooling = eval(pooling_name)(input_dim=input_dim)
+
+    
+    def forward(self, features, features_len):
+        device = features.device
+        features = self.pooling(features, features_len)
+        predicted = self.model(features)
+
+        return predicted

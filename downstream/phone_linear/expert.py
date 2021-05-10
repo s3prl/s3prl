@@ -82,6 +82,10 @@ class DownstreamExpert(nn.Module):
     def get_test_dataloader(self):
         return self._get_eval_dataloader(self.test_dataset)
 
+    # Interface
+    def get_dataloader(self, mode):
+        return eval(f'self.get_{mode}_dataloader')()
+
     def _tile_representations(self, reps, factor):
         """ 
         Tile up the representations by `factor`.
@@ -116,8 +120,7 @@ class DownstreamExpert(nn.Module):
         return inputs, labels
 
     # Interface
-    def forward(self, features, labels, records,
-                logger, prefix, global_step, **kwargs):
+    def forward(self, mode, features, labels, records, **kwargs):
         """
         Args:
             features:
@@ -171,7 +174,7 @@ class DownstreamExpert(nn.Module):
         return loss
 
     # interface
-    def log_records(self, records, logger, prefix, global_step, **kwargs):
+    def log_records(self, mode, records, logger, global_step, **kwargs):
         """
         Args:
             records:
@@ -189,6 +192,7 @@ class DownstreamExpert(nn.Module):
             global_step:
                 global_step in runner, which is helpful for Tensorboard logging
         """
+        prefix = f'libri_phone/{mode}-'
         average = torch.FloatTensor(records['acc']).mean().item()
 
         logger.add_scalar(
@@ -205,5 +209,6 @@ class DownstreamExpert(nn.Module):
             save_ckpt.append(f'best-states-{name}.ckpt')
         with open(self.logging, 'a') as f:
             f.write(message)
+        print(message)
         
         return save_ckpt

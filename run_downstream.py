@@ -1,34 +1,50 @@
 import os
 import re
+import sys
 import yaml
 import glob
 import torch
 import random
 import argparse
 import importlib
+import torchaudio
 import numpy as np
-from shutil import copyfile
 from argparse import Namespace
+from torch.distributed import is_initialized, get_world_size
 
 import hubconf
 from downstream.runner import Runner
+from utility.helper import backup, get_time_tag, hack_isinstance, is_leader_process, override
 
 
 def get_downstream_args():
     parser = argparse.ArgumentParser()
 
     # train or test for this experiment
-    parser.add_argument('-m', '--mode', choices=['train', 'evaluate'])
+    parser.add_argument('-m', '--mode', choices=['train', 'evaluate'], required=True)
+    parser.add_argument('-t', '--evaluate_split', default='test')
+    parser.add_argument('-o', '--override', help='Used to override args and config, this is at the highest priority')
+
+    # distributed training
+    parser.add_argument('--backend', default='nccl', help='The backend for distributed training')
+    parser.add_argument('--local_rank', type=int,
+                        help=f'The GPU id this process should use while distributed training. \
+                               None when not launched by torch.distributed.launch')
 
     # use a ckpt as the experiment initialization
-    # if set, all the following args and config will be overwrited by the ckpt, except args.mode
-    parser.add_argument('-e', '--past_exp', metavar='{CKPT_PATH,CKPT_DIR}', help='Resume training from a checkpoint for evaluate it')
+    # if set, all the args and config below this line will be overwrited by the ckpt
+    # if a directory is specified, the latest ckpt will be used by default
+    parser.add_argument('-e', '--past_exp', metavar='{CKPT_PATH,CKPT_DIR}', help='Resume training from a checkpoint')
+
+    # only load the parameters in the checkpoint without overwriting arguments and config, this is for evaluation
+    parser.add_argument('-i', '--init_ckpt', metavar='CKPT_PATH', help='Load the checkpoint for evaluation')
 
     # configuration for the experiment, including runner and downstream
     parser.add_argument('-c', '--config', help='The yaml file for configuring the whole experiment except the upstream model')
 
     # downstream settings
-    parser.add_argument('-d', '--downstream', choices=os.listdir('./downstream'), help='\
+    downstreams = [item for item in os.listdir('./downstream') if os.path.isfile(os.path.join('./downstream', item, 'expert.py'))]
+    parser.add_argument('-d', '--downstream', choices=downstreams, help='\
         Typically downstream dataset need manual preparation.\
         Please check downstream/README.md for details'
     )
@@ -56,14 +72,14 @@ def get_downstream_args():
     # options
     parser.add_argument('--seed', default=1337, type=int)
     parser.add_argument('--device', default='cuda', help='model.to(device)')
+    parser.add_argument('--cache_dir', help='The cache directory for pretrained model downloading')
+    parser.add_argument('--verbose', action='store_true', help='Print model infomation')
 
     args = parser.parse_args()
+    backup_files = []
 
     if args.expdir is None:
         args.expdir = f'result/downstream/{args.expname}'
-
-    if os.path.isfile(f'{args.expdir}/{args.mode}_finished'):
-        exit(0)
 
     if args.auto_resume:
         if os.path.isdir(args.expdir):
@@ -86,18 +102,24 @@ def get_downstream_args():
         # load checkpoint
         ckpt = torch.load(ckpt_pth, map_location='cpu')
 
-        def update_args(old, new):
-            old_dict = vars(old)
+        def update_args(old, new, preserve_list=None):
+            out_dict = vars(old)
             new_dict = vars(new)
-            old_dict.update(new_dict)
-            return Namespace(**old_dict)
+            for key in list(new_dict.keys()):
+                if key in preserve_list:
+                    new_dict.pop(key)
+            out_dict.update(new_dict)
+            return Namespace(**out_dict)
 
-        # overwrite args and config
-        mode = args.mode
-        args = update_args(args, ckpt['Args'])
+        # overwrite args
+        cannot_overwrite_args = [
+            'mode', 'evaluate_split', 'override',
+            'backend', 'local_rank', 'past_exp',
+        ]
+        args = update_args(args, ckpt['Args'], preserve_list=cannot_overwrite_args)
+        os.makedirs(args.expdir, exist_ok=True)
+        args.init_ckpt = ckpt_pth
         config = ckpt['Config']
-        args.mode = mode
-        args.past_exp = ckpt_pth
 
     else:
         print('[Runner] - Start a new experiment')
@@ -107,17 +129,53 @@ def get_downstream_args():
             args.config = f'./downstream/{args.downstream}/config.yaml'
         with open(args.config, 'r') as file:
             config = yaml.load(file, Loader=yaml.FullLoader)
-        copyfile(args.config, f'{args.expdir}/config.yaml')
 
         if args.upstream_model_config is not None and os.path.isfile(args.upstream_model_config):
-            copyfile(args.upstream_model_config, f'{args.expdir}/upstream_model.yaml')
+            backup_files.append(args.upstream_model_config)
 
-    return args, config
+    if args.override:
+        override(args.override, args, config)
+    
+    return args, config, backup_files
 
 
 def main():
+    torch.multiprocessing.set_sharing_strategy('file_system')
+    torchaudio.set_audio_backend('sox_io')
+    hack_isinstance()
+
     # get config and arguments
-    args, config = get_downstream_args()
+    args, config, backup_files = get_downstream_args()
+    if args.cache_dir is not None:
+        torch.hub.set_dir(args.cache_dir)
+
+    # When torch.distributed.launch is used
+    if args.local_rank is not None:
+        torch.cuda.set_device(args.local_rank)
+        torch.distributed.init_process_group(args.backend)
+
+    if args.mode == 'train' and args.past_exp:
+        ckpt = torch.load(args.init_ckpt, map_location='cpu')
+
+        now_use_ddp = is_initialized()
+        original_use_ddp = ckpt['Args'].local_rank is not None
+        assert now_use_ddp == original_use_ddp, f'{now_use_ddp} != {original_use_ddp}'
+
+        if now_use_ddp:
+            now_world = get_world_size()
+            original_world = ckpt['WorldSize']
+            assert now_world == original_world, f'{now_world} != {original_world}'
+    
+    # Save command
+    if is_leader_process():
+        with open(os.path.join(args.expdir, f'args_{get_time_tag()}.yaml'), 'w') as file:
+            yaml.dump(vars(args), file)
+
+        with open(os.path.join(args.expdir, f'config_{get_time_tag()}.yaml'), 'w') as file:
+            yaml.dump(config, file)
+
+        for file in backup_files:
+            backup(file, args.expdir)
 
     # Fix seed and make backends deterministic
     random.seed(args.seed)
@@ -125,11 +183,10 @@ def main():
     torch.manual_seed(args.seed)
     if torch.cuda.is_available(): torch.cuda.manual_seed_all(args.seed)
     torch.backends.cudnn.deterministic = True
-    torch.backends.cudnn.benchmark = True
+    torch.backends.cudnn.benchmark = False
 
     runner = Runner(args, config)
     eval(f'runner.{args.mode}')()
-    runner.logger.close()
 
 
 if __name__ == '__main__':

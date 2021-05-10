@@ -1,8 +1,8 @@
 # -*- coding: utf-8 -*- #
 """*********************************************************************************************"""
 #   FileName     [ task.py ]
-#   Synopsis     [ Masked Acoustic Model data processing for pre-training the transformer model ]
-#   Author       [ S3PRL ]
+#   Synopsis     [ Spec Augment data processing for pre-training the transformer model ]
+#   Author       [ Andy T. Liu (https://github.com/andi611) ]
 #   Copyright    [ Copyleft(c), Speech Lab, NTU, Taiwan ]
 """*********************************************************************************************"""
 

@@ -1,3 +1,5 @@
+# Copyright (c) Facebook, Inc. All Rights Reserved
+
 # -*- coding: utf-8 -*- #
 """*********************************************************************************************"""
 #   FileName     [ upstream/vq_wav2vec/expert.py ]
@@ -14,11 +16,13 @@ import os
 import math
 import yaml
 import random
+from packaging import version
 #-------------#
 import torch
 import torch.nn as nn
 from torch.nn.utils.rnn import pad_sequence
 #-------------#
+import fairseq
 from fairseq.models.wav2vec import Wav2VecModel
 
 
@@ -37,27 +41,24 @@ class UpstreamExpert(nn.Module):
     The vq-wav2vec wrapper
     """
 
-    def __init__(self, ckpt, **kwargs):
+    def __init__(self, ckpt, feature_selection='z', **kwargs):
         super(UpstreamExpert, self).__init__()
+        self.feature_selection = feature_selection or 'z'
 
-        cp = torch.load(ckpt)
-        self.model = Wav2VecModel.build_model(cp['args'], task=None)
-        self.model.load_state_dict(cp['model'])
+        if version.parse(fairseq.__version__) > version.parse("0.10.2"):
+            model, cfg, task = fairseq.checkpoint_utils.load_model_ensemble_and_task([ckpt])
+            self.model = model[0]
+            self.model.eval()
+        elif version.parse(fairseq.__version__) == version.parse("0.10.2"):
+            cp = torch.load(ckpt)
+            self.model = Wav2VecModel.build_model(cp['args'], task=None)
+            self.model.load_state_dict(cp['model'])
+        else:
+            raise NotImplementedError
 
-        pseudo_input = torch.randn(1, SAMPLE_RATE * EXAMPLE_SEC)
-        z = self.model.feature_extractor(pseudo_input)
-        # z: (batch_size, feat_dim, seqlen)
-
-        pseudo_features = z.transpose(1, 2)
-        self.output_dim = pseudo_features.size(-1)
-
-    def _forward_embedding(self, codes):
-        # codes: (batch_size, seqlen, 2)
-        codes = codes.unbind(dim=-1)
-        features = []
-        for code, embedding in zip(codes, self.embeddings):
-            features.append(embedding(code))
-        return torch.stack(features, dim=0).sum(dim=0).transpose(1, 2)
+        pseudo_input = torch.randn(SAMPLE_RATE * EXAMPLE_SEC)
+        pseudo_output = self.forward([pseudo_input])
+        self.output_dim = pseudo_output[0].size(-1)
 
     # Interface
     def get_output_dim(self):
@@ -85,9 +86,14 @@ class UpstreamExpert(nn.Module):
         wav_lengths = [len(wav) for wav in wavs]
         padded_wav = pad_sequence(wavs, batch_first=True)
         z = self.model.feature_extractor(padded_wav)
-        # z: (batch_size, feat_dim, seqlen)
-
-        features = z.transpose(1, 2)
+        if self.feature_selection != 'z':
+            codewords, codeids = self.model.vector_quantizer.forward_idx(z)
+            codewords = codewords.transpose(1, 2).contiguous()
+        z = z.transpose(1, 2).contiguous()
+        # z, codewords: (batch_size, seqlen, feat_dim)
+        # codeids: (batch_size, seqlen, 2)
+        
+        features = eval(self.feature_selection)
         ratio = padded_wav.size(1) / features.size(1)
         feat_lengths = [round(wav_len / ratio) for wav_len in wav_lengths]
 

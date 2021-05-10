@@ -48,7 +48,7 @@ class IEMOCAPDataset(Dataset):
             wav = self.wavs[idx]
         else:
             wav = self._load_wav(self.meta_data[idx]['path'])
-        return wav, label
+        return wav.numpy(), label
 
     def __len__(self):
         return len(self.meta_data)

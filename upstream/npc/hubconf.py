@@ -17,13 +17,15 @@ from utility.download import _gdriveids_to_filepaths, _urls_to_filepaths
 from .expert import UpstreamExpert as _UpstreamExpert
 
 
-def npc_local(ckpt, *args, **kwargs):
+def npc_local(ckpt, feature_selection, *args, **kwargs):
     """
         The model from local ckpt
             ckpt (str): PATH
+            feature_selection (str): unmasked-3 or masked
     """
     assert os.path.isfile(ckpt)
-    return _UpstreamExpert(ckpt, *args, **kwargs)
+    feature_selection = feature_selection or 'unmasked-3'
+    return _UpstreamExpert(ckpt, feature_selection, *args, **kwargs)
 
 
 def npc_gdriveid(ckpt, refresh=False, *args, **kwargs):

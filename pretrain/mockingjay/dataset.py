@@ -1,8 +1,8 @@
 # -*- coding: utf-8 -*- #
 """*********************************************************************************************"""
 #   FileName     [ dataset.py ]
-#   Synopsis     [ the general acoustic dataset, and the datasets that apply the mask reconstruction task ]
-#   Author       [ S3PRL ]
+#   Synopsis     [ the general acoustic dataset, and the datasets that apply the masked reconstruction task ]
+#   Author       [ Andy T. Liu (https://github.com/andi611) ]
 #   Copyright    [ Copyleft(c), Speech Lab, NTU, Taiwan ]
 """*********************************************************************************************"""
 

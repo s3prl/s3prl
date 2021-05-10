@@ -1,11 +1,11 @@
 runner:
   total_steps: 20000
   gradient_clipping: 1
-  gradient_accumulate_steps: 5
+  gradient_accumulate_steps: 2
 
-  log_step: 100
-  eval_step: 250
-  save_step: 250
+  log_step: 10
+  eval_step: 20
+  save_step: 20
   max_keep: 1
   eval_dataloaders:
     - dev
@@ -24,8 +24,8 @@ scheduler:
 downstream_expert:
   datarc:
     num_workers: 12
-    train_batch_size: 3
-    eval_batch_size: 3
+    train_batch_size: 2
+    eval_batch_size: 2
 
   modelrc:
     input_dim: 256

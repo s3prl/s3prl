@@ -53,12 +53,20 @@ def mockingjay(refresh=False, *args, **kwargs):
         The default model
             refresh (bool): whether to download ckpt/config again if existed
     """
-    return mockingjay_960hr(refresh=refresh, *args, **kwargs)
+    return mockingjay_origin(refresh=refresh, *args, **kwargs)
 
 
 ###########
 # ALIASES #
 ###########
+
+
+def mockingjay_origin(refresh=False, *args, **kwargs):
+    """
+        The mockingjay large model on 360hr, with Lel as input and Linear as target
+            refresh (bool): whether to download ckpt/config again if existed
+    """
+    return mockingjay_logMelLinearLarge_T_AdamW_b32_500k_360hr_drop1(refresh=refresh, *args, **kwargs)
 
 
 def mockingjay_100hr(refresh=False, *args, **kwargs):
@@ -92,6 +100,24 @@ def mockingjay_logMelBase_T_AdamW_b32_200k_100hr(refresh=False, *args, **kwargs)
         Unlabled Speech: 100hr
     """
     kwargs['ckpt'] = 'https://www.dropbox.com/s/luorglf8mdg67l2/states-200000.ckpt?dl=0'
+    return mockingjay_url(refresh=refresh, *args, **kwargs)
+
+
+##########
+# 360 HR #
+##########
+
+
+def mockingjay_logMelLinearLarge_T_AdamW_b32_500k_360hr_drop1(refresh=False, *args, **kwargs):
+    """
+        Feature: 80-dim log Mel (input) / 201-dim Linear (target)
+        Alteration: time
+        Optimizer: AdamW
+        Batch size: 32
+        Total steps: 500k
+        Unlabled Speech: 360hr
+    """
+    kwargs['ckpt'] = 'https://www.dropbox.com/s/zwsfa6w2iy2cc68/states-500000.ckpt?dl=0'
     return mockingjay_url(refresh=refresh, *args, **kwargs)
 
 

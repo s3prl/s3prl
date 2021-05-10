@@ -1,0 +1,82 @@
+runner:
+  total_steps: 200000
+  gradient_clipping: 1
+  gradient_accumulate_steps: 1
+  log_step: 100
+  eval_step: 2000
+  save_step: 500
+  max_keep: 1
+  eval_dataloaders:
+    - dev-clean
+
+optimizer:
+  name: TorchOptim
+  torch_optim_name: Adam
+  lr: 1.0e-4
+
+# comment the whole scheduler config block
+# to disable learning rate scheduling
+# scheduler:
+#   name: linear_schedule_with_warmup
+#   num_warmup_steps: 1400
+# comment the whole specaug config block
+# to disable specaug on representation
+
+specaug:
+  apply_time_warp: true
+  apply_time_mask: true
+  apply_freq_mask: true
+  time_warp_window: 5
+  time_mask_width_range: [0, 40]
+  freq_mask_width_range: [0, 50]
+  num_freq_mask: 4
+  num_time_mask: 2
+
+downstream_expert:
+  datarc:
+    train: ['train-clean-100']
+    dev-clean: ['dev-clean']
+    dev-other: ['dev-other']
+    test-clean: ['test-clean']
+    test-other: ['test-other']
+    num_workers: 12
+    train_batch_size: 32
+    eval_batch_size: 1
+    libri_root: '/path/to/LibriSpeech'
+    bucket_file: 'data/librispeech/len_for_bucket'
+
+    zero_infinity: True
+
+    decoder_args:
+      # See https://github.com/facebookresearch/flashlight/blob/master/flashlight/lib/text/decoder/LexiconDecoder.h#L20
+      # for what the options mean. Python binding exposes the same options from C++.
+      # KenLM is a fast LM query implementation, and it can be powered by:
+      # 1. official LibriSpeech 4-gram LM: the 4-gram.arpa file on http://www.openslr.org/11
+      # 2. fairseq style, letter-based lexicon: https://dl.fbaipublicfiles.com/fairseq/wav2vec/librispeech_lexicon.lst
+      decoder_type: 'None'
+      nbest: 1
+      criterion: "ctc"
+      beam: 5
+      beam_threshold: 25
+      kenlm_model: '/path/to/KenLM'
+      lexicon: '/path/to/4-gram.arpa'
+      lm_weight: 2
+      word_score: -1
+      unk_weight: -math.inf
+      sil_weight: 0
+
+  modelrc:
+    project_dim: 1024
+    select: RNNs
+    Wav2Letter:
+      total_rate: 320
+    RNNs:
+      total_rate: -1
+      module: 'LSTM'                        # 'LSTM'/'GRU'
+      bidirection: True
+      dim: [1024, 1024]
+      dropout: [0.2, 0.2]
+      layer_norm: [False, False]
+      proj: [False, False]              # Linear projection + Tanh after each rnn layer
+      sample_rate: [1, 1]
+      sample_style: 'concat'                  # 'drop'/'concat'

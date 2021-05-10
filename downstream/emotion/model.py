@@ -1,6 +1,9 @@
+import math
+
 import torch
 import torch.nn as nn
-
+from torch.nn.utils.rnn import pad_sequence
+from downstream.model import UtteranceLevel_Linear, AttentivePooling, MeanPooling
 
 class SelfAttentionPooling(nn.Module):
     """
@@ -178,30 +181,37 @@ class DeepNet(nn.Module):
         return predicted
 
 
-class Model(nn.Module):
+class DeepModel(nn.Module):
     def __init__(
         self,
-        input_dim,
-        hidden_dim,
-        kernel_size,
-        padding,
+        model_type,
         pooling,
-        dropout,
-        output_class_num,
         **kwargs
     ):
-        super(Model, self).__init__()
-        self.model = CNNSelfAttention(
-            input_dim,
-            hidden_dim,
-            kernel_size,
-            padding,
-            pooling,
-            dropout,
-            output_class_num,
-            **kwargs
-        )
+        super(DeepModel, self).__init__()
+        self.pooling = pooling
+        self.model = eval(model_type)(pooling=pooling, **kwargs)
 
-    def forward(self, features, att_mask):
-        predicted = self.model(features, att_mask)
+    def forward(self, features, features_len):
+        attention_mask = [
+            torch.ones(math.ceil((l / self.pooling)))
+            for l in features_len
+        ]
+        attention_mask = pad_sequence(attention_mask, batch_first=True)
+        attention_mask = (1.0 - attention_mask) * -100000.0
+        attention_mask = attention_mask.to(features.device)
+        predicted = self.model(features, attention_mask)
+        return predicted
+
+class UtterLinear(nn.Module):
+    def __init__(self, input_dim, output_class_num, pooling_name, **kwargs):
+        super(UtterLinear, self).__init__()
+        self.model = UtteranceLevel_Linear(input_dim=input_dim, class_num=output_class_num)
+        self.pooling = eval(pooling_name)(input_dim=input_dim)
+
+    
+    def forward(self, features, features_len):
+        features = self.pooling(features, features_len)
+        predicted = self.model(features)
+
         return predicted

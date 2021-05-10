@@ -1,0 +1,37 @@
+
+# this voxceleb1 is doing speaker classification task!
+runner:
+  total_steps: 200000
+  gradient_clipping: 1
+  gradient_accumulate_steps: 4
+
+  log_step: 500
+  eval_step: 1000
+  save_step: 1000
+  max_keep: 4
+  eval_dataloaders: 
+    - dev
+    - test
+  
+optimizer:
+  name: TorchOptim
+  torch_optim_name: Adam
+  lr: 1.0e-4
+
+# # comment the whole scheduler config block to disable learning rate scheduling
+# scheduler:
+#   name: linear_schedule_with_warmup
+#   num_warmup_steps: 5000
+
+downstream_expert: 
+  datarc:
+    file_path: /groups/public/benchmark_datasets/speaker_classifi/wav
+    meta_data: /groups/public/benchmark_datasets/speaker_classifi/veri_test_class.txt
+    num_workers: 12
+    train_batch_size: 8
+    eval_batch_size: 1
+    max_timestep: 128000
+
+  modelrc:
+    projector_dim: 256
+    select: FrameLevel

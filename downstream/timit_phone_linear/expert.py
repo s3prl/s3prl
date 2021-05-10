@@ -70,17 +70,18 @@ class DownstreamExpert(nn.Module):
         each wav is torch.FloatTensor in cpu with dim()==1 and sample_rate==16000
     """
 
-    # Interface
     def get_train_dataloader(self):
         return self._get_train_dataloader(self.train_dataset)
 
-    # Interface
     def get_dev_dataloader(self):
         return self._get_eval_dataloader(self.dev_dataset)
 
-    # Interface
     def get_test_dataloader(self):
         return self._get_eval_dataloader(self.test_dataset)
+
+    # Interface
+    def get_dataloader(self, split):
+        return eval(f'self.get_{split}_dataloader')()
 
     def _tile_representations(self, reps, factor):
         """ 
@@ -116,8 +117,7 @@ class DownstreamExpert(nn.Module):
         return inputs, labels
 
     # Interface
-    def forward(self, features, labels, records,
-                logger, prefix, global_step, **kwargs):
+    def forward(self, split, features, labels, records, **kwargs):
         """
         Args:
             features:
@@ -171,7 +171,7 @@ class DownstreamExpert(nn.Module):
         return loss
 
     # interface
-    def log_records(self, records, logger, prefix, global_step, **kwargs):
+    def log_records(self, split, records, logger, global_step, **kwargs):
         """
         Args:
             records:
@@ -189,6 +189,7 @@ class DownstreamExpert(nn.Module):
             global_step:
                 global_step in runner, which is helpful for Tensorboard logging
         """
+        prefix = f'timit_phone/{split}-'
         average = torch.FloatTensor(records['acc']).mean().item()
 
         logger.add_scalar(

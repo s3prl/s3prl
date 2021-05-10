@@ -35,14 +35,17 @@ class UpstreamExpert(nn.Module):
     def __init__(self, ckpt, model_config, **kwargs):
         super(UpstreamExpert, self).__init__() 
 
-        self.pase = wf_builder(model_config)
-        self.pase.load_pretrained(ckpt, load_last=True, verbose=False)
+        def build_pase(ckpt, model_config):
+            pase = wf_builder(model_config)
+            pase.load_pretrained(ckpt, load_last=True, verbose=False)
+            return pase
 
-        # Pase can not easily switch between cpu/gpu for now
-        self.pase.cuda()
-
+        # pase can be only used on GPU as the official implementation
+        pase = build_pase(ckpt, model_config).cuda()
         pseudo_input = torch.randn(1, 1, SAMPLE_RATE * EXAMPLE_SEC).cuda()
-        self.output_dim = self.pase(pseudo_input).size(1)
+        self.output_dim = pase(pseudo_input).size(1)
+
+        self.model = build_pase(ckpt, model_config)
 
     # Interface
     def get_output_dim(self):
@@ -69,7 +72,7 @@ class UpstreamExpert(nn.Module):
         wavs = pad_sequence(wavs, batch_first=True)
         wavs = wavs.unsqueeze(1)
 
-        features = self.pase(wavs) # (batch_size, feature_dim, extracted_seqlen)
+        features = self.model(wavs) # (batch_size, feature_dim, extracted_seqlen)
         features = features.transpose(1, 2).contiguous() # (batch_size, extracted_seqlen, feature_dim)
 
         ratio = len(features[0]) / wav_lengths[0]

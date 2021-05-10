@@ -11,7 +11,7 @@ import torch.nn as nn
 from torch.utils.data import DataLoader, WeightedRandomSampler
 from torch.nn.utils.rnn import pad_sequence
 
-from .model import Model
+from downstream.model import *
 from .dataset import SpeechCommandsDataset, SpeechCommandsTestingDataset
 
 
@@ -33,14 +33,19 @@ class DownstreamExpert(nn.Module):
         self.dev_dataset = SpeechCommandsDataset(valid_list, **self.datarc)
         self.test_dataset = SpeechCommandsTestingDataset(**self.datarc)
 
-        self.model = Model(
-            input_dim=upstream_dim,
-            output_class_num=self.train_dataset.class_num,
-            **self.modelrc,
+        model_cls = eval(self.modelrc['select'])
+        model_conf = self.modelrc.get(self.modelrc['select'], {})
+        self.projector = nn.Linear(upstream_dim, self.modelrc['projector_dim'])
+        self.model = model_cls(
+            input_dim = self.modelrc['projector_dim'],
+            output_dim = self.train_dataset.class_num,
+            **model_conf,
         )
+
         self.objective = nn.CrossEntropyLoss()
 
         self.logging = os.path.join(expdir, 'log.log')
+        self.register_buffer('best_score', torch.zeros(1))
 
     def _get_balanced_dataloader(self, dataset, drop_last=False):
         return DataLoader(
@@ -65,37 +70,50 @@ class DownstreamExpert(nn.Module):
         )
 
     # Interface
-    def get_train_dataloader(self):
-        return self._get_balanced_dataloader(self.train_dataset, drop_last=True)
+    def get_dataloader(self, mode):
+        if mode == 'train':
+            return self._get_balanced_dataloader(self.train_dataset, drop_last=True)
+        elif mode == 'dev':
+            return self._get_balanced_dataloader(self.dev_dataset, drop_last=False)
+        elif mode == 'test':
+            return self._get_dataloader(self.test_dataset)
+        else:
+            raise NotImplementedError
 
     # Interface
-    def get_dev_dataloader(self):
-        return self._get_balanced_dataloader(self.dev_dataset, drop_last=False)
-
-    # Interface
-    def get_test_dataloader(self):
-        return self._get_dataloader(self.test_dataset)
-
-    # Interface
-    def forward(self, features, labels, records, logger, prefix, global_step, **kwargs):
+    def forward(self, mode, features, labels, records, **kwargs):
+        device = features[0].device
+        features_len = torch.IntTensor([len(feat) for feat in features]).to(device=device)
         features = pad_sequence(features, batch_first=True)
-        predicted = self.model(features)
+        features = self.projector(features)
+        predicted, _ = self.model(features, features_len)
 
         labels = torch.LongTensor(labels).to(features.device)
         loss = self.objective(predicted, labels)
 
         predicted_classid = predicted.max(dim=-1).indices
+        records["loss"].append(loss.item())
         records["acc"] += (predicted_classid == labels).view(-1).cpu().float().tolist()
-
         return loss
 
     # interface
-    def log_records(self, records, logger, prefix, global_step, **kwargs):
+    def log_records(self, mode, records, logger, global_step, **kwargs):
+        save_names = []
         for key, values in records.items():
             average = torch.FloatTensor(values).mean().item()
-            logger.add_scalar(f"{prefix}{key}", average, global_step=global_step)
+            logger.add_scalar(
+                f'speech_commands/{mode}-{key}',
+                average,
+                global_step=global_step
+            )
             with open(self.logging, 'a') as f:
-                f.write(f'{prefix}|step:{global_step}|{key}:{average}\n')
+                if key == 'acc':
+                    f.write(f'{mode} at step {global_step}: {average}\n')
+                    if mode == 'dev' and average > self.best_score:
+                        self.best_score = torch.ones(1) * average
+                        f.write(f'New best on {mode} at step {global_step}: {average}\n')
+                        save_names.append(f'{mode}-best.ckpt')
+        return save_names
 
 
 def split_dataset(
