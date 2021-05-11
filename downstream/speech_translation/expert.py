@@ -10,7 +10,7 @@ from torch.distributed import is_initialized
 from torch.nn.utils.rnn import pad_sequence
 
 from .model import Model, Transformer
-from .dataset import STDataset
+from .dataset import COVOST2Dataset
 
 import sentencepiece
 import sacrebleu
@@ -62,7 +62,7 @@ class DownstreamExpert(nn.Module):
 
         self.dataset = {}
         for split in ['train', 'dev', 'test']:
-            self.dataset[split] = STDataset(
+            self.dataset[split] = COVOST2Dataset(
                 self.datarc['src_lang'],
                 self.datarc['tgt_lang'],
                 split, 
@@ -73,12 +73,19 @@ class DownstreamExpert(nn.Module):
             )
         
         self.connector = nn.Linear(upstream_dim, self.modelrc['d_model'])
+        # self.connector = nn.Linear(upstream_dim, self.modelrc['hidden_size'])
         
         self.model = Transformer(
             vocab_size = self.tokenizer.vocab_size(),
             padding_idx = self.tokenizer.pad_id(),
             **self.modelrc,
         )
+
+        # self.model = RNNSeq2Seq(
+        #     vocab_size = self.tokenizer.vocab_size(),
+        #     padding_idx = self.tokenizer.pad_id(),
+        #     **self.modelrc,
+        # )
         
         self.objective = nn.CrossEntropyLoss(ignore_index=self.tokenizer.pad_id())
         self.register_buffer('best_score', torch.zeros(1))
@@ -168,7 +175,7 @@ class DownstreamExpert(nn.Module):
         labels = pad_sequence(utterance_labels, batch_first=False, padding_value=self.tokenizer.pad_id())
         labels = labels.to(features.device)
 
-        tqdm.write(f"features size: {features.size()}, labels size: {labels.size()}")
+        # tqdm.write(f"features size: {features.size()}, labels size: {labels.size()}")
         if mode == 'train' or mode == 'dev':
             predicted = self.model(features, labels)
             shifted_labels = torch.cat((labels[1:], torch.full((1, labels.size(1)), self.tokenizer.pad_id()).to(predicted.device)), dim=0)
