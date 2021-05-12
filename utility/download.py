@@ -1,5 +1,6 @@
 import os
 import hashlib
+from filelock import FileLock
 
 import torch
 import gdown
@@ -9,26 +10,27 @@ def _download(filename, url, refresh, agent):
     dirpath = f'{torch.hub.get_dir()}/s3prl_cache'
     os.makedirs(dirpath, exist_ok=True)
     filepath = f'{dirpath}/{filename}'
-    if not os.path.isfile(filepath) or refresh:
-        if agent == 'wget':
-            os.system(f'wget {url} -O {filepath}')
-        elif agent == 'gdown':
-            gdown.download(url, filepath, use_cookies=False)
+    with FileLock(filepath + ".lock"):
+        if not os.path.isfile(filepath) or refresh:
+            if agent == 'wget':
+                os.system(f'wget {url} -O {filepath}')
+            elif agent == 'gdown':
+                gdown.download(url, filepath, use_cookies=False)
+            else:
+                print('[Download] - Unknown download agent. Only \'wget\' and \'gdown\' are supported.')
+                raise NotImplementedError
         else:
-            print('[Download] - Unknown download agent. Only \'wget\' and \'gdown\' are supported.')
-            raise NotImplementedError
-    else:
-        print(f'Using cache found in {filepath}\nfor {url}')
+            print(f'Using cache found in {filepath}\nfor {url}')
     return filepath
 
 
 def _urls_to_filepaths(*args, refresh=False, agent='wget'):
     """
     Preprocess the URL specified in *args into local file paths after downloading
-    
+
     Args:
         Any number of URLs (1 ~ any)
-    
+
     Return:
         Same number of downloaded file paths
     """
@@ -52,10 +54,10 @@ def _urls_to_filepaths(*args, refresh=False, agent='wget'):
 def _gdriveids_to_filepaths(*args, refresh=False):
     """
     Preprocess the Google Drive id specified in *args into local file paths after downloading
-    
+
     Args:
         Any number of Google Drive ids (1 ~ any)
-    
+
     Return:
         Same number of downloaded file paths
     """
