@@ -43,7 +43,7 @@ class UpstreamExpert(nn.Module):
         return FEATURE_DIM
 
     # Interface
-    def forward(self, wavs):
+    def forward(self, wavs: [torch.FloatTensor]):
         def get_feature(wav):
             # This is get an example code so random hidden states is generated
             hidden = torch.rand(FEATURE_SEQ_LEN, HIDDEN_DIM).to(wav.device)
