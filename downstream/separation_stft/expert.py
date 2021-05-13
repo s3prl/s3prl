@@ -58,9 +58,10 @@ class DownstreamExpert(nn.Module):
     eg. downstream forward, metric computation, contents to log
     """
 
-    def __init__(self, upstream_dim, downstream_expert, **kwargs):
+    def __init__(self, upstream_dim, upstream_rate, downstream_expert, **kwargs):
         super(DownstreamExpert, self).__init__()
         self.upstream_dim = upstream_dim
+        self.upstream_rate = upstream_rate
         self.datarc = downstream_expert["datarc"]
         self.loaderrc = downstream_expert["loaderrc"]
         self.modelrc = downstream_expert["modelrc"]
@@ -71,7 +72,7 @@ class DownstreamExpert(nn.Module):
                 src=self.datarc['src'],
                 tgt=self.datarc['tgt'],
                 n_fft=self.datarc['n_fft'],
-                hop_length=self.datarc['hop_length'],
+                hop_length=self.upstream_rate,
                 win_length=self.datarc['win_length'],
                 window=self.datarc['window'],
                 center=self.datarc['center'],
@@ -82,7 +83,7 @@ class DownstreamExpert(nn.Module):
                 src=self.datarc['src'],
                 tgt=self.datarc['tgt'],
                 n_fft=self.datarc['n_fft'],
-                hop_length=self.datarc['hop_length'],
+                hop_length=self.upstream_rate,
                 win_length=self.datarc['win_length'],
                 window=self.datarc['window'],
                 center=self.datarc['center'],
@@ -93,7 +94,7 @@ class DownstreamExpert(nn.Module):
                 src=self.datarc['src'],
                 tgt=self.datarc['tgt'],
                 n_fft=self.datarc['n_fft'],
-                hop_length=self.datarc['hop_length'],
+                hop_length=self.upstream_rate,
                 win_length=self.datarc['win_length'],
                 window=self.datarc['window'],
                 center=self.datarc['center'],
@@ -120,7 +121,7 @@ class DownstreamExpert(nn.Module):
         elif self.modelrc["loss_type"] == "SISDR":
             self.objective = SISDRLoss(self.datarc['num_speakers'], 
                     n_fft=self.datarc['n_fft'], 
-                    hop_length=self.datarc['hop_length'], 
+                    hop_length=self.upstream_rate,
                     win_length=self.datarc['win_length'], 
                     window=self.datarc['window'], 
                     center=self.datarc['center'])
@@ -151,19 +152,33 @@ class DownstreamExpert(nn.Module):
             collate_fn=dataset.collate_fn,
         )
 
-    def get_train_dataloader(self):
-        return self._get_train_dataloader(self.train_dataset)
-
-    def get_dev_dataloader(self):
-        return self._get_eval_dataloader(self.dev_dataset)
-
-    def get_test_dataloader(self):
-        return self._get_eval_dataloader(self.test_dataset)
-
-    def forward(self, features, uttname_list, source_attr, source_wav, target_attr, target_wav_list, feat_length, wav_length, 
-            records=None, logger=None, prefix=None, global_step=0, **kwargs):
+    def get_dataloader(self, mode):
         """
         Args:
+            mode: string
+                'train', 'dev' or 'test'
+        Return:
+            a torch.utils.data.DataLoader returning each batch in the format of:
+            [wav1, wav2, ...], your_other_contents1, your_other_contents2, ...
+            where wav1, wav2 ... are in variable length
+            each wav is torch.FloatTensor in cpu with:
+                1. dim() == 1
+                2. sample_rate == 16000
+                3. directly loaded by torchaudio
+        """
+        if mode == "train":
+            return self._get_train_dataloader(self.train_dataset)
+        elif mode == "dev":
+            return self._get_eval_dataloader(self.dev_dataset)
+        elif mode == "test":
+            return self._get_eval_dataloader(self.test_dataset)
+
+    def forward(self, mode, features, uttname_list, source_attr, source_wav, target_attr, target_wav_list, feat_length, wav_length, records, **kwargs):
+        """
+        Args:
+            mode: string
+                'train', 'dev' or 'test' for this forward step
+
             features:
                 list of unpadded features [feat1, feat2, ...]
                 each feat is in torch.FloatTensor and already
@@ -200,6 +215,11 @@ class DownstreamExpert(nn.Module):
             wav_length:
                 length of raw waveform
 
+            records:
+                defaultdict(list), by appending contents into records,
+                these contents can be averaged and logged on Tensorboard
+                later by self.log_records every log_step
+
         Return:
             loss:
                 the loss to be optimized, should not be detached
@@ -211,14 +231,14 @@ class DownstreamExpert(nn.Module):
         mask = self.model(features)
 
         # evaluate the separation quality of predict sources
-        if not self.training:
+        if mode == 'dev' or mode == 'test':
             predict_stfts = [torch.squeeze(m * source_attr['stft'].to(device)) for m in mask]
             predict_stfts_np = [np.transpose(s.data.cpu().numpy()) for s in predict_stfts]
 
             assert len(wav_length) == 1
             # reconstruct the signal using iSTFT
             predict_srcs_np = [librosa.istft(stft_mat, 
-                hop_length=self.datarc['hop_length'], 
+                hop_length=self.upstream_rate,
                 win_length=self.datarc['win_length'], 
                 window=self.datarc['window'], 
                 center=self.datarc['center'],
@@ -250,12 +270,24 @@ class DownstreamExpert(nn.Module):
             loss = self.loss_func.compute_loss(masks, input_sizes, source_attr, wav_length, target_wav_list)
         else:
             raise ValueError("Loss type not defined.")
+
+        records["loss"].append(loss.item())
         return loss
 
     # interface
-    def log_records(self, records, logger, prefix, global_step, **kwargs):
+    def log_records(
+        self, mode, records, logger, global_step, batch_ids, total_batch_num, **kwargs
+    ):
         """
         Args:
+            mode: string
+                'train':
+                    records and batchids contain contents for `log_step` batches
+                    `log_step` is defined in your downstream config
+                    eg. downstream/example/config.yaml
+                'dev' or 'test' :
+                    records and batchids contain contents for the entire evaluation dataset
+
             records:
                 defaultdict(list), contents already appended
 
@@ -264,31 +296,47 @@ class DownstreamExpert(nn.Module):
                 please use f'{prefix}your_content_name' as key name
                 to log your customized contents
 
-            prefix:
-                used to indicate downstream and train/test on Tensorboard
-                eg. 'phone/train-'
-
             global_step:
-                global_step in runner, which is helpful for Tensorboard logging
+                The global_step when training, which is helpful for Tensorboard logging
+
+            batch_ids:
+                The batches contained in records when enumerating over the dataloader
+
+            total_batch_num:
+                The total amount of batches in the dataloader
+
+        Return:
+            a list of string
+                Each string is a filename we wish to use to save the current model
+                according to the evaluation result, like the best.ckpt on the dev set
+                You can return nothing or an empty list when no need to save the checkpoint
         """
-        if self.training:
-            return 0
+        if mode == 'train':
+            avg_loss = np.mean(records["loss"])
+            logger.add_scalar(
+                f"separation_stft/{mode}-loss", avg_loss, global_step=global_step
+            )
+            return []
         else:
+            avg_loss = np.mean(records["loss"])
+            logger.add_scalar(
+                f"separation_stft/{mode}-loss", avg_loss, global_step=global_step
+            )
             for metric in COMPUTE_METRICS:
                 avg_metric = np.mean(records[metric])
-                print("Average {} of {} utts is {:.2f}".format(metric, len(records[metric]), avg_metric))
-                records[metric] = avg_metric
+                if mode == "test":
+                    print("Average {} of {} utts is {:.2f}".format(metric, len(records[metric]), avg_metric))
 
                 logger.add_scalar(
-                    f'{prefix}'+metric,
-                    records[metric],
+                    f'separation_stft/{mode}-'+metric,
+                    avg_metric,
                     global_step=global_step
                 )
 
             save_ckpt = []
             assert 'si_sdr' in records
-            if records['si_sdr'] > self.best_score:
-                self.best_score = records['si_sdr']
-                save_ckpt.append("modelbest.ckpt")
+            if mode == "dev" and np.mean(records['si_sdr']) > self.best_score:
+                self.best_score = np.mean(records['si_sdr'])
+                save_ckpt.append(f"best-states-{mode}.ckpt")
 
             return save_ckpt

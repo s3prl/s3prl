@@ -21,7 +21,6 @@ downstream_expert:
     src: ['mix_clean']
     tgt: ['s1', 's2']
     n_fft: 512
-    hop_length: 320
     win_length: 512
     window: "hann"
     center: True
