@@ -25,7 +25,8 @@ class UpstreamExpert(nn.Module):
 
             feature_selection:
                 The string for you to control the different behavior of the
-                same pretrained model.
+                same pretrained model, like extracting different layers as
+                the representations.
         """
         super().__init__()
 
