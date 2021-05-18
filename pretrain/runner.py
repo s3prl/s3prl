@@ -177,7 +177,7 @@ class Runner():
                     continue
 
                 # gradient clipping
-                grad_norm = torch.nn.utils.clip_grad_norm_(self.upstream.model.parameters(), self.config['runner']['gradient_clipping'])
+                grad_norm = torch.nn.utils.clip_grad_norm_(self.upstream.parameters(), self.config['runner']['gradient_clipping'])
 
                 # optimize
                 if math.isnan(grad_norm):
