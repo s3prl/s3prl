@@ -1,0 +1,59 @@
+task:
+  sequence_length: 256                                  # sample a sub-sequence of this length out of the whole utterance (0 for no restriction)                                   
+  use_momentum: False
+  
+audio_encoder:
+  prenet: 'cnn'                                         # 'vgg'/'cnn'/''
+  module: 'Transformer'                                 # 'LSTM'/'GRU'/'Transformer'
+  dim: 256
+  dropout: 0.1
+  # Transformer specific
+  layer_content: 6
+  layer_speaker: 0
+  head: 4
+  linear_unit: 1024
+  normalized_before: True
+  concat_after: False
+  # multi-head self-attention
+  pos_enc_layer_type: rel_pos                           # 'abs_pos'/'scaled_abs_pos'/'rel_pos'/'none'
+  selfattention_layer_type: rel_selfattn                # 'selfattn'/'rel_selfattn'
+  # conformer
+  macaron_style: True
+  use_cnn_module: True
+  cnn_activation_type: swish
+  cnn_module_kernel: 31
+
+audio:
+  target_level: -25                                     # pretrained utterances are first scaled to the same decibel level
+  win_ms: 25
+  hop_ms: 10
+  n_freq: 201
+  n_mels: 80
+  n_mfcc: 13
+
+  input:
+    feat_type: mel                                      # feat_type can be: wav, complx, linear, mel, mfcc, phase
+    channel: 0
+    log: True
+    delta: 2
+    cmvn: True
+    
+  target:
+    feat_type: mel                                      # feat_type can be: wav, complx, linear, mel, mfcc, phase
+    channel: 1
+    log: True
+    delta: 2
+    cmvn: True
+
+
+# audio:                                                  # Pass to audio transform
+#   target_level: 'None'
+#   sample_rate: 16000
+#   feat_type: 'fbank'
+#   feat_dim:  80
+#   apply_cmvn: True
+#   delta_order: 2                                        # 0: do nothing, 1: add delta, 2: add delta and accelerate
+#   delta_window_size: 2
+#   frame_length: 25                                      # ms
+#   frame_shift: 10                                       # ms
+#   dither: 0                                             # random dither audio, 0: no dither
