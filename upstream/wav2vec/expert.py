@@ -9,90 +9,72 @@
 """*********************************************************************************************"""
 
 
-###############
-# IMPORTATION #
-###############
-import os
-import math
-import yaml
-import random
 from packaging import version
-#-------------#
+
 import torch
-import torch.nn as nn
 from torch.nn.utils.rnn import pad_sequence
-#-------------#
+
 import fairseq
 from fairseq.models.wav2vec import Wav2VecModel
+from upstream.interfaces import UpstreamBase
 
-
-############
-# CONSTANT #
-############
 SAMPLE_RATE = 16000
 EXAMPLE_SEC = 5
 
 
-###################
-# UPSTREAM EXPERT #
-###################
-class UpstreamExpert(nn.Module):
+class UpstreamExpert(UpstreamBase):
     """
     The wav2vec wrapper
     """
 
-    def __init__(self, ckpt, feature_selection, **kwargs):
-        super(UpstreamExpert, self).__init__()
+    def __init__(self, ckpt, **kwargs):
+        super().__init__(**kwargs)
         if version.parse(fairseq.__version__) > version.parse("0.10.2"):
-            model, cfg, task = fairseq.checkpoint_utils.load_model_ensemble_and_task([ckpt])
+            model, cfg, task = fairseq.checkpoint_utils.load_model_ensemble_and_task(
+                [ckpt]
+            )
             self.model = model[0]
             self.model.eval()
         elif version.parse(fairseq.__version__) == version.parse("0.10.2"):
             cp = torch.load(ckpt)
-            self.model = Wav2VecModel.build_model(cp['args'], task=None)
-            self.model.load_state_dict(cp['model'])
+            self.model = Wav2VecModel.build_model(cp["args"], task=None)
+            self.model.load_state_dict(cp["model"])
         else:
             raise NotImplementedError
 
-        pseudo_input = torch.randn(1, SAMPLE_RATE * EXAMPLE_SEC)
-        z = self.model.feature_extractor(pseudo_input)
-        c = self.model.feature_aggregator(z)
+        if len(self.hooks) == 0:
+            self.hooks = {
+                "self.model.feature_extractor": lambda input, output: output.transpose(
+                    1, 2
+                ).contiguous(),
+                "self.model.feature_aggregator": lambda input, output: output.transpose(
+                    1, 2
+                ).contiguous(),
+            }
+            module_name = "self.model.feature_aggregator.conv_layers"
+            for conv_id in range(len(eval(module_name)) - 1):
+                self.hooks[f"{module_name}[{conv_id + 1}]"] = (
+                    lambda input, output: input[0].transpose(1, 2).contiguous()
+                )
 
-        self.feature_selection = feature_selection
-        self.output_dim = eval(self.feature_selection).transpose(1, 2).size(-1)
-
-    # Interface
-    def get_output_dim(self):
-        return self.output_dim
-
-    # Interface
-    def get_downsample_rate(self):
-        return 160
-
-    # Interface
     def forward(self, wavs):
         """
-        Args:
-            wavs:
-                list of unpadded wavs [wav1, wav2, ...]
-                each wav is in torch.FloatTensor with sample rate 16000
-                and already put in the device assigned by command-line args
-
-        Return:
-            features:
-                list of unpadded features [feat1, feat2, ...]
-                each feat is in torch.FloatTensor and already
-                put in the device assigned by command-line args
+        Code snippet modified from fairseq
         """
-        wav_lengths = [len(wav) for wav in wavs]
+        result = {}
 
         padded_wav = pad_sequence(wavs, batch_first=True)
-        z = self.model.feature_extractor(padded_wav)
-        c = self.model.feature_aggregator(z)
-        features = eval(self.feature_selection).transpose(1, 2)
+        features = self.model.feature_extractor(padded_wav)
+        result["z"] = features.transpose(1, 2).contiguous()
 
-        ratio = padded_wav.size(1) / features.size(1)
-        feat_lengths = [round(wav_len / ratio) for wav_len in wav_lengths]
+        if self.model.vector_quantizer:
+            q_res = self.model.vector_quantizer(features, produce_targets=True)
+            result["codewords"] = q_res["x"].transpose(1, 2).contiguous()
+            result["codeids"] = q_res["targets"]
+            features = q_res["x"]
 
-        features = [feat[:length] for feat, length in zip(features, feat_lengths)]
-        return features
+        x = self.model.dropout_feats(features)
+        x = self.model.feature_aggregator(x)
+        result["c"] = x.transpose(1, 2).contiguous()
+
+        return result
