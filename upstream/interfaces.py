@@ -95,6 +95,10 @@ class UpstreamBase(nn.Module):
             result["hidden_states"] = hook_hiddens
             result["last_hidden_state"] = hook_hiddens[next(reversed(hook_hiddens))]
 
+            default = result.get("default")
+            if isinstance(default, Tensor):
+                torch.allclose(default, result["last_hidden_state"])
+
         return result
 
 

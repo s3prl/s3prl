@@ -75,6 +75,8 @@ class UpstreamExpert(UpstreamBase):
 
         x = self.model.dropout_feats(features)
         x = self.model.feature_aggregator(x)
+
         result["c"] = x.transpose(1, 2).contiguous()
+        result["default"] = result["c"]
 
         return result
