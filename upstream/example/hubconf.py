@@ -14,13 +14,14 @@ def customized_upstream(*args, **kwargs):
 
     1.
     from hubconf import customized_upstream
-    model = customized_upstream(ckpt, model_config, feature_selection)
+    model = customized_upstream(ckpt, model_config)
 
     2.
     model = torch.hub.load(
         'your_s3prl_path',
         'customized_upstream',
-        ckpt, model_config, feature_selection,
+        ckpt,
+        model_config,
         source='local',
     )
 
