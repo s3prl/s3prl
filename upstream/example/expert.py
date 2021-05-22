@@ -45,12 +45,4 @@ class UpstreamExpert(UpstreamBase):
         feature = self.model2(hidden)
         # feature: (batch_size, max_len, hidden_dim)
 
-        return {
-            "last_hidden_state": feature,
-            "hidden_states": OrderedDict(
-                {
-                    "hidden": hidden,
-                    "feature": feature,
-                }
-            ),
-        }
+        return {"last_hidden_state": feature, "hidden_states": [hidden, feature]}
