@@ -46,9 +46,9 @@ def get_model_state(model):
         return model.module.state_dict()
     return model.state_dict()
 
-def show(message, *args, **kwargs):
+def show(*args, **kwargs):
     if is_leader_process():
-        print(message, *args, **kwargs)
+        print(*args, **kwargs)
 
 def hack_isinstance():
     # Pytorch do not support passing a defaultdict into DDP module
