@@ -27,9 +27,11 @@ class UpstreamExpert(UpstreamBase):
         if len(self.hooks) == 0:
             module_name = "self.model.encoder.layers"
             for module_id in range(len(eval(module_name))):
-                self.hooks[f"{module_name}[{module_id}]"] = (
-                    lambda input, output: output[0].transpose(0, 1).contiguous()
+                self.add_hook(
+                    f"{module_name}[{module_id}]",
+                    lambda input, output: input[0].transpose(0, 1),
                 )
+            self.add_hook("self.model.encoder", lambda input, output: output)
 
     def forward(self, wavs):
         device = wavs[0].device
