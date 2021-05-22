@@ -1,8 +1,8 @@
 import sys
-from collections import OrderedDict
-from typing import Callable, List, Dict, Union
+from typing import Callable, List, Dict, Tuple, Union
 
 import torch
+import numpy as np
 import torch.nn as nn
 import torch.nn.functional as F
 from torch.tensor import Tensor
@@ -12,22 +12,92 @@ from utility.helper import show
 SAMPLE_RATE = 16000
 
 
-class UpstreamBase(nn.Module):
+class Hook:
+    def __init__(self, module_path, transform, unique_identifier=None):
+        self.module_path = module_path
+        self.transform = transform
+        self.unique_identifier = unique_identifier or module_path
+        self.handler = None
+
+        assert isinstance(self.module_path, str)
+        assert callable(self.transform)
+        assert isinstance(self.unique_identifier, str)
+
+
+class initHook(type):
+    def __call__(cls, *args, **kwargs):
+        instance = super().__call__(*args, **kwargs)
+        for hook in instance.hooks:
+            if hook.handler is None:
+                instance._register_hook_handler(hook)
+        return instance
+
+
+class UpstreamBase(nn.Module, metaclass=initHook):
     def __init__(
         self,
         wav_normalize: bool = False,
-        hooks: Dict[str, Callable] = None,
-        hook_postprocess: Callable = None,
+        hooks: List[Tuple] = None,
+        hook_postprocess: Callable[
+            [List[Tuple[str, Tensor]]], List[Tuple[str, Tensor]]
+        ] = None,
         **kwargs,
     ):
+        """
+        Args:
+            hooks: each Tuple is an argument list for the Hook initializer
+        """
         super().__init__()
         self.wav_normalize = wav_normalize
-        self.eps = 1.0e-12
 
-        self.hooks = hooks or {}
+        self.hooks: List[Hook] = [Hook(*hook) for hook in hooks] if hooks else []
         self.hook_postprocess = hook_postprocess
-        self._hook_handlers = {}
-        self._hook_hiddens = OrderedDict()
+        self._hook_hiddens: List[Tuple(str, Tensor)] = []
+
+    def remove_all_hooks(self):
+        for hook in self.hooks:
+            hook.handler.remove()
+        self.hooks.clear()
+
+    def remove_hook(self, unique_identifier: str):
+        updated_hooks = []
+        for hook in self.hooks:
+            if hook.unique_identifier == unique_identifier:
+                hook.handler.remove()
+            else:
+                updated_hooks.append(hook)
+        self.hooks = updated_hooks
+
+    def add_hook(self, *args, **kwargs):
+        hook = Hook(*args, **kwargs)
+        self._register_hook_handler(hook)
+        self.hooks.append(hook)
+
+    def _register_hook_handler(self, hook: Hook):
+        module = eval(hook.module_path)
+        if not isinstance(module, nn.Module):
+            show(
+                f"[UpstreamBase] - {hook.module_path} is not a valid nn.Module. Skip.",
+                file=sys.stderr,
+            )
+            return
+
+        if callable(hook.handler):
+            show(
+                f"[UpstreamBase] - Existing hook handler for {hook.unique_identifier} is found. Remove the existing one.",
+                file=sys.stderr,
+            )
+            hook.handler.remove()
+
+        def generate_hook_handler(hiddens: List, hook: Hook):
+            def hook_handler(self, input, output):
+                hiddens.append((hook.unique_identifier, hook.transform(input, output)))
+
+            return hook_handler
+
+        hook.handler = module.register_forward_hook(
+            generate_hook_handler(self._hook_hiddens, hook)
+        )
 
     @staticmethod
     def tolist(paired_wavs: List[Tensor], paired_feature: Tensor):
@@ -39,49 +109,37 @@ class UpstreamBase(nn.Module):
         feature = [f[:l] for f, l in zip(paired_feature, feature_len)]
         return feature
 
-    def _sync_hook_handlers(self):
-        for hook_handler in self._hook_handlers.values():
-            hook_handler.remove()
-        self._hook_handlers.clear()
-
-        for hook_module_name, transform in self.hooks.items():
-            module = eval(hook_module_name)
-            if not isinstance(module, nn.Module):
-                show(
-                    f"[UpstreamBase] - {hook_module_name} is not a valid nn.Module. Skip.",
-                    file=sys.stderr,
-                )
-            assert callable(transform)
-
-            def hook_handler_template(hook_hiddens, hook_module_name, transform):
-                def hook_handler(self, input, output):
-                    hidden = transform(input, output)
-                    hook_hiddens[hook_module_name] = hidden
-
-                return hook_handler
-
-            self._hook_handlers[hook_module_name] = module.register_forward_hook(
-                hook_handler_template(self._hook_hiddens, hook_module_name, transform)
-            )
+    @staticmethod
+    def zero_mean_unit_var_norm(input_values: List[np.ndarray]) -> List[np.ndarray]:
+        """
+        Every array in the list is normalized to have zero mean and unit variance
+        Taken from huggingface to ensure the same behavior across s3prl and huggingface
+        Reference: https://github.com/huggingface/transformers/blob/a26f4d620874b32d898a5b712006a4c856d07de1/src/transformers/models/wav2vec2/feature_extraction_wav2vec2.py#L81-L86
+        """
+        return [(x - np.mean(x)) / np.sqrt(np.var(x) + 1e-5) for x in input_values]
 
     def __call__(self, wavs: List[Tensor], *args, **kwargs):
         if self.wav_normalize:
-            wavs = [(x - x.mean()) / (x.std() + self.eps) for x in wavs]
-
-        if self.hooks.keys() != self._hook_handlers.keys():
-            self._sync_hook_handlers()
+            device = wavs[0].device
+            wavs = [
+                torch.from_numpy(wav).to(device)
+                for wav in self.zero_mean_unit_var_norm(
+                    [wav.cpu().numpy() for wav in wavs]
+                )
+            ]
 
         result = super().__call__(wavs, *args, **kwargs) or {}
         assert isinstance(result, dict)
 
         if len(self._hook_hiddens) > 0:
             if (
-                result.get("hidden_states") is not None
+                result.get("_hidden_states_info") is not None
+                or result.get("hidden_states") is not None
                 or result.get("last_hidden_state") is not None
             ):
                 show(
-                    f"[UpstreamBase] - If there are registered hooks, 'hidden_states' and 'last_hidden_state'\
-                    are reserved and should not be used in child class.",
+                    "[UpstreamBase] - If there are registered hooks, '_hidden_states_info', 'hidden_states', and "
+                    "'last_hidden_state' are reserved and should not be included in child class's return dict.",
                     file=sys.stderr,
                 )
                 raise ValueError
@@ -92,12 +150,12 @@ class UpstreamBase(nn.Module):
             if callable(self.hook_postprocess):
                 hook_hiddens = self.hook_postprocess(hook_hiddens)
 
-            result["hidden_states"] = hook_hiddens
-            result["last_hidden_state"] = hook_hiddens[next(reversed(hook_hiddens))]
+            result["_hidden_states_info"], result["hidden_states"] = zip(*hook_hiddens)
+            result["last_hidden_state"] = result["hidden_states"][-1]
 
             default = result.get("default")
-            if isinstance(default, Tensor):
-                torch.allclose(default, result["last_hidden_state"])
+            if default is not None:
+                assert torch.allclose(default, result["last_hidden_state"])
 
         return result
 
@@ -117,6 +175,10 @@ class Featurizer(nn.Module):
         show(
             f"[{self.name}] - The input upstream is only for initialization and not saved in this nn.Module"
         )
+
+        # This line is necessary as some models behave differently between train/eval
+        # eg. The LayerDrop technique used in wav2vec2
+        upstream.eval()
 
         paired_wavs = [torch.randn(SAMPLE_RATE).to(upstream_device)]
         paired_features = upstream(paired_wavs)
@@ -146,12 +208,13 @@ class Featurizer(nn.Module):
             feature = list(feature.values())
 
         if feature is None:
+            available_options = [key for key in features.keys() if key[0] != "_"]
             show(
                 f"[{self.name}] - feature_selection = {self.feature_selection} is not supported for this upstream.",
                 file=sys.stderr,
             )
             show(
-                f"[{self.name}] - Supported options: {features.keys()}",
+                f"[{self.name}] - Supported options: {available_options}",
                 file=sys.stderr,
             )
             raise ValueError

@@ -37,12 +37,10 @@ class UpstreamExpert(UpstreamBase):
         self.model.load_state_dict(checkpoint["weights"], strict=False)
 
         if len(self.hooks) == 0:
-            self.hooks = {
-                "self.model.gEncoder": lambda input, output: output.transpose(
-                    1, 2
-                ).contiguous(),
-                "self.model.gAR": lambda input, output: output,
-            }
+            self.add_hook(
+                "self.model.gEncoder", lambda input, output: output.transpose(1, 2)
+            )
+            self.add_hook("self.model.gAR", lambda input, output: output)
 
     def forward(self, wavs):
         padded_wav = pad_sequence(wavs, batch_first=True)

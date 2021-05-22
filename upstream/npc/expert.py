@@ -27,16 +27,18 @@ class UpstreamExpert(UpstreamBase):
 
         if len(self.hooks) == 0:
             for block_id, _ in enumerate(self.model.blocks):
-                self.hooks[
-                    f"self.model.blocks[{block_id}]"
-                ] = lambda input, output: output.transpose(1, 2)
+                self.add_hook(
+                    f"self.model.blocks[{block_id}]",
+                    lambda input, output: output.transpose(1, 2),
+                )
 
             for masked_conv_id, _ in enumerate(self.model.masked_convs):
-                self.hooks[
-                    f"self.model.masked_convs[{masked_conv_id}]"
-                ] = lambda input, output: output
+                self.add_hook(
+                    f"self.model.masked_convs[{masked_conv_id}]",
+                    lambda input, output: output,
+                )
 
-            self.hooks["self.model"] = lambda input, output: output[1]
+            self.add_hook("self.model", lambda input, output: output[1])
 
     def forward(self, wavs):
         features = [self.preprocessor(wav.unsqueeze(0)) for wav in wavs]

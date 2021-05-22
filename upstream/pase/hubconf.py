@@ -8,7 +8,10 @@
 
 
 import os
+from typing import Tuple, List
+
 import torch
+from torch.tensor import Tensor
 
 from utility.download import _urls_to_filepaths
 from .expert import UpstreamExpert as _UpstreamExpert
@@ -16,9 +19,9 @@ from .expert import UpstreamExpert as _UpstreamExpert
 
 def pase_local(ckpt, model_config, **kwargs):
     """
-        The model from local ckpt
-            ckpt (str): PATH
-            model_config (str): PATH
+    The model from local ckpt
+        ckpt (str): PATH
+        model_config (str): PATH
     """
     assert os.path.isfile(ckpt)
     assert os.path.isfile(model_config)
@@ -27,9 +30,9 @@ def pase_local(ckpt, model_config, **kwargs):
 
 def pase_url(ckpt, model_config, refresh=False, **kwargs):
     """
-        The model from URL
-            ckpt (str): URL
-            model_config (str): URL
+    The model from URL
+        ckpt (str): URL
+        model_config (str): URL
     """
     ckpt = _urls_to_filepaths(ckpt, refresh=refresh)
     model_config = _urls_to_filepaths(model_config, refresh=refresh)
@@ -38,11 +41,13 @@ def pase_url(ckpt, model_config, refresh=False, **kwargs):
 
 def pase_plus(refresh=False, **kwargs):
     """
-        The default model
-            refresh (bool): whether to download ckpt/config again if existed
+    The default model
+        refresh (bool): whether to download ckpt/config again if existed
     """
-    kwargs['ckpt'] = 'https://www.dropbox.com/s/p8811o7eadv4pat/FE_e199.ckpt?dl=0'
-    kwargs['model_config'] = 'https://www.dropbox.com/s/2p3ouod1k0ekfxn/PASE%2B.cfg?dl=0'
+    kwargs["ckpt"] = "https://www.dropbox.com/s/p8811o7eadv4pat/FE_e199.ckpt?dl=0"
+    kwargs[
+        "model_config"
+    ] = "https://www.dropbox.com/s/2p3ouod1k0ekfxn/PASE%2B.cfg?dl=0"
 
     def align_skip(input_, skip):
         """
@@ -56,21 +61,28 @@ def pase_plus(refresh=False, **kwargs):
             skip_re = skip.view(bsz, feats, slen // dfactor, dfactor)
             skip = torch.mean(skip_re, dim=3)
         return skip
-    
-    def hook_postprocess(hook_hiddens):
-        transformed = {}
-        final_hidden = hook_hiddens.pop("self.model")
-        for module_name, hidden in hook_hiddens.items():
-            transformed[module_name] = align_skip(final_hidden, hidden).transpose(1, 2)
-        transformed["self.model"] = final_hidden.transpose(1, 2)
-        return transformed
 
-    hooks = {
-        f"self.model.W": lambda input, output: output,
-        f"self.model": lambda input, output: output,        
-    }
+    def hook_postprocess(hiddens: List[Tuple[str, Tensor]]):
+        remained_hiddens = [x for x in hiddens if x[0] != "self.model"]
+        final_hidden = [x for x in hiddens if x[0] == "self.model"]
+        assert len(final_hidden) == 1
+        final_hidden = final_hidden[0]
+
+        updated_hiddens = []
+        for identifier, tensor in remained_hiddens:
+            updated_hiddens.append(
+                (identifier, align_skip(final_hidden[1], tensor).transpose(1, 2))
+            )
+
+        updated_hiddens.append((final_hidden[0], final_hidden[1].transpose(1, 2)))
+        return updated_hiddens
+
+    hooks = [
+        (f"self.model.W", lambda input, output: output),
+        (f"self.model", lambda input, output: output),
+    ]
     for i in range(7):
-        hooks[f"self.model.denseskips[{i}]"] = lambda input, output: output
+        hooks.append((f"self.model.denseskips[{i}]", lambda input, output: output))
 
     kwargs["hooks"] = hooks
     kwargs["hook_postprocess"] = hook_postprocess

@@ -29,15 +29,19 @@ class UpstreamExpert(UpstreamBase):
         self.model.load_state_dict(ckpt["model"])
 
         if len(self.hooks) == 0:
-            self.hooks = {
-                "self.model.rnn_layers[1]": lambda input, output: pad_packed_sequence(
-                    input[0], batch_first=True
-                )[0],
-                "self.model.rnn_layers[2]": lambda input, output: pad_packed_sequence(
-                    input[0], batch_first=True
-                )[0],
-                "self.model": lambda input, output: output[1],
-            }
+            self.add_hook(
+                "self.model.rnn_layers[1]",
+                lambda input, output: pad_packed_sequence(input[0], batch_first=True)[
+                    0
+                ],
+            )
+            self.add_hook(
+                "self.model.rnn_layers[2]",
+                lambda input, output: pad_packed_sequence(input[0], batch_first=True)[
+                    0
+                ],
+            )
+            self.add_hook("self.model", lambda input, output: output[1])
 
     def forward(self, wavs):
         features = [self.preprocessor(wav.unsqueeze(0)) for wav in wavs]

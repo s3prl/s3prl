@@ -28,7 +28,10 @@ class UpstreamExpert(UpstreamBase):
         if len(self.hooks) == 0:
             modules = "self.roberta.model.encoder.sentence_encoder.layers"
             for module_id, _ in enumerate(eval(modules)):
-                self.hooks[f"{modules}[{module_id}]"] = lambda input, output: output.transpose(0, 1)
+                self.add_hook(
+                    f"{modules}[{module_id}]",
+                    lambda input, output: output.transpose(0, 1),
+                )
 
     def forward(self, wavs):
         with torch.no_grad():

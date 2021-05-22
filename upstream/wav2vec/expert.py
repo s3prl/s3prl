@@ -43,18 +43,19 @@ class UpstreamExpert(UpstreamBase):
             raise NotImplementedError
 
         if len(self.hooks) == 0:
-            self.hooks = {
-                "self.model.feature_extractor": lambda input, output: output.transpose(
-                    1, 2
-                ).contiguous(),
-                "self.model.feature_aggregator": lambda input, output: output.transpose(
-                    1, 2
-                ).contiguous(),
-            }
+            self.add_hook(
+                "self.model.feature_extractor",
+                lambda input, output: output.transpose(1, 2),
+            )
+            self.add_hook(
+                "self.model.feature_aggregator",
+                lambda input, output: output.transpose(1, 2),
+            )
             module_name = "self.model.feature_aggregator.conv_layers"
             for conv_id in range(len(eval(module_name)) - 1):
-                self.hooks[f"{module_name}[{conv_id + 1}]"] = (
-                    lambda input, output: input[0].transpose(1, 2).contiguous()
+                self.add_hook(
+                    f"{module_name}[{conv_id + 1}]",
+                    lambda input, output: input[0].transpose(1, 2),
                 )
 
     def forward(self, wavs):
