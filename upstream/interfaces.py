@@ -120,8 +120,13 @@ class UpstreamBase(nn.Module, metaclass=initHook):
 
     def __call__(self, wavs: List[Tensor], *args, **kwargs):
         if self.wav_normalize:
-            with torch.no_grad():
-                wavs = [F.layer_norm(wav, wavs.shape) for wav in wavs]
+            device = wavs[0].device
+            wavs = [
+                torch.from_numpy(wav).to(device)
+                for wav in self.zero_mean_unit_var_norm(
+                    [wav.cpu().numpy() for wav in wavs]
+                )
+            ]
 
         result = super().__call__(wavs, *args, **kwargs) or {}
         assert isinstance(result, dict)
