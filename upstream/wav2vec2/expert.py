@@ -24,6 +24,9 @@ class UpstreamExpert(UpstreamBase):
         model, cfg, task = fairseq.checkpoint_utils.load_model_ensemble_and_task([ckpt])
         self.model = model[0]
 
+        if cfg.task.normalize:
+            self.wav_normalize = True
+
         if len(self.hooks) == 0:
             module_name = "self.model.encoder.layers"
             for module_id in range(len(eval(module_name))):
