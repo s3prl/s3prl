@@ -36,7 +36,6 @@ class initHook(type):
 class UpstreamBase(nn.Module, metaclass=initHook):
     def __init__(
         self,
-        wav_normalize: bool = False,
         hooks: List[Tuple] = None,
         hook_postprocess: Callable[
             [List[Tuple[str, Tensor]]], List[Tuple[str, Tensor]]
@@ -48,8 +47,6 @@ class UpstreamBase(nn.Module, metaclass=initHook):
             hooks: each Tuple is an argument list for the Hook initializer
         """
         super().__init__()
-        self.wav_normalize = wav_normalize
-
         self.hooks: List[Hook] = [Hook(*hook) for hook in hooks] if hooks else []
         self.hook_postprocess = hook_postprocess
         self._hook_hiddens: List[Tuple(str, Tensor)] = []
@@ -109,25 +106,7 @@ class UpstreamBase(nn.Module, metaclass=initHook):
         feature = [f[:l] for f, l in zip(paired_feature, feature_len)]
         return feature
 
-    @staticmethod
-    def zero_mean_unit_var_norm(input_values: List[np.ndarray]) -> List[np.ndarray]:
-        """
-        Every array in the list is normalized to have zero mean and unit variance
-        Taken from huggingface to ensure the same behavior across s3prl and huggingface
-        Reference: https://github.com/huggingface/transformers/blob/a26f4d620874b32d898a5b712006a4c856d07de1/src/transformers/models/wav2vec2/feature_extraction_wav2vec2.py#L81-L86
-        """
-        return [(x - np.mean(x)) / np.sqrt(np.var(x) + 1e-5) for x in input_values]
-
     def __call__(self, wavs: List[Tensor], *args, **kwargs):
-        if self.wav_normalize:
-            device = wavs[0].device
-            wavs = [
-                torch.from_numpy(wav).to(device)
-                for wav in self.zero_mean_unit_var_norm(
-                    [wav.cpu().numpy() for wav in wavs]
-                )
-            ]
-
         result = super().__call__(wavs, *args, **kwargs) or {}
         assert isinstance(result, dict)
 

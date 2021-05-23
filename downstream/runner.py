@@ -80,7 +80,6 @@ class Runner():
             ckpt = self.args.upstream_ckpt,
             model_config = self.args.upstream_model_config,
             refresh = upstream_refresh,
-            wav_normalize = self.args.wav_normalize,
         ).to(self.args.device)
 
         if is_initialized() and get_rank() == 0:

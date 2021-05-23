@@ -28,3 +28,4 @@ pysndfx
 nltk
 normalise
 editdistance
+omegaconf
