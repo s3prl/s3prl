@@ -6,11 +6,8 @@ import shutil
 import random
 import tempfile
 import importlib
-from pathlib import Path
-from argparse import Namespace
 
 import torch
-import torch.nn as nn
 import numpy as np
 from tqdm import tqdm
 from tensorboardX import SummaryWriter
@@ -21,9 +18,17 @@ import hubconf
 from optimizers import get_optimizer
 from schedulers import get_scheduler
 from upstream.interfaces import Featurizer
-from utility.helper import is_leader_process, count_parameters, get_model_state, show, defaultdict
+from utility.helper import is_leader_process, get_model_state, show, defaultdict
 
 SAMPLE_RATE = 16000
+
+
+class ModelEntry:
+    def __init__(self, model, name, trainable, interfaces):
+        self.model = model
+        self.name = name
+        self.trainable = trainable
+        self.interfaces = interfaces
 
 
 class Runner():
@@ -60,12 +65,7 @@ class Runner():
             for interface in interfaces or []:
                 setattr(model, interface, getattr(model.module, interface))
 
-        return Namespace(**{
-            'model': model,
-            'name': name,
-            'trainable': trainable,
-            'interfaces': interfaces
-        })
+        return ModelEntry(model, name, trainable, interfaces)
 
 
     def _get_upstream(self):
