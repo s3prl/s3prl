@@ -9,6 +9,7 @@
 """*********************************************************************************************"""
 
 
+import argparse
 from packaging import version
 
 import torch
@@ -16,7 +17,10 @@ from torch.nn.utils.rnn import pad_sequence
 
 import fairseq
 from fairseq.models.wav2vec import Wav2VecModel
+from omegaconf.dictconfig import DictConfig
+
 from upstream.interfaces import UpstreamBase
+from utility.helper import zero_mean_unit_var_norm
 
 SAMPLE_RATE = 16000
 EXAMPLE_SEC = 5
@@ -42,6 +46,12 @@ class UpstreamExpert(UpstreamBase):
         else:
             raise NotImplementedError
 
+        if isinstance(cfg, argparse.Namespace):
+            normalize = cfg.normalize
+        elif isinstance(cfg, DictConfig):
+            normalize = cfg.task.normalize
+        self.wav_normalize = normalize
+
         if len(self.hooks) == 0:
             self.add_hook(
                 "self.model.feature_extractor",
@@ -62,6 +72,11 @@ class UpstreamExpert(UpstreamBase):
         """
         Code snippet modified from fairseq
         """
+        device = wavs[0].device
+        if self.wav_normalize:
+            wavs = zero_mean_unit_var_norm([wav.cpu().numpy() for wav in wavs])
+            wavs = [torch.from_numpy(wav).to(device) for wav in wavs]
+
         result = {}
 
         padded_wav = pad_sequence(wavs, batch_first=True)
