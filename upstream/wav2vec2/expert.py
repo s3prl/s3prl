@@ -31,9 +31,10 @@ class UpstreamExpert(UpstreamBase):
         self.model = model[0]
         self.wav_normalize = cfg.task.normalize
 
-        # This option is only used for aligning representations between s3prl and huggingface
-        # Huggingface does not pass padding mask for the base model
+        # These options are only used for aligning representations between s3prl and huggingface
+        # See utility/compare_wav2vec2.py
         self.apply_padding_mask = True
+        self.numpy_wav_normalize = False
 
         if len(self.hooks) == 0:
             module_name = "self.model.encoder.layers"
@@ -47,8 +48,11 @@ class UpstreamExpert(UpstreamBase):
     def forward(self, wavs):
         device = wavs[0].device
         if self.wav_normalize:
-            wavs = zero_mean_unit_var_norm([wav.cpu().numpy() for wav in wavs])
-            wavs = [torch.from_numpy(wav).to(device) for wav in wavs]
+            if self.numpy_wav_normalize:
+                wavs = zero_mean_unit_var_norm([wav.cpu().numpy() for wav in wavs])
+                wavs = [torch.from_numpy(wav).to(device) for wav in wavs]
+            else:
+                wavs = [F.layer_norm(wav, wav.shape) for wav in wavs]
 
         wav_lengths = torch.LongTensor([len(wav) for wav in wavs]).to(device)
         wav_padding_mask = ~torch.lt(

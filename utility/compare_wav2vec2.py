@@ -27,6 +27,7 @@ huggingface = torch.hub.load(s3prl_path, huggingface_str, source="local").to(
 if args.base:
     s3prl.wav_normalize = True
     s3prl.apply_padding_mask = False
+s3prl.numpy_wav_normalize = True
 
 s3prl.eval()
 huggingface.eval()
