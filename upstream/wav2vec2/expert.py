@@ -36,6 +36,10 @@ class UpstreamExpert(UpstreamBase):
             normalize = cfg.task.normalize
         self.wav_normalize = normalize
 
+        # This option is only used for aligning representations between s3prl and huggingface
+        # Huggingface does not pass padding mask for the base model
+        self.apply_padding_mask = True
+
         if len(self.hooks) == 0:
             module_name = "self.model.encoder.layers"
             for module_id in range(len(eval(module_name))):
@@ -59,6 +63,6 @@ class UpstreamExpert(UpstreamBase):
         padded_wav = pad_sequence(wavs, batch_first=True)
 
         features, feat_padding_mask = self.model.extract_features(
-            padded_wav, wav_padding_mask
+            padded_wav, wav_padding_mask if self.apply_padding_mask else None
         )
         return {"default": features}
