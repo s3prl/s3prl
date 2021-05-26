@@ -25,17 +25,11 @@ from utility.helper import zero_mean_unit_var_norm
 class UpstreamExpert(UpstreamBase):
     def __init__(self, ckpt, **kwargs):
         super().__init__(**kwargs)
-        assert version.parse(fairseq.__version__) >= version.parse("0.10.2")
+        assert version.parse(fairseq.__version__) > version.parse("0.10.2")
 
         model, cfg, task = fairseq.checkpoint_utils.load_model_ensemble_and_task([ckpt])
         self.model = model[0]
-
-        if isinstance(cfg, argparse.Namespace):
-            normalize = cfg.normalize
-        elif isinstance(cfg, DictConfig):
-            normalize = cfg.task.normalize
-        assert isinstance(normalize, bool)
-        self.wav_normalize = normalize
+        self.wav_normalize = cfg.task.normalize
 
         # This option is only used for aligning representations between s3prl and huggingface
         # Huggingface does not pass padding mask for the base model
@@ -48,7 +42,7 @@ class UpstreamExpert(UpstreamBase):
                     f"{module_name}[{module_id}]",
                     lambda input, output: input[0].transpose(0, 1),
                 )
-            self.add_hook("self.model.encoder", lambda input, output: output)
+            self.add_hook("self.model.encoder", lambda input, output: output[0])
 
     def forward(self, wavs):
         device = wavs[0].device
@@ -63,7 +57,7 @@ class UpstreamExpert(UpstreamBase):
         )
         padded_wav = pad_sequence(wavs, batch_first=True)
 
-        features, feat_padding_mask = self.model.extract_features(
+        results = self.model.extract_features(
             padded_wav, wav_padding_mask if self.apply_padding_mask else None
         )
-        return {"default": features}
+        return {"default": results["x"]}
