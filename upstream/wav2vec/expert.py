@@ -17,10 +17,8 @@ from torch.nn.utils.rnn import pad_sequence
 
 import fairseq
 from fairseq.models.wav2vec import Wav2VecModel
-from omegaconf.dictconfig import DictConfig
 
 from upstream.interfaces import UpstreamBase
-from utility.helper import zero_mean_unit_var_norm
 
 SAMPLE_RATE = 16000
 EXAMPLE_SEC = 5
@@ -34,24 +32,17 @@ class UpstreamExpert(UpstreamBase):
     def __init__(self, ckpt, **kwargs):
         super().__init__(**kwargs)
         if version.parse(fairseq.__version__) > version.parse("0.10.2"):
-            model, cfg, task = fairseq.checkpoint_utils.load_model_ensemble_and_task(
-                [ckpt]
-            )
-            self.model = model[0]
-            self.model.eval()
+            cp = torch.load(ckpt)
+            args = cp["args"]
+            base_wav2vec_architecture(args)
+            self.model = Wav2VecModel.build_model(args, task=None)
+            self.model.load_state_dict(cp["model"])
         elif version.parse(fairseq.__version__) == version.parse("0.10.2"):
             cp = torch.load(ckpt)
             self.model = Wav2VecModel.build_model(cp["args"], task=None)
             self.model.load_state_dict(cp["model"])
         else:
             raise NotImplementedError
-
-        if isinstance(cfg, argparse.Namespace):
-            normalize = cfg.normalize
-        elif isinstance(cfg, DictConfig):
-            normalize = cfg.task.normalize
-        assert isinstance(normalize, bool)
-        self.wav_normalize = normalize
 
         if len(self.hooks) == 0:
             self.add_hook(
@@ -73,11 +64,6 @@ class UpstreamExpert(UpstreamBase):
         """
         Code snippet modified from fairseq
         """
-        device = wavs[0].device
-        if self.wav_normalize:
-            wavs = zero_mean_unit_var_norm([wav.cpu().numpy() for wav in wavs])
-            wavs = [torch.from_numpy(wav).to(device) for wav in wavs]
-
         result = {}
 
         padded_wav = pad_sequence(wavs, batch_first=True)
@@ -97,3 +83,55 @@ class UpstreamExpert(UpstreamBase):
         result["default"] = result["c"]
 
         return result
+
+
+def base_wav2vec_architecture(args):
+    conv_feature_layers = "[(512, 10, 5)]"
+    conv_feature_layers += " + [(512, 8, 4)]"
+    conv_feature_layers += " + [(512, 4, 2)] * 3"
+    args.conv_feature_layers = getattr(args, "conv_feature_layers", conv_feature_layers)
+
+    args.conv_aggregator_layers = getattr(
+        args, "conv_aggregator_layers", "[(512, 3, 1)] * 9"
+    )
+
+    args.prediction_steps = getattr(args, "prediction_steps", 12)
+    args.num_negatives = getattr(args, "num_negatives", 1)
+    args.sample_distance = getattr(args, "sample_distance", None)
+    args.cross_sample_negatives = getattr(args, "cross_sample_negatives", 0)
+
+    args.dropout = getattr(args, "dropout", 0.0)
+    args.dropout_features = getattr(args, "dropout_features", 0.0)
+    args.dropout_agg = getattr(args, "dropout_agg", 0.0)
+    args.encoder = getattr(args, "encoder", "cnn")
+    args.aggregator = getattr(args, "aggregator", "cnn")
+
+    args.skip_connections_feat = getattr(args, "skip_connections_feat", False)
+    args.skip_connections_agg = getattr(args, "skip_connections_agg", False)
+    args.residual_scale = getattr(args, "residual_scale", 0.5)
+
+    args.gru_dim = getattr(args, "gru_dim", 512)
+
+    args.no_conv_bias = getattr(args, "no_conv_bias", False)
+    args.agg_zero_pad = getattr(args, "agg_zero_pad", False)
+
+    args.log_compression = getattr(args, "log_compression", False)
+
+    args.balanced_classes = getattr(args, "balanced_classes", False)
+    args.infonce = getattr(args, "infonce", False)
+    args.project_features = getattr(args, "project_features", "none")
+
+    args.non_affine_group_norm = getattr(args, "non_affine_group_norm", False)
+
+    args.offset = getattr(args, "offset", "auto")
+
+    args.activation = getattr(args, "activation", "relu")
+
+    args.vq_type = getattr(args, "vq_type", "none")
+    args.vq_vars = getattr(args, "vq_vars", 320)
+    args.vq_groups = getattr(args, "vq_groups", 2)
+    args.vq_dim = getattr(args, "vq_dim", 0)
+    args.vq_depth = getattr(args, "vq_depth", 1)
+    args.combine_groups = getattr(args, "combine_groups", False)
+    args.vq_temp = getattr(args, "vq_temp", "(2.0, 0.5, 0.999995)")
+    args.vq_gamma = getattr(args, "vq_gamma", 0.25)
