@@ -50,6 +50,7 @@ class UpstreamExpert(UpstreamBase):
             normalize = cfg.normalize
         elif isinstance(cfg, DictConfig):
             normalize = cfg.task.normalize
+        assert isinstance(normalize, bool)
         self.wav_normalize = normalize
 
         if len(self.hooks) == 0:

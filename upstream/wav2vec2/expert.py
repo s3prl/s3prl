@@ -34,6 +34,7 @@ class UpstreamExpert(UpstreamBase):
             normalize = cfg.normalize
         elif isinstance(cfg, DictConfig):
             normalize = cfg.task.normalize
+        assert isinstance(normalize, bool)
         self.wav_normalize = normalize
 
         # This option is only used for aligning representations between s3prl and huggingface
