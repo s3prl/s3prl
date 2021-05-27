@@ -107,6 +107,8 @@ class UpstreamBase(nn.Module, metaclass=initHook):
         return feature
 
     def __call__(self, wavs: List[Tensor], *args, **kwargs):
+        self._hook_hiddens.clear()
+
         result = super().__call__(wavs, *args, **kwargs) or {}
         assert isinstance(result, dict)
 
