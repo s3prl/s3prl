@@ -5,7 +5,7 @@ joblib>=0.12.4
 librosa==0.7.2
 scipy>=1.5.4
 scikit-learn==0.23.2
-PyYAML==5.1.2
+PyYAML==5.4
 tqdm==4.56.0
 numpy>=1.19.5
 pandas>=1.1.5
@@ -16,10 +16,17 @@ numba==0.48
 gdown>=3.12.2
 cython==0.29.21
 packaging>=20.9
+dtw-python==1.1.6
+transformers==4.6.1
 kaldi_io
 h5py
 sox
-dtw-python==1.1.6
 tabulate
 intervaltree
 lxml
+soundfile
+pysndfx
+nltk
+normalise
+editdistance
+omegaconf

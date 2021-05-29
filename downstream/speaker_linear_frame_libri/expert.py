@@ -25,8 +25,7 @@ class DownstreamExpert(SpeakerExpert):
         super(DownstreamExpert, self).__init__(upstream_dim, downstream_expert, expdir, **kwargs)
 
     # Interface
-    def forward(self, features, labels, records,
-                logger, prefix, global_step, **kwargs):
+    def forward(self, mode, features, labels, records, **kwargs):
         """
         Args:
             features:
@@ -41,18 +40,6 @@ class DownstreamExpert(SpeakerExpert):
                 defaultdict(list), by appending contents into records,
                 these contents can be averaged and logged on Tensorboard
                 later by self.log_records every log_step
-
-            logger:
-                Tensorboard SummaryWriter, given here for logging/debugging convenience
-                please use f'{prefix}your_content_name' as key name
-                to log your customized contents
-
-            prefix:
-                used to indicate downstream and train/test on Tensorboard
-                eg. 'phone/train-'
-
-            global_step:
-                global_step in runner, which is helpful for Tensorboard logging
 
         Return:
             loss:

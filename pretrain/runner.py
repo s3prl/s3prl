@@ -59,6 +59,7 @@ class Runner():
         assert hasattr(upstream, 'forward')
         assert hasattr(upstream, 'load_model')
         assert hasattr(upstream, 'add_state_to_save')
+        assert hasattr(upstream, 'on_before_zero_grad')
         assert hasattr(upstream, 'get_train_dataloader')
 
         if self.init_ckpt != {}:
@@ -176,13 +177,15 @@ class Runner():
                     continue
 
                 # gradient clipping
-                grad_norm = torch.nn.utils.clip_grad_norm_(self.upstream.parameters(), self.config['runner']['gradient_clipping'])
+                grad_norm = torch.nn.utils.clip_grad_norm_(self.upstream.model.parameters(), self.config['runner']['gradient_clipping'])
 
                 # optimize
                 if math.isnan(grad_norm):
                     print(f'[Runner] - Error : grad norm is NaN at step {global_step}')
                 else:
                     optimizer.step()
+                    
+                self.upstream.on_before_zero_grad()
                 optimizer.zero_grad()
 
                 # adjust learning rate
@@ -194,7 +197,10 @@ class Runner():
                     # log loss
                     self.logger.add_scalar(f'{prefix}loss', all_loss, global_step=global_step)
                     # log lr
-                    self.logger.add_scalar(f'{prefix}lr', optimizer.get_lr()[0], global_step=global_step)
+                    if hasattr(optimizer, 'get_lr'):
+                        self.logger.add_scalar(f'{prefix}lr', optimizer.get_lr()[0], global_step=global_step)
+                    else:
+                        self.logger.add_scalar(f'{prefix}lr', self.config['optimizer']['lr'], global_step=global_step)
                     # log norm
                     self.logger.add_scalar(f'{prefix}gradient norm', grad_norm, global_step=global_step)
 

@@ -156,6 +156,10 @@ class UpstreamPretrainExpert(nn.Module):
         return loss, records
 
     # interface
+    def on_before_zero_grad(self):
+        pass
+    
+    # interface
     def log_records(self, records, logger, prefix, global_step, **kwargs):
         """
         Args:

@@ -25,8 +25,6 @@ from .model import Model, AdMSoftmaxLoss, UtteranceModel
 from .dataset import SpeakerVerifi_train, SpeakerVerifi_dev, SpeakerVerifi_test
 from argparse import Namespace
 from .utils import EER, compute_metrics
-import IPython
-import pdb
 
 
 class DownstreamExpert(nn.Module):

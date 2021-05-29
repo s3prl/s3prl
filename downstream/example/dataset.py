@@ -6,7 +6,7 @@ from torch.utils.data.dataset import Dataset
 
 SAMPLE_RATE = 16000
 EXAMPLE_WAV_MIN_SEC = 5
-EXAMPLE_WAV_MAX_SEC = 15
+EXAMPLE_WAV_MAX_SEC = 20
 EXAMPLE_DATASET_SIZE = 1000
 
 
@@ -15,8 +15,8 @@ class RandomDataset(Dataset):
         self.class_num = 48
 
     def __getitem__(self, idx):
-        wav_sec = random.randint(EXAMPLE_WAV_MIN_SEC, EXAMPLE_WAV_MAX_SEC)
-        wav = torch.randn(SAMPLE_RATE * wav_sec)
+        samples = random.randint(EXAMPLE_WAV_MIN_SEC * SAMPLE_RATE, EXAMPLE_WAV_MAX_SEC * SAMPLE_RATE)
+        wav = torch.randn(samples)
         label = random.randint(0, self.class_num - 1)
         return wav, label
 

@@ -40,5 +40,5 @@ def decoar(refresh=False, **kwargs):
         The default model
             refresh (bool): whether to download ckpt/config again if existed
     """
-    kwargs['ckpt'] = 'http://140.112.21.12:8000/decoar/decoar-encoder-29b8e2ac.params'
+    kwargs['ckpt'] = 'https://www.dropbox.com/s/0x43bfv8xcmccr3/decoar-encoder-29b8e2ac.params?dl=0'
     return decoar_url(refresh=refresh, **kwargs)
