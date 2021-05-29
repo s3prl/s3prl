@@ -13,14 +13,13 @@
 ###############
 from packaging import version
 
-# -------------#
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
 from torch.nn.utils.rnn import pad_sequence
 
-# -------------#
 import fairseq
+from upstream.interfaces import UpstreamBase
 
 
 ############
@@ -33,9 +32,9 @@ EXAMPLE_SEC = 5
 ###################
 # UPSTREAM EXPERT #
 ###################
-class UpstreamExpert(nn.Module):
+class UpstreamExpert(UpstreamBase):
     def __init__(self, ckpt, **kwargs):
-        super().__init__()
+        super().__init__(**kwargs)
         assert version.parse(fairseq.__version__) >= version.parse("0.10.2")
 
         # Fix checkpoint key if loaded
@@ -50,6 +49,15 @@ class UpstreamExpert(nn.Module):
         )
         self.model = model[0]
         self.task = task
+
+        if len(self.hooks) == 0:
+            module_name = "self.model.encoder.layers"
+            for module_id in range(len(eval(module_name))):
+                self.add_hook(
+                    f"{module_name}[{module_id}]",
+                    lambda input, output: input[0].transpose(0, 1),
+                )
+            self.add_hook("self.model.encoder", lambda input, output: output[0])
 
     def forward(self, wavs):
         if self.task.cfg.normalize:
@@ -69,5 +77,5 @@ class UpstreamExpert(nn.Module):
             mask=None,
         )
         return {
-            "last_hidden_state": features,
+            "default": features,
         }
