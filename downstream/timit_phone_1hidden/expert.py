@@ -2,7 +2,7 @@
 """*********************************************************************************************"""
 #   FileName     [ expert.py ]
 #   Synopsis     [ the phone 1-hidden downstream wrapper ]
-#   Author       [ S3PRL ]
+#   Author       [ Andy T. Liu (https://github.com/andi611) ]
 #   Copyright    [ Copyleft(c), Speech Lab, NTU, Taiwan ]
 """*********************************************************************************************"""
 
