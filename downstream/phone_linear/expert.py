@@ -136,18 +136,6 @@ class DownstreamExpert(nn.Module):
                 these contents can be averaged and logged on Tensorboard
                 later by self.log_records every log_step
 
-            logger:
-                Tensorboard SummaryWriter, given here for logging/debugging convenience
-                please use f'{prefix}your_content_name' as key name
-                to log your customized contents
-
-            prefix:
-                used to indicate downstream and train/test on Tensorboard
-                eg. 'phone/train-'
-
-            global_step:
-                global_step in runner, which is helpful for Tensorboard logging
-
         Return:
             loss:
                 the loss to be optimized, should not be detached
@@ -186,10 +174,6 @@ class DownstreamExpert(nn.Module):
                 Tensorboard SummaryWriter
                 please use f'{prefix}your_content_name' as key name
                 to log your customized contents
-
-            prefix:
-                used to indicate downstream and train/test on Tensorboard
-                eg. 'phone/train-'
 
             global_step:
                 global_step in runner, which is helpful for Tensorboard logging
