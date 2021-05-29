@@ -8,13 +8,13 @@ import os
 import csv
 import torchaudio
 import sentencepiece as spm
-
+from tqdm.auto import tqdm
 
 class COVOST2Dataset(Dataset):
 
     SAMPLE_RATE = 48000
 
-    def __init__(self, src_lang, tgt_lang, split, root_dir, tsv_dir, tokenizer, max_length = -1, sample_rate = 16000):
+    def __init__(self, src_lang, tgt_lang, split, root_dir, tsv_dir, tokenizer, max_length = -1, wav_max_length = -1, sample_rate = 16000, remove_blank = True, target='translation'):
         super().__init__()
         
         self.clip_dir = f'{root_dir}/{src_lang}/clips/'
@@ -25,18 +25,34 @@ class COVOST2Dataset(Dataset):
             orig_freq = self.SAMPLE_RATE,
             new_freq = sample_rate,
         )
-
+        blank_count = 0
         tsv_file = f'{tsv_dir}/covost_v2.{src_lang}_{tgt_lang}.{split}.tsv'
         with open(tsv_file, 'r') as f:
             for line in csv.DictReader(f, delimiter='\t'):
-                self.data.append((line['path'], line['translation']))
+                path = line['path']
+                tgt = line[target].strip()
+                if remove_blank and tgt == '':
+                    blank_count += 1
+                    continue
+                self.data.append((path, tgt))
         self.max_length = max_length
+        self.wav_max_length = wav_max_length
+
+        if remove_blank:
+            tqdm.write(f'remove {blank_count} blank translation from split {split}')
+
 
     def __getitem__(self, idx):
         wav = self._load_wav(self.data[idx][0])
         label = torch.LongTensor(self.tokenizer.encode(self.data[idx][1]))
         if self.max_length > 0:
+            if len(label) > self.max_length:
+                tqdm.write(f'label length too long ({len(label)}), cut to {self.max_length}')
             label = label[:self.max_length]
+        if self.wav_max_length > 0:
+            if len(wav) > self.wav_max_length:
+                tqdm.write(f'wav length too long ({len(wav)}), cut to {self.wav_max_length}')
+            wav = wav[:self.wav_max_length]
         return wav, label
 
     def __len__(self):

@@ -9,12 +9,12 @@ from torch.utils.data import DataLoader, DistributedSampler
 from torch.distributed import is_initialized
 from torch.nn.utils.rnn import pad_sequence
 
-from .model import Model, Transformer
+from .model import Model, Transformer, Seq2SeqRNN
 from .dataset import COVOST2Dataset
 
 import sentencepiece
 import sacrebleu
-from tqdm import tqdm
+from tqdm.auto import tqdm
 
 class DownstreamExpert(nn.Module):
     """
@@ -51,8 +51,13 @@ class DownstreamExpert(nn.Module):
         """
 
         super(DownstreamExpert, self).__init__()
+
+        print(downstream_expert)
+
         self.upstream_dim = upstream_dim
         self.max_length = downstream_expert['max_length']
+        self.wav_max_length = downstream_expert['wav_max_length']
+        self.features_max_length = downstream_expert['features_max_length']
         self.datarc = downstream_expert['datarc']
         self.modelrc = downstream_expert['modelrc']
         self.tokenizerrc = downstream_expert['tokenizerrc']
@@ -69,23 +74,29 @@ class DownstreamExpert(nn.Module):
                 self.datarc['root_dir'],
                 self.datarc['tsv_dir'],
                 self.tokenizer, 
-                self.max_length
+                self.max_length,
+                self.wav_max_length,
+                target=self.datarc.get('target', 'translation')
             )
         
-        self.connector = nn.Linear(upstream_dim, self.modelrc['d_model'])
+        self.connector = nn.Linear(upstream_dim, self.modelrc['config']['d_model'])
         # self.connector = nn.Linear(upstream_dim, self.modelrc['hidden_size'])
         
-        self.model = Transformer(
-            vocab_size = self.tokenizer.vocab_size(),
-            padding_idx = self.tokenizer.pad_id(),
-            **self.modelrc,
-        )
+        if self.modelrc['type'] == 'Transformer':
 
-        # self.model = RNNSeq2Seq(
-        #     vocab_size = self.tokenizer.vocab_size(),
-        #     padding_idx = self.tokenizer.pad_id(),
-        #     **self.modelrc,
-        # )
+            self.model = Transformer(
+                vocab_size = self.tokenizer.vocab_size(),
+                padding_idx = self.tokenizer.pad_id(),
+                **self.modelrc['config'],
+            )
+
+        elif self.modelrc['type'] == 'RNN':
+
+            self.model = Seq2SeqRNN(
+                vocab_size = self.tokenizer.vocab_size(),
+                padding_idx = self.tokenizer.pad_id(),
+                **self.modelrc['config'],
+            )
         
         self.objective = nn.CrossEntropyLoss(ignore_index=self.tokenizer.pad_id())
         self.register_buffer('best_score', torch.zeros(1))
@@ -135,7 +146,7 @@ class DownstreamExpert(nn.Module):
 
 
     # Interface
-    def forward(self, mode, features, your_other_contents1, records, **kwargs):
+    def forward(self, mode, features, labels, records, **kwargs):
         """
         Args:
             mode: string
@@ -168,27 +179,33 @@ class DownstreamExpert(nn.Module):
                 the loss to be optimized, should not be detached
                 a single scalar in torch.FloatTensor
         """
+
+        for i in range(len(features)):
+            if len(features[i]) > self.features_max_length:
+                tqdm.write(f'feature length too long ({len(features[i])}), cut to {self.features_max_length}')
+                features[i] = features[i][:self.features_max_length]
+
+        features = [f[: self.features_max_length] for f in features]
+        features_length = [len(feature) for feature in features]
         features = pad_sequence(features, batch_first=False, padding_value=self.tokenizer.pad_id())
         features = self.connector(features)
 
-        utterance_labels = your_other_contents1
-        labels = pad_sequence(utterance_labels, batch_first=False, padding_value=self.tokenizer.pad_id())
+        labels = pad_sequence(labels, batch_first=False, padding_value=self.tokenizer.pad_id())
         labels = labels.to(features.device)
 
         # tqdm.write(f"features size: {features.size()}, labels size: {labels.size()}")
-        if mode == 'train' or mode == 'dev':
-            predicted = self.model(features, labels)
+        if mode == 'train':
+            predicted = self.model(features, features_length, labels)
             shifted_labels = torch.cat((labels[1:], torch.full((1, labels.size(1)), self.tokenizer.pad_id()).to(predicted.device)), dim=0)
             loss = self.objective(predicted.view(-1, predicted.size(-1)), shifted_labels.view(-1))
             records['loss'].append(loss.item())
             predicted_classid = predicted.max(dim=-1).indices
-        elif mode == 'test':
-            start_ids = torch.full((1, features.size(1)), self.tokenizer.bos_id(), device = features.device)
-            predicted_classid = self.model.incremental_decode(features, start_ids, self.max_length)
+        elif mode == 'dev' or mode == 'test':
+            start_ids = torch.full((1, features.size(1)), self.tokenizer.bos_id()).to(features.device)
+            predicted_classid = self.model.incremental_decode(features, features_length, start_ids, self.max_length)
             loss = None
         else:
             raise
-    
         
         # predict_classid: (N, B) 
         predicted_classid = predicted_classid.cpu().transpose(0, 1).tolist()
@@ -199,9 +216,18 @@ class DownstreamExpert(nn.Module):
                 eos_pos = predict.index(self.tokenizer.eos_id())
                 predicted_classid[index] = predicted_classid[index][:eos_pos+1]
         
+
         predict_text = self.tokenizer.decode(predicted_classid)
+        labels = labels.transpose(0, 1)
+        ref_text = self.tokenizer.decode([l.tolist() for l in labels])
+
         records['pred'] += predict_text
-        records['refs'] +=  self.tokenizer.decode([l.tolist() for l in utterance_labels])
+        records['refs'] += ref_text
+
+        # print('pred_text', ', '.join(predict_text))
+        # print('ref_text', ', '.join(ref_text))
+        # print('pred_id', predicted_classid)
+        # print('labels', labels)
 
         return loss
 

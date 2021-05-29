@@ -20,11 +20,15 @@ class Transformer(nn.Module):
         self.embedding = nn.Embedding(vocab_size, config['d_model'], padding_idx=padding_idx)
         self.pos_encoding = PositionalEncoding(config['d_model'])
         self.model = nn.Transformer(**config)
+        self.d_model = config['d_model']
 
-    def forward(self, features, decoder_input_idx):
+        self.apply(self.init_weights)
+
+    def forward(self, features, features_length, decoder_input_idx):
         # feature: (T, B, *), decoder_input_idx: (T, B)
         # mask features
-        features_key_padding_mask = (features[:, :, 0] == self.padding_idx).transpose(0, 1)
+        # features_key_padding_mask = (features[:, :, 0] == self.padding_idx).transpose(0, 1)
+        features_key_padding_mask = self.create_mask_with_lengths(features_length, features.size(0)).to(features.device)
         tgt_key_padding_mask = (decoder_input_idx == self.padding_idx).transpose(0, 1)
         decoder_input = self.pos_encoding(self.embedding(decoder_input_idx))
         tgt_mask = self.model.generate_square_subsequent_mask(decoder_input_idx.size(0)).to(features.device)
@@ -39,15 +43,19 @@ class Transformer(nn.Module):
         predict = logit @ self.embedding.weight.transpose(0, 1)
         return predict
 
-    def incremental_decode(self, features, start_ids, max_len):
+    def incremental_decode(self, features, features_length, start_ids, max_len):
 
         tgt = self.embedding(start_ids)
         tgt = self.pos_encoding(tgt)
-        features_key_padding_mask = (features[:, :, 0] == self.padding_idx).transpose(0, 1)
+        # features_key_padding_mask = (features[:, :, 0] == self.padding_idx).transpose(0, 1)
+        features_key_padding_mask = self.create_mask_with_lengths(features_length, features.size(0)).to(features.device)
+
         memory = self.model.encoder(
             features,
             src_key_padding_mask=features_key_padding_mask,
         )
+
+        tgt_full_mask = self.model.generate_square_subsequent_mask(max_len).to(features.device)
         output_ids = start_ids
         for i in range(max_len):
             tgt_mask = tgt_full_mask[:i+1, :i+1]
@@ -66,12 +74,22 @@ class Transformer(nn.Module):
 
         return output_ids
 
-    def _reset_parameters(self):
-        r"""Initiate parameters in the transformer model."""
+    def create_mask_with_lengths(self, lengths, max_length):
+        mask = torch.full((len(lengths), max_length), True)
+        for i in range(len(lengths)):
+            mask[i, :lengths[i]] = False
+        return mask
 
-        for p in self.parameters():
-            if p.dim() > 1:
-                xavier_uniform_(p)
+    def init_weights(self, module):
+
+        if isinstance(module, nn.Linear):
+            module.weight.data.normal_(mean=0.0, std=0.02)
+            if module.bias is not None:
+                module.bias.data.zero_()
+        if isinstance(module, nn.Embedding):
+            module.weight.data.normal_(mean=0.0, std=self.d_model**0.5)
+            if module.padding_idx is not None:
+                module.weight.data[module.padding_idx].zero_()
 
 
 class PositionalEncoding(nn.Module):
@@ -91,6 +109,72 @@ class PositionalEncoding(nn.Module):
     def forward(self, x):
         x = x * self.d_model ** 0.5 + self.pe[:x.size(0), :]
         return self.dropout(x)
+
+class Seq2SeqRNN(nn.Module):
+
+    def __init__(self, vocab_size, padding_idx, d_model, n_layers, bidirectional=True):
+
+        super().__init__()
+
+        self.padding_idx = padding_idx
+        self.embedding = nn.Embedding(vocab_size, d_model, padding_idx=padding_idx)
+        self.n_layers = n_layers
+
+        if bidirectional:
+            assert d_model % 2 == 0
+            d_encoder = d_model // 2
+        else:
+            d_encoder = d_model
+
+        self.encoder = nn.LSTM(
+            input_size = d_model,
+            hidden_size = d_encoder,
+            num_layers = n_layers,
+            bidirectional = bidirectional,
+        )
+
+        self.decoder = nn.LSTM(
+            input_size = d_model,
+            hidden_size = d_model,
+            num_layers = n_layers,
+        )
+
+    def forward(self, features, features_length, decoder_input_idx):
+        
+        _, state = self.encoder(features)
+
+        state = self.transform_state(state)
+
+        decoder_input_emb = self.embedding(decoder_input_idx)
+        logit, _ = self.decoder(decoder_input_emb, state)
+        predict = logit @ self.embedding.weight.transpose(0, 1)
+        return predict
+
+    def transform_state(self, state):
+
+        h, c = state
+
+        h = h.view(self.n_layers, -1, h.size(1), h.size(2))
+        h = torch.cat([h[:, i, :, :] for i in range(h.size(1))], dim=-1)
+
+        c = c.view(self.n_layers, -1, c.size(1), c.size(2))
+        c = torch.cat([c[:, i, :, :] for i in range(c.size(1))], dim=-1)
+
+        return (h, c)
+
+    def incremental_decode(self, features, features_length, start_ids, max_len):
+
+        _, state = self.encoder(features)
+        state = self.transform_state(state)
+        output_ids = start_ids
+        for i in range(max_len):
+            decoder_input_emb = self.embedding(output_ids[-1]).unsqueeze(0)
+            logit, state = self.decoder(decoder_input_emb, state)
+            predict = logit @ self.embedding.weight.transpose(0, 1)
+            predict_id = torch.argmax(predict, dim=-1)
+            output_ids = torch.cat((output_ids, predict_id), dim=0)
+        return output_ids
+
 
 # class ToyRNNS2S(nn.Module):
 
