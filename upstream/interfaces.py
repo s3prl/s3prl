@@ -170,7 +170,7 @@ class Featurizer(nn.Module):
             show(
                 f"[{self.name}] - Take a list of {self.layer_num} features and weighted sum them."
             )
-            self.weights = nn.Parameter(torch.ones(self.layer_num))
+            self.weights = nn.Parameter(torch.zeros(self.layer_num))
             feature = self._weighted_sum([f.cpu() for f in feature])
         else:
             feature = feature.cpu()
