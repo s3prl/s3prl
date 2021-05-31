@@ -35,7 +35,9 @@ EXAMPLE_SEC = 5
 class UpstreamExpert(UpstreamBase):
     def __init__(self, ckpt, **kwargs):
         super().__init__(**kwargs)
-        assert version.parse(fairseq.__version__) >= version.parse("0.10.2")
+        assert version.parse(fairseq.__version__) > version.parse(
+            "0.10.2"
+        ), "Please install the fairseq master branch."
 
         # Fix checkpoint key if loaded
         loaded_ckpt = torch.load(ckpt, map_location="cpu")
