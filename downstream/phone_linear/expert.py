@@ -2,7 +2,7 @@
 """*********************************************************************************************"""
 #   FileName     [ expert.py ]
 #   Synopsis     [ the phone linear downstream wrapper ]
-#   Author       [ S3PRL ]
+#   Author       [ Andy T. Liu (https://github.com/andi611) ]
 #   Copyright    [ Copyleft(c), Speech Lab, NTU, Taiwan ]
 """*********************************************************************************************"""
 
@@ -136,18 +136,6 @@ class DownstreamExpert(nn.Module):
                 these contents can be averaged and logged on Tensorboard
                 later by self.log_records every log_step
 
-            logger:
-                Tensorboard SummaryWriter, given here for logging/debugging convenience
-                please use f'{prefix}your_content_name' as key name
-                to log your customized contents
-
-            prefix:
-                used to indicate downstream and train/test on Tensorboard
-                eg. 'phone/train-'
-
-            global_step:
-                global_step in runner, which is helpful for Tensorboard logging
-
         Return:
             loss:
                 the loss to be optimized, should not be detached
@@ -169,7 +157,9 @@ class DownstreamExpert(nn.Module):
         predicted_classid = predicted.max(dim=-1).indices
         sames = (predicted_classid == labels)
         for s, l in zip(sames, lengths):
-            records['acc'] += s[:l].tolist()
+            utter_result = s[:l].tolist()
+            records['acc'] += utter_result
+            records['sample_wise_metric'] += [torch.FloatTensor(utter_result).mean().item()]
 
         return loss
 
@@ -184,10 +174,6 @@ class DownstreamExpert(nn.Module):
                 Tensorboard SummaryWriter
                 please use f'{prefix}your_content_name' as key name
                 to log your customized contents
-
-            prefix:
-                used to indicate downstream and train/test on Tensorboard
-                eg. 'phone/train-'
 
             global_step:
                 global_step in runner, which is helpful for Tensorboard logging

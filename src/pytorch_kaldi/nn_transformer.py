@@ -279,7 +279,7 @@ class TRANSFORMER(nn.Module):
 # POSITIONAL ENCODING #
 #######################
 MAX_SEQLEN = 5000
-@lru_cache(maxsize=1)
+@lru_cache(maxsize=128)
 def get_sinusoid_table(hidden_size):
     def _cal_angle(position, hid_idx):
         return position / np.power(10000, 2 * (hid_idx // 2) / hidden_size)
