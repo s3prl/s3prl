@@ -40,7 +40,7 @@ class UpstreamExpert(nn.Module):
 
     def __init__(self, ckpt, **kwargs):
         super(UpstreamExpert, self).__init__()
-        assert version.parse(fairseq.__version__) >= version.parse("0.10.2")
+        assert version.parse(fairseq.__version__) > version.parse("0.10.2"), "Please install the fairseq master branch."
 
         model, cfg, task = fairseq.checkpoint_utils.load_model_ensemble_and_task([ckpt])
         self.model = model[0]
