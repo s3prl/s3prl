@@ -47,7 +47,8 @@ class UpstreamExpert(nn.Module):
 
         pseudo_input = torch.randn(1, SAMPLE_RATE * EXAMPLE_SEC)
         padding_mask = torch.zeros(1, SAMPLE_RATE * EXAMPLE_SEC).long().bool()
-        pseudo_feature, padding_mask = self.model.extract_features(pseudo_input, padding_mask)
+        result = self.model.extract_features(pseudo_input, padding_mask)
+        pseudo_feature, padding_mask = result['x'], result['padding_mask']
 
         self.output_dim = pseudo_feature.size(-1)
 
@@ -81,8 +82,9 @@ class UpstreamExpert(nn.Module):
             wav_lengths.unsqueeze(1)
         )
         padded_wav = pad_sequence(wavs, batch_first=True)
-        
-        features, feat_padding_mask = self.model.extract_features(padded_wav, wav_padding_mask)
+
+        result = self.model.extract_features(padded_wav, wav_padding_mask)
+        features, feat_padding_mask = result['x'], result['padding_mask']
         feat_lengths = (features.size(1) - feat_padding_mask.sum(dim=-1)).tolist()
 
         features = [feat[:length] for feat, length in zip(features, feat_lengths)]
