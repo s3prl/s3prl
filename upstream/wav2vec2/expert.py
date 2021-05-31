@@ -85,7 +85,11 @@ class UpstreamExpert(nn.Module):
 
         result = self.model.extract_features(padded_wav, wav_padding_mask)
         features, feat_padding_mask = result['x'], result['padding_mask']
-        feat_lengths = (features.size(1) - feat_padding_mask.sum(dim=-1)).tolist()
+
+        if feat_padding_mask is not None:
+            feat_lengths = (features.size(1) - feat_padding_mask.sum(dim=-1)).tolist()
+        else:
+            feat_lengths = [features.size(1)] * len(features)
 
         features = [feat[:length] for feat, length in zip(features, feat_lengths)]
         return features
