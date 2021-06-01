@@ -40,14 +40,15 @@ class UpstreamExpert(nn.Module):
 
     def __init__(self, ckpt, **kwargs):
         super(UpstreamExpert, self).__init__()
-        assert version.parse(fairseq.__version__) >= version.parse("0.10.2")
+        assert version.parse(fairseq.__version__) > version.parse("0.10.2"), "Please install the fairseq master branch."
 
         model, cfg, task = fairseq.checkpoint_utils.load_model_ensemble_and_task([ckpt])
         self.model = model[0]
 
         pseudo_input = torch.randn(1, SAMPLE_RATE * EXAMPLE_SEC)
         padding_mask = torch.zeros(1, SAMPLE_RATE * EXAMPLE_SEC).long().bool()
-        pseudo_feature, padding_mask = self.model.extract_features(pseudo_input, padding_mask)
+        result = self.model.extract_features(pseudo_input, padding_mask)
+        pseudo_feature, padding_mask = result['x'], result['padding_mask']
 
         self.output_dim = pseudo_feature.size(-1)
 
@@ -81,9 +82,14 @@ class UpstreamExpert(nn.Module):
             wav_lengths.unsqueeze(1)
         )
         padded_wav = pad_sequence(wavs, batch_first=True)
-        
-        features, feat_padding_mask = self.model.extract_features(padded_wav, wav_padding_mask)
-        feat_lengths = (features.size(1) - feat_padding_mask.sum(dim=-1)).tolist()
+
+        result = self.model.extract_features(padded_wav, wav_padding_mask)
+        features, feat_padding_mask = result['x'], result['padding_mask']
+
+        if feat_padding_mask is not None:
+            feat_lengths = (features.size(1) - feat_padding_mask.sum(dim=-1)).tolist()
+        else:
+            feat_lengths = [features.size(1)] * len(features)
 
         features = [feat[:length] for feat, length in zip(features, feat_lengths)]
         return features

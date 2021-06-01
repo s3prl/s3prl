@@ -16,7 +16,7 @@ We develop several downstream tasks for evaluating SSL models, each of them is d
 
 #### II A. Run the developed tasks
 
-3. **Optional:** [**Register your customized pretrained model** (will be detailed soon)]()
+3. **Optional:** [**Register your customized pretrained model**](../upstream/example/README.md)
     - You can also start from evaluating [pretrained models available in this toolkit](../upstream/README.md#upstream-self-supervised-models).
 4. Follow the task-specific usages
     - [**SUPERB Benchmark**](#superb-benchmark)

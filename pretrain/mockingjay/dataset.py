@@ -33,7 +33,7 @@ HALF_BATCHSIZE_TIME = 99999
 class AcousticDataset(Dataset):
     
     def __init__(self, extracter, task_config, bucket_size, file_path, sets, 
-                 max_timestep=0, drop=False, libri_root=None, **kwargs):
+                 max_timestep=0, libri_root=None, **kwargs):
         super(AcousticDataset, self).__init__()
 
         self.extracter = extracter
@@ -49,13 +49,17 @@ class AcousticDataset(Dataset):
         self.table = pd.concat(tables, ignore_index=True).sort_values(by=['length'], ascending=False)
         print('[Dataset] - Training data from these sets:', str(sets))
 
-        # Crop seqs that are too long
-        if drop and max_timestep > 0:
+        # Drop seqs that are too long
+        if max_timestep > 0:
             self.table = self.table[self.table.length < max_timestep]
+        # Drop seqs that are too short
+        if max_timestep < 0:
+            self.table = self.table[self.table.length > (-1 * max_timestep)]
 
         X = self.table['file_path'].tolist()
         X_lens = self.table['length'].tolist()
-        print('[Dataset] - Number of individual training instances:', len(X))
+        self.num_samples = len(X)
+        print('[Dataset] - Number of individual training instances:', self.num_samples)
 
         # Use bucketing to allow different batch size at run time
         self.X = []
@@ -97,9 +101,9 @@ class AcousticDataset(Dataset):
 class KaldiAcousticDataset(AcousticDataset):
     
     def __init__(self, extracter, task_config, bucket_size, file_path, sets, 
-                 max_timestep=0, drop=False, libri_root=None, **kwargs):
+                 max_timestep=0, libri_root=None, **kwargs):
         super(KaldiAcousticDataset, self).__init__(extracter, task_config, bucket_size, file_path, sets, 
-                 max_timestep, drop, libri_root, **kwargs)
+                                                   max_timestep, libri_root, **kwargs)
 
     def _load_feat(self, feat_path):
         if self.libri_root is None:
@@ -119,14 +123,17 @@ class KaldiAcousticDataset(AcousticDataset):
 class OnlineAcousticDataset(AcousticDataset):
     
     def __init__(self, extracter, task_config, bucket_size, file_path, sets, 
-                 max_timestep=0, drop=False, libri_root=None, target_level=-25, **kwargs):
+                 max_timestep=0, libri_root=None, target_level=-25, **kwargs):
+        max_timestep *= 160
         super(OnlineAcousticDataset, self).__init__(extracter, task_config, bucket_size, file_path, sets, 
-                 max_timestep, drop, libri_root, **kwargs)
+                                                    max_timestep, libri_root, **kwargs)
         self.target_level = target_level
         self.sample_length = self.sample_length * 160
     
     def _normalize_wav_decibel(self, wav):
         '''Normalize the signal to the target level'''
+        if self.target_level == 'None':
+            return wav
         rms = wav.pow(2).mean().pow(0.5)
         scalar = (10 ** (self.target_level / 20)) / (rms + 1e-10)
         wav = wav * scalar

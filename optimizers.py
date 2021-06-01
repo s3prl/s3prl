@@ -194,7 +194,17 @@ class AdamW(Optimizer):
                     p.data.add_(p.data, alpha=-group["lr"] * group["weight_decay"])
 
         return loss
-
+        
+    def get_lr(self):
+        lr = []
+        for group in self.param_groups:
+            for p in group['params']:
+                state = self.state[p]
+                if len(state) == 0:
+                    pass
+                else:
+                    lr.append(group['lr'])
+        return lr
 
 # For the following codes:
 """PyTorch optimization for BERT model."""
