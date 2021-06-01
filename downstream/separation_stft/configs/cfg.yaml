@@ -29,9 +29,9 @@ downstream_expert:
     num_workers: 4
     train_batchsize: 8
     eval_batchsize: 1
-    train_dir: /export/c12/hzili1/tools/s3prl_separation/downstream/separation_stft/data/wav16k/min/train-100
-    dev_dir: /export/c12/hzili1/tools/s3prl_separation/downstream/separation_stft/data/wav16k/min/dev
-    test_dir: /export/c12/hzili1/tools/s3prl_separation/downstream/separation_stft/data/wav16k/min/test
+    train_dir: ./downstream/separation_stft/data/wav16k/min/train-100
+    dev_dir: ./downstream/separation_stft/data/wav16k/min/dev
+    test_dir: ./downstream/separation_stft/data/wav16k/min/test
   
   modelrc: 
     model: SepRNN
