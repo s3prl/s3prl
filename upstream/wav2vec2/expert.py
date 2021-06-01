@@ -18,6 +18,7 @@ from packaging import version
 #-------------#
 import torch
 import torch.nn as nn
+import torch.nn.functional as F
 from torch.nn.utils.rnn import pad_sequence
 #-------------#
 import fairseq
@@ -44,6 +45,7 @@ class UpstreamExpert(nn.Module):
 
         model, cfg, task = fairseq.checkpoint_utils.load_model_ensemble_and_task([ckpt])
         self.model = model[0]
+        self.task = task
 
         pseudo_input = torch.randn(1, SAMPLE_RATE * EXAMPLE_SEC)
         padding_mask = torch.zeros(1, SAMPLE_RATE * EXAMPLE_SEC).long().bool()
@@ -75,6 +77,9 @@ class UpstreamExpert(nn.Module):
                 each feat is in torch.FloatTensor and already
                 put in the device assigned by command-line args
         """
+        if self.task.cfg.normalize:
+            wavs = [F.layer_norm(wav, wav.shape) for wav in wavs]
+
         device = wavs[0].device
         wav_lengths = torch.LongTensor([len(wav) for wav in wavs]).to(device)
         wav_padding_mask = ~torch.lt(

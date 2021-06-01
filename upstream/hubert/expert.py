@@ -78,6 +78,9 @@ class UpstreamExpert(nn.Module):
                 each feat is in torch.FloatTensor and already
                 put in the device assigned by command-line args
         """
+        if self.task.cfg.normalize:
+            wavs = [F.layer_norm(wav, wav.shape) for wav in wavs]
+
         device = wavs[0].device
         wav_lengths = torch.LongTensor([len(wav) for wav in wavs]).to(device)
         wav_padding_mask = ~torch.lt(
@@ -85,9 +88,6 @@ class UpstreamExpert(nn.Module):
             wav_lengths.unsqueeze(1)
         )
         padded_wav = pad_sequence(wavs, batch_first=True)
-
-        if self.task.cfg.normalize:
-            padded_wav = F.layer_norm(padded_wav, padded_wav.shape)
 
         features, feat_padding_mask = self.model.extract_features(
             padded_wav,
