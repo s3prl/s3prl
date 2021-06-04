@@ -31,17 +31,17 @@ Below is a list of available upstream models that we currently support:
 Publication Date | Model | name | Paper | Input | Stride | Pre-train | Ckpt | Repo 
 |---|---|---|---|---|---|---|---|---
 10 Jul 2018 | CPC | cpc | [arxiv](https://arxiv.org/abs/1807.03748) | wav | 10ms | [LibriLight-60k](https://github.com/facebookresearch/libri-light) | X | [FAIR](https://github.com/facebookresearch/CPC_audio)
-5 Apr 2019 | APC | apc | [arxiv](https://arxiv.org/abs/1904.03240) | Mel | 10ms | [LibriSpeech-360](http://www.openslr.org/12) | O | [APC](https://github.com/iamyuanchung/Autoregressive-Predictive-Coding)
+5 Apr 2019 | APC | apc | [arxiv](https://arxiv.org/abs/1904.03240) | Mel | 10ms | [LibriSpeech-360](http://www.openslr.org/12) | O | [APC](https://github.com/Alexander-H-Liu/NPC)
 6 Apr 2019 | PASE | pase | [arxiv](https://arxiv.org/abs/1904.03416) | wav | 10ms | [LibriSpeech-960](http://www.openslr.org/12) | X | [PASE](https://github.com/santi-pdp/pase)
 11 Apr 2019 | Wav2Vec | wav2vec | [arxiv](https://arxiv.org/abs/1904.05862) | wav | 10ms | [LibriSpeech-960](http://www.openslr.org/12) | O | [Fairseq](https://github.com/pytorch/fairseq)
 12 Oct 2019 | VQ-Wav2Vec | vq_wav2vec | [arxiv](https://arxiv.org/abs/1910.05453) | wav | 10ms | [LibriSpeech-960](http://www.openslr.org/12) | O | [Fairseq](https://github.com/pytorch/fairseq)
 25 Oct 2019 | Mockingjay | mockingjay | [arxiv](https://arxiv.org/abs/1910.12638) | Mel | 10ms | [LibriSpeech-960](http://www.openslr.org/12) | O | [S3PRL](https://github.com/andi611/Self-Supervised-Speech-Pretraining-and-Representation-Learning)
 7 Feb 2020 | Modified-CPC | cpc | [arxiv](https://arxiv.org/abs/2002.02848) | wav | 10ms | [LibriLight-60k](https://github.com/facebookresearch/libri-light) | O | [FAIR](https://github.com/facebookresearch/CPC_audio)
-17 May 2020 | VQ-APC | vq_apc | [arxiv](https://arxiv.org/abs/2005.08392) | Mel | 10ms | [LibriSpeech-360](http://www.openslr.org/12) | O | [NPC](https://github.com/iamyuanchung/Autoregressive-Predictive-Coding)
+17 May 2020 | VQ-APC | vq_apc | [arxiv](https://arxiv.org/abs/2005.08392) | Mel | 10ms | [LibriSpeech-360](http://www.openslr.org/12) | O | [NPC](https://github.com/Alexander-H-Liu/NPC)
 18 May 2020 | Audio Albert | audio_albert | [arxiv](https://arxiv.org/abs/2005.08575) | Mel | 10ms | [LibriSpeech-960](http://www.openslr.org/12) | X | [S3PRL](https://github.com/andi611/Self-Supervised-Speech-Pretraining-and-Representation-Learning)
 20 Jun 2020 | Wav2Vec 2.0 | wav2vec2 | [arxiv](https://arxiv.org/abs/2006.11477) | wav | 20ms | [LibriSpeech-960](http://www.openslr.org/12) | O | [Fairseq](https://github.com/pytorch/fairseq)
 12 Jul 2020 | TERA | tera | [arxiv](https://arxiv.org/abs/2007.06028) | Mel | 10ms | [LibriSpeech-960](http://www.openslr.org/12) | O | [S3PRL](https://github.com/andi611/Self-Supervised-Speech-Pretraining-and-Representation-Learning)
-1 Nov 2020 | NPC | npc | [arxiv](https://arxiv.org/abs/2011.00406) | Mel | 10ms | [LibriSpeech-360](http://www.openslr.org/12) | O | [NPC](https://github.com/iamyuanchung/Autoregressive-Predictive-Coding)
+1 Nov 2020 | NPC | npc | [arxiv](https://arxiv.org/abs/2011.00406) | Mel | 10ms | [LibriSpeech-360](http://www.openslr.org/12) | O | [NPC](https://github.com/Alexander-H-Liu/NPC)
 
 <details><summary>Upstreams ordered in different style of losses</summary><p>
 
@@ -65,15 +65,15 @@ Publication Date | Model | name | Paper | Input | Stride | Pre-train | Ckpt | Re
 * **APC**
     - Described in ["An Unsupervised Autoregressive Model for Speech Representation Learning"](https://arxiv.org/abs/1904.03240)
     - *RNN based, unidirectional reconstruction loss*
-    - Checkpoints are provided by this repo: [Alexander-H-Liu/NPC](https://github.com/Alexander-H-Liu/NPC)
+    - Checkpoints are trained from this repo: [Alexander-H-Liu/NPC](https://github.com/Alexander-H-Liu/NPC)
 * **VQ-APC**
     - Described in ["Vector-Quantized Autoregressive Predictive Coding"](https://arxiv.org/abs/2005.08392)
     - *RNN based, unidirectional reconstruction loss + vector quantization*
-    - Checkpoints are provided by this repo: [Alexander-H-Liu/NPC](https://github.com/Alexander-H-Liu/NPC)
+    - Checkpoints are trained from this repo: [Alexander-H-Liu/NPC](https://github.com/Alexander-H-Liu/NPC)
 * **NPC**
     - Described in ["Non-Autoregressive Predictive Coding for Learning Speech Representations from Local Dependencies"](https://arxiv.org/abs/2011.00406)
     - *CNN based, reconstruction loss with Masked Convolution Blocks*
-    - Checkpoints are provided by this repo: [Alexander-H-Liu/NPC](https://github.com/Alexander-H-Liu/NPC)
+    - Checkpoints are trained from this repo: [Alexander-H-Liu/NPC](https://github.com/Alexander-H-Liu/NPC)
 * **wav2vec**
     - Described in ["wav2vec: Unsupervised Pre-training for Speech Recognition"](https://arxiv.org/abs/1904.05862)
     - *CNN based, InfoNCE contrastive loss*
