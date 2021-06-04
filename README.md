@@ -85,6 +85,7 @@ cd ../
 * [CPC](https://github.com/facebookresearch/CPC_audio), Facebook AI Research.
 * [APC](https://github.com/iamyuanchung/Autoregressive-Predictive-Coding), Yu-An Chung.
 * [NPC](https://github.com/Alexander-H-Liu/NPC), Alexander-H-Liu.
+* [Mockingjay](https://github.com/andi611/Mockingjay-Speech-Representation), Andy T. Liu.
 
 ## License
 
@@ -163,7 +164,7 @@ however portions of the project are available under separate license terms: S3PR
 
 + [Adversarial Defense for Automatic Speaker Verification by Cascaded Self-Supervised Learning Models (Wu et al., 2021)](https://arxiv.org/abs/2102.07047)
   ```
-  @misc{wu2021adversarial,
+  @misc{asv_ssl,
       title={Adversarial defense for automatic speaker verification by cascaded self-supervised learning models}, 
       author={Haibin Wu and Xu Li and Andy T. Liu and Zhiyong Wu and Helen Meng and Hung-yi Lee},
       year={2021},
@@ -176,7 +177,7 @@ however portions of the project are available under separate license terms: S3PR
 
 + [S2VC: A Framework for Any-to-Any Voice Conversion with Self-Supervised Pretrained Representations (Lin et al., 2021)](https://arxiv.org/abs/2104.02901)
   ```
-  @misc{lin2021s2vc,
+  @misc{s2vc,
         title={S2VC: A Framework for Any-to-Any Voice Conversion with Self-Supervised Pretrained Representations}, 
         author={Jheng-hao Lin and Yist Y. Lin and Chung-Ming Chien and Hung-yi Lee},
         year={2021},
@@ -190,7 +191,7 @@ however portions of the project are available under separate license terms: S3PR
 
 + [SUPERB: Speech processing Universal PERformance Benchmark (Yang et al., 2021)](https://arxiv.org/abs/2105.01051)
   ```
-  @misc{yang2021superb,
+  @misc{superb,
         title={SUPERB: Speech processing Universal PERformance Benchmark}, 
         author={Shu-wen Yang and Po-Han Chi and Yung-Sung Chuang and Cheng-I Jeff Lai and Kushal Lakhotia and Yist Y. Lin and Andy T. Liu and Jiatong Shi and Xuankai Chang and Guan-Ting Lin and Tzu-Hsien Huang and Wei-Cheng Tseng and Ko-tik Lee and Da-Rong Liu and Zili Huang and Shuyan Dong and Shang-Wen Li and Shinji Watanabe and Abdelrahman Mohamed and Hung-yi Lee},
         year={2021},
@@ -202,7 +203,7 @@ however portions of the project are available under separate license terms: S3PR
 
 + [Utilizing Self-supervised Representations for MOS Prediction (Tseng et al., 2021)](https://arxiv.org/abs/2104.03017)
   ```
-  @misc{tseng2021utilizing,
+  @misc{ssr_mos,
       title={Utilizing Self-supervised Representations for MOS Prediction}, 
       author={Wei-Cheng Tseng and Chien-yu Huang and Wei-Tsung Kao and Yist Y. Lin and Hung-yi Lee},
       year={2021},
@@ -217,8 +218,9 @@ however portions of the project are available under separate license terms: S3PR
 
 ## Citation
 
-If you find our repository useful, please consider citing following papers.
+If you find this toolkit useful, please consider citing following papers.
 
+- If you use our pre-training scripts, or the downstream tasks considered in *TERA* and *Mockingjay*, please consider citing the following:
 ```
 @misc{tera,
   title={TERA: Self-Supervised Learning of Transformer Encoder Representation for Speech},
@@ -229,6 +231,21 @@ If you find our repository useful, please consider citing following papers.
   primaryClass={eess.AS}
 }
 ```
+```
+@article{mockingjay,
+   title={Mockingjay: Unsupervised Speech Representation Learning with Deep Bidirectional Transformer Encoders},
+   ISBN={9781509066315},
+   url={http://dx.doi.org/10.1109/ICASSP40776.2020.9054458},
+   DOI={10.1109/icassp40776.2020.9054458},
+   journal={ICASSP 2020 - 2020 IEEE International Conference on Acoustics, Speech and Signal Processing (ICASSP)},
+   publisher={IEEE},
+   author={Liu, Andy T. and Yang, Shu-wen and Chi, Po-Han and Hsu, Po-chun and Lee, Hung-yi},
+   year={2020},
+   month={May}
+}
+```
+
+- If you use our organized upstream interface and features, or the *SUPERB* downstream benchmark, please consider citing the following:
 ```
 @misc{superb,
   title={SUPERB: Speech processing Universal PERformance Benchmark}, 
