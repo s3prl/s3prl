@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*- #
 """*********************************************************************************************"""
 #   FileName     [ expert.py ]
-#   Synopsis     [ the speech separation downstream wrapper ]
+#   Synopsis     [ the speech enhancement downstream wrapper ]
 #   Source       [ Reference some code from https://github.com/funcwj/uPIT-for-speech-separation and https://github.com/asteroid-team/asteroid ]
 #   Author       [ Zili Huang ]
 #   Copyright    [ Copyright(c), Johns Hopkins University ]
