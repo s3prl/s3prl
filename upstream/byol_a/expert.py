@@ -93,14 +93,10 @@ class UpstreamExpert(nn.Module):
                 each feat is in torch.FloatTensor and already
                 put in the device assigned by command-line args
         """
-        features = [self.normalizer((self.to_melspec(wav) + torch.finfo(torch.float).eps).log()).permute(1, 0) for wav in wavs]
-        feat_lengths = [len(feat) for feat in features] # feat: (T, F)
-
-        features = pad_sequence(features, batch_first=True) # features: (B, T, F)
-        feat_lengths = torch.LongTensor(feat_lengths)
+        features = [self.normalizer((self.to_melspec(wav) + torch.finfo(torch.float).eps).log()).permute(1, 0) for wav in wavs] # features: (B, T, F)
+        features = pad_sequence(features, batch_first=True)
 
         # forward the sequence in chunks then concat
         features = self.forward_in_chunks(features)
-
-        features = [f[:l] for f, l in zip(features, feat_lengths)]
+        features = [f for f in features]
         return features
