@@ -134,6 +134,9 @@ class UpstreamBase(nn.Module, metaclass=initHook):
             result["_hidden_states_info"], result["hidden_states"] = zip(*hook_hiddens)
             result["last_hidden_state"] = result["hidden_states"][-1]
 
+            for layer_id, hidden_state in enumerate(result["hidden_states"]):
+                result[f"hidden_state_{layer_id}"] = hidden_state
+
             default = result.get("default")
             if default is not None:
                 assert torch.allclose(default, result["last_hidden_state"])
