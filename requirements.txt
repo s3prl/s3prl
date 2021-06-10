@@ -28,3 +28,4 @@ pysndfx
 nltk
 normalise
 editdistance
+asteroid==0.4.4

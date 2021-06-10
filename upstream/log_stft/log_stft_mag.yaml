@@ -1,0 +1,8 @@
+feat_type: spectrogram
+spectrogram:
+  n_fft: 512
+  hop_length: 320
+  win_length: 512
+  window: "hann"
+  center: True 
+  log: True
