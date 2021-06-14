@@ -1,9 +1,9 @@
 import os
 import glob
-import yaml
 import torch
 
 import hubconf
+from upstream.interfaces import Featurizer
 from utility.download import _urls_to_filepaths
 from .expert import UpstreamExpert as _UpstreamExpert
 
@@ -20,12 +20,13 @@ def _vq_wav2vec_roberta(vq_wav2vec, **kwargs):
         def __init__(self, vq_wav2vec):
             super(vq_wav2vec_codeids_wrapper, self).__init__()
             self.vq_wav2vec = vq_wav2vec
+            self.featurizer = Featurizer(vq_wav2vec, "codeids", upstream_device="cpu")
 
         def _indices_to_string(self, sentence_idxs):
             return "<s> " + " ".join("-".join(map(str, idx.tolist())) for idx in sentence_idxs) + " </s>"
 
         def forward(self, wavs):
-            batch_idxs = self.vq_wav2vec(wavs)
+            batch_idxs = self.featurizer(wavs, self.vq_wav2vec(wavs))
             strings = [self._indices_to_string(sentence_idxs) for sentence_idxs in batch_idxs]
             return strings
 
@@ -34,7 +35,7 @@ def _vq_wav2vec_roberta(vq_wav2vec, **kwargs):
 
 
 def vq_wav2vec_kmeans_roberta(refresh=False, **kwargs):
-    vq_wav2vec = getattr(hubconf, f'vq_wav2vec_kmeans')(feature_selection='codeids', refresh=refresh)
+    vq_wav2vec = getattr(hubconf, f'vq_wav2vec_kmeans')(refresh=refresh)
 
     tar_file = _urls_to_filepaths('https://dl.fbaipublicfiles.com/fairseq/wav2vec/bert_kmeans.tar', refresh=refresh)
     tar_dir = os.path.join(os.path.dirname(tar_file), 'vq_wav2vec_kmeans_roberta/')

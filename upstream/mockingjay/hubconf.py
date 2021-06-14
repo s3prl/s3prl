@@ -17,18 +17,16 @@ from utility.download import _gdriveids_to_filepaths, _urls_to_filepaths
 from upstream.mockingjay.expert import UpstreamExpert as _UpstreamExpert
 
 
-def mockingjay_local(ckpt, feature_selection=None, model_config=None, *args, **kwargs):
+def mockingjay_local(ckpt, model_config=None, *args, **kwargs):
     """
         The model from local ckpt
             ckpt (str): PATH
             feature_selection (int): -1 (default, the last layer) or an int in range(0, max_layer_num)
     """
     assert os.path.isfile(ckpt)
-    if feature_selection is None:
-        feature_selection = -1
     if model_config is not None:
         assert os.path.isfile(model_config)
-    return _UpstreamExpert(ckpt, feature_selection, model_config, *args, **kwargs)
+    return _UpstreamExpert(ckpt, model_config, *args, **kwargs)
 
 
 def mockingjay_gdriveid(ckpt, refresh=False, *args, **kwargs):

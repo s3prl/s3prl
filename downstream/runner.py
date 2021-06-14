@@ -6,10 +6,8 @@ import shutil
 import random
 import tempfile
 import importlib
-from pathlib import Path
 
 import torch
-import torch.nn as nn
 import numpy as np
 from tqdm import tqdm
 from tensorboardX import SummaryWriter
@@ -19,9 +17,18 @@ from torch.distributed import is_initialized, get_rank, get_world_size
 import hubconf
 from optimizers import get_optimizer
 from schedulers import get_scheduler
-from utility.helper import is_leader_process, count_parameters, get_model_state, show, defaultdict
+from upstream.interfaces import Featurizer
+from utility.helper import is_leader_process, get_model_state, show, defaultdict
 
 SAMPLE_RATE = 16000
+
+
+class ModelEntry:
+    def __init__(self, model, name, trainable, interfaces):
+        self.model = model
+        self.name = name
+        self.trainable = trainable
+        self.interfaces = interfaces
 
 
 class Runner():
@@ -32,10 +39,33 @@ class Runner():
     def __init__(self, args, config):
         self.args = args
         self.config = config
-
         self.init_ckpt = torch.load(self.args.init_ckpt, map_location='cpu') if self.args.init_ckpt else {}
+
         self.upstream = self._get_upstream()
+        self.featurizer = self._get_featurizer()
         self.downstream = self._get_downstream()
+        self.all_entries = [self.upstream, self.featurizer, self.downstream]
+
+
+    def _load_weight(self, model, name):
+        init_weight = self.init_ckpt.get(name)
+        if init_weight:
+            show(f'[Runner] - Loading {name} weights from the previous experiment')
+            model.load_state_dict(init_weight)
+
+
+    def _init_model(self, model, name, trainable, interfaces=None):
+        for interface in interfaces or []:
+            assert hasattr(model, interface)
+
+        self._load_weight(model, name)
+
+        if is_initialized() and trainable and any((p.requires_grad for p in model.parameters())):
+            model = DDP(model, device_ids=[self.args.local_rank], find_unused_parameters=True)
+            for interface in interfaces or []:
+                setattr(model, interface, getattr(model.module, interface))
+
+        return ModelEntry(model, name, trainable, interfaces)
 
 
     def _get_upstream(self):
@@ -46,69 +76,51 @@ class Runner():
             torch.distributed.barrier()
             upstream_refresh = False
 
-        upstream = Upstream(
-            feature_selection = self.args.upstream_feature_selection,
+        model = Upstream(
+            ckpt = self.args.upstream_ckpt,
             model_config = self.args.upstream_model_config,
             refresh = upstream_refresh,
-            ckpt = self.args.upstream_ckpt,
         ).to(self.args.device)
 
         if is_initialized() and get_rank() == 0:
             torch.distributed.barrier()
 
-        interface_fn = ['get_output_dim', 'get_downsample_rate']
-        for fn in interface_fn:
-            assert hasattr(upstream, fn)
+        return self._init_model(
+            model = model,
+            name = 'Upstream',
+            trainable = self.args.upstream_trainable,
+        )
 
-        if self.args.verbose:
-            show(f'[Runner] - Upstream model architecture: {upstream}')
-            show(f'[Runner] - Upstream has {count_parameters(upstream)} parameters')
-            show(f'[Runner] - Upstream output dimension: {upstream.get_output_dim()}')
-            downsample = upstream.get_downsample_rate()
-            show(f'[Runner] - Upstream downsample rate: {downsample} ({downsample / SAMPLE_RATE * 1000} ms/frame)')
 
-        init_upstream = self.init_ckpt.get('Upstream')
-        if init_upstream:
-            show('[Runner] - Loading upstream weights from the previous experiment')
-            upstream.load_state_dict(init_upstream)
+    def _get_featurizer(self):
+        model = Featurizer(
+            self.upstream.model, self.args.upstream_feature_selection
+        ).to(self.args.device)
 
-        if is_initialized() and self.args.upstream_trainable:
-            upstream = DDP(upstream, device_ids=[self.args.local_rank], find_unused_parameters=True)
-            for fn in interface_fn:
-                setattr(upstream, fn, getattr(upstream.module, fn))
-
-        return upstream
+        return self._init_model(
+            model = model,
+            name = 'Featurizer',
+            trainable = True,
+            interfaces = ['output_dim', 'downsample_rate']
+        )
 
 
     def _get_downstream(self):
         module_path = f'downstream.{self.args.downstream}.expert'
         Downstream = getattr(importlib.import_module(module_path), 'DownstreamExpert')
-        downstream = Downstream(
-            upstream_dim = self.upstream.get_output_dim(),
-            upstream_rate = self.upstream.get_downsample_rate(),
+        model = Downstream(
+            upstream_dim = self.featurizer.model.output_dim,
+            upstream_rate = self.featurizer.model.downsample_rate,
             **self.config,
             **vars(self.args)
         ).to(self.args.device)
 
-        if self.args.verbose:
-            show(f'[Runner] - Downstream model architecture: {downstream}')
-            show(f'[Runner] - Downstream has {count_parameters(downstream)} parameters')
-
-        interface_fn = ['get_dataloader', 'log_records']
-        for fn in interface_fn:
-            assert hasattr(downstream, fn)
-
-        init_downstream = self.init_ckpt.get('Downstream')
-        if init_downstream:
-            show('[Runner] - Loading downstream weights from the previous experiment')
-            downstream.load_state_dict(init_downstream)
-
-        if is_initialized():
-            downstream = DDP(downstream, device_ids=[self.args.local_rank], find_unused_parameters=True)
-            for fn in interface_fn:
-                setattr(downstream, fn, getattr(downstream.module, fn))
-
-        return downstream
+        return self._init_model(
+            model = model,
+            name = 'Downstream',
+            trainable = True,
+            interfaces = ['get_dataloader', 'log_records']
+        )
 
 
     def _get_optimizer(self, model_params):
@@ -117,11 +129,7 @@ class Runner():
             self.config['runner']['total_steps'],
             self.config['optimizer']
         )
-
-        init_optimizer = self.init_ckpt.get('Optimizer')
-        if init_optimizer:
-            show('[Runner] - Loading optimizer weights from the previous experiment')
-            optimizer.load_state_dict(init_optimizer)
+        self._load_weight(optimizer, 'Optimizer')
         return optimizer
 
 
@@ -131,51 +139,49 @@ class Runner():
             self.config['runner']['total_steps'],
             self.config['scheduler']
         )
-
-        init_scheduler = self.init_ckpt.get('Scheduler')
-        if init_scheduler:
-            show('[Runner] - Loading scheduler weights from the previous experiment')
-            scheduler.load_state_dict(init_scheduler)
+        self._load_weight(scheduler, 'Scheduler')
         return scheduler
 
 
     def train(self):
-        # set model train/eval modes
-        self.downstream.train()
-        self.upstream.eval()
-        if self.args.upstream_trainable:
-            self.upstream.train()
+        # trainable parameters and train/eval mode
+        trainable_models = []
+        trainable_paras = []
+        for entry in self.all_entries:
+            if entry.trainable:
+                entry.model.train()
+                trainable_models.append(entry.model)
+                trainable_paras += list(entry.model.parameters())
+            else:
+                entry.model.eval()
 
-        # set optimizer
-        model_params = [self.downstream]
-        if self.args.upstream_trainable:
-            model_params.append(self.upstream)
-        optimizer = self._get_optimizer(model_params)
+        # optimizer
+        optimizer = self._get_optimizer(trainable_models)
 
-        # set scheduler
+        # scheduler
         scheduler = None
         if self.config.get('scheduler'):
             scheduler = self._get_scheduler(optimizer)
 
-        # set specaug
+        # specaug
         specaug = None
         if self.config.get('specaug'):
             from .specaug import SpecAug
             specaug = SpecAug(**self.config["specaug"])
 
-        # set progress bar
+        # progress bar
         tqdm_file = sys.stderr if is_leader_process() else open(os.devnull, 'w')
         pbar = tqdm(total=self.config['runner']['total_steps'], dynamic_ncols=True, desc='overall', file=tqdm_file)
         init_step = self.init_ckpt.get('Step')
         if init_step:
             pbar.n = init_step
 
-        # set Tensorboard logging
+        # Tensorboard logging
         if is_leader_process():
             logger = SummaryWriter(self.args.expdir)
 
         # prepare data
-        dataloader = self.downstream.get_dataloader('train')
+        dataloader = self.downstream.model.get_dataloader('train')
 
         batch_ids = []
         backward_steps = 0
@@ -193,16 +199,17 @@ class Runner():
                     global_step = pbar.n + 1
 
                     wavs = [torch.FloatTensor(wav).to(self.args.device) for wav in wavs]
-                    if self.upstream.training:
-                        features = self.upstream(wavs)
+                    if self.upstream.trainable:
+                        features = self.upstream.model(wavs)
                     else:
                         with torch.no_grad():
-                            features = self.upstream(wavs)
+                            features = self.upstream.model(wavs)
+                    features = self.featurizer.model(wavs, features)
 
                     if specaug:
                         features, _ = specaug(features)
 
-                    loss = self.downstream(
+                    loss = self.downstream.model(
                         'train',
                         features, *others,
                         records = records,
@@ -231,10 +238,8 @@ class Runner():
                     continue
 
                 # gradient clipping
-                paras = list(self.downstream.parameters())
-                if self.args.upstream_trainable:
-                    paras += list(self.upstream.parameters())
-                grad_norm = torch.nn.utils.clip_grad_norm_(paras, self.config['runner']['gradient_clipping'])
+                grad_norm = torch.nn.utils.clip_grad_norm_(
+                    trainable_paras, self.config['runner']['gradient_clipping'])
 
                 # optimize
                 if math.isnan(grad_norm):
@@ -254,7 +259,7 @@ class Runner():
 
                 # logging
                 if global_step % self.config['runner']['log_step'] == 0:
-                    self.downstream.log_records(
+                    self.downstream.model.log_records(
                         'train',
                         records = records,
                         logger = logger,
@@ -285,7 +290,6 @@ class Runner():
 
                 if len(save_names) > 0:
                     all_states = {
-                        'Downstream': get_model_state(self.downstream),
                         'Optimizer': optimizer.state_dict(),
                         'Step': global_step,
                         'Epoch': epoch,
@@ -293,11 +297,12 @@ class Runner():
                         'Config': self.config,
                     }
 
+                    for entry in self.all_entries:
+                        if entry.trainable:
+                            all_states[entry.name] = get_model_state(entry.model)
+
                     if scheduler:
                         all_states['Scheduler'] = scheduler.state_dict()
-
-                    if self.args.upstream_trainable:
-                        all_states['Upstream'] = get_model_state(self.upstream)
 
                     if is_initialized():
                         all_states['WorldSize'] = get_world_size()
@@ -336,13 +341,13 @@ class Runner():
             torch.cuda.empty_cache()
 
         # record original train/eval states and set all models to eval
-        downstream_training = self.downstream.training
-        upstream_training = self.upstream.training
-        self.downstream.eval()
-        self.upstream.eval()
+        trainings = []
+        for entry in self.all_entries:
+            trainings.append(entry.model.training)
+            entry.model.eval()
 
         # prepare data
-        dataloader = self.downstream.get_dataloader(split)
+        dataloader = self.downstream.model.get_dataloader(split)
 
         batch_ids = []
         records = defaultdict(list)
@@ -350,15 +355,16 @@ class Runner():
 
             wavs = [torch.FloatTensor(wav).to(self.args.device) for wav in wavs]
             with torch.no_grad():
-                features = self.upstream(wavs)
-                self.downstream(
+                features = self.upstream.model(wavs)
+                features = self.featurizer.model(wavs, features)
+                self.downstream.model(
                     split,
                     features, *others,
                     records = records,
                 )
                 batch_ids.append(batch_id)
 
-        save_names = self.downstream.log_records(
+        save_names = self.downstream.model.log_records(
             split,
             records = records,
             logger = logger,
@@ -372,10 +378,10 @@ class Runner():
         # prepare back to training
         with torch.cuda.device(self.args.device):
             torch.cuda.empty_cache()
-        if downstream_training:
-            self.downstream.train()
-        if upstream_training:
-            self.upstream.train()
+
+        for entry, training in zip(self.all_entries, trainings):
+            if training:
+                entry.model.train()
 
         if not_during_training:
             logger.close()

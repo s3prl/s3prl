@@ -12,11 +12,11 @@ def wav2vec2_hug(ckpt, *args, **kwargs):
     return _UpstreamExpert(ckpt, *args, **kwargs)
 
 
-def wav2vec2_hug_base_960h(*args, **kwargs):
-    kwargs['ckpt'] = 'facebook/wav2vec2-base-960h'
+def wav2vec2_hug_base_960(*args, **kwargs):
+    kwargs['ckpt'] = 'facebook/wav2vec2-base'
     return wav2vec2_hug(*args, **kwargs)
 
 
-def wav2vec2_hug_large_lv60h(*args, **kwargs):
+def wav2vec2_hug_large_ll60k(*args, **kwargs):
     kwargs['ckpt'] = 'facebook/wav2vec2-large-lv60'
     return wav2vec2_hug(*args, **kwargs)

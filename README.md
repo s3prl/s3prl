@@ -52,7 +52,7 @@ If you find this toolkit helpful to your research, please do consider to cite [o
 * Install **sox** on your OS
 * Install generally used packages for *pretrain*, *upstream* and *downstream*:
 
-```
+```bash
 git clone https://github.com/s3prl/s3prl.git
 cd s3prl/
 pip install -r requirements.txt
@@ -60,6 +60,12 @@ cd ../
 
 git clone https://github.com/pytorch/fairseq.git
 cd fairseq/
+
+# The version used by the repo maintainer currently.
+# Please must not use the stable version 0.10.2 as it
+# contains known bugs for wav2vec2 inference and ASR decoding
+git checkout 8df9e3a4
+
 pip install -e ./
 cd ../
 ```
