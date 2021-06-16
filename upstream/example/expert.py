@@ -16,10 +16,12 @@ class UpstreamExpert(UpstreamBase):
         Args:
             ckpt:
                 The checkpoint path for loading your pretrained weights.
+                Can be assigned by the -k option in run_downstream.py
 
             model_config:
                 The config path for constructing your model.
                 Might not needed if you also save that in your checkpoint file.
+                Can be assigned by the -g option in run_downstream.py
         """
         # Pass kwargs into UpstreamBase to enable features shared across upstreams
         super().__init__(**kwargs)
