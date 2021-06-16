@@ -45,4 +45,5 @@ class UpstreamExpert(UpstreamBase):
         feature = self.model2(hidden)
         # feature: (batch_size, max_len, hidden_dim)
 
+        # These two keys are requirements
         return {"last_hidden_state": feature, "hidden_states": [hidden, feature]}
