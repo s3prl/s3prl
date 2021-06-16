@@ -76,34 +76,16 @@ class UpstreamExpert(nn.Module):
         self.output_dim = self.extracter.get_output_dim()
         self.downsample_rate = self.extracter.get_downsample_rate()
 
-    # Interface
-    def get_output_dim(self):
-        return self.output_dim
-
-    # Interface
-    def get_downsample_rate(self):
-        return self.downsample_rate
-
     def _extractor_forward(self, wavs):
         feats = []
         for wav in wavs:
             feats.append(self.extracter(wav))
         return feats
 
-    # Interface
     def forward(self, wavs):
-        """
-        Args:
-            wavs:
-                list of unpadded wavs [wav1, wav2, ...]
-                each wav is in torch.FloatTensor with sample rate 16000
-                and already put in the device assigned by command-line args
-
-        Return:
-            features:
-                list of unpadded features [feat1, feat2, ...]
-                each feat is in torch.FloatTensor and already
-                put in the device assigned by command-line args
-        """
         feats = self._extractor_forward(wavs)
-        return feats
+        feats = pad_sequence(feats, batch_first=True)
+        return {
+            "last_hidden_state": [feats],
+            "hidden_states": [feats]
+        }
