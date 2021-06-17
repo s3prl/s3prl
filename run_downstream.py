@@ -13,7 +13,7 @@ from argparse import Namespace
 from torch.distributed import is_initialized, get_world_size
 
 import hubconf
-from downstream.runner import Runner
+from downstream import SingleRunner, MultipleRunner
 from utility.helper import backup, get_time_tag, hack_isinstance, is_leader_process, override
 
 
@@ -43,8 +43,7 @@ def get_downstream_args():
     parser.add_argument('-c', '--config', help='The yaml file for configuring the whole experiment except the upstream model')
 
     # downstream settings
-    downstreams = [item for item in os.listdir('./downstream') if os.path.isfile(os.path.join('./downstream', item, 'expert.py'))]
-    parser.add_argument('-d', '--downstream', choices=downstreams, help='\
+    parser.add_argument('-d', '--downstream', help='\
         Typically downstream dataset need manual preparation.\
         Please check downstream/README.md for details'
     )
@@ -70,6 +69,7 @@ def get_downstream_args():
     parser.add_argument('-a', '--auto_resume', action='store_true', help='Auto-resume if the expdir contains checkpoints')
 
     # options
+    parser.add_argument('--runner_cls', default='MultipleRunner')
     parser.add_argument('--seed', default=1337, type=int)
     parser.add_argument('--device', default='cuda', help='model.to(device)')
     parser.add_argument('--cache_dir', help='The cache directory for pretrained model downloading')
@@ -185,7 +185,7 @@ def main():
     torch.backends.cudnn.deterministic = True
     torch.backends.cudnn.benchmark = False
 
-    runner = Runner(args, config)
+    runner = eval(args.runner_cls)(args, config)
     eval(f'runner.{args.mode}')()
 
 
