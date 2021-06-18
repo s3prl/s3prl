@@ -43,7 +43,7 @@ def hubert(refresh=False, *args, **kwargs):
     The default model - Base
         refresh (bool): whether to download ckpt/config again if existed
     """
-    return hubert_base(refresh=True, *args, **kwargs)
+    return hubert_base(refresh=refresh, *args, **kwargs)
 
 
 def hubert_base(refresh=False, *args, **kwargs):
@@ -51,14 +51,14 @@ def hubert_base(refresh=False, *args, **kwargs):
     The Base model
         refresh (bool): whether to download ckpt/config again if existed
     """
-    kwargs["ckpt"] = ""
+    kwargs["ckpt"] = "https://dl.fbaipublicfiles.com/hubert/hubert_base_ls960.pt"
     return hubert_url(refresh=refresh, *args, **kwargs)
 
 
-def hubert_large(refresh=False, *args, **kwargs):
+def hubert_large_ll60k(refresh=False, *args, **kwargs):
     """
     The Large model
         refresh (bool): whether to download ckpt/config again if existed
     """
-    kwargs["ckpt"] = ""
+    kwargs["ckpt"] = "https://dl.fbaipublicfiles.com/hubert/hubert_large_ll60k.pt"
     return hubert_url(refresh=refresh, *args, **kwargs)

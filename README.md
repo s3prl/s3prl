@@ -11,6 +11,7 @@
 
 ## What's New
 
+* June 2021: Support extracting multiple hidden states from the SSL pretrained models
 * April 2021: Support [**SUPERB:** **S**peech processing **U**niversal **PER**formance **B**enchmark](https://arxiv.org/abs/2105.01051), submitted to Interspeech 2021
 * Jan 2021: Readme updated with detailed instructions on how to use our latest version!
 * Dec 2020: We are migrating to a newer version for a more general, flexible, and scalable code. See the introduction below for more information! The legacy verison can be accessed by checking out to the tag **v0.1.0**: `git checkout v0.1.0`.
@@ -52,7 +53,7 @@ If you find this toolkit helpful to your research, please do consider to cite [o
 * Install **sox** on your OS
 * Install generally used packages for *pretrain*, *upstream* and *downstream*:
 
-```
+```bash
 git clone https://github.com/s3prl/s3prl.git
 cd s3prl/
 pip install -r requirements.txt
@@ -60,6 +61,12 @@ cd ../
 
 git clone https://github.com/pytorch/fairseq.git
 cd fairseq/
+
+# The version used by the repo maintainer currently.
+# Please must not use the stable version 0.10.2 as it
+# contains known bugs for wav2vec2 inference and ASR decoding
+git checkout 8df9e3a4
+
 pip install -e ./
 cd ../
 ```

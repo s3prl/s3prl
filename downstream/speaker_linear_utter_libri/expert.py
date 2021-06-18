@@ -81,9 +81,13 @@ class DownstreamExpert(nn.Module):
     def get_test_dataloader(self):
         return self._get_eval_dataloader(self.test_dataset)
 
+
     # Interface
-    def forward(self, features, labels, records,
-                logger, prefix, global_step, **kwargs):
+    def get_dataloader(self, mode):
+        return eval(f'self.get_{mode}_dataloader')()
+
+    # Interface
+    def forward(self, mode, features, labels, records, **kwargs):
         """
         Args:
             features:
@@ -98,18 +102,6 @@ class DownstreamExpert(nn.Module):
                 defaultdict(list), by appending contents into records,
                 these contents can be averaged and logged on Tensorboard
                 later by self.log_records every log_step
-
-            logger:
-                Tensorboard SummaryWriter, given here for logging/debugging convenience
-                please use f'{prefix}your_content_name' as key name
-                to log your customized contents
-
-            prefix:
-                used to indicate downstream and train/test on Tensorboard
-                eg. 'phone/train-'
-
-            global_step:
-                global_step in runner, which is helpful for Tensorboard logging
 
         Return:
             loss:
@@ -128,7 +120,7 @@ class DownstreamExpert(nn.Module):
         return loss
 
     # interface
-    def log_records(self, records, logger, prefix, global_step, **kwargs):
+    def log_records(self, mode, records, logger, global_step, **kwargs):
         """
         Args:
             records:
@@ -139,13 +131,10 @@ class DownstreamExpert(nn.Module):
                 please use f'{prefix}your_content_name' as key name
                 to log your customized contents
 
-            prefix:
-                used to indicate downstream and train/test on Tensorboard
-                eg. 'phone/train-'
-
             global_step:
                 global_step in runner, which is helpful for Tensorboard logging
         """
+        prefix = f'libri_speaker/{mode}-'
         average = torch.FloatTensor(records['acc']).mean().item()
         
         logger.add_scalar(
@@ -162,5 +151,6 @@ class DownstreamExpert(nn.Module):
             save_ckpt.append(f'best-states-{name}.ckpt')
         with open(self.logging, 'a') as f:
             f.write(message)
-        
+        print(message)
+
         return save_ckpt

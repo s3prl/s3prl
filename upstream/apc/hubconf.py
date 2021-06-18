@@ -7,13 +7,9 @@
 """*********************************************************************************************"""
 
 
-###############
-# IMPORTATION #
-###############
 import os
-import torch
-#-------------#
-from utility.download import _gdriveids_to_filepaths, _urls_to_filepaths
+
+from utility.download import _urls_to_filepaths
 from .expert import UpstreamExpert as _UpstreamExpert
 
 
@@ -24,15 +20,6 @@ def apc_local(ckpt, *args, **kwargs):
     """
     assert os.path.isfile(ckpt)
     return _UpstreamExpert(ckpt, *args, **kwargs)
-
-
-def apc_gdriveid(ckpt, refresh=False, *args, **kwargs):
-    """
-        The model from google drive id
-            ckpt (str): The unique id in the google drive share link
-            refresh (bool): whether to download ckpt/config again if existed
-    """
-    return apc_local(_gdriveids_to_filepaths(ckpt, refresh=refresh), *args, **kwargs)
 
 
 def apc_url(ckpt, refresh=False, *args, **kwargs):

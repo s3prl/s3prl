@@ -41,7 +41,10 @@ class DownstreamExpert(nn.Module):
         dataset = IEMOCAPDataset(DATA_ROOT, train_path, self.datarc['pre_load'])
         trainlen = int((1 - self.datarc['valid_ratio']) * len(dataset))
         lengths = [trainlen, len(dataset) - trainlen]
+        
+        torch.manual_seed(0)
         self.train_dataset, self.dev_dataset = random_split(dataset, lengths)
+
         self.test_dataset = IEMOCAPDataset(DATA_ROOT, test_path, self.datarc['pre_load'])
 
         model_cls = eval(self.modelrc['select'])
