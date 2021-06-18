@@ -24,7 +24,7 @@ optimizer:
 
 downstream_expert:
   datarc:
-    file_path: /groups/public/benchmark/fluent_speech_commands_dataset
+    file_path: /SpeechNet/datasets/fluent_speech_commands_dataset
     num_workers: 12
     train_batch_size: 32
     eval_batch_size: 32

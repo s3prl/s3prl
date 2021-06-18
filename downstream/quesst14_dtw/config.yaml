@@ -9,7 +9,7 @@ downstream_expert:
   silence_frame:
 
   datarc:
-    dataset_root: /corpora/quesst14Database
+    dataset_root: /SpeechNet/datasets/quesst14Database
     num_workers: 8
     batch_size: 16
 

@@ -22,7 +22,7 @@ scheduler:
 
 downstream_expert:
   datarc:
-    quesst2014_root: /corpora/quesst14Database
+    quesst2014_root: /SpeechNet/datasets/quesst14Database
     num_workers: 8
     batch_size: 16
     valid_size: 1000

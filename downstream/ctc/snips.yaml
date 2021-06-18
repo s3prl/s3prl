@@ -34,7 +34,7 @@ specaug:
 downstream_expert:
   corpus:                                 
     name: 'snips'                   # Specify corpus
-    path: '/path/to/SNIPS'          # Path to raw LibriSpeech dataset
+    path: '/SpeechNet/datasets/SNIPS'          # Path to raw LibriSpeech dataset
 
     train: ['train']                # Name of data splits to be used as training set
     valid: ['valid']                    # Name of data splits to be used as validation set
@@ -98,7 +98,7 @@ downstream_expert:
   text:
     mode: 'character-slot'                       # 'character'/'word'/'subword'
     vocab_file: 'downstream/ctc/vocab/character.txt'
-    slots_file: '/path/to/SNIPS/slots.txt'
+    slots_file: '/SpeechNet/datasets/SNIPS/slots.txt'
   
   model:
     project_dim: 1024

@@ -24,7 +24,7 @@ optimizer:
 
 downstream_expert:
   datarc:
-    root: /groups/public/benchmark/IEMOCAP
+    root: /SpeechNet/datasets/IEMOCAP
     pre_load: True
     train_batch_size: 4
     eval_batch_size: 4
