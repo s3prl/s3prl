@@ -38,7 +38,7 @@ pr:
 
   corpus:                                 
     name: 'libriphone'                   # Specify corpus
-    path: '/home/leo/d/datasets/LibriSpeech'          # Path to raw LibriSpeech dataset
+    path: '/LibriSpeech_grt'          # Path to raw LibriSpeech dataset
     lexicon:
       # - downstream/ctc/lexicon/librispeech-lexicon.txt
       - downstream/ctc/lexicon/librispeech-lexicon-200k-g2p.txt
@@ -88,8 +88,8 @@ ks:
       - test
   
   datarc:
-    speech_commands_root: /groups/public/benchmark/speech_commands/train
-    speech_commands_test_root: /groups/public/benchmark/speech_commands/test
+    speech_commands_root: /SpeechNet/datasets/speech_commands_v0.01
+    speech_commands_test_root: /SpeechNet/datasets/speech_commands_test_set_v0.01
     num_workers: 8
     batch_size: 1
 
@@ -109,7 +109,7 @@ ic:
       - test
 
   datarc:
-    file_path: /groups/public/benchmark/fluent_speech_commands_dataset
+    file_path: /SpeechNet/datasets/fluent_speech_commands_dataset
     num_workers: 12
     train_batch_size: 1
     eval_batch_size: 32
@@ -130,7 +130,7 @@ sid:
       - test
 
   datarc:
-    file_path: /home/leo/d/datasets/VoxCeleb1
+    file_path: /VoxCeleb1
     meta_data: ./downstream/voxceleb1/veri_test_class.txt
     num_workers: 12
     train_batch_size: 1
@@ -153,7 +153,7 @@ er:
       - test
 
   datarc:
-    root: /groups/public/benchmark/IEMOCAP
+    root: /SpeechNet/datasets/IEMOCAP
     pre_load: True
     train_batch_size: 1
     eval_batch_size: 4
@@ -193,7 +193,7 @@ asr:
     num_workers: 12
     train_batch_size: 1
     eval_batch_size: 1
-    libri_root: '/home/leo/d/datasets/LibriSpeech'
+    libri_root: '/LibriSpeech_grt'
     bucket_file: 'data/librispeech/len_for_bucket'
 
     zero_infinity: True
@@ -242,7 +242,7 @@ sf:
 
   corpus:                                 
     name: 'snips'                   # Specify corpus
-    path: '/path/to/SNIPS'          # Path to raw LibriSpeech dataset
+    path: '/SpeechNet/datasets/SNIPS'          # Path to raw LibriSpeech dataset
 
     train: ['train']                # Name of data splits to be used as training set
     valid: ['valid']                    # Name of data splits to be used as validation set
@@ -306,7 +306,7 @@ sf:
   text:
     mode: 'character-slot'                       # 'character'/'word'/'subword'
     vocab_file: 'downstream/ctc/vocab/character.txt'
-    slots_file: '/path/to/SNIPS/slots.txt'
+    slots_file: '/SpeechNet/datasets/SNIPS/slots.txt'
   
   model:
     project_dim: 1024
@@ -349,7 +349,7 @@ sv:
     vad_config:
       min_sec: 32000
     
-    file_path: /path/to/VoxCeleb1
+    file_path: /VoxCeleb1
     train_meta_data: ./downstream/sv_voxceleb1/dev_meta_data/dev_speaker_ids.txt
     dev_meta_data: ./downstream/sv_voxceleb1/dev_meta_data/dev_meta_data.txt
     test_meta_data: ./downstream/sv_voxceleb1/voxceleb1_test_v2.txt
