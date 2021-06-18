@@ -63,6 +63,6 @@ class UpstreamExpert(nn.Module):
                 continue
             padding_mask[i, diff:] = True
 
-        features = self.model(features, padding_mask)
+        features, layer_results = self.model(features, padding_mask)
 
         return {"default": features}

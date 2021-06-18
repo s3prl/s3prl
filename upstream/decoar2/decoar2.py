@@ -59,6 +59,6 @@ class Decoar2(nn.Module):
             padding_mask = padding_mask.view(padding_mask.size(0), features.size(1), -1)
             padding_mask = padding_mask.all(-1)
 
-        x = self.encoder(x, padding_mask=padding_mask)
+        x, layer_results = self.encoder(x, padding_mask=padding_mask, layer=None)
 
-        return x
+        return x, layer_results
