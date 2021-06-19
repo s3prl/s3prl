@@ -38,7 +38,7 @@ pr:
 
   corpus:                                 
     name: 'libriphone'                   # Specify corpus
-    path: '/home/leo/d/datasets/LibriSpeech'          # Path to raw LibriSpeech dataset
+    path: '/livingrooms/leo1994122701/LibriSpeech'          # Path to raw LibriSpeech dataset
     lexicon:
       # - downstream/ctc/lexicon/librispeech-lexicon.txt
       - downstream/ctc/lexicon/librispeech-lexicon-200k-g2p.txt
@@ -73,6 +73,9 @@ pr:
       proj: [True, True, True]              # Linear projection + Tanh after each rnn layer
       sample_rate: [1, 1, 1]
       sample_style: 'concat'                  # 'drop'/'concat'
+
+  save_best_on:
+    - dev
 
   metric_higher_better: False
   metric:  # The first metric will be used to save checkpoint
@@ -130,7 +133,7 @@ sid:
       - test
 
   datarc:
-    file_path: /home/leo/d/datasets/VoxCeleb1
+    file_path: /livingrooms/leo1994122701/VoxCeleb1
     meta_data: ./downstream/voxceleb1/veri_test_class.txt
     num_workers: 12
     train_batch_size: 1
@@ -193,7 +196,7 @@ asr:
     num_workers: 12
     train_batch_size: 1
     eval_batch_size: 1
-    libri_root: '/home/leo/d/datasets/LibriSpeech'
+    libri_root: '/livingrooms/leo1994122701/LibriSpeech'
     bucket_file: 'data/librispeech/len_for_bucket'
 
     zero_infinity: True
@@ -242,7 +245,7 @@ sf:
 
   corpus:                                 
     name: 'snips'                   # Specify corpus
-    path: '/path/to/SNIPS'          # Path to raw LibriSpeech dataset
+    path: '/groups/public/benchmark_datasets/SNIPS'          # Path to raw LibriSpeech dataset
 
     train: ['train']                # Name of data splits to be used as training set
     valid: ['valid']                    # Name of data splits to be used as validation set
@@ -306,7 +309,7 @@ sf:
   text:
     mode: 'character-slot'                       # 'character'/'word'/'subword'
     vocab_file: 'downstream/ctc/vocab/character.txt'
-    slots_file: '/path/to/SNIPS/slots.txt'
+    slots_file: '/groups/public/benchmark_datasets/SNIPS/slots.txt'
   
   model:
     project_dim: 1024
@@ -325,6 +328,9 @@ sf:
       proj: [False, False]              # Linear projection + Tanh after each rnn layer
       sample_rate: [1, 1]
       sample_style: 'concat'                  # 'drop'/'concat'
+
+  save_best_on:
+    - valid
 
   metric_higher_better: True
   metric:  # The first metric will be used to save checkpoint
@@ -349,7 +355,7 @@ sv:
     vad_config:
       min_sec: 32000
     
-    file_path: /path/to/VoxCeleb1
+    file_path: /livingrooms/leo1994122701/VoxCeleb1
     train_meta_data: ./downstream/sv_voxceleb1/dev_meta_data/dev_speaker_ids.txt
     dev_meta_data: ./downstream/sv_voxceleb1/dev_meta_data/dev_meta_data.txt
     test_meta_data: ./downstream/sv_voxceleb1/voxceleb1_test_v2.txt
