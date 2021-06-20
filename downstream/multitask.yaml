@@ -74,6 +74,9 @@ pr:
       sample_rate: [1, 1, 1]
       sample_style: 'concat'                  # 'drop'/'concat'
 
+  save_best_on:
+    - dev
+
   metric_higher_better: False
   metric:  # The first metric will be used to save checkpoint
     - wer
@@ -325,6 +328,9 @@ sf:
       proj: [False, False]              # Linear projection + Tanh after each rnn layer
       sample_rate: [1, 1]
       sample_style: 'concat'                  # 'drop'/'concat'
+
+  save_best_on:
+    - valid
 
   metric_higher_better: True
   metric:  # The first metric will be used to save checkpoint

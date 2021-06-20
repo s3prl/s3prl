@@ -19,7 +19,6 @@ from pathlib import Path
 from argparse import Namespace
 #-------------#
 import torch
-import kaldi_io
 import numpy as np
 import torch.nn as nn
 from torch.nn.utils.rnn import pad_sequence
@@ -28,7 +27,7 @@ from torch.distributed import is_initialized, get_rank, get_world_size
 #-------------#
 from utility.helper import is_leader_process
 from .model import Model, AMSoftmaxLoss, SoftmaxLoss, UtteranceExtractor
-from .dataset import SpeakerVerifi_train, SpeakerVerifi_test, SpeakerVerifi_plda
+from .dataset import SpeakerVerifi_train, SpeakerVerifi_test
 from .utils import EER
 
 
@@ -46,7 +45,7 @@ class DownstreamExpert(nn.Module):
         and wav1 is in torch.FloatTensor
     """
 
-    def __init__(self, upstream_dim, downstream_expert, evaluate_split, expdir, **kwargs):
+    def __init__(self, upstream_dim, downstream_expert, expdir, **kwargs):
         super(DownstreamExpert, self).__init__()
         # config
         self.upstream_dim = upstream_dim
@@ -115,9 +114,6 @@ class DownstreamExpert(nn.Module):
         self.eval_metric = EER
         self.register_buffer('best_score', torch.ones(1) * 100)
 
-        if evaluate_split in ['train_plda', 'test_plda'] and is_leader_process():
-            self.ark = open(f'{expdir}/{evaluate_split}.rep.ark', 'wb')
-
     # Interface
     def get_dataloader(self, mode):
         """
@@ -143,10 +139,6 @@ class DownstreamExpert(nn.Module):
             return self._get_eval_dataloader(self.dev_dataset)
         elif mode == 'test':
             return self._get_eval_dataloader(self.test_dataset)
-        elif mode == "train_plda":
-            return self._get_eval_dataloader(self.train_dataset_plda) 
-        elif mode == "test_plda":
-            return self._get_eval_dataloader(self.test_dataset_plda)
 
     def _get_train_dataloader(self, dataset):
         sampler = DistributedSampler(dataset) if is_initialized() else None
@@ -164,7 +156,7 @@ class DownstreamExpert(nn.Module):
             dataset, batch_size=self.datarc['eval_batch_size'],
             shuffle=False, num_workers=self.datarc['num_workers'],
             collate_fn=dataset.collate_fn
-        )    
+        )
 
     # Interface
     def get_train_dataloader(self):
@@ -238,17 +230,9 @@ class DownstreamExpert(nn.Module):
             records['labels'].extend(labels)
 
             return torch.tensor(0)
-        
-        elif mode in ['train_plda', 'test_plda'] and is_leader_process():
-            agg_vec = self.model.inference(features_pad, attention_mask_pad.cuda())
-            agg_vec = agg_vec / (torch.norm(agg_vec, dim=-1).unsqueeze(-1))
-
-            for key, vec in zip(utter_idx, agg_vec):
-                vec = vec.view(-1).detach().cpu().numpy()
-                kaldi_io.write_vec_flt(self.ark, vec, key=key)
 
     # interface
-    def log_records(self, mode, records, logger, global_step, batch_ids, total_batch_num, **kwargs):
+    def log_records(self, mode, records, logger, global_step, **kwargs):
         """
         Args:
             records:
@@ -281,9 +265,6 @@ class DownstreamExpert(nn.Module):
             if err < self.best_score and mode == 'dev':
                 self.best_score = torch.ones(1) * err
                 save_names.append(f'{mode}-best.ckpt')
-
-        elif mode in ['train_plda', 'test_plda']:
-            self.ark.close()
 
         return save_names
 

@@ -657,11 +657,11 @@ python3 run_downstream.py -m evaluate -e result/downstream/ExpName/best-states-d
     ```
 
 #### Train
-IEMOCAP provides 5 splits of data: Section1, Section2, Section3, Section4 and Section5. Conventionally, each split will be selected as the test set and train the model with other 4 splits. That is, 5 times of training and testing is required, and 5 testing scores will be averaged to report the final number. We can use `-v` option to control which split we want to reserve as the test set.
+IEMOCAP provides 5 splits of data: Section1, Section2, Section3, Section4 and Section5. Conventionally, each split will be selected as the test set and train the model with other 4 splits. That is, 5 times of training and testing is required, and 5 testing scores will be averaged to report the final number. We can change the `test_fold` option in the config file to control which split we want to reserve as the test set.
 
 ```bash
-# -v: fold1, fold2, fold3, fold4, fold5
-python3 run_downstream.py -n ExpName -m train -u fbank -d emotion -v fold1
+# test_fold can be: fold1, fold2, fold3, fold4, fold5
+python3 run_downstream.py -n ExpName -m train -u fbank -d emotion -c downstream/emotion/config.yaml -o "config.downstream_expert.datarc.test_fold='fold1'"
 ```
 
 #### Test
@@ -677,7 +677,8 @@ python3 utility/get_best_dev.py result/downstream/ExpName/log.log
 ```bash
 for test_fold in fold1 fold2 fold3 fold4 fold5;
 do
-    python3 run_downstream.py -n ExpName_$test_fold -m train -u fbank -d emotion -v $test_fold
+    # The default config is "downstream/emotion/config.yaml"
+    python3 run_downstream.py -n ExpName_$test_fold -m train -u fbank -d emotion -o "config.downstream_expert.datarc.test_fold='$test_fold'"
     python3 utility/get_best_dev.py result/downstream/ExpName_$test_fold/log.log
 done
 ```

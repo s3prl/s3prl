@@ -18,17 +18,15 @@ class DownstreamExpert(nn.Module):
     eg. downstream forward, metric computation, contents to log
     """
 
-    def __init__(self, upstream_dim, downstream_expert, downstream_variant, expdir, **kwargs):
+    def __init__(self, upstream_dim, downstream_expert, expdir, **kwargs):
         super(DownstreamExpert, self).__init__()
         self.upstream_dim = upstream_dim
         self.datarc = downstream_expert['datarc']
         self.modelrc = downstream_expert['modelrc']
 
         DATA_ROOT = self.datarc['root']
-        self.fold = downstream_variant
-        if self.fold is None:
-            self.fold = 'fold1'
-            print(f'[Expert] - using the default fold `{self.fold}`, use `--downstream_variant` to change fold.')
+        self.fold = self.datarc.get('test_fold', 'fold1')
+        print(f"[Expert] - using the testing fold: \"{self.fold}\". Ps. Use `-o \"config.downstream_expert.datarc.test_fold='fold2'\"` to change test_fold in config.")
 
         train_path = os.path.join(
             DATA_ROOT, 'meta_data', self.fold.replace('fold', 'Session'), 'train_meta_data.json')
