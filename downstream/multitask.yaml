@@ -35,6 +35,7 @@ pr:
     eval_step: 10
     eval_dataloaders:  # The first loader will be used to save checkpoint
       - dev
+      - test
 
   corpus:                                 
     name: 'libriphone'                   # Specify corpus
@@ -162,6 +163,7 @@ er:
     eval_batch_size: 4
     num_workers: 12
     valid_ratio: 0.2
+    test_fold: fold1
 
   modelrc:
     projector_dim: 256
@@ -186,6 +188,9 @@ asr:
     eval_step: 10
     eval_dataloaders:
       - dev-clean
+      - test-clean
+      - dev-other
+      - test-other
 
   datarc:
     train: ['train-clean-100']
@@ -242,6 +247,7 @@ sf:
     eval_step: 10
     eval_dataloaders:
       - valid
+      - test
 
   corpus:                                 
     name: 'snips'                   # Specify corpus
@@ -347,7 +353,8 @@ sv:
   looprc:
     log_step: 5
     eval_step: 10
-    eval_dataloaders: []
+    eval_dataloaders:
+      - test
 
   datarc:
     # In first time, we filter out utterances which shorter than two sec. (change config just influenced by cache files)
@@ -404,6 +411,7 @@ sd:
     eval_step: 10
     eval_dataloaders:
       - dev
+      - test
 
   datarc:
     chunk_size: 2000

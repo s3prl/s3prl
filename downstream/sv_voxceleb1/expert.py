@@ -262,7 +262,7 @@ class DownstreamExpert(nn.Module):
             logger.add_scalar(f'sv-voxceleb1/{mode}-EER', err, global_step=global_step)
             print(f'sv-voxceleb1/{mode}-ERR: {err}')
 
-            if err < self.best_score and mode == 'dev':
+            if err < self.best_score and mode == 'test':
                 self.best_score = torch.ones(1) * err
                 save_names.append(f'{mode}-best.ckpt')
 
