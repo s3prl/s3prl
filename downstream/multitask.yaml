@@ -2,7 +2,7 @@ runner:
   total_steps: 200000
   gradient_clipping: 1
   gradient_accumulate_steps: 1
-  save_step: 10
+  save_step: 1000
   max_keep: 1
 
 optimizer:
@@ -31,8 +31,8 @@ specaug:
 pr:
   folder: ctc
   looprc:
-    log_step: 5
-    eval_step: 10
+    log_step: 100
+    eval_step: 1000
     eval_dataloaders:  # The first loader will be used to save checkpoint
       - dev
 
@@ -84,8 +84,8 @@ pr:
 ks:
   folder: speech_commands
   looprc:
-    log_step: 5
-    eval_step: 10
+    log_step: 100
+    eval_step: 1000
     eval_dataloaders:
       - dev
       - test
@@ -105,8 +105,8 @@ ks:
 ic:
   folder: fluent_commands
   looprc:
-    log_step: 5
-    eval_step: 10
+    log_step: 100
+    eval_step: 1000
     eval_dataloaders:
       - dev
       - test
@@ -126,8 +126,8 @@ ic:
 sid:
   folder: voxceleb1
   looprc:
-    log_step: 5
-    eval_step: 10
+    log_step: 100
+    eval_step: 1000
     eval_dataloaders:
       - dev
       - test
@@ -149,8 +149,8 @@ sid:
 er:
   folder: emotion
   looprc:
-    log_step: 5
-    eval_step: 10
+    log_step: 100
+    eval_step: 1000
     eval_dataloaders:
       - dev
       - test
@@ -182,8 +182,8 @@ er:
 asr:
   folder: asr
   looprc:
-    log_step: 5
-    eval_step: 10
+    log_step: 100
+    eval_step: 1000
     eval_dataloaders:
       - dev-clean
 
@@ -197,7 +197,7 @@ asr:
     train_batch_size: 1
     eval_batch_size: 1
     libri_root: '/LibriSpeech_grt'
-    bucket_file: 'data/librispeech/len_for_bucket'
+    bucket_file: 'data/LibriSpeech/len_for_bucket'
 
     zero_infinity: True
 
@@ -238,8 +238,8 @@ asr:
 sf:
   folder: ctc
   looprc:
-    log_step: 5
-    eval_step: 10
+    log_step: 100
+    eval_step: 1000
     eval_dataloaders:
       - valid
 
@@ -345,8 +345,8 @@ sf:
 sv:
   folder: sv_voxceleb1
   looprc:
-    log_step: 5
-    eval_step: 10
+    log_step: 100
+    eval_step: 1000000
     eval_dataloaders: []
 
   datarc:
@@ -400,8 +400,8 @@ sv:
 sd:
   folder: diarization
   looprc:
-    log_step: 5
-    eval_step: 10
+    log_step: 100
+    eval_step: 1000
     eval_dataloaders:
       - dev
 
