@@ -21,7 +21,7 @@ class DownstreamExpert(nn.Module):
     eg. downstream forward, metric computation, contents to log
     """
 
-    def __init__(self, upstream_dim, upstream_rate, runner, downstream_expert, expdir, **kwargs):
+    def __init__(self, upstream_dim, upstream_rate, downstream_expert, expdir, **kwargs):
         super(DownstreamExpert, self).__init__()
         self.expdir = expdir
         self.upstream_dim = upstream_dim
@@ -44,7 +44,7 @@ class DownstreamExpert(nn.Module):
             blank = self.tokenizer.pad_idx,
             zero_infinity = modelrc['zero_infinity'],
         )
-        self.eval_dataloaders = runner['eval_dataloaders']
+        self.save_best_on = downstream_expert['save_best_on']
         self.metrics = downstream_expert['metric']
         self.metric_higher_better = downstream_expert['metric_higher_better']
         self.register_buffer('best_score', torch.ones(1) * (
@@ -116,7 +116,7 @@ class DownstreamExpert(nn.Module):
             )
             if key == self.metrics[0]:
                 save_criterion = value > self.best_score if self.metric_higher_better else value < self.best_score
-                if split == self.eval_dataloaders[0] and save_criterion:
+                if split in self.save_best_on and save_criterion:
                     self.best_score = torch.ones(1) * value
                     save_names.append(f'{split}-best.ckpt')
 

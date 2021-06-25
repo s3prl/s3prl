@@ -7,12 +7,8 @@
 """*********************************************************************************************"""
 
 
-###############
-# IMPORTATION #
-###############
 import os
-import torch
-#-------------#
+
 from utility.download import _urls_to_filepaths
 from .expert import UpstreamExpert as _UpstreamExpert
 
@@ -34,7 +30,7 @@ def cpc_url(ckpt, refresh=False, *args, **kwargs):
     return cpc_local(_urls_to_filepaths(ckpt), *args, **kwargs)
 
 
-def cpc(refresh=False, *args, **kwargs):
+def modified_cpc(refresh=False, *args, **kwargs):
     """
         The model from official repository
     """

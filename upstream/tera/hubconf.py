@@ -17,16 +17,14 @@ from utility.download import _gdriveids_to_filepaths, _urls_to_filepaths
 from upstream.tera.expert import UpstreamExpert as _UpstreamExpert
 
 
-def tera_local(ckpt, feature_selection=None, *args, **kwargs):
+def tera_local(ckpt, *args, **kwargs):
     """
         The model from local ckpt
             ckpt (str): PATH
             feature_selection (int): -1 (default, the last layer) or an int in range(0, max_layer_num)
     """
     assert os.path.isfile(ckpt)
-    if feature_selection is None:
-        feature_selection = -1
-    return _UpstreamExpert(ckpt, feature_selection, *args, **kwargs)
+    return _UpstreamExpert(ckpt, *args, **kwargs)
 
 
 def tera_gdriveid(ckpt, refresh=False, *args, **kwargs):

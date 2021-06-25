@@ -7,94 +7,63 @@
 """*********************************************************************************************"""
 
 
-###############
-# IMPORTATION #
-###############
-import os
-import math
-import yaml
-import random
+import argparse
+from typing import List
 from packaging import version
-#-------------#
+
 import torch
-import torch.nn as nn
+import fairseq
+import numpy as np
 import torch.nn.functional as F
 from torch.nn.utils.rnn import pad_sequence
-#-------------#
-import fairseq
+from omegaconf.dictconfig import DictConfig
+
+from upstream.interfaces import UpstreamBase
+from utility.helper import zero_mean_unit_var_norm
 
 
-############
-# CONSTANT #
-############
-SAMPLE_RATE = 16000
-EXAMPLE_SEC = 5
-
-
-###################
-# UPSTREAM EXPERT #
-###################
-class UpstreamExpert(nn.Module):
-    """
-    The wav2vec 2.0 wrapper
-    """
-
+class UpstreamExpert(UpstreamBase):
     def __init__(self, ckpt, **kwargs):
-        super(UpstreamExpert, self).__init__()
-        assert version.parse(fairseq.__version__) > version.parse("0.10.2"), "Please install the fairseq master branch."
+        super().__init__(**kwargs)
+        assert version.parse(fairseq.__version__) > version.parse(
+            "0.10.2"
+        ), "Please install the fairseq master branch."
 
         model, cfg, task = fairseq.checkpoint_utils.load_model_ensemble_and_task([ckpt])
         self.model = model[0]
-        self.task = task
+        self.wav_normalize = cfg.task.normalize
 
-        pseudo_input = torch.randn(1, SAMPLE_RATE * EXAMPLE_SEC)
-        padding_mask = torch.zeros(1, SAMPLE_RATE * EXAMPLE_SEC).long().bool()
-        result = self.model.extract_features(pseudo_input, padding_mask)
-        pseudo_feature, padding_mask = result['x'], result['padding_mask']
+        # These options are only used for aligning representations between s3prl and huggingface
+        # See utility/compare_wav2vec2.py
+        self.apply_padding_mask = True
+        self.numpy_wav_normalize = False
 
-        self.output_dim = pseudo_feature.size(-1)
+        if len(self.hooks) == 0:
+            module_name = "self.model.encoder.layers"
+            for module_id in range(len(eval(module_name))):
+                self.add_hook(
+                    f"{module_name}[{module_id}]",
+                    lambda input, output: input[0].transpose(0, 1),
+                )
+            self.add_hook("self.model.encoder", lambda input, output: output[0])
 
-    # Interface
-    def get_output_dim(self):
-        return self.output_dim
-
-    # Interface
-    def get_downsample_rate(self):
-        return 320
-
-    # Interface
     def forward(self, wavs):
-        """
-        Args:
-            wavs:
-                list of unpadded wavs [wav1, wav2, ...]
-                each wav is in torch.FloatTensor with sample rate 16000
-                and already put in the device assigned by command-line args
-
-        Return:
-            features:
-                list of unpadded features [feat1, feat2, ...]
-                each feat is in torch.FloatTensor and already
-                put in the device assigned by command-line args
-        """
-        if self.task.cfg.normalize:
-            wavs = [F.layer_norm(wav, wav.shape) for wav in wavs]
-
         device = wavs[0].device
+        if self.wav_normalize:
+            if self.numpy_wav_normalize:
+                wavs = zero_mean_unit_var_norm([wav.cpu().numpy() for wav in wavs])
+                wavs = [torch.from_numpy(wav).to(device) for wav in wavs]
+            else:
+                wavs = [F.layer_norm(wav, wav.shape) for wav in wavs]
+
         wav_lengths = torch.LongTensor([len(wav) for wav in wavs]).to(device)
         wav_padding_mask = ~torch.lt(
             torch.arange(max(wav_lengths)).unsqueeze(0).to(device),
-            wav_lengths.unsqueeze(1)
+            wav_lengths.unsqueeze(1),
         )
         padded_wav = pad_sequence(wavs, batch_first=True)
 
-        result = self.model.extract_features(padded_wav, wav_padding_mask)
-        features, feat_padding_mask = result['x'], result['padding_mask']
-
-        if feat_padding_mask is not None:
-            feat_lengths = (features.size(1) - feat_padding_mask.sum(dim=-1)).tolist()
-        else:
-            feat_lengths = [features.size(1)] * len(features)
-
-        features = [feat[:length] for feat, length in zip(features, feat_lengths)]
-        return features
+        results = self.model.extract_features(
+            padded_wav, wav_padding_mask if self.apply_padding_mask else None
+        )
+        return {"default": results["x"]}

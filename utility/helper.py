@@ -16,7 +16,9 @@ import math
 import torch
 import shutil
 import builtins
+import numpy as np
 from time import time
+from typing import List
 from pathlib import Path
 from datetime import datetime
 from collections import defaultdict
@@ -46,9 +48,9 @@ def get_model_state(model):
         return model.module.state_dict()
     return model.state_dict()
 
-def show(message):
+def show(*args, **kwargs):
     if is_leader_process():
-        print(message)
+        print(*args, **kwargs)
 
 def hack_isinstance():
     # Pytorch do not support passing a defaultdict into DDP module
@@ -90,6 +92,14 @@ def override(string, args, config):
                 else:
                     target_config.setdefault(field_name, {})
                     target_config = target_config[field_name]
+
+def zero_mean_unit_var_norm(input_values: List[np.ndarray]) -> List[np.ndarray]:
+    """
+    Every array in the list is normalized to have zero mean and unit variance
+    Taken from huggingface to ensure the same behavior across s3prl and huggingface
+    Reference: https://github.com/huggingface/transformers/blob/a26f4d620874b32d898a5b712006a4c856d07de1/src/transformers/models/wav2vec2/feature_extraction_wav2vec2.py#L81-L86
+    """
+    return [(x - np.mean(x)) / np.sqrt(np.var(x) + 1e-5) for x in input_values]
 
 #####################
 # PARSE PRUNE HEADS #

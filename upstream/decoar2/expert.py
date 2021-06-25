@@ -3,7 +3,7 @@ import torch
 import torch.nn as nn
 from torch.nn.utils.rnn import pad_sequence
 #-------------#
-from .decoar import Decoar
+from .decoar2 import Decoar2
 from .audio import create_transform
 from collections import OrderedDict
 
@@ -24,7 +24,7 @@ class UpstreamExpert(nn.Module):
     def __init__(self, ckpt, **kwargs):
         super(UpstreamExpert, self).__init__()
         models = torch.load(ckpt)['model']
-        self.model = Decoar()
+        self.model = Decoar2()
         component_state_dict = OrderedDict()
         for key in models.keys():
             component_state_dict[key] = models[key]
@@ -32,7 +32,7 @@ class UpstreamExpert(nn.Module):
 
         self.preprocessor = create_transform()
 
-        self.output_dim = 2048
+        self.output_dim = 768
 
     def forward(self, wavs):
         """
@@ -63,6 +63,6 @@ class UpstreamExpert(nn.Module):
                 continue
             padding_mask[i, diff:] = True
 
-        features = self.model(features, padding_mask)
+        features, layer_results = self.model(features, padding_mask)
 
         return {"default": features}
