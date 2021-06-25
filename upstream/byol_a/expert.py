@@ -98,5 +98,7 @@ class UpstreamExpert(nn.Module):
 
         # forward the sequence in chunks then concat
         features = self.forward_in_chunks(features)
-        features = [f for f in features]
-        return features
+        return {
+            "last_hidden_state": features,
+            "hidden_states": [features],
+        }
