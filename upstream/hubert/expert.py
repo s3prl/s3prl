@@ -42,7 +42,9 @@ class UpstreamExpert(nn.Module):
         super(UpstreamExpert, self).__init__()
         assert version.parse(fairseq.__version__) >= version.parse("0.10.2")
 
-        model, cfg, task = fairseq.checkpoint_utils.load_model_ensemble_and_task([ckpt])
+        # model, cfg, task = fairseq.checkpoint_utils.load_model_ensemble_and_task([ckpt])
+        model, cfg, task = fairseq.checkpoint_utils.load_model_ensemble_and_task([ckpt], strict=False)
+        
         self.model = model[0]
         self.task = task
 
