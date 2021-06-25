@@ -1,54 +1,51 @@
-import torch
+from collections import OrderedDict
+from typing import List, Union, Dict
+
 import torch.nn as nn
+from torch.tensor import Tensor
+from torch.nn.utils.rnn import pad_sequence
 
-HIDDEN_DIM = 512
-FEATURE_DIM = 256
-FEATURE_SEQ_LEN = 100
+from upstream.interfaces import UpstreamBase
+
+HIDDEN_DIM = 8
 
 
-class UpstreamExpert(nn.Module):
-    def __init__(
-        self,
-        ckpt: str = None,
-        model_config: str = None,
-        feature_selection: str = None,
-        **kwargs
-    ):
+class UpstreamExpert(UpstreamBase):
+    def __init__(self, ckpt: str = None, model_config: str = None, **kwargs):
         """
         Args:
             ckpt:
                 The checkpoint path for loading your pretrained weights.
+                Can be assigned by the -k option in run_downstream.py
 
             model_config:
                 The config path for constructing your model.
                 Might not needed if you also save that in your checkpoint file.
-
-            feature_selection:
-                The string for you to control the different behavior of the
-                same pretrained model, like extracting different layers as
-                the representations.
+                Can be assigned by the -g option in run_downstream.py
         """
-        super().__init__()
+        # Pass kwargs into UpstreamBase to enable features shared across upstreams
+        super().__init__(**kwargs)
 
-        # The model needs to be a nn.Module for finetuning
-        # not required for representation extraction
-        self.model = nn.Linear(HIDDEN_DIM, FEATURE_DIM)
+        # The model needs to be a nn.Module for finetuning, not required for representation extraction
+        self.model1 = nn.Linear(1, HIDDEN_DIM)
+        self.model2 = nn.Linear(HIDDEN_DIM, HIDDEN_DIM)
 
-    # Interface
-    def get_downsample_rate(self):
-        # 160 means 10 ms per frame for 16000 Hz waveforms
-        return 160
+    def forward(
+        self, wavs: List[Tensor]
+    ) -> Dict[str, Union[Tensor, List[Tensor], Dict[str, Tensor]]]:
+        """
+        When the returning Dict contains the List or Dict with more than one Tensor,
+        those Tensors should be in the same shape if one wished to weighted sum them.
+        """
 
-    # Interface
-    def get_output_dim(self):
-        return FEATURE_DIM
+        wavs = pad_sequence(wavs, batch_first=True).unsqueeze(-1)
+        # wavs: (batch_size, max_len, 1)
 
-    # Interface
-    def forward(self, wavs: [torch.FloatTensor]):
-        def get_feature(wav):
-            # This is get an example code so random hidden states is generated
-            hidden = torch.rand(FEATURE_SEQ_LEN, HIDDEN_DIM).to(wav.device)
-            feature = self.model(hidden)
-            return feature
+        hidden = self.model1(wavs)
+        # hidden: (batch_size, max_len, hidden_dim)
 
-        return [get_feature(wav) for wav in wavs]
+        feature = self.model2(hidden)
+        # feature: (batch_size, max_len, hidden_dim)
+
+        # These two keys are requirements
+        return {"last_hidden_state": feature, "hidden_states": [hidden, feature]}

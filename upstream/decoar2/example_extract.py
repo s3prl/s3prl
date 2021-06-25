@@ -1,15 +1,3 @@
-# -*- coding: utf-8 -*- #
-"""*********************************************************************************************"""
-#   FileName     [ upstream/vq_wav2vec/example_extract.py ]
-#   Synopsis     [ an example code of using the wrapper class for downstream feature extraction ]
-#   Author       [ Andy T. Liu (https://github.com/andi611) ]
-#   Copyright    [ Copyleft(c), Speech Lab, NTU, Taiwan ]
-"""*********************************************************************************************"""
-
-
-###############
-# IMPORTATION #
-###############
 import torch
 import importlib
 
@@ -26,7 +14,7 @@ model
         list of unpadded representations [rep1, rep2, ...]
 """
 device = 'cuda'
-Upstream = getattr(importlib.import_module('hubconf'), 'vq_wav2vec')
+Upstream = getattr(importlib.import_module('hubconf'), 'decoar2')
 model = Upstream(refresh=True).to(device)
 
 # example_wavs: a batch of audio in wav:  (batch_size, wav_time_step)
