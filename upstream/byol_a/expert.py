@@ -72,7 +72,7 @@ class UpstreamExpert(nn.Module):
         outputs = []
         for i in range(0, features.size(1), self.max_input_length):
             subseq = features[:, i:i+self.max_input_length, :]
-            if subseq.size(1) < self.max_input_length: pass
+            if subseq.size(1) < self.max_input_length: break # break if the chunk is too small for the model to forward
             feats = self.model(subseq.permute(0, 2, 1).unsqueeze(1)) # features: (B, 1, F, T)
             outputs.append(feats.unsqueeze(1)) # (B, 1, D)
         outputs = torch.cat(outputs, dim=1) # (B, T, D)
