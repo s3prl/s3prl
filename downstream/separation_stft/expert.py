@@ -264,6 +264,13 @@ class DownstreamExpert(nn.Module):
                     records[metric] = []
                 records[metric].append(imp)
 
+            assert 'batch_id' in kwargs
+            if kwargs['batch_id'] % 1000 == 0: # Save the prediction every 1000 examples
+                records['mix'].append(mix_np)
+                records['hypo'].append(predict_srcs_np)
+                records['ref'].append(gt_srcs_np)
+                records['uttname'].append(uttname_list[0])
+
         if self.loss_type == "MSE": # mean square loss
             loss = self.objective.compute_loss(mask, feat_length, source_attr, target_attr)
         elif self.loss_type == "SISDR": # end-to-end SI-SNR loss
@@ -339,4 +346,19 @@ class DownstreamExpert(nn.Module):
                 self.best_score = np.mean(records['si_sdr'])
                 save_ckpt.append(f"best-states-{mode}.ckpt")
 
+            for s in ['mix', 'ref', 'hypo', 'uttname']:
+                assert s in records
+            for i in range(len(records['uttname'])):
+                utt = records['uttname'][i]
+                mix_wav = records['mix'][i][0, :]
+                mix_wav = librosa.util.normalize(mix_wav, norm=np.inf, axis=None)
+                logger.add_audio('step{:06d}_{}_mix.wav'.format(global_step, utt), mix_wav, global_step=global_step, sample_rate=self.datarc['rate'])
+
+                for j in range(records['ref'][i].shape[0]):
+                    ref_wav = records['ref'][i][j, :]
+                    hypo_wav = records['hypo'][i][j, :]
+                    ref_wav = librosa.util.normalize(ref_wav, norm=np.inf, axis=None)
+                    hypo_wav = librosa.util.normalize(hypo_wav, norm=np.inf, axis=None)
+                    logger.add_audio('step{:06d}_{}_ref_s{}.wav'.format(global_step, utt, j+1), ref_wav, global_step=global_step, sample_rate=self.datarc['rate'])
+                    logger.add_audio('step{:06d}_{}_hypo_s{}.wav'.format(global_step, utt, j+1), hypo_wav, global_step=global_step, sample_rate=self.datarc['rate'])
             return save_ckpt

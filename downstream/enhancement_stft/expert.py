@@ -253,7 +253,7 @@ class DownstreamExpert(nn.Module):
                 predict_srcs_np,
                 sample_rate = self.datarc['rate'],
                 metrics_list = COMPUTE_METRICS,
-                compute_permutation=True,
+                compute_permutation=False,
             )
 
             for metric in COMPUTE_METRICS:
@@ -263,6 +263,13 @@ class DownstreamExpert(nn.Module):
                 if metric not in records:
                     records[metric] = []
                 records[metric].append(imp)
+
+            assert 'batch_id' in kwargs
+            if kwargs['batch_id'] % 1000 == 0: # Save the prediction every 1000 examples
+                records['mix'].append(mix_np)
+                records['hypo'].append(predict_srcs_np)
+                records['ref'].append(gt_srcs_np)
+                records['uttname'].append(uttname_list[0])
 
         if self.loss_type == "MSE": # mean square loss
             loss = self.objective.compute_loss(mask, feat_length, source_attr, target_attr)
@@ -338,5 +345,17 @@ class DownstreamExpert(nn.Module):
             if mode == "dev" and np.mean(records['si_sdr']) > self.best_score:
                 self.best_score = np.mean(records['si_sdr'])
                 save_ckpt.append(f"best-states-{mode}.ckpt")
+
+            for s in ['mix', 'ref', 'hypo', 'uttname']:
+                assert s in records
+            for i in range(len(records['uttname'])):
+                utt = records['uttname'][i]
+                mix_wav, ref_wav, hypo_wav = records['mix'][i][0, :], records['ref'][i][0, :], records['hypo'][i][0, :]
+                mix_wav = librosa.util.normalize(mix_wav, norm=np.inf, axis=None)
+                ref_wav = librosa.util.normalize(ref_wav, norm=np.inf, axis=None)
+                hypo_wav = librosa.util.normalize(hypo_wav, norm=np.inf, axis=None)
+                logger.add_audio('step{:06d}_{}_mix.wav'.format(global_step, utt), mix_wav, global_step=global_step, sample_rate=self.datarc['rate'])
+                logger.add_audio('step{:06d}_{}_ref.wav'.format(global_step, utt), ref_wav, global_step=global_step, sample_rate=self.datarc['rate'])
+                logger.add_audio('step{:06d}_{}_hypo.wav'.format(global_step, utt), hypo_wav, global_step=global_step, sample_rate=self.datarc['rate'])
 
             return save_ckpt
