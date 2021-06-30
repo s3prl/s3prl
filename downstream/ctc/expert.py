@@ -90,20 +90,15 @@ class DownstreamExpert(nn.Module):
         for pred_token in pred_tokens:
             filtered_token = [
                 token
-                for token in pred_token
+                for token in pred_token.tolist()
                 if token != self.tokenizer.pad_idx and token != self.tokenizer.eos_idx
             ]
             filtered_tokens.append(filtered_token)
-        
+
         hypothesis = [
             self.tokenizer.decode(h, ignore_repeat=True) for h in filtered_tokens
         ]
         groundtruth = [self.tokenizer.decode(g.tolist()) for g in labels]
-
-        for hyp in hypothesis:
-            if len(hyp.strip()) == 0:
-                from ipdb import set_trace
-                set_trace()
 
         # store all text in a batch
         records["hypothesis"] += hypothesis
