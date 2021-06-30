@@ -198,7 +198,7 @@ class DownstreamExpert(nn.Module):
         return pred_tokens_batch, pred_words_batch
 
     # Interface
-    def forward(self, split, features, labels, records, **kwargs):
+    def forward(self, split, features, labels, filenames, records, **kwargs):
         """
         Args:
             split: string
@@ -274,6 +274,7 @@ class DownstreamExpert(nn.Module):
         records['target_words'] += target_words_batch
         records['pred_tokens'] += pred_tokens_batch
         records['pred_words'] += pred_words_batch
+        records['filenames'] += filenames
 
         return loss
 
@@ -337,11 +338,11 @@ class DownstreamExpert(nn.Module):
         if 'test' in split or 'dev' in split:
             hyp_ark = open(os.path.join(self.expdir, f'{split}-hyp.ark'), 'w')
             ref_ark = open(os.path.join(self.expdir, f'{split}-ref.ark'), 'w')
-            for idx, (hyp, ref) in enumerate(zip(records['pred_words'], records['target_words'])):
+            for filename, hyp, ref in zip(records['filenames'], records['pred_words'], records['target_words']):
                 hyp = ' '.join(hyp)
                 ref = ' '.join(ref)
-                hyp_ark.write(f'{idx} {hyp}\n')
-                ref_ark.write(f'{idx} {ref}\n')
+                hyp_ark.write(f'{filename} {hyp}\n')
+                ref_ark.write(f'{filename} {ref}\n')
             hyp_ark.close()
             ref_ark.close()
 

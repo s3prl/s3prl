@@ -1,4 +1,5 @@
-import os 
+import os
+import re
 import sys
 import time
 import random
@@ -117,18 +118,22 @@ class SpeakerVerifi_test(Dataset):
     def __getitem__(self, idx):
         y_label, x1_path, x2_path = self.dataset[idx]
 
+        def path2name(path):
+            return "_".join(re.sub(f"/+", "/", path).split("/")[-3:])
+
+        x1_name = path2name(x1_path)
+        x2_name = path2name(x2_path)
+
         wav1, _ = apply_effects_file(x1_path, EFFECTS)
         wav2, _ = apply_effects_file(x2_path, EFFECTS)
 
         wav1 = wav1.squeeze(0)
         wav2 = wav2.squeeze(0)
 
-        length1 = wav1.shape[0]
-        length2 = wav2.shape[0]
+        return wav1.numpy(), wav2.numpy(), x1_name, x2_name, int(y_label[0])
 
-        return wav1.numpy(), wav2.numpy(), length1, length2, int(y_label[0])
-    
     def collate_fn(self, data_sample):
-        wavs1, wavs2, lengths1, lengths2, ylabels = zip(*data_sample)
+        wavs1, wavs2, x1_names, x2_names, ylabels = zip(*data_sample)
         all_wavs = wavs1 + wavs2
-        return all_wavs, None, ylabels
+        all_names = x1_names + x2_names
+        return all_wavs, all_names, ylabels

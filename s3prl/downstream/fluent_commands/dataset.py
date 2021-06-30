@@ -1,5 +1,6 @@
 import os
 import random
+from pathlib import Path
 
 import torch
 import torchaudio
@@ -17,6 +18,7 @@ class FluentCommandsDataset(Dataset):
         self.base_path = base_path
         self.max_length = SAMPLE_RATE * EXAMPLE_WAV_MAX_SEC
         self.Sy_intent = Sy_intent
+
     def __len__(self):
         return len(self.df)
 
@@ -32,13 +34,7 @@ class FluentCommandsDataset(Dataset):
             value = self.df.loc[idx][slot]
             label.append(self.Sy_intent[slot][value])
 
-        return wav.numpy(), np.array(label)
+        return wav.numpy(), np.array(label), Path(wav_path).stem
 
     def collate_fn(self, samples):
-        wavs, labels = [], []
-
-        for wav, label in samples:
-            wavs.append(wav)
-            labels.append(label)
-
-        return wavs, labels
+        return zip(*samples)

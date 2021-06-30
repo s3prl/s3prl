@@ -3,6 +3,7 @@ import math
 import torch
 import random
 import pandas as pd
+from pathlib import Path
 from collections import Counter
 
 import torch
@@ -42,8 +43,7 @@ class DownstreamExpert(nn.Module):
             **model_conf,
         )
         self.objective = nn.CrossEntropyLoss()
-
-        self.logging = os.path.join(expdir, 'log.log')
+        self.expdir = expdir
         self.register_buffer('best_score', torch.zeros(1))
 
     def get_dataset(self):
@@ -59,6 +59,7 @@ class DownstreamExpert(nn.Module):
             slot_values = Counter(train_df[slot])
             for index, value in enumerate(slot_values):
                 Sy_intent[slot][value] = index
+                Sy_intent[slot][index] = value
             values_per_slot.append(len(slot_values))
         self.values_per_slot = values_per_slot
         self.Sy_intent = Sy_intent
@@ -96,7 +97,7 @@ class DownstreamExpert(nn.Module):
         return eval(f'self.get_{mode}_dataloader')()
 
     # Interface
-    def forward(self, mode, features, labels, records, **kwargs):
+    def forward(self, mode, features, labels, filenames, records, **kwargs):
         labels = [torch.LongTensor(label) for label in labels]
         features_len = torch.IntTensor([len(feat) for feat in features]).to(device=features[0].device)
         features = pad_sequence(features, batch_first=True)
@@ -121,19 +122,32 @@ class DownstreamExpert(nn.Module):
         records['acc'] += (predicted_intent == labels).prod(1).view(-1).cpu().float().tolist()
         records['intent_loss'].append(intent_loss.item())
 
+        def idx2slots(indices: torch.Tensor):
+            action_idx, object_idx, location_idx = indices.cpu().tolist()
+            return (
+                self.Sy_intent["action"][action_idx],
+                self.Sy_intent["object"][object_idx],
+                self.Sy_intent["location"][location_idx],
+            )
+
+        records["filename"] += filenames
+        records["predict"] += list(map(idx2slots, predicted_intent))
+        records["truth"] += list(map(idx2slots, labels))
+
         return intent_loss
 
     # interface
     def log_records(self, mode, records, logger, global_step, **kwargs):
         save_names = []
-        for key, values in records.items():
+        for key in ["acc", "intent_loss"]:
+            values = records[key]
             average = torch.FloatTensor(values).mean().item()
             logger.add_scalar(
                 f'fluent_commands/{mode}-{key}',
                 average,
                 global_step=global_step
             )
-            with open(self.logging, 'a') as f:
+            with open(Path(self.expdir) / "log.log", 'a') as f:
                 if key == 'acc':
                     print(f"{mode} {key}: {average}")
                     f.write(f'{mode} at step {global_step}: {average}\n')
@@ -141,4 +155,13 @@ class DownstreamExpert(nn.Module):
                         self.best_score = torch.ones(1) * average
                         f.write(f'New best on {mode} at step {global_step}: {average}\n')
                         save_names.append(f'{mode}-best.ckpt')
+
+        with open(Path(self.expdir) / f"{mode}_predict.csv", "w") as file:
+            lines = [f"{f},{a},{o},{l}\n" for f, (a, o, l) in zip(records["filename"], records["predict"])]
+            file.writelines(lines)
+
+        with open(Path(self.expdir) / f"{mode}_truth.csv", "w") as file:
+            lines = [f"{f},{a},{o},{l}\n" for f, (a, o, l) in zip(records["filename"], records["truth"])]
+            file.writelines(lines)
+
         return save_names

@@ -5,6 +5,7 @@ from librosa.util import find_files
 from torchaudio import load
 from torch import nn
 import os 
+import re
 import random
 import pickle
 import torchaudio
@@ -50,6 +51,10 @@ class SpeakerClassifiDataset(Dataset):
             y.append(int(id_string[2:]) - 10001)
 
         return y
+    
+    @classmethod
+    def label2speaker(self, labels):
+        return [f"id{label + 10001}" for label in labels]
     
     def train(self):
 
@@ -106,12 +111,13 @@ class SpeakerClassifiDataset(Dataset):
                 start = random.randint(0, int(length-self.max_timestep))
                 wav = wav[start:start+self.max_timestep]
                 length = self.max_timestep
-  
-        return wav.numpy(), self.label[idx]
+
+        def path2name(path):
+            path = re.sub("/+", "/", path)
+            return "/".join(path.split("/")[-3:])
+
+        path = self.dataset[idx]
+        return wav.numpy(), self.label[idx], path2name(path)
         
-    def collate_fn(self, samples):        
-        wavs, labels = [], []
-        for wav, label in samples:
-            wavs.append(wav)
-            labels.append(label)
-        return wavs, labels
+    def collate_fn(self, samples):
+        return zip(*samples)

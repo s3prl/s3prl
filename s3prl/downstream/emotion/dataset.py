@@ -5,10 +5,12 @@
     Copyright    [ Copyleft(c), Speech Lab, NTU, Taiwan ]
 """
 
-from os.path import join as path_join
 import json
-from torch.utils.data import Dataset
+from pathlib import Path
+from os.path import join as path_join
+
 import torchaudio
+from torch.utils.data import Dataset
 from torchaudio.transforms import Resample
 
 SAMPLE_RATE = 16000
@@ -21,6 +23,7 @@ class IEMOCAPDataset(Dataset):
         with open(meta_path, 'r') as f:
             self.data = json.load(f)
         self.class_dict = self.data['labels']
+        self.idx2emotion = {value: key for key, value in self.class_dict.items()}
         self.class_num = len(self.class_dict)
         self.meta_data = self.data['meta_data']
         _, origin_sr = torchaudio.load(
@@ -48,14 +51,10 @@ class IEMOCAPDataset(Dataset):
             wav = self.wavs[idx]
         else:
             wav = self._load_wav(self.meta_data[idx]['path'])
-        return wav.numpy(), label
+        return wav.numpy(), label, Path(self.meta_data[idx]['path']).stem
 
     def __len__(self):
         return len(self.meta_data)
 
 def collate_fn(samples):
-    wavs, labels = [], []
-    for wav, label in samples:
-        wavs.append(wav)
-        labels.append(label)
-    return wavs, labels
+    return zip(*samples)
