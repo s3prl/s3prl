@@ -35,6 +35,7 @@ device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
 
 #COMPUTE_METRICS = ["si_sdr", "sdr", "sir", "sar", "stoi"]
 COMPUTE_METRICS = ["si_sdr"]
+EPS = 1.0e-8
 
 def match_length(feat_list, length_list):
     assert len(feat_list) == len(length_list)
@@ -250,7 +251,7 @@ class DownstreamExpert(nn.Module):
             utt_metrics = get_metrics(
                 mix_np,
                 gt_srcs_np,
-                predict_srcs_np,
+                np.maximum(predict_srcs_np, EPS),
                 sample_rate = self.datarc['rate'],
                 metrics_list = COMPUTE_METRICS,
                 compute_permutation=False,
