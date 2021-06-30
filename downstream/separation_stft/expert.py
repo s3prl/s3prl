@@ -343,7 +343,7 @@ class DownstreamExpert(nn.Module):
             save_ckpt = []
             assert 'si_sdr' in records
             if mode == "dev" and np.mean(records['si_sdr']) > self.best_score:
-                self.best_score = torch.from_numpy(np.mean(records['si_sdr']))
+                self.best_score = torch.ones(1) * np.mean(records['si_sdr'])
                 save_ckpt.append(f"best-states-{mode}.ckpt")
 
             for s in ['mix', 'ref', 'hypo', 'uttname']:
