@@ -128,7 +128,7 @@ class DownstreamExpert(nn.Module):
         else:
             raise ValueError("Loss type not defined.")
         
-        self.best_score = -10000
+        self.register_buffer("best_score", torch.ones(1) * -10000)
 
     def _get_train_dataloader(self, dataset):
         return DataLoader(
@@ -343,7 +343,7 @@ class DownstreamExpert(nn.Module):
             save_ckpt = []
             assert 'si_sdr' in records
             if mode == "dev" and np.mean(records['si_sdr']) > self.best_score:
-                self.best_score = np.mean(records['si_sdr'])
+                self.best_score = torch.from_numpy(np.mean(records['si_sdr']))
                 save_ckpt.append(f"best-states-{mode}.ckpt")
 
             for s in ['mix', 'ref', 'hypo', 'uttname']:
