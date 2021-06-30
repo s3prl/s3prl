@@ -191,6 +191,9 @@ class Featurizer(nn.Module):
         if isinstance(feature, dict):
             feature = list(feature.values())
 
+        if len(feature) == 1:
+            feature = feature[0]
+
         if feature is None:
             available_options = [key for key in features.keys() if key[0] != "_"]
             show(
@@ -222,7 +225,7 @@ class Featurizer(nn.Module):
         paired_features: Dict[str, Union[Tensor, List[Tensor], Dict[str, Tensor]]],
     ):
         feature = self._select_feature(paired_features)
-        if isinstance(feature, list) or isinstance(feature, tuple):
+        if isinstance(feature, (list, tuple)):
             feature = self._weighted_sum(feature)
 
         return UpstreamBase.tolist(paired_wavs, feature)
