@@ -1,0 +1,58 @@
+runner:
+  total_steps: 32000
+  gradient_clipping: 10
+  gradient_accumulate_steps: 16
+
+  log_step: 100
+  # eval_step: 2000
+  eval_step: 2000
+  save_step: 500
+  max_keep: 1
+  eval_dataloaders:
+    - dev
+    - test
+
+optimizer:
+  name: Adam
+  lr: 2.0e-3
+
+# comment the whole scheduler config block
+# to disable learning rate scheduling
+scheduler:
+  name: sqrt_decay_schedule_with_warmup
+  num_warmup_steps: 10000
+
+downstream_expert:
+
+  src_lang: en
+  tgt_lang: de
+  post_process: sentencepiece
+
+  criterionrc:
+    criterion: label_smoothed_cross_entropy
+    label_smoothing: 0.1
+
+  taskrc:
+    task: speech_to_text
+    # data: /home/sean/s3prl/data/covost2/en-de
+    data: /home/sean/battleship/s3prl/data/test
+    config_yaml: config_st_en_de.yaml
+    seed: 1
+
+  datarc:
+    train: train_st_en_de
+    dev: dev_st_en_de
+    test: test_st_en_de
+    max_tokens: 2000000 # with voice 1183104
+    num_workers: 4
+
+
+  generatorrc:
+    beam: 5
+    max_len_a: 1.2
+    max_len_b: 10
+
+  modelrc:
+    arch: s2t_transformer_xs
+    max_source_positions: 50000
+    max_target_positions: 1024
