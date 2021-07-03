@@ -181,7 +181,8 @@ class TransformerBuilder(nn.Module):
         # forward the whole sequence at once
         if self.max_input_length == 0 or input_len <= self.max_input_length:
             feat, pos_enc, attn_mask = self.process_input_data(x) # x shape: (B, T, D)
-            x = self.model(feat, pos_enc, attn_mask, output_all_encoded_layers=self.output_hidden_states or self.select_layer != -1) # (B, T, D) or # (N, B, T, D)
+            x = self.model(feat, pos_enc, attn_mask, output_all_encoded_layers=self.output_hidden_states or self.select_layer != -1)
+            x = torch.stack(x) if isinstance(x, list) else x  # (B, T, D) or # (N, B, T, D)
         # forward the sequence in chunks then concat
         else:
             chunks = torch.chunk(x, chunks=math.ceil(input_len / self.max_input_length), dim=1)
@@ -204,7 +205,8 @@ class TransformerBuilder(nn.Module):
         if self.permute_input:
             x = x.permute(1, 0, 2).contiguous() # (B, T, D) -> (T, B, D)
             if self.output_hidden_states:
-                hidden_states = [h.permute(1, 0, 2).contiguous() for h in hidden_states]
+                # (N, B, T, D) -> (N, T, B, D)
+                hidden_states = hidden_states.transpose(1, 2).contiguous()
 
         if self.output_hidden_states:
             return x, hidden_states
