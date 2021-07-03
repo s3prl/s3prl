@@ -41,7 +41,7 @@ class UpstreamExpert(UpstreamBase):
                 "dropout": "default",
                 "spec_aug": "False",
                 "spec_aug_prev": "True",
-                "weighted_sum": "False",
+                "output_hidden_states": "False",
                 "permute_input": "False",
             }
 

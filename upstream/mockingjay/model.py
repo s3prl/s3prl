@@ -322,26 +322,27 @@ class TransformerEncoder(nn.Module):
             # If pre-LN Transformer, a final layer_norm would be placed after the last layer,
             # and intermediate layer_norms for all layer embedding outputs
             LayerNorm = TransformerLayerNorm(config.hidden_size, eps=config.layer_norm_eps)
-            self.LayerNorm = nn.ModuleList([copy.deepcopy(LayerNorm) for _ in range(config.num_hidden_layers)])
+            self.LayerNorm = nn.ModuleList([copy.deepcopy(LayerNorm) for _ in range(config.num_hidden_layers + 1)])
 
     def forward(self, hidden_states, attention_mask, output_all_encoded_layers=True, head_mask=None):
         all_encoder_layers = []
         all_attentions = []
         for i, layer_module in enumerate(self.layer):
-            hidden_states = layer_module(hidden_states, attention_mask, head_mask[i])
-            if self.output_attentions:
-                attentions, hidden_states = hidden_states
-                all_attentions.append(attentions)
             if output_all_encoded_layers:
                 if self.pre_layer_norm:
                     all_encoder_layers.append(self.LayerNorm[i](hidden_states))
                 else:
                     all_encoder_layers.append(hidden_states)
-        if not output_all_encoded_layers:
-            if self.pre_layer_norm:
-                all_encoder_layers.append(self.LayerNorm[-1](hidden_states))
-            else:
-                all_encoder_layers.append(hidden_states)
+            hidden_states = layer_module(hidden_states, attention_mask, head_mask[i])
+            if self.output_attentions:
+                attentions, hidden_states = hidden_states
+                all_attentions.append(attentions)
+
+        if self.pre_layer_norm:
+            all_encoder_layers.append(self.LayerNorm[-1](hidden_states))
+        else:
+            all_encoder_layers.append(hidden_states)
+
         if self.output_attentions:
             return all_attentions, all_encoder_layers
         return all_encoder_layers

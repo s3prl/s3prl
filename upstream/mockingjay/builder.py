@@ -50,7 +50,7 @@ class TransformerBuilder(nn.Module):
         self.no_grad = bool(strtobool(options['no_grad']))
         self.spec_aug = bool(strtobool(options['spec_aug']))
         self.spec_aug_prev = bool(strtobool(options['spec_aug_prev']))
-        self.weighted_sum = bool(strtobool(options['weighted_sum']))
+        self.output_hidden_states = bool(strtobool(options['output_hidden_states']))
         self.select_layer = int(options['select_layer'])
         self.permute_input = bool(strtobool(options['permute_input']))
         if (not self.no_grad) and (not self.spec_aug_prev): raise RuntimeError('Only one of them can be set False!')
@@ -80,8 +80,6 @@ class TransformerBuilder(nn.Module):
         
         if self.max_input_length > 0 and verbose: print('[Transformer] - Maximum input length: ', self.max_input_length)
         if not (self.select_layer in list(range(-1, self.num_layers))): raise RuntimeError('Out of range int for \'select_layer\'!')
-        if self.weighted_sum:
-            self.weight = nn.Parameter(torch.ones(self.num_layers) / self.num_layers)
 
 
     def _normalize_wav_decibel(self, wav):
@@ -183,27 +181,21 @@ class TransformerBuilder(nn.Module):
         # forward the whole sequence at once
         if self.max_input_length == 0 or input_len <= self.max_input_length:
             feat, pos_enc, attn_mask = self.process_input_data(x) # x shape: (B, T, D)
-            x = self.model(feat, pos_enc, attn_mask, output_all_encoded_layers=self.weighted_sum or self.select_layer != -1) # (B, T, D) or # (N, B, T, D)
+            x = self.model(feat, pos_enc, attn_mask, output_all_encoded_layers=self.output_hidden_states or self.select_layer != -1) # (B, T, D) or # (N, B, T, D)
         # forward the sequence in chunks then concat
         else:
             chunks = torch.chunk(x, chunks=math.ceil(input_len / self.max_input_length), dim=1)
             x_ = []
             for chunk in chunks:
                 feat, pos_enc, attn_mask = self.process_input_data(chunk) # x shape: (B, T, D)
-                chunk = self.model(feat, pos_enc, attn_mask, output_all_encoded_layers=self.weighted_sum or self.select_layer != -1) # (B, T, D) or # (N, B, T, D)
+                chunk = self.model(feat, pos_enc, attn_mask, output_all_encoded_layers=self.output_hidden_states or self.select_layer != -1) # (B, T, D) or # (N, B, T, D)
                 x_.append(torch.stack(chunk) if type(chunk) is list else chunk)
-            x = torch.cat(x_, dim=2 if (self.weighted_sum or self.select_layer != -1) else 1)
+            x = torch.cat(x_, dim=2 if (self.output_hidden_states or self.select_layer != -1) else 1)
+        # x can be a single hidden state or a list of hidden states
 
-        # Apply weighted sum
-        if self.weighted_sum:
-            if type(x) is list: x = torch.stack(x)
-            softmax_weight = nn.functional.softmax(self.weight, dim=-1)
-            B, T, D = x.shape[1], x.shape[2], x.shape[3]
-            x = x.reshape(self.num_layers, -1)
-            x = torch.matmul(softmax_weight, x).reshape(B, T, D)
-        # Select a specific layer
-        elif self.select_layer != -1:
-            x = x[self.select_layer]
+        if self.output_hidden_states:
+            hidden_states = x
+            x = hidden_states[self.select_layer]
 
         if self.spec_aug and not self.spec_aug_prev and self.model.training and self.inp_dim > 1:
             x = spec_augment(x, mask_T=70, mask_F=86, num_T=2, num_F=2, p=1.0) # (B, T, D)
@@ -211,7 +203,11 @@ class TransformerBuilder(nn.Module):
         # permute to output
         if self.permute_input:
             x = x.permute(1, 0, 2).contiguous() # (B, T, D) -> (T, B, D)
+            if self.output_hidden_states:
+                hidden_states = [h.permute(1, 0, 2).contiguous() for h in hidden_states]
 
+        if self.output_hidden_states:
+            return x, hidden_states
         return x # (B, T, D) or (T, B, D)
 
 
