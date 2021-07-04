@@ -1,12 +1,11 @@
 runner:
   total_steps: 32000
   gradient_clipping: 10
-  gradient_accumulate_steps: 16
+  gradient_accumulate_steps: 32
 
   log_step: 100
-  # eval_step: 2000
-  eval_step: 2000
-  save_step: 500
+  eval_step: 2000 #2000
+  save_step: 250
   max_keep: 1
   eval_dataloaders:
     - dev
@@ -34,25 +33,38 @@ downstream_expert:
 
   taskrc:
     task: speech_to_text
-    # data: /home/sean/s3prl/data/covost2/en-de
-    data: /home/sean/battleship/s3prl/data/test
+    data: data/test
     config_yaml: config_st_en_de.yaml
     seed: 1
+    use_asr: True
+
+  asrrc:
+    weight: 0.5
+    vocab_file: spm_en_de_src_text.txt
+    bpe_tokenizer:
+      bpe: sentencepiece
+      sentencepiece_model: spm_en_de_src_text.model
+    datarc:
+      key: src_text
+
 
   datarc:
     train: train_st_en_de
     dev: dev_st_en_de
     test: test_st_en_de
-    max_tokens: 2000000 # with voice 1183104
+    max_tokens: 10000
+    max_positions: "this will be replaced by model's max_source_positions"
     num_workers: 4
 
 
   generatorrc:
     beam: 5
-    max_len_a: 1.2
-    max_len_b: 10
+    # max_len_a: 1.2
+    # max_len_b: 10
+    max_len_a: 0
+    max_len_b: 200
 
   modelrc:
     arch: s2t_transformer_xs
-    max_source_positions: 50000
+    max_source_positions: 10000
     max_target_positions: 1024

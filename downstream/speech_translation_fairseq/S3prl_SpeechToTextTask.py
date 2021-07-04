@@ -1,11 +1,12 @@
 from fairseq.tasks.speech_to_text import SpeechToTextTask
-from fairseq.data import FairseqDataset, data_utils
+from fairseq.data import FairseqDataset, data_utils, ResamplingDataset, ConcatDataset
 from fairseq.data.audio.speech_to_text_dataset import SpeechToTextDataset, SpeechToTextDatasetCreator, S2TDataConfig
 from typing import Dict, List, Optional, Tuple
 import torchaudio
 import torch
 from argparse import Namespace
 import os.path as op
+import csv
 
 class S3prl_SpeechToTextTask(SpeechToTextTask):
 
@@ -26,6 +27,7 @@ class S3prl_SpeechToTextTask(SpeechToTextTask):
             is_train_split=is_train_split,
             epoch=epoch,
             seed=self.args.seed,
+            upstream_rate = self.upstream_rate
         )
     
     def build_model(self, args, input_dim):
@@ -109,6 +111,12 @@ class S3prl_SpeechToTextDatasetCreator(SpeechToTextDatasetCreator):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
 
+    # optional
+    KEY_SAMPLE_RATE = 'sr'
+
+    # default
+    DEFAULT_SAMPLE_RATE = 16000
+
     @classmethod
     def _from_list(
         cls,
@@ -119,9 +127,11 @@ class S3prl_SpeechToTextDatasetCreator(SpeechToTextDatasetCreator):
         tgt_dict,
         pre_tokenizer,
         bpe_tokenizer,
+        upstream_rate,
     ) -> SpeechToTextDataset:
         audio_paths, n_frames, src_texts, tgt_texts, ids = [], [], [], [], []
         speakers, src_langs, tgt_langs = [], [], []
+        srs = []
         for s in samples:
             ids.extend([ss[cls.KEY_ID] for ss in s])
             audio_paths.extend(
@@ -135,35 +145,108 @@ class S3prl_SpeechToTextDatasetCreator(SpeechToTextDatasetCreator):
             speakers.extend([ss.get(cls.KEY_SPEAKER, cls.DEFAULT_SPEAKER) for ss in s])
             src_langs.extend([ss.get(cls.KEY_SRC_LANG, cls.DEFAULT_LANG) for ss in s])
             tgt_langs.extend([ss.get(cls.KEY_TGT_LANG, cls.DEFAULT_LANG) for ss in s])
+            
+            # sample rate
+            srs.extend([int(ss.get(cls.KEY_SAMPLE_RATE, cls.DEFAULT_SAMPLE_RATE)) for ss in s])
+        
         return S3prl_SpeechToTextDataset(
             split_name,
             is_train_split,
             data_cfg,
             audio_paths,
             n_frames,
-            src_texts,
-            tgt_texts,
-            speakers,
-            src_langs,
-            tgt_langs,
-            ids,
-            tgt_dict,
-            pre_tokenizer,
-            bpe_tokenizer,
+            src_texts = src_texts,
+            tgt_texts = tgt_texts,
+            speakers = speakers,
+            src_langs = src_langs,
+            tgt_langs = tgt_langs,
+            srs = srs,
+            ids = ids,
+            tgt_dict = tgt_dict,
+            pre_tokenizer = pre_tokenizer,
+            bpe_tokenizer = bpe_tokenizer,
+            upstream_rate = upstream_rate,
         )
+
+    @classmethod
+    def from_tsv(
+        cls,
+        root: str,
+        data_cfg: S2TDataConfig,
+        splits: str,
+        tgt_dict,
+        pre_tokenizer,
+        bpe_tokenizer,
+        is_train_split: bool,
+        epoch: int,
+        seed: int,
+        upstream_rate: int,
+    ) -> SpeechToTextDataset:
+        samples = []
+        _splits = splits.split(",")
+        for split in _splits:
+            tsv_path = op.join(root, f"{split}.tsv")
+            if not op.isfile(tsv_path):
+                raise FileNotFoundError(f"Dataset not found: {tsv_path}")
+            with open(tsv_path) as f:
+                reader = csv.DictReader(
+                    f,
+                    delimiter="\t",
+                    quotechar=None,
+                    doublequote=False,
+                    lineterminator="\n",
+                    quoting=csv.QUOTE_NONE,
+                )
+                samples.append([dict(e) for e in reader])
+                assert len(samples) > 0
+
+        datasets = [
+            cls._from_list(
+                name,
+                is_train_split,
+                [s],
+                data_cfg,
+                tgt_dict,
+                pre_tokenizer,
+                bpe_tokenizer,
+                upstream_rate,
+            )
+            for name, s in zip(_splits, samples)
+        ]
+
+        if is_train_split and len(_splits) > 1 and data_cfg.sampling_alpha != 1.0:
+            # temperature-based sampling
+            size_ratios = cls._get_size_ratios(
+                _splits, [len(s) for s in samples], alpha=data_cfg.sampling_alpha
+            )
+            datasets = [
+                ResamplingDataset(
+                    d, size_ratio=r, seed=seed, epoch=epoch, replace=(r >= 1.0)
+                )
+                for d, r in zip(datasets, size_ratios)
+            ]
+        return ConcatDataset(datasets)
 
 class S3prl_SpeechToTextDataset(SpeechToTextDataset):
 
     SAMPLE_RATE = 48000
+    TARGET_RATE = 16000
 
-    def __init__(self, *args, **kwargs):
+    def __init__(self, *args, srs = Optional[List[int]], upstream_rate = 160, **kwargs):
         
         super().__init__(*args, **kwargs)
 
         self.resampler = torchaudio.transforms.Resample(
             orig_freq = self.SAMPLE_RATE,
-            new_freq = 16000,
+            new_freq = self.TARGET_RATE,
         )
+
+        self.srs = srs
+
+        for i in range(len(self.n_frames)):
+
+            new_n_frames = self.n_frames[i] * self.TARGET_RATE / self.srs[i] / upstream_rate
+            self.n_frames[i] = int(new_n_frames)
 
     def __getitem__(
         self, index: int
@@ -172,6 +255,8 @@ class S3prl_SpeechToTextDataset(SpeechToTextDataset):
         #     self.audio_paths[index], need_waveform=self.data_cfg.use_audio_input
         # )
         source, sr = torchaudio.load(self.audio_paths[index])
+        assert self.srs[index] == self.SAMPLE_RATE
+        assert self.srs[index] == sr
         source = self.resampler(source)
         source = torch.mean(source, dim=0)
         source = source.view(-1)
