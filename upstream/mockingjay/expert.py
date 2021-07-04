@@ -41,7 +41,7 @@ class UpstreamExpert(UpstreamBase):
                 "dropout": "default",
                 "spec_aug": "False",
                 "spec_aug_prev": "True",
-                "weighted_sum": "False",
+                "output_hidden_states": "True",
                 "permute_input": "False",
             }
 
@@ -53,33 +53,10 @@ class UpstreamExpert(UpstreamBase):
             self.transformer, "extracter"
         ), "This wrapper only supports `on-the-fly` ckpt with built in feature extracters."
 
-        if len(self.hooks) == 0:
-            encoder_path = "self.transformer.model.encoder"
-
-            for i in range(len(self.transformer.model.encoder.layer)):
-                self.add_hook(f"{encoder_path}.layer[{i}]", lambda i, o: i[0])
-            self.add_hook(
-                encoder_path, lambda i, o: o[1][0] if isinstance(o, tuple) else o[0]
-            )
-
-            def hook_postprocess(
-                hiddens: List[Tuple[str, Tensor]]
-            ) -> List[Tuple[str, Tensor]]:
-                updated_hiddens_dict = OrderedDict()
-                for identifier, tensor in hiddens:
-                    if not identifier in updated_hiddens_dict:
-                        updated_hiddens_dict[identifier] = [tensor]
-                    else:
-                        updated_hiddens_dict[identifier].append(tensor)
-
-                updated_hiddens = []
-                for identifier, tensors in updated_hiddens_dict.items():
-                    updated_hiddens.append((identifier, torch.cat(tensors, dim=1)))
-
-                return updated_hiddens
-
-            self.hook_postprocess = hook_postprocess
 
     def forward(self, wavs):
-        features = self.transformer(wavs)  # (batch_size, extracted_seqlen, feature_dim)
-        return {"default": features}
+        last_hidden_state, hidden_states = self.transformer(wavs)  # (batch_size, extracted_seqlen, feature_dim)
+        return {
+            "last_hidden_state": last_hidden_state,
+            "hidden_states": hidden_states.unbind(dim=0),
+        }
