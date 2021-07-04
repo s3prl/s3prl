@@ -1,44 +1,32 @@
-# -*- coding: utf-8 -*- #
-"""*********************************************************************************************"""
-#   FileName     [ upstream/decoar/hubconf.py ]
-#   Synopsis     [ the decoar torch hubconf ]
-#   Author       [ S3PRL ]
-#   Copyright    [ Copyleft(c), Speech Lab, NTU, Taiwan ]
-"""*********************************************************************************************"""
-
-
 ###############
 # IMPORTATION #
 ###############
 import os
-import torch
 #-------------#
-from utility.download import _gdriveids_to_filepaths, _urls_to_filepaths
+from utility.download import _urls_to_filepaths
 from .expert import UpstreamExpert as _UpstreamExpert
 
 
-def decoar_local(ckpt, **kwargs):
+def decoar_local(ckpt, *args, **kwargs):
     """
         The model from local ckpt
             ckpt (str): PATH
+            feature_selection (str): 'c' (default) or 'z'
     """
     assert os.path.isfile(ckpt)
-    return _UpstreamExpert(ckpt, **kwargs)
+    return _UpstreamExpert(ckpt, *args, **kwargs)
 
-
-def decoar_url(ckpt, refresh=False, **kwargs):
+def decoar_url(ckpt, refresh=False, *args, **kwargs):
     """
         The model from URL
             ckpt (str): URL
     """
-    ckpt = _urls_to_filepaths(ckpt, refresh=refresh)
-    return decoar_local(ckpt, **kwargs)
+    return decoar_local(_urls_to_filepaths(ckpt, refresh=refresh), *args, **kwargs)
 
-
-def decoar(refresh=False, **kwargs):
+def decoar(refresh=False, *args, **kwargs):
     """
-        The default model
+        The apc standard model on 360hr
             refresh (bool): whether to download ckpt/config again if existed
     """
-    kwargs['ckpt'] = 'https://www.dropbox.com/s/0x43bfv8xcmccr3/decoar-encoder-29b8e2ac.params?dl=0'
-    return decoar_url(refresh=refresh, **kwargs)
+    kwargs['ckpt'] = 'https://speech-representation.s3.us-west-2.amazonaws.com/checkpoint_decoar.pt'
+    return decoar_url(refresh=refresh, *args, **kwargs)

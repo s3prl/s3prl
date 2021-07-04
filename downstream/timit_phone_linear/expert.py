@@ -2,7 +2,7 @@
 """*********************************************************************************************"""
 #   FileName     [ expert.py ]
 #   Synopsis     [ the phone linear downstream wrapper ]
-#   Author       [ S3PRL ]
+#   Author       [ Andy T. Liu (https://github.com/andi611) ]
 #   Copyright    [ Copyleft(c), Speech Lab, NTU, Taiwan ]
 """*********************************************************************************************"""
 
@@ -166,7 +166,9 @@ class DownstreamExpert(nn.Module):
         predicted_classid = predicted.max(dim=-1).indices
         sames = (predicted_classid == labels)
         for s, l in zip(sames, lengths):
-            records['acc'] += s[:l].tolist()
+            utter_result = s[:l].tolist()
+            records['acc'] += utter_result
+            records['sample_wise_metric'] += [torch.FloatTensor(utter_result).mean().item()]
 
         return loss
 

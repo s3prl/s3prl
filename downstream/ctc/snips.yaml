@@ -7,7 +7,7 @@ runner:
   eval_step: 2000
   save_step: 500
   max_keep: 1
-  eval_dataloaders:  # The first loader will be used to save checkpoint
+  eval_dataloaders:
     - valid
 
 optimizer:
@@ -117,6 +117,9 @@ downstream_expert:
       proj: [False, False]              # Linear projection + Tanh after each rnn layer
       sample_rate: [1, 1]
       sample_style: 'concat'                  # 'drop'/'concat'
+
+  save_best_on:
+    - valid
 
   metric_higher_better: True
   metric:  # The first metric will be used to save checkpoint

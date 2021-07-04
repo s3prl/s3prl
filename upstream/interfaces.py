@@ -134,6 +134,9 @@ class UpstreamBase(nn.Module, metaclass=initHook):
             result["_hidden_states_info"], result["hidden_states"] = zip(*hook_hiddens)
             result["last_hidden_state"] = result["hidden_states"][-1]
 
+            for layer_id, hidden_state in enumerate(result["hidden_states"]):
+                result[f"hidden_state_{layer_id}"] = hidden_state
+
             default = result.get("default")
             if default is not None:
                 assert torch.allclose(default, result["last_hidden_state"])
@@ -170,7 +173,7 @@ class Featurizer(nn.Module):
             show(
                 f"[{self.name}] - Take a list of {self.layer_num} features and weighted sum them."
             )
-            self.weights = nn.Parameter(torch.ones(self.layer_num))
+            self.weights = nn.Parameter(torch.zeros(self.layer_num))
             feature = self._weighted_sum([f.cpu() for f in feature])
         else:
             feature = feature.cpu()
@@ -187,6 +190,9 @@ class Featurizer(nn.Module):
 
         if isinstance(feature, dict):
             feature = list(feature.values())
+
+        if len(feature) == 1:
+            feature = feature[0]
 
         if feature is None:
             available_options = [key for key in features.keys() if key[0] != "_"]
@@ -219,7 +225,7 @@ class Featurizer(nn.Module):
         paired_features: Dict[str, Union[Tensor, List[Tensor], Dict[str, Tensor]]],
     ):
         feature = self._select_feature(paired_features)
-        if isinstance(feature, list) or isinstance(feature, tuple):
+        if isinstance(feature, (list, tuple)):
             feature = self._weighted_sum(feature)
 
         return UpstreamBase.tolist(paired_wavs, feature)

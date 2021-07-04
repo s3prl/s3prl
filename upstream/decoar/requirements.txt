@@ -1,3 +1,0 @@
-mxnet-cu102mkl
-gluonnlp==0.8.3
-git+https://github.com/s3prl/speech-representations.git

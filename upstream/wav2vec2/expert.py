@@ -25,7 +25,9 @@ from utility.helper import zero_mean_unit_var_norm
 class UpstreamExpert(UpstreamBase):
     def __init__(self, ckpt, **kwargs):
         super().__init__(**kwargs)
-        assert version.parse(fairseq.__version__) > version.parse("0.10.2")
+        assert version.parse(fairseq.__version__) > version.parse(
+            "0.10.2"
+        ), "Please install the fairseq master branch."
 
         model, cfg, task = fairseq.checkpoint_utils.load_model_ensemble_and_task([ckpt])
         self.model = model[0]
