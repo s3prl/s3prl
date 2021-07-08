@@ -11,7 +11,7 @@ import os
 from typing import Tuple, List
 
 import torch
-from torch.tensor import Tensor
+from torch import Tensor
 
 from utility.download import _urls_to_filepaths
 from .expert import UpstreamExpert as _UpstreamExpert

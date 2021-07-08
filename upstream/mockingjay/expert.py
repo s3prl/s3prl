@@ -12,7 +12,7 @@ from collections import OrderedDict
 
 import yaml
 import torch
-from torch.tensor import Tensor
+from torch import Tensor
 
 from upstream.interfaces import UpstreamBase
 from .builder import PretrainedTransformer
