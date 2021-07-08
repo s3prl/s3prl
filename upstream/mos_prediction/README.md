@@ -1,7 +1,29 @@
-# Register customized upstream
+# MOS Prediction
 
-Only the forward functions in the class [UpstreamExpert](./expert.py) are required to implement. One can refer to [upstream/example/expert.py](./expert.py) and [upstream/example/hubconf.py](./hubconf.py) for the minimal implementation and use the following command to help the development
+Official Implementation of "Utilizing Self-supervised Representations for MOS Prediction", will be presented at INTERSPEECH 2021 [[arXiv](https://arxiv.org/abs/2104.03017)]
 
-```bash
-python3 run_downstream.py -m train -n HelloWorld -u customized_upstream -d example
+This code provides a automatic Mean Opinion Score (MOS) Predictor implemented in PyTorch. The MOS Predictor is serves as an upstream model in s3prl toolkit.
+
+## Example Usage
+Currently available models: `mos_wav2vec2`, `mos_tera`, `mos_apc`
+```python
+import torch
+device = 'cuda'
+mos_predictor = torch.hub.load('s3prl/s3prl', 'mos_wav2vec2').to(device)
+wavs = [torch.zeros(160000, dtype=torch.float).to(device) for _ in range(16)] # list of unpadded wavs `[wav1, wav2, ...]`, each wav is in `torch.FloatTensor`
+with torch.no_grad():
+    scores = mos_predictor(wavs) # list of scores of the wavs `[rep1, rep2, ...]`
+```
+You can also implement your own MOS Predictor with different self-supervised representations by modifying the code into a [downstream task](../downstream).
+
+## Citation
+
+If you find this MOS Predictor useful, please consider citing following paper:
+```
+@article{tseng2021utilizing,
+  title={Utilizing Self-supervised Representations for MOS Prediction},
+  author={Tseng, Wei-Cheng and Huang, Chien-yu and Kao, Wei-Tsung and Lin, Yist Y and Lee, Hung-yi},
+  journal={arXiv preprint arXiv:2104.03017},
+  year={2021}
+}
 ```
