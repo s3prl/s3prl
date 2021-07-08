@@ -191,7 +191,7 @@ class Featurizer(nn.Module):
         if isinstance(feature, dict):
             feature = list(feature.values())
 
-        if len(feature) == 1:
+        if isinstance(feature, (list, tuple)) and len(feature) == 1:
             feature = feature[0]
 
         if feature is None:
