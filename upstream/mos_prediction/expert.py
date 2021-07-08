@@ -34,7 +34,6 @@ class UpstreamExpert(UpstreamBase):
         self.checkpoint = torch.load(ckpt, map_location="cpu")
 
         self.upstream_type = kwargs['upstream']
-        self.device = self.checkpoint['Args'].device
 
         self.mos_upstream = self._get_mos_upstream()
         self.mos_featurizer = self._get_mos_featurizer()
@@ -55,7 +54,7 @@ class UpstreamExpert(UpstreamBase):
         # IPython.embed()
 
         flattened_wavs_segments = [
-            wav_segment.to(self.device)
+            wav_segment
             for wav_segments in wavs_segments
             for wav_segment in wav_segments
         ]
@@ -93,10 +92,10 @@ class UpstreamExpert(UpstreamBase):
         if self.upstream_type == 'tera':
             self.checkpoint['Upstream']['transformer.extracter._melscale.fb'] = torch.tensor([])
         mos_upstream.load_state_dict(self.checkpoint['Upstream'])
-        return mos_upstream.to(self.device)
+        return mos_upstream
 
     def _get_mos_featurizer(self):
-        return Featurizer(self.mos_upstream).to(self.device)
+        return Featurizer(self.mos_upstream, upstream_device='cpu')
 
     def _get_mos_downstream(self):
         mos_downstream = MosDownstream(
@@ -107,6 +106,6 @@ class UpstreamExpert(UpstreamBase):
         )
 
         mos_downstream.load_state_dict(self.checkpoint['Downstream'])
-        return mos_downstream.to(self.device)
+        return mos_downstream
 
 
