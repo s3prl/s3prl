@@ -11,7 +11,6 @@ from itertools import accumulate
 from upstream.interfaces import UpstreamBase, Featurizer
 from .model import MosDownstream, MosDownstreamModule
 from .utility import unfold_segments
-import IPython
 
 
 class UpstreamExpert(UpstreamBase):
@@ -51,8 +50,6 @@ class UpstreamExpert(UpstreamBase):
         """
         wavs_segments = [self.preprocessor(wav) for wav in wavs]
 
-        # IPython.embed()
-
         flattened_wavs_segments = [
             wav_segment
             for wav_segments in wavs_segments
@@ -63,13 +60,9 @@ class UpstreamExpert(UpstreamBase):
 
         
         features = self.mos_upstream(flattened_wavs_segments)
-        # IPython.embed()
         features = self.mos_featurizer(flattened_wavs_segments, features)
-        # IPython.embed()
         features = torch.stack(features)
         segments_scores = self.mos_downstream(features)
-        # IPython.embed()
-
 
         scores = []
         for i in range(len(prefix_sums) - 1):
@@ -79,7 +72,7 @@ class UpstreamExpert(UpstreamBase):
             scores.append(current_segment_scores.mean(dim=-1))
 
         scores = torch.FloatTensor(scores)
-        # These two keys are requirements
+
         return {"scores": scores}
 
     def preprocessor(self, wav):
