@@ -64,8 +64,11 @@ cd fairseq/
 
 # The version used by the repo maintainer currently.
 # Please must not use the stable version 0.10.2 as it
-# contains known bugs for wav2vec2 inference and ASR decoding
-git checkout 8df9e3a4
+# contains known issues for
+#  1. wav2vec2 inference
+#  2. ASR decoding
+#  3. HuBERT loading
+git checkout 01576be5
 
 pip install -e ./
 cd ../
