@@ -20,7 +20,8 @@ from collections import defaultdict
 # -------------#
 import torch
 import torch.nn as nn
-from torch.utils.data import DataLoader
+from torch.utils.data import DataLoader, DistributedSampler
+from torch.distributed import is_initialized, get_rank
 from torch.nn.utils.rnn import pad_sequence
 
 # -------------#
@@ -49,7 +50,8 @@ class DownstreamExpert(nn.Module):
         self.score_dir = os.path.join(expdir, "scoring")
         self.save_predictions = self.scorerc["save_predictions"]
 
-        if not os.path.exists(self.score_dir) and self.save_predictions:
+        if ((not is_initialized()) or get_rank() == 0) \
+                and not os.path.exists(self.score_dir) and self.save_predictions:
             os.makedirs(os.path.join(self.score_dir, "predictions"))
 
         self.train_dataset = DiarizationDataset(
@@ -106,10 +108,12 @@ class DownstreamExpert(nn.Module):
     """
 
     def _get_train_dataloader(self, dataset):
+        sampler = DistributedSampler(dataset) if is_initialized() else None
         return DataLoader(
             dataset,
             batch_size=self.train_batch_size,
-            shuffle=True,
+            shuffle=(sampler is None),
+            sampler=sampler,
             num_workers=self.loaderrc["num_workers"],
             drop_last=False,
             pin_memory=True,

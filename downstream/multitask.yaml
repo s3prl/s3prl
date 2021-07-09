@@ -2,22 +2,24 @@ runner:
   total_steps: 200000
   gradient_clipping: 1
   gradient_accumulate_steps: 1
-  save_step: 1000
+  save_step: 5000
   max_keep: 1
 
 optimizer:
   name: TorchOptim
-  torch_optim_name: Adam
-  lr: 1.0e-4
+  torch_optim_name: AdamW
+  lr: 1.0e-5
 
 # comment the whole scheduler config block
 # to disable learning rate scheduling
-# scheduler:
-#   name: linear_schedule_with_warmup
-#   num_warmup_steps: 1400
+#
+scheduler:
+  name: linear_schedule_with_warmup
+  num_warmup_steps: 5000
+
 # comment the whole specaug config block
 # to disable specaug on representation
-
+#
 specaug:
   apply_time_warp: true
   apply_time_mask: true
@@ -32,7 +34,7 @@ pr:
   folder: ctc
   looprc:
     log_step: 100
-    eval_step: 1000
+    eval_step: 5000
     eval_dataloaders:  # The first loader will be used to save checkpoint
       - dev
       - test
@@ -86,7 +88,7 @@ ks:
   folder: speech_commands
   looprc:
     log_step: 100
-    eval_step: 1000
+    eval_step: 5000
     eval_dataloaders:
       - dev
       - test
@@ -107,7 +109,7 @@ ic:
   folder: fluent_commands
   looprc:
     log_step: 100
-    eval_step: 1000
+    eval_step: 5000
     eval_dataloaders:
       - dev
       - test
@@ -116,7 +118,7 @@ ic:
     file_path: /SpeechNet/datasets/fluent_speech_commands_dataset
     num_workers: 12
     train_batch_size: 1
-    eval_batch_size: 32
+    eval_batch_size: 8
 
   modelrc:
     projector_dim: 256
@@ -128,7 +130,7 @@ sid:
   folder: voxceleb1
   looprc:
     log_step: 100
-    eval_step: 1000
+    eval_step: 5000
     eval_dataloaders:
       - dev
       - test
@@ -138,7 +140,7 @@ sid:
     meta_data: ./downstream/voxceleb1/veri_test_class.txt
     num_workers: 12
     train_batch_size: 1
-    eval_batch_size: 1
+    eval_batch_size: 4
     max_timestep: 128000
 
   modelrc:
@@ -151,7 +153,7 @@ er:
   folder: emotion
   looprc:
     log_step: 100
-    eval_step: 1000
+    eval_step: 5000
     eval_dataloaders:
       - dev
       - test
@@ -185,7 +187,7 @@ asr:
   folder: asr
   looprc:
     log_step: 100
-    eval_step: 1000
+    eval_step: 5000
     eval_dataloaders:
       - dev-clean
       - test-clean
@@ -200,7 +202,7 @@ asr:
     test-other: ['test-other']
     num_workers: 12
     train_batch_size: 1
-    eval_batch_size: 1
+    eval_batch_size: 4
     libri_root: '/LibriSpeech_grt'
     bucket_file: 'data/LibriSpeech/len_for_bucket'
 
@@ -244,7 +246,7 @@ sf:
   folder: ctc
   looprc:
     log_step: 100
-    eval_step: 1000
+    eval_step: 5000
     eval_dataloaders:
       - valid
       - test
@@ -369,7 +371,7 @@ sv:
 
     max_timestep: 128000
     train_batch_size: 1
-    eval_batch_size: 1
+    eval_batch_size: 4
     num_workers: 8 
 
   modelrc:
@@ -408,7 +410,7 @@ sd:
   folder: diarization
   looprc:
     log_step: 100
-    eval_step: 1000
+    eval_step: 5000
     eval_dataloaders:
       - dev
       - test
@@ -424,7 +426,7 @@ sd:
   loaderrc:
     num_workers: 8
     train_batchsize: 1
-    eval_batchsize: 1
+    eval_batchsize: 4
     train_dir: ./downstream/diarization/data/train
     dev_dir: ./downstream/diarization/data/dev
     test_dir: ./downstream/diarization/data/test

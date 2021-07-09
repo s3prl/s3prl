@@ -6,11 +6,12 @@ import glob
 import torch
 import random
 import argparse
+import datetime
 import importlib
 import torchaudio
 import numpy as np
 from argparse import Namespace
-from torch.distributed import is_initialized, get_world_size
+from torch.distributed import is_initialized, get_world_size, get_rank
 
 import hubconf
 from downstream import SingleRunner, MultipleRunner
@@ -152,7 +153,7 @@ def main():
     # When torch.distributed.launch is used
     if args.local_rank is not None:
         torch.cuda.set_device(args.local_rank)
-        torch.distributed.init_process_group(args.backend)
+        torch.distributed.init_process_group(args.backend, timeout=datetime.timedelta(0, 86400))
 
     if args.mode == 'train' and args.past_exp:
         ckpt = torch.load(args.init_ckpt, map_location='cpu')

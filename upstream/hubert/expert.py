@@ -61,23 +61,35 @@ class UpstreamExpert(UpstreamBase):
                 )
             self.add_hook("self.model.encoder", lambda input, output: output[0])
 
-    def forward(self, wavs):
-        if self.task.cfg.normalize:
-            wavs = [F.layer_norm(wav, wav.shape) for wav in wavs]
+    def forward(self, all_task_wavs):
+        single_task = False
+        if not isinstance(all_task_wavs[0], list):
+            all_task_wavs = [all_task_wavs]
+            single_task = True
 
-        device = wavs[0].device
-        wav_lengths = torch.LongTensor([len(wav) for wav in wavs]).to(device)
-        wav_padding_mask = ~torch.lt(
-            torch.arange(max(wav_lengths)).unsqueeze(0).to(device),
-            wav_lengths.unsqueeze(1),
-        )
-        padded_wav = pad_sequence(wavs, batch_first=True)
+        features = []
+        for wavs in all_task_wavs:
+            if self.task.cfg.normalize:
+                wavs = [F.layer_norm(wav, wav.shape) for wav in wavs]
 
-        features, feat_padding_mask = self.model.extract_features(
-            padded_wav,
-            padding_mask=wav_padding_mask,
-            mask=None,
-        )
+            device = wavs[0].device
+
+            wav_lengths = torch.LongTensor([len(wav) for wav in wavs]).to(device)
+            wav_padding_mask = ~torch.lt(
+                torch.arange(max(wav_lengths)).unsqueeze(0).to(device),
+                wav_lengths.unsqueeze(1),
+            )
+            padded_wav = pad_sequence(wavs, batch_first=True)
+            task_features, feat_padding_mask = self.model.extract_features(
+                padded_wav,
+                padding_mask=wav_padding_mask,
+                mask=None,
+            )
+            features.append(task_features)
+
+        if single_task:
+            features = features[0]
+
         return {
             "default": features,
         }

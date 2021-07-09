@@ -66,7 +66,7 @@ class Runner():
     def __init__(self, args, config):
         self.args = args
         self.config = config
-        self.init_ckpt = torch.load(self.args.init_ckpt, map_location='cpu') if self.args.init_ckpt else {}
+        self.init_ckpt = self._load_ckpt()
 
         self.upstream = self._get_upstream()
         self.featurizer = self._get_featurizer()
@@ -75,8 +75,29 @@ class Runner():
         self.all_models = [self.upstream, self.featurizer] + self.downstreams
 
 
+    def _load_ckpt(self):
+        if self.args.init_ckpt:
+            if os.path.isdir(self.args.init_ckpt):
+                # multiple ckpt files of multiple tasks
+                return {d: torch.load(os.path.join(self.args.init_ckpt, d, f'{self.args.upstream}_{d}.ckpt'), 
+                    map_location='cpu') for d in self.args.downstream.split(",")}
+            else:
+                # single ckpt
+                return torch.load(self.args.init_ckpt, map_location='cpu')
+        else:
+            return {}
+
+
     def _load_weight(self, model, name):
-        init_weight = self.init_ckpt.get(name)
+        if isinstance(self.init_ckpt, dict):
+            # for initialization of pretrained downstream models
+            if name in self.args.downstream.split(","):
+                init_weight = self.init_ckpt[name].get('Downstream')
+            else:
+                init_weight = None
+        else:
+            init_weight = self.init_ckpt.get(name)
+
         if init_weight:
             show(f'[Runner] - Loading {name} weights from the previous experiment')
             model.load_state_dict(init_weight)
@@ -226,28 +247,44 @@ class Runner():
         backward_steps = 0
         while pbar.n < pbar.total:
             loss = 0
+
+            # append data of all tasks into a list for the upstream model forward pass
+            all_task_batch_ids = []
+            all_task_wavs = []
+            all_task_others = []
+            all_task_lens = []
             for expert, data in zip(self.downstreams, data_entries):
                 batch_id, (wavs, *others) = data.next_batch()
+                wavs = [torch.FloatTensor(wav).to(self.args.device) for wav in wavs]
+                all_task_batch_ids.append(batch_id)
+                all_task_wavs.append(wavs)
+                all_task_others.append(others)
+                all_task_lens.append(len(wavs))
+
+            # one forward pass of upstream, featurizer and specaug
+            if self.upstream.trainable:
+                features = self.upstream.model(all_task_wavs)
+            else:
+                with torch.no_grad():
+                    features = self.upstream.model(all_task_wavs)
+
+            features = self.featurizer.model(all_task_wavs, features)
+            if specaug:
+                for i, task_features in enumerate(features):
+                    features[i] = specaug(task_features)[0]
+
+            # separate features into task-specific expert forwards
+            for expert, data, task_features, others, batch_id in \
+                    zip(self.downstreams, data_entries, features, all_task_others, all_task_batch_ids):
                 # try/except block for forward/backward
                 try:
                     if pbar.n >= pbar.total:
                         break
                     global_step = pbar.n + 1
 
-                    wavs = [torch.FloatTensor(wav).to(self.args.device) for wav in wavs]
-                    if self.upstream.trainable:
-                        features = self.upstream.model(wavs)
-                    else:
-                        with torch.no_grad():
-                            features = self.upstream.model(wavs)
-                    features = self.featurizer.model(wavs, features)
-
-                    if specaug:
-                        features, _ = specaug(features)
-
                     loss += expert.model(
                         'train',
-                        features, *others,
+                        task_features, *others,
                         records = data.records,
                     )
                     data.batch_ids.append(batch_id)

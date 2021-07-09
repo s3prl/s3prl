@@ -106,7 +106,7 @@ class UpstreamBase(nn.Module, metaclass=initHook):
         feature = [f[:l] for f, l in zip(paired_feature, feature_len)]
         return feature
 
-    def __call__(self, wavs: List[Tensor], *args, **kwargs):
+    def __call__(self, wavs, *args, **kwargs):
         self._hook_hiddens.clear()
 
         result = super().__call__(wavs, *args, **kwargs) or {}
@@ -138,8 +138,10 @@ class UpstreamBase(nn.Module, metaclass=initHook):
                 result[f"hidden_state_{layer_id}"] = hidden_state
 
             default = result.get("default")
+            '''
             if default is not None:
                 assert torch.allclose(default, result["last_hidden_state"])
+            '''
 
         return result
 
@@ -218,11 +220,28 @@ class Featurizer(nn.Module):
 
     def forward(
         self,
-        paired_wavs: List[Tensor],
-        paired_features: Dict[str, Union[Tensor, List[Tensor], Dict[str, Tensor]]],
+        all_task_paired_wavs,
+        all_task_paired_features,
     ):
-        feature = self._select_feature(paired_features)
-        if isinstance(feature, list) or isinstance(feature, tuple):
-            feature = self._weighted_sum(feature)
+        single_task = False
+        if not isinstance(all_task_paired_wavs[0], list):
+            all_task_paired_wavs = [all_task_paired_wavs]
+            all_task_paired_features = [all_task_paired_features]
+            single_task = True
+        else:
+            # currently only "default" is supported
+            all_task_paired_features = [{"default": task_features} \
+                    for task_features in all_task_paired_features["default"]]
 
-        return UpstreamBase.tolist(paired_wavs, feature)
+        features = []
+        for paired_wavs, paired_features in zip(all_task_paired_wavs, all_task_paired_features):
+            feature = self._select_feature(paired_features)
+            if isinstance(feature, list) or isinstance(feature, tuple):
+                feature = self._weighted_sum(feature)
+
+            features.append(UpstreamBase.tolist(paired_wavs, feature))
+
+        if single_task:
+            features = features[0]
+
+        return features
