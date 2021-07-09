@@ -1,7 +1,8 @@
 import torch
 import torchaudio
 from functools import partial
-from torch.utils.data import DataLoader
+from torch.utils.data import DataLoader, DistributedSampler
+from torch.distributed import is_initialized
 from torch.nn.utils.rnn import pad_sequence
 
 EVAL_BATCH_SIZE = 1
@@ -71,6 +72,11 @@ def load_dataset(split, tokenizer, corpus):
     num_workers = corpus.pop('num_workers', 12)
     dataset, loader_bs = create_dataset(split, tokenizer, num_workers=num_workers, **corpus)
     collate_fn = partial(collect_audio_batch, split=split)
-    dataloader = DataLoader(dataset, batch_size=loader_bs, shuffle=(split == 'train'),
-                            collate_fn=collate_fn, num_workers=num_workers)
+    if split == 'train':
+        sampler = DistributedSampler(dataset) if is_initialized() else None
+        dataloader = DataLoader(dataset, batch_size=loader_bs, shuffle=(sampler is None),
+                                sampler=sampler, collate_fn=collate_fn, num_workers=num_workers)
+    else:
+        dataloader = DataLoader(dataset, batch_size=loader_bs, shuffle=False,
+                                collate_fn=collate_fn, num_workers=num_workers)
     return dataloader
