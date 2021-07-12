@@ -229,19 +229,26 @@ class S3prl_SpeechToTextDatasetCreator(SpeechToTextDatasetCreator):
 
 class S3prl_SpeechToTextDataset(SpeechToTextDataset):
 
-    SAMPLE_RATE = 48000
     TARGET_RATE = 16000
 
     def __init__(self, *args, srs = Optional[List[int]], upstream_rate = 160, **kwargs):
         
         super().__init__(*args, **kwargs)
 
-        self.resampler = torchaudio.transforms.Resample(
-            orig_freq = self.SAMPLE_RATE,
-            new_freq = self.TARGET_RATE,
-        )
-
         self.srs = srs
+
+        self.resamplers = {}
+        for sr in set(srs):
+            self.resamplers[sr] = torchaudio.transforms.Resample(
+                orig_freq = sr,
+                new_freq = self.TARGET_RATE,
+            )
+
+        # self.resampler = torchaudio.transforms.Resample(
+        #     orig_freq = self.SAMPLE_RATE,
+        #     new_freq = self.TARGET_RATE,
+        # )
+        
 
         for i in range(len(self.n_frames)):
 
@@ -255,9 +262,10 @@ class S3prl_SpeechToTextDataset(SpeechToTextDataset):
         #     self.audio_paths[index], need_waveform=self.data_cfg.use_audio_input
         # )
         source, sr = torchaudio.load(self.audio_paths[index])
-        assert self.srs[index] == self.SAMPLE_RATE
+        # assert self.srs[index] == self.SAMPLE_RATE
         assert self.srs[index] == sr
-        source = self.resampler(source)
+        source = self.resamplers[sr](source)
+        # source = torchaudio.functional.resample(source, sr, self.TARGET_RATE)
         source = torch.mean(source, dim=0)
         source = source.view(-1)
 
