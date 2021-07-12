@@ -8,7 +8,8 @@ if __name__ == '__main__':
 
     src_lang = 'en'
     tgt_lang = 'de'
-    covost_root = '/hdd/covost/cv-corpus-6.1-2020-12-11'
+    # covost_root = '/hdd/covost/cv-corpus-6.1-2020-12-11'
+    covost_root = '/home/sean/battleship/A'
     tsv_dir = '/hdd/covost/tsv'
     output_dir = '/home/sean/battleship/s3prl/data/test/'
 
@@ -31,7 +32,8 @@ if __name__ == '__main__':
             lines.append(line)
 
         for line in tqdm(lines):
-            file_path = f"{covost_root}/{src_lang}/clips/{line['path']}"
+            # file_path = f"{covost_root}/{src_lang}/clips/{line['path']}"
+            file_path = f"{covost_root}/{line['path']}"
             wav, sr = torchaudio.load(file_path)
             item = {
                 'id': line['path'].split('.')[0],
