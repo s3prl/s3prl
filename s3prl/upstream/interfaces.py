@@ -7,7 +7,7 @@ import torch.nn as nn
 from torch import Tensor
 import torch.nn.functional as F
 
-from utility.helper import show
+from s3prl.utility.helper import show
 
 SAMPLE_RATE = 16000
 

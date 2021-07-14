@@ -9,7 +9,7 @@ import torch.nn as nn
 import torch.nn.functional as F
 from torch.nn.utils.rnn import pad_sequence
 
-import hubconf
+from s3prl import hub
 from .model import *
 
 EXAMPLE_FEAT_SEQLEN = 1000

@@ -18,7 +18,7 @@ import torch.nn.functional as F
 from torch.nn.utils.rnn import pad_sequence
 
 from ..interfaces import UpstreamBase
-from utility.helper import zero_mean_unit_var_norm
+from s3prl.utility.helper import zero_mean_unit_var_norm
 
 
 class UpstreamExpert(UpstreamBase):

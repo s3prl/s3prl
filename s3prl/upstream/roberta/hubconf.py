@@ -2,10 +2,11 @@ import os
 import glob
 import torch
 
-import hubconf
+from s3prl import hub
+from s3prl.utility.download import _urls_to_filepaths
+
 from ..interfaces import Featurizer
 from .expert import UpstreamExpert as _UpstreamExpert
-from s3prl.utility.download import _urls_to_filepaths
 
 
 def _roberta_local(frontend_model, model_name_or_path, checkpoint_file, **kwargs):
