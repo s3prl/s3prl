@@ -20,36 +20,38 @@ class DownstreamExpert(nn.Module):
     eg. downstream forward, metric computation, contents to log
     """
 
-    def __init__(self, upstream_dim, upstream_rate, downstream_expert, expdir, **kwargs):
+    def __init__(
+        self, upstream_dim, upstream_rate, downstream_expert, expdir, **kwargs
+    ):
         super(DownstreamExpert, self).__init__()
         self.expdir = expdir
         self.upstream_dim = upstream_dim
-        self.corpus = downstream_expert['corpus']
+        self.corpus = downstream_expert["corpus"]
 
         # Text tokenizer
-        self.tokenizer = load_text_encoder(**downstream_expert['text'])
+        self.tokenizer = load_text_encoder(**downstream_expert["text"])
 
-        modelrc = downstream_expert['model']
-        self.projector = nn.Linear(upstream_dim, modelrc['project_dim'])
+        modelrc = downstream_expert["model"]
+        self.projector = nn.Linear(upstream_dim, modelrc["project_dim"])
 
-        model_select = downstream_expert['model']['select']
+        model_select = downstream_expert["model"]["select"]
         self.model = eval(model_select)(
-            modelrc['project_dim'],
+            modelrc["project_dim"],
             self.tokenizer.vocab_size,
             upstream_rate=upstream_rate,
             **modelrc.get(model_select, {}),
         )
         self.objective = nn.CTCLoss(
-            blank = self.tokenizer.pad_idx,
-            zero_infinity = modelrc['zero_infinity'],
+            blank=self.tokenizer.pad_idx,
+            zero_infinity=modelrc["zero_infinity"],
         )
-        self.save_best_on = downstream_expert['save_best_on']
-        self.metrics = downstream_expert['metric']
-        self.metric_higher_better = downstream_expert['metric_higher_better']
-        self.register_buffer('best_score', torch.ones(1) * (
-            0 if self.metric_higher_better else 1 << 31
-        ))
-    
+        self.save_best_on = downstream_expert["save_best_on"]
+        self.metrics = downstream_expert["metric"]
+        self.metric_higher_better = downstream_expert["metric_higher_better"]
+        self.register_buffer(
+            "best_score", torch.ones(1) * (0 if self.metric_higher_better else 1 << 31)
+        )
+
     def _get_task_name(self):
         return f'ctc-{self.corpus["name"].lower()}'
 
@@ -75,56 +77,71 @@ class DownstreamExpert(nn.Module):
         log_probs = nn.functional.log_softmax(logits, dim=-1)
 
         loss = self.objective(
-                log_probs.transpose(0, 1), # (N, T, C) -> (T, N, C)
-                labels,
-                log_probs_len,
-                labels_len,
-            )
-        records['loss'].append(loss.item())
+            log_probs.transpose(0, 1),  # (N, T, C) -> (T, N, C)
+            labels,
+            log_probs_len,
+            labels_len,
+        )
+        records["loss"].append(loss.item())
 
         pred_tokens = log_probs.argmax(dim=-1)
-        hypothesis = [self.tokenizer.decode(h.tolist(), ignore_repeat=True) for h in pred_tokens]
+        filtered_tokens = []
+        for pred_token in pred_tokens:
+            filtered_token = [
+                token
+                for token in pred_token.tolist()
+                if token != self.tokenizer.pad_idx and token != self.tokenizer.eos_idx
+            ]
+            filtered_tokens.append(filtered_token)
+
+        hypothesis = [
+            self.tokenizer.decode(h, ignore_repeat=True) for h in filtered_tokens
+        ]
         groundtruth = [self.tokenizer.decode(g.tolist()) for g in labels]
 
         # store all text in a batch
-        records['hypothesis'] += hypothesis
-        records['groundtruth'] += groundtruth
-        records['filename'] += filenames
+        records["hypothesis"] += hypothesis
+        records["groundtruth"] += groundtruth
+        records["filename"] += filenames
 
         return loss
 
     # interface
     def log_records(self, split, records, logger, global_step, **kwargs):
-        loss = torch.FloatTensor(records['loss']).mean().item()
-        results = {'loss': loss}
+        loss = torch.FloatTensor(records["loss"]).mean().item()
+        results = {"loss": loss}
 
         for metric in self.metrics:
             results[metric] = eval(metric)(
-                hypothesis = records['hypothesis'],
-                groundtruth = records['groundtruth'],
+                hypothesis=records["hypothesis"],
+                groundtruth=records["groundtruth"],
             )
 
         save_names = []
         for key, value in results.items():
-            print(f'{split} {key}: {value}')
+            print(f"{split} {key}: {value}")
 
             logger.add_scalar(
-                f'{self._get_task_name()}/{split}-{key}',
-                value,
-                global_step=global_step
+                f"{self._get_task_name()}/{split}-{key}", value, global_step=global_step
             )
             if key == self.metrics[0]:
-                save_criterion = value > self.best_score if self.metric_higher_better else value < self.best_score
+                save_criterion = (
+                    value > self.best_score
+                    if self.metric_higher_better
+                    else value < self.best_score
+                )
                 if split in self.save_best_on and save_criterion:
                     self.best_score = torch.ones(1) * value
-                    save_names.append(f'{split}-best.ckpt')
+                    save_names.append(f"{split}-best.ckpt")
 
-        if 'test' in split or 'dev' in split:
-            hyp_ark = open(os.path.join(self.expdir, f'{split}-hyp.ark'), 'w')
-            ref_ark = open(os.path.join(self.expdir, f'{split}-ref.ark'), 'w')
-            for idx, (hyp, ref) in enumerate(zip(records['hypothesis'], records['groundtruth'])):
-                hyp_ark.write(f'{idx} {hyp}\n')
-                ref_ark.write(f'{idx} {ref}\n')
+        if "test" in split or "dev" in split:
+            hyp_ark = open(os.path.join(self.expdir, f"{split}-hyp.ark"), "w")
+            ref_ark = open(os.path.join(self.expdir, f"{split}-ref.ark"), "w")
+            for idx, (hyp, ref) in enumerate(
+                zip(records["hypothesis"], records["groundtruth"])
+            ):
+                hyp_ark.write(f"{idx} {hyp}\n")
+                ref_ark.write(f"{idx} {ref}\n")
             hyp_ark.close()
             ref_ark.close()
 

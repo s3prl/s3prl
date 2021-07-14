@@ -39,15 +39,8 @@ class UpstreamExpert(UpstreamBase):
             "0.10.2"
         ), "Please install the fairseq master branch."
 
-        # Fix checkpoint key if loaded
-        loaded_ckpt = torch.load(ckpt, map_location="cpu")
-        if "label_embs_concat" in loaded_ckpt["model"]:
-            loaded_ckpt["model"].pop("label_embs_concat")
-        fixed_ckpt = ckpt + ".fixed"
-        torch.save(loaded_ckpt, fixed_ckpt)
-
         model, cfg, task = fairseq.checkpoint_utils.load_model_ensemble_and_task(
-            [fixed_ckpt]
+            [ckpt]
         )
         self.model = model[0]
         self.task = task

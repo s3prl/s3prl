@@ -908,13 +908,13 @@ cd LibriMix
 
 # prepare train, dev and test data in Kaldi format
 python downstream/separation_stft/scripts/LibriMix/data_prepare.py \
---part train-100 storage_dir downstream/separation_stft/data
+--part train-100 storage_dir/Libri2Mix downstream/separation_stft/data
 
 python downstream/separation_stft/scripts/LibriMix/data_prepare.py \
---part dev storage_dir downstream/separation_stft/data
+--part dev storage_dir/Libri2Mix downstream/separation_stft/data
 
 python downstream/separation_stft/scripts/LibriMix/data_prepare.py \
---part test storage_dir downstream/separation_stft/data
+--part test storage_dir/Libri2Mix downstream/separation_stft/data
 ```
 
 - **train**:

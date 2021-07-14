@@ -361,6 +361,7 @@ class Runner():
                     split,
                     features, *others,
                     records = records,
+                    batch_id = batch_id,
                 )
                 batch_ids.append(batch_id)
 

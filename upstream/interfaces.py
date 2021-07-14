@@ -4,6 +4,7 @@ from typing import Callable, List, Dict, Tuple, Union
 import torch
 import numpy as np
 import torch.nn as nn
+from torch import Tensor
 import torch.nn.functional as F
 from torch import Tensor
 
@@ -200,6 +201,9 @@ class Featurizer(nn.Module):
         if isinstance(feature, dict):
             feature = list(feature.values())
 
+        if isinstance(feature, (list, tuple)) and len(feature) == 1:
+            feature = feature[0]
+
         if feature is None:
             available_options = [key for key in features.keys() if key[0] != "_"]
             show(
@@ -243,7 +247,7 @@ class Featurizer(nn.Module):
         features = []
         for paired_wavs, paired_features in zip(all_task_paired_wavs, all_task_paired_features):
             feature = self._select_feature(paired_features)
-            if isinstance(feature, list) or isinstance(feature, tuple):
+            if isinstance(feature, (list, tuple)):
                 feature = self._weighted_sum(feature)
 
             features.append(UpstreamBase.tolist(paired_wavs, feature))

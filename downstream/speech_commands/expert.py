@@ -9,7 +9,7 @@ from typing import List, Tuple, Union
 import torch
 import torch.nn as nn
 from torch.utils.data import DataLoader, WeightedRandomSampler, DistributedSampler
-from utility.sampler import DistributedSamplerWrapper
+from catalyst.data.sampler import DistributedSamplerWrapper
 from torch.distributed import is_initialized
 from torch.nn.utils.rnn import pad_sequence
 
@@ -123,6 +123,7 @@ class DownstreamExpert(nn.Module):
             )
             with open(self.logging, 'a') as f:
                 if key == 'acc':
+                    print(f"{mode} {key}: {average}")
                     f.write(f'{mode} at step {global_step}: {average}\n')
                     if mode == 'dev' and average > self.best_score:
                         self.best_score = torch.ones(1) * average
