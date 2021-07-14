@@ -12,7 +12,7 @@ import numpy as np
 from argparse import Namespace
 from torch.distributed import is_initialized, get_world_size
 
-from s3prl import hubconf
+from s3prl import hub
 from s3prl import downstream
 from s3prl.downstream.runner import Runner
 from s3prl.utility.helper import backup, get_time_tag, hack_isinstance, is_leader_process, override
@@ -52,7 +52,7 @@ def get_downstream_args():
     parser.add_argument('-v', '--downstream_variant', help='Downstream vairants given the same expert')
 
     # upstream settings
-    upstreams = [attr for attr in dir(hubconf) if callable(getattr(hubconf, attr)) and attr[0] != '_']
+    upstreams = [attr for attr in dir(hub) if callable(getattr(hub, attr)) and attr[0] != '_']
     parser.add_argument('-u', '--upstream', choices=upstreams, help='\
         Some upstream variants need local ckpt or config file.\
         Some download needed files on-the-fly and cache them.\

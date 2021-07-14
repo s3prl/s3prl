@@ -1,1 +1,1 @@
-from s3prl.hubconf import *
+from s3prl.hub import *

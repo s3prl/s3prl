@@ -14,7 +14,7 @@ from tensorboardX import SummaryWriter
 from torch.nn.parallel import DistributedDataParallel as DDP
 from torch.distributed import is_initialized, get_rank, get_world_size
 
-from s3prl import hubconf
+from s3prl import hub
 from s3prl import downstream
 from s3prl.optimizers import get_optimizer
 from s3prl.schedulers import get_scheduler
@@ -70,7 +70,7 @@ class Runner():
 
 
     def _get_upstream(self):
-        Upstream = getattr(hubconf, self.args.upstream)
+        Upstream = getattr(hub, self.args.upstream)
         upstream_refresh = self.args.upstream_refresh
 
         if is_initialized() and get_rank() > 0:
