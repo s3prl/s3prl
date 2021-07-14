@@ -112,6 +112,14 @@ class UpstreamBase(nn.Module, metaclass=initHook):
         result = super().__call__(wavs, *args, **kwargs) or {}
         assert isinstance(result, dict)
 
+        print('!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!')
+        print('!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!')
+        _, hidden_states = zip(*self.hook_postprocess(hook_hiddens))
+        print(len(hidden_states), hidden_states[0].shape)
+        print('!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!')
+        print('!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!')
+        exit()
+        '''
         if len(self._hook_hiddens) > 0:
             if (
                 result.get("_hidden_states_info") is not None
@@ -138,10 +146,9 @@ class UpstreamBase(nn.Module, metaclass=initHook):
                 result[f"hidden_state_{layer_id}"] = hidden_state
 
             default = result.get("default")
-            '''
             if default is not None:
                 assert torch.allclose(default, result["last_hidden_state"])
-            '''
+        '''
 
         return result
 

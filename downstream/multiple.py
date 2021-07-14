@@ -101,6 +101,16 @@ class Runner():
         if init_weight:
             show(f'[Runner] - Loading {name} weights from the previous experiment')
             model.load_state_dict(init_weight)
+            if name == 'Upstream':
+                if hasattr(model, 'encoder') and hasattr(model.encoder, 'layerdrop'):
+                    print('############################################')
+                    print('Set upstream model.encoder.layerdrop to 0.0!')
+                    print('############################################')
+                    model.encoder.layerdrop = 0.
+                else:
+                    print('#######################################')
+                    print('This upstream has no encoder.layerdrop!')
+                    print('#######################################')
 
 
     def _init_model(self, model, name, trainable, interfaces=None):
