@@ -14,7 +14,7 @@ from tensorboardX import SummaryWriter
 from torch.nn.parallel import DistributedDataParallel as DDP
 from torch.distributed import is_initialized, get_rank, get_world_size
 
-import hubconf
+from s3prl import hubconf
 from s3prl import downstream
 from s3prl.optimizers import get_optimizer
 from s3prl.schedulers import get_scheduler

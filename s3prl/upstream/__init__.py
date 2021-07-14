@@ -7,7 +7,7 @@ for _subdir in _search_root.iterdir():
         _name = str(_subdir.relative_to(_search_root))
         try:
             _module_name = f".{_name}.expert"
-            _module = _importlib.import_module(_module_name, package=__name__)
+            _module = _importlib.import_module(_module_name, package=__package__)
 
         except ModuleNotFoundError as e:
             print(f'[Upstream] can not import {_module_name}: {str(e)}... Pass.')
