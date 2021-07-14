@@ -11,7 +11,7 @@ from torch.utils.data import DataLoader, DistributedSampler
 from torch.distributed import is_initialized
 from torch.nn.utils.rnn import pad_sequence
 
-from downstream.model import *
+from ..model import *
 from .dataset import FluentCommandsDataset
 
 

@@ -15,7 +15,7 @@ import torch.nn as nn
 import torch.nn.functional as F
 
 from argparse import Namespace
-from upstream.mockingjay.model import TransformerEncoder
+from s3prl.upstream.mockingjay.model import TransformerEncoder
 
 #########
 # MODEL #

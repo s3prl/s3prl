@@ -8,7 +8,7 @@ import torch.nn as nn
 from torch.utils.data import DataLoader
 from torch.nn.utils.rnn import pad_sequence
 
-from downstream.model import *
+from ..model import *
 from ..asr.model import *
 from .text import load_text_encoder
 from .data import load_dataset

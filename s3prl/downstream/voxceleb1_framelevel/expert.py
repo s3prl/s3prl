@@ -21,7 +21,7 @@ from torch.utils.data import DataLoader
 from torch.nn.utils.rnn import pad_sequence
 #-------------#
 from argparse import Namespace
-from downstream.voxceleb1.expert import  DownstreamExpert as SpeakerExpert
+from ..voxceleb1.expert import  DownstreamExpert as SpeakerExpert
 
 class DownstreamExpert(SpeakerExpert):
     """
