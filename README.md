@@ -51,6 +51,19 @@ If you find this toolkit helpful to your research, please do consider to cite [o
 
 * **Python** >= 3.6
 * Install **sox** on your OS
+* Install the specific fairseq
+
+```sh
+pip install https://github.com/pytorch/fairseq/archive/f2146bdc7abf293186de9449bfa2272775e39e1d.zip
+```
+
+* Install s3prl
+
+```sh
+pip install s3prl
+```
+
+or
 
 ```sh
 pip install -e ./
