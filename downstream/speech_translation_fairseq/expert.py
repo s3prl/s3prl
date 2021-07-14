@@ -76,7 +76,14 @@ class DownstreamExpert(nn.Module):
         self.data_dir = downstream_expert['taskrc']['data']
 
         self.criterion = self.task.build_criterion(Namespace(**downstream_expert['criterionrc']))
-        self.model = self.task.build_model(Namespace(**downstream_expert['modelrc']), upstream_dim)
+
+        modelrc = Namespace(**downstream_expert['modelrc'])
+        assert modelrc.arch in fairseq.models.ARCH_CONFIG_REGISTRY
+        fairseq.models.ARCH_CONFIG_REGISTRY[modelrc.arch](modelrc)
+        self.model = self.task.build_model(modelrc, upstream_dim)
+        
+        print(self.model)
+
         self.generator = self.task.build_generator([self.model], Namespace(**downstream_expert['generatorrc']))
         self.batch_itr = {}
         # self.connector = nn.Linear(upstream_dim, self.modelrc['config']['d_model'])
