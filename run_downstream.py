@@ -13,7 +13,7 @@ from argparse import Namespace
 from torch.distributed import is_initialized, get_world_size
 
 import hubconf
-from downstream.runner import Runner
+from s3prl.downstream.runner import Runner
 from utility.helper import backup, get_time_tag, hack_isinstance, is_leader_process, override
 
 
@@ -43,7 +43,7 @@ def get_downstream_args():
     parser.add_argument('-c', '--config', help='The yaml file for configuring the whole experiment except the upstream model')
 
     # downstream settings
-    downstreams = [item for item in os.listdir('./downstream') if os.path.isfile(os.path.join('./downstream', item, 'expert.py'))]
+    downstreams = [item for item in os.listdir('./s3prl/downstream') if os.path.isfile(os.path.join('./s3prl/downstream', item, 'expert.py'))]
     parser.add_argument('-d', '--downstream', choices=downstreams, help='\
         Typically downstream dataset need manual preparation.\
         Please check downstream/README.md for details'
@@ -126,7 +126,7 @@ def get_downstream_args():
         os.makedirs(args.expdir, exist_ok=True)
 
         if args.config is None:
-            args.config = f'./downstream/{args.downstream}/config.yaml'
+            args.config = f'./s3prl/downstream/{args.downstream}/config.yaml'
         with open(args.config, 'r') as file:
             config = yaml.load(file, Loader=yaml.FullLoader)
 

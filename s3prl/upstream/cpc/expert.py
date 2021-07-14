@@ -13,7 +13,7 @@ import argparse
 import torch
 from torch.nn.utils.rnn import pad_sequence
 
-from upstream.interfaces import UpstreamBase
+from ..interfaces import UpstreamBase
 from .model import CPCModel as cpcmodel
 from .cpc_default_config import get_default_cpc_config
 from .feature_loader import getEncoder, getAR, loadArgs

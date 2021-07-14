@@ -14,7 +14,7 @@ import os
 import torch
 #-------------#
 from utility.download import _gdriveids_to_filepaths, _urls_to_filepaths
-from upstream.byol_a.expert import UpstreamExpert as _UpstreamExpert
+from .expert import UpstreamExpert as _UpstreamExpert
 
 
 def byol_a_local(ckpt, model_config=None, *args, **kwargs):

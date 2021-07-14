@@ -14,7 +14,7 @@ import yaml
 import torch
 from torch import Tensor
 
-from upstream.interfaces import UpstreamBase
+from ..interfaces import UpstreamBase
 from .builder import PretrainedTransformer
 
 

@@ -11,7 +11,7 @@ import yaml
 
 from torch.nn.utils.rnn import pad_sequence
 
-from upstream.interfaces import UpstreamBase
+from ..interfaces import UpstreamBase
 from .extracter import get_extracter
 from .preprocessor import get_preprocessor
 

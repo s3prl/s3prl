@@ -19,7 +19,7 @@ import torch.nn.functional as F
 from torch.nn.utils.rnn import pad_sequence
 
 import fairseq
-from upstream.interfaces import UpstreamBase
+from ..interfaces import UpstreamBase
 
 
 ############

@@ -10,7 +10,7 @@
 import os
 
 from utility.download import _gdriveids_to_filepaths, _urls_to_filepaths
-from upstream.audio_albert.expert import UpstreamExpert as _UpstreamExpert
+from .expert import UpstreamExpert as _UpstreamExpert
 
 
 def audio_albert_local(ckpt, *args, **kwargs):

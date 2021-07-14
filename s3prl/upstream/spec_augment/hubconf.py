@@ -14,7 +14,7 @@ import os
 import torch
 #-------------#
 from utility.download import _gdriveids_to_filepaths, _urls_to_filepaths
-from upstream.spec_augment.expert import UpstreamExpert as _UpstreamExpert
+from .expert import UpstreamExpert as _UpstreamExpert
 
 
 def spec_augment_local(ckpt, feature_selection=None, *args, **kwargs):

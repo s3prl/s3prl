@@ -16,9 +16,8 @@ import fairseq
 import numpy as np
 import torch.nn.functional as F
 from torch.nn.utils.rnn import pad_sequence
-from omegaconf.dictconfig import DictConfig
 
-from upstream.interfaces import UpstreamBase
+from ..interfaces import UpstreamBase
 from utility.helper import zero_mean_unit_var_norm
 
 

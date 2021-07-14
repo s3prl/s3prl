@@ -14,7 +14,7 @@ import os
 import torch
 #-------------#
 from utility.download import _gdriveids_to_filepaths, _urls_to_filepaths
-from upstream.tera.expert import UpstreamExpert as _UpstreamExpert
+from .expert import UpstreamExpert as _UpstreamExpert
 
 
 def tera_local(ckpt, *args, **kwargs):

@@ -5,7 +5,7 @@ import torch.nn as nn
 from torch import Tensor
 from torch.nn.utils.rnn import pad_sequence
 
-from upstream.interfaces import UpstreamBase
+from ..interfaces import UpstreamBase
 
 HIDDEN_DIM = 8
 

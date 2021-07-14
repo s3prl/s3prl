@@ -18,7 +18,7 @@ from torch.nn.utils.rnn import pad_sequence
 import fairseq
 from fairseq.models.wav2vec import Wav2VecModel
 
-from upstream.interfaces import UpstreamBase
+from ..interfaces import UpstreamBase
 
 SAMPLE_RATE = 16000
 EXAMPLE_SEC = 5

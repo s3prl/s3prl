@@ -3,7 +3,7 @@ import glob
 import torch
 
 import hubconf
-from upstream.interfaces import Featurizer
+from ..interfaces import Featurizer
 from utility.download import _urls_to_filepaths
 from .expert import UpstreamExpert as _UpstreamExpert
 

@@ -21,8 +21,8 @@ import torch.nn as nn
 from torch.nn.utils.rnn import pad_sequence
 from functools import lru_cache
 from distutils.util import strtobool
-from upstream.baseline.extracter import get_extracter
-from upstream.baseline.preprocessor import get_preprocessor
+from ..baseline.extracter import get_extracter
+from ..baseline.preprocessor import get_preprocessor
 from .model import TransformerConfig, TransformerModel
 from .model import TransformerSpecPredictionHead
 

@@ -10,7 +10,7 @@
 import torch
 from torch.nn.utils.rnn import pad_sequence
 
-from upstream.interfaces import UpstreamBase
+from ..interfaces import UpstreamBase
 from .npc import NPC
 from .audio import create_transform
 

@@ -2,7 +2,7 @@ import torch
 from torch.nn.utils.rnn import pad_sequence
 
 from fairseq.models.roberta import RobertaModel
-from upstream.interfaces import UpstreamBase
+from ..interfaces import UpstreamBase
 
 SAMPLE_RATE = 16000
 EXAMPLE_SEC = 5

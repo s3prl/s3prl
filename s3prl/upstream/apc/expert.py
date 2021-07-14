@@ -12,7 +12,7 @@ import torch
 import torch
 from torch.nn.utils.rnn import pad_sequence, pad_packed_sequence
 
-from upstream.interfaces import UpstreamBase
+from ..interfaces import UpstreamBase
 from .apc import APC
 from .audio import create_transform
 

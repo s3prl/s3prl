@@ -17,7 +17,7 @@ from torch.distributed import is_initialized, get_rank, get_world_size
 import hubconf
 from optimizers import get_optimizer
 from schedulers import get_scheduler
-from upstream.interfaces import Featurizer
+from s3prl.upstream.interfaces import Featurizer
 from utility.helper import is_leader_process, get_model_state, show, defaultdict
 
 SAMPLE_RATE = 16000
@@ -106,7 +106,7 @@ class Runner():
 
 
     def _get_downstream(self):
-        module_path = f'downstream.{self.args.downstream}.expert'
+        module_path = f's3prl.downstream.{self.args.downstream}.expert'
         Downstream = getattr(importlib.import_module(module_path), 'DownstreamExpert')
         model = Downstream(
             upstream_dim = self.featurizer.model.output_dim,

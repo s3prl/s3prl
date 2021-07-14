@@ -16,7 +16,7 @@ dependencies = ['torch']
 
 
 search_root = os.path.dirname(__file__)
-hubconfs = [str(p) for p in pathlib.Path(search_root).glob('*/*/hubconf.py')]
+hubconfs = [str(p) for p in pathlib.Path(search_root).glob('s3prl/*/*/hubconf.py')]
 hubconfs = [os.path.relpath(p, search_root) for p in hubconfs]
 
 for hubconf in hubconfs:
