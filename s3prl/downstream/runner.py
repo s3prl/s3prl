@@ -6,8 +6,10 @@ import shutil
 import random
 import tempfile
 import importlib
+from pathlib import Path
 
 import torch
+import torchaudio
 import numpy as np
 from tqdm import tqdm
 from tensorboardX import SummaryWriter
@@ -95,7 +97,8 @@ class Runner():
 
     def _get_featurizer(self):
         model = Featurizer(
-            self.upstream.model, self.args.upstream_feature_selection
+            self.upstream.model, self.args.upstream_feature_selection,
+            upstream_device=self.args.device
         ).to(self.args.device)
 
         return self._init_model(
@@ -389,3 +392,23 @@ class Runner():
             shutil.rmtree(tempdir)
 
         return [] if type(save_names) is not list else save_names
+
+    def inference(self):
+        filepath = Path(self.args.evaluate_split)
+        assert filepath.is_file()
+        filename = filepath.stem
+
+        if hasattr(self.downstream.model, "load_audio"):
+            wav = self.downstream.model.load_audio(filepath)
+        else:
+            wav, sr = torchaudio.load(str(filepath))
+            assert sr == SAMPLE_RATE
+        wavs = [wav.view(-1).to(self.args.device)]
+
+        for entry in self.all_entries:
+            entry.model.eval()
+
+        with torch.no_grad():
+            features = self.upstream.model(wavs)
+            features = self.featurizer.model(wavs, features)
+            self.downstream.model.inference(features, [filename])

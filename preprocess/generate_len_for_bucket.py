@@ -50,6 +50,7 @@ def get_preprocess_args():
     parser.add_argument('-a', '--audio_extension', default='.flac', type=str, help='audio file type (.wav / .flac / .mp3 / etc)', required=False)
     parser.add_argument('-n', '--name', default='len_for_bucket', type=str, help='Name of the output directory', required=False)
     parser.add_argument('--n_jobs', default=-1, type=int, help='Number of jobs used for feature extraction', required=False)
+    parser.add_argument('--use_datasets', default=False, type=boolean_string, help='Use datasets library for downloading and preprocessing data', required=False)
 
     args = parser.parse_args()
     return args
@@ -67,7 +68,7 @@ def extract_length(input_file):
 # GENERATE LENGTH #
 ###################
 def generate_length(args, tr_set, audio_extension):
-    
+    print(f"Preprocessing data in: {dataset.cache_files[0]['filename']}")
     for i, s in enumerate(tr_set):
         if os.path.isdir(os.path.join(args.input_data, s.lower())):
             s = s.lower()
@@ -90,9 +91,9 @@ def generate_length(args, tr_set, audio_extension):
         sorted_todo = [os.path.join(s, str(todo[idx]).split(s+'/')[-1]) for idx in reversed(np.argsort(tr_x))]
         # Dump data
         df = pd.DataFrame(data={'file_path':[fp for fp in sorted_todo], 'length':list(reversed(sorted(tr_x))), 'label':None})
-        df.to_csv(os.path.join(output_dir, tr_set[i] + '.csv'))
+        df.to_csv(os.path.join(output_dir, tr_set[i] + '.csv')) 
 
-    print('All done, saved at', output_dir, 'exit.')
+    print(f"All done, files saved at {output_dir}")
 
 
 ########
@@ -103,19 +104,24 @@ def main():
     # get arguments
     args = get_preprocess_args()
     
-    if 'librispeech' in args.input_data.lower():
-        SETS = ['train-clean-100', 'train-clean-360', 'train-other-500', 'dev-clean', 'dev-other', 'test-clean', 'test-other']
-    elif 'timit' in args.input_data.lower():
-        SETS = ['TRAIN', 'TEST']
+    if args.use_datasets:
+        asr = load_dataset("superb", "asr")
+        for split, dataset in asr.items():
+            generate_length_with_datasets(split, dataset, args)
+    else:
+        if 'librispeech' in args.input_data.lower():
+            SETS = ['train-clean-100', 'train-clean-360', 'train-other-500', 'dev-clean', 'dev-other', 'test-clean', 'test-other']
+        elif 'timit' in args.input_data.lower():
+            SETS = ['TRAIN', 'TEST']
 
-    # Select data sets
-    for idx, s in enumerate(SETS):
-        print('\t', idx, ':', s)
-    tr_set = input('Please enter the index of splits you wish to use preprocess. (seperate with space): ')
-    tr_set = [SETS[int(t)] for t in tr_set.split(' ')]
+        # Select data sets
+        for idx, s in enumerate(SETS):
+            print('\t', idx, ':', s)
+        tr_set = input('Please enter the index of splits you wish to use preprocess. (seperate with space): ')
+        tr_set = [SETS[int(t)] for t in tr_set.split(' ')]
 
-    # Acoustic Feature Extraction & Make Data Table
-    generate_length(args, tr_set, args.audio_extension)
+        # Acoustic Feature Extraction & Make Data Table
+        generate_length(args, tr_set, args.audio_extension)
 
 
 if __name__ == '__main__':
