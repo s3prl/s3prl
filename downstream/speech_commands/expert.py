@@ -9,6 +9,8 @@ from typing import List, Tuple, Union
 import torch
 import torch.nn as nn
 from torch.utils.data import DataLoader, WeightedRandomSampler
+from catalyst.data.sampler import DistributedSamplerWrapper
+from torch.distributed import is_initialized
 from torch.nn.utils.rnn import pad_sequence
 
 from downstream.model import *
@@ -47,7 +49,20 @@ class DownstreamExpert(nn.Module):
         self.logging = os.path.join(expdir, 'log.log')
         self.register_buffer('best_score', torch.zeros(1))
 
-    def _get_balanced_dataloader(self, dataset, drop_last=False):
+    def _get_balanced_train_dataloader(self, dataset, drop_last=False):
+        sampler = WeightedRandomSampler(dataset.sample_weights, len(dataset.sample_weights))
+        if is_initialized():
+            sampler = DistributedSamplerWrapper(sampler)
+        return DataLoader(
+            dataset,
+            sampler=sampler,
+            batch_size=self.datarc["batch_size"],
+            drop_last=drop_last,
+            num_workers=self.datarc["num_workers"],
+            collate_fn=dataset.collate_fn,
+        )
+
+    def _get_balanced_dev_dataloader(self, dataset, drop_last=False):
         return DataLoader(
             dataset,
             sampler=WeightedRandomSampler(
@@ -72,9 +87,9 @@ class DownstreamExpert(nn.Module):
     # Interface
     def get_dataloader(self, mode):
         if mode == 'train':
-            return self._get_balanced_dataloader(self.train_dataset, drop_last=True)
+            return self._get_balanced_train_dataloader(self.train_dataset, drop_last=True)
         elif mode == 'dev':
-            return self._get_balanced_dataloader(self.dev_dataset, drop_last=False)
+            return self._get_balanced_dev_dataloader(self.dev_dataset, drop_last=False)
         elif mode == 'test':
             return self._get_dataloader(self.test_dataset)
         else:
@@ -108,6 +123,7 @@ class DownstreamExpert(nn.Module):
             )
             with open(self.logging, 'a') as f:
                 if key == 'acc':
+                    print(f"{mode} {key}: {average}")
                     f.write(f'{mode} at step {global_step}: {average}\n')
                     if mode == 'dev' and average > self.best_score:
                         self.best_score = torch.ones(1) * average

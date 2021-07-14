@@ -2,7 +2,7 @@ from collections import OrderedDict
 from typing import List, Union, Dict
 
 import torch.nn as nn
-from torch.tensor import Tensor
+from torch import Tensor
 from torch.nn.utils.rnn import pad_sequence
 
 from upstream.interfaces import UpstreamBase

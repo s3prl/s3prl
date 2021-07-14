@@ -7,7 +7,8 @@ from collections import Counter
 
 import torch
 import torch.nn as nn
-from torch.utils.data import DataLoader
+from torch.utils.data import DataLoader, DistributedSampler
+from torch.distributed import is_initialized
 from torch.nn.utils.rnn import pad_sequence
 
 from downstream.model import *
@@ -66,9 +67,11 @@ class DownstreamExpert(nn.Module):
         self.test_df = test_df
 
     def _get_train_dataloader(self, dataset):
+        sampler = DistributedSampler(dataset) if is_initialized() else None
         return DataLoader(
             dataset, batch_size=self.datarc['train_batch_size'],
-            shuffle=True, num_workers=self.datarc['num_workers'],
+            shuffle=(sampler is None), sampler=sampler,
+            num_workers=self.datarc['num_workers'],
             collate_fn=dataset.collate_fn
         )
 
@@ -132,6 +135,7 @@ class DownstreamExpert(nn.Module):
             )
             with open(self.logging, 'a') as f:
                 if key == 'acc':
+                    print(f"{mode} {key}: {average}")
                     f.write(f'{mode} at step {global_step}: {average}\n')
                     if mode == 'dev' and average > self.best_score:
                         self.best_score = torch.ones(1) * average
