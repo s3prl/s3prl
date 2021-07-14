@@ -51,27 +51,15 @@ If you find this toolkit helpful to your research, please do consider to cite [o
 
 * **Python** >= 3.6
 * Install **sox** on your OS
-* Install generally used packages for *pretrain*, *upstream* and *downstream*:
 
-```bash
-git clone https://github.com/s3prl/s3prl.git
-cd s3prl/
-pip install -r requirements.txt
-cd ../
+```sh
+pip install s3prl
+```
 
-git clone https://github.com/pytorch/fairseq.git
-cd fairseq/
+or
 
-# The version used by the repo maintainer currently.
-# Please must not use the stable version 0.10.2 as it
-# contains known issues for
-#  1. wav2vec2 inference
-#  2. ASR decoding
-#  3. HuBERT loading
-git checkout 01576be5
-
+```sh
 pip install -e ./
-cd ../
 ```
 
 * Some upstream models require special dependencies. If you encounter error with a specific upstream model, you can look into the `README.md` under each `upsream` folder. Eg. `upstream/pase/README.md`
