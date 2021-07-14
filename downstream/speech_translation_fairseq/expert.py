@@ -21,6 +21,7 @@ from .AdditionalDataset import AdditionalDataset
 from fairseq.models.speech_to_text.s2t_transformer import TransformerDecoderScriptable, S2TTransformerModel
 from fairseq.models.transformer import Embedding
 from fairseq.data import Dictionary, encoders
+import string
 
 class DownstreamExpert(nn.Module):
     """
@@ -58,6 +59,7 @@ class DownstreamExpert(nn.Module):
 
         super(DownstreamExpert, self).__init__()
 
+        print(downstream_expert)
 
         self.src_lang = downstream_expert['src_lang']
         self.tgt_lang = downstream_expert['tgt_lang']
@@ -65,7 +67,7 @@ class DownstreamExpert(nn.Module):
         self.upstream_rate = upstream_rate
 
         self.datarc = downstream_expert['datarc']
-        self.datarc['max_positions'] = downstream_expert['modelrc']['max_source_positions']
+        self.max_positions = downstream_expert['modelrc']['max_source_positions']
 
 
         self.task = S3prl_SpeechToTextTask.setup_task(Namespace(**downstream_expert['taskrc']))
@@ -84,18 +86,22 @@ class DownstreamExpert(nn.Module):
         if self.use_asr:
 
             rc = downstream_expert['asrrc']
-
             self.asr_datarc = rc['datarc']
             self.asr_weight = rc['weight']
             self.asr_dict = Dictionary.load(f"{self.data_dir}/{rc['vocab_file']}")
-            rc['bpe_tokenizer']['sentencepiece_model'] = f"{self.data_dir}/{rc['bpe_tokenizer']['sentencepiece_model']}" 
-            self.asr_bpe = encoders.build_bpe(Namespace(**rc['bpe_tokenizer']))
+            asr_bperc = rc['bpe_tokenizer'].copy()
+            asr_bperc['sentencepiece_model'] = f"{self.data_dir}/{asr_bperc['sentencepiece_model']}" 
+            self.asr_bpe = encoders.build_bpe(Namespace(**asr_bperc))
+            
             self.asr_decoder = TransformerDecoderScriptable(
                 self.model.decoder.args,
                 self.asr_dict,
                 Embedding(len(self.asr_dict), self.model.decoder.embed_dim, self.asr_dict.pad())
             )
+            self.asr_task = S3prl_SpeechToTextTask.setup_task(Namespace(**downstream_expert['taskrc']))
+            self.asr_task.tgt_dict = self.asr_dict
             self.asr_model = S2TTransformerModel(self.model.encoder, self.asr_decoder)
+            self.asr_generator = self.asr_task.build_generator([self.asr_model], Namespace(**downstream_expert['generatorrc']))
 
             self.additional_dataset = {}
 
@@ -128,7 +134,7 @@ class DownstreamExpert(nn.Module):
             self.batch_itr[split] = self.task.get_batch_iterator(
                 self.task.dataset(split),
                 max_tokens=self.datarc['max_tokens'],
-                max_positions=self.datarc['max_positions'],
+                max_positions=self.max_positions,
                 num_workers=self.datarc['num_workers'],
                 ignore_invalid_inputs = True, ## should be more conceren
             )
@@ -246,6 +252,10 @@ class DownstreamExpert(nn.Module):
 
         input_dict = fairseq.utils.move_to_cuda(input_dict, device=device)
 
+        if self.use_asr:
+            asr_input_dict = self._create_asr_input_dict(input_dict, mode)
+            asr_input_dict = fairseq.utils.move_to_cuda(asr_input_dict, device=device)
+
         loss = torch.FloatTensor(0)
 
         if mode in ['train', 'dev']:
@@ -271,24 +281,6 @@ class DownstreamExpert(nn.Module):
             loss = st_loss
 
             if self.use_asr:
-
-                if mode not in self.additional_dataset:
-                    dataset = AdditionalDataset.from_tsv(
-                        f'{self.data_dir}/{self.datarc[mode]}.tsv',
-                        self.asr_datarc['key'],
-                        self.asr_dict,
-                        self.asr_bpe,
-                    )
-                    self.additional_dataset[mode] = dataset
-
-                additional_data = self.additional_dataset[mode].get_addtional_input(input_dict['id'])
-                additional_data = fairseq.utils.move_to_cuda(additional_data, device=device)
-
-                asr_input_dict = input_dict.copy()
-                asr_input_dict['net_input']['prev_output_tokens'] = additional_data['prev_output_tokens']
-                asr_input_dict['target'] = additional_data['target']
-                asr_input_dict['target_lengths'] = additional_data['target_lengths']
-                asr_input_dict['ntokens'] = additional_data['ntokens']
 
                 asr_decoder_out = self.asr_model.decoder(
                     prev_output_tokens=asr_input_dict['net_input']['prev_output_tokens'],
@@ -322,16 +314,42 @@ class DownstreamExpert(nn.Module):
 
 
         if mode in ['dev', 'test']:
-            hyps, refs = self._inference_step(input_dict, self.model, self.task.target_dictionary)
+
+            records['ids'] += input_dict['id'].cpu().tolist()
+
+            hyps, refs = self._inference_step(input_dict, self.model, self.task.target_dictionary, self.generator)
             records['hyps'] += hyps
             records['refs'] += refs
 
-            if mode in ['dev'] and self.use_asr:
-                asr_hyps, asr_refs = self._inference_step(asr_input_dict, self.asr_model, self.asr_dict)
+            if self.use_asr:
+                asr_hyps, asr_refs = self._inference_step(asr_input_dict, self.asr_model, self.asr_dict, self.asr_generator)
                 records['asr_hyps'] += asr_hyps
                 records['asr_refs'] += asr_refs
 
         return loss
+
+    def _create_asr_input_dict(self, input_dict, mode):
+
+        if mode not in self.additional_dataset:
+            
+            dataset = AdditionalDataset.from_tsv(
+                f'{self.data_dir}/{self.datarc[mode]}.tsv',
+                self.asr_datarc['key'],
+                self.asr_dict,
+                self.asr_bpe,
+            )
+            self.additional_dataset[mode] = dataset
+
+        additional_data = self.additional_dataset[mode].get_addtional_input(input_dict['id'])
+
+        asr_input_dict = input_dict.copy()
+        asr_input_dict['net_input'] = input_dict['net_input'].copy()
+        asr_input_dict['net_input']['prev_output_tokens'] = additional_data['prev_output_tokens']
+        asr_input_dict['target'] = additional_data['target']
+        asr_input_dict['target_lengths'] = additional_data['target_lengths']
+        asr_input_dict['ntokens'] = additional_data['ntokens']
+
+        return asr_input_dict
 
     def _decode(self, toks, dictionary):
 
@@ -344,8 +362,8 @@ class DownstreamExpert(nn.Module):
 
         return s if s else "<unk>"
 
-    def _inference_step(self, input_dict, model, dictionary):
-        output = self.generator.generate([model], input_dict)
+    def _inference_step(self, input_dict, model, dictionary, generator):
+        output = generator.generate([model], input_dict)
 
         hyps = []
         refs = []
@@ -373,19 +391,24 @@ class DownstreamExpert(nn.Module):
 
         ce = 0
         c_total = 0
-        we = 0
-        w_total = 0
+
+        normalized_hyps = []
+        normalized_refs = []
 
         for hyp, ref in zip(hyps, refs):
+
+            normalized_hyp = hyp.translate(str.maketrans('', '', "".join(list(set(string.punctuation)-set("'-"))))).lower()
+            normalized_ref = ref.translate(str.maketrans('', '', "".join(list(set(string.punctuation)-set("'-"))))).lower()
 
             ce += editdistance.eval(hyp, ref)
             c_total += len(ref)
 
-            we += editdistance.eval(hyp.split(), ref.split())
-            w_total += len(ref.split())
+            normalized_hyps.append(normalized_hyp)
+            normalized_refs.append(normalized_ref)
 
         cer = ce / c_total
-        wer = we / w_total
+
+        wer = sacrebleu.corpus_ter(normalized_hyps, [normalized_refs]).score
 
         return cer, wer
 
@@ -447,7 +470,7 @@ class DownstreamExpert(nn.Module):
 
                 ave_asr_loss = sum(records['asr_loss'])/len(records['asr_loss'])
                 logger.add_scalar(
-                    f'st/{mode}-asr_loss',
+                    f'asr/{mode}-asr_loss',
                     ave_asr_loss,
                     global_step=global_step
                 )
@@ -470,26 +493,40 @@ class DownstreamExpert(nn.Module):
             if bleu.score > self.best_score:
                 self.best_score = torch.ones(1) * bleu.score
                 save_names.append(f'{mode}-best.ckpt') 
-        
-            for i in range(5):
-                tqdm.write(f"{i}")
-                tqdm.write(f"[hyp]{records['hyps'][i]}")
-                tqdm.write(f"[ref]{records['refs'][i]}")
-            tqdm.write(f'[BLEU] {bleu.score}')
+            
+            with open(f'st-fairseq-st-{mode}.tsv', 'w') as f:
+                print('id', 'hyp', 'ref', sep='\t', file=f)
+                for idx, hyp, ref in zip(records['ids'], records['hyps'], records['refs']):
+                    print(idx, hyp, ref, sep='\t', file=f)
+
+            for i in range(min(len(records['ids']), 5)):
+                tqdm.write(f"[st] [id]: {records['ids'][i]}, [hyp]: {records['hyps'][i]}, [ref]: {records['refs'][i]}")
+
+            tqdm.write(f'[BLEU]: {bleu.score}')
             print(bleu)
 
-            if self.use_asr and mode in ['dev']:
+            if self.use_asr:
 
-                cer, wer = self._asr_metric(records['hyps'], records['refs'])
+                cer, wer = self._asr_metric(records['asr_hyps'], records['asr_refs'])
                 logger.add_scalar(
-                    f'st/{mode}-asr_cer',
+                    f'asr/{mode}-cer',
                     cer,
                     global_step=global_step
                 )
                 logger.add_scalar(
-                    f'st/{mode}-asr_wer',
+                    f'asr/{mode}-wer',
                     wer,
                     global_step=global_step
                 )
-                print(f'[cer]:{cer}, [wer]:{wer}')
+
+                with open(f'st-fairseq-asr-{mode}.tsv', 'w') as f:
+                    print('id', 'hyp', 'ref', sep='\t', file=f)
+                    for idx, hyp, ref in zip(records['ids'], records['asr_hyps'], records['asr_refs']):
+                        print(idx, hyp, ref, sep='\t', file=f)
+
+                for i in range(min(len(records['ids']), 5)):
+                    tqdm.write(f"[asr] [id]: {records['ids'][i]}, [hyp]: {records['asr_hyps'][i]}, [ref]: {records['asr_refs'][i]}")
+
+                tqdm.write(f'[cer]:{cer}, [wer]:{wer}')
+        
         return save_names

@@ -1,7 +1,7 @@
 runner:
   total_steps: 32000
   gradient_clipping: 10
-  gradient_accumulate_steps: 32
+  gradient_accumulate_steps: 16
 
   log_step: 100
   eval_step: 2000 #2000
@@ -39,7 +39,7 @@ downstream_expert:
     use_asr: True
 
   asrrc:
-    weight: 0.5
+    weight: 0.3
     vocab_file: spm_en_de_src_text.txt
     bpe_tokenizer:
       bpe: sentencepiece
@@ -52,8 +52,7 @@ downstream_expert:
     train: train_st_en_de
     dev: dev_st_en_de
     test: test_st_en_de
-    max_tokens: 10000
-    max_positions: "this will be replaced by model's max_source_positions"
+    max_tokens: 20000
     num_workers: 4
 
 
@@ -62,9 +61,9 @@ downstream_expert:
     # max_len_a: 1.2
     # max_len_b: 10
     max_len_a: 0
-    max_len_b: 200
+    max_len_b: 400
 
   modelrc:
     arch: s2t_transformer_xs
-    max_source_positions: 10000
+    max_source_positions: 6000
     max_target_positions: 1024
