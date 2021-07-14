@@ -53,12 +53,6 @@ If you find this toolkit helpful to your research, please do consider to cite [o
 * Install **sox** on your OS
 
 ```sh
-pip install s3prl
-```
-
-or
-
-```sh
 pip install -e ./
 ```
 
