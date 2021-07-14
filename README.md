@@ -2,7 +2,7 @@
     <img src="./file/S3PRL-logo.png" width="900"/>
     <br>
     <br>
-    <a href="./LICENSE"><img alt="MIT License" src="https://img.shields.io/badge/license-MIT-blue.svg" /></a>
+    <a href="./LICENSE.txt"><img alt="MIT License" src="https://img.shields.io/badge/license-MIT-blue.svg" /></a>
     <a href="https://creativecommons.org/licenses/by-nc/4.0/"><img alt="CC_BY_NC License" src="https://img.shields.io/badge/License-CC%20BY--NC%204.0-lightgrey.svg" /></a>
     <a href="https://github.com/s3prl/s3prl/actions"><img alt="Build" src="https://github.com/allenai/allennlp/workflows/Master/badge.svg?event=push&branch=master"></a>
     <a href="#development-pattern-for-contributors"><img alt="Codecov" src="https://img.shields.io/badge/contributions-welcome-brightgreen.svg"></a>
@@ -49,32 +49,25 @@ If you find this toolkit helpful to your research, please do consider to cite [o
 
 ## Installation
 
-* **Python** >= 3.6
-* Install **sox** on your OS
-* Install generally used packages for *pretrain*, *upstream* and *downstream*:
+1. **Python** >= 3.6
+2. Install **sox** on your OS
+3. Install s3prl
 
-```bash
-git clone https://github.com/s3prl/s3prl.git
-cd s3prl/
-pip install -r requirements.txt
-cd ../
+```sh
+pip install s3prl
 
-git clone https://github.com/pytorch/fairseq.git
-cd fairseq/
-
-# The version used by the repo maintainer currently.
-# Please must not use the stable version 0.10.2 as it
-# contains known issues for
-#  1. wav2vec2 inference
-#  2. ASR decoding
-#  3. HuBERT loading
-git checkout 01576be5
+# or
 
 pip install -e ./
-cd ../
 ```
 
-* Some upstream models require special dependencies. If you encounter error with a specific upstream model, you can look into the `README.md` under each `upsream` folder. Eg. `upstream/pase/README.md`
+4. Install the specific fairseq
+
+```sh
+pip install fairseq@git+https://github.com//pytorch/fairseq.git@f2146bdc7abf293186de9449bfa2272775e39e1d#egg=fairseq
+```
+
+5. Some upstream models require special dependencies. If you encounter error with a specific upstream model, you can look into the `README.md` under each `upsream` folder. Eg. `upstream/pase/README.md`
 
 ## Development pattern for contributors
 
