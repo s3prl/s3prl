@@ -207,18 +207,7 @@ Specified by the command `-d asr`
 
 #### Prepare data
 
-1. Download [LibriSpeech](https://www.openslr.org/12) and unzip. Only need train-clean-100, dev-clean, and test-clean.
-
-2. Check the prepared file structure
-
-    ```bash
-    LibriSpeech/
-    ├── train-clean-100/
-    ├── dev-clean/
-    └── test-clean/
-    ```
-
-3. Change the path in `downstream/asr/config.yaml`
+1. Change the path in `downstream/asr/config.yaml`
 
     ```yaml
     downstream_expert:
@@ -226,12 +215,13 @@ Specified by the command `-d asr`
             libri_root: "root directory of LibriSpeech"
     ```
 
-4. Prepare the lengths for utterances in LibriSpeech's train-clean-100, dev-clean and test-clean:
+2. To download the train, validation, and test splits and compute the utterance lengths, run:
 
     ```bash
-    # Official LibriSpeech is in .flac format
-    python3 preprocess/generate_len_for_bucket.py -i "root directory of LibriSpeech" -o data/librispeech -a .flac --n_jobs 12
+    python preprocess/generate_len_for_bucket.py -o data/Librispeech --n_jobs 12
     ```
+
+This will download the LibriSpeech subsets from the [`superb` dataset](https://huggingface.co/datasets/superb) on the Hugging Face Hub and store them in `~/.cache/huggingface/datasets/superb`
 
 #### Training
 

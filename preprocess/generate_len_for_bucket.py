@@ -21,6 +21,8 @@ import pandas as pd
 from tqdm import tqdm
 from pathlib import Path
 from joblib import Parallel, delayed
+from datasets import load_dataset, Dataset
+import soundfile as sf
 
 
 # change these to match your dataset
@@ -45,9 +47,7 @@ def get_preprocess_args():
     
     parser = argparse.ArgumentParser(description='preprocess arguments for any dataset.')
 
-    parser.add_argument('-i', '--input_data', default='../LibriSpeech/', type=str, help='Path to your LibriSpeech directory', required=False)
     parser.add_argument('-o', '--output_path', default='./data/', type=str, help='Path to store output', required=False)
-    parser.add_argument('-a', '--audio_extension', default='.flac', type=str, help='audio file type (.wav / .flac / .mp3 / etc)', required=False)
     parser.add_argument('-n', '--name', default='len_for_bucket', type=str, help='Name of the output directory', required=False)
     parser.add_argument('--n_jobs', default=-1, type=int, help='Number of jobs used for feature extraction', required=False)
 
@@ -95,27 +95,35 @@ def generate_length(args, tr_set, audio_extension):
     print('All done, saved at', output_dir, 'exit.')
 
 
+
+#################################
+# GENERATE LENGTH WITH DATASETS #
+#################################
+def compute_audio_length(batch):
+    speech_array, _ = sf.read(batch["file"])
+    batch["length"] = speech_array.shape[-1]
+    return batch
+
+
+def generate_length_with_datasets(split:str, dataset: Dataset, args):
+    dataset = dataset.map(compute_audio_length, num_proc=args.n_jobs)
+    dataset = dataset.sort("length", reverse=True)
+    dataset = dataset.rename_columns({"file":"file_path"})
+    dataset = dataset.add_column("label", [None] * len(dataset))
+    output_dir = Path(args.output_path).joinpath(args.name)
+    dataset.to_csv(f"{output_dir/split}.csv", columns=["file_path", "length", "label"])
+
+
 ########
 # MAIN #
 ########
 def main():
 
-    # get arguments
     args = get_preprocess_args()
-    
-    if 'librispeech' in args.input_data.lower():
-        SETS = ['train-clean-100', 'train-clean-360', 'train-other-500', 'dev-clean', 'dev-other', 'test-clean', 'test-other']
-    elif 'timit' in args.input_data.lower():
-        SETS = ['TRAIN', 'TEST']
+    asr = load_dataset("superb", "asr")
 
-    # Select data sets
-    for idx, s in enumerate(SETS):
-        print('\t', idx, ':', s)
-    tr_set = input('Please enter the index of splits you wish to use preprocess. (seperate with space): ')
-    tr_set = [SETS[int(t)] for t in tr_set.split(' ')]
-
-    # Acoustic Feature Extraction & Make Data Table
-    generate_length(args, tr_set, args.audio_extension)
+    for split, dataset in asr.items():
+        generate_length_with_datasets(split, dataset, args)
 
 
 if __name__ == '__main__':
