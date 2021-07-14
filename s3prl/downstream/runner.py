@@ -15,8 +15,9 @@ from torch.nn.parallel import DistributedDataParallel as DDP
 from torch.distributed import is_initialized, get_rank, get_world_size
 
 import hubconf
-from optimizers import get_optimizer
-from schedulers import get_scheduler
+from s3prl import downstream
+from s3prl.optimizers import get_optimizer
+from s3prl.schedulers import get_scheduler
 from s3prl.upstream.interfaces import Featurizer
 from utility.helper import is_leader_process, get_model_state, show, defaultdict
 
@@ -106,8 +107,7 @@ class Runner():
 
 
     def _get_downstream(self):
-        module_path = f's3prl.downstream.{self.args.downstream}.expert'
-        Downstream = getattr(importlib.import_module(module_path), 'DownstreamExpert')
+        Downstream = getattr(downstream, self.args.downstream)
         model = Downstream(
             upstream_dim = self.featurizer.model.output_dim,
             upstream_rate = self.featurizer.model.downsample_rate,

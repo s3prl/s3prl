@@ -6,25 +6,20 @@
    Copyright    [ Copyleft(c), Speech Lab, NTU, Taiwan ]
 ************************************************************************************************"""
 
-import os
-import hashlib
-import pathlib
-import importlib
+import pathlib as _pathlib
+import importlib as _importlib
 
-import torch
-dependencies = ['torch']
+_search_root = _pathlib.Path(__file__).parent
+_hubconfs = _search_root.glob("s3prl/*/*/hubconf.py")
 
-
-search_root = os.path.dirname(__file__)
-hubconfs = [str(p) for p in pathlib.Path(search_root).glob('s3prl/*/*/hubconf.py')]
-hubconfs = [os.path.relpath(p, search_root) for p in hubconfs]
-
-for hubconf in hubconfs:
-    module_name = '.'.join(str(hubconf).split('.')[:-1]).replace('/', '.')
+for _hubconf in _hubconfs:
+    posixpath = _hubconf.relative_to(_search_root).as_posix()
     try:
-        _module = importlib.import_module(module_name)
+        _module_name = ".".join(posixpath.split(".")[:-1]).replace("/", ".")
+        _module = _importlib.import_module(_module_name)
+
     except ModuleNotFoundError as e:
-        print(f'[hubconf] can not import {module_name}: {str(e)}... Pass.')
+        print(f'[hubconf] can not import {_module_name}: {str(e)}... Pass.')
         continue
 
     for variable_name in dir(_module):
