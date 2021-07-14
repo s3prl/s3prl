@@ -15,7 +15,7 @@ from torch.distributed import is_initialized, get_world_size
 import hubconf
 from s3prl import downstream
 from s3prl.downstream.runner import Runner
-from utility.helper import backup, get_time_tag, hack_isinstance, is_leader_process, override
+from s3prl.utility.helper import backup, get_time_tag, hack_isinstance, is_leader_process, override
 
 
 def get_downstream_args():

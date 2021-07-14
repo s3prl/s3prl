@@ -13,7 +13,7 @@ from typing import Tuple, List
 import torch
 from torch import Tensor
 
-from utility.download import _urls_to_filepaths
+from s3prl.utility.download import _urls_to_filepaths
 from .expert import UpstreamExpert as _UpstreamExpert
 
 

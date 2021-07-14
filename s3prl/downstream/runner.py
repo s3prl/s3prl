@@ -19,7 +19,7 @@ from s3prl import downstream
 from s3prl.optimizers import get_optimizer
 from s3prl.schedulers import get_scheduler
 from s3prl.upstream.interfaces import Featurizer
-from utility.helper import is_leader_process, get_model_state, show, defaultdict
+from s3prl.utility.helper import is_leader_process, get_model_state, show, defaultdict
 
 SAMPLE_RATE = 16000
 

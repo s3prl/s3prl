@@ -4,8 +4,8 @@ import torch
 
 import hubconf
 from ..interfaces import Featurizer
-from utility.download import _urls_to_filepaths
 from .expert import UpstreamExpert as _UpstreamExpert
+from s3prl.utility.download import _urls_to_filepaths
 
 
 def _roberta_local(frontend_model, model_name_or_path, checkpoint_file, **kwargs):
