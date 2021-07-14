@@ -31,3 +31,4 @@ normalise
 editdistance
 asteroid==0.4.4
 omegaconf
+datasets>=1.9
