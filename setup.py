@@ -1,5 +1,5 @@
 # Always prefer setuptools over distutils
-from setuptools import setup, find_packages
+from setuptools import setup, find_namespace_packages
 import pathlib
 
 here = pathlib.Path(__file__).parent.resolve()
@@ -159,7 +159,7 @@ setup(
     #
     #   py_modules=["my_module"],
     #
-    packages=find_packages(include="s3prl*"),  # Required
+    packages=find_namespace_packages(include=["s3prl*"]),  # Required
 
     # Specify which Python versions you support. In contrast to the
     # 'Programming Language' classifiers above, 'pip install' will check this
