@@ -33,6 +33,8 @@ All of the downstream task follow the following command pattern, with a few task
 ## Start a new downstream training experiment
 
 ```bash
+cd s3prl/
+
 # general pattern
 python3 run_downstream.py -m train -n ExpName -u UpstreamName -d DownstreamName
 # a directly runnable example without data preparation
