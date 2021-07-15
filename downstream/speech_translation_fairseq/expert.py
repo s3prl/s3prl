@@ -64,6 +64,7 @@ class DownstreamExpert(nn.Module):
         self.src_lang = downstream_expert['src_lang']
         self.tgt_lang = downstream_expert['tgt_lang']
         self.post_process = downstream_expert['post_process']
+        self.output_prefix = downstream_expert['output_prefix']
         self.upstream_rate = upstream_rate
 
         self.datarc = downstream_expert['datarc']
@@ -316,8 +317,8 @@ class DownstreamExpert(nn.Module):
 
             if self.use_asr:
 
-                records['st_loss'].append(st_loss.item())
-                records['asr_loss'].append(asr_loss.item())
+                records['st_loss'].append(st_loss.item()/input_dict['ntokens'])
+                records['asr_loss'].append(asr_loss.item()/asr_input_dict['ntokens'])
 
 
         if mode in ['dev', 'test']:
@@ -501,7 +502,7 @@ class DownstreamExpert(nn.Module):
                 self.best_score = torch.ones(1) * bleu.score
                 save_names.append(f'{mode}-best.ckpt') 
             
-            with open(f'st-fairseq-st-{mode}.tsv', 'w') as f:
+            with open(f'{self.output_prefix}-st-{mode}.tsv', 'w') as f:
                 print('id', 'hyp', 'ref', sep='\t', file=f)
                 for idx, hyp, ref in zip(records['ids'], records['hyps'], records['refs']):
                     print(idx, hyp, ref, sep='\t', file=f)
@@ -526,7 +527,7 @@ class DownstreamExpert(nn.Module):
                     global_step=global_step
                 )
 
-                with open(f'st-fairseq-asr-{mode}.tsv', 'w') as f:
+                with open(f'{self.output_prefix}-asr-{mode}.tsv', 'w') as f:
                     print('id', 'hyp', 'ref', sep='\t', file=f)
                     for idx, hyp, ref in zip(records['ids'], records['asr_hyps'], records['asr_refs']):
                         print(idx, hyp, ref, sep='\t', file=f)
