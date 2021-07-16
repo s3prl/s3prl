@@ -46,7 +46,7 @@ class DownstreamExpert(nn.Module):
             blank=self.tokenizer.pad_idx,
             zero_infinity=modelrc["zero_infinity"],
         )
-        self.save_best_on = downstream_expert["save_best_on"]
+        self.save_best_on = downstream_expert.get("save_best_on", "dev")
         self.metrics = downstream_expert["metric"]
         self.metric_higher_better = downstream_expert["metric_higher_better"]
         self.register_buffer(

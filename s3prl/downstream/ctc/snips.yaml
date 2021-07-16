@@ -8,7 +8,7 @@ runner:
   save_step: 500
   max_keep: 1
   eval_dataloaders:
-    - valid
+    - dev
 
 optimizer:
   name: TorchOptim
@@ -37,7 +37,7 @@ downstream_expert:
     path: '/path/to/SNIPS'          # Path to raw LibriSpeech dataset
 
     train: ['train']                # Name of data splits to be used as training set
-    valid: ['valid']                    # Name of data splits to be used as validation set
+    dev: ['valid']                    # Name of data splits to be used as validation set
     test: ['test']
 
     bucketing: True                       # Enable/Disable bucketing 
@@ -119,7 +119,7 @@ downstream_expert:
       sample_style: 'concat'                  # 'drop'/'concat'
 
   save_best_on:
-    - valid
+    - dev
 
   metric_higher_better: True
   metric:  # The first metric will be used to save checkpoint

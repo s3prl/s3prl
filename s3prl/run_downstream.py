@@ -127,7 +127,7 @@ def get_downstream_args():
         os.makedirs(args.expdir, exist_ok=True)
 
         if args.config is None:
-            args.config = f'./s3prl/downstream/{args.downstream}/config.yaml'
+            args.config = f'./downstream/{args.downstream}/config.yaml'
         with open(args.config, 'r') as file:
             config = yaml.load(file, Loader=yaml.FullLoader)
 

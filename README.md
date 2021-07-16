@@ -11,10 +11,11 @@
 
 ## What's New
 
-* June 2021: Support extracting multiple hidden states from the SSL pretrained models
-* April 2021: Support [**SUPERB:** **S**peech processing **U**niversal **PER**formance **B**enchmark](https://arxiv.org/abs/2105.01051), submitted to Interspeech 2021
-* Jan 2021: Readme updated with detailed instructions on how to use our latest version!
-* Dec 2020: We are migrating to a newer version for a more general, flexible, and scalable code. See the introduction below for more information! The legacy verison can be accessed by checking out to the tag **v0.1.0**: `git checkout v0.1.0`.
+* *July 2021:* We are now working on packaging s3prl and reorganizing the file structure in **v0.3**. Please consider using the stable **v0.2.0** for now. We will test and release **v0.3** before August.
+* *June 2021:* Support [**SUPERB:** **S**peech processing **U**niversal **PER**formance **B**enchmark](https://arxiv.org/abs/2105.01051), submitted to Interspeech 2021. Use the tag **superb-interspeech2021** or **v0.2.0**.
+* *June 2021:* Support extracting multiple hidden states from the SSL pretrained models
+* *Jan 2021:* Readme updated with detailed instructions on how to use our latest version!
+* *Dec 2020:* We are migrating to a newer version for a more general, flexible, and scalable code. See the introduction below for more information! The legacy verison can be accessed the tag **v0.1.0**.
 
 ## Introduction and Usages
 

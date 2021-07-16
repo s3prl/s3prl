@@ -98,7 +98,7 @@ class Runner():
     def _get_featurizer(self):
         model = Featurizer(
             self.upstream.model, self.args.upstream_feature_selection,
-            upstream_device=self.args.device
+            upstream_device=self.args.device,
         ).to(self.args.device)
 
         return self._init_model(
