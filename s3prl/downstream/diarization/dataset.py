@@ -360,7 +360,7 @@ class KaldiData:
             # segments should be sorted by rec-id
             for seg in segments:
                 wav = wavs[seg["rec"]]
-                data, samplerate = load_wav(wav)
+                data, samplerate = self.load_wav(wav)
                 st_sample = np.rint(seg["st"] * samplerate).astype(int)
                 et_sample = np.rint(seg["et"] * samplerate).astype(int)
                 yield seg["utt"], data[st_sample:et_sample]
@@ -368,5 +368,5 @@ class KaldiData:
             # segments file not found,
             # wav.scp is used as segmented audio list
             for rec in wavs:
-                data, samplerate = load_wav(wavs[rec])
+                data, samplerate = self.load_wav(wavs[rec])
                 yield rec, data
