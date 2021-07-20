@@ -26,7 +26,7 @@ downstream_expert:
   src_lang: en
   tgt_lang: de
   post_process: sentencepiece
-  output_prefix: st-fairseq
+  output_prefix: output-st
 
   criterionrc:
     criterion: label_smoothed_cross_entropy

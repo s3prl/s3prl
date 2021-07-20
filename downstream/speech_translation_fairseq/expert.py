@@ -498,7 +498,7 @@ class DownstreamExpert(nn.Module):
                     global_step=global_step
                 )
 
-            if bleu.score > self.best_score:
+            if bleu.score > self.best_score and mode == 'dev':
                 self.best_score = torch.ones(1) * bleu.score
                 save_names.append(f'{mode}-best.ckpt') 
             
