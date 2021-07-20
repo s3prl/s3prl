@@ -61,6 +61,7 @@ class UpstreamExpert(UpstreamBase):
             single_task = True
 
         features = []
+        layer_results = []
         for wavs in all_task_wavs:
             if self.task.cfg.normalize:
                 wavs = [F.layer_norm(wav, wav.shape) for wav in wavs]
@@ -73,16 +74,19 @@ class UpstreamExpert(UpstreamBase):
                 wav_lengths.unsqueeze(1),
             )
             padded_wav = pad_sequence(wavs, batch_first=True)
-            task_features, feat_padding_mask = self.model.extract_features(
+            task_features, _, task_layer_results = self.model.extract_features(
                 padded_wav,
                 padding_mask=wav_padding_mask,
                 mask=None,
             )
             features.append(task_features)
+            layer_results.append(task_layer_results)
 
         if single_task:
             features = features[0]
+            layer_results = layer_results[0]
 
         return {
             "default": features,
+            "layer_results": layer_results,
         }

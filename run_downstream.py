@@ -37,8 +37,11 @@ def get_downstream_args():
     # if a directory is specified, the latest ckpt will be used by default
     parser.add_argument('-e', '--past_exp', metavar='{CKPT_PATH,CKPT_DIR}', help='Resume training from a checkpoint')
 
-    # only load the parameters in the checkpoint without overwriting arguments and config, this is for evaluation
-    parser.add_argument('-i', '--init_ckpt', metavar='CKPT_PATH', help='Load the checkpoint for evaluation')
+    # only load the parameters in the checkpoint without overwriting arguments and config
+    parser.add_argument('-i', '--init_ckpt', metavar='CKPT_PATH', help='Load the checkpoint')
+
+    # rewrite the upstream parameters in the checkpoint without overwriting arguments and config
+    parser.add_argument('--init_upstream_ckpt', metavar='CKPT_PATH', help='Load the upstream from checkpoint')
 
     # configuration for the experiment, including runner and downstream
     parser.add_argument('-c', '--config', help='The yaml file for configuring the whole experiment except the upstream model')

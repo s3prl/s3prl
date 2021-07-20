@@ -76,41 +76,35 @@ class Runner():
 
 
     def _load_ckpt(self):
+        ckpt_dict = {}
+
         if self.args.init_ckpt:
             if os.path.isdir(self.args.init_ckpt):
                 # multiple ckpt files of multiple tasks
-                return {d: torch.load(os.path.join(self.args.init_ckpt, d, f'{self.args.upstream}_{d}.ckpt'), 
+                ckpt_dict = {d: torch.load(os.path.join(self.args.init_ckpt, d, f'{self.args.upstream}_{d}.ckpt'), 
                     map_location='cpu') for d in self.args.downstream.split(",")}
             else:
                 # single ckpt
-                return torch.load(self.args.init_ckpt, map_location='cpu')
-        else:
-            return {}
+                ckpt_dict = torch.load(self.args.init_ckpt, map_location='cpu')
+
+        if self.args.init_upstream_ckpt:
+            ckpt_dict.update({'Upstream': torch.load(self.args.init_upstream_ckpt, map_location='cpu').get('Upstream')})
+
+        return ckpt_dict
 
 
     def _load_weight(self, model, name):
-        if isinstance(self.init_ckpt, dict):
-            # for initialization of pretrained downstream models
-            if name in self.args.downstream.split(","):
-                init_weight = self.init_ckpt[name].get('Downstream')
-            else:
-                init_weight = None
+        # for initialization of pretrained downstream models
+        if name in self.args.downstream.split(","):
+            init_weight = self.init_ckpt[name].get('Downstream')
         else:
             init_weight = self.init_ckpt.get(name)
 
         if init_weight:
+            print('##############################################################')
             show(f'[Runner] - Loading {name} weights from the previous experiment')
+            print('##############################################################')
             model.load_state_dict(init_weight)
-            if name == 'Upstream':
-                if hasattr(model, 'encoder') and hasattr(model.encoder, 'layerdrop'):
-                    print('############################################')
-                    print('Set upstream model.encoder.layerdrop to 0.0!')
-                    print('############################################')
-                    model.encoder.layerdrop = 0.
-                else:
-                    print('#######################################')
-                    print('This upstream has no encoder.layerdrop!')
-                    print('#######################################')
 
 
     def _init_model(self, model, name, trainable, interfaces=None):
@@ -118,6 +112,16 @@ class Runner():
             assert hasattr(model, interface)
 
         self._load_weight(model, name)
+        if name == 'Upstream':
+            if hasattr(model.model, 'encoder') and hasattr(model.model.encoder, 'layerdrop'):
+                print('############################################')
+                print('Set upstream model.encoder.layerdrop to 0.0!')
+                print('############################################')
+                model.model.encoder.layerdrop = 0.
+            else:
+                print('#############################################')
+                print('This upstream has no model.encoder.layerdrop!')
+                print('#############################################')
 
         if is_initialized() and trainable and any((p.requires_grad for p in model.parameters())):
             model = DDP(model, device_ids=[self.args.local_rank], find_unused_parameters=True)

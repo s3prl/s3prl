@@ -113,13 +113,6 @@ class UpstreamBase(nn.Module, metaclass=initHook):
         result = super().__call__(wavs, *args, **kwargs) or {}
         assert isinstance(result, dict)
 
-        print('!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!')
-        print('!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!')
-        _, hidden_states = zip(*self.hook_postprocess(hook_hiddens))
-        print(len(hidden_states), hidden_states[0].shape)
-        print('!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!')
-        print('!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!')
-        exit()
         '''
         if len(self._hook_hiddens) > 0:
             if (
@@ -240,9 +233,10 @@ class Featurizer(nn.Module):
             all_task_paired_features = [all_task_paired_features]
             single_task = True
         else:
-            # currently only "default" is supported
-            all_task_paired_features = [{"default": task_features} \
-                    for task_features in all_task_paired_features["default"]]
+            # currently only "default" and "layer_results" are supported
+            all_task_paired_features = [{"default": task_features, "layer_results": task_layer_results} \
+                    for task_features, task_layer_results in \
+                    zip(all_task_paired_features["default"], all_task_paired_features["layer_results"])]
 
         features = []
         for paired_wavs, paired_features in zip(all_task_paired_wavs, all_task_paired_features):

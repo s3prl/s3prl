@@ -1,11 +1,15 @@
 # -*- coding: utf-8 -*- #
-"""*********************************************************************************************"""
+"""
+*********************************************************************************************
+"""
 #   FileName     [ generate_len_for_bucket.py ]
 #   Synopsis     [ preprocess audio speech to generate meta data for dataloader bucketing ]
 #   Author       [ Andy T. Liu (Andi611) ]
 #   Copyright    [ Copyleft(c), Speech Lab, NTU, Taiwan ]
 #   Reference    [ https://github.com/Alexander-H-Liu/End-to-end-ASR-Pytorch ]
-"""*********************************************************************************************"""
+"""
+*********************************************************************************************
+"""
 
 
 ###############
@@ -40,7 +44,7 @@ def boolean_string(s):
 
 #############################
 # PREPROCESS CONFIGURATIONS #
-#############################
+# ############################
 def get_preprocess_args():
     
     parser = argparse.ArgumentParser(description='preprocess arguments for any dataset.')
