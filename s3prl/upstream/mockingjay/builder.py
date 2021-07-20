@@ -10,6 +10,7 @@
 ###############
 # IMPORTATION #
 ###############
+import sys
 import copy
 import math
 import yaml
@@ -25,7 +26,7 @@ from ..baseline.extracter import get_extracter
 from ..baseline.preprocessor import get_preprocessor
 from .model import TransformerConfig, TransformerModel
 from .model import TransformerSpecPredictionHead
-
+import s3prl.optimizers
 
 #######################
 # TRANSFORMER BUILDER #
@@ -42,8 +43,17 @@ class TransformerBuilder(nn.Module):
         if config is not None:
             self.config = yaml.load(open(config, 'r'), Loader=yaml.FullLoader)
         else:
+            # Since some old checkpoints contained pickled scheduler which needs 'optimizers'
+            # module which is now moved into s3prl package.
+            original_optimizer = sys.modules.get("optimizers")
+            sys.modules["optimizers"] = s3prl.optimizers
+
             self.all_states = torch.load(options["ckpt_file"], map_location='cpu')
             self.config = self.all_states['Config']
+
+            del sys.modules["optimizers"]
+            if original_optimizer is not None:
+                sys.modules["optimizers"] = original_optimizer
 
         # parse the options dict
         self.load = bool(strtobool(options["load_pretrain"]))
