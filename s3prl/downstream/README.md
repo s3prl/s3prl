@@ -264,9 +264,26 @@ downstream_expert:
 
 #### Training
 
+If you're running on the `master` branch of `s3prl` you can simply run the followign to train:
+
 ```bash
 python3 run_downstream.py -n ExpName -m train -u fbank -d asr
 ```
+
+If you're working on the `huggingface2` branch, you first need to edit the following fields to `downstream_expert.datatrc` subset of `config.yaml`:
+
+```yaml
+downstream_expert:
+  datarc:
+    ...
+    batch_size: 32 # new
+    libri_root: 'path/to/librispeech'
+    bucket_file: 'path/to/librispeech/len_for_bucket'
+    dict_path: "path/to/s3prl_repo/s3prl/downstream/asr/char.dict" # new
+```
+
+Then you can run the above command to train.
+
 
 #### Testing without LM
 
