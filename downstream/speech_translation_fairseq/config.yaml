@@ -34,25 +34,25 @@ downstream_expert:
 
   taskrc:
     task: speech_to_text
-    data: data/test
-    config_yaml: config_st_en_de.yaml
+    data: data/covost_en_de_lower
+    config_yaml: config.yaml
     seed: 1
     use_asr: True
 
   asrrc:
     weight: 0.3
-    vocab_file: spm_en_de_src_text.txt
+    vocab_file: spm-src_text.txt
     bpe_tokenizer:
       bpe: sentencepiece
-      sentencepiece_model: spm_en_de_src_text.model
+      sentencepiece_model: spm-src_text.model
     datarc:
       key: src_text
 
 
   datarc:
-    train: train_st_en_de
-    dev: dev_st_en_de
-    test: test_st_en_de
+    train: train
+    dev: dev
+    test: test
     max_tokens: 20000
     num_workers: 4
 
