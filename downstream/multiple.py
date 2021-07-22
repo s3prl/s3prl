@@ -81,7 +81,7 @@ class Runner():
         ckpt_dict = {}
 
         if self.args.init_ckpt:
-            if os.path.isdir(self.args.init_ckpt):
+            if os.path.isdir(self.args.init_ckpt) and not self.args.past_exp:
                 # multiple ckpt files of multiple tasks
                 ckpt_dict = {d: torch.load(os.path.join(self.args.init_ckpt, d, f'{self.args.upstream}_{d}.ckpt'), 
                     map_location='cpu') for d in self.args.downstream.split(",")}
@@ -89,7 +89,7 @@ class Runner():
                 # single ckpt
                 ckpt_dict = torch.load(self.args.init_ckpt, map_location='cpu')
 
-        if self.args.init_upstream_ckpt:
+        if self.args.init_upstream_ckpt and not self.args.past_exp:
             ckpt_dict.update({'Upstream': torch.load(self.args.init_upstream_ckpt, map_location='cpu').get('Upstream')})
 
         return ckpt_dict
@@ -97,7 +97,7 @@ class Runner():
 
     def _load_weight(self, model, name):
         # for initialization of pretrained downstream models
-        if name in self.args.downstream.split(","):
+        if name in self.args.downstream.split(",") and not self.args.past_exp:
             init_weight = self.init_ckpt[name].get('Downstream')
         else:
             init_weight = self.init_ckpt.get(name)
@@ -126,7 +126,8 @@ class Runner():
                 print('#############################################')
 
         if self.args.auto_loss_weights and name in self.args.downstream.split(","):
-            model.log_sigma = nn.Parameter(torch.zeros(1)).to(self.args.device)
+            if not hasattr(model, 'log_sigma'):
+                model.log_sigma = nn.Parameter(torch.zeros(1)).to(self.args.device)
 
         if is_initialized() and trainable and any((p.requires_grad for p in model.parameters())):
             model = DDP(model, device_ids=[self.args.local_rank], find_unused_parameters=True)
