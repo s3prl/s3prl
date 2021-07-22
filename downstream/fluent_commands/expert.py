@@ -121,6 +121,11 @@ class DownstreamExpert(nn.Module):
         records['acc'] += (predicted_intent == labels).prod(1).view(-1).cpu().float().tolist()
         records['intent_loss'].append(intent_loss.item())
 
+        if hasattr(self, 'log_sigma'):
+            squared_sigma = torch.exp(self.log_sigma)**2
+            intent_loss = intent_loss / squared_sigma[0] + self.log_sigma[0]
+            records['squared_sigma'].append(squared_sigma[0].item())
+
         return intent_loss
 
     # interface

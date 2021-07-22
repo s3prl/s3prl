@@ -8,6 +8,7 @@ import tempfile
 import importlib
 
 import torch
+import torch.nn as nn
 import numpy as np
 from tqdm import tqdm
 from tensorboardX import SummaryWriter
@@ -16,6 +17,7 @@ from torch.distributed import is_initialized, get_rank, get_world_size
 
 import hubconf
 from optimizers import get_optimizer
+from pcgrad import PCGrad
 from schedulers import get_scheduler
 from upstream.interfaces import Featurizer
 from utility.helper import is_leader_process, get_model_state, show, defaultdict
@@ -123,6 +125,9 @@ class Runner():
                 print('This upstream has no model.encoder.layerdrop!')
                 print('#############################################')
 
+        if self.args.auto_loss_weights and name in self.args.downstream.split(","):
+            model.log_sigma = nn.Parameter(torch.zeros(1)).to(self.args.device)
+
         if is_initialized() and trainable and any((p.requires_grad for p in model.parameters())):
             model = DDP(model, device_ids=[self.args.local_rank], find_unused_parameters=True)
             for interface in interfaces or []:
@@ -191,23 +196,29 @@ class Runner():
         )
 
 
-    def _get_optimizer(self, model_params):
+    def _get_optimizer(self, model_params, name=None):
         optimizer = get_optimizer(
             model_params, 
             self.config['runner']['total_steps'],
             self.config['optimizer']
         )
-        self._load_weight(optimizer, 'Optimizer')
+        if name is not None:
+            self._load_weight(optimizer, name)
+        else:
+            self._load_weight(optimizer, 'Optimizer')
         return optimizer
 
 
-    def _get_scheduler(self, optimizer):
+    def _get_scheduler(self, optimizer, name=None):
         scheduler = get_scheduler(
             optimizer,
             self.config['runner']['total_steps'],
             self.config['scheduler']
         )
-        self._load_weight(scheduler, 'Scheduler')
+        if name is not None:
+            self._load_weight(scheduler, name)
+        else:
+            self._load_weight(scheduler, 'Scheduler')
         return scheduler
 
 
@@ -215,21 +226,39 @@ class Runner():
         # trainable parameters and train/eval mode
         trainable_models = []
         trainable_paras = []
+        trainable_upstream_model = []
+        trainable_other_models = []
         for entry in self.all_models:
             if entry.trainable:
                 entry.model.train()
                 trainable_models.append(entry.model)
                 trainable_paras += list(entry.model.parameters())
+                if entry.name == 'Upstream' or entry.name == 'Featurizer':
+                    trainable_upstream_model.append(entry.model)
+                else:
+                    trainable_other_models.append(entry.model)
             else:
                 entry.model.eval()
 
         # optimizer
-        optimizer = self._get_optimizer(trainable_models)
+        upstream_optimizer = self._get_optimizer(trainable_upstream_model, 'UpstreamOptimizer')
+        other_optimizer = self._get_optimizer(trainable_other_models, 'OtherOptimizer')
+
+        if self.args.pcgrad:
+            upstream_optimizer = PCGrad(upstream_optimizer)
+            print('###########################')
+            print('Use PCGrad for Upstream!!!')
+            print('###########################')
 
         # scheduler
-        scheduler = None
+        upstream_scheduler = None
+        other_scheduler = None
         if self.config.get('scheduler'):
-            scheduler = self._get_scheduler(optimizer)
+            if hasattr(upstream_optimizer, '_optim'):
+                upstream_scheduler = self._get_scheduler(upstream_optimizer.optimizer, 'UpstreamScheduler')
+            else:
+                upstream_scheduler = self._get_scheduler(upstream_optimizer, 'UpstreamScheduler')
+            other_scheduler = self._get_scheduler(other_optimizer, 'OtherScheduler')
 
         # specaug
         specaug = None
@@ -261,6 +290,11 @@ class Runner():
         backward_steps = 0
         while pbar.n < pbar.total:
             loss = 0
+
+            if self.args.pcgrad:
+                grad_list = []
+                shape_list = []
+                has_grad_list = []
 
             # append data of all tasks into a list for the upstream model forward pass
             all_task_batch_ids = []
@@ -296,11 +330,22 @@ class Runner():
                         break
                     global_step = pbar.n + 1
 
-                    loss += expert.model(
+                    task_loss = expert.model(
                         'train',
                         task_features, *others,
                         records = data.records,
                     )
+
+                    if self.args.pcgrad:
+                        upstream_optimizer.zero_grad()
+                        task_loss.backward()
+                        grad, shape, has_grad = upstream_optimizer._retrieve_grad()
+                        grad_list.append(grad)
+                        shape_list.append(shape)
+                        has_grad_list.append(has_grad)
+                    else:
+                        loss += task_loss
+
                     data.batch_ids.append(batch_id)
 
                 except RuntimeError as e:
@@ -310,13 +355,19 @@ class Runner():
                             raise
                         with torch.cuda.device(self.args.device):
                             torch.cuda.empty_cache()
-                        optimizer.zero_grad()
+                        upstream_optimizer.zero_grad()
+                        other_optimizer.zero_grad()
                         continue
                     else:
                         raise
 
             gradient_accumulate_steps = self.config['runner'].get('gradient_accumulate_steps')
-            (loss / gradient_accumulate_steps).backward()
+            if self.args.pcgrad:
+                upstream_optimizer.zero_grad()
+                total_counts, conflict_counts = upstream_optimizer.pc_backward(
+                        None, grad_list, shape_list, has_grad_list, True, True)
+            else:
+                (loss / gradient_accumulate_steps).backward()
             del loss
 
             # whether to accumulate gradient
@@ -332,12 +383,16 @@ class Runner():
             if math.isnan(grad_norm):
                 print(f'[Runner] - grad norm is NaN at step {global_step}')
             else:
-                optimizer.step()
-            optimizer.zero_grad()
+                upstream_optimizer.step()
+                other_optimizer.step()
+            upstream_optimizer.zero_grad()
+            other_optimizer.zero_grad()
 
             # adjust learning rate
-            if scheduler:
-                scheduler.step()
+            if upstream_scheduler:
+                upstream_scheduler.step()
+            if other_scheduler:
+                other_scheduler.step()
 
             if not is_leader_process():
                 data.batch_ids = []
@@ -350,6 +405,12 @@ class Runner():
                 looprc = self.config[expert.name]['looprc']
 
                 if global_step % looprc['log_step'] == 0:
+
+                    # log conflicting information
+                    if self.args.pcgrad:
+                        logger.add_scalar(f'pcgrad/conflict_counts', conflict_counts, global_step=global_step)
+                        logger.add_scalar(f'pcgrad/conflict_ratio', conflict_counts/total_counts, global_step=global_step)
+
                     expert.model.log_records(
                         'train',
                         records = data.records,
@@ -379,11 +440,15 @@ class Runner():
 
             if len(save_names) > 0:
                 all_states = {
-                    'Optimizer': optimizer.state_dict(),
+                    'OtherOptimizer': other_optimizer.state_dict(),
                     'Step': global_step,
                     'Args': self.args,
                     'Config': self.config,
                 }
+                if hasattr(upstream_optimizer, '_optim'):
+                    all_states['UpstreamOptimizer'] = upstream_optimizer.optimizer.state_dict()
+                else:
+                    all_states['UpstreamOptimizer'] = upstream_optimizer.state_dict()
 
                 for entry in self.all_models:
                     if entry.trainable:
@@ -392,8 +457,10 @@ class Runner():
                 for entry, expert in zip(data_entries, self.downstreams):
                     all_states[f"Epoch.{expert.name}"] = entry.epoch
 
-                if scheduler:
-                    all_states['Scheduler'] = scheduler.state_dict()
+                if upstream_scheduler:
+                    all_states['UpstreamScheduler'] = upstream_scheduler.state_dict()
+                if other_scheduler:
+                    all_states['OtherScheduler'] = other_scheduler.state_dict()
 
                 if is_initialized():
                     all_states['WorldSize'] = get_world_size()
@@ -403,6 +470,9 @@ class Runner():
                 for i, path in enumerate(save_paths):
                     tqdm.write(f'{i + 1}. {path}')
                     torch.save(all_states, path)
+                print('##################')
+                print('Finished saving!!!')
+                print('##################')
 
             pbar.update(1)
 
@@ -451,13 +521,22 @@ class Runner():
 
             wavs = [torch.FloatTensor(wav).to(self.args.device) for wav in wavs]
             with torch.no_grad():
-                features = self.upstream.model(wavs)
-                features = self.featurizer.model(wavs, features)
-                downstream.model(
-                    split,
-                    features, *others,
-                    records = records,
-                )
+                if is_initialized():
+                    features = self.upstream.model.module(wavs)
+                    features = self.featurizer.model.module(wavs, features)
+                    downstream.model.module(
+                        split,
+                        features, *others,
+                        records = records,
+                    )
+                else:
+                    features = self.upstream.model(wavs)
+                    features = self.featurizer.model(wavs, features)
+                    downstream.model(
+                        split,
+                        features, *others,
+                        records = records,
+                    )
                 batch_ids.append(batch_id)
 
         save_names = downstream.model.log_records(

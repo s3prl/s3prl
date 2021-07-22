@@ -257,6 +257,11 @@ class DownstreamExpert(nn.Module):
         records["acc"] += [ACC]
         records["der"] += [DER]
 
+        if hasattr(self, 'log_sigma'):
+            squared_sigma = torch.exp(self.log_sigma)**2
+            loss = loss / squared_sigma[0] + self.log_sigma[0]
+            records['squared_sigma'].append(squared_sigma[0].item())
+
         if mode == "test" and self.save_predictions:
             predict = predicted.data.cpu().numpy()
             predict = np.vstack(list(predict))

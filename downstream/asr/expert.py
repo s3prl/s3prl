@@ -253,6 +253,11 @@ class DownstreamExpert(nn.Module):
             )
         records['loss'].append(loss.item())
 
+        if hasattr(self, 'log_sigma'):
+            squared_sigma = torch.exp(self.log_sigma)**2
+            loss = loss / squared_sigma[0] + self.log_sigma[0]
+            records['squared_sigma'].append(squared_sigma[0].item())
+
         target_tokens_batch = []
         target_words_batch = []
         for label in labels:

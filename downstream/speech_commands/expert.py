@@ -109,6 +109,12 @@ class DownstreamExpert(nn.Module):
         predicted_classid = predicted.max(dim=-1).indices
         records["loss"].append(loss.item())
         records["acc"] += (predicted_classid == labels).view(-1).cpu().float().tolist()
+
+        if hasattr(self, 'log_sigma'):
+            squared_sigma = torch.exp(self.log_sigma)**2
+            loss = loss / squared_sigma[0] + self.log_sigma[0]
+            records['squared_sigma'].append(squared_sigma[0].item())
+
         return loss
 
     # interface

@@ -72,6 +72,10 @@ def get_downstream_args():
     parser.add_argument('-p', '--expdir', help='Save experiment at expdir')
     parser.add_argument('-a', '--auto_resume', action='store_true', help='Auto-resume if the expdir contains checkpoints')
 
+    # multi-task training approaches
+    parser.add_argument('--auto_loss_weights', action='store_true', help='Automatically weigh multi-task losses with uncertainty')
+    parser.add_argument('--pcgrad', action='store_true', help='Project conflicting gradients for multi-task losses')
+
     # options
     parser.add_argument('--runner_cls', default='MultipleRunner')
     parser.add_argument('--seed', default=1337, type=int)
