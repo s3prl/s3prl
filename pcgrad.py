@@ -42,10 +42,11 @@ class PCGrad():
 
         grads, shapes, has_grads = self._pack_grad(objectives, 
                                                    grad_list, shape_list, has_grad_list, per_layer=per_layer)
-        pc_grad, total_counts, conflict_counts = self._project_conflicting(grads, has_grads, is_pcgrad, per_layer=per_layer)
+        pc_grad, total_counts, conflict_counts, condition_a_counts = \
+                self._project_conflicting(grads, has_grads, is_pcgrad, per_layer=per_layer)
         pc_grad = self._unflatten_grad(pc_grad, shapes[0], per_layer=per_layer)
         self._set_grad(pc_grad)
-        return total_counts, conflict_counts
+        return total_counts, conflict_counts, condition_a_counts
 
     def _project_conflicting(self, grads, has_grads, is_pcgrad, shapes=None, per_layer=True):
         if per_layer:
@@ -56,6 +57,7 @@ class PCGrad():
         pc_grad, num_task = copy.deepcopy(grads), len(grads)
         total_counts = 0
         conflict_counts = 0
+        condition_a_counts = 0
         if per_layer:
             for i, g_i in enumerate(pc_grad):
                 random.shuffle(grads)
@@ -65,8 +67,14 @@ class PCGrad():
                         total_counts += 1
                         if g_il_g_jl < 0:
                             conflict_counts += 1
+                            g_proj = (g_il_g_jl) * g_jl / (g_jl.norm()**2)
+                            if torch.isnan(g_proj).sum() > 0:
+                                #print('g_proj is nan and skip...')
+                                continue
+                            if g_il_g_jl <= -2*(g_il.norm()**2)*(g_jl.norm()**2)/((g_il.norm()**2)+(g_jl.norm()**2)):
+                                condition_a_counts += 1
                             if is_pcgrad:
-                                g_il -= (g_il_g_jl) * g_jl / (g_jl.norm()**2)
+                                g_il -= g_proj
                                 pc_grad[i][l] = g_il
                 total_counts -= len(g_i)
         else:
@@ -77,8 +85,14 @@ class PCGrad():
                     total_counts += 1
                     if g_i_g_j < 0:
                         conflict_counts += 1
+                        g_proj = (g_i_g_j) * g_j / (g_j.norm()**2)
+                        if torch.isnan(g_proj).sum() > 0:
+                            #print('g_proj is nan and skip...')
+                            continue
+                        if g_i_g_j <= -2*(g_i.norm()**2)*(g_j.norm()**2)/((g_i.norm()**2)+(g_j.norm()**2)):
+                            condition_a_counts += 1
                         if is_pcgrad:
-                            g_i -= (g_i_g_j) * g_j / (g_j.norm()**2)
+                            g_i -= g_proj
                             pc_grad[i] = g_i
                 total_counts -= 1
 
@@ -96,7 +110,7 @@ class PCGrad():
             merged_grad[~shared] = torch.stack([g[~shared]
                                                 for g in pc_grad]).sum(dim=0)
 
-        return merged_grad, total_counts, conflict_counts
+        return merged_grad, total_counts, conflict_counts, condition_a_counts
 
     def _set_grad(self, grads):
         '''

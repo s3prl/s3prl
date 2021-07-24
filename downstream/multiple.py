@@ -365,7 +365,7 @@ class Runner():
             gradient_accumulate_steps = self.config['runner'].get('gradient_accumulate_steps')
             if self.args.pcgrad:
                 upstream_optimizer.zero_grad()
-                total_counts, conflict_counts = upstream_optimizer.pc_backward(
+                total_counts, conflict_counts, condition_a_counts = upstream_optimizer.pc_backward(
                         None, grad_list, shape_list, has_grad_list, True, True)
             else:
                 (loss / gradient_accumulate_steps).backward()
@@ -409,7 +409,9 @@ class Runner():
 
                     # log conflicting information
                     if self.args.pcgrad:
+                        logger.add_scalar(f'pcgrad/condition_a_counts', condition_a_counts, global_step=global_step)
                         logger.add_scalar(f'pcgrad/conflict_counts', conflict_counts, global_step=global_step)
+                        logger.add_scalar(f'pcgrad/condition_a_ratio', condition_a_counts/total_counts, global_step=global_step)
                         logger.add_scalar(f'pcgrad/conflict_ratio', conflict_counts/total_counts, global_step=global_step)
 
                     expert.model.log_records(
