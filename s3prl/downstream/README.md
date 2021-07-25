@@ -162,6 +162,20 @@ python3 run_downstream.py -m evaluate -t "test-clean" -i [ckpt] -u [upstream] -d
 
 Only the training part is powered by **DistributedDataParallel**, and we save all the model *state_dict* **without** the DDP wrapper. That is, after the DDP training, you can always evaluate the checkpoint using the testing command documented above (on single GPU).
 
+## Running with Docker
+
+In the root of the repo, first build the image with
+
+```
+docker build -t s3prl:latest .
+```
+
+Then run the container the [NVIDIA Container Toolkit](https://github.com/NVIDIA/nvidia-docker) and with the data mounted as follows:
+
+```
+docker run --gpus all -it -P -v /path/to/superb/data:/app/data s3prl
+```
+
 # SUPERB Benchmark
 
 In this section we detail the commands for reproducing the paper [**SUPERB:** **S**peech processing **U**niversal **PER**formance **B**enchmark](https://arxiv.org/abs/2105.01051).
