@@ -525,7 +525,10 @@ class Runner():
             wavs = [torch.FloatTensor(wav).to(self.args.device) for wav in wavs]
             with torch.no_grad():
                 if is_initialized():
-                    features = self.upstream.model.module(wavs)
+                    if self.args.upstream_trainable:
+                        features = self.upstream.model.module(wavs)
+                    else:
+                        features = self.upstream.model(wavs)
                     features = self.featurizer.model.module(wavs, features)
                     downstream.model.module(
                         split,
