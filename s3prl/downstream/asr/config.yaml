@@ -41,9 +41,11 @@ downstream_expert:
     test-other: ['test-other']
     num_workers: 12
     train_batch_size: 32
+    batch_size: 32
     eval_batch_size: 1
-    libri_root: '/path/to/LibriSpeech'
-    bucket_file: 'data/librispeech/len_for_bucket'
+    libri_root: '/app/data/LibriSpeech'
+    bucket_file: '/app/data/LibriSpeech/len_for_bucket'
+    dict_path: "./downstream/asr/char.dict"
 
     zero_infinity: True
 

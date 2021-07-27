@@ -28,9 +28,9 @@ downstream_expert:
     num_workers: 8
     train_batchsize: 8
     eval_batchsize: 1
-    train_dir: ./data/Libri2Mix/train
-    dev_dir: ./data/Libri2Mix/dev
-    test_dir: ./data/Libri2Mix/test
+    train_dir: /app/data/Libri2Mix/train
+    dev_dir: /app/data/Libri2Mix/dev
+    test_dir: /app/data/Libri2Mix/test
 
   scorerc:
     save_predictions: True

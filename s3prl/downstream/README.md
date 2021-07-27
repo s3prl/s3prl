@@ -173,8 +173,10 @@ docker build -t s3prl:latest .
 Then run the container the [NVIDIA Container Toolkit](https://github.com/NVIDIA/nvidia-docker) and with the data mounted as follows:
 
 ```
-docker run --gpus all -it -P -v /path/to/superb/data:/app/data s3prl
+docker run --gpus all -it -P -v /path/to/superb/data:/app/data -e "upstream_model=model_name" -e "downstream_task=task_name" s3prl
 ```
+
+where `model_name` and `task_name` correspond to one of the supported models / tasks in `s3prl`.
 
 # SUPERB Benchmark
 
