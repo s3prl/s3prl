@@ -72,7 +72,19 @@ class Runner():
 
 
     def _get_upstream(self):
-        Upstream = getattr(hub, self.args.upstream)
+        if "from_hf_hub" in self.args and self.args.from_hf_hub == True:
+            from huggingface_hub import snapshot_download
+
+            print(f'Downloading upstream model {self.args.upstream} from the Hugging Face Hub')
+            filepath = snapshot_download(self.args.upstream)
+            sys.path.append(filepath)
+
+            from expert import UpstreamExpert
+            Upstream = UpstreamExpert
+            ckpt_path = os.path.join(filepath, self.args.upstream_model_name)
+        else:
+            Upstream = getattr(hub, self.args.upstream)
+            ckpt_path = self.args.upstream_ckpt
         upstream_refresh = self.args.upstream_refresh
 
         if is_initialized() and get_rank() > 0:
@@ -80,7 +92,7 @@ class Runner():
             upstream_refresh = False
 
         model = Upstream(
-            ckpt = self.args.upstream_ckpt,
+            ckpt = ckpt_path,
             model_config = self.args.upstream_model_config,
             refresh = upstream_refresh,
         ).to(self.args.device)
