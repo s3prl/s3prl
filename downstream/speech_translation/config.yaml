@@ -1,46 +1,69 @@
 runner:
-  total_steps: 2000000
-  gradient_clipping: 1
-  gradient_accumulate_steps: 4
+  total_steps: 32000
+  gradient_clipping: 10
+  gradient_accumulate_steps: 32
 
   log_step: 100
-  # eval_step: 2000
-  eval_step: 200
-  save_step: 200
+  eval_step: 2000
+  save_step: 250
   max_keep: 1
   eval_dataloaders:
     - dev
-    - test
+    # - test
 
 optimizer:
-  name: AdamW
-  lr: 2.0e-4
+  name: Adam
+  lr: 2.0e-3
 
 # comment the whole scheduler config block
 # to disable learning rate scheduling
 scheduler:
-  name: linear_schedule_with_warmup
-  num_warmup_steps: 1400
+  name: sqrt_decay_schedule_with_warmup
+  num_warmup_steps: 10000
 
 downstream_expert:
 
-  max_length: 64
+  src_lang: en
+  tgt_lang: de
+  post_process: sentencepiece
+  output_prefix: output-st
+
+  criterionrc:
+    criterion: label_smoothed_cross_entropy
+    label_smoothing: 0.1
+
+  taskrc:
+    # task: speech_to_text
+    data: data/covost_en_de ## config the data folder here
+    config_yaml: config.yaml
+    seed: 1
+    use_asr: False
+
+  asrrc:
+    weight: 0.3
+    vocab_file: spm-src_text.txt
+    bpe_tokenizer:
+      bpe: sentencepiece
+      sentencepiece_model: spm-src_text.model
+    datarc:
+      key: src_text # header in tsv
+
 
   datarc:
-    num_workers: 8
-    train_batch_size: 16
-    eval_batch_size: 16
-    clip_dir: /hdd/covost/cv-corpus-6.1-2020-12-11/zh-CN/clips/
-    train_tsv: /hdd/covost/tsvs/covost_v2.zh-CN_en.train.tsv
-    valid_tsv: /hdd/covost/tsvs/covost_v2.zh-CN_en.dev.tsv
-    test_tsv: /hdd/covost/tsvs/covost_v2.zh-CN_en.test.tsv
+    train: train
+    dev: dev
+    test: test
+    max_tokens: 10000
+    num_workers: 4
 
+  # configuration of decoding
+  generatorrc:
+    beam: 5
+    max_len_a: 0
+    max_len_b: 400
+
+  # the model configuration and creation are delegated to fairseq
   modelrc:
-    d_model: 256
-    nhead: 4
-    num_encoder_layers: 0
-    num_decoder_layers: 6
-    dim_feedforward: 2048
-
-  tokenizerrc:
-    model_path: /home/sean/Desktop/s3prl/downstream/speech_translation/sp_1000.model
+    arch: s2t_transformer
+    max_source_positions: 6000
+    max_target_positions: 1024

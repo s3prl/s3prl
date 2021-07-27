@@ -1,0 +1,108 @@
+## ST: Speech Translation
+
+specified by the comand `-d speech_translation`
+
+#### Prepare data
+
+Following is the example to prepare COVOST2 en-de dataset
+
+1. Follow the **Getting Data** of the repo [facebookresearch/covost](https://github.com/facebookresearch/covost) to get the covost dataset.
+
+2. Change the path in `downstream/speech_translation/prepare_data/prepare_covo.sh` (you can also change the `src_lang` and `tgt_lang` to prepare data of other language pairs)
+
+    ```bash
+    covo_root="root directory of covost (ex. /Drive/cv-corpus-6.1-2020-12-11)"
+    tsv_dir="directory contains tsv files (ex. /Drive/tsv)"
+    src_lang=en
+    tgt_lang=de
+    ```
+
+3. Run the following script
+    ```bash
+    cd downstream/speech_translation/prepare_data/
+    bash prepare_covo.sh
+    ```
+
+4. Check the prepared file structure
+    ```bash
+    s3prl/
+    └── data/
+        └──covost_en_de/
+            ├── train.tsv
+            ├── dev.tsv
+            ├── test.tsv
+            ├── spm-[src|tgt]_text.[model|vocab|text]
+            ├── config.yaml
+            └── prepare_data.log
+    ```
+
+5. [Optional] If you use other dataset or change the language/data config in `downstream/speech_translation/prepare_data/prepare_covo.sh`, you will also need to change the language/data config in `downstream/speech_translation/config.yaml`
+
+    ```yaml
+        downstream_expert:
+            
+            src_lang: "other source language"
+            tgt_lang: "other target language"
+            
+            taskrc:
+                data: "other data directory"
+    ```
+
+6. Details about preprocessing
+
+    * For the text data, we do the following preprocessing
+        * transcription: lowercase, removing puncuations execpt apostrophe and hyphen
+        * translation: normalizing puncuation
+        * the normalization is done with [alvations/sacremoses](https://github.com/alvations/sacremoses)
+    
+    * We also remove the noise examples by length and ratio of transcription and translation.
+
+    * For the tokenization, we create char dictionary with [google/sentencepiece](https://github.com/google/sentencepiece) for transription and translation seperately.
+
+    * For more details, you can check the files under `downstream/speech_translation/prepare_data/`.
+
+#### Training
+
+```bash
+python3 run_downstream.py -n ExpName -m train -u fbank -d speech_translation
+```
+
+* For downstream model architecture, we delegate the configuration and creation to [pytorch/fairseq](https://github.com/pytorch/fairseq). You could adjust the model archtecture directly at `downstream_expert/modelrc` in `downstream/speech_translation/config.yaml`. (For more configurations, please refer to [pytorch/fairseq](https://github.com/pytorch/fairseq/blob/master/fairseq/models/speech_to_text/s2t_transformer.py))
+
+    ```yaml
+        downstream_expert:
+            modelrc:
+                arch: s2t_transformer
+                max_source_positions: 6000
+                max_target_positions: 1024
+    ```
+
+* We also support multitask learning with ASR. You could set `downstream_expert/taskrc/use_asr=True` in `downstream/speech_translation/config.yaml` to enable it. (Make sure you have transcription in the training tsv file.)
+
+    ```yaml
+        downstream_expert:
+            taskrc:
+                use_asr: True
+            asrrc:
+                weight: 0.3 # the weight of ASR loss in [0, 1]
+                datarc:
+                    key: src_text # header of transcription in tsv file
+    ```
+
+#### Testing
+
+```bash
+python3 run_downstream.py -m evaluate -t test -e result/downstream/ExpName/dev-best.ckpt
+```
+
+You could change the beam size and maximum decoding length in `downstream/speech_translation/config.yaml`
+
+```yaml
+    downstream_expert:
+        generatorrc:
+            beam: 5
+            max_len_a: 0
+            max_len_b: 400
+```
+
+We report sacreBleu for ST with [mjpost/sacrebleu](https://github.com/mjpost/sacrebleu) and CER/WER for ASR with [roy-ht/editdistance](https://github.com/roy-ht/editdistance) when using multitask learning.
