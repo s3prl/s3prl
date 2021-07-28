@@ -21,7 +21,8 @@ import pandas as pd
 from tqdm import tqdm
 from pathlib import Path
 from joblib import Parallel, delayed
-
+from datasets import load_dataset, Dataset
+import soundfile as sf
 
 # change these to match your dataset
 # SETS = ['train', 'dev', 'test']
@@ -92,6 +93,30 @@ def generate_length(args, tr_set, audio_extension):
         # Dump data
         df = pd.DataFrame(data={'file_path':[fp for fp in sorted_todo], 'length':list(reversed(sorted(tr_x))), 'label':None})
         df.to_csv(os.path.join(output_dir, tr_set[i] + '.csv')) 
+
+    print(f"All done, files saved at {output_dir}")
+
+
+#################################
+# GENERATE LENGTH WITH DATASETS #
+#################################
+def compute_audio_features(batch):
+    speech_array, _ = sf.read(batch["file"])
+    batch["length"] = speech_array.shape[-1]
+    # Strip out file path relative to LibriSpeech root directory
+    batch["file_path"] = batch["file"].split("LibriSpeech/")[-1]
+    return batch
+
+
+def generate_length_with_datasets(split:str, dataset: Dataset, args):
+    print(f"Preprocessing data in: {dataset.cache_files[0]['filename']}")
+    dataset = dataset.map(compute_audio_features, num_proc=args.n_jobs)
+    dataset = dataset.sort("length", reverse=True)
+    dataset = dataset.add_column("label", [None] * len(dataset))
+
+    output_dir = Path(args.output_path).joinpath(args.name)
+    output_dir.mkdir(parents=True, exist_ok=True)
+    dataset.to_csv(f"{output_dir/split}.csv", columns=["file_path", "length", "label"])
 
     print(f"All done, files saved at {output_dir}")
 
