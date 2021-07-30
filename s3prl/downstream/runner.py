@@ -2,6 +2,7 @@ import os
 import sys
 import math
 import glob
+import uuid
 import shutil
 import random
 import tempfile
@@ -22,6 +23,8 @@ from s3prl.optimizers import get_optimizer
 from s3prl.schedulers import get_scheduler
 from s3prl.upstream.interfaces import Featurizer
 from s3prl.utility.helper import is_leader_process, get_model_state, show, defaultdict
+
+from huggingface_hub import HfApi, HfFolder, Repository
 
 SAMPLE_RATE = 16000
 
@@ -332,6 +335,7 @@ class Runner():
             epoch += 1
 
         pbar.close()
+        self.push_to_huggingface_hub()
         if is_leader_process():
             logger.close()
 
@@ -424,3 +428,53 @@ class Runner():
             features = self.upstream.model(wavs)
             features = self.featurizer.model(wavs, features)
             self.downstream.model.inference(features, [filename])
+
+    def push_to_huggingface_hub(self):
+        # Setup auth
+        hf_user = os.environ.get("HF_USERNAME")
+        hf_password = os.environ.get("HF_PASSWORD")
+        huggingface_token = HfApi().login(username=hf_user, password=hf_password)
+        HfFolder.save_token(huggingface_token)
+        print(f"HF Hub user: {hf_user}")
+        
+        # Create repo on the Hub
+        upstream_model = self.args.upstream.replace("/", "__")
+        repo_name = f"superb-s3prl-{upstream_model}-{self.args.downstream}-{str(uuid.uuid4())[:8]}"
+        repo_url = HfApi().create_repo(
+            token=huggingface_token,
+            name=repo_name,
+            organization=hf_user,
+            exist_ok=True,
+            private=True,
+        )
+        print(f"Created Hub repo: {repo_url}")
+
+        # Download repo and copy templates
+        REPO_PATH = self.args.expdir + "/hub_repo/"
+        model_repo = Repository(
+            local_dir=REPO_PATH, clone_from=repo_url, use_auth_token=huggingface_token
+        )
+        TEMPLATES_PATH = f"./downstream/{self.args.downstream}/hf_hub_templates/"
+        shutil.copytree(TEMPLATES_PATH, REPO_PATH, dirs_exist_ok=True)
+
+        # Copy checkpoints, tensorboard logs, and args / configs
+        shutil.copytree(self.args.expdir, REPO_PATH, dirs_exist_ok=True)
+
+        # Inject upstream model name into model card
+        with open(REPO_PATH + "README.md", "r+") as f:
+            readme = f.read()
+            readme = readme.replace("${upstream_model}", self.args.upstream)
+            f.seek(0)
+            f.write(readme)
+            f.truncate()
+
+        # By default we use model.ckpt in the PreTrainedModel interface, so
+        # rename the last checkpoint to match this convention
+        CKPT_PATH = (
+            REPO_PATH + f"states-{self.config['runner']['total_steps']}.ckpt"
+        )
+        shutil.move(CKPT_PATH, REPO_PATH + "model.ckpt")
+        model_repo.lfs_track("*.ckpt")
+        print("Pushing model files to the Hub ...")
+        model_repo.push_to_hub()
+        print("Training run complete!")

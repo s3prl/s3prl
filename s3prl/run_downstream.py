@@ -170,6 +170,9 @@ def main():
             now_world = get_world_size()
             original_world = ckpt['WorldSize']
             assert now_world == original_world, f'{now_world} != {original_world}'
+
+    if args.hub == "huggingface":
+        args.from_hf_hub = True
     
     # Save command
     if is_leader_process():
@@ -190,8 +193,6 @@ def main():
     torch.backends.cudnn.deterministic = True
     torch.backends.cudnn.benchmark = False
 
-    if args.hub == "huggingface":
-        args.from_hf_hub = True
     runner = Runner(args, config)
     eval(f'runner.{args.mode}')()
 
