@@ -164,6 +164,8 @@ Only the training part is powered by **DistributedDataParallel**, and we save al
 
 ## Running with Docker
 
+We provide a Docker image that allows you to pull upstream models from the Hugging Face Hub, fine-tune on a downstream task, and push the training results (weights, configs, tensorboard traces etc) to the Hugging Face Hub. 
+
 In the root of the repo, first build the image with
 
 ```
@@ -173,10 +175,10 @@ docker build -t s3prl:latest .
 Then run the container the [NVIDIA Container Toolkit](https://github.com/NVIDIA/nvidia-docker) and with the data mounted as follows:
 
 ```
-docker run --gpus all -it -P -v /path/to/superb/data:/app/data -e "upstream_model=model_name" -e "downstream_task=task_name" s3prl
+docker run --gpus all -it -P -v /path/to/superb/data:/app/data -e "upstream_model=model_name" -e "downstream_task=task_name" -e "HF_USERNAME=username" -e "HF_PASSWORD=passwd" s3prl
 ```
 
-where `model_name` and `task_name` correspond to one of the supported models / tasks in `s3prl`.
+where `model_name` and `task_name` correspond to one of the supported models / tasks in `s3prl`, and `HF_USERNAME` and `HF_PASSWORD` are the credentials for the [Hugging Face Hub](https://huggingface.co).
 
 # SUPERB Benchmark
 
