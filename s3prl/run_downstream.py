@@ -72,6 +72,7 @@ def get_downstream_args():
     parser.add_argument('-n', '--expname', help='Save experiment at result/downstream/expname')
     parser.add_argument('-p', '--expdir', help='Save experiment at expdir')
     parser.add_argument('-a', '--auto_resume', action='store_true', help='Auto-resume if the expdir contains checkpoints')
+    parser.add_argument('--push_to_hf_hub', default=False, help='Push all files in experiment directory to the Hugging Face Hub')
 
     # options
     parser.add_argument('--seed', default=1337, type=int)

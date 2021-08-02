@@ -335,7 +335,9 @@ class Runner():
             epoch += 1
 
         pbar.close()
-        self.push_to_huggingface_hub()
+
+        if self.args.push_to_hf_hub:
+            self.push_to_huggingface_hub()
         if is_leader_process():
             logger.close()
 
@@ -469,10 +471,19 @@ class Runner():
             f.truncate()
 
         # By default we use model.ckpt in the PreTrainedModel interface, so
-        # rename the last checkpoint to match this convention
-        CKPT_PATH = (
-            REPO_PATH + f"states-{self.config['runner']['total_steps']}.ckpt"
-        )
+        # rename the best checkpoint to match this convention
+        checkpoints = list(Path(REPO_PATH).glob("*best*.ckpt"))
+        if len(checkpoints) == 0:
+            print("Did not find a best checkpoint! Using the final checkpoint instead ...")
+            CKPT_PATH = (
+                REPO_PATH + f"states-{self.config['runner']['total_steps']}.ckpt"
+                )
+        elif len(checkpoints) > 1:
+            print(f"More than one best checkpoint found! Using {checkpoints[0]} as default ...")
+            CKPT_PATH = checkpoints[0]
+        else:
+            print(f"Found best checkpoint {checkpoints[0]}!")
+            CKPT_PATH = checkpoints[0]
         shutil.move(CKPT_PATH, REPO_PATH + "model.ckpt")
         model_repo.lfs_track("*.ckpt")
         print("Pushing model files to the Hub ...")
