@@ -26,11 +26,7 @@ def token_to_word(text):
 def get_decoder(decoder_args_dict, dictionary):
     decoder_args = Namespace(**decoder_args_dict)
 
-    if decoder_args.decoder_type == "viterbi":
-        from examples.speech_recognition.w2l_decoder import W2lViterbiDecoder
-        return W2lViterbiDecoder(decoder_args, dictionary)
-
-    elif decoder_args.decoder_type == "kenlm":
+    if decoder_args.decoder_type == "kenlm":
         from examples.speech_recognition.w2l_decoder import W2lKenLMDecoder
         decoder_args.beam_size_token = len(dictionary)
         if isinstance(decoder_args.unk_weight, str):
@@ -336,8 +332,9 @@ class DownstreamExpert(nn.Module):
             save_names.append(f'{split}-best.ckpt')
 
         if 'test' in split or 'dev' in split:
-            hyp_ark = open(os.path.join(self.expdir, f'{split}-hyp.ark'), 'w')
-            ref_ark = open(os.path.join(self.expdir, f'{split}-ref.ark'), 'w')
+            lm = "noLM" if self.decoder is None else "LM"
+            hyp_ark = open(os.path.join(self.expdir, f'{split}-{lm}-hyp.ark'), 'w')
+            ref_ark = open(os.path.join(self.expdir, f'{split}-{lm}-ref.ark'), 'w')
             for filename, hyp, ref in zip(records['filenames'], records['pred_words'], records['target_words']):
                 hyp = ' '.join(hyp)
                 ref = ' '.join(ref)
