@@ -136,11 +136,11 @@ class DownstreamExpert(nn.Module):
                         save_names.append(f'{mode}-best.ckpt')
 
         if mode in ["dev", "test"]:
-            with open(Path(self.expdir) / f"{mode}_predict.txt", "w") as file:
+            with open(Path(self.expdir) / f"{mode}_{self.fold}_predict.txt", "w") as file:
                 line = [f"{f} {e}\n" for f, e in zip(records["filename"], records["predict"])]
                 file.writelines(line)
 
-            with open(Path(self.expdir) / f"{mode}_truth.txt", "w") as file:
+            with open(Path(self.expdir) / f"{mode}_{self.fold}_truth.txt", "w") as file:
                 line = [f"{f} {e}\n" for f, e in zip(records["filename"], records["truth"])]
                 file.writelines(line)
 
