@@ -16,6 +16,7 @@ import random
 #-------------#
 import pandas as pd
 from tqdm import tqdm
+from pathlib import Path
 #-------------#
 import torch
 from torch.nn.utils.rnn import pad_sequence
@@ -170,7 +171,7 @@ class SequenceDataset(Dataset):
         # Load acoustic feature and pad
         wav_batch = [self._load_wav(x_file).numpy() for x_file in self.X[index]]
         label_batch = [self.Y[self._parse_x_name(x_file)].numpy() for x_file in self.X[index]]
-        filename_batch = [".".join(x_file.split(".")[:-1]) for x_file in self.X[index]]
+        filename_batch = [Path(x_file).stem for x_file in self.X[index]]
         return wav_batch, label_batch, filename_batch # bucketing, return ((wavs, labels))
 
     def collate_fn(self, items):
