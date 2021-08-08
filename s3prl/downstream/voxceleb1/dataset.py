@@ -13,6 +13,7 @@ import sys
 import time
 import glob
 import tqdm
+from pathlib import Path
 
 CACHE_PATH = os.path.join(os.path.dirname(__file__), '.cache/')
 
@@ -113,8 +114,7 @@ class SpeakerClassifiDataset(Dataset):
                 length = self.max_timestep
 
         def path2name(path):
-            path = re.sub("/+", "/", path)
-            return "/".join(path.split("/")[-3:])
+            return Path("-".join((Path(path).parts)[-3:])).stem
 
         path = self.dataset[idx]
         return wav.numpy(), self.label[idx], path2name(path)

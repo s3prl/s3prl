@@ -119,7 +119,7 @@ class SpeakerVerifi_test(Dataset):
         y_label, x1_path, x2_path = self.dataset[idx]
 
         def path2name(path):
-            return "_".join(re.sub(f"/+", "/", path).split("/")[-3:])
+            return Path("-".join((Path(path).parts)[-3:])).stem
 
         x1_name = path2name(x1_path)
         x2_name = path2name(x2_path)
