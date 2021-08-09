@@ -40,6 +40,7 @@ class DownstreamExpert(nn.Module):
         self.downstream = downstream_expert
         self.datarc = downstream_expert['datarc']
         self.modelrc = downstream_expert['modelrc']
+        self.expdir = expdir
 
         root_dir = Path(self.datarc['file_path'])
 
@@ -56,8 +57,6 @@ class DownstreamExpert(nn.Module):
             **model_conf,
         )
         self.objective = nn.CrossEntropyLoss()
-        
-        self.logging = os.path.join(expdir, 'log.log')
         self.register_buffer('best_score', torch.zeros(1))
 
     def _get_train_dataloader(self, dataset):
@@ -90,7 +89,7 @@ class DownstreamExpert(nn.Module):
         return eval(f'self.get_{mode}_dataloader')()
 
     # Interface
-    def forward(self, mode, features, labels, records, **kwargs):
+    def forward(self, mode, features, labels, filenames, records, **kwargs):
         device = features[0].device
         features_len = torch.IntTensor([len(feat) for feat in features]).to(device=device)
         features = pad_sequence(features, batch_first=True)
@@ -104,23 +103,37 @@ class DownstreamExpert(nn.Module):
         records['acc'] += (predicted_classid == labels).view(-1).cpu().float().tolist()
         records['loss'].append(loss.item())
 
+        records['filename'] += filenames
+        records['predict_speaker'] += SpeakerClassifiDataset.label2speaker(predicted_classid.cpu().tolist())
+        records['truth_speaker'] += SpeakerClassifiDataset.label2speaker(labels.cpu().tolist())
+
         return loss
 
     # interface
     def log_records(self, mode, records, logger, global_step, **kwargs):
         save_names = []
-        for key, values in records.items():
-            average = torch.FloatTensor(values).mean().item()
+        for key in ["acc", "loss"]:
+            average = torch.FloatTensor(records[key]).mean().item()
             logger.add_scalar(
                 f'voxceleb1/{mode}-{key}',
                 average,
                 global_step=global_step
             )
-            with open(self.logging, 'a') as f:
+            with open(Path(self.expdir) / "log.log", 'a') as f:
                 if key == 'acc':
                     f.write(f'{mode} at step {global_step}: {average}\n')
                     if mode == 'dev' and average > self.best_score:
                         self.best_score = torch.ones(1) * average
                         f.write(f'New best on {mode} at step {global_step}: {average}\n')
                         save_names.append(f'{mode}-best.ckpt')
+
+        if mode in ["dev", "test"]:
+            with open(Path(self.expdir) / f"{mode}_predict.txt", "w") as file:
+                lines = [f"{f} {p}\n" for f, p in zip(records["filename"], records["predict_speaker"])]
+                file.writelines(lines)
+
+            with open(Path(self.expdir) / f"{mode}_truth.txt", "w") as file:
+                lines = [f"{f} {l}\n" for f, l in zip(records["filename"], records["truth_speaker"])]
+                file.writelines(lines)
+
         return save_names

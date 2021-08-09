@@ -52,6 +52,7 @@ class DownstreamExpert(nn.Module):
         self.downstream = downstream_expert
         self.datarc = downstream_expert['datarc']
         self.modelrc = downstream_expert['modelrc']
+        self.expdir = expdir
 
         # dataset
         train_file_path = Path(self.datarc['file_path']) / "dev" / "wav"
@@ -224,10 +225,12 @@ class DownstreamExpert(nn.Module):
 
             # separate batched data to pair data.
             vec1, vec2 = self.separate_data(agg_vec)
+            names1, names2 = self.separate_data(utter_idx)
 
             scores = self.score_fn(vec1, vec2).cpu().detach().tolist()
             records['scores'].extend(scores)
             records['labels'].extend(labels)
+            records['pair_names'].extend([f"{name1}_{name2}" for name1, name2 in zip(names1, names2)])
 
             return torch.tensor(0)
 
@@ -265,6 +268,14 @@ class DownstreamExpert(nn.Module):
             if err < self.best_score and mode == 'dev':
                 self.best_score = torch.ones(1) * err
                 save_names.append(f'{mode}-best.ckpt')
+
+            with open(Path(self.expdir) / f"{mode}_predict.txt", "w") as file:
+                line = [f"{name} {score}\n" for name, score in zip(records["pair_names"], records["scores"])]
+                file.writelines(line)
+
+            with open(Path(self.expdir) / f"{mode}_truth.txt", "w") as file:
+                line = [f"{name} {score}\n" for name, score in zip(records["pair_names"], records["labels"])]
+                file.writelines(line)
 
         return save_names
 
