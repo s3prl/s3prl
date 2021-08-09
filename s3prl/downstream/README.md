@@ -168,7 +168,7 @@ In this section we detail the commands for reproducing the paper [**SUPERB:** **
 
 #### Submission
 
-After *finishing the testing stage* of each task, the prediction files for leaderboard submission will be located under the `expdir`. You can use [submit.py](../utility/submit.py) to easily organize them into a zip file for the submission.
+After *finishing the testing stage* of each task, the prediction files for leaderboard submission will be located under the `expdir`. You can use [submit.py](../utility/submit.py) to easily organize them into a zip file which can later be uploaded to our [leaderboard](https://superbbenchmark.org/). Here is an [example zip file](https://drive.google.com/file/d/1gHAgq0pTS4ELclHt6wBqfFK25Gxwyh9w/view?usp=sharing).
 
 ```bash
 python3 utility/submit.py \
