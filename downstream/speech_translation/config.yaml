@@ -1,7 +1,7 @@
 runner:
   total_steps: 32000
   gradient_clipping: 10
-  gradient_accumulate_steps: 32
+  gradient_accumulate_steps: 8
 
   log_step: 100
   eval_step: 2000
@@ -26,15 +26,14 @@ downstream_expert:
   src_lang: en
   tgt_lang: de
   post_process: sentencepiece
-  output_prefix: output-st
+  output_prefix: output-st # set prefix of output files
 
   criterionrc:
     criterion: label_smoothed_cross_entropy
     label_smoothing: 0.1
 
   taskrc:
-    # task: speech_to_text
-    data: data/covost_en_de ## config the data folder here
+    data: data/covost_en_de ## set the data folder here
     config_yaml: config.yaml
     seed: 1
     use_asr: False
@@ -67,3 +66,5 @@ downstream_expert:
     arch: s2t_transformer
     max_source_positions: 6000
     max_target_positions: 1024
+    encoder_layers: 3
+    decoder_layers: 3

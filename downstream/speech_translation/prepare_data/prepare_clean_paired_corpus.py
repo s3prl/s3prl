@@ -52,6 +52,10 @@ if __name__ == '__main__':
         src_len = length(line[args.src_key])
         tgt_len = length(line[args.tgt_key])
 
+        if 'REMOVE' in line[args.src_key] or 'REMOVE' in line[args.tgt_key]:
+            verbose(args, f"{line} contains \"REMOVE\", skip")
+            continue
+
         if args.max >= 0:
             if src_len > args.max or tgt_len > args.max:
                 verbose(args, f"{line} text part too long, skip")
