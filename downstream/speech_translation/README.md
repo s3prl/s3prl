@@ -42,10 +42,8 @@ s3prl/
 
 ```yaml
 downstream_expert:
-    
     src_lang: "other source language"
     tgt_lang: "other target language"
-    
     taskrc:
         data: "other data directory"
 ```
