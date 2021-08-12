@@ -23,12 +23,6 @@ from pathlib import Path
 from joblib import Parallel, delayed
 
 
-# change these to match your dataset
-# SETS = ['train', 'dev', 'test']
-# SETS = ['TRAIN', 'TEST']
-SETS = ['train-clean-100', 'train-clean-360', 'train-other-500', 'dev-clean', 'dev-other', 'test-clean', 'test-other']
-
-
 ##################
 # BOOLEAB STRING #
 ##################
@@ -107,7 +101,13 @@ def main():
         SETS = ['train-clean-100', 'train-clean-360', 'train-other-500', 'dev-clean', 'dev-other', 'test-clean', 'test-other']
     elif 'timit' in args.input_data.lower():
         SETS = ['TRAIN', 'TEST']
-
+    else:
+        raise NotImplementedError
+    # change the SETS list to match your dataset, for example:
+    # SETS = ['train', 'dev', 'test']
+    # SETS = ['TRAIN', 'TEST']
+    # SETS = ['train-clean-100', 'train-clean-360', 'train-other-500', 'dev-clean', 'dev-other', 'test-clean', 'test-other']
+    
     # Select data sets
     for idx, s in enumerate(SETS):
         print('\t', idx, ':', s)
