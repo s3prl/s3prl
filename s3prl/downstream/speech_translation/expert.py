@@ -362,25 +362,27 @@ class DownstreamExpert(nn.Module):
     def _asr_metric(self, hyps, refs):
 
         ce = 0
+        we = 0
         c_total = 0
-
-        normalized_hyps = []
-        normalized_refs = []
+        w_total = 0
 
         for hyp, ref in zip(hyps, refs):
 
             normalized_hyp = hyp.translate(str.maketrans('', '', "".join(list(set(string.punctuation)-set("'-"))))).lower()
             normalized_ref = ref.translate(str.maketrans('', '', "".join(list(set(string.punctuation)-set("'-"))))).lower()
 
-            ce += editdistance.eval(hyp, ref)
-            c_total += len(ref)
+            ce += editdistance.eval(normalized_hyp, normalized_ref)
+            c_total += len(normalized_ref)
 
-            normalized_hyps.append(normalized_hyp)
-            normalized_refs.append(normalized_ref)
+            hyp_w = normalized_hyp.split()
+            ref_w = normalized_ref.split()
+
+            we += editdistance.eval(hyp_w, ref_w)
+            w_total += len(ref_w)
+
 
         cer = ce / c_total
-
-        wer = sacrebleu.corpus_ter(normalized_hyps, [normalized_refs]).score
+        wer = we / w_total
 
         return cer, wer
 
