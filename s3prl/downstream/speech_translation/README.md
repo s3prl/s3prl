@@ -4,15 +4,14 @@ specified by the command `-d speech_translation`
 
 #### Prepare data
 
-Following is the example to prepare COVOST2 en-de dataset
+Following is the example to prepare [COVOST2](https://github.com/facebookresearch/covost) en-de dataset
 
-1. Follow the **Getting Data** of the repo [facebookresearch/covost](https://github.com/facebookresearch/covost) to get the covost dataset.
+1. Download [Common Voice audio clips and transcripts (english)](https://commonvoice.mozilla.org/en/datasets) (version 4).
 
 2. Change the path in `prepare_data/prepare_covo.sh` (you can also change the `src_lang` and `tgt_lang` to prepare data of other language pairs)
 
 ```bash
 covo_root="root directory of covost (ex. /Drive/cv-corpus-6.1-2020-12-11)"
-tsv_dir="directory contains tsv files (ex. /Drive/tsv)"
 src_lang=en
 tgt_lang=de
 ```
@@ -26,6 +25,8 @@ bash prepare_covo.sh
 
 4. Check the prepared file structure
 
+* processed data
+
 ```bash
 s3prl/
 └── data/
@@ -36,6 +37,17 @@ s3prl/
         ├── spm-[src|tgt]_text.[model|vocab|text]
         ├── config.yaml
         └── prepare_data.log
+```
+
+* origin tsv files
+
+```bash
+s3prl/
+└── downstream/
+    └──speech_translation/
+        └──prepare_data/
+            └──covost_tsv/
+                └──covost_v2.<src_lang>_<tgt_lang>.[train|dev|test].tsv
 ```
 
 5. [Optional] If you use other dataset or change the language/data config in `prepare_data/prepare_covo.sh`, you will also need to change the language/data config in `config.yaml`

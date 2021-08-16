@@ -2,9 +2,27 @@
 
 # basic config
 covo_root="root directory of covost (ex. /Drive/cv-corpus-6.1-2020-12-11)"
-tsv_dir="directory contains tsv files (ex. /Drive/tsv)"
 src_lang=en
 tgt_lang=de
+
+tsv_dir=covost_tsv
+
+if [ ! -d covost ]; then
+    git clone https://github.com/facebookresearch/covost.git
+fi
+
+mkdir $tsv_dir -p
+
+if [ ! -f covost_v2.${src_lang}_${tgt_lang}.tsv.tar.gz ]; then
+    wget https://dl.fbaipublicfiles.com/covost/covost_v2.${src_lang}_${tgt_lang}.tsv.tar.gz
+fi 
+
+tar -zxvf covost_v2.${src_lang}_${tgt_lang}.tsv.tar.gz -C $tsv_dir
+
+python covost/get_covost_splits.py \
+    --version 2 --src-lang $src_lang --tgt-lang $tgt_lang \
+    --root $tsv_dir \
+    --cv-tsv $covo_root/$src_lang/validated.tsv
 
 # data config
 dataset=covost_${src_lang}_${tgt_lang}
