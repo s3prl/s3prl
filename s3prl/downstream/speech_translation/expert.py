@@ -139,7 +139,7 @@ class DownstreamExpert(nn.Module):
 
         # load dataset
         if split not in self.batch_itr:
-            self.task.load_dataset(split=split)
+            self.task.load_dataset(split=split, max_feature_len=self.max_positions)
             self.batch_itr[split] = self.task.get_batch_iterator(
                 self.task.dataset(split),
                 max_tokens=self.datarc['max_tokens'],
@@ -473,10 +473,6 @@ class DownstreamExpert(nn.Module):
                 for idx, hyp, ref in zip(records['ids'], records['hyps'], records['refs']):
                     print(idx, hyp, ref, sep='\t', file=f)
 
-            for i in range(min(len(records['ids']), 5)):
-                tqdm.write(f"[st] [id]: {records['ids'][i]}, [hyp]: {records['hyps'][i]}, [ref]: {records['refs'][i]}")
-
-            tqdm.write(f'[BLEU]: {bleu.score}')
             print(bleu)
 
             if self.use_asr:
@@ -497,9 +493,6 @@ class DownstreamExpert(nn.Module):
                     print('id', 'hyp', 'ref', sep='\t', file=f)
                     for idx, hyp, ref in zip(records['ids'], records['asr_hyps'], records['asr_refs']):
                         print(idx, hyp, ref, sep='\t', file=f)
-
-                for i in range(min(len(records['ids']), 5)):
-                    tqdm.write(f"[asr] [id]: {records['ids'][i]}, [hyp]: {records['asr_hyps'][i]}, [ref]: {records['asr_refs'][i]}")
 
                 tqdm.write(f'[cer]:{cer}, [wer]:{wer}')
         

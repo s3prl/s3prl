@@ -16,7 +16,7 @@ class S3prl_SpeechToTextTask(SpeechToTextTask):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
 
-    def load_dataset(self, split, epoch=1, combine=False, **kwargs):
+    def load_dataset(self, split, max_feature_len = -1, epoch=1, combine=False, **kwargs):
         is_train_split = split.startswith("train")
         pre_tokenizer = self.build_tokenizer(self.args)
         bpe_tokenizer = self.build_bpe(self.args)
@@ -30,7 +30,8 @@ class S3prl_SpeechToTextTask(SpeechToTextTask):
             is_train_split=is_train_split,
             epoch=epoch,
             seed=self.args.seed,
-            upstream_rate = self.upstream_rate
+            upstream_rate = self.upstream_rate,
+            max_feature_len = max_feature_len,
         )
     
     def build_model(self, args, input_dim):
@@ -60,6 +61,7 @@ class S3prl_SpeechToTextDatasetCreator(SpeechToTextDatasetCreator):
         pre_tokenizer,
         bpe_tokenizer,
         upstream_rate,
+        max_feature_len,
     ) -> SpeechToTextDataset:
         audio_paths, n_frames, src_texts, tgt_texts, ids = [], [], [], [], []
         speakers, src_langs, tgt_langs = [], [], []
@@ -98,6 +100,7 @@ class S3prl_SpeechToTextDatasetCreator(SpeechToTextDatasetCreator):
             pre_tokenizer = pre_tokenizer,
             bpe_tokenizer = bpe_tokenizer,
             upstream_rate = upstream_rate,
+            max_feature_len = max_feature_len,
         )
 
     @classmethod
@@ -113,6 +116,7 @@ class S3prl_SpeechToTextDatasetCreator(SpeechToTextDatasetCreator):
         epoch: int,
         seed: int,
         upstream_rate: int,
+        max_feature_len: int,
     ) -> SpeechToTextDataset:
 
         _splits = splits.split(",")
@@ -145,6 +149,7 @@ class S3prl_SpeechToTextDatasetCreator(SpeechToTextDatasetCreator):
             pre_tokenizer,
             bpe_tokenizer,
             upstream_rate,
+            max_feature_len,
         )
 
 
@@ -152,12 +157,13 @@ class S3prl_SpeechToTextDataset(SpeechToTextDataset):
 
     TARGET_RATE = 16000
 
-    def __init__(self, *args, srs = Optional[List[int]], upstream_rate = 160, **kwargs):
+    def __init__(self, *args, srs = Optional[List[int]], upstream_rate = 160, max_feature_len=-1, **kwargs):
         
         super().__init__(*args, **kwargs)
 
         self.srs = srs
-
+        self.max_feature_len = max_feature_len
+        self.max_wav_len = max_feature_len * upstream_rate
         self.resamplers = {}
         for sr in set(srs):
             self.resamplers[sr] = torchaudio.transforms.Resample(
@@ -167,6 +173,8 @@ class S3prl_SpeechToTextDataset(SpeechToTextDataset):
 
         for i in range(len(self.n_frames)):
             new_n_frames = self.n_frames[i] * self.TARGET_RATE / self.srs[i] / upstream_rate
+            if self.max_feature_len > 0 and new_n_frames > max_feature_len:
+                new_n_frames = max_feature_len
             self.n_frames[i] = int(new_n_frames)
 
     def __getitem__(
@@ -184,6 +192,12 @@ class S3prl_SpeechToTextDataset(SpeechToTextDataset):
             assert not self.data_cfg.use_audio_input
             source = self.feature_transforms(source)
         source = source.float()
+
+        # truncate the wav
+        if self.max_feature_len > 0:
+            if source.size(0) > self.max_wav_len:
+                print(f'wav to long({source.size(0)}), truncate to {self.max_wav_len} (id={index})')
+                source = source[:self.max_wav_len]
 
         target = None
         if self.tgt_texts is not None:

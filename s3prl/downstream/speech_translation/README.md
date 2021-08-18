@@ -91,6 +91,8 @@ downstream_expert:
         decoder_layers: 3
 ```
 
+* we will truncate the wav to the maximum input size, which is `max_source_positions`*`upstream_rate`
+
 * We also support multitask learning with ASR. You could set `downstream_expert/taskrc/use_asr=True` in `config.yaml` to enable it. (Make sure you have transcription in the training tsv file.)
 
     ```yaml
