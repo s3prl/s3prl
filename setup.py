@@ -42,6 +42,7 @@ requirements = [
     "editdistance",
     "easydict",
     "catalyst",
+    "sentencepiece",
 ]
 
 # Arguments marked as "Required" below must be included for upload to PyPI.
