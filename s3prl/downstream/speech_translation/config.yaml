@@ -57,11 +57,12 @@ downstream_expert:
 
   # configuration of decoding
   generatorrc:
-    beam: 5
+    beam: 20
     max_len_a: 0
     max_len_b: 400
 
   # the model configuration and creation are delegated to fairseq
+  # more configuration could be found at https://github.com/pytorch/fairseq/blob/master/fairseq/models/speech_to_text/s2t_transformer.py
   modelrc:
     arch: s2t_transformer
     max_source_positions: 6000
