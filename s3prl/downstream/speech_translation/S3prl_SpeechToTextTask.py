@@ -196,7 +196,7 @@ class S3prl_SpeechToTextDataset(SpeechToTextDataset):
         # truncate the wav
         if self.max_feature_len > 0:
             if source.size(0) > self.max_wav_len:
-                print(f'wav to long({source.size(0)}), truncate to {self.max_wav_len} (id={index})')
+                print(f'wav too long({source.size(0)}), truncate to {self.max_wav_len} (id={index})')
                 source = source[:self.max_wav_len]
 
         target = None
