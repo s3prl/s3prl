@@ -3,7 +3,6 @@ import math
 import torch
 import random
 
-import torch
 import torch.nn as nn
 from torch.utils.data import DataLoader, DistributedSampler
 from torch.distributed import is_initialized
@@ -96,22 +95,16 @@ class DownstreamExpert(nn.Module):
             self.asr_datarc = rc['datarc']
             self.asr_weight = rc['weight']
             self.asr_dict = Dictionary.load(f"{self.data_dir}/{rc['vocab_file']}")
+            
             asr_bperc = rc['bpe_tokenizer'].copy()
             asr_bperc['sentencepiece_model'] = f"{self.data_dir}/{asr_bperc['sentencepiece_model']}" 
             self.asr_bpe = encoders.build_bpe(Namespace(**asr_bperc))
             
-            self.asr_decoder = TransformerDecoderScriptable(
-                self.model.decoder.args,
-                self.asr_dict,
-                Embedding(len(self.asr_dict), self.model.decoder.embed_dim, self.asr_dict.pad())
-            )
             self.asr_task = S3prl_SpeechToTextTask.setup_task(Namespace(**downstream_expert['taskrc']))
+            self.asr_dict.add_symbol('<blank>')
             self.asr_task.tgt_dict = self.asr_dict
-            self.asr_model = S2TTransformerModel(self.model.encoder, self.asr_decoder)
-            self.asr_generator = self.asr_task.build_generator([self.asr_model], Namespace(**downstream_expert['generatorrc']))
-
+            self.asr_head = nn.Linear(modelrc.encoder_embed_dim, len(self.asr_dict))
             self.additional_dataset = {}
-
 
         self.register_buffer('best_score', torch.zeros(1))
 
@@ -139,13 +132,17 @@ class DownstreamExpert(nn.Module):
 
         # load dataset
         if split not in self.batch_itr:
+            
+            # dataset will truncate the input wav according to model's max_position
             self.task.load_dataset(split=split, max_feature_len=self.max_positions)
+            
+            # it must not have invalid_inputs due to truncation
             self.batch_itr[split] = self.task.get_batch_iterator(
                 self.task.dataset(split),
                 max_tokens=self.datarc['max_tokens'],
                 max_positions=self.max_positions,
                 num_workers=self.datarc['num_workers'],
-                ignore_invalid_inputs = True,
+                ignore_invalid_inputs = False,
             )
 
         # # fairseq origin dataloader
@@ -190,7 +187,6 @@ class DownstreamExpert(nn.Module):
             collate_fn = dataset.collate_fn,
             num_workers=self.datarc['num_workers']
         )
-
 
     # Interface
     def forward(self, mode, features, input_dict, records, **kwargs):
@@ -262,39 +258,29 @@ class DownstreamExpert(nn.Module):
 
             if self.use_asr:
 
-                asr_decoder_out = self.asr_model.decoder(
-                    prev_output_tokens=asr_input_dict['net_input']['prev_output_tokens'],
-                    encoder_out=encoder_out
-                )
-
-                asr_loss, _ = self.criterion.compute_loss(
-                    self.asr_model,
-                    asr_decoder_out,
-                    asr_input_dict
-                )
-
+                asr_loss = self.count_asr_loss(encoder_out, asr_input_dict)
                 loss = (1-self.asr_weight) * st_loss + self.asr_weight * asr_loss
 
-
             loss /= input_dict['nsentences']
+
             records['loss'].append(loss.item())
 
             if self.use_asr:
 
-                records['st_loss'].append(st_loss.item()/input_dict['ntokens'])
-                records['asr_loss'].append(asr_loss.item()/asr_input_dict['ntokens'])
+                records['st_loss'].append(st_loss.item())
+                records['asr_loss'].append(asr_loss.item())
 
 
         if mode in ['dev', 'test']:
 
             records['ids'] += input_dict['id'].cpu().tolist()
 
-            hyps, refs = self._inference_step(input_dict, self.model, self.task.target_dictionary, self.generator)
+            hyps, refs = self._inference_step(input_dict)
             records['hyps'] += hyps
             records['refs'] += refs
 
             if self.use_asr:
-                asr_hyps, asr_refs = self._inference_step(asr_input_dict, self.asr_model, self.asr_dict, self.asr_generator)
+                asr_hyps, asr_refs = self._inference_step_asr(asr_input_dict)
                 records['asr_hyps'] += asr_hyps
                 records['asr_refs'] += asr_refs
 
@@ -323,6 +309,20 @@ class DownstreamExpert(nn.Module):
 
         return asr_input_dict
 
+    def count_asr_loss(self, encoder_out, input_dict):
+
+        hidden = encoder_out['encoder_out'][0] # T x B x C
+        log_prob = self.asr_head(hidden).log_softmax(2)
+
+        hidden_length = self.model.encoder.subsample.get_out_seq_lens_tensor(input_dict['net_input']['src_lengths'])
+        
+        targets = input_dict['target']
+        target_lengths = input_dict['target_lengths']
+
+        loss = nn.functional.ctc_loss(log_prob, targets, hidden_length, target_lengths, blank=self.asr_dict.index('<blank>'), reduction='sum', zero_infinity=True)
+
+        return loss
+
     def _decode(self, toks, dictionary):
 
         toks = toks[toks != dictionary.pad()]
@@ -334,8 +334,8 @@ class DownstreamExpert(nn.Module):
 
         return s if s else "<unk>"
 
-    def _inference_step(self, input_dict, model, dictionary, generator):
-        output = generator.generate([model], input_dict)
+    def _inference_step(self, input_dict):
+        output = self.generator.generate([self.model], input_dict)
 
         hyps = []
         refs = []
@@ -343,13 +343,42 @@ class DownstreamExpert(nn.Module):
         for i in range(len(output)):
 
             hyps.append(
-                self._decode(output[i][0]["tokens"], dictionary)
+                self._decode(output[i][0]["tokens"], self.task.target_dictionary)
             )
 
             refs.append(
-                self._decode(input_dict['target'][i], dictionary)
+                self._decode(input_dict['target'][i], self.task.target_dictionary)
             )
 
+        return hyps, refs
+
+    def _inference_step_asr(self, input_dict):
+        
+        encoder_out = self.model.encoder(
+            src_tokens=input_dict['net_input']['src_tokens'], src_lengths=input_dict['net_input']['src_lengths']
+        )
+
+        hidden = encoder_out['encoder_out'][0] # TxBxC
+        logit = self.asr_head(hidden)
+
+        predict = logit.argmax(dim=-1).transpose(0, 1)
+        
+        hyps = []
+        refs = []
+
+        for i in range(len(predict)):
+
+            predict_ids = predict[i].unique_consecutive()
+            predict_ids = predict_ids[predict_ids != self.asr_dict.index('<blank>')]
+
+            hyps.append(
+                self._decode(predict_ids, self.asr_dict)
+            )
+
+            refs.append(
+                self._decode(input_dict['target'][i], self.asr_dict)
+            )
+        
         return hyps, refs
 
     def _metric(self, hyps, refs):
@@ -444,7 +473,7 @@ class DownstreamExpert(nn.Module):
 
                 ave_asr_loss = sum(records['asr_loss'])/len(records['asr_loss'])
                 logger.add_scalar(
-                    f'asr/{mode}-asr_loss',
+                    f'st/{mode}-asr_loss',
                     ave_asr_loss,
                     global_step=global_step
                 )
@@ -470,7 +499,9 @@ class DownstreamExpert(nn.Module):
             
             with open(f'{self.output_prefix}-st-{mode}.tsv', 'w') as f:
                 print('id', 'hyp', 'ref', sep='\t', file=f)
-                for idx, hyp, ref in zip(records['ids'], records['hyps'], records['refs']):
+                results = list(zip(records['ids'], records['hyps'], records['refs']))
+                results.sort(key=lambda x: x[0])
+                for idx, hyp, ref in results:
                     print(idx, hyp, ref, sep='\t', file=f)
 
             print(bleu)
@@ -479,19 +510,21 @@ class DownstreamExpert(nn.Module):
 
                 cer, wer = self._asr_metric(records['asr_hyps'], records['asr_refs'])
                 logger.add_scalar(
-                    f'asr/{mode}-cer',
+                    f'st/{mode}-asr-cer',
                     cer,
                     global_step=global_step
                 )
                 logger.add_scalar(
-                    f'asr/{mode}-wer',
+                    f'st/{mode}-asr-wer',
                     wer,
                     global_step=global_step
                 )
 
                 with open(f'{self.output_prefix}-asr-{mode}.tsv', 'w') as f:
                     print('id', 'hyp', 'ref', sep='\t', file=f)
-                    for idx, hyp, ref in zip(records['ids'], records['asr_hyps'], records['asr_refs']):
+                    results = list(zip(records['ids'], records['asr_hyps'], records['asr_refs']))
+                    results.sort(key=lambda x: x[0])
+                    for idx, hyp, ref in results:
                         print(idx, hyp, ref, sep='\t', file=f)
 
                 tqdm.write(f'[cer]:{cer}, [wer]:{wer}')
