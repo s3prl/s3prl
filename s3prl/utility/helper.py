@@ -79,16 +79,22 @@ def override(string, args, config):
         key, value_str = option.split('=')
         key, value_str = key.strip(), value_str.strip()
         first_field, *remaining = key.split('.')
-        print(f'[Override] - {key} = {eval(value_str)}', file=sys.stderr)
+
+        try:
+            value = eval(value_str)
+        except:
+            value = value_str
+
+        print(f'[Override] - {key} = {value}', file=sys.stderr)
 
         if first_field == 'args':
             assert len(remaining) == 1
-            setattr(args, remaining[0], eval(value_str))
+            setattr(args, remaining[0], value)
         elif first_field == 'config':
             target_config = config
             for i, field_name in enumerate(remaining):
                 if i == len(remaining) - 1:
-                    target_config[field_name] = eval(value_str)
+                    target_config[field_name] = value
                 else:
                     target_config.setdefault(field_name, {})
                     target_config = target_config[field_name]

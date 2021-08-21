@@ -14,7 +14,7 @@ from torch.distributed import is_initialized
 from torch.nn.utils.rnn import pad_sequence
 
 from ..model import *
-from .dataset import SpeechCommandsDataset, SpeechCommandsTestingDataset
+from .dataset import SpeechCommandsDataset, SpeechCommandsTestingDataset, CLASSES
 
 
 class DownstreamExpert(nn.Module):
@@ -45,8 +45,7 @@ class DownstreamExpert(nn.Module):
         )
 
         self.objective = nn.CrossEntropyLoss()
-
-        self.logging = os.path.join(expdir, 'log.log')
+        self.expdir = expdir
         self.register_buffer('best_score', torch.zeros(1))
 
     def _get_balanced_train_dataloader(self, dataset, drop_last=False):
@@ -96,7 +95,7 @@ class DownstreamExpert(nn.Module):
             raise NotImplementedError
 
     # Interface
-    def forward(self, mode, features, labels, records, **kwargs):
+    def forward(self, mode, features, labels, filenames, records, **kwargs):
         device = features[0].device
         features_len = torch.IntTensor([len(feat) for feat in features]).to(device=device)
         features = pad_sequence(features, batch_first=True)
@@ -109,19 +108,25 @@ class DownstreamExpert(nn.Module):
         predicted_classid = predicted.max(dim=-1).indices
         records["loss"].append(loss.item())
         records["acc"] += (predicted_classid == labels).view(-1).cpu().float().tolist()
+
+        records["filename"] += filenames
+        records["predict"] += [CLASSES[idx] for idx in predicted_classid.cpu().tolist()]
+        records["truth"] += [CLASSES[idx] for idx in labels.cpu().tolist()]
+
         return loss
 
     # interface
     def log_records(self, mode, records, logger, global_step, **kwargs):
         save_names = []
-        for key, values in records.items():
+        for key in ["loss", "acc"]:
+            values = records[key]
             average = torch.FloatTensor(values).mean().item()
             logger.add_scalar(
                 f'speech_commands/{mode}-{key}',
                 average,
                 global_step=global_step
             )
-            with open(self.logging, 'a') as f:
+            with open(Path(self.expdir, "log.log"), 'a') as f:
                 if key == 'acc':
                     print(f"{mode} {key}: {average}")
                     f.write(f'{mode} at step {global_step}: {average}\n')
@@ -129,6 +134,15 @@ class DownstreamExpert(nn.Module):
                         self.best_score = torch.ones(1) * average
                         f.write(f'New best on {mode} at step {global_step}: {average}\n')
                         save_names.append(f'{mode}-best.ckpt')
+
+        with open(Path(self.expdir) / f"{mode}_predict.txt", "w") as file:
+            lines = [f"{f} {i}\n" for f, i in zip(records["filename"], records["predict"])]
+            file.writelines(lines)
+
+        with open(Path(self.expdir) / f"{mode}_truth.txt", "w") as file:
+            lines = [f"{f} {i}\n" for f, i in zip(records["filename"], records["truth"])]
+            file.writelines(lines)
+
         return save_names
 
 

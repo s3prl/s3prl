@@ -166,6 +166,37 @@ Only the training part is powered by **DistributedDataParallel**, and we save al
 
 In this section we detail the commands for reproducing the paper [**SUPERB:** **S**peech processing **U**niversal **PER**formance **B**enchmark](https://arxiv.org/abs/2105.01051).
 
+#### Submission
+
+After *finishing the testing stage* of each task, the prediction files for leaderboard submission will be located under the `expdir`. You can use [submit.py](../utility/submit.py) to easily organize them into a zip file which can later be uploaded to our [leaderboard](https://superbbenchmark.org/). Here is an [example zip file](https://superbbenchmark.org/api/download/example).
+
+```bash
+python3 utility/submit.py \
+    --output_dir submission \
+    --pr pr_expdir \
+    --sid sid_expdir \
+    --ks ks_expdir \
+    --ic ic_expdir \
+    --er_fold1 er_fold1_expdir \
+    --er_fold2 er_fold2_expdir \
+    --er_fold3 er_fold3_expdir \
+    --er_fold4 er_fold4_expdir \
+    --er_fold5 er_fold5_expdir \
+    --asr_nolm asr_nolm_expdir \
+    --asr_lm asr_lm_expdir \
+    --qbe qbe_expdir \
+    --sf sf_expdir \
+    --sv sv_expdir \
+    --sd sd_expdir \
+
+# Emotion Recognition (er) does 5-fold cross validation:
+# 5 training and 5 testing -> 5 expdirs
+
+# asr_nolm_expdir will typically be the same as asr_lm_expdir
+# if you did not change expdir during the testing stage.
+# That is, the same expdir used in the ASR section.
+```
+
 ## PR: Phoneme Recognition
 
 Specified by the command `-d ctc`

@@ -138,11 +138,11 @@ class DownstreamExpert(nn.Module):
         if "test" in split or "dev" in split:
             hyp_ark = open(os.path.join(self.expdir, f"{split}-hyp.ark"), "w")
             ref_ark = open(os.path.join(self.expdir, f"{split}-ref.ark"), "w")
-            for idx, (hyp, ref) in enumerate(
-                zip(records["hypothesis"], records["groundtruth"])
+            for filename, hyp, ref in zip(
+                records["filename"], records["hypothesis"], records["groundtruth"]
             ):
-                hyp_ark.write(f"{idx} {hyp}\n")
-                ref_ark.write(f"{idx} {ref}\n")
+                hyp_ark.write(f"{filename} {hyp}\n")
+                ref_ark.write(f"{filename} {ref}\n")
             hyp_ark.close()
             ref_ark.close()
 

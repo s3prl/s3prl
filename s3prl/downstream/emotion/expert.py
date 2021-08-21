@@ -2,6 +2,7 @@ import os
 import math
 import torch
 import random
+from pathlib import Path
 
 import torch
 import torch.nn as nn
@@ -26,8 +27,11 @@ class DownstreamExpert(nn.Module):
         self.modelrc = downstream_expert['modelrc']
 
         DATA_ROOT = self.datarc['root']
-        self.fold = self.datarc.get('test_fold', 'fold1')
-        print(f"[Expert] - using the testing fold: \"{self.fold}\". Ps. Use `-o \"config.downstream_expert.datarc.test_fold='fold2'\"` to change test_fold in config.")
+        self.fold = self.datarc.get('test_fold') or kwargs.get("downstream_variant")
+        if self.fold is None:
+            self.fold = "fold1"
+
+        print(f"[Expert] - using the testing fold: \"{self.fold}\". Ps. Use -o config.downstream_expert.datarc.test_fold=fold2 to change test_fold in config.")
 
         train_path = os.path.join(
             DATA_ROOT, 'meta_data', self.fold.replace('fold', 'Session'), 'train_meta_data.json')
@@ -55,8 +59,7 @@ class DownstreamExpert(nn.Module):
             **model_conf,
         )
         self.objective = nn.CrossEntropyLoss()
-
-        self.logging = os.path.join(expdir, 'log.log')
+        self.expdir = expdir
         self.register_buffer('best_score', torch.zeros(1))
 
 
@@ -94,7 +97,7 @@ class DownstreamExpert(nn.Module):
         return eval(f'self.get_{mode}_dataloader')()
 
     # Interface
-    def forward(self, mode, features, labels, records, **kwargs):
+    def forward(self, mode, features, labels, filenames, records, **kwargs):
         device = features[0].device
         features_len = torch.IntTensor([len(feat) for feat in features]).to(device=device)
 
@@ -108,19 +111,25 @@ class DownstreamExpert(nn.Module):
         predicted_classid = predicted.max(dim=-1).indices
         records['acc'] += (predicted_classid == labels).view(-1).cpu().float().tolist()
         records['loss'].append(loss.item())
+
+        records["filename"] += filenames
+        records["predict"] += [self.test_dataset.idx2emotion[idx] for idx in predicted_classid.cpu().tolist()]
+        records["truth"] += [self.test_dataset.idx2emotion[idx] for idx in labels.cpu().tolist()]
+
         return loss
 
     # interface
     def log_records(self, mode, records, logger, global_step, **kwargs):
         save_names = []
-        for key, values in records.items():
+        for key in ["acc", "loss"]:
+            values = records[key]
             average = torch.FloatTensor(values).mean().item()
             logger.add_scalar(
                 f'emotion-{self.fold}/{mode}-{key}',
                 average,
                 global_step=global_step
             )
-            with open(self.logging, 'a') as f:
+            with open(Path(self.expdir) / "log.log", 'a') as f:
                 if key == 'acc':
                     print(f"{mode} {key}: {average}")
                     f.write(f'{mode} at step {global_step}: {average}\n')
@@ -128,4 +137,14 @@ class DownstreamExpert(nn.Module):
                         self.best_score = torch.ones(1) * average
                         f.write(f'New best on {mode} at step {global_step}: {average}\n')
                         save_names.append(f'{mode}-best.ckpt')
+
+        if mode in ["dev", "test"]:
+            with open(Path(self.expdir) / f"{mode}_{self.fold}_predict.txt", "w") as file:
+                line = [f"{f} {e}\n" for f, e in zip(records["filename"], records["predict"])]
+                file.writelines(line)
+
+            with open(Path(self.expdir) / f"{mode}_{self.fold}_truth.txt", "w") as file:
+                line = [f"{f} {e}\n" for f, e in zip(records["filename"], records["truth"])]
+                file.writelines(line)
+
         return save_names

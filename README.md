@@ -11,6 +11,7 @@
 
 ## What's New
 
+* *Aug 2021:* We now have a tutorial that introduces our toolkit, you can **[watch it on Youtube](https://youtu.be/PkMFnS6cjAc)**!
 * *July 2021:* We are now working on packaging s3prl and reorganizing the file structure in **v0.3**. Please consider using the stable **v0.2.0** for now. We will test and release **v0.3** before August.
 * *June 2021:* Support [**SUPERB:** **S**peech processing **U**niversal **PER**formance **B**enchmark](https://arxiv.org/abs/2105.01051), submitted to Interspeech 2021. Use the tag **superb-interspeech2021** or **v0.2.0**.
 * *June 2021:* Support extracting multiple hidden states from the SSL pretrained models
@@ -26,17 +27,17 @@ The toolkit has **three major usages**:
 
 ### Pretrain
 - Pretrain upstream models, including Mockingjay, Audio ALBERT and TERA.
-- Document: [**pretrain/README.md**](./pretrain/README.md)
+- Document: [**pretrain/README.md**](./s3prl/pretrain/README.md)
 
 ### Upstream
 - Easily load most of the existing upstream models with pretrained weights in a unified I/O interface.
 - Pretrained models are registered through **torch.hub**, which means you can use these models in your own project by one-line plug-and-play without depending on this toolkit's coding style.
-- Document: [**upstream/README.md**](./upstream/README.md)
+- Document: [**upstream/README.md**](./s3prl/upstream/README.md)
 
 ### Downstream
 - Utilize upstream models in lots of downstream tasks
 - Benchmark upstream models with [**SUPERB Benchmark**](https://arxiv.org/abs/2105.01051)
-- Document: [**downstream/README.md**](./downstream/README.md)
+- Document: [**downstream/README.md**](./s3prl/downstream/README.md)
 
 Below is an **intuitive illustration** on how this toolkit may help you:
 \
@@ -88,8 +89,14 @@ pip install fairseq@git+https://github.com//pytorch/fairseq.git@f2146bdc7abf2931
 * [fairseq](https://github.com/pytorch/fairseq), Facebook AI Research.
 * [CPC](https://github.com/facebookresearch/CPC_audio), Facebook AI Research.
 * [APC](https://github.com/iamyuanchung/Autoregressive-Predictive-Coding), Yu-An Chung.
+* [VQ-APC](https://github.com/s3prl/VQ-APC), Yu-An Chung.
 * [NPC](https://github.com/Alexander-H-Liu/NPC), Alexander-H-Liu.
+* [End-to-end-ASR-Pytorch](https://github.com/Alexander-H-Liu/End-to-end-ASR-Pytorch), Alexander-H-Liu
 * [Mockingjay](https://github.com/andi611/Mockingjay-Speech-Representation), Andy T. Liu.
+* [ESPnet](https://github.com/espnet/espnet), Shinji Watanabe
+* [speech-representations](https://github.com/awslabs/speech-representations), aws lab
+* [PASE](https://github.com/santi-pdp/pase), Santiago Pascual and Mirco Ravanelli
+* [LibriMix](https://github.com/JorisCos/LibriMix), Joris Cosentino and Manuel Pariente
 
 ## License
 

@@ -34,15 +34,14 @@ class SpeechCommandsBaseDataset(Dataset):
         class_name, audio_path = self.data[idx]
         wav, _ = apply_effects_file(str(audio_path), EFFECTS)
         wav = wav.squeeze(0).numpy()
-        return wav, self.class2index[class_name]
+        return wav, self.class2index[class_name], Path(audio_path).stem
 
     def __len__(self):
         return len(self.data)
 
     def collate_fn(self, samples):
         """Collate a mini-batch of data."""
-        wavs, labels = zip(*samples)
-        return wavs, labels
+        return zip(*samples)
 
 
 class SpeechCommandsDataset(SpeechCommandsBaseDataset):
