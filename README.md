@@ -2,7 +2,7 @@
     <img src="./file/S3PRL-logo.png" width="900"/>
     <br>
     <br>
-    <a href="./LICENSE"><img alt="MIT License" src="https://img.shields.io/badge/license-MIT-blue.svg" /></a>
+    <a href="./LICENSE.txt"><img alt="MIT License" src="https://img.shields.io/badge/license-MIT-blue.svg" /></a>
     <a href="https://creativecommons.org/licenses/by-nc/4.0/"><img alt="CC_BY_NC License" src="https://img.shields.io/badge/License-CC%20BY--NC%204.0-lightgrey.svg" /></a>
     <a href="https://github.com/s3prl/s3prl/actions"><img alt="Build" src="https://github.com/allenai/allennlp/workflows/Master/badge.svg?event=push&branch=master"></a>
     <a href="#development-pattern-for-contributors"><img alt="Codecov" src="https://img.shields.io/badge/contributions-welcome-brightgreen.svg"></a>
@@ -11,10 +11,12 @@
 
 ## What's New
 
-* June 2021: Support extracting multiple hidden states from the SSL pretrained models
-* April 2021: Support [**SUPERB:** **S**peech processing **U**niversal **PER**formance **B**enchmark](https://arxiv.org/abs/2105.01051), submitted to Interspeech 2021
-* Jan 2021: Readme updated with detailed instructions on how to use our latest version!
-* Dec 2020: We are migrating to a newer version for a more general, flexible, and scalable code. See the introduction below for more information! The legacy verison can be accessed by checking out to the tag **v0.1.0**: `git checkout v0.1.0`.
+* *Aug 2021:* We now have a tutorial that introduces our toolkit, you can **[watch it on Youtube](https://youtu.be/PkMFnS6cjAc)**!
+* *July 2021:* We are now working on packaging s3prl and reorganizing the file structure in **v0.3**. Please consider using the stable **v0.2.0** for now. We will test and release **v0.3** before August.
+* *June 2021:* Support [**SUPERB:** **S**peech processing **U**niversal **PER**formance **B**enchmark](https://arxiv.org/abs/2105.01051), submitted to Interspeech 2021. Use the tag **superb-interspeech2021** or **v0.2.0**.
+* *June 2021:* Support extracting multiple hidden states from the SSL pretrained models
+* *Jan 2021:* Readme updated with detailed instructions on how to use our latest version!
+* *Dec 2020:* We are migrating to a newer version for a more general, flexible, and scalable code. See the introduction below for more information! The legacy verison can be accessed the tag **v0.1.0**.
 
 ## Introduction and Usages
 
@@ -25,17 +27,17 @@ The toolkit has **three major usages**:
 
 ### Pretrain
 - Pretrain upstream models, including Mockingjay, Audio ALBERT and TERA.
-- Document: [**pretrain/README.md**](./pretrain/README.md)
+- Document: [**pretrain/README.md**](./s3prl/pretrain/README.md)
 
 ### Upstream
 - Easily load most of the existing upstream models with pretrained weights in a unified I/O interface.
 - Pretrained models are registered through **torch.hub**, which means you can use these models in your own project by one-line plug-and-play without depending on this toolkit's coding style.
-- Document: [**upstream/README.md**](./upstream/README.md)
+- Document: [**upstream/README.md**](./s3prl/upstream/README.md)
 
 ### Downstream
 - Utilize upstream models in lots of downstream tasks
 - Benchmark upstream models with [**SUPERB Benchmark**](https://arxiv.org/abs/2105.01051)
-- Document: [**downstream/README.md**](./downstream/README.md)
+- Document: [**downstream/README.md**](./s3prl/downstream/README.md)
 
 Below is an **intuitive illustration** on how this toolkit may help you:
 \
@@ -49,32 +51,25 @@ If you find this toolkit helpful to your research, please do consider to cite [o
 
 ## Installation
 
-* **Python** >= 3.6
-* Install **sox** on your OS
-* Install generally used packages for *pretrain*, *upstream* and *downstream*:
+1. **Python** >= 3.6
+2. Install **sox** on your OS
+3. Install s3prl
 
-```bash
-git clone https://github.com/s3prl/s3prl.git
-cd s3prl/
-pip install -r requirements.txt
-cd ../
+```sh
+pip install s3prl
 
-git clone https://github.com/pytorch/fairseq.git
-cd fairseq/
-
-# The version used by the repo maintainer currently.
-# Please must not use the stable version 0.10.2 as it
-# contains known issues for
-#  1. wav2vec2 inference
-#  2. ASR decoding
-#  3. HuBERT loading
-git checkout 01576be5
+# or
 
 pip install -e ./
-cd ../
 ```
 
-* Some upstream models require special dependencies. If you encounter error with a specific upstream model, you can look into the `README.md` under each `upsream` folder. Eg. `upstream/pase/README.md`
+4. Install the specific fairseq
+
+```sh
+pip install fairseq@git+https://github.com//pytorch/fairseq.git@f2146bdc7abf293186de9449bfa2272775e39e1d#egg=fairseq
+```
+
+5. Some upstream models require special dependencies. If you encounter error with a specific upstream model, you can look into the `README.md` under each `upsream` folder. Eg. `upstream/pase/README.md`
 
 ## Development pattern for contributors
 
@@ -94,8 +89,14 @@ cd ../
 * [fairseq](https://github.com/pytorch/fairseq), Facebook AI Research.
 * [CPC](https://github.com/facebookresearch/CPC_audio), Facebook AI Research.
 * [APC](https://github.com/iamyuanchung/Autoregressive-Predictive-Coding), Yu-An Chung.
+* [VQ-APC](https://github.com/s3prl/VQ-APC), Yu-An Chung.
 * [NPC](https://github.com/Alexander-H-Liu/NPC), Alexander-H-Liu.
+* [End-to-end-ASR-Pytorch](https://github.com/Alexander-H-Liu/End-to-end-ASR-Pytorch), Alexander-H-Liu
 * [Mockingjay](https://github.com/andi611/Mockingjay-Speech-Representation), Andy T. Liu.
+* [ESPnet](https://github.com/espnet/espnet), Shinji Watanabe
+* [speech-representations](https://github.com/awslabs/speech-representations), aws lab
+* [PASE](https://github.com/santi-pdp/pase), Santiago Pascual and Mirco Ravanelli
+* [LibriMix](https://github.com/JorisCos/LibriMix), Joris Cosentino and Manuel Pariente
 
 ## License
 
