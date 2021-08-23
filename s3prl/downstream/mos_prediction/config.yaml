@@ -1,7 +1,7 @@
 runner:
   total_steps: 20000
   gradient_clipping: 5
-  gradient_accumulate_steps: 1
+  gradient_accumulate_steps: 2
 
   log_step: 100
   eval_step: 250
@@ -25,10 +25,10 @@ scheduler:
 downstream_expert:
   datarc:
     num_workers: 8
-    train_batch_size: 16
-    eval_batch_size: 24
-    vcc2018_file_path: /livingrooms/public/VCC_2018
-    vcc2016_file_path: /livingrooms/public/VCC_2016
+    train_batch_size: 8
+    eval_batch_size: 12
+    vcc2018_file_path: /home/raytz/Disk/VCC_2018
+    vcc2016_file_path: /home/raytz/Disk/VCC_2016
     save_dir: None
 
   modelrc:

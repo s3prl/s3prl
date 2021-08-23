@@ -28,7 +28,7 @@ class VCC18SegmentalDataset(Dataset):
         wav_name, mean, mos, judge_id = self.dataframe.loc[idx]
         wav_path = self.base_path / "Converted_speech_of_submitted_systems" / wav_name
         wav, _ = apply_effects_file(
-            wav_path,
+            str(wav_path),
             [
                 ["channels", "1"],
                 ["rate", "16000"],
@@ -92,7 +92,7 @@ class VCC16SegmentalDataset(Dataset):
         wav_name = self.wav_list[idx]
         wav_path = self.wav_dir / wav_name
         wav, _ = apply_effects_file(
-            wav_path,
+            str(wav_path),
             [
                 ["channels", "1"],
                 ["rate", "16000"],

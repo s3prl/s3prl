@@ -3,12 +3,12 @@ from typing import List, Union, Dict
 
 import torch
 import torch.nn as nn
-from torch.tensor import Tensor
+from torch import Tensor
 from torch.nn.utils.rnn import pad_sequence
 from torchaudio.sox_effects import apply_effects_tensor
 from itertools import accumulate
 
-from upstream.interfaces import UpstreamBase, Featurizer
+from ..interfaces import UpstreamBase, Featurizer
 from .model import MosDownstream, MosDownstreamModule
 from .utility import unfold_segments
 
