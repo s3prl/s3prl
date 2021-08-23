@@ -2,10 +2,12 @@
 
 Official Implementation of "Utilizing Self-supervised Representations for MOS Prediction", will be presented at INTERSPEECH 2021 [[arXiv](https://arxiv.org/abs/2104.03017)]
 
-This code provides a automatic Mean Opinion Score (MOS) Predictor implemented in PyTorch. The MOS Predictor is serves as an upstream model in s3prl toolkit.
+This code provides a automatic Mean Opinion Score (MOS) Predictor that utilize the self-supervised representations, implementing in PyTorch. The MOS Predictor is serves as an upstream model in s3prl toolkit.
 
 ## Example Usage
-Currently available models: `mos_wav2vec2`, `mos_tera`, `mos_apc`
+There are currently three available checkpoints that used different self-supervised speech models, namely: `mos_wav2vec2`, `mos_tera`, `mos_apc`.
+
+And here's the example usage:
 ```python
 import torch
 device = 'cuda'
@@ -14,7 +16,7 @@ wavs = [torch.zeros(160000, dtype=torch.float).to(device) for _ in range(16)] # 
 with torch.no_grad():
     scores = mos_predictor(wavs) # list of scores of the wavs `[rep1, rep2, ...]`
 ```
-You can also implement your own MOS Predictor with different self-supervised representations by modifying the code into a downstream task (Check [**Add new downstream tasks**](../../downstream/README.md/#add-new-downstream-tasks)).
+You can also train your own MOS Predictor with different self-supervised speech model using the code in the downstream folder (Check [**MOS Prediction Downstream Code**](../../downstream/mos_prediction)).
 
 ## Citation
 
