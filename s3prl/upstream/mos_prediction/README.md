@@ -18,7 +18,7 @@ You can also implement your own MOS Predictor with different self-supervised rep
 
 ## Citation
 
-If you find this MOS Predictor useful, please consider citing following paper:
+If you find this MOS predictor useful, please consider citing following paper:
 ```
 @article{tseng2021utilizing,
   title={Utilizing Self-supervised Representations for MOS Prediction},
