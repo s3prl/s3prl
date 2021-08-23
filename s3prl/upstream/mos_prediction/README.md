@@ -10,13 +10,15 @@ There are currently three available checkpoints that used different self-supervi
 And here's the example usage:
 ```python
 import torch
+
 device = 'cuda'
 mos_predictor = torch.hub.load('s3prl/s3prl', 'mos_wav2vec2').to(device)
 wavs = [torch.zeros(160000, dtype=torch.float).to(device) for _ in range(16)] # list of unpadded wavs `[wav1, wav2, ...]`, each wav is in `torch.FloatTensor`
+
 with torch.no_grad():
-    scores = mos_predictor(wavs) # list of scores of the wavs `[rep1, rep2, ...]`
+    scores = mos_predictor(wavs)['scores'] # list of scores of the wavs `[score1, score2, ...]`
 ```
-You can also train your own MOS Predictor with different self-supervised speech model using the code in the downstream folder (Check [**MOS Prediction Downstream Code**](../../downstream/mos_prediction)).
+You can also fine-tune your own MOS Predictor with different self-supervised speech model by using the code in the downstream folder (Check [**Fine-tune your own MOS Predictor**](../../downstream/mos_prediction)).
 
 ## Citation
 

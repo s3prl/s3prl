@@ -6,13 +6,14 @@ This code enables you to fine-tune a automatic Mean Opinion Score (MOS) Predicto
 
 ## Example Usage
 Use the following code to train a MOS Predictor with specific upstream model:
-```python
-EXP_NAME=mos_prediction_test_wav2vec2
+```bash
+EXP_NAME=hello_world
 UPSTREAM=wav2vec2
 DOWNSTREAM=mos_prediction
+
 python3 run_downstream.py -f -m train -n $EXP_NAME -u $UPSTREAM -d $DOWNSTREAM -o "config.downstream_expert.datarc.save_dir='result/downstream/${EXP_NAME}'"
 ```
-If you only want to use the MOS predictor, please refer the code in the upstream folder (Check [**MOS Predictor**](../../upstream/mos_prediction)).
+If you only want to directly use the MOS predictor instead of fine-tuning your own one, please refer the code in the upstream folder (Check [**MOS Predictor**](../../upstream/mos_prediction)).
 
 ## Citation
 
