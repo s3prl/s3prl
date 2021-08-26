@@ -1,0 +1,30 @@
+TEF1:
+    f0min: 127
+    f0max: 405
+TEF2:
+    f0min: 108
+    f0max: 361
+TEM1:
+    f0min: 71
+    f0max: 227
+TEM2:
+    f0min: 57
+    f0max: 182
+TFF1:
+    f0min: 139
+    f0max: 387
+TFM1:
+    f0min: 60
+    f0max: 189
+TGF1:
+    f0min: 109
+    f0max: 345
+TGM1:
+    f0min: 75
+    f0max: 236
+TMF1:
+    f0min: 126
+    f0max: 409
+TMM1:
+    f0min: 81
+    f0max: 254
