@@ -5,19 +5,21 @@ If you have any questions, please open an issue, or contact through email: wen.c
 
 ## Task
 
-In this downstream, we focus on training any-to-one (A2O) voice conversion (VC) models on the two tasks in [voice conversion challenge 2020 (VCC2020)](https://github.com/nii-yamagishilab/VCC2020-database).
+In this downstream, we focus on training any-to-one (A2O) voice conversion (VC) models on the two tasks in voice conversion challenge 2020 (VCC2020)
 The first task is intra-lingual VC, and the second task is cross-lingual VC.
-For more details, please refer to the original paper:
-[Yi, Z., Huang, W., Tian, X., Yamagishi, J., Das, R.K., Kinnunen, T., Ling, Z., Toda, T. (2020) Voice Conversion Challenge 2020 –- Intra-lingual semi-parallel and cross-lingual voice conversion –-. Proc. Joint Workshop for the Blizzard Challenge and Voice Conversion Challenge 2020, 80-98, DOI: 10.21437/VCC_BC.2020-14.](https://www.isca-speech.org/archive_v0/VCC_BC_2020/pdfs/VCC2020_paper_13.pdf)
+For more details about the two tasks and the VCC2020 dataset, please refer to the original paper:
+
+- Yi, Z., Huang, W., Tian, X., Yamagishi, J., Das, R.K., Kinnunen, T., Ling, Z., Toda, T. (2020) Voice Conversion Challenge 2020 –- Intra-lingual semi-parallel and cross-lingual voice conversion –-. Proc. Joint Workshop for the Blizzard Challenge and Voice Conversion Challenge 2020, 80-98, DOI: 10.21437/VCC_BC.2020-14. [[paper](https://www.isca-speech.org/archive_v0/VCC_BC_2020/pdfs/VCC2020_paper_13.pdf)] [[database](https://github.com/nii-yamagishilab/VCC2020-database)]
+
 
 ## Implementation
 
-We implement three models. Two of them resemble the the top systems in VCC2018 and VCC2020, as described in the following papers:
-[Liu, L., Ling, Z., Jiang, Y., Zhou, M., Dai, L. (2018) WaveNet Vocoder with Limited Training Data for Voice Conversion. Proc. Interspeech 2018, 1983-1987, DOI: 10.21437/Interspeech.2018-1190.](https://www.isca-speech.org/archive/Interspeech_2018/pdfs/1190.pdf)  
-[Liu, L., Chen, Y., Zhang, J., Jiang, Y., Hu, Y., Ling, Z., Dai, L. (2020) Non-Parallel Voice Conversion with Autoregressive Conversion Model and Duration Adjustment. Proc. Joint Workshop for the Blizzard Challenge and Voice Conversion Challenge 2020, 126-130, DOI: 10.21437/VCC_BC.2020-17.](https://www.isca-speech.org/archive_v0/VCC_BC_2020/pdfs/VCC2020_paper_17.pdf)
+We implement three models: the **simple** model, **simple-AR** model and **Taco2-AR** model. The simple model and the Taco2-AR model resemble the top systems in VCC2018 and VCC2020, respectively. They arr described in the following papers:
+- Liu, L., Ling, Z., Jiang, Y., Zhou, M., Dai, L. (2018) WaveNet Vocoder with Limited Training Data for Voice Conversion. Proc. Interspeech 2018, 1983-1987, DOI: 10.21437/Interspeech.2018-1190. [[paper](https://www.isca-speech.org/archive/Interspeech_2018/pdfs/1190.pdf)]
+- Liu, L., Chen, Y., Zhang, J., Jiang, Y., Hu, Y., Ling, Z., Dai, L. (2020) Non-Parallel Voice Conversion with Autoregressive Conversion Model and Duration Adjustment. Proc. Joint Workshop for the Blizzard Challenge and Voice Conversion Challenge 2020, 126-130, DOI: 10.21437/VCC_BC.2020-17. [[paper](https://www.isca-speech.org/archive_v0/VCC_BC_2020/pdfs/VCC2020_paper_17.pdf)]
 
 We made several modifications.
-1. **Input**: instead of using the bottleneck features (BNFs) of a pretrained ASR model, we use the various upstreams provided in S3PRL.
+1. **Input**: instead of using the phonetic posteriorgrams (PPGs) / bottleneck features (BNFs) of a pretrained ASR model, we use the various upstreams provided in S3PRL.
 2. **Output**: instead of using acoustic features extracted using a high-quality vocoder, STRAIGHT, we use the log-melspectrograms.
 3. **Data**: we benchmark on the [VCC2020](https://github.com/nii-yamagishilab/VCC2020-database) dataset. 
 4. **Training strategy**: instead of pretraining on a multispeaker dataset first, we directly trained on the target speaker training set.
