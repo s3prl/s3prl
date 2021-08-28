@@ -992,6 +992,29 @@ python3 run_downstream.py \
 
 The model is expected to output si-sdri on the test set.
 
+## Voice conversion (VC)
+
+**Note**: The following instruction is only a minimal description for benchmarking. A complete guide about the task, dataset, implementation and usage can be found in the [README](./a2o-vc-vcc2020/).
+
+- Download the VCC2020 dataset and the pretrained vocoder.
+```
+cd downstream/a2o-vc-vcc2020
+cd data
+./data_download.sh vcc2020/
+cd ../
+
+# Download the pretrained PWGs.
+./vocoder_download.sh ./
+```
+- Training (using wav2vec for example)
+```
+python run_downstream.py -m train -n test -u wav2vec -d a2o-vc-vcc2020
+```
+- Waveform generation and evaluation (using wav2vec for example)
+```
+cd <root-to-s3prl>/s3prl/downstream/a2o-vc-vcc2020
+./decode.sh pwg_task1 <root-to-s3prl>/s3prl/result/downstream/test/<step> TEF1
+```
 
 # Add new downstream tasks
 
