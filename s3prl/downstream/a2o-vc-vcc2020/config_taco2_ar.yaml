@@ -1,0 +1,63 @@
+runner:
+  total_steps: 10000
+  gradient_clipping: 1
+  gradient_accumulate_steps: 1
+  max_keep: 10
+  eval_dataloaders:
+    - dev
+    - test
+  log_step: 100
+  eval_step: 1000
+  save_step: 1000
+
+  # debug
+  # log_step: 10
+  # eval_step: 50
+  # save_step: 50
+
+optimizer:
+  name: AdamW
+  lr: 1.0e-4
+
+# comment the whole scheduler config block
+# to disable learning rate scheduling
+scheduler:
+  name: linear_schedule_with_warmup
+  num_warmup_steps: 4000
+
+downstream_expert:
+  # should be changed through commandline
+  trgspk: "TEF1"
+
+  datarc:
+    num_workers: 3
+    train_batch_size: 6
+    eval_batch_size: 5
+
+    # change these to absolute paths if using batch training
+    data_root: "./downstream/a2o-vc-vcc2020/data/vcc2020"
+    lists_root: "./downstream/a2o-vc-vcc2020/data/lists"
+    stats_root: "./downstream/a2o-vc-vcc2020/data/stats"
+
+    fbank_config:
+      fs: 24000
+      n_mels: 80
+      n_fft: 1024
+      n_shift: 256
+      win_length: null
+      window: "hann"
+      fmin: 80
+      fmax: 7600
+      gl_iters: 64
+
+  modelrc:
+    ar: True
+    encoder_type: "taco2"
+    hidden_dim: 1024
+    prenet_layers: 2  # if set 0, only dropout is applied
+    prenet_dim: 256
+    prenet_dropout_rate: 0.5
+    lstmp_layers: 2
+    lstmp_dropout_rate: 0.2
+    lstmp_proj_dim: 256
+    lstmp_layernorm: False
