@@ -50,7 +50,7 @@ for trgspk in "${trgspks[@]}"; do
         -n ${expname} \
         -u ${upstream} \
         -d a2o-vc-vcc2020 \
-        -o "config.trgspk='${trgspk}'" \
+        -o "config.downstream_expert.trgspk='${trgspk}'" \
         > ${expdir}/train.log 2>&1
 ) &
 pids+=($!) # store background pids

@@ -59,13 +59,13 @@ class Loss(nn.Module):
         return loss
 
 class DownstreamExpert(nn.Module):
-    def __init__(self, upstream_dim, upstream_rate, downstream_expert, expdir, trgspk, **kwargs):
+    def __init__(self, upstream_dim, upstream_rate, downstream_expert, expdir, **kwargs):
         super(DownstreamExpert, self).__init__()
         
         # basic settings
         self.expdir = expdir
-        self.trgspk = trgspk
         self.upstream_dim = upstream_dim
+        self.trgspk = downstream_expert['trgspk']
         self.datarc = downstream_expert['datarc']
         self.modelrc = downstream_expert['modelrc']
         self.acoustic_feature_dim = self.datarc["fbank_config"]["n_mels"]
@@ -74,9 +74,9 @@ class DownstreamExpert(nn.Module):
         print('[Downstream] - resample_ratio: ' + str(self.resample_ratio))
 
         # load datasets
-        self.train_dataset = VCC2020Dataset('train', trgspk, **self.datarc)
-        self.dev_dataset = VCC2020Dataset('dev', trgspk, **self.datarc)
-        self.test_dataset = VCC2020Dataset('test', trgspk, **self.datarc)
+        self.train_dataset = VCC2020Dataset('train', self.trgspk, **self.datarc)
+        self.dev_dataset = VCC2020Dataset('dev', self.trgspk, **self.datarc)
+        self.test_dataset = VCC2020Dataset('test', self.trgspk, **self.datarc)
 
         # load statistics file if exists, and calculate if not found
         scaler = StandardScaler()

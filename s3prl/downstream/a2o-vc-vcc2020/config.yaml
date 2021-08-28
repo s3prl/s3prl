@@ -26,6 +26,9 @@ scheduler:
   num_warmup_steps: 4000
 
 downstream_expert:
+  # should be changed through commandline
+  trgspk: "TEF1"
+
   datarc:
     num_workers: 3
     train_batch_size: 6

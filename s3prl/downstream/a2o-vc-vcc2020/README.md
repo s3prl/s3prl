@@ -43,18 +43,18 @@ cd data
 cd ../
 
 # Download the pretrained PWGs.
-./pwg_download.sh ./
+./vocoder_download.sh ./
 ```
 
 ### Training
 Here we train an A2O VC model using the `config_ar_taco2.yaml` configuration. Please replace the `<trgspk>`, `<upstream>` in the following command to your desired settings.
 ```
-cd <root-to-s3prl>/downstream/a2o-vc-vcc2020
-python ../../run_downstream.py -m train --config config_ar_taco2.yaml -n a2o_vc_vcc2020_<trgspk>_<upstream> -u <upstream> -d a2o-vc-vcc2020 -o "config.trgspk='<trgspk>'"
+cd <root-to-s3prl>/s3prl
+python run_downstream.py -m train --config downstream/a2o-vc-vcc2020/config_ar_taco2.yaml -n a2o_vc_vcc2020_<trgspk>_<upstream> -u <upstream> -d a2o-vc-vcc2020 -o "config.downstream_expert.trgspk='<trgspk>'" 
 ```
 For example:
 ```
-python ../../run_downstream.py -m train --config config_ar_taco2.yaml -n a2o_vc_vcc2020_ar_taco2_TEF1_wav2vec -u wav2vec -d a2o-vc-vcc2020 -o "config.trgspk='TEF1'"
+python run_downstream.py -m train --config downstream/a2o-vc-vcc2020/config_ar_taco2.yaml -n a2o_vc_vcc2020_ar_taco2_TEF1_wav2vec -u wav2vec -d a2o-vc-vcc2020 -o "config.downstream_expert.trgspk='TEF1'"
 ```
 Note that `-n a2o_vc_vcc2020_ar_taco2_TEF1_wav2vec` can be changed freely.
 Along training, the converted samples generated using the Griffin-Lim algorithm will be saved in `<root-to-s3prl>/s3prl/result/downstream/a2o_vc_vcc2020_ar_taco2_<trgspk>_<upstream>/<step>/test/wav/`.
@@ -62,6 +62,7 @@ Along training, the converted samples generated using the Griffin-Lim algorithm 
 ### Decoding using a neural vocoder & objective evaluation
 Decoding using not Griffin-Lim but a neural vocoder, as well as the objective evaluation of a model trained with a specific number of steps can be performed by the following command:
 ```
+cd <root-to-s3prl>/s3prl/downstream/a2o-vc-vcc2020
 ./decode.sh <vocoder_dir> <root-to-s3prl>/s3prl/result/downstream/a2o_vc_vcc2020_ar_taco2_<trgspk>_<upstream>/<step> <trgspk>
 ```
 For example:
@@ -79,6 +80,7 @@ Utterance-wise evaluation results can be found in `<root-to-s3prl>/s3prl/result/
 If your GPU memory is sufficient, we can train multiple models in one GPU to avoid executing repeated commands.
 Here we train 4 models w.r.t. the 4 target speakers in VCC2020 task 1, again using the `config_ar_taco2.yaml` configuration.
 ```
+cd <root-to-s3prl>/s3prl/downstream/a2o-vc-vcc2020
 ./batch_vc_train.sh <upstream> config_ar_taco2.yaml ar_taco2 task1_all
 ```
 Note that in this batch training mode, the training log are not output to stdout, but redirected to `<root-to-s3prl>/s3prl/result/downstream/a2o_vc_vcc2020_ar_taco2_<trgspk>_<upstream>/train.log`.
