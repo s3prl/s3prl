@@ -257,7 +257,7 @@ Specified by the command `-d asr`
 #### Training
 
 ```bash
-python3 run_downstream.py -n results -m train -u fbank -d asr
+python3 run_downstream.py -n ExpName -m train -u fbank -d asr
 ```
 
 #### Testing without LM
