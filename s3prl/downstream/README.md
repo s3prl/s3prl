@@ -179,7 +179,11 @@ Then run the container using the [NVIDIA Container Toolkit](https://github.com/N
 docker run --gpus all -it -P -v /path/to/superb/data:/app/data -e "upstream_model=model_name" -e "downstream_task=task_name" -e "HF_USERNAME=username" -e "HF_PASSWORD=passwd" s3prl
 ```
 
-Here `model_name` and `task_name` correspond to one of the supported models / downstream tasks in `s3prl`, and `HF_USERNAME` and `HF_PASSWORD` are your account credentials for the [Hugging Face Hub](https://huggingface.co).
+Here `model_name` and `task_name` correspond to one of the supported models / downstream tasks in `s3prl`, and `HF_USERNAME` and `HF_PASSWORD` are your account credentials for the [Hugging Face Hub](https://huggingface.co). By default, each task's `config.yaml` is used to set all the training parameters, but can be overridden with the `override` argument as follows:
+
+```
+docker run --gpus all -it -P -v /data/lewis/superb:/app/data -e "HF_USERNAME=lewtun" -e "HF_PASSWORD=xXM99y5cSDxpSX13u9uQxx7zIj8ng" -e "override=config.optimizer.lr=1e-04" s3prl
+```
 
 # SUPERB Benchmark
 
