@@ -138,7 +138,7 @@ def get_downstream_args():
         if args.upstream_model_config is not None and os.path.isfile(args.upstream_model_config):
             backup_files.append(args.upstream_model_config)
 
-    if args.override:
+    if args.override and args.override != "defaults":
         override(args.override, args, config)
         os.makedirs(args.expdir, exist_ok=True)
     

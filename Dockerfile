@@ -31,7 +31,7 @@ ENV upstream_model osanseviero/hubert_base
 ENV downstream_task asr
 ENV hub huggingface
 ENV push_to_hf_hub True
-ENV override config.optimizer.lr=1.0e-4
+ENV override defaults
 
 WORKDIR /app/s3prl
 # Each task's config.yaml is used to set all the training parameters, but can be overridden with the `override` argument
