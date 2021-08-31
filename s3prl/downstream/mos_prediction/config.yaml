@@ -27,8 +27,8 @@ downstream_expert:
     num_workers: 8
     train_batch_size: 8
     eval_batch_size: 12
-    vcc2018_file_path: /home/raytz/Disk/VCC_2018
-    vcc2016_file_path: /home/raytz/Disk/VCC_2016
+    vcc2018_file_path: /path/to/data/VCC_2018
+    vcc2016_file_path: /path/to/data/VCC_2016
 
   modelrc:
     projector_dim: 256
