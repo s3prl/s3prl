@@ -6,6 +6,7 @@ from torch.nn.utils.rnn import pad_sequence
 from .decoar2 import Decoar2
 from .audio import create_transform
 from collections import OrderedDict
+from ..interfaces import UpstreamBase
 
 ############
 # CONSTANT #
@@ -16,7 +17,7 @@ EXAMPLE_FEAT_SEQLEN = 1000
 ###################
 # UPSTREAM EXPERT #
 ###################
-class UpstreamExpert(nn.Module):
+class UpstreamExpert(UpstreamBase):
     """
     The APC wrapper
     """
@@ -33,6 +34,15 @@ class UpstreamExpert(nn.Module):
         self.preprocessor = create_transform()
 
         self.output_dim = 768
+
+        if len(self.hooks) == 0:
+            module_name = "self.model.encoder.layers"
+            for module_id in range(len(eval(module_name))):
+                self.add_hook(
+                    f"{module_name}[{module_id}]",
+                    lambda input, output: input[0].transpose(0, 1),
+                )
+            self.add_hook("self.model.encoder", lambda input, output: output[0])
 
     def forward(self, wavs):
         """
