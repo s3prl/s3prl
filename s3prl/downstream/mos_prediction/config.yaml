@@ -29,7 +29,6 @@ downstream_expert:
     eval_batch_size: 12
     vcc2018_file_path: /home/raytz/Disk/VCC_2018
     vcc2016_file_path: /home/raytz/Disk/VCC_2016
-    save_dir: None
 
   modelrc:
     projector_dim: 256

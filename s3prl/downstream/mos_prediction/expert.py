@@ -24,25 +24,24 @@ class DownstreamExpert(nn.Module):
         self.upstream_dim = upstream_dim
         self.datarc = downstream_expert["datarc"]
         self.modelrc = downstream_expert["modelrc"]
-        print(self.datarc['save_dir'])
-        idtable = Path(self.datarc['save_dir']) / 'idtable.pkl'
+        idtable = Path(kwargs["expdir"]) / "idtable.pkl"
 
         self.train_dataset = VCC18SegmentalDataset(
             preprocess(self.datarc["vcc2018_file_path"], "train_judge.csv"),
             self.datarc["vcc2018_file_path"],
-            idtable=idtable, 
+            idtable=idtable,
         )
         self.dev_dataset = VCC18SegmentalDataset(
             preprocess(self.datarc["vcc2018_file_path"], "valid_judge.csv"),
             self.datarc["vcc2018_file_path"],
             idtable=idtable,
-            valid=False
+            valid=False,
         )
         self.vcc2018_test_dataset = VCC18SegmentalDataset(
             preprocess(self.datarc["vcc2018_file_path"], "test_judge.csv"),
             self.datarc["vcc2018_file_path"],
             idtable=idtable,
-            valid=False
+            valid=False,
         )
 
         self.vcc2018_system_mos = pd.read_csv(
@@ -70,7 +69,7 @@ class DownstreamExpert(nn.Module):
             attention_pooling=self.modelrc["attention_pooling"]
             if "attention_pooling" in self.modelrc
             else False,
-            num_judges=5000
+            num_judges=5000,
         )
         self.objective = nn.MSELoss()
         self.segment_weight = self.modelrc["segment_weight"]
@@ -117,9 +116,18 @@ class DownstreamExpert(nn.Module):
 
     # Interface
     def forward(
-        self, mode, features, prefix_sums, means, system_names, moses, judge_ids, records, **kwargs
+        self,
+        mode,
+        features,
+        prefix_sums,
+        means,
+        system_names,
+        moses,
+        judge_ids,
+        records,
+        **kwargs,
     ):
-        
+
         features = torch.stack(features)
         features = self.connector(features)
 
@@ -129,7 +137,9 @@ class DownstreamExpert(nn.Module):
             means = means.to(features.device)
             judge_ids = judge_ids.to(features.device)
             moses = moses.to(features.device)
-            segments_scores, segments_bias_scores = self.model(features, judge_ids=judge_ids)
+            segments_scores, segments_bias_scores = self.model(
+                features, judge_ids=judge_ids
+            )
             segments_loss = 0
             uttr_loss = 0
             bias_loss = 0
@@ -150,8 +160,12 @@ class DownstreamExpert(nn.Module):
             segments_loss /= len(prefix_sums) - 1
             uttr_loss /= len(prefix_sums) - 1
             bias_loss /= len(prefix_sums) - 1
-            loss = self.segment_weight * segments_loss + self.bias_weight * bias_loss + uttr_loss
-            
+            loss = (
+                self.segment_weight * segments_loss
+                + self.bias_weight * bias_loss
+                + uttr_loss
+            )
+
             # for i in range(5):
             #     print(uttr_scores[i], bias_scores[i])
 
@@ -162,7 +176,7 @@ class DownstreamExpert(nn.Module):
 
             records["pred_scores"] += uttr_scores
             records["true_scores"] += means.detach().cpu().tolist()
-        
+
         if mode == "dev" or mode == "vcc2018_test":
             means = means.to(features.device)
             segments_scores = self.model(features)
