@@ -72,7 +72,7 @@ def get_downstream_args():
     parser.add_argument('-n', '--expname', help='Save experiment at result/downstream/expname')
     parser.add_argument('-p', '--expdir', help='Save experiment at expdir')
     parser.add_argument('-a', '--auto_resume', action='store_true', help='Auto-resume if the expdir contains checkpoints')
-    parser.add_argument('--push_to_hf_hub', default=False, help='Push all files in experiment directory to the Hugging Face Hub')
+    parser.add_argument('--push_to_hf_hub', default=False, help='Push all files in experiment directory to the Hugging Face Hub. To use this feature you must set HF_USERNAME and HF_PASSWORD as environment variables in your shell')
 
     # options
     parser.add_argument('--seed', default=1337, type=int)
@@ -138,7 +138,7 @@ def get_downstream_args():
         if args.upstream_model_config is not None and os.path.isfile(args.upstream_model_config):
             backup_files.append(args.upstream_model_config)
 
-    if args.override and args.override != "defaults":
+    if args.override.lower() != "none":
         override(args.override, args, config)
         os.makedirs(args.expdir, exist_ok=True)
     

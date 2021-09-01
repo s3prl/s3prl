@@ -37,6 +37,8 @@ cd s3prl/
 
 # general pattern
 python3 run_downstream.py -m train -n ExpName -u UpstreamName -d DownstreamName
+# an example with pulling / pushing models via the Hugging Face Hub
+HF_USERNAME=username HF_PASSWORD=password python3 run_downstream.py -m train -n ExpName -u UpstreamName -d DownstreamName --hub huggingface --push_to_hf_hub True
 # a directly runnable example without data preparation
 python3 run_downstream.py -m train -n ExpName -u fbank -d example
 ```
@@ -182,7 +184,7 @@ docker run --gpus all -it -P -v /path/to/superb/data:/app/data -e "upstream_mode
 Here `model_name` and `task_name` correspond to one of the supported models / downstream tasks in `s3prl`, and `HF_USERNAME` and `HF_PASSWORD` are your account credentials for the [Hugging Face Hub](https://huggingface.co). By default, each task's `config.yaml` is used to set all the training parameters, but can be overridden with the `override` argument as follows:
 
 ```
-docker run --gpus all -it -P -v /data/lewis/superb:/app/data -e "HF_USERNAME=lewtun" -e "HF_PASSWORD=xXM99y5cSDxpSX13u9uQxx7zIj8ng" -e "override=config.optimizer.lr=1e-04" s3prl
+docker run --gpus all -it -P -v /data/lewis/superb:/app/data -e "HF_USERNAME=username" -e "HF_PASSWORD=password" -e "override=config.optimizer.lr=1e-04" s3prl
 ```
 
 # SUPERB Benchmark
