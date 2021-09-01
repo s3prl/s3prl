@@ -456,11 +456,14 @@ class Runner():
         model_repo = Repository(
             local_dir=REPO_PATH, clone_from=repo_url, use_auth_token=huggingface_token
         )
-        TEMPLATES_PATH = f"./downstream/{self.args.downstream}/hf_hub_templates/"
-        shutil.copytree(TEMPLATES_PATH, REPO_PATH, dirs_exist_ok=True)
+        TEMPLATES_PATH = Path(f"./downstream/{self.args.downstream}/hf_hub_templates/")
+        if TEMPLATES_PATH.exists():
+            shutil.copytree(TEMPLATES_PATH, REPO_PATH, dirs_exist_ok=True)
+        else:
+            print(f"No Hugging Face Hub template found for downstream task! Experiment files will still be pushed to the Hub in raw form")
 
         # Copy checkpoints, tensorboard logs, and args / configs
-        shutil.copytree(self.args.expdir, REPO_PATH, dirs_exist_ok=True)
+        shutil.copytree(self.args.expdir, REPO_PATH, dirs_exist_ok=True, ignore=shutil.ignore_patterns("hub_repo"))
 
         # Inject upstream model name into model card
         with open(REPO_PATH + "README.md", "r+") as f:
