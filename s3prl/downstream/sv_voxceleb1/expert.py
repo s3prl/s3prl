@@ -221,8 +221,8 @@ class DownstreamExpert(nn.Module):
         
         elif mode in ['dev', 'test']:
             agg_vec = self.model.inference(features_pad, attention_mask_pad.cuda())
-            agg_vec = agg_vec / (torch.norm(agg_vec, dim=-1).unsqueeze(-1))
-
+            agg_vec = torch.nn.functional.normalize(agg_vec,dim=-1)
+            
             # separate batched data to pair data.
             vec1, vec2 = self.separate_data(agg_vec)
             names1, names2 = self.separate_data(utter_idx)
