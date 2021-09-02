@@ -2,12 +2,15 @@ import os
 import sys
 import math
 import glob
+import uuid
 import shutil
 import random
 import tempfile
 import importlib
+from pathlib import Path
 
 import torch
+import torchaudio
 import numpy as np
 from tqdm import tqdm
 from tensorboardX import SummaryWriter
@@ -20,6 +23,8 @@ from s3prl.optimizers import get_optimizer
 from s3prl.schedulers import get_scheduler
 from s3prl.upstream.interfaces import Featurizer
 from s3prl.utility.helper import is_leader_process, get_model_state, show, defaultdict
+
+from huggingface_hub import HfApi, HfFolder, Repository
 
 SAMPLE_RATE = 16000
 
@@ -70,7 +75,19 @@ class Runner():
 
 
     def _get_upstream(self):
-        Upstream = getattr(hub, self.args.upstream)
+        if "from_hf_hub" in self.args and self.args.from_hf_hub == True:
+            from huggingface_hub import snapshot_download
+
+            print(f'Downloading upstream model {self.args.upstream} from the Hugging Face Hub')
+            filepath = snapshot_download(self.args.upstream)
+            sys.path.append(filepath)
+
+            from expert import UpstreamExpert
+            Upstream = UpstreamExpert
+            ckpt_path = os.path.join(filepath, self.args.upstream_model_name)
+        else:
+            Upstream = getattr(hub, self.args.upstream)
+            ckpt_path = self.args.upstream_ckpt
         upstream_refresh = self.args.upstream_refresh
 
         if is_initialized() and get_rank() > 0:
@@ -78,7 +95,7 @@ class Runner():
             upstream_refresh = False
 
         model = Upstream(
-            ckpt = self.args.upstream_ckpt,
+            ckpt = ckpt_path,
             model_config = self.args.upstream_model_config,
             refresh = upstream_refresh,
         ).to(self.args.device)
@@ -318,6 +335,9 @@ class Runner():
             epoch += 1
 
         pbar.close()
+
+        if self.args.push_to_hf_hub:
+            self.push_to_huggingface_hub()
         if is_leader_process():
             logger.close()
 
@@ -390,3 +410,85 @@ class Runner():
             shutil.rmtree(tempdir)
 
         return [] if type(save_names) is not list else save_names
+
+    def inference(self):
+        filepath = Path(self.args.evaluate_split)
+        assert filepath.is_file()
+        filename = filepath.stem
+
+        if hasattr(self.downstream.model, "load_audio"):
+            wav = self.downstream.model.load_audio(filepath)
+        else:
+            wav, sr = torchaudio.load(str(filepath))
+            assert sr == SAMPLE_RATE
+        wavs = [wav.view(-1).to(self.args.device)]
+
+        for entry in self.all_entries:
+            entry.model.eval()
+
+        with torch.no_grad():
+            features = self.upstream.model(wavs)
+            features = self.featurizer.model(wavs, features)
+            self.downstream.model.inference(features, [filename])
+
+    def push_to_huggingface_hub(self):
+        # Setup auth
+        hf_user = os.environ.get("HF_USERNAME")
+        hf_password = os.environ.get("HF_PASSWORD")
+        huggingface_token = HfApi().login(username=hf_user, password=hf_password)
+        HfFolder.save_token(huggingface_token)
+        print(f"HF Hub user: {hf_user}")
+        
+        # Create repo on the Hub
+        upstream_model = self.args.upstream.replace("/", "__")
+        repo_name = f"superb-s3prl-{upstream_model}-{self.args.downstream}-{str(uuid.uuid4())[:8]}"
+        repo_url = HfApi().create_repo(
+            token=huggingface_token,
+            name=repo_name,
+            organization=hf_user,
+            exist_ok=True,
+            private=True,
+        )
+        print(f"Created Hub repo: {repo_url}")
+
+        # Download repo and copy templates
+        REPO_PATH = self.args.expdir + "/hub_repo/"
+        model_repo = Repository(
+            local_dir=REPO_PATH, clone_from=repo_url, use_auth_token=huggingface_token
+        )
+        TEMPLATES_PATH = Path(f"./downstream/{self.args.downstream}/hf_hub_templates/")
+        if TEMPLATES_PATH.exists():
+            shutil.copytree(TEMPLATES_PATH, REPO_PATH, dirs_exist_ok=True)
+        else:
+            print(f"No Hugging Face Hub template found for downstream task! Experiment files will still be pushed to the Hub in raw form")
+
+        # Copy checkpoints, tensorboard logs, and args / configs
+        shutil.copytree(self.args.expdir, REPO_PATH, dirs_exist_ok=True, ignore=shutil.ignore_patterns("hub_repo"))
+
+        # Inject upstream model name into model card
+        with open(REPO_PATH + "README.md", "r+") as f:
+            readme = f.read()
+            readme = readme.replace("${upstream_model}", self.args.upstream)
+            f.seek(0)
+            f.write(readme)
+            f.truncate()
+
+        # By default we use model.ckpt in the PreTrainedModel interface, so
+        # rename the best checkpoint to match this convention
+        checkpoints = list(Path(REPO_PATH).glob("*best*.ckpt"))
+        if len(checkpoints) == 0:
+            print("Did not find a best checkpoint! Using the final checkpoint instead ...")
+            CKPT_PATH = (
+                REPO_PATH + f"states-{self.config['runner']['total_steps']}.ckpt"
+                )
+        elif len(checkpoints) > 1:
+            print(f"More than one best checkpoint found! Using {checkpoints[0]} as default ...")
+            CKPT_PATH = checkpoints[0]
+        else:
+            print(f"Found best checkpoint {checkpoints[0]}!")
+            CKPT_PATH = checkpoints[0]
+        shutil.move(CKPT_PATH, REPO_PATH + "model.ckpt")
+        model_repo.lfs_track("*.ckpt")
+        print("Pushing model files to the Hub ...")
+        model_repo.push_to_hub()
+        print("Training run complete!")

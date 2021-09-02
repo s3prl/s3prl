@@ -22,7 +22,7 @@ def get_downstream_args():
     parser = argparse.ArgumentParser()
 
     # train or test for this experiment
-    parser.add_argument('-m', '--mode', choices=['train', 'evaluate'], required=True)
+    parser.add_argument('-m', '--mode', choices=['train', 'evaluate', 'inference'], required=True)
     parser.add_argument('-t', '--evaluate_split', default='test')
     parser.add_argument('-o', '--override', help='Used to override args and config, this is at the highest priority')
 
@@ -52,14 +52,17 @@ def get_downstream_args():
     parser.add_argument('-v', '--downstream_variant', help='Downstream vairants given the same expert')
 
     # upstream settings
-    upstreams = [attr for attr in dir(hub) if callable(getattr(hub, attr)) and attr[0] != '_']
-    parser.add_argument('-u', '--upstream', choices=upstreams, help='\
+    parser.add_argument('--hub', default="torch", choices=["torch", "huggingface"],
+        help='The model Hub used to retrieve the upstream model.')
+
+    parser.add_argument('-u', '--upstream',  help='\
         Some upstream variants need local ckpt or config file.\
         Some download needed files on-the-fly and cache them.\
         Please check downstream/README.md for details'
     )
     parser.add_argument('-k', '--upstream_ckpt', metavar='{PATH,URL,GOOGLE_DRIVE_ID}', help='Only set when the specified upstream need it')
     parser.add_argument('-g', '--upstream_model_config', help='The config file for constructing the pretrained model')
+    parser.add_argument('--upstream_model_name', default="model.pt", help='The name of the model file in the Hugging Face Hub repo.')
     parser.add_argument('-r', '--upstream_refresh', action='store_true', help='Re-download cached ckpts for on-the-fly upstream variants')
     parser.add_argument('-f', '--upstream_trainable', action='store_true', help='Fine-tune, set upstream.train(). Default is upstream.eval()')
     parser.add_argument('-s', '--upstream_feature_selection', default='hidden_states', help='Specify the layer to be extracted as the representation')
@@ -69,6 +72,7 @@ def get_downstream_args():
     parser.add_argument('-n', '--expname', help='Save experiment at result/downstream/expname')
     parser.add_argument('-p', '--expdir', help='Save experiment at expdir')
     parser.add_argument('-a', '--auto_resume', action='store_true', help='Auto-resume if the expdir contains checkpoints')
+    parser.add_argument('--push_to_hf_hub', default=False, help='Push all files in experiment directory to the Hugging Face Hub. To use this feature you must set HF_USERNAME and HF_PASSWORD as environment variables in your shell')
 
     # options
     parser.add_argument('--seed', default=1337, type=int)
@@ -134,7 +138,7 @@ def get_downstream_args():
         if args.upstream_model_config is not None and os.path.isfile(args.upstream_model_config):
             backup_files.append(args.upstream_model_config)
 
-    if args.override:
+    if args.override.lower() != "none":
         override(args.override, args, config)
         os.makedirs(args.expdir, exist_ok=True)
     
@@ -167,6 +171,9 @@ def main():
             now_world = get_world_size()
             original_world = ckpt['WorldSize']
             assert now_world == original_world, f'{now_world} != {original_world}'
+
+    if args.hub == "huggingface":
+        args.from_hf_hub = True
     
     # Save command
     if is_leader_process():

@@ -37,6 +37,8 @@ cd s3prl/
 
 # general pattern
 python3 run_downstream.py -m train -n ExpName -u UpstreamName -d DownstreamName
+# an example with pulling / pushing models via the Hugging Face Hub
+HF_USERNAME=username HF_PASSWORD=password python3 run_downstream.py -m train -n ExpName -u UpstreamName -d DownstreamName --hub huggingface --push_to_hf_hub True
 # a directly runnable example without data preparation
 python3 run_downstream.py -m train -n ExpName -u fbank -d example
 ```
@@ -44,6 +46,7 @@ python3 run_downstream.py -m train -n ExpName -u fbank -d example
 - `-m` or `--mode` specifies the **train/evaluate** mode
 - `-u` or `--upstream` specifies the upstream pretrained model.
     - The available upstream can be checked by `-h`
+- `--hub` specifies the model Hub (PyTorch or Hugging Face) to retrieve the upstream model from. Default: `torch`
 - `-d` or `--downstream` specifies the downstream task.
     - The available downstream can be checked by `-h`
     - Each available downstream task has its corresponding folder under `downstream/`. Eg. `-d asr` means we are using the task defined in `downstream/asr/`
@@ -162,6 +165,28 @@ python3 run_downstream.py -m evaluate -t "test-clean" -i [ckpt] -u [upstream] -d
 
 Only the training part is powered by **DistributedDataParallel**, and we save all the model *state_dict* **without** the DDP wrapper. That is, after the DDP training, you can always evaluate the checkpoint using the testing command documented above (on single GPU).
 
+## Running with Docker
+
+We provide a Docker image that allows you to pull upstream models from the PyTorch or Hugging Face Hub, fine-tune on a downstream task, and push the training results (weights, configs, tensorboard traces etc) to the Hugging Face Hub.
+
+In the root of the repo, first build the image with
+
+```
+docker build -t s3prl:latest .
+```
+
+Then run the container using the [NVIDIA Container Toolkit](https://github.com/NVIDIA/nvidia-docker) and with the data mounted as follows:
+
+```
+docker run --gpus all -it -P -v /path/to/superb/data:/app/data -e "upstream_model=model_name" -e "downstream_task=task_name" -e "HF_USERNAME=username" -e "HF_PASSWORD=passwd" s3prl
+```
+
+Here `model_name` and `task_name` correspond to one of the supported models / downstream tasks in `s3prl`, and `HF_USERNAME` and `HF_PASSWORD` are your account credentials for the [Hugging Face Hub](https://huggingface.co). By default, each task's `config.yaml` is used to set all the training parameters, but can be overridden with the `override` argument as follows:
+
+```
+docker run --gpus all -it -P -v /data/lewis/superb:/app/data -e "HF_USERNAME=username" -e "HF_PASSWORD=password" -e "override=config.optimizer.lr=1e-04" s3prl
+```
+
 # SUPERB Benchmark
 
 In this section we detail the commands for reproducing the paper [**SUPERB:** **S**peech processing **U**niversal **PER**formance **B**enchmark](https://arxiv.org/abs/2105.01051).
@@ -258,13 +283,13 @@ Specified by the command `-d asr`
         datarc:
             libri_root: "root directory of LibriSpeech"
     ```
-
 4. Prepare the lengths for utterances in LibriSpeech's train-clean-100, dev-clean and test-clean:
 
     ```bash
     # Official LibriSpeech is in .flac format
     python3 preprocess/generate_len_for_bucket.py -i "root directory of LibriSpeech" -o data/librispeech -a .flac --n_jobs 12
     ```
+
 
 #### Training
 

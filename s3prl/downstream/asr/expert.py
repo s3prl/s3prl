@@ -3,6 +3,7 @@
 import os
 import math  # noqa
 import editdistance
+from pathlib import Path
 from argparse import Namespace
 
 import torch
@@ -14,6 +15,7 @@ from torch.nn.utils.rnn import pad_sequence
 from .model import *
 from ..model import *
 from .dataset import SequenceDataset
+from .dictionary import Dictionary
 
 
 def token_to_word(text):
@@ -77,25 +79,24 @@ class DownstreamExpert(nn.Module):
         self.modelrc = downstream_expert['modelrc']
         self.expdir = expdir
 
-        self.train_dataset = SequenceDataset("train", self.datarc['train_batch_size'], **self.datarc)
-
+        self.dictionary = Dictionary.load(self.datarc["dict_path"])
+    
         self.projector = nn.Linear(upstream_dim, self.modelrc['project_dim'])
         model_cls = eval(self.modelrc['select'])
         model_conf = self.modelrc[self.modelrc['select']]
         self.model = model_cls(
             self.modelrc['project_dim'],
-            len(self.train_dataset.symbols),
-            upstream_rate=upstream_rate,
+            len(self.dictionary.symbols),
+            upstream_rate,
             **model_conf,
         )
-        self.blank = self.train_dataset.dictionary.bos()
+        self.blank = self.dictionary.bos()
         self.objective = nn.CTCLoss(
             blank=self.blank,
             zero_infinity=self.datarc['zero_infinity']
         )
         decoder_args = self.datarc.get('decoder_args')
-        self.decoder = get_decoder(decoder_args, self.train_dataset.dictionary)
-        self.dictionary = self.train_dataset.dictionary
+        self.decoder = get_decoder(decoder_args, self.dictionary)
         self.register_buffer('best_score', torch.ones(1) * 100)
 
     # Interface
@@ -116,12 +117,13 @@ class DownstreamExpert(nn.Module):
                 2. sample_rate == 16000
                 3. directly loaded by torchaudio
         """
+        if not hasattr(self, f'{split}_dataset'):
+            batch_size = self.datarc['batch_size'] if split == "train" else self.datarc['eval_batch_size']
+            setattr(self, f'{split}_dataset', SequenceDataset(split, batch_size, self.dictionary, **self.datarc))
 
         if split == 'train':
             return self._get_train_dataloader(self.train_dataset)
         else:
-            if not hasattr(self, f'{split}_dataset'):
-                setattr(self, f'{split}_dataset', SequenceDataset(split, self.datarc['eval_batch_size'], **self.datarc))
             return self._get_eval_dataloader(getattr(self, f'{split}_dataset'))
 
     def _get_train_dataloader(self, dataset):
@@ -181,7 +183,7 @@ class DownstreamExpert(nn.Module):
             
             pred_token_ids = log_prob.argmax(dim=-1).unique_consecutive()
             pred_token_ids = pred_token_ids[pred_token_ids != self.blank].tolist()
-            pred_tokens = self.train_dataset.dictionary.string(pred_token_ids)
+            pred_tokens = self.dictionary.string(pred_token_ids)
 
             if decoded is not None and "words" in decoded:
                 pred_words = decoded["words"]
@@ -192,6 +194,27 @@ class DownstreamExpert(nn.Module):
             pred_words_batch.append(pred_words)
 
         return pred_tokens_batch, pred_words_batch
+
+    def _get_log_probs(self, features):
+        device = features[0].device
+        features_len = torch.IntTensor([len(feat) for feat in features])
+        features = pad_sequence(features, batch_first=True).to(device=device)
+        features = self.projector(features)
+        logits, log_probs_len = self.model(features, features_len)
+        log_probs = nn.functional.log_softmax(logits, dim=-1)
+        return log_probs, log_probs_len
+
+    def inference(self, features, filenames):
+        log_probs, log_probs_len = self._get_log_probs(features)
+        _, pred_words_batch = self._decode(log_probs.float().contiguous().cpu(), log_probs_len)
+        hyps = [' '.join(hyp) for hyp in pred_words_batch]
+
+        if filenames != []:
+            with open(Path(self.expdir) / "inference.ark", "w") as file:
+                for hyp, filename in zip(hyps, filenames):
+                    file.write(f"{filename} {hyp}\n")
+
+        return hyps
 
     # Interface
     def forward(self, split, features, labels, filenames, records, **kwargs):
@@ -227,20 +250,15 @@ class DownstreamExpert(nn.Module):
                 the loss to be optimized, should not be detached
                 a single scalar in torch.FloatTensor
         """
+        log_probs, log_probs_len = self._get_log_probs(features)
         device = features[0].device
         labels = [torch.IntTensor(l) for l in labels]
-        features_len = torch.IntTensor([len(feat) for feat in features])
         labels_len = torch.IntTensor([len(label) for label in labels]).to(device=device)
-        features = pad_sequence(features, batch_first=True).to(device=device)
         labels = pad_sequence(
             labels,
             batch_first=True,
-            padding_value=self.train_dataset.dictionary.pad(),
+            padding_value=self.dictionary.pad(),
         ).to(device=device)
-
-        features = self.projector(features)
-        logits, log_probs_len = self.model(features, features_len)
-        log_probs = nn.functional.log_softmax(logits, dim=-1)
 
         loss = self.objective(
                 log_probs.transpose(0, 1), # (N, T, C) -> (T, N, C)
@@ -253,11 +271,11 @@ class DownstreamExpert(nn.Module):
         target_tokens_batch = []
         target_words_batch = []
         for label in labels:
-            label_idx = (label != self.train_dataset.dictionary.pad()) & (
-                label != self.train_dataset.dictionary.eos()
+            label_idx = (label != self.dictionary.pad()) & (
+                label != self.dictionary.eos()
             )
             target_token_ids = label[label_idx].tolist()
-            target_tokens = self.train_dataset.dictionary.string(target_token_ids)
+            target_tokens = self.dictionary.string(target_token_ids)
             target_words = token_to_word(target_tokens).split()
 
             target_tokens_batch.append(target_tokens)

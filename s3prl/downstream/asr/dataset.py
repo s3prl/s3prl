@@ -35,9 +35,10 @@ HALF_BATCHSIZE_TIME = 2000
 ####################
 class SequenceDataset(Dataset):
     
-    def __init__(self, split, bucket_size, libri_root, bucket_file, dict_path=None, **kwargs):
+    def __init__(self, split, bucket_size, dictionary, libri_root, bucket_file, **kwargs):
         super(SequenceDataset, self).__init__()
         
+        self.dictionary = dictionary
         self.libri_root = libri_root
         self.sample_rate = SAMPLE_RATE
         self.split_sets = kwargs[split]
@@ -72,21 +73,6 @@ class SequenceDataset(Dataset):
         usage_list = list(x_names & y_names)
 
         Y = {key: Y[key] for key in usage_list}
-
-        # dictionary, symbol list
-        if dict_path is None:
-            dict_path = os.path.join(bucket_file, 'dict.pt')
-
-        if split == "train":
-            self.dictionary = self._build_dictionary(Y)
-            torch.save(self.dictionary, dict_path)
-        else:
-            assert os.path.exists(dict_path)
-            self.dictionary = torch.load(
-                dict_path,
-                map_location=lambda storage, loc: storage
-            )
-        self.symbols = self.dictionary.symbols
 
         self.Y = {
             k: self.dictionary.encode_line(

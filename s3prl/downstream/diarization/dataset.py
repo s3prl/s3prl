@@ -286,8 +286,15 @@ class KaldiData:
 
     def _load_wav_scp(self, wav_scp_file):
         """Return dictionary { rec: wav_rxfilename }."""
-        lines = [line.strip().split(None, 1) for line in open(wav_scp_file)]
-        return {x[0]: x[1] for x in lines}
+        if os.path.exists(wav_scp_file):
+            lines = [line.strip().split(None, 1) for line in open(wav_scp_file)]
+            return {x[0]: x[1] for x in lines}
+        else:
+            wav_dir = os.path.join(self.data_dir, "wav")
+            return {
+                os.path.splitext(filename)[0]: os.path.join(wav_dir, filename)
+                for filename in sorted(os.listdir(wav_dir))
+            }
 
     def _load_wav(self, wav_rxfilename, start=0, end=None):
         """This function reads audio file and return data in numpy.float32 array.
