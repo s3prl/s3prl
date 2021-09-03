@@ -79,7 +79,7 @@ class DownstreamExpert(nn.Module):
         self.modelrc = downstream_expert['modelrc']
         self.expdir = expdir
 
-        self.dictionary = Dictionary.load(self.datarc["dict_path"])
+        self.dictionary = Dictionary.load(self.datarc.get("dict_path", str(Path(__file__).parent / "char.dict")))
     
         self.projector = nn.Linear(upstream_dim, self.modelrc['project_dim'])
         model_cls = eval(self.modelrc['select'])
