@@ -767,20 +767,13 @@ Specified by the command `-d` (with different variants):
     └── README.TXT
     ```
 
-3. unzip phone labels:
-
-    ```bash
-    cd data/cpc_phone
-    unzip converted_aligned_phones.zip
-    ```
-
-4.  *(Optional)* Allow bucketing to increase training efficientcy & speed, this will generate a directory called `data/len_for_bucket`:
+3.  *(Optional)* Allow bucketing to increase training efficientcy & speed, this will generate a directory called `data/len_for_bucket`:
 
     ```bash
     python preprocess/generate_len_for_bucket.py --data_root "your_libri_root" --output_path ./data/
     ```
 
-5. Change the following paths under `phone_*/config.yaml` to your own:
+4. Change the following paths under `phone_*/config.yaml` to your own:
 
     ```yaml
     libri_root: '/media/andi611/1TBSSD/LibriSpeech/'
