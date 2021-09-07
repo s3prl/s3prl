@@ -37,6 +37,8 @@ cd s3prl/
 
 # general pattern
 python3 run_downstream.py -m train -n ExpName -u UpstreamName -d DownstreamName
+# an example with pulling / pushing models via the Hugging Face Hub
+HF_USERNAME=username HF_PASSWORD=password python3 run_downstream.py -m train -n ExpName -u UpstreamName -d DownstreamName --hub huggingface --push_to_hf_hub True
 # a directly runnable example without data preparation
 python3 run_downstream.py -m train -n ExpName -u fbank -d example
 ```
@@ -44,6 +46,7 @@ python3 run_downstream.py -m train -n ExpName -u fbank -d example
 - `-m` or `--mode` specifies the **train/evaluate** mode
 - `-u` or `--upstream` specifies the upstream pretrained model.
     - The available upstream can be checked by `-h`
+- `--hub` specifies the model Hub (PyTorch or Hugging Face) to retrieve the upstream model from. Default: `torch`
 - `-d` or `--downstream` specifies the downstream task.
     - The available downstream can be checked by `-h`
     - Each available downstream task has its corresponding folder under `downstream/`. Eg. `-d asr` means we are using the task defined in `downstream/asr/`
@@ -98,7 +101,7 @@ Please must remember to use `-a` when wrap with `run_while.sh`, or else you are 
 
 ## Distributed training
 
-We wrap the model with **DistributedDataParallel**. By inserting `-m torch.distributed.launch --nproc_per_node {GPU_NUM}` between `python3` and `run_downstream.py`, you can directly turn the above **training** commands into distributed training. Currently only [ASR](#asr-automatic-speech-recognition) and [ASV](#asv-automatic-speaker-verification) support distributed training.
+We wrap the model with **DistributedDataParallel** (DDP). By inserting `-m torch.distributed.launch --nproc_per_node {GPU_NUM}` between `python3` and `run_downstream.py`, you can directly turn the above **training** commands into distributed training. We support DDP for all the SUPERB tasks.
 
 #### First specify your GPU number
 ```bash
@@ -161,6 +164,28 @@ python3 run_downstream.py -m evaluate -t "test-clean" -i [ckpt] -u [upstream] -d
 ### Test the distributed trained checkpoint
 
 Only the training part is powered by **DistributedDataParallel**, and we save all the model *state_dict* **without** the DDP wrapper. That is, after the DDP training, you can always evaluate the checkpoint using the testing command documented above (on single GPU).
+
+## Running with Docker
+
+We provide a Docker image that allows you to pull upstream models from the PyTorch or Hugging Face Hub, fine-tune on a downstream task, and push the training results (weights, configs, tensorboard traces etc) to the Hugging Face Hub.
+
+In the root of the repo, first build the image with
+
+```
+docker build -t s3prl:latest .
+```
+
+Then run the container using the [NVIDIA Container Toolkit](https://github.com/NVIDIA/nvidia-docker) and with the data mounted as follows:
+
+```
+docker run --gpus all -it -P -v /path/to/superb/data:/app/data -e "upstream_model=model_name" -e "downstream_task=task_name" -e "HF_USERNAME=username" -e "HF_PASSWORD=passwd" s3prl
+```
+
+Here `model_name` and `task_name` correspond to one of the supported models / downstream tasks in `s3prl`, and `HF_USERNAME` and `HF_PASSWORD` are your account credentials for the [Hugging Face Hub](https://huggingface.co). By default, each task's `config.yaml` is used to set all the training parameters, but can be overridden with the `override` argument as follows:
+
+```
+docker run --gpus all -it -P -v /data/lewis/superb:/app/data -e "HF_USERNAME=username" -e "HF_PASSWORD=password" -e "override=config.optimizer.lr=1e-04" s3prl
+```
 
 # SUPERB Benchmark
 
@@ -258,13 +283,13 @@ Specified by the command `-d asr`
         datarc:
             libri_root: "root directory of LibriSpeech"
     ```
-
 4. Prepare the lengths for utterances in LibriSpeech's train-clean-100, dev-clean and test-clean:
 
     ```bash
     # Official LibriSpeech is in .flac format
     python3 preprocess/generate_len_for_bucket.py -i "root directory of LibriSpeech" -o data/librispeech -a .flac --n_jobs 12
     ```
+
 
 #### Training
 
@@ -742,20 +767,13 @@ Specified by the command `-d` (with different variants):
     └── README.TXT
     ```
 
-3. unzip phone labels:
-
-    ```bash
-    cd data/cpc_phone
-    unzip converted_aligned_phones.zip
-    ```
-
-4.  *(Optional)* Allow bucketing to increase training efficientcy & speed, this will generate a directory called `data/len_for_bucket`:
+3.  *(Optional)* Allow bucketing to increase training efficientcy & speed, this will generate a directory called `data/len_for_bucket`:
 
     ```bash
     python preprocess/generate_len_for_bucket.py --data_root "your_libri_root" --output_path ./data/
     ```
 
-5. Change the following paths under `phone_*/config.yaml` to your own:
+4. Change the following paths under `phone_*/config.yaml` to your own:
 
     ```yaml
     libri_root: '/media/andi611/1TBSSD/LibriSpeech/'
