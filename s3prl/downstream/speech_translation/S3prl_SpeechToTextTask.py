@@ -179,7 +179,7 @@ class S3prl_SpeechToTextDataset(SpeechToTextDataset):
 
     def __getitem__(
         self, index: int
-    ) -> Tuple[int, torch.Tensor, Optional[torch.Tensor]]:
+    ) -> Tuple[str, int, torch.Tensor, Optional[torch.Tensor]]:
 
         source, sr = torchaudio.load(self.audio_paths[index])
 
@@ -209,11 +209,13 @@ class S3prl_SpeechToTextDataset(SpeechToTextDataset):
                 lang_tag = self.LANG_TAG_TEMPLATE.format(self.tgt_langs[index])
                 lang_tag_idx = self.tgt_dict.index(lang_tag)
                 target = torch.cat((torch.LongTensor([lang_tag_idx]), target), 0)
-        return index, source, target
+        return self.ids[index], index, source, target
 
-    def collater(self, samples: List[Tuple[int, torch.Tensor, torch.Tensor]]):
-
+    def collater(self, samples: List[Tuple[str, int, torch.Tensor, torch.Tensor]]):
+        ids = [sample[0] for sample in samples]
+        samples = [sample[1:] for sample in samples]
         output_dict = super().collater(samples)
+        output_dict['utt_id'] = ids
 
         wavs = []
 

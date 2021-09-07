@@ -1,5 +1,4 @@
 from torch.utils.data import Dataset
-from multiprocessing import Pool
 
 class DummyDataset(Dataset):
 

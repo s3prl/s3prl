@@ -4,6 +4,8 @@ import torch
 import random
 
 import torch.nn as nn
+import torch
+import torch.nn.functional as F
 from torch.utils.data import DataLoader, DistributedSampler
 from torch.distributed import is_initialized
 from torch.nn.utils.rnn import pad_sequence
@@ -60,6 +62,7 @@ class DownstreamExpert(nn.Module):
 
         print(downstream_expert)
 
+        self.expdir = expdir
         self.src_lang = downstream_expert['src_lang']
         self.tgt_lang = downstream_expert['tgt_lang']
         self.post_process = downstream_expert['post_process']
@@ -69,9 +72,17 @@ class DownstreamExpert(nn.Module):
         self.datarc = downstream_expert['datarc']
         self.max_positions = downstream_expert['modelrc']['max_source_positions']
 
+        self.upstream_rate = downstream_expert.get('upstream_rate', upstream_rate)
+        if self.upstream_rate < 0:
+            self.upstream_rate = upstream_rate
+        assert self.upstream_rate % upstream_rate == 0
+        self.downsample_ratio = int(self.upstream_rate / upstream_rate)
+        self.downsample_method = downstream_expert.get('downsample_method', 'drop')
+        if self.downsample_method == 'concat':
+            upstream_dim *= self.downsample_ratio
 
         self.task = S3prl_SpeechToTextTask.setup_task(Namespace(**downstream_expert['taskrc']))
-        self.task.upstream_rate = upstream_rate
+        self.task.upstream_rate = self.upstream_rate
 
         self.data_dir = downstream_expert['taskrc']['data']
 
@@ -223,6 +234,7 @@ class DownstreamExpert(nn.Module):
                 a single scalar in torch.FloatTensor
         """
         device = features[0].device
+        features = self.downsample(features)
         features_length = torch.LongTensor([len(feature) for feature in features])
         features = pad_sequence(features, batch_first=True, padding_value=0.0)
 
@@ -274,6 +286,7 @@ class DownstreamExpert(nn.Module):
         if mode in ['dev', 'test']:
 
             records['ids'] += input_dict['id'].cpu().tolist()
+            records['utt_ids'] += input_dict['utt_id']
 
             hyps, refs = self._inference_step(input_dict)
             records['hyps'] += hyps
@@ -285,6 +298,39 @@ class DownstreamExpert(nn.Module):
                 records['asr_refs'] += asr_refs
 
         return loss
+
+    def downsample(self, features):
+
+        if self.downsample_ratio == 1:
+            return features
+        
+        new_features = []
+        
+        for feature in features:
+            if self.downsample_method == 'drop':
+
+                feature = feature[::self.downsample_ratio]
+            
+            elif self.downsample_method == 'concat':
+                
+                N = feature.size(0) % self.downsample_ratio
+                if N != 0:
+                    feature = F.pad(feature, (0, 0, 0, self.downsample_ratio-N))
+                feature = feature.view(feature.size(0)//self.downsample_ratio, feature.size(1)*self.downsample_ratio)
+            
+            elif self.downsample_method == 'average':
+
+                N = feature.size(0) % self.downsample_ratio
+                if N != 0:
+                    feature = F.pad(feature, (0, 0, 0, self.downsample_ratio-N))
+                feature = feature.view(feature.size(0)//self.downsample_ratio, self.downsample_ratio, feature.size(1)).mean(dim=1)
+
+            else:
+                raise NotImplementedError
+            
+            new_features.append(feature)
+        
+        return new_features
 
     def _create_asr_input_dict(self, input_dict, mode):
 
@@ -497,12 +543,12 @@ class DownstreamExpert(nn.Module):
                 self.best_score = torch.ones(1) * bleu.score
                 save_names.append(f'{mode}-best.ckpt') 
             
-            with open(f'{self.output_prefix}-st-{mode}.tsv', 'w') as f:
-                print('id', 'hyp', 'ref', sep='\t', file=f)
-                results = list(zip(records['ids'], records['hyps'], records['refs']))
+            with open(f'{self.expdir}/{self.output_prefix}-st-{mode}.tsv', 'w') as f:
+                print('utt_id', 'hyp', 'ref', sep='\t', file=f)
+                results = list(zip(records['ids'], records['hyps'], records['refs'], records['utt_ids']))
                 results.sort(key=lambda x: x[0])
-                for idx, hyp, ref in results:
-                    print(idx, hyp, ref, sep='\t', file=f)
+                for idx, hyp, ref, utt_id in results:
+                    print(utt_id, hyp, ref, sep='\t', file=f)
 
             print(bleu)
 
@@ -520,12 +566,12 @@ class DownstreamExpert(nn.Module):
                     global_step=global_step
                 )
 
-                with open(f'{self.output_prefix}-asr-{mode}.tsv', 'w') as f:
-                    print('id', 'hyp', 'ref', sep='\t', file=f)
-                    results = list(zip(records['ids'], records['asr_hyps'], records['asr_refs']))
+                with open(f'{self.expdir}/{self.output_prefix}-asr-{mode}.tsv', 'w') as f:
+                    print('utt_id', 'hyp', 'ref', sep='\t', file=f)
+                    results = list(zip(records['ids'], records['asr_hyps'], records['asr_refs'], records['utt_ids']))
                     results.sort(key=lambda x: x[0])
-                    for idx, hyp, ref in results:
-                        print(idx, hyp, ref, sep='\t', file=f)
+                    for idx, hyp, ref, utt_id in results:
+                        print(utt_id, hyp, ref, sep='\t', file=f)
 
                 tqdm.write(f'[cer]:{cer}, [wer]:{wer}')
         
