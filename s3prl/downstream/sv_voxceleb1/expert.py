@@ -261,12 +261,12 @@ class DownstreamExpert(nn.Module):
             print(f'sv-voxceleb1/{mode}-loss: {loss}')
 
         elif mode in ['dev', 'test']:
-            err, *others = self.eval_metric(np.array(records['labels']), np.array(records['scores']))
-            logger.add_scalar(f'sv-voxceleb1/{mode}-EER', err, global_step=global_step)
-            print(f'sv-voxceleb1/{mode}-ERR: {err}')
+            eer, *others = self.eval_metric(np.array(records['labels']), np.array(records['scores']))
+            logger.add_scalar(f'sv-voxceleb1/{mode}-EER', eer, global_step=global_step)
+            print(f'sv-voxceleb1/{mode}-EER: {eer}')
 
-            if err < self.best_score and mode == 'dev':
-                self.best_score = torch.ones(1) * err
+            if eer < self.best_score and mode == 'dev':
+                self.best_score = torch.ones(1) * eer
                 save_names.append(f'{mode}-best.ckpt')
 
             with open(Path(self.expdir) / f"{mode}_predict.txt", "w") as file:

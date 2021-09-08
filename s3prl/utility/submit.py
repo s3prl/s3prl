@@ -152,7 +152,7 @@ if args.sv is not None:
     processed_tasks.append("sv")
 
     expdir = Path(args.sv)
-    src = expdir / "test_predict.txt"
+    src = (expdir / "test_predict.txt").resolve()
     assert src.is_file()
 
     tgt_dir = predict_dir / "sv_public"

@@ -612,17 +612,23 @@ python3 run_downstream.py -n ExpName -m train -u fbank -d sv_voxceleb1
 
 #### Testing
 
-As there is no official validation set, we save checkpoints every 20000 updates and report the best EER. Evaluating checkpoints take long time so we don't test them on-the-fly on the same GPU. We opt to save all checkpoints and test them parallely with another GPU during training. The following command will run a for-loop to monitor if any new checkpoints is saved, and evaluate it if any is found. The already evaluated checkpoints will be passed as they have the result loggings under their **expdir**.
+If you already know a specific checkpoint to test, says ***states-20000.ckpt***, you can test it with:
 
 ```bash
-./run_while.sh "./downstream/sv_voxceleb1/test_expdirs.sh result/downstream/ExpName; sleep 1800;"
+python3 run_downstream.py -m evaluate -e result/downstream/ExpName/states-20000.ckpt
 ```
-#### Report numbers
 
-The lowest number should be reported, which should be at the bottom.
+However, there is no official validation set under VoxCeleb1 setting, we save checkpoints every 20000 updates and report the best EER. Evaluating checkpoints take long time so we don't test them along with training on a single GPU. We save all checkpoints and test them parallely with another GPU. The following command will:
+
+1. Run a for-loop to find newly saved checkpoints in *expdir*
+2. Evaluate it if any is found and log the testing result
+3. Prepare the best prediction file according to already tested checkpoints
+
+Note. The already evaluated checkpoints will be passed.
 
 ```bash
-./downstream/sv_voxceleb1/report.sh result/downstream/ExpName
+voxceleb1="root directory of VoxCeleb1"
+./downstream/sv_voxceleb1/test_expdir.sh result/downstream/ExpName $voxceleb1
 ```
 
 ## SD: Speaker Diarization
