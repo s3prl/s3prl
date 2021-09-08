@@ -193,7 +193,7 @@ In this section we detail the commands for reproducing the paper [**SUPERB:** **
 
 #### Submission
 
-After *finishing the testing stage* of each task, the prediction files for leaderboard submission will be located under the `expdir`. You can use [submit.py](../utility/submit.py) to easily organize them into a zip file which can later be uploaded to our [leaderboard](https://superbbenchmark.org/). Here is an [example zip file](https://superbbenchmark.org/api/download/example).
+After *finishing the **Testing*** of each task, the prediction files for leaderboard submission will be located under the `expdir`. You can use [submit.py](../utility/submit.py) to easily organize them into a zip file which can later be uploaded to our [leaderboard](https://superbbenchmark.org/). Here is an [example zip file](https://superbbenchmark.org/api/download/example).
 
 ```bash
 python3 utility/submit.py \
@@ -220,6 +220,8 @@ python3 utility/submit.py \
 # asr_nolm_expdir will typically be the same as asr_lm_expdir
 # if you did not change expdir during the testing stage.
 # That is, the same expdir used in the ASR section.
+# The default testing will produce predictions for asr_nolm
+# By using Kenlm decoding you can get predictions for asr_lm
 ```
 
 ## PR: Phoneme Recognition
@@ -376,10 +378,8 @@ python3 run_downstream.py -n ExpName -m train -u fbank -d speech_commands
 
 #### Testing
 
-The testing is done on-the-fly with training since it is not costly. Use the following command to get the testing result from the best-dev checkpoint
-
 ```bash
-python3 utility/get_best_dev.py result/downstream/ExpName/log.log
+python3 run_downstream.py -m evaluate -e result/downstream/ExpName/dev-best.ckpt
 ```
 
 #### Compatible with Speech Command v2
@@ -480,10 +480,8 @@ python3 run_downstream.py -n ExpName -m train -u fbank -d fluent_commands
 
 #### Testing
 
-The testing is done on-the-fly with training since it is not costly. Use the following command to get the testing result from the best-dev ckpt.
-
 ```bash
-python3 utility/get_best_dev.py result/downstream/ExpName/log.log
+python3 run_downstream.py -m evaluate -e result/downstream/ExpName/dev-best.ckpt
 ```
 
 ## SF: End-to-end Slot Filling
@@ -588,10 +586,8 @@ python3 run_downstream.py -n ExpName -m train -u fbank -d voxceleb1
 
 #### Test
 
-The testing is done on-the-fly with training since it is not costly. Use the following command to get the testing result from the best-dev ckpt.
-
 ```bash
-python3 utility/get_best_dev.py result/downstream/ExpName/log.log
+python3 run_downstream.py -m evaluate -e result/downstream/ExpName/dev-best.ckpt
 ```
 
 ## ASV: Automatic Speaker Verification
@@ -723,10 +719,8 @@ python3 run_downstream.py -n ExpName -m train -u fbank -d emotion -c downstream/
 
 #### Test
 
-The testing is done on-the-fly with training since it is not costly. Use the following command to get the testing result from the best-dev ckpt.
-
 ```bash
-python3 utility/get_best_dev.py result/downstream/ExpName/log.log
+python3 run_downstream.py -m evaluate -e result/downstream/ExpName/dev-best.ckpt
 ```
 
 #### Cross validation
@@ -736,7 +730,7 @@ for test_fold in fold1 fold2 fold3 fold4 fold5;
 do
     # The default config is "downstream/emotion/config.yaml"
     python3 run_downstream.py -n ExpName_$test_fold -m train -u fbank -d emotion -o "config.downstream_expert.datarc.test_fold='$test_fold'"
-    python3 utility/get_best_dev.py result/downstream/ExpName_$test_fold/log.log
+    python3 run_downstream.py -m evaluate -e result/downstream/ExpName_$test_fold/dev-best.ckpt
 done
 ```
 
