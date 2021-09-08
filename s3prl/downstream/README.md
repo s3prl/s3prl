@@ -304,12 +304,12 @@ python3 run_downstream.py -m evaluate -t "test-clean" -e result/downstream/dev-c
 ```
 
 #### Testing with KenLM + LibriSpeech official 4-gram LM
+Installing all the dependencies right could be quite complicated. Note that the decoding is not required for SSL representations to perform well on ASR and you can also skip the ASR results from LM decoding when submitting to the leaderboard.
 
 ##### I. Prepare Decoding Environment
 
 1. Install [KenLM](https://github.com/kpu/kenlm)
-    - Please follow the official installation instructions of KenLM instead of the one documented in flashlight or wav2letter
-    - If you encounter issues when installing KenLM, you might need to install some [extra dependencies](https://medium.com/tekraze/install-kenlm-binaries-on-ubuntu-language-model-inference-tool-33507000f33).
+    - Please follow the official installation instructions of KenLM instead of the one documented in flashlight or wav2letter du to some known issues.
 
 2. Install [flashlight python bindings](https://github.com/flashlight/flashlight/blob/master/bindings/python/README.md)
     - Only the **python bindings** is required instead of the entire flashlight toolkit
@@ -322,8 +322,7 @@ python3 run_downstream.py -m evaluate -t "test-clean" -e result/downstream/dev-c
     - https://dl.fbaipublicfiles.com/fairseq/wav2vec/librispeech_lexicon.lst
     - Downloaded filename: **librispeech_lexicon.lst**
 
-5. Make sure your fairseq version contains the following commit
-    - https://github.com/pytorch/fairseq/commit/cb84694c195afced474d17318b5e746d1a9d20a3#diff-ee3a94b6d9b5f2cc60f1b69afc075abbe2061083b52515178eb7145d59e7e7e4
+5. Make sure your fairseq version contains this commit [cb8469](https://github.com/pytorch/fairseq/commit/cb84694c195afced474d17318b5e746d1a9d20a3#diff-ee3a94b6d9b5f2cc60f1b69afc075abbe2061083b52515178eb7145d59e7e7e4)
 
 ##### II. Test
 
