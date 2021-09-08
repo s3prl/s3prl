@@ -520,13 +520,13 @@ python3 run_downstream.py -m evaluate -e result/downstream/ExpName/dev-best.ckpt
             slots_file: "CORPORA_DIR/SNIPS/slots.txt"
     ```
 
-#### Train
+#### Training
 
 ```bash
 python3 run_downstream.py -n ExpName -m train -u fbank -d ctc -c downstream/ctc/snips.yaml
 ```
 
-#### Test
+#### Testing
 
 ```bash
 python3 run_downstream.py -m evaluate -e result/downstream/ExpName/dev-best.ckpt
@@ -578,13 +578,13 @@ python3 run_downstream.py -m evaluate -e result/downstream/ExpName/dev-best.ckpt
             file_path: "root directory of VoxCeleb1"    
     ```
 
-#### Train
+#### Training
 
 ```bash
 python3 run_downstream.py -n ExpName -m train -u fbank -d voxceleb1
 ```
 
-#### Test
+#### Testing
 
 ```bash
 python3 run_downstream.py -m evaluate -e result/downstream/ExpName/dev-best.ckpt
@@ -629,36 +629,38 @@ The lowest number should be reported, which should be at the bottom.
 
 #### Prepare data
 
-1. Simulate Libri2Mix Data for Diarization
+Simulate Libri2Mix Data for Diarization
 
-    ```bash
-    S3PRL_DIR="root directory of your cloned s3prl"
-    CORPORA_DIR"root directory of all your datasets, which hopefully contains LibriSpeech (not necessary)"
+```bash
+S3PRL_DIR="root directory of your cloned s3prl"
+CORPORA_DIR"root directory of all your datasets, which hopefully contains LibriSpeech (not necessary)"
 
-    git clone https://github.com/ftshijt/LibriMix.git
-    cd LibriMix
-    bash generate_librimix.sh $CORPORA_DIR
-    python3 scripts/prepare_diarization.py \
-        --target_dir $S3PRL_DIR/downstream/diarization/data \
-        --source_dir $CORPORA_DIR/Libri2Mix/wav16k/max/metadata
-    ```
+git clone https://github.com/ftshijt/LibriMix.git
+cd LibriMix
+bash generate_librimix.sh $CORPORA_DIR
+python3 scripts/prepare_diarization.py \
+    --target_dir $S3PRL_DIR/downstream/diarization/data \
+    --source_dir $CORPORA_DIR/Libri2Mix/wav16k/max/metadata
+```
 
-#### Train
+#### Training
 
 ```bash
 python3 run_downstream.py -n ExpName -m train -u fbank -d diarization
 ```
 
-#### Test
+#### Testing
+
+##### I. Inference predictions (for submission and for scoring locally)
 
 ```bash
 python3 run_downstream.py -m evaluate -e result/downstream/ExpName/best-states-dev.ckpt
 ```
 
-#### Scoring
+##### II. Scoring (not required for submission)
 
 1. Clone **dscore**
-    
+
     ```bash
     git clone https://github.com/ftshijt/dscore
     ```
@@ -671,19 +673,17 @@ python3 run_downstream.py -m evaluate -e result/downstream/ExpName/best-states-d
 
 3. Run scoring
 
-   ```bash
-   ./downstream/diarization/score.sh result/downstream/ExpName downstream/diarization/data/test
-   ```
+    ```bash
+    ./downstream/diarization/score.sh result/downstream/ExpName downstream/diarization/data/test
+    ```
 
 4. The scoring results will look like
 
-   ![](https://i.imgur.com/GnVlFlH.png)
+    ![](https://i.imgur.com/GnVlFlH.png)
 
-   One should report the lowest number at the bottom, where the column represents DER and the most bottom row will always have the lowest DER which is the number we will report.
+    One should report the lowest number at the bottom, where the column represents DER and the most bottom row will always have the lowest DER which is the number we will report.
 
-5. Re-check the scoring results
-
-    Running the above scoring script takes time. If you want to re-check the scored results, use
+5. Re-check the scoring results: Running the above scoring script takes time. If you want to re-check the scored results, use
 
     ```bash
     ./downstream/diarization/report.sh result/downstream/ExpName
@@ -709,7 +709,8 @@ python3 run_downstream.py -m evaluate -e result/downstream/ExpName/best-states-d
             root: "root directory of IEMOCAP"
     ```
 
-#### Train
+#### Training
+
 IEMOCAP provides 5 splits of data: Section1, Section2, Section3, Section4 and Section5. Conventionally, each split will be selected as the test set and train the model with other 4 splits. That is, 5 times of training and testing is required, and 5 testing scores will be averaged to report the final number. We can change the `test_fold` option in the config file to control which split we want to reserve as the test set.
 
 ```bash
@@ -717,7 +718,7 @@ IEMOCAP provides 5 splits of data: Section1, Section2, Section3, Section4 and Se
 python3 run_downstream.py -n ExpName -m train -u fbank -d emotion -c downstream/emotion/config.yaml -o "config.downstream_expert.datarc.test_fold='fold1'"
 ```
 
-#### Test
+#### Testing
 
 ```bash
 python3 run_downstream.py -m evaluate -e result/downstream/ExpName/dev-best.ckpt
