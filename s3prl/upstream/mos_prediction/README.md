@@ -10,9 +10,9 @@ There are currently three available checkpoints that used different self-supervi
 And here's the example usage:
 ```python
 import torch
+from s3prl.hub import mos_wav2vec2
 
-device = 'cuda'
-mos_predictor = torch.hub.load('s3prl/s3prl', 'mos_wav2vec2').to(device)
+mos_predictor = mos_wav2vec2().cuda()
 wavs = [torch.zeros(160000, dtype=torch.float).to(device) for _ in range(16)] # list of unpadded wavs `[wav1, wav2, ...]`, each wav is in `torch.FloatTensor`
 
 with torch.no_grad():
