@@ -4,7 +4,7 @@ Official Implementation of "Utilizing Self-supervised Representations for MOS Pr
 
 This code enables you to fine-tune a automatic Mean Opinion Score (MOS) Predictor with specific self-supervised upstream model.
 
-## Pretrained MOS
+## Pretrained MOS Predictor
 If you only want to directly use the pretrained MOS predictor instead of fine-tuning your own one, please refer to the MOS Prediction upstream (See [**MOS Predictor**](../../upstream/mos_prediction)).
 
 ## Data Preparation
