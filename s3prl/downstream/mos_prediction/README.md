@@ -47,7 +47,7 @@ After that, you should have the following file structure:
 
 
 
-## Train Your Model
+## Train a New Model
 Use the following code to train a MOS Predictor with specific upstream model:
 ```bash
 EXP_NAME=hello_world
@@ -57,7 +57,7 @@ DOWNSTREAM=mos_prediction
 python3 run_downstream.py -f -m train -n $EXP_NAME -u $UPSTREAM -d $DOWNSTREAM
 ```
 
-## Train Your Model
+## Customize Your Own Model
 You can also customize your own model with specfic dataset or downstream structure by modifying the code (See [**Add new downstream tasks**](../../downstream/README.md#add-new-downstream-tasks)). 
 
 ## Citation
