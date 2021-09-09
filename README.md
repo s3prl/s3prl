@@ -62,10 +62,6 @@ pip install -U setuptools
 4. Install s3prl
 
 ```sh
-pip install s3prl
-
-# or
-
 pip install -e ./
 ```
 
