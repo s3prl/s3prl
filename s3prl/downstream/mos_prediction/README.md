@@ -4,6 +4,9 @@ Official Implementation of "Utilizing Self-supervised Representations for MOS Pr
 
 This code enables you to fine-tune a automatic Mean Opinion Score (MOS) Predictor with specific self-supervised upstream model.
 
+## Pretrained MOS
+If you only want to directly use the MOS predictor instead of fine-tuning your own one, please refer to the MOS Prediction upstream (See [**MOS Predictor**](../../upstream/mos_prediction)).
+
 ## Data Preparation
 Download Voice Conversion Challenge 2018 (VCC 2018) dataset and Voice Conversion Challenge 2016 (VCC 2016) dataset:
 ```bash
@@ -53,7 +56,7 @@ DOWNSTREAM=mos_prediction
 
 python3 run_downstream.py -f -m train -n $EXP_NAME -u $UPSTREAM -d $DOWNSTREAM
 ```
-If you only want to directly use the MOS predictor instead of fine-tuning your own one, please refer the code in the upstream folder (See [**MOS Predictor**](../../upstream/mos_prediction)).
+
 
 ## Train Your Model
 You can also customize your own model with specfic dataset or downstream structure by modifying the code (See [**Add new downstream tasks**](../../downstream/README.md#add-new-downstream-tasks)). 
