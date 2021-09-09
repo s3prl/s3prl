@@ -18,7 +18,9 @@ wavs = [torch.zeros(160000, dtype=torch.float).to(device) for _ in range(16)] # 
 with torch.no_grad():
     scores = mos_predictor(wavs)['scores'] # list of scores of the wavs `[score1, score2, ...]`
 ```
-You can also fine-tune your own MOS Predictor with different self-supervised speech model by using the code in the downstream folder (Check [**Fine-tune your own MOS Predictor**](../../downstream/mos_prediction)).
+
+## Train Your Own MOS Predictor
+You can also train your own MOS Predictor with different self-supervised speech model by using the code in the downstream folder (Check [**Train your own MOS Predictor**](../../downstream/mos_prediction)).
 
 ## Citation
 
