@@ -193,10 +193,10 @@ In this section we detail the commands for reproducing the paper [**SUPERB:** **
 
 #### Submission
 
-After *finishing the **Testing*** of each task, the prediction files for leaderboard submission will be located under the `expdir`. You can use [submit.py](../utility/submit.py) to easily organize them into a zip file which can later be uploaded to our [leaderboard](https://superbbenchmark.org/). Here is an [example zip file](https://superbbenchmark.org/api/download/example).
+After *finishing the **Testing*** of each task, the prediction files for leaderboard submission will be located under the `expdir`. You can use [submit.py](../submit/submit.py) to easily organize them into a zip file which can later be uploaded to our [leaderboard](https://superbbenchmark.org/):
 
 ```bash
-python3 utility/submit.py \
+python3 submit/submit.py \
     --output_dir submission \
     --pr pr_expdir \
     --sid sid_expdir \
@@ -207,22 +207,60 @@ python3 utility/submit.py \
     --er_fold3 er_fold3_expdir \
     --er_fold4 er_fold4_expdir \
     --er_fold5 er_fold5_expdir \
-    --asr_nolm asr_nolm_expdir \
-    --asr_lm asr_lm_expdir \
+    --asr_no_lm asr_expdir \
+    --asr_with_lm asr_expdir \
     --qbe qbe_expdir \
     --sf sf_expdir \
     --sv sv_expdir \
     --sd sd_expdir \
 
-# Emotion Recognition (er) does 5-fold cross validation:
-# 5 training and 5 testing -> 5 expdirs
-
-# asr_nolm_expdir will typically be the same as asr_lm_expdir
-# if you did not change expdir during the testing stage.
-# That is, the same expdir used in the ASR section.
-# The default testing will produce predictions for asr_nolm
-# By using Kenlm decoding you can get predictions for asr_lm
 ```
+
+We also prepare the [**example-expdirs**](https://superbbenchmark.org/api/download/expdirs) for you to diagnose if the submission fails. After unzipping you will see the following structure:
+
+```sh
+expdirs/
+    asr_expdir/
+    er_fold1_expdir/
+    er_fold2_expdir/
+    er_fold3_expdir/
+    er_fold4_expdir/
+    er_fold5_expdir/
+    ic_expdir/
+    ks_expdir/
+    pr_expdir/
+    qbe_expdir/
+    sd_expdir/
+    sf_expdir/
+    sid_expdir/
+    sv_expdir/
+```
+
+Each **expdir** will contain the minimal submission-related files which should also appear in your **expdir** after you do the testing. Here is an [**example-script**](../submit/demo_submit.sh) on how to use the above **example-expdirs** to prepare a submittable zip file.
+
+```sh
+cd s3prl/s3prl/submit
+./demo_submit.sh examples
+```
+
+After executing, you will see:
+
+```sh
+s3prl/s3prl/submit/examples/
+    expdirs/
+    expdirs.zip
+    predict/
+    predict.zip
+```
+
+The [**predict.zip**](https://superbbenchmark.org/api/download/example) is the one you should submit.
+
+##### Note1
+Emotion Recognition (er) does 5-fold cross validation: 5 training and 5 testing, so 5 **expdirs** in total.
+
+##### Note2
+The **expdirs** for `asr_no_lm` and `asr_with_lm` are typically the same. Since the same ASR downstream model was trained and just decoded in different ways, so the same **expdir** assigned for training is used when testing. The default testing will produce predictions for `asr_no_lm`. By using Kenlm decoding you can get predictions for `asr_with_lm`. See ASR section below for more information.
+
 
 ## PR: Phoneme Recognition
 
