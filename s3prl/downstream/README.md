@@ -195,9 +195,11 @@ In this section we detail the commands for reproducing the paper [**SUPERB:** **
 
 After *finishing the **Testing*** of each task, the prediction files for leaderboard submission will be located under the `expdir`. You can use [submit.py](../submit/submit.py) to easily organize them into a zip file which can later be uploaded to our [leaderboard](https://superbbenchmark.org/):
 
-```bash
+```sh
+output_dir="submission"
+
 python3 submit/submit.py \
-    --output_dir submission \
+    --output_dir $output_dir \
     --pr pr_expdir \
     --sid sid_expdir \
     --ks ks_expdir \
@@ -212,9 +214,10 @@ python3 submit/submit.py \
     --qbe qbe_expdir \
     --sf sf_expdir \
     --sv sv_expdir \
-    --sd sd_expdir \
-
+    --sd sd_expdir
 ```
+
+After executing, you can submit **submission/predict.zip** to the leaderboard.
 
 We also prepare the [**example-expdirs**](https://superbbenchmark.org/api/download/expdirs) for you to diagnose if the submission fails. After unzipping you will see the following structure:
 
@@ -253,12 +256,23 @@ s3prl/s3prl/submit/examples/
     predict.zip
 ```
 
-The [**predict.zip**](https://superbbenchmark.org/api/download/example) is the one you should submit.
+The [**predict.zip**](https://superbbenchmark.org/api/download/example) is the one for you to submit.
 
 ##### Note1
-Emotion Recognition (er) does 5-fold cross validation: 5 training and 5 testing, so 5 **expdirs** in total.
+You don't need to prepare all the **expdirs** for the submission. You can zip only a subset of **expdirs**. After your submission, the leaderboard will only show the results of your submitted tasks. Eg.
+
+```sh
+python3 submit/submit.py \
+    --output_dir submission \
+    --pr pr_expdir
+```
+
+The above command will produce a **predict.zip** which will only show the PR score after submitted to the leaderboard.
 
 ##### Note2
+Emotion Recognition (er) does 5-fold cross validation: 5 training and 5 testing, so 5 **expdirs** in total.
+
+##### Note3
 The **expdirs** for `asr_no_lm` and `asr_with_lm` are typically the same. Since the same ASR downstream model was trained and just decoded in different ways, so the same **expdir** assigned for training is used when testing. The default testing will produce predictions for `asr_no_lm`. By using Kenlm decoding you can get predictions for `asr_with_lm`. See ASR section below for more information.
 
 
