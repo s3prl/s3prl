@@ -103,15 +103,30 @@ Please must remember to use `-a` when wrap with `run_while.sh`, or else you are 
 
 We wrap the model with **DistributedDataParallel** (DDP). By inserting `-m torch.distributed.launch --nproc_per_node {GPU_NUM}` between `python3` and `run_downstream.py`, you can directly turn the above **training** commands into distributed training. We support DDP for all the SUPERB tasks.
 
+### When to use DDP
+
+When you find the training is too slow **and** `config.runner.gradient_accumulate_steps` > 1, you can speed up the training by using multiple GPUs and decrease the steps for gradient accumulation. Note that the following settings are effectively the same:
+
+1. `gradient_accumulate_steps`=4, 1 GPU
+2. `gradient_accumulate_steps`=2, 2 GPUs
+3. `gradient_accumulate_steps`=1, 4 GPUs
+
+Please remember to adjust `gradient_accumulate_steps` when using different GPU number by override. Eg. `-o config.runner.gradient_accumulate_steps=2`
+
+### How to use DDP
+
+Says the single GPU is too slow when `gradient_accumulate_steps`=8, and you wish to speed it up with 4 GPUs.
+
 #### First specify your GPU number
 ```bash
-gpus=16;
+gpus=4;
 distributed="-m torch.distributed.launch --nproc_per_node ${gpus}";
 ```
 
 #### Simple training
 ```bash
-python3 $distributed run_downstream.py -m train -n ExpName -u fbank -d example
+python3 $distributed run_downstream.py -m train -n ExpName -u fbank -d example \
+    -o config.runner.gradient_accumulate_steps=2
 ```
 
 #### Resume training
@@ -126,7 +141,8 @@ python3 $distributed run_downstream.py -m train -e [ckpt]
 
 ```bash
 for i in $(seq 1 100); do
-    python3 $distributed run_downstream.py -m train -n ExpName -u fbank -d example -a
+    python3 $distributed run_downstream.py -m train -n ExpName -u fbank -d example \
+        -o config.runner.gradient_accumulate_steps=2 -a
     # When one of the spawned process dies, sometimes not all processes are terminated synchronizely.
     # You might need to ensure all the spawned process are killed here.
     # `killall` linux command is suitable for this.
