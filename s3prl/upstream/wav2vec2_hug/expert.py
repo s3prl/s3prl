@@ -1,5 +1,6 @@
 from typing import List
 
+import torch
 import torch.nn as nn
 from torch import Tensor
 from transformers import Wav2Vec2Processor, Wav2Vec2Model
@@ -22,9 +23,12 @@ class UpstreamExpert(nn.Module):
             sampling_rate=SAMPLE_RATE,
             padding="longest",
         )
+        attention_mask = processor_outputs.get("attention_mask", None)
+        if isinstance(attention_mask, torch.Tensor):
+            attention_mask = attention_mask.to(device)
         model_outputs = self.model(
             processor_outputs.input_values.to(device),
-            attention_mask=processor_outputs.get("attention_mask", None),
+            attention_mask=attention_mask,
             output_hidden_states=True,
         )
         return {

@@ -103,15 +103,30 @@ Please must remember to use `-a` when wrap with `run_while.sh`, or else you are 
 
 We wrap the model with **DistributedDataParallel** (DDP). By inserting `-m torch.distributed.launch --nproc_per_node {GPU_NUM}` between `python3` and `run_downstream.py`, you can directly turn the above **training** commands into distributed training. We support DDP for all the SUPERB tasks.
 
+### When to use DDP
+
+When you find the training is too slow **and** `config.runner.gradient_accumulate_steps` > 1, you can speed up the training by using multiple GPUs and decrease the steps for gradient accumulation. Note that the following settings are effectively the same:
+
+1. `gradient_accumulate_steps`=4, 1 GPU
+2. `gradient_accumulate_steps`=2, 2 GPUs
+3. `gradient_accumulate_steps`=1, 4 GPUs
+
+Please remember to adjust `gradient_accumulate_steps` when using different GPU number by override. Eg. `-o config.runner.gradient_accumulate_steps=2`
+
+### How to use DDP
+
+Says the single GPU is too slow when `gradient_accumulate_steps`=8, and you wish to speed it up with 4 GPUs.
+
 #### First specify your GPU number
 ```bash
-gpus=16;
+gpus=4;
 distributed="-m torch.distributed.launch --nproc_per_node ${gpus}";
 ```
 
 #### Simple training
 ```bash
-python3 $distributed run_downstream.py -m train -n ExpName -u fbank -d example
+python3 $distributed run_downstream.py -m train -n ExpName -u fbank -d example \
+    -o config.runner.gradient_accumulate_steps=2
 ```
 
 #### Resume training
@@ -126,7 +141,8 @@ python3 $distributed run_downstream.py -m train -e [ckpt]
 
 ```bash
 for i in $(seq 1 100); do
-    python3 $distributed run_downstream.py -m train -n ExpName -u fbank -d example -a
+    python3 $distributed run_downstream.py -m train -n ExpName -u fbank -d example \
+        -o config.runner.gradient_accumulate_steps=2 -a
     # When one of the spawned process dies, sometimes not all processes are terminated synchronizely.
     # You might need to ensure all the spawned process are killed here.
     # `killall` linux command is suitable for this.
@@ -193,11 +209,13 @@ In this section we detail the commands for reproducing the paper [**SUPERB:** **
 
 #### Submission
 
-After *finishing the testing stage* of each task, the prediction files for leaderboard submission will be located under the `expdir`. You can use [submit.py](../utility/submit.py) to easily organize them into a zip file which can later be uploaded to our [leaderboard](https://superbbenchmark.org/). Here is an [example zip file](https://superbbenchmark.org/api/download/example).
+After *finishing the **Testing*** of each task, the prediction files for leaderboard submission will be located under the `expdir`. You can use [submit.py](../submit/submit.py) to easily organize them into a zip file which can later be uploaded to our [leaderboard](https://superbbenchmark.org/):
 
-```bash
-python3 utility/submit.py \
-    --output_dir submission \
+```sh
+output_dir="submission"
+
+python3 submit/submit.py \
+    --output_dir $output_dir \
     --pr pr_expdir \
     --sid sid_expdir \
     --ks ks_expdir \
@@ -207,20 +225,72 @@ python3 utility/submit.py \
     --er_fold3 er_fold3_expdir \
     --er_fold4 er_fold4_expdir \
     --er_fold5 er_fold5_expdir \
-    --asr_nolm asr_nolm_expdir \
-    --asr_lm asr_lm_expdir \
+    --asr_no_lm asr_expdir \
+    --asr_with_lm asr_expdir \
     --qbe qbe_expdir \
     --sf sf_expdir \
     --sv sv_expdir \
-    --sd sd_expdir \
-
-# Emotion Recognition (er) does 5-fold cross validation:
-# 5 training and 5 testing -> 5 expdirs
-
-# asr_nolm_expdir will typically be the same as asr_lm_expdir
-# if you did not change expdir during the testing stage.
-# That is, the same expdir used in the ASR section.
+    --sd sd_expdir
 ```
+
+After executing, you can submit **submission/predict.zip** to the leaderboard.
+
+We also prepare the [**example-expdirs**](https://superbbenchmark.org/api/download/expdirs) for you to diagnose if the submission fails. After unzipping you will see the following structure:
+
+```sh
+expdirs/
+    asr_expdir/
+    er_fold1_expdir/
+    er_fold2_expdir/
+    er_fold3_expdir/
+    er_fold4_expdir/
+    er_fold5_expdir/
+    ic_expdir/
+    ks_expdir/
+    pr_expdir/
+    qbe_expdir/
+    sd_expdir/
+    sf_expdir/
+    sid_expdir/
+    sv_expdir/
+```
+
+Each **expdir** will contain the minimal submission-related files which should also appear in your **expdir** after you do the testing. Here is an [**example-script**](../submit/demo_submit.sh) on how to use the above **example-expdirs** to prepare a submittable zip file.
+
+```sh
+cd s3prl/s3prl/submit
+./demo_submit.sh examples
+```
+
+After executing, you will see:
+
+```sh
+s3prl/s3prl/submit/examples/
+    expdirs/
+    expdirs.zip
+    predict/
+    predict.zip
+```
+
+The [**predict.zip**](https://superbbenchmark.org/api/download/example) is the one for you to submit.
+
+##### Note1
+You don't need to prepare all the **expdirs** for the submission. You can zip only a subset of **expdirs**. After your submission, the leaderboard will only show the results of your submitted tasks. Eg.
+
+```sh
+python3 submit/submit.py \
+    --output_dir submission \
+    --pr pr_expdir
+```
+
+The above command will produce a **predict.zip** which will only show the PR score after submitted to the leaderboard.
+
+##### Note2
+Emotion Recognition (er) does 5-fold cross validation: 5 training and 5 testing, so 5 **expdirs** in total.
+
+##### Note3
+The **expdirs** for `asr_no_lm` and `asr_with_lm` are typically the same. Since the same ASR downstream model was trained and just decoded in different ways, so the same **expdir** assigned for training is used when testing. The default testing will produce predictions for `asr_no_lm`. By using Kenlm decoding you can get predictions for `asr_with_lm`. See ASR section below for more information.
+
 
 ## PR: Phoneme Recognition
 
@@ -304,12 +374,12 @@ python3 run_downstream.py -m evaluate -t "test-clean" -e result/downstream/dev-c
 ```
 
 #### Testing with KenLM + LibriSpeech official 4-gram LM
+Installing all the dependencies right could be quite complicated. Note that the decoding is not required for SSL representations to perform well on ASR and you can also skip the ASR results from LM decoding when submitting to the leaderboard.
 
 ##### I. Prepare Decoding Environment
 
 1. Install [KenLM](https://github.com/kpu/kenlm)
-    - Please follow the official installation instructions of KenLM instead of the one documented in flashlight or wav2letter
-    - If you encounter issues when installing KenLM, you might need to install some [extra dependencies](https://medium.com/tekraze/install-kenlm-binaries-on-ubuntu-language-model-inference-tool-33507000f33).
+    - Please follow the official installation instructions of KenLM instead of the one documented in flashlight or wav2letter du to some known issues.
 
 2. Install [flashlight python bindings](https://github.com/flashlight/flashlight/blob/master/bindings/python/README.md)
     - Only the **python bindings** is required instead of the entire flashlight toolkit
@@ -322,8 +392,7 @@ python3 run_downstream.py -m evaluate -t "test-clean" -e result/downstream/dev-c
     - https://dl.fbaipublicfiles.com/fairseq/wav2vec/librispeech_lexicon.lst
     - Downloaded filename: **librispeech_lexicon.lst**
 
-5. Make sure your fairseq version contains the following commit
-    - https://github.com/pytorch/fairseq/commit/cb84694c195afced474d17318b5e746d1a9d20a3#diff-ee3a94b6d9b5f2cc60f1b69afc075abbe2061083b52515178eb7145d59e7e7e4
+5. Make sure your fairseq version contains this commit [cb8469](https://github.com/pytorch/fairseq/commit/cb84694c195afced474d17318b5e746d1a9d20a3#diff-ee3a94b6d9b5f2cc60f1b69afc075abbe2061083b52515178eb7145d59e7e7e4)
 
 ##### II. Test
 
@@ -377,10 +446,8 @@ python3 run_downstream.py -n ExpName -m train -u fbank -d speech_commands
 
 #### Testing
 
-The testing is done on-the-fly with training since it is not costly. Use the following command to get the testing result from the best-dev checkpoint
-
 ```bash
-python3 utility/get_best_dev.py result/downstream/ExpName/log.log
+python3 run_downstream.py -m evaluate -e result/downstream/ExpName/dev-best.ckpt
 ```
 
 #### Compatible with Speech Command v2
@@ -481,10 +548,8 @@ python3 run_downstream.py -n ExpName -m train -u fbank -d fluent_commands
 
 #### Testing
 
-The testing is done on-the-fly with training since it is not costly. Use the following command to get the testing result from the best-dev ckpt.
-
 ```bash
-python3 utility/get_best_dev.py result/downstream/ExpName/log.log
+python3 run_downstream.py -m evaluate -e result/downstream/ExpName/dev-best.ckpt
 ```
 
 ## SF: End-to-end Slot Filling
@@ -523,13 +588,13 @@ python3 utility/get_best_dev.py result/downstream/ExpName/log.log
             slots_file: "CORPORA_DIR/SNIPS/slots.txt"
     ```
 
-#### Train
+#### Training
 
 ```bash
 python3 run_downstream.py -n ExpName -m train -u fbank -d ctc -c downstream/ctc/snips.yaml
 ```
 
-#### Test
+#### Testing
 
 ```bash
 python3 run_downstream.py -m evaluate -e result/downstream/ExpName/dev-best.ckpt
@@ -581,18 +646,16 @@ python3 run_downstream.py -m evaluate -e result/downstream/ExpName/dev-best.ckpt
             file_path: "root directory of VoxCeleb1"    
     ```
 
-#### Train
+#### Training
 
 ```bash
 python3 run_downstream.py -n ExpName -m train -u fbank -d voxceleb1
 ```
 
-#### Test
-
-The testing is done on-the-fly with training since it is not costly. Use the following command to get the testing result from the best-dev ckpt.
+#### Testing
 
 ```bash
-python3 utility/get_best_dev.py result/downstream/ExpName/log.log
+python3 run_downstream.py -m evaluate -e result/downstream/ExpName/dev-best.ckpt
 ```
 
 ## ASV: Automatic Speaker Verification
@@ -617,53 +680,61 @@ python3 run_downstream.py -n ExpName -m train -u fbank -d sv_voxceleb1
 
 #### Testing
 
-As there is no official validation set, we save checkpoints every 20000 updates and report the best EER. Evaluating checkpoints take long time so we don't test them on-the-fly on the same GPU. We opt to save all checkpoints and test them parallely with another GPU during training. The following command will run a for-loop to monitor if any new checkpoints is saved, and evaluate it if any is found. The already evaluated checkpoints will be passed as they have the result loggings under their **expdir**.
+If you already know a specific checkpoint to test, says ***states-20000.ckpt***, you can test it with:
 
 ```bash
-./run_while.sh "./downstream/sv_voxceleb1/test_expdirs.sh result/downstream/ExpName; sleep 1800;"
+python3 run_downstream.py -m evaluate -e result/downstream/ExpName/states-20000.ckpt
 ```
-#### Report numbers
 
-The lowest number should be reported, which should be at the bottom.
+However, there is no official validation set under VoxCeleb1 setting, we save checkpoints every 20000 updates and report the best EER. Evaluating checkpoints take long time so we don't test them along with training on a single GPU. We save all checkpoints and test them parallely with another GPU. The following command will:
+
+1. Run a for-loop to find newly saved checkpoints in *expdir*
+2. Evaluate it if any is found and log the testing result
+3. Prepare the best prediction file according to already tested checkpoints
+
+Note. The already evaluated checkpoints will be passed.
 
 ```bash
-./downstream/sv_voxceleb1/report.sh result/downstream/ExpName
+voxceleb1="root directory of VoxCeleb1"
+./downstream/sv_voxceleb1/test_expdir.sh result/downstream/ExpName $voxceleb1
 ```
 
 ## SD: Speaker Diarization
 
 #### Prepare data
 
-1. Simulate Libri2Mix Data for Diarization
+Simulate Libri2Mix Data for Diarization
 
-    ```bash
-    S3PRL_DIR="root directory of your cloned s3prl"
-    CORPORA_DIR"root directory of all your datasets, which hopefully contains LibriSpeech (not necessary)"
+```bash
+S3PRL_DIR="root directory of your cloned s3prl"
+CORPORA_DIR"root directory of all your datasets, which hopefully contains LibriSpeech (not necessary)"
 
-    git clone https://github.com/ftshijt/LibriMix.git
-    cd LibriMix
-    bash generate_librimix.sh $CORPORA_DIR
-    python3 scripts/prepare_diarization.py \
-        --target_dir $S3PRL_DIR/downstream/diarization/data \
-        --source_dir $CORPORA_DIR/Libri2Mix/wav16k/max/metadata
-    ```
+git clone https://github.com/ftshijt/LibriMix.git
+cd LibriMix
+bash generate_librimix.sh $CORPORA_DIR
+python3 scripts/prepare_diarization.py \
+    --target_dir $S3PRL_DIR/downstream/diarization/data \
+    --source_dir $CORPORA_DIR/Libri2Mix/wav16k/max/metadata
+```
 
-#### Train
+#### Training
 
 ```bash
 python3 run_downstream.py -n ExpName -m train -u fbank -d diarization
 ```
 
-#### Test
+#### Testing
+
+##### I. Inference predictions (for submission and for scoring locally)
 
 ```bash
 python3 run_downstream.py -m evaluate -e result/downstream/ExpName/best-states-dev.ckpt
 ```
 
-#### Scoring
+##### II. Scoring (not required for submission)
 
 1. Clone **dscore**
-    
+
     ```bash
     git clone https://github.com/ftshijt/dscore
     ```
@@ -676,19 +747,17 @@ python3 run_downstream.py -m evaluate -e result/downstream/ExpName/best-states-d
 
 3. Run scoring
 
-   ```bash
-   ./downstream/diarization/score.sh result/downstream/ExpName downstream/diarization/data/test
-   ```
+    ```bash
+    ./downstream/diarization/score.sh result/downstream/ExpName downstream/diarization/data/test
+    ```
 
 4. The scoring results will look like
 
-   ![](https://i.imgur.com/GnVlFlH.png)
+    ![](https://i.imgur.com/GnVlFlH.png)
 
-   One should report the lowest number at the bottom, where the column represents DER and the most bottom row will always have the lowest DER which is the number we will report.
+    One should report the lowest number at the bottom, where the column represents DER and the most bottom row will always have the lowest DER which is the number we will report.
 
-5. Re-check the scoring results
-
-    Running the above scoring script takes time. If you want to re-check the scored results, use
+5. Re-check the scoring results: Running the above scoring script takes time. If you want to re-check the scored results, use
 
     ```bash
     ./downstream/diarization/report.sh result/downstream/ExpName
@@ -714,7 +783,8 @@ python3 run_downstream.py -m evaluate -e result/downstream/ExpName/best-states-d
             root: "root directory of IEMOCAP"
     ```
 
-#### Train
+#### Training
+
 IEMOCAP provides 5 splits of data: Section1, Section2, Section3, Section4 and Section5. Conventionally, each split will be selected as the test set and train the model with other 4 splits. That is, 5 times of training and testing is required, and 5 testing scores will be averaged to report the final number. We can change the `test_fold` option in the config file to control which split we want to reserve as the test set.
 
 ```bash
@@ -722,12 +792,10 @@ IEMOCAP provides 5 splits of data: Section1, Section2, Section3, Section4 and Se
 python3 run_downstream.py -n ExpName -m train -u fbank -d emotion -c downstream/emotion/config.yaml -o "config.downstream_expert.datarc.test_fold='fold1'"
 ```
 
-#### Test
-
-The testing is done on-the-fly with training since it is not costly. Use the following command to get the testing result from the best-dev ckpt.
+#### Testing
 
 ```bash
-python3 utility/get_best_dev.py result/downstream/ExpName/log.log
+python3 run_downstream.py -m evaluate -e result/downstream/ExpName/dev-best.ckpt
 ```
 
 #### Cross validation
@@ -737,7 +805,7 @@ for test_fold in fold1 fold2 fold3 fold4 fold5;
 do
     # The default config is "downstream/emotion/config.yaml"
     python3 run_downstream.py -n ExpName_$test_fold -m train -u fbank -d emotion -o "config.downstream_expert.datarc.test_fold='$test_fold'"
-    python3 utility/get_best_dev.py result/downstream/ExpName_$test_fold/log.log
+    python3 run_downstream.py -m evaluate -e result/downstream/ExpName_$test_fold/dev-best.ckpt
 done
 ```
 
