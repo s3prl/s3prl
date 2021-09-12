@@ -28,8 +28,8 @@ downstream_expert:
   post_process: sentencepiece
   output_prefix: output # set prefix of output files
   
-  upstream_rate: -1 # set to 320 to do the downsampling
-  downsample_method: 'drop'
+  upstream_rate: -1 # -1 for no downsample, 320 for applying downsampling
+  downsample_method: 'drop' # 'drop'/'concat'/'average'
 
   criterionrc:
     criterion: label_smoothed_cross_entropy
@@ -50,7 +50,6 @@ downstream_expert:
     datarc:
       key: src_text # header in tsv
 
-
   datarc:
     train: train
     dev: dev
@@ -67,7 +66,10 @@ downstream_expert:
   # the model configuration and creation are delegated to fairseq
   # more configuration could be found at https://github.com/pytorch/fairseq/blob/master/fairseq/models/speech_to_text/s2t_transformer.py
   modelrc:
+    # you could set the model architecture here
     arch: s2t_transformer
+    
+    # add other model configurations here
     max_source_positions: 6000
     max_target_positions: 1024
     encoder_layers: 3

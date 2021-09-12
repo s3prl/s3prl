@@ -50,7 +50,7 @@ s3prl/
                 └──covost_v2.<src_lang>_<tgt_lang>.[train|dev|test].tsv
 ```
 
-5. [Optional] If you use other dataset or change the language/data config in `prepare_data/prepare_covo.sh`, you will also need to change the language/data config in `config.yaml`
+5. [Optional] If you use other dataset or change the language/data config in `prepare_data/prepare_covo.sh`, you will also need to change the language/data config in `config.yaml`.
 
 ```yaml
 downstream_expert:
@@ -63,13 +63,13 @@ downstream_expert:
 6. Details about preprocessing
 
     * For the text data, we do the following preprocessing
-        * transcription: lowercasing, removing punctuations execpt apostrophe and hyphen
+        * transcript: lowercasing, removing punctuations execpt apostrophe and hyphen
         * translation: normalizing punctuation
         * the normalization is done with [alvations/sacremoses](https://github.com/alvations/sacremoses)
     
-    * We also remove the noise examples by length and ratio of transcription and translation, also all the examples contains "REMOVE".
+    * We also remove the noise examples by length and ratio of transcript and translation, also all the examples contains "REMOVE".
 
-    * For the tokenization, we create char dictionary with [google/sentencepiece](https://github.com/google/sentencepiece) for transcription and translation seperately.
+    * For the tokenization, we create char dictionary with [google/sentencepiece](https://github.com/google/sentencepiece) for transcript and translation seperately.
 
     * For more details, you can check the files under `prepare_data/`.
 
@@ -79,33 +79,44 @@ downstream_expert:
 python3 run_downstream.py -n ExpName -m train -u fbank -d speech_translation
 ```
 
-* For downstream model architecture, we delegate the configuration and creation to [pytorch/fairseq](https://github.com/pytorch/fairseq). You could adjust the model archtecture directly at `downstream_expert/modelrc` in `downstream/speech_translation/config.yaml`. (For more configurations, please refer to [pytorch/fairseq](https://github.com/pytorch/fairseq/blob/master/fairseq/models/speech_to_text/s2t_transformer.py))
+* For downstream model architecture, we delegate the configuration and creation to [pytorch/fairseq](https://github.com/pytorch/fairseq). You could adjust the model archtecture directly at `downstream_expert/modelrc` in `config.yaml`. (For more configurations, please refer to [pytorch/fairseq](https://github.com/pytorch/fairseq/blob/master/fairseq/models/speech_to_text/s2t_transformer.py))
 
 ```yaml
 downstream_expert:
     modelrc:
+        # you could set the model architecture here
         arch: s2t_transformer
+        
+        # set other model configurations here
         max_source_positions: 6000
         max_target_positions: 1024
         encoder_layers: 3
         decoder_layers: 3
 ```
 
-* we will truncate the wav to the maximum input size, which is `max_source_positions`*`upstream_rate`
+* we will truncate the wav to the maximum input size, which is `max_source_positions`*`upstream_rate`.
 
-* We also support multitask learning with ASR. You could set `downstream_expert/taskrc/use_asr=True` in `config.yaml` to enable it. (Make sure you have transcription in the training tsv file.)
+* We also support multitask learning with ASR. You could set `downstream_expert/taskrc/use_asr=True` in `config.yaml` to enable it. (Make sure you have transcripts in the training tsv file.)
 
-    ```yaml
-        downstream_expert:
-            taskrc:
-                use_asr: True
-            asrrc:
-                weight: 0.3 # the weight of ASR loss in [0, 1]
-                datarc:
-                    key: src_text # header of transcription in tsv file
-    ```
+```yaml
+downstream_expert:
+    taskrc:
+        use_asr: True
+    asrrc:
+        weight: 0.3 # the weight of ASR loss in [0, 1]
+        datarc:
+            key: src_text # header of transcript in tsv file
+```
 
-* For other training configuration, including batch size, learning rate, etc, you can also change them in `config.yaml`.
+* You could downsample the upstream feature to certain upstream rate by setting `downstream_expert/upstream_rate` in `config.yaml` with different `downstream_expert/downsample_method`.
+
+```yaml
+downstream_expert:
+    upstream_rate: -1 # -1 for no downsample, 320 for applying downsampling
+    downsample_method: 'drop' # 'drop'/'concat'/'average'
+```
+
+* For other training configurations, including batch size, learning rate, etc, you can also change them in `config.yaml`.
 
 #### Testing
 
@@ -118,14 +129,14 @@ You could change the beam size and maximum decoding length in `config.yaml`.
 ```yaml
 downstream_expert:
     generatorrc:
-        beam: 5
+        beam: 20
         max_len_a: 0
         max_len_b: 400
 ```
 
-We report SacreBleu for ST with [mjpost/sacrebleu](https://github.com/mjpost/sacrebleu) and CER/WER for ASR with [roy-ht/editdistance](https://github.com/roy-ht/editdistance) when using multitask learning.
-The decoding results will be written into file `output-st-[st|asr]-[dev|test].tsv`. You could change the prefix of the output files in `config.yaml`.
+We report SacreBleu for ST using [mjpost/sacrebleu](https://github.com/mjpost/sacrebleu) and CER/WER for ASR using [roy-ht/editdistance](https://github.com/roy-ht/editdistance) when using multitask learning.
+The decoding results will be written into file `<output_prefix>-[st|asr]-[dev|test].tsv`. You could change the prefix of the output files in `config.yaml`.
 ```yaml
 downstream_expert:
-    output_prefix: output-st # set prefix of output files
+    output_prefix: output # set prefix of output files
 ```
