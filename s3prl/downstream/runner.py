@@ -78,12 +78,6 @@ class Runner():
         if "from_hf_hub" in self.args and self.args.from_hf_hub == True:
             from huggingface_hub import snapshot_download
 
-            # Setup auth
-            hf_user = os.environ.get("HF_USERNAME")
-            hf_password = os.environ.get("HF_PASSWORD")
-            huggingface_token = HfApi().login(username=hf_user, password=hf_password)
-            HfFolder.save_token(huggingface_token)
-
             print(f'Downloading upstream model {self.args.upstream} from the Hugging Face Hub')
             filepath = snapshot_download(self.args.upstream, use_auth_token=True)
             sys.path.append(filepath)
@@ -438,12 +432,12 @@ class Runner():
             self.downstream.model.inference(features, [filename])
 
     def push_to_huggingface_hub(self):
-        # Setup auth
-        hf_user = os.environ.get("HF_USERNAME")
-        hf_password = os.environ.get("HF_PASSWORD")
-        huggingface_token = HfApi().login(username=hf_user, password=hf_password)
-        HfFolder.save_token(huggingface_token)
-        print(f"HF Hub user: {hf_user}")
+        if self.args.hf_hub_org:
+            organization = self.args.hf_hub_org
+        else:
+            organization = os.environ.get("HF_USERNAME")
+        huggingface_token = HfFolder.get_token()
+        print(f"Organisation to push fine-tuned model to: {organization}")
         
         # Create repo on the Hub
         upstream_model = self.args.upstream.replace("/", "__")
@@ -451,7 +445,7 @@ class Runner():
         repo_url = HfApi().create_repo(
             token=huggingface_token,
             name=repo_name,
-            organization=hf_user,
+            organization=organization,
             exist_ok=True,
             private=True,
         )
