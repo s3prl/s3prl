@@ -42,6 +42,7 @@ requirements = [
     "editdistance",
     "easydict",
     "catalyst",
+    "huggingface-hub>=0.0.17"
 ]
 
 # Arguments marked as "Required" below must be included for upload to PyPI.

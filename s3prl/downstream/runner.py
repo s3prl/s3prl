@@ -78,8 +78,14 @@ class Runner():
         if "from_hf_hub" in self.args and self.args.from_hf_hub == True:
             from huggingface_hub import snapshot_download
 
+            # Setup auth
+            hf_user = os.environ.get("HF_USERNAME")
+            hf_password = os.environ.get("HF_PASSWORD")
+            huggingface_token = HfApi().login(username=hf_user, password=hf_password)
+            HfFolder.save_token(huggingface_token)
+
             print(f'Downloading upstream model {self.args.upstream} from the Hugging Face Hub')
-            filepath = snapshot_download(self.args.upstream)
+            filepath = snapshot_download(self.args.upstream, use_auth_token=True)
             sys.path.append(filepath)
 
             from expert import UpstreamExpert

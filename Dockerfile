@@ -12,8 +12,7 @@ RUN apt-get update --fix-missing && apt-get install -y wget \
 
 RUN python -m pip install --upgrade pip
 RUN python -m pip --no-cache-dir install fairseq@git+https://github.com//pytorch/fairseq.git@f2146bdc7abf293186de9449bfa2272775e39e1d#egg=fairseq
-# TODO: Update URL if we merge back to s3prl repository
-RUN python -m pip --no-cache-dir install git+https://github.com/huggingface/s3prl.git@huggingface2#egg=s3prl
+RUN python -m pip --no-cache-dir install git+https://github.com/s3prl/s3prl.git#egg=s3prl
 
 COPY s3prl/ /app/s3prl
 COPY src/ /app/src
