@@ -36,5 +36,7 @@ ENV override None
 WORKDIR /app/s3prl
 # Each task's config.yaml is used to set all the training parameters, but can be overridden with the `override` argument
 # The results of each training run are stored in /app/s3prl/result/downstream/{downstream_task}
-# and pushed to the Hugging Face Hub with name {hf_hub_org}/superb-s3prl-{upstream_model}-{downstream_task}-uuid
+# and pushed to the Hugging Face Hub with name: 
+#   Default behaviour   - {hf_hub_username}/superb-s3prl-{upstream_model}-{downstream_task}-uuid
+#   With hf_hub_org set - {hf_hub_org}/superb-s3prl-{upstream_model}-{downstream_task}-uuid
 CMD python run_downstream.py -n ${downstream_task} -m train -u ${upstream_model} -d ${downstream_task} --hub ${hub} --hf_hub_org ${hf_hub_org} --push_to_hf_hub ${push_to_hf_hub} --override ${override}
