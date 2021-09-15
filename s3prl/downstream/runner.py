@@ -432,7 +432,7 @@ class Runner():
             self.downstream.model.inference(features, [filename])
 
     def push_to_huggingface_hub(self):
-        if self.args.hf_hub_org:
+        if self.args.hf_hub_org.lower() != "none":
             organization = self.args.hf_hub_org
         else:
             organization = os.environ.get("HF_USERNAME")
