@@ -17,6 +17,7 @@ from s3prl import downstream
 from s3prl.downstream.runner import Runner
 from s3prl.utility.helper import backup, get_time_tag, hack_isinstance, is_leader_process, override
 
+from huggingface_hub import HfApi, HfFolder
 
 def get_downstream_args():
     parser = argparse.ArgumentParser()
@@ -73,6 +74,7 @@ def get_downstream_args():
     parser.add_argument('-p', '--expdir', help='Save experiment at expdir')
     parser.add_argument('-a', '--auto_resume', action='store_true', help='Auto-resume if the expdir contains checkpoints')
     parser.add_argument('--push_to_hf_hub', default=False, help='Push all files in experiment directory to the Hugging Face Hub. To use this feature you must set HF_USERNAME and HF_PASSWORD as environment variables in your shell')
+    parser.add_argument('--hf_hub_org', help='The Hugging Face Hub organisation to push fine-tuned models to')
 
     # options
     parser.add_argument('--seed', default=1337, type=int)
@@ -174,6 +176,12 @@ def main():
 
     if args.hub == "huggingface":
         args.from_hf_hub = True
+        # Setup auth
+        hf_user = os.environ.get("HF_USERNAME")
+        hf_password = os.environ.get("HF_PASSWORD")
+        huggingface_token = HfApi().login(username=hf_user, password=hf_password)
+        HfFolder.save_token(huggingface_token)
+        print(f"Logged into Hugging Face Hub with user: {hf_user}")
     
     # Save command
     if is_leader_process():

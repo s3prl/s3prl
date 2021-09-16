@@ -35,11 +35,12 @@ All of the downstream task follow the following command pattern, with a few task
 ```bash
 cd s3prl/
 
-# general pattern
+# General pattern
 python3 run_downstream.py -m train -n ExpName -u UpstreamName -d DownstreamName
-# an example with pulling / pushing models via the Hugging Face Hub
+# An example with downloading / uploading models via the Hugging Face Hub.
+# Use the credentials associated with your account on huggingface.co
 HF_USERNAME=username HF_PASSWORD=password python3 run_downstream.py -m train -n ExpName -u UpstreamName -d DownstreamName --hub huggingface --push_to_hf_hub True
-# a directly runnable example without data preparation
+# A directly runnable example without data preparation
 python3 run_downstream.py -m train -n ExpName -u fbank -d example
 ```
 
