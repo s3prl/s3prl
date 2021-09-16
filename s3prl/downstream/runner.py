@@ -452,7 +452,8 @@ class Runner():
         print(f"Created Hub repo: {repo_url}")
 
         # Download repo and copy templates
-        REPO_PATH = self.args.expdir + "/hub_repo/"
+        REPO_PATH = os.path.join(self.args.expdir, "hf_hub_repos", repo_name)
+        print(REPO_PATH)
         model_repo = Repository(
             local_dir=REPO_PATH, clone_from=repo_url, use_auth_token=huggingface_token
         )
