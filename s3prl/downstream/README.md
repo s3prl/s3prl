@@ -37,11 +37,17 @@ cd s3prl/
 
 # General pattern
 python3 run_downstream.py -m train -n ExpName -u UpstreamName -d DownstreamName
+
+# A directly runnable example without data preparation
+python3 run_downstream.py -m train -n ExpName -u fbank -d example
+
+# Finetune the upstream.
+# Please use the last_hidden_state. See issue #192
+python3 run_downstream.py -m train -n ExpName -u fbank -d example -f -s last_hidden_state
+
 # An example with downloading / uploading models via the Hugging Face Hub.
 # Use the credentials associated with your account on huggingface.co
 HF_USERNAME=username HF_PASSWORD=password python3 run_downstream.py -m train -n ExpName -u UpstreamName -d DownstreamName --hub huggingface --push_to_hf_hub True
-# A directly runnable example without data preparation
-python3 run_downstream.py -m train -n ExpName -u fbank -d example
 ```
 
 - `-m` or `--mode` specifies the **train/evaluate** mode
