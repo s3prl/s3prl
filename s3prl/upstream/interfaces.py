@@ -179,6 +179,10 @@ class Featurizer(nn.Module):
         self.output_dim = feature.size(-1)
         if hasattr(upstream, "get_downsample_rates"):
             self.downsample_rate = upstream.get_downsample_rates(feature_selection)
+            show(
+                f"[{self.name}] - The selected feature {feature_selection}'s downsample rate is {self.downsample_rate}",
+                file=sys.stderr
+            )
         else:
             self.downsample_rate = round(max(len(wav) for wav in paired_wavs) / feature.size(1))
             show(
