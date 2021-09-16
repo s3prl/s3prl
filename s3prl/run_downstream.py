@@ -81,6 +81,7 @@ def get_downstream_args():
     parser.add_argument('--device', default='cuda', help='model.to(device)')
     parser.add_argument('--cache_dir', help='The cache directory for pretrained model downloading')
     parser.add_argument('--verbose', action='store_true', help='Print model infomation')
+    parser.add_argument('--disable_cudnn', action='store_true', help='Disable CUDNN')
 
     args = parser.parse_args()
     backup_files = []
@@ -199,8 +200,12 @@ def main():
     np.random.seed(args.seed)
     torch.manual_seed(args.seed)
     if torch.cuda.is_available(): torch.cuda.manual_seed_all(args.seed)
-    torch.backends.cudnn.deterministic = True
-    torch.backends.cudnn.benchmark = False
+    if args.disable_cudnn:
+        torch.backends.cudnn.enabled = False
+    else:
+        torch.backends.cudnn.enabled = True
+        torch.backends.cudnn.deterministic = True
+        torch.backends.cudnn.benchmark = False
 
     runner = Runner(args, config)
     eval(f'runner.{args.mode}')()
