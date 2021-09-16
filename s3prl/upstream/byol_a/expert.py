@@ -64,7 +64,7 @@ class UpstreamExpert(nn.Module):
         return self.output_dim
 
     # Interface
-    def get_downsample_rate(self):
+    def get_downsample_rates(self, key: str) -> int:
         return 15344.655344655344 # computed by: len(wavs[0]) / len(features[0]) * self.max_input_length
 
     # forward in chunks

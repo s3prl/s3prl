@@ -51,4 +51,5 @@ class UpstreamExpert(UpstreamBase):
         ).to(wavs[0].device)
         features = self.roberta.extract_features(tokens)
 
-        return {"default": features}
+        # This forward function only does the model forward
+        # The return dict is then handled by UpstreamBase's hooks

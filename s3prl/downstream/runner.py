@@ -107,6 +107,7 @@ class Runner():
             model = model,
             name = 'Upstream',
             trainable = self.args.upstream_trainable,
+            interfaces = ["get_downsample_rates"]
         )
 
 

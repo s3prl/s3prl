@@ -24,6 +24,9 @@ class UpstreamExpert(UpstreamBase):
 
         self.model = build_pase(ckpt, model_config)
 
+    def get_downsample_rates(self, key: str) -> int:
+        return 160
+
     def forward(self, wavs):
         wavs = pad_sequence(wavs, batch_first=True)
         wavs = wavs.unsqueeze(1)
@@ -33,4 +36,5 @@ class UpstreamExpert(UpstreamBase):
             1, 2
         ).contiguous()  # (batch_size, extracted_seqlen, feature_dim)
 
-        return {"default": features}
+        # This forward function only does the model forward
+        # The return dict is then handled by UpstreamBase's hooks

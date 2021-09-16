@@ -60,6 +60,9 @@ class UpstreamExpert(UpstreamBase):
                     lambda input, output: input[0].transpose(1, 2),
                 )
 
+    def get_downsample_rates(self, key: str) -> int:
+        return 160
+
     def forward(self, wavs):
         """
         Code snippet modified from fairseq
@@ -82,6 +85,7 @@ class UpstreamExpert(UpstreamBase):
         result["c"] = x.transpose(1, 2).contiguous()
         result["default"] = result["c"]
 
+        # The keys "hidden_states" and "last_hidden_state" are handled by UpstreamBase's hooks
         return result
 
 
