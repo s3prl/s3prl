@@ -548,7 +548,7 @@ do
 done
 ```
 
-## Source Separation
+## SS: Source Separation
 
 #### Prepare data
 
@@ -613,7 +613,7 @@ python3 run_downstream.py \
 
 The model is expected to output si-sdri on the test set.
 
-## Voice conversion (VC)
+## VC: Voice conversion
 
 The following instruction is only a minimal description for benchmarking. A complete guide about the task, dataset, implementation and usage can be found in the [README](../a2o-vc-vcc2020/README.md).
 
