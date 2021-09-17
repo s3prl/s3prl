@@ -183,13 +183,15 @@ class DeepNet(nn.Module):
 class DeepModel(nn.Module):
     def __init__(
         self,
+        input_dim,
+        output_dim,
         model_type,
         pooling,
         **kwargs
     ):
         super(DeepModel, self).__init__()
         self.pooling = pooling
-        self.model = eval(model_type)(pooling=pooling, **kwargs)
+        self.model = eval(model_type)(input_dim=input_dim, output_class_num=output_dim, pooling=pooling, **kwargs)
 
     def forward(self, features, features_len):
         attention_mask = [
@@ -200,4 +202,4 @@ class DeepModel(nn.Module):
         attention_mask = (1.0 - attention_mask) * -100000.0
         attention_mask = attention_mask.to(features.device)
         predicted = self.model(features, attention_mask)
-        return predicted
+        return predicted, None
