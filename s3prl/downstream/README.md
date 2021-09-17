@@ -58,7 +58,7 @@ HF_USERNAME=username HF_PASSWORD=password python3 run_downstream.py -m train -n 
     - Each available downstream task has its corresponding folder under `downstream/`. Eg. `-d asr` means we are using the task defined in `downstream/asr/`
     - `example` is a pseudo downstream task which is useful for testing the upstream model or as an initial template for developing a new downstream task
 - Feature selection from an upstream: the output of an upstream is a dictionary, where each key's corresponding value is a list of Tensors all in `(batch_size, max_sequence_length_of_batch, hidden_size)`. The final selected feature for the downstream training depends on `-s` and `-l`. If it is a list of Tensors, we train a learnable weighted-sum (WS) on them.
-    - `-s` or `--upstream_feature_selection` (str, default: "hidden_states"): **select the key** from the upstream output dict. There are at least one key supported: `hidden_states`. Its value is a list of Tensors in the layer order where `value[0]` is closed to the upstream input and `value[-1]` is closed to the upstream output.
+    - `-s` or `--upstream_feature_selection` (str, default: "hidden_states"): **select a key** from the upstream output dict. There are at least one key supported: `hidden_states`. Its value is a list of Tensors in the layer order where `value[0]` is closed to the upstream input and `value[-1]` is closed to the upstream output.
     - `-l` or `--upstream_layer_selection` (int, default: None) if not specified, then the dict value selected by `-s` is the final selection. If specified, then select a specific index from the dict value selected by `-s`
     - Examples:
         - Select all layers of hidden states (WS): `-s hidden_states`
