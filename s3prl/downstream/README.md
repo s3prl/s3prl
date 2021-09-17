@@ -533,7 +533,7 @@ cd $CORPORA_DIR/quesst14Database/scoring
 
 #### Submit
 
-
+After you benchmark all the layers of an upstream, says you find the 6-th layer is the best for QbE according to dev set. Please use `ExpName_6_test` as the submission expdir for [`submit.py`](../submit/submit.py).
 
 ## IC: Intent Classification - Fluent Speech Commands
 
