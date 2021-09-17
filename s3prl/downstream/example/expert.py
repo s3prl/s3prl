@@ -65,7 +65,7 @@ class DownstreamExpert(nn.Module):
         self.register_buffer('best_score', torch.zeros(1))
 
     # Interface
-    def get_dataloader(self, split):
+    def get_dataloader(self, split, epoch: int = 0):
         """
         Args:
             split: string
@@ -89,15 +89,17 @@ class DownstreamExpert(nn.Module):
         """
 
         if split == 'train':
-            return self._get_train_dataloader(self.train_dataset)            
+            return self._get_train_dataloader(self.train_dataset, epoch)
         elif split == 'dev':
             return self._get_eval_dataloader(self.dev_dataset)
         elif split == 'test':
             return self._get_eval_dataloader(self.test_dataset)
 
 
-    def _get_train_dataloader(self, dataset):
+    def _get_train_dataloader(self, dataset, epoch: int):
         sampler = DistributedSampler(dataset) if is_initialized() else None
+        if sampler is not None:
+            sampler.set_epoch(epoch)
         return DataLoader(
             dataset, batch_size=self.datarc['train_batch_size'],
             shuffle=(sampler is None),
