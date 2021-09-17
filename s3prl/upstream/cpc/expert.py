@@ -42,9 +42,12 @@ class UpstreamExpert(UpstreamBase):
             )
             self.add_hook("self.model.gAR", lambda input, output: output)
 
+    def get_downsample_rates(self, key: str) -> int:
+        return 160
+
     def forward(self, wavs):
         padded_wav = pad_sequence(wavs, batch_first=True)
         features = self.model(padded_wav.unsqueeze(1), None)[0]
-        return {
-            "default": features,
-        }
+
+        # This forward function only does the model forward
+        # The return dict is then handled by UpstreamBase's hooks

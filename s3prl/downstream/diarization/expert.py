@@ -30,7 +30,6 @@ from .model import Model
 from .dataset import DiarizationDataset
 from .utils import pit_loss, calc_diarization_error, get_label_perm
 
-LABEL_STRIDE = 160
 
 class DownstreamExpert(nn.Module):
     """
@@ -181,23 +180,6 @@ class DownstreamExpert(nn.Module):
                 (inputs, pad_vec.repeat(1, label_len - input_len, 1)), dim=1
             )  # (batch_size, seq_len, feature_dim), where seq_len == labels.size(-1)
         return inputs, labels
-
-    def inference(self, features, filenames):
-        with torch.no_grad():
-            features = pad_sequence(features, batch_first=True)
-            features = self._tile_representations(features, round(self.upstream_rate / LABEL_STRIDE))
-            predicted = self.model(features).detach().cpu().unbind(dim=0)
-        
-        prediction_dir = Path(self.expdir) / "predictions"
-        prediction_dir.mkdir(exist_ok=True)
-        for p, f in zip(predicted, filenames):
-            predict = p.data.numpy()
-            predict = 1 / (1 + np.exp(-predict))
-            outpath = prediction_dir / f"{f}.h5"
-            with h5py.File(outpath, "w") as wf:
-                wf.create_dataset("T_hat", data=predict)
-
-        return predicted
 
     # Interface
     def forward(self, mode, features, labels, lengths, rec_id, records, **kwargs):

@@ -11,6 +11,7 @@ from torch.distributed import is_initialized
 from torch.nn.utils.rnn import pad_sequence
 
 from ..model import *
+from .model import *
 from .dataset import IEMOCAPDataset, collate_fn
 
 

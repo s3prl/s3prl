@@ -13,6 +13,7 @@
 import torch
 import torchaudio
 from functools import partial
+from torch.nn.utils.rnn import pad_sequence
 from torchaudio.transforms import Spectrogram, MelScale, MFCC
 from torchaudio.functional import magphase, compute_deltas
 
@@ -119,7 +120,10 @@ class OnlinePreprocessor(torch.nn.Module):
             max_channel_id = max([int(args['channel']) if 'channel' in args else 0 for args in feat_list])
             wavs = self._pseudo_wavs[0].view(1, 1, -1).repeat(1, max_channel_id + 1, 1)
         assert wavs.dim() >= 3
-        
+
+        wavs_len = wavs.bool().sum(dim=-1).view(-1).tolist()
+        wavs = pad_sequence([wav[:wav_len].transpose(-1, -2) for wav, wav_len in zip(wavs, wavs_len)], batch_first=True).transpose(-1, -2)
+
         wav = wavs.unsqueeze(2)
         shape = wavs.size()
         complx = self._stft(wavs.reshape(-1, shape[-1]), window=self._window)
@@ -141,9 +145,16 @@ class OnlinePreprocessor(torch.nn.Module):
             for _ in range(int(delta)):
                 feats.append(compute_deltas(feats[-1]))
             feats = torch.cat(feats, dim=-2)
+            downsample_rate = wavs.size(-1) / feats.size(-1)
+            feats_len = [round(length / downsample_rate) for length in wavs_len]
             # apply cmvn
             if bool(cmvn):
-                feats = (feats - feats.mean(dim=-1, keepdim=True)) / (feats.std(dim=-1, keepdim=True) + self.eps)
+                cmvn_feats = []
+                for feat, feat_len in zip(feats, feats_len):
+                    feat = feat[:, :feat_len]
+                    cmvn_feat = (feat - feat.mean(dim=-1, keepdim=True)) / (feat.std(dim=-1, keepdim=True) + self.eps)
+                    cmvn_feats.append(cmvn_feat.transpose(-1, -2))
+                feats = pad_sequence(cmvn_feats, batch_first=True).transpose(-1, -2)
             return feats
             # return: (*, feat_dim, max_len)
         

@@ -34,6 +34,9 @@ class UpstreamExpert(nn.Module):
 
         self.output_dim = 2048
 
+    def get_downsample_rates(self, key: str) -> int:
+        return 160
+
     def forward(self, wavs):
         """
         Args:
@@ -65,4 +68,5 @@ class UpstreamExpert(nn.Module):
 
         features = self.model(features, padding_mask)
 
-        return {"default": features}
+        # This forward function only does the model forward
+        # The return dict is then handled by UpstreamBase's hooks

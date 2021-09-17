@@ -35,12 +35,19 @@ All of the downstream task follow the following command pattern, with a few task
 ```bash
 cd s3prl/
 
-# general pattern
+# General pattern
 python3 run_downstream.py -m train -n ExpName -u UpstreamName -d DownstreamName
-# an example with pulling / pushing models via the Hugging Face Hub
-HF_USERNAME=username HF_PASSWORD=password python3 run_downstream.py -m train -n ExpName -u UpstreamName -d DownstreamName --hub huggingface --push_to_hf_hub True
-# a directly runnable example without data preparation
+
+# A directly runnable example without data preparation
 python3 run_downstream.py -m train -n ExpName -u fbank -d example
+
+# Finetune the upstream.
+# Please use the last_hidden_state. See issue #192
+python3 run_downstream.py -m train -n ExpName -u fbank -d example -f -s last_hidden_state
+
+# An example with downloading / uploading models via the Hugging Face Hub.
+# Use the credentials associated with your account on huggingface.co
+HF_USERNAME=username HF_PASSWORD=password python3 run_downstream.py -m train -n ExpName -u UpstreamName -d DownstreamName --hub huggingface --push_to_hf_hub True
 ```
 
 - `-m` or `--mode` specifies the **train/evaluate** mode
@@ -51,6 +58,11 @@ python3 run_downstream.py -m train -n ExpName -u fbank -d example
     - The available downstream can be checked by `-h`
     - Each available downstream task has its corresponding folder under `downstream/`. Eg. `-d asr` means we are using the task defined in `downstream/asr/`
     - `example` is a pseudo downstream task which is useful for testing the upstream model or as an initial template for developing a new downstream task
+- `-s` or `--upstream_feature_selection` (default: "hidden_states") will select the key (str) from the upstreams output dict for downstream benchmarking. There are at least two keys supported: `last_hidden_state` and `hidden_states`. Also, if there are N hidden state in `hidden_states`, `hidden_state_0` to `hidden_state_{N-1}` are also supported. If the value for a dict key is a **list** like **hidden_states**, we will train the weighted-sum on those hidden states for each downstream task. Says the upstream output a dict named `results` and the upstream has 12 layers:
+    - `results["last_hidden_state"]` is **a Tensor** for the last hidden state
+    - `results["hidden_states"]` is **a list of Tensor**, each is a hidden state from different layer. `results["hidden_states"][-1]` == `results["last_hidden_state"]`
+    - `results["hidden_state_0"]` is **a Tensor** for the first hidden state
+    - `results["hidden_state_11"]` == `results["last_hidden_state"]`
 - `-f` or `--upstream_trainable` enables finetuning the upstream model on the downstream task. Default: false 
 - `-n` or `--name` specifies the experiment name, all the files related to this run will be saved into **expdir**=`result/downstream/{args.name}`. (You can also use `-p` or `--expdir` to directly specify the path of **expdir**.)
     - command

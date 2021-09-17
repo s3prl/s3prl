@@ -76,6 +76,9 @@ class UpstreamExpert(nn.Module):
         self.output_dim = self.extracter.get_output_dim()
         self.downsample_rate = self.extracter.get_downsample_rate()
 
+    def get_downsample_rates(self, key: str) -> int:
+        return self.downsample_rate
+
     def _extractor_forward(self, wavs):
         feats = []
         for wav in wavs:
