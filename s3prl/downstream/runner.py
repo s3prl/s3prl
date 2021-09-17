@@ -206,14 +206,22 @@ class Runner():
         epoch = self.init_ckpt.get('Epoch', 0)
         train_split = self.config['runner'].get("train_dataloader", "train")
         while pbar.n < pbar.total:
-            dataloader = self.downstream.model.get_dataloader(train_split, epoch=epoch)
-            if hasattr(dataloader, "sampler") and isinstance(dataloader.sampler, DistributedSampler):
-                show("[Runner] - Warning: If you are implementing a new task. This message should not"
-                    " appear. Setting epoch for DistributedSampler is recommended to do in downstream's"
-                    " get_dataloader. Please refer to downstream/example/expert.py:get_dataloader",
-                    file=sys.stderr
-                )
-                dataloader.sampler.set_epoch(epoch)
+            try:
+                dataloader = self.downstream.model.get_dataloader(train_split, epoch=epoch)
+            except TypeError as e:
+                if "unexpected keyword argument 'epoch'" in str(e):
+                    show("[Runner] - Warning: If you are implementing a new task. This message should not"
+                        " appear. Please accept the epoch argument for your downstream's get_dataloader."
+                        " Also, setting the epoch for DistributedSampler should be already done before returning"
+                        " the dataloader. Please refer to the latest downstream/example/expert.py:get_dataloader."
+                        " This line is for backward compatibility only.",
+                        file=sys.stderr
+                    )
+                    dataloader = self.downstream.model.get_dataloader(train_split)
+                    if hasattr(dataloader, "sampler") and isinstance(dataloader.sampler, DistributedSampler):
+                        dataloader.sampler.set_epoch(epoch)
+                else:
+                    raise
 
             for batch_id, (wavs, *others) in enumerate(tqdm(dataloader, dynamic_ncols=True, desc='train', file=tqdm_file)):
                 # try/except block for forward/backward
