@@ -53,16 +53,18 @@ HF_USERNAME=username HF_PASSWORD=password python3 run_downstream.py -m train -n 
 - `-m` or `--mode` specifies the **train/evaluate** mode
 - `-u` or `--upstream` specifies the upstream pretrained model.
     - The available upstream can be checked by `-h`
-- `--hub` specifies the model Hub (PyTorch or Hugging Face) to retrieve the upstream model from. Default: `torch`
 - `-d` or `--downstream` specifies the downstream task.
     - The available downstream can be checked by `-h`
     - Each available downstream task has its corresponding folder under `downstream/`. Eg. `-d asr` means we are using the task defined in `downstream/asr/`
     - `example` is a pseudo downstream task which is useful for testing the upstream model or as an initial template for developing a new downstream task
-- `-s` or `--upstream_feature_selection` (default: "hidden_states") will select the key (str) from the upstreams output dict for downstream benchmarking. There are at least two keys supported: `last_hidden_state` and `hidden_states`. Also, if there are N hidden state in `hidden_states`, `hidden_state_0` to `hidden_state_{N-1}` are also supported. If the value for a dict key is a **list** like **hidden_states**, we will train the weighted-sum on those hidden states for each downstream task. Says the upstream output a dict named `results` and the upstream has 12 layers:
-    - `results["last_hidden_state"]` is **a Tensor** for the last hidden state
-    - `results["hidden_states"]` is **a list of Tensor**, each is a hidden state from different layer. `results["hidden_states"][-1]` == `results["last_hidden_state"]`
-    - `results["hidden_state_0"]` is **a Tensor** for the first hidden state
-    - `results["hidden_state_11"]` == `results["last_hidden_state"]`
+- Feature selection from an upstream: the output of an upstream is a dictionary, where each key's corresponding value is a list of Tensors all in `(batch_size, max_sequence_length_of_batch, hidden_size)`. The final selected feature for the downstream training depends on `-s` and `-l`. If it is a list of Tensors, we train a learnable weighted-sum (WS) on them.
+    - `-s` or `--upstream_feature_selection` (str, default: "hidden_states"): **select the key** from the upstream output dict. There are at least one key supported: `hidden_states`. Its value is a list of Tensors in the layer order where `value[0]` is closed to the upstream input and `value[-1]` is closed to the upstream output.
+    - `-l` or `--upstream_layer_selection` (int, default: None) if not specified, then the dict value selected by `-s` is the final selection. If specified, then select a specific index from the dict value selected by `-s`
+    - Examples:
+        - Select all layers of hidden states (WS): `-s hidden_states`
+        - Select the first layer: `-s hidden_states -l 0`
+        - Select the last layer: `-s hidden_states -l -1`
+        - Select a middle layer: `-s hidden_states -l 2`
 - `-f` or `--upstream_trainable` enables finetuning the upstream model on the downstream task. Default: false 
 - `-n` or `--name` specifies the experiment name, all the files related to this run will be saved into **expdir**=`result/downstream/{args.name}`. (You can also use `-p` or `--expdir` to directly specify the path of **expdir**.)
     - command
@@ -80,6 +82,7 @@ HF_USERNAME=username HF_PASSWORD=password python3 run_downstream.py -m train -n 
     ```bash
     -o "config.optimizer.lr=1.0e-3,,config.optimizer.name='AdamW',,config.runner.eval_dataloaders=['dev', 'test']"
     ```
+- `--hub` specifies the model Hub (PyTorch or Hugging Face) to retrieve the upstream model from. Default: `torch`
 
 ## Resume training from a checkpoint
 ```bash
@@ -492,20 +495,25 @@ Specified by the command `-d quesst14_dtw`. This task does not require training.
 
 #### Dynamic Time Warping (DTW)
 
+In SUPERB, we run DTW for all the hidden states layer-by-layer. Choose the best layer according to dev set and report its score on the test set. A specific layer can be selected by `-l` option, indexed from 0. The following take the last layer as an example.
+
 ```bash
 # The default dist_fn if not specified is "cosine_exp"
 # as it yields the best result for almost all upstream
 # Supported dist_fn: cosine, cityblock, euclidean, cosine_exp
 
+layer=-1;
 dist_fn=cosine;
 
 # dev
-python3 run_downstream.py -m evaluate -t "dev" -u fbank -d quesst14_dtw \
-    -n ExpName_dev -o "config.downstream_expert.dtwrc.dist_method='$dist_fn'"
+python3 run_downstream.py -m evaluate -t "dev" -u hubert -l ${layer} \
+    -d quesst14_dtw -n ExpName_${layer}_dev \
+    -o config.downstream_expert.dtwrc.dist_method=$dist_fn
 
 # test
-python3 run_downstream.py -m evaluate -t "test" -u fbank -d quesst14_dtw \
-    -n ExpName_test -o "config.downstream_expert.dtwrc.dist_method='$dist_fn'"
+python3 run_downstream.py -m evaluate -t "test" -u fbank -l ${layer} \
+    -d quesst14_dtw -n ExpName_${layer}_test \
+    -o config.downstream_expert.dtwrc.dist_method=$dist_fn
 ```
 
 #### Scoring
@@ -515,13 +523,17 @@ export S3PRL_DIR=/YOUR/S3PRL/PATH
 cd $CORPORA_DIR/quesst14Database/scoring
 
 # dev
-./score-TWV-Cnxe.sh $S3PRL_DIR/result/downstream/ExpName_dev \
+./score-TWV-Cnxe.sh $S3PRL_DIR/result/downstream/ExpName_${layer}_dev \
     groundtruth_quesst14_dev -10
 
 # test
-./score-TWV-Cnxe.sh $S3PRL_DIR/result/downstream/ExpName_test \
+./score-TWV-Cnxe.sh $S3PRL_DIR/result/downstream/ExpName_${layer}_test \
     groundtruth_quesst14_eval -10
 ```
+
+#### Submit
+
+
 
 ## IC: Intent Classification - Fluent Speech Commands
 

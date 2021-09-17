@@ -136,6 +136,7 @@ class Featurizer(nn.Module):
         upstream: UpstreamBase,
         feature_selection: str = "hidden_states",
         upstream_device: str = "cuda",
+        layer_selection: int = None,
         **kwargs,
     ):
         super().__init__()
@@ -163,6 +164,7 @@ class Featurizer(nn.Module):
                 )
                 raise ValueError
         self.feature_selection = feature_selection
+        self.layer_selection = layer_selection
 
         feature = self._select_feature(paired_features)
         if isinstance(feature, (list, tuple)):
@@ -201,6 +203,9 @@ class Featurizer(nn.Module):
 
         if isinstance(feature, (list, tuple)) and len(feature) == 1:
             feature = feature[0]
+        
+        if isinstance(feature, (list, tuple)) and isinstance(self.layer_selection, int):
+            feature = feature[self.layer_selection]
 
         return feature
 
