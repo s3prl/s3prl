@@ -42,6 +42,11 @@ class DownstreamExpert(nn.Module):
         self.upstream_dim = upstream_dim
         self.upstream_rate = upstream_rate
         self.datarc = downstream_expert["datarc"]
+        self.datarc["frame_shift"] = upstream_rate
+
+        with (Path(expdir) / "upstream_rate").open("w") as file:
+            print(upstream_rate, file=file)
+
         self.loaderrc = downstream_expert["loaderrc"]
         self.modelrc = downstream_expert["modelrc"]
         self.scorerc = downstream_expert["scorerc"]

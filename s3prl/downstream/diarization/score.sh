@@ -22,7 +22,12 @@ test_set="$2"
 # directory where you cloned dscore (https://github.com/ftshijt/dscore)
 dscore_dir=/groups/leo1994122701/dscore
 
-frame_shift=160
+upstream_rate_file=$1/upstream_rate
+if [ -f $upstream_rate_file ]; then
+    frame_shift=$(cat $upstream_rate_file)
+else
+    frame_shift=160
+fi
 sr=16000
 
 echo "scoring at $scoring_dir"
