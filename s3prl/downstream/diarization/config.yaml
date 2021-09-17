@@ -18,7 +18,6 @@ optimizer:
 downstream_expert:
   datarc:
     chunk_size: 2000
-    frame_shift: 160 # this should be aligned with upstrema model
     subsampling: 1
     label_delay: 0
     num_speakers: 2

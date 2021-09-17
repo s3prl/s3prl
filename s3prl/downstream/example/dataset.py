@@ -7,7 +7,7 @@ from torch.utils.data.dataset import Dataset
 SAMPLE_RATE = 16000
 EXAMPLE_WAV_MIN_SEC = 5
 EXAMPLE_WAV_MAX_SEC = 20
-EXAMPLE_DATASET_SIZE = 1000
+EXAMPLE_DATASET_SIZE = 200
 
 
 class RandomDataset(Dataset):

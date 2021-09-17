@@ -14,6 +14,7 @@ import torchaudio
 import numpy as np
 from tqdm import tqdm
 from tensorboardX import SummaryWriter
+from torch.utils.data import DistributedSampler
 from torch.nn.parallel import DistributedDataParallel as DDP
 from torch.distributed import is_initialized, get_rank, get_world_size
 
@@ -199,16 +200,28 @@ class Runner():
         if is_leader_process():
             logger = SummaryWriter(self.args.expdir)
 
-        # prepare data
-        dataloader = self.downstream.model.get_dataloader('train')
-
         batch_ids = []
         backward_steps = 0
         records = defaultdict(list)
         epoch = self.init_ckpt.get('Epoch', 0)
+        train_split = self.config['runner'].get("train_dataloader", "train")
         while pbar.n < pbar.total:
-            if is_initialized():
-                dataloader.sampler.set_epoch(epoch)
+            try:
+                dataloader = self.downstream.model.get_dataloader(train_split, epoch=epoch)
+            except TypeError as e:
+                if "unexpected keyword argument 'epoch'" in str(e):
+                    show("[Runner] - Warning: If you are implementing a new task. This message should not"
+                        " appear. Please accept the epoch argument for your downstream's get_dataloader."
+                        " Also, setting the epoch for DistributedSampler should be already done before returning"
+                        " the dataloader. Please refer to the latest downstream/example/expert.py:get_dataloader."
+                        " This line is for backward compatibility only.",
+                        file=sys.stderr
+                    )
+                    dataloader = self.downstream.model.get_dataloader(train_split)
+                    if hasattr(dataloader, "sampler") and isinstance(dataloader.sampler, DistributedSampler):
+                        dataloader.sampler.set_epoch(epoch)
+                else:
+                    raise
 
             for batch_id, (wavs, *others) in enumerate(tqdm(dataloader, dynamic_ncols=True, desc='train', file=tqdm_file)):
                 # try/except block for forward/backward
@@ -229,7 +242,7 @@ class Runner():
                         features, _ = specaug(features)
 
                     loss = self.downstream.model(
-                        'train',
+                        train_split,
                         features, *others,
                         records = records,
                     )
@@ -279,7 +292,7 @@ class Runner():
                 # logging
                 if global_step % self.config['runner']['log_step'] == 0:
                     self.downstream.model.log_records(
-                        'train',
+                        train_split,
                         records = records,
                         logger = logger,
                         global_step = global_step,
