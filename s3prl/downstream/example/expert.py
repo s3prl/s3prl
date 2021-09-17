@@ -97,9 +97,8 @@ class DownstreamExpert(nn.Module):
 
 
     def _get_train_dataloader(self, dataset, epoch: int):
-        sampler = DistributedSampler(dataset) if is_initialized() else None
-        if sampler is not None:
-            sampler.set_epoch(epoch)
+        from s3prl.utility.data import get_ddp_sampler
+        sampler = get_ddp_sampler(dataset, epoch)
         return DataLoader(
             dataset, batch_size=self.datarc['train_batch_size'],
             shuffle=(sampler is None),

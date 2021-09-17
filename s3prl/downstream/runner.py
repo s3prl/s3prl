@@ -14,6 +14,7 @@ import torchaudio
 import numpy as np
 from tqdm import tqdm
 from tensorboardX import SummaryWriter
+from torch.utils.data import DistributedSampler
 from torch.nn.parallel import DistributedDataParallel as DDP
 from torch.distributed import is_initialized, get_rank, get_world_size
 
@@ -206,6 +207,14 @@ class Runner():
         train_split = self.config['runner'].get("train_dataloader", "train")
         while pbar.n < pbar.total:
             dataloader = self.downstream.model.get_dataloader(train_split, epoch=epoch)
+            if hasattr(dataloader, "sampler") and isinstance(dataloader.sampler, DistributedSampler):
+                show("[Runner] - Warning: If you are implementing a new task. This message should not"
+                    " appear. Setting epoch for DistributedSampler is recommended to do in downstream's"
+                    " get_dataloader. Please refer to downstream/example/expert.py:get_dataloader",
+                    file=sys.stderr
+                )
+                dataloader.sampler.set_epoch(epoch)
+
             for batch_id, (wavs, *others) in enumerate(tqdm(dataloader, dynamic_ncols=True, desc='train', file=tqdm_file)):
                 # try/except block for forward/backward
                 try:
