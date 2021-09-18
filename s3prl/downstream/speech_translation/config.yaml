@@ -13,7 +13,7 @@ runner:
 
 optimizer:
   name: Adam
-  lr: 2.0e-3
+  lr: 1.0e-3
 
 # comment the whole scheduler config block
 # to disable learning rate scheduling
