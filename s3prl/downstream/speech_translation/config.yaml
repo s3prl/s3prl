@@ -66,10 +66,10 @@ downstream_expert:
   # the model configuration and creation are delegated to fairseq
   # more configuration could be found at https://github.com/pytorch/fairseq/blob/master/fairseq/models/speech_to_text/s2t_transformer.py
   modelrc:
-    # you could set the model architecture here
+    # you could set the model architecture here (each architecture defines default configurations of a model)
     arch: s2t_transformer
     
-    # add other model configurations here
+    # overwrite other model configurations here
     max_source_positions: 6000
     max_target_positions: 1024
     encoder_layers: 3
