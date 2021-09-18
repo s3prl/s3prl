@@ -29,5 +29,6 @@ if __name__ == '__main__':
             refs.append(line[args.ref_key])
 
     bleu = BLEU()
-    print(bleu.corpus_score(hyps, [refs]))
+    score = bleu.corpus_score(hyps, [refs])
+    print(score.score)
             
