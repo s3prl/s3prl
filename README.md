@@ -26,17 +26,20 @@ Self-supervised speech pre-trained models are called **upstream** in this toolki
 The toolkit has **three major usages**:
 
 ### Pretrain
+
 - Pretrain upstream models, including Mockingjay, Audio ALBERT and TERA.
 - Document: [**pretrain/README.md**](./s3prl/pretrain/README.md)
 
 ### Upstream
+
 - Easily load most of the existing upstream models with pretrained weights in a unified I/O interface.
 - Pretrained models are registered through **torch.hub**, which means you can use these models in your own project by one-line plug-and-play without depending on this toolkit's coding style.
 - Document: [**upstream/README.md**](./s3prl/upstream/README.md)
 
 ### Downstream
+
 - Utilize upstream models in lots of downstream tasks
-- Benchmark upstream models with [**SUPERB Benchmark**](https://arxiv.org/abs/2105.01051)
+- Benchmark upstream models with [**SUPERB Benchmark**](./s3prl/downstream/docs/superb.md)
 - Document: [**downstream/README.md**](./s3prl/downstream/README.md)
 
 Below is an **intuitive illustration** on how this toolkit may help you:
@@ -260,12 +263,12 @@ If you find this toolkit useful, please consider citing following papers.
 
 - If you use our organized upstream interface and features, or the *SUPERB* downstream benchmark, please consider citing the following:
 ```
-@misc{superb,
-  title={SUPERB: Speech processing Universal PERformance Benchmark}, 
+@inproceedings{yang21c_interspeech,
   author={Shu-wen Yang and Po-Han Chi and Yung-Sung Chuang and Cheng-I Jeff Lai and Kushal Lakhotia and Yist Y. Lin and Andy T. Liu and Jiatong Shi and Xuankai Chang and Guan-Ting Lin and Tzu-Hsien Huang and Wei-Cheng Tseng and Ko-tik Lee and Da-Rong Liu and Zili Huang and Shuyan Dong and Shang-Wen Li and Shinji Watanabe and Abdelrahman Mohamed and Hung-yi Lee},
-  year={2021},
-  eprint={2105.01051},
-  archivePrefix={arXiv},
-  primaryClass={cs.CL}
+  title={{SUPERB: Speech Processing Universal PERformance Benchmark}},
+  year=2021,
+  booktitle={Proc. Interspeech 2021},
+  pages={1194--1198},
+  doi={10.21437/Interspeech.2021-1775}
 }
 ```
