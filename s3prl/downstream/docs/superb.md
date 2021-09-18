@@ -646,6 +646,42 @@ cd <root-to-s3prl>/s3prl/downstream/a2o-vc-vcc2020
 ./decode.sh pwg_task1 <root-to-s3prl>/s3prl/result/downstream/test/<step> TEF1
 ```
 
+## ST: Speech Translation
+
+The following instruction is only a minimal description for benchmarking. A complete guide about the task, dataset, implementation and usage can be found in the [README](../speech_translation/README.md).
+
+#### Prepare data
+
+Preparing CoVoST En->De dataset.
+
+1. Download [Common Voice audio clips and transcripts (english)](https://commonvoice.mozilla.org/en/datasets) (version 4).
+
+2. Change the path in `downstream/speech_translation/prepare_data/prepare_covo.sh`
+
+```bash
+covo_root="root directory of covost (ex. /Drive/cv-corpus-6.1-2020-12-11)"
+src_lang=en
+tgt_lang=de
+```
+
+3. Run the following script
+
+```bash
+cd downstream/speech_translation/prepare_data/
+bash prepare_covo.sh
+```
+
+#### Training
+
+```
+python run_downstream.py -m train -n ExpName -u fbank -d speech_translation
+```
+
+#### Testing
+
+```
+python run_downstream.py -m evaluate -e result/downstream/ExpName/dev-best.ckpt
+```
 
 # Leaderboard submission
 
