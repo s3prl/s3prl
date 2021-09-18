@@ -134,7 +134,7 @@ downstream_expert:
         max_len_b: 400
 ```
 
-We report SacreBleu for ST using [mjpost/sacrebleu](https://github.com/mjpost/sacrebleu) and CER/WER for ASR using [roy-ht/editdistance](https://github.com/roy-ht/editdistance) when using multitask learning.
+We report case-sensitive detokenized BLEU for ST using [mjpost/sacrebleu](https://github.com/mjpost/sacrebleu) and CER/WER for ASR using [roy-ht/editdistance](https://github.com/roy-ht/editdistance) when using multitask learning.
 The decoding results will be written into file `<output_prefix>-[st|asr]-[dev|test].tsv`. You could change the prefix of the output files in `config.yaml`.
 ```yaml
 downstream_expert:

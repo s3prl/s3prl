@@ -683,6 +683,8 @@ python run_downstream.py -m train -n ExpName -u fbank -d speech_translation
 python run_downstream.py -m evaluate -e result/downstream/ExpName/dev-best.ckpt
 ```
 
+The model will report case-sensitive detokenized BLEU.
+
 # Leaderboard submission
 
 After *finishing the **Testing*** of each task, the prediction files for leaderboard submission will be located under the `expdir`. You can use [submit.py](../submit/submit.py) to easily organize them into a zip file which can later be uploaded to our [leaderboard](https://superbbenchmark.org/).
