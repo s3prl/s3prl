@@ -20,6 +20,8 @@ SUPERB provides an complete platform for benchmarking, including a benchmark cod
 - [Task-specific usages](#task-specific-usages)
 - [Leaderboard submission](#leaderboard-submission)
 
+For each task in SUPERB, we also [released the training artifacts](./superb_artifacts.md) from the paper, including Tensorboard logs and trained downstream weights (the best on public dev set) for you to compare. If the fully converged training time is too long, you can compare the loss & metrics curves on the training & development sets. Or, you can also consider using [distributed training](../README.md#distributed-training) to avoid the gradient accumulation.
+
 # Task-specific usages
 
 ## PR: Phoneme Recognition
@@ -248,7 +250,7 @@ cd $CORPORA_DIR/quesst14Database/scoring
 
 #### Submit
 
-After you benchmark all the layers of an upstream, says you find the 6-th layer is the best for QbE according to dev set. Please use `ExpName_6_test` as the submission expdir for [`submit.py`](../submit/submit.py).
+After you benchmark all the layers of an upstream, says you find the 6-th layer is the best for QbE according to dev set. Please use `ExpName_6_test` as the submission expdir for [`submit.py`](../../submit/submit.py).
 
 ## IC: Intent Classification - Fluent Speech Commands
 
@@ -613,6 +615,54 @@ python3 run_downstream.py \
 
 The model is expected to output si-sdri on the test set.
 
+## SE: Speech Enhancement
+
+#### Prepare data
+We use Voicebank-DEMAND dataset for speech enhancement.
+
+```bash
+# Download the Voicebank-DEMAND dataset and convert it to 16kHz
+# I am following the data preparation script in SpeechBrain toolkit (https://github.com/speechbrain/speechbrain/blob/develop/recipes/Voicebank/voicebank_prepare.py)
+from voicebank_prepare import download_vctk
+download_vctk(data_dir)
+
+# prepare train, dev and test data in Kaldi format
+python s3prl/downstream/enhancement_stft/scripts/Voicebank/data_prepare.py \
+    data_dir s3prl/downstream/enhancement_stft/voicebank --part train
+python s3prl/downstream/enhancement_stft/scripts/Voicebank/data_prepare.py \
+    data_dir s3prl/downstream/enhancement_stft/voicebank --part dev
+python s3prl/downstream/enhancement_stft/scripts/Voicebank/data_prepare.py \
+    data_dir s3prl/downstream/enhancement_stft/voicebank --part test
+```
+
+#### Training
+
+Train with hubert as the upstream.
+
+```bash
+python3 s3prl/run_downstream.py \
+       --mode train \
+       --config s3prl/downstream/enhancement_stft/configs/cfg_voicebank.yaml \
+       --downstream enhancement_stft \
+       --upstream hubert \
+       --expdir experiment/enhancement_stft/hubert \
+       --verbose
+```
+
+#### Testing
+
+```bash
+python3 s3prl/run_downstream.py \
+       --mode evaluate \
+       --past_exp experiment/enhancement_stft/hubert/best-states-dev.ckpt \
+       --config s3prl/downstream/enhancement_stft/configs/cfg_voicebank.yaml \
+       --downstream enhancement_stft \
+       --upstream hubert \
+       --expdir experiment/enhancement_stft/hubert \
+       --verbose
+```
+The model is expected to output pesq, stoi, covl and si-sdri on the test set.
+
 ## VC: Voice conversion
 
 The following instruction is only a minimal description for benchmarking. A complete guide about the task, dataset, implementation and usage can be found in the [README](../a2o-vc-vcc2020/README.md).
@@ -649,7 +699,7 @@ cd <root-to-s3prl>/s3prl/downstream/a2o-vc-vcc2020
 
 # Leaderboard submission
 
-After *finishing the **Testing*** of each task, the prediction files for leaderboard submission will be located under the `expdir`. You can use [submit.py](../submit/submit.py) to easily organize them into a zip file which can later be uploaded to our [leaderboard](https://superbbenchmark.org/).
+After *finishing the **Testing*** of each task, the prediction files for leaderboard submission will be located under the `expdir`. You can use [submit.py](../../submit/submit.py) to easily organize them into a zip file which can later be submitted to our [leaderboard](https://superbbenchmark.org/submit). We now support submissions for the following tasks: **PR**, **ASR**, **KS**, **QbE**, **SID**, **ASV**, **SD**, **IC**, **SF**, **ER**. The following tasks will be supported soon: **SS**, **SE**, **ST**.
 
 ```sh
 output_dir="submission"
