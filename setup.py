@@ -42,6 +42,7 @@ requirements = [
     "editdistance",
     "easydict",
     "catalyst",
+    "sentencepiece",
     "huggingface_hub @ git+https://github.com/huggingface/huggingface_hub.git#egg=huggingface_hub" # TODO: Replace with v0.0.17 when it is released
 ]
 

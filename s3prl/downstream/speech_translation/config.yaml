@@ -1,0 +1,76 @@
+runner:
+  total_steps: 32000
+  gradient_clipping: 10
+  gradient_accumulate_steps: 8
+
+  log_step: 100
+  eval_step: 2000
+  save_step: 250
+  max_keep: 1
+  eval_dataloaders:
+    - dev
+    # - test
+
+optimizer:
+  name: Adam
+  lr: 1.0e-3
+
+# comment the whole scheduler config block
+# to disable learning rate scheduling
+scheduler:
+  name: sqrt_decay_schedule_with_warmup
+  num_warmup_steps: 10000
+
+downstream_expert:
+
+  src_lang: en
+  tgt_lang: de
+  post_process: sentencepiece
+  output_prefix: output # set prefix of output files
+  
+  upstream_rate: -1 # -1 for no downsample, 320 for applying downsampling
+  downsample_method: 'drop' # 'drop'/'concat'/'average'
+
+  criterionrc:
+    criterion: label_smoothed_cross_entropy
+    label_smoothing: 0.1
+
+  taskrc:
+    data: data/covost_en_de ## set the data folder here
+    config_yaml: config.yaml
+    seed: 1
+    use_asr: False
+
+  asrrc:
+    weight: 0.3
+    vocab_file: spm-src_text.txt
+    bpe_tokenizer:
+      bpe: sentencepiece
+      sentencepiece_model: spm-src_text.model
+    datarc:
+      key: src_text # header in tsv
+
+  datarc:
+    train: train
+    dev: dev
+    test: test
+    max_tokens: 10000
+    num_workers: 4
+
+  # configuration of decoding
+  generatorrc:
+    beam: 20
+    max_len_a: 0
+    max_len_b: 400
+
+  # the model configuration and creation are delegated to fairseq
+  # more configuration could be found at https://github.com/pytorch/fairseq/blob/master/fairseq/models/speech_to_text/s2t_transformer.py
+  modelrc:
+    # you could set the model architecture here (each architecture defines default configurations of a model)
+    arch: s2t_transformer
+    
+    # overwrite other model configurations here
+    max_source_positions: 6000
+    max_target_positions: 1024
+    encoder_layers: 3
+    decoder_layers: 3
