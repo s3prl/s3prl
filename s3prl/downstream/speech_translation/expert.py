@@ -17,7 +17,6 @@ import editdistance
 import fairseq
 from argparse import Namespace
 from .S3prl_SpeechToTextTask import S3prl_SpeechToTextTask
-from .dataset import DummyDataset
 from .AdditionalDataset import AdditionalDataset
 from fairseq.models.speech_to_text.s2t_transformer import TransformerDecoderScriptable, S2TTransformerModel
 from fairseq.models.transformer import Embedding
@@ -92,8 +91,6 @@ class DownstreamExpert(nn.Module):
         assert modelrc.arch in fairseq.models.ARCH_CONFIG_REGISTRY
         fairseq.models.ARCH_CONFIG_REGISTRY[modelrc.arch](modelrc)
         self.model = self.task.build_model(modelrc, upstream_dim)
-        
-        print(self.model)
 
         self.generator = self.task.build_generator([self.model], Namespace(**downstream_expert['generatorrc']))
         self.batch_itr = {}
@@ -120,7 +117,7 @@ class DownstreamExpert(nn.Module):
         self.register_buffer('best_score', torch.zeros(1))
 
     # Interface
-    def get_dataloader(self, mode):
+    def get_dataloader(self, split, epoch: int = 0):
         """
         Args:
             mode: string
@@ -139,65 +136,27 @@ class DownstreamExpert(nn.Module):
         """
 
 
-        split = self.datarc[mode]
+        data_split = self.datarc[split]
 
         # load dataset
-        if split not in self.batch_itr:
+        if data_split not in self.batch_itr:
             
             # dataset will truncate the input wav according to model's max_position
-            self.task.load_dataset(split=split, max_feature_len=self.max_positions)
+            self.task.load_dataset(split=data_split, max_feature_len=self.max_positions)
             
             # it must not have invalid_inputs due to truncation
-            self.batch_itr[split] = self.task.get_batch_iterator(
-                self.task.dataset(split),
+            self.batch_itr[data_split] = self.task.get_batch_iterator(
+                self.task.dataset(data_split),
                 max_tokens=self.datarc['max_tokens'],
                 max_positions=self.max_positions,
                 num_workers=self.datarc['num_workers'],
                 ignore_invalid_inputs = False,
+                epoch=epoch+1,
             )
 
-        # # fairseq origin dataloader
+        # # fairseq's dataloader
         # # note: refreshing is needed for each epoch
-        # return self.batch_itr[split].next_epoch_itr()
-
-        # torch's DataLoader
-
-        if mode == 'train':
-            return self._get_train_dataloader(split)
-        else: 
-            return self._get_eval_dataloader(split)
-
-    def _get_train_dataloader(self, split):
-        
-        dataset = DummyDataset(
-            self.batch_itr[split].dataset,
-            self.batch_itr[split].batch_sampler,
-        )
-
-        sampler = DistributedSampler(dataset) if is_initialized() else None
-        return DataLoader(
-            dataset,
-            batch_size=1,
-            shuffle=(sampler is None),
-            sampler=sampler,
-            collate_fn = dataset.collate_fn,
-            num_workers=self.datarc['num_workers']
-        )
-
-    def _get_eval_dataloader(self, split):
-
-        dataset = DummyDataset(
-            self.batch_itr[split].dataset,
-            self.batch_itr[split].batch_sampler,
-        )
-
-        return DataLoader(
-            dataset,
-            batch_size=1,
-            shuffle=False,
-            collate_fn = dataset.collate_fn,
-            num_workers=self.datarc['num_workers']
-        )
+        return self.batch_itr[data_split].next_epoch_itr()
 
     # Interface
     def forward(self, mode, features, input_dict, records, **kwargs):
