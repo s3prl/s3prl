@@ -82,7 +82,7 @@ class SeparationDataset(Dataset):
         assert len(self.src) == 1 and len(self.tgt) == 1
 
         # mix_clean (utterances only) mix_both (utterances + noise) mix_single (1 utterance + noise)
-        cond_list = ["s1", "s2", "noise", "mix_clean", "mix_both", "mix_single"]
+        cond_list = ["s1", "s2", "noise", "mix_clean", "mix_both", "mix_single", "noisy", "clean"]
 
         # create the mapping from utterances to the audio paths
         # reco2path[utt][cond] is the path for utterance utt with condition cond
