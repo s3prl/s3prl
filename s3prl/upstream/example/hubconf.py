@@ -4,7 +4,7 @@ from .expert import UpstreamExpert as _UpstreamExpert
 def customized_upstream(*args, **kwargs):
     """
     To enable your customized pretrained model, you only need to implement
-    downstream/example/expert.py and leave this file as is. This file is
+    upstream/example/expert.py and leave this file as is. This file is
     used to register the UpstreamExpert in upstream/example/expert.py
     The following is a brief introduction of the registration mechanism.
 
