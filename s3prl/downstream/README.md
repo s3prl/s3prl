@@ -10,24 +10,24 @@ We develop several downstream tasks for evaluating SSL models, each of them is d
 
 #### I. General requirement
 
-1. [**Clone the repository and install dependencies**](../README.md#installation)
-2. See the [**General Usage**](#general-usage) to have a sense on the conceptual usage
+1. [Clone the repository and install dependencies](../README.md#installation)
+2. See the [General Usage](#general-usage) to have a sense on the conceptual usage
 
 #### II A. Run the developed tasks
 
 3. **Optional:** [**Register your customized pretrained model**](../upstream/example/README.md)
 
-    - You can also start from evaluating [pretrained models available in this toolkit](../upstream/README.md#upstream-self-supervised-models).
+    - You can also start from evaluating [pretrained models available in this toolkit](../upstream/README.md#how-to-use).
 
 4. Follow the task-specific usages
 
-    - [SUPERB Benchmark](./docs/superb.md)
+    - [**SUPERB Benchmark & Challenge**](./docs/superb.md)
     - [Tasks used in Mockingjay & TERA](./docs/mockingjay_tera.md)
     - [More tasks](./docs/more_tasks.md)
 
 #### II B. Develop new tasks
 
-3. Check [**Add new downstream tasks**](#add-new-downstream-tasks). Pull requests are highly welcome. Thanks!
+3. Check [Add new downstream tasks](#add-new-downstream-tasks). Pull requests are highly welcome. Thanks!
 
 # General usage
 All of the downstream task follow the following command pattern, with a few task-specific adjustments which are detailed in the follow-up task-specific sections.
@@ -44,8 +44,8 @@ python3 run_downstream.py -m train -n ExpName -u UpstreamName -d DownstreamName
 python3 run_downstream.py -m train -n ExpName -u fbank -d example
 
 # Finetune the upstream.
-# Please use the last_hidden_state. See issue #192
-python3 run_downstream.py -m train -n ExpName -u fbank -d example -f -s last_hidden_state
+# Please use the last hidden_state. See issue #192
+python3 run_downstream.py -m train -n ExpName -u fbank -d example -f -l -1
 
 # An example with downloading / uploading models via the Hugging Face Hub.
 # Use the credentials associated with your account on huggingface.co
@@ -55,8 +55,10 @@ HF_USERNAME=username HF_PASSWORD=password python3 run_downstream.py -m train -n 
 - `-m` or `--mode` specifies the **train/evaluate** mode
 - `-u` or `--upstream` specifies the upstream pretrained model.
     - The available upstream can be checked by `-h`
+    - Some examples: `-u fbank`, `-u tera`, `-u wav2vec2`, `-u hubert`
 - `-d` or `--downstream` specifies the downstream task.
     - The available downstream can be checked by `-h`
+    - Some examples: `-d asr`, `-d emotion`, `-d speech_commands`
     - Each available downstream task has its corresponding folder under `downstream/`. Eg. `-d asr` means we are using the task defined in `downstream/asr/`
     - `example` is a pseudo downstream task which is useful for testing the upstream model or as an initial template for developing a new downstream task
 - Feature selection from an upstream: the output of an upstream is a dictionary, where each key's corresponding value is a list of Tensors all in `(batch_size, max_sequence_length_of_batch, hidden_size)`. The final selected feature for the downstream training depends on `-s` and `-l`. If it is a list of Tensors, we train a learnable weighted-sum (WS) on them.

@@ -12,9 +12,28 @@ For upstream models that operate on features other than wav (for example: log Me
 
 ## How to use
 
-The `Name` field in the [upstream information](#upstream-information) is the tag we used to specify different models. In other words, different upstream are identified with the exact string of their `Name`. The upstreams are loaded with pretrained weights.
+The `Name` field in the [upstream information](#upstream-information) below is the string we use to specify different models. In other words, different upstream are identified with the exact string of their `Name`. The upstreams are loaded with pretrained weights.
 
-### Use upstreams in your own project:
+### Use upstreams with our benchmark script
+
+To evaluate upstreams with [SUPERB Benchmark](https://arxiv.org/abs/2105.01051), we provide a unified script for all upstreams: [run_downstream.py](../run_downstream.py). Please refer to [downstream/README.md](../downstream/README.md) for detailed usage.
+
+#### Specify an upstream
+
+In this script, we can use `-u` with the `Name` to switch different upstreams for benchmarking. Take **wav2vec 2.0 Base** for example:
+
+```bash
+python3 run_downstream.py -m train -u fbank -d example -n ExpName
+python3 run_downstream.py -m train -u wav2vec2 -d example -n ExpName
+```
+
+#### Check all available upstreams
+
+```bash
+python3 run_downstream.py -h
+```
+
+### Use upstreams in your own project
 
 After [installing s3prl](../../README.md#installation), you can use upstreams in your own codebase.
 
@@ -41,26 +60,6 @@ with torch.no_grad():
 import s3prl.hub as hub
 
 print(dir(hub))
-```
-
-
-### Use upstreams with our benchmark script
-
-To evaluate upstreams with [SUPERB Benchmark](https://arxiv.org/abs/2105.01051), we provide a unified script for all upstreams: [run_downstream.py](../run_downstream.py). Please refer to [downstream/README.md](../downstream/README.md) for detailed usage.
-
-#### Specify an upstream
-
-In this script, we can use `-u` with the `Name` to switch different upstreams for benchmarking. Take **wav2vec 2.0 Base** for example:
-
-```bash
-python3 run_downstream.py -m train -u fbank -d example -n ExpName
-python3 run_downstream.py -m train -u wav2vec2 -d example -n ExpName
-```
-
-#### Check all available upstreams
-
-```bash
-python3 run_downstream.py -h
 ```
 
 ## Upstream Information
