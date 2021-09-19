@@ -5,12 +5,10 @@ import torch.nn as nn
 from torch import Tensor
 from torch.nn.utils.rnn import pad_sequence
 
-from ..interfaces import UpstreamBase
-
 HIDDEN_DIM = 8
 
 
-class UpstreamExpert(UpstreamBase):
+class UpstreamExpert(nn.Module):
     def __init__(self, ckpt: str = None, model_config: str = None, **kwargs):
         """
         Args:
@@ -25,6 +23,16 @@ class UpstreamExpert(UpstreamBase):
         """
         # Pass kwargs into UpstreamBase to enable features shared across upstreams
         super().__init__(**kwargs)
+        self.name = "[Example UpstreamExpert]"
+
+        print(
+            f"{self.name} - You can use model_config to construct your customized model: {model_config}"
+        )
+        print(f"{self.name} - You can use ckpt to load your pretrained weights: {ckpt}")
+        print(
+            f"{self.name} - If you store the pretrained weights and model config in a single file, "
+            "you can just choose one argument (ckpt or model_config) to pass. It's up to you!"
+        )
 
         # The model needs to be a nn.Module for finetuning, not required for representation extraction
         self.model1 = nn.Linear(1, HIDDEN_DIM)
@@ -37,9 +45,7 @@ class UpstreamExpert(UpstreamBase):
         """
         return 1
 
-    def forward(
-        self, wavs: List[Tensor]
-    ) -> Dict[str, Union[Tensor, List[Tensor]]]:
+    def forward(self, wavs: List[Tensor]) -> Dict[str, Union[Tensor, List[Tensor]]]:
         """
         When the returning Dict contains the List with more than one Tensor,
         those Tensors should be in the same shape to train a weighted-sum on them.
