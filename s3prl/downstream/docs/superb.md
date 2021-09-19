@@ -40,7 +40,7 @@ Besides the tasks presented in the paper, we are also extending the coverage ove
 
 This document contains the following meterials:
 
-#### [The command for each task](#task-specific-usages)
+### [The command for each task](#task-specific-usages)
 
 - Data preparation
 - Training
@@ -56,16 +56,20 @@ python3 run_downstream.py -m train -u wav2vec2 -d asr -n ExpName \
     -o config.optimizer.lr=1.0e-5
 ```
 
-#### [The training artifacts of each task for you to compare](./superb_artifacts.md)
+##### Note 2.
+
+If the fully converged training time is too long, you can also consider using [distributed training](../README.md#distributed-training) to avoid the gradient accumulation.
+
+### [The training artifacts of each task](./superb_artifacts.md)
 
 - Tensorboard logs
 - Trained downstream weights (the best on dev set)
 
-##### Note 2.
+##### Note 1.
 
-If the fully converged training time is too long, you can compare the loss & metrics curves with the Tensorboard logs we released. Or, you can also consider using [distributed training](../README.md#distributed-training) to avoid the gradient accumulation.
+You can compare the loss & metrics curves with the Tensorboard logs we released to quickly know the performance trend of a new upstream model.
 
-#### [Leaderboard submission helper](#leaderboard-submission)
+### [Leaderboard submission helper](#leaderboard-submission)
 
 - Ready for the tasks presented in the paper
 - Will be ready for the challenge on **Sep 30, 2021**

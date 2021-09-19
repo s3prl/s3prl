@@ -8,7 +8,7 @@ Please read [downstream/README.md](../README.md) for the general command pattern
 
 [**Released Artifacts**: http://140.112.21.28:8000/](http://140.112.21.28:8000/)
 
-We release the Tensorboard logs and the trained downstream weights (the best on public dev set). You can use `wget -r` to download the folder you want. e.g.
+We release the Tensorboard logs and the trained downstream weights (the best on public dev set) for you to quickly understand the performance trend of a new upstream model. You can use `wget -r` to download the folder you want. e.g.
 
 ```bash
 wget -r http://140.112.21.28:8000/pr/
