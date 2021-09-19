@@ -2,7 +2,7 @@
 
 ## Prerequisite
 
-Please read [downstream/README.md](../README.md) for the general command pattern, and read [upstream/README.md](../../upstream/README.md) for registering a new pretrained model (upstream).
+Please read [downstream/README.md](../README.md) for the general command pattern, and read [upstream/example/README.md](../../upstream/example/README.md) for registering a new pretrained model (upstream).
 
 ## Introduction
 

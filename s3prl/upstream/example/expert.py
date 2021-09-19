@@ -30,12 +30,19 @@ class UpstreamExpert(UpstreamBase):
         self.model1 = nn.Linear(1, HIDDEN_DIM)
         self.model2 = nn.Linear(HIDDEN_DIM, HIDDEN_DIM)
 
+    def get_downsample_rates(self, key: str) -> int:
+        """
+        Since we do not do any downsampling in this example upstream
+        All keys' corresponding representations have downsample rate of 1
+        """
+        return 1
+
     def forward(
         self, wavs: List[Tensor]
-    ) -> Dict[str, Union[Tensor, List[Tensor], Dict[str, Tensor]]]:
+    ) -> Dict[str, Union[Tensor, List[Tensor]]]:
         """
-        When the returning Dict contains the List or Dict with more than one Tensor,
-        those Tensors should be in the same shape if one wished to weighted sum them.
+        When the returning Dict contains the List with more than one Tensor,
+        those Tensors should be in the same shape to train a weighted-sum on them.
         """
 
         wavs = pad_sequence(wavs, batch_first=True).unsqueeze(-1)
@@ -47,5 +54,19 @@ class UpstreamExpert(UpstreamBase):
         feature = self.model2(hidden)
         # feature: (batch_size, max_len, hidden_dim)
 
-        # These two keys are requirements
-        return {"last_hidden_state": feature, "hidden_states": [hidden, feature]}
+        # The "hidden_states" key will be used as default in many cases
+        # Others keys in this example are presented for SUPERB Challenge
+        return {
+            "hidden_states": [hidden, feature],
+            "PR": [hidden, feature],
+            "ASR": [hidden, feature],
+            "QbE": [hidden, feature],
+            "SID": [hidden, feature],
+            "ASV": [hidden, feature],
+            "SD": [hidden, feature],
+            "ER": [hidden, feature],
+            "SF": [hidden, feature],
+            "SE": [hidden, feature],
+            "SS": [hidden, feature],
+            "secret": [hidden, feature],
+        }
