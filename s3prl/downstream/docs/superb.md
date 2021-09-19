@@ -40,13 +40,25 @@ Besides the tasks presented in the paper, we are also extending the coverage ove
 
 This document contains the following meterials:
 
-### [The command for each task](#task-specific-usages)
+#### [The command for each task](#task-specific-usages)
 
 - Data preparation
 - Training
 - Testing / Scoring
 
-##### Note 1.
+#### [The training artifacts of each task](./superb_artifacts.md)
+
+- Tensorboard logs
+- Trained downstream weights (the best on dev set)
+
+#### [Leaderboard submission helper](#leaderboard-submission)
+
+- Ready for the tasks presented in the paper
+- Will be ready for the challenge on **Sep 30, 2021**
+    - New tasks submission
+    - Overall metrics
+
+# Task-specific usages
 
 To reproduce the results in the SUPERB paper, you can follow the commands below by only changing the learning rate: `config.optimizer.lr` in the config file with the `override` option.
 
@@ -56,27 +68,7 @@ python3 run_downstream.py -m train -u wav2vec2 -d asr -n ExpName \
     -o config.optimizer.lr=1.0e-5
 ```
 
-##### Note 2.
-
 If the fully converged training time is too long, you can also consider using [distributed training](../README.md#distributed-training) to avoid the gradient accumulation.
-
-### [The training artifacts of each task](./superb_artifacts.md)
-
-- Tensorboard logs
-- Trained downstream weights (the best on dev set)
-
-##### Note 1.
-
-You can compare the loss & metrics curves with the Tensorboard logs we released to quickly know the performance trend of a new upstream model.
-
-### [Leaderboard submission helper](#leaderboard-submission)
-
-- Ready for the tasks presented in the paper
-- Will be ready for the challenge on **Sep 30, 2021**
-    - New tasks submission
-    - Overall metrics
-
-# Task-specific usages
 
 ## PR: Phoneme Recognition
 
