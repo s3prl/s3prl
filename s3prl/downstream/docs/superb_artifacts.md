@@ -1,8 +1,14 @@
 # SUPERB Artifacts
 
+## Prerequisite
+
 Please read [downstream/README.md](../README.md) for the general command pattern, and [downstream/docs/superb.md](./superb.md) for the task-specific usage.
 
-[Released Artifacts](http://140.112.21.28:8000/): We release the Tensorboard logs and the trained downstream weights (the best on public dev set). You can use `wget -r` to download the folder you want. e.g.
+## Introduction
+
+[**Released Artifacts**: http://140.112.21.28:8000/](http://140.112.21.28:8000/)
+
+We release the Tensorboard logs and the trained downstream weights (the best on public dev set). You can use `wget -r` to download the folder you want. e.g.
 
 ```bash
 wget -r http://140.112.21.28:8000/pr/
@@ -17,6 +23,8 @@ Since the released checkpoints contain the dataset paths at our side, which is n
 **2. Override the expdir**
 
 Since the released checkpoint contains the `expdir` specified during our experiment, which will be the saving directory for the inferenced prediction files but will also be hard to find for you. Please use `-o args.expdir=` override function to change it.
+
+## Task-specific commands
 
 ### PR
 

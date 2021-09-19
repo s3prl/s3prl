@@ -1,6 +1,10 @@
-# SUPERB Benchmark
+# SUPERB Benchmark & Challenge
+
+## Prerequisite
 
 Please read [downstream/README.md](../README.md) for the general command pattern, and read [upstream/README.md](../../upstream/README.md) for registering a new pretrained model (upstream).
+
+## Introduction
 
 In this document we detail the commands for reproducing the paper [**SUPERB:** **S**peech processing **U**niversal **PER**formance **B**enchmark](https://arxiv.org/abs/2105.01051). If you use the tasks here for your research, please consider citing the following papers:
 
@@ -15,12 +19,58 @@ In this document we detail the commands for reproducing the paper [**SUPERB:** *
 }
 ```
 
-SUPERB provides an complete platform for benchmarking, including a benchmark codebase and an [online leaderboard](https://superbbenchmark.org/). The leaderboard is ready for submissions with inferenced prediction files on each task's testing set. The document is then structured into the following sections:
+Besides the tasks presented in the paper, we are also extending the coverage over all speech tasks. In the [SUPERB Challenge](https://superbbenchmark.org/challenge) in [*AAAI workshop: The 2nd Self-supervised Learning for Audio and Speech Processing*](https://aaai-sas-2022.github.io/), more tasks are introduced into the benchmark framework, and the setup detailed here serves as the **public-set** in the challenge. We list all tasks below:
 
-- [Task-specific usages](#task-specific-usages)
-- [Leaderboard submission](#leaderboard-submission)
+| ID | Task Name | Category | Paper | Challenge public-set |
+| - | - | - | - | - |
+| [PR](#pr-phoneme-recognition) | Phoneme Recognition | Content | V | V |
+| [ASR](#asr-automatic-speech-recognition) | Automatic Speech Recognition | Content | V | V |
+| [KS](#ks-keyword-spotting) | Keyword Spotting | Content | V |  |
+| [QbE](#qbe-query-by-example-spoken-term-detection) | Query-by-Example | Content | V | V |
+| [SID](#sid-speaker-identification) | Speaker Identification | Speaker | V | V |
+| [ASV](#asv-automatic-speaker-verification) | Automatic Speaker Verification | Speaker | V | V |
+| [SD](#sd-speaker-diarization) | Speaker Diarization | Speaker | V | V |
+| [ER](#er-emotion-recognition) | Emotion Recognition | Paralinguistics | V | V |
+| [IC](#ic-intent-classification) | Spoken Intent Classification | Semantics | V |  |
+| [SF](#sf-slot-filling) | Spoken Slot Filling | Semantics | V |  |
+| [ST](#st-speech-translation) | Speech Translation | Semantics |  | V |
+| [SE](#se-speech-enhancement) | Speech Enhancement | Generation |  | V |
+| [SS](#ss-source-separation) | Source Separation | Generation |  | V |
+| [VC](#vc-voice-conversion) | Voice Conversion | Generation |  |  |
 
-For each task in SUPERB, we also [released the training artifacts](./superb_artifacts.md) from the paper, including Tensorboard logs and trained downstream weights (the best on public dev set) for you to compare. If the fully converged training time is too long, you can compare the loss & metrics curves on the training & development sets. Or, you can also consider using [distributed training](../README.md#distributed-training) to avoid the gradient accumulation.
+This document contains the following meterials:
+
+#### [The command for each task](#task-specific-usages)
+
+- Data preparation
+- Training
+- Testing / Scoring
+
+##### Note 1.
+
+To reproduce the results in the SUPERB paper, you can follow the commands below by only changing the learning rate: `config.optimizer.lr` in the config file with the `override` option.
+
+```bash
+# The default lr for ASR is 1.0e-4
+python3 run_downstream.py -m train -u wav2vec2 -d asr -n ExpName \
+    -o config.optimizer.lr=1.0e-5
+```
+
+#### [The training artifacts of each task for you to compare](./superb_artifacts.md)
+
+- Tensorboard logs
+- Trained downstream weights (the best on dev set)
+
+##### Note 2.
+
+If the fully converged training time is too long, you can compare the loss & metrics curves with the Tensorboard logs we released. Or, you can also consider using [distributed training](../README.md#distributed-training) to avoid the gradient accumulation.
+
+#### [Leaderboard submission helper](#leaderboard-submission)
+
+- Ready for the tasks presented in the paper
+- Will be ready for the challenge on **Sep 30, 2021**
+    - New tasks submission
+    - Overall metrics
 
 # Task-specific usages
 

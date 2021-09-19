@@ -1,6 +1,10 @@
 # Tasks used in Mockingjay & TERA
 
+## Prerequisite
+
 Please read [downstream/README.md](../README.md) for the general command pattern, and read [upstream/README.md](../../upstream/README.md) for registering a new pretrained model (upstream).
+
+## Introduction
 
 This document includes the tasks used in [Mockingjay](https://arxiv.org/abs/1910.12638) & [TERA](https://arxiv.org/abs/2007.06028). If you use them for your research please consider citing these papers!
 
