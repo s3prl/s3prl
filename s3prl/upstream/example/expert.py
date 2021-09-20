@@ -21,7 +21,7 @@ class UpstreamExpert(nn.Module):
                 Might not needed if you also save that in your checkpoint file.
                 Can be assigned by the -g option in run_downstream.py
         """
-        super().__init__(**kwargs)
+        super().__init__()
         self.name = "[Example UpstreamExpert]"
 
         print(
