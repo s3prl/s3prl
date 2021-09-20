@@ -2,7 +2,8 @@ import pathlib as _pathlib
 import importlib as _importlib
 
 _search_root = _pathlib.Path(__file__).parent
-_hubconfs = _search_root.glob("*/*/hubconf.py")
+_hubconfs = list(_search_root.glob("upstream/*/hubconf.py"))
+_hubconfs += list(_search_root.glob("downstream/*/hubconf.py"))
 
 for _hubconf in _hubconfs:
     posixpath = _hubconf.relative_to(_search_root).as_posix()
