@@ -6,12 +6,12 @@ specified by the command `-d speech_translation`
 
 Following is the example to prepare [COVOST2](https://github.com/facebookresearch/covost) en-de dataset
 
-1. Download [Common Voice audio clips and transcripts (english)](https://commonvoice.mozilla.org/en/datasets) (version 4).
+1. Download [Common Voice audio clips and transcripts (english)](https://commonvoice.mozilla.org/en/datasets) (Common Voice Corpus 4).
 
 2. Change the path in `prepare_data/prepare_covo.sh` (you can also change the `src_lang` and `tgt_lang` to prepare data of other language pairs)
 
 ```bash
-covo_root="root directory of covost (ex. /Drive/cv-corpus-6.1-2020-12-11)"
+covo_root="root directory of covost"
 src_lang=en
 tgt_lang=de
 ```

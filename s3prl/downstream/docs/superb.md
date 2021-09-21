@@ -740,12 +740,12 @@ The following instruction is only a minimal description for benchmarking. A comp
 
 Preparing CoVoST En->De dataset.
 
-1. Download [Common Voice audio clips and transcripts (english)](https://commonvoice.mozilla.org/en/datasets) (version 4).
+1. Download [Common Voice audio clips and transcripts (english)](https://commonvoice.mozilla.org/en/datasets) (Common Voice Corpus 4).
 
 2. Change the path in `downstream/speech_translation/prepare_data/prepare_covo.sh`
 
 ```bash
-covo_root="root directory of covost (ex. /Drive/cv-corpus-6.1-2020-12-11)"
+covo_root="root directory of covost"
 src_lang=en
 tgt_lang=de
 ```
