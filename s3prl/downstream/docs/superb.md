@@ -496,9 +496,9 @@ Simulate Libri2Mix Data for Diarization
 S3PRL_DIR="root directory of your cloned s3prl"
 CORPORA_DIR"root directory of all your datasets, which hopefully contains LibriSpeech (not necessary)"
 
-git clone https://github.com/ftshijt/LibriMix.git
+git clone https://github.com/s3prl/LibriMix.git
 cd LibriMix
-bash generate_librimix.sh $CORPORA_DIR
+bash generate_librimix_sd.sh $CORPORA_DIR
 python3 scripts/prepare_diarization.py \
     --target_dir $S3PRL_DIR/downstream/diarization/data \
     --source_dir $CORPORA_DIR/Libri2Mix/wav16k/max/metadata
@@ -604,9 +604,9 @@ Simulate Libri2Mix data for source separation. For source separation, we only ne
 
 ```bash
 # download the script and simulate Libri2Mix dataset
-git clone https://github.com/HuangZiliAndy/LibriMix.git
+git clone https://github.com/s3prl/LibriMix.git
 cd LibriMix 
-./generate_librimix.sh storage_dir
+./generate_librimix_ss.sh storage_dir
 
 # prepare train, dev and test data in Kaldi format
 python downstream/separation_stft/scripts/LibriMix/data_prepare.py \
