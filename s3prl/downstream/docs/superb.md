@@ -621,42 +621,32 @@ python downstream/separation_stft/scripts/LibriMix/data_prepare.py \
 
 #### Training
 
-Train with STFT magnitude as the upstream.
+Train with STFT magnitude as the upstream. The default stride is 20ms, and you can adjust that in `upstream/log_stft/stft_mag.yaml`
 
 ```bash
-python3 run_downstream.py \
-       --mode train --config downstream/separation_stft/configs/cfg.yaml \
-       --downstream separation_stft \
-       --upstream stft_mag \
-       --upstream_model_config 'upstream/log_stft/stft_mag.yaml' \
-       --expdir experiment/separation_stft/stft_mag
+python3 run_downstream.py -m train \
+        -d separation_stft \
+        -c downstream/separation_stft/configs/cfg.yaml \
+        -u stft_mag \
+        -g 'upstream/log_stft/stft_mag.yaml' \
+        -n ExpName
 ```
 
 Train with wav2vec2 as the upstream.
 
 ```bash
-python3 run_downstream.py \
-       --mode train --config downstream/separation_stft/configs/cfg.yaml \
-       --downstream separation_stft \
-       --upstream wav2vec2 \
-       --expdir experiment/separation_stft/wav2vec2
+python3 run_downstream.py --mode train \
+        -d separation_stft \
+        -c downstream/separation_stft/configs/cfg.yaml \
+        -u wav2vec2 \
+        -n ExpName \
 ```
-
-I included one upstream called stft_mag in my code, and it is simply extracting STFT magnitude. I notice that s3prl has support for different acoustic features in baseline, but since I am predicting STFT masks, I have to make sure the setup for STFT features and desired STFT masks are identical. 
-
-In other words, (1) when you are using STFT magnitude as the upstream, you need to make sure that the STFT parameters in downstream/separation_stft/configs/cfg.yaml and upstream/log_stft/stft_mag.yaml are identical. (2) When you are using other upstreams like wav2vec2, you need to make sure that the hop_length in downstream/separation_stft/configs/cfg.yaml is the same as the upstream. (like in this file, I am using a hop_length of 320 corresponding to 20ms stride for wav2vec2)
 
 #### Testing
 
 ```bash
-python3 run_downstream.py \
-       --mode evaluate \
-       --past_exp experiment/separation_stft/stft_mag/modelbest.ckpt \
-       --config downstream/separation_stft/configs/cfg.yaml \
-       --downstream separation_stft \
-       --upstream stft_mag \
-       --upstream_model_config 'upstream/log_stft/stft_mag.yaml' \
-       --expdir experiment/separation_stft/stft_mag
+python3 run_downstream.py -m evaluate \
+        -e result/downstream/ExpName/best-states-dev.ckpt \
 ```
 
 The model is expected to output si-sdri on the test set.

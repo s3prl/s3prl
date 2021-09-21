@@ -15,6 +15,7 @@ import math
 import random
 import h5py
 import numpy as np
+from pathlib import Path
 from collections import defaultdict
 import librosa
 
@@ -57,13 +58,14 @@ class DownstreamExpert(nn.Module):
     eg. downstream forward, metric computation, contents to log
     """
 
-    def __init__(self, upstream_dim, upstream_rate, downstream_expert, **kwargs):
+    def __init__(self, upstream_dim, upstream_rate, downstream_expert, expdir, **kwargs):
         super(DownstreamExpert, self).__init__()
         self.upstream_dim = upstream_dim
         self.upstream_rate = upstream_rate
         self.datarc = downstream_expert["datarc"]
         self.loaderrc = downstream_expert["loaderrc"]
         self.modelrc = downstream_expert["modelrc"]
+        self.expdir = expdir
 
         self.train_dataset = SeparationDataset(
                 data_dir=self.loaderrc["train_dir"],
@@ -333,24 +335,24 @@ class DownstreamExpert(nn.Module):
             )
             return []
         else:
-            if mode == 'dev':
-                COMPUTE_METRICS = ["si_sdr"]
-            elif mode == 'test':
-                COMPUTE_METRICS = ["si_sdr", "stoi", "pesq"] 
+            COMPUTE_METRICS = ["si_sdr", "stoi", "pesq"] 
             avg_loss = np.mean(records["loss"])
             logger.add_scalar(
                 f"separation_stft/{mode}-loss", avg_loss, global_step=global_step
             )
-            for metric in COMPUTE_METRICS:
-                avg_metric = np.mean(records[metric])
-                if mode == "test" or mode == "dev":
-                    print("Average {} of {} utts is {:.4f}".format(metric, len(records[metric]), avg_metric))
+            with (Path(self.expdir) / f"{mode}.metrics").open("w") as output:
+                for metric in COMPUTE_METRICS:
+                    avg_metric = np.mean(records[metric])
+                    if mode == "test" or mode == "dev":
+                        message = "Average {} of {} utts: {:.4f}".format(metric, len(records[metric]), avg_metric)
+                        print(message)
+                        print(message, file=output)
 
-                logger.add_scalar(
-                    f'separation_stft/{mode}-'+metric,
-                    avg_metric,
-                    global_step=global_step
-                )
+                    logger.add_scalar(
+                        f'separation_stft/{mode}-'+metric,
+                        avg_metric,
+                        global_step=global_step
+                    )
 
             save_ckpt = []
             assert 'si_sdr' in records

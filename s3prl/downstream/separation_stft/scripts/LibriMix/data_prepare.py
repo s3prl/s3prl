@@ -18,13 +18,16 @@ args = parser.parse_args()
 def main():
     output_dir = "{}/wav{}/{}/{}".format(args.tgt_dir, args.sample_rate, args.mode, args.part)
     if os.path.exists(output_dir):
-        raise ValueError("Warning: {} already exists, please check!")
+        raise ValueError("Warning: {} already exists, please check!".format(output_dir))
     else:
         os.makedirs(output_dir)
     
     wav_dir = "{}/wav{}/{}/{}".format(args.src_dir, args.sample_rate, args.mode, args.part)
     assert os.path.exists(wav_dir)
     for cond in ["s1", "s2", "mix_clean", "mix_both", "mix_single", "noise"]:
+        if not os.path.exists("{}/{}".format(wav_dir, cond)):
+            continue
+
         filelist = [f for f in os.listdir("{}/{}".format(wav_dir, cond)) if f.endswith(".wav")]
         filelist.sort()
         cond_dir = "{}/{}".format(output_dir, cond)
