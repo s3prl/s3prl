@@ -29,6 +29,49 @@ from huggingface_hub import HfApi, HfFolder, Repository
 
 SAMPLE_RATE = 16000
 
+MODEL_CARD_MARKDOWN = """---
+datasets:
+- superb
+tags:
+- library:s3prl
+- benchmark:superb
+- type:model
+---
+
+# Fine-tuned s3prl model
+
+Upstream Model: {upstream_model}
+
+## Model description
+
+[More information needed]
+
+## Intended uses & limitations
+
+[More information needed]
+
+## How to use
+
+[More information needed]
+
+## Limitations and bias
+
+[More information needed]
+
+## Training data
+
+[More information needed]
+
+## Training procedure
+
+[More information needed]
+
+## Evaluation results
+
+[More information needed]
+
+"""
+
 
 class ModelEntry:
     def __init__(self, model, name, trainable, interfaces):
@@ -163,6 +206,11 @@ class Runner():
         )
         self._load_weight(scheduler, 'Scheduler')
         return scheduler
+
+    def _create_model_card(self, path):
+        model_card = MODEL_CARD_MARKDOWN.format(upstream_model=self.args.upstream)
+        with open(os.path.join(path, "README.md"), "w") as f:
+            f.write(model_card)
 
 
     def train(self):
@@ -513,6 +561,11 @@ class Runner():
             CKPT_PATH = checkpoints[0]
         shutil.move(CKPT_PATH, os.path.join(REPO_TASK_DIR, "model.ckpt"))
         model_repo.lfs_track("*.ckpt")
+
+        # Write model card
+        self._create_model_card(REPO_ROOT_DIR)
+
+        # Push everything to the Hub
         print("[Runner] - Pushing model files to the Hub ...")
         model_repo.push_to_hub()
         print("[Runner] - Training run complete!")
