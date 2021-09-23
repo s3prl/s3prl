@@ -41,8 +41,8 @@ import numpy as np
 from statsmodels.stats.contingency_tables import mcnemar
 from scipy import stats
 #-------------#
-from downstream.runner import Runner
-from utility.helper import hack_isinstance, override, defaultdict
+from s3prl.downstream.runner import Runner
+from s3prl.utility.helper import hack_isinstance, override, defaultdict
 
 
 def get_ttest_args():

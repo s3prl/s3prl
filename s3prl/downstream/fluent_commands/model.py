@@ -16,8 +16,8 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 
-from upstream.mockingjay.model import TransformerEncoder
-from downstream.model import UtteranceLevel_Linear, AttentivePooling, MeanPooling
+from s3prl.upstream.mockingjay.model import TransformerEncoder
+from s3prl.downstream.model import UtteranceLevel_Linear, AttentivePooling, MeanPooling
 
 class Identity(nn.Module):
     def __init__(self, config, **kwargs):

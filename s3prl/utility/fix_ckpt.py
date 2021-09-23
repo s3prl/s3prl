@@ -61,7 +61,7 @@ def main():
     old_transformer = SPEC_TRANSFORMER(options, inp_dim=-1)
 
     # build model with new setting
-    from upstream.mockingjay.model import TransformerForMaskedAcousticModel
+    from s3prl.upstream.mockingjay.model import TransformerForMaskedAcousticModel
     model = TransformerForMaskedAcousticModel(old_transformer.model_config, old_transformer.inp_dim, old_transformer.inp_dim).to(torch.device('cuda'))
 
     # load old to new
