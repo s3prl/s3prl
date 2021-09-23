@@ -63,7 +63,7 @@ class Runner():
 
     def _init_model(self, model, name, trainable, interfaces=None):
         for interface in interfaces or []:
-            assert hasattr(model, interface)
+            assert hasattr(model, interface), interface
 
         self._load_weight(model, name)
 
@@ -422,14 +422,14 @@ class Runner():
 
     def inference(self):
         filepath = Path(self.args.evaluate_split)
-        assert filepath.is_file()
+        assert filepath.is_file(), filepath
         filename = filepath.stem
 
         if hasattr(self.downstream.model, "load_audio"):
             wav = self.downstream.model.load_audio(filepath)
         else:
             wav, sr = torchaudio.load(str(filepath))
-            assert sr == SAMPLE_RATE
+            assert sr == SAMPLE_RATE, sr
         wavs = [wav.view(-1).to(self.args.device)]
 
         for entry in self.all_entries:
