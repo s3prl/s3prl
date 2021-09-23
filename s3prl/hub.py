@@ -12,7 +12,7 @@ for _hubconf in _hubconfs:
         _module = _importlib.import_module(_module_name, package=__package__)
 
     except ModuleNotFoundError as e:
-        print(f'[hubconf] can not import {_module_name}: {str(e)}... Pass.')
+        print(f'[Warning] can not import {_module_name}: {str(e)}. Please see {_pathlib.Path(posixpath).parent / "README.md"}')
         continue
 
     for variable_name in dir(_module):

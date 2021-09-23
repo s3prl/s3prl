@@ -212,13 +212,6 @@ class Runner():
                 dataloader = self.downstream.model.get_dataloader(train_split, epoch=epoch)
             except TypeError as e:
                 if "unexpected keyword argument 'epoch'" in str(e):
-                    show("[Runner] - Warning: If you are implementing a new task. This message should not"
-                        " appear. Please accept the epoch argument for your downstream's get_dataloader."
-                        " Also, setting the epoch for DistributedSampler should be already done before returning"
-                        " the dataloader. Please refer to the latest downstream/example/expert.py:get_dataloader."
-                        " This line is for backward compatibility only.",
-                        file=sys.stderr
-                    )
                     dataloader = self.downstream.model.get_dataloader(train_split)
                     if hasattr(dataloader, "sampler") and isinstance(dataloader.sampler, DistributedSampler):
                         dataloader.sampler.set_epoch(epoch)

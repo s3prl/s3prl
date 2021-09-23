@@ -55,7 +55,7 @@ If you find this toolkit helpful to your research, please do consider to cite [o
 
 ## Installation
 
-1. **Python** >= 3.6
+1. **Python** >= 3.8
 2. Install **sox** on your OS
 3. Install s3prl
 
