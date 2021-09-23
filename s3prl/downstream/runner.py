@@ -457,11 +457,15 @@ class Runner():
         print(f"[Runner] - Organisation to push fine-tuned model to: {organization}")
         
         # Extract upstream repository metadata
-        model_info = HfApi().model_info(self.args.upstream, token=huggingface_token)
-        commit_sha = model_info.sha
-        # Exclude "/" characters from downstream repo ID
-        upstream_model_id = model_info.modelId.replace("/", "__")
-        repo_name = f"{upstream_model_id}__{commit_sha}"
+        if self.args.from_hf_hub:
+            model_info = HfApi().model_info(self.args.upstream, token=huggingface_token)
+            downstream_model_id = model_info.sha
+            # Exclude "/" characters from downstream repo ID
+            upstream_model_id = model_info.modelId.replace("/", "__")
+        else:
+            upstream_model_id = self.args.upstream.replace("/", "__")
+            downstream_model_id = str(uuid.uuid4())[:8]
+        repo_name = f"{upstream_model_id}__{downstream_model_id}"
         # Create downstream repo on the Hub
         repo_url = HfApi().create_repo(
             token=huggingface_token,
@@ -476,9 +480,12 @@ class Runner():
         HF_HUB_DIR = "hf_hub"
         REPO_ROOT_DIR = os.path.join(self.args.expdir, HF_HUB_DIR, repo_name)
         REPO_TASK_DIR = os.path.join(REPO_ROOT_DIR, self.args.downstream)
+        print(f"[Runner] - Cloning Hub repo to {REPO_ROOT_DIR}")
         model_repo = Repository(
             local_dir=REPO_ROOT_DIR, clone_from=repo_url, use_auth_token=huggingface_token
         )
+        # Pull latest changes if they exist
+        model_repo.git_pull()
         TEMPLATES_PATH = Path(f"./downstream/{self.args.downstream}/hf_hub_templates/")
         if TEMPLATES_PATH.exists():
             shutil.copytree(TEMPLATES_PATH, REPO_TASK_DIR, dirs_exist_ok=True)
@@ -508,4 +515,4 @@ class Runner():
         model_repo.lfs_track("*.ckpt")
         print("[Runner] - Pushing model files to the Hub ...")
         model_repo.push_to_hub()
-        print("T[Runner] - raining run complete!")
+        print("[Runner] - Training run complete!")
