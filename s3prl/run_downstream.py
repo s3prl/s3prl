@@ -45,7 +45,7 @@ def get_downstream_args():
     parser.add_argument('-c', '--config', help='The yaml file for configuring the whole experiment except the upstream model')
 
     # downstream settings
-    downstreams = [attr for attr in dir(downstream) if attr[0] != '_']
+    downstreams = [attr for attr in dir(downstream.experts) if attr[0] != '_']
     parser.add_argument('-d', '--downstream', choices=downstreams, help='\
         Typically downstream dataset need manual preparation.\
         Please check downstream/README.md for details'
@@ -56,10 +56,12 @@ def get_downstream_args():
     parser.add_argument('--hub', default="torch", choices=["torch", "huggingface"],
         help='The model Hub used to retrieve the upstream model.')
 
-    parser.add_argument('-u', '--upstream',  help='\
-        Some upstream variants need local ckpt or config file.\
-        Some download needed files on-the-fly and cache them.\
-        Please check downstream/README.md for details'
+    upstreams = [attr for attr in dir(hub) if attr[0] != '_']
+    parser.add_argument('-u', '--upstream',  help=""
+        'Upstreams with \"_local\" or \"_url\" postfix need local ckpt (-k) or config file (-g). '
+        'Other upstreams download two files on-the-fly and cache them, so just -u is enough and -k/-g are not needed. '
+        'Please check upstream/README.md for details. '
+        f"Available options in S3PRL: {upstreams}. "
     )
     parser.add_argument('-k', '--upstream_ckpt', metavar='{PATH,URL,GOOGLE_DRIVE_ID}', help='Only set when the specified upstream need it')
     parser.add_argument('-g', '--upstream_model_config', help='The config file for constructing the pretrained model')
