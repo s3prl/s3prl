@@ -160,7 +160,7 @@ setup(
     #
     #   py_modules=["my_module"],
     #
-    packages=find_packages(include=["s3prl.*"]),  # Required
+    packages=find_packages(include=["s3prl*"]),  # Required
 
     # Specify which Python versions you support. In contrast to the
     # 'Programming Language' classifiers above, 'pip install' will check this
