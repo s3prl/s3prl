@@ -448,6 +448,7 @@ class Runner():
             self.downstream.model.inference(features, [filename])
 
     def push_to_huggingface_hub(self):
+        """Creates a downstream repository on the Hub and pushes training artifacts to it."""
         if self.args.hf_hub_org.lower() != "none":
             organization = self.args.hf_hub_org
         else:
@@ -455,9 +456,13 @@ class Runner():
         huggingface_token = HfFolder.get_token()
         print(f"[Runner] - Organisation to push fine-tuned model to: {organization}")
         
-        # Create repo on the Hub
-        upstream_model = self.args.upstream.replace("/", "__")
-        repo_name = f"superb-s3prl-{upstream_model}-{self.args.downstream}-{str(uuid.uuid4())[:8]}"
+        # Extract upstream repository metadata
+        model_info = HfApi().model_info(self.args.upstream, token=huggingface_token)
+        commit_sha = model_info.sha
+        # Exclude "/" characters from downstream repo ID
+        upstream_model_id = model_info.modelId.replace("/", "__")
+        repo_name = f"{upstream_model_id}__{commit_sha}"
+        # Create downstream repo on the Hub
         repo_url = HfApi().create_repo(
             token=huggingface_token,
             name=repo_name,
