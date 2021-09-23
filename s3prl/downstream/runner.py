@@ -505,7 +505,7 @@ class Runner():
         print(f"[Runner] - Organisation to push fine-tuned model to: {organization}")
         
         # Extract upstream repository metadata
-        if self.args.from_hf_hub:
+        if self.args.hub == "huggingface":
             model_info = HfApi().model_info(self.args.upstream, token=huggingface_token)
             downstream_model_id = model_info.sha
             # Exclude "/" characters from downstream repo ID
