@@ -43,6 +43,9 @@ class UpstreamExpert(nn.Module):
             states.pop(key)
         return states
 
+    def get_downsample_rates(self, key: str) -> int:
+        return self.upstream.get_downsample_rates(key)
+
     def forward(self, wavs):
         """
         Args:
