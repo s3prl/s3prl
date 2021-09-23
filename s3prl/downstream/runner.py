@@ -129,7 +129,7 @@ class Runner():
 
 
     def _get_downstream(self):
-        Downstream = getattr(downstream, self.args.downstream)
+        Downstream = getattr(downstream.experts, self.args.downstream)
         model = Downstream(
             upstream_dim = self.featurizer.model.output_dim,
             upstream_rate = self.featurizer.model.downsample_rate,

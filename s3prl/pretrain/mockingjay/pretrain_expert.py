@@ -16,12 +16,12 @@ import torch
 import torch.nn as nn
 from torch.utils.data import DataLoader
 #-------------#
-from pretrain.mockingjay.dataset import KaldiAcousticDataset, OnlineAcousticDataset
-from upstream.mockingjay.model import TransformerConfig, TransformerInitModel
-from upstream.mockingjay.model import TransformerSpecPredictionHead, TransformerModel
-from upstream.baseline.extracter import get_extracter
-from upstream.baseline.preprocessor import get_preprocessor
-from utility.audio import plot_spectrogram_to_numpy
+from s3prl.pretrain.mockingjay.dataset import KaldiAcousticDataset, OnlineAcousticDataset
+from s3prl.upstream.mockingjay.model import TransformerConfig, TransformerInitModel
+from s3prl.upstream.mockingjay.model import TransformerSpecPredictionHead, TransformerModel
+from s3prl.upstream.baseline.extracter import get_extracter
+from s3prl.upstream.baseline.preprocessor import get_preprocessor
+from s3prl.utility.audio import plot_spectrogram_to_numpy
 
 
 ####################

@@ -12,8 +12,8 @@
 ###############
 from torch.utils.data import DataLoader
 #-------------#
-from pretrain.mockingjay.pretrain_expert import UpstreamPretrainExpert as MockingjayPretrainExpert
-from pretrain.specaug_transformer.dataset import KaldiAcousticDataset, OnlineAcousticDataset
+from s3prl.pretrain.mockingjay.pretrain_expert import UpstreamPretrainExpert as MockingjayPretrainExpert
+from s3prl.pretrain.spec_augment.dataset import KaldiAcousticDataset, OnlineAcousticDataset
 
 
 ####################

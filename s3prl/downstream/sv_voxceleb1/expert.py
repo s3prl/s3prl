@@ -25,7 +25,7 @@ from torch.nn.utils.rnn import pad_sequence
 from torch.utils.data import DataLoader, DistributedSampler
 from torch.distributed import is_initialized, get_rank, get_world_size
 #-------------#
-from utility.helper import is_leader_process
+from s3prl.utility.helper import is_leader_process
 from .model import Model, AMSoftmaxLoss, SoftmaxLoss, UtteranceExtractor
 from .dataset import SpeakerVerifi_train, SpeakerVerifi_test
 from .utils import EER
