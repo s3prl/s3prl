@@ -468,40 +468,35 @@ class Runner():
             name=repo_name,
             organization=organization,
             exist_ok=True,
-            private=True,
+            private=False,
         )
         print(f"[Runner] - Created Hub repo: {repo_url}")
 
         # Download repo and copy templates
         HF_HUB_DIR = "hf_hub"
-        REPO_PATH = os.path.join(self.args.expdir, HF_HUB_DIR, repo_name)
+        REPO_ROOT_DIR = os.path.join(self.args.expdir, HF_HUB_DIR, repo_name)
+        REPO_TASK_DIR = os.path.join(REPO_ROOT_DIR, self.args.downstream)
         model_repo = Repository(
-            local_dir=REPO_PATH, clone_from=repo_url, use_auth_token=huggingface_token
+            local_dir=REPO_ROOT_DIR, clone_from=repo_url, use_auth_token=huggingface_token
         )
         TEMPLATES_PATH = Path(f"./downstream/{self.args.downstream}/hf_hub_templates/")
         if TEMPLATES_PATH.exists():
-            shutil.copytree(TEMPLATES_PATH, REPO_PATH, dirs_exist_ok=True)
+            shutil.copytree(TEMPLATES_PATH, REPO_TASK_DIR, dirs_exist_ok=True)
         else:
             print(f"[Runner] - No Hugging Face Hub template found for downstream task! Experiment files will still be pushed to the Hub in raw form")
 
         # Copy checkpoints, tensorboard logs, and args / configs
-        shutil.copytree(self.args.expdir, REPO_PATH, dirs_exist_ok=True, ignore=shutil.ignore_patterns(HF_HUB_DIR))
-
-        # Inject upstream model name into model card
-        with open(os.path.join(REPO_PATH, "README.md"), "r+") as f:
-            readme = f.read()
-            readme = readme.replace("${upstream_model}", self.args.upstream)
-            f.seek(0)
-            f.write(readme)
-            f.truncate()
+        # Note that this copies all files from the experiment directory,
+        # including those from multiple runs
+        shutil.copytree(self.args.expdir, REPO_TASK_DIR, dirs_exist_ok=True, ignore=shutil.ignore_patterns(HF_HUB_DIR))
 
         # By default we use model.ckpt in the PreTrainedModel interface, so
         # rename the best checkpoint to match this convention
-        checkpoints = list(Path(REPO_PATH).glob("*best*.ckpt"))
+        checkpoints = list(Path(REPO_TASK_DIR).glob("*best*.ckpt"))
         if len(checkpoints) == 0:
             print("[Runner] - Did not find a best checkpoint! Using the final checkpoint instead ...")
             CKPT_PATH = (
-                os.path.join(REPO_PATH, f"states-{self.config['runner']['total_steps']}.ckpt")
+                os.path.join(REPO_TASK_DIR, f"states-{self.config['runner']['total_steps']}.ckpt")
                 )
         elif len(checkpoints) > 1:
             print(f"[Runner] - More than one best checkpoint found! Using {checkpoints[0]} as default ...")
@@ -509,7 +504,7 @@ class Runner():
         else:
             print(f"[Runner] - Found best checkpoint {checkpoints[0]}!")
             CKPT_PATH = checkpoints[0]
-        shutil.move(CKPT_PATH, os.path.join(REPO_PATH, "model.ckpt"))
+        shutil.move(CKPT_PATH, os.path.join(REPO_TASK_DIR, "model.ckpt"))
         model_repo.lfs_track("*.ckpt")
         print("[Runner] - Pushing model files to the Hub ...")
         model_repo.push_to_hub()
