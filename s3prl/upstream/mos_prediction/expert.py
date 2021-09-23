@@ -3,12 +3,12 @@ from typing import List, Union, Dict
 
 import torch
 import torch.nn as nn
-import s3prl.hub as hub
 from torch import Tensor
 from torch.nn.utils.rnn import pad_sequence
 from torchaudio.sox_effects import apply_effects_tensor
 from itertools import accumulate
 
+import s3prl
 from ..interfaces import UpstreamBase, Featurizer
 from .model import MosDownstream, MosDownstreamModule
 from .utility import unfold_segments
@@ -80,7 +80,7 @@ class UpstreamExpert(UpstreamBase):
         return wav_segments
 
     def _get_mos_upstream(self):
-        mos_upstream = getattr(hub, self.upstream_type)()
+        mos_upstream = getattr(s3prl.hub, self.upstream_type)()
         if self.upstream_type == "tera":
             self.checkpoint["Upstream"][
                 "transformer.extracter._melscale.fb"
