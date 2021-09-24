@@ -527,7 +527,7 @@ class Runner():
         # Download repo and copy templates
         HF_HUB_DIR = "hf_hub"
         REPO_ROOT_DIR = os.path.join(self.args.expdir, HF_HUB_DIR, repo_name)
-        REPO_TASK_DIR = os.path.join(REPO_ROOT_DIR, self.args.downstream)
+        REPO_TASK_DIR = os.path.join(REPO_ROOT_DIR, self.args.downstream, self.args.expname)
         print(f"[Runner] - Cloning Hub repo to {REPO_ROOT_DIR}")
         model_repo = Repository(
             local_dir=REPO_ROOT_DIR, clone_from=repo_url, use_auth_token=huggingface_token
