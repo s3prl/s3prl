@@ -524,7 +524,7 @@ class Runner():
         )
         print(f"[Runner] - Created Hub repo: {repo_url}")
 
-        # Download repo and copy templates
+        # Download repo
         HF_HUB_DIR = "hf_hub"
         REPO_ROOT_DIR = os.path.join(self.args.expdir, HF_HUB_DIR, repo_name)
         REPO_TASK_DIR = os.path.join(REPO_ROOT_DIR, self.args.downstream, self.args.expname)
