@@ -534,11 +534,6 @@ class Runner():
         )
         # Pull latest changes if they exist
         model_repo.git_pull()
-        TEMPLATES_PATH = Path(f"./downstream/{self.args.downstream}/hf_hub_templates/")
-        if TEMPLATES_PATH.exists():
-            shutil.copytree(TEMPLATES_PATH, REPO_TASK_DIR, dirs_exist_ok=True)
-        else:
-            print(f"[Runner] - No Hugging Face Hub template found for downstream task! Experiment files will still be pushed to the Hub in raw form")
 
         # Copy checkpoints, tensorboard logs, and args / configs
         # Note that this copies all files from the experiment directory,
