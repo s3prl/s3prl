@@ -765,7 +765,7 @@ The model will report case-sensitive detokenized BLEU.
 
 # Leaderboard submission
 
-After *finishing the **Testing*** of each task, the prediction files for leaderboard submission will be located under the `expdir`. You can use [submit.py](../../submit/submit.py) to easily organize them into a zip file which can later be submitted to our [leaderboard](https://superbbenchmark.org/submit). We now support submissions for the following tasks: **PR**, **ASR**, **KS**, **QbE**, **SID**, **ASV**, **SD**, **IC**, **SF**, **ER**. The following tasks will be supported soon: **SS**, **SE**, **ST**.
+After *finishing the **Testing*** of each task, the prediction files for leaderboard submission will be located under the `expdir`. You can use [submit.py](../../submit/submit.py) to easily organize them into a zip file which can later be submitted to our [leaderboard](https://superbbenchmark.org/submit). We now support submissions for the following tasks: **PR**, **ASR**, **KS**, **QbE**, **SID**, **ASV**, **SD**, **IC**, **SF**, **ER**. The following tasks will be supported soon: **SS**, **ST**.
 
 ```sh
 output_dir="submission"
@@ -786,7 +786,8 @@ python3 submit/submit.py \
     --qbe qbe_expdir \
     --sf sf_expdir \
     --sv sv_expdir \
-    --sd sd_expdir
+    --sd sd_expdir \
+    --se se_expdir \
 ```
 
 After executing, you can submit **submission/predict.zip** to the leaderboard.
@@ -809,6 +810,7 @@ expdirs/
     sf_expdir/
     sid_expdir/
     sv_expdir/
+    se_expdir/
 ```
 
 Each **expdir** will contain the minimal submission-related files which should also appear in your **expdir** after you do the testing. Here is an [**example-script**](../submit/demo_submit.sh) on how to use the above **example-expdirs** to prepare a submittable zip file.
