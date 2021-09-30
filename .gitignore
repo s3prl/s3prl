@@ -154,3 +154,5 @@ data
 utt2spk
 spk2utt
 experiment
+*.tar.gz
+*.tsv

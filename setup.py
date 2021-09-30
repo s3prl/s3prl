@@ -29,6 +29,7 @@ requirements = [
     "transformers>=4.10.0,<5.0",
     "dtw-python==1.1.6",
     "asteroid==0.4.4",
+    "sacrebleu>=2.0.0"
     "kaldi_io",
     "h5py",
     "sox",

@@ -20,6 +20,7 @@ parser.add_argument("--sf")
 parser.add_argument("--sv")
 parser.add_argument("--sd")
 parser.add_argument("--se")
+parser.add_argument("--st")
 parser.add_argument("--output_dir", required=True)
 args = parser.parse_args()
 
@@ -209,6 +210,21 @@ if args.se is not None:
     tgt_dir = predict_dir / task_name
     tgt_dir.mkdir(exist_ok=True)
     tgt = tgt_dir / "metrics.txt"
+
+    copyfile(src, tgt)
+    print(f"{task_name} is included in the submission and will be scored after submitted.")
+
+if args.st is not None:
+    task_name = "st_public"
+    processed_tasks.append(task_name)
+
+    expdir = Path(args.st)
+    src = expdir / "output-st-test.tsv"
+    assert src.is_file(), f"{src} not found"
+
+    tgt_dir = predict_dir / task_name
+    tgt_dir.mkdir(exist_ok=True)
+    tgt = tgt_dir / "predict.tsv"
 
     copyfile(src, tgt)
     print(f"{task_name} is included in the submission and will be scored after submitted.")
