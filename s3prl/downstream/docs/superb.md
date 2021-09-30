@@ -663,12 +663,12 @@ from voicebank_prepare import download_vctk
 download_vctk(data_dir)
 
 # prepare train, dev and test data in Kaldi format
-python s3prl/downstream/enhancement_stft/scripts/Voicebank/data_prepare.py \
-    data_dir s3prl/downstream/enhancement_stft/voicebank --part train
-python s3prl/downstream/enhancement_stft/scripts/Voicebank/data_prepare.py \
-    data_dir s3prl/downstream/enhancement_stft/voicebank --part dev
-python s3prl/downstream/enhancement_stft/scripts/Voicebank/data_prepare.py \
-    data_dir s3prl/downstream/enhancement_stft/voicebank --part test
+python downstream/enhancement_stft/scripts/Voicebank/data_prepare.py \
+    data_dir downstream/enhancement_stft/voicebank --part train
+python downstream/enhancement_stft/scripts/Voicebank/data_prepare.py \
+    data_dir downstream/enhancement_stft/voicebank --part dev
+python downstream/enhancement_stft/scripts/Voicebank/data_prepare.py \
+    data_dir downstream/enhancement_stft/voicebank --part test
 ```
 
 #### Training
@@ -676,26 +676,18 @@ python s3prl/downstream/enhancement_stft/scripts/Voicebank/data_prepare.py \
 Train with hubert as the upstream.
 
 ```bash
-python3 s3prl/run_downstream.py \
-       --mode train \
-       --config s3prl/downstream/enhancement_stft/configs/cfg_voicebank.yaml \
-       --downstream enhancement_stft \
-       --upstream hubert \
-       --expdir experiment/enhancement_stft/hubert \
-       --verbose
+python3 run_downstream.py -m train \
+       -c downstream/enhancement_stft/configs/cfg_voicebank.yaml \
+       -d enhancement_stft \
+       -u hubert \
+       -n ExpName \
 ```
 
 #### Testing
 
 ```bash
-python3 s3prl/run_downstream.py \
-       --mode evaluate \
-       --past_exp experiment/enhancement_stft/hubert/best-states-dev.ckpt \
-       --config s3prl/downstream/enhancement_stft/configs/cfg_voicebank.yaml \
-       --downstream enhancement_stft \
-       --upstream hubert \
-       --expdir experiment/enhancement_stft/hubert \
-       --verbose
+python3 run_downstream.py -m evaluate \
+       -e result/downstream/ExpName/best-states-dev.ckpt \
 ```
 The model is expected to output pesq, stoi, covl and si-sdri on the test set.
 

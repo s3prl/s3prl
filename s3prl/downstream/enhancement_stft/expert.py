@@ -18,6 +18,7 @@ import numpy as np
 from collections import defaultdict
 import librosa
 import soundfile as sf
+from pathlib import Path
 
 # -------------#
 import torch
@@ -60,13 +61,14 @@ class DownstreamExpert(nn.Module):
     eg. downstream forward, metric computation, contents to log
     """
 
-    def __init__(self, upstream_dim, upstream_rate, downstream_expert, **kwargs):
+    def __init__(self, upstream_dim, upstream_rate, downstream_expert, expdir, **kwargs):
         super(DownstreamExpert, self).__init__()
         self.upstream_dim = upstream_dim
         self.upstream_rate = upstream_rate
         self.datarc = downstream_expert["datarc"]
         self.loaderrc = downstream_expert["loaderrc"]
         self.modelrc = downstream_expert["modelrc"]
+        self.expdir = expdir
 
         self.train_dataset = SeparationDataset(
                 data_dir=self.loaderrc["train_dir"],
@@ -338,6 +340,7 @@ class DownstreamExpert(nn.Module):
             )
             return []
         else:
+            eval_result = open(Path(self.expdir) / f"{mode}_metrics.txt", "w")
             avg_loss = np.mean(records["loss"])
             logger.add_scalar(
                 f"separation_stft/{mode}-loss", avg_loss, global_step=global_step
@@ -346,6 +349,7 @@ class DownstreamExpert(nn.Module):
                 avg_metric = np.mean(records[metric])
                 if mode == "test" or mode == "dev":
                     print("Average {} of {} utts is {:.4f}".format(metric, len(records[metric]), avg_metric))
+                    print(metric, avg_metric, file=eval_result)
 
                 logger.add_scalar(
                     f'separation_stft/{mode}-'+metric,

@@ -29,9 +29,9 @@ downstream_expert:
     num_workers: 4
     train_batchsize: 8
     eval_batchsize: 1
-    train_dir: ./s3prl/downstream/enhancement_stft/voicebank/wav16k/train
-    dev_dir: ./s3prl/downstream/enhancement_stft/voicebank/wav16k/dev
-    test_dir: ./s3prl/downstream/enhancement_stft/voicebank/wav16k/test
+    train_dir: downstream/enhancement_stft/voicebank/wav16k/train
+    dev_dir: downstream/enhancement_stft/voicebank/wav16k/dev
+    test_dir: downstream/enhancement_stft/voicebank/wav16k/test
   
   modelrc: 
     model: SepRNN
