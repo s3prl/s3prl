@@ -340,13 +340,12 @@ class DownstreamExpert(nn.Module):
             logger.add_scalar(
                 f"separation_stft/{mode}-loss", avg_loss, global_step=global_step
             )
-            with (Path(self.expdir) / f"{mode}.metrics").open("w") as output:
+            with (Path(self.expdir) / f"{mode}_metrics.txt").open("w") as output:
                 for metric in COMPUTE_METRICS:
                     avg_metric = np.mean(records[metric])
                     if mode == "test" or mode == "dev":
-                        message = "Average {} of {} utts: {:.4f}".format(metric, len(records[metric]), avg_metric)
-                        print(message)
-                        print(message, file=output)
+                        print("Average {} of {} utts: {:.4f}".format(metric, len(records[metric]), avg_metric))
+                        print(metric, avg_metric, file=output)
 
                     logger.add_scalar(
                         f'separation_stft/{mode}-'+metric,
