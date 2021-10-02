@@ -47,6 +47,14 @@ def fbank(*args, **kwargs):
     return baseline_local(*args, **kwargs)
 
 
+def fbank_no_cmvn(*args, **kwargs):
+    """
+        Baseline feature - Fbank, or Mel-scale spectrogram
+    """
+    kwargs['model_config'] = os.path.join(os.path.dirname(__file__), 'fbank_no_cmvn.yaml')
+    return baseline_local(*args, **kwargs)
+
+
 def mfcc(*args, **kwargs):
     """
         Baseline feature - MFCC
