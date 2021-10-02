@@ -663,12 +663,12 @@ from voicebank_prepare import download_vctk
 download_vctk(data_dir)
 
 # prepare train, dev and test data in Kaldi format
-python s3prl/downstream/enhancement_stft/scripts/Voicebank/data_prepare.py \
-    data_dir s3prl/downstream/enhancement_stft/voicebank --part train
-python s3prl/downstream/enhancement_stft/scripts/Voicebank/data_prepare.py \
-    data_dir s3prl/downstream/enhancement_stft/voicebank --part dev
-python s3prl/downstream/enhancement_stft/scripts/Voicebank/data_prepare.py \
-    data_dir s3prl/downstream/enhancement_stft/voicebank --part test
+python downstream/enhancement_stft/scripts/Voicebank/data_prepare.py \
+    data_dir downstream/enhancement_stft/voicebank --part train
+python downstream/enhancement_stft/scripts/Voicebank/data_prepare.py \
+    data_dir downstream/enhancement_stft/voicebank --part dev
+python downstream/enhancement_stft/scripts/Voicebank/data_prepare.py \
+    data_dir downstream/enhancement_stft/voicebank --part test
 ```
 
 #### Training
@@ -676,26 +676,18 @@ python s3prl/downstream/enhancement_stft/scripts/Voicebank/data_prepare.py \
 Train with hubert as the upstream.
 
 ```bash
-python3 s3prl/run_downstream.py \
-       --mode train \
-       --config s3prl/downstream/enhancement_stft/configs/cfg_voicebank.yaml \
-       --downstream enhancement_stft \
-       --upstream hubert \
-       --expdir experiment/enhancement_stft/hubert \
-       --verbose
+python3 run_downstream.py -m train \
+       -c downstream/enhancement_stft/configs/cfg_voicebank.yaml \
+       -d enhancement_stft \
+       -u hubert \
+       -n ExpName \
 ```
 
 #### Testing
 
 ```bash
-python3 s3prl/run_downstream.py \
-       --mode evaluate \
-       --past_exp experiment/enhancement_stft/hubert/best-states-dev.ckpt \
-       --config s3prl/downstream/enhancement_stft/configs/cfg_voicebank.yaml \
-       --downstream enhancement_stft \
-       --upstream hubert \
-       --expdir experiment/enhancement_stft/hubert \
-       --verbose
+python3 run_downstream.py -m evaluate \
+       -e result/downstream/ExpName/best-states-dev.ckpt \
 ```
 The model is expected to output pesq, stoi, covl and si-sdri on the test set.
 
@@ -773,7 +765,7 @@ The model will report case-sensitive detokenized BLEU.
 
 # Leaderboard submission
 
-After *finishing the **Testing*** of each task, the prediction files for leaderboard submission will be located under the `expdir`. You can use [submit.py](../../submit/submit.py) to easily organize them into a zip file which can later be submitted to our [leaderboard](https://superbbenchmark.org/submit). We now support submissions for the following tasks: **PR**, **ASR**, **KS**, **QbE**, **SID**, **ASV**, **SD**, **IC**, **SF**, **ER**. The following tasks will be supported soon: **SS**, **SE**, **ST**.
+After *finishing the **Testing*** of each task, the prediction files for leaderboard submission will be located under the `expdir`. You can use [submit.py](../../submit/submit.py) to easily organize them into a zip file which can later be submitted to our [leaderboard](https://superbbenchmark.org/submit). We now support submissions for the following tasks: **PR**, **ASR**, **KS**, **QbE**, **SID**, **ASV**, **SD**, **IC**, **SF**, **ER**, **SE**, **SS**, **ST**.
 
 ```sh
 output_dir="submission"
@@ -794,7 +786,10 @@ python3 submit/submit.py \
     --qbe qbe_expdir \
     --sf sf_expdir \
     --sv sv_expdir \
-    --sd sd_expdir
+    --sd sd_expdir \
+    --se se_expdir \
+    --ss ss_expdir \
+    --st st_expdir \
 ```
 
 After executing, you can submit **submission/predict.zip** to the leaderboard.
@@ -813,10 +808,7 @@ expdirs/
     ks_expdir/
     pr_expdir/
     qbe_expdir/
-    sd_expdir/
-    sf_expdir/
-    sid_expdir/
-    sv_expdir/
+    ...
 ```
 
 Each **expdir** will contain the minimal submission-related files which should also appear in your **expdir** after you do the testing. Here is an [**example-script**](../submit/demo_submit.sh) on how to use the above **example-expdirs** to prepare a submittable zip file.
