@@ -121,7 +121,15 @@ class OnlinePreprocessor(torch.nn.Module):
             wavs = self._pseudo_wavs[0].view(1, 1, -1).repeat(1, max_channel_id + 1, 1)
         assert wavs.dim() >= 3
 
-        wavs_len = wavs.bool().sum(dim=-1).view(-1).tolist()
+        # find length of wavs from padded tensor
+        wavs_len = []
+        for wav in wavs:
+            nonzero_index = wav.nonzero()
+            if len(nonzero_index) == 0:
+                wavs_len.append(wav.size(-1)) # when all elements are zero
+            else:
+                wavs_len.append(nonzero_index[:, -1].max().item()+1)
+
         wavs = pad_sequence([wav[:wav_len].transpose(-1, -2) for wav, wav_len in zip(wavs, wavs_len)], batch_first=True).transpose(-1, -2)
 
         wav = wavs.unsqueeze(2)
