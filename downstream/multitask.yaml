@@ -52,7 +52,7 @@ pr:
     test: ['test-clean']
 
     bucketing: True                       # Enable/Disable bucketing 
-    batch_size: 1
+    batch_size: 2
     num_workers: 24
   
   text:
@@ -97,7 +97,7 @@ ks:
     speech_commands_root: /SpeechNet/datasets/speech_commands_v0.01
     speech_commands_test_root: /SpeechNet/datasets/speech_commands_test_set_v0.01
     num_workers: 8
-    batch_size: 1
+    batch_size: 2
 
   modelrc:
     projector_dim: 256
@@ -117,7 +117,7 @@ ic:
   datarc:
     file_path: /SpeechNet/datasets/fluent_speech_commands_dataset
     num_workers: 12
-    train_batch_size: 1
+    train_batch_size: 2
     eval_batch_size: 8
 
   modelrc:
@@ -139,7 +139,7 @@ sid:
     file_path: /VoxCeleb1
     meta_data: ./downstream/voxceleb1/veri_test_class.txt
     num_workers: 12
-    train_batch_size: 1
+    train_batch_size: 2
     eval_batch_size: 4
     max_timestep: 128000
 
@@ -161,7 +161,7 @@ er:
   datarc:
     root: /SpeechNet/datasets/IEMOCAP
     pre_load: True
-    train_batch_size: 1
+    train_batch_size: 2
     eval_batch_size: 4
     num_workers: 12
     valid_ratio: 0.2
@@ -201,7 +201,7 @@ asr:
     test-clean: ['test-clean']
     test-other: ['test-other']
     num_workers: 12
-    train_batch_size: 1
+    train_batch_size: 2
     eval_batch_size: 4
     libri_root: '/LibriSpeech_grt'
     bucket_file: 'data/LibriSpeech/len_for_bucket'
@@ -260,7 +260,7 @@ sf:
     test: ['test']
 
     bucketing: True                       # Enable/Disable bucketing 
-    batch_size: 1
+    batch_size: 2
     train_speakers: 
     # - Aditi
     # - Amy
@@ -370,7 +370,7 @@ sv:
     test_meta_data: ./downstream/sv_voxceleb1/voxceleb1_test_v2.txt
 
     max_timestep: 128000
-    train_batch_size: 1
+    train_batch_size: 2
     eval_batch_size: 4
     num_workers: 8 
 
