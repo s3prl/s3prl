@@ -10,7 +10,7 @@ We develop several downstream tasks for evaluating SSL models, each of them is d
 
 #### I. General requirement
 
-1. [Clone the repository and install dependencies](../README.md#installation)
+1. [Clone the repository and install dependencies](../../README.md#installation)
 2. See the [General Usage](#general-usage) to have a sense on the conceptual usage
 
 #### II A. Run the developed tasks
@@ -226,9 +226,9 @@ docker run --gpus all -it -P -v /data/lewis/superb:/app/data -e "HF_USERNAME=use
 
 Each downstream task is defined by a **self-contained** folder under this [downstream](./) folder, like the task ASR is defined in [downstream/asr](./asr). Once a new folder is placed under this [downstream](./) folder, says `downstream/blabla/`, you can specify to run this new downstream task with `-d blabla` option in [run_downstream.py](../run_downstream.py) script.
 
-By **self-contained** we mean there should be all the downstream specific materials under your task folder, including the definition for dataset, datalader,model, and loss. How to define these materials are completely free, while the only requirement is to provide an `expert.py` file with an `DownstreamExpert` **nn.module** at the root of your downstream folder, where 3 object methods are implemented: `get_dataloader`, `forward`, and `log_records`.
+By **self-contained** we mean there should be all the downstream specific materials under your task folder, including the definition for dataset, dataloader, model, and loss. How to define these materials are completely free, while the only requirement is to provide an `expert.py` file with an `DownstreamExpert` **nn.module** at the root of your downstream folder, where 3 object methods are implemented: `get_dataloader`, `forward`, and `log_records`.
 
-The fastest way to know how the framework works is to run a minimum example, so we provide a pseudo task [downstream/example/](./example/), which can always be ran up by:
+The fastest way to know how the framework works is to run a minimum example, so we provide a pseudo task [downstream/example/](./example/), which can be always ran up by:
 
 ```bash
 python3 run_downstream.py -u fbank -d example -n HelloWorld
@@ -238,7 +238,7 @@ Hence, you can refer to [downstream/example/expert.py](./example/expert.py) for 
 
 #### Note 1
 
-Please use _relative import_ in your downstream folder, in case we might want to rename or move the location for the `downstream` folder in future.
+Please use _relative import_ in your downstream folder, in case we might want to rename or move the location for the `downstream` folder in the future.
 
 #### Note 2
 
