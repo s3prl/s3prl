@@ -17,7 +17,7 @@
 * *June 2021:* Support [**SUPERB:** **S**peech processing **U**niversal **PER**formance **B**enchmark](https://arxiv.org/abs/2105.01051), submitted to Interspeech 2021. Use the tag **superb-interspeech2021** or **v0.2.0**.
 * *June 2021:* Support extracting multiple hidden states from the SSL pretrained models
 * *Jan 2021:* Readme updated with detailed instructions on how to use our latest version!
-* *Dec 2020:* We are migrating to a newer version for a more general, flexible, and scalable code. See the introduction below for more information! The legacy verison can be accessed the tag **v0.1.0**.
+* *Dec 2020:* We are migrating to a newer version for a more general, flexible, and scalable code. See the introduction below for more information! The legacy version can be accessed the tag **v0.1.0**.
 
 ## Introduction and Usages
 
@@ -49,9 +49,9 @@ Below is an **intuitive illustration** on how this toolkit may help you:
 <img src="./file/S3PRL-interface.png" width="900"/>
 \
 \
-Feel free to use or modify our toolkit in your research. Here is a [list of papers using our toolkit](#used-by). Any questsion, bug report or improvement suggestion is welcome through [opening up a new issue](https://github.com/s3prl/s3prl/issues). 
+Feel free to use or modify our toolkit in your research. Here is a [list of papers using our toolkit](#used-by). Any question, bug report or improvement suggestion is welcome through [opening up a new issue](https://github.com/s3prl/s3prl/issues). 
 
-If you find this toolkit helpful to your research, please do consider to cite [our papers](#citation), thanks!
+If you find this toolkit helpful to your research, please do consider citing [our papers](#citation), thanks!
 
 ## Installation
 
@@ -69,7 +69,7 @@ pip install -e ./
 pip install fairseq@git+https://github.com//pytorch/fairseq.git@f2146bdc7abf293186de9449bfa2272775e39e1d#egg=fairseq
 ```
 
-5. Some upstream models require special dependencies. If you encounter error with a specific upstream model, you can look into the `README.md` under each `upsream` folder. Eg. `upstream/pase/README.md`
+5. Some upstream models require special dependencies. If you encounter error with a specific upstream model, you can look into the `README.md` under each `upstream` folder. E.g., `upstream/pase/README.md`
 
 ## Development pattern for contributors
 
