@@ -415,8 +415,8 @@ class Runner():
         torch.manual_seed(self.args.seed)
         if torch.cuda.is_available():
             torch.cuda.manual_seed_all(self.args.seed)
-        with torch.cuda.device(self.args.device):
-            torch.cuda.empty_cache()
+            with torch.cuda.device(self.args.device):
+                torch.cuda.empty_cache()
 
         # record original train/eval states and set all models to eval
         trainings = []
@@ -455,8 +455,9 @@ class Runner():
         records = defaultdict(list)
 
         # prepare back to training
-        with torch.cuda.device(self.args.device):
-            torch.cuda.empty_cache()
+        if torch.cuda.is_available():
+            with torch.cuda.device(self.args.device):
+                torch.cuda.empty_cache()
 
         for entry, training in zip(self.all_entries, trainings):
             if training:
