@@ -34,7 +34,8 @@ class SpeechCommandsBaseDataset(Dataset):
         class_name, audio_path = self.data[idx]
         wav, _ = apply_effects_file(str(audio_path), EFFECTS)
         wav = wav.squeeze(0).numpy()
-        return wav, self.class2index[class_name], Path(audio_path).stem
+        fileid = "-".join(Path(audio_path).parts[-2:])
+        return wav, self.class2index[class_name], fileid
 
     def __len__(self):
         return len(self.data)

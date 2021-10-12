@@ -120,7 +120,7 @@ class DownstreamExpert(nn.Module):
         save_names = []
         for key in ["loss", "acc"]:
             values = records[key]
-            average = torch.FloatTensor(values).mean().item()
+            average = sum(values) / len(values)
             logger.add_scalar(
                 f'speech_commands/{mode}-{key}',
                 average,
