@@ -18,11 +18,9 @@ logger = logging.getLogger(__name__)
 
 def get_optimizer(model_params, total_steps, optimizer_config):
     optimizer_config = copy.deepcopy(optimizer_config)
-    optimizer_name = optimizer_config.pop('name')
-    optimizer = eval(f'get_{optimizer_name}')(
-        model_params,
-        total_steps=total_steps,
-        **optimizer_config
+    optimizer_name = optimizer_config.pop("name")
+    optimizer = eval(f"get_{optimizer_name}")(
+        model_params, total_steps=total_steps, **optimizer_config
     )
     return optimizer
 
@@ -32,41 +30,60 @@ def get_grouped_parameters(model_params):
     for m in model_params:
         named_params += list(m.named_parameters())
 
-    no_decay = ['bias', 'LayerNorm.bias', 'LayerNorm.weight']
+    no_decay = ["bias", "LayerNorm.bias", "LayerNorm.weight"]
     grouped_parameters = [
-        {'params': [p for n, p in named_params if not any(nd in n for nd in no_decay)], 'weight_decay': 0.01},
-        {'params': [p for n, p in named_params if any(nd in n for nd in no_decay)], 'weight_decay': 0.0},
+        {
+            "params": [
+                p for n, p in named_params if not any(nd in n for nd in no_decay)
+            ],
+            "weight_decay": 0.01,
+        },
+        {
+            "params": [p for n, p in named_params if any(nd in n for nd in no_decay)],
+            "weight_decay": 0.0,
+        },
     ]
     return grouped_parameters
 
 
-def get_BertAdam_with_schedule(model_params, lr=2e-4, total_steps=20000, warmup_proportion=0.07, **kwargs):
+def get_BertAdam_with_schedule(
+    model_params, lr=2e-4, total_steps=20000, warmup_proportion=0.07, **kwargs
+):
     grouped_parameters = get_grouped_parameters(model_params)
-    optimizer = BertAdam(grouped_parameters, lr=lr,
-                         warmup=warmup_proportion,
-                         t_total=total_steps)
+    optimizer = BertAdam(
+        grouped_parameters, lr=lr, warmup=warmup_proportion, t_total=total_steps
+    )
     return optimizer
 
 
-def get_AdamW_with_schedule(model_params, lr=2e-4, total_steps=20000, warmup_proportion=0.07, **kwargs):
+def get_AdamW_with_schedule(
+    model_params, lr=2e-4, total_steps=20000, warmup_proportion=0.07, **kwargs
+):
     grouped_parameters = get_grouped_parameters(model_params)
-    optimizer = Lamb(grouped_parameters,
-                     lr=lr,
-                     warmup=warmup_proportion,
-                     t_total=total_steps,
-                     adam=True,
-                     correct_bias=True)
+    optimizer = Lamb(
+        grouped_parameters,
+        lr=lr,
+        warmup=warmup_proportion,
+        t_total=total_steps,
+        adam=True,
+        correct_bias=True,
+        **kwargs,
+    )
     return optimizer
 
 
-def get_Lamb_with_schedule(model_params, lr=2e-4, total_steps=20000, warmup_proportion=0.07, **kwargs):
+def get_Lamb_with_schedule(
+    model_params, lr=2e-4, total_steps=20000, warmup_proportion=0.07, **kwargs
+):
     grouped_parameters = get_grouped_parameters(model_params)
-    optimizer = Lamb(grouped_parameters,
-                     lr=lr,
-                     warmup=warmup_proportion,
-                     t_total=total_steps,
-                     adam=False,
-                     correct_bias=False)
+    optimizer = Lamb(
+        grouped_parameters,
+        lr=lr,
+        warmup=warmup_proportion,
+        t_total=total_steps,
+        adam=False,
+        correct_bias=False,
+    )
     return optimizer
 
 
@@ -91,7 +108,7 @@ def get_TorchOptim(model_params, torch_optim_name, **kwargs):
         params += list(m.parameters())
     Opt_class = getattr(torch.optim, torch_optim_name)
 
-    kwargs.pop('total_steps')
+    kwargs.pop("total_steps")
     optim = Opt_class(params, **kwargs)
     return optim
 
@@ -127,12 +144,22 @@ class AdamW(Optimizer):
         if lr < 0.0:
             raise ValueError("Invalid learning rate: {} - should be >= 0.0".format(lr))
         if not 0.0 <= betas[0] < 1.0:
-            raise ValueError("Invalid beta parameter: {} - should be in [0.0, 1.0[".format(betas[0]))
+            raise ValueError(
+                "Invalid beta parameter: {} - should be in [0.0, 1.0[".format(betas[0])
+            )
         if not 0.0 <= betas[1] < 1.0:
-            raise ValueError("Invalid beta parameter: {} - should be in [0.0, 1.0[".format(betas[1]))
+            raise ValueError(
+                "Invalid beta parameter: {} - should be in [0.0, 1.0[".format(betas[1])
+            )
         if not 0.0 <= eps:
             raise ValueError("Invalid epsilon value: {} - should be >= 0.0".format(eps))
-        defaults = dict(lr=lr, betas=betas, eps=eps, weight_decay=weight_decay, correct_bias=correct_bias)
+        defaults = dict(
+            lr=lr,
+            betas=betas,
+            eps=eps,
+            weight_decay=weight_decay,
+            correct_bias=correct_bias,
+        )
         super().__init__(params, defaults)
 
     def step(self, closure: Callable = None):
@@ -151,7 +178,9 @@ class AdamW(Optimizer):
                     continue
                 grad = p.grad.data
                 if grad.is_sparse:
-                    raise RuntimeError("Adam does not support sparse gradients, please consider SparseAdam instead")
+                    raise RuntimeError(
+                        "Adam does not support sparse gradients, please consider SparseAdam instead"
+                    )
 
                 state = self.state[p]
 
@@ -178,7 +207,9 @@ class AdamW(Optimizer):
                 if group["correct_bias"]:  # No bias correction for Bert
                     bias_correction1 = 1.0 - beta1 ** state["step"]
                     bias_correction2 = 1.0 - beta2 ** state["step"]
-                    step_size = step_size * math.sqrt(bias_correction2) / bias_correction1
+                    step_size = (
+                        step_size * math.sqrt(bias_correction2) / bias_correction1
+                    )
 
                 p.data.addcdiv_(exp_avg, denom, value=-step_size)
 
@@ -194,17 +225,18 @@ class AdamW(Optimizer):
                     p.data.add_(p.data, alpha=-group["lr"] * group["weight_decay"])
 
         return loss
-        
+
     def get_lr(self):
         lr = []
         for group in self.param_groups:
-            for p in group['params']:
+            for p in group["params"]:
                 state = self.state[p]
                 if len(state) == 0:
                     pass
                 else:
-                    lr.append(group['lr'])
+                    lr.append(group["lr"])
         return lr
+
 
 # For the following codes:
 """PyTorch optimization for BERT model."""
@@ -226,12 +258,14 @@ class AdamW(Optimizer):
 if sys.version_info >= (3, 4):
     ABC = abc.ABC
 else:
-    ABC = abc.ABCMeta('ABC', (), {})
+    ABC = abc.ABCMeta("ABC", (), {})
 
 
 class _LRSchedule(ABC):
-    """ Parent of all LRSchedules here. """
-    warn_t_total = False        # is set to True for schedules where progressing beyond t_total steps doesn't make sense
+    """Parent of all LRSchedules here."""
+
+    warn_t_total = False  # is set to True for schedules where progressing beyond t_total steps doesn't make sense
+
     def __init__(self, warmup=0.002, t_total=-1, **kw):
         """
         :param warmup:  what fraction of t_total steps will be used for linear warmup
@@ -240,10 +274,16 @@ class _LRSchedule(ABC):
         """
         super(_LRSchedule, self).__init__(**kw)
         if t_total < 0:
-            logger.warning("t_total value of {} results in schedule not being applied".format(t_total))
+            logger.warning(
+                "t_total value of {} results in schedule not being applied".format(
+                    t_total
+                )
+            )
         if not 0.0 <= warmup < 1.0 and not warmup == -1:
-            raise ValueError("Invalid warmup: {} - should be in [0.0, 1.0[ or -1".format(warmup))
-        warmup = max(warmup, 0.)
+            raise ValueError(
+                "Invalid warmup: {} - should be in [0.0, 1.0[ or -1".format(warmup)
+            )
+        warmup = max(warmup, 0.0)
         self.warmup, self.t_total = float(warmup), float(t_total)
         self.warned_for_t_total_at_progress = -1
 
@@ -254,14 +294,21 @@ class _LRSchedule(ABC):
         :return:        learning rate multiplier for current update
         """
         if self.t_total < 0:
-            return 1.
+            return 1.0
         progress = float(step) / self.t_total
         ret = self.get_lr_(progress)
         # warning for exceeding t_total (only active with warmup_linear
-        if not nowarn and self.warn_t_total and progress > 1. and progress > self.warned_for_t_total_at_progress:
+        if (
+            not nowarn
+            and self.warn_t_total
+            and progress > 1.0
+            and progress > self.warned_for_t_total_at_progress
+        ):
             logger.warning(
-                "Training beyond specified 't_total'. Learning rate multiplier set to {}. Please set 't_total' of {} correctly."
-                    .format(ret, self.__class__.__name__))
+                "Training beyond specified 't_total'. Learning rate multiplier set to {}. Please set 't_total' of {} correctly.".format(
+                    ret, self.__class__.__name__
+                )
+            )
             self.warned_for_t_total_at_progress = progress
         # end warning
         return ret
@@ -272,12 +319,12 @@ class _LRSchedule(ABC):
         :param progress:    value between 0 and 1 (unless going beyond t_total steps) specifying training progress
         :return:            learning rate multiplier for current update
         """
-        return 1.
+        return 1.0
 
 
 class ConstantLR(_LRSchedule):
     def get_lr_(self, progress):
-        return 1.
+        return 1.0
 
 
 class WarmupCosineSchedule(_LRSchedule):
@@ -286,8 +333,10 @@ class WarmupCosineSchedule(_LRSchedule):
     Decreases learning rate from 1. to 0. over remaining `1 - warmup` steps following a cosine curve.
     If `cycles` (default=0.5) is different from default, learning rate follows cosine function after warmup.
     """
+
     warn_t_total = True
-    def __init__(self, warmup=0.002, t_total=-1, cycles=.5, **kw):
+
+    def __init__(self, warmup=0.002, t_total=-1, cycles=0.5, **kw):
         """
         :param warmup:      see LRSchedule
         :param t_total:     see LRSchedule
@@ -301,8 +350,10 @@ class WarmupCosineSchedule(_LRSchedule):
         if progress < self.warmup:
             return progress / self.warmup
         else:
-            progress = (progress - self.warmup) / (1 - self.warmup)   # progress after warmup
-            return 0.5 * (1. + math.cos(math.pi * self.cycles * 2 * progress))
+            progress = (progress - self.warmup) / (
+                1 - self.warmup
+            )  # progress after warmup
+            return 0.5 * (1.0 + math.cos(math.pi * self.cycles * 2 * progress))
 
 
 class WarmupCosineWithHardRestartsSchedule(WarmupCosineSchedule):
@@ -311,16 +362,21 @@ class WarmupCosineWithHardRestartsSchedule(WarmupCosineSchedule):
     If `cycles` (default=1.) is different from default, learning rate follows `cycles` times a cosine decaying
     learning rate (with hard restarts).
     """
-    def __init__(self, warmup=0.002, t_total=-1, cycles=1., **kw):
-        super(WarmupCosineWithHardRestartsSchedule, self).__init__(warmup=warmup, t_total=t_total, cycles=cycles, **kw)
-        assert(cycles >= 1.)
+
+    def __init__(self, warmup=0.002, t_total=-1, cycles=1.0, **kw):
+        super(WarmupCosineWithHardRestartsSchedule, self).__init__(
+            warmup=warmup, t_total=t_total, cycles=cycles, **kw
+        )
+        assert cycles >= 1.0
 
     def get_lr_(self, progress):
         if progress < self.warmup:
             return progress / self.warmup
         else:
-            progress = (progress - self.warmup) / (1 - self.warmup)     # progress after warmup
-            ret = 0.5 * (1. + math.cos(math.pi * ((self.cycles * progress) % 1)))
+            progress = (progress - self.warmup) / (
+                1 - self.warmup
+            )  # progress after warmup
+            ret = 0.5 * (1.0 + math.cos(math.pi * ((self.cycles * progress) % 1)))
             return ret
 
 
@@ -330,18 +386,23 @@ class WarmupCosineWithWarmupRestartsSchedule(WarmupCosineWithHardRestartsSchedul
     Every part follows a schedule with the first `warmup` fraction of the training steps linearly increasing from 0. to 1.,
     followed by a learning rate decreasing from 1. to 0. following a cosine curve.
     """
-    def __init__(self, warmup=0.002, t_total=-1, cycles=1., **kw):
-        assert(warmup * cycles < 1.)
+
+    def __init__(self, warmup=0.002, t_total=-1, cycles=1.0, **kw):
+        assert warmup * cycles < 1.0
         warmup = warmup * cycles if warmup >= 0 else warmup
-        super(WarmupCosineWithWarmupRestartsSchedule, self).__init__(warmup=warmup, t_total=t_total, cycles=cycles, **kw)
+        super(WarmupCosineWithWarmupRestartsSchedule, self).__init__(
+            warmup=warmup, t_total=t_total, cycles=cycles, **kw
+        )
 
     def get_lr_(self, progress):
-        progress = progress * self.cycles % 1.
+        progress = progress * self.cycles % 1.0
         if progress < self.warmup:
             return progress / self.warmup
         else:
-            progress = (progress - self.warmup) / (1 - self.warmup)     # progress after warmup
-            ret = 0.5 * (1. + math.cos(math.pi * progress))
+            progress = (progress - self.warmup) / (
+                1 - self.warmup
+            )  # progress after warmup
+            ret = 0.5 * (1.0 + math.cos(math.pi * progress))
             return ret
 
 
@@ -350,10 +411,11 @@ class WarmupConstantSchedule(_LRSchedule):
     Linearly increases learning rate from 0 to 1 over `warmup` fraction of training steps.
     Keeps learning rate equal to 1. after warmup.
     """
+
     def get_lr_(self, progress):
         if progress < self.warmup:
             return progress / self.warmup
-        return 1.
+        return 1.0
 
 
 class WarmupLinearSchedule(_LRSchedule):
@@ -361,19 +423,21 @@ class WarmupLinearSchedule(_LRSchedule):
     Linearly increases learning rate from 0 to 1 over `warmup` fraction of training steps.
     Linearly decreases learning rate from 1. to 0. over remaining `1 - warmup` steps.
     """
+
     warn_t_total = True
+
     def get_lr_(self, progress):
         if progress < self.warmup:
             return progress / self.warmup
-        return max((progress - 1.) / (self.warmup - 1.), 0.)
+        return max((progress - 1.0) / (self.warmup - 1.0), 0.0)
 
 
 SCHEDULES = {
-    None:       ConstantLR,
-    "none":     ConstantLR,
+    None: ConstantLR,
+    "none": ConstantLR,
     "warmup_cosine": WarmupCosineSchedule,
     "warmup_constant": WarmupConstantSchedule,
-    "warmup_linear": WarmupLinearSchedule
+    "warmup_linear": WarmupLinearSchedule,
 }
 
 
@@ -393,16 +457,36 @@ class BertAdam(Optimizer):
         weight_decay: Weight decay. Default: 0.01
         max_grad_norm: Maximum norm for the gradients (-1 means no clipping). Default: 1.0
     """
-    def __init__(self, params=None, lr='required', warmup=-1, t_total=-1, schedule='warmup_linear',
-                 betas=(0.9, 0.999), e=1e-6, weight_decay=0.01, max_grad_norm=1.0, **kwargs):
-        if lr == 'required' or lr < 0.0:
+
+    def __init__(
+        self,
+        params=None,
+        lr="required",
+        warmup=-1,
+        t_total=-1,
+        schedule="warmup_linear",
+        betas=(0.9, 0.999),
+        e=1e-6,
+        weight_decay=0.01,
+        max_grad_norm=1.0,
+        **kwargs,
+    ):
+        if lr == "required" or lr < 0.0:
             raise ValueError("Invalid learning rate: {} - should be >= 0.0".format(lr))
         if not isinstance(schedule, _LRSchedule) and schedule not in SCHEDULES:
             raise ValueError("Invalid schedule parameter: {}".format(schedule))
         if not 0.0 <= betas[0] < 1.0:
-            raise ValueError("Invalid beta parameter at index 0: {} - should be in [0.0, 1.0[".format(betas[0]))
+            raise ValueError(
+                "Invalid beta parameter at index 0: {} - should be in [0.0, 1.0[".format(
+                    betas[0]
+                )
+            )
         if not 0.0 <= betas[1] < 1.0:
-            raise ValueError("Invalid beta parameter at index 1: {} - should be in [0.0, 1.0[".format(betas[1]))
+            raise ValueError(
+                "Invalid beta parameter at index 1: {} - should be in [0.0, 1.0[".format(
+                    betas[1]
+                )
+            )
         if not e >= 0.0:
             raise ValueError("Invalid epsilon value: {} - should be >= 0.0".format(e))
         # initialize schedule object
@@ -411,23 +495,30 @@ class BertAdam(Optimizer):
             schedule = schedule_type(warmup=warmup, t_total=t_total)
         else:
             if warmup != -1 or t_total != -1:
-                logger.warning("warmup and t_total on the optimizer are ineffective when _LRSchedule object is provided as schedule. "
-                               "Please specify custom warmup and t_total in _LRSchedule object.")
-        defaults = dict(lr=lr, schedule=schedule,
-                        betas=betas, e=e, weight_decay=weight_decay,
-                        max_grad_norm=max_grad_norm)
+                logger.warning(
+                    "warmup and t_total on the optimizer are ineffective when _LRSchedule object is provided as schedule. "
+                    "Please specify custom warmup and t_total in _LRSchedule object."
+                )
+        defaults = dict(
+            lr=lr,
+            schedule=schedule,
+            betas=betas,
+            e=e,
+            weight_decay=weight_decay,
+            max_grad_norm=max_grad_norm,
+        )
         super(BertAdam, self).__init__(params, defaults)
 
     def get_lr(self):
         lr = []
         for group in self.param_groups:
-            for p in group['params']:
+            for p in group["params"]:
                 state = self.state[p]
                 if len(state) == 0:
                     pass
                 else:
-                    lr_scheduled = group['lr']
-                    lr_scheduled *= group['schedule'].get_lr(state['step'])
+                    lr_scheduled = group["lr"]
+                    lr_scheduled *= group["schedule"].get_lr(state["step"])
                     lr.append(lr_scheduled)
         return lr
 
@@ -443,35 +534,37 @@ class BertAdam(Optimizer):
             loss = closure()
 
         for group in self.param_groups:
-            for p in group['params']:
+            for p in group["params"]:
                 if p.grad is None:
                     continue
                 grad = p.grad.data
                 if grad.is_sparse:
-                    raise RuntimeError('Adam does not support sparse gradients, please consider SparseAdam instead')
+                    raise RuntimeError(
+                        "Adam does not support sparse gradients, please consider SparseAdam instead"
+                    )
 
                 state = self.state[p]
 
                 # State initialization
                 if len(state) == 0:
-                    state['step'] = 0
+                    state["step"] = 0
                     # Exponential moving average of gradient values
-                    state['next_m'] = torch.zeros_like(p.data)
+                    state["next_m"] = torch.zeros_like(p.data)
                     # Exponential moving average of squared gradient values
-                    state['next_v'] = torch.zeros_like(p.data)
+                    state["next_v"] = torch.zeros_like(p.data)
 
-                next_m, next_v = state['next_m'], state['next_v']
-                beta1, beta2 = group['betas']
+                next_m, next_v = state["next_m"], state["next_v"]
+                beta1, beta2 = group["betas"]
 
                 # Add grad clipping
-                if group['max_grad_norm'] > 0:
-                    clip_grad_norm_(p, group['max_grad_norm'])
+                if group["max_grad_norm"] > 0:
+                    clip_grad_norm_(p, group["max_grad_norm"])
 
                 # Decay the first and second moment running average coefficient
                 # In-place operations to update the averages at the same time
                 next_m.mul_(beta1).add_(1 - beta1, grad)
                 next_v.mul_(beta2).addcmul_(1 - beta2, grad, grad)
-                update = next_m / (next_v.sqrt() + group['e'])
+                update = next_m / (next_v.sqrt() + group["e"])
 
                 # Just adding the square of the weights to the loss function is *not*
                 # the correct way of using L2 regularization/weight decay with Adam,
@@ -480,16 +573,16 @@ class BertAdam(Optimizer):
                 # Instead we want to decay the weights in a manner that doesn't interact
                 # with the m/v parameters. This is equivalent to adding the square
                 # of the weights to the loss with plain (non-momentum) SGD.
-                if group['weight_decay'] > 0.0:
-                    update += group['weight_decay'] * p.data
+                if group["weight_decay"] > 0.0:
+                    update += group["weight_decay"] * p.data
 
-                lr_scheduled = group['lr']
-                lr_scheduled *= group['schedule'].get_lr(state['step'])
+                lr_scheduled = group["lr"]
+                lr_scheduled *= group["schedule"].get_lr(state["step"])
 
                 update_with_lr = lr_scheduled * update
                 p.data.add_(-update_with_lr)
 
-                state['step'] += 1
+                state["step"] += 1
 
                 # step_size = lr_scheduled * math.sqrt(bias_correction2) / bias_correction1
                 # No bias correction
@@ -525,8 +618,19 @@ class Lamb(Optimizer):
         https://arxiv.org/abs/1904.00962
     """
 
-    def __init__(self, params, lr=1e-3, warmup=-1, t_total=-1, schedule='warmup_linear',
-                 betas=(0.9, 0.999), eps=1e-8, weight_decay=0.0, adam=False, correct_bias=False):
+    def __init__(
+        self,
+        params,
+        lr=1e-3,
+        warmup=-1,
+        t_total=-1,
+        schedule="warmup_linear",
+        betas=(0.9, 0.999),
+        eps=1e-8,
+        weight_decay=0.0,
+        adam=False,
+        correct_bias=False,
+    ):
         if not 0.0 <= lr:
             raise ValueError("Invalid learning rate: {}".format(lr))
         if not 0.0 <= eps:
@@ -541,24 +645,32 @@ class Lamb(Optimizer):
             schedule = schedule_type(warmup=warmup, t_total=t_total)
         else:
             if warmup != -1 or t_total != -1:
-                logger.warning("warmup and t_total on the optimizer are ineffective when _LRSchedule object is provided as schedule. "
-                               "Please specify custom warmup and t_total in _LRSchedule object.")
-        defaults = dict(lr=lr, betas=betas, eps=eps, schedule=schedule,
-                        weight_decay=weight_decay, correct_bias=correct_bias)
+                logger.warning(
+                    "warmup and t_total on the optimizer are ineffective when _LRSchedule object is provided as schedule. "
+                    "Please specify custom warmup and t_total in _LRSchedule object."
+                )
+        defaults = dict(
+            lr=lr,
+            betas=betas,
+            eps=eps,
+            schedule=schedule,
+            weight_decay=weight_decay,
+            correct_bias=correct_bias,
+        )
         self.adam = adam
 
         super(Lamb, self).__init__(params, defaults)
-    
+
     def get_lr(self):
         lr = []
         for group in self.param_groups:
-            for p in group['params']:
+            for p in group["params"]:
                 state = self.state[p]
                 if len(state) == 0:
                     pass
                 else:
-                    lr_scheduled = group['lr']
-                    lr_scheduled *= group['schedule'].get_lr(state['step'])
+                    lr_scheduled = group["lr"]
+                    lr_scheduled *= group["schedule"].get_lr(state["step"])
                     lr.append(lr_scheduled)
         return lr
 
@@ -573,27 +685,29 @@ class Lamb(Optimizer):
             loss = closure()
 
         for group in self.param_groups:
-            for p in group['params']:
+            for p in group["params"]:
                 if p.grad is None:
                     continue
                 grad = p.grad.data
                 if grad.is_sparse:
-                    raise RuntimeError('Lamb does not support sparse gradients, consider SparseAdam instad.')
+                    raise RuntimeError(
+                        "Lamb does not support sparse gradients, consider SparseAdam instad."
+                    )
 
                 state = self.state[p]
 
                 # State initialization
                 if len(state) == 0:
-                    state['step'] = 0
+                    state["step"] = 0
                     # Exponential moving average of gradient values
-                    state['exp_avg'] = torch.zeros_like(p.data)
+                    state["exp_avg"] = torch.zeros_like(p.data)
                     # Exponential moving average of squared gradient values
-                    state['exp_avg_sq'] = torch.zeros_like(p.data)
+                    state["exp_avg_sq"] = torch.zeros_like(p.data)
 
-                exp_avg, exp_avg_sq = state['exp_avg'], state['exp_avg_sq']
-                beta1, beta2 = group['betas']
+                exp_avg, exp_avg_sq = state["exp_avg"], state["exp_avg_sq"]
+                beta1, beta2 = group["betas"]
 
-                state['step'] += 1
+                state["step"] += 1
 
                 # Decay the first and second moment running average coefficient
                 # m_t
@@ -605,27 +719,31 @@ class Lamb(Optimizer):
                 # bias_correction1 = 1 - beta1 ** state['step']
                 # bias_correction2 = 1 - beta2 ** state['step']
                 # Apply bias to lr to avoid broadcast.
-                step_size = group['lr'] # * math.sqrt(bias_correction2) / bias_correction1
-                if group['correct_bias']:  # No bias correction for Bert
-                    bias_correction1 = 1.0 - beta1 ** state['step']
-                    bias_correction2 = 1.0 - beta2 ** state['step']
-                    step_size = step_size * math.sqrt(bias_correction2) / bias_correction1
-                lr_scheduled = step_size * group['schedule'].get_lr(state['step'])
-                    
+                step_size = group[
+                    "lr"
+                ]  # * math.sqrt(bias_correction2) / bias_correction1
+                if group["correct_bias"]:  # No bias correction for Bert
+                    bias_correction1 = 1.0 - beta1 ** state["step"]
+                    bias_correction2 = 1.0 - beta2 ** state["step"]
+                    step_size = (
+                        step_size * math.sqrt(bias_correction2) / bias_correction1
+                    )
+                lr_scheduled = step_size * group["schedule"].get_lr(state["step"])
+
                 weight_norm = p.data.pow(2).sum().sqrt()
 
-                adam_step = exp_avg / exp_avg_sq.sqrt().add(group['eps'])
-                if group['weight_decay'] != 0:
-                    adam_step.add_(group['weight_decay'], p.data)
+                adam_step = exp_avg / exp_avg_sq.sqrt().add(group["eps"])
+                if group["weight_decay"] != 0:
+                    adam_step.add_(group["weight_decay"], p.data)
 
                 adam_norm = adam_step.pow(2).sum().sqrt()
                 if weight_norm == 0 or adam_norm == 0:
                     trust_ratio = 1
                 else:
                     trust_ratio = weight_norm / adam_norm
-                state['weight_norm'] = weight_norm
-                state['adam_norm'] = adam_norm
-                state['trust_ratio'] = trust_ratio
+                state["weight_norm"] = weight_norm
+                state["adam_norm"] = adam_norm
+                state["trust_ratio"] = trust_ratio
                 if self.adam:
                     trust_ratio = 1
 
