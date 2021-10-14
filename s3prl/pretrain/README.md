@@ -68,6 +68,13 @@ python run_pretrain.py -u audio_albert -g pretrain/audio_albert/config_model.yam
 ```
 - Everything else is identical to the above.
 
+### Distiller
+- Command:
+```bash
+python run_pretrain.py -u distiller -g pretrain/distiller/config_model.yaml -n YourModelName
+```
+- Everything else is identical to the above.
+
 ## Step 4) Loading the pre-trained checkpoint for downstream tasks
 ### Mockingjay
 - Use the local method of `mockingjay_local` and `-k` to specify the path to your checkpoint.
