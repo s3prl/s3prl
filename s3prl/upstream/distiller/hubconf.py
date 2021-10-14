@@ -28,14 +28,14 @@ def distiller_url(ckpt, refresh=False, *args, **kwargs):
 
 def distilhubert(refresh=False, *args, **kwargs):
     """
-    DisilHuBERT
+    DistilHuBERT
     """
     return distilhubert_base(refresh=refresh, *args, **kwargs)
 
 
 def distilhubert_base(refresh=False, *args, **kwargs):
     """
-    DisilHuBERT Base
+    DistilHuBERT Base
     Default model in https://arxiv.org/abs/2110.01900
     """
     kwargs[
