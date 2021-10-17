@@ -3,6 +3,8 @@
 Development: [Wen-Chin Huang](https://github.com/unilight) @ Nagoya University (2021).  
 If you have any questions, please open an issue, or contact through email: wen.chinhuang@g.sp.m.is.nagoya-u.ac.jp
 
+**Note**: This is the **any-to-one** recipe. For the **any-to-any** recipe, please go to the [a2a-vc-vctk](../a2a-vc-vctk/) recipe.
+
 ## Task
 
 In this downstream, we focus on training any-to-one (A2O) voice conversion (VC) models on the two tasks in **voice conversion challenge 2020 (VCC2020)**
@@ -23,7 +25,7 @@ We made several modifications.
 2. **Output**: instead of using acoustic features extracted using a high-quality vocoder, STRAIGHT, we use the log-melspectrograms.
 3. **Data**: we benchmark on the [VCC2020](https://github.com/nii-yamagishilab/VCC2020-database) dataset. 
 4. **Training strategy**: instead of pretraining on a multispeaker dataset first, we directly trained on the target speaker training set.
-5. **Vocoder**: instead of using the WaveNet vocoder, we used the [Parallel WaveGAN](https://arxiv.org/abs/1910.11480) (PWG) based on the [open source project](https://github.com/kan-bayashi/ParallelWaveGAN) developed by [kan-bayashi](https://github.com/kan-bayashi).
+5. **Vocoder**: instead of using the WaveNet vocoder, we offer non-AR neural vocoders including [Parallel WaveGAN](https://arxiv.org/abs/1910.11480) (PWG) and [Hifi-GAN](https://arxiv.org/abs/2010.05646), implemented in the [open source project](https://github.com/kan-bayashi/ParallelWaveGAN) developed by [kan-bayashi](https://github.com/kan-bayashi).
 
 ## Dependencies:
 
@@ -44,7 +46,7 @@ cd data
 ./data_download.sh vcc2020/
 cd ../
 
-# Download the pretrained PWGs.
+# Download the pretrained vocoders.
 ./vocoder_download.sh ./
 ```
 
@@ -101,10 +103,22 @@ Notes:
 #### Batch decoding & objective evaluation
 After you train models for all target speakers for each task (which can be done by batch training), we can use batch decoding to evaluate all models at once.
 ```
-./batch_vc_decode.sh <upstream> <task> <tag>
+./batch_vc_decode.sh <upstream> <task> <tag> <vocoder_dir>
 ```
 Using the example above, we can run:
 ```
-./batch_vc_decode.sh hubert task1 simple
+./batch_vc_decode.sh hubert task1 simple <pwg_task1>
 ```
 The best result will then be automatically shown.
+
+## Citation
+
+If you find this recipe useful, please consider citing following paper:
+```
+@article{huang2021s3prl,
+  title={S3PRL-VC: Open-source Voice Conversion Framework with Self-supervised Speech Representations},
+  author={Huang, Wen-Chin and Yang, Shu-Wen and Hayashi, Tomoki and Lee, Hung-Yi and Watanabe, Shinji and Toda, Tomoki},
+  journal={arXiv preprint arXiv:2110.06280},
+  year={2021}
+}
+```
