@@ -31,7 +31,8 @@ Besides the tasks presented in the paper, we are also extending the coverage ove
 | [ASV](#asv-automatic-speaker-verification) | Automatic Speaker Verification | Speaker | V | V |
 | [SD](#sd-speaker-diarization) | Speaker Diarization | Speaker | V | V |
 | [ER](#er-emotion-recognition) | Emotion Recognition | Paralinguistics | V | V |
-| [IC](#ic-intent-classification) | Spoken Intent Classification | Semantics | V |  |
+| [IC](#ic-intent-classification) | Spoken 
+| Semantics | V |  |
 | [SF](#sf-slot-filling) | Spoken Slot Filling | Semantics | V |  |
 | [ST](#st-speech-translation) | Speech Translation | Semantics |  | V |
 | [SE](#se-speech-enhancement) | Speech Enhancement | Generation |  | V |
@@ -305,7 +306,10 @@ Specified by the command `-d fluent_commands`
 #### Prepare data
 
 1. Download and unzip data
-    - http://fluent.ai:2052/jf8398hf30f0381738rucj3828chfdnchs.tar.gz
+    - Official data link: http://fluent.ai:2052/jf8398hf30f0381738rucj3828chfdnchs.tar.gz
+    - Official website: https://fluent.ai/fluent-speech-commands-a-dataset-for-spoken-language-understanding-research/
+    - Since the official link might break occasionally, we provide a backup link: http://140.112.21.28:9000/fluent.tar.gz
+    - If this is not allowed please let us know and we will remove it immediately.
 
 2. Check the prepared file structure
 
