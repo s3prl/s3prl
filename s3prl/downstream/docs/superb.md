@@ -308,8 +308,8 @@ Specified by the command `-d fluent_commands`
 1. Download and unzip data
     - Official data link: http://fluent.ai:2052/jf8398hf30f0381738rucj3828chfdnchs.tar.gz
     - Official website: https://fluent.ai/fluent-speech-commands-a-dataset-for-spoken-language-understanding-research/
-    - Since the official link might break occasionally, we provide a backup link: http://140.112.21.28:9000/fluent.tar.gz
-    - If this is not allowed please let us know and we will remove it immediately.
+    - Since the official link might break occasionally, we provide a backup link. If this is not allowed please let us know and we will remove it immediately.
+    - Please use `wget http://140.112.21.28:9000/fluent.tar.gz`
 
 2. Check the prepared file structure
 
