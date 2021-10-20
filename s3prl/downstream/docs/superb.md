@@ -31,8 +31,7 @@ Besides the tasks presented in the paper, we are also extending the coverage ove
 | [ASV](#asv-automatic-speaker-verification) | Automatic Speaker Verification | Speaker | V | V |
 | [SD](#sd-speaker-diarization) | Speaker Diarization | Speaker | V | V |
 | [ER](#er-emotion-recognition) | Emotion Recognition | Paralinguistics | V | V |
-| [IC](#ic-intent-classification) | Spoken 
-| Semantics | V |  |
+| [IC](#ic-intent-classification) | Spoken Intent Classification | Semantics | V | |
 | [SF](#sf-slot-filling) | Spoken Slot Filling | Semantics | V |  |
 | [ST](#st-speech-translation) | Speech Translation | Semantics |  | V |
 | [SE](#se-speech-enhancement) | Speech Enhancement | Generation |  | V |
