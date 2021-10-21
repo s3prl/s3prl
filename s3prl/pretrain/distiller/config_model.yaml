@@ -1,0 +1,51 @@
+distiller:
+  # Extractor
+  extractor_mode: default
+  extractor_conv_feature_layers: '[(512,10,5)] + [(512,3,2)] * 4 + [(512,2,2)] * 2'
+  extractor_dropout: 0.0
+  feature_grad_mult: 0.1
+
+  # Convolutional relative positional encoding
+  conv_pos: 128
+  conv_pos_groups: 16
+
+  # Transformer encoder
+  encoder_layers: 2
+  encoder_embed_dim: 768
+  encoder_ffn_embed_dim: 3072
+  encoder_attention_heads: 12
+  activation_fn: gelu
+  layer_norm_first: false
+  attention_type: original
+
+  # Dropout
+  dropout: 0.1
+  attention_dropout: 0.1
+  activation_dropout: 0.1
+  encoder_layerdrop: 0.0
+
+  # Output
+  final_dim: 768
+  out_layer_type: expand-last
+
+  # Task & loss
+  n_tasks: 2
+  task_emb_type: expand-last
+  loss_type: l1
+  feat_pen_loss: 0.0
+  cosine_loss: 1.0  # cosine similarity loss
+  pred_layer_id: [4, 12]
+
+  # Initialization
+  init_teacher_conv_layers: true
+  init_teacher_encoder_layers: true
+
+teacher:
+  model: hubert_base
+  n_layers: 12
+
+task:
+  sequence_length: 250000  # 15.6 secs
+
+audio:
+  target_level: None

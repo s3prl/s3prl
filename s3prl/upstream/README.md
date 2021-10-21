@@ -82,9 +82,10 @@ Publication Date | Model | Name | Paper | Input | Stride | Pre-train Data | Offi
 20 Jun 2020 | Wav2Vec 2.0 | wav2vec2 / wav2vec2_large_ll60k | [arxiv](https://arxiv.org/abs/2006.11477) | wav | 20ms | [LibriSpeech-960](http://www.openslr.org/12) | O | [Fairseq](https://github.com/pytorch/fairseq)
 12 Jul 2020 | TERA | tera | [arxiv](https://arxiv.org/abs/2007.06028) | Mel | 10ms | [LibriSpeech-960](http://www.openslr.org/12) | O | [S3PRL](https://github.com/andi611/Self-Supervised-Speech-Pretraining-and-Representation-Learning)
 1 Nov 2020 | NPC | npc | [arxiv](https://arxiv.org/abs/2011.00406) | Mel | 10ms | [LibriSpeech-360](http://www.openslr.org/12) | X | [NPC](https://github.com/Alexander-H-Liu/NPC)
--- | HuBERT | hubert / hubert_large_ll60k |  |  |  |  |  | 
--- | DeCoAR | decoar |  |  |  |  |  | 
--- | DeCoAR 2.0 | decoar2 |  |  |  |  |  | 
+Jun 14 2021 | HuBERT | hubert / hubert_large_ll60k | [arxiv](https://arxiv.org/abs/2106.07447) | wav | 20ms | [LibriSpeech-960](http://www.openslr.org/12) | O | [Fairseq](https://github.com/pytorch/fairseq)
+Dec 3 2019 | DeCoAR | decoar | [arxiv](https://arxiv.org/abs/1912.01679) | Mel | 10ms | [LibriSpeech-960](http://www.openslr.org/12) | O | [speech-representations](https://github.com/awslabs/speech-representations)
+Dec 11 2020 | DeCoAR 2.0 | decoar2 | [arxiv](https://arxiv.org/abs/2012.06659) | Mel | 10ms | [LibriSpeech-960](http://www.openslr.org/12) | O | [speech-representations](https://github.com/awslabs/speech-representations)
+Oct 5 2021 | DistilHuBERT | distilhubert | [arxiv](https://arxiv.org/abs/2110.01900) | wav | 20ms | [LibriSpeech-960](http://www.openslr.org/12) | O | [S3PRL](https://github.com/s3prl/s3prl)
 
 ### Acoustic Feature Upstreams
 

@@ -55,7 +55,8 @@ def get_AdamW_with_schedule(model_params, lr=2e-4, total_steps=20000, warmup_pro
                      warmup=warmup_proportion,
                      t_total=total_steps,
                      adam=True,
-                     correct_bias=True)
+                     correct_bias=True,
+                     **kwargs)
     return optimizer
 
 
@@ -66,7 +67,8 @@ def get_Lamb_with_schedule(model_params, lr=2e-4, total_steps=20000, warmup_prop
                      warmup=warmup_proportion,
                      t_total=total_steps,
                      adam=False,
-                     correct_bias=False)
+                     correct_bias=False,
+                     **kwargs)
     return optimizer
 
 

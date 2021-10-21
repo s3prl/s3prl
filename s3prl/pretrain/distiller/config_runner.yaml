@@ -1,0 +1,28 @@
+runner:
+  n_epochs: -1
+  total_steps: 200000
+  gradient_clipping: 5.0
+  gradient_accumulate_steps: 1
+
+  log_step: 50
+  save_step: 10000
+  max_keep: 10
+
+  fp16: true
+
+optimizer:
+  name: AdamW_with_schedule
+  lr: 2.e-4
+  warmup_proportion: 0.07
+  betas: [0.9, 0.98]
+  eps: 1.e-6
+  weight_decay: 1.e-6
+
+pretrain_expert:
+  datarc:
+    num_workers: 24
+    train_batch_size: 24
+    max_timestep: 0
+    libri_root: /work/harry87122/dataset/LibriSpeech/
+    file_path: /work/harry87122/s3prl/s3prl/data/len_for_bucket
+    sets: ['train-clean-100', 'train-clean-360', 'train-other-500']

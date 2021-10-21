@@ -11,6 +11,7 @@
 
 ## What's New
 
+* *Oct 2021*: Support [**DistilHuBERT**](https://arxiv.org/abs/2110.01900), see [docs](./s3prl/upstream/distiller/README.md) for more info
 * *Sep 2021:* We host a *challenge* in [*AAAI workshop: The 2nd Self-supervised Learning for Audio and Speech Processing*](https://aaai-sas-2022.github.io/)! See [**SUPERB official site**](https://superbbenchmark.org/) for the challenge details and the [**SUPERB documentation**](./s3prl/downstream/docs/superb.md) in this toolkit!
 * *Aug 2021:* We now have a tutorial that introduces our toolkit, you can **[watch it on Youtube](https://youtu.be/PkMFnS6cjAc)**!
 * *July 2021:* We are now working on packaging s3prl and reorganizing the file structure in **v0.3**. Please consider using the stable **v0.2.0** for now. We will test and release **v0.3** before August.
