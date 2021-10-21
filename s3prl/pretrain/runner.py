@@ -115,31 +115,18 @@ class Runner:
         dataloader = self.upstream.get_train_dataloader()
 
         # set epoch
-        n_epochs = self.config["runner"]["n_epochs"]
-        if n_epochs > 0:
-            total_steps = int(
-                n_epochs * len(dataloader.dataset) / gradient_accumulate_steps
-            )
-            self.config["runner"]["total_steps"] = total_steps
-            print(
-                f"[Runner] - Training for {n_epochs} epochs, which is equivalent to {total_steps} steps"
-            )
+        n_epochs = self.config['runner']['n_epochs']
+        if n_epochs > 0: 
+            total_steps = int(n_epochs * len(dataloader.dataset) / gradient_accumulate_steps)
+            self.config['runner']['total_steps'] = total_steps
+            print(f'[Runner] - Training for {n_epochs} epochs, which is equivalent to {total_steps} steps')
         else:
-            total_steps = self.config["runner"]["total_steps"]
-            n_epochs = int(
-                total_steps * gradient_accumulate_steps / len(dataloader.dataset)
-            )
-            print(
-                f"[Runner] - Training for {total_steps} steps, which is approximately {n_epochs} epochs"
-            )
+            total_steps = self.config['runner']['total_steps']
+            n_epochs = int(total_steps * gradient_accumulate_steps / len(dataloader.dataset))
+            print(f'[Runner] - Training for {total_steps} steps, which is approximately {n_epochs} epochs')
 
-        assert self.config["runner"]["total_steps"] > self.config["runner"]["log_step"]
-        assert self.config["runner"]["total_steps"] > self.config["runner"]["save_step"]
-
-        # set amp
-        if self.amp:
-            print("[Runner] - Enabled fp16 training")
-            scaler = torch.cuda.amp.GradScaler()
+        assert self.config['runner']['total_steps'] > self.config['runner']['log_step']
+        assert self.config['runner']['total_steps'] > self.config['runner']['save_step']
 
         # set optimizer
         model_params = [self.upstream]
