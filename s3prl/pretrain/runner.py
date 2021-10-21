@@ -195,14 +195,14 @@ class Runner():
 
                 # gradient clipping
                 grad_norm = torch.nn.utils.clip_grad_norm_(self.upstream.model.parameters(), self.config['runner']['gradient_clipping'])
+                if math.isnan(grad_norm):
+                    print(f'[Runner] - Error : grad norm is NaN at global step {global_step}')
 
                 # optimize
                 if amp:
                     scaler.step(optimizer)
                     scaler.update()
-                if math.isnan(grad_norm):
-                    print(f'[Runner] - Error : grad norm is NaN at step {global_step}')
-                elif not amp:
+                elif not math.isnan(grad_norm):
                     optimizer.step()
 
                 self.upstream.on_before_zero_grad()
