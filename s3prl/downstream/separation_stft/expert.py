@@ -15,6 +15,7 @@ import math
 import random
 import h5py
 import numpy as np
+from pathlib import Path
 from collections import defaultdict
 import librosa
 
@@ -34,7 +35,6 @@ from .loss import MSELoss, SISDRLoss
 device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
 
 #COMPUTE_METRICS = ["si_sdr", "sdr", "sir", "sar", "stoi"]
-COMPUTE_METRICS = ["si_sdr"]
 
 def match_length(feat_list, length_list):
     assert len(feat_list) == len(length_list)
@@ -58,13 +58,14 @@ class DownstreamExpert(nn.Module):
     eg. downstream forward, metric computation, contents to log
     """
 
-    def __init__(self, upstream_dim, upstream_rate, downstream_expert, **kwargs):
+    def __init__(self, upstream_dim, upstream_rate, downstream_expert, expdir, **kwargs):
         super(DownstreamExpert, self).__init__()
         self.upstream_dim = upstream_dim
         self.upstream_rate = upstream_rate
         self.datarc = downstream_expert["datarc"]
         self.loaderrc = downstream_expert["loaderrc"]
         self.modelrc = downstream_expert["modelrc"]
+        self.expdir = expdir
 
         self.train_dataset = SeparationDataset(
                 data_dir=self.loaderrc["train_dir"],
@@ -232,6 +233,10 @@ class DownstreamExpert(nn.Module):
 
         # evaluate the separation quality of predict sources
         if mode == 'dev' or mode == 'test':
+            if mode == 'dev':
+                COMPUTE_METRICS = ["si_sdr"]
+            elif mode == 'test':
+                COMPUTE_METRICS = ["si_sdr", "stoi", "pesq"]
             predict_stfts = [torch.squeeze(m * source_attr['stft'].to(device)) for m in mask]
             predict_stfts_np = [np.transpose(s.data.cpu().numpy()) for s in predict_stfts]
 
@@ -262,7 +267,12 @@ class DownstreamExpert(nn.Module):
                 imp = utt_metrics[metric] - utt_metrics[input_metric]
                 if metric not in records:
                     records[metric] = []
-                records[metric].append(imp)
+                if metric == "si_sdr":
+                    records[metric].append(imp)
+                elif metric == "stoi" or metric == "pesq":
+                    records[metric].append(utt_metrics[metric])
+                else:
+                    raise ValueError("Metric type not defined.")
 
             assert 'batch_id' in kwargs
             if kwargs['batch_id'] % 1000 == 0: # Save the prediction every 1000 examples
@@ -325,20 +335,23 @@ class DownstreamExpert(nn.Module):
             )
             return []
         else:
+            COMPUTE_METRICS = ["si_sdr", "stoi", "pesq"] 
             avg_loss = np.mean(records["loss"])
             logger.add_scalar(
                 f"separation_stft/{mode}-loss", avg_loss, global_step=global_step
             )
-            for metric in COMPUTE_METRICS:
-                avg_metric = np.mean(records[metric])
-                if mode == "test" or mode == "dev":
-                    print("Average {} of {} utts is {:.2f}".format(metric, len(records[metric]), avg_metric))
+            with (Path(self.expdir) / f"{mode}_metrics.txt").open("w") as output:
+                for metric in COMPUTE_METRICS:
+                    avg_metric = np.mean(records[metric])
+                    if mode == "test" or mode == "dev":
+                        print("Average {} of {} utts: {:.4f}".format(metric, len(records[metric]), avg_metric))
+                        print(metric, avg_metric, file=output)
 
-                logger.add_scalar(
-                    f'separation_stft/{mode}-'+metric,
-                    avg_metric,
-                    global_step=global_step
-                )
+                    logger.add_scalar(
+                        f'separation_stft/{mode}-'+metric,
+                        avg_metric,
+                        global_step=global_step
+                    )
 
             save_ckpt = []
             assert 'si_sdr' in records

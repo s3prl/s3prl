@@ -17,6 +17,8 @@ import h5py
 import numpy as np
 from collections import defaultdict
 import librosa
+import soundfile as sf
+from pathlib import Path
 
 # -------------#
 import torch
@@ -30,11 +32,12 @@ from .model import SepRNN
 from .dataset import SeparationDataset
 from asteroid.metrics import get_metrics
 from .loss import MSELoss, SISDRLoss
+from .metric import eval_composite
 
 device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
 
 #COMPUTE_METRICS = ["si_sdr", "sdr", "sir", "sar", "stoi"]
-COMPUTE_METRICS = ["si_sdr"]
+COMPUTE_METRICS = ["si_sdr", "stoi", "pesq"]
 
 def match_length(feat_list, length_list):
     assert len(feat_list) == len(length_list)
@@ -58,13 +61,14 @@ class DownstreamExpert(nn.Module):
     eg. downstream forward, metric computation, contents to log
     """
 
-    def __init__(self, upstream_dim, upstream_rate, downstream_expert, **kwargs):
+    def __init__(self, upstream_dim, upstream_rate, downstream_expert, expdir, **kwargs):
         super(DownstreamExpert, self).__init__()
         self.upstream_dim = upstream_dim
         self.upstream_rate = upstream_rate
         self.datarc = downstream_expert["datarc"]
         self.loaderrc = downstream_expert["loaderrc"]
         self.modelrc = downstream_expert["modelrc"]
+        self.expdir = expdir
 
         self.train_dataset = SeparationDataset(
                 data_dir=self.loaderrc["train_dir"],
@@ -230,7 +234,7 @@ class DownstreamExpert(nn.Module):
         features = pack_sequence(features)
         mask = self.model(features)
 
-        # evaluate the separation quality of predict sources
+        # evaluate the enhancement quality of predict sources
         if mode == 'dev' or mode == 'test':
             predict_stfts = [torch.squeeze(m * source_attr['stft'].to(device)) for m in mask]
             predict_stfts_np = [np.transpose(s.data.cpu().numpy()) for s in predict_stfts]
@@ -262,7 +266,18 @@ class DownstreamExpert(nn.Module):
                 imp = utt_metrics[metric] - utt_metrics[input_metric]
                 if metric not in records:
                     records[metric] = []
-                records[metric].append(imp)
+                if metric == "si_sdr":
+                    records[metric].append(imp)
+                elif metric == "stoi" or metric == "pesq":
+                    records[metric].append(utt_metrics[metric])
+                else:
+                    raise ValueError("Metric type not defined.")
+
+            res_utt = eval_composite(gt_srcs_np, predict_srcs_np)
+            for metric in ['csig', 'cbak', 'covl']:
+                if metric not in records:
+                    records[metric] = []
+                records[metric].append(res_utt[metric])
 
             assert 'batch_id' in kwargs
             if kwargs['batch_id'] % 1000 == 0: # Save the prediction every 1000 examples
@@ -325,14 +340,16 @@ class DownstreamExpert(nn.Module):
             )
             return []
         else:
+            eval_result = open(Path(self.expdir) / f"{mode}_metrics.txt", "w")
             avg_loss = np.mean(records["loss"])
             logger.add_scalar(
                 f"separation_stft/{mode}-loss", avg_loss, global_step=global_step
             )
-            for metric in COMPUTE_METRICS:
+            for metric in COMPUTE_METRICS + ['csig', 'cbak', 'covl']:
                 avg_metric = np.mean(records[metric])
                 if mode == "test" or mode == "dev":
-                    print("Average {} of {} utts is {:.2f}".format(metric, len(records[metric]), avg_metric))
+                    print("Average {} of {} utts is {:.4f}".format(metric, len(records[metric]), avg_metric))
+                    print(metric, avg_metric, file=eval_result)
 
                 logger.add_scalar(
                     f'separation_stft/{mode}-'+metric,
@@ -341,9 +358,9 @@ class DownstreamExpert(nn.Module):
                 )
 
             save_ckpt = []
-            assert 'si_sdr' in records
-            if mode == "dev" and np.mean(records['si_sdr']) > self.best_score:
-                self.best_score = torch.ones(1) * np.mean(records['si_sdr'])
+            assert 'pesq' in records
+            if mode == "dev" and np.mean(records['pesq']) > self.best_score:
+                self.best_score = torch.ones(1) * np.mean(records['pesq'])
                 save_ckpt.append(f"best-states-{mode}.ckpt")
 
             for s in ['mix', 'ref', 'hypo', 'uttname']:

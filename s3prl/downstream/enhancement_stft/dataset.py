@@ -21,6 +21,8 @@ from torch.utils.data.dataset import Dataset
 
 import librosa
 
+SAMPLE_RATE = 16000
+
 class SeparationDataset(Dataset):
     def __init__(
         self,
@@ -82,7 +84,7 @@ class SeparationDataset(Dataset):
         assert len(self.src) == 1 and len(self.tgt) == 1
 
         # mix_clean (utterances only) mix_both (utterances + noise) mix_single (1 utterance + noise)
-        cond_list = ["s1", "s2", "noise", "mix_clean", "mix_both", "mix_single"]
+        cond_list = ["s1", "s2", "noise", "mix_clean", "mix_both", "mix_single", "noisy", "clean"]
 
         # create the mapping from utterances to the audio paths
         # reco2path[utt][cond] is the path for utterance utt with condition cond
@@ -109,7 +111,7 @@ class SeparationDataset(Dataset):
     def __getitem__(self, i):
         reco = self.recolist[i]
         src_path = self.reco2path[reco][self.src[0]]
-        src_samp, rate = librosa.load(src_path, sr=None)
+        src_samp, rate = librosa.load(src_path, sr=SAMPLE_RATE)
         assert rate == self.rate
         src_feat = np.transpose(librosa.stft(src_samp, 
             n_fft=self.n_fft,
@@ -121,7 +123,7 @@ class SeparationDataset(Dataset):
         tgt_samp_list, tgt_feat_list = [], []
         for j in range(self.n_srcs):
             tgt_path = self.reco2path[reco][self.tgt[j]]
-            tgt_samp, rate = librosa.load(tgt_path, sr=None)
+            tgt_samp, rate = librosa.load(tgt_path, sr=SAMPLE_RATE)
             assert rate == self.rate
             tgt_feat = np.transpose(librosa.stft(tgt_samp, 
                 n_fft=self.n_fft,

@@ -121,6 +121,7 @@ class DownstreamExpert(nn.Module):
             )
             with open(Path(self.expdir) / "log.log", 'a') as f:
                 if key == 'acc':
+                    print(f"{mode} {key}: {average}")
                     f.write(f'{mode} at step {global_step}: {average}\n')
                     if mode == 'dev' and average > self.best_score:
                         self.best_score = torch.ones(1) * average

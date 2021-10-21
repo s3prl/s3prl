@@ -3,7 +3,6 @@ import math
 import torch
 import torch.nn as nn
 from torch.nn.utils.rnn import pad_sequence
-from downstream.model import UtteranceLevel_Linear, AttentivePooling, MeanPooling
 
 class SelfAttentionPooling(nn.Module):
     """
@@ -184,13 +183,15 @@ class DeepNet(nn.Module):
 class DeepModel(nn.Module):
     def __init__(
         self,
+        input_dim,
+        output_dim,
         model_type,
         pooling,
         **kwargs
     ):
         super(DeepModel, self).__init__()
         self.pooling = pooling
-        self.model = eval(model_type)(pooling=pooling, **kwargs)
+        self.model = eval(model_type)(input_dim=input_dim, output_class_num=output_dim, pooling=pooling, **kwargs)
 
     def forward(self, features, features_len):
         attention_mask = [
@@ -201,17 +202,4 @@ class DeepModel(nn.Module):
         attention_mask = (1.0 - attention_mask) * -100000.0
         attention_mask = attention_mask.to(features.device)
         predicted = self.model(features, attention_mask)
-        return predicted
-
-class UtterLinear(nn.Module):
-    def __init__(self, input_dim, output_class_num, pooling_name, **kwargs):
-        super(UtterLinear, self).__init__()
-        self.model = UtteranceLevel_Linear(input_dim=input_dim, class_num=output_class_num)
-        self.pooling = eval(pooling_name)(input_dim=input_dim)
-
-    
-    def forward(self, features, features_len):
-        features = self.pooling(features, features_len)
-        predicted = self.model(features)
-
-        return predicted
+        return predicted, None

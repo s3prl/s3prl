@@ -46,6 +46,9 @@ class UpstreamExpert(UpstreamBase):
                 )
             self.add_hook("self.model.encoder", lambda input, output: output[0])
 
+    def get_downsample_rates(self, key: str) -> int:
+        return 320
+
     def forward(self, wavs):
         device = wavs[0].device
         if self.wav_normalize:
@@ -65,4 +68,6 @@ class UpstreamExpert(UpstreamBase):
         results = self.model.extract_features(
             padded_wav, wav_padding_mask if self.apply_padding_mask else None
         )
-        return {"default": results["x"]}
+
+        # This forward function only does the model forward
+        # The return dict is then handled by UpstreamBase's hooks

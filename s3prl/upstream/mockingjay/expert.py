@@ -52,7 +52,10 @@ class UpstreamExpert(UpstreamBase):
         assert hasattr(
             self.transformer, "extracter"
         ), "This wrapper only supports `on-the-fly` ckpt with built in feature extracters."
+        self.transformer([torch.randn(16000)])
 
+    def get_downsample_rates(self, key: str) -> int:
+        return 160
 
     def forward(self, wavs):
         last_hidden_state, hidden_states = self.transformer(wavs)  # (batch_size, extracted_seqlen, feature_dim)

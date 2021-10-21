@@ -21,7 +21,7 @@ from torch.nn.utils.rnn import pad_sequence
 from torch.utils.data.dataset import Dataset
 import torchaudio
 #-------------#
-from pretrain.mockingjay.task import generate_masked_acoustic_model_data
+from s3prl.pretrain.mockingjay.task import generate_masked_acoustic_model_data
 
 
 HALF_BATCHSIZE_TIME = 99999

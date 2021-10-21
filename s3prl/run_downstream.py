@@ -17,6 +17,7 @@ from s3prl import downstream
 from s3prl.downstream.runner import Runner
 from s3prl.utility.helper import backup, get_time_tag, hack_isinstance, is_leader_process, override
 
+from huggingface_hub import HfApi, HfFolder
 
 def get_downstream_args():
     parser = argparse.ArgumentParser()
@@ -44,7 +45,7 @@ def get_downstream_args():
     parser.add_argument('-c', '--config', help='The yaml file for configuring the whole experiment except the upstream model')
 
     # downstream settings
-    downstreams = [attr for attr in dir(downstream) if attr[0] != '_']
+    downstreams = [attr for attr in dir(downstream.experts) if attr[0] != '_']
     parser.add_argument('-d', '--downstream', choices=downstreams, help='\
         Typically downstream dataset need manual preparation.\
         Please check downstream/README.md for details'
@@ -55,17 +56,21 @@ def get_downstream_args():
     parser.add_argument('--hub', default="torch", choices=["torch", "huggingface"],
         help='The model Hub used to retrieve the upstream model.')
 
-    parser.add_argument('-u', '--upstream',  help='\
-        Some upstream variants need local ckpt or config file.\
-        Some download needed files on-the-fly and cache them.\
-        Please check downstream/README.md for details'
+    upstreams = [attr for attr in dir(hub) if attr[0] != '_']
+    parser.add_argument('-u', '--upstream',  help=""
+        'Upstreams with \"_local\" or \"_url\" postfix need local ckpt (-k) or config file (-g). '
+        'Other upstreams download two files on-the-fly and cache them, so just -u is enough and -k/-g are not needed. '
+        'Please check upstream/README.md for details. '
+        f"Available options in S3PRL: {upstreams}. "
     )
     parser.add_argument('-k', '--upstream_ckpt', metavar='{PATH,URL,GOOGLE_DRIVE_ID}', help='Only set when the specified upstream need it')
     parser.add_argument('-g', '--upstream_model_config', help='The config file for constructing the pretrained model')
-    parser.add_argument('--upstream_model_name', default="model.pt", help='The name of the model file in the Hugging Face Hub repo.')
     parser.add_argument('-r', '--upstream_refresh', action='store_true', help='Re-download cached ckpts for on-the-fly upstream variants')
     parser.add_argument('-f', '--upstream_trainable', action='store_true', help='Fine-tune, set upstream.train(). Default is upstream.eval()')
     parser.add_argument('-s', '--upstream_feature_selection', default='hidden_states', help='Specify the layer to be extracted as the representation')
+    parser.add_argument('-l', '--upstream_layer_selection', type=int, help='Select a specific layer for the features selected by -s')
+    parser.add_argument('--upstream_model_name', default="model.pt", help='The name of the model file in the HuggingFace Hub repo.')
+    parser.add_argument('--upstream_revision', help="The commit hash of the specified HuggingFace Repository")
 
     # experiment directory, choose one to specify
     # expname uses the default root directory: result/downstream
@@ -73,12 +78,14 @@ def get_downstream_args():
     parser.add_argument('-p', '--expdir', help='Save experiment at expdir')
     parser.add_argument('-a', '--auto_resume', action='store_true', help='Auto-resume if the expdir contains checkpoints')
     parser.add_argument('--push_to_hf_hub', default=False, help='Push all files in experiment directory to the Hugging Face Hub. To use this feature you must set HF_USERNAME and HF_PASSWORD as environment variables in your shell')
+    parser.add_argument('--hf_hub_org', help='The Hugging Face Hub organisation to push fine-tuned models to')
 
     # options
     parser.add_argument('--seed', default=1337, type=int)
     parser.add_argument('--device', default='cuda', help='model.to(device)')
     parser.add_argument('--cache_dir', help='The cache directory for pretrained model downloading')
     parser.add_argument('--verbose', action='store_true', help='Print model infomation')
+    parser.add_argument('--disable_cudnn', action='store_true', help='Disable CUDNN')
 
     args = parser.parse_args()
     backup_files = []
@@ -138,7 +145,7 @@ def get_downstream_args():
         if args.upstream_model_config is not None and os.path.isfile(args.upstream_model_config):
             backup_files.append(args.upstream_model_config)
 
-    if args.override.lower() != "none":
+    if args.override is not None and args.override.lower() != "none":
         override(args.override, args, config)
         os.makedirs(args.expdir, exist_ok=True)
     
@@ -174,6 +181,12 @@ def main():
 
     if args.hub == "huggingface":
         args.from_hf_hub = True
+        # Setup auth
+        hf_user = os.environ.get("HF_USERNAME")
+        hf_password = os.environ.get("HF_PASSWORD")
+        huggingface_token = HfApi().login(username=hf_user, password=hf_password)
+        HfFolder.save_token(huggingface_token)
+        print(f"Logged into Hugging Face Hub with user: {hf_user}")
     
     # Save command
     if is_leader_process():
@@ -191,8 +204,12 @@ def main():
     np.random.seed(args.seed)
     torch.manual_seed(args.seed)
     if torch.cuda.is_available(): torch.cuda.manual_seed_all(args.seed)
-    torch.backends.cudnn.deterministic = True
-    torch.backends.cudnn.benchmark = False
+    if args.disable_cudnn:
+        torch.backends.cudnn.enabled = False
+    else:
+        torch.backends.cudnn.enabled = True
+        torch.backends.cudnn.deterministic = True
+        torch.backends.cudnn.benchmark = False
 
     runner = Runner(args, config)
     eval(f'runner.{args.mode}')()

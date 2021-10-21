@@ -9,9 +9,9 @@ import torch.nn as nn
 import torch.nn.functional as F
 from torch.nn.utils.rnn import pad_sequence
 
-from s3prl import hub
+import s3prl
+from s3prl.upstream.interfaces import Featurizer
 from .model import *
-from upstream.interfaces import Featurizer
 
 EXAMPLE_FEAT_SEQLEN = 1000
 TIMIT_PHONE_CLASSES = 39
@@ -24,7 +24,7 @@ class UpstreamExpert(nn.Module):
         ckpt = torch.load(ckpt, map_location='cpu')
 
         args = ckpt['Args']
-        self.upstream = getattr(hub, args.upstream)()
+        self.upstream = getattr(s3prl.hub, args.upstream)()
         self.featurizer = Featurizer(self.upstream, "last_hidden_state", "cpu")
 
         config = ckpt['Config']
@@ -42,6 +42,9 @@ class UpstreamExpert(nn.Module):
             states[new_key] = states[key]
             states.pop(key)
         return states
+
+    def get_downsample_rates(self, key: str) -> int:
+        return self.upstream.get_downsample_rates(key)
 
     def forward(self, wavs):
         """

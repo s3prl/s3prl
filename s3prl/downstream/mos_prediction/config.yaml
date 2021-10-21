@@ -1,0 +1,38 @@
+runner:
+  total_steps: 20000
+  gradient_clipping: 5
+  gradient_accumulate_steps: 2
+
+  log_step: 100
+  eval_step: 250
+  save_step: 500
+  max_keep: 1
+  eval_dataloaders:
+    - dev
+    - vcc2018_test
+    - vcc2016_test
+
+optimizer:
+  name: Adam
+  lr: 1.0e-4
+
+# comment the whole scheduler config block
+# to disable learning rate scheduling
+scheduler:
+  name: linear_schedule_with_warmup
+  num_warmup_steps: 500
+
+downstream_expert:
+  datarc:
+    num_workers: 8
+    train_batch_size: 8
+    eval_batch_size: 12
+    vcc2018_file_path: /path/to/data/VCC_2018
+    vcc2016_file_path: /path/to/data/VCC_2016
+
+  modelrc:
+    projector_dim: 256
+    clipping: True # If true, the model output will be restrict to the interval [1,5] using Tanh
+    attention_pooling: True
+    segment_weight: 1
+    bias_weight: 1

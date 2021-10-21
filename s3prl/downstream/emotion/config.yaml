@@ -41,7 +41,6 @@ downstream_expert:
 
     DeepModel:
       model_type: CNNSelfAttention
-      input_dim: 256
       hidden_dim: 80
       kernel_size: 5
       padding: 2

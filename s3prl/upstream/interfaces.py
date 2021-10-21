@@ -96,16 +96,6 @@ class UpstreamBase(nn.Module, metaclass=initHook):
             generate_hook_handler(self._hook_hiddens, hook)
         )
 
-    @staticmethod
-    def tolist(paired_wavs: List[Tensor], paired_feature: Tensor):
-        assert paired_feature.dim() == 3
-        # (batch_size, max_seq_len, feat_dim)
-
-        ratio = max([len(wav) for wav in paired_wavs]) / paired_feature.size(1)
-        feature_len = [round(len(wav) / ratio) for wav in paired_wavs]
-        feature = [f[:l] for f, l in zip(paired_feature, feature_len)]
-        return feature
-
     def __call__(self, wavs: List[Tensor], *args, **kwargs):
         self._hook_hiddens.clear()
 
@@ -137,10 +127,6 @@ class UpstreamBase(nn.Module, metaclass=initHook):
             for layer_id, hidden_state in enumerate(result["hidden_states"]):
                 result[f"hidden_state_{layer_id}"] = hidden_state
 
-            default = result.get("default")
-            if default is not None:
-                assert torch.allclose(default, result["last_hidden_state"])
-
         return result
 
 
@@ -150,28 +136,42 @@ class Featurizer(nn.Module):
         upstream: UpstreamBase,
         feature_selection: str = "hidden_states",
         upstream_device: str = "cuda",
+        layer_selection: int = None,
         **kwargs,
     ):
         super().__init__()
-        self.feature_selection = feature_selection
-        self.name = f"Featurizer for {upstream.__class__}"
+        self.name = "Featurizer"
 
-        show(
-            f"[{self.name}] - The input upstream is only for initialization and not saved in this nn.Module"
-        )
-
-        # This line is necessary as some models behave differently between train/eval
-        # eg. The LayerDrop technique used in wav2vec2
         upstream.eval()
-
         paired_wavs = [torch.randn(SAMPLE_RATE).to(upstream_device)]
-        paired_features = upstream(paired_wavs)
+        with torch.no_grad():
+            paired_features = upstream(paired_wavs)
+
+        if feature_selection not in paired_features:
+            if "hidden_states" in paired_features:
+                show(
+                    f"[{self.name}] - Warning: {feature_selection} is not a supported args.upstream_feature_selection."
+                    f" Using \"hidden_states\" as the default key.",
+                    file=sys.stderr
+                )
+                feature_selection = "hidden_states"
+            else:
+                show(
+                    f"[{self.name}] - Error: {feature_selection} is not a supported args.upstream_feature_selection."
+                    f" The default key \"hidden_states\" is also not supported."
+                    f" Please specify -s with the following options: {list(paired_wavs.keys())}",
+                    file=sys.stderr
+                )
+                raise ValueError
+        self.feature_selection = feature_selection
+        self.layer_selection = layer_selection
 
         feature = self._select_feature(paired_features)
         if isinstance(feature, (list, tuple)):
             self.layer_num = len(feature)
             show(
-                f"[{self.name}] - Take a list of {self.layer_num} features and weighted sum them."
+                f"[{self.name}] - Take a list of {self.layer_num} features and weighted sum them.",
+                file=sys.stderr
             )
             self.weights = nn.Parameter(torch.zeros(self.layer_num))
             feature = self._weighted_sum([f.cpu() for f in feature])
@@ -179,11 +179,21 @@ class Featurizer(nn.Module):
             feature = feature.cpu()
 
         self.output_dim = feature.size(-1)
-        ratio = round(max(len(wav) for wav in paired_wavs) / feature.size(1))
-        possible_rate = torch.LongTensor([160, 320])
-        self.downsample_rate = int(
-            possible_rate[(possible_rate - ratio).abs().argmin(dim=-1)]
-        )
+        if hasattr(upstream, "get_downsample_rates"):
+            self.downsample_rate = upstream.get_downsample_rates(feature_selection)
+            show(
+                f"[{self.name}] - The selected feature {feature_selection}'s downsample rate is {self.downsample_rate}",
+                file=sys.stderr
+            )
+        else:
+            self.downsample_rate = round(max(len(wav) for wav in paired_wavs) / feature.size(1))
+            show(
+                f"[{self.name}] - Warning: The provided upstream does not give statis downsample rate"
+                " by the \"get_downsample_rates\" interface (see upstream/example/expert.py)."
+                " The downsample rate is calculated dynamically basing on the shape of the"
+                f" input waveforms v.s. the output features: {self.downsample_rate}",
+                file=sys.stderr
+            )
 
     def _select_feature(self, features):
         feature = features.get(self.feature_selection)
@@ -193,22 +203,30 @@ class Featurizer(nn.Module):
 
         if isinstance(feature, (list, tuple)) and len(feature) == 1:
             feature = feature[0]
+        
+        if isinstance(feature, (list, tuple)) and isinstance(self.layer_selection, int):
+            feature = feature[self.layer_selection]
 
-        if feature is None:
-            available_options = [key for key in features.keys() if key[0] != "_"]
-            show(
-                f"[{self.name}] - feature_selection = {self.feature_selection} is not supported for this upstream.",
-                file=sys.stderr,
-            )
-            show(
-                f"[{self.name}] - Supported options: {available_options}",
-                file=sys.stderr,
-            )
-            raise ValueError
         return feature
 
     def _weighted_sum(self, feature):
-        assert self.layer_num == len(feature), f"{self.layer_num} != {len(feature)}"
+        assert self.layer_num == len(feature), (
+            "If you run into this error, there is a great chance"
+            " you are finetuning the upstream with wav2vec2's transformer blocks"
+            " in weighted-sum mode (default), including wav2vec2, hubert, and decoar2."
+            " These models use the layerdrop technique which causes the different number"
+            " of layer forwards between different model forwards, resulting in different"
+            " number of hidden states for different model forwards. Hence, finetuning"
+            " these upstreams is essentially incompatible with weight-sum mode unless"
+            " you turn off the layerdrop option in fairseq. See:"
+            " https://github.com/pytorch/fairseq/blob/f6abcc2a67328bee8b15c596bb626ce2d720aae6/fairseq/models/wav2vec/wav2vec2.py#L857"
+            " However, since finetuning upstreams will backward the gradient through all layers"
+            " which serves the same functionality as weighted-sum: all layers can be used for different"
+            " downstream tasks. Hence instead of finetuning upstream with weighted-sum, we suggest to"
+            " follow the more common setting: finetuning upstream with the last layer. Please use the"
+            " following options: --upstream_trainable --upstream_feature_selection last_hidden_state."
+            " Or: -f -s last_hidden_state"
+        )
         stacked_feature = torch.stack(feature, dim=0)
 
         _, *origin_shape = stacked_feature.shape
@@ -219,6 +237,12 @@ class Featurizer(nn.Module):
 
         return weighted_feature
 
+    def tolist(self, paired_wavs: List[Tensor], paired_feature: Tensor):
+        assert paired_feature.dim() == 3, "(batch_size, max_seq_len, feat_dim)"
+        feature_len = [round(len(wav) / self.downsample_rate) for wav in paired_wavs]
+        feature = [f[:l] for f, l in zip(paired_feature, feature_len)]
+        return feature
+
     def forward(
         self,
         paired_wavs: List[Tensor],
@@ -228,4 +252,4 @@ class Featurizer(nn.Module):
         if isinstance(feature, (list, tuple)):
             feature = self._weighted_sum(feature)
 
-        return UpstreamBase.tolist(paired_wavs, feature)
+        return self.tolist(paired_wavs, feature)

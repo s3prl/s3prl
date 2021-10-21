@@ -15,6 +15,7 @@ from ..interfaces import UpstreamBase
 from .extracter import get_extracter
 from .preprocessor import get_preprocessor
 
+SAMPLE_RATE = 16000
 
 ###################
 # UPSTREAM EXPERT #
@@ -33,16 +34,21 @@ class UpstreamExpert(UpstreamBase):
 
         if "kaldi" in self.config:
             self.extracter, self.output_dim = get_extracter(self.config)
+            self.downsample_rate = round(self.config["kaldi"].get("frame_shift", 10) * SAMPLE_RATE / 1000)
         else:
             self.extracter, self.output_dim, _ = get_preprocessor(
                 self.config, process_input_only=True
             )
+            self.downsample_rate = round(self.config.get("hop_ms", 10) * SAMPLE_RATE / 1000)
 
     def _extractor_forward(self, wavs):
         feats = []
         for wav in wavs:
             feats.append(self.extracter(wav))
         return feats
+
+    def get_downsample_rates(self, key: str) -> int:
+        return self.downsample_rate
 
     def _preprocessor_forward(self, wavs):
         wav_lengths = [len(wav) for wav in wavs]

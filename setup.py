@@ -1,5 +1,5 @@
 # Always prefer setuptools over distutils
-from setuptools import setup, find_namespace_packages
+from setuptools import setup, find_packages
 import pathlib
 
 here = pathlib.Path(__file__).parent.resolve()
@@ -17,9 +17,9 @@ requirements = [
     "scikit-learn>=0.23.2",
     "PyYAML>=5.4",
     "tqdm>=4.56.0",
-    "numpy>=1.19.5",
+    "numpy>=1.19.5, <1.21",
     "pandas>=1.1.5",
-    "tensorboardX>=1.9",
+    "tensorboardX>=1.9, <2.3",
     "matplotlib>=3.3.4",
     "Pillow>=6.2.2",
     "numba>=0.48",
@@ -29,6 +29,7 @@ requirements = [
     "transformers>=4.10.0,<5.0",
     "dtw-python==1.1.6",
     "asteroid==0.4.4",
+    "sacrebleu>=2.0.0",
     "kaldi_io",
     "h5py",
     "sox",
@@ -42,6 +43,8 @@ requirements = [
     "editdistance",
     "easydict",
     "catalyst",
+    "sentencepiece",
+    "huggingface_hub @ git+https://github.com/huggingface/huggingface_hub.git#egg=huggingface_hub" # TODO: Replace with v0.0.17 when it is released
 ]
 
 # Arguments marked as "Required" below must be included for upload to PyPI.
@@ -158,7 +161,7 @@ setup(
     #
     #   py_modules=["my_module"],
     #
-    packages=find_namespace_packages(include=["s3prl*"]),  # Required
+    packages=find_packages(include=["s3prl*"]),  # Required
 
     # Specify which Python versions you support. In contrast to the
     # 'Programming Language' classifiers above, 'pip install' will check this

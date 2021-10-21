@@ -13,7 +13,7 @@
 import copy
 import torch
 import random
-from pretrain.mockingjay.task import fast_position_encoding
+from s3prl.pretrain.mockingjay.task import fast_position_encoding
 
 ############
 # CONSTANT #

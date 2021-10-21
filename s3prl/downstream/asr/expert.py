@@ -29,7 +29,7 @@ def get_decoder(decoder_args_dict, dictionary):
     decoder_args = Namespace(**decoder_args_dict)
 
     if decoder_args.decoder_type == "kenlm":
-        from examples.speech_recognition.w2l_decoder import W2lKenLMDecoder
+        from .w2l_decoder import W2lKenLMDecoder
         decoder_args.beam_size_token = len(dictionary)
         if isinstance(decoder_args.unk_weight, str):
             decoder_args.unk_weight = eval(decoder_args.unk_weight)

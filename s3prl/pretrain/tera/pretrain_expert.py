@@ -10,4 +10,4 @@
 ###############
 # IMPORTATION #
 ###############
-from pretrain.mockingjay.pretrain_expert import UpstreamPretrainExpert
+from s3prl.pretrain.mockingjay.pretrain_expert import UpstreamPretrainExpert
