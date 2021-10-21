@@ -31,8 +31,8 @@ Besides the tasks presented in the paper, we are also extending the coverage ove
 | [ASV](#asv-automatic-speaker-verification) | Automatic Speaker Verification | Speaker | V | V |
 | [SD](#sd-speaker-diarization) | Speaker Diarization | Speaker | V | V |
 | [ER](#er-emotion-recognition) | Emotion Recognition | Paralinguistics | V | V |
-| [IC](#ic-intent-classification) | Spoken Intent Classification | Semantics | V |  |
-| [SF](#sf-slot-filling) | Spoken Slot Filling | Semantics | V |  |
+| [IC](#ic-intent-classification) | Spoken Intent Classification | Semantics | V | |
+| [SF](#sf-end-to-end-slot-filling) | Spoken Slot Filling | Semantics | V |  |
 | [ST](#st-speech-translation) | Speech Translation | Semantics |  | V |
 | [SE](#se-speech-enhancement) | Speech Enhancement | Generation |  | V |
 | [SS](#ss-source-separation) | Source Separation | Generation |  | V |
@@ -298,14 +298,17 @@ cd $CORPORA_DIR/quesst14Database/scoring
 
 After you benchmark all the layers of an upstream, says you find the 6-th layer is the best for QbE according to dev set. Please use `ExpName_6_test` as the submission expdir for [`submit.py`](../../submit/submit.py).
 
-## IC: Intent Classification - Fluent Speech Commands
+## IC: Intent Classification
 
 Specified by the command `-d fluent_commands`
 
 #### Prepare data
 
-1. Download and unzip data
-    - http://fluent.ai:2052/jf8398hf30f0381738rucj3828chfdnchs.tar.gz
+1. Download and unzip data: Fluent Speech Commands
+    - Official data link: http://fluent.ai:2052/jf8398hf30f0381738rucj3828chfdnchs.tar.gz
+    - Official website: https://fluent.ai/fluent-speech-commands-a-dataset-for-spoken-language-understanding-research/
+    - Since the official link might break occasionally, we provide a backup link. If this is not allowed please let us know and we will remove it immediately.
+    - Please use `wget http://140.112.21.28:9000/fluent.tar.gz`
 
 2. Check the prepared file structure
 
@@ -766,6 +769,8 @@ The model will report case-sensitive detokenized BLEU.
 # Leaderboard submission
 
 After *finishing the **Testing*** of each task, the prediction files for leaderboard submission will be located under the `expdir`. You can use [submit.py](../../submit/submit.py) to easily organize them into a zip file which can later be submitted to our [leaderboard](https://superbbenchmark.org/submit). We now support submissions for the following tasks: **PR**, **ASR**, **KS**, **QbE**, **SID**, **ASV**, **SD**, **IC**, **SF**, **ER**, **SE**, **SS**, **ST**.
+
+(Please use the master branch newer than [191ab19](191ab1993a5ca01d5356417e985fe1d321547263))
 
 ```sh
 output_dir="submission"
