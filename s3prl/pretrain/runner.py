@@ -120,13 +120,11 @@ class Runner():
         assert self.config['runner']['total_steps'] > self.config['runner']['log_step']
         assert self.config['runner']['total_steps'] > self.config['runner']['save_step']
 
-        self.amp = self.config['runner']['fp16']
-
         # set amp
-        if self.amp:
+        amp = self.config['runner'].get('fp16', False)
+        if amp:
             print('[Runner] - Enabled fp16 training')
             scaler = torch.cuda.amp.GradScaler()
-            self.prev_nan = False
 
         # set optimizer
         model_params = [self.upstream]
@@ -156,19 +154,19 @@ class Runner():
                         break
                     global_step = pbar.n + 1
 
-                    with torch.cuda.amp.autocast(enabled=self.amp):
+                    with torch.cuda.amp.autocast(enabled=amp):
                         loss, records = self.upstream(
                             data,
                             records=records,
                             global_step=global_step,
-                            log_step=self.config["runner"]["log_step"],
+                            log_step=self.config['runner']['log_step'],
                         )
 
                     if gradient_accumulate_steps > 1:
                         loss = loss / gradient_accumulate_steps
                     if self.args.multi_gpu:
                         loss = loss.sum()
-                    if self.amp:
+                    if amp:
                         scaler.scale(loss).backward()
                     else:
                         loss.backward()
@@ -178,7 +176,6 @@ class Runner():
                         print(f'[Runner] - CUDA out of memory at step {global_step}')
                         torch.cuda.empty_cache()
                         optimizer.zero_grad()
-                        self.prev_nan = False  # reset
                         continue
                     else:
                         raise
@@ -192,25 +189,22 @@ class Runner():
                 if backward_steps % gradient_accumulate_steps > 0:
                     continue
                     
-                # unscale (only when using fp16 and the previous grad norm is not nan)
-                if self.amp and not self.prev_nan:
+                # unscale
+                if amp:
                     scaler.unscale_(optimizer)
 
                 # gradient clipping
                 grad_norm = torch.nn.utils.clip_grad_norm_(self.upstream.model.parameters(), self.config['runner']['gradient_clipping'])
 
                 # optimize
+                if amp:
+                    scaler.step(optimizer)
+                    scaler.update()
                 if math.isnan(grad_norm):
-                    self.prev_nan = True
                     print(f'[Runner] - Error : grad norm is NaN at step {global_step}')
-                else:
-                    self.prev_nan = False
-                    if self.amp:
-                        scaler.step(optimizer)
-                        scaler.update()
-                    else:
-                        optimizer.step()
-                    
+                elif not amp:
+                    optimizer.step()
+
                 self.upstream.on_before_zero_grad()
                 optimizer.zero_grad()
 
