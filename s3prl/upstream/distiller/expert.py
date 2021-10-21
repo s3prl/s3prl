@@ -53,9 +53,9 @@ class UpstreamExpert(UpstreamBase):
 
         states = {
             "last_hidden_state": None if no_pred else hidden_feats[-1],
-            "hidden_states": layer_hidden[-1],
             "all_hidden_states": hidden_feats,
             "pad_mask": pad_mask,
+            "paper": layer_hidden[-1],  # DistilHuBERT: https://arxiv.org/abs/2110.01900
         }
 
         return states

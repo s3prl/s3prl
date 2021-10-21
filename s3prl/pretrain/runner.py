@@ -42,8 +42,7 @@ class Runner():
 
         self.init_ckpt = torch.load(self.args.past_exp, map_location='cpu') if self.args.past_exp else {}
         self.upstream = self._get_upstream()
-        self.amp = self.config["runner"]["fp16"]
-        self.prev_nan = False
+
 
     def _get_upstream(self):
         init_upstream = self.init_ckpt.get('Config')
@@ -121,10 +120,13 @@ class Runner():
         assert self.config['runner']['total_steps'] > self.config['runner']['log_step']
         assert self.config['runner']['total_steps'] > self.config['runner']['save_step']
 
+        self.amp = self.config['runner']['fp16']
+
         # set amp
         if self.amp:
             print('[Runner] - Enabled fp16 training')
             scaler = torch.cuda.amp.GradScaler()
+            self.prev_nan = False
 
         # set optimizer
         model_params = [self.upstream]
@@ -154,15 +156,7 @@ class Runner():
                         break
                     global_step = pbar.n + 1
 
-                    if self.amp:
-                        with torch.cuda.amp.autocast():
-                            loss, records = self.upstream(
-                                data,
-                                records=records,
-                                global_step=global_step,
-                                log_step=self.config["runner"]["log_step"],
-                            )
-                    else:
+                    with torch.cuda.amp.autocast(enabled=self.amp):
                         loss, records = self.upstream(
                             data,
                             records=records,
@@ -184,7 +178,7 @@ class Runner():
                         print(f'[Runner] - CUDA out of memory at step {global_step}')
                         torch.cuda.empty_cache()
                         optimizer.zero_grad()
-                        self.prev_nan = False
+                        self.prev_nan = False  # reset
                         continue
                     else:
                         raise
@@ -198,7 +192,7 @@ class Runner():
                 if backward_steps % gradient_accumulate_steps > 0:
                     continue
                     
-                # unscale
+                # unscale (only when using fp16 and the previous grad norm is not nan)
                 if self.amp and not self.prev_nan:
                     scaler.unscale_(optimizer)
 
