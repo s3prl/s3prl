@@ -1,3 +1,8 @@
+import os
+import glob
+from tqdm import tqdm
+from collections import defaultdict
+
 import torch.distributed as dist
 from pytorch_lightning.callbacks import Callback
 
@@ -5,10 +10,10 @@ from pytorch_lightning.callbacks import Callback
 class Saver(Callback):
     def __init__(self,):
         super().__init__()
-        continue
 
 
-    def on_train_start(self):
+    def on_train_start(self, trainer, pl_module):
+        super().on_train_start(trainer, pl_module)
         self.train_records = defaultdict(list)
         self.train_batch_ids = []
 
@@ -21,7 +26,7 @@ class Saver(Callback):
 
         if trainer.is_global_zero:
             self.train_batch_ids.append(batch_idx)
-            for k, v in outputs['records']:
+            for k, v in outputs['records'].items():
                 self.train_records[k] += v
 
             # Logging
@@ -50,7 +55,8 @@ class Saver(Callback):
                 trainer.save_checkpoint(f'states-{global_step}.ckpt')
 
 
-    def on_validation_start(self):
+    def on_validation_start(self, trainer, pl_module):
+        super().on_validation_start(trainer, pl_module)
         self.validation_records = defaultdict(lambda: defaultdict(list))
         self.validation_batch_ids = defaultdict(list)
 
@@ -69,7 +75,7 @@ class Saver(Callback):
                 # Treat sub-batch on each GPU an individual batch
                 batch_id = batch_idx * world_size + i
                 self.validation_batch_ids[split].append(batch_id)
-                for k, v in output['records']:
+                for k, v in output['records'].items():
                     self.validation_records[split][k] += v
 
 
@@ -82,7 +88,7 @@ class Saver(Callback):
         if trainer.is_global_zero:
             save_names = []
             for split in config['runner']['eval_dataloaders']:
-                save_names += self.downstream.model.log_records(
+                save_names += pl_module.downstream.model.log_records(
                     split,
                     records = self.validation_records[split],
                     logger = logger,
@@ -98,4 +104,6 @@ class Saver(Callback):
                     tqdm.write(f'{i + 1}. {path}')
                     trainer.save_checkpoint(path)
 
+        self.validation_records = defaultdict(lambda: defaultdict(list))
+        self.validation_batch_ids = defaultdict(list)
 

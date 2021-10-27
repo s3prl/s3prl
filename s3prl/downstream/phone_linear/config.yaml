@@ -20,7 +20,7 @@ downstream_expert:
     num_workers: 8
     train_batch_size: 32 
     eval_batch_size: 32
-    libri_root: '/work/a129195789/LibriSpeech/'
+    libri_root: '/home/r06942045/myData/LibriSpeech/'
     phone_path: './downstream/phone_linear/data'
     bucket_file: 'data/len_for_bucket'
     sample_rate: 16000 # this should not be changed, and this should match the sr of the audio in `libri_root`

@@ -29,15 +29,60 @@ from huggingface_hub import HfApi, HfFolder, Repository
 
 SAMPLE_RATE = 16000
 
+MODEL_CARD_MARKDOWN = """---
+datasets:
+- superb
+tags:
+- library:s3prl
+- benchmark:superb
+- type:model
+---
+
+# Fine-tuned s3prl model
+
+Upstream Model: {upstream_model}
+
+## Model description
+
+[More information needed]
+
+## Intended uses & limitations
+
+[More information needed]
+
+## How to use
+
+[More information needed]
+
+## Limitations and bias
+
+[More information needed]
+
+## Training data
+
+[More information needed]
+
+## Training procedure
+
+[More information needed]
+
+## Evaluation results
+
+[More information needed]
+
+"""
+
 
 class ModelEntry(pl.LightningModule):
     def __init__(self, model, name, trainable, interfaces):
+        super().__init__()
         self.model = model
         self.name = name
         self.trainable = trainable
         self.interfaces = interfaces
 
         if not self.trainable:
+            # Set requires_grad=False
             self.freeze()
 
 
@@ -47,6 +92,7 @@ class Runner(pl.LightningModule):
     eg. training loop, evaluation loop, upstream propagation, optimization, logging, checkpoint saving
     """
     def __init__(self, args, config):
+        super().__init__()
         self.args = args
         self.config = config
         self.init_ckpt = torch.load(self.args.init_ckpt, map_location='cpu') if self.args.init_ckpt else {}
@@ -65,7 +111,8 @@ class Runner(pl.LightningModule):
 
     @staticmethod
     def add_model_specific_args(parent_parser):
-        # NOTE: TODO
+        # NOTE: it's now a template
+        # TODO
         parser = parent_parser.add_argument_group("LitMNIST")
         parser.add_argument("--layer_1_dim", type=int, default=128)
         return parent_parser
@@ -80,7 +127,7 @@ class Runner(pl.LightningModule):
 
     def _init_model(self, model, name, trainable, interfaces=None):
         for interface in interfaces or []:
-            assert hasattr(model, interface)
+            assert hasattr(model, interface), interface
 
         self._load_weight(model, name)
 
@@ -91,8 +138,8 @@ class Runner(pl.LightningModule):
         if "from_hf_hub" in self.args and self.args.from_hf_hub == True:
             from huggingface_hub import snapshot_download
 
-            print(f'Downloading upstream model {self.args.upstream} from the Hugging Face Hub')
-            filepath = snapshot_download(self.args.upstream)
+            print(f'[Runner] - Downloading upstream model {self.args.upstream} from the Hugging Face Hub')
+            filepath = snapshot_download(self.args.upstream, self.args.upstream_revision, use_auth_token=True)
             sys.path.append(filepath)
 
             from expert import UpstreamExpert
@@ -102,6 +149,9 @@ class Runner(pl.LightningModule):
             Upstream = getattr(hub, self.args.upstream)
             ckpt_path = self.args.upstream_ckpt
         upstream_refresh = self.args.upstream_refresh
+
+        if self.global_rank != 0:
+            upstream_refresh = False
 
         model = Upstream(
             ckpt = ckpt_path,
@@ -113,13 +163,16 @@ class Runner(pl.LightningModule):
             model = model,
             name = 'Upstream',
             trainable = self.args.upstream_trainable,
+            interfaces = ["get_downsample_rates"]
         )
 
 
     def _get_featurizer(self):
         model = Featurizer(
-            self.upstream.model, self.args.upstream_feature_selection,
-            upstream_device=self.args.device,
+            upstream = self.upstream.model,
+            feature_selection = self.args.upstream_feature_selection,
+            layer_selection = self.args.upstream_layer_selection,
+            upstream_device = self.args.device,
         )
 
         return self._init_model(
@@ -131,7 +184,7 @@ class Runner(pl.LightningModule):
 
 
     def _get_downstream(self):
-        Downstream = getattr(downstream, self.args.downstream)
+        Downstream = getattr(downstream.experts, self.args.downstream)
         model = Downstream(
             upstream_dim = self.featurizer.model.output_dim,
             upstream_rate = self.featurizer.model.downsample_rate,
@@ -167,6 +220,12 @@ class Runner(pl.LightningModule):
         return scheduler
 
 
+    def _create_model_card(self, path):
+        model_card = MODEL_CARD_MARKDOWN.format(upstream_model=self.args.upstream)
+        with open(os.path.join(path, "README.md"), "w") as f:
+            f.write(model_card)
+
+
     def configure_optimizers(self):
         # trainable parameters and train/eval mode
         trainable_models = []
@@ -191,8 +250,9 @@ class Runner(pl.LightningModule):
 
 
     def configure_callbacks(self):
-        callbacks = [Saver()]
-        callbacks.append(LitProgressBar())  # NOTE: optional
+        self.saver = Saver()
+        callbacks = [self.saver]
+        # callbacks.append(LitProgressBar())  # NOTE: optional
         return callbacks
 
 
@@ -234,6 +294,14 @@ class Runner(pl.LightningModule):
         return {'loss': loss, 'records': records}
 
 
+    def val_dataloader(self):
+        self.validation_dataloaders = [
+            self.downstream.model.get_dataloader(split)
+            for split in self.config['runner']['eval_dataloaders']
+        ]
+        return self.validation_dataloaders
+
+
     def validation_step(self, batch, batch_idx, dataloader_idx):
         wavs, *others = batch
 
@@ -252,6 +320,10 @@ class Runner(pl.LightningModule):
         )
 
         return {'records': records}
+
+
+    def validation_epoch_end(self, outputs):
+        self.saver.validation_epoch_end(self.trainer, self)
 
 
     def on_save_checkpoint(self, checkpoint):
