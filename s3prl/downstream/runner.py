@@ -126,6 +126,15 @@ class Runner():
             filepath = snapshot_download(self.args.upstream, self.args.upstream_revision, use_auth_token=True)
             sys.path.append(filepath)
 
+            dependencies = (Path(filepath) / 'requirements.txt').resolve()
+            print("[Dependency] - The downloaded upstream model requires the following dependencies. Please make sure they are installed:")
+            for idx, line in enumerate((Path(filepath) / "requirements.txt").open().readlines()):
+                print(f"{idx}. {line.strip()}")
+            print(f"You can install them by:")
+            print()
+            print(f"pip install -r {dependencies}")
+            print()
+
             from expert import UpstreamExpert
             Upstream = UpstreamExpert
             ckpt_path = os.path.join(filepath, self.args.upstream_model_name)
