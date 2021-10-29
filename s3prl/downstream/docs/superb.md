@@ -613,13 +613,18 @@ cd LibriMix
 
 # prepare train, dev and test data in Kaldi format
 python downstream/separation_stft/scripts/LibriMix/data_prepare.py \
---part train-100 storage_dir/Libri2Mix downstream/separation_stft/data
+--part train-100 storage_dir/Libri2Mix downstream/separation_stft/datasets/Libri2Mix
 
 python downstream/separation_stft/scripts/LibriMix/data_prepare.py \
---part dev storage_dir/Libri2Mix downstream/separation_stft/data
+--part dev storage_dir/Libri2Mix downstream/separation_stft/datasets/Libri2Mix
 
 python downstream/separation_stft/scripts/LibriMix/data_prepare.py \
---part test storage_dir/Libri2Mix downstream/separation_stft/data
+--part test storage_dir/Libri2Mix downstream/separation_stft/datasets/Libri2Mix
+
+# subsample dev set from 3000 utts to 1000 utts (for faster validation)
+python downstream/separation_stft/scripts/LibriMix/subsample.py \
+downstream/separation_stft/datasets/Libri2Mix/wav16k/min/dev \
+downstream/separation_stft/datasets/Libri2Mix/wav16k/min/dev_1000
 ```
 
 #### Training
@@ -667,11 +672,11 @@ download_vctk(data_dir)
 
 # prepare train, dev and test data in Kaldi format
 python downstream/enhancement_stft/scripts/Voicebank/data_prepare.py \
-    data_dir downstream/enhancement_stft/voicebank --part train
+    data_dir downstream/enhancement_stft/datasets/voicebank --part train
 python downstream/enhancement_stft/scripts/Voicebank/data_prepare.py \
-    data_dir downstream/enhancement_stft/voicebank --part dev
+    data_dir downstream/enhancement_stft/datasets/voicebank --part dev
 python downstream/enhancement_stft/scripts/Voicebank/data_prepare.py \
-    data_dir downstream/enhancement_stft/voicebank --part test
+    data_dir downstream/enhancement_stft/datasets/voicebank --part test
 ```
 
 #### Training
