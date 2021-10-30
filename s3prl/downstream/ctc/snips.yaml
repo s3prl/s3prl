@@ -22,7 +22,7 @@ optimizer:
 #   num_warmup_steps: 1400
 
 specaug:
-  adaptive: true
+  adaptive: false
   adaptive_number_ratio: 0.04
   adaptive_size_ratio: 0.04
   max_n_time_masks: 20
