@@ -13,6 +13,10 @@ transformer:
   pre_layer_norm: False                                 # To apply the pre layer normalization technique introduced in: https://arxiv.org/abs/2002.04745
 
 task:
+  adaptive: True                                # True(activate) or False(deactivate), adaptive specaugmment was introduced in: https://arxiv.org/pdf/1912.05533.pdf
+  max_num_T: 20                                 # upper bound of num_T in adaptive specaugmment
+  adaptive_number_ratio: 0.04                         # multiplicity ratio in adaptive specaugmment
+  adaptive_size_ratio: 0.04                           # size ratio in adaptive specaugmment
   loss: L1                                              # L1 or MSE
   sequence_length: 1500                                 # The maximum input sequence length for the transformer model (0 for no restriction)                                   
   position_encoding_size: 768                           # this should be identical to `hidden_size`
