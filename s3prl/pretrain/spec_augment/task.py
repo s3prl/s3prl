@@ -37,6 +37,12 @@ def generate_spec_aug_data(spec, config):
 
     with torch.no_grad():
 
+        mask_T = config['mask_T']
+        num_T = config['num_T']
+        max_num_T = config['max_num_T']
+        adaptive_number_ratio = config['adaptive_number_ratio']
+        adaptive_size_ratio = config['adaptive_size_ratio']
+
         # Start
         if len(spec) == 2: # if self.duo_feature: dataloader will output `source_spec` and `target_spec`
             spec_masked = spec[0]
@@ -51,10 +57,10 @@ def generate_spec_aug_data(spec, config):
         spec_len = (spec_target.sum(dim=-1) != 0).long().sum(dim=-1).tolist()
         batch_size = spec_target.shape[0]
         seq_len = spec_target.shape[1]
-        
+
         pos_enc = fast_position_encoding(seq_len, config['position_encoding_size']) # (seq_len, position_encoding_size)
         mask_label = torch.zeros_like(spec_target, dtype=torch.uint8) \
-                     if config['mask_T'] != 0 or config['mask_F'] != 0 \
+                     if mask_T != 0 or config['mask_F'] != 0 \
                      else torch.ones_like(spec_target, dtype=torch.uint8)
         attn_mask = torch.ones((batch_size, seq_len)) # (batch_size, seq_len)
 
@@ -70,9 +76,17 @@ def generate_spec_aug_data(spec, config):
             
             # time masking
             upper_bound = spec_len[idx] * config['p'] # upper bound on the time mask so that a time mask cannot be wider than p times the number of time steps
-            if config['mask_T'] > 0 and config['mask_T'] < upper_bound:
-                for _ in range(config['num_T']):
-                    rand_consecutive = random.randint(0, config['mask_T'])
+
+            # Adaptive SpecAugment
+            if config['adaptive'] :
+              if adaptive_number_ratio > 0:
+                num_T = min(int(adaptive_number_ratio * upper_bound), max_num_T)
+              if adaptive_size_ratio > 0:
+                mask_T = min(int(adaptive_number_ratio * upper_bound), upper_bound)
+
+            if mask_T > 0 and mask_T < upper_bound:
+                for _ in range(num_T):
+                    rand_consecutive = random.randint(0, mask_T)
                     chosen_start = torch.randperm(spec_masked.shape[1] - rand_consecutive)[:1]
                     chosen_intervals = _starts_to_intervals(chosen_start, rand_consecutive)
                     spec_masked[idx, chosen_intervals, :] = 0
