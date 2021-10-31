@@ -250,7 +250,7 @@ class Runner():
 
         # progress bar
         tqdm_file = sys.stderr if is_leader_process() else open(os.devnull, 'w')
-        pbar = tqdm(total=self.config['runner']['total_steps'], dynamic_ncols=True, desc='overall', file=tqdm_file)
+        pbar = tqdm(total=self.config['runner']['total_steps'], dynamic_ncols=True, desc='overall', file=tqdm_file, position=0, leave=True)
         init_step = self.init_ckpt.get('Step')
         if init_step:
             pbar.n = init_step
@@ -275,7 +275,7 @@ class Runner():
                 else:
                     raise
 
-            for batch_id, (wavs, *others) in enumerate(tqdm(dataloader, dynamic_ncols=True, desc='train', file=tqdm_file)):
+            for batch_id, (wavs, *others) in enumerate(tqdm(dataloader, dynamic_ncols=True, desc='train', file=tqdm_file, position=0, leave=True)):
                 # try/except block for forward/backward
                 try:
                     if pbar.n >= pbar.total:
@@ -438,7 +438,7 @@ class Runner():
 
         batch_ids = []
         records = defaultdict(list)
-        for batch_id, (wavs, *others) in enumerate(tqdm(dataloader, dynamic_ncols=True, desc=split)):
+        for batch_id, (wavs, *others) in enumerate(tqdm(dataloader, dynamic_ncols=True, desc=split, position=0, leave=True)):
 
             wavs = [torch.FloatTensor(wav).to(self.args.device) for wav in wavs]
             with torch.no_grad():
