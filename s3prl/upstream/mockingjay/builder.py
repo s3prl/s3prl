@@ -282,9 +282,10 @@ class PretrainedTransformer(TransformerBuilder):
                 x = pad_sequence(x, batch_first=True)
             else:
                 x = [self._normalize_wav_decibel(x_i) for x_i in x]
+                x_lens = [len(x_) for x_ in x]
                 x = pad_sequence(x, batch_first=True)
                 x = x.unsqueeze(1) # (batch_size, audio_len) -> (batch_size, 1, audio_len)
-                x = self.extracter(x)[0]
+                x = self.extracter(x, wavs_len=x_lens)[0]
         if self.no_grad:
             with torch.no_grad():
                 x = self._forward(x)
@@ -316,9 +317,10 @@ class PretrainedTransformerWithHead(PretrainedTransformer):
                 x = pad_sequence(x, batch_first=True)
             else:
                 x = [self._normalize_wav_decibel(x_i) for x_i in x]
+                x_lens = [len(x_) for x_ in x]
                 x = pad_sequence(x, batch_first=True)
                 x = x.unsqueeze(1) # (batch_size, audio_len) -> (batch_size, 1, audio_len)
-                x = self.extracter(x)[0]
+                x = self.extracter(x, wavs_len=x_lens)[0]
         if self.no_grad:
             with torch.no_grad():
                 x = self._forward(x)
