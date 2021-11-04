@@ -21,6 +21,7 @@ import pandas as pd
 from tqdm import tqdm
 from pathlib import Path
 from joblib import Parallel, delayed
+torchaudio.set_audio_backend("sox_io")
 
 
 ##################
@@ -53,9 +54,7 @@ def get_preprocess_args():
 # EXTRACT LENGTH #
 ##################
 def extract_length(input_file):
-    wav, _ = torchaudio.load(input_file)
-    return wav.size(-1)
-
+    return torchaudio.info(input_file).num_frames
 
 ###################
 # GENERATE LENGTH #
