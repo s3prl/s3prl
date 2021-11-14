@@ -33,8 +33,8 @@ class UpstreamExpert(UpstreamBase):
             self.config = yaml.load(file, Loader=yaml.FullLoader)
 
         if "kaldi" in self.config:
-            self.extracter, self.output_dim = get_extracter(self.config)
-            self.downsample_rate = round(self.config["kaldi"].get("frame_shift", 10) * SAMPLE_RATE / 1000)
+            self.extracter, self.output_dim, frame_shift = get_extracter(self.config)
+            self.downsample_rate = round(frame_shift * SAMPLE_RATE / 1000)
         else:
             self.extracter, self.output_dim, _ = get_preprocessor(
                 self.config, process_input_only=True

@@ -37,7 +37,7 @@ def get_extracter(config):
     extracter = nn.Sequential(*transforms)
     output_dim = extracter(torch.randn(EXAMPLE_SEC * SAMPLE_RATE)).size(-1)
 
-    return extracter, output_dim
+    return extracter, output_dim, extracter[0].frame_shift
 
 
 class ExtractAudioFeature(nn.Module):
@@ -45,6 +45,7 @@ class ExtractAudioFeature(nn.Module):
         super(ExtractAudioFeature, self).__init__()
         self.extract_fn = eval(f'torchaudio.compliance.kaldi.{feat_type}')
         self.kwargs = kwargs[feat_type]
+        self.frame_shift = self.kwargs.get("frame_shift", 10.0)
 
     def forward(self, waveform):
         # waveform: (time, )
