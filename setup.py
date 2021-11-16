@@ -26,7 +26,7 @@ requirements = [
     "gdown>=3.12.2",
     "cython>=0.29.21",
     "packaging>=20.9",
-    "transformers>=4.10.0,<5.0",
+    "transformers>=4.12.2,<5.0",
     "dtw-python==1.1.6",
     "asteroid==0.4.4",
     "sacrebleu>=2.0.0",
