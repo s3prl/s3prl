@@ -771,6 +771,11 @@ python run_downstream.py -m evaluate -e result/downstream/ExpName/dev-best.ckpt
 
 The model will report case-sensitive detokenized BLEU.
 
+## OOD-ASR: Out-of-domain Automatic Speech Recognition Tasks
+
+Read [README](../ctc/README.md).
+
+
 # Leaderboard submission
 
 After *finishing the **Testing*** of each task, the prediction files for leaderboard submission will be located under the `expdir`. You can use [submit.py](../../submit/submit.py) to easily organize them into a zip file which can later be submitted to our [leaderboard](https://superbbenchmark.org/submit). We now support submissions for the following tasks: **PR**, **ASR**, **KS**, **QbE**, **SID**, **ASV**, **SD**, **IC**, **SF**, **ER**, **SE**, **SS**, **ST**.
