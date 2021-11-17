@@ -45,7 +45,7 @@ class UpstreamExpert(UpstreamBase):
             self.add_hook("self.model.encoder", lambda input, output: output[0])
 
     def get_downsample_rates(self, key: str) -> int:
-        return 160
+        return 320
 
     def forward(self, wavs):
         """
