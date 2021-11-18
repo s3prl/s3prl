@@ -225,32 +225,30 @@ class MaskAlongAxis(torch.nn.Module):
             spec = spec.view(-1, spec.size(2), spec.size(3))
 
         B = spec.shape[0]
+
         # D = Length or Freq
         D = spec.shape[self.dim]
         T = self.mask_width_range[1]
+        num_mask = self.num_mask
+        
         # Adaptive_SpecAugment
         if self.dim == 1 & self.adaptive :
           if self.adaptive_number_ratio > 0:
-            self.num_mask = min(int(self.adaptive_number_ratio * D), self.max_n_time_masks)
-          else:
-            self.num_mask = num_mask
-
+            num_mask = min(int(self.adaptive_number_ratio * D), self.max_n_time_masks)
           if self.adaptive_size_ratio > 0:
             T = min(self.mask_width_range[1], int(self.adaptive_size_ratio * D))
-          else :
-            T = self.mask_width_range[1]
 
         # mask_length: (B, num_mask, 1)
         mask_length = torch.randint(
             self.mask_width_range[0],
             T,
-            (B, self.num_mask),
+            (B, num_mask),
             device=spec.device,
         ).unsqueeze(2)
 
         # mask_pos: (B, num_mask, 1)
         mask_pos = torch.randint(
-            0, max(1, D - mask_length.max()), (B, self.num_mask), device=spec.device
+            0, max(1, D - mask_length.max()), (B, num_mask), device=spec.device
         ).unsqueeze(2)
 
         # aran: (1, 1, D)
