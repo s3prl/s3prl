@@ -250,7 +250,8 @@ class Runner():
 
         # progress bar
         tqdm_file = sys.stderr if is_leader_process() else open(os.devnull, 'w')
-        pbar = tqdm(total=self.config['runner']['total_steps'], dynamic_ncols=True, desc='overall', file=tqdm_file)
+        optimization_steps = round(self.config['runner']['total_steps'] * self.config["runner"].get("optimize_ratio", 1))
+        pbar = tqdm(total=optimization_steps, dynamic_ncols=True, desc='overall', file=tqdm_file)
         init_step = self.init_ckpt.get('Step')
         if init_step:
             pbar.n = init_step
@@ -372,6 +373,10 @@ class Runner():
                     check_ckpt_num(self.args.expdir)
                     save_names.append(f'states-{global_step}.ckpt')
 
+                if global_step == optimization_steps:
+                    save_names.append(f'states-{global_step}.ckpt')
+
+                save_names = list(set(save_names))
                 if len(save_names) > 0:
                     all_states = {
                         'Optimizer': optimizer.state_dict(),

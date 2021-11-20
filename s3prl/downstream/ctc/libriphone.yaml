@@ -77,4 +77,4 @@ downstream_expert:
 
   metric_higher_better: False
   metric:  # The first metric will be used to save checkpoint
-    - wer
+    - per
