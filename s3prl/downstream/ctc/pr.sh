@@ -14,7 +14,7 @@ default_explore_ratio=0.05
 # required
 function get_eval_result() {
     if [ "$#" != "2" ]; then
-        echo "Usage: get_eval_result EXPDIR dev/test"
+        echo "Usage: get_eval_result EXPDIR dev|test"
         exit 2
     fi
 
@@ -62,27 +62,19 @@ function eval_best_dev() {
 
 # required
 function single_trial() {
-    if [ "$#" != "6" ]; then
-        echo "Usage: single_trial EXPDIR UPSTREAM LR OPTIMIZE_RATIO OVERRIDE RUN_TEST"
+    if [ "$#" != "4" ]; then
+        echo "Usage: single_trial EXPDIR UPSTREAM OVERRIDE RUN_TEST"
         exit 2
     fi
 
     local expdir=$1
     local upstream=$2
-    local lr=$3
-    local optimize_ratio=$4
-    local override=$5
-    local run_test=$6
-
-    if [ ! -z $override ]; then
-        override=",,$override"
-    fi
+    local override=$3
+    local run_test=$4
 
     local dev_result="$(get_eval_result $expdir "dev")"
     if [ -z "$dev_result" ]; then
-        python3 run_downstream.py -m train -a -u $upstream -d ctc -c downstream/ctc/libriphone.yaml -p $expdir \
-            -o config.optimizer.lr=$lr,,config.runner.optimize_ratio=${optimize_ratio}${override}
-
+        python3 run_downstream.py -m train -a -u $upstream -d ctc -c downstream/ctc/libriphone.yaml -p $expdir -o $override
         eval_best_dev $expdir "dev"
     else
         echo "Dev result is find:"

@@ -145,6 +145,22 @@ if [ ! -z "$override" ]; then
     upstream_dir=$upstream_dir/$override
 fi
 
+function parse_override() {
+    if [ "$#" -lt "2" ]; then
+        echo "Usage: parse_override OPTIMIZE_RATIO LR [OVERRIDE]"
+        exit 2
+    fi
+
+    local optimize_ratio=$1
+    local lr=$2
+    local override=$3
+
+    if [ ! -z $override ]; then
+        override="$override,,"
+    fi
+    echo "${override}config.runner.optimize_ratio=${optimize_ratio},,config.optimizer.lr=${lr}"
+}
+
 # Explore learning rate
 optimize_ratio=$explore_ratio
 echo "Exploring learning rate $lrs with optimization ratio $optimize_ratio"
@@ -154,7 +170,7 @@ for lr in $lrs;
 do
     expdir=$explore_dir/lr_$lr; mkdir -p $expdir
     echo "Try learning $lr... The results will be saved at $expdir"
-    single_trial "$expdir" "$upstream" "$lr" "$optimize_ratio" "$override" false
+    single_trial "$expdir" "$upstream" "$(parse_override $optimize_ratio $lr $override)" false
 done
 
 explore_summary=$explore_dir/summary; [ -f "$explore_summary" ] && rm $explore_summary
@@ -189,7 +205,7 @@ full_dir=$upstream_dir/optimize_ratio_1; mkdir -p $full_dir
 expdir=$full_dir/lr_$best_lr; mkdir -p $expdir
 echo "Final full training with learning rate $best_lr"
 echo "The results will be saved at $expdir"
-single_trial "$expdir" "$upstream" "$best_lr" 1 "$override" true
+single_trial "$expdir" "$upstream" "$(parse_override 1 $best_lr $override)" true
 
 echo "Report full training result..."
 full_summary=$full_dir/summary; [ -f "$full_summary" ] && rm $full_summary
