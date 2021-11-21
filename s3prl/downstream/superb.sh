@@ -221,7 +221,7 @@ summary=$upstream_dir/summary
 echo "SUMMARY
 TIME: $((SECONDS - start)) seconds
 
-EXPLORE LEARNING RATE
+PARTIAL TRAINING (LEARNING RATE EXPLORATION)
 $(cat $explore_summary)
 
 BEST LEARNING RATE
