@@ -2,7 +2,7 @@
 
 set -e
 
-supported_tasks="PR, IC, SID, ASR, SF"
+supported_tasks="PR, KS, IC, SID, ASR, SF"
 usage="The runfile for SUPERB Benchmark
     This runfile handles the learning rate (lr) search in the benchmark when training the downstream models.
     Since different upstreams (SSL models) need different suitable lr. Without the careful search, the final
@@ -89,6 +89,9 @@ fi
 case "$task" in
     PR)
         config_bash=downstream/ctc/pr.sh
+        ;;
+    KS)
+        config_bash=downstream/speech_commands/ks.sh
         ;;
     IC)
         config_bash=downstream/fluent_commands/ic.sh
