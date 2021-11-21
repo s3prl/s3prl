@@ -25,8 +25,15 @@ function get_eval_result() {
     if [ -f "$result_file" ]; then
         local metric="slot_type_f1"
         if [[ "$(grep -E " $metric" $result_file)" =~ ([0-9]+\.[0-9]+) ]]; then
-            echo "$metric ${BASH_REMATCH[1]}"
+            echo -n "$metric ${BASH_REMATCH[1]} "
         fi
+
+        local metric="slot_value_cer"
+        if [[ "$(grep -E " $metric" $result_file)" =~ ([0-9]+\.[0-9]+) ]]; then
+            echo -n "$metric ${BASH_REMATCH[1]} "
+        fi
+
+        echo
     fi
 }
 
