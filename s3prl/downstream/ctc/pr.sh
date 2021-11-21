@@ -45,7 +45,7 @@ function eval_best_dev() {
         echo "This should not happen during the full benchmarking"
         eval_ckpt=$(ls -t $expdir | grep -E ".*\.ckpt" | head -n 1)
     fi
-    local eval_ckpt=$expdir/$eval_ckpt
+    eval_ckpt=$expdir/$eval_ckpt
 
     if [ "$mode" == "dev" ]; then
         local split="dev"

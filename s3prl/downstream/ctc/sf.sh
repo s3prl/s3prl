@@ -50,7 +50,7 @@ function eval_best_dev() {
     if [ -z "$eval_ckpt" ]; then
         echo "The best development checkpoint not found. Deganerate to use the last checkpoint"
         echo "This should not happen during the full benchmarking"
-        local eval_ckpt=$(ls -t $expdir | grep -E ".*\.ckpt" | head -n 1)
+        eval_ckpt=$(ls -t $expdir | grep -E ".*\.ckpt" | head -n 1)
     fi
     eval_ckpt=$expdir/$eval_ckpt
 
