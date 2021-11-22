@@ -5,6 +5,7 @@ import yaml
 import glob
 import torch
 import random
+import logging
 import argparse
 import importlib
 import torchaudio
@@ -18,6 +19,7 @@ from s3prl.downstream.runner import Runner
 from s3prl.utility.helper import backup, get_time_tag, hack_isinstance, is_leader_process, override
 
 from huggingface_hub import HfApi, HfFolder
+log = logging.getLogger(__name__)
 
 def get_downstream_args():
     parser = argparse.ArgumentParser()
@@ -81,10 +83,10 @@ def get_downstream_args():
     parser.add_argument('--hf_hub_org', help='The Hugging Face Hub organisation to push fine-tuned models to')
 
     # options
+    parser.add_argument('--verbose', type=int, default=1, help='logging level: 1 INFO, 2 DEBUG, others WARNING')
     parser.add_argument('--seed', default=1337, type=int)
     parser.add_argument('--device', default='cuda', help='model.to(device)')
     parser.add_argument('--cache_dir', help='The cache directory for pretrained model downloading')
-    parser.add_argument('--verbose', action='store_true', help='Print model infomation')
     parser.add_argument('--cudnn', action='store_true', help='Enable CUDNN')
 
     args = parser.parse_args()
@@ -109,7 +111,7 @@ def get_downstream_args():
         else:
             ckpt_pth = args.past_exp
 
-        print(f'[Runner] - Resume from {ckpt_pth}')
+        message = f'Resume from {ckpt_pth}'
 
         # load checkpoint
         ckpt = torch.load(ckpt_pth, map_location='cpu')
@@ -126,7 +128,7 @@ def get_downstream_args():
         # overwrite args
         cannot_overwrite_args = [
             'mode', 'evaluate_split', 'override',
-            'backend', 'local_rank', 'past_exp',
+            'backend', 'local_rank', 'past_exp', 'verbose'
         ]
         args = update_args(args, ckpt['Args'], preserve_list=cannot_overwrite_args)
         os.makedirs(args.expdir, exist_ok=True)
@@ -134,7 +136,7 @@ def get_downstream_args():
         config = ckpt['Config']
 
     else:
-        print('[Runner] - Start a new experiment')
+        message = 'Start a new experiment'
         os.makedirs(args.expdir, exist_ok=True)
 
         if args.config is None:
@@ -145,10 +147,29 @@ def get_downstream_args():
         if args.upstream_model_config is not None and os.path.isfile(args.upstream_model_config):
             backup_files.append(args.upstream_model_config)
 
+    # logging info
+    if args.verbose == 1:
+        logging.basicConfig(
+            level=logging.INFO,
+            format="%(asctime)s (%(module)s.%(funcName)s:%(lineno)d) %(levelname)s: %(message)s",
+        )
+    elif args.verbose == 2:
+        logging.basicConfig(
+            level=logging.DEBUG,
+            format="%(asctime)s (%(module)s.%(funcName)s:%(lineno)d) %(levelname)s: %(message)s",
+        )
+    else:
+        logging.basicConfig(
+            level=logging.WARN,
+            format="%(asctime)s (%(module)s.%(funcName)s:%(lineno)d) %(levelname)s: %(message)s",
+        )
+        logging.warning("Skip DEBUG/INFO messages in S3PRL")
+
     if args.override is not None and args.override.lower() != "none":
         override(args.override, args, config)
         os.makedirs(args.expdir, exist_ok=True)
-    
+
+    log.info(message)
     return args, config, backup_files
 
 
@@ -186,7 +207,7 @@ def main():
         hf_password = os.environ.get("HF_PASSWORD")
         huggingface_token = HfApi().login(username=hf_user, password=hf_password)
         HfFolder.save_token(huggingface_token)
-        print(f"Logged into Hugging Face Hub with user: {hf_user}")
+        log.info(f"Logged into Hugging Face Hub with user: {hf_user}")
     
     # Save command
     if is_leader_process():

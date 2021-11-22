@@ -5,8 +5,8 @@ import glob
 import uuid
 import shutil
 import random
+import logging
 import tempfile
-import importlib
 from pathlib import Path
 
 import torch
@@ -23,12 +23,12 @@ from s3prl import downstream
 from s3prl.optimizers import get_optimizer
 from s3prl.schedulers import get_scheduler
 from s3prl.upstream.interfaces import Featurizer
-from s3prl.utility.helper import is_leader_process, get_model_state, show, defaultdict
-
+from s3prl.utility.helper import is_leader_process, get_model_state, defaultdict
 from huggingface_hub import HfApi, HfFolder, Repository
+log = logging.getLogger(__name__)
 
 SAMPLE_RATE = 16000
-
+MAX_CONTINUAL_ERROR = 20
 MODEL_CARD_MARKDOWN = """---
 datasets:
 - superb
@@ -100,7 +100,7 @@ class Runner():
     def _load_weight(self, model, name):
         init_weight = self.init_ckpt.get(name)
         if init_weight:
-            show(f'[Runner] - Loading {name} weights from the previous experiment')
+            log.info(f'Loading {name} weights from the previous experiment')
             model.load_state_dict(init_weight)
 
 
@@ -122,18 +122,18 @@ class Runner():
         if "from_hf_hub" in self.args and self.args.from_hf_hub == True:
             from huggingface_hub import snapshot_download
 
-            print(f'[Runner] - Downloading upstream model {self.args.upstream} from the Hugging Face Hub')
+            log.info(f'Downloading upstream model {self.args.upstream} from the Hugging Face Hub')
             filepath = snapshot_download(self.args.upstream, self.args.upstream_revision, use_auth_token=True)
             sys.path.append(filepath)
 
             dependencies = (Path(filepath) / 'requirements.txt').resolve()
-            print("[Dependency] - The downloaded upstream model requires the following dependencies. Please make sure they are installed:")
+            log.info("The downloaded upstream model requires the following dependencies. Please make sure they are installed:")
             for idx, line in enumerate((Path(filepath) / "requirements.txt").open().readlines()):
-                print(f"{idx}. {line.strip()}")
-            print(f"You can install them by:")
-            print()
-            print(f"pip install -r {dependencies}")
-            print()
+                log.info(f"{idx}. {line.strip()}")
+            log.info(f"You can install them by:")
+            log.info()
+            log.info(f"pip install -r {dependencies}")
+            log.info()
 
             from expert import UpstreamExpert
             Upstream = UpstreamExpert
@@ -260,12 +260,41 @@ class Runner():
         if is_leader_process():
             logger = SummaryWriter(self.args.expdir)
 
+        def save_states(global_step, epoch, filenames):
+            all_states = {
+                'Optimizer': optimizer.state_dict(),
+                'Step': global_step,
+                'Epoch': epoch,
+                'Args': self.args,
+                'Config': self.config,
+            }
+
+            for entry in self.all_entries:
+                if entry.trainable:
+                    all_states[entry.name] = get_model_state(entry.model)
+
+            if scheduler:
+                all_states['Scheduler'] = scheduler.state_dict()
+
+            if is_initialized():
+                all_states['WorldSize'] = get_world_size()
+
+            filenames = list(set(filenames))
+            save_paths = [os.path.join(self.args.expdir, name) for name in filenames]
+            log.info(f'Save the checkpoint to:')
+            for i, path in enumerate(save_paths):
+                log.info(f'{i + 1}. {path}')
+                torch.save(all_states, path)
+
         batch_ids = []
         backward_steps = 0
+        continual_error = 0
         records = defaultdict(list)
         epoch = self.init_ckpt.get('Epoch', 0)
         train_split = self.config['runner'].get("train_dataloader", "train")
-        while pbar.n < pbar.total:
+        gradient_accumulate_steps = self.config['runner'].get('gradient_accumulate_steps', 1)
+        training_completed = False
+        while not training_completed:
             try:
                 dataloader = self.downstream.model.get_dataloader(train_split, epoch=epoch)
             except TypeError as e:
@@ -279,9 +308,18 @@ class Runner():
             for batch_id, (wavs, *others) in enumerate(tqdm(dataloader, dynamic_ncols=True, desc='train', file=tqdm_file)):
                 # try/except block for forward/backward
                 try:
-                    if pbar.n >= pbar.total:
-                        break
                     global_step = pbar.n + 1
+                    if global_step > pbar.total or continual_error >= MAX_CONTINUAL_ERROR:
+                        if continual_error >= MAX_CONTINUAL_ERROR:
+                            log.error(f"Reach max continual error {MAX_CONTINUAL_ERROR} due OOM or NaN gradient. Please"
+                                          " reduce the batch size / learning rate, or re-check the model's numerical stability")
+                        else:
+                            log.info("The training successfully completes")
+                        log.info("Saving the final states")
+
+                        save_states(global_step, epoch, [f"states-{global_step - 1}.ckpt"])
+                        training_completed = True
+                        break
 
                     wavs = [torch.FloatTensor(wav).to(self.args.device) for wav in wavs]
                     if self.upstream.trainable:
@@ -301,18 +339,18 @@ class Runner():
                     )
                     batch_ids.append(batch_id)
 
-                    gradient_accumulate_steps = self.config['runner'].get('gradient_accumulate_steps')
                     (loss / gradient_accumulate_steps).backward()
                     del loss
 
                 except RuntimeError as e:
                     if 'CUDA out of memory' in str(e):
-                        print(f'[Runner] - CUDA out of memory at step {global_step}')
                         if is_initialized():
                             raise
                         with torch.cuda.device(self.args.device):
                             torch.cuda.empty_cache()
                         optimizer.zero_grad()
+                        continual_error += 1
+                        log.warning(f'Error counter {continual_error}: CUDA out of memory at step {global_step}')
                         continue
                     else:
                         raise
@@ -321,6 +359,7 @@ class Runner():
                 backward_steps += 1
                 if backward_steps % gradient_accumulate_steps > 0:
                     continue
+                backward_steps = 0
 
                 # gradient clipping
                 grad_norm = torch.nn.utils.clip_grad_norm_(
@@ -328,7 +367,10 @@ class Runner():
 
                 # optimize
                 if math.isnan(grad_norm):
-                    print(f'[Runner] - grad norm is NaN at step {global_step}')
+                    optimizer.zero_grad()
+                    continual_error += 1
+                    log.warning(f'Error counter {continual_error}: Grad norm is NaN at step {global_step}')
+                    continue
                 else:
                     optimizer.step()
                 optimizer.zero_grad()
@@ -336,6 +378,8 @@ class Runner():
                 # adjust learning rate
                 if scheduler:
                     scheduler.step()
+
+                continual_error = 0
 
                 if not is_leader_process():
                     batch_ids = []
@@ -373,34 +417,8 @@ class Runner():
                     check_ckpt_num(self.args.expdir)
                     save_names.append(f'states-{global_step}.ckpt')
 
-                if global_step == optimization_steps:
-                    save_names.append(f'states-{global_step}.ckpt')
-
-                save_names = list(set(save_names))
                 if len(save_names) > 0:
-                    all_states = {
-                        'Optimizer': optimizer.state_dict(),
-                        'Step': global_step,
-                        'Epoch': epoch,
-                        'Args': self.args,
-                        'Config': self.config,
-                    }
-
-                    for entry in self.all_entries:
-                        if entry.trainable:
-                            all_states[entry.name] = get_model_state(entry.model)
-
-                    if scheduler:
-                        all_states['Scheduler'] = scheduler.state_dict()
-
-                    if is_initialized():
-                        all_states['WorldSize'] = get_world_size()
-
-                    save_paths = [os.path.join(self.args.expdir, name) for name in save_names]
-                    tqdm.write(f'[Runner] - Save the checkpoint to:')
-                    for i, path in enumerate(save_paths):
-                        tqdm.write(f'{i + 1}. {path}')
-                        torch.save(all_states, path)
+                    save_states(global_step, epoch, save_names)
 
                 pbar.update(1)
             epoch += 1
@@ -510,7 +528,7 @@ class Runner():
         else:
             organization = os.environ.get("HF_USERNAME")
         huggingface_token = HfFolder.get_token()
-        print(f"[Runner] - Organisation to push fine-tuned model to: {organization}")
+        log.info(f"Organisation to push fine-tuned model to: {organization}")
         
         # Extract upstream repository metadata
         if self.args.hub == "huggingface":
@@ -530,13 +548,13 @@ class Runner():
             exist_ok=True,
             private=False,
         )
-        print(f"[Runner] - Created Hub repo: {repo_url}")
+        log.info(f"Created Hub repo: {repo_url}")
 
         # Download repo
         HF_HUB_DIR = "hf_hub"
         REPO_ROOT_DIR = os.path.join(self.args.expdir, HF_HUB_DIR, repo_name)
         REPO_TASK_DIR = os.path.join(REPO_ROOT_DIR, self.args.downstream, self.args.expname)
-        print(f"[Runner] - Cloning Hub repo to {REPO_ROOT_DIR}")
+        log.info(f"Cloning Hub repo to {REPO_ROOT_DIR}")
         model_repo = Repository(
             local_dir=REPO_ROOT_DIR, clone_from=repo_url, use_auth_token=huggingface_token
         )
@@ -552,15 +570,15 @@ class Runner():
         # rename the best checkpoint to match this convention
         checkpoints = list(Path(REPO_TASK_DIR).glob("*best*.ckpt"))
         if len(checkpoints) == 0:
-            print("[Runner] - Did not find a best checkpoint! Using the final checkpoint instead ...")
+            log.warning("Did not find a best checkpoint! Using the final checkpoint instead ...")
             CKPT_PATH = (
                 os.path.join(REPO_TASK_DIR, f"states-{self.config['runner']['total_steps']}.ckpt")
                 )
         elif len(checkpoints) > 1:
-            print(f"[Runner] - More than one best checkpoint found! Using {checkpoints[0]} as default ...")
+            log.warning(f"More than one best checkpoint found! Using {checkpoints[0]} as default ...")
             CKPT_PATH = checkpoints[0]
         else:
-            print(f"[Runner] - Found best checkpoint {checkpoints[0]}!")
+            log.info(f"Found best checkpoint {checkpoints[0]}!")
             CKPT_PATH = checkpoints[0]
         shutil.move(CKPT_PATH, os.path.join(REPO_TASK_DIR, "model.ckpt"))
         model_repo.lfs_track("*.ckpt")
@@ -569,6 +587,6 @@ class Runner():
         self._create_model_card(REPO_ROOT_DIR)
 
         # Push everything to the Hub
-        print("[Runner] - Pushing model files to the Hub ...")
+        log.info("Pushing model files to the Hub ...")
         model_repo.push_to_hub()
-        print("[Runner] - Training run complete!")
+        log.info("Training run complete!")

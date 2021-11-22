@@ -15,6 +15,7 @@ import sys
 import math
 import torch
 import shutil
+import logging
 import builtins
 import numpy as np
 from time import time
@@ -24,6 +25,7 @@ from datetime import datetime
 from collections import defaultdict
 from torch.nn.parallel import DistributedDataParallel as DDP
 from torch.distributed import is_initialized, get_rank, get_world_size
+log = logging.getLogger(__name__)
 
 def is_leader_process():
     return not is_initialized() or get_rank() == 0
@@ -85,7 +87,7 @@ def override(string, args, config):
         except:
             value = value_str
 
-        print(f'[Override] - {key} = {value}', file=sys.stderr)
+        log.info(f'Override: {key} = {value}')
 
         if first_field == 'args':
             assert len(remaining) == 1
