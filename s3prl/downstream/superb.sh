@@ -4,47 +4,48 @@ set -e
 
 supported_tasks="PR, KS, IC, SID, ASR, SF"
 usage="The runfile for SUPERB Benchmark
-    This runfile handles the learning rate (lr) search in the benchmark when training the downstream models.
-    Since different upstreams (SSL models) need different suitable lr. Without the careful search, the final
-    ranking can have huge differences. However, a single run for each upstream/downstream/lr pair takes a
-    long time to fully converge, which can be unacceptable for most of the users. Hence, it is convenient and
-    effective to determine the best lr with only the partial of training, and finish the full training only on
-    the found best lr to get the best result. This can save lots of time and still get valid results. All the
-    tasks except QBE (which does not involve training) can be driven by this runfile.
+    This runfile handles the learning rate (lr) search in the benchmark when training the downstream models. Since different upstreams
+    (SSL models) need different suitable lr. Without the careful search, the final ranking can have huge differences. However, a single
+    run for each upstream/downstream/lr pair takes a long time to fully converge, which can be unacceptable for most of the users. Hence,
+    it is convenient and effective to determine the best lr with only the partial of training, and finish the full training only on the
+    found best lr to get the best result. This can save lots of time and still get valid results. All the tasks except QBE (which does
+    not involve training) can be driven by this runfile.
 
 USAGE
     $0 -u UPSTREAM -t TASK -p EXPS_ROOT [-h] [-o OVERRIDE] [-r EXPLORE_RATIO] [-l LR1] [-l LR2] ...
 
-    The runfile is stateful and fault-tolerant. If an runfile execution was terminated, you can simply re-run
-    with the exactly same command. The runfile will automatically determine where it was stopped and resume
-    from there without any duplicated training. At the end of this execution, the runfile will report the
-    summary of this run, including the dev results for all the lr search and the test result on the best lr.
-    You can also re-check the summary message again with the exactly same command, which will skip all the
-    training and directly report the summary.
+    The runfile is stateful and fault-tolerant. If an runfile execution was terminated, you can simply re-run with the exactly same command.
+    The runfile will automatically determine where it was stopped and resume from there without any duplicated training. At the end of this
+    execution, the runfile will report the summary of this run, including the dev results for all the lr search and the test result on the
+    best lr. You can also re-check the summary message again with the exactly same command, which will skip all the training and directly
+    report the summary. Usually, you only need to specify -u, -t and -p, since most of the configurations have proper default values, including
+    the EXPLORE_RATIO and LR. Hence, -o, -r, -l are only needed when you want to explore more settings. eg. learning rates not included in the
+    default setting, smaller EXPLORE_RATIO to further reduce exploration time.
 
-UPSTREAM
+UPSTREAM (required)
     The entries defined in s3prl.hub. eg. wav2vec2, hubert, wav2vec2_large_ll60k... etc
 
-TASK
+TASK (required)
     The task abbreviation: $supported_tasks
 
-OVERRIDE
+EXPS_ROOT (required)
+    All the experiment directories related to this benchmark will be located under
+    EXPS_ROOT/TASK/UPSTREAM or EXPS_ROOT/TASK/UPSTREAM/OVERRIDE (if -o is provided)
+
+EXPLORE_RATIO (optional)
+    Default: 0.05
+    The percentage of the full training optimization steps for the learning rate search
+
+LR1 LR2 ... (optional)
+    Default: Each task has different default learning rates to explore
+    If provided, will only search through these learning rates
+    eg. -l 1e-3 -l 1e-4
+
+OVERRIDE (optional)
     Default: empty
     Can be used to override any default fields in the args and the config file
     eg. args.upstream_layer_selection=3 to use the 3-rd layer as the representation to benchmark
         (Default use all layers and train the weighted-sum on them.)
-
-EXPLORE_RATIO
-    Default: 0.05
-    The percentage of the full training optimization steps for the learning rate search.
-
-EXPS_ROOT
-    All the experiment directories related to this benchmark will be located under
-    EXPS_ROOT/TASK/UPSTREAM or EXPS_ROOT/TASK/UPSTREAM/OVERRIDE (if -o is provided)
-
-LR1 LR2 ...
-    If provided, will only search through these learning rates
-    eg. -l 1e-3 -l 1e-4
 "
 
 # Parse options
