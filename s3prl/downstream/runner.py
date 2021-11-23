@@ -337,6 +337,22 @@ class Runner():
                             save_states(global_step, epoch, [f"states-{global_step - 1}.ckpt"])
                         training_completed = True
                         break
+                    
+                    if global_step == 1:
+                        find_tensor = False
+                        for item in [wavs, *others]:
+                            if isinstance(item, (list, dict)):
+                                for sub_item in item:
+                                    if isinstance(sub_item, torch.Tensor):
+                                        find_tensor = True
+                            elif isinstance(item, torch.Tensor):
+                                find_tensor = True
+                        if find_tensor:
+                            log.warning("We do not recommend to return torch.Tensor from the dataloader "
+                                        "since it can cause out-of-shared-memory when torch's multiprocess "
+                                        "sharing strategy is set to file_system. Please consider to return "
+                                        "numpy in your dataloader. If you are using the existing downstream "
+                                        "and get this message. Please help open an issue. Thanks!")
 
                     wavs = [torch.FloatTensor(wav).to(self.args.device) for wav in wavs]
                     if self.upstream.trainable:
