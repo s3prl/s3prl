@@ -40,12 +40,12 @@ class Runner():
         self.config = config
         self.logger = SummaryWriter(args.expdir)                                                 
 
-        self.init_ckpt = torch.load(self.args.past_exp, map_location='cpu') if self.args.past_exp else {}
+        self.init_ckpt = torch.load(self.args.init_ckpt, map_location='cpu') if self.args.init_ckpt else {}
         self.upstream = self._get_upstream()
 
 
     def _get_upstream(self):
-        init_upstream = self.init_ckpt.get('Config')
+        init_upstream = self.init_ckpt.get('Upstream_Config')
         if init_upstream:
             self.args.upstream_config = init_upstream
         module_path = f'pretrain.{self.args.upstream}.pretrain_expert'
@@ -75,8 +75,9 @@ class Runner():
             self.config['optimizer']
         )
 
-        init_optimizer = self.init_ckpt.get('Optimizer')
-        if init_optimizer:
+        if self.init_ckpt != {}:
+            init_optimizer = self.init_ckpt.get('Optimizer')
+            assert init_optimizer
             print('[Runner] - Loading optimizer weights from the previous experiment')
             optimizer.load_state_dict(init_optimizer)
         return optimizer
@@ -89,8 +90,9 @@ class Runner():
             self.config['scheduler']
         )
 
-        init_scheduler = self.init_ckpt.get('Scheduler')
-        if init_scheduler:
+        if self.init_ckpt != {}:
+            init_scheduler = self.init_ckpt.get('Scheduler')
+            assert init_scheduler
             print('[Runner] - Loading scheduler weights from the previous experiment')
             scheduler.load_state_dict(init_scheduler)
         return scheduler
@@ -109,16 +111,15 @@ class Runner():
         # set epoch
         n_epochs = self.config['runner']['n_epochs']
         if n_epochs > 0: 
-            total_steps = int(n_epochs * len(dataloader.dataset) / gradient_accumulate_steps)
-            self.config['runner']['total_steps'] = total_steps
+            total_steps = n_epochs * len(dataloader.dataset)
             print(f'[Runner] - Training for {n_epochs} epochs, which is equivalent to {total_steps} steps')
         else:
             total_steps = self.config['runner']['total_steps']
-            n_epochs = int(total_steps * gradient_accumulate_steps / len(dataloader.dataset))
+            n_epochs = int(total_steps / len(dataloader.dataset))
             print(f'[Runner] - Training for {total_steps} steps, which is approximately {n_epochs} epochs')
 
-        assert self.config['runner']['total_steps'] > self.config['runner']['log_step']
-        assert self.config['runner']['total_steps'] > self.config['runner']['save_step']
+        assert total_steps > self.config['runner']['log_step']
+        assert total_steps > self.config['runner']['save_step']
 
         # set amp
         amp = self.config['runner'].get('fp16', False)
@@ -136,7 +137,7 @@ class Runner():
             scheduler = self._get_scheduler(optimizer)
 
         # set progress bar
-        pbar = tqdm(total=self.config['runner']['total_steps'], dynamic_ncols=True, desc='overall')
+        pbar = tqdm(total=total_steps, dynamic_ncols=True, desc='overall')
         init_step = self.init_ckpt.get('Step')
         if init_step:
             pbar.n = init_step
@@ -247,7 +248,7 @@ class Runner():
                         'Optimizer': optimizer.state_dict(),
                         'Step': global_step,
                         'Args': self.args,
-                        'Runner': self.config,
+                        'Config': self.config,
                     }
                     all_states = self.upstream.add_state_to_save(all_states)
 
