@@ -7,6 +7,7 @@ import shutil
 import random
 import logging
 import tempfile
+from typing import Any
 from pathlib import Path
 
 import torch
@@ -74,11 +75,34 @@ Upstream Model: {upstream_model}
 
 
 class ModelEntry:
-    def __init__(self, model, name, trainable, interfaces):
-        self.model = model
+    def __init__(self, name, model, trainable):
         self.name = name
+        self.model = model
+        self.local_model = model.module if isinstance(model, DDP) else model
         self.trainable = trainable
-        self.interfaces = interfaces
+
+        paras = list(self.local_model.parameters())
+        self.device = None if len(paras) == 0 else paras[0].device
+
+    def __getattr__(self, __name: str) -> Any:
+        if hasattr(self.model, __name):
+            return getattr(self.model, __name)
+        else:
+            return getattr(self.local_model, __name)
+
+    def __call__(self, *args: Any, **kwargs: Any) -> Any:
+        if self.device is not None:
+            self.model.to(self.device)
+
+        if torch.is_grad_enabled() and self.trainable:
+            self.model.train()
+        else:
+            self.model.eval()
+
+        if torch.is_grad_enabled():
+            return self.model(*args, **kwargs)
+        else:
+            return self.local_model(*args, **kwargs)
 
 
 class Runner():
@@ -104,18 +128,14 @@ class Runner():
             model.load_state_dict(init_weight)
 
 
-    def _init_model(self, model, name, trainable, interfaces=None):
-        for interface in interfaces or []:
-            assert hasattr(model, interface), interface
-
+    def _init_model(self, name, model, trainable):
         self._load_weight(model, name)
 
         if is_initialized() and trainable and any((p.requires_grad for p in model.parameters())):
-            model = DDP(model, device_ids=[self.args.local_rank], find_unused_parameters=True)
-            for interface in interfaces or []:
-                setattr(model, interface, getattr(model.module, interface))
+            local_rank = int(os.environ.get("LOCAL_RANK"))
+            model = DDP(model, device_ids=[local_rank], find_unused_parameters=True)
 
-        return ModelEntry(model, name, trainable, interfaces)
+        return ModelEntry(name, model, trainable)
 
 
     def _get_upstream(self):
@@ -157,10 +177,9 @@ class Runner():
             torch.distributed.barrier()
 
         return self._init_model(
-            model = model,
             name = 'Upstream',
+            model = model,
             trainable = self.args.upstream_trainable,
-            interfaces = ["get_downsample_rates"]
         )
 
 
@@ -173,27 +192,25 @@ class Runner():
         ).to(self.args.device)
 
         return self._init_model(
-            model = model,
             name = 'Featurizer',
+            model = model,
             trainable = True,
-            interfaces = ['output_dim', 'downsample_rate']
         )
 
 
     def _get_downstream(self):
         Downstream = getattr(downstream.experts, self.args.downstream)
         model = Downstream(
-            upstream_dim = self.featurizer.model.output_dim,
-            upstream_rate = self.featurizer.model.downsample_rate,
+            upstream_dim = self.featurizer.output_dim,
+            upstream_rate = self.featurizer.downsample_rate,
             **self.config,
             **vars(self.args)
         ).to(self.args.device)
 
         return self._init_model(
-            model = model,
             name = 'Downstream',
+            model = model,
             trainable = True,
-            interfaces = ['get_dataloader', 'log_records']
         )
 
 
@@ -228,11 +245,8 @@ class Runner():
         trainable_paras = []
         for entry in self.all_entries:
             if entry.trainable:
-                entry.model.train()
                 trainable_models.append(entry.model)
                 trainable_paras += list(entry.model.parameters())
-            else:
-                entry.model.eval()
 
         # optimizer
         optimizer = self._get_optimizer(trainable_models)
@@ -281,7 +295,7 @@ class Runner():
 
             filenames = list(set(filenames))
             save_paths = [os.path.join(self.args.expdir, name) for name in filenames]
-            log.info(f'Save the checkpoint to:')
+            log.info("Save the checkpoint to: (checkpoints will only be saved by rank 0 during DDP training)")
             for i, path in enumerate(save_paths):
                 log.info(f'{i + 1}. {path}')
                 torch.save(all_states, path)
@@ -290,49 +304,52 @@ class Runner():
         backward_steps = 0
         continual_error = 0
         records = defaultdict(list)
-        epoch = self.init_ckpt.get('Epoch', 0)
+        epoch = self.init_ckpt.get('Epoch', -1)
         train_split = self.config['runner'].get("train_dataloader", "train")
         gradient_accumulate_steps = self.config['runner'].get('gradient_accumulate_steps', 1)
         training_completed = False
         while not training_completed:
+            epoch += 1
             try:
-                dataloader = self.downstream.model.get_dataloader(train_split, epoch=epoch)
+                dataloader = self.downstream.get_dataloader(train_split, epoch=epoch)
             except TypeError as e:
                 if "unexpected keyword argument 'epoch'" in str(e):
-                    dataloader = self.downstream.model.get_dataloader(train_split)
+                    dataloader = self.downstream.get_dataloader(train_split)
                     if hasattr(dataloader, "sampler") and isinstance(dataloader.sampler, DistributedSampler):
                         dataloader.sampler.set_epoch(epoch)
                 else:
                     raise
 
+            log.info(f"Start training epoch {epoch}...")
             for batch_id, (wavs, *others) in enumerate(tqdm(dataloader, dynamic_ncols=True, desc='train', file=tqdm_file)):
                 # try/except block for forward/backward
                 try:
                     global_step = pbar.n + 1
                     if global_step > pbar.total or continual_error >= MAX_CONTINUAL_ERROR:
                         if continual_error >= MAX_CONTINUAL_ERROR:
-                            log.error(f"Reach max continual error {MAX_CONTINUAL_ERROR} due OOM or NaN gradient. Please"
-                                          " reduce the batch size / learning rate, or re-check the model's numerical stability")
+                            log.error(f"Reach max continual error {MAX_CONTINUAL_ERROR} due OOM or NaN gradient. Please "
+                                       "reduce the batch size / learning rate, or re-check the model's numerical stability")
                         else:
                             log.info("The training successfully completes")
-                        log.info("Saving the final states")
 
-                        save_states(global_step, epoch, [f"states-{global_step - 1}.ckpt"])
+                        if is_leader_process():
+                            log.info("Saving the final states")
+                            save_states(global_step, epoch, [f"states-{global_step - 1}.ckpt"])
                         training_completed = True
                         break
 
                     wavs = [torch.FloatTensor(wav).to(self.args.device) for wav in wavs]
                     if self.upstream.trainable:
-                        features = self.upstream.model(wavs)
+                        features = self.upstream(wavs)
                     else:
                         with torch.no_grad():
-                            features = self.upstream.model(wavs)
-                    features = self.featurizer.model(wavs, features)
+                            features = self.upstream(wavs)
+                    features = self.featurizer(wavs, features)
 
                     if specaug:
                         features, _ = specaug(features)
 
-                    loss = self.downstream.model(
+                    loss = self.downstream(
                         train_split,
                         features, *others,
                         records = records,
@@ -379,16 +396,19 @@ class Runner():
                 if scheduler:
                     scheduler.step()
 
+                # This optimization successfully completes
                 continual_error = 0
-
+                pbar.update(1)
+                
                 if not is_leader_process():
                     batch_ids = []
                     records = defaultdict(list)
+                    if is_initialized(): torch.distributed.barrier()
                     continue
 
                 # logging
                 if global_step % self.config['runner']['log_step'] == 0:
-                    self.downstream.model.log_records(
+                    self.downstream.log_records(
                         train_split,
                         records = records,
                         logger = logger,
@@ -419,18 +439,17 @@ class Runner():
 
                 if len(save_names) > 0:
                     save_states(global_step, epoch, save_names)
-
-                pbar.update(1)
-            epoch += 1
+                
+                if is_initialized(): torch.distributed.barrier()
 
         pbar.close()
-
-        if self.args.push_to_hf_hub:
-            self.push_to_huggingface_hub()
         if is_leader_process():
             logger.close()
+            if self.args.push_to_hf_hub:
+                self.push_to_huggingface_hub()
 
 
+    @torch.no_grad()
     def evaluate(self, split=None, logger=None, global_step=0):
         """evaluate function will always be called on a single process even during distributed training"""
 
@@ -441,41 +460,25 @@ class Runner():
             tempdir = tempfile.mkdtemp()
             logger = SummaryWriter(tempdir)
 
-        # fix seed to guarantee the same evaluation protocol across steps 
-        random.seed(self.args.seed)
-        np.random.seed(self.args.seed)
-        torch.manual_seed(self.args.seed)
-        if torch.cuda.is_available():
-            torch.cuda.manual_seed_all(self.args.seed)
-            with torch.cuda.device(self.args.device):
-                torch.cuda.empty_cache()
-
-        # record original train/eval states and set all models to eval
-        trainings = []
-        for entry in self.all_entries:
-            trainings.append(entry.model.training)
-            entry.model.eval()
-
         # prepare data
-        dataloader = self.downstream.model.get_dataloader(split)
+        dataloader = self.downstream.get_dataloader(split)
 
         batch_ids = []
         records = defaultdict(list)
         for batch_id, (wavs, *others) in enumerate(tqdm(dataloader, dynamic_ncols=True, desc=split)):
 
             wavs = [torch.FloatTensor(wav).to(self.args.device) for wav in wavs]
-            with torch.no_grad():
-                features = self.upstream.model(wavs)
-                features = self.featurizer.model(wavs, features)
-                self.downstream.model(
-                    split,
-                    features, *others,
-                    records = records,
-                    batch_id = batch_id,
-                )
-                batch_ids.append(batch_id)
+            features = self.upstream(wavs)
+            features = self.featurizer(wavs, features)
+            self.downstream(
+                split,
+                features, *others,
+                records = records,
+                batch_id = batch_id,
+            )
+            batch_ids.append(batch_id)
 
-        save_names = self.downstream.model.log_records(
+        save_names = self.downstream.log_records(
             split,
             records = records,
             logger = logger,
@@ -490,10 +493,6 @@ class Runner():
         if torch.cuda.is_available():
             with torch.cuda.device(self.args.device):
                 torch.cuda.empty_cache()
-
-        for entry, training in zip(self.all_entries, trainings):
-            if training:
-                entry.model.train()
 
         if not_during_training:
             logger.close()
