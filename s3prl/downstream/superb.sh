@@ -21,13 +21,22 @@ USAGE
     report the summary.
     
     Usually, you only need to specify -u, -t and -p, since most of the configurations have proper default values, including EXPLORE_RATIO
-    and LR. Hence, -o, -r, -l are only needed when you want to explore more settings. eg. learning rates not included in the default setting,
-    smaller EXPLORE_RATIO to further reduce exploration time. Here is an example command to benchmark HuBERT Base model on Keyword Spotting.
+    and LR. Hence, -r, -l are only needed when you want to explore more settings. eg. setting -r to smaller EXPLORE_RATIO to further reduce
+    the exploration time or setting -l to try learning rates not included in the default setting.
+
+    Here is an example command to benchmark HuBERT Base model on Keyword Spotting.
 
     ./downstream/superb.sh -u hubert -t KS -p result/superb/
 
     WARNING: Before you run the above command, please first make sure you already followed each task's 'Prepare Data' subsection in the
     SUPERB documentation: https://github.com/s3prl/s3prl/blob/master/s3prl/downstream/docs/superb.md
+
+    By default, weighted-sum on all the hidden states are trained along with the downstream model. You can benchmark an upstream's layer-wise
+    performance via -o (which can overrides any command-line argument and config file field of run_downstream.py) to select a specific layer.
+
+    ./downstream/superb.sh -u hubert -t KS -p result/superb/ -o args.upstream_layer_selection=3
+
+    The above command benchmarks the 3-rd layer of HuBERT Base on Keyword Spotting.
 
 UPSTREAM (required)
     The entries defined in s3prl.hub. eg. wav2vec2, hubert, wav2vec2_large_ll60k... etc

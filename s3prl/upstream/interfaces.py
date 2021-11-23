@@ -169,6 +169,9 @@ class Featurizer(nn.Module):
             self.weights = nn.Parameter(torch.zeros(self.layer_num))
             feature = self._weighted_sum([f.cpu() for f in feature])
         else:
+            logger.info(
+                f"Take a single layer of feature. No weighted sum will be trained.",
+            )
             feature = feature.cpu()
 
         self.output_dim = feature.size(-1)
