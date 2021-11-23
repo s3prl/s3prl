@@ -215,6 +215,6 @@ class DownstreamExpert(nn.Module):
                 global_step=global_step
             )
             if split == 'dev' and key == 'acc' and average > self.best_score:
-                self.best_score = torch.ones(1) * average
+                self.best_score = self.best_score.new_ones(1) * average
                 save_names.append(f'{split}-best.ckpt')
         return save_names

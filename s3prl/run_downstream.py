@@ -83,7 +83,7 @@ def get_downstream_args():
     parser.add_argument('--device', default='cuda', help='model.to(device)')
     parser.add_argument('--cache_dir', help='The cache directory for pretrained model downloading')
     parser.add_argument('--cudnn', action='store_true', help='Enable CUDNN')
-    parser.add_argument('--sharing_strategy', default="file_descriptor")
+    parser.add_argument('--sharing_strategy', default="file_system")
     parser.add_argument('--audio_backend', default="sox_io")
     parser.add_argument('--local_rank', type=int)
 
