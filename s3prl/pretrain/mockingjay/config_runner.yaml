@@ -7,6 +7,8 @@ runner:
   log_step: 50000
   save_step: 50000
   max_keep: 5
+  
+  fp16: true
 
 optimizer:
   name: AdamW_with_schedule
