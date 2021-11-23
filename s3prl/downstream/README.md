@@ -148,6 +148,8 @@ python3 $distributed run_downstream.py -m train -n ExpName -u fbank -d example \
     -o config.runner.gradient_accumulate_steps=2
 ```
 
+Note that currently PyTorch might not automatically terminate all spawned processes when this training terminates or crashes, and can lead to "Out of GPU memory" or "Address already used" error if you directly launch a new DDP training. Since hardware resources are not yet released properly in the previous run. You can use `pkill -f "your previous command"` to terminate all related processes.
+
 #### Resume training
 
 ```bash
@@ -159,13 +161,8 @@ python3 $distributed run_downstream.py -m train -e [ckpt]
 #### Fault-tolerant training
 
 ```bash
-for i in $(seq 1 100); do
-    python3 $distributed run_downstream.py -m train -n ExpName -u fbank -d example \
-        -o config.runner.gradient_accumulate_steps=2 -a
-    # When one of the spawned process dies, sometimes not all processes are terminated synchronizely.
-    # You might need to ensure all the spawned process are killed here.
-    # `killall` linux command is suitable for this.
-done
+./run_while.sh python3 $distributed run_downstream.py -m train -n ExpName \
+    -u fbank -d example -a -o config.runner.gradient_accumulate_steps=2
 ```
 
 ## Test a checkpoint
