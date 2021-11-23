@@ -9,7 +9,7 @@ usage="The runfile for SUPERB Benchmark
     run for each upstream/downstream/lr pair takes a long time to fully converge, which can be unacceptable for most of the users. Hence,
     it is convenient and effective to determine the best lr with only the partial of training, and finish the full training only on the
     found best lr to get the best result. This can save lots of time and still get valid results. All the tasks except QBE (which does
-    not involve training) can be driven by this runfile.
+    not involve training) can be driven by this runfile. The runfile currently only supports to benchmark with a single GPU.
 
 USAGE
     $0 -u UPSTREAM -t TASK -p EXPS_ROOT [-h] [-o OVERRIDE] [-r EXPLORE_RATIO] [-l LR1] [-l LR2] ...
