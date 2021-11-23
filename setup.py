@@ -8,7 +8,7 @@ here = pathlib.Path(__file__).parent.resolve()
 long_description = (here / 'README.md').read_text(encoding='utf-8')
 
 requirements = [
-    "torch>=1.7.0",
+    "torch>=1.7.0, !=1.10.0",
     "torchaudio>=0.7.0",
     "torchvision>=0.8.0",
     "joblib>=0.12.4",
