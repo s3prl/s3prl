@@ -104,18 +104,18 @@ class Runner():
 
         # prepare data
         gradient_accumulate_steps = self.config['runner']['gradient_accumulate_steps']
-        print('[Runner] - Accumulated batch size:', 
-              self.config['pretrain_expert']['datarc']['train_batch_size'] * gradient_accumulate_steps)
+        train_batch_size = self.config['pretrain_expert']['datarc']['train_batch_size']
+        print('[Runner] - Accumulated batch size:', train_batch_size * gradient_accumulate_steps)
         dataloader = self.upstream.get_train_dataloader()
 
         # set epoch
         n_epochs = self.config['runner']['n_epochs']
         if n_epochs > 0: 
-            total_steps = n_epochs * len(dataloader.dataset)
+            total_steps = int(n_epochs * len(dataloader.dataset) / gradient_accumulate_steps)
             print(f'[Runner] - Training for {n_epochs} epochs, which is equivalent to {total_steps} steps')
         else:
             total_steps = self.config['runner']['total_steps']
-            n_epochs = int(total_steps / len(dataloader.dataset))
+            n_epochs = int(total_steps * gradient_accumulate_steps / len(dataloader.dataset))
             print(f'[Runner] - Training for {total_steps} steps, which is approximately {n_epochs} epochs')
 
         assert total_steps > self.config['runner']['log_step']
