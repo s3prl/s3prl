@@ -338,7 +338,7 @@ class Runner():
                         training_completed = True
                         break
                     
-                    if global_step == 1:
+                    if backward_steps == 0:
                         find_tensor = False
                         for item in [wavs, *others]:
                             if isinstance(item, (list, dict)):
@@ -392,7 +392,6 @@ class Runner():
                 backward_steps += 1
                 if backward_steps % gradient_accumulate_steps > 0:
                     continue
-                backward_steps = 0
 
                 # gradient clipping
                 grad_norm = torch.nn.utils.clip_grad_norm_(
