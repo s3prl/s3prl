@@ -26,7 +26,7 @@ downstream_expert:
   datarc:
     root: /groups/public/benchmark/IEMOCAP
     test_fold: fold1
-    pre_load: True
+    pre_load: False
     train_batch_size: 4
     eval_batch_size: 4
     num_workers: 12

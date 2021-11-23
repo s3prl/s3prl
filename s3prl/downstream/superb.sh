@@ -2,7 +2,7 @@
 
 set -e
 
-supported_tasks="PR, KS, IC, SID, ASR, SF"
+supported_tasks="PR, KS, IC, SID, ER, ASR, SF"
 usage="The runfile for SUPERB Benchmark
     This runfile handles the learning rate (lr) search in the benchmark when training the downstream models. Since different upstreams
     (SSL models) need different suitable lr. Without the careful search, the final ranking can have huge differences. However, a single
@@ -99,6 +99,9 @@ case "$task" in
         ;;
     SID)
         config_bash=downstream/voxceleb1/sid.sh
+        ;;
+    ER)
+        config_bash=downstream/emotion/er.sh
         ;;
     ASR)
         config_bash=downstream/asr/asr.sh
