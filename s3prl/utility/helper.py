@@ -37,13 +37,18 @@ def count_used_parameters(model):
     # The model should be at least backward once
     return sum(p.numel() for p in model.parameters() if p.grad is not None)
 
-def get_time_tag():
-    return datetime.fromtimestamp(time()).strftime('%Y-%m-%d-%H-%M-%S')
+def get_unique_tag():
+    tag = datetime.fromtimestamp(time()).strftime('day_%Y_%m_%d_time_%H_%M_%S')
+    if is_initialized():
+        tag = f"{tag}_rank_{get_rank()}"
+    return tag
 
 def backup(src_path, tgt_dir):
     stem = Path(src_path).stem
     suffix = Path(src_path).suffix
-    shutil.copyfile(src_path, os.path.join(tgt_dir, f'{stem}_{get_time_tag()}{suffix}'))
+    tgt_path = os.path.join(tgt_dir, f'{stem}_{get_unique_tag()}{suffix}')
+    shutil.copyfile(src_path, tgt_path)
+    log.info(f"Copy file: {src_path} -> {tgt_path}")
 
 def get_model_state(model):
     if isinstance(model, DDP):
@@ -75,6 +80,7 @@ def override(string, args, config):
     Example usgae:
         -o "config.optimizer.lr=1.0e-3,,config.optimizer.name='AdamW',,config.runner.eval_dataloaders=['dev', 'test']"
     """
+    msgs = []
     options = string.split(',,')
     for option in options:
         option = option.strip()
@@ -87,7 +93,7 @@ def override(string, args, config):
         except:
             value = value_str
 
-        log.info(f'Override: {key} = {value}')
+        msgs.append(f"Override: {key} = {value}")
 
         if first_field == 'args':
             assert len(remaining) == 1
@@ -100,6 +106,7 @@ def override(string, args, config):
                 else:
                     target_config.setdefault(field_name, {})
                     target_config = target_config[field_name]
+    return msgs
 
 def zero_mean_unit_var_norm(input_values: List[np.ndarray]) -> List[np.ndarray]:
     """

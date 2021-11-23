@@ -1,22 +1,20 @@
 import os
-import re
-import sys
 import yaml
 import glob
 import torch
 import random
 import logging
 import argparse
-import importlib
 import torchaudio
 import numpy as np
+from pathlib import Path
 from argparse import Namespace
-from torch.distributed import is_initialized, get_world_size
+from torch.distributed import is_initialized, get_world_size, get_rank
 
 from s3prl import hub
 from s3prl import downstream
 from s3prl.downstream.runner import Runner
-from s3prl.utility.helper import backup, get_time_tag, hack_isinstance, is_leader_process, override
+from s3prl.utility.helper import backup, get_unique_tag, hack_isinstance, override
 
 from huggingface_hub import HfApi, HfFolder
 log = logging.getLogger(__name__)
@@ -31,9 +29,6 @@ def get_downstream_args():
 
     # distributed training
     parser.add_argument('--backend', default='nccl', help='The backend for distributed training')
-    parser.add_argument('--local_rank', type=int,
-                        help=f'The GPU id this process should use while distributed training. \
-                               None when not launched by torch.distributed.launch')
 
     # use a ckpt as the experiment initialization
     # if set, all the args and config below this line will be overwrited by the ckpt
@@ -88,9 +83,13 @@ def get_downstream_args():
     parser.add_argument('--device', default='cuda', help='model.to(device)')
     parser.add_argument('--cache_dir', help='The cache directory for pretrained model downloading')
     parser.add_argument('--cudnn', action='store_true', help='Enable CUDNN')
+    parser.add_argument('--sharing_strategy', default="file_descriptor")
+    parser.add_argument('--audio_backend', default="sox_io")
+    parser.add_argument('--local_rank', type=int)
 
     args = parser.parse_args()
     backup_files = []
+    messages = []
 
     if args.expdir is None:
         args.expdir = f'result/downstream/{args.expname}'
@@ -111,7 +110,7 @@ def get_downstream_args():
         else:
             ckpt_pth = args.past_exp
 
-        message = f'Resume from {ckpt_pth}'
+        messages.append(f'Resume from {ckpt_pth}')
 
         # load checkpoint
         ckpt = torch.load(ckpt_pth, map_location='cpu')
@@ -128,7 +127,7 @@ def get_downstream_args():
         # overwrite args
         cannot_overwrite_args = [
             'mode', 'evaluate_split', 'override',
-            'backend', 'local_rank', 'past_exp', 'verbose'
+            'backend', 'past_exp', 'verbose',
         ]
         args = update_args(args, ckpt['Args'], preserve_list=cannot_overwrite_args)
         os.makedirs(args.expdir, exist_ok=True)
@@ -136,7 +135,7 @@ def get_downstream_args():
         config = ckpt['Config']
 
     else:
-        message = 'Start a new experiment'
+        messages.append('Start a new experiment')
         os.makedirs(args.expdir, exist_ok=True)
 
         if args.config is None:
@@ -147,58 +146,100 @@ def get_downstream_args():
         if args.upstream_model_config is not None and os.path.isfile(args.upstream_model_config):
             backup_files.append(args.upstream_model_config)
 
-    # logging info
-    if args.verbose == 1:
-        logging.basicConfig(
-            level=logging.INFO,
-            format="%(asctime)s (%(module)s.%(funcName)s:%(lineno)d) %(levelname)s: %(message)s",
-        )
-    elif args.verbose == 2:
-        logging.basicConfig(
-            level=logging.DEBUG,
-            format="%(asctime)s (%(module)s.%(funcName)s:%(lineno)d) %(levelname)s: %(message)s",
-        )
-    else:
-        logging.basicConfig(
-            level=logging.WARN,
-            format="%(asctime)s (%(module)s.%(funcName)s:%(lineno)d) %(levelname)s: %(message)s",
-        )
-        logging.warning("Skip DEBUG/INFO messages in S3PRL")
-
     if args.override is not None and args.override.lower() != "none":
-        override(args.override, args, config)
+        override_msgs = override(args.override, args, config)
+        for override_msg in override_msgs:
+            messages.append(override_msg)
         os.makedirs(args.expdir, exist_ok=True)
 
-    log.info(message)
-    return args, config, backup_files
+    return args, config, backup_files, messages
 
 
 def main():
-    torch.multiprocessing.set_sharing_strategy('file_system')
-    torchaudio.set_audio_backend('sox_io')
     hack_isinstance()
 
     # get config and arguments
-    args, config, backup_files = get_downstream_args()
-    if args.cache_dir is not None:
-        torch.hub.set_dir(args.cache_dir)
+    args, config, backup_files, messages = get_downstream_args()
+    torch.multiprocessing.set_sharing_strategy(args.sharing_strategy)
+    torchaudio.set_audio_backend(args.audio_backend)
 
-    # When torch.distributed.launch is used
+    # setup DistributedDataParallel
     if args.local_rank is not None:
-        torch.cuda.set_device(args.local_rank)
+        # When torch.distributed.launch is used
+        os.environ["LOCAL_RANK"] = str(args.local_rank)
+    local_rank = os.environ.get("LOCAL_RANK")
+    if isinstance(local_rank, str):
+        print(f"Environment variable LOCAL_RANK: {local_rank} detected. "
+               "Use DistributedDataParallel to train the model")
+        assert local_rank.isnumeric(), local_rank
+
+        local_rank = int(local_rank)
+        device_count = torch.cuda.device_count()
+        assert local_rank < device_count, f"{local_rank} !< {device_count}"
+
+        torch.cuda.set_device(local_rank)
         torch.distributed.init_process_group(args.backend)
 
     if args.mode == 'train' and args.past_exp:
         ckpt = torch.load(args.init_ckpt, map_location='cpu')
 
         now_use_ddp = is_initialized()
-        original_use_ddp = ckpt['Args'].local_rank is not None
+        original_use_ddp = ckpt.get("WorldSize") is not None
         assert now_use_ddp == original_use_ddp, f'{now_use_ddp} != {original_use_ddp}'
 
         if now_use_ddp:
             now_world = get_world_size()
             original_world = ckpt['WorldSize']
             assert now_world == original_world, f'{now_world} != {original_world}'
+
+    # logging level
+    if args.verbose == 1:
+        level = logging.INFO
+    elif args.verbose == 2:
+        level = logging.DEBUG
+    else:
+        level = logging.WARNING
+
+    # logging format
+    root_log = logging.getLogger()
+    root_log.setLevel(level)
+    rank_string = f"RANK {get_rank()} " if is_initialized() else ""
+    formatter = logging.Formatter(f"[%(levelname)s] {rank_string}%(asctime)s (%(module)s.%(funcName)s:%(lineno)d): %(message)s")
+
+    # logging file
+    log_file = Path(args.expdir) / f"log_{get_unique_tag()}"
+    fileHandler = logging.FileHandler(log_file)
+    fileHandler.setFormatter(formatter)
+    root_log.addHandler(fileHandler)
+    messages.append(f"The log file can be found at: {log_file}")
+
+    # logging stream
+    streamHandler = logging.StreamHandler()
+    streamHandler.setFormatter(formatter)
+    root_log.addHandler(streamHandler)
+
+    if level == logging.WARNING:
+        log.warning("Skip DEBUG/INFO messages in S3PRL")
+
+    for message in messages:
+        log.info(message)
+
+    # save command
+    args_file = f"args_{get_unique_tag()}.yaml"
+    log.info(f"The args can be found at: {args_file}")
+    with (Path(args.expdir) / args_file).open("w") as file:
+        yaml.dump(vars(args), file)
+
+    config_file = f"config_{get_unique_tag()}.yaml"
+    log.info(f"The config can be found at: {config_file}")
+    with (Path(args.expdir) / config_file).open("w") as file:
+        yaml.dump(config, file)
+
+    for file in backup_files:
+        backup(file, args.expdir)
+
+    if args.cache_dir is not None:
+        torch.hub.set_dir(args.cache_dir)
 
     if args.hub == "huggingface":
         args.from_hf_hub = True
@@ -208,17 +249,6 @@ def main():
         huggingface_token = HfApi().login(username=hf_user, password=hf_password)
         HfFolder.save_token(huggingface_token)
         log.info(f"Logged into Hugging Face Hub with user: {hf_user}")
-    
-    # Save command
-    if is_leader_process():
-        with open(os.path.join(args.expdir, f'args_{get_time_tag()}.yaml'), 'w') as file:
-            yaml.dump(vars(args), file)
-
-        with open(os.path.join(args.expdir, f'config_{get_time_tag()}.yaml'), 'w') as file:
-            yaml.dump(config, file)
-
-        for file in backup_files:
-            backup(file, args.expdir)
 
     # Fix seed and make backends deterministic
     random.seed(args.seed)
