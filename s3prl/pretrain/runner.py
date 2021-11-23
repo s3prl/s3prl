@@ -23,8 +23,8 @@ import torch.nn as nn
 from tensorboardX import SummaryWriter
 import numpy as np
 #-------------#
-from s3prl.optimizers import get_optimizer
-from s3prl.schedulers import get_scheduler
+from optimizers import get_optimizer
+from schedulers import get_scheduler
 
 
 ##########

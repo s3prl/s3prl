@@ -91,7 +91,8 @@ def get_pretrain_args():
 
     else:
         print('[Runner] - Start a new experiment')
-        
+        args.init_ckpt = None
+
         assert args.expname is not None
         if args.expdir is None:
             args.expdir = f'result/pretrain/{args.expname}'

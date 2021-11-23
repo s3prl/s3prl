@@ -17,9 +17,9 @@ import torch
 from torch.nn.utils.rnn import pad_sequence
 import torchaudio
 #-------------#
-from s3prl.pretrain.mockingjay.dataset import KaldiAcousticDataset as _KaldiAcousticDataset
-from s3prl.pretrain.mockingjay.dataset import OnlineAcousticDataset as _OnlineAcousticDataset
-from s3prl.pretrain.spec_augment.task import generate_spec_aug_data
+from pretrain.mockingjay.dataset import KaldiAcousticDataset as _KaldiAcousticDataset
+from pretrain.mockingjay.dataset import OnlineAcousticDataset as _OnlineAcousticDataset
+from pretrain.spec_augment.task import generate_spec_aug_data
 
 
 HALF_BATCHSIZE_TIME = 99999
