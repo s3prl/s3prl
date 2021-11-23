@@ -176,7 +176,7 @@ done
 
 explore_summary=$explore_dir/summary; [ -f "$explore_summary" ] && rm $explore_summary
 echo "Report exploration result at $explore_summary"
-for expdir in $(ls -d $explore_dir/*);
+for expdir in $(ls -d $explore_dir/*/);
 do
     eval_result=$(get_eval_result $expdir "dev")
     if [ ! -z "$eval_result" ]; then
@@ -210,7 +210,7 @@ single_trial "$expdir" "$upstream" "$(parse_override 1 $best_lr $override)" true
 
 echo "Report full training result..."
 full_summary=$full_dir/summary; [ -f "$full_summary" ] && rm $full_summary
-for expdir in $(ls -d $full_dir/*);
+for expdir in $(ls -d $full_dir/*/);
 do
     eval_result=$(get_eval_result $expdir "test")
     if [ ! -z "$eval_result" ]; then
@@ -229,7 +229,7 @@ BEST LEARNING RATE
 $(cat $explore_dir/best_lr)
 
 FULL TRAINING
-"$(cat $full_summary)"
+$(cat $full_summary)
 " > $summary
 
 echo
