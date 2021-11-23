@@ -82,7 +82,7 @@ def get_downstream_args():
     parser.add_argument('--seed', default=1337, type=int)
     parser.add_argument('--device', default='cuda', help='model.to(device)')
     parser.add_argument('--cache_dir', help='The cache directory for pretrained model downloading')
-    parser.add_argument('--cudnn', action='store_true', help='Enable CUDNN')
+    parser.add_argument('--disable_cudnn', action='store_true', help='Disable CUDNN')
     parser.add_argument('--sharing_strategy', default="file_system")
     parser.add_argument('--audio_backend', default="sox_io")
     parser.add_argument('--local_rank', type=int)
@@ -255,7 +255,7 @@ def main():
     np.random.seed(args.seed)
     torch.manual_seed(args.seed)
     if torch.cuda.is_available(): torch.cuda.manual_seed_all(args.seed)
-    if not args.cudnn:
+    if args.disable_cudnn:
         torch.backends.cudnn.enabled = False
     else:
         torch.backends.cudnn.enabled = True
