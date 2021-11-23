@@ -18,9 +18,16 @@ USAGE
     The runfile will automatically determine where it was stopped and resume from there without any duplicated training. At the end of this
     execution, the runfile will report the summary of this run, including the dev results for all the lr search and the test result on the
     best lr. You can also re-check the summary message again with the exactly same command, which will skip all the training and directly
-    report the summary. Usually, you only need to specify -u, -t and -p, since most of the configurations have proper default values, including
-    the EXPLORE_RATIO and LR. Hence, -o, -r, -l are only needed when you want to explore more settings. eg. learning rates not included in the
-    default setting, smaller EXPLORE_RATIO to further reduce exploration time.
+    report the summary.
+    
+    Usually, you only need to specify -u, -t and -p, since most of the configurations have proper default values, including EXPLORE_RATIO
+    and LR. Hence, -o, -r, -l are only needed when you want to explore more settings. eg. learning rates not included in the default setting,
+    smaller EXPLORE_RATIO to further reduce exploration time. Here is an example command to benchmark HuBERT Base model on Keyword Spotting.
+
+    ./downstream/superb.sh -u hubert -t KS -p result/superb/
+
+    WARNING: Before you run the above command, please first make sure you already followed each task's 'Prepare Data' subsection in the
+    SUPERB documentation: https://github.com/s3prl/s3prl/blob/master/s3prl/downstream/docs/superb.md
 
 UPSTREAM (required)
     The entries defined in s3prl.hub. eg. wav2vec2, hubert, wav2vec2_large_ll60k... etc
