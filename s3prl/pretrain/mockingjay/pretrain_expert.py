@@ -90,13 +90,14 @@ class UpstreamPretrainExpert(nn.Module):
                                      drop_last=False, pin_memory=True, collate_fn=dataset.collate_fn)
 
     # Interface
-    def load_model(self, all_states):
+    def load_model(self, init_ckpt):
+        assert 'Transformer' in init_ckpt and 'SpecHead' in init_ckpt
         if self.multi_gpu:
-            self.model.module.Transformer.load_state_dict(all_states['Transformer'])
-            self.model.module.SpecHead.load_state_dict(all_states['SpecHead'])
+            self.model.module.Transformer.load_state_dict(init_ckpt['Transformer'])
+            self.model.module.SpecHead.load_state_dict(init_ckpt['SpecHead'])
         else:
-            self.model.Transformer.load_state_dict(all_states['Transformer'])
-            self.model.SpecHead.load_state_dict(all_states['SpecHead'])
+            self.model.Transformer.load_state_dict(init_ckpt['Transformer'])
+            self.model.SpecHead.load_state_dict(init_ckpt['SpecHead'])
 
     # Interface
     def add_state_to_save(self, all_states):
@@ -104,7 +105,7 @@ class UpstreamPretrainExpert(nn.Module):
                                  self.model.module.SpecHead.state_dict()
         all_states['Transformer'] = self.model.Transformer.state_dict() if not self.multi_gpu else \
                                     self.model.module.Transformer.state_dict()
-        all_states['Config'] = self.upstream_config
+        all_states['Upstream_Config'] = self.upstream_config
         return all_states
 
     # Interface
