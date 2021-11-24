@@ -247,7 +247,8 @@ def calculate_measures(groundtruth, transcription):
     transcription = normalize_sentence(transcription)
 
     #cer = ed.eval(transcription, groundtruth) / len(groundtruth)
-    c_result = jiwer.compute_measures([c for c in groundtruth if c != " "], [c for c in transcription if c != " "])
+    # c_result = jiwer.compute_measures([c for c in groundtruth if c != " "], [c for c in transcription if c != " "])
+    c_result = jiwer.cer(groundtruth, transcription, return_dict=True)
     w_result = jiwer.compute_measures(groundtruth, transcription)
 
     return c_result, w_result, groundtruth, transcription

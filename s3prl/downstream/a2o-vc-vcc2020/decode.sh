@@ -47,6 +47,7 @@ echo "successfully finished decoding."
 
 # evaluation
 echo "Evaluation start."
-python evaluate.py \
+python downstream/a2o-vc-vcc2020/evaluate.py \
     --wavdir ${wav_dir} \
+    --data_root downstream/a2o-vc-vcc2020/data \
     --trgspk ${trgspk}

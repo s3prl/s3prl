@@ -25,7 +25,7 @@ def get_parser():
     parser.add_argument("--task", type=str, required=True, choices=["task1", "task2"], help="task")
     parser.add_argument("--tag", type=str, required=True, help="tag")
     parser.add_argument("--vocoder", type=str, required=True, help="vocoder name")
-    parser.add_argument("--expdir", type=str, default="../../result/downstream", help="expdir")
+    parser.add_argument("--expdir", type=str, default="result/downstream", help="expdir")
     parser.add_argument("--start_epoch", default=4000, type=int)
     parser.add_argument("--end_epoch", default=10000, type=int)
     parser.add_argument("--step_epoch", default=1000, type=int)

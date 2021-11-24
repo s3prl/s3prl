@@ -11,6 +11,7 @@ import os
 import numpy as np
 from scipy.io.wavfile import write
 from sklearn.preprocessing import StandardScaler
+from tqdm import tqdm
 import yaml
 
 import torch
@@ -192,7 +193,7 @@ class DownstreamExpert(nn.Module):
             os.makedirs(hdf5_save_dir, exist_ok=True)
             os.makedirs(wav_save_dir, exist_ok=True)
 
-            for i, (wav_path, ref_spk_name) in enumerate(zip(records["wav_paths"], records["ref_spk_names"])):
+            for i, (wav_path, ref_spk_name) in enumerate(tqdm(zip(records["wav_paths"], records["ref_spk_names"]), dynamic_ncols=True, desc="Saving files")):
                 length = int(records["feature_lengths"][i])
                 fbank = np.array(records["predicted_features"][i])[:length]
                 if split == "dev":

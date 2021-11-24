@@ -21,10 +21,10 @@ fi
 echo "Training script starting time: $(date +%T)"
 
 expname=a2a_vc_vctk_${tag}_${upstream}
-expdir=../../result/downstream/${expname}
+expdir=result/downstream/${expname}
 mkdir -p ${expdir}
 
-python ../../run_downstream.py -m train \
+python run_downstream.py -m train \
     --config ${config} \
     -p ${expdir} \
     -u ${upstream} \

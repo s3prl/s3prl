@@ -12,6 +12,7 @@ import random
 
 import librosa
 import numpy as np
+from tqdm import tqdm
 
 import torch
 from torch.nn.utils.rnn import pad_sequence
@@ -104,7 +105,7 @@ class VCTK_VCC2020Dataset(Dataset):
         if self.split == "train" or self.split == "dev":
             spk_emb_paths = [os.path.join(self.spk_embs_root, os.path.basename(wav_path).replace(".wav", ".h5")) for wav_path in self.X]
             self.X = list(zip(self.X, spk_emb_paths))
-            for wav_path, spk_emb_path in self.X:
+            for wav_path, spk_emb_path in tqdm(self.X, dynamic_ncols=True, desc="Extracting speaker embedding"):
                 if not os.path.isfile(spk_emb_path):
                     # extract spk emb
                     wav = preprocess_wav(wav_path)
@@ -139,7 +140,7 @@ class VCTK_VCC2020Dataset(Dataset):
 
     def get_all_lmspcs(self):
         lmspcs = []
-        for xs in self.X:
+        for xs in tqdm(self.X, dynamic_ncols=True, desc="Extracting target acoustic features"):
             input_wav_path = xs[0]
             input_wav_original, fs_original = self._load_wav(input_wav_path, fs=None)
             lmspc = logmelspectrogram(

@@ -34,13 +34,13 @@ for trgspk in "${trgspks[@]}"; do
         echo "Objective evaluation: Upstream ${upstream}, Ep ${ep}; trgspk ${trgspk}"
         expname=a2o_vc_vcc2020_${tag}_${trgspk}_${upstream}
         expdir=result/downstream/${expname}
-        downstream/a2o-vc-vcc2020/decode.sh ${vocoder}/ ${expdir}/${ep} ${trgspk}
+        ./downstream/a2o-vc-vcc2020/decode.sh ${vocoder}/ ${expdir}/${ep} ${trgspk}
     done
 done
 
 voc_name=$(basename ${vocoder} | cut -d"_" -f 1)
 
-python downstream/a2o-vc-vcc2020/find_best_epoch.py \
+python ./downstream/a2o-vc-vcc2020/find_best_epoch.py \
     --start_epoch ${start_ep} \
     --end_epoch ${end_ep} \
     --step_epoch ${interval} \

@@ -48,9 +48,9 @@ echo "successfully finished decoding."
 # evaluation
 echo "Evaluation start."
 for num in 10; do
-    python evaluate.py \
+    python downstream/a2a-vc-vctk/evaluate.py \
         --wavdir ${wav_dir} \
         --samples ${num} \
         --task task1 \
-        --data_root /mrnas02/internal/wenchin-h/Experiments/s3prl/downstream/a2o-vc-vcc2020/data 
+        --data_root ./downstream/a2o-vc-vcc2020/data 
 done

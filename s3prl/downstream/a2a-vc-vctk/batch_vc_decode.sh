@@ -10,7 +10,7 @@ set -e
 
 # check arguments
 if [ $# != 3 ]; then
-    echo "Usage: $0 <upstream> <task> <tag> <vocoder>"
+    echo "Usage: $0 <upstream> <tag> <vocoder>"
     exit 1
 fi
 
@@ -28,15 +28,13 @@ fi
 for ep in $(seq ${start_ep} ${interval} ${end_ep}); do
     echo "Objective evaluation: Ep ${ep}"
     expname=a2a_vc_vctk_${tag}_${upstream}
-    #expname=test_a2a_vc_vctk_${upstream}_${tag}
-    expdir=../../result/downstream/${expname}
-    ./decode.sh ${vocoder} ${expdir}/${ep} #> /dev/null 2>&1
-    # grep 'Mean' ${expdir}/${ep}/pwg_wav/obj.log
+    expdir=result/downstream/${expname}
+    downstream/a2a-vc-vctk/decode.sh ${vocoder} ${expdir}/${ep}
 done
 
 voc_name=$(basename ${vocoder} | cut -d"_" -f 1)
 
-python find_best_epoch.py \
+python downstream/a2a-vc-vctk/find_best_epoch.py \
     --start_epoch ${start_ep} \
     --end_epoch ${end_ep} \
     --step_epoch ${interval} \

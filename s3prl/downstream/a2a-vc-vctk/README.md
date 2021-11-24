@@ -27,6 +27,8 @@ We only provide the config for the **Taco2-AR** model. It is essentialy a modifi
 - `jiwer`
 - `resemblyzer`
 
+You can install them via the `requirements.txt` file.
+
 ## Usage
 
 ### Preparation
@@ -46,16 +48,28 @@ cd ../
 The following command starts a training run given any `<upstream>`.
 ```
 cd <root-to-s3prl>/s3prl/downstream/a2a-vc-vctk
-./vc_train.sh <upstream> config_ar_taco2.yaml <upstream>
+./downstream/a2a-vc-vctk/vc_train.sh <upstream> downstream/a2a-vc-vctk/config_ar_taco2.yaml <tag>
 ```
 Along the training process, you may find converted speech samples generated using the Griffin-Lim algorithm automatically saved in `<root-to-s3prl>/s3prl/result/downstream/a2a_vc_vctk_taco2_ar_<upstream>/<step>/test/wav/`.
 **NOTE**: to avoid extracting d-vectors on-the-fly (which is very slow), all d-vectors are extracted beforehand and saved in `data/spk_embs`. Since there are 44 hours of data in VCTK, the whole extraction can take a long time. On a NVIDIA GeForce RTX 3090, it takes 5-6 hours.
 **NOTE 2**: By default, during testing, the d-vector of the target speaker is the average of random samples from the training set, of number `num_ref_samples`. You can change this number in the config file. The list of samples is generated automatically and saved in `data/eval_<num>sample_list.txt`.
 
-#### Waveform synthesis (decoding) using a neural vocoder & objective evaluation
-The following command performs (1) waveform synthesis (or _decoding_) using not Griffin-Lim but a neural vocoder, and (2) objective evaluation of a model trained with a specific number of steps. **Note that decoding is done in the VC directory!**
+### Waveform synthesis (decoding) using a neural vocoder & objective evaluation
+
+#### Single model checkpoint decoding & evaluation
 ```
-cd <root-to-s3prl>/s3prl/downstream/a2a-vc-vctk
+cd <root-to-s3prl>/s3prl
+./downstream/a2a-vc-vctk/decode.sh <vocoder> <result_dir>/<step>
+```
+For example,
+```
+./downstream/a2a-vc-vctk/decode.sh ./downstream/a2a-vc-vctk/hifigan_vctk result/downstream/a2a_vc_vctk_taco2_ar_decoar2/50000
+```
+
+#### Upstream-wise decoding & evaluation
+The following command performs objective evaluation of a model trained with a specific number of steps.
+```
+cd <root-to-s3prl>/s3prl
 ./batch_vc_decode.sh <upstream> taco2_ar hifigan_vctk
 ```
 The generated speech samples will be saved in `<root-to-s3prl>/s3prl/result/downstream/a2a_vc_vctk_taco2_ar_<upstream>/<step>/hifigan_wav/`. 
