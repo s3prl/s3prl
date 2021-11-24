@@ -47,10 +47,10 @@ cd ../
 ### Training 
 The following command starts a training run given any `<upstream>`.
 ```
-cd <root-to-s3prl>/s3prl/downstream/a2a-vc-vctk
+cd <root-to-s3prl>/s3prl
 ./downstream/a2a-vc-vctk/vc_train.sh <upstream> downstream/a2a-vc-vctk/config_ar_taco2.yaml <tag>
 ```
-Along the training process, you may find converted speech samples generated using the Griffin-Lim algorithm automatically saved in `<root-to-s3prl>/s3prl/result/downstream/a2a_vc_vctk_taco2_ar_<upstream>/<step>/test/wav/`.
+Along the training process, you may find converted speech samples generated using the Griffin-Lim algorithm automatically saved in `<root-to-s3prl>/s3prl/result/downstream/a2a_vc_vctk_<tag>_<upstream>/<step>/test/wav/`.
 **NOTE**: to avoid extracting d-vectors on-the-fly (which is very slow), all d-vectors are extracted beforehand and saved in `data/spk_embs`. Since there are 44 hours of data in VCTK, the whole extraction can take a long time. On a NVIDIA GeForce RTX 3090, it takes 5-6 hours.
 **NOTE 2**: By default, during testing, the d-vector of the target speaker is the average of random samples from the training set, of number `num_ref_samples`. You can change this number in the config file. The list of samples is generated automatically and saved in `data/eval_<num>sample_list.txt`.
 
@@ -70,9 +70,10 @@ For example,
 The following command performs objective evaluation of a model trained with a specific number of steps.
 ```
 cd <root-to-s3prl>/s3prl
-./batch_vc_decode.sh <upstream> taco2_ar hifigan_vctk
+./downstream/a2a-vc-vctk/batch_vc_decode.sh <upstream> taco2_ar downstream/a2a-vc-vctk/hifigan_vctk
 ```
-The generated speech samples will be saved in `<root-to-s3prl>/s3prl/result/downstream/a2a_vc_vctk_taco2_ar_<upstream>/<step>/hifigan_wav/`. 
+If the command fails, please make sure there are trained results in `result/downstream/a2a_vc_vctk_<tag>_<upstream>/`. The generated speech samples will be saved in `<root-to-s3prl>/s3prl/result/downstream/a2a_vc_vctk_taco2_ar_<upstream>/<step>/hifigan_wav/`. 
+
 Also, the output of the evaluation will be shown directly:
 ```
 decoar2 10 samples epoch 48000 best: 9.28 41.80 0.197 1.3 4.0 27.00
