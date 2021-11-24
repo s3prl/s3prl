@@ -4,7 +4,7 @@ runner:
   gradient_accumulate_steps: 1
 
   log_step: 100
-  eval_step: 5000
+  eval_step: 4000
   save_step: 1000
   max_keep: 1
   eval_dataloaders:

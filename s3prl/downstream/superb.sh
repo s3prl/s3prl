@@ -63,11 +63,11 @@ USAGE
         (Default use all layers and train the weighted-sum on them.)
 
 -r EXPLORE_RATIO (optional)
-    Default: 0.05
+    Default: task-dependent
     The percentage of the full training optimization steps for the learning rate search
 
 -l LR1 -l LR2 ... (optional)
-    Default: Each task has different default learning rates to explore
+    Default: task-dependent
     If provided, will only search through these learning rates
     eg. -l 1e-3 -l 1e-4
 
