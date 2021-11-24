@@ -202,6 +202,7 @@ upstream_dir=$exps_root/$task/$upstream
 if [ ! -z "$override" ]; then
     upstream_dir=$upstream_dir/$override
 fi
+mkdir -p $upstream_dir
 summary=$upstream_dir/summary
 [ -f $summary ] && rm $summary
 echo "SUMMARY" >> $summary
@@ -226,7 +227,7 @@ function parse_override() {
 # Explore learning rate
 optimize_ratio=$explore_ratio
 echo "Exploring learning rate $lrs with optimization ratio $optimize_ratio"
-explore_dir=$upstream_dir/optimize_ratio_$optimize_ratio; mkdir -p $explore_dir
+explore_dir=$upstream_dir/partial_training; mkdir -p $explore_dir
 echo "The results will be saved at $explore_dir"
 for lr in $lrs;
 do
@@ -270,7 +271,7 @@ echo "Best learning rate: $best_lr"
 echo "Save to $explore_dir/best_lr"
 echo $best_lr > $explore_dir/best_lr
 
-full_dir=$upstream_dir/optimize_ratio_1; mkdir -p $full_dir
+full_dir=$upstream_dir/full_training; mkdir -p $full_dir
 expdir=$full_dir/lr_$best_lr; mkdir -p $expdir
 echo "Final full training with learning rate $best_lr"
 echo "The results will be saved at $expdir"
