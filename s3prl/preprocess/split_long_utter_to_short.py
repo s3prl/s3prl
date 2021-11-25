@@ -34,9 +34,9 @@ def get_preprocess_args():
 
     parser.add_argument('-i', '--input_path', default='/livingrooms/public/LibriLight/', type=str, help='Path to your LibriSpeech directory', required=False)
     parser.add_argument('-o', '--output_path', default='/livingrooms/public/LibriLight/', type=str, help='Path to store output', required=False)
-    parser.add_argument('-s', '--split_size', default=5, type=int, help='Split size in seconds', required=False)
+    parser.add_argument('-s', '--split_size', default=60, type=int, help='Split size in seconds', required=False)
     parser.add_argument('-a', '--audio_extension', default='.flac', type=str, help='audio file type (.wav / .flac / .mp3 / etc)', required=False)
-    parser.add_argument('-n', '--name', default='-shorten', type=str, help='Name to append on the original directory', required=False)
+    parser.add_argument('-n', '--name', default='-splitted', type=str, help='Name to append on the original directory', required=False)
     parser.add_argument('--n_jobs', default=-1, type=int, help='Number of jobs used for computation', required=False)
 
     args = parser.parse_args()
