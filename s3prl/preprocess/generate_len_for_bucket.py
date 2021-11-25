@@ -24,15 +24,6 @@ from joblib import Parallel, delayed
 torchaudio.set_audio_backend("sox_io")
 
 
-##################
-# BOOLEAB STRING #
-##################
-def boolean_string(s):
-    if s not in ['False', 'True']:
-        raise ValueError('Not a valid boolean string')
-    return s == 'True'
-
-
 #############################
 # PREPROCESS CONFIGURATIONS #
 #############################
@@ -55,6 +46,7 @@ def get_preprocess_args():
 ##################
 def extract_length(input_file):
     return torchaudio.info(input_file).num_frames
+
 
 ###################
 # GENERATE LENGTH #
