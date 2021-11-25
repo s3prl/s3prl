@@ -14,7 +14,7 @@ SUPERB Benchmark. In SUPERB's speech classification tasks we use linear models, 
 One can trace the following files:
 
 - downstream/speech_commands/config.yaml: downstream_expert.modelrc.select=UtteranceLevel
-- downstream/model.yaml: UtteranceLevel
+- downstream/model.py: UtteranceLevel
 
 This "UtteranceLevel" module is used across KS, ER, IC and SID in SUPERB, which first
 linearly projects upstream's feature dimension to the same dimension (256), and then
