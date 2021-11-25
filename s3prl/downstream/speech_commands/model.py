@@ -22,6 +22,10 @@ linearly projected to the class number. Hence, it does not contain non-linearity
 """
 
 class Model(nn.Module):
+    """
+    Not used in SUPERB Benchmark
+    """
+
     def __init__(self, input_dim, output_class_num, **kwargs):
         super(Model, self).__init__()
         hidden_dim = kwargs["hidden_dim"]
