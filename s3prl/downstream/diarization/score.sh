@@ -22,10 +22,16 @@ test_set="$2"
 # directory where you cloned dscore (https://github.com/ftshijt/dscore)
 dscore_dir=/groups/leo1994122701/dscore
 
-upstream_rate_file=$1/upstream_rate
-if [ -f $upstream_rate_file ]; then
-    frame_shift=$(cat $upstream_rate_file)
+frame_shift_file=$1/frame_shift
+if [ -f $frame_shift_file ]; then
+    frame_shift=$(cat $frame_shift_file)
 else
+    echo "[Warning] File not found: $frame_shift_file. Degenerate to use frame shift 160. "`
+         `"If you suspect the downstream model was not trained by the labels in frame shift 160, please "`
+         `"create a file $frame_shift_file with a single number: the trained model's frame shift. "`
+         `"Before the PR https://github.com/s3prl/s3prl/pull/202, the diarization models are always trained "`
+         `"by frame shift 160. After this PR, models are trained by the label whose frame shift is upstream "`
+         `"representation's downsample rate. See the PR page for more information."
     frame_shift=160
 fi
 sr=16000

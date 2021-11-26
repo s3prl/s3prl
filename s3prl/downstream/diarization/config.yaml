@@ -22,14 +22,15 @@ downstream_expert:
     label_delay: 0
     num_speakers: 2
     rate: 16000
+    frame_shift: null
 
   loaderrc:
     num_workers: 8
     train_batchsize: 8
     eval_batchsize: 1
-    train_dir: ./downstream/diarization/data/libri2mix/train
-    dev_dir: ./downstream/diarization/data/libri2mix/dev
-    test_dir: ./downstream/diarization/data/libri2mix/test
+    train_dir: ./downstream/diarization/data/train
+    dev_dir: ./downstream/diarization/data/dev
+    test_dir: ./downstream/diarization/data/test
 
   scorerc:
     save_predictions: True

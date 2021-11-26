@@ -12,8 +12,9 @@
 ###############
 import os
 import math
-import random
 import h5py
+import random
+import logging
 import numpy as np
 from pathlib import Path
 from collections import defaultdict
@@ -42,10 +43,30 @@ class DownstreamExpert(nn.Module):
         self.upstream_dim = upstream_dim
         self.upstream_rate = upstream_rate
         self.datarc = downstream_expert["datarc"]
-        self.datarc["frame_shift"] = upstream_rate
 
-        with (Path(expdir) / "upstream_rate").open("w") as file:
-            print(upstream_rate, file=file)
+        config_frame_shift = self.datarc.get("frame_shift")
+        if isinstance(config_frame_shift, int):
+            logging.warning(
+                f"Diarization label frame shfit: {config_frame_shift}."
+                "It is set in the config field. We recommend not to set this config field if "
+                "you are training new downstream models. This module will then automatically "
+                "use upstream's downsample rate as the label's frame shift for training. This "
+                "'if condition' is only designed to inference the already trained downstream "
+                "models before the PR: https://github.com/s3prl/s3prl/pull/202, with the command: "
+                "python3 run_downstream.py -m evaluate -e [ckpt] "
+                "-o config.downstream_expert.datarc.frame_shift=160"
+            )
+            frame_shift = config_frame_shift
+        else:
+            logging.warning(
+                f"Diarization label frame shfit: {upstream_rate}. It is automatically set as "
+                "upstream's downsample rate to best align the representation v.s. labels for training. "
+            )
+            frame_shift = upstream_rate
+
+        self.datarc["frame_shift"] = frame_shift
+        with (Path(expdir) / "frame_shift").open("w") as file:
+            print(frame_shift, file=file)
 
         self.loaderrc = downstream_expert["loaderrc"]
         self.modelrc = downstream_expert["modelrc"]
