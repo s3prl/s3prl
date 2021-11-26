@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*- #
 """*********************************************************************************************"""
 #   FileName     [ model.py ]
-#   Synopsis     [ the simple (LSTMP), simple-AR and taco2-AR models for any-to-one voice conversion ]
+#   Synopsis     [ the simple (LSTMP), simple-AR and taco2-AR models for any-to-any voice conversion ]
 #   Reference    [ `WaveNet Vocoder with Limited Training Data for Voice Conversion`, Interspeech 2018 ]
 #   Reference    [ `Non-Parallel Voice Conversion with Autoregressive Conversion Model and Duration Adjustment`, Joint WS for BC & VCC 2020 ]
 #   Author       [ Wen-Chin Huang (https://github.com/unilight) ]
@@ -286,6 +286,8 @@ class Model(nn.Module):
                  lstmp_dropout_rate,
                  lstmp_proj_dim,
                  lstmp_layernorm,
+                 spk_emb_integration_type,
+                 spk_emb_dim,
                  prenet_layers=2,
                  prenet_dim=256,
                  prenet_dropout_rate=0.5,
@@ -294,9 +296,13 @@ class Model(nn.Module):
 
         self.ar = ar
         self.encoder_type = encoder_type
-        self.hidden_dim = hidden_dim
-        self.output_dim = output_dim
+        self.hidden_dim = hidden_dim # this is also the decoder output dim
+        self.output_dim = output_dim # acoustic feature dim
         self.resample_ratio = resample_ratio
+        self.spk_emb_integration_type = spk_emb_integration_type
+        self.spk_emb_dim = spk_emb_dim
+        if spk_emb_integration_type == "add":
+            assert spk_emb_dim == hidden_dim
 
         self.register_buffer("target_mean", torch.from_numpy(stats.mean_).float())
         self.register_buffer("target_scale", torch.from_numpy(stats.scale_).float())
@@ -311,6 +317,16 @@ class Model(nn.Module):
             )
         else:
             raise ValueError("Encoder type not supported.")
+        
+        # define projection layer
+        if self.spk_emb_integration_type == "add":
+            self.spk_emb_projection = torch.nn.Linear(spk_emb_dim, hidden_dim)
+        elif self.spk_emb_integration_type == "concat": 
+            self.spk_emb_projection = torch.nn.Linear(
+                hidden_dim + spk_emb_dim, hidden_dim
+            )
+        else:
+            raise ValueError("Integration type not supported.")
         
         # define prenet
         self.prenet = Taco2Prenet(
@@ -353,12 +369,32 @@ class Model(nn.Module):
 
     def normalize(self, x):
         return (x - self.target_mean) / self.target_scale
+    
+    def _integrate_with_spk_emb(self, hs, spembs):
+        """Integrate speaker embedding with hidden states.
+            Args:
+                hs (Tensor): Batch of hidden state sequences (B, Lmax, hdim).
+                spembs (Tensor): Batch of speaker embeddings (B, spk_embed_dim).
+        """
+        if self.spk_emb_integration_type == "add":
+            # apply projection and then add to hidden states
+            spembs = self.spk_emb_projection(F.normalize(spembs))
+            hs = hs + spembs.unsqueeze(1)
+        elif self.spk_emb_integration_type == "concat":
+            # concat hidden states with spk embeds and then apply projection
+            spembs = F.normalize(spembs).unsqueeze(1).expand(-1, hs.size(1), -1)
+            hs = self.spk_emb_projection(torch.cat([hs, spembs], dim=-1))
+        else:
+            raise NotImplementedError("support only add or concat.")
 
-    def forward(self, features, lens, targets = None):
+        return hs
+
+    def forward(self, features, lens, ref_spk_embs, targets = None):
         """Calculate forward propagation.
             Args:
             features: Batch of the sequences of input features (B, Lmax, idim).
             targets: Batch of the sequences of padded target features (B, Lmax, odim).
+            ref_spk_embs: Batch of the sequences of reference speaker embeddings (B, spk_emb_dim).
         """
         B = features.shape[0]
         
@@ -373,6 +409,9 @@ class Model(nn.Module):
             encoder_states, lens = self.encoder(resampled_features, lens) # (B, Lmax, hidden_dim)
         elif self.encoder_type == "ffn":
             encoder_states = self.encoder(resampled_features) # (B, Lmax, hidden_dim)
+
+        # inject speaker embeddings
+        encoder_states = self._integrate_with_spk_emb(encoder_states, ref_spk_embs)
         
         # decoder: LSTMP layers & projection
         if self.ar:
