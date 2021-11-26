@@ -22,6 +22,7 @@ downstream_expert:
     label_delay: 0
     num_speakers: 2
     rate: 16000
+    frame_shift: null
 
   loaderrc:
     num_workers: 8
