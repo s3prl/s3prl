@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*- #
 """*********************************************************************************************"""
 #   FileName     [ expert.py ]
-#   Synopsis     [ the any-to-one voice conversion downstream wrapper ]
+#   Synopsis     [ the any-to-any voice conversion downstream wrapper ]
 #   Author       [ Wen-Chin Huang (https://github.com/unilight) ]
 #   Copyright    [ Copyright(c), Toda Lab, Nagoya University, Japan ]
 """*********************************************************************************************"""
@@ -21,7 +21,7 @@ from torch.distributed import is_initialized
 from torch.nn.utils.rnn import pad_sequence
 
 from .model import Model
-from .dataset import VCC2020Dataset
+from .dataset import VCTK_VCC2020Dataset
 from .utils import make_non_pad_mask
 from .utils import read_hdf5, write_hdf5
 from .utils import logmelspc_to_linearspc, griffin_lim
@@ -66,7 +66,6 @@ class DownstreamExpert(nn.Module):
         # basic settings
         self.expdir = expdir
         self.upstream_dim = upstream_dim
-        self.trgspk = downstream_expert['trgspk']
         self.datarc = downstream_expert['datarc']
         self.modelrc = downstream_expert['modelrc']
         self.acoustic_feature_dim = self.datarc["fbank_config"]["n_mels"]
@@ -75,24 +74,25 @@ class DownstreamExpert(nn.Module):
         print('[Downstream] - resample_ratio: ' + str(self.resample_ratio))
 
         # load datasets
-        self.train_dataset = VCC2020Dataset('train', self.trgspk, **self.datarc)
-        self.dev_dataset = VCC2020Dataset('dev', self.trgspk, **self.datarc)
-        self.test_dataset = VCC2020Dataset('test', self.trgspk, **self.datarc)
+        self.train_dataset = VCTK_VCC2020Dataset('train', **self.datarc)
+        self.dev_dataset = VCTK_VCC2020Dataset('dev', **self.datarc)
+        self.test_dataset = VCTK_VCC2020Dataset('test', **self.datarc)
 
         # load statistics file if exists, and calculate if not found
         scaler = StandardScaler()
         stats_root = self.datarc["stats_root"]
         if not os.path.exists(stats_root):
             os.makedirs(stats_root)
-        stats_path = os.path.join(stats_root, self.trgspk+".h5")
+        stats_path = os.path.join(stats_root, "stats.h5")
         if os.path.exists(stats_path):
             print("[Stats] - reading stats from " + str(stats_path))
             scaler.mean_ = read_hdf5(stats_path, "mean")
             scaler.scale_ = read_hdf5(stats_path, "scale")
         else:
+            print("[Stats] - " + str(stats_path) + " does not exist. Reading data...")
+            lmspcs = np.concatenate(self.train_dataset.get_all_lmspcs(), axis=0)
             print("[Stats] - " + str(stats_path) + " does not exist. Calculating statistics...")
-            for _, _, lmspc, _ in self.train_dataset:
-                scaler.partial_fit(lmspc)
+            scaler.fit(lmspcs)
             write_hdf5(stats_path, "mean", scaler.mean_.astype(np.float32))
             write_hdf5(stats_path, "scale", scaler.scale_.astype(np.float32))
             print("[Stats] - writing stats to " + str(stats_path))
@@ -147,6 +147,8 @@ class DownstreamExpert(nn.Module):
                 acoustic_features_padded,
                 acoustic_feature_lengths,
                 wav_paths,
+                ref_spk_embs,
+                ref_spk_names, 
                 records,
                 **kwargs):
 
@@ -155,17 +157,19 @@ class DownstreamExpert(nn.Module):
         # padding
         input_feature_lengths = torch.IntTensor([feature.shape[0] for feature in input_features])
         input_features = pad_sequence(input_features, batch_first=True).to(device=device)
+        ref_spk_embs = ref_spk_embs.to(device)
         
         # forward model
         if split in ["dev", "test"]:
-            predicted_features, predicted_feature_lengths = self.model(input_features, input_feature_lengths)
+            predicted_features, predicted_feature_lengths = self.model(input_features, input_feature_lengths, ref_spk_embs)
             # save the unnormalized features for dev and test sets
             records["predicted_features"] += predicted_features.cpu().numpy().tolist()
             records["feature_lengths"] += predicted_feature_lengths.cpu().numpy().tolist()
             records["wav_paths"] += wav_paths
+            records["ref_spk_names"] += ref_spk_names
             records["wavs"] += wavs
         else:
-            predicted_features, predicted_feature_lengths = self.model(input_features, input_feature_lengths, acoustic_features_padded.to(device))
+            predicted_features, predicted_feature_lengths = self.model(input_features, input_feature_lengths, ref_spk_embs, acoustic_features_padded.to(device))
 
         # loss calculation (masking and normalization are done inside)
         loss = self.objective(predicted_features,
@@ -189,12 +193,20 @@ class DownstreamExpert(nn.Module):
             os.makedirs(hdf5_save_dir, exist_ok=True)
             os.makedirs(wav_save_dir, exist_ok=True)
 
-            for i, wav_path in enumerate(tqdm(records["wav_paths"])):
+            for i, (wav_path, ref_spk_name) in enumerate(tqdm(list(zip(records["wav_paths"], records["ref_spk_names"]), dynamic_ncols=True, desc="Saving files"))):
                 length = int(records["feature_lengths"][i])
                 fbank = np.array(records["predicted_features"][i])[:length]
+                if split == "dev":
+                    hdf5_save_path = os.path.join(hdf5_save_dir, "_".join(wav_path.split("/")[-2:]).replace(".wav", ".h5"))
+                    wav_save_path = os.path.join(wav_save_dir, "_".join(wav_path.split("/")[-2:]))
+                elif split == "test":
+                    num_samples = os.path.basename(wav_path).replace(".wav", "").split("_")[-1]
+                    os.makedirs(os.path.join(hdf5_save_dir, num_samples), exist_ok=True)
+                    os.makedirs(os.path.join(wav_save_dir, num_samples), exist_ok=True)
+                    hdf5_save_path = os.path.join(hdf5_save_dir, num_samples, "_".join([ref_spk_name] + wav_path.split("/")[-2:]).replace(".wav", ".h5"))
+                    wav_save_path = os.path.join(wav_save_dir, num_samples, "_".join([ref_spk_name] + wav_path.split("/")[-2:]))
 
                 # save generated features into hdf5 files
-                hdf5_save_path = os.path.join(hdf5_save_dir, "_".join(wav_path.split("/")[-2:]).replace(".wav", ".h5"))
                 write_hdf5(hdf5_save_path, "feats", fbank)
 
                 # mel fbank -> linear spectrogram
@@ -216,7 +228,6 @@ class DownstreamExpert(nn.Module):
                     n_iters=self.datarc["fbank_config"]["gl_iters"],
                 )
                 # save generated waveform
-                wav_save_path = os.path.join(wav_save_dir, "_".join(wav_path.split("/")[-2:]))
                 write(
                     wav_save_path,
                     self.datarc["fbank_config"]["fs"],

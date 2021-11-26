@@ -3,6 +3,8 @@
 Development: [Wen-Chin Huang](https://github.com/unilight) @ Nagoya University (2021).  
 If you have any questions, please open an issue, or contact through email: wen.chinhuang@g.sp.m.is.nagoya-u.ac.jp
 
+**Note**: This is the **any-to-one** recipe. For the **any-to-any** recipe, please go to the [a2a-vc-vctk](../a2a-vc-vctk/) recipe.
+
 ## Task
 
 In this downstream, we focus on training any-to-one (A2O) voice conversion (VC) models on the two tasks in **voice conversion challenge 2020 (VCC2020)**
@@ -23,7 +25,7 @@ We made several modifications.
 2. **Output**: instead of using acoustic features extracted using a high-quality vocoder, STRAIGHT, we use the log-melspectrograms.
 3. **Data**: we benchmark on the [VCC2020](https://github.com/nii-yamagishilab/VCC2020-database) dataset. 
 4. **Training strategy**: instead of pretraining on a multispeaker dataset first, we directly trained on the target speaker training set.
-5. **Vocoder**: instead of using the WaveNet vocoder, we used the [Parallel WaveGAN](https://arxiv.org/abs/1910.11480) (PWG) based on the [open source project](https://github.com/kan-bayashi/ParallelWaveGAN) developed by [kan-bayashi](https://github.com/kan-bayashi).
+5. **Vocoder**: instead of using the WaveNet vocoder, we offer non-AR neural vocoders including [Parallel WaveGAN](https://arxiv.org/abs/1910.11480) (PWG) and [Hifi-GAN](https://arxiv.org/abs/2010.05646), implemented in the [open source project](https://github.com/kan-bayashi/ParallelWaveGAN) developed by [kan-bayashi](https://github.com/kan-bayashi).
 
 ## Dependencies:
 
@@ -33,6 +35,8 @@ We made several modifications.
 - `pysptk`
 - `jiwer`
 - `resemblyzer`
+
+You can install them via the `requirements.txt` file.
 
 ## Usage
 
@@ -44,7 +48,7 @@ cd data
 ./data_download.sh vcc2020/
 cd ../
 
-# Download the pretrained PWGs.
+# Download the pretrained vocoders.
 ./vocoder_download.sh ./
 ```
 
@@ -62,14 +66,14 @@ python run_downstream.py -m train -n a2o_vc_vcc2020_taco2_ar_TEF2_wav2vec -u wav
 Along the training process, you may find converted speech samples generated using the Griffin-Lim algorithm automatically saved in `<root-to-s3prl>/s3prl/result/downstream/a2o_vc_vcc2020_taco2_ar_TEF2_wav2vec/<step>/test/wav/`.
 
 #### Waveform synthesis (decoding) using a neural vocoder & objective evaluation
-The following command performs (1) waveform synthesis (or _decoding_) using not Griffin-Lim but a neural vocoder, and (2) objective evaluation of a model trained with a specific number of steps. **Note that decoding is done in the VC directory!**
+We provide a shell script to conveniently perform the followings: (1) waveform synthesis (or _decoding_) using not Griffin-Lim but a neural vocoder, and (2) objective evaluation of a model trained with a specific number of steps. **Note that decoding is done in the `s3prl` directory!**
 ```
-cd <root-to-s3prl>/s3prl/downstream/a2o-vc-vcc2020
-./decode.sh <vocoder_dir> <root-to-s3prl>/s3prl/result/downstream/<expname>/<step> <trgspk>
+cd <root-to-s3prl>/s3prl/
+.downstream/a2o-vc-vcc2020/decode.sh <vocoder_dir> result/downstream/<expname>/<step> <trgspk>
 ```
 For example:
 ```
-./decode.sh pwg_task1 ../../result/downstream/a2o_vc_vcc2020_taco2_ar_TEF1_wav2vec/10000 TEF1
+./downstream/a2o-vc-vcc2020/decode.sh downstream/a2o-vc-vcc2020/hifigan_vctk result/downstream/a2o_vc_vcc2020_taco2_ar_TEF1_wav2vec/10000 TEF1
 ```
 The generated speech samples will be saved in `<root-to-s3prl>/s3prl/result/downstream/a2o_vc_vcc2020_taco2_ar_<trgspk>_<upstream>/<step>/test/<vocoder_name>_wav/`. 
 Also, the output of the evaluation will be shown directly:
@@ -84,27 +88,39 @@ This section describes advanced usage, targeted at potential VC researchers that
 #### Batch training
 If your GPU memory is sufficient, we can train multiple models in one GPU to avoid executing repeated commands. 
 We can also specify a different config file.
-In the following command, we train multiple models. **Note that this is done in the VC directory!**
+In the following command, we train multiple models. **Note that this is done in the `s3prl` directory!**
 ```
-cd <root-to-s3prl>/s3prl/downstream/a2o-vc-vcc2020
-./batch_vc_train.sh <upstream> <config_file> <tag> <part>
+cd <root-to-s3prl>/s3prl
+./downstream/a2o-vc-vcc2020/batch_vc_train.sh <upstream> <config_file> <tag> <part>
 ```
 For example, if we want to use the `hubert` upstream with the `config_simple.yaml` configuration to train 4 models w.r.t. the 4 target speakers in VCC2020 task 1:
 ```
-./batch_vc_train.sh hubert config_simple.yaml simple task1_all
+./downstream/a2o-vc-vcc2020/batch_vc_train.sh hubert downstream/a2o-vc-vcc2020/config_simple.yaml simple task1_all
 ```
 Notes:
 - In batch training mode, the training log are not output to stdout, but redirected to `<root-to-s3prl>/s3prl/result/downstream/a2o_vc_vcc2020_simple_<trgspk>_hubert/train.log`.
 - All exp names will have the format: `a2o_vc_vcc2020_<tag>_<trgspk>_<upstream>`. This can be useful to distinguish different exps if you change the configs.
-- We can change `<part>` to specify which target speakers to train. For example, passing `<fin>` to the script starts two training processes for the two Finnish target speakers. If the GPU memory is insufficient, we can also specify different parts. Please refer to `batch_vc_train.sh` for different specifications.
+- We can change `<part>` to specify which target speakers to train. For example, passing `fin` to the script starts two training processes for the two Finnish target speakers. If the GPU memory is insufficient, we can also specify different parts. Please refer to `batch_vc_train.sh` for different specifications.
 
 #### Batch decoding & objective evaluation
 After you train models for all target speakers for each task (which can be done by batch training), we can use batch decoding to evaluate all models at once.
 ```
-./batch_vc_decode.sh <upstream> <task> <tag>
+./downstream/a2o-vc-vcc2020/batch_vc_decode.sh <upstream> <task> <tag> <vocoder_dir>
 ```
 Using the example above, we can run:
 ```
-./batch_vc_decode.sh hubert task1 simple
+./downstream/a2o-vc-vcc2020/batch_vc_decode.sh hubert task1 simple downstream/a2o-vc-vcc2020/hifigan_vctk
 ```
 The best result will then be automatically shown.
+
+## Citation
+
+If you find this recipe useful, please consider citing following paper:
+```
+@article{huang2021s3prl,
+  title={S3PRL-VC: Open-source Voice Conversion Framework with Self-supervised Speech Representations},
+  author={Huang, Wen-Chin and Yang, Shu-Wen and Hayashi, Tomoki and Lee, Hung-Yi and Watanabe, Shinji and Toda, Tomoki},
+  journal={arXiv preprint arXiv:2110.06280},
+  year={2021}
+}
+```

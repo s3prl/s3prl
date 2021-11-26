@@ -43,9 +43,9 @@ pids=() # initialize pids
 for trgspk in "${trgspks[@]}"; do
 (
     expname=a2o_vc_vcc2020_${tag}_${trgspk}_${upstream}
-    expdir=../../result/downstream/${expname}
+    expdir=result/downstream/${expname}
     mkdir -p ${expdir}
-    python ../../run_downstream.py -m train \
+    python run_downstream.py -m train \
         --config ${config} \
         -n ${expname} \
         -u ${upstream} \

@@ -1,0 +1,67 @@
+runner:
+  total_steps: 50000
+  gradient_clipping: 1
+  gradient_accumulate_steps: 1
+
+  log_step: 500
+  eval_step: 1000
+  save_step: 1000
+  #log_step: 10
+  #eval_step: 50
+  #save_step: 50
+  max_keep: 10
+  eval_dataloaders:
+    - dev
+    - test
+
+optimizer:
+  name: AdamW
+  lr: 1.0e-4
+
+# comment the whole scheduler config block
+# to disable learning rate scheduling
+scheduler:
+  name: linear_schedule_with_warmup
+  num_warmup_steps: 4000
+
+downstream_expert:
+  datarc:
+    num_workers: 3
+    train_batch_size: 6
+    eval_batch_size: 5
+    
+    trdev_data_root: "./downstream/a2a-vc-vctk/data/VCTK-Corpus/wav48"
+    eval_data_root: "./downstream/a2o-vc-vcc2020/data/vcc2020"
+    spk_embs_root: "./downstream/a2a-vc-vctk/data/spk_embs/"
+    lists_root: "./downstream/a2a-vc-vctk/data/lists"
+    eval_lists_root: "./downstream/a2o-vc-vcc2020/data/lists"
+    stats_root: "./downstream/a2a-vc-vctk/data/stats"
+    eval_f0_path: "./downstream/a2o-vc-vcc2020/data/f0.yaml"
+
+    spk_emb_source: "external"
+    num_ref_samples: [10]
+
+    fbank_config:
+      fs: 24000
+      n_mels: 80
+      n_fft: 1024
+      n_shift: 256
+      win_length: null
+      window: "hann"
+      fmin: 80
+      fmax: 7600
+      gl_iters: 64
+
+  modelrc:
+    spk_emb_integration_type: concat # add or concat
+    spk_emb_dim: 256
+    ar: True
+    encoder_type: "taco2"
+    hidden_dim: 1024
+    prenet_layers: 2  # if set 0, no prenet is used
+    prenet_dim: 256
+    prenet_dropout_rate: 0.5
+    lstmp_layers: 2
+    lstmp_dropout_rate: 0.2
+    lstmp_proj_dim: 256
+    lstmp_layernorm: False

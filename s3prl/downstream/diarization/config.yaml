@@ -27,9 +27,9 @@ downstream_expert:
     num_workers: 8
     train_batchsize: 8
     eval_batchsize: 1
-    train_dir: ./downstream/diarization/data/train
-    dev_dir: ./downstream/diarization/data/dev
-    test_dir: ./downstream/diarization/data/test
+    train_dir: ./downstream/diarization/data/libri2mix/train
+    dev_dir: ./downstream/diarization/data/libri2mix/dev
+    test_dir: ./downstream/diarization/data/libri2mix/test
 
   scorerc:
     save_predictions: True

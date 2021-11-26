@@ -9,16 +9,17 @@
 upstream=$1
 task=$2
 tag=$3
+vocoder=$4
 
 set -e
 
 # check arguments
-if [ $# != 3 ]; then
-    echo "Usage: $0 <upstream> <task> <tag>"
+if [ $# != 4 ]; then
+    echo "Usage: $0 <upstream> <task> <tag> <vocoder_dir>"
     exit 1
 fi
 
-start_ep=4000
+start_ep=6000
 interval=1000
 end_ep=10000
 
@@ -30,11 +31,17 @@ fi
 
 for trgspk in "${trgspks[@]}"; do
     for ep in $(seq ${start_ep} ${interval} ${end_ep}); do
-        echo "Objective evaluation: Ep ${ep}; trgspk ${trgspk}"
+        echo "Objective evaluation: Upstream ${upstream}, Ep ${ep}; trgspk ${trgspk}"
         expname=a2o_vc_vcc2020_${tag}_${trgspk}_${upstream}
-        expdir=../../result/downstream/${expname}
-        ./decode.sh pwg_${task}/ ${expdir}/${ep} ${trgspk}
+        expdir=result/downstream/${expname}
+        ./downstream/a2o-vc-vcc2020/decode.sh ${vocoder}/ ${expdir}/${ep} ${trgspk}
     done
 done
 
-python find_best_epoch.py --upstream ${upstream} --tag ${tag} --task ${task}
+voc_name=$(basename ${vocoder} | cut -d"_" -f 1)
+
+python ./downstream/a2o-vc-vcc2020/find_best_epoch.py \
+    --start_epoch ${start_ep} \
+    --end_epoch ${end_ep} \
+    --step_epoch ${interval} \
+    --upstream ${upstream} --tag ${tag} --task ${task} --vocoder ${voc_name}
