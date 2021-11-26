@@ -503,7 +503,7 @@ git clone https://github.com/s3prl/LibriMix.git
 cd LibriMix
 bash generate_librimix_sd.sh $CORPORA_DIR
 python3 scripts/prepare_diarization.py \
-    --target_dir $S3PRL_DIR/downstream/diarization/data \
+    --target_dir $S3PRL_DIR/downstream/diarization/data/libri2mix \
     --source_dir $CORPORA_DIR/Libri2Mix/wav16k/max/metadata
 ```
 
