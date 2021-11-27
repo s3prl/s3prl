@@ -41,7 +41,7 @@ def wavlm_url(ckpt, refresh=False, *args, **kwargs):
 
 def wavlm(refresh=False, *args, **kwargs):
     """
-    The default model - Base
+    The default model - Base-Plus
         refresh (bool): whether to download ckpt/config again if existed
     """
     return wavlm_base_plus(refresh=refresh, *args, **kwargs)
@@ -58,8 +58,17 @@ def wavlm_base(refresh=False, *args, **kwargs):
 
 def wavlm_base_plus(refresh=False, *args, **kwargs):
     """
-    The Large model
+    The Base-Plus model
         refresh (bool): whether to download ckpt/config again if existed
     """
     kwargs["ckpt"] = "\"https://msranlcmtteamdrive.blob.core.windows.net/share/wavlm/WavLM-Base+.pt?sv=2020-04-08&st=2021-11-05T00%3A34%3A47Z&se=2022-10-06T00%3A34%3A00Z&sr=b&sp=r&sig=Gkf1IByHaIn1t%2FVEd9D6WHjZ3zu%2Fk5eSdoj21UytKro%3D\""
+    return wavlm_url(refresh=refresh, *args, **kwargs)
+
+
+def wavlm_large(refresh=False, *args, **kwargs):
+    """
+    The Large model
+        refresh (bool): whether to download ckpt/config again if existed
+    """
+    kwargs["ckpt"] = "\"https://msranlcmtteamdrive.blob.core.windows.net/share/wavlm/WavLM-Large.pt?sv=2020-08-04&st=2021-11-26T10%3A13%3A14Z&se=2021-11-27T10%3A13%3A14Z&sr=b&sp=r&sig=bxMBntgXjgRQuRCj6BzTD8129rQ3eduP5cw0b%2FTe4Wg%3D\""
     return wavlm_url(refresh=refresh, *args, **kwargs)
