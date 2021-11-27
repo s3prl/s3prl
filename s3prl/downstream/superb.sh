@@ -2,7 +2,7 @@
 
 set -e
 
-supported_tasks="PR, KS, IC, SID, ER, ASR, SF, SD"
+supported_tasks="PR, KS, IC, SID, ER, ASR, SF, ASV, SD"
 usage="The runfile for SUPERB Benchmark
 
 USAGE
@@ -165,6 +165,9 @@ case "$task" in
         ;;
     SD)
         config_bash=downstream/diarization/sd.sh
+        ;;
+    ASV)
+        config_bash=downstream/sv_voxceleb1/asv.sh
         ;;
     *)
         echo "Invalid task "$task""

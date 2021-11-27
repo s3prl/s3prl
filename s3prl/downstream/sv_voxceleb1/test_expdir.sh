@@ -2,43 +2,51 @@
 
 set -e
 
-if [ "$#" != 2 ]; then
-    echo Usage. $0 expdir voxceleb1_root
+if [ $# -lt 1 ]; then
+    echo Usage. $0 expdir [voxceleb1] [ckpt1] [ckpt2] ...
 fi
 
 expdir=$1
 voxceleb1=$2
+shift 2
 
 if [ ! -d "$expdir" ]; then
     echo "The expdir does not exist!"
     exit 1
 fi
 
-if [ ! -d "$voxceleb1" ]; then
-    echo "VoxCeleb1 dataset does not exist!"
-    exit 1
+if [ ! -z "$voxceleb1" ]; then
+    dataset_override=",,config.downstream_expert.datarc.file_path=${voxceleb1}"
 fi
 
-echo "Start testing ckpts..."
-for state_name in 20000 40000 60000 80000 100000 120000 140000 160000 180000 200000;
+if [ $# -eq 0 ]; then
+    # test the latest 10 checkpoints
+    states="$(ls -t $expdir | grep ckpt)"
+else
+    states="$*"
+fi
+
+echo "Start testing ckpts... ${states}"
+for ckpt_name in $states;
 do
-    ckpt_path="$expdir/states-$state_name.ckpt"
+    ckpt_path="$expdir/${ckpt_name}"
     echo "Testing $ckpt_path"
     if [ ! -f "$ckpt_path" ]; then
         continue
     fi
 
-    log_dir="$expdir/states-$state_name"
+    ckpt_stem=$(echo $ckpt_name | cut -d "." -f 1)
+    log_dir="$expdir/$ckpt_stem"
     if [ ! -d "$log_dir" ] || [ "$(cat "$log_dir"/log.txt | grep "test-EER" | wc -l)" -lt 1 ] || [ ! -f $log_dir/test_predict.txt ]; then
         mkdir -p $log_dir
-        override=args.expdir=${log_dir},,config.downstream_expert.datarc.file_path=${voxceleb1}
+        override="args.expdir=${log_dir}${dataset_override}"
         python3 run_downstream.py -m evaluate -e $ckpt_path -o $override > $log_dir/log.txt
     fi
 done
 
 echo "Report the testing results..."
 report=$expdir/report.txt
-grep test-EER $expdir/*/log.txt | sort -nrk 2 > $report
+grep test-EER $expdir/*/log.txt | sort -grk 2 > $report
 ckpt_num=$(cat $report | wc -l)
 cat $report
 
