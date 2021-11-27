@@ -47,14 +47,15 @@ class DownstreamExpert(nn.Module):
         config_frame_shift = self.datarc.get("frame_shift")
         if isinstance(config_frame_shift, int):
             logging.warning(
-                f"Diarization label frame shfit: {config_frame_shift}."
+                f"Diarization label frame shfit: {config_frame_shift}. "
                 "It is set in the config field. We recommend not to set this config field if "
                 "you are training new downstream models. This module will then automatically "
                 "use upstream's downsample rate as the label's frame shift for training. This "
-                "'if condition' is only designed to inference the already trained downstream "
-                "models before the PR: https://github.com/s3prl/s3prl/pull/202, with the command: "
-                "python3 run_downstream.py -m evaluate -e [ckpt] "
-                "-o config.downstream_expert.datarc.frame_shift=160"
+                "'if condition' is designed only to inference the already trained downstream "
+                "models with the command: python3 run_downstream.py -m evaluate -e [ckpt]. "
+                "If your checkpoint was trained before the PR: https://github.com/s3prl/s3prl/pull/202, "
+                "please use: python3 run_downstream.py -m evaluate -e [ckpt] -o "
+                "config.downstream_expert.datarc.frame_shift=160. See the PR page for more info."
             )
             frame_shift = config_frame_shift
         else:
