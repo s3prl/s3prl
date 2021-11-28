@@ -6,7 +6,7 @@ supported_tasks="PR, KS, IC, SID, ER, ASR, SF, ASV, SD"
 usage="The runfile for SUPERB Benchmark
 
 USAGE
-    $0 -u UPSTREAM -t TASK -p EXPS_ROOT [-h] [-n] [-o OVERRIDE] [-r EXPLORE_RATIO] [-l LR1] [-l LR2] ...
+    $0 -u UPSTREAM -t TASK -p EXPS_ROOT [-h] [-o OVERRIDE] [-r EXPLORE_RATIO] [-l LR1] [-l LR2] ... [-s STAGE1] [-s STAGE2] ...
 
     This runfile handles the learning rate (lr) search in the benchmark when training the downstream models. Since different upstreams
     (SSL models) need different suitable lr. Without the careful search, the final ranking can have huge differences. However, a single
@@ -62,37 +62,22 @@ USAGE
     eg. args.upstream_layer_selection=3 to use the 3-rd layer as the representation to benchmark
         (Default use all layers and train the weighted-sum on them.)
 
--r EXPLORE_RATIO (optional)
+-r EXPLORE_RATIO (float, optional)
     Default: task-dependent
     The percentage of the full training optimization steps for the learning rate search
 
--l LR1 -l LR2 ... (optional)
+-l LR1 -l LR2 ... (float, optional)
     Default: task-dependent
     If provided, will only search through these learning rates
     eg. -l 1e-3 -l 1e-4
 
--n (advanced)
-    Stop right after the learning rate exploration (Stage 1) and before the full training (Stage 2).
-    Sometimes you are not sure what is the suitable learning rate exploration range, and wish to
-    manually check the exploration results before continue to the full training (Stage 2) which costs
-    really long time (and perhaps lots of money). You can stop right before Stage 2 with -n option.
-    After manual check, you might want to explore more learning rates, or go on the full training
-    if everything is as expected. Here is an example.
-
-    Basic command: should be the same across the following runs
-    ./downstream/superb.sh -u hubert -t KS -p result/superb/
-
-    First explore:
-    ./downstream/superb.sh -u hubert -t KS -p result/superb/ -n -l 1e-2 -l 1e-3 -n
-
-    Second explore:
-    ./downstream/superb.sh -u hubert -t KS -p result/superb/ -n -l 1e-4 -l 1e-5 -n
-
-    After manually check the exploration results, continue the full training:
-    ./downstream/superb.sh -u hubert -t KS -p result/superb/ -n -l 1e-2 -l 1e-3 -l 1e-4 -l 1e-5
-
-    Note that in the final command, you do not need to specify -n, and all the required -l can be found
-    in 'UPSTREAM_DIR/summary', which summarizes all the explored learning rates and their results.
+-s STAGE1 -s STAGE2 (int, optional)
+    Default: both stage 1 and stage 2 are executed, equivalent to -s 1 -s 2
+    Sometimes you are pretty sure about the best learning rate and wish to skip Stage 1 (learning
+    rate exploration); while sometimes you are completely not sure about the suitable lr exploration
+    range and wish to proceed Stage 2 (full training) after manually checking the Stage 1 results.
+    The -s option gives you the flexibility on the stages you wish to run. If no -s is assigned (default),
+    both stage 1 and stage 2 are executed. If any -s is given, only the assigned stage will be executed.
 
 -h
     Print this help message.
@@ -100,7 +85,7 @@ USAGE
 "
 
 # Parse options
-while getopts "u:t:p:o:r:l:nh" flag
+while getopts "u:t:p:o:r:l:s:h" flag
 do
     case "${flag}" in
         u)
@@ -121,8 +106,9 @@ do
         l)
             lr_array+=("$OPTARG")
             ;;
-        n)
-            no_stage2=true
+        s)
+            [ "$OPTARG" == "1" ] && stage1=true
+            [ "$OPTARG" == "2" ] && stage2=true
             ;;
         h)
             printf "$usage"
@@ -200,6 +186,10 @@ if [ -z "$lr_array" ]; then
 else
     lrs="${lr_array[*]}"
 fi
+if [ -z "$stage1" ] && [ -z "$stage2" ]; then
+    stage1=true
+    stage2=true
+fi
 
 # End parsing, start benchmarking
 start=$SECONDS
@@ -230,89 +220,108 @@ function parse_override() {
     echo "${override}config.runner.optimize_ratio=${optimize_ratio},,config.optimizer.lr=${lr}"
 }
 
-# Explore learning rate
-optimize_ratio=$explore_ratio
-echo "Exploring learning rate $lrs with optimization ratio $optimize_ratio"
-explore_dir=$upstream_dir/optimize_ratio_$optimize_ratio; mkdir -p $explore_dir
-echo "The results will be saved at $explore_dir"
-for lr in $lrs;
-do
-    expdir=$explore_dir/lr_$lr; mkdir -p $expdir
-    echo "Try learning $lr... The results will be saved at $expdir"
-    single_trial "$expdir" "$upstream" "$(parse_override $optimize_ratio $lr $override)" false
-done
+if [ "$stage1" = true ]; then
+    # Explore learning rate
+    optimize_ratio=$explore_ratio
+    echo "Exploring learning rate $lrs with optimization ratio $optimize_ratio"
+    explore_dir=$upstream_dir/optimize_ratio_$optimize_ratio; mkdir -p $explore_dir
+    echo "The results will be saved at $explore_dir"
+    for lr in $lrs;
+    do
+        expdir=$explore_dir/lr_$lr; mkdir -p $expdir
+        echo "Try learning $lr... The results will be saved at $expdir"
+        single_trial "$expdir" "$upstream" "$(parse_override $optimize_ratio $lr $override)" false
+    done
 
-explore_summary=$explore_dir/summary; [ -f "$explore_summary" ] && rm $explore_summary
-echo "Report exploration result to $explore_summary"
-for expdir in $(ls -d $explore_dir/*/);
-do
-    eval_result=$(get_eval_result $expdir "dev")
-    if [ ! -z "$eval_result" ]; then
-        echo $(basename $expdir): $eval_result >> $explore_summary
+    explore_summary=$explore_dir/summary; [ -f "$explore_summary" ] && rm $explore_summary
+    echo "Report exploration result to $explore_summary"
+    for expdir in $(ls -d $explore_dir/*/);
+    do
+        eval_result=$(get_eval_result $expdir "dev")
+        if [ ! -z "$eval_result" ]; then
+            echo $(basename $expdir): $eval_result >> $explore_summary
+        fi
+    done
+    printf "PARTIAL TRAINING (LEARNING RATE EXPLORATION)\n"`
+        `"$(cat $explore_summary)\n" >> $summary
+
+    echo "Picking the best learning rate..."
+    if [ $metric_higher_better = true ]; then
+        reverse_sort="-r"
+    else
+        reverse_sort=""
     fi
-done
-echo "
-PARTIAL TRAINING (LEARNING RATE EXPLORATION)
-$(cat $explore_summary)" >> $summary
-cat $summary
-
-if [ ! -z $no_stage2 ]; then
-    exit 0
-fi
-
-echo "Picking the best learning rate..."
-if [ $metric_higher_better = true ]; then
-    reverse_sort="-r"
-else
-    reverse_sort=""
-fi
-best_dev=$(cat $explore_summary | sort $reverse_sort -gk 3 | head -n 1)
-[[ "$best_dev" =~ lr_(.*): ]] && best_lr=${BASH_REMATCH[1]}
-if [ -z "$best_lr" ]; then
-    echo "The training/dev/test during the learning rate exploration were not completed or files are corrupted"
-    echo "Please delete $upstream_dir and try again"
-    exit 1
-fi
-echo "Best learning rate: $best_lr"
-echo "Save to $explore_dir/best_lr"
-echo $best_lr > $explore_dir/best_lr
-
-full_dir=$upstream_dir/optimize_ratio_1; mkdir -p $full_dir
-best_lr_full_expdir=$full_dir/lr_$best_lr; mkdir -p $best_lr_full_expdir
-echo "Final full training with learning rate $best_lr"
-echo "The results will be saved at $best_lr_full_expdir"
-best_lr_explore_expdir=$explore_dir/lr_$best_lr
-last_ckpt=$(ls -t $best_lr_explore_expdir/states-*.ckpt | head -n 1)
-cp $last_ckpt $best_lr_full_expdir/
-echo "Copy the last checkpoint of lr $best_lr: $last_ckpt to $best_lr_full_expdir "`
-    `"to save duplicated training time"
-if [ -z "$override" ]; then
-    override="args.expdir=$best_lr_full_expdir"
-else
-    override="$override,,args.expdir=$best_lr_full_expdir"
-fi
-single_trial "$best_lr_full_expdir" "$upstream" "$(parse_override 1 $best_lr $override)" true
-
-full_summary=$full_dir/summary; [ -f "$full_summary" ] && rm $full_summary
-echo "Report full training result to $full_summary"
-for expdir in $(ls -d $full_dir/*/);
-do
-    eval_result=$(get_eval_result $expdir "test")
-    if [ ! -z "$eval_result" ]; then
-        echo $(basename $expdir): $eval_result >> $full_summary
+    best_dev=$(cat $explore_summary | sort $reverse_sort -gk 3 | head -n 1)
+    [[ "$best_dev" =~ lr_(.*): ]] && best_lr=${BASH_REMATCH[1]}
+    if [ -z "$best_lr" ]; then
+        echo "The training/dev/test during the learning rate exploration were not completed or files are corrupted"
+        echo "Please delete $upstream_dir and try again"
+        exit 1
     fi
-done
+    echo "Best learning rate: $best_lr"
+    echo "Save to $explore_dir/best_lr"
+    echo $best_lr > $explore_dir/best_lr
+    printf "BEST LEARNING RATE\n"`
+        `"$(cat $explore_dir/best_lr)\n"`
+        `"TIME\n"`
+        `"$((SECONDS - start)) seconds\n" >> $summary
 
-echo "Report the entire benchmark summary at $summary"
-echo "
-BEST LEARNING RATE
-$(cat $explore_dir/best_lr)
+    echo
+    echo "Report the summary at $summary:"
+    echo
+    cat $summary
+    echo
+fi
 
-FULL TRAINING
-$(cat $full_summary)
+if [ "$stage2" = true ]; then
+    full_dir=$upstream_dir/optimize_ratio_1; mkdir -p $full_dir
+    if [ "$staged1" = true ]; then
+        echo "Stage 1 was executed. Run Stage 2 with the found best learning rate"
+        full_lrs="$best_lr"
+    else
+        echo "Stage 1 was not executed. Run Stage 2 with all the learning rate given by the -l option"
+        full_lrs="$lrs"
+    fi
 
-TIME
-$((SECONDS - start)) seconds" >> $summary
+    for lr in $full_lrs;
+    do
+        lr_full_expdir=$full_dir/lr_$lr; mkdir -p $lr_full_expdir
+        echo "Final full training with learning rate $lr"
+        echo "The results will be saved at $lr_full_expdir"
 
-echo
-cat $summary
+        lr_explore_expdir=$explore_dir/lr_$lr
+        [ -d $lr_explore_expdir ] && last_ckpt=$(ls -t $lr_explore_expdir/states-*.ckpt | head -n 1)
+        if [ -f "$last_ckpt" ]; then
+            cp $last_ckpt $lr_full_expdir/
+            echo "Copy the last checkpoint of lr $lr: $last_ckpt to $lr_full_expdir "`
+                `"to save duplicated training time"
+        fi
+        if [ -z "$override" ]; then
+            override="args.expdir=$lr_full_expdir"
+        else
+            override="$override,,args.expdir=$lr_full_expdir"
+        fi
+        single_trial "$lr_full_expdir" "$upstream" "$(parse_override 1 $lr $override)" true
+    done
+
+    full_summary=$full_dir/summary; [ -f "$full_summary" ] && rm $full_summary
+    echo "Report full training result to $full_summary"
+    for expdir in $(ls -d $full_dir/*/);
+    do
+        eval_result=$(get_eval_result $expdir "test")
+        if [ ! -z "$eval_result" ]; then
+            echo $(basename $expdir): $eval_result >> $full_summary
+        fi
+    done
+
+    printf "FULL TRAINING\n"`
+        `"$(cat $full_summary)\n"`
+        `"TIME\n"`
+        `"$((SECONDS - start)) seconds\n" >> $summary
+
+    echo
+    echo "Report the summary at $summary"
+    echo
+    cat $summary
+    echo
+fi
