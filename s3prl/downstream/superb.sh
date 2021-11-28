@@ -278,10 +278,20 @@ echo "Save to $explore_dir/best_lr"
 echo $best_lr > $explore_dir/best_lr
 
 full_dir=$upstream_dir/optimize_ratio_1; mkdir -p $full_dir
-expdir=$full_dir/lr_$best_lr; mkdir -p $expdir
+best_lr_full_expdir=$full_dir/lr_$best_lr; mkdir -p $best_lr_full_expdir
 echo "Final full training with learning rate $best_lr"
-echo "The results will be saved at $expdir"
-single_trial "$expdir" "$upstream" "$(parse_override 1 $best_lr $override)" true
+echo "The results will be saved at $best_lr_full_expdir"
+best_lr_explore_expdir=$explore_dir/lr_$best_lr
+last_ckpt=$(ls -t $best_lr_explore_expdir/states-*.ckpt | head -n 1)
+cp $last_ckpt $best_lr_full_expdir/
+echo "Copy the last checkpoint of lr $best_lr: $last_ckpt to $best_lr_full_expdir "`
+    `"to save duplicated training time"
+if [ -z "$override" ]; then
+    override="args.expdir=$best_lr_full_expdir"
+else
+    override="$override,,args.expdir=$best_lr_full_expdir"
+fi
+single_trial "$best_lr_full_expdir" "$upstream" "$(parse_override 1 $best_lr $override)" true
 
 full_summary=$full_dir/summary; [ -f "$full_summary" ] && rm $full_summary
 echo "Report full training result to $full_summary"
