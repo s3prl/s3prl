@@ -11,8 +11,6 @@
 # IMPORTATION #
 ###############
 import os
-import sys
-import math
 import torch
 import shutil
 import logging
@@ -84,7 +82,12 @@ def override(string, args, config):
     options = string.split(',,')
     for option in options:
         option = option.strip()
-        key, value_str = option.split('=')
+        log.warning(f"Parsing override string: {option}")
+        fields = option.split("=", maxsplit=1)
+        if len(fields) != 2:
+            log.warning("Not a valid override string")
+            continue
+        key, value_str = fields
         key, value_str = key.strip(), value_str.strip()
         first_field, *remaining = key.split('.')
 
