@@ -477,10 +477,14 @@ class Runner():
 
         # prepare data
         dataloader = self.downstream.get_dataloader(split)
+        evaluate_ratio = float(self.config["runner"].get("evaluate_ratio", 1))
+        evaluate_steps = round(len(dataloader) * evaluate_ratio)
 
         batch_ids = []
         records = defaultdict(list)
-        for batch_id, (wavs, *others) in enumerate(tqdm(dataloader, dynamic_ncols=True, desc=split)):
+        for batch_id, (wavs, *others) in enumerate(tqdm(dataloader, dynamic_ncols=True, desc=split, total=evaluate_steps)):
+            if batch_id > evaluate_steps:
+                break
 
             wavs = [torch.FloatTensor(wav).to(self.args.device) for wav in wavs]
             features = self.upstream(wavs)
