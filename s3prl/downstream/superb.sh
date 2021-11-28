@@ -267,7 +267,7 @@ if [ "$stage1" = true ]; then
         `"$((SECONDS - start)) seconds\n" >> $summary
 
     echo
-    echo "Report the summary at $summary:"
+    echo "Finish Stage 1. Report the summary at $summary:"
     echo
     cat $summary
     echo
@@ -275,11 +275,12 @@ fi
 
 if [ "$stage2" = true ]; then
     full_dir=$upstream_dir/optimize_ratio_1; mkdir -p $full_dir
-    if [ "$staged1" = true ]; then
-        echo "Stage 1 was executed. Run Stage 2 with the found best learning rate"
+    if [ "$stage1" = true ]; then
+        [ -z "${best_lr}" ] && echo "Files corrupted. Please delete ${upstream_dir} and try again." && exit 1
+        echo "Stage 1 was executed. Run Stage 2 with the found best learning rate: ${best_lr}"
         full_lrs="$best_lr"
     else
-        echo "Stage 1 was not executed. Run Stage 2 with all the learning rate given by the -l option"
+        echo "Stage 1 was not executed. Run Stage 2 with all the learning rate given by the -l option: ${lrs}"
         full_lrs="$lrs"
     fi
 
@@ -320,7 +321,7 @@ if [ "$stage2" = true ]; then
         `"$((SECONDS - start)) seconds\n" >> $summary
 
     echo
-    echo "Report the summary at $summary"
+    echo "Finish Stage 2. Report the summary at $summary"
     echo
     cat $summary
     echo
