@@ -3,12 +3,11 @@
 set -e
 
 if [ $# -lt 1 ]; then
-    echo Usage. $0 expdir [voxceleb1] [ckpt1] [ckpt2] ...
+    echo Usage. $0 expdir [voxceleb1]
 fi
 
 expdir=$1
 voxceleb1=$2
-shift 2
 
 if [ ! -d "$expdir" ]; then
     echo "The expdir does not exist!"
@@ -19,13 +18,7 @@ if [ ! -z "$voxceleb1" ]; then
     dataset_override=",,config.downstream_expert.datarc.file_path=${voxceleb1}"
 fi
 
-if [ $# -eq 0 ]; then
-    # test the latest 10 checkpoints
-    states="$(ls -t $expdir | grep ckpt)"
-else
-    states="$*"
-fi
-
+states="$(ls -t $expdir | grep ckpt)"
 echo "Start testing ckpts... ${states}"
 for ckpt_name in $states;
 do
@@ -46,7 +39,7 @@ done
 
 echo "Report the testing results..."
 report=$expdir/report.txt
-grep test-EER $expdir/*/log.txt | sort -grk 2 > $report
+grep test-EER $expdir/*/log.txt /dev/null | sort -grk 2 > $report
 ckpt_num=$(cat $report | wc -l)
 cat $report
 

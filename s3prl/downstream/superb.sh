@@ -72,7 +72,7 @@ USAGE
     eg. -l 1e-3 -l 1e-4
 
 -s STAGE1 -s STAGE2 (int, optional)
-    Default: both stage 1 and stage 2 are executed, equivalent to -s 1 -s 2
+    Default: both stage 1 and stage 2 are executed, equivalent to -s 1 -s 2, except ASV only runs -s 2
     Sometimes you are pretty sure about the best learning rate and wish to skip Stage 1 (learning
     rate exploration); while sometimes you are completely not sure about the suitable lr exploration
     range and wish to proceed Stage 2 (full training) after manually checking the Stage 1 results.

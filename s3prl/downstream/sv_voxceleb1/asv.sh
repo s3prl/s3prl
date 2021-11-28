@@ -9,7 +9,10 @@ default_lrs="1e-4"
 metric_higher_better=false
 
 # optional
-default_explore_ratio=0.00001 # Don't need explore, 1e-4 always the best
+# Only need to run 1e-4 in full training, since 1e-4 is always the best
+default_explore_ratio=1
+stage1=false
+stage2=true
 
 # required
 function get_eval_result() {
@@ -45,15 +48,7 @@ function single_trial() {
     local test_result="$(get_eval_result $expdir "test")"
     if [ -z "$test_result" ]; then
         python3 run_downstream.py -m train -a -u $upstream -d sv_voxceleb1 -p $expdir -o $override
-        voxceleb1=""  # use the same path saved in the checkpoint
-        if [ $run_test = true ]; then
-            # full run use pre-defined checkpoints to evaluate, all checkpoints will be too many
-            ckpt_names=""
-        else
-            # partial run use all checkpoints to evaluate
-            ckpt_names="$(ls -rt $expdir | grep "ckpt")"
-        fi
-        ./downstream/sv_voxceleb1/test_expdir.sh "$expdir" "$voxceleb1" $ckpt_names
+        ./downstream/sv_voxceleb1/test_expdir.sh "$expdir"
     else
         echo "Test result is find:"
         echo "$test_result"
