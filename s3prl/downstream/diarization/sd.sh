@@ -9,7 +9,7 @@ default_lrs="1e-2 1e-3 1e-4 1e-5"
 metric_higher_better=false
 
 # optional
-default_explore_ratio=0.1
+default_explore_ratio=0.5
 
 # required
 function get_eval_result() {
