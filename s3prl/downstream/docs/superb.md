@@ -775,7 +775,7 @@ The model will report case-sensitive detokenized BLEU.
 
 After *finishing the **Testing*** of each task, the prediction files for leaderboard submission will be located under the `expdir`. You can use [submit.py](../../submit/submit.py) to easily organize them into a zip file which can later be submitted to our [leaderboard](https://superbbenchmark.org/submit). We now support submissions for the following tasks: **PR**, **ASR**, **KS**, **QbE**, **SID**, **ASV**, **SD**, **IC**, **SF**, **ER**, **SE**, **SS**, **ST**.
 
-(Please use the master branch newer than [191ab19](191ab1993a5ca01d5356417e985fe1d321547263))
+Please use the master branch newer than [852db2e](https://github.com/s3prl/s3prl/commit/852db2e5f65fc9baea4a5877ffda6dd7470c72fc). Note that our SUPERB codebase is backward-compatible, so you don't need to re-train any model after upgrading to this newer version. You only need this new version to inference the prediction files for submission correctly.
 
 ```sh
 output_dir="submission"
