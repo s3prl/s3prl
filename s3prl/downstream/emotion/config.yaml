@@ -1,5 +1,5 @@
 runner:
-  total_steps: 30000
+  total_steps: 1000
   gradient_clipping: 1
   gradient_accumulate_steps: 8
 
@@ -24,7 +24,7 @@ optimizer:
 
 downstream_expert:
   datarc:
-    root: /groups/public/benchmark/IEMOCAP
+    root: /data/IEMOCAP_full_release/
     test_fold: fold1
     pre_load: True
     train_batch_size: 4

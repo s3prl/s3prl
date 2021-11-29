@@ -70,5 +70,5 @@ def wavlm_large(refresh=False, *args, **kwargs):
     The Large model
         refresh (bool): whether to download ckpt/config again if existed
     """
-    kwargs["ckpt"] = "\"https://msranlcmtteamdrive.blob.core.windows.net/share/wavlm/WavLM-Large.pt?sv=2020-08-04&st=2021-11-26T10%3A13%3A14Z&se=2021-11-27T10%3A13%3A14Z&sr=b&sp=r&sig=bxMBntgXjgRQuRCj6BzTD8129rQ3eduP5cw0b%2FTe4Wg%3D\""
+    kwargs["ckpt"] = "\"https://msranlcmtteamdrive.blob.core.windows.net/share/wavlm/WavLM-Large.pt?sv=2020-08-04&st=2021-11-22T10%3A03%3A53Z&se=2022-11-23T10%3A03%3A00Z&sr=b&sp=r&sig=3kB8dwTCyIS8YQ7gW5oXmDrXV%2FAaLmoxBS37oPpFsz4%3D\""
     return wavlm_url(refresh=refresh, *args, **kwargs)
