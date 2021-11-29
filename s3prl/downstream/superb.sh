@@ -290,13 +290,44 @@ if [ "$stage2" = true ]; then
         echo "Final full training with learning rate $lr"
         echo "The results will be saved at $lr_full_expdir"
 
+        function copy_if_exists() {
+            if [ $# -lt 3 ]; then
+                echo "$FUNCNAME SRC_DIR TGT_DIR PATTERN [N_LATEST]"
+                exit 2
+            fi
+            src_dir=$1
+            tgt_dir=$2
+            pattern=$3
+            n_latest=$4
+            echo "Copying files with the pattern $pattern from:"
+            echo "$src_dir/ -> $tgt_dir/"
+            if [ -d $src_dir ]; then
+                if ls $src_dir | grep -q -E "$pattern"; then
+                    files="$(ls -1t $src_dir | grep -E "$pattern")"
+                    echo "Found files: $files"
+                    if [ ! -z "$n_latest" ]; then
+                        files=$(echo $files | head -n $n_latest)
+                        echo "Only pick the $n_latest latest files: $files"
+                    fi
+                    for file in $files;
+                    do
+                        src_file=$src_dir/$file
+                        echo "Copying $file"
+                        cp -r $src_file $tgt_dir/
+                    done
+                else
+                    echo "Files not found for the pattern "$pattern" in $dir"
+                fi
+            else
+                echo "$dir does not exist"
+            fi
+        }
+
         lr_explore_expdir=$explore_dir/lr_$lr
-        [ -d $lr_explore_expdir ] && last_ckpt=$(ls -t $lr_explore_expdir/states-*.ckpt | head -n 1)
-        if [ -f "$last_ckpt" ]; then
-            cp $last_ckpt $lr_full_expdir/
-            echo "Copy the last checkpoint of lr $lr: $last_ckpt to $lr_full_expdir "`
-                `"to save duplicated training time"
-        fi
+        copy_if_exists $lr_explore_expdir $lr_full_expdir "states-[0-9]+\.ckpt" 1
+        copy_if_exists $lr_explore_expdir $lr_full_expdir "dev.*\.ckpt"
+        copy_if_exists $lr_explore_expdir $lr_full_expdir "events\.out\.tfevents"
+
         if [ -z "$override" ]; then
             override="args.expdir=$lr_full_expdir"
         else
