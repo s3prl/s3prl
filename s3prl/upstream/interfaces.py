@@ -10,6 +10,7 @@ import torch.nn.functional as F
 from s3prl.utility.helper import show
 
 SAMPLE_RATE = 16000
+TOLERABLE_SEQLEN_DIFF = 5
 
 
 class Hook:
@@ -240,6 +241,7 @@ class Featurizer(nn.Module):
     def tolist(self, paired_wavs: List[Tensor], paired_feature: Tensor):
         assert paired_feature.dim() == 3, "(batch_size, max_seq_len, feat_dim)"
         feature_len = [round(len(wav) / self.downsample_rate) for wav in paired_wavs]
+        assert abs(paired_feature.size(1) - round(max([len(wav) for wav in paired_wavs]) / self.downsample_rate)) < TOLERABLE_SEQLEN_DIFF
         feature = [f[:l] for f, l in zip(paired_feature, feature_len)]
         return feature
 
