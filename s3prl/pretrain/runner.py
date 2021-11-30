@@ -246,7 +246,7 @@ class Runner():
 
                     all_states = {
                         'Optimizer': optimizer.state_dict(),
-                        'Step': global_step,
+                        'Step': pbar.n,
                         'Args': self.args,
                         'Config': self.config,
                     }
