@@ -48,12 +48,12 @@ class DownstreamExpert(nn.Module):
         if isinstance(config_frame_shift, int):
             logging.warning(
                 f"Diarization label frame shfit: {config_frame_shift}. "
-                "It is set in the config field. We recommend not to set this config field if "
+                "It is set in the config field. You don't need to set this config field if "
                 "you are training new downstream models. This module will then automatically "
-                "use upstream's downsample rate as the label's frame shift for training. This "
+                "use upstream's downsample rate as the training label frame shift. This "
                 "'if condition' is designed only to inference the already trained downstream "
                 "checkpoints with the command: python3 run_downstream.py -m evaluate -e [ckpt]. "
-                "The checkpoints contain the frame_shift used for their training, and the same "
+                "The checkpoint contains the frame_shift used for its training, and the same "
                 "frame_shift should be prepared for the inference."
             )
             frame_shift = config_frame_shift

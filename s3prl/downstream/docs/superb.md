@@ -491,6 +491,8 @@ voxceleb1="root directory of VoxCeleb1"
 
 ## SD: Speaker Diarization
 
+We prepare the frame-wise training label on-the-fly, and convert the frame-wise prediction into RTTM files annotated in seconds. The inferenced RTTM will then be scored by comparing to the groundtruth RTTM by [dscore](https://github.com/ftshijt/dscore). You can choose the `frame_shift` (stride) of the training label for the upstream representation. This only affects the training materials and does not affect the groundtruth RTTM, which is already fixed in [dscore](https://github.com/ftshijt/dscore).
+
 #### Prepare data
 
 Simulate Libri2Mix Data for Diarization
@@ -509,11 +511,24 @@ python3 scripts/prepare_diarization.py \
 
 #### Training
 
+Train with the label in the same `frame_shift` as the upstream representation: (**recommened**)
+
 ```bash
 python3 run_downstream.py -n ExpName -m train -u fbank -d diarization
 ```
 
+Train with the label in a specific `frame_shift` (e.g. 160):
+
+```bash
+python3 run_downstream.py -n ExpName -m train -u fbank -d diarization \
+    -o config.downstream_expert.datarc.frame_shift=160
+```
+
+The upstream representation will be upsampled (duplicate) or downsampled (take 1 per N frames) to match the sequence length of your assigned label. This can be useful when the representation has too small `frame_shift` and hence too long sequence, which leads to too long training time.
+
 #### Testing
+
+The `frame_shift` for the training label is already saved in the checkpoint, and the same `frame_shift` will be used to convert the frame-wise prediction into RTTM files annotated in seconds.
 
 ##### I. Inference predictions (for submission and for scoring locally)
 
