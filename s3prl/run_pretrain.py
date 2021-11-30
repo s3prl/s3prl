@@ -57,7 +57,7 @@ def get_pretrain_args():
     args = parser.parse_args()
 
     if args.expdir is None:
-        args.expdir = f'result/downstream/{args.expname}'
+        args.expdir = f'result/pretrain/{args.expname}'
 
     if args.auto_resume:
         if os.path.isdir(args.expdir):
