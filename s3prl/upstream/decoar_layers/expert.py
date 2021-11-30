@@ -1,4 +1,5 @@
 import re
+import logging
 #-------------#
 import torch
 import torch.nn as nn
@@ -33,7 +34,7 @@ class UpstreamExpert(nn.Module):
             if result is not None:
                 direction, name, layer = result.groups()
                 new_name = f"{direction}_lstms.{layer}.{name}0"
-                print(f"{key} -> {new_name}")
+                logging.debug(f"{key} -> {new_name}")
                 return new_name
             else:
                 return key
