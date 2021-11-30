@@ -17,7 +17,7 @@ USAGE
     Stage 1. Learning rate exploration with only partial of the original training.
     Stage 2. Train the model to converge with the best learning rate found in Stage 1.
 
-    All the tasks in SUPERB except QBE (which does not involve training) can be driven by this runfile. The runfile currently only supports
+    All the tasks in SUPERB except QBE (please use downstream/superb-qbe.sh) can be driven by this runfile. The runfile currently only supports
     to benchmark with a single GPU. The runfile is stateful and fault-tolerant. If an runfile execution was terminated, you can simply re-run
     with the exactly same command. The runfile will automatically determine where it was stopped and resume from there without any duplicated
     training. At the end of this execution, the runfile will report the summary of this run, including the dev results for all the lr search
