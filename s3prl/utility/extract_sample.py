@@ -3,12 +3,10 @@ import torch
 import random
 import argparse
 import numpy as np
+from s3prl import hub
 
 SAMPLE_RATE = 16000
 BATCH_SIZE = 8
-
-
-s3prl_path = os.path.dirname(os.path.abspath(__file__)) + "/../"
 
 parser = argparse.ArgumentParser()
 parser.add_argument("--upstream", "-u", required=True)
@@ -30,7 +28,7 @@ wavs = [
     for _ in range(BATCH_SIZE)
 ]
 
-upstream = torch.hub.load(s3prl_path, args.upstream, source="local").to(args.device)
+upstream = getattr(hub, args.upstream)().to(args.device)
 upstream.eval()
 
 with torch.no_grad():

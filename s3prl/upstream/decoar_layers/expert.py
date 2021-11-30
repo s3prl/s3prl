@@ -1,3 +1,4 @@
+import re
 #-------------#
 import torch
 import torch.nn as nn
@@ -26,8 +27,19 @@ class UpstreamExpert(nn.Module):
         models = torch.load(ckpt)['model']
         self.model = Decoar()
         component_state_dict = OrderedDict()
+
+        def name_convert(key: str):
+            result = re.search("(forward|backward)_lstm\.(.+)(\d+)", key)
+            if result is not None:
+                direction, name, layer = result.groups()
+                new_name = f"{direction}_lstms.{layer}.{name}0"
+                print(f"{key} -> {new_name}")
+                return new_name
+            else:
+                return key
+
         for key in models.keys():
-            component_state_dict[key] = models[key]
+            component_state_dict[name_convert(key)] = models[key]
         self.model.load_state_dict(component_state_dict, strict=False)
 
         self.preprocessor = create_transform()
