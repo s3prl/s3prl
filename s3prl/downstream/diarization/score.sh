@@ -30,12 +30,15 @@ frame_shift_file=$1/frame_shift
 if [ -f $frame_shift_file ]; then
     frame_shift=$(cat $frame_shift_file)
 else
-    echo "[Warning] File not found: $frame_shift_file. Degenerate to use frame shift 160. "`
-         `"If you suspect the downstream model was not trained by the labels in frame shift 160, please "`
-         `"create a file $frame_shift_file with a single number: the trained model's frame shift. "`
-         `"Before the PR https://github.com/s3prl/s3prl/pull/202, the diarization models are always trained "`
-         `"by frame shift 160. After this PR, models are trained by the label whose frame shift is upstream "`
-         `"representation's downsample rate. See the PR page for more information."
+    printf "[Warning] File not found: $frame_shift_file. Degenerate to use frame shift 160 for "`
+         `"RTTM conversion. If your downstream model was not trained by the label in frame shift 160, please "`
+         `"create a file $frame_shift_file with a single number: the training label frame shift. "`
+         `"You can check a checkpoint's training label frame shift by: "`
+         `"python3 utility/print_settings.py [ckpt] config.downstream_expert.datarc.frame_shift\nOr, "`
+         `"re-inference your checkpoint with the S3PRL version newer than: " `
+         `"https://github.com/s3prl/s3prl/commit/852db2e5f65fc9baea4a5877ffda6dd7470c72fc (re-training "`
+         `"the model is not required). The correct $frame_shift_file will then appear in the expdir, since "`
+         `"the training label frame_shift during you previous trainig was already saved in the checkpoint."`
     frame_shift=160
 fi
 sr=16000

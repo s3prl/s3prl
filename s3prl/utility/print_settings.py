@@ -1,19 +1,21 @@
-import sys
 import torch
+import argparse
 
-if len(sys.argv) != 3:
-    print("Usage: python3 print_settings.py [ckpt] [config.runner.total_steps]")
+parser = argparse.ArgumentParser()
+parser.add_argument("ckpt", help="eg. result/downstream/ExpName/states-100.ckpt")
+parser.add_argument("field_string", help="eg. config.runner.total_steps")
+args = parser.parse_args()
 
-ckpt = torch.load(sys.argv[1], map_location="cpu")
-args = ckpt["Args"]
-config = ckpt["Config"]
+ckpt = torch.load(args.ckpt, map_location="cpu")
+Args = ckpt["Args"]
+Config = ckpt["Config"]
 
-first_field, *remaining = sys.argv[2].split('.')
+first_field, *remaining = args.field_string.split('.')
 if first_field == 'args':
     assert len(remaining) == 1
-    print(getattr(args, remaining[0]))
+    print(getattr(Args, remaining[0]))
 elif first_field == 'config':
-    target_config = config
+    target_config = Config
     for i, field_name in enumerate(remaining):
         if i == len(remaining) - 1:
             print(target_config[field_name])
