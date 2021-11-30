@@ -28,14 +28,14 @@ def wavlm_local(ckpt, *args, **kwargs):
     return _UpstreamExpert(ckpt, *args, **kwargs)
 
 
-def wavlm_url(ckpt, refresh=False, *args, **kwargs):
+def wavlm_url(ckpt, refresh=False, agent="wget", *args, **kwargs):
     """
     The model from google drive id
         ckpt (str): URL
         refresh (bool): whether to download ckpt/config again if existed
     """
     return wavlm_local(
-        _urls_to_filepaths(ckpt, refresh=refresh), *args, **kwargs
+        _urls_to_filepaths(ckpt, refresh=refresh, agent=agent), *args, **kwargs
     )
 
 

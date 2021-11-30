@@ -28,14 +28,14 @@ def unispeech_sat_local(ckpt, *args, **kwargs):
     return _UpstreamExpert(ckpt, *args, **kwargs)
 
 
-def unispeech_sat_url(ckpt, refresh=False, *args, **kwargs):
+def unispeech_sat_url(ckpt, refresh=False, agent="wget", *args, **kwargs):
     """
     The model from google drive id
         ckpt (str): URL
         refresh (bool): whether to download ckpt/config again if existed
     """
     return unispeech_sat_local(
-        _urls_to_filepaths(ckpt, refresh=refresh), *args, **kwargs
+        _urls_to_filepaths(ckpt, refresh=refresh, agent=agent), *args, **kwargs
     )
 
 
