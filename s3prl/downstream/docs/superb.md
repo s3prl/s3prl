@@ -491,7 +491,7 @@ voxceleb1="root directory of VoxCeleb1"
 
 ## SD: Speaker Diarization
 
-We prepare the frame-wise training label on-the-fly, and convert the frame-wise prediction into RTTM files annotated in seconds. The inferenced RTTM will then be scored by comparing to the groundtruth RTTM by [dscore](https://github.com/ftshijt/dscore). You can choose the `frame_shift` (stride) of the training label for the upstream representation. This only affects the training materials and does not affect the groundtruth RTTM, which is already fixed in [dscore](https://github.com/ftshijt/dscore).
+We prepare the frame-wise training label on-the-fly, and convert the frame-wise prediction into RTTM files annotated in seconds. The inferenced RTTM will then be scored by comparing to the groundtruth RTTM by [dscore](https://github.com/ftshijt/dscore). You can choose the `frame_shift` (stride) of the training label for the upstream representation. This only affects the training materials and does not affect the groundtruth RTTM, which is fixed in [Libri2Mix](https://github.com/s3prl/LibriMix) during data preparation.
 
 #### Prepare data
 
