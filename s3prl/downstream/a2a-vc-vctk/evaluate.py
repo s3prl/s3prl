@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*- #
 """*********************************************************************************************"""
 #   FileName     [ evaluate.py ]
-#   Synopsis     [ main objective evaluation script for any-to-one voice conversion ]
+#   Synopsis     [ main objective evaluation script for any-to-any voice conversion ]
 #   Author       [ Wen-Chin Huang (https://github.com/unilight) ]
 #   Copyright    [ Copyright(c), Toda Lab, Nagoya University, Japan ]
 """*********************************************************************************************"""
@@ -26,19 +26,20 @@ from vc_evaluate import load_asv_model, calculate_threshold, calculate_accept
 def get_basename(path):
     return os.path.splitext(os.path.split(path)[-1])[0]
 
-def get_number(basename):
-    # converted: <srcspk>_E<number>_gen
+def get_trgspk_and_number(basename):
+    # converted: <trgspk>_<srcspk>_E<number>_gen
     if "_" in basename:
-        return basename.split("_")[1]
+        trgspk, srcspk, number = basename.split("_")[:3]
+        return trgspk, number
     # ground truth: E<number>
     else:
         return basename
 
-def _calculate_asv_score(model, file_list, gt_root, trgspk, threshold):
+def _calculate_asv_score(model, file_list, gt_root, threshold):
     results = {}
     for i, cvt_wav_path in enumerate(tqdm(file_list)):
         basename = get_basename(cvt_wav_path)
-        number = get_number(basename)
+        trgspk, number = get_trgspk_and_number(basename)
         
         # get ground truth target wav path
         gt_wav_path = os.path.join(gt_root, trgspk, number + ".wav")
@@ -56,7 +57,7 @@ def _calculate_asr_score(model, device, file_list, groundtruths):
 
     for i, cvt_wav_path in enumerate(tqdm(file_list)):
         basename = get_basename(cvt_wav_path)
-        number = get_number(basename)
+        _, number = get_trgspk_and_number(basename)
         groundtruth = groundtruths[number[1:]] # get rid of the first character "E"
         
         # load waveform
@@ -84,18 +85,19 @@ def _calculate_asr_score(model, device, file_list, groundtruths):
 
     return ers, cer, wer
 
-def _calculate_mcd_f0(file_list, gt_root, trgspk, f0min, f0max, results):
+def _calculate_mcd_f0(file_list, gt_root, f0_all, results):
     for i, cvt_wav_path in enumerate(file_list):
         basename = get_basename(cvt_wav_path)
-        number = get_number(basename)
+        trgspk, number = get_trgspk_and_number(basename)
+        f0min = f0_all[trgspk]["f0min"]
+        f0max = f0_all[trgspk]["f0max"]
         
         # get ground truth target wav path
         gt_wav_path = os.path.join(gt_root, trgspk, number + ".wav")
 
         # read both converted and ground truth wav
-        cvt_wav, cvt_fs = librosa.load(cvt_wav_path, sr=None)
         gt_wav, gt_fs = librosa.load(gt_wav_path, sr=None)
-        assert cvt_fs == gt_fs
+        cvt_wav, _ = librosa.load(cvt_wav_path, sr=gt_fs)
 
         # calculate MCD, F0RMSE, F0CORR and DDUR
         mcd, f0rmse, f0corr, ddur = calculate_mcd_f0(cvt_wav, gt_wav, gt_fs, f0min, f0max)
@@ -105,7 +107,8 @@ def _calculate_mcd_f0(file_list, gt_root, trgspk, f0min, f0max, results):
 def get_parser():
     parser = argparse.ArgumentParser(description="objective evaluation script.")
     parser.add_argument("--wavdir", required=True, type=str, help="directory for converted waveforms")
-    parser.add_argument("--trgspk", required=True, type=str, help="target speaker")
+    parser.add_argument("--task", required=True, type=str, choices = ["task1", "task2"], help="task 1 or task 2")
+    parser.add_argument("--samples", required=True, type=int, help="number of reference samples")
     parser.add_argument("--data_root", type=str, default="./data", help="directory of data")
     parser.add_argument("--log_path", type=str, default=None,
                          help="path of output log. If not specified, output to <wavdir>/obj.log")
@@ -116,8 +119,8 @@ def get_parser():
 def main():
     args = get_parser().parse_args()
 
-    trgspk = args.trgspk
-    task = "task1" if trgspk[1] == "E" else "task2"
+    #trgspk = args.trgspk
+    task = args.task 
     gt_root = os.path.join(args.data_root, "vcc2020")
     f0_path = os.path.join(args.data_root, "f0.yaml")
     threshold_path = os.path.join(args.data_root, "thresholds.yaml")
@@ -127,8 +130,6 @@ def main():
     # load f0min and f0 max
     with open(f0_path, 'r') as f:
         f0_all = yaml.load(f, Loader=yaml.FullLoader)
-    f0min = f0_all[trgspk]["f0min"]
-    f0max = f0_all[trgspk]["f0max"]
 
     # load ground truth transcriptions
     with open(transcription_path, "r") as f:
@@ -136,7 +137,12 @@ def main():
     groundtruths = {line.split(" ")[0]: " ".join(line.split(" ")[1:]) for line in lines}
 
     # find converted files
-    converted_files = sorted(find_files(args.wavdir, query="*300??*.wav"))
+    if args.task == "task1":
+        query_string = f"TE*300??_{args.samples}samples*.wav"
+    elif args.task == "task2":
+        query_string = "T[FGM]*300??_{args.samples}samples*.wav"
+    converted_files = sorted(find_files(args.wavdir, query=query_string))
+    print("number of reference samples = {}".format(args.samples))
     print("number of utterances = {}".format(len(converted_files)))
 
     # load threshold; if does not exist, calculate
@@ -165,7 +171,7 @@ def main():
     asv_model = load_asv_model(device)
 
     # calculate accept rate
-    accept_results, accept_rate = _calculate_asv_score(asv_model, converted_files, gt_root, trgspk, threshold)
+    accept_results, accept_rate = _calculate_asv_score(asv_model, converted_files, gt_root, threshold)
 
     ##############################
 
@@ -191,7 +197,7 @@ def main():
             for f in file_lists:
                 p = mp.Process(
                     target=_calculate_mcd_f0,
-                    args=(f, gt_root, trgspk, f0min, f0max, results),
+                    args=(f, gt_root, f0_all, results),
                 )
                 p.start()
                 processes.append(p)
@@ -209,7 +215,7 @@ def main():
             results.append([basename] + ers[basename] + [accept_results[basename]])
         
     # write to log
-    log_path = args.log_path if args.log_path else os.path.join(args.wavdir, "obj.log")
+    log_path = args.log_path if args.log_path else os.path.join(args.wavdir, f"obj_{args.samples}samples.log")
     with open(log_path, "w") as f:
         
         # average result

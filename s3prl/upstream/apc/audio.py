@@ -24,7 +24,7 @@ WINDOW_TYPE = 'hamming'
 SAMPLE_RATE = 16000
 
 
-class CMVN(torch.jit.ScriptModule):
+class CMVN(nn.Module):
     
     __constants__ = ["mode", "dim", "eps"]
 
@@ -41,7 +41,6 @@ class CMVN(torch.jit.ScriptModule):
         self.dim = dim
         self.eps = eps
 
-    @torch.jit.script_method
     def forward(self, x):
         if self.mode == "global":
             return (x - x.mean(self.dim, keepdim=True)) \

@@ -18,9 +18,7 @@ if [ $# != 1 ]; then
     exit 1
 fi
 
-pwg_task1_url="https://drive.google.com/open?id=11KKux-du6fvsMMB4jNk9YH23YUJjRcDV"
-pwg_task2_url="https://drive.google.com/open?id=1li9DLZGnAheWZrB4oXGo0KWq-fHuFH_l"
-hifigan_url="https://drive.google.com/open?id=136tzvhczhHQ4sbaaJUU8UKjkCaca0ub6"
+hifigan_vctk_url="https://drive.google.com/open?id=12w1LpF6HjsJBmOUUkS6LV1d7AX18SA7u"
 
 download_from_google_drive() {
     share_url=$1
@@ -40,7 +38,5 @@ download_from_google_drive() {
     rm "${tmp}"
 }
 
-download_from_google_drive ${pwg_task1_url} ${download_dir}/pwg_task1 ".tar.gz"
-download_from_google_drive ${pwg_task2_url} ${download_dir}/pwg_task2 ".tar.gz"
-download_from_google_drive ${hifigan_url} ${download_dir}/hifigan_vctk+vcc2020 ".tar.gz"
+download_from_google_drive ${hifigan_vctk_url} ${download_dir}/hifigan_vctk ".tar.gz"
 echo "Successfully finished donwload of pretrained models."

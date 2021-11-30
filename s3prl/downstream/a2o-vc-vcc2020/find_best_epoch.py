@@ -10,8 +10,6 @@
 import argparse
 from io import open
 import os
-from pathlib import Path
-import sys
 
 srcspks = ["SEF1", "SEF2", "SEM1", "SEM2"]
 task1_trgspks = ["TEF1", "TEF2", "TEM1", "TEM2"]
@@ -26,7 +24,8 @@ def get_parser():
     parser.add_argument("--upstream", type=str, required=True, help="upstream")
     parser.add_argument("--task", type=str, required=True, choices=["task1", "task2"], help="task")
     parser.add_argument("--tag", type=str, required=True, help="tag")
-    parser.add_argument("--expdir", type=str, default="../../result/downstream", help="expdir")
+    parser.add_argument("--vocoder", type=str, required=True, help="vocoder name")
+    parser.add_argument("--expdir", type=str, default="result/downstream", help="expdir")
     parser.add_argument("--start_epoch", default=4000, type=int)
     parser.add_argument("--end_epoch", default=10000, type=int)
     parser.add_argument("--step_epoch", default=1000, type=int)
@@ -60,7 +59,7 @@ if __name__ == "__main__":
         scores = []
         for ep in epochs:
             # the expdir name pattern is consistent with the batch training script
-            log_file = os.path.join(args.expdir, f"a2o_vc_vcc2020_{args.tag}_{trgspk}_{args.upstream}", str(ep), "pwg_wav", "obj.log")
+            log_file = os.path.join(args.expdir, f"a2o_vc_vcc2020_{args.tag}_{trgspk}_{args.upstream}", str(ep), f"{args.vocoder}_wav", "obj.log")
             if args.task == "task1":
                 result = grep(log_file, "Mean")[0].split("Mean MCD, f0RMSE, f0CORR, DDUR, CER, WER, accept rate: ")[1].split(" ")
             elif args.task == "task2":

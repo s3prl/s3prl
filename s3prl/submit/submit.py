@@ -197,7 +197,13 @@ if args.sd is not None:
     assert src_dir.is_dir(), f"{src_dir} not found"
 
     tgt_dir = predict_dir / task_name
-    copytree(src_dir, tgt_dir, dirs_exist_ok=True)
+    tgt_predict_dir = tgt_dir / "scoring" / "predictions"
+    copytree(src_dir, tgt_predict_dir, dirs_exist_ok=True)
+
+    upstream_rate = expdir / "frame_shift"
+    if upstream_rate.is_file():
+        copyfile(upstream_rate, tgt_dir / "frame_shift")
+
     print(f"{task_name} is included in the submission and will be scored after submitted.")
 
 if args.se is not None:

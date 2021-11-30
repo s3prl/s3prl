@@ -1,0 +1,6 @@
+parallel-wavegan
+fastdtw
+pyworld
+pysptk
+jiwer
+resemblyzer

@@ -11,6 +11,9 @@ def cer(hypothesis, groundtruth, **kwargs):
         tot += len(t)
     return err / tot
 
+def per(*args, **kwargs):
+    return wer(*args, **kwargs)
+
 def wer(hypothesis, groundtruth, **kwargs):
     err = 0
     tot = 0

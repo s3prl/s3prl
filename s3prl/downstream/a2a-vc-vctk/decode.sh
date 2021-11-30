@@ -1,25 +1,25 @@
-#!/usr/bin/env bash
+#!/bin/bash
 # *********************************************************************************************
 #   FileName     [ decode.sh ]
-#   Synopsis     [ neural vocoder decoding & objective evaluation script for voice conversion ]
+#   Synopsis     [ PWG decoding & objective evaluation script for voice conversion ]
 #   Author       [ Wen-Chin Huang (https://github.com/unilight) ]
 #   Copyright    [ Copyright(c), Toda Lab, Nagoya University, Japan ]
 # *********************************************************************************************
 
-voc_dir=$1
+voc_expdir=$1
 outdir=$2
-trgspk=$3
 
 # check arguments
-if [ $# != 3 ]; then
-    echo "Usage: $0 <voc_dir> <outdir> <trgspk>"
+if [ $# != 2 ]; then
+    echo "Usage: $0 <voc_expdir> <outdir>"
     exit 1
 fi
 
-voc_name=$(basename ${voc_dir} | cut -d"_" -f 1)
-voc_checkpoint="$(find "${voc_dir}" -name "*.pkl" -print0 | xargs -0 ls -t | head -n 1)"
-voc_conf="$(find "${voc_dir}" -name "config.yml" -print0 | xargs -0 ls -t | head -n 1)"
-voc_stats="$(find "${voc_dir}" -name "stats.h5" -print0 | xargs -0 ls -t | head -n 1)"
+voc_name=$(basename ${voc_expdir} | cut -d"_" -f 1)
+
+voc_checkpoint="$(find "${voc_expdir}" -name "*.pkl" -print0 | xargs -0 ls -t | head -n 1)"
+voc_conf="$(find "${voc_expdir}" -name "config.yml" -print0 | xargs -0 ls -t | head -n 1)"
+voc_stats="$(find "${voc_expdir}" -name "stats.h5" -print0 | xargs -0 ls -t | head -n 1)"
 wav_dir=${outdir}/${voc_name}_wav
 hdf5_norm_dir=${outdir}/hdf5_norm
 rm -rf ${wav_dir}; mkdir -p ${wav_dir}
@@ -47,7 +47,10 @@ echo "successfully finished decoding."
 
 # evaluation
 echo "Evaluation start."
-python downstream/a2o-vc-vcc2020/evaluate.py \
-    --wavdir ${wav_dir} \
-    --data_root downstream/a2o-vc-vcc2020/data \
-    --trgspk ${trgspk}
+for num in 10; do
+    python downstream/a2a-vc-vctk/evaluate.py \
+        --wavdir ${wav_dir} \
+        --samples ${num} \
+        --task task1 \
+        --data_root ./downstream/a2o-vc-vcc2020/data 
+done
