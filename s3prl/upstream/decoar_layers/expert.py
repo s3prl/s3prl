@@ -78,10 +78,10 @@ class UpstreamExpert(nn.Module):
                 continue
             padding_mask[i, diff:] = True
 
-        features = self.model(features, padding_mask)
+        layer_features = self.model(features, padding_mask)
         return {
-            "hidden_states": [features],
-            "last_hidden_state": features,
+            "hidden_states": layer_features,
+            "last_hidden_state": layer_features[-1],
         }
 
         # This forward function only does the model forward

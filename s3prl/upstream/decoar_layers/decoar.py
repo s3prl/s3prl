@@ -52,26 +52,32 @@ class Decoar(nn.Module):
         packed_rnn_inputs = pack_padded_sequence(features, seq_lengths,
                                                  batch_first=True,
                                                  enforce_sorted=False)
-        
+
+        forward_outputs = []
         packed_rnn_outputs = packed_rnn_inputs
         for forward_lstm in self.forward_lstms:
             packed_rnn_outputs, _ = forward_lstm(packed_rnn_outputs)
-
-        x_forward, _ = pad_packed_sequence(packed_rnn_outputs,
-                                   batch_first=True,
-                                   total_length=max_seq_len)
+            forward_outputs.append(packed_rnn_outputs)
 
         packed_rnn_inputs = pack_padded_sequence(self.flipBatch(features, seq_lengths), seq_lengths,
                                                  batch_first=True,
                                                  enforce_sorted=False)
         
+        backward_outputs = []
         packed_rnn_outputs = packed_rnn_inputs
         for backward_lstm in self.backward_lstms:
             packed_rnn_outputs, _ = backward_lstm(packed_rnn_outputs)
+            backward_outputs.append(packed_rnn_outputs)
 
-        x_backward, _ = pad_packed_sequence(packed_rnn_outputs,
-                                   batch_first=True,
-                                   total_length=max_seq_len)
-        x_backward = self.flipBatch(x_backward, seq_lengths)
+        concat_layer_output = []
+        for forward_output, backward_output in zip(forward_outputs, backward_outputs):
+            x_forward, _ = pad_packed_sequence(forward_output,
+                                    batch_first=True,
+                                    total_length=max_seq_len)
+            x_backward, _ = pad_packed_sequence(backward_output,
+                                    batch_first=True,
+                                    total_length=max_seq_len)
+            x_backward = self.flipBatch(x_backward, seq_lengths)
+            concat_layer_output.append(torch.cat((x_forward, x_backward), dim=-1))
 
-        return torch.cat((x_forward, x_backward), dim=-1)
+        return concat_layer_output
