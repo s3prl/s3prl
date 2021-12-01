@@ -111,7 +111,8 @@ do
             [ "$OPTARG" == "2" ] && stage2=true
             ;;
         e)
-            early_step_steps=${OPTARG}
+            early_stop_steps=${OPTARG}
+            ;;
         h)
             printf "$usage"
             exit 2
@@ -335,7 +336,7 @@ if [ "$stage2" = true ]; then
         else
             override="$override,,args.expdir=$lr_full_expdir"
         fi
-        if [ -z "$early_stop_steps" ]; then
+        if [ ! -z "$early_stop_steps" ]; then
             override="$override,,config.runner.total_steps=$early_stop_steps"
         fi
         single_trial "$lr_full_expdir" "$upstream" "$(parse_override 1 $lr $override)" true
