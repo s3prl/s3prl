@@ -171,6 +171,7 @@ class Runner():
             ckpt = ckpt_path,
             model_config = self.args.upstream_model_config,
             refresh = upstream_refresh,
+            **self.config.get("upstream_expert", {}),
         ).to(self.args.device)
 
         if is_initialized() and get_rank() == 0:
