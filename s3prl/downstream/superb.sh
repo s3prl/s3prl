@@ -199,7 +199,7 @@ start=$SECONDS
 
 upstream_dir=$exps_root/$task/$upstream
 if [ ! -z "$override" ]; then
-    upstream_dir=${upstream_dir}__${override//,,/__}
+    upstream_dir=${upstream_dir}/${override//,,/__}
 fi
 mkdir -p $upstream_dir
 summary=$upstream_dir/summary
