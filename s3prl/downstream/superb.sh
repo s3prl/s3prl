@@ -6,7 +6,7 @@ supported_tasks="PR, KS, IC, SID, ER, ASR, SF, ASV, SD"
 usage="The runfile for SUPERB Benchmark
 
 USAGE
-    $0 -u UPSTREAM -t TASK -p EXPS_ROOT [-h] [-o OVERRIDE] [-r EXPLORE_RATIO] [-l LR1] [-l LR2] ... [-s STAGE1] [-s STAGE2] ...
+    $0 -u UPSTREAM -t TASK -p EXPS_ROOT [-h] [-o OVERRIDE] [-r EXPLORE_RATIO] [-l LR1] [-l LR2] ... [-s STAGE1] [-s STAGE2] ... [-e EARLY_STOP]
 
     This runfile handles the learning rate (lr) search in the benchmark when training the downstream models. Since different upstreams
     (SSL models) need different suitable lr. Without the careful search, the final ranking can have huge differences. However, a single
@@ -85,7 +85,7 @@ USAGE
 "
 
 # Parse options
-while getopts "u:t:p:o:r:l:s:h" flag
+while getopts "u:t:p:o:r:l:s:e:h" flag
 do
     case "${flag}" in
         u)
@@ -110,6 +110,8 @@ do
             [ "$OPTARG" == "1" ] && stage1=true
             [ "$OPTARG" == "2" ] && stage2=true
             ;;
+        e)
+            early_step_steps=${OPTARG}
         h)
             printf "$usage"
             exit 2
@@ -332,6 +334,9 @@ if [ "$stage2" = true ]; then
             override="args.expdir=$lr_full_expdir"
         else
             override="$override,,args.expdir=$lr_full_expdir"
+        fi
+        if [ -z "$early_stop_steps" ]; then
+            override="$override,,config.runner.total_steps=$early_stop_steps"
         fi
         single_trial "$lr_full_expdir" "$upstream" "$(parse_override 1 $lr $override)" true
     done
