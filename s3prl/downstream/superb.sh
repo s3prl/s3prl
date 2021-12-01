@@ -326,10 +326,12 @@ if [ "$stage2" = true ]; then
             fi
         }
 
-        lr_explore_expdir=$explore_dir/lr_$lr
-        copy_if_exists $lr_explore_expdir $lr_full_expdir "states-[0-9]+\.ckpt" 1
-        copy_if_exists $lr_explore_expdir $lr_full_expdir "dev.*\.ckpt"
-        copy_if_exists $lr_explore_expdir $lr_full_expdir "events\.out\.tfevents"
+        if [ ! -z "$explore_dir" ]; then
+            lr_explore_expdir=$explore_dir/lr_$lr
+            copy_if_exists $lr_explore_expdir $lr_full_expdir "states-[0-9]+\.ckpt" 1
+            copy_if_exists $lr_explore_expdir $lr_full_expdir "dev.*\.ckpt"
+            copy_if_exists $lr_explore_expdir $lr_full_expdir "events\.out\.tfevents"
+        fi
 
         if [ -z "$override" ]; then
             override="args.expdir=$lr_full_expdir"
