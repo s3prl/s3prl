@@ -52,7 +52,7 @@ USAGE
 
 -p EXPS_ROOT (required)
     All the experiment directories related to this benchmark will be located under UPSTREAM_DIR,
-    which is either EXPS_ROOT/TASK/UPSTREAM or EXPS_ROOT/TASK/UPSTREAM/OVERRIDE (if -o is provided)
+    which is either EXPS_ROOT/TASK/UPSTREAM or EXPS_ROOT/TASK/UPSTREAM__OVERRIDE (if -o is provided)
     Typicall you will want to see 'UPSTREAM_DIR/summary' for the lr exploration and full training
     results.
 
@@ -199,7 +199,7 @@ start=$SECONDS
 
 upstream_dir=$exps_root/$task/$upstream
 if [ ! -z "$override" ]; then
-    upstream_dir=$upstream_dir/$override
+    upstream_dir=${upstream_dir}__${override//,,/__}
 fi
 mkdir -p $upstream_dir
 summary=$upstream_dir/summary
