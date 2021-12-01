@@ -24,6 +24,7 @@ import torch
 import numpy as np
 #-------------#
 from pretrain.runner import Runner
+from utility.helper import override
 
 
 ######################
@@ -35,6 +36,7 @@ def get_pretrain_args():
     # use a ckpt as the experiment initialization
     # if set, all the following args and config will be overwrited by the ckpt, except args.mode
     parser.add_argument('-e', '--past_exp', metavar='{CKPT_PATH,CKPT_DIR}', help='Resume training from a checkpoint')
+    parser.add_argument('-o', '--override', help='Used to override args and config, this is at the highest priority')
 
     # configuration for the experiment, including runner and downstream
     parser.add_argument('-c', '--config', metavar='CONFIG_PATH', help='The yaml file for configuring the whole experiment, except the upstream model')
@@ -121,6 +123,10 @@ def get_pretrain_args():
             copyfile(args.upstream_config, f'{args.expdir}/config_model.yaml')
         else:
             raise FileNotFoundError('Wrong file path for model config.')
+
+    if args.override is not None and args.override.lower() != "none":
+        override(args.override, args, config)
+        os.makedirs(args.expdir, exist_ok=True)
 
     return args, config
 
