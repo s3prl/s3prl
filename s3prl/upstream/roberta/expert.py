@@ -25,6 +25,9 @@ class UpstreamExpert(UpstreamBase):
         self.frontend_model = frontend_model
         self.roberta = RobertaModel.from_pretrained(model_name_or_path, checkpoint_file)
         self.max_positions = self.roberta.cfg.model.max_positions
+    
+    def get_downsample_rates(self, key: str):
+        return 160
 
     def forward(self, wavs):
         with torch.no_grad():
