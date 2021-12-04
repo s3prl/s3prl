@@ -333,15 +333,11 @@ if [ "$stage2" = true ]; then
             copy_if_exists $lr_explore_expdir $lr_full_expdir "events\.out\.tfevents"
         fi
 
-        if [ -z "$override" ]; then
-            override="args.expdir=$lr_full_expdir"
-        else
-            override="$override,,args.expdir=$lr_full_expdir"
-        fi
+        override="$(parse_override 1 $lr $override)"
         if [ ! -z "$early_stop_steps" ]; then
             override="$override,,config.runner.total_steps=$early_stop_steps"
         fi
-        single_trial "$lr_full_expdir" "$upstream" "$(parse_override 1 $lr $override)" true
+        single_trial "$lr_full_expdir" "$upstream" "$override" true
     done
 
     full_summary=$full_dir/summary; [ -f "$full_summary" ] && rm $full_summary

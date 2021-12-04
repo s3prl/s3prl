@@ -97,7 +97,7 @@ function single_trial() {
         local dev_result="$(get_eval_result_single_fold $expdir "dev")"
         if [ -z "$dev_result" ]; then
             python3 run_downstream.py -m train -a -u $upstream -d emotion -p $expdir \
-                -o $override,,config.downstream_expert.datarc.test_fold=$fold,,args.expdir=$expdir
+                -o $override,,config.downstream_expert.datarc.test_fold=$fold
             eval_best_dev $expdir "dev"
         else
             echo "Dev result is find:"
