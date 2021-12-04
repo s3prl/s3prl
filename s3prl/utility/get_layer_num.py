@@ -6,7 +6,7 @@ parser = argparse.ArgumentParser()
 parser.add_argument("upstream")
 parser.add_argument("output")
 parser.add_argument("--key", default="QbE")
-parser.add_argument("--device", default="cuda")
+parser.add_argument("--device", default="cpu")
 args = parser.parse_args()
 
 upstream = getattr(hub, args.upstream)().to(args.device)

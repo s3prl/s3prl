@@ -1,6 +1,8 @@
 runner: {}
 
 downstream_expert:
+  two_stages: False
+
   # Leave it empty to max out performance
   max_workers:
 
@@ -14,6 +16,7 @@ downstream_expert:
     dataset_root: /corpora/quesst14Database
     num_workers: 8
     batch_size: 16
+    # for some upstreams, different batch size might yield slightly different results
 
   dtwrc:
     # Any metric defined by scipy.spatial.distance.cdist, e.g.
