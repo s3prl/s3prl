@@ -34,7 +34,7 @@ else
          `"re-inference your checkpoint with the S3PRL version newer than: " `
          `"https://github.com/s3prl/s3prl/commit/852db2e5f65fc9baea4a5877ffda6dd7470c72fc (re-training "`
          `"the model is not required). The correct $frame_shift_file will then appear in the expdir, since "`
-         `"the training label frame_shift during you previous trainig was already saved in the checkpoint."`
+         `"the training label frame_shift during you previous trainig was already saved in the checkpoint."
     frame_shift=160
 fi
 sr=16000
