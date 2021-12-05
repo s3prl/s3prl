@@ -116,7 +116,7 @@ test_dir=$upstream_dir/test; mkdir -p $test_dir
 start=$SECONDS
 
 summary=$upstream_dir/summary
-[ -f $summary ] && echo "The experiment seems to complete since $summary exists." && cat $summary && exit 1
+[ -f $summary ] && echo "The experiment seems to complete since $summary exists." && cat $summary && exit 0
 
 if [ $stage1 == true ]; then
     if [ -z "$layer_array" ]; then
