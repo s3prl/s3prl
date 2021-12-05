@@ -56,7 +56,7 @@ downstream_expert:
         no_args: True
         # do nothing    
     
-    ObjectiveLoss: AMSoftmaxLoss # You can specify config to AMSoftmaxLoss or SoftmaxLoss
+    ObjectiveLoss: AMSoftmaxLoss # You can specify config to AMSoftmaxLoss ,AAMSoftmaxLoss or SoftmaxLoss
     
     LossConfig:
       # You can comment it if you do not use this. To demo the usage of SoftmaxLoss, we will show all case.
@@ -67,3 +67,8 @@ downstream_expert:
       AMSoftmaxLoss:
         s: 30.0
         m: 0.4
+      # You can comment it if you do not use this. To demo the usage of AMSoftmaxLoss, we will show all case.
+      AAMSoftmaxLoss:
+        s: 15
+        m: 0.3
+        easy_margin: False
