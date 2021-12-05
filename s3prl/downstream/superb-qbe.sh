@@ -108,6 +108,9 @@ fi
 
 s3prl=$(pwd)
 upstream_dir=$exps_root/QBE/$upstream
+if [ -z $override ]; then
+    upstream_dir=$upstream_dir/${override//,,/__}
+fi
 dev_dir=$upstream_dir/dev; mkdir -p $dev_dir
 test_dir=$upstream_dir/test; mkdir -p $test_dir
 start=$SECONDS
@@ -138,7 +141,7 @@ if [ $stage1 == true ]; then
             echo "Extracting ${upstream}'s layer $layer features to ${expdir} ..."
             if [ "$(ls $expdir/*.pkl | wc -l)" -lt 2 ]; then
                 python3 run_downstream.py -m evaluate -t "$mode" -u $upstream -l $layer -d quesst14_dtw -p $expdir \
-                    -o config.downstream_expert.datarc.dataset_root=$quesst14,,config.downstream_expert.two_stages=True
+                    -o config.downstream_expert.datarc.dataset_root=$quesst14,,config.downstream_expert.two_stages=True,,$override
                 [ "$mode" == "test" ] && rm $expdir/*doc*.pkl
             else
                 echo "Extracted features found. Skip Stage 1."
@@ -175,14 +178,14 @@ if [ $stage2 == true ]; then
 
         if [ ! -f $out_dir/benchmark.stdlist.xml ]; then
             python3 downstream/quesst14_dtw/dtw_utils.py $queries_dir $out_dir \
-                --docs_dir $docs_dir -o config.downstream_expert.dtwrc.dist_method=$dist
+                --docs_dir $docs_dir -o config.downstream_expert.dtwrc.dist_method=$dist,,$override
         else
             echo "DTW results found. Skip DTW..."
         fi
 
         if [ ! -f $out_dir/summary ] || [ -z "$(cat $out_dir/summary)" ]; then
             cd $quesst14/scoring
-            ./score-TWV-Cnxe.sh $s3prl/$out_dir groundtruth_quesst14_$split -10
+            ./score-TWV-Cnxe.sh $s3prl/$out_dir groundtruth_quesst14_$split -10 || :
             cd $s3prl
             local score_file=$out_dir/score.out
             if [ -f $score_file ]; then
