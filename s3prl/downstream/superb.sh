@@ -238,8 +238,9 @@ if [ "$stage1" = true ]; then
 
     explore_summary=$explore_dir/summary; [ -f "$explore_summary" ] && rm $explore_summary
     echo "Report exploration result to $explore_summary"
-    for expdir in $(ls -d $explore_dir/*/);
+    for lr in $lrs;
     do
+        expdir=$explore_dir/lr_$lr/
         eval_result=$(get_eval_result $expdir "dev")
         if [ ! -z "$eval_result" ]; then
             echo $(basename $expdir): $eval_result >> $explore_summary
