@@ -74,7 +74,7 @@ function eval_best_dev() {
     if [ "$mode" == "test" ]; then
         dscore_dir=downstream/diarization/dscore
         if [ ! -d $dscore_dir ]; then
-            git clone https://github.com/ftshijt/dscore $dscore
+            git clone https://github.com/ftshijt/dscore $dscore_dir
         fi
         echo "Scoring on the test set..."
         ./downstream/diarization/score.sh $expdir downstream/diarization/data/test $dscore_dir
