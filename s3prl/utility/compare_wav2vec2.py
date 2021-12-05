@@ -2,12 +2,12 @@ import os
 import torch
 import random
 import argparse
+import transformers
+from s3prl import hub
+from packaging import version
 
 SAMPLE_RATE = 16000
 BATCH_SIZE = 8
-
-
-s3prl_path = os.path.dirname(os.path.abspath(__file__)) + "/../"
 
 parser = argparse.ArgumentParser()
 parser.add_argument("--base", action="store_true")
@@ -15,14 +15,15 @@ parser.add_argument("--large", action="store_true")
 parser.add_argument("--device", default="cuda")
 args = parser.parse_args()
 
+assert version.parse(transformers.__version__) <= version.parse(
+    "4.9.0"
+), "Newer version of transformers change the places for feature extraction."
 assert args.base or args.large
 s3prl_str = "wav2vec2_base_960" if args.base else "wav2vec2_large_ll60k"
 huggingface_str = "wav2vec2_hug_base_960" if args.base else "wav2vec2_hug_large_ll60k"
 
-s3prl = torch.hub.load(s3prl_path, s3prl_str, source="local").to(args.device)
-huggingface = torch.hub.load(s3prl_path, huggingface_str, source="local").to(
-    args.device
-)
+s3prl = getattr(hub, s3prl_str)().to(args.device)
+huggingface = getattr(hub, huggingface_str)().to(args.device)
 
 if args.base:
     s3prl.wav_normalize = True
