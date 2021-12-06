@@ -26,6 +26,7 @@ EFFECTS = [
 ["gain", "-3.0"],
 ["silence", "1", "0.1", "0.1%", "-1", "0.1", "0.1%"],
 ]
+MIN_AUDIO_NUM = 100
 
 # Voxceleb 2 Speaker verification
 class SpeakerVerifi_train(Dataset):
@@ -60,6 +61,10 @@ class SpeakerVerifi_train(Dataset):
                 wav_paths = [root.joinpath(*tag) for tag in wav_tags]
 
             logging.info(f"{len(wav_paths)} audio files found")
+            assert len(wav_paths) >= MIN_AUDIO_NUM, (
+                f"Should find at least {MIN_AUDIO_NUM} files for training. This is sometimes due to the corrupted "
+                f"cache file at {cache_path}. You may delete it and try again."
+            )
             speaker_dirs = ([f.stem for f in root.iterdir() if f.is_dir()])
             self.all_speakers.extend(speaker_dirs)
             for path, length in zip(wav_paths, wav_lengths):
