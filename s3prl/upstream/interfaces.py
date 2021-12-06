@@ -157,8 +157,13 @@ class Featurizer(nn.Module):
                     f" Please specify -s with the following options: {list(paired_wavs.keys())}",
                 )
                 raise ValueError
+
         self.feature_selection = feature_selection
         self.layer_selection = layer_selection
+        if isinstance(layer_selection, int):
+            logger.info(f"Take the number {layer_selection} layer from the feature '{feature_selection}'.")
+        else:
+            logger.info(f"Take all the layers from the feature '{feature_selection}'")
 
         feature = self._select_feature(paired_features)
         if isinstance(feature, (list, tuple)):
@@ -178,7 +183,7 @@ class Featurizer(nn.Module):
         if hasattr(upstream, "get_downsample_rates"):
             self.downsample_rate = upstream.get_downsample_rates(feature_selection)
             logger.info(
-                f"The selected feature {feature_selection}'s downsample rate is {self.downsample_rate}",
+                f"The selected feature '{feature_selection}' downsample rate is {self.downsample_rate}",
             )
         else:
             self.downsample_rate = round(max(len(wav) for wav in paired_wavs) / feature.size(1))
@@ -197,7 +202,7 @@ class Featurizer(nn.Module):
 
         if isinstance(feature, (list, tuple)) and len(feature) == 1:
             feature = feature[0]
-        
+
         if isinstance(feature, (list, tuple)) and isinstance(self.layer_selection, int):
             feature = feature[self.layer_selection]
 
