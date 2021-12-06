@@ -4,6 +4,7 @@ import sys
 import time
 import random
 import pickle
+import logging
 
 import tqdm
 import torch
@@ -42,6 +43,7 @@ class SpeakerVerifi_train(Dataset):
             root = Path(self.roots[index])
 
             if not cache_path.is_file():
+                logging.info(f"Preprocessing audio length and save to the cache file {cache_path}")
                 def trimmed_length(path):
                     wav_sample, _ = apply_effects_file(path, EFFECTS)
                     wav_sample = wav_sample.squeeze(0)
@@ -53,9 +55,11 @@ class SpeakerVerifi_train(Dataset):
                 wav_tags = [Path(path).parts[-3:] for path in wav_paths]
                 torch.save([wav_tags, wav_lengths], str(cache_path))
             else:
+                logging.info(f"Loading audio length cache file from {cache_path}")
                 wav_tags, wav_lengths = torch.load(str(cache_path))
                 wav_paths = [root.joinpath(*tag) for tag in wav_tags]
 
+            logging.info(f"{len(wav_paths)} audio files found")
             speaker_dirs = ([f.stem for f in root.iterdir() if f.is_dir()])
             self.all_speakers.extend(speaker_dirs)
             for path, length in zip(wav_paths, wav_lengths):
