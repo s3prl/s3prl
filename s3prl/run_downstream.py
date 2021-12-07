@@ -18,6 +18,10 @@ from s3prl.utility.helper import backup, get_unique_tag, hack_isinstance, overri
 
 from huggingface_hub import HfApi, HfFolder
 log = logging.getLogger(__name__)
+CANNOT_LOAD_FROM_CKPT_ARGS = [
+    "mode", "evaluate_split", "override",
+    "backend", "past_exp", "verbose", "expdir", "expname",
+]
 
 def get_downstream_args():
     parser = argparse.ArgumentParser()
@@ -109,8 +113,9 @@ def get_downstream_args():
             ckpt_pth = ckpt_pths[-1]
         else:
             ckpt_pth = args.past_exp
-
         messages.append(f'Resume from {ckpt_pth}')
+        args.expdir = Path(ckpt_pth).parent
+        args.expname = Path(args.expdir).parts[-1]
 
         # load checkpoint
         ckpt = torch.load(ckpt_pth, map_location='cpu')
@@ -125,11 +130,7 @@ def get_downstream_args():
             return Namespace(**out_dict)
 
         # overwrite args
-        cannot_overwrite_args = [
-            'mode', 'evaluate_split', 'override',
-            'backend', 'past_exp', 'verbose', 'expdir',
-        ]
-        args = update_args(args, ckpt['Args'], preserve_list=cannot_overwrite_args)
+        args = update_args(args, ckpt['Args'], preserve_list=CANNOT_LOAD_FROM_CKPT_ARGS)
         os.makedirs(args.expdir, exist_ok=True)
         args.init_ckpt = ckpt_pth
         config = ckpt['Config']
@@ -145,6 +146,14 @@ def get_downstream_args():
 
         if args.upstream_model_config is not None and os.path.isfile(args.upstream_model_config):
             backup_files.append(args.upstream_model_config)
+
+    assert "None" not in str(args.expdir) and "None" not in str(args.expname), (
+        "When launching a new experiment, -p or -n must be specified. "
+        "When resuming from a existing experiment directory, -p must be specified. "
+        "When resuming from a trained checkpoint, -e must be specified."
+    )
+    messages.append(f'Set expdir as {args.expdir}, expname as {args.expname}')
+    messages.append(f'Results can be found at: {args.expdir}')
 
     if args.override is not None and args.override.lower() != "none":
         override_msgs = override(args.override, args, config)
