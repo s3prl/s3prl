@@ -222,6 +222,6 @@ class S3prl_SpeechToTextDataset(SpeechToTextDataset):
         for i in range(output_dict['nsentences']):
             wav = output_dict['net_input']['src_tokens'][i]
             length = output_dict['net_input']['src_lengths'][i].item()
-            wavs.append(wav[:length])
+            wavs.append(wav[:length].numpy())
 
         return wavs, output_dict
