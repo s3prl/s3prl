@@ -50,7 +50,7 @@ class UpstreamPretrainExpert(nn.Module):
         
         if 'libri_root' in self.datarc and 'kaldi' in self.upstream_config['audio']:
             print('[UpstreamPretrainExpert] - Using kaldi feature extracter, on-the-fly feature extraction')
-            extracter, input_dim = get_extracter(self.upstream_config['audio'])
+            extracter, input_dim, _ = get_extracter(self.upstream_config['audio'])
             output_dim = None
         elif 'libri_root' in self.datarc:
             print('[UpstreamPretrainExpert] - Using online preprocessor, on-the-fly feature extraction')
