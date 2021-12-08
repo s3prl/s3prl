@@ -97,6 +97,8 @@ def get_downstream_args():
 
     if args.expdir is None:
         args.expdir = f'result/downstream/{args.expname}'
+    else:
+        args.expname = Path(args.expdir).stem
 
     if args.auto_resume:
         if os.path.isdir(args.expdir):
