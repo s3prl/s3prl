@@ -23,7 +23,7 @@ import torch.nn as nn
 from tensorboardX import SummaryWriter
 import numpy as np
 #-------------#
-from optimizers import get_optimizer
+from optimizers import get_optimizer, get_grouped_parameters
 from schedulers import get_scheduler
 
 
@@ -131,7 +131,7 @@ class Runner():
             scaler = torch.cuda.amp.GradScaler()
 
         # set optimizer
-        model_params = [self.upstream]
+        model_params = [self.upstream.model]
         optimizer = self._get_optimizer(model_params)
 
         # set scheduler
