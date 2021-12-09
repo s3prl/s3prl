@@ -94,7 +94,6 @@ class AcousticDataset(Dataset):
 
     def collate_fn(self, items):
         items = items[0] # hack bucketing
-        assert(len(items) == 5), '__getitem__ should return (spec_masked, pos_enc, mask_label, attn_mask, spec_stacked)'
         return items
 
 
