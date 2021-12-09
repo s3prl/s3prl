@@ -100,6 +100,10 @@ class UpstreamPretrainExpert(nn.Module):
             self.model.SpecHead.load_state_dict(init_ckpt['SpecHead'])
 
     # Interface
+    def loss_to_device(self):
+        self.model.loss.to(self.device)
+
+    # Interface
     def add_state_to_save(self, all_states):
         all_states['SpecHead'] = self.model.SpecHead.state_dict() if not self.multi_gpu else \
                                  self.model.module.SpecHead.state_dict()
@@ -134,14 +138,14 @@ class UpstreamPretrainExpert(nn.Module):
         if pos_enc.dim() == 3:
             # pos_enc: (batch_size, seq_len, hidden_size)
             # GPU memory need (batch_size * seq_len * hidden_size)
-            pos_enc = pos_enc.float().to(self.device)
+            pos_enc = pos_enc.to(self.device)
         elif pos_enc.dim() == 2:
             # pos_enc: (seq_len, hidden_size)
             # GPU memory only need (seq_len * hidden_size) even after expanded
-            pos_enc = pos_enc.float().to(self.device).expand(spec_masked.size(0), *pos_enc.size())
+            pos_enc = pos_enc.to(self.device).expand(spec_masked.size(0), *pos_enc.size())
 
-        mask_label = mask_label.bool().to(self.device)
-        attn_mask = attn_mask.float().to(self.device)
+        mask_label = mask_label.to(self.device)
+        attn_mask = attn_mask.to(self.device)
         spec_target = spec_target.to(self.device)
         
         loss, pred_spec = self.model(spec_masked, pos_enc, mask_label, attn_mask, spec_target)

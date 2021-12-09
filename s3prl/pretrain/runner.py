@@ -65,6 +65,9 @@ class Runner():
         if self.init_ckpt != {}:
             print('[Runner] - Loading upstream weights from the previous experiment')
             upstream.load_model(self.init_ckpt)
+        if hasattr(upstream, 'loss_to_device'):
+            print('[Runner] - Loss to device')
+            upstream.loss_to_device()
         return upstream
 
 
