@@ -1,0 +1,18 @@
+model:
+  paras:
+    num_layers: 3
+    hidden_size: 512
+    dropout: 0.1
+    residual: True
+
+task:
+  sequence_length: 1500
+  n_future: 5
+
+data:
+  audio:
+    feat_type: 'fbank'
+    feat_dim:  80
+    frame_length: 25
+    frame_shift: 10
+    decode_wav: False
