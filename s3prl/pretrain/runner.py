@@ -226,7 +226,7 @@ class Runner():
                     else:
                         self.logger.add_scalar(f'{prefix}lr', self.config['optimizer']['lr'], global_step=global_step)
                     # log norm
-                    self.logger.add_scalar(f'{prefix}gradient norm', grad_norm, global_step=global_step)
+                    self.logger.add_scalar(f'{prefix}gradient-norm', grad_norm, global_step=global_step)
 
                     # log customized contents
                     self.upstream.log_records(
