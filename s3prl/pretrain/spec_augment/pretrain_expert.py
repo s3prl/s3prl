@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*- #
 """*********************************************************************************************"""
-#   FileName     [ pretrain_expert.py ]
+#   FileName     [ pretrain/spec_augment/pretrain_expert.py ]
 #   Synopsis     [ the spec augment transformer pretrain expert ]
 #   Author       [ Andy T. Liu (https://github.com/andi611) ]
 #   Copyright    [ Copyleft(c), Speech Lab, NTU, Taiwan ]

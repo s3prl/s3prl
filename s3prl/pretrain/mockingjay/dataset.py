@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*- #
 """*********************************************************************************************"""
-#   FileName     [ dataset.py ]
-#   Synopsis     [ the general acoustic dataset, and the datasets that apply the masked reconstruction task ]
+#   FileName     [ pretrain/mockingjay/dataset.py ]
+#   Synopsis     [ The bucketing datasets that apply the masked reconstruction task on-the-fly ]
 #   Author       [ Andy T. Liu (https://github.com/andi611) ]
 #   Copyright    [ Copyleft(c), Speech Lab, NTU, Taiwan ]
 """*********************************************************************************************"""
