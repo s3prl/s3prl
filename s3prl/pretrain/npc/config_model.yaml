@@ -1,0 +1,31 @@
+# All hyper-parameters taken from the official implementation at
+# https://github.com/Alexander-H-Liu/NPC/blob/main/config/self_supervised/npc_example.yml
+
+model:
+  paras:
+    kernel_size: 15     # Receptive field size (R) = kernel_size + 2*(n_blocks)
+    mask_size: 5     # Desired input mask size (M_in) as described in NPC paper
+    n_blocks: 4                     # Number of ConvBlocks stacked in NPC model
+    hidden_size: 512                       # Dimension of feature of all layers
+    dropout: 0.1                                         # Dropout in ConvBlock
+    residual: True                           # Residual connection in ConvBlock
+    batch_norm: True                             # Apply BatchNorm in ConvBlock
+    activate: 'relu'                         # Activation function of ConvBlock
+    disable_cross_layer: False      # Apply Masked ConvBlock at last layer only
+    vq:
+      codebook_size: [64,64,64,64]    # Codebook size of each group in VQ-layer
+      code_dim: [128,128,128,128] # Dim of each group summing up to hidden_size
+      gumbel_temperature: 1.0       # Temperature of Gumbel Softmax in VQ-layer
+
+task:
+  sequence_length: 1500
+  n_future: 5
+
+data:
+  audio:
+    feat_type: 'fbank'                                           # Feature type
+    feat_dim: 80                                           # Feature dimension
+    frame_length: 25                                        # Window size in ms
+    frame_shift: 10                                            # Hop size in ms
+    decode_wav: False
+    cmvn: True                      # Apply uttr.-wised CMVN on Mel spectrogram

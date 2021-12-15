@@ -1,0 +1,26 @@
+# All hyper-parameters taken from the official implementation at
+# https://github.com/iamyuanchung/VQ-APC/tree/96230cc358b174b736b4c0e7664b3e72b304d9b0
+
+model:
+  paras:
+    num_layers: 3             # Number of GRU layers to be stacked in APC model
+    hidden_size: 512                       # Dimension of feature of all layers
+    dropout: 0.1                                   # Dropout between GRU layers
+    residual: True                     # Residual Connection between GRU layers
+    vq:                                         # Remove this part to train APC
+      codebook_size: [512]            # Codebook size of each group in VQ-layer
+      code_dim: [512]             # Dim of each group summing up to hidden_size
+      gumbel_temperature: 0.5       # Temperature of Gumbel Softmax in VQ-layer
+
+task:
+  sequence_length: 1500
+  n_future: 5
+
+data:
+  audio:
+    feat_type: 'fbank'                                           # Feature type
+    feat_dim: 80                                           # Feature dimension
+    frame_length: 25                                        # Window size in ms
+    frame_shift: 10                                            # Hop size in ms
+    decode_wav: False
+    cmvn: True                      # Apply uttr.-wised CMVN on Mel spectrogram
