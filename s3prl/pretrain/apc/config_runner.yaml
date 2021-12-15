@@ -1,3 +1,6 @@
+# All hyper-parameters taken from the official implementation at
+# https://github.com/iamyuanchung/VQ-APC/tree/96230cc358b174b736b4c0e7664b3e72b304d9b0
+
 runner:
   n_epochs: 100
   total_steps: -1
