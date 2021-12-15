@@ -17,10 +17,10 @@ import torch
 from torch.nn.utils.rnn import pad_sequence
 import torchaudio
 #-------------#
-from pretrain.mockingjay.dataset import AcousticDataset
+from pretrain.bucket_dataset import FeatDataset
 
 
-class ApcAudioDataset(AcousticDataset):
+class ApcAudioDataset(FeatDataset):
     
     def __init__(self, extracter, task_config, bucket_size, file_path, sets, 
                  max_timestep=0, libri_root=None, **kwargs):
