@@ -11,14 +11,13 @@
 # IMPORTATION #
 ###############
 import yaml
+import copy
 #-------------#
 import torch
 import torch.nn as nn
 from torch.utils.data import DataLoader
 #-------------#
 from pretrain.apc.dataset import ApcAudioDataset
-from upstream.apc.apc import APC
-from upstream.apc.audio import create_transform
 from utility.audio import plot_spectrogram_to_numpy
 
 
@@ -46,23 +45,29 @@ class UpstreamPretrainExpert(nn.Module):
         else:
             raise ValueError
         
-        try:
-            print('[UpstreamPretrainExpert] - Using the apc preprocessor, on-the-fly feature preprocessing')
-            preprocessor, feat_dim = create_transform(self.upstream_config['data']['audio'])
-        except:
-            raise NotImplementedError('Our upstream wrapper currently does not support other feature extracters, see: `s3prl/upstream/apc/expert.py`')
-
+        preprocessor = self._init_model()
         self._get_train_dataloader(preprocessor)
-
-        print('[UpstreamPretrainExpert] - Initializing model...')
-        self.model = APC(feat_dim, **self.upstream_config["model"]["paras"])
-        self.n_future = self.upstream_config["task"]["n_future"]
-        self.loss = torch.nn.L1Loss()
 
         if self.multi_gpu:
             self.model = torch.nn.DataParallel(self.model)
             print('[UpstreamPretrainExpert] - Multi-GPU training Enabled: ' + str(torch.cuda.device_count()))
         print('[UpstreamPretrainExpert] - Number of parameters: ' + str(sum(p.numel() for p in self.model.parameters() if p.requires_grad)))
+
+    def _init_model(self):
+        from upstream.apc.audio import create_transform
+        from upstream.apc.apc import APC
+
+        try:
+            print('[UpstreamPretrainExpert] - Using the apc preprocessor, on-the-fly feature preprocessing')
+            preprocessor, feat_dim = create_transform(copy.deepcopy(self.upstream_config['data']['audio']))
+        except:
+            raise NotImplementedError('Our upstream wrapper currently does not support other feature extracters, see: `s3prl/upstream/apc/expert.py`')
+        
+        print('[UpstreamPretrainExpert] - Initializing model...')
+        self.model = APC(feat_dim, **self.upstream_config["model"]["paras"])
+        self.n_future = self.upstream_config["task"]["n_future"]
+        self.loss = torch.nn.L1Loss()
+        return preprocessor
 
     def _get_train_dataloader(self, preprocessor):
         dataset = ApcAudioDataset(preprocessor,
@@ -75,7 +80,7 @@ class UpstreamPretrainExpert(nn.Module):
 
     # Interface
     def load_model(self, init_ckpt):
-        assert 'Transformer' in init_ckpt and 'SpecHead' in init_ckpt
+        assert 'model' in init_ckpt
         if self.multi_gpu:
             self.model.module.load_state_dict(init_ckpt['model'])
         else:
@@ -87,6 +92,7 @@ class UpstreamPretrainExpert(nn.Module):
 
     # Interface
     def add_state_to_save(self, all_states):
+        all_states['config'] = self.upstream_config
         all_states['model'] = self.model.state_dict() if not self.multi_gpu else \
                                  self.model.module.state_dict()
         all_states['Upstream_Config'] = self.upstream_config
