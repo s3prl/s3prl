@@ -14,6 +14,7 @@ import torch
 import torchaudio
 import numpy as np
 from tqdm import tqdm
+import torch.nn.functional as F
 from tensorboardX import SummaryWriter
 from torch.utils.data import DistributedSampler
 from torch.nn.parallel import DistributedDataParallel as DDP
@@ -437,7 +438,7 @@ class Runner():
                         # weighted-sum mode, log layer weights
                         logger.add_scalars("layer_weight", {
                             f"layer_{layer_id}": float(weight)
-                            for layer_id, weight in enumerate(self.featurizer.weights)
+                            for layer_id, weight in enumerate(F.softmax(self.featurizer.weights, dim=-1))
                         }, global_step=global_step)
 
                     batch_ids = []
