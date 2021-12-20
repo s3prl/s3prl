@@ -435,10 +435,10 @@ class Runner():
                     )
                     if hasattr(self.featurizer, "weights"):
                         # weighted-sum mode, log layer weights
-                        logger.add_scalars("layer_weights", {
+                        logger.add_scalars("layer_weight", {
                             f"layer_{layer_id}": float(weight)
                             for layer_id, weight in enumerate(self.featurizer.weights)
-                        })
+                        }, global_step=global_step)
 
                     batch_ids = []
                     records = defaultdict(list)
