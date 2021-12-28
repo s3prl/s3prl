@@ -23,6 +23,10 @@ optimizer:
 # to disable specaug on representation
 
 specaug:
+  adaptive: false
+  adaptive_number_ratio: 0.04
+  adaptive_size_ratio: 0.04
+  max_n_time_masks: 20
   apply_time_warp: true
   apply_time_mask: true
   apply_freq_mask: true

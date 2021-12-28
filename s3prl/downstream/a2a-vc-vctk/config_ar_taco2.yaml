@@ -31,7 +31,7 @@ downstream_expert:
     eval_batch_size: 5
     
     trdev_data_root: "./downstream/a2a-vc-vctk/data/VCTK-Corpus/wav48"
-    eval_data_root: "./downstream/a2o-vc-vcc2020/data/vcc2020"
+    eval_data_root: "./downstream/a2a-vc-vctk/data/vcc2020"
     spk_embs_root: "./downstream/a2a-vc-vctk/data/spk_embs/"
     lists_root: "./downstream/a2a-vc-vctk/data/lists"
     eval_lists_root: "./downstream/a2o-vc-vcc2020/data/lists"
