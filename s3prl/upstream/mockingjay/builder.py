@@ -49,10 +49,10 @@ class TransformerBuilder(nn.Module):
             sys.modules["optimizers"] = s3prl.optimizers
 
             self.all_states = torch.load(options["ckpt_file"], map_location='cpu')
-            if hasattr(self.all_states['Config'], 'transformer'):
+            if 'transformer' in self.all_states['Config']:
                 # for legacy ckpts, 'Config' stored the upstream config, and runner config was stored under 'Runner'.
                 self.config = self.all_states['Config']
-            elif hasattr(self.all_states['Upstream_Config'], 'transformer'):
+            elif 'transformer' in self.all_states['Upstream_Config']:
                 # For new ckpts, 'Upstream_Config' is used to store the upstream config, and runner config is now stored under 'Config'.
                 self.config = self.all_states['Upstream_Config']
             else:
