@@ -49,5 +49,6 @@ python ./downstream/a2o-vc-vcc2020/find_best_epoch.py \
     --start_epoch ${start_ep} \
     --end_epoch ${end_ep} \
     --step_epoch ${interval} \
-    --upstream ${upstream} --tag ${tag} --task ${task} --vocoder ${voc_name}
+    --upstream ${upstream} --tag ${tag} --task ${task} --vocoder ${voc_name} \
     --expdir ${expdir_root}
+
