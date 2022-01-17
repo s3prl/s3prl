@@ -677,22 +677,46 @@ The model is expected to output si-sdri on the test set.
 ## SE: Speech Enhancement
 
 #### Prepare data
-We use Voicebank-DEMAND dataset for speech enhancement.
 
-```bash
-# Download the Voicebank-DEMAND dataset and convert it to 16kHz
-# I am following the data preparation script in SpeechBrain toolkit (https://github.com/speechbrain/speechbrain/blob/develop/recipes/Voicebank/voicebank_prepare.py)
-from voicebank_prepare import download_vctk
-download_vctk(data_dir)
+1. We use Voicebank-DEMAND dataset for speech enhancement. We follow the data preparation in SpeechBrain:
 
-# prepare train, dev and test data in Kaldi format
-python downstream/enhancement_stft/scripts/Voicebank/data_prepare.py \
-    data_dir downstream/enhancement_stft/datasets/voicebank --part train
-python downstream/enhancement_stft/scripts/Voicebank/data_prepare.py \
-    data_dir downstream/enhancement_stft/datasets/voicebank --part dev
-python downstream/enhancement_stft/scripts/Voicebank/data_prepare.py \
-    data_dir downstream/enhancement_stft/datasets/voicebank --part test
-```
+    ```bash
+    # Download the Voicebank-DEMAND dataset and convert it to 16kHz
+    # I am following the data preparation script in SpeechBrain toolkit (https://github.com/speechbrain/speechbrain/blob/develop/recipes/Voicebank/voicebank_prepare.py)
+    from voicebank_prepare import download_vctk
+    download_vctk(data_dir)
+    ```
+
+    However, the above pipeline might take too much time to download the original dataset. Hence, we also provide the already preprocessed archive:
+
+    ```bash
+    wget http://140.112.21.28:9000/noisy-vctk-16k.zip
+    unzip noisy-vctk-16k.zip
+    ```
+
+2. Check the unzipped voicebank directory structure
+
+    ```bash
+    data_dir/
+    ├── clean_testset_wav_16k/
+    ├── clean_trainset_28spk_wav_16k/
+    ├── noisy_testset_wav_16k/
+    ├── noisy_trainset_28spk_wav_16k/
+    ├── testset_txt/
+    └── trainset_28spk_txt/
+    ```
+
+3. Prepare kaldi-style scp files
+
+    ```bash
+    # prepare train, dev and test data in Kaldi format
+    python downstream/enhancement_stft/scripts/Voicebank/data_prepare.py \
+        data_dir downstream/enhancement_stft/datasets/voicebank --part train
+    python downstream/enhancement_stft/scripts/Voicebank/data_prepare.py \
+        data_dir downstream/enhancement_stft/datasets/voicebank --part dev
+    python downstream/enhancement_stft/scripts/Voicebank/data_prepare.py \
+        data_dir downstream/enhancement_stft/datasets/voicebank --part test
+    ```
 
 #### Training
 
