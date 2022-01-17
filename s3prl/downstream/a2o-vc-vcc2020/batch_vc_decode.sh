@@ -10,12 +10,17 @@ upstream=$1
 task=$2
 tag=$3
 vocoder=$4
+if [ ! -z "$5" ]; then
+    expdir_root=$5
+else
+    expdir_root="result/downstream"
+fi
 
 set -e
 
 # check arguments
-if [ $# != 4 ]; then
-    echo "Usage: $0 <upstream> <task> <tag> <vocoder_dir>"
+if [ $# -lt 4 ]; then
+    echo "Usage: $0 <upstream> <task> <tag> <vocoder_dir> [<expdir_root>]"
     exit 1
 fi
 
@@ -33,7 +38,7 @@ for trgspk in "${trgspks[@]}"; do
     for ep in $(seq ${start_ep} ${interval} ${end_ep}); do
         echo "Objective evaluation: Upstream ${upstream}, Ep ${ep}; trgspk ${trgspk}"
         expname=a2o_vc_vcc2020_${tag}_${trgspk}_${upstream}
-        expdir=result/downstream/${expname}
+        expdir=${expdir_root}/${expname}
         ./downstream/a2o-vc-vcc2020/decode.sh ${vocoder}/ ${expdir}/${ep} ${trgspk}
     done
 done
@@ -45,3 +50,4 @@ python ./downstream/a2o-vc-vcc2020/find_best_epoch.py \
     --end_epoch ${end_ep} \
     --step_epoch ${interval} \
     --upstream ${upstream} --tag ${tag} --task ${task} --vocoder ${voc_name}
+    --expdir ${expdir_root}

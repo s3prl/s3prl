@@ -10,16 +10,29 @@ upstream=$1
 config=$2
 tag=$3
 part=$4
+if [ ! -z "$5" ]; then
+    expdir_root=$5
+else
+    expdir_root="result/downstream"
+fi
 
 set -e
 
 # check arguments
-if [ $# != 4 ]; then
-    echo "Usage: $0 <upstream> <config> <tag> <part>"
+if [ $# -lt 4 ]; then
+    echo "Usage: $0 <upstream> <config> <tag> <part> [<expdir_root>]"
     exit 1
 fi
 
-if [ ${part} == "task1_female" ]; then
+if [ ${part} == "TEF1" ]; then
+    trgspks=("TEF1")
+elif [ ${part} == "TEF2" ]; then
+    trgspks=("TEF2")
+elif [ ${part} == "TEM1" ]; then
+    trgspks=("TEM1")
+elif [ ${part} == "TEM2" ]; then
+    trgspks=("TEM2")
+elif [ ${part} == "task1_female" ]; then
     trgspks=("TEF1" "TEF2")
 elif [ ${part} == "task1_male" ]; then
     trgspks=("TEM1" "TEM2")
@@ -43,7 +56,7 @@ pids=() # initialize pids
 for trgspk in "${trgspks[@]}"; do
 (
     expname=a2o_vc_vcc2020_${tag}_${trgspk}_${upstream}
-    expdir=result/downstream/${expname}
+    expdir=${expdir_root}/${expname}
     mkdir -p ${expdir}
     python run_downstream.py -m train \
         --config ${config} \
