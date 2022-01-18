@@ -2,7 +2,7 @@
 
 set -e
 
-supported_tasks="PR, KS, IC, SID, ER, ASR, SF, ASV, SD"
+supported_tasks="PR, KS, IC, SID, ER, ASR, SF, ASV, SD, VC"
 usage="The runfile for SUPERB Benchmark
 
 USAGE
@@ -91,7 +91,7 @@ do
         u)
             upstream=${OPTARG}
             ;;
-        t) 
+        t)
             task=${OPTARG}
             ;;
         p)
@@ -157,6 +157,9 @@ case "$task" in
         ;;
     ASV)
         config_bash=downstream/sv_voxceleb1/asv.sh
+        ;;
+    VC)
+        config_bash=downstream/a2o-vc-vcc2020/vc.sh
         ;;
     *)
         echo "Invalid task "$task""
