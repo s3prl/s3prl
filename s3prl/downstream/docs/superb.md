@@ -740,7 +740,7 @@ The model is expected to output pesq, stoi, covl and si-sdri on the test set.
 
 ## VC: Voice conversion
 
-The following instruction is only a minimal description for benchmarking. A complete guide about the task, dataset, implementation and usage can be found in the [README](../a2o-vc-vcc2020/README.md).
+The following instruction is only a minimal description for benchmarking. A complete guide about the task, dataset, implementation and usage can be found in the [README](../a2o-vc-vcc2020/README.md). We evaluate the VC capability by training 4 target speaker models that given any source speaker utterance, the single-speaker model can convert it to a specific target speaker. This setting is known as Any-to-one VC. The trained 4 target speakers are: TEF1, TEF2, TEM1, TEM2. The quality of the target speaker model is evaluated with MCD (lower better). One should average the MCD from four speakers.
 
 #### Prepare data
 
@@ -758,17 +758,19 @@ cd ../
 
 #### Training
 
+Specify a target speaker for training from: TEF1, TEF2, TEM1, TEM2
+
 ```
-python run_downstream.py -m train -n test -u wav2vec -d a2o-vc-vcc2020
+python run_downstream.py -m train -n EXPNAME -u wav2vec -d a2o-vc-vcc2020 \
+    -o config.downstream_expert.trgspk=TEF1
 ```
 
 #### Testing
 
-Waveform generation and evaluation (using wav2vec for example)
+Waveform generation and evaluation (using wav2vec for example) for a specific checkpoint.
 
 ```
-cd <root-to-s3prl>/s3prl/downstream/a2o-vc-vcc2020
-./decode.sh pwg_task1 <root-to-s3prl>/s3prl/result/downstream/test/<step> TEF1
+./downstream/a2o-vc-vcc2020/decode.sh ./downstream/a2o-vc-vcc2020/pwg_task1 result/downstream/EXPNAME/<step> TEF1
 ```
 
 ## ST: Speech Translation
