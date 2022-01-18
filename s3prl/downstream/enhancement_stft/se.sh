@@ -85,7 +85,8 @@ function single_trial() {
             -c downstream/enhancement_stft/configs/cfg_voicebank.yaml \
             -d enhancement_stft \
             -u $upstream \
-            -p $expdir
+            -p $expdir \
+            -o $override
         eval_best_dev $expdir "dev"
     else
         echo "Dev result is find:"
