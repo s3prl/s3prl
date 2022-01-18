@@ -54,19 +54,20 @@ echo "Script starting time: $(date +%T)"
 
 pids=() # initialize pids
 for trgspk in "${trgspks[@]}"; do
-(
     expname=a2o_vc_vcc2020_${tag}_${trgspk}_${upstream}
     expdir=${expdir_root}/${expname}
     mkdir -p ${expdir}
-    python run_downstream.py -m train \
-        --config ${config} \
-        -n ${expname} \
-        -u ${upstream} \
-        -d a2o-vc-vcc2020 \
-        -o "config.downstream_expert.trgspk='${trgspk}'" \
-        > ${expdir}/train.log 2>&1
-) &
-pids+=($!) # store background pids
+    (
+        python run_downstream.py -m train \
+            --config ${config} \
+            -p ${expdir} \
+            -u ${upstream} \
+            -d a2o-vc-vcc2020 \
+            -o "config.downstream_expert.trgspk='${trgspk}'" \
+            > ${expdir}/train.log 2>&1
+    ) &
+    echo "Log for speaker ${trgspk} is at ${expdir}/train.log"
+    pids+=($!) # store background pids
 done
 i=0; for pid in "${pids[@]}"; do wait ${pid} || ((i++)); done
 [ ${i} -gt 0 ] && echo "$0: ${i} background jobs failed." && false
