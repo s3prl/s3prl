@@ -15,12 +15,15 @@ if [ ! -z "$5" ]; then
 else
     expdir_root="result/downstream"
 fi
+if [ ! -z "$6" ]; then
+    override=$6
+fi
 
 set -e
 
 # check arguments
 if [ $# -lt 4 ]; then
-    echo "Usage: $0 <upstream> <config> <tag> <part> [<expdir_root>]"
+    echo "Usage: $0 <upstream> <config> <tag> <part> [<expdir_root> <override>]"
     exit 1
 fi
 
@@ -54,6 +57,12 @@ echo "Script starting time: $(date +%T)"
 
 pids=() # initialize pids
 for trgspk in "${trgspks[@]}"; do
+    if [ ! -z "$override" ]; then
+        override_with_spk="$override,,config.downstream_expert.trgspk=${trgspk}"
+    else
+        override_with_spk="config.downstream_expert.trgspk=${trgspk}"
+    fi
+
     expname=a2o_vc_vcc2020_${tag}_${trgspk}_${upstream}
     expdir=${expdir_root}/${expname}
     mkdir -p ${expdir}
@@ -64,7 +73,7 @@ for trgspk in "${trgspks[@]}"; do
             -p ${expdir} \
             -u ${upstream} \
             -d a2o-vc-vcc2020 \
-            -o "config.downstream_expert.trgspk='${trgspk}'" \
+            -o ${override_with_spk} \
             > ${expdir}/train.log 2>&1
     ) &
     pids+=($!) # store background pids
