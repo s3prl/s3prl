@@ -61,7 +61,7 @@ function single_trial() {
         for spk in TEF1 TEF2 TEM1 TEM2;
         do
             ./downstream/a2o-vc-vcc2020/batch_vc_train.sh $upstream \
-                ./downstream/a2o-vc-vcc2020/config.yaml superb $spk $spks_expdir
+                ./downstream/a2o-vc-vcc2020/config.yaml superb $spk $spks_expdir $override
         done
         ./downstream/a2o-vc-vcc2020/batch_vc_decode.sh $upstream \
             task1 superb ./downstream/a2o-vc-vcc2020/pwg_task1 $spks_expdir \
