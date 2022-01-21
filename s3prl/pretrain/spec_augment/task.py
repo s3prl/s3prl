@@ -34,7 +34,7 @@ def generate_spec_aug_data(spec, config):
         `num_F` : the number of frequency masks applied (In paper: mF=2)
         `p` : upper bound ratio (In paper: p=1.0)
     """
-
+    # Adaptive_SpecAugment Author: ShampooWang, cornliu
     with torch.no_grad():
 
         # Start
