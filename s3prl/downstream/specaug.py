@@ -5,7 +5,7 @@
 #   Author       [ S3PRL, Xuankai Chang ]
 #   Copyright    [ Copyleft(c), Speech Lab, NTU, Taiwan ]
 """*********************************************************************************************"""
-
+# Adaptive_SpecAugment Author: ShampooWang, cornliu
 
 ###############
 # IMPORTATION #
@@ -211,7 +211,7 @@ class MaskAlongAxis(torch.nn.Module):
         self.dim = dim
         self.replace_with_zero = replace_with_zero
 
-        # Adaptive_SpecAugment
+        ###############################################
         self.adaptive = adaptive
         self.adaptive_number_ratio = adaptive_number_ratio
         self.adaptive_size_ratio = adaptive_size_ratio
@@ -231,7 +231,7 @@ class MaskAlongAxis(torch.nn.Module):
         T = self.mask_width_range[1]
         num_mask = self.num_mask
         
-        # Adaptive_SpecAugment
+        
         if self.dim == 1 & self.adaptive :
           if self.adaptive_number_ratio > 0:
             num_mask = min(int(self.adaptive_number_ratio * D), self.max_n_time_masks)
