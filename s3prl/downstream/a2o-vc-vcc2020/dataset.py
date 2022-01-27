@@ -87,3 +87,41 @@ class VCC2020Dataset(Dataset):
         wav_paths = [sorted_batch[i][3] for i in range(bs)]
         
         return wavs, wavs_2, acoustic_features, acoustic_features_padded, acoustic_feature_lengths, wav_paths
+
+
+class CustomDataset(Dataset):
+    def __init__(self, eval_list_file, **kwargs):
+        super(CustomDataset, self).__init__()
+
+        X = []
+        if os.path.isfile(eval_list_file):
+            print("[Dataset] Reading custom eval list file: {}".format(eval_list_file))
+            X = open(eval_list_file, "r").read().splitlines()
+        else:
+            raise ValueError("[Dataset] eval list file does not exist: {}".format(eval_list_file))
+        print('[Dataset] - number of data for custom test: ' + str(len(X)))
+        self.X = X
+
+    def _load_wav(self, wav_path, fs):
+        # use librosa to resample. librosa gives range [-1, 1]
+        wav, sr = librosa.load(wav_path, sr=fs)
+        return wav, sr
+
+    def __len__(self):
+        return len(self.X)
+
+    def __getitem__(self, index):
+        wav_path = self.X[index]
+        wav_original, fs_original = self._load_wav(wav_path, fs=None)
+        wav_resample, fs_resample = self._load_wav(wav_path, fs=FS)
+
+        return wav_resample, wav_original, wav_path
+    
+    def collate_fn(self, batch):
+        sorted_batch = sorted(batch, key=lambda x: -x[1].shape[0])
+        bs = len(sorted_batch) # batch_size
+        wavs = [torch.from_numpy(sorted_batch[i][0]) for i in range(bs)]
+        wavs_2 = [torch.from_numpy(sorted_batch[i][1]) for i in range(bs)] # This is used for obj eval
+        wav_paths = [sorted_batch[i][2] for i in range(bs)]
+        
+        return wavs, wavs_2, None, None, None, wav_paths
