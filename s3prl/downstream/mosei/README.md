@@ -18,13 +18,13 @@ mv Raw CMU-MOSEI
 ## Available Tasks
 Change `num_clas` in the `config.yaml` to perform the following tasks:   
 1. **Two-class sentiment classication (`num_class: 2`)**  
-Labels: [0: negative, 1: non-negative] (neutral is counted as non-negative).  
+Labels: [0: negative, 1: non-negative] (positive and neutral are counted as non-negative).  
 2. **Three-class sentiment classification (`num_class: 3`)**  
-Labels: [-1: negative, 0: neutral, 1: negative]  
+Labels: [-1: negative, 0: neutral, 1: positive]  
 3. **Six-class emotion classification (`num_class: 6`)**  
 Labels: [happy, sad, anger, surprise, disgust, fear]  
 4. **Seven-class sentiment classification (`num_clases: 7`)**  
-Labels: [-3: highly neative, -2: negative, -1: weakly negative, 0: neutral, 1: weakly positive, 2: positive, 3 highly positive]
+Labels: [-3: highly negative, -2: negative, -1: weakly negative, 0: neutral, 1: weakly positive, 2: positive, 3 highly positive]
 
 
 ## Training
