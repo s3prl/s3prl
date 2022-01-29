@@ -2,7 +2,7 @@
     <img src="./file/S3PRL-logo.png" width="900"/>
     <br>
     <br>
-    <a href="./LICENSE.txt"><img alt="MIT License" src="https://img.shields.io/badge/license-MIT-blue.svg" /></a>
+    <a href="./LICENSE.txt"><img alt="Apache License 2.0" src="./file/license.svg" /></a>
     <a href="https://creativecommons.org/licenses/by-nc/4.0/"><img alt="CC_BY_NC License" src="https://img.shields.io/badge/License-CC%20BY--NC%204.0-lightgrey.svg" /></a>
     <a href="https://github.com/s3prl/s3prl/actions"><img alt="Build" src="https://github.com/allenai/allennlp/workflows/Master/badge.svg?event=push&branch=master"></a>
     <a href="#development-pattern-for-contributors"><img alt="Codecov" src="https://img.shields.io/badge/contributions-welcome-brightgreen.svg"></a>
@@ -102,8 +102,7 @@ pip install fairseq@git+https://github.com//pytorch/fairseq.git@f2146bdc7abf2931
 
 ## License
 
-The majority of S3PRL Toolkit is licensed under CC-BY-NC, 
-however portions of the project are available under separate license terms: S3PRL is licensed under the MIT license.
+The majority of S3PRL Toolkit is licensed under the Apache License version 2.0, however all the files authored by Facebook, Inc. (which have explicit copyright statement on the top) are licensed under CC-BY-NC.
 
 ## Used by
 <details><summary>List of papers that used our toolkit (Feel free to add your own paper by making a pull request)</summary><p>
