@@ -101,7 +101,7 @@ class UpstreamPretrainExpert(nn.Module):
 
     # Interface
     def loss_to_device(self):
-        self.model.loss.to(self.device)
+        self.model.loss.to(self.device) if not self.multi_gpu else self.model.module.loss.to(self.device)
 
     # Interface
     def add_state_to_save(self, all_states):
