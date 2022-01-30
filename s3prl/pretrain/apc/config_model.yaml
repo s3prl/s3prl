@@ -15,7 +15,7 @@ task:
 data:
   audio:
     feat_type: 'fbank'                                           # Feature type
-    feat_dim: 80                                           # Feature dimension
+    feat_dim: 80                                            # Feature dimension
     frame_length: 25                                        # Window size in ms
     frame_shift: 10                                            # Hop size in ms
     decode_wav: False
