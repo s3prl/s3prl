@@ -1,6 +1,6 @@
 # MOS Prediction
 
-Official Implementation of "Utilizing Self-supervised Representations for MOS Prediction", will be presented at INTERSPEECH 2021 [[arXiv](https://arxiv.org/abs/2104.03017)]
+Official Implementation of "Utilizing Self-supervised Representations for MOS Prediction", which is in proceeding of INTERSPEECH 2021 [[arXiv](https://arxiv.org/abs/2104.03017)]
 
 This code enables you to fine-tune a automatic Mean Opinion Score (MOS) Predictor with specific self-supervised upstream model.
 
@@ -10,22 +10,18 @@ If you only want to directly use the pretrained MOS predictor instead of fine-tu
 ## Data Preparation
 Download Voice Conversion Challenge 2018 (VCC 2018) dataset and Voice Conversion Challenge 2016 (VCC 2016) dataset:
 ```bash
+# install gdown package if you don't have one
+# pip install gdown
+
 cd /path/to/data
 
-# Download VCC 2018
-mkdir VCC_2018
-cd VCC_2018
-wget https://datashare.ed.ac.uk/bitstream/handle/10283/3061/vcc2018_submitted_systems_converted_speech.tar.gz
-wget https://datashare.ed.ac.uk/bitstream/handle/10283/3061/vcc2018_evaluation_results.zip
-tar -zxvf vcc2018_submitted_systems_converted_speech.tar.gz
-unzip vcc2018_evaluation_results.zip
-cd ..
+# downloading VCC_2018 dataset
+gdown "https://drive.google.com/u/0/uc?id=1C3LyUnEd4frtxr0By26_WobkpG12ajyH&export=download"
+tar -zxvf VCC_2018.tar.gz
 
-# Download VCC 2016
-mkdir VCC_2016
-cd VCC_2016 
-wget https://datashare.ed.ac.uk/bitstream/handle/10283/2211/participant_submissions.zip
-unzip participant_submissions.zip
+# downloading VCC_2016 dataset
+gdown "https://drive.google.com/u/0/uc?id=1WUFnLZ_wkKY_WGat8cc4eNiVkAy2BvnQ&export=download"
+tar -zxvf VCC_2016.tar.gz
 ```
 Then put the corresponding .csv file in [**data**](data) under each dataset folder
 
@@ -36,6 +32,7 @@ After that, you should have the following file structure:
    │   ├── Converted_speech_of_submitted_systems
    │   │   └── [*.wav]
    │   ├── VCC2018_Results
+   │   │   └── system_mos_all_trackwise.csv
    │   └── [train, valid, test]_judge.csv
    │
    └── VCC_2016
@@ -54,7 +51,7 @@ EXP_NAME=hello_world
 UPSTREAM=wav2vec2
 DOWNSTREAM=mos_prediction
 
-python3 run_downstream.py -f -m train -n $EXP_NAME -u $UPSTREAM -d $DOWNSTREAM
+python3 run_downstream.py -f -l -1 -m train -n $EXP_NAME -u $UPSTREAM -d $DOWNSTREAM
 ```
 
 ## Customize Your Own Model
