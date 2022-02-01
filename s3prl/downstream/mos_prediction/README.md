@@ -1,6 +1,6 @@
 # MOS Prediction
 
-Official Implementation of "Utilizing Self-supervised Representations for MOS Prediction", will be presented at INTERSPEECH 2021 [[arXiv](https://arxiv.org/abs/2104.03017)]
+Official Implementation of "Utilizing Self-supervised Representations for MOS Prediction", which is in proceeding of INTERSPEECH 2021 [[arXiv](https://arxiv.org/abs/2104.03017)]
 
 This code enables you to fine-tune a automatic Mean Opinion Score (MOS) Predictor with specific self-supervised upstream model.
 
@@ -51,7 +51,7 @@ EXP_NAME=hello_world
 UPSTREAM=wav2vec2
 DOWNSTREAM=mos_prediction
 
-python3 run_downstream.py -f -l 1 -m train -n $EXP_NAME -u $UPSTREAM -d $DOWNSTREAM
+python3 run_downstream.py -f -l -1 -m train -n $EXP_NAME -u $UPSTREAM -d $DOWNSTREAM
 ```
 
 ## Customize Your Own Model
