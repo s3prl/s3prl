@@ -31,6 +31,9 @@ downstream_expert:
     eval_batch_size: 4
     num_workers: 12
     valid_ratio: 0.2
+    few_shot: {}
+      # n_shot: 5
+      # seed: 0
 
   modelrc:
     projector_dim: 256

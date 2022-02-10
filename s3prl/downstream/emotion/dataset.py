@@ -6,15 +6,18 @@
 """
 
 import json
+import random
+import logging
 from pathlib import Path
+from collections import defaultdict
 from os.path import join as path_join
 
 import torchaudio
-from torch.utils.data import Dataset
+from torch.utils.data import Dataset, Subset
 from torchaudio.transforms import Resample
 
 SAMPLE_RATE = 16000
-
+log = logging.getLogger(__name__)
 
 class IEMOCAPDataset(Dataset):
     def __init__(self, data_dir, meta_path, pre_load=True):
@@ -31,6 +34,29 @@ class IEMOCAPDataset(Dataset):
         self.resampler = Resample(origin_sr, SAMPLE_RATE)
         if self.pre_load:
             self.wavs = self._load_all()
+
+    @classmethod
+    def from_subset(cls, subset: Subset, n_shot: int = None, seed=0):
+        random.seed(seed)
+        dataset = subset.dataset
+        indices = subset.indices
+        dataset.meta_data = [dataset.meta_data[idx] for idx in indices]
+
+        if isinstance(n_shot, int):
+            emotion2indices = defaultdict(list)
+            for metadata in dataset.meta_data:
+                emotion2indices[metadata['label']].append(metadata)
+            for key in list(emotion2indices.keys()):
+                emotion2indices[key] = random.sample(emotion2indices[key], k=n_shot)
+
+            dataset.meta_data = []
+            for meta_data_list in emotion2indices.values():
+                dataset.meta_data += meta_data_list
+
+        if dataset.pre_load:
+            dataset.wavs = dataset._load_all()
+
+        return dataset
 
     def _load_wav(self, path):
         wav, _ = torchaudio.load(path_join(self.data_dir, path))
