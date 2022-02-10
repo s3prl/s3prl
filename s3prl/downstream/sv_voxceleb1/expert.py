@@ -57,26 +57,27 @@ class DownstreamExpert(nn.Module):
         # dataset
         train_file_path = Path(self.datarc['file_path']) / "dev" / "wav"
         test_file_path = Path(self.datarc['file_path']) / "test" / "wav"
-        
+
         train_config = {
             "vad_config": self.datarc['vad_config'],
             "file_path": [train_file_path],
             "key_list": ["Voxceleb1"],
             "meta_data": self.datarc['train_meta_data'],
             "max_timestep": self.datarc["max_timestep"],
+            "n_shot": self.datarc["n_shot"],
         }
         self.train_dataset = SpeakerVerifi_train(**train_config)
 
         dev_config = {
             "vad_config": self.datarc['vad_config'],
-            "file_path": train_file_path, 
+            "file_path": train_file_path,
             "meta_data": self.datarc['dev_meta_data']
-        }        
+        }
         self.dev_dataset = SpeakerVerifi_test(**dev_config)
 
         test_config = {
             "vad_config": self.datarc['vad_config'],
-            "file_path": test_file_path, 
+            "file_path": test_file_path,
             "meta_data": self.datarc['test_meta_data']
         }
         self.test_dataset = SpeakerVerifi_test(**test_config)
@@ -89,12 +90,12 @@ class DownstreamExpert(nn.Module):
             "agg_dim",
             self.modelrc['input_dim']
         )
-        
+
         ModelConfig = {
             "input_dim": self.modelrc['input_dim'],
             "agg_dim": agg_dim,
             "agg_module_name": self.modelrc['agg_module'],
-            "module_name": self.modelrc['module'], 
+            "module_name": self.modelrc['module'],
             "hparams": self.modelrc["module_config"][self.modelrc['module']],
             "utterance_module_name": self.modelrc["utter_module"]
         }
@@ -104,8 +105,8 @@ class DownstreamExpert(nn.Module):
 
         # SoftmaxLoss or AMSoftmaxLoss
         objective_config = {
-            "speaker_num": self.train_dataset.speaker_num, 
-            "hidden_dim": self.modelrc['input_dim'], 
+            "speaker_num": self.train_dataset.speaker_num,
+            "hidden_dim": self.modelrc['input_dim'],
             **self.modelrc['LossConfig'][self.modelrc['ObjectiveLoss']]
         }
 
@@ -135,7 +136,7 @@ class DownstreamExpert(nn.Module):
         """
 
         if mode == 'train':
-            return self._get_train_dataloader(self.train_dataset)            
+            return self._get_train_dataloader(self.train_dataset)
         elif mode == 'dev':
             return self._get_eval_dataloader(self.dev_dataset)
         elif mode == 'test':
@@ -145,7 +146,7 @@ class DownstreamExpert(nn.Module):
         sampler = DistributedSampler(dataset) if is_initialized() else None
         return DataLoader(
             dataset,
-            batch_size=self.datarc['train_batch_size'], 
+            batch_size=self.datarc['train_batch_size'],
             shuffle=(sampler is None),
             sampler=sampler,
             num_workers=self.datarc['num_workers'],
@@ -200,7 +201,7 @@ class DownstreamExpert(nn.Module):
         """
 
         features_pad = pad_sequence(features, batch_first=True)
-        
+
         if self.modelrc['module'] == "XVector":
             # TDNN layers in XVector will decrease the total sequence length by fixed 14
             attention_mask = [torch.ones((feature.shape[0] - 14)) for feature in features]
@@ -218,11 +219,11 @@ class DownstreamExpert(nn.Module):
             loss = self.objective(agg_vec, labels)
             records['loss'].append(loss.item())
             return loss
-        
+
         elif mode in ['dev', 'test']:
             agg_vec = self.model.inference(features_pad, attention_mask_pad.cuda())
             agg_vec = torch.nn.functional.normalize(agg_vec,dim=-1)
-            
+
             # separate batched data to pair data.
             vec1, vec2 = self.separate_data(agg_vec)
             names1, names2 = self.separate_data(utter_idx)

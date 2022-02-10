@@ -5,11 +5,11 @@ import time
 import random
 import pickle
 import logging
+from collections import defaultdict
 
 import tqdm
 import torch
 import torchaudio
-import numpy as np 
 from torch import nn
 from pathlib import Path
 from sox import Transformer
@@ -30,11 +30,11 @@ MIN_AUDIO_NUM = 100
 
 # Voxceleb 2 Speaker verification
 class SpeakerVerifi_train(Dataset):
-    def __init__(self, vad_config, key_list, file_path, meta_data, max_timestep=None, n_jobs=12):
+    def __init__(self, vad_config, key_list, file_path, meta_data, max_timestep=None, n_jobs=12, n_shot=None, seed=0, **kwargs):
         self.roots = file_path
         self.root_key = key_list
         self.max_timestep = max_timestep
-        self.vad_c = vad_config 
+        self.vad_c = vad_config
         self.dataset = []
         self.all_speakers = []
 
@@ -74,25 +74,49 @@ class SpeakerVerifi_train(Dataset):
         self.all_speakers.sort()
         self.speaker_num = len(self.all_speakers)
 
+        if isinstance(n_shot, int):
+            random.seed(seed)
+            spk2paths = defaultdict(list)
+            for path in self.dataset:
+                spk2paths[self._path2spkid(path)].append(path)
+
+            for spk in list(spk2paths.keys()):
+                spk2paths[spk] = random.sample(spk2paths[spk], k=n_shot)
+
+            self.dataset = []
+            for spk, paths in spk2paths.items():
+                self.dataset += paths
+
+            logging.info(f"Few shot: {len(self.dataset)} audio files are used")
+
+    def _path2spkid(self, path):
+        tags = Path(path).parts[-3:]
+        label = self.all_speakers.index(tags[0])
+        return label
+
+    def _path2uid(self, path):
+        tags = Path(path).parts[-3:]
+        utterance_id = "-".join(tags).replace(".wav", "")
+        return utterance_id
+
     def __len__(self):
         return len(self.dataset)
-    
+
     def __getitem__(self, idx):
         path = self.dataset[idx]
         wav, _ = apply_effects_file(str(path), EFFECTS)
         wav = wav.squeeze(0)
         length = wav.shape[0]
-        
+
         if self.max_timestep != None:
             if length > self.max_timestep:
                 start = random.randint(0, int(length - self.max_timestep))
                 wav = wav[start : start + self.max_timestep]
 
-        tags = Path(path).parts[-3:]
-        utterance_id = "-".join(tags).replace(".wav", "")
-        label = self.all_speakers.index(tags[0])
+        utterance_id = self._path2uid(path)
+        label = self._path2spkid(path)
         return wav.numpy(), utterance_id, label
-        
+
     def collate_fn(self, samples):
         return zip(*samples)
 
@@ -102,9 +126,9 @@ class SpeakerVerifi_test(Dataset):
         self.root = file_path
         self.meta_data = meta_data
         self.necessary_dict = self.processing()
-        self.vad_c = vad_config 
-        self.dataset = self.necessary_dict['pair_table'] 
-        
+        self.vad_c = vad_config
+        self.dataset = self.necessary_dict['pair_table']
+
     def processing(self):
         pair_table = []
         with open(self.meta_data, "r") as f:
