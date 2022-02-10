@@ -9,6 +9,7 @@ import json
 import random
 import logging
 from pathlib import Path
+from copy import deepcopy
 from collections import defaultdict
 from os.path import join as path_join
 
@@ -38,8 +39,8 @@ class IEMOCAPDataset(Dataset):
     @classmethod
     def from_subset(cls, subset: Subset, n_shot: int = None, seed=0):
         random.seed(seed)
-        dataset = subset.dataset
-        indices = subset.indices
+        dataset = deepcopy(subset.dataset)
+        indices = deepcopy(subset.indices)
         dataset.meta_data = [dataset.meta_data[idx] for idx in indices]
 
         if isinstance(n_shot, int):
