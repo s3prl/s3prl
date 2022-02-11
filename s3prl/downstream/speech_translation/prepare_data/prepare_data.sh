@@ -15,6 +15,7 @@ usage() {
     echo "  -t, --tgt-key [key] (default: tgt_text)"
     echo "  -S, --src-lang [lang] (default: en)"
     echo "  -T, --tgt-lang [lang] (default: de)"
+    echo "  -f, --filter-list [w1,w2,...] filter out the samples contain specific word"
     echo "  -h, --help print this help message"
     exit 1; 
 }
@@ -32,8 +33,8 @@ tgt_lang=de
 help=false
 
 
-OPTIONS=a:r:d:o:p:s:t:S:T:h
-LONGOPTS=audio-dir:,data-root:,dataset:,output:,path-key:,src-key:,tgt-key:,src-lang:,tgt-lang:,help
+OPTIONS=a:r:d:o:p:s:t:S:T:f:h
+LONGOPTS=audio-dir:,data-root:,dataset:,output:,path-key:,src-key:,tgt-key:,src-lang:,tgt-lang:,filter-list:,help
 PARSED=`getopt --options=$OPTIONS --longoptions=$LONGOPTS --name "$0" -- "$@"`
 
 eval set -- $PARSED
@@ -49,6 +50,7 @@ while true; do
     -t | --tgt-key ) tgt_key=$2; shift 2 ;;
     -S | --src-lang ) src_lang=$2; shift 2 ;;
     -T | --tgt-lang ) tgt_lang=$2; shift 2 ;;
+    -f | --filter-list ) filter_list=$2; shift 2;;
     -h | --help ) help=true; shift ;;
     -- ) shift; break ;;
     * ) break ;;
@@ -83,13 +85,17 @@ python prepare_data.py ${in_tsv} ${out_tsv}.tmp \
     | tee -a $log
 
 echo "[clean paired corpus]" | tee -a $log
-python prepare_clean_paired_corpus.py \
-    ${out_tsv}.tmp ${out_tsv}.tmp \
+args="${out_tsv}.tmp ${out_tsv}.tmp \
     --verbose \
     --min 1 \
     --ratio 5 \
     --overwrite \
-    | tee -a $log
+"
+if [ ! -z $filter_list ]; then
+    args+="--filter-list $filter_list"
+fi
+python prepare_clean_paired_corpus.py \
+    $args | tee -a $log
 
 echo "[clean source text]" | tee -a $log
 python prepare_normalize_tsv.py \

@@ -24,6 +24,7 @@ if __name__ == '__main__':
     parser.add_argument('-l', '--min', type=int, default=-1)
     parser.add_argument('-r', '--ratio', type=float, default=-1)
     parser.add_argument('-v', '--verbose', action='store_true')
+    parser.add_argument('-f', '--filter-list')
     args = parser.parse_args()
     if os.path.isfile(args.output_tsv) and not args.overwrite:
         print(f'output file: {args.output_tsv} exists, use -o/--overwrite to force overwrite')
@@ -47,13 +48,20 @@ if __name__ == '__main__':
             lines.append(line)
 
     data = []
+    filter_list = args.filter_list.strip().split(',') if args.filter_list else []
+
     for line in tqdm(lines):
 
         src_len = length(line[args.src_key])
         tgt_len = length(line[args.tgt_key])
 
-        if 'REMOVE' in line[args.src_key] or 'REMOVE' in line[args.tgt_key]:
-            verbose(args, f"{line} contains \"REMOVE\", skip")
+        remove = False
+        for w in filter_list:
+            if w in line[args.src_key] or w in line[args.tgt_key]:
+                verbose(args, f"{line} contains \"{w}\", skip")
+                remove = True
+                break
+        if remove:
             continue
 
         if args.max >= 0:

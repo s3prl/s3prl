@@ -47,7 +47,8 @@ for split in train dev test; do
         --src-key ${src_key} \
         --tgt-key ${tgt_key} \
         -S ${src_lang} -T ${tgt_lang} \
-        --output $split.tsv
+        --output $split.tsv \
+        --filter-list REMOVE
 done
 
 python prepare_gen_fairseq_vocab.py \
