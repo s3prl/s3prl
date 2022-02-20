@@ -24,6 +24,7 @@ import torch
 import numpy as np
 #-------------#
 from pretrain.runner import Runner
+from utility.helper import override
 
 
 ######################
@@ -35,18 +36,20 @@ def get_pretrain_args():
     # use a ckpt as the experiment initialization
     # if set, all the following args and config will be overwrited by the ckpt, except args.mode
     parser.add_argument('-e', '--past_exp', metavar='{CKPT_PATH,CKPT_DIR}', help='Resume training from a checkpoint')
+    parser.add_argument('-o', '--override', help='Used to override args and config, this is at the highest priority')
 
     # configuration for the experiment, including runner and downstream
-    parser.add_argument('-c', '--config', help='The yaml file for configuring the whole experiment, except the upstream model')
+    parser.add_argument('-c', '--config', metavar='CONFIG_PATH', help='The yaml file for configuring the whole experiment, except the upstream model')
 
     # upstream settings
     parser.add_argument('-u', '--upstream', choices=os.listdir('pretrain/'))
-    parser.add_argument('-g', '--upstream_config', default='', metavar='PATH', help='Only set when the specified upstream need it')
+    parser.add_argument('-g', '--upstream_config', metavar='CONFIG_PATH', help='The yaml file for configuring the upstream model')
 
     # experiment directory, choose one to specify
     # expname uses the default root directory: result/pretrain
-    parser.add_argument('-n', '--expname', help='Save experiment at result/pretrain/expname')
+    parser.add_argument('-n', '--expname', help='Save experiment at expdir/expname')
     parser.add_argument('-p', '--expdir', help='Save experiment at expdir')
+    parser.add_argument('-a', '--auto_resume', action='store_true', help='Auto-resume if the expdir contains checkpoints')
 
     # options
     parser.add_argument('--seed', default=1337, type=int)
@@ -54,6 +57,15 @@ def get_pretrain_args():
     parser.add_argument('--multi_gpu', action='store_true', help='Enables multi-GPU training')
 
     args = parser.parse_args()
+
+    if args.expdir is None:
+        args.expdir = f'result/pretrain/{args.expname}'
+
+    if args.auto_resume:
+        if os.path.isdir(args.expdir):
+            ckpt_pths = glob.glob(f'{args.expdir}/states-*.ckpt')
+            if len(ckpt_pths) > 0:
+                args.past_exp = args.expdir
 
     if args.past_exp:
         # determine checkpoint path
@@ -65,6 +77,8 @@ def get_pretrain_args():
         else:
             ckpt_pth = args.past_exp
         
+        print(f'[Runner] - Resume from {ckpt_pth}')
+
         # load checkpoint
         ckpt = torch.load(ckpt_pth, map_location='cpu')
 
@@ -76,10 +90,15 @@ def get_pretrain_args():
 
         # overwrite args and config
         args = update_args(args, ckpt['Args'])
-        config = ckpt['Runner']
-        args.past_exp = ckpt_pth
+        os.makedirs(args.expdir, exist_ok=True)
+        args.init_ckpt = ckpt_pth
+        config = ckpt['Config']
 
     else:
+        print('[Runner] - Start a new experiment')
+        args.init_ckpt = None
+
+        assert args.expname is not None
         if args.expdir is None:
             args.expdir = f'result/pretrain/{args.expname}'
         os.makedirs(args.expdir, exist_ok=True)
@@ -91,13 +110,23 @@ def get_pretrain_args():
             args.config = f'pretrain/{upstream_dirs[0]}/config_runner.yaml'
         with open(args.config, 'r') as file:
             config = yaml.load(file, Loader=yaml.FullLoader)
-        copyfile(args.config, f'{args.expdir}/config_runner.yaml')
+        if os.path.isfile(args.config):
+            copyfile(args.config, f'{args.expdir}/config_runner.yaml')
+        else:
+            raise FileNotFoundError('Wrong file path for runner config.')
         
-        default_upstream_config = f'pretrain/{upstream_dirs[0]}/config_model.yaml'
-        if args.upstream_config == '' and os.path.isfile(default_upstream_config):
+        if args.upstream_config is None:
+            default_upstream_config = f'pretrain/{upstream_dirs[0]}/config_model.yaml'
+            assert os.path.isfile(default_upstream_config)
             args.upstream_config = default_upstream_config
         if os.path.isfile(args.upstream_config):
             copyfile(args.upstream_config, f'{args.expdir}/config_model.yaml')
+        else:
+            raise FileNotFoundError('Wrong file path for model config.')
+
+    if args.override is not None and args.override.lower() != "none":
+        override(args.override, args, config)
+        os.makedirs(args.expdir, exist_ok=True)
 
     return args, config
 

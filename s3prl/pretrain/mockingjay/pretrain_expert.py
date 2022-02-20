@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*- #
 """*********************************************************************************************"""
-#   FileName     [ pretrain_expert.py ]
+#   FileName     [ pretrain/mockingjay/pretrain_expert.py ]
 #   Synopsis     [ the mockingjay pretrain expert ]
 #   Author       [ Andy T. Liu (https://github.com/andi611) ]
 #   Copyright    [ Copyleft(c), Speech Lab, NTU, Taiwan ]
@@ -16,12 +16,12 @@ import torch
 import torch.nn as nn
 from torch.utils.data import DataLoader
 #-------------#
-from s3prl.pretrain.mockingjay.dataset import KaldiAcousticDataset, OnlineAcousticDataset
-from s3prl.upstream.mockingjay.model import TransformerConfig, TransformerInitModel
-from s3prl.upstream.mockingjay.model import TransformerSpecPredictionHead, TransformerModel
-from s3prl.upstream.baseline.extracter import get_extracter
-from s3prl.upstream.baseline.preprocessor import get_preprocessor
-from s3prl.utility.audio import plot_spectrogram_to_numpy
+from pretrain.mockingjay.dataset import KaldiAcousticDataset, OnlineAcousticDataset
+from upstream.mockingjay.model import TransformerConfig, TransformerInitModel
+from upstream.mockingjay.model import TransformerSpecPredictionHead, TransformerModel
+from upstream.baseline.extracter import get_extracter
+from upstream.baseline.preprocessor import get_preprocessor
+from utility.audio import plot_spectrogram_to_numpy
 
 
 ####################
@@ -50,7 +50,7 @@ class UpstreamPretrainExpert(nn.Module):
         
         if 'libri_root' in self.datarc and 'kaldi' in self.upstream_config['audio']:
             print('[UpstreamPretrainExpert] - Using kaldi feature extracter, on-the-fly feature extraction')
-            extracter, input_dim = get_extracter(self.upstream_config['audio'])
+            extracter, input_dim, _ = get_extracter(self.upstream_config['audio'])
             output_dim = None
         elif 'libri_root' in self.datarc:
             print('[UpstreamPretrainExpert] - Using online preprocessor, on-the-fly feature extraction')
@@ -90,13 +90,18 @@ class UpstreamPretrainExpert(nn.Module):
                                      drop_last=False, pin_memory=True, collate_fn=dataset.collate_fn)
 
     # Interface
-    def load_model(self, all_states):
+    def load_model(self, init_ckpt):
+        assert 'Transformer' in init_ckpt and 'SpecHead' in init_ckpt
         if self.multi_gpu:
-            self.model.module.Transformer.load_state_dict(all_states['Transformer'])
-            self.model.module.SpecHead.load_state_dict(all_states['SpecHead'])
+            self.model.module.Transformer.load_state_dict(init_ckpt['Transformer'])
+            self.model.module.SpecHead.load_state_dict(init_ckpt['SpecHead'])
         else:
-            self.model.Transformer.load_state_dict(all_states['Transformer'])
-            self.model.SpecHead.load_state_dict(all_states['SpecHead'])
+            self.model.Transformer.load_state_dict(init_ckpt['Transformer'])
+            self.model.SpecHead.load_state_dict(init_ckpt['SpecHead'])
+
+    # Interface
+    def loss_to_device(self):
+        self.model.loss.to(self.device) if not self.multi_gpu else self.model.module.loss.to(self.device)
 
     # Interface
     def add_state_to_save(self, all_states):
@@ -104,7 +109,7 @@ class UpstreamPretrainExpert(nn.Module):
                                  self.model.module.SpecHead.state_dict()
         all_states['Transformer'] = self.model.Transformer.state_dict() if not self.multi_gpu else \
                                     self.model.module.Transformer.state_dict()
-        all_states['Config'] = self.upstream_config
+        all_states['Upstream_Config'] = self.upstream_config
         return all_states
 
     # Interface
@@ -133,14 +138,14 @@ class UpstreamPretrainExpert(nn.Module):
         if pos_enc.dim() == 3:
             # pos_enc: (batch_size, seq_len, hidden_size)
             # GPU memory need (batch_size * seq_len * hidden_size)
-            pos_enc = pos_enc.float().to(self.device)
+            pos_enc = pos_enc.to(self.device)
         elif pos_enc.dim() == 2:
             # pos_enc: (seq_len, hidden_size)
             # GPU memory only need (seq_len * hidden_size) even after expanded
-            pos_enc = pos_enc.float().to(self.device).expand(spec_masked.size(0), *pos_enc.size())
+            pos_enc = pos_enc.to(self.device).expand(spec_masked.size(0), *pos_enc.size())
 
-        mask_label = mask_label.bool().to(self.device)
-        attn_mask = attn_mask.float().to(self.device)
+        mask_label = mask_label.to(self.device)
+        attn_mask = attn_mask.to(self.device)
         spec_target = spec_target.to(self.device)
         
         loss, pred_spec = self.model(spec_masked, pos_enc, mask_label, attn_mask, spec_target)

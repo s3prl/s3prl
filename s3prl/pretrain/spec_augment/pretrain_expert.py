@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*- #
 """*********************************************************************************************"""
-#   FileName     [ pretrain_expert.py ]
+#   FileName     [ pretrain/spec_augment/pretrain_expert.py ]
 #   Synopsis     [ the spec augment transformer pretrain expert ]
 #   Author       [ Andy T. Liu (https://github.com/andi611) ]
 #   Copyright    [ Copyleft(c), Speech Lab, NTU, Taiwan ]
@@ -12,8 +12,8 @@
 ###############
 from torch.utils.data import DataLoader
 #-------------#
-from s3prl.pretrain.mockingjay.pretrain_expert import UpstreamPretrainExpert as MockingjayPretrainExpert
-from s3prl.pretrain.spec_augment.dataset import KaldiAcousticDataset, OnlineAcousticDataset
+from pretrain.mockingjay.pretrain_expert import UpstreamPretrainExpert as MockingjayPretrainExpert
+from pretrain.spec_augment.dataset import KaldiAcousticDataset, OnlineAcousticDataset
 
 
 ####################

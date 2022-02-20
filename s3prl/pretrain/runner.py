@@ -23,8 +23,8 @@ import torch.nn as nn
 from tensorboardX import SummaryWriter
 import numpy as np
 #-------------#
-from s3prl.optimizers import get_optimizer
-from s3prl.schedulers import get_scheduler
+from optimizers import get_optimizer, get_grouped_parameters
+from schedulers import get_scheduler
 
 
 ##########
@@ -40,12 +40,12 @@ class Runner():
         self.config = config
         self.logger = SummaryWriter(args.expdir)                                                 
 
-        self.init_ckpt = torch.load(self.args.past_exp, map_location='cpu') if self.args.past_exp else {}
+        self.init_ckpt = torch.load(self.args.init_ckpt, map_location='cpu') if self.args.init_ckpt else {}
         self.upstream = self._get_upstream()
 
 
     def _get_upstream(self):
-        init_upstream = self.init_ckpt.get('Config')
+        init_upstream = self.init_ckpt.get('Upstream_Config')
         if init_upstream:
             self.args.upstream_config = init_upstream
         module_path = f'pretrain.{self.args.upstream}.pretrain_expert'
@@ -65,6 +65,9 @@ class Runner():
         if self.init_ckpt != {}:
             print('[Runner] - Loading upstream weights from the previous experiment')
             upstream.load_model(self.init_ckpt)
+        if hasattr(upstream, 'loss_to_device'):
+            print('[Runner] - Loss to device')
+            upstream.loss_to_device()
         return upstream
 
 
@@ -75,8 +78,9 @@ class Runner():
             self.config['optimizer']
         )
 
-        init_optimizer = self.init_ckpt.get('Optimizer')
-        if init_optimizer:
+        if self.init_ckpt != {}:
+            init_optimizer = self.init_ckpt.get('Optimizer')
+            assert init_optimizer
             print('[Runner] - Loading optimizer weights from the previous experiment')
             optimizer.load_state_dict(init_optimizer)
         return optimizer
@@ -89,8 +93,9 @@ class Runner():
             self.config['scheduler']
         )
 
-        init_scheduler = self.init_ckpt.get('Scheduler')
-        if init_scheduler:
+        if self.init_ckpt != {}:
+            init_scheduler = self.init_ckpt.get('Scheduler')
+            assert init_scheduler
             print('[Runner] - Loading scheduler weights from the previous experiment')
             scheduler.load_state_dict(init_scheduler)
         return scheduler
@@ -102,23 +107,22 @@ class Runner():
 
         # prepare data
         gradient_accumulate_steps = self.config['runner']['gradient_accumulate_steps']
-        print('[Runner] - Accumulated batch size:', 
-              self.config['pretrain_expert']['datarc']['train_batch_size'] * gradient_accumulate_steps)
+        train_batch_size = self.config['pretrain_expert']['datarc']['train_batch_size']
+        print('[Runner] - Accumulated batch size:', train_batch_size * gradient_accumulate_steps)
         dataloader = self.upstream.get_train_dataloader()
 
         # set epoch
         n_epochs = self.config['runner']['n_epochs']
         if n_epochs > 0: 
             total_steps = int(n_epochs * len(dataloader.dataset) / gradient_accumulate_steps)
-            self.config['runner']['total_steps'] = total_steps
             print(f'[Runner] - Training for {n_epochs} epochs, which is equivalent to {total_steps} steps')
         else:
             total_steps = self.config['runner']['total_steps']
             n_epochs = int(total_steps * gradient_accumulate_steps / len(dataloader.dataset))
             print(f'[Runner] - Training for {total_steps} steps, which is approximately {n_epochs} epochs')
 
-        assert self.config['runner']['total_steps'] > self.config['runner']['log_step']
-        assert self.config['runner']['total_steps'] > self.config['runner']['save_step']
+        assert total_steps > self.config['runner']['log_step']
+        assert total_steps > self.config['runner']['save_step']
 
         # set amp
         amp = self.config['runner'].get('fp16', False)
@@ -127,7 +131,7 @@ class Runner():
             scaler = torch.cuda.amp.GradScaler()
 
         # set optimizer
-        model_params = [self.upstream]
+        model_params = [self.upstream.model]
         optimizer = self._get_optimizer(model_params)
 
         # set scheduler
@@ -136,7 +140,7 @@ class Runner():
             scheduler = self._get_scheduler(optimizer)
 
         # set progress bar
-        pbar = tqdm(total=self.config['runner']['total_steps'], dynamic_ncols=True, desc='overall')
+        pbar = tqdm(total=total_steps, dynamic_ncols=True, desc='overall')
         init_step = self.init_ckpt.get('Step')
         if init_step:
             pbar.n = init_step
@@ -222,7 +226,7 @@ class Runner():
                     else:
                         self.logger.add_scalar(f'{prefix}lr', self.config['optimizer']['lr'], global_step=global_step)
                     # log norm
-                    self.logger.add_scalar(f'{prefix}gradient norm', grad_norm, global_step=global_step)
+                    self.logger.add_scalar(f'{prefix}gradient-norm', grad_norm, global_step=global_step)
 
                     # log customized contents
                     self.upstream.log_records(
@@ -245,9 +249,9 @@ class Runner():
 
                     all_states = {
                         'Optimizer': optimizer.state_dict(),
-                        'Step': global_step,
+                        'Step': pbar.n,
                         'Args': self.args,
-                        'Runner': self.config,
+                        'Config': self.config,
                     }
                     all_states = self.upstream.add_state_to_save(all_states)
 

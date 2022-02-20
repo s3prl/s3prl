@@ -1,0 +1,22 @@
+# All hyper-parameters taken from the official implementation at
+# https://github.com/iamyuanchung/VQ-APC/tree/96230cc358b174b736b4c0e7664b3e72b304d9b0
+
+model:
+  paras:
+    num_layers: 3
+    hidden_size: 512
+    dropout: 0.1
+    residual: True
+
+task:
+  sequence_length: 1500
+  n_future: 5
+
+data:
+  audio:
+    feat_type: 'fbank'                                           # Feature type
+    feat_dim: 80                                            # Feature dimension
+    frame_length: 25                                        # Window size in ms
+    frame_shift: 10                                            # Hop size in ms
+    decode_wav: False
+    cmvn: True                      # Apply uttr.-wised CMVN on Mel spectrogram
