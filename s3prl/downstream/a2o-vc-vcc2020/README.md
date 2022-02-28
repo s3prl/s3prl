@@ -5,7 +5,28 @@ If you have any questions, please open an issue, or contact through email: wen.c
 
 **Note**: This is the **any-to-one** recipe. For the **any-to-any** recipe, please go to the [a2a-vc-vctk](../a2a-vc-vctk/) recipe.
 
-## Task
+We have a [preprint paper](https://arxiv.org/abs/2110.06280) describing this toolkit. If you find this recipe useful, please consider citing:
+```
+@inproceedings{huang2021s3prl,
+  title={S3PRL-VC: Open-source Voice Conversion Framework with Self-supervised Speech Representations},
+  author={Huang, Wen-Chin and Yang, Shu-Wen and Hayashi, Tomoki and Lee, Hung-Yi and Watanabe, Shinji and Toda, Tomoki},
+  booktitle={Proc. ICASSP},
+  year={2022}
+}
+```
+
+## Table of contents
+- [Task](#task)
+- [Implementation](#implementation)
+- [Dependencies](#dependencies)
+- [Usage](#usage)
+  - [Preparation](#preparation)
+  - [Dry run / benchmarking an upstream](#dryrun)
+  - [Advanced usage](#advanced)
+  - (**NEW!!**) [Custom decoding](#custom)
+
+
+## <a name="task"></a> Task
 
 In this downstream, we focus on training any-to-one (A2O) voice conversion (VC) models on the two tasks in **voice conversion challenge 2020 (VCC2020)**
 The first task is _intra-lingual VC_, and the second task is _cross-lingual VC_.
@@ -14,7 +35,7 @@ For more details about the two tasks and the VCC2020 dataset, please refer to th
 - Yi, Z., Huang, W., Tian, X., Yamagishi, J., Das, R.K., Kinnunen, T., Ling, Z., Toda, T. (2020) Voice Conversion Challenge 2020 –- Intra-lingual semi-parallel and cross-lingual voice conversion –-. Proc. Joint Workshop for the Blizzard Challenge and Voice Conversion Challenge 2020, 80-98, DOI: 10.21437/VCC_BC.2020-14. [[paper](https://www.isca-speech.org/archive_v0/VCC_BC_2020/pdfs/VCC2020_paper_13.pdf)] [[database](https://github.com/nii-yamagishilab/VCC2020-database)]
 
 
-## Implementation
+## <a name="implementation"></a> Implementation
 
 We implement three models: the **simple** model, **simple-AR** model and **Taco2-AR** model. The simple model and the Taco2-AR model resemble the top systems in VCC2018 and VCC2020, respectively. They are described in the following papers:
 - Liu, L., Ling, Z., Jiang, Y., Zhou, M., Dai, L. (2018) WaveNet Vocoder with Limited Training Data for Voice Conversion. Proc. Interspeech 2018, 1983-1987, DOI: 10.21437/Interspeech.2018-1190. [[paper](https://www.isca-speech.org/archive/Interspeech_2018/pdfs/1190.pdf)]
@@ -27,7 +48,7 @@ We made several modifications.
 4. **Training strategy**: instead of pretraining on a multispeaker dataset first, we directly trained on the target speaker training set.
 5. **Vocoder**: instead of using the WaveNet vocoder, we offer non-AR neural vocoders including [Parallel WaveGAN](https://arxiv.org/abs/1910.11480) (PWG) and [Hifi-GAN](https://arxiv.org/abs/2010.05646), implemented in the [open source project](https://github.com/kan-bayashi/ParallelWaveGAN) developed by [kan-bayashi](https://github.com/kan-bayashi).
 
-## Dependencies:
+## <a name="dependencies"></a> Dependencies:
 
 - `parallel-wavegan`
 - `fastdtw`
@@ -38,9 +59,9 @@ We made several modifications.
 
 You can install them via the `requirements.txt` file.
 
-## Usage
+## <a name="usage"></a> Usage
 
-### Preparation
+### <a name="preparation"></a> Preparation
 ```
 # Download the VCC2020 dataset.
 cd <root-to-s3prl>/s3prl/downstream/a2o-vc-vcc2020
@@ -52,7 +73,7 @@ cd ../
 ./vocoder_download.sh ./
 ```
 
-### Dry run / benchmarking an upstream
+### <a name="dryrun"></a> Dry run / benchmarking an upstream
 #### Training 
 The following command starts a dry run (testing run) given any `<upstream>`.
 ```
@@ -82,7 +103,7 @@ Mean MCD, f0RMSE, f0CORR, DDUR, CER: 7.79 39.02 0.422 0.356 7.0 15.4
 ```
 And detailed utterance-wise evaluation results can be found in `<root-to-s3prl>/s3prl/result/downstream/a2o_vc_vcc2020_taco2_ar_<trgspk>_<upstream>/<step>/test/<vocoder_name>_wav/obj.log`.
 
-### Advanced usage
+### <a name="advanced"></a> Advanced usage
 This section describes advanced usage, targeted at potential VC researchers that wants to evaluate the VC performance using different models in a more efficient way.
 
 #### Batch training
@@ -113,14 +134,35 @@ Using the example above, we can run:
 ```
 The best result will then be automatically shown.
 
-## Citation
+### <a name="custom"></a> Custom decoding
 
-If you find this recipe useful, please consider citing following paper:
+Since we are training in the A2O setting, the model accepts source speech from arbitrary speakers.
+
+#### Preparation
+
+Prepare a text file, which each line corresponding to an **absolute** path to a source speech file. Here's an example:
+
 ```
-@article{huang2021s3prl,
-  title={S3PRL-VC: Open-source Voice Conversion Framework with Self-supervised Speech Representations},
-  author={Huang, Wen-Chin and Yang, Shu-Wen and Hayashi, Tomoki and Lee, Hung-Yi and Watanabe, Shinji and Toda, Tomoki},
-  journal={arXiv preprint arXiv:2110.06280},
-  year={2021}
-}
+/mrnas02/internal/wenchin-h/Experiments/s3prl-merge/s3prl/downstream/a2a-vc-vctk/data/wenchin_recording/wenchin_001.wav
+/mrnas02/internal/wenchin-h/Experiments/s3prl-merge/s3prl/downstream/a2a-vc-vctk/data/wenchin_recording/wenchin_002.wav
+/mrnas02/internal/wenchin-h/Experiments/s3prl-merge/s3prl/downstream/a2a-vc-vctk/data/wenchin_recording/wenchin_003.wav
+/mrnas02/internal/wenchin-h/Experiments/s3prl-merge/s3prl/downstream/a2a-vc-vctk/data/wenchin_recording/wenchin_004.wav
+/mrnas02/internal/wenchin-h/Experiments/s3prl-merge/s3prl/downstream/a2a-vc-vctk/data/wenchin_recording/wenchin_005.wav
 ```
+
+#### Decoding
+
+After model training finishes (by following either the [Dry run]($dryrun) or the [Advanced usage](#advanced) sections), use the following script to perform custom decoding:
+
+```
+cd <root-to-s3prl>/s3prl
+./downstream/a2o-vc-vcc2020/custom_decode.sh <upstream> <trgspk> <tag> <ep> <vocoder_dir> <list_path>
+```
+
+For example:
+
+```
+./downstream/a2o-vc-vcc2020/custom_decode.sh vq_wav2vec TEF1 ar_taco2 10000 downstream/a2o-vc-vcc2020/hifigan_vctk downstream/a2o-vc-vcc2020/data/lists/custom_eval.yaml
+```
+
+After the decoding process ends, you should be able to find the generated files in `result/downstream/a2o_vc_vcc2020_<tag>_<trgspk>_<upstream>/custom_test/`.
