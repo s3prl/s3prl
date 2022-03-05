@@ -1,11 +1,12 @@
 from typing import List
 from pathlib import Path
 
+import torch
 from torch.nn.utils.rnn import pad_sequence
 
 from s3prl import init, Output
 from .base import Dataset
-from s3prl.util import Loader
+from s3prl.util.loader import Loader, TorchaudioLoader
 
 
 class UtteranceClassificationDataset(Dataset):
@@ -17,40 +18,52 @@ class UtteranceClassificationDataset(Dataset):
     Hence, the dataset specific operations should be done only in Preprocessors.
     """
 
-    @init.method
     def __init__(
         self,
-        sources: List[Path],
-        labels: List[str],
-        categories: List[str],
+        source: List[Path],
+        label: List[str],
+        category: List[str],
         source_loader: Loader = None,
     ) -> None:
         """
         Args:
-            sources: list of sources (paths) of the wavforms
-            utterance_source_loader:
-                Loader, loader.load(utterance_sources[0]) to get a actual wavform
-                which is in torch.Tensor and dim() == 1 (single channel)
-            labels: list of labels, the order should be sync with utterance_sources
-            categories:
+            source:
+                list of sources (paths) of the input
+                e.g. [Path("path1"), Path("path2"), ...]
+            label:
+                list of labels, the order should be sync with sources
+                e.g. ["happy", "sad", ...]
+            category:
                 list of strings. all the possible classes. should be the super set for utterance_labels
+                e.g. ["happy", "sad", "neutral", "angry"]
+            source_loader:
+                Loader, source_loader.load(sources[0]) to get a actual **input**
+                **input** (torch.Tensor): input.dim() == 2, (timestamps, hidden_size)
+                    If the input is a waveform, (timestamps, 1)
         """
         super().__init__()
+        self.sources = source
+        self.labels = label
+        self.categories = category
+        self.source_loader = source_loader or TorchaudioLoader()
 
     def __getitem__(self, index):
-        path = self.arguments.utterance_sources[index]
-        data = self.arguments.utterance_source_loader.load(path)
-        label = self.arguments.categories.index(self.arguments.utterance_labels[index])
-        return data, label
+        path = self.sources[index]
+        x = self.source_loader.load(path).output
+        label_string = self.labels[index]
+        return Output(x=x, label=label_string)
 
-    def prepare_data(self):
-        return self.arguments.categories
+    def __len__(self):
+        return len(self.sources)
 
     def collate_fn(self, samples):
-        datas, labels = [], [], []
-        for data, label in samples:
-            datas.append(data)
-            labels.append(label)
-        wavs_len = [len(wav) for wav in wavs]
-        wavs = pad_sequence(datas, batch_first=True)
-        return Output(wav=wavs, wav_len=wavs_len)
+        xs, labels = [], []
+        for sample in samples:
+            xs.append(sample.x)
+            labels.append(sample.label)
+        xs_len = torch.LongTensor([len(x) for x in xs])
+        xs = pad_sequence(xs, batch_first=True)
+        return Output(x=xs, x_len=xs_len, label=labels)
+
+    def statistics(self):
+        return Output()

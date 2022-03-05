@@ -4,6 +4,5 @@ s3prl/util
 s3prl/task
 s3prl/metric
 s3prl/dataset
-s3prl/interface
 s3prl/preprocessor
 test

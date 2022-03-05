@@ -1,16 +1,13 @@
 import logging
 
-from s3prl.util import Log, LogDataType
+from s3prl import Logs
 
 logger = logging.getLogger(__name__)
 
 def test_log():
-    logs = [
-        Log("single scalar", 3, LogDataType.SCALAR),
-        Log("scalar lists", 4, LogDataType.SCALAR),
-        Log("text", "hellow", LogDataType.TEXT),
-    ]
-    for log in logs:
+    logs = Logs()
+    logs.add_scalar("loss", 4)
+    for log in logs.values():
         logger.info(log.name)
         logger.info(log.data)
         logger.info(log.data_type)

@@ -9,7 +9,6 @@ from typing import Any
 from argparse import Namespace
 from dataclasses import dataclass
 
-from .interface import Interface
 from .functools import resolve_qualname
 
 logger = logging.getLogger(__name__)
@@ -48,21 +47,11 @@ def is_method_decorated(func: types.FunctionType):
 
 def method(func: types.FunctionType):
     assert inspect.isfunction(func)
-    assert not is_method_decorated(func)
 
     @functools.wraps(func)
     def decorated_func(*args, **kwargs):
         # execute the original init
         result = func(*args, **kwargs)
-
-        # duck type check
-        sig = inspect.signature(func)
-        params = sig.parameters
-        ba = sig.bind(*args, **kwargs)
-        for param, argument in ba.arguments.items():
-            annotation = params[param].annotation
-            if inspect.isclass(annotation) and issubclass(annotation, Interface):
-                annotation.interface(argument)
 
         # save init configs
         func_from_importlib = resolve_qualname(
@@ -93,13 +82,7 @@ def method(func: types.FunctionType):
             ),
         )
 
-        if func.__name__ == "__init__":
-            sig = inspect.signature(func)
-            params = list(sig.parameters.keys())
-            arguments = sig.bind(obj, *args, **kwargs).arguments
-            arguments.pop(params[0])
-            obj.arguments = Namespace(**arguments)
-        else:
+        if func.__name__ != "__init__":
             return obj
 
     set_method_decorated(decorated_func, True)

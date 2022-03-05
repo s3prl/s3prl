@@ -1,23 +1,32 @@
+import abc
 import torch
 import torchaudio
 
-from s3prl import Object, init
+from s3prl import Object, init, Output
 
 
 class Loader(Object):
-    @init.method
+    def __init__(self):
+        super().__init__()
+
+    @abc.abstractmethod
+    def load(self, source):
+        raise NotImplementedError
+
+
+class PseudoLoader(Loader):
     def __init__(self):
         super().__init__()
 
     def load(self, source):
-        return torch.randn(160000)
+        return Output(output=torch.randn(160000, 1))
 
 
 class TorchaudioLoader(Loader):
-    @init.method
     def __init__(
-        self, sample_rate: int = None, torch_audio_backend: str = None
+        self, sample_rate: int = 16000, torch_audio_backend: str = "sox_io"
     ) -> None:
+        assert isinstance(sample_rate, int)
         self.sample_rate = sample_rate
         self.torch_audio_backend = torch_audio_backend
 
@@ -27,4 +36,5 @@ class TorchaudioLoader(Loader):
         wav, sr = torchaudio.load(source)
         if self.sample_rate is not None:
             assert self.sample_rate == sr
-        return wav
+        wav = wav.view(-1, 1)
+        return Output(output=wav)

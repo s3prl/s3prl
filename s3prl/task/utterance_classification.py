@@ -3,37 +3,35 @@ import logging
 from typing import List
 from pathlib import Path
 from functools import partial
-from argparse import Namespace
 
 import torch
-import torch.nn as nn
 import torch.nn.functional as F
 
-from s3prl import init, Module, Output
 from s3prl.metric import accuracy
-from s3prl.util import Log, LogDataType
+from s3prl import Module, Output, Logs
 
 from . import Task
 
 logger = logging.getLogger(__name__)
 
 
-class UtteranceClassifier(Module):
+class UtteranceClassifierExample(Module):
     """
     Attributes:
         input_size: int
         output_size: int
     """
-    @init.method
+
     def __init__(self, input_size=3, output_size=4):
         super().__init__()
         self.input_size = input_size
         self.output_size = output_size
 
-    def forward(self, x):
+    def forward(self, x, x_len):
         """
         Args:
             x (torch.Tensor): (batch_size, timestemps, input_size)
+            x_len (torch.LongTensor): (batch_size, )
 
         Return:
             output (torch.Tensor): (batch_size, output_size)
@@ -47,10 +45,10 @@ class UtteranceClassification(Task):
     """
     Attributes:
         input_size (int): defined by model.input_size
+        output_size (int): defined by len(categories)
     """
 
-    @init.method
-    def __init__(self, model: UtteranceClassifier, categories: List[str]):
+    def __init__(self, model: UtteranceClassifierExample, categories: List[str]):
         """
         model.output_size should match len(categories)
 
@@ -67,40 +65,44 @@ class UtteranceClassification(Task):
         self.categories = categories
         assert self.model.output_size == len(categories)
 
-    def forward(self, x: torch.Tensor):
+    @property
+    def input_size(self):
+        return self.model.input_size
+
+    @property
+    def output_size(self):
+        return len(self.categories)
+
+    def forward(self, x: torch.Tensor, x_len: torch.LongTensor):
         """
         Args:
             x (torch.Tensor): (batch_size, timestamps, input_size)
+            x_len (torch.LongTensor): (batch_size, )
 
         Return:
             logits (torch.Tensor): (batch_size, timestamps, output_size)
             prediction (list): prediction strings
         """
-        logits: torch.Tensor = self.model(x)
-        return Output(logits=logits)
+        logits: torch.Tensor = self.model(x, x_len).slice(1)
+        predictions = [
+            self.categories[index]
+            for index in logits.argmax(dim=-1).detach().cpu().tolist()
+        ]
+        return Output(logit=logits, prediction=predictions)
 
-    def inference(self, x: torch.Tensor):
-        """
-        Decode to human readable: solve the task
-        """
-        y = self(x).output
-        # decoding
-        decode = self.decoded(y)
-        pass
-
-    def _general_forward(self, x: torch.Tensor, label: list, batch_idx: int):
-        logits, prediction = self(x)
+    def _general_forward(self, x: torch.Tensor, x_len: torch.LongTensor, label: list):
+        logits, prediction = self(x, x_len).slice(2)
         y = torch.LongTensor([self.categories.index(l) for l in label]).to(x.device)
         loss = F.cross_entropy(logits, y)
 
-        def callback_saver(dir: str, logits: list):
-            torch.save(dict(logits=logits), Path(dir) / f"{batch_idx}.logits")
+        logs = Logs()
+        logs.add_hidden_state("logits", logits)
 
         return Output(
             loss=loss,
-            saver=partial(callback_saver, logits=logits.detach().cpu()),
             prediction=prediction,
             label=label,
+            logs=logs,
         )
 
     def _general_reduction(self, batch_results: list, on_epoch_end: bool = None):
@@ -113,14 +115,15 @@ class UtteranceClassification(Task):
         acc = accuracy(predictions, labels)
         loss = (sum(losses) / len(losses)).item()
 
+        logs = Logs()
+        logs.add_scalar("loss", loss)
+        logs.add_scalar("accuracy", acc)
+
         return Output(
-            logs=[
-                Log("loss", loss, LogDataType.SCALAR),
-                Log("accuracy", acc, LogDataType.SCALAR),
-            ],
+            logs=logs,
         )
 
-    def training_step(self, x: torch.Tensor, label: list, batch_idx: int):
+    def train_step(self, x: torch.Tensor, x_len: torch.LongTensor, label: list):
         """
         Each forward step in the training loop
 
@@ -142,9 +145,9 @@ class UtteranceClassification(Task):
                 this is not required, just to let the end-user get as many info as possible
                 so that people can do more things with the internal states
         """
-        return self._general_forward(x, label)
+        return self._general_forward(x, x_len, label)
 
-    def training_reduction(self, batch_results: list, on_epoch_end: bool = None):
+    def train_reduction(self, batch_results: list, on_epoch_end: bool = None):
         """
         After several forward steps, outputs should be collected untouched (but detaching the Tensors)
         into a list and passed as batch_results. This function examine the collected items and compute
@@ -165,13 +168,13 @@ class UtteranceClassification(Task):
         """
         return self._general_reduction(batch_results, on_epoch_end)
 
-    def validation_step(self, x: torch.Tensor, label: list, batch_idx: int):
-        return self._general_forward(x, label)
+    def valid_step(self, x: torch.Tensor, x_len: torch.LongTensor, label: list):
+        return self._general_forward(x, x_len, label)
 
-    def test_step(self, x: torch.Tensor, label: list, batch_idx: int):
-        return self._general_forward(x, label)
+    def test_step(self, x: torch.Tensor, x_len: torch.LongTensor, label: list):
+        return self._general_forward(x, x_len, label)
 
-    def validation_reduction(self, batch_results: list, on_epoch_end: bool = None):
+    def valid_reduction(self, batch_results: list, on_epoch_end: bool = None):
         return self._general_reduction(batch_results, on_epoch_end)
 
     def test_reduction(self, batch_results: list, on_epoch_end: bool = None):

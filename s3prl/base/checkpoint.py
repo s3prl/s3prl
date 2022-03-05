@@ -15,11 +15,8 @@ class Checkpoint:
     @classmethod
     def __init_subclass__(cls) -> None:
         super().__init_subclass__()
+        cls.__init__ = init.method(cls.__init__)
 
-        assert init.is_method_decorated(cls.__init__), (
-            f"Please decorate the __init__ of the {__class__}'s child class "
-            f"with @init.method: {cls.__init__.__module__}.{cls.__init__.__qualname__}"
-        )
         for funcname in ["on_checkpoint", "on_from_checkpoint"]:
             func: types.FunctionType = getattr(cls, funcname)
             if func != getattr(__class__, funcname):
@@ -50,6 +47,9 @@ class Checkpoint:
 
     @classmethod
     def from_checkpoint(cls, checkpoint: dict):
+        if "state_dict" in checkpoint and not issubclass(cls, s3prl.Module):
+            return s3prl.Module.from_checkpoint(checkpoint)
+
         init_configs = checkpoint["init_configs"]
         object = init.deserialize(init_configs)
         object.on_from_checkpoint(checkpoint)

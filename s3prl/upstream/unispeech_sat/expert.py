@@ -36,9 +36,9 @@ class UpstreamExpert(UpstreamBase):
         super().__init__(**kwargs)
 
         checkpoint = torch.load(ckpt)
-        self.cfg = WavLMConfig(checkpoint['cfg'])
+        self.cfg = WavLMConfig(checkpoint["cfg"])
         self.model = WavLM(self.cfg)
-        self.model.load_state_dict(checkpoint['model'])
+        self.model.load_state_dict(checkpoint["model"])
 
         if len(self.hooks) == 0:
             module_name = "self.model.encoder.layers"
@@ -48,6 +48,20 @@ class UpstreamExpert(UpstreamBase):
                     lambda input, output: input[0].transpose(0, 1),
                 )
             self.add_hook("self.model.encoder", lambda input, output: output[0])
+
+        self._init_layerdrop = self.model.encoder.layerdrop
+
+    @property
+    def layer_drop(self):
+        return self.model.encoder.layerdrop
+
+    def set_layer_drop(self, layerdrop: float = None):
+        if isinstance(layerdrop, float):
+            self.model.encoder.layerdrop = layerdrop
+        elif layerdrop is None:
+            self.model.encoder.layerdrop = self._init_layerdrop
+        else:
+            raise ValueError("layerdrop can only be float or None")
 
     def get_downsample_rates(self, key: str) -> int:
         return 320

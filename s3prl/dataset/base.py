@@ -5,7 +5,6 @@ from torch.utils.data import Dataset
 from s3prl import Object, init
 
 class Dataset(Object, Dataset):
-    @init.method
     def __init__(self):
         super().__init__()
 

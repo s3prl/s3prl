@@ -1,14 +1,19 @@
 import torch
-import torch.nn as nn
 
-from s3prl import init
-from . import Module
+from . import NNModule
 
 
-class MeanPooling(Module):
-    @init.method
+class MeanPooling(NNModule):
     def __init__(self):
         super().__init__()
+
+    @property
+    def input_size(self):
+        raise ValueError
+
+    @property
+    def output_size(self):
+        raise ValueError
 
     def forward(self, xs, xs_len=None):
         pooled_list = []

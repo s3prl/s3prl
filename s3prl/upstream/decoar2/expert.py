@@ -1,8 +1,9 @@
-#-------------#
+# -------------#
 import torch
 import torch.nn as nn
 from torch.nn.utils.rnn import pad_sequence
-#-------------#
+
+# -------------#
 from .decoar2 import Decoar2
 from .audio import create_transform
 from collections import OrderedDict
@@ -24,7 +25,7 @@ class UpstreamExpert(UpstreamBase):
 
     def __init__(self, ckpt, **kwargs):
         super(UpstreamExpert, self).__init__()
-        models = torch.load(ckpt)['model']
+        models = torch.load(ckpt)["model"]
         self.model = Decoar2()
         component_state_dict = OrderedDict()
         for key in models.keys():
@@ -43,6 +44,20 @@ class UpstreamExpert(UpstreamBase):
                     lambda input, output: input[0].transpose(0, 1),
                 )
             self.add_hook("self.model.encoder", lambda input, output: output[0])
+
+        self._init_layerdrop = self.model.encoder.layerdrop
+
+    @property
+    def layer_drop(self):
+        return self.model.encoder.layerdrop
+
+    def set_layer_drop(self, layerdrop: float = None):
+        if isinstance(layerdrop, float):
+            self.model.encoder.layerdrop = layerdrop
+        elif layerdrop is None:
+            self.model.encoder.layerdrop = self._init_layerdrop
+        else:
+            raise ValueError("layerdrop can only be float or None")
 
     def get_downsample_rates(self, key: str) -> int:
         return 320
@@ -66,9 +81,7 @@ class UpstreamExpert(UpstreamBase):
         size = max(feat_lengths)
         features = pad_sequence(features, batch_first=True)
 
-        padding_mask = (
-            torch.BoolTensor(features.shape).fill_(False).to(features.device)
-        )
+        padding_mask = torch.BoolTensor(features.shape).fill_(False).to(features.device)
 
         for i in range(len(feat_lengths)):
             diff = feat_lengths[i] - size

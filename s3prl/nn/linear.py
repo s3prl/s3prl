@@ -2,15 +2,13 @@ from typing import List
 
 import torch
 import torch.nn as nn
-from s3prl import init
-from s3prl.base.output import Output
+from s3prl import Output
 
-from . import Module
+from . import NNModule
 from .pooling import MeanPooling
 
 
-class FrameLevelLinear(Module):
-    @init.method
+class FrameLevelLinear(NNModule):
     def __init__(
         self,
         input_size: int,
@@ -40,17 +38,26 @@ class FrameLevelLinear(Module):
     def forward(self, xs):
         ys = self.hidden_layers(xs)
         ys = self.model(ys)
-        return ys
+        return Output(output=ys)
 
 
-class MeanPoolingLinear(Module):
-    @init.method
-    def __init__(self, input_size: int, output_size: int, **kwargs):
+class MeanPoolingLinear(NNModule):
+    def __init__(self, input_size: int, output_size: int, hidden_size: int = 256, **kwargs):
         super().__init__()
+        self.pre_linear = nn.Linear(input_size, hidden_size)
         self.pooling = MeanPooling()
-        self.linear = FrameLevelLinear(input_size, output_size)
+        self.post_linear = nn.Linear(hidden_size, output_size)
+
+    @property
+    def input_size(self):
+        return self.arguments.input_size
+
+    @property
+    def output_size(self):
+        return self.arguments.output_size
 
     def forward(self, xs, xs_len=None):
+        xs = self.pre_linear(xs)
         xs_pooled = self.pooling(xs, xs_len)
-        ys = self.linear(xs_pooled)
-        return ys
+        ys = self.post_linear(xs_pooled)
+        return Output(output=ys)

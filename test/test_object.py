@@ -1,32 +1,19 @@
-import pytest
+import inspect
+import logging
 
-from s3prl import Object, init
+from s3prl import Object
 
+logger = logging.getLogger(__name__)
 
 class Child(Object):
-    @init.method
-    def __init__(self, x, y):
+    def __init__(self, x, y, *others, a=3, b=4, **kwargs):
         super().__init__()
+        assert self.arguments.x == x
+        assert self.arguments.y == y
+        assert self.arguments.a == a
 
 
 def test_object():
-    class FirstChild(Object):
-        @init.method
-        def __init__(self):
-            super().__init__()
-
-    with pytest.raises(AssertionError):
-
-        class SecondChild(Object):
-            def __init__(self):
-                super().__init__()
-
-    with pytest.raises(AssertionError):
-
-        class FirstChildChild(FirstChild):
-            def __init__(self):
-                super().__init__()
-
     child = Child(3, 4)
-    assert child.arguments.x == 3
-    assert child.arguments.y == 4
+    child = Child(3, 4, a=5, c=6)
+    child = Child(3, 4, 5, 6, a=5, c=6)

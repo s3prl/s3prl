@@ -16,7 +16,6 @@ class LinearIOInterfaceCorrect(IOInterface, LinearInterface):
 
 
 class CompositeModel(Module):
-    @init.method
     def __init__(self, upstream: LinearIOInterfaceCorrect):
         super().__init__()
 

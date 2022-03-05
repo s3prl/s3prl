@@ -39,9 +39,7 @@ class UpstreamExpert(UpstreamBase):
             "0.10.2"
         ), "Please install the fairseq master branch."
 
-        model, cfg, task = fairseq.checkpoint_utils.load_model_ensemble_and_task(
-            [ckpt]
-        )
+        model, cfg, task = fairseq.checkpoint_utils.load_model_ensemble_and_task([ckpt])
         self.model = model[0]
         self.task = task
 
@@ -53,6 +51,20 @@ class UpstreamExpert(UpstreamBase):
                     lambda input, output: input[0].transpose(0, 1),
                 )
             self.add_hook("self.model.encoder", lambda input, output: output[0])
+
+        self._init_layerdrop = self.model.encoder.layerdrop
+
+    @property
+    def layer_drop(self):
+        return self.model.encoder.layerdrop
+
+    def set_layer_drop(self, layerdrop: float = None):
+        if isinstance(layerdrop, float):
+            self.model.encoder.layerdrop = layerdrop
+        elif layerdrop is None:
+            self.model.encoder.layerdrop = self._init_layerdrop
+        else:
+            raise ValueError("layerdrop can only be float or None")
 
     def get_downsample_rates(self, key: str) -> int:
         return 320
