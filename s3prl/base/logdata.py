@@ -35,6 +35,9 @@ class Logs(Container):
         setitem(self, name, LogData(name, data, data_type))
 
     def add_scalar(self, name, data):
+        if isinstance(data, torch.Tensor):
+            assert data.dim() == 0
+            data = data.item()
         self.add_data(name, data, LogDataType.SCALAR)
 
     def add_text(self, name, data):

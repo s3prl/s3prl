@@ -1,3 +1,4 @@
+import os
 import logging
 from tqdm import tqdm
 from pathlib import Path
@@ -5,7 +6,7 @@ from pathlib import Path
 from s3prl.util.loader import TorchaudioLoader
 from s3prl import Object, Output, cache
 
-PSEUDO_ALL_LABELS = ["happy", "sad", "angry", "neutral"]
+SPLIT_FILE_URL = "https://www.robots.ox.ac.uk/~vgg/data/voxceleb/meta/iden_split.txt"
 
 
 class VoxCeleb1SIDPreprocessor(Object):
@@ -14,7 +15,14 @@ class VoxCeleb1SIDPreprocessor(Object):
         self.speaker_num = 1251
 
         dataset_root = Path(dataset_root).resolve()
-        self.train_path, self.valid_path, self.test_path = self.standard_split(dataset_root)
+
+        split_filename = SPLIT_FILE_URL.split("/")[-1]
+        if not (dataset_root / split_filename).is_file():
+            os.system(f"wget {SPLIT_FILE_URL} -O {str(dataset_root)}/{split_filename}")
+
+        self.train_path, self.valid_path, self.test_path = self.standard_split(
+            dataset_root, split_filename
+        )
         self.train_label = self.build_label(self.train_path)
         self.valid_label = self.build_label(self.valid_path)
         self.test_label = self.build_label(self.test_path)
@@ -34,8 +42,8 @@ class VoxCeleb1SIDPreprocessor(Object):
 
     @staticmethod
     @cache
-    def standard_split(dataset_root):
-        meta_data = dataset_root / "veri_test_class.txt"
+    def standard_split(dataset_root, split_filename):
+        meta_data = dataset_root / split_filename
         usage_list = open(meta_data, "r").readlines()
 
         train, valid, test = [], [], []

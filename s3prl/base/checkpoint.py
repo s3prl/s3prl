@@ -64,5 +64,5 @@ class Checkpoint:
     def load_checkpoint(cls, path: str):
         # TODO: More sophisticated loading. E.g. different objects use different loader
         # Might be saving to a directory instead of just a file
-        checkpoint: dict = torch.load(path)
+        checkpoint: dict = torch.load(str(path))
         return cls.from_checkpoint(checkpoint)
