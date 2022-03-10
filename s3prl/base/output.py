@@ -1,7 +1,5 @@
 import inspect
 import functools
-from typing import Any, List, Union
-from collections import OrderedDict
 
 import editdistance
 
@@ -45,29 +43,30 @@ class GeneralOutput(Container):
         cls_init = cls.__init__
 
         @functools.wraps(cls_init)
-        def validated_and_ordered_init(self: __class__, **kwargs):
-            cls_init(self, {})
+        def super_init(self: __class__, *args, **kwargs):
+            super(cls, self).__init__(*args, **kwargs)
 
-            available_names = list(inspect.signature(cls_init).parameters.keys())
-            available_names.remove("self")
+        cls.__init__ = super_init
 
-            for key in list(kwargs.keys()):
-                if key not in available_names:
-                    dists = [
-                        (name, editdistance.eval(key, name)) for name in available_names
-                    ]
-                    sorted_names = [
-                        name for name, dist in sorted(dists, key=lambda x: x[1])
-                    ]
-                    raise ValueError(
-                        f"'{key}' is not a valid key for Output.\n"
-                        f"Consider to use the following existing keys:\n"
-                        f"(top-10 closest) {', '.join(sorted_names[:10])}\n"
-                        f"Or add a new key to the {cls_init.__module__}.{cls_init.__qualname__}"
-                    )
-                self.__setitem__(key, kwargs.pop(key))
+    def __setitem__(self, k, v) -> None:
+        normed_k = self.normalize_key(k)
 
-        cls.__init__ = validated_and_ordered_init
+        cls = self.__class__
+        available_names = list(inspect.signature(cls.__init__).parameters.keys())
+        available_names.remove("self")
+
+        if normed_k not in available_names:
+            dists = [
+                (name, editdistance.eval(normed_k, name)) for name in available_names
+            ]
+            sorted_names = [name for name, dist in sorted(dists, key=lambda x: x[1])]
+            raise ValueError(
+                f"'{normed_k}' is not a valid key for Output.\n"
+                f"Consider to use the following existing keys:\n"
+                f"(top-10 closest) {', '.join(sorted_names[:10])}\n"
+                f"Or add a new key to the {cls.__module__}.{cls.__qualname__}"
+            )
+        super().__setitem__(k, v)
 
     def cacheable(self):
         output = self.__class__()
@@ -81,6 +80,7 @@ class Output(GeneralOutput):
     def __init__(
         self,
         name=None,
+        prefix=None,
         x=None,
         x_len=None,
         output=None,

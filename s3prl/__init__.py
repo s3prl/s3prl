@@ -1,4 +1,4 @@
-from .base import init, cache, Object, Output, Module, Logs
+from .base import init, cache, Object, Output, Module, Logs, LogData, LogDataType
 from .nn import NNModule
 from .task import Task
 from .dataset import Dataset

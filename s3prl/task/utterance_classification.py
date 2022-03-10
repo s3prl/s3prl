@@ -128,7 +128,13 @@ class UtteranceClassification(Task):
             logs=logs,
         )
 
-    def train_step(self, x: torch.Tensor, x_len: torch.LongTensor, label: List[str], name: List[str]):
+    def train_step(
+        self,
+        x: torch.Tensor,
+        x_len: torch.LongTensor,
+        label: List[str],
+        name: List[str],
+    ):
         """
         Each forward step in the training loop
 
@@ -158,7 +164,7 @@ class UtteranceClassification(Task):
         logging, or after exactly an epoch to know the epoch level performance.
 
         Args:
-            batch_results (List[cacheable version of the output of self.trainint_step])
+            batch_results (List[cacheable version of the output of self.train_step])
             on_epoch_end (bool):
                 usually you should keep the same behavior between sub-epoch and epoch level
                 this parameter is here in case you need specific postprocessing which must
@@ -171,10 +177,22 @@ class UtteranceClassification(Task):
         """
         return self._general_reduction(batch_results, on_epoch_end)
 
-    def valid_step(self, x: torch.Tensor, x_len: torch.LongTensor, label: List[str], name: List[str]):
+    def valid_step(
+        self,
+        x: torch.Tensor,
+        x_len: torch.LongTensor,
+        label: List[str],
+        name: List[str],
+    ):
         return self._general_forward(x, x_len, label, name)
 
-    def test_step(self, x: torch.Tensor, x_len: torch.LongTensor, label: List[str], name: List[str]):
+    def test_step(
+        self,
+        x: torch.Tensor,
+        x_len: torch.LongTensor,
+        label: List[str],
+        name: List[str],
+    ):
         return self._general_forward(x, x_len, label, name)
 
     def valid_reduction(self, batch_results: list, on_epoch_end: bool = None):

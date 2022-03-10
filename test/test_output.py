@@ -35,7 +35,9 @@ def test_output():
     assert wav == 7
 
     output = Output(output=3, loss=4)
-    output.new_result = 5
+    output.wav = 6
+    with pytest.raises(ValueError):
+        output.new_result = 5
 
     assert 3 == output.slice(1)
     assert (3, 4) == output.slice(2)

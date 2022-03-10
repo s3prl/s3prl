@@ -62,6 +62,7 @@ class UpstreamDownstreamModel(NNModule):
         self.layer_norm = layer_norm
 
         if not self.upstream_trainable:
+            self.upstream.requires_grad_(False)
             self.exclude_from_state_dict("upstream")
 
         if self.weighted_sum:
@@ -80,8 +81,7 @@ class UpstreamDownstreamModel(NNModule):
         return self.downstream.output_size
 
     def forward(self, wav, wav_len, *args, **kwargs):
-        with torch.set_grad_enabled(self.upstream_trainable):
-            hidden_states, hidden_states_len = self.upstream(wav, wav_len).slice(2)
+        hidden_states, hidden_states_len = self.upstream(wav, wav_len).slice(2)
 
         if self.layer_norm:
             for index in range(len(hidden_states)):

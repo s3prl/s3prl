@@ -64,14 +64,17 @@ class Container(OrderedDict):
     This will lead to the breaking change if the later version
     """
 
-    def __getitem__(self, k):
+    def normalize_key(self, k):
         if isinstance(k, int):
-            return list(super().values())[k]
+            return list(super().keys())[k]
+        return k
+
+    def __getitem__(self, k):
+        k = self.normalize_key(k)
         return super().__getitem__(k)
 
     def __setitem__(self, k, v) -> None:
-        if isinstance(k, int):
-            k = list(super().keys())[k]
+        k = self.normalize_key(k)
         super().__setitem__(k, v)
 
     def __getattribute__(self, name: str) -> Any:
@@ -113,9 +116,22 @@ class Container(OrderedDict):
             output[key] = value
         return output
 
-    def subset(self, *names: List[Union[str, int]], as_type: str = "tuple"):
+    def subset(
+        self,
+        *names: List[Union[str, int]],
+        as_type: str = "tuple",
+        exclude: bool = False
+    ):
+        """
+        Args:
+            as_type (str): "tuple" or "dict"
+            exclude (bool): the "deselect" the names and leave the remaining
+        """
+
         keys = list(super().keys())
         names = [keys[name] if isinstance(name, int) else name for name in names]
+        if exclude:
+            names = [key for key in keys if key not in names]
         result = __class__(**{name: self.__getitem__(name) for name in names})
         if as_type == "dict":
             return result
@@ -130,6 +146,9 @@ class Container(OrderedDict):
         as_type: str = "tuple",
     ):
         """
+        Args:
+            as_type (str): "tuple" or "dict"
+
         The usage is similar to the range() built-in function.
         However, please must NOT use negative index (counted from
         the end) or the index derived by __len__ dynamically.
@@ -156,3 +175,9 @@ class Container(OrderedDict):
 
         interval = list(range(start, end, step))
         return self.subset(*interval, as_type=as_type)
+
+    def select(self, *names: List[str]):
+        return self.subset(*names, as_type="dict")
+
+    def deselect(self, *names: List[str]):
+        return self.subset(*names, as_type="dict", exclude=True)

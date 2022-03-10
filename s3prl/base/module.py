@@ -4,18 +4,7 @@ from typing import List, OrderedDict, Tuple
 import torch.nn as nn
 from . import Object
 
-_EXCLUDED_KEY_SUFFIX = "_excluded_key"
-
-
-class _IncompatibleKeys(
-    namedtuple("IncompatibleKeys", ["missing_keys", "unexpected_keys"])
-):
-    def __repr__(self):
-        if not self.missing_keys and not self.unexpected_keys:
-            return "<All keys matched successfully>"
-        return super(_IncompatibleKeys, self).__repr__()
-
-    __str__ = __repr__
+_EXCLUDED_PREFIX = "_excluded_prefix"
 
 
 class Module(nn.Module, Object):
@@ -35,73 +24,67 @@ class Module(nn.Module, Object):
             assert isinstance(module, nn.Module)
             self._excluded_from_state_dict.remove(name)
 
-    def get_extra_state(self):
-        return dict(
-            _excluded_from_state_dict=self._excluded_from_state_dict,
-        )
-
-    def set_extra_state(self, state):
-        self._excluded_from_state_dict = state["_excluded_from_state_dict"]
-
     def state_dict(self, destination=None, prefix="", keep_vars=False):
         states: dict = super().state_dict(
             destination=destination, prefix=prefix, keep_vars=keep_vars
         )
 
         if hasattr(self, "_excluded_from_state_dict"):
-            if _EXCLUDED_KEY_SUFFIX not in states:
-                states[_EXCLUDED_KEY_SUFFIX] = []
+            if _EXCLUDED_PREFIX not in states:
+                states[_EXCLUDED_PREFIX] = []
 
             for name in self._excluded_from_state_dict:
                 module = getattr(self, name)
 
                 substates = OrderedDict()
                 substates._metadata = OrderedDict()
+                subprefix = prefix + name + "."
+
+                states[_EXCLUDED_PREFIX].append(subprefix)
                 module.state_dict(
                     destination=substates,
-                    prefix=prefix + name + ".",
+                    prefix=subprefix,
                     keep_vars=keep_vars,
                 )
-                for key in [
-                    k for k in list(substates.keys()) if _EXCLUDED_KEY_SUFFIX not in k
-                ]:
-                    states[_EXCLUDED_KEY_SUFFIX].append(key)
+                for key in [k for k in list(substates.keys()) if k != _EXCLUDED_PREFIX]:
                     states.pop(key)
 
         return states
 
-    def load_state_dict(self, state_dict, strict: bool = True):
-        missing_keys, unexpected_keys = super().load_state_dict(
-            state_dict, strict=False
+    def _load_from_state_dict(
+        self,
+        state_dict,
+        prefix,
+        local_metadata,
+        strict,
+        missing_keys,
+        unexpected_keys,
+        error_msgs,
+    ):
+        """
+        The public method `load_state_dict` is not recursive. Hence, if a s3prl.Module
+        is inside a regular nn.Module, `s3prl.Module.load_state_dict` won't be called.
+        However, `s3prl.Module._load_from_state_dict` is recursive hence it is guaranteed
+        to be called for all the sub-modules. Hence, to override this private method might
+        be the current best solution
+        """
+        if _EXCLUDED_PREFIX in state_dict and prefix in state_dict[_EXCLUDED_PREFIX]:
+            sub_state_dict = self.state_dict(prefix=prefix)
+            sub_state_dict.pop(_EXCLUDED_PREFIX)
+            state_dict.update(sub_state_dict)
+
+        super()._load_from_state_dict(
+            state_dict=state_dict,
+            prefix=prefix,
+            local_metadata=local_metadata,
+            strict=strict,
+            missing_keys=missing_keys,
+            unexpected_keys=unexpected_keys,
+            error_msgs=error_msgs,
         )
-        unexpected_keys.remove(_EXCLUDED_KEY_SUFFIX)
-        excluded_keys = state_dict.pop(_EXCLUDED_KEY_SUFFIX)
-        missing_keys = [m for m in missing_keys if m not in excluded_keys]
 
-        error_msgs: List[str] = []
-        if strict:
-            if len(unexpected_keys) > 0:
-                error_msgs.insert(
-                    0,
-                    "Unexpected key(s) in state_dict: {}. ".format(
-                        ", ".join('"{}"'.format(k) for k in unexpected_keys)
-                    ),
-                )
-            if len(missing_keys) > 0:
-                error_msgs.insert(
-                    0,
-                    "Missing key(s) in state_dict: {}. ".format(
-                        ", ".join('"{}"'.format(k) for k in missing_keys)
-                    ),
-                )
-
-        if len(error_msgs) > 0:
-            raise RuntimeError(
-                "Error(s) in loading state_dict for {}:\n\t{}".format(
-                    self.__class__.__name__, "\n\t".join(error_msgs)
-                )
-            )
-        return _IncompatibleKeys(missing_keys, unexpected_keys)
+        if _EXCLUDED_PREFIX in unexpected_keys:
+            unexpected_keys.remove(_EXCLUDED_PREFIX)
 
     def checkpoint(self):
         checkpoint = super().checkpoint()

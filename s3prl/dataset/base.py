@@ -33,9 +33,8 @@ class Dataset(Object, Dataset):
         persistent_workers=False,
     ) -> DataLoader:
         """
-        This utility function simply uses self.collate_fn as the
-        default collate_fn, and leave all other arguments untouched
-        for torch.utils.data.DataLoader
+        if collate_fn is None, use self.collate_fn,
+        all other arguments are untouched for torch.utils.data.DataLoader
         """
         dataloader = DataLoader(
             self,
