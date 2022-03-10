@@ -80,6 +80,7 @@ class GeneralOutput(Container):
 class Output(GeneralOutput):
     def __init__(
         self,
+        name=None,
         x=None,
         x_len=None,
         output=None,

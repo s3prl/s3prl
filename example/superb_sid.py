@@ -1,12 +1,11 @@
 import math
 import logging
 import argparse
+from tqdm import tqdm
 from pathlib import Path
 
 import torch
 import torch.optim as optim
-from tqdm import tqdm
-from torch.utils.data import DataLoader
 
 from s3prl import Object, Output, Logs
 from s3prl.superb import sid as problem
@@ -43,10 +42,8 @@ def main():
 
     logger.info("Preparing train dataloader")
     train_dataset = problem.TrainDataset(**preprocessor.train_data())
-    train_dataloader = DataLoader(
-        train_dataset,
+    train_dataloader = train_dataset.to_dataloader(
         batch_size=8,
-        collate_fn=train_dataset.collate_fn,
         num_workers=6,
         shuffle=True,
     )
@@ -56,8 +53,9 @@ def main():
         **preprocessor.valid_data(),
         **train_dataset.statistics(),
     )
-    valid_dataloader = DataLoader(
-        valid_dataset, batch_size=8, collate_fn=valid_dataset.collate_fn, num_workers=6
+    valid_dataset.save_checkpoint(save_to / "valid_dataset.ckpt")
+    valid_dataloader = valid_dataset.to_dataloader(
+        batch_size=8, num_workers=6
     )
 
     logger.info("Preparing test dataloader")
@@ -65,34 +63,55 @@ def main():
         **preprocessor.test_data(),
         **train_dataset.statistics(),
     )
-    test_dataloader = DataLoader(
-        test_dataset, batch_size=8, collate_fn=test_dataset.collate_fn, num_workers=6
+    test_dataset.save_checkpoint(save_to / "test_dataset.ckpt")
+    test_dataloader = test_dataset.to_dataloader(
+        batch_size=8, num_workers=6
     )
 
-    last_checkpoint = save_to / "last_checkpoint.ckpt"
-    if last_checkpoint.is_file():
+    latest_task = save_to / "task.ckpt"
+    if latest_task.is_file():
         logger.info("Last checkpoint found. Load model and optimizer from checkpoint")
-        checkpoint = torch.load(last_checkpoint)
-        task = Object.from_checkpoint(checkpoint["task"]).to(device)
-        optimizer = optim.Adam(task.parameters(), lr=1e-3)
-        optimizer.load_state_dict(checkpoint["optimizer"])
+
+        # Object.load_checkpoint() from a checkpoint path and
+        # Object.from_checkpoint() from a loaded checkpoint dictionary
+        # are like AutoModel in Huggingface which you only need to
+        # provide the checkpoint for restoring the module.
+        #
+        # Note that source code definition should be importable, since this
+        # auto loading mechanism is just automating the model re-initialization
+        # steps instead of scriptify (torch.jit) all the source code in the
+        # checkpoint
+
+        task = Object.load_checkpoint(latest_task).to(device)
 
     else:
-        logger.info("No last checkpoint found. Create new model and optimizer")
+        logger.info("No last checkpoint found. Create new model")
+
+        # Model creation block which can be fully customized
         upstream = S3PRLUpstream("apc")
         downstream = problem.DownstreamModel(
             upstream.output_size, len(preprocessor.statistics().category)
         )
         model = UpstreamDownstreamModel(upstream, downstream)
+
+        # After customize your own model, simply put it into task object
         task = problem.Task(model, preprocessor.statistics().category)
         task = task.to(device)
 
-        # We do not handle optimizer/scheduler in S3PRL, since there are lots of
-        # dedicated package for this. Hence, we also do not handle the checkpointing
-        # for optimizer/scheduler. Depends on what training pipeline the user prefer,
-        # either Lightning or SpeechBrain, these frameworks will provide different
-        # solutions on how to save these objects. By not handling these objects in
-        # S3PRL we are making S3PRL more flexible and agnostic to training pipeline
+    # We do not handle optimizer/scheduler in any special way in S3PRL, since
+    # there are lots of dedicated package for this. Hence, we also do not handle
+    # the checkpointing for optimizer/scheduler. Depends on what training pipeline
+    # the user prefer, either Lightning or SpeechBrain, these frameworks will
+    # provide different solutions on how to save these objects. By not handling
+    # these objects in S3PRL we are making S3PRL more flexible and agnostic to training pipeline
+    # The following optimizer codeblock aims to align with the standard usage
+    # of PyTorch which is the standard way to save it.
+
+    optimizer = optim.Adam(task.parameters(), lr=1e-3)
+    latest_optimizer = save_to / "optimizer.ckpt"
+    if latest_optimizer.is_file():
+        optimizer.load_state_dict(torch.load(save_to / "optimizer.ckpt"))
+    else:
         optimizer = optim.Adam(task.parameters(), lr=1e-3)
 
     # The following code block demonstrate how to train with your own training loop
@@ -189,15 +208,8 @@ def main():
                         logger.info(f"{log.name}: {log.data}")
 
             if (global_step + 1) % args.save_step == 0:
-                last_checkpoint = save_to / "last_checkpoint.ckpt"
-                logger.info(f"Save checkpoint to {last_checkpoint}")
-                torch.save(
-                    {
-                        "task": task.checkpoint(),
-                        "optimizer": optimizer.state_dict(),
-                    },
-                    last_checkpoint,
-                )
+                task.save_checkpoint(save_to / "task.ckpt")
+                torch.save(optimizer.state_dict(), save_to / "optimizer.ckpt")
 
 
 if __name__ == "__main__":

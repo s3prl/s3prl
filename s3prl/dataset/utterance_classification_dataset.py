@@ -4,9 +4,9 @@ from pathlib import Path
 import torch
 from torch.nn.utils.rnn import pad_sequence
 
-from s3prl import init, Output
-from .base import Dataset
+from s3prl import Output
 from s3prl.util.loader import Loader, TorchaudioLoader
+from .base import Dataset
 
 
 class UtteranceClassificationDataset(Dataset):
@@ -48,22 +48,23 @@ class UtteranceClassificationDataset(Dataset):
         self.source_loader = source_loader or TorchaudioLoader()
 
     def __getitem__(self, index):
-        path = self.sources[index]
+        path = Path(self.sources[index])
         x = self.source_loader.load(path).output
         label_string = self.labels[index]
-        return Output(x=x, label=label_string)
+        return Output(x=x, label=label_string, name="/".join(path.resolve().parts[-3:]))
 
     def __len__(self):
         return len(self.sources)
 
     def collate_fn(self, samples):
-        xs, labels = [], []
+        xs, labels, names = [], [], []
         for sample in samples:
             xs.append(sample.x)
             labels.append(sample.label)
+            names.append(sample.name)
         xs_len = torch.LongTensor([len(x) for x in xs])
         xs = pad_sequence(xs, batch_first=True)
-        return Output(x=xs, x_len=xs_len, label=labels)
+        return Output(x=xs, x_len=xs_len, label=labels, name=names)
 
     def statistics(self):
         return Output()
