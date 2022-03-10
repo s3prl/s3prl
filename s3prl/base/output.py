@@ -14,18 +14,27 @@ class GeneralOutput(Container):
     For inherited classes, their __init__ parameters (signature) can help
     autocomplete and serves as the regularization for available key names.
     However, by default the __init__ will lose the information of the
-    ordered nature when people instantiation an inherited class with ordered
+    ordered nature when people instantiate an inherited class with ordered
     dict like:
 
-    child = ChildOutput(input_size=3, output_size=4)
+    class ChildOutput(Container):
+        def __init__(logit, loss):
+            super().__init__(logit=logit, loss=loss)
+            pass
 
-    where input_size should be the first and output_size is the second
-    p.s. assume ChildOutput is an inherited class of GeneralOutput
+    child = ChildOutput(loss=4, logit=3)
+
+    The child despite is an OrderedDict, it treats logit as the first and
+    loss as the second since the order is defined at __init__ parameter
+    signature. However, we wish to keep the order defined by the
+    initialization arguments so that loss is the first and logit is the
+    second.
 
     Hence, the __init_subclass__ of GeneralOutput takes care of this. Any
-    child of GeneralOutput enjoy the autocomplete and name regularization
-    but in the meanwhile preserve all the functions of GeneralOutput
-    especially when accessing values by index.
+    child of GeneralOutput enjoys the autocomplete and name regularization
+    but in the meanwhile preserve the order of initialization arguments and
+    hence enjoy all the functions of Container, especially when accessing
+    values by index.
 
     See the below Output class for an example.
     """

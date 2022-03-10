@@ -8,8 +8,7 @@ import torch.optim as optim
 from tqdm import tqdm
 from torch.utils.data import DataLoader
 
-from s3prl import Output, Logs
-from s3prl.base.object import Object
+from s3prl import Object, Output, Logs
 from s3prl.superb import sid as problem
 from s3prl.nn import UpstreamDownstreamModel, S3PRLUpstream
 
