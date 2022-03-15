@@ -15,7 +15,6 @@ import torchaudio
 from functools import partial
 from torch.nn.utils.rnn import pad_sequence
 from torchaudio.transforms import Spectrogram, MelScale, MFCC
-# from torchaudio.functional import magphase  ## [Deprecated] Removed since torchaudio 0.11.0, replaced below
 from torchaudio.functional import compute_deltas
 
 
