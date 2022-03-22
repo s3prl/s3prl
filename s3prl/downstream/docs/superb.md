@@ -6,7 +6,8 @@ Please read [downstream/README.md](../README.md) for the general command pattern
 
 ## Introduction
 
-In this document we detail the commands for reproducing the paper [**SUPERB:** **S**peech processing **U**niversal **PER**formance **B**enchmark](https://arxiv.org/abs/2105.01051). If you use the tasks here for your research, please consider citing the following papers:
+In this document we detail the commands for reproducing the paper [**SUPERB:** **S**peech processing **U**niversal **PER**formance **B**enchmark](https://arxiv.org/abs/2105.01051) and [**SUPERB-SG:** Enhanced **S**peech processing **U**niversal **PER**formance
+**B**enchmark for **S**emantic and **G**enerative Capabilities](https://arxiv.org/abs/2203.06849). If you use the tasks here for your research, please consider citing the following papers:
 
 ```
 @inproceedings{yang21c_interspeech,
@@ -18,7 +19,15 @@ In this document we detail the commands for reproducing the paper [**SUPERB:** *
   doi={10.21437/Interspeech.2021-1775}
 }
 ```
-
+```
+@article{superb_sg,
+  title={SUPERB-SG: Enhanced Speech processing Universal PERformance Benchmark for Semantic and Generative Capabilities},
+  author={Hsiang-Sheng Tsai and Heng-Jui Chang and Wen-Chin Huang and Zili Huang and Kushal Lakhotia and Shu-wen Yang and Shuyan Dong and Andy T. Liu and Cheng-I Lai and Jiatong Shi and Xuankai Chang and Phil Hall and Hsuan-Jui Chen and Shang-Wen Li and Shinji Watanabe and Abdel-rahman Mohamed and Hung-yi Lee},
+  journal={ArXiv},
+  year={2022},
+  volume={abs/2203.06849}
+}
+```
 Besides the tasks presented in the paper, we are also extending the coverage over all speech tasks. In the [SUPERB Challenge](https://superbbenchmark.org/challenge) in [*AAAI workshop: The 2nd Self-supervised Learning for Audio and Speech Processing*](https://aaai-sas-2022.github.io/), more tasks are introduced into the benchmark framework, and the setup detailed here serves as the **public-set** in the challenge. We list all tasks below:
 
 | ID | Task Name | Category | Paper | Challenge public-set |
@@ -33,10 +42,10 @@ Besides the tasks presented in the paper, we are also extending the coverage ove
 | [ER](#er-emotion-recognition) | Emotion Recognition | Paralinguistics | V | V |
 | [IC](#ic-intent-classification) | Spoken Intent Classification | Semantics | V | |
 | [SF](#sf-end-to-end-slot-filling) | Spoken Slot Filling | Semantics | V |  |
-| [ST](#st-speech-translation) | Speech Translation | Semantics |  | V |
-| [SE](#se-speech-enhancement) | Speech Enhancement | Generation |  | V |
-| [SS](#ss-source-separation) | Source Separation | Generation |  | V |
-| [VC](#vc-voice-conversion) | Voice Conversion | Generation |  |  |
+| [ST](#st-speech-translation) | Speech Translation | Semantics | V | V |
+| [SE](#se-speech-enhancement) | Speech Enhancement | Generation | V | V |
+| [SS](#ss-source-separation) | Source Separation | Generation | V | V |
+| [VC](#vc-voice-conversion) | Voice Conversion | Generation | V |  |
 
 This document contains the following meterials:
 
