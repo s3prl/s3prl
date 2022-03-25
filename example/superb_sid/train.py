@@ -6,9 +6,11 @@ from pathlib import Path
 
 import torch
 import torch.optim as optim
+from torch.utils.data import DataLoader
 
 from s3prl import Object, Output, Logs
 from s3prl.superb import sid as problem
+from s3prl.sampler import DistributedBatchSamplerWrapper
 from s3prl.nn import UpstreamDownstreamModel, S3PRLUpstream
 
 device = "cuda" if torch.cuda.is_available() else "cpu"
@@ -42,10 +44,17 @@ def main():
 
     logger.info("Preparing train dataloader")
     train_dataset = problem.TrainDataset(**preprocessor.train_data())
-    train_dataloader = train_dataset.to_dataloader(
-        batch_size=8,
-        num_workers=6,
-        shuffle=True,
+    train_sampler = problem.TrainSampler(
+        train_dataset, max_timestamp=16000 * 1000, shuffle=True
+    )
+    train_sampler = DistributedBatchSamplerWrapper(
+        train_sampler, num_replicas=1, rank=0
+    )
+    train_dataloader = DataLoader(
+        train_dataset,
+        batch_sampler=train_sampler,
+        num_workers=12,
+        collate_fn=train_dataset.collate_fn,
     )
 
     logger.info("Preparing valid dataloader")
@@ -54,8 +63,15 @@ def main():
         **train_dataset.statistics(),
     )
     valid_dataset.save_checkpoint(save_to / "valid_dataset.ckpt")
-    valid_dataloader = valid_dataset.to_dataloader(
-        batch_size=8, num_workers=6
+    valid_sampler = problem.ValidSampler(valid_dataset, 8)
+    valid_sampler = DistributedBatchSamplerWrapper(
+        valid_sampler, num_replicas=1, rank=0
+    )
+    valid_dataloader = DataLoader(
+        valid_dataset,
+        batch_sampler=valid_sampler,
+        num_workers=12,
+        collate_fn=valid_dataset.collate_fn,
     )
 
     logger.info("Preparing test dataloader")
@@ -64,8 +80,10 @@ def main():
         **train_dataset.statistics(),
     )
     test_dataset.save_checkpoint(save_to / "test_dataset.ckpt")
-    test_dataloader = test_dataset.to_dataloader(
-        batch_size=8, num_workers=6
+    test_sampler = problem.TestSampler(test_dataset, 8)
+    test_sampler = DistributedBatchSamplerWrapper(test_sampler, num_replicas=1, rank=0)
+    test_dataloader = DataLoader(
+        test_dataset, batch_size=8, num_workers=12, collate_fn=test_dataset.collate_fn
     )
 
     latest_task = save_to / "task.ckpt"

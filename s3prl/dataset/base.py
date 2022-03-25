@@ -1,54 +1,54 @@
 import abc
+from enum import Enum
+from typing import Any
 
-from torch.utils.data import Dataset, DataLoader
+from torch.utils import data
 
 from s3prl import Object
 
 
-class Dataset(Object, Dataset):
+class Mode(Enum):
+    FULL = 0
+    METADATA = 1
+
+
+_mode = Mode.FULL
+
+
+def set_mode(mode: str):
+    global _mode
+    if isinstance(mode, Mode):
+        _mode = mode
+    elif mode == "FULL":
+        _mode = Mode.FULL
+    elif mode == "METADATA":
+        _mode = Mode.METADATA
+
+
+def in_metadata_mode():
+    return _mode == Mode.METADATA
+
+
+class metadata_mode:
+    def __init__(self):
+        self.prev = None
+
+    def __enter__(self):
+        self.prev = _mode
+        set_mode(Mode.METADATA)
+
+    def __exit__(self, exc_type: Any, exc_value: Any, traceback: Any) -> None:
+        set_mode(self.prev)
+
+
+class Dataset(Object, data.Dataset):
     def __init__(self):
         super().__init__()
 
-    @abc.abstractmethod
-    def prepare_data(self):
-        pass
+    @staticmethod
+    def in_metadata_mode():
+        return in_metadata_mode()
 
     @abc.abstractmethod
-    def collate_fn(self):
+    def collate_fn(self, samples):
         pass
-
-    def to_dataloader(
-        self,
-        batch_size=1,
-        shuffle=False,
-        sampler=None,
-        batch_sampler=None,
-        num_workers=0,
-        collate_fn=None,
-        pin_memory=False,
-        drop_last=False,
-        timeout=0,
-        worker_init_fn=None,
-        prefetch_factor=2,
-        persistent_workers=False,
-    ) -> DataLoader:
-        """
-        if collate_fn is None, use self.collate_fn,
-        all other arguments are untouched for torch.utils.data.DataLoader
-        """
-        dataloader = DataLoader(
-            self,
-            batch_size=batch_size,
-            shuffle=shuffle,
-            sampler=sampler,
-            batch_sampler=batch_sampler,
-            num_workers=num_workers,
-            collate_fn=collate_fn or self.collate_fn,
-            pin_memory=pin_memory,
-            drop_last=drop_last,
-            timeout=timeout,
-            worker_init_fn=worker_init_fn,
-            prefetch_factor=prefetch_factor,
-            persistent_workers=persistent_workers,
-        )
-        return dataloader

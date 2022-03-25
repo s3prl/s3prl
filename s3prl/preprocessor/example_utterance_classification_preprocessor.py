@@ -31,18 +31,18 @@ class ExampleUtteranceClassificationPreprocessor(Object):
         )
 
     @staticmethod
-    @cache
+    @cache()
     def all_paths(dataset_root):
         all_files = find_files(dataset_root)
         return all_files
 
     @staticmethod
-    @cache
+    @cache()
     def path2labels(paths):
         return [random.choice(PSEUDO_ALL_LABELS) for _ in paths]
 
     @staticmethod
-    @cache
+    @cache()
     def standard_splits(paths, train_ratio, valid_ratio):
         paths = paths.copy()
         random.seed(0)

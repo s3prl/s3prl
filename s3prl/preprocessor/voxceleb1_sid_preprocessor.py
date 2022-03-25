@@ -41,7 +41,7 @@ class VoxCeleb1SIDPreprocessor(Object):
         return y
 
     @staticmethod
-    @cache
+    @cache()
     def standard_split(dataset_root, split_filename):
         meta_data = dataset_root / split_filename
         usage_list = open(meta_data, "r").readlines()

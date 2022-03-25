@@ -80,6 +80,7 @@ class Output(GeneralOutput):
     def __init__(
         self,
         name=None,
+        timestamp=None,
         prefix=None,
         x=None,
         x_len=None,
