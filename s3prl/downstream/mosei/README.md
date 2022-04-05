@@ -8,6 +8,8 @@ by following steps in `utility` directory.
 
 ## Data preparation
 
+### Download Dataset
+
 ```bash=
 cd /path/to/data
 
@@ -19,6 +21,33 @@ unzip CMU_MOSEI.zip
 mv Raw CMU_MOSEI
 ```
 Remember to modify data_dir in `config.yaml`
+
+### Segment the Audio
+
+Run `segment_audio.sh` by passing the location of your CMU-MOSEI Audio folder as an argument.
+
+```bash=
+bash segment_audio.sh /path/to/CMU_MOSEI/Audio
+# For example: bash segment_audio.sh /tmp/CMU_MOSEI/Audio
+```
+
+After that, you should have the following file structure under /path/to/CMU_MOSEI/Audio:
+
+```
+/path/to/CMU_MOSEI/Audio
+├── Full
+│   ├── COVAREP
+│   │   └── Many .mat files
+│   └── WAV_16000
+│       └── Many .wav files
+└── Segmented_Audio
+    ├── dev
+    │   └── Many .wav files (Dev set)
+    ├── test
+    │   └── Many .wav files (Test set)
+    └── train
+        └── Many .wav files (Train set)
+```
 
 ## Available Tasks
 Change `num_class` in the `config.yaml` to perform the following tasks:   
