@@ -36,8 +36,8 @@ Run `utility/segment_audio.py` by passing the location of your CMU-MOSEI Audio f
 This script is being used to segment the audio files into different split (train, dev, and test).
 
 ```bash=
-python3 ./utility/segment_audio.py /path/to/CMU_MOSEI/Audio
-# For example: python3 ./utility/segment_audio.py /tmp/CMU_MOSEI/Audio
+python ./utility/segment_audio.py /path/to/CMU_MOSEI/Audio
+# For example: python ./utility/segment_audio.py /tmp/CMU_MOSEI/Audio
 ```
 
 After that, you should have the following file structure under /path/to/CMU_MOSEI/Audio:
@@ -111,7 +111,7 @@ Use the following code to train a model using CMU-MOSEI as downstream dataset:
 python run_downstream.py -m train -n ExpName -u fbank -d mosei
 
 # Training w/ DDP
-CUDA_VISIBLE_DEVICES=0,1 python3 -m torch.distributed.launch --nproc_per_node 2 run_downstream.py -m train -n ExpName -u fbank -d mosei
+CUDA_VISIBLE_DEVICES=0,1 python -m torch.distributed.launch --nproc_per_node 2 run_downstream.py -m train -n ExpName -u fbank -d mosei
 
 # Testing
 python run_downstream.py -m evaluate -n ExpName -u fbank -d mosei
