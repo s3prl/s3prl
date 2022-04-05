@@ -44,7 +44,7 @@ requirements = [
     "easydict",
     "catalyst",
     "sentencepiece",
-    "huggingface_hub @ git+https://github.com/huggingface/huggingface_hub.git#egg=huggingface_hub", # TODO: Replace with v0.0.17 when it is released
+    "huggingface_hub @ git+https://github.com/huggingface/huggingface_hub.git@v0.0.16#egg=huggingface_hub-v0.0.16", # TODO: Replace with v0.0.17 when it is released
     "mutagen"
 ]
 
