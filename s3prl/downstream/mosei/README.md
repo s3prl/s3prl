@@ -22,13 +22,22 @@ mv Raw CMU_MOSEI
 ```
 Remember to modify data_dir in `config.yaml`
 
+### Install Dependencies
+
+Install dependencies using the following commands:
+```bash=
+pip install pydub pandas
+sudo apt-get install ffmpeg libavcodec-extra
+```
+
 ### Segment the Audio Files
 
-Run `segment_audio.sh` by passing the location of your CMU-MOSEI Audio folder as an argument.
+Run `utility/segment_audio.py` by passing the location of your CMU-MOSEI Audio folder as an argument.
+This script is being used to segment the audio files into different split (train, dev, and test).
 
 ```bash=
-bash segment_audio.sh /path/to/CMU_MOSEI/Audio
-# For example: bash segment_audio.sh /tmp/CMU_MOSEI/Audio
+python3 ./utility/segment_audio.py /path/to/CMU_MOSEI/Audio
+# For example: python3 ./utility/segment_audio.py /tmp/CMU_MOSEI/Audio
 ```
 
 After that, you should have the following file structure under /path/to/CMU_MOSEI/Audio:
