@@ -22,7 +22,7 @@ mv Raw CMU_MOSEI
 ```
 Remember to modify data_dir in `config.yaml`
 
-### Segment the Audio
+### Segment the Audio Files
 
 Run `segment_audio.sh` by passing the location of your CMU-MOSEI Audio folder as an argument.
 
