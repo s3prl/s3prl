@@ -57,7 +57,7 @@ Notes:
 3. segment_audio.py is used to segment audio files. 
    Run this python file by giving a location of your CMU-MOSEI Audio as an argument.
    ~~~
-   $ python segment_audio.py /path/to/CMU-MOSEI/Audio
+   $ python segment_audio.py /path/to/CMU_MOSEI/Audio
    ~~~
    You may need to install additional python packages (pydub, pandas) to run 
    that python file.
@@ -77,5 +77,5 @@ Notes:
       ├── test
       │   └── Many .wav files (Test set)
       └── train
-         └── Many .wav files (Train set)
+          └── Many .wav files (Train set)
    ```
