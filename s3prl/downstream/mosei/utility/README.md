@@ -1,25 +1,13 @@
 Notes:  
-1. convert_label.sh is used to generate CMU_MOSEI_Labels.csv.
-   You may need to change permission of that bash file to run.
-   ~~~
-   $ chmod +x convert_label.sh
-   $ ./convert_label.sh
-   ~~~
-2. Install necessary additional packages. In Ubuntu,
-   ~~~
-   $ sudo apt install ffmpeg libavcodec-extra
-   ~~~
-3. segment_audio.py is used to segment audio files. 
-   Run this python file by giving a location of your CMU-MOSEI Audio as an argument.
-   ~~~
-   $ python segment_audio.py /path/to/CMU-MOSEI/Audio
-   ~~~
-   You may need to install additional python packages (pydub, pandas) to run 
-   that python file.
-
+convert_label.sh is used to generate CMU_MOSEI_Labels.csv.
+You may need to change permission of that bash file to run.
+```
+chmod +x convert_label.sh
+./convert_label.sh
+```
 
 You will get the messsage below if generation of csv file success.
-~~~
+```
 Info of Dataset
 ---------- Original Video -----------                                  
 Num of videos in training   set:  2249                                          
@@ -59,4 +47,4 @@ Class +0:  5100
 Class +1:  7576
 Class +2:  3225
 Class +3:  675
-~~~
+```

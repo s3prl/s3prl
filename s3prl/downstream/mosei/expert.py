@@ -96,13 +96,15 @@ class DownstreamExpert(nn.Module):
         self.best = defaultdict(lambda: 0)
         self.answer = []
 
-    def _get_train_dataloader(self, dataset):
+    def _get_train_dataloader(self, dataset, epoch: int):
+        from s3prl.utility.data import get_ddp_sampler
+        sampler = get_ddp_sampler(dataset, epoch)
         return DataLoader(
-            dataset,
-            batch_size=self.datarc["train_batch_size"],
-            shuffle=True,
-            num_workers=self.datarc["num_workers"],
-            collate_fn=dataset.collate_fn,
+            dataset, batch_size=self.datarc['train_batch_size'],
+            shuffle=(sampler is None),
+            sampler=sampler,
+            num_workers=self.datarc['num_workers'],
+            collate_fn=dataset.collate_fn
         )
 
     def _get_eval_dataloader(self, dataset):
@@ -128,8 +130,8 @@ class DownstreamExpert(nn.Module):
     """
 
     # Interface
-    def get_train_dataloader(self):
-        return self._get_train_dataloader(self.train_dataset)
+    def get_train_dataloader(self, epoch: int):
+        return self._get_train_dataloader(self.train_dataset, epoch)
 
     # Interface
     def get_dev_dataloader(self):
@@ -139,8 +141,10 @@ class DownstreamExpert(nn.Module):
     def get_test_dataloader(self):
         return self._get_eval_dataloader(self.test_dataset)
 
-    def get_dataloader(self, mode):
-        return eval(f"self.get_{mode}_dataloader")()
+    def get_dataloader(self, mode, epoch: int=0):
+        if mode == 'train':
+            return eval(f'self.get_{mode}_dataloader')(epoch)
+        return eval(f'self.get_{mode}_dataloader')()
 
     # Interface
     def forward(self, mode, features, labels, records, **kwargs):
