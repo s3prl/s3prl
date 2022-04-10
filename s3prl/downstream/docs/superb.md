@@ -830,6 +830,8 @@ Read [README](../ctc/README.md).
 
 After *finishing the **Testing*** of each task, the prediction files for leaderboard submission will be located under the `expdir`. You can use [submit.py](../../submit/submit.py) to easily organize them into a zip file which can later be submitted to our [leaderboard](https://superbbenchmark.org/submit). We now support submissions for the following tasks: **PR**, **ASR**, **KS**, **QbE**, **SID**, **ASV**, **SD**, **IC**, **SF**, **ER**, **SE**, **SS**, **ST**.
 
+If you find [superbbenchmark.org](www.superbbenchmark.org) is down temporarily, please try to use [140.112.21.28](140.112.21.28) as an alternative. They share the same backend. We will make the official domain work as soon as possible.
+
 Please use the master branch newer than [852db2e](https://github.com/s3prl/s3prl/commit/852db2e5f65fc9baea4a5877ffda6dd7470c72fc). Note that our SUPERB codebase is backward-compatible, so you don't need to re-train any model after upgrading to this newer version. You only need this new version to inference the prediction files for submission correctly.
 
 ```sh
