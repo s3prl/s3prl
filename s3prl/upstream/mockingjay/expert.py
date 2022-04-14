@@ -23,11 +23,19 @@ class UpstreamExpert(UpstreamBase):
     The Mockingjay wrapper
     """
 
-    def __init__(self, ckpt, model_config=None, **kwargs):
+    def __init__(self, ckpt, options_config=None, **kwargs):
         super().__init__(**kwargs)
 
-        ## decide load options of mockingjay
-        default_options = {
+        if options_config is not None:
+            print(
+                "[UpstreamExpert] - Using upstream expert config file from:",
+                options_config,
+            )
+            with open(options_config, "r") as file:
+                options = yaml.load(file, Loader=yaml.FullLoader)
+        else:
+            print("[UpstreamExpert] - Using the default upstream expert config")
+            options = {
                 "load_pretrain": "True",
                 "no_grad": "False",
                 "dropout": "default",
@@ -36,26 +44,6 @@ class UpstreamExpert(UpstreamBase):
                 "output_hidden_states": "True",
                 "permute_input": "False",
             }
-
-        if model_config is not None:
-            print(
-                "[UpstreamExpert] - Using upstream expert config file from:",
-                model_config,
-            )
-            with open(model_config, "r") as file:
-                options = yaml.load(file, Loader=yaml.FullLoader)
-            if "options" in options:
-                for key in default_options:
-                    if key not in options["options"]:
-                        options[key] = default_options[key]
-                    else:
-                        options[key] = options["options"][key]
-            else:
-                options.update(default_options)
-
-        else:
-            print("[UpstreamExpert] - Using the default upstream expert config")
-            options = default_options
 
         options["ckpt_file"] = ckpt
         options["select_layer"] = -1
