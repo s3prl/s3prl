@@ -25,6 +25,7 @@ def parse_args():
     parser.add_argument("--log_step", type=int, default=100)
     parser.add_argument("--eval_step", type=int, default=5000)
     parser.add_argument("--save_step", type=int, default=100)
+    parser.add_argument("--resume", action="store_true")
     args = parser.parse_args()
     return args
 
@@ -45,7 +46,7 @@ def main():
     logger.info("Preparing train dataloader")
     train_dataset = problem.TrainDataset(**preprocessor.train_data())
     train_sampler = problem.TrainSampler(
-        train_dataset, max_timestamp=16000 * 1000, shuffle=True
+        train_dataset, max_timestamp=16000 * 200, shuffle=True
     )
     train_sampler = DistributedBatchSamplerWrapper(
         train_sampler, num_replicas=1, rank=0
@@ -87,7 +88,7 @@ def main():
     )
 
     latest_task = save_to / "task.ckpt"
-    if latest_task.is_file():
+    if args.resume and latest_task.is_file():
         logger.info("Last checkpoint found. Load model and optimizer from checkpoint")
 
         # Object.load_checkpoint() from a checkpoint path and
@@ -106,7 +107,7 @@ def main():
         logger.info("No last checkpoint found. Create new model")
 
         # Model creation block which can be fully customized
-        upstream = S3PRLUpstream("apc")
+        upstream = S3PRLUpstream("wav2vec2")
         downstream = problem.DownstreamModel(
             upstream.output_size, len(preprocessor.statistics().category)
         )
@@ -127,7 +128,7 @@ def main():
 
     optimizer = optim.Adam(task.parameters(), lr=1e-3)
     latest_optimizer = save_to / "optimizer.ckpt"
-    if latest_optimizer.is_file():
+    if args.resume and latest_optimizer.is_file():
         optimizer.load_state_dict(torch.load(save_to / "optimizer.ckpt"))
     else:
         optimizer = optim.Adam(task.parameters(), lr=1e-3)

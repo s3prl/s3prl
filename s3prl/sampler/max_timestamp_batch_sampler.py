@@ -1,9 +1,12 @@
+from tqdm import tqdm
 from typing import Iterator, TypeVar
+from joblib import Parallel, delayed
 
 import torch
 from torch.utils.data import Sampler
+from speechbrain.dataio.dataset import DynamicItemDataset
 
-from s3prl.dataset import metadata_mode
+from s3prl.dataset import metadata_mode, Dataset
 
 T_co = TypeVar("T_co", covariant=True)
 
@@ -20,10 +23,16 @@ class MaxTimestampBatchSampler(Sampler):
         max_timestamp: int,
         shuffle: bool = False,
         seed: int = 12345678,
+        get_timestamps_func: callable = None,
         reduce_func: callable = None,
+        n_jobs: int = 4,
     ) -> None:
-        with metadata_mode():
-            timestamps = [item.timestamp for item in dataset]
+        if get_timestamps_func is None:
+            if isinstance(dataset, Dataset):
+                get_timestamps_func = self._get_timestamps_original
+            elif isinstance(dataset, DynamicItemDataset):
+                get_timestamps_func = self._get_timestamps_dynamic_item_dataset
+        timestamps = get_timestamps_func(dataset, n_jobs)
 
         super().__init__(timestamps)
         self.timestamps = timestamps
@@ -36,6 +45,26 @@ class MaxTimestampBatchSampler(Sampler):
             return max(timestamps) * len(timestamps)
 
         self.reduce_func = reduce_func or default_reduce_func
+
+    @staticmethod
+    def _get_timestamps_original(dataset: Dataset, n_jobs: int = 4):
+        with metadata_mode():
+            timestamps = [item.timestamp for item in dataset]
+        return timestamps
+
+    @staticmethod
+    def _get_timestamps_dynamic_item_dataset(
+        dataset: DynamicItemDataset, n_jobs: int = 4
+    ):
+        with dataset.output_keys_as(["wav_metadata"]):
+
+            def get_timestamp(item):
+                return item["wav_metadata"]["num_frames"]
+
+            timestamps = Parallel(n_jobs=n_jobs)(
+                delayed(get_timestamp)(item) for item in tqdm(dataset, desc="loading metadata")
+            )
+        return timestamps
 
     def set_epoch(self, epoch: int):
         self.epoch = epoch

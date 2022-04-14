@@ -76,10 +76,14 @@ class S3PRLUpstream(NNModule):
         return 1
 
     @property
+    def downsample_rate(self) -> int:
+        return self.upstream.get_downsample_rates(self.feature_selection)
+
+    @property
     def output_size(self):
         return self._output_size
 
-    def forward(self, wav, wav_len):
+    def forward(self, wav, wav_len, **kwargs):
         """
         Args:
             wav (torch.Tensor): (B, T, 1)

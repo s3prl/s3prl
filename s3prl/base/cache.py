@@ -66,7 +66,7 @@ def cache(signatures: list = None):
             cache_pkl = folder / f"{filename}.pkl"
             cache_descriptor = folder / f"{filename}.txt"
             signature = f"{func.__qualname__} with arguments {arguments}"
-            logger.info(f"caching signature: {signature}")
+            logger.debug(f"caching signature: {signature}")
 
             if cache_pkl.is_file():
                 if _use_cache:
@@ -74,20 +74,20 @@ def cache(signatures: list = None):
                         with cache_pkl.open("rb") as file:
                             result = pickle.load(file)
                     except Exception:
-                        logger.warning(
+                        logger.debug(
                             f"Cache found but cannot be loaded, Run the function {func.__qualname__}"
                         )
                     else:
-                        logger.info(
+                        logger.debug(
                             f"Cache found and successfully loaded. Skip running the function {func.__qualname__}"
                         )
                         return result
                 else:
-                    logger.info(
+                    logger.debug(
                         f"Cache found but not used. Run the function {func.__qualname__}"
                     )
             else:
-                logger.info(f"Cache not found. Run the function: {func.__qualname__}")
+                logger.debug(f"Cache not found. Run the function: {func.__qualname__}")
 
             result = func(*args, **kwargs)
 
@@ -97,7 +97,7 @@ def cache(signatures: list = None):
                     with cache_pkl.open("wb") as file:
                         pickle.dump(result, file)
 
-                    logger.info(f"Cache dumped for: {signature}")
+                    logger.debug(f"Cache dumped for: {signature}")
 
                     with cache_descriptor.open("w") as file:
                         print(description, file=file)

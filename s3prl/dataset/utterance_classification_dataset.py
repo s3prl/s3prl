@@ -1,92 +1,156 @@
-from typing import List
-from pathlib import Path
-from tqdm import tqdm
-from joblib import Parallel, delayed
-
 import torch
-from torch.nn.utils.rnn import pad_sequence
 
-from s3prl import Output, cache
-from s3prl.util.loader import Loader, TorchaudioLoader, TorchaudioMetadataLoader
-from .base import Dataset, in_metadata_mode
+from typing import List
+from dataclasses import dataclass
+
+from s3prl import Output
+from .base import DatasetBuilder, AugmentedDynamicItemDataset
 
 
-class UtteranceClassificationDataset(Dataset):
-    """
-    The input argument should be easy for the users to replace with their own data
-    That is, the data format of the inputs should be intuitive and relate to the task definition
-    The Datasets in S3PRL are designed to convert the intuitive input data format into more
-    sophisticated format for the high-performance training pipeline: (padding masks, stft masks)
-    Hence, the dataset specific operations should be done only in Preprocessors.
-    """
-
-    def __init__(
-        self,
-        source: List[Path],
-        label: List[str],
-        category: List[str],
-        source_loader: Loader = None,
-        metadata_loader: Loader = None,
-        metadata_jobs: int = 8,
-        name: List[str] = None,
-    ) -> None:
-        """
-        Args:
-            source:
-                list of sources (paths) of the input
-                e.g. [Path("path1"), Path("path2"), ...]
-            label:
-                list of labels, the order should be sync with sources
-                e.g. ["happy", "sad", ...]
-            category:
-                list of strings. all the possible classes. should be the super set for utterance_labels
-                e.g. ["happy", "sad", "neutral", "angry"]
-            source_loader:
-                Loader, source_loader(sources[0]) to get a actual **input**
-                **input** (torch.Tensor): input.dim() == 2, (timestamps, hidden_size)
-                    If the input is a waveform, (timestamps, 1)
-        """
-        super().__init__()
-        self.name = name or source
-        self.sources = source
-        self.labels = label
-        self.categories = category
-        self.source_loader = source_loader or TorchaudioLoader()
-
-        # prepare metadata
-        self.metadata_loader = metadata_loader or TorchaudioMetadataLoader()
-        self.metadata_jobs = metadata_jobs
-        self.metadatas = self.read_metadata(self.sources)
-
-    @cache(signatures=["sources"])
-    def read_metadata(self, sources):
-        metadatas = Parallel(n_jobs=self.metadata_jobs)(
-            delayed(self.metadata_loader)(source)
-            for source in tqdm(sources, desc="Reading metadata")
-        )
-        return metadatas
-
-    def __getitem__(self, index):
-        if in_metadata_mode():
-            return Output(timestamp=self.metadatas[index].timestamp)
-
-        path = Path(self.sources[index])
-        x = self.source_loader(path).output
-        label_string = self.labels[index]
-        return Output(x=x, label=label_string, name=self.name[index])
+@dataclass
+class CategoryEncoder:
+    category: List[str]
 
     def __len__(self):
-        return len(self.sources)
+        return len(self.category)
 
-    def collate_fn(self, samples):
-        xs, labels, names = [], [], []
-        for sample in samples:
-            xs.append(sample.x)
-            labels.append(sample.label)
-            names.append(sample.name)
-        xs_len = torch.LongTensor([len(x) for x in xs])
-        xs = pad_sequence(xs, batch_first=True)
-        return Output(x=xs, x_len=xs_len, label=labels, name=names)
+    def encode(self, label):
+        return self.category.index(label)
 
-    def statistics(self):
-        return Output()
+    def decode(self, index):
+        return self.category[index]
+
+
+@dataclass
+class UtteranceClassificationDatasetBuilder(DatasetBuilder):
+    def prepare_category(self, labels):
+        return CategoryEncoder(sorted(list(set(labels))))
+
+    def encode_label(self, category, label):
+        return category.encode(label)
+
+    def compute_length(self, tensor):
+        return len(tensor)
+
+    def build_train_data(
+        self,
+        data: dict,
+        **kwargs,
+    ):
+        labels = [item["label"] for item in data.values()]
+        category = self.prepare_category(labels)
+        dataset = self.build_data(data, category).slice(1)
+        return Output(dataset=dataset, category=category, output_size=len(category))
+
+    def build_data(
+        self,
+        data: dict,
+        category: CategoryEncoder,
+        **kwargs,
+    ):
+        """
+        Args:
+            data (dict)
+                id:
+                    wav_path: str
+                    label: str
+
+            category (callable)
+                encode: callable, str -> int
+                decode: callable, int -> str
+
+        Return:
+            AugmentedDynamicItemDataset, with keys:
+                x: torch.Tensor, (time, channel)
+                x_len: int
+                class_id: int
+                unique_name: str
+        """
+        dataset = AugmentedDynamicItemDataset(data)
+        dataset.add_global_stats("category", category)
+        dataset.add_dynamic_item_and_metadata(
+            self.load_audio, takes="wav_path", provide="wav"
+        )
+        dataset.add_dynamic_item(self.compute_length, takes="wav", provides="wav_len")
+        dataset.add_dynamic_item(
+            self.encode_label, takes=["category", "label"], provides="class_id"
+        )
+        dataset.set_output_keys(
+            {
+                "x": "wav",
+                "x_len": "wav_len",
+                "class_id": "class_id",
+                "unique_name": "id",
+            }
+        )
+        return Output(dataset=dataset)
+
+
+@dataclass
+class UtteranceMultiClassClassificationDatasetBuilder(
+    UtteranceClassificationDatasetBuilder
+):
+    def build_train_data(
+        self,
+        data: dict,
+        **kwargs,
+    ):
+        labels = [item["labels"] for item in data.values()]
+        label_types = list(zip(*labels))
+        categories = [self.prepare_category(label_type) for label_type in label_types]
+        dataset = self.build_data(data, categories).slice(1)
+        return Output(
+            dataset=dataset,
+            categories=categories,
+            output_size=sum([len(category) for category in categories]),
+        )
+
+    def encode_label(self, categories, labels):
+        return torch.LongTensor(
+            [category.encode(label) for category, label in zip(categories, labels)]
+        )
+
+    def build_data(
+        self,
+        data: dict,
+        categories: List[CategoryEncoder],
+        **kwargs,
+    ):
+        """
+        Args:
+            data (dict)
+                id:
+                    wav_path: str
+                    labels: List[str]
+
+            categories List[Category]
+                encode: callable, str -> int
+                decode: callable, int -> str
+
+        Return:
+            AugmentedDynamicItemDataset, with keys:
+                x: torch.Tensor, (time, channel)
+                x_len: int
+                class_id: int
+                labels: List[str]
+                unique_name: str
+        """
+        dataset = AugmentedDynamicItemDataset(data)
+        dataset.add_global_stats("categories", categories)
+        dataset.add_dynamic_item_and_metadata(
+            self.load_audio, takes="wav_path", provide="wav"
+        )
+        dataset.add_dynamic_item(self.compute_length, takes="wav", provides="wav_len")
+        dataset.add_dynamic_item(
+            self.encode_label, takes=["categories", "labels"], provides="class_ids"
+        )
+        dataset.set_output_keys(
+            {
+                "x": "wav",
+                "x_len": "wav_len",
+                "class_ids": "class_ids",
+                "labels": "labels",
+                "unique_name": "id",
+            }
+        )
+        return Output(dataset=dataset)

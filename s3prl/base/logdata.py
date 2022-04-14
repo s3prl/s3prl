@@ -51,3 +51,33 @@ class Logs(Container):
 
     def add_hidden_state(self, name, data):
         self.add_data(name, data, LogDataType.HIDDEN_STATE)
+
+    def filter_data_type(self, data_type):
+        output = Container()
+        for key, value in self.items():
+            if value.data_type == data_type:
+                output[key] = value.data
+        return output
+
+    @property
+    def Scalar(self):
+        return self.filter_data_type(LogDataType.SCALAR)
+
+    @property
+    def Audio(self):
+        return self.filter_data_type(LogDataType.AUDIO)
+
+    @property
+    def Image(self):
+        return self.filter_data_type(LogDataType.IMAGE)
+
+    @property
+    def Hidden_State(self):
+        return self.filter_data_type(LogDataType.HIDDEN_STATE)
+
+    @property
+    def All_Data(self):
+        output = Container()
+        for key, value in self.items():
+            output[key] = value.data
+        return output
