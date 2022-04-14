@@ -23,15 +23,15 @@ class UpstreamExpert(UpstreamBase):
     The Mockingjay wrapper
     """
 
-    def __init__(self, ckpt, model_config=None, **kwargs):
+    def __init__(self, ckpt, options_config=None, **kwargs):
         super().__init__(**kwargs)
 
-        if model_config is not None:
+        if options_config is not None:
             print(
                 "[UpstreamExpert] - Using upstream expert config file from:",
-                model_config,
+                options_config,
             )
-            with open(model_config, "r") as file:
+            with open(options_config, "r") as file:
                 options = yaml.load(file, Loader=yaml.FullLoader)
         else:
             print("[UpstreamExpert] - Using the default upstream expert config")
