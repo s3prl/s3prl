@@ -2,7 +2,7 @@ import logging
 
 import torch
 from s3prl.dataset.base import AugmentedDynamicItemDataset
-from s3prl.dataset.utterance_classification_dataset import UtteranceClassificationDatasetBuilder
+from s3prl.dataset.utterance_classification_databuilder import UtteranceClassificationDatasetBuilder
 from s3prl.sampler.max_timestamp_batch_sampler import MaxTimestampBatchSampler
 
 logger = logging.getLogger(__name__)
