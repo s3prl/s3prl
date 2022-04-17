@@ -1,3 +1,4 @@
+from pathlib import Path
 from librosa.util import find_files
 
 from s3prl.util.loader import TorchaudioLoader
@@ -10,6 +11,8 @@ class LibriSpeechAudioPreprocessor(Object):
                  valid_sets = ['dev-clean', 'dev-other'],
                  test_sets = ['test-clean', 'test-other']):
         super().__init__()
+
+        dataset_root = Path(dataset_root).resolve()
 
         # stage1
         self.train = []
