@@ -75,10 +75,10 @@ def main():
 
     upstream = S3PRLUpstream("apc")
     downstream = problem.DownstreamModel(
-        upstream.output_size, len(preprocessor.statistics().category)
+        upstream.output_size, preprocessor.statistics().output_size
     )
     model = UpstreamDownstreamModel(upstream, downstream)
-    task = problem.Task(model, preprocessor.statistics().category)
+    task = problem.Task(model, preprocessor.statistics().label_loader)
 
     optimizer = optim.Adam(task.parameters(), lr=1e-3)
     lightning_task = LightningModuleSimpleWrapper(task, optimizer)

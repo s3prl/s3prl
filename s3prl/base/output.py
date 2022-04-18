@@ -98,6 +98,7 @@ class Output(GeneralOutput):
         wav_len=None,
         source=None,
         source_loader=None,
+        label_loader=None,
         category=None,
         input_size=None,
         output_size=None,

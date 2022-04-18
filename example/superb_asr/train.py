@@ -40,7 +40,9 @@ def main():
     save_to.mkdir(exist_ok=True, parents=True)
 
     logger.info("Preparing preprocessor")
-    preprocessor = problem.Preprocessor(librispeech)
+    preprocessor = problem.Preprocessor(
+        librispeech, splits=["train-clean-100", "dev-clean", "test-clean"]
+    )
 
     logger.info("Preparing train dataloader")
     train_dataset = problem.TrainDataset(**preprocessor.train_data())
@@ -53,7 +55,7 @@ def main():
     train_dataloader = DataLoader(
         train_dataset,
         batch_sampler=train_sampler,
-        num_workers=12,
+        num_workers=4,
         collate_fn=train_dataset.collate_fn,
     )
 
@@ -70,7 +72,7 @@ def main():
     valid_dataloader = DataLoader(
         valid_dataset,
         batch_sampler=valid_sampler,
-        num_workers=12,
+        num_workers=4,
         collate_fn=valid_dataset.collate_fn,
     )
 
@@ -83,7 +85,10 @@ def main():
     test_sampler = problem.TestSampler(test_dataset, 8)
     test_sampler = DistributedBatchSamplerWrapper(test_sampler, num_replicas=1, rank=0)
     test_dataloader = DataLoader(
-        test_dataset, batch_size=8, num_workers=12, collate_fn=test_dataset.collate_fn
+        test_dataset,
+        batch_sampler=test_sampler,
+        num_workers=4,
+        collate_fn=test_dataset.collate_fn,
     )
 
     latest_task = save_to / "task.ckpt"
@@ -108,12 +113,15 @@ def main():
         # Model creation block which can be fully customized
         upstream = S3PRLUpstream("apc")
         downstream = problem.DownstreamModel(
-            upstream.output_size, len(preprocessor.statistics().category)
+            upstream.output_size,
+            preprocessor.statistics().output_size,
+            hidden_size=[512],
+            dropout=[0.2],
         )
         model = UpstreamDownstreamModel(upstream, downstream)
 
         # After customize your own model, simply put it into task object
-        task = problem.Task(model, preprocessor.statistics().category)
+        task = problem.Task(model, preprocessor.statistics().label_loader)
         task = task.to(device)
 
     # We do not handle optimizer/scheduler in any special way in S3PRL, since
@@ -210,24 +218,23 @@ def main():
                     for log in logs.values():
                         logger.info(f"{log.name}: {log.data}")
 
-                    # test
-                    test_results = []
-                    for batch in tqdm(
-                        test_dataloader, desc="Test", total=len(test_dataloader)
-                    ):
-                        batch = batch.to(device)
-                        result = task.test_step(**batch)
-                        cacheable_result = result.cacheable()
-                        test_results.append(cacheable_result)
-
-                    logs: Logs = task.test_reduction(test_results).logs
-                    logger.info(f"[Test] step {global_step}")
-                    for log in logs.values():
-                        logger.info(f"{log.name}: {log.data}")
-
             if (global_step + 1) % args.save_step == 0:
                 task.save_checkpoint(save_to / "task.ckpt")
                 torch.save(optimizer.state_dict(), save_to / "optimizer.ckpt")
+
+    with torch.no_grad():
+        # test
+        test_results = []
+        for batch in tqdm(test_dataloader, desc="Test", total=len(test_dataloader)):
+            batch = batch.to(device)
+            result = task.test_step(**batch)
+            cacheable_result = result.cacheable()
+            test_results.append(cacheable_result)
+
+        logs: Logs = task.test_reduction(test_results).logs
+        logger.info(f"[Test] step results")
+        for log in logs.values():
+            logger.info(f"{log.name}: {log.data}")
 
 
 if __name__ == "__main__":
