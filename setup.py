@@ -45,7 +45,9 @@ requirements = [
     "catalyst",
     "sentencepiece",
     "huggingface_hub>=0.2.1", # TODO: Replace with v0.0.17 when it is released
-    "mutagen"
+    "mutagen",
+    "fairseq @ git+https://github.com//pytorch/fairseq.git@f2146bdc7abf293186de9449bfa2272775e39e1d#egg=fairseq",
+    "lighthubert @ git+https://github.com/s3prl/lighthubert#egg=lighthubert"
 ]
 
 # Arguments marked as "Required" below must be included for upload to PyPI.

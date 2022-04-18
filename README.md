@@ -70,13 +70,7 @@ If you find this toolkit helpful to your research, please do consider citing [ou
 pip install -e ./
 ```
 
-4. Install the specific fairseq
-
-```sh
-pip install fairseq@git+https://github.com//pytorch/fairseq.git@f2146bdc7abf293186de9449bfa2272775e39e1d#egg=fairseq
-```
-
-5. Some upstream models require special dependencies. If you encounter error with a specific upstream model, you can look into the `README.md` under each `upstream` folder. E.g., `upstream/pase/README.md`
+4. Some upstream models require special dependencies. If you encounter error with a specific upstream model, you can look into the `README.md` under each `upstream` folder. E.g., `upstream/pase/README.md`
 
 ## Development pattern for contributors
 
