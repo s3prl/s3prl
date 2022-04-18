@@ -649,6 +649,8 @@ python downstream/separation_stft/scripts/LibriMix/data_prepare.py \
 python downstream/separation_stft/scripts/LibriMix/subsample.py \
 downstream/separation_stft/datasets/Libri2Mix/wav16k/min/dev \
 downstream/separation_stft/datasets/Libri2Mix/wav16k/min/dev_1000
+
+cd $YOUR_S3PRL_ROOT/s3prl/
 ```
 
 #### Training
