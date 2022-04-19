@@ -1,10 +1,10 @@
 git clone https://github.com/A2Zadeh/CMU-MultimodalSDK.git
-mv convert_label.py CMU-MultimodalSDK
+cp convert_label.py CMU-MultimodalSDK
 cd CMU-MultimodalSDK
 wget http://immortal.multicomp.cs.cmu.edu/CMU-MOSEI/labels/CMU_MOSEI_Labels.csd
 wget https://raw.githubusercontent.com/A2Zadeh/CMU-MultimodalSDK/master/mmsdk/mmdatasdk/dataset/standard_datasets/CMU_MOSEI/cmu_mosei_std_folds.py
 pip install h5py validators colorama tqdm requests pandas
 python3 convert_label.py
-mv convert_label.py CMU_MOSEI_Labels.csv ..
+mv CMU_MOSEI_Labels.csv ..
 cd .. 
 rm -rf CMU-MultimodalSDK

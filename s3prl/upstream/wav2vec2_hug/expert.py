@@ -15,6 +15,9 @@ class UpstreamExpert(nn.Module):
         self.processor = Wav2Vec2Processor.from_pretrained(ckpt)
         self.model = Wav2Vec2Model.from_pretrained(ckpt)
 
+    def get_downsample_rates(self, key: str) -> int:
+        return 320
+
     def forward(self, wavs: List[Tensor]):
         device = wavs[0].device
         processor_outputs = self.processor(

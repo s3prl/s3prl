@@ -20,3 +20,8 @@ def wav2vec2_hug_base_960(*args, **kwargs):
 def wav2vec2_hug_large_ll60k(*args, **kwargs):
     kwargs['ckpt'] = 'facebook/wav2vec2-large-lv60'
     return wav2vec2_hug(*args, **kwargs)
+
+
+def wav2vec2_hug_large_lv60_self_training(*args, **kwargs):
+    kwargs['ckpt'] = 'facebook/wav2vec2-large-960h-lv60-self'
+    return wav2vec2_hug(*args, **kwargs)

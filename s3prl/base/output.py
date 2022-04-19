@@ -49,7 +49,7 @@ class GeneralOutput(Container):
         cls.__init__ = super_init
 
     def __setitem__(self, k, v) -> None:
-        normed_k = self.normalize_key(k)
+        normed_k = self._normalize_key(k)
 
         cls = self.__class__
         available_names = list(inspect.signature(cls.__init__).parameters.keys())
@@ -79,7 +79,9 @@ class GeneralOutput(Container):
 class Output(GeneralOutput):
     def __init__(
         self,
+        id=None,
         name=None,
+        unique_name=None,
         timestamp=None,
         prefix=None,
         x=None,
@@ -92,15 +94,26 @@ class Output(GeneralOutput):
         logs=None,
         loss=None,
         label=None,
+        labels=None,
+        class_id=None,
+        class_ids=None,
         logit=None,
         prediction=None,
         wav=None,
+        wav_path=None,
         wav_len=None,
+        wav_metadata=None,
         source=None,
         source_loader=None,
         label_loader=None,
         category=None,
+        categories=None,
         input_size=None,
         output_size=None,
+        dataset=None,
+        train_data=None,
+        valid_data=None,
+        test_data=None,
+        stats=None,
     ):
         super().__init__()

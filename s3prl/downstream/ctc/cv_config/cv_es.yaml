@@ -1,0 +1,77 @@
+runner:
+  total_steps: 500000
+  gradient_clipping: 1
+  gradient_accumulate_steps: 1
+
+  log_step: 200
+  eval_step: 2000
+  save_step: 200
+  max_keep: 1
+  eval_dataloaders:
+    - dev
+
+optimizer:
+  name: TorchOptim
+  torch_optim_name: Adam
+  lr: 1.0e-4
+
+# comment the whole scheduler config block
+# to disable learning rate scheduling
+# scheduler:
+#   name: linear_schedule_with_warmup
+#   num_warmup_steps: 16000
+
+# comment the whole specaug config block
+# to disable specaug on representation
+specaug:
+  apply_time_warp: true
+  apply_time_mask: true
+  apply_freq_mask: true
+  time_warp_window: 5
+  time_mask_width_range: [0, 40]
+  freq_mask_width_range: [0, 50]
+  num_freq_mask: 4
+  num_time_mask: 2
+
+
+downstream_expert:
+  corpus:                                 
+    name: 'common_voice'                   # Specify corpus
+    path: '/work/harry87122/dataset/cv-corpus-7.0-2021-07-21/es/clips'
+
+    train: ['/work/harry87122/s3prl/s3prl/data/common_voice/es/train.tsv']
+    dev: ['/work/harry87122/s3prl/s3prl/data/common_voice/es/dev.tsv']
+    test: ['/work/harry87122/s3prl/s3prl/data/common_voice/es/test.tsv']
+
+    bucketing: True                       # Enable/Disable bucketing 
+    batch_size: 16
+    num_workers: 16
+  
+  text:
+    mode: 'character'                       # 'character'/'word'/'subword'
+    vocab_file: 'downstream/ctc/cv_vocab/es_char.txt'
+  
+  model:
+    project_dim: 1024
+    zero_infinity: True
+
+    select: RNNs
+    Wav2Letter:
+      total_rate: 320
+    RNNs:
+      total_rate: 320
+      module: 'LSTM'                        # 'LSTM'/'GRU'
+      bidirection: True
+      dim: [1024, 1024]
+      dropout: [0.2, 0.2]
+      layer_norm: [False, False]
+      proj: [True, True]              # Linear projection + Tanh after each rnn layer
+      sample_rate: [1, 1]
+      sample_style: 'drop'                  # 'drop'/'concat'
+
+  save_best_on:
+    - dev
+
+  metric_higher_better: False
+  metric:  # The first metric will be used to save checkpoint
+    - wer

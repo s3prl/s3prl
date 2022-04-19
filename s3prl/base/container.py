@@ -1,3 +1,4 @@
+from functools import partial
 from typing import Any, List, Union
 from collections import OrderedDict
 
@@ -64,17 +65,59 @@ class Container(OrderedDict):
     This will lead to the breaking change if the later version
     """
 
-    def normalize_key(self, k):
+    _reserved_keys = [
+        "_normalize_key",
+        "update",
+        "override",
+        "add",
+        "detach",
+        "cpu",
+        "to",
+        "subset",
+        "slice",
+        "split",
+        "select",
+        "deselect",
+    ]
+
+    def _normalize_key(self, k):
         if isinstance(k, int):
             return list(super().keys())[k]
         return k
 
+    def override(self, new_dict: dict):
+        """
+        Nestedly update old dict with new dict. Allow duplicate.
+        """
+        self.update(new_dict, override=True)
+
+    def add(self, new_dict: dict):
+        """
+        Nestedly update old dict with new dict. Not allow duplicate.
+        """
+        self.update(new_dict, override=False)
+
+    def update(self, new_dict: dict, override: bool):
+        for key, value in new_dict.items():
+            if isinstance(value, dict):
+                if key not in self:
+                    self.__setitem__(key, __class__())
+                self.__getitem__(key).update(value, override)
+            else:
+                assert override or not hasattr(
+                    self, key
+                ), f"override option is false. {key} exists in the original dict"
+                self.__setitem__(key, value)
+
     def __getitem__(self, k):
-        k = self.normalize_key(k)
+        k = self._normalize_key(k)
         return super().__getitem__(k)
 
     def __setitem__(self, k, v) -> None:
-        k = self.normalize_key(k)
+        k = self._normalize_key(k)
+        assert k not in self._reserved_keys, f"'{k}' cannot be used"
+        if type(v) == dict:
+            v = __class__(v)
         super().__setitem__(k, v)
 
     def __getattribute__(self, name: str) -> Any:
@@ -93,34 +136,46 @@ class Container(OrderedDict):
         return self.__setitem__(name, value)
 
     def detach(self):
-        output = self.__class__()
-        for key, value in super().items():
-            if isinstance(value, torch.Tensor):
-                value = value.detach()
-            output[key] = value
-        return output
+        self._recursive_apply(self, self._detach_impl)
+        return self
+
+    @staticmethod
+    def _detach_impl(obj):
+        return obj.detach()
 
     def cpu(self):
-        output = self.__class__()
-        for key, value in super().items():
-            if isinstance(value, torch.Tensor):
-                value = value.cpu()
-            output[key] = value
-        return output
+        self._recursive_apply(self, self._cpu_impl)
+        return self
+
+    @staticmethod
+    def _cpu_impl(obj):
+        return obj.cpu()
 
     def to(self, target):
-        output = self.__class__()
-        for key, value in super().items():
-            if isinstance(value, torch.Tensor):
-                value = value.to(target)
-            output[key] = value
-        return output
+        self._recursive_apply(self, partial(self._to_impl, target=target))
+        return self
+
+    @staticmethod
+    def _to_impl(obj, target):
+        return obj.to(target)
+
+    @classmethod
+    def _recursive_apply(cls, obj, apply_fn):
+        if isinstance(obj, torch.Tensor):
+            obj = apply_fn(obj)
+        elif isinstance(obj, (list, tuple)):
+            for index in range(len(obj)):
+                obj[index] = cls._recursive_apply(obj[index], apply_fn)
+        elif isinstance(obj, dict):
+            for key in list(obj.keys()):
+                obj[key] = cls._recursive_apply(obj[key], apply_fn)
+        return obj
 
     def subset(
         self,
         *names: List[Union[str, int]],
         as_type: str = "tuple",
-        exclude: bool = False
+        exclude: bool = False,
     ):
         """
         Args:
@@ -175,6 +230,11 @@ class Container(OrderedDict):
 
         interval = list(range(start, end, step))
         return self.subset(*interval, as_type=as_type)
+
+    def split(self, start_or_end: int, end: int = None, step: int = 1):
+        selected = self.slice(start_or_end, end, step, as_type="dict")
+        deselected = self.deselect(*list(selected.keys()))
+        return *list(selected.values()), deselected
 
     def select(self, *names: List[str]):
         return self.subset(*names, as_type="dict")
