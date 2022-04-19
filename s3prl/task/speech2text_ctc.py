@@ -36,11 +36,6 @@ class Speech2TextCTCExample(Module):
 
 
 class Speech2TextCTC(Task):
-    model: Module
-    tokenizer: Tokenizer
-    input_size: int
-    output_size: int
-
     def __init__(self, model: Speech2TextCTCExample, tokenizer: Tokenizer) -> None:
         """Speech-to-text task with CTC objective
 
