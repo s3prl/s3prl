@@ -84,7 +84,7 @@ def main():
     logger.info("Preparing train data")
     train_dataset, train_stats = problem.TrainData(**config.TrainData)(
         AugmentedDynamicItemDataset(train_data),
-        stats,
+        deepcopy(stats),
     )
     train_sampler = DistributedBatchSamplerWrapper(
         problem.TrainSampler(train_dataset, **config.TrainSampler),
@@ -101,7 +101,7 @@ def main():
     logger.info("Preparing valid data")
     valid_dataset, valid_stats = problem.ValidData(**config.ValidData)(
         AugmentedDynamicItemDataset(valid_data),
-        stats,
+        deepcopy(stats),
     )
     valid_sampler = DistributedBatchSamplerWrapper(
         problem.ValidSampler(valid_dataset, **config.ValidSampler),
@@ -117,7 +117,7 @@ def main():
     logger.info("Preparing test data")
     test_dataset, test_stats = problem.TestData(**config.TestData)(
         AugmentedDynamicItemDataset(test_data),
-        stats,
+        deepcopy(stats),
     )
     test_sampler = DistributedBatchSamplerWrapper(
         problem.ValidSampler(test_dataset, **config.TestSampler),
