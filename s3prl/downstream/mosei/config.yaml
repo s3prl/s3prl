@@ -23,9 +23,9 @@ scheduler:
 
 downstream_expert:
   datarc:
-    data_dir: /home/godiclili/Audio
-    label_dir: ./downstream/mosei/utility/CMU_MOSEI_Labels.csv
-    num_class: 2
+    data_dir: /data1/jonathanhsu/CMU-MOSEI/Audio
+    label_path: ./downstream/mosei/utility/CMU_MOSEI_Labels.csv
+    num_class: 2  # options: 2, 3, 6, 7
     num_workers: 12
     train_batch_size: 3
     eval_batch_size: 3

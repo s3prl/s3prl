@@ -78,3 +78,12 @@ def wav2vec2_xlsr(refresh=False, *args, **kwargs):
     """
     kwargs['ckpt'] = 'https://dl.fbaipublicfiles.com/fairseq/wav2vec/xlsr_53_56k.pt'
     return wav2vec2_url(refresh=refresh, *args, **kwargs)
+
+
+def wav2vec2_large_lv60_cv_swbd_fsh(refresh=False, *args, **kwargs):
+    """
+        The Large model trained on Libri-Light 60k hours + CommonVoice + Switchboard + Fisher
+            refresh (bool): whether to download ckpt/config again if existed
+    """
+    kwargs['ckpt'] = 'https://dl.fbaipublicfiles.com/fairseq/wav2vec/w2v_large_lv_fsh_swbd_cv.pt'
+    return wav2vec2_url(refresh=refresh, *args, **kwargs)

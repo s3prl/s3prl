@@ -85,7 +85,7 @@ class TransformerBuilder(nn.Module):
             self.config['audio'] = yaml.load(open(on_the_fly_config, 'r'), Loader=yaml.FullLoader)
         if 'audio' in self.config:
             if 'kaldi' in self.config['audio']:
-                self.extracter, self.inp_dim = get_extracter(self.config['audio'])
+                self.extracter, self.inp_dim, _ = get_extracter(self.config['audio'])
                 self.spec_dim = self.inp_dim
             else:
                 self.extracter, self.inp_dim, self.spec_dim = get_preprocessor(self.config['audio'], process_input_only=True)

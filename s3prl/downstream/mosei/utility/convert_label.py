@@ -20,6 +20,7 @@ starts = []		# Start time of Segment in Video
 ends = []		# End time of Segment in Video
 labels_2a = []	# 2-class classification	1 = Positive+Neutral, -1 = Negative
 labels_2b = []	# 2-class classification:	1 = Positve, 0 = Neutral, -1 = Negative
+labels_6 = []	# 6-class emotion classification
 labels_7 = []	# 7-class classification:	[-2,-1,0,1,2,3]
 splits = [] 	# 0 = Training, 1 = Validation, 2 = Testing
 
@@ -44,6 +45,7 @@ def label7(a):
    	if a <= 2:	return 2
    	return 3
    	
+
 data = mmdatasdk.mmdataset({'All Labels' : Raw_Label_Path})
 
 for file in data.computational_sequences['All Labels'].keys():
@@ -53,9 +55,11 @@ for file in data.computational_sequences['All Labels'].keys():
 		starts.append(data.computational_sequences['All Labels'][file]['intervals'][index][0])
 		ends.append(data.computational_sequences['All Labels'][file]['intervals'][index][1])
 
-		# Here only use the sentiment from the 7 labels (sentiment,happy,sad,anger,surprise,disgust,fear)
+		# extract label2a, label2b, label6, and label7
+		# label6 --> (sentiment,happy,sad,anger,surprise,disgust,fear)
 		labels_2a.append(label2a(data.computational_sequences['All Labels'][file]['features'][index][0]))
 		labels_2b.append(label2b(data.computational_sequences['All Labels'][file]['features'][index][0]))
+		labels_6.append(data.computational_sequences['All Labels'][file]['features'][index][1:].argmax())
 		labels_7.append(label7(data.computational_sequences['All Labels'][file]['features'][index][0]))
 
 		if file in standard_train_fold:
@@ -67,32 +71,44 @@ for file in data.computational_sequences['All Labels'].keys():
 		else:
 			splits.append(3)
 
-df = pd.DataFrame(data = np.stack([files,indexs,starts,ends,labels_2a,labels_2b,labels_7,splits],axis=1), 
-				columns = ['file','index','start','end','label2a','label2b','label7','split'])
+df = pd.DataFrame(data=np.stack([files, indexs, starts, ends, labels_2a,
+				      labels_2b, labels_6, labels_7, splits], axis=1),
+				  columns=['file', 'index', 'start', 'end', 'label2a',
+				      'label2b', 'label6', 'label7', 'split'])
+
 df.to_csv('CMU_MOSEI_Labels.csv')
 
 print('Info of Dataset')
 print()
 print('---------- Original Video -----------')
-print('Num of videos in training   set: ',len(standard_train_fold))
-print('Num of videos in validation set: ',len(standard_valid_fold))
-print('Num of videos in testing    set: ',len(standard_test_fold))
+print('Num of videos in training   set: ', len(standard_train_fold))
+print('Num of videos in validation set: ', len(standard_valid_fold))
+print('Num of videos in testing    set: ', len(standard_test_fold))
 print('-------------------------------------')
 print('---------- Segmented Audio ----------')
-print('Num of Training   Data: ',splits.count(0))
-print('Num of Validation Data: ',splits.count(1))
-print('Num of Testing    Data: ',splits.count(2))
-print('Num of Useless    Data: ',splits.count(3))
-print('Num of Useful     Data: ',len(splits)-splits.count(3))
-print('Total             Data: ',len(splits))
+print('Num of Training   Data: ', splits.count(0))
+print('Num of Validation Data: ', splits.count(1))
+print('Num of Testing    Data: ', splits.count(2))
+print('Num of Useless    Data: ', splits.count(3))
+print('Num of Useful     Data: ', len(splits)-splits.count(3))
+print('Total             Data: ', len(splits))
 print('--------------------------------------')
 print('---------- 2-class sentiment ---------')
-print('Class non-negative (1): ',labels_2a.count(+1))
-print('Class negative     (0): ',labels_2a.count(-1))
+print('Class non-negative (1): ', labels_2a.count(+1))
+print('Class negative     (0): ', labels_2a.count(0))
 print('--------------------------------------')
-print('- 2-class sentiment (ignore neutral) -')
-print('Class positive (1): ',labels_2b.count(+1))
-print('Class negative (0): ',labels_2b.count(-1))
+print('---------- 3-class sentiment ---------')
+print('Class positive (1): ', labels_2b.count(+1))
+print('Class neutral (0): ', labels_2b.count(0))
+print('Class negative (-1): ', labels_2b.count(-1))
+print('--------------------------------------')
+print('--------- 6-class emotion ------------')
+print('Class happiness (1): ', labels_6.count(0))
+print('Class sadness   (2): ', labels_6.count(1))
+print('Class anger     (3): ', labels_6.count(2))
+print('Class surprise  (4): ', labels_6.count(3))
+print('Class disgust   (5): ', labels_6.count(4))
+print('Class fear      (6): ', labels_6.count(5))
 print('--------------------------------------')
 print('--------- 7-class sentiment ----------')
 print('Class -3: ',labels_7.count(-3))

@@ -6,7 +6,8 @@ Please read [downstream/README.md](../README.md) for the general command pattern
 
 ## Introduction
 
-In this document we detail the commands for reproducing the paper [**SUPERB:** **S**peech processing **U**niversal **PER**formance **B**enchmark](https://arxiv.org/abs/2105.01051). If you use the tasks here for your research, please consider citing the following papers:
+In this document we detail the commands for reproducing the paper [**SUPERB:** **S**peech processing **U**niversal **PER**formance **B**enchmark](https://arxiv.org/abs/2105.01051) and [**SUPERB-SG:** Enhanced **S**peech processing **U**niversal **PER**formance
+**B**enchmark for **S**emantic and **G**enerative Capabilities](https://arxiv.org/abs/2203.06849). If you use the tasks here for your research, please consider citing the following papers:
 
 ```
 @inproceedings{yang21c_interspeech,
@@ -18,7 +19,15 @@ In this document we detail the commands for reproducing the paper [**SUPERB:** *
   doi={10.21437/Interspeech.2021-1775}
 }
 ```
-
+```
+@article{superb_sg,
+  title={SUPERB-SG: Enhanced Speech processing Universal PERformance Benchmark for Semantic and Generative Capabilities},
+  author={Hsiang-Sheng Tsai and Heng-Jui Chang and Wen-Chin Huang and Zili Huang and Kushal Lakhotia and Shu-wen Yang and Shuyan Dong and Andy T. Liu and Cheng-I Lai and Jiatong Shi and Xuankai Chang and Phil Hall and Hsuan-Jui Chen and Shang-Wen Li and Shinji Watanabe and Abdel-rahman Mohamed and Hung-yi Lee},
+  journal={ArXiv},
+  year={2022},
+  volume={abs/2203.06849}
+}
+```
 Besides the tasks presented in the paper, we are also extending the coverage over all speech tasks. In the [SUPERB Challenge](https://superbbenchmark.org/challenge) in [*AAAI workshop: The 2nd Self-supervised Learning for Audio and Speech Processing*](https://aaai-sas-2022.github.io/), more tasks are introduced into the benchmark framework, and the setup detailed here serves as the **public-set** in the challenge. We list all tasks below:
 
 | ID | Task Name | Category | Paper | Challenge public-set |
@@ -33,10 +42,10 @@ Besides the tasks presented in the paper, we are also extending the coverage ove
 | [ER](#er-emotion-recognition) | Emotion Recognition | Paralinguistics | V | V |
 | [IC](#ic-intent-classification) | Spoken Intent Classification | Semantics | V | |
 | [SF](#sf-end-to-end-slot-filling) | Spoken Slot Filling | Semantics | V |  |
-| [ST](#st-speech-translation) | Speech Translation | Semantics |  | V |
-| [SE](#se-speech-enhancement) | Speech Enhancement | Generation |  | V |
-| [SS](#ss-source-separation) | Source Separation | Generation |  | V |
-| [VC](#vc-voice-conversion) | Voice Conversion | Generation |  |  |
+| [ST](#st-speech-translation) | Speech Translation | Semantics | V | V |
+| [SE](#se-speech-enhancement) | Speech Enhancement | Generation | V | V |
+| [SS](#ss-source-separation) | Source Separation | Generation | V | V |
+| [VC](#vc-voice-conversion) | Voice Conversion | Generation | V |  |
 
 This document contains the following meterials:
 
@@ -640,6 +649,8 @@ python downstream/separation_stft/scripts/LibriMix/data_prepare.py \
 python downstream/separation_stft/scripts/LibriMix/subsample.py \
 downstream/separation_stft/datasets/Libri2Mix/wav16k/min/dev \
 downstream/separation_stft/datasets/Libri2Mix/wav16k/min/dev_1000
+
+cd $YOUR_S3PRL_ROOT/s3prl/
 ```
 
 #### Training
@@ -812,9 +823,16 @@ python run_downstream.py -m evaluate -e result/downstream/ExpName/dev-best.ckpt
 
 The model will report case-sensitive detokenized BLEU.
 
+## OOD-ASR: Out-of-domain Automatic Speech Recognition Tasks
+
+Read [README](../ctc/README.md).
+
+
 # Leaderboard submission
 
 After *finishing the **Testing*** of each task, the prediction files for leaderboard submission will be located under the `expdir`. You can use [submit.py](../../submit/submit.py) to easily organize them into a zip file which can later be submitted to our [leaderboard](https://superbbenchmark.org/submit). We now support submissions for the following tasks: **PR**, **ASR**, **KS**, **QbE**, **SID**, **ASV**, **SD**, **IC**, **SF**, **ER**, **SE**, **SS**, **ST**.
+
+If you find [superbbenchmark.org](www.superbbenchmark.org) is down temporarily, please try to use [140.112.21.28](140.112.21.28) as an alternative. They share the same backend. We will make the official domain work as soon as possible.
 
 Please use the master branch newer than [852db2e](https://github.com/s3prl/s3prl/commit/852db2e5f65fc9baea4a5877ffda6dd7470c72fc). Note that our SUPERB codebase is backward-compatible, so you don't need to re-train any model after upgrading to this newer version. You only need this new version to inference the prediction files for submission correctly.
 

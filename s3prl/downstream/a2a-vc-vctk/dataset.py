@@ -9,6 +9,7 @@
 
 import os
 import random
+import yaml
 
 import librosa
 import numpy as np
@@ -205,4 +206,85 @@ class VCTK_VCC2020Dataset(Dataset):
         wav_paths = [sorted_batch[i][4] for i in range(bs)]
         ref_spk_names = [sorted_batch[i][5] for i in range(bs)]
         
-        return wavs, wavs_2, acoustic_features, acoustic_features_padded, acoustic_feature_lengths, wav_paths, ref_spk_embs, ref_spk_names
+        return wavs, wavs_2, acoustic_features, acoustic_features_padded, acoustic_feature_lengths, wav_paths, ref_spk_embs, ref_spk_names, None
+
+
+class CustomDataset(Dataset):
+    def __init__(self,
+                 eval_pair_list_file,
+                 spk_emb_source,
+                 **kwargs):
+        super(CustomDataset, self).__init__()
+        self.spk_emb_source = spk_emb_source
+
+        if os.path.isfile(eval_pair_list_file):
+            print("[Dataset] Reading custom eval pair list file: {}".format(eval_pair_list_file))
+            with open(eval_pair_list_file, "r") as f:
+                infos = yaml.load(f, Loader=yaml.FullLoader)
+            X = [{"wav_name": k, **v} for k, v in infos.items()]
+        else:
+            raise ValueError("[Dataset] eval pair list file does not exist: {}".format(eval_pair_list_file))
+        print('[Dataset] - number of data for custom test: ' + str(len(X)))
+        self.X = X
+
+        if spk_emb_source == "external":
+            # extract spk embs beforehand
+            print("[Dataset] Extracting speaker emebddings")
+            self.extract_spk_embs()
+        else:
+            NotImplementedError
+
+    def extract_spk_embs(self):
+        # load speaker encoder
+        spk_encoder = VoiceEncoder()
+
+        new_X = []
+        for item in self.X:
+            new_item = item
+            new_item["ref_spk_embs"] = []
+            for wav_path in new_item["ref"]:
+                # extract spk emb
+                wav = preprocess_wav(wav_path)
+                embedding = spk_encoder.embed_utterance(wav)
+                new_item["ref_spk_embs"].append(embedding)
+            new_X.append(new_item)
+        self.X = new_X
+
+    def _load_wav(self, wav_path, fs):
+        # use librosa to resample. librosa gives range [-1, 1]
+        wav, sr = librosa.load(wav_path, sr=fs)
+        return wav, sr
+
+    def __len__(self):
+        return len(self.X)
+
+    def __getitem__(self, index):
+        wav_name = self.X[index]["wav_name"]
+        input_wav_path = self.X[index]["src"]
+        ref_spk_embs = self.X[index]["ref_spk_embs"]
+        ref_spk_name = self.X[index]["ref_spk_name"]
+
+        input_wav_original, _ = self._load_wav(input_wav_path, fs=None)
+        input_wav_resample, fs_resample = self._load_wav(input_wav_path, fs=FS)
+
+        # get speaker embeddings
+        if self.spk_emb_source == "external":
+            # ref_spk_embs = [read_hdf5(spk_emb_path, "spk_emb") for spk_emb_path in spk_emb_paths]
+            ref_spk_embs = np.stack(ref_spk_embs, axis=0)
+            ref_spk_emb = np.mean(ref_spk_embs, axis=0)
+        else:
+            ref_spk_emb = None
+
+        return input_wav_resample, input_wav_original, ref_spk_emb, input_wav_path, ref_spk_name, wav_name
+
+    def collate_fn(self, batch):
+        sorted_batch = sorted(batch, key=lambda x: -x[1].shape[0])
+        bs = len(sorted_batch) # batch_size
+        wavs = [torch.from_numpy(sorted_batch[i][0]) for i in range(bs)]
+        wavs_2 = [torch.from_numpy(sorted_batch[i][1]) for i in range(bs)] # This is used for obj eval
+        ref_spk_embs = torch.from_numpy(np.array([sorted_batch[i][2] for i in range(bs)]))
+        wav_paths = [sorted_batch[i][3] for i in range(bs)]
+        ref_spk_names = [sorted_batch[i][4] for i in range(bs)]
+        save_wav_names = [sorted_batch[i][5] for i in range(bs)]
+        
+        return wavs, wavs_2, None, None, None, wav_paths, ref_spk_embs, ref_spk_names, save_wav_names

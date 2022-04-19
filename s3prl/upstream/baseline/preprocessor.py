@@ -15,7 +15,7 @@ import torchaudio
 from functools import partial
 from torch.nn.utils.rnn import pad_sequence
 from torchaudio.transforms import Spectrogram, MelScale, MFCC
-from torchaudio.functional import magphase, compute_deltas
+from torchaudio.functional import compute_deltas
 
 
 ############
@@ -79,7 +79,6 @@ class OnlinePreprocessor(torch.nn.Module):
         self._stft_args = {'center': True, 'pad_mode': 'reflect', 'normalized': False, 'onesided': True}
         # stft_args: same default values as torchaudio.transforms.Spectrogram & librosa.core.spectrum._spectrogram
         self._stft = partial(torch.stft, **self._win_args, **self._stft_args)
-        self._magphase = partial(torchaudio.functional.magphase, power=2)
         self._melscale = MelScale(sample_rate=sample_rate, n_mels=n_mels)
         self._mfcc_trans = MFCC(sample_rate=sample_rate, n_mfcc=n_mfcc, log_mels=True, melkwargs=self._win_args)
         self._istft = partial(torch.istft, **self._win_args, **self._stft_args)
@@ -87,6 +86,13 @@ class OnlinePreprocessor(torch.nn.Module):
         self.feat_list = feat_list
         self.register_buffer('_pseudo_wavs', torch.randn(N_SAMPLED_PSEUDO_WAV, sample_rate))
         self.eps = eps
+
+    def _magphase(self, spectrogram):
+        # Replace the deprecated private member function self._magphase
+        # Ref. https://github.com/pytorch/audio/issues/1337
+        # original: `self._magphase = partial(torchaudio.functional.magphase, power=2)`
+        spectrogram = torch.view_as_complex(spectrogram)
+        return spectrogram.abs().pow(exponent=2), spectrogram.angle()
 
     def _check_list(self, feat_list):
         if feat_list is None:

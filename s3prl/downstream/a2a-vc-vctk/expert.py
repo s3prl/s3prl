@@ -73,10 +73,8 @@ class DownstreamExpert(nn.Module):
         self.resample_ratio = self.fs / self.datarc["fbank_config"]["n_shift"] * upstream_rate / FS
         print('[Downstream] - resample_ratio: ' + str(self.resample_ratio))
 
-        # load datasets
-        self.train_dataset = VCTK_VCC2020Dataset('train', **self.datarc)
-        self.dev_dataset = VCTK_VCC2020Dataset('dev', **self.datarc)
-        self.test_dataset = VCTK_VCC2020Dataset('test', **self.datarc)
+        # lazy load the datasets
+        self.train_dataset = None
 
         # load statistics file if exists, and calculate if not found
         scaler = StandardScaler()
@@ -90,6 +88,7 @@ class DownstreamExpert(nn.Module):
             scaler.scale_ = read_hdf5(stats_path, "scale")
         else:
             print("[Stats] - " + str(stats_path) + " does not exist. Reading data...")
+            self.train_dataset = VCTK_VCC2020Dataset('train', **self.datarc)
             lmspcs = np.concatenate(self.train_dataset.get_all_lmspcs(), axis=0)
             print("[Stats] - " + str(stats_path) + " does not exist. Calculating statistics...")
             scaler.fit(lmspcs)
@@ -112,11 +111,18 @@ class DownstreamExpert(nn.Module):
     # Interface
     def get_dataloader(self, split):
         if split == 'train':
+            if self.train_dataset is None:
+                self.train_dataset = VCTK_VCC2020Dataset('train', **self.datarc)
             return self._get_train_dataloader(self.train_dataset)            
         elif split == 'dev':
+            self.dev_dataset = VCTK_VCC2020Dataset('dev', **self.datarc)
             return self._get_eval_dataloader(self.dev_dataset)
         elif split == 'test':
+            self.test_dataset = VCTK_VCC2020Dataset('test', **self.datarc)
             return self._get_eval_dataloader(self.test_dataset)
+        elif split == 'custom_test':
+            from .dataset import CustomDataset
+            return self._get_eval_dataloader(CustomDataset(self.datarc["eval_pair_list_file"], self.datarc["spk_emb_source"]))
 
 
     def _get_train_dataloader(self, dataset):
@@ -148,7 +154,8 @@ class DownstreamExpert(nn.Module):
                 acoustic_feature_lengths,
                 wav_paths,
                 ref_spk_embs,
-                ref_spk_names, 
+                ref_spk_names,
+                save_wav_names,
                 records,
                 **kwargs):
 
@@ -160,51 +167,49 @@ class DownstreamExpert(nn.Module):
         ref_spk_embs = ref_spk_embs.to(device)
         
         # forward model
-        if split in ["dev", "test"]:
+        if split == "custom_test":
             predicted_features, predicted_feature_lengths = self.model(input_features, input_feature_lengths, ref_spk_embs)
-            # save the unnormalized features for dev and test sets
             records["predicted_features"] += predicted_features.cpu().numpy().tolist()
             records["feature_lengths"] += predicted_feature_lengths.cpu().numpy().tolist()
-            records["wav_paths"] += wav_paths
-            records["ref_spk_names"] += ref_spk_names
-            records["wavs"] += wavs
+            records["save_wav_names"] += save_wav_names
+            return 0.0 # return dummy value
         else:
-            predicted_features, predicted_feature_lengths = self.model(input_features, input_feature_lengths, ref_spk_embs, acoustic_features_padded.to(device))
+            if split in ["dev", "test"]:
+                predicted_features, predicted_feature_lengths = self.model(input_features, input_feature_lengths, ref_spk_embs)
+                # save the unnormalized features for dev and test sets
+                records["predicted_features"] += predicted_features.cpu().numpy().tolist()
+                records["feature_lengths"] += predicted_feature_lengths.cpu().numpy().tolist()
+                records["wav_paths"] += wav_paths
+                records["ref_spk_names"] += ref_spk_names
+                records["wavs"] += wavs
+            else:
+                predicted_features, predicted_feature_lengths = self.model(input_features, input_feature_lengths, ref_spk_embs, acoustic_features_padded.to(device))
 
-        # loss calculation (masking and normalization are done inside)
-        loss = self.objective(predicted_features,
-                              acoustic_features_padded,
-                              predicted_feature_lengths,
-                              acoustic_feature_lengths,
-                              device)
-        records['loss'].append(loss.item())
+            # loss calculation (masking and normalization are done inside)
+            loss = self.objective(predicted_features,
+                                acoustic_features_padded,
+                                predicted_feature_lengths,
+                                acoustic_feature_lengths,
+                                device)
+            records['loss'].append(loss.item())
 
-        return loss
+            return loss
 
 
     # interface
     def log_records(self, split, records, logger, global_step, batch_ids, total_batch_num, **kwargs):
-        loss = torch.FloatTensor(records['loss']).mean().item()
 
-        if split in ["dev", "test"]:
-
-            hdf5_save_dir = os.path.join(self.expdir, str(global_step), split, "hdf5")
-            wav_save_dir = os.path.join(self.expdir, str(global_step), split, "wav")
+        if split == "custom_test":
+            hdf5_save_dir = os.path.join(self.expdir, split, "hdf5")
+            wav_save_dir = os.path.join(self.expdir, split, "wav")
             os.makedirs(hdf5_save_dir, exist_ok=True)
             os.makedirs(wav_save_dir, exist_ok=True)
 
-            for i, (wav_path, ref_spk_name) in enumerate(tqdm(list(zip(records["wav_paths"], records["ref_spk_names"])), dynamic_ncols=True, desc="Saving files")):
+            for i, save_wav_name in enumerate(tqdm(list(records["save_wav_names"]), dynamic_ncols=True, desc="Saving files")):
                 length = int(records["feature_lengths"][i])
                 fbank = np.array(records["predicted_features"][i])[:length]
-                if split == "dev":
-                    hdf5_save_path = os.path.join(hdf5_save_dir, "_".join(wav_path.split("/")[-2:]).replace(".wav", ".h5"))
-                    wav_save_path = os.path.join(wav_save_dir, "_".join(wav_path.split("/")[-2:]))
-                elif split == "test":
-                    num_samples = os.path.basename(wav_path).replace(".wav", "").split("_")[-1]
-                    os.makedirs(os.path.join(hdf5_save_dir, num_samples), exist_ok=True)
-                    os.makedirs(os.path.join(wav_save_dir, num_samples), exist_ok=True)
-                    hdf5_save_path = os.path.join(hdf5_save_dir, num_samples, "_".join([ref_spk_name] + wav_path.split("/")[-2:]).replace(".wav", ".h5"))
-                    wav_save_path = os.path.join(wav_save_dir, num_samples, "_".join([ref_spk_name] + wav_path.split("/")[-2:]))
+                hdf5_save_path = os.path.join(hdf5_save_dir, save_wav_name+".h5")
+                wav_save_path = os.path.join(wav_save_dir, save_wav_name+".wav")
 
                 # save generated features into hdf5 files
                 write_hdf5(hdf5_save_path, "feats", fbank)
@@ -233,13 +238,64 @@ class DownstreamExpert(nn.Module):
                     self.datarc["fbank_config"]["fs"],
                     (y * np.iinfo(np.int16).max).astype(np.int16),
                 )
+            return []
+        else:
+            loss = torch.FloatTensor(records['loss']).mean().item()
 
-        print(f'{split} loss: {loss:.6f}')
+            if split in ["dev", "test"]:
 
-        save_names = []
-        logger.add_scalar(
-            f'example/{split}-{loss}',
-            loss,
-            global_step=global_step
-        )
-        return save_names
+                hdf5_save_dir = os.path.join(self.expdir, str(global_step), split, "hdf5")
+                wav_save_dir = os.path.join(self.expdir, str(global_step), split, "wav")
+                os.makedirs(hdf5_save_dir, exist_ok=True)
+                os.makedirs(wav_save_dir, exist_ok=True)
+
+                for i, (wav_path, ref_spk_name) in enumerate(tqdm(list(zip(records["wav_paths"], records["ref_spk_names"])), dynamic_ncols=True, desc="Saving files")):
+                    length = int(records["feature_lengths"][i])
+                    fbank = np.array(records["predicted_features"][i])[:length]
+                    if split == "dev":
+                        hdf5_save_path = os.path.join(hdf5_save_dir, "_".join(wav_path.split("/")[-2:]).replace(".wav", ".h5"))
+                        wav_save_path = os.path.join(wav_save_dir, "_".join(wav_path.split("/")[-2:]))
+                    elif split == "test":
+                        num_samples = os.path.basename(wav_path).replace(".wav", "").split("_")[-1]
+                        os.makedirs(os.path.join(hdf5_save_dir, num_samples), exist_ok=True)
+                        os.makedirs(os.path.join(wav_save_dir, num_samples), exist_ok=True)
+                        hdf5_save_path = os.path.join(hdf5_save_dir, num_samples, "_".join([ref_spk_name] + wav_path.split("/")[-2:]).replace(".wav", ".h5"))
+                        wav_save_path = os.path.join(wav_save_dir, num_samples, "_".join([ref_spk_name] + wav_path.split("/")[-2:]))
+
+                    # save generated features into hdf5 files
+                    write_hdf5(hdf5_save_path, "feats", fbank)
+
+                    # mel fbank -> linear spectrogram
+                    spc = logmelspc_to_linearspc(
+                        fbank,
+                        fs=self.datarc["fbank_config"]["fs"],
+                        n_mels=self.datarc["fbank_config"]["n_mels"],
+                        n_fft=self.datarc["fbank_config"]["n_fft"],
+                        fmin=self.datarc["fbank_config"]["fmin"],
+                        fmax=self.datarc["fbank_config"]["fmax"],
+                    )
+                    # apply griffin lim algorithm
+                    y = griffin_lim(
+                        spc,
+                        n_fft=self.datarc["fbank_config"]["n_fft"],
+                        n_shift=self.datarc["fbank_config"]["n_shift"],
+                        win_length=self.datarc["fbank_config"]["win_length"],
+                        window=self.datarc["fbank_config"]["window"],
+                        n_iters=self.datarc["fbank_config"]["gl_iters"],
+                    )
+                    # save generated waveform
+                    write(
+                        wav_save_path,
+                        self.datarc["fbank_config"]["fs"],
+                        (y * np.iinfo(np.int16).max).astype(np.int16),
+                    )
+
+            print(f'{split} loss: {loss:.6f}')
+
+            save_names = []
+            logger.add_scalar(
+                f'example/{split}-{loss}',
+                loss,
+                global_step=global_step
+            )
+            return save_names

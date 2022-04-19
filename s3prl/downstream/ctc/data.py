@@ -53,10 +53,14 @@ def create_dataset(split, tokenizer, name, bucketing, batch_size, **kwargs):
         from .corpus.snips import SnipsDataset as Dataset
     elif name.lower() == 'libriphone':
         from .corpus.libriphone import LibriPhoneDataset as Dataset
+    elif name.lower() in {"common_voice", "sbcsae"}:
+        from .corpus.common_voice import CommonVoiceDataset as Dataset
     else:
         raise NotImplementedError
 
     if split == 'train':
+        kwargs["ratio"] = 1.0
+        kwargs["offset"] = 0
         loader_bs = 1 if bucketing else batch_size
         bucket_size = batch_size if bucketing else 1
         dataset = Dataset(kwargs['train'], tokenizer, bucket_size, **kwargs)
