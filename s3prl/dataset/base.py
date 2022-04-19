@@ -1,15 +1,16 @@
+from __future__ import annotations
+
 import abc
 import pickle
 import logging
-from matplotlib.style import available
 import numpy as np
 from tqdm import tqdm
 from enum import Enum
-from typing import Any, List
 from functools import partial
-from dataclasses import dataclass
-from inspect import isfunction, ismethod
 from joblib import Parallel, delayed
+from dataclasses import dataclass, fields
+from typing import Any, List, Type, Union
+from inspect import isclass, isfunction, ismethod
 
 import torch
 import torchaudio
@@ -45,6 +46,13 @@ class AugmentedDynamicItemDataset(DynamicItemDataset):
         self.add_dynamic_item(
             partial(self._dynamic_global_stats, name=name), takes="id", provides=name
         )
+
+    def add_output_keys(self, keys):
+        if isinstance(keys, list):
+            keys = {key: key for key in keys}
+        mapping = self.pipeline.output_mapping.copy()
+        mapping.update(keys)
+        self.set_output_keys(mapping)
 
     def add_dynamic_item(self, func, takes=None, provides=None):
         if isinstance(func, DynamicItem):
@@ -173,6 +181,62 @@ class DatasetBuilder:
                 num_frames=round(info.num_frames * ratio),
                 num_channels=1,
             )
+
+
+@dataclass
+class DataPipe:
+    n_jobs: int = 6
+
+    @abc.abstractmethod
+    def __call__(self, *args: Any, **kwds: Any) -> Any:
+        raise NotImplementedError
+
+    def __getattribute__(self, name):
+        value = super().__getattribute__(name)
+        if isinstance(value, DynamicItem):
+            value.func = value.func.__get__(self)
+        return value
+
+
+class SequentialDataPipe(DataPipe):
+    def __init__(
+        self,
+        *pipes_or_classes: List[Union[DataPipe, Type]],
+        config: dict = None,
+        configs: List[dict] = None,
+    ) -> None:
+        assert len(pipes_or_classes) > 0
+        if isinstance(pipes_or_classes[0], DataPipe):
+            pipes, pipe_classes = pipes_or_classes, None
+        elif isclass(pipes_or_classes[0]):
+            pipes, pipe_classes = None, pipes_or_classes
+        else:
+            raise ValueError
+
+        if pipes is None:
+            assert int(configs is not None) + int(config is not None) == 1
+        if pipes is not None:
+            assert configs is None and config is None
+
+        if pipes is None:
+            if config is not None:
+                configs = [config for _ in pipe_classes]
+            assert len(configs) == len(pipe_classes)
+
+            pipes = []
+            for pipe_class, config in zip(pipe_classes, configs):
+                related_fields = [field.name for field in fields(pipe_class)]
+                related_config = {
+                    k: v for k, v in config.items() if k in related_fields
+                }
+                pipes.append(pipe_class(**related_config))
+
+        self._pipes = pipes
+
+    def __call__(self, dataset: AugmentedDynamicItemDataset, stats: dict) -> Any:
+        for pipe in self._pipes:
+            dataset, stats = pipe(dataset, stats)
+        return dataset, stats
 
 
 def default_collate_fn(samples, padding_value: int = 0):

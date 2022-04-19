@@ -9,7 +9,7 @@ from copy import deepcopy
 import torch
 from torch.utils.data import DataLoader
 
-from s3prl.dataset.base import DataLoader
+from s3prl.dataset.base import DataLoader, AugmentedDynamicItemDataset
 from s3prl import Object, Output, Logs, Container
 from s3prl.sampler import DistributedBatchSamplerWrapper
 from s3prl.nn import UpstreamDownstreamModel, S3PRLUpstream
@@ -82,13 +82,9 @@ def main():
     stats.add(corpus_stats)
 
     logger.info("Preparing train data")
-    train_dataset, train_stats = (
-        problem.TrainData(**config.TrainData)
-        .build_train_data(
-            train_data,
-            **stats,
-        )
-        .split(1)
+    train_dataset, train_stats = problem.TrainData(**config.TrainData)(
+        AugmentedDynamicItemDataset(train_data),
+        stats,
     )
     train_sampler = DistributedBatchSamplerWrapper(
         problem.TrainSampler(train_dataset, **config.TrainSampler),
@@ -103,13 +99,9 @@ def main():
     stats.add(train_stats)
 
     logger.info("Preparing valid data")
-    valid_dataset, valid_stats = (
-        problem.ValidData(**config.ValidData)
-        .build_data(
-            valid_data,
-            **stats,
-        )
-        .split(1)
+    valid_dataset, valid_stats = problem.ValidData(**config.ValidData)(
+        AugmentedDynamicItemDataset(valid_data),
+        stats,
     )
     valid_sampler = DistributedBatchSamplerWrapper(
         problem.ValidSampler(valid_dataset, **config.ValidSampler),
@@ -123,13 +115,9 @@ def main():
     )
 
     logger.info("Preparing test data")
-    test_dataset, test_stats = (
-        problem.TestData(**config.TestData)
-        .build_data(
-            test_data,
-            **stats,
-        )
-        .split(1)
+    test_dataset, test_stats = problem.TestData(**config.TestData)(
+        AugmentedDynamicItemDataset(test_data),
+        stats,
     )
     test_sampler = DistributedBatchSamplerWrapper(
         problem.ValidSampler(test_dataset, **config.TestSampler),

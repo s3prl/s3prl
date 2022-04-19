@@ -1,8 +1,12 @@
+import logging
 from functools import partial
 from typing import Any, List, Union
 from collections import OrderedDict
 
 import torch
+
+logging.basicConfig()
+logger = logging.getLogger(__name__)
 
 
 class Container(OrderedDict):
@@ -104,9 +108,16 @@ class Container(OrderedDict):
                     self.__setitem__(key, __class__())
                 self.__getitem__(key).update(value, override)
             else:
-                assert override or not hasattr(
-                    self, key
-                ), f"override option is false. {key} exists in the original dict"
+                if hasattr(self, key):
+                    if not override:
+                        old_value = self.__getitem__(key)
+                        if value != old_value and id(value) != id(old_value):
+                            logger.warning(
+                                f"Old v.s. new dict have a duplicated key {key} with values {old_value} v.s. {value}"
+                            )
+                            raise ValueError(
+                                f"override option is false. {key} exists in the original dict"
+                            )
                 self.__setitem__(key, value)
 
     def __getitem__(self, k):

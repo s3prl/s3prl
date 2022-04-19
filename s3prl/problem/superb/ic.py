@@ -1,8 +1,8 @@
 from s3prl.corpus.fluent_speech_commands import (
     FluentSpeechCommandsForUtteranceMultiClassClassificataion,
 )
-from s3prl.dataset.utterance_classification_dataset import (
-    UtteranceMultiClassClassificationDatasetBuilder,
+from s3prl.dataset.utterance_classification_pipe import (
+    UtteranceMultipleCategoryClassificationPipe
 )
 from s3prl.sampler import (
     MaxTimestampBatchSampler,
@@ -17,18 +17,20 @@ from s3prl import Container
 
 class SuperbIC:
     Corpus = FluentSpeechCommandsForUtteranceMultiClassClassificataion
-    TrainData = UtteranceMultiClassClassificationDatasetBuilder
+    TrainData = UtteranceMultipleCategoryClassificationPipe
     TrainSampler = MaxTimestampBatchSampler
-    ValidData = UtteranceMultiClassClassificationDatasetBuilder
+    ValidData = UtteranceMultipleCategoryClassificationPipe
     ValidSampler = FixedBatchSizeBatchSampler
-    TestData = UtteranceMultiClassClassificationDatasetBuilder
+    TestData = UtteranceMultipleCategoryClassificationPipe
     TestSampler = FixedBatchSizeBatchSampler
     Downstream = MeanPoolingLinear
     Task = UtteranceMultiClassClassificationTask
 
     default_config = Container(
         Corpus=dict(),
-        TrainData=dict(),
+        TrainData=dict(
+            train_category_encoder=True,
+        ),
         TrainSampler=dict(
             max_timestamp=16000 * 200,
             shuffle=True,

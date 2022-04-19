@@ -1,6 +1,6 @@
 from s3prl.corpus.voxceleb1sid import VoxCeleb1SIDForUtteranceClassification
-from s3prl.dataset.utterance_classification_dataset import (
-    UtteranceClassificationDatasetBuilder,
+from s3prl.dataset.utterance_classification_pipe import (
+    UtteranceClassificationPipe,
 )
 from s3prl.sampler import (
     MaxTimestampBatchSampler,
@@ -13,18 +13,20 @@ from s3prl import Container
 
 class SuperbSID:
     Corpus = VoxCeleb1SIDForUtteranceClassification
-    TrainData = UtteranceClassificationDatasetBuilder
+    TrainData = UtteranceClassificationPipe
     TrainSampler = MaxTimestampBatchSampler
-    ValidData = UtteranceClassificationDatasetBuilder
+    ValidData = UtteranceClassificationPipe
     ValidSampler = FixedBatchSizeBatchSampler
-    TestData = UtteranceClassificationDatasetBuilder
+    TestData = UtteranceClassificationPipe
     TestSampler = FixedBatchSizeBatchSampler
     Downstream = MeanPoolingLinear
     Task = UtteranceClassificationTask
 
     default_config = Container(
         Corpus=dict(),
-        TrainData=dict(),
+        TrainData=dict(
+            train_category_encoder=True,
+        ),
         TrainSampler=dict(
             max_timestamp=16000 * 200,
             shuffle=True,
