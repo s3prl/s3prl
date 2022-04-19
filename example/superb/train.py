@@ -34,12 +34,18 @@ DRYRUN_CONFIG = dict(
 def parse_args():
     parser = argparse.ArgumentParser()
     parser.add_argument("upstream", help="The upstream name. E.g. wav2vec2")
-    parser.add_argument("problem", help="The problem module. E.g. s3prl.problem.SuperbSID")
+    parser.add_argument(
+        "problem", help="The problem module. E.g. s3prl.problem.SuperbSID"
+    )
     parser.add_argument("dataset_root", help="The dataset root of your problem.")
     parser.add_argument("save_to", help="The directory to save checkpoint")
     parser.add_argument("--feature_selection", default="hidden_states")
     parser.add_argument("--n_jobs", type=int, default=6)
-    parser.add_argument("--override", default=None)
+    parser.add_argument(
+        "--override",
+        default=None,
+        help="Override the default_config of the problem module",
+    )
     parser.add_argument("--resume", action="store_true")
     parser.add_argument("--dryrun", action="store_true")
     args = parser.parse_args()
