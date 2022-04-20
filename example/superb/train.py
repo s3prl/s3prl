@@ -9,7 +9,7 @@ from copy import deepcopy
 import torch
 from torch.utils.data import DataLoader
 
-from s3prl.dataset.base import DataLoader
+from s3prl.dataset.base import DataLoader, AugmentedDynamicItemDataset
 from s3prl import Object, Output, Logs, Container
 from s3prl.sampler import DistributedBatchSamplerWrapper
 from s3prl.nn import UpstreamDownstreamModel, S3PRLUpstream
@@ -82,14 +82,8 @@ def main():
     stats.add(corpus_stats)
 
     logger.info("Preparing train data")
-    train_dataset, train_stats = (
-        problem.TrainData(**config.TrainData)
-        .build_train_data(
-            train_data,
-            **stats,
-        )
-        .split(1)
-    )
+    train_dataset = AugmentedDynamicItemDataset(train_data, tools=stats)
+    train_dataset = problem.TrainData(**config.TrainData)(train_dataset)
     train_sampler = DistributedBatchSamplerWrapper(
         problem.TrainSampler(train_dataset, **config.TrainSampler),
         num_replicas=1,
@@ -100,17 +94,11 @@ def main():
         train_sampler,
         num_workers=config.n_jobs,
     )
-    stats.add(train_stats)
+    stats.add(train_dataset.all_tools())
 
     logger.info("Preparing valid data")
-    valid_dataset, valid_stats = (
-        problem.ValidData(**config.ValidData)
-        .build_data(
-            valid_data,
-            **stats,
-        )
-        .split(1)
-    )
+    valid_dataset = AugmentedDynamicItemDataset(valid_data, tools=stats)
+    valid_dataset = problem.ValidData(**config.ValidData)(valid_dataset)
     valid_sampler = DistributedBatchSamplerWrapper(
         problem.ValidSampler(valid_dataset, **config.ValidSampler),
         num_replicas=1,
@@ -123,14 +111,8 @@ def main():
     )
 
     logger.info("Preparing test data")
-    test_dataset, test_stats = (
-        problem.TestData(**config.TestData)
-        .build_data(
-            test_data,
-            **stats,
-        )
-        .split(1)
-    )
+    test_dataset = AugmentedDynamicItemDataset(test_data, tools=stats)
+    test_dataset = problem.TestData(**config.TestData)(test_dataset)
     test_sampler = DistributedBatchSamplerWrapper(
         problem.ValidSampler(test_dataset, **config.TestSampler),
         num_replicas=1,
@@ -141,9 +123,6 @@ def main():
         test_sampler,
         num_workers=12,
     )
-
-    stats.add(valid_stats)
-    stats.add(test_stats)
 
     sorted_ckpt_dirs = sorted(
         [

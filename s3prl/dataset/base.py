@@ -1,15 +1,17 @@
+from __future__ import annotations
+
 import abc
 import pickle
 import logging
-from matplotlib.style import available
 import numpy as np
 from tqdm import tqdm
 from enum import Enum
-from typing import Any, List
+from copy import deepcopy
 from functools import partial
-from dataclasses import dataclass
-from inspect import isfunction, ismethod
 from joblib import Parallel, delayed
+from dataclasses import dataclass, fields
+from typing import Any, List, Type, Union
+from inspect import isclass, isfunction, ismethod
 
 import torch
 import torchaudio
@@ -30,11 +32,16 @@ class AugmentedDynamicItemDataset(DynamicItemDataset):
         data,
         dynamic_items=[],
         output_keys=[],
+        tools: dict = {},
         global_stats: dict = {},
     ):
         super().__init__(data, dynamic_items, output_keys)
+        self._tools = {}
+        for name, item in tools.items():
+            self.add_tool(name, item)
+
         self._global_stats = {}
-        for name, item in global_stats.keys():
+        for name, item in global_stats.items():
             self.add_global_stats(name, item)
 
     def _dynamic_global_stats(self, id, name):
@@ -45,6 +52,32 @@ class AugmentedDynamicItemDataset(DynamicItemDataset):
         self.add_dynamic_item(
             partial(self._dynamic_global_stats, name=name), takes="id", provides=name
         )
+
+    def _dynamic_tools(self, id, name):
+        return self._tools[name]
+
+    def add_tool(self, name: str, item: Any):
+        self._tools[name] = item
+        self.add_dynamic_item(
+            partial(self._dynamic_tools, name=name), takes="id", provides=name
+        )
+
+    def add_tools(self, tool: dict):
+        for key, value in tool.items():
+            self.add_tool(key, value)
+
+    def get_tool(self, key):
+        return self._tools[key]
+
+    def all_tools(self, copy=True):
+        return deepcopy(self._tools) if copy else self._tools
+
+    def add_output_keys(self, keys):
+        if isinstance(keys, list):
+            keys = {key: key for key in keys}
+        mapping = self.pipeline.output_mapping.copy()
+        mapping.update(keys)
+        self.set_output_keys(mapping)
 
     def add_dynamic_item(self, func, takes=None, provides=None):
         if isinstance(func, DynamicItem):
@@ -173,6 +206,62 @@ class DatasetBuilder:
                 num_frames=round(info.num_frames * ratio),
                 num_channels=1,
             )
+
+
+@dataclass
+class DataPipe:
+    n_jobs: int = 6
+
+    @abc.abstractmethod
+    def __call__(self, *args: Any, **kwds: Any) -> Any:
+        raise NotImplementedError
+
+    def __getattribute__(self, name):
+        value = super().__getattribute__(name)
+        if isinstance(value, DynamicItem):
+            value.func = value.func.__get__(self)
+        return value
+
+
+class SequentialDataPipe(DataPipe):
+    def __init__(
+        self,
+        *pipes_or_classes: List[Union[DataPipe, Type]],
+        config: dict = None,
+        configs: List[dict] = None,
+    ) -> None:
+        assert len(pipes_or_classes) > 0
+        if isinstance(pipes_or_classes[0], DataPipe):
+            pipes, pipe_classes = pipes_or_classes, None
+        elif isclass(pipes_or_classes[0]):
+            pipes, pipe_classes = None, pipes_or_classes
+        else:
+            raise ValueError
+
+        if pipes is None:
+            assert int(configs is not None) + int(config is not None) == 1
+        if pipes is not None:
+            assert configs is None and config is None
+
+        if pipes is None:
+            if config is not None:
+                configs = [config for _ in pipe_classes]
+            assert len(configs) == len(pipe_classes)
+
+            pipes = []
+            for pipe_class, config in zip(pipe_classes, configs):
+                related_fields = [field.name for field in fields(pipe_class)]
+                related_config = {
+                    k: v for k, v in config.items() if k in related_fields
+                }
+                pipes.append(pipe_class(**related_config))
+
+        self._pipes = pipes
+
+    def __call__(self, dataset: AugmentedDynamicItemDataset) -> Any:
+        for pipe in self._pipes:
+            dataset = pipe(dataset)
+        return dataset
 
 
 def default_collate_fn(samples, padding_value: int = 0):

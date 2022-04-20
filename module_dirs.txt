@@ -4,6 +4,7 @@ s3prl/util
 s3prl/task
 s3prl/metric
 s3prl/corpus
+s3prl/encoder
 s3prl/dataset
 s3prl/preprocessor
 test
