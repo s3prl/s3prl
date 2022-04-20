@@ -82,10 +82,8 @@ def main():
     stats.add(corpus_stats)
 
     logger.info("Preparing train data")
-    train_dataset, train_stats = problem.TrainData(**config.TrainData)(
-        AugmentedDynamicItemDataset(train_data),
-        deepcopy(stats),
-    )
+    train_dataset = AugmentedDynamicItemDataset(train_data, tools=stats)
+    train_dataset = problem.TrainData(**config.TrainData)(train_dataset)
     train_sampler = DistributedBatchSamplerWrapper(
         problem.TrainSampler(train_dataset, **config.TrainSampler),
         num_replicas=1,
@@ -96,13 +94,11 @@ def main():
         train_sampler,
         num_workers=config.n_jobs,
     )
-    stats.add(train_stats)
+    stats.add(train_dataset.all_tools())
 
     logger.info("Preparing valid data")
-    valid_dataset, valid_stats = problem.ValidData(**config.ValidData)(
-        AugmentedDynamicItemDataset(valid_data),
-        deepcopy(stats),
-    )
+    valid_dataset = AugmentedDynamicItemDataset(valid_data, tools=stats)
+    valid_dataset = problem.ValidData(**config.ValidData)(valid_dataset)
     valid_sampler = DistributedBatchSamplerWrapper(
         problem.ValidSampler(valid_dataset, **config.ValidSampler),
         num_replicas=1,
@@ -115,10 +111,8 @@ def main():
     )
 
     logger.info("Preparing test data")
-    test_dataset, test_stats = problem.TestData(**config.TestData)(
-        AugmentedDynamicItemDataset(test_data),
-        deepcopy(stats),
-    )
+    test_dataset = AugmentedDynamicItemDataset(test_data, tools=stats)
+    test_dataset = problem.TestData(**config.TestData)(test_dataset)
     test_sampler = DistributedBatchSamplerWrapper(
         problem.ValidSampler(test_dataset, **config.TestSampler),
         num_replicas=1,
@@ -129,9 +123,6 @@ def main():
         test_sampler,
         num_workers=12,
     )
-
-    stats.add(valid_stats)
-    stats.add(test_stats)
 
     sorted_ckpt_dirs = sorted(
         [

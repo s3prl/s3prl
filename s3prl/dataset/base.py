@@ -6,6 +6,7 @@ import logging
 import numpy as np
 from tqdm import tqdm
 from enum import Enum
+from copy import deepcopy
 from functools import partial
 from joblib import Parallel, delayed
 from dataclasses import dataclass, fields
@@ -31,11 +32,16 @@ class AugmentedDynamicItemDataset(DynamicItemDataset):
         data,
         dynamic_items=[],
         output_keys=[],
+        tools: dict = {},
         global_stats: dict = {},
     ):
         super().__init__(data, dynamic_items, output_keys)
+        self._tools = {}
+        for name, item in tools.items():
+            self.add_tool(name, item)
+
         self._global_stats = {}
-        for name, item in global_stats.keys():
+        for name, item in global_stats.items():
             self.add_global_stats(name, item)
 
     def _dynamic_global_stats(self, id, name):
@@ -46,6 +52,25 @@ class AugmentedDynamicItemDataset(DynamicItemDataset):
         self.add_dynamic_item(
             partial(self._dynamic_global_stats, name=name), takes="id", provides=name
         )
+
+    def _dynamic_tools(self, id, name):
+        return self._tools[name]
+
+    def add_tool(self, name: str, item: Any):
+        self._tools[name] = item
+        self.add_dynamic_item(
+            partial(self._dynamic_tools, name=name), takes="id", provides=name
+        )
+
+    def add_tools(self, tool: dict):
+        for key, value in tool.items():
+            self.add_tool(key, value)
+
+    def get_tool(self, key):
+        return self._tools[key]
+
+    def all_tools(self, copy=True):
+        return deepcopy(self._tools) if copy else self._tools
 
     def add_output_keys(self, keys):
         if isinstance(keys, list):
@@ -233,10 +258,10 @@ class SequentialDataPipe(DataPipe):
 
         self._pipes = pipes
 
-    def __call__(self, dataset: AugmentedDynamicItemDataset, stats: dict) -> Any:
+    def __call__(self, dataset: AugmentedDynamicItemDataset) -> Any:
         for pipe in self._pipes:
-            dataset, stats = pipe(dataset, stats)
-        return dataset, stats
+            dataset = pipe(dataset)
+        return dataset
 
 
 def default_collate_fn(samples, padding_value: int = 0):

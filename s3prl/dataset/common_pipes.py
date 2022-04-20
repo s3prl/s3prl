@@ -10,9 +10,9 @@ from .base import AugmentedDynamicItemDataset, DataPipe
 class SetOutputKeys(DataPipe):
     output_keys: dict = None
 
-    def __call__(self, dataset: AugmentedDynamicItemDataset, stats: dict):
+    def __call__(self, dataset: AugmentedDynamicItemDataset):
         dataset.set_output_keys(self.output_keys)
-        return dataset, stats
+        return dataset
 
 
 @dataclass
@@ -28,14 +28,14 @@ class LoadPseudoAudio(DataPipe):
             num_channels=1,
         )
 
-    def __call__(self, dataset: AugmentedDynamicItemDataset, stats: dict):
+    def __call__(self, dataset: AugmentedDynamicItemDataset):
         dataset.add_dynamic_item(
             self.load_wav, takes="wav_path", provides=["wav", "wav_len"]
         )
         dataset.add_dynamic_item(
             self.load_metadata, takes="wav_path", provides="wav_metadata"
         )
-        return dataset, stats
+        return dataset
 
 
 @dataclass
@@ -73,7 +73,7 @@ class LoadAudio(DataPipe):
     def compute_length(self, wav):
         return len(wav)
 
-    def __call__(self, dataset: AugmentedDynamicItemDataset, stats: dict):
+    def __call__(self, dataset: AugmentedDynamicItemDataset):
         dataset.add_dynamic_item_and_metadata(
             self.load_audio, takes=self.wav_path_name, provide=self.wav_name
         )
@@ -82,7 +82,7 @@ class LoadAudio(DataPipe):
             takes=self.wav_name,
             provides=f"{self.wav_name}_len",
         )
-        return dataset, stats
+        return dataset
 
 
 @dataclass
@@ -98,22 +98,20 @@ class EncodeCategory(DataPipe):
     def encode_label(self, category, label):
         return category.encode(label)
 
-    def __call__(self, dataset: AugmentedDynamicItemDataset, stats: dict):
+    def __call__(self, dataset: AugmentedDynamicItemDataset):
         if self.train_category_encoder:
             with dataset.output_keys_as([self.label_name]):
                 labels = [item[self.label_name] for item in dataset]
             category = self.prepare_category(labels)
-            stats[self.category_encoder_name] = category
-            stats["output_size"] = len(category)
+            dataset.add_tool(self.category_encoder_name, category)
+            dataset.add_tool("output_size", len(category))
 
-        category = stats[self.category_encoder_name]
-        dataset.add_global_stats(self.category_encoder_name, category)
         dataset.add_dynamic_item(
             self.encode_label,
             takes=[self.category_encoder_name, self.label_name],
             provides=self.encoded_target_name,
         )
-        return dataset, stats
+        return dataset
 
 
 @dataclass
@@ -128,7 +126,7 @@ class EncodeMultipleCategory(EncodeCategory):
             [category.encode(label) for category, label in zip(categories, labels)]
         )
 
-    def __call__(self, dataset: AugmentedDynamicItemDataset, stats: dict):
+    def __call__(self, dataset: AugmentedDynamicItemDataset):
         if self.train_category_encoder:
             with dataset.output_keys_as([self.label_name]):
                 labels = [item[self.label_name] for item in dataset]
@@ -136,14 +134,12 @@ class EncodeMultipleCategory(EncodeCategory):
             categories = [
                 self.prepare_category(label_type) for label_type in label_types
             ]
-            stats[self.category_encoder_name] = categories
-            stats["output_size"] = sum([len(c) for c in categories])
+            dataset.add_tool(self.category_encoder_name, categories)
+            dataset.add_tool("output_size", sum([len(c) for c in categories]))
 
-        categories = stats[self.category_encoder_name]
-        dataset.add_global_stats(self.category_encoder_name, categories)
         dataset.add_dynamic_item(
             self.encode_label,
             takes=[self.category_encoder_name, self.label_name],
             provides=self.encoded_target_name,
         )
-        return dataset, stats
+        return dataset
