@@ -57,19 +57,39 @@ class AugmentedDynamicItemDataset(DynamicItemDataset):
         return self._tools[name]
 
     def add_tool(self, name: str, item: Any):
+        """
+        Store the "item" in this dataset with the name "name" so it can be used in
+        __getitem__. That is, you can retrieve the "item" with the "takes" argument
+        of self.add_dynamic_item.
+
+        E.g.
+            self.add_tool("tokenizer", tokenizer)
+            self.add_dynamic_item(tokenize_func, takes="tokenizer", provides="tokenized_ids")
+
+        You can also later retreive this tool by self.get_tool or self.all_tools
+        """
         self._tools[name] = item
         self.add_dynamic_item(
             partial(self._dynamic_tools, name=name), takes="id", provides=name
         )
 
-    def add_tools(self, tool: dict):
-        for key, value in tool.items():
+    def add_tools(self, tools: dict):
+        """
+        Store each key-value pair in "tools" as a tool. See self.add_tool for more information
+        """
+        for key, value in tools.items():
             self.add_tool(key, value)
 
     def get_tool(self, key):
+        """
+        See self.add_tool
+        """
         return self._tools[key]
 
     def all_tools(self, copy=True):
+        """
+        See self.add_tool
+        """
         return deepcopy(self._tools) if copy else self._tools
 
     def add_output_keys(self, keys):
