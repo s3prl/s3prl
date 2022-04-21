@@ -63,8 +63,11 @@ class AugmentedDynamicItemDataset(DynamicItemDataset):
         of self.add_dynamic_item.
 
         E.g.
+            def tokenize_func(tokenizer, text):
+                return tokenizer(text)
+
             self.add_tool("tokenizer", tokenizer)
-            self.add_dynamic_item(tokenize_func, takes="tokenizer", provides="tokenized_ids")
+            self.add_dynamic_item(tokenize_func, takes=["tokenizer", "text"], provides="tokenized_ids")
 
         You can also later retreive this tool by self.get_tool or self.all_tools
         """
