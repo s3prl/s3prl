@@ -44,7 +44,10 @@ def parse_args():
     parser.add_argument(
         "--override",
         default=None,
-        help="Override the default_config of the problem module",
+        help=(
+            "Override the default_config of the problem module. "
+            "E.g. --override ValidSampler.batch_size=4,,TestSampler.batch_size=4"
+        ),
     )
     parser.add_argument("--resume", action="store_true")
     parser.add_argument("--dryrun", action="store_true")
