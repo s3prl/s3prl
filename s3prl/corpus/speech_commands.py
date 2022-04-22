@@ -39,6 +39,11 @@ class SpeechCommandsV1(Corpus):
         self.valid = self.list_to_dict(valid_list)
         self.test = self.list_to_dict(test_list)
 
+        self._data = Container()
+        self._data.add(self.train)
+        self._data.update(self.valid, override=True)  # background noises are duplicated
+        self._data.add(self.test)
+
     @staticmethod
     @cache()
     def split_dataset(
@@ -129,11 +134,7 @@ class SpeechCommandsV1(Corpus):
                 wav_path (str)
                 class_name (str)
         """
-        data = Container()
-        data.add(self.train)
-        data.update(self.valid, override=True)  # background noises are duplicated
-        data.add(self.test)
-        return data
+        return self._data
 
     @property
     def data_split_ids(self):
