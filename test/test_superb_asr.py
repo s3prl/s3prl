@@ -16,7 +16,6 @@ TIMESTAMPS = 16000
 
 device = "cuda" if torch.cuda.is_available() else "cpu"
 logger = logging.getLogger(__name__)
-# logging.basicConfig(level=logging.CRITICAL)
 
 
 def test_superb_asr(helpers):

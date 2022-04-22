@@ -5,7 +5,6 @@ from collections import OrderedDict
 
 import torch
 
-logging.basicConfig()
 logger = logging.getLogger(__name__)
 
 
