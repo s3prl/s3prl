@@ -4,9 +4,9 @@ import hashlib
 from pathlib import Path
 from typing import Union, Tuple, List
 
+from .base import Corpus
 from s3prl import Container, cache
 from s3prl.base.output import Output
-from .base import Corpus
 
 CLASSES = [
     "yes",

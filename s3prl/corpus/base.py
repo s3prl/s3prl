@@ -8,7 +8,7 @@ from s3prl import Container
 class Corpus:
     @abc.abstractmethod
     def __call__(self, *args: Any, **kwds: Any) -> Any:
-        pass
+        raise NotImplementedError
 
     @property
     @abc.abstractmethod
@@ -20,15 +20,13 @@ class Corpus:
     def data_split_ids(self):
         raise NotImplementedError
 
-    def __call__(self, *args: Any, **kwds: Any) -> Any:
-        raise NotImplementedError
-
     @property
     def data_split(self):
         train_ids, valid_ids, test_ids = self.data_split_ids
-        train_data = {idx: self.all_data[idx] for idx in train_ids}
-        valid_data = {idx: self.all_data[idx] for idx in valid_ids}
-        test_data = {idx: self.all_data[idx] for idx in test_ids}
+        all_data = self.all_data
+        train_data = {idx: all_data[idx] for idx in train_ids}
+        valid_data = {idx: all_data[idx] for idx in valid_ids}
+        test_data = {idx: all_data[idx] for idx in test_ids}
         return train_data, valid_data, test_data
 
     @staticmethod
