@@ -11,7 +11,8 @@ class benchmark(ContextDecorator):
         self.name = name
 
     def __enter__(self):
+        logger.info(f"{self.name}: start")
         self.start = time()
 
     def __exit__(self, exc_type: Any, exc_value: Any, traceback: Any) -> None:
-        logger.info(f"{self.name}: {time() - self.start}")
+        logger.info(f"{self.name}: finish with {time() - self.start} seconds")
