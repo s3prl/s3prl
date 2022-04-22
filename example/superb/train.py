@@ -16,8 +16,6 @@ from s3prl.nn import UpstreamDownstreamModel, S3PRLUpstream
 from s3prl.util.configuration import qualname_to_cls, parse_override
 
 device = "cuda" if torch.cuda.is_available() else "cpu"
-
-logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
 DRYRUN_CONFIG = dict(
@@ -71,6 +69,8 @@ def parse_args():
 
 
 def main():
+    logging.basicConfig(level=logging.INFO)
+
     problem, config = parse_args()
     save_to = Path(config.save_to)
     save_to.mkdir(exist_ok=True, parents=True)
