@@ -179,6 +179,7 @@ def main():
 
     pbar = tqdm(total=config.Trainer.total_steps, desc="Total")
     train_completed = False
+    accum_grad_steps = 0
     while not train_completed:
         batch_results = []
         for batch in tqdm(train_dataloader, desc="Train", total=len(train_dataloader)):
@@ -186,8 +187,6 @@ def main():
             global_step = pbar.n
 
             assert isinstance(batch, Output)
-            optimizer.zero_grad()
-
             batch = batch.to(device)
 
             task.train()
@@ -202,8 +201,15 @@ def main():
 
             if math.isnan(grad_norm):
                 logger.warning(f"Grad norm is NaN at step {global_step}")
+                optimizer.zero_grad()
+                accum_grad_steps = 0
             else:
-                optimizer.step()
+                if accum_grad_steps == config.Trainer.gradient_accumulate_steps:
+                    optimizer.step()
+                    optimizer.zero_grad()
+                    accum_grad_steps = 0
+                else:
+                    accum_grad_steps += 1
 
             batch_results.append(result.cacheable())
 
