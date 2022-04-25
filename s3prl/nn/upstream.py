@@ -99,6 +99,10 @@ class S3PRLUpstream(NNModule):
         wavs = [w.view(-1)[:l] for w, l in zip(wav, wav_len)]
         hidden_states = self.upstream(wavs)[self.feature_selection]
         downsample_rate = self.upstream.get_downsample_rates(self.feature_selection)
+
+        if isinstance(hidden_states, torch.Tensor):
+            hidden_states = [hidden_states]
+
         hidden_states_len = [
             torch.LongTensor([round(l.item() / downsample_rate) for l in wav_len]).to(
                 wav.device

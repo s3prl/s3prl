@@ -90,7 +90,7 @@ class UpstreamDownstreamModel(NNModule):
                     hidden_states[index], (hidden_size,)
                 )
 
-        if self.weighted_sum:
+        if self.weighted_sum and len(hidden_states) > 1:
             weights = F.softmax(self.weights, dim=-1)
             assert len(set([h.size(-1) for h in hidden_states])) == 1
             stacked_hidden_states = torch.stack(hidden_states, dim=0)

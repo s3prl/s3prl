@@ -14,6 +14,7 @@ from s3prl import Object, Output, Logs, Container
 from s3prl.sampler import DistributedBatchSamplerWrapper
 from s3prl.nn import UpstreamDownstreamModel, S3PRLUpstream
 from s3prl.util.configuration import qualname_to_cls, parse_override
+from s3prl.util.seed import fix_random_seeds
 
 device = "cuda" if torch.cuda.is_available() else "cpu"
 logger = logging.getLogger(__name__)
@@ -49,8 +50,10 @@ def parse_args():
     )
     parser.add_argument("--resume", action="store_true")
     parser.add_argument("--dryrun", action="store_true")
+    parser.add_argument("--seed", type=int, default=42)
     args = parser.parse_args()
 
+    fix_random_seeds(args.seed)
     problem = qualname_to_cls(args.problem)
     config = Container(deepcopy(problem.default_config))
 
