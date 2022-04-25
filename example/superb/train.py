@@ -213,8 +213,7 @@ def main():
                     optimizer.step()
                     optimizer.zero_grad()
                     accum_grad_steps = 0
-
-            batch_results.append(result.cacheable())
+                batch_results.append(result.cacheable())
 
             if global_step % config.Trainer.log_step == 0:
                 logs: Logs = task.train_reduction(batch_results).logs

@@ -2,6 +2,7 @@ from .base import SequentialDataPipe
 from .common_pipes import (
     SetOutputKeys,
     LoadAudio,
+    GenerateTokenizer,
     EncodeText,
 )
 from ..encoder.tokenizer import Tokenizer
@@ -16,8 +17,7 @@ class Speech2TextPipe(SequentialDataPipe):
 
     def __init__(
         self,
-        train_vocab: bool = False,
-        tokenizer: Tokenizer = None,
+        generate_tokenizer: bool = True,
         vocab_type: str = "character",
         text_file: str = None,
         slots_file: str = None,
@@ -33,13 +33,13 @@ class Speech2TextPipe(SequentialDataPipe):
 
         super().__init__(
             LoadAudio(),
-            EncodeText(
-                tokenizer=tokenizer,
-                train_vocab=train_vocab,
+            GenerateTokenizer(
+                generate=generate_tokenizer,
                 vocab_type=vocab_type,
                 text_file=text_file,
                 slots_file=slots_file,
                 vocab_args=vocab_args,
             ),
+            EncodeText(),
             SetOutputKeys(output_keys=output_keys),
         )

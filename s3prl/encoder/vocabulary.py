@@ -5,6 +5,9 @@ from typing import List, Union
 from collections import Counter
 
 
+logger = logging.getLogger(__name__)
+
+
 def generate_basic_vocab(
     mode: str,
     text_list: List[str],
@@ -30,7 +33,7 @@ def generate_basic_vocab(
     assert vocab_size == -1 or vocab_size > 0, vocab_size
     assert coverage > 0.0 and coverage <= 1.0, coverage
 
-    logging.info(
+    logger.info(
         f"Generating vocab (type = {mode}, coverage = {coverage}) from {len(text_list)} sentences."
     )
 
@@ -56,7 +59,7 @@ def generate_basic_vocab(
     if sort_vocab:
         vocab_list = sorted(vocab_list)
 
-    logging.info(f"Generated {vocab_size} {mode} vocabularies.")
+    logger.info(f"Generated {vocab_size} {mode} vocabularies.")
 
     return vocab_list
 
@@ -105,7 +108,7 @@ def generate_subword_vocab(
         assert isinstance(text_list, list)
         assert isinstance(text_list[0], str)
 
-        logging.info(
+        logger.info(
             f"Generating vocab (type = subword, coverage = {character_coverage}) from {len(text_list)} sentences."
         )
 
@@ -124,7 +127,7 @@ def generate_subword_vocab(
             splib.SentencePieceTrainer.Train(cmd)
 
     if text_file is not None:
-        logging.info(
+        logger.info(
             f"Generating vocab (type = subword, coverage = {character_coverage}) from {text_file}"
         )
 

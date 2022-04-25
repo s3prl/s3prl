@@ -17,20 +17,19 @@ class SuperbASR:
     TestSampler = FixedBatchSizeBatchSampler
     Downstream = RNNEncoder
     Task = Speech2TextCTCTask
-    tokenizer = CharacterTokenizer()
 
     default_config = Container(
         Corpus=dict(),
-        TrainData=dict(tokenizer=tokenizer),
+        TrainData=dict(),
         TrainSampler=dict(
             max_timestamp=16000 * 1000,
             shuffle=True,
         ),
-        ValidData=dict(tokenizer=tokenizer),
+        ValidData=dict(),
         ValidSampler=dict(
             batch_size=32,
         ),
-        TestData=dict(tokenizer=tokenizer),
+        TestData=dict(),
         TestSampler=dict(
             batch_size=1,
         ),
@@ -44,7 +43,7 @@ class SuperbASR:
             sample_style="concat",
             bidirectional=True,
         ),
-        Task=dict(tokenizer=tokenizer),
+        Task=dict(),
         Optimizer=dict(
             cls="torch.optim.Adam",
             lr=1.0e-4,
