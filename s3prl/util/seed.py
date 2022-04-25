@@ -3,11 +3,11 @@ import torch
 import numpy as np
 
 
-def fix_random_seeds(seed: int = 42) -> None:
+def fix_random_seeds(seed: int = 1337) -> None:
     """Fixes all random seeds, including cuDNN backends.
 
     Args:
-        seed (int, optional): Random seed. Defaults to 42.
+        seed (int, optional): Random seed. Defaults to 1337.
     """
 
     random.seed(seed)

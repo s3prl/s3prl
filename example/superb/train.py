@@ -50,7 +50,7 @@ def parse_args():
     )
     parser.add_argument("--resume", action="store_true")
     parser.add_argument("--dryrun", action="store_true")
-    parser.add_argument("--seed", type=int, default=42)
+    parser.add_argument("--seed", type=int, default=1337)
     args = parser.parse_args()
 
     fix_random_seeds(args.seed)
@@ -220,6 +220,8 @@ def main():
                 logs: Logs = task.train_reduction(batch_results).logs
                 logger.info(f"[Train] step {global_step}")
                 for name, value in logs.Scalar.items():
+                    if name == "loss":
+                        value *= config.Trainer.gradient_accumulate_steps
                     logger.info(f"{name}: {value}")
                 batch_results = []
 
