@@ -204,12 +204,11 @@ def main():
                 optimizer.zero_grad()
                 accum_grad_steps = 0
             else:
+                accum_grad_steps += 1
                 if accum_grad_steps == config.Trainer.gradient_accumulate_steps:
                     optimizer.step()
                     optimizer.zero_grad()
                     accum_grad_steps = 0
-                else:
-                    accum_grad_steps += 1
 
             batch_results.append(result.cacheable())
 

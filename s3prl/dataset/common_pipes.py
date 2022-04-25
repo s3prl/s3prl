@@ -3,6 +3,8 @@ from dataclasses import dataclass
 import torch
 import torchaudio
 from ..encoder.category import CategoryEncoder
+from ..encoder.tokenizer import Tokenizer, CharacterTokenizer, load_tokenizer
+from ..encoder.vocabulary import generate_vocab
 from .base import AugmentedDynamicItemDataset, DataPipe
 
 
@@ -142,4 +144,65 @@ class EncodeMultipleCategory(EncodeCategory):
             takes=[self.category_encoder_name, self.label_name],
             provides=self.encoded_target_name,
         )
+        return dataset
+
+
+@dataclass
+class EncodeText(DataPipe):
+    text_name: str = "transcription"
+    output_text_name: str = "tokenized_text"
+
+    tokenizer: Tokenizer = None
+
+    train_vocab: bool = False
+    vocab_type: str = "character"
+    text_file: str = None
+    slots_file: str = None
+    vocab_args: dict = None
+
+    def prepare_tokenizer(self, text_list: str = None) -> Tokenizer:
+        vocab_args = self.vocab_args or {}
+        if text_list is not None:
+            vocab_result = generate_vocab(
+                self.vocab_type, text_list=text_list, **vocab_args
+            )
+        else:
+            vocab_result = generate_vocab(
+                self.vocab_type, text_file=self.text_file, **vocab_args
+            )
+        vocab_list = vocab_result if isinstance(vocab_result, list) else None
+        vocab_file = vocab_result if isinstance(vocab_result, str) else None
+
+        tokenizer = load_tokenizer(
+            self.vocab_type,
+            vocab_file=vocab_file,
+            vocab_list=vocab_list,
+            slots_file=slots_file,
+        )
+        return tokenizer
+
+    def encode_text(self, text: str):
+        return torch.LongTensor(self.tokenizer.encode(text))
+
+    def __call__(self, dataset: AugmentedDynamicItemDataset):
+        if self.train_vocab and self.tokenizer is None:
+            text_list = None
+            if text_file is None:
+                with dataset.output_keys_as([self.text_name]):
+                    text_list = [item[self.text_name] for item in dataset]
+            self.tokenizer = self.prepare_tokenizer(text_list)
+
+        if not isinstance(self.tokenizer, Tokenizer):
+            raise RuntimeError(
+                "No tokenizer provided, provide tokenizer first or allow train_tokenizer"
+            )
+
+        dataset.add_dynamic_item(
+            self.encode_text,
+            takes=self.text_name,
+            provides=self.output_text_name,
+        )
+        dataset.add_tool("output_size", self.tokenizer.vocab_size)
+        dataset.add_tool("tokenizer", self.tokenizer)
+
         return dataset

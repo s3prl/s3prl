@@ -3,6 +3,7 @@ import logging
 from pathlib import Path
 from typing import List, Dict, Any
 from joblib import delayed, Parallel
+from collections import defaultdict
 
 from .base import Corpus
 from s3prl import Output, cache, Container
@@ -19,14 +20,35 @@ LIBRI_SPLITS = [
 ]
 
 
-def read_text(file: str) -> str:
-    src_file = "-".join(file.split("-")[:-1]) + ".trans.txt"
-    idx = file.split("/")[-1].split(".")[0]
+def read_text(file: Path) -> str:
+    src_file = "-".join(str(file).split("-")[:-1]) + ".trans.txt"
+    idx = file.stem.replace(".flac", "")
 
     with open(src_file, "r") as fp:
         for line in fp:
             if idx == line.split(" ")[0]:
                 return line[:-1].split(" ", 1)[1]
+
+    logging.warning(f"Transcription of {file} not found!")
+
+
+def check_no_repeat(splits: List[str]) -> bool:
+    count = defaultdict(int)
+    for split in splits:
+        count[split] += 1
+
+    repeated = ""
+    for key, val in count.items():
+        if val > 1:
+            repeated += f" {key} ({val} times)"
+
+    if len(repeated) != 0:
+        logging.warning(
+            f"Found repeated splits in corpus: {repeated}, which might cause unexpected behaviors."
+        )
+        return False
+
+    return True
 
 
 class LibriSpeech(Corpus):
@@ -42,10 +64,10 @@ class LibriSpeech(Corpus):
         self.train_split = train_split
         self.valid_split = valid_split
         self.test_split = test_split
+        self.all_splits = train_split + valid_split + test_split
+        assert check_no_repeat(self.all_splits)
 
-        self.data_dict = self._collect_data(
-            dataset_root, train_split + valid_split + test_split, n_jobs
-        )
+        self.data_dict = self._collect_data(dataset_root, self.all_splits, n_jobs)
         self.train = self._data_to_dict(self.data_dict, train_split)
         self.valid = self._data_to_dict(self.data_dict, valid_split)
         self.test = self._data_to_dict(self.data_dict, test_split)
@@ -84,21 +106,29 @@ class LibriSpeech(Corpus):
                 continue
 
             wav_list = list(Path(split_dir).rglob("*.flac"))
-            wav_list = [str(file) for file in wav_list]
-            wav_list = sorted(wav_list)
-
+            name_list = [file.stem.replace(".flac", "") for file in wav_list]
             text_list = Parallel(n_jobs=n_jobs)(
                 delayed(read_text)(file) for file in wav_list
             )
-            name_list = [file.split("/")[-1].replace(".flac", "") for file in wav_list]
             spkr_list = [int(name.split("-")[0]) for name in name_list]
 
+            wav_list, name_list, text_list, spkr_list = zip(
+                *[
+                    (wav, name, text, spkr)
+                    for (wav, name, text, spkr) in sorted(
+                        zip(wav_list, name_list, text_list, spkr_list),
+                        key=lambda x: x[1],
+                    )
+                ]
+            )
+
             data_dict[split] = {
-                "name_list": name_list,
-                "wav_list": wav_list,
-                "text_list": text_list,
-                "spkr_list": spkr_list,
+                "name_list": list(name_list),
+                "wav_list": list(wav_list),
+                "text_list": list(text_list),
+                "spkr_list": list(spkr_list),
             }
+
         return data_dict
 
     @staticmethod
@@ -109,7 +139,7 @@ class LibriSpeech(Corpus):
             {
                 name: {
                     "wav_path": data_dict[split]["wav_list"][i],
-                    "text": data_dict[split]["text_list"][i],
+                    "transcription": data_dict[split]["text_list"][i],
                     "speaker": data_dict[split]["spkr_list"][i],
                     "corpus_split": split,
                 }

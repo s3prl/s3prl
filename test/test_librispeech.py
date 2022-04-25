@@ -35,3 +35,6 @@ def test_librispeech():
     assert len(train_data) == libri_stats["train-clean-100"]
     assert len(valid_data) == libri_stats["dev-clean"]
     assert len(test_data) == libri_stats["test-clean"]
+
+    keys = list(train_data.keys())
+    assert keys[0] == "103-1240-0000"
