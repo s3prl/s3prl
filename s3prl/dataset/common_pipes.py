@@ -177,7 +177,7 @@ class EncodeText(DataPipe):
             self.vocab_type,
             vocab_file=vocab_file,
             vocab_list=vocab_list,
-            slots_file=slots_file,
+            slots_file=self.slots_file,
         )
         return tokenizer
 
@@ -187,7 +187,7 @@ class EncodeText(DataPipe):
     def __call__(self, dataset: AugmentedDynamicItemDataset):
         if self.train_vocab and self.tokenizer is None:
             text_list = None
-            if text_file is None:
+            if self.text_file is None:
                 with dataset.output_keys_as([self.text_name]):
                     text_list = [item[self.text_name] for item in dataset]
             self.tokenizer = self.prepare_tokenizer(text_list)

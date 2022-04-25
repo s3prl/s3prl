@@ -193,6 +193,7 @@ def main():
             result = task.train_step(**batch)
             assert isinstance(result, Output)
 
+            result.loss /= config.Trainer.gradient_accumulate_steps
             result.loss.backward()
 
             grad_norm = torch.nn.utils.clip_grad_norm_(

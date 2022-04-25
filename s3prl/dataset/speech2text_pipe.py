@@ -16,10 +16,6 @@ class Speech2TextPipe(SequentialDataPipe):
 
     def __init__(
         self,
-        output_keys: dict = None,
-        audio_sample_rate: int = 16000,
-        audio_channel_reduction: str = "first",
-        train_category_encoder: bool = False,
         train_vocab: bool = False,
         tokenizer: Tokenizer = None,
         vocab_type: str = "character",
@@ -27,7 +23,7 @@ class Speech2TextPipe(SequentialDataPipe):
         slots_file: str = None,
         vocab_args: dict = None,
     ):
-        output_keys = output_keys or dict(
+        output_keys = dict(
             x="wav",
             x_len="wav_len",
             labels="transcription",
@@ -36,10 +32,7 @@ class Speech2TextPipe(SequentialDataPipe):
         )
 
         super().__init__(
-            LoadAudio(
-                audio_sample_rate=audio_sample_rate,
-                audio_channel_reduction=audio_channel_reduction,
-            ),
+            LoadAudio(),
             EncodeText(
                 tokenizer=tokenizer,
                 train_vocab=train_vocab,
