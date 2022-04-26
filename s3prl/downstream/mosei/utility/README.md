@@ -28,8 +28,8 @@ Class negative     (0):  6683
 --------------------------------------
 ---------- 3-class sentiment ---------
 Class positive (1):  11476
-Class neutral (0):  6683
-Class negative (-1):  5100
+Class neutral  (0):  5100
+Class negative (-1):  6683
 --------------------------------------
 --------- 6-class emotion ------------
 Class happiness (1):  14567
