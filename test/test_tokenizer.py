@@ -1,10 +1,13 @@
-from s3prl.util.tokenizer import load_tokenizer
-from s3prl.preprocessor.librispeech_ctc_preprocessor import VOCAB_LIST
+from s3prl.encoder.tokenizer import (
+    load_tokenizer,
+    CharacterTokenizer,
+    default_phoneme_tokenizer,
+)
 
 
 def test_tokenizer():
-    char_tokenizer = load_tokenizer("character", vocab_list=VOCAB_LIST["character"])
-    phone_tokenizer = load_tokenizer("phoneme", vocab_list=VOCAB_LIST["phoneme"])
+    char_tokenizer = CharacterTokenizer()
+    phone_tokenizer = default_phoneme_tokenizer()
 
     char_text = "HELLO WORLD"
     char_text_enc = char_tokenizer.encode(char_text)

@@ -14,6 +14,7 @@ from s3prl import Object, Output, Logs, Container
 from s3prl.sampler import DistributedBatchSamplerWrapper
 from s3prl.nn import UpstreamDownstreamModel, S3PRLUpstream
 from s3prl.util.configuration import qualname_to_cls, parse_override
+from s3prl.util.seed import fix_random_seeds
 
 device = "cuda" if torch.cuda.is_available() else "cpu"
 logger = logging.getLogger(__name__)
@@ -49,8 +50,10 @@ def parse_args():
     )
     parser.add_argument("--resume", action="store_true")
     parser.add_argument("--dryrun", action="store_true")
+    parser.add_argument("--seed", type=int, default=1337)
     args = parser.parse_args()
 
+    fix_random_seeds(args.seed)
     problem = qualname_to_cls(args.problem)
     config = Container(deepcopy(problem.default_config))
 
@@ -179,6 +182,7 @@ def main():
 
     pbar = tqdm(total=config.Trainer.total_steps, desc="Total")
     train_completed = False
+    accum_grad_steps = 0
     while not train_completed:
         batch_results = []
         for batch in tqdm(train_dataloader, desc="Train", total=len(train_dataloader)):
@@ -186,14 +190,13 @@ def main():
             global_step = pbar.n
 
             assert isinstance(batch, Output)
-            optimizer.zero_grad()
-
             batch = batch.to(device)
 
             task.train()
             result = task.train_step(**batch)
             assert isinstance(result, Output)
 
+            result.loss /= config.Trainer.gradient_accumulate_steps
             result.loss.backward()
 
             grad_norm = torch.nn.utils.clip_grad_norm_(
@@ -202,15 +205,22 @@ def main():
 
             if math.isnan(grad_norm):
                 logger.warning(f"Grad norm is NaN at step {global_step}")
+                optimizer.zero_grad()
+                accum_grad_steps = 0
             else:
-                optimizer.step()
-
-            batch_results.append(result.cacheable())
+                accum_grad_steps += 1
+                if accum_grad_steps == config.Trainer.gradient_accumulate_steps:
+                    optimizer.step()
+                    optimizer.zero_grad()
+                    accum_grad_steps = 0
+                batch_results.append(result.cacheable())
 
             if global_step % config.Trainer.log_step == 0:
                 logs: Logs = task.train_reduction(batch_results).logs
                 logger.info(f"[Train] step {global_step}")
                 for name, value in logs.Scalar.items():
+                    if name == "loss":
+                        value *= config.Trainer.gradient_accumulate_steps
                     logger.info(f"{name}: {value}")
                 batch_results = []
 

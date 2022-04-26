@@ -1,6 +1,7 @@
 import logging
 from typing import List
 
+import numpy as np
 import torch
 from torch import nn
 import torch.nn.functional as F
@@ -35,8 +36,10 @@ class Speech2TextCTCExample(Module):
         assert Output(output=output)
 
 
-class Speech2TextCTC(Task):
-    def __init__(self, model: Speech2TextCTCExample, tokenizer: Tokenizer) -> None:
+class Speech2TextCTCTask(Task):
+    def __init__(
+        self, model: Speech2TextCTCExample, tokenizer: Tokenizer, **kwargs
+    ) -> None:
         """Speech-to-text task with CTC objective
 
         Args:
@@ -88,17 +91,21 @@ class Speech2TextCTC(Task):
         self,
         x: torch.Tensor,
         x_len: torch.LongTensor,
-        label: List[int],
-        name: List[str],
+        labels: np.ndarray,
+        class_ids: torch.LongTensor,
+        unique_name: np.ndarray,
     ):
         logits, prediction, x_len = self(x, x_len).slice(3)
         log_probs = F.log_softmax(logits, dim=2)
-        label_len = torch.tensor(
-            [len(l) for l in label], dtype=torch.long, device=logits.device
-        )
-        label = pad_sequence(label, batch_first=True).to(logits.device)
 
-        loss = self.criterion(log_probs.transpose(0, 1), label, x_len, label_len)
+        y = class_ids
+        y_len = torch.tensor(
+            [(ids != 0).long().sum() for ids in class_ids],
+            dtype=torch.long,
+            device=logits.device,
+        )
+
+        loss = self.criterion(log_probs.transpose(0, 1), y, x_len, y_len)
 
         logs = Logs()
         logs.add_hidden_state("logits", logits)
@@ -106,8 +113,8 @@ class Speech2TextCTC(Task):
         return Output(
             loss=loss,
             prediction=prediction,
-            label=label,
-            name=name,
+            labels=labels.tolist(),
+            unique_name=unique_name,
             logs=logs,
         )
 
@@ -115,9 +122,9 @@ class Speech2TextCTC(Task):
         predictions, labels, losses = [], [], []
         for batch_result in batch_results:
             predictions += batch_result.prediction
-            labels += batch_result.label
+            labels += batch_result.labels
             losses.append(batch_result.loss)
-        labels = [self.tokenizer.decode(label) for label in labels]
+        # labels = [label.tolist() for label in labels]
 
         word_error_rate = wer(predictions, labels)
         char_error_rate = cer(predictions, labels)
@@ -136,17 +143,27 @@ class Speech2TextCTC(Task):
         self,
         x: torch.Tensor,
         x_len: torch.LongTensor,
-        label: List[int],
-        name: List[str],
+        labels: np.ndarray,
+        class_ids: torch.LongTensor,
+        unique_name: np.ndarray,
     ):
         """
         Each forward step in the training loop
 
         Args:
-            x (torch.Tensor): (batch_size, timestamps, input_size)
-            x_len (torch.LongTensor): (batch_size, )
-            label (List[int])
-            name (List[str])
+            x (torch.Tensor):
+                Input waveform or acoustic features.
+                (batch_size, timestamps, input_size)
+            x_len (torch.LongTensor):
+                Lengths of inputs.
+                (batch_size, )
+            labels (np.ndarray):
+                Ground truth transcriptions (str).
+                (batch_size, )
+            class_ids (torch.LongTensor):
+                Tokenized ground truth transcriptions.
+            unique_name (np.ndarray):
+                Unique names for each sample.
 
         Return:
             loss (torch.Tensor):
@@ -159,25 +176,27 @@ class Speech2TextCTC(Task):
                 this is not required, just to let the end-user get as many info as possible
                 so that people can do more things with the internal states
         """
-        return self._general_forward(x, x_len, label, name)
+        return self._general_forward(x, x_len, labels, class_ids, unique_name)
 
     def valid_step(
         self,
         x: torch.Tensor,
         x_len: torch.LongTensor,
-        label: List[int],
-        name: List[str],
+        labels: np.ndarray,
+        class_ids: torch.LongTensor,
+        unique_name: np.ndarray,
     ):
-        return self._general_forward(x, x_len, label, name)
+        return self._general_forward(x, x_len, labels, class_ids, unique_name)
 
     def test_step(
         self,
         x: torch.Tensor,
         x_len: torch.LongTensor,
-        label: List[int],
-        name: List[str],
+        labels: np.ndarray,
+        class_ids: torch.LongTensor,
+        unique_name: np.ndarray,
     ):
-        return self._general_forward(x, x_len, label, name)
+        return self._general_forward(x, x_len, labels, class_ids, unique_name)
 
     def train_reduction(self, batch_results: list, on_epoch_end: bool = None):
         """

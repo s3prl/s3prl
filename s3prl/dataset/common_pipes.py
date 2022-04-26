@@ -1,9 +1,15 @@
+import logging
 from dataclasses import dataclass
 
 import torch
 import torchaudio
 from ..encoder.category import CategoryEncoder
+from ..encoder.tokenizer import Tokenizer, CharacterTokenizer, load_tokenizer
+from ..encoder.vocabulary import generate_vocab
 from .base import AugmentedDynamicItemDataset, DataPipe
+
+
+logger = logging.getLogger(__name__)
 
 
 @dataclass
@@ -142,4 +148,80 @@ class EncodeMultipleCategory(EncodeCategory):
             takes=[self.category_encoder_name, self.label_name],
             provides=self.encoded_target_name,
         )
+        return dataset
+
+
+@dataclass
+class GenerateTokenizer(DataPipe):
+    generate: bool = True
+    tokenizer_name: str = "tokenizer"
+    text_name: str = "transcription"
+    vocab_type: str = "character"
+    text_file: str = None
+    slots_file: str = None
+    vocab_args: dict = None
+
+    def prepare_tokenizer(self, text_list: str = None) -> Tokenizer:
+        vocab_args = self.vocab_args or {}
+        assert isinstance(vocab_args, dict)
+
+        if text_list is not None:
+            vocab_result = generate_vocab(
+                self.vocab_type, text_list=text_list, **vocab_args
+            )
+        else:
+            vocab_result = generate_vocab(
+                self.vocab_type, text_file=self.text_file, **vocab_args
+            )
+        vocab_list = vocab_result if isinstance(vocab_result, list) else None
+        vocab_file = vocab_result if isinstance(vocab_result, str) else None
+
+        tokenizer = load_tokenizer(
+            self.vocab_type,
+            vocab_file=vocab_file,
+            vocab_list=vocab_list,
+            slots_file=self.slots_file,
+        )
+        return tokenizer
+
+    def __call__(self, dataset: AugmentedDynamicItemDataset):
+        try:
+            tokenizer = dataset.get_tool(self.tokenizer_name)
+            logger.info(
+                f"Tokenizer (name = {self.tokenizer_name}) exists in dataset, skip generation."
+            )
+        except:
+            text_list = None
+            if self.text_file is None:
+                with dataset.output_keys_as([self.text_name]):
+                    text_list = [item[self.text_name] for item in dataset]
+
+            tokenizer = self.prepare_tokenizer(text_list)
+            dataset.add_tool(self.tokenizer_name, tokenizer)
+
+        return dataset
+
+
+@dataclass
+class EncodeText(DataPipe):
+    text_name: str = "transcription"
+    output_text_name: str = "tokenized_text"
+    tokenizer_name: str = "tokenizer"
+
+    def encode_text(self, tokenizer: Tokenizer, text: str):
+        return torch.LongTensor(tokenizer.encode(text))
+
+    def __call__(self, dataset: AugmentedDynamicItemDataset):
+        try:
+            tokenizer = dataset.get_tool(self.tokenizer_name)
+        except:
+            raise KeyError(f"Tokenizer (name = {self.tokenizer_name}) not found!")
+
+        dataset.add_dynamic_item(
+            self.encode_text,
+            takes=[self.tokenizer_name, self.text_name],
+            provides=self.output_text_name,
+        )
+        dataset.add_tool("output_size", tokenizer.vocab_size)
+
         return dataset

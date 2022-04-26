@@ -156,6 +156,7 @@ class RNNEncoder(NNModule):
         sample_rate: List[int] = [1],
         sample_style: str = "drop",
         bidirectional: bool = False,
+        **kwargs,
     ):
         """RNN Encoder for sequence to sequence modeling, e.g., ASR.
 
