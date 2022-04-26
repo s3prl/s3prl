@@ -18,7 +18,7 @@ wget http://immortal.multicomp.cs.cmu.edu/raw_datasets/CMU_MOSEI.zip
 unzip CMU_MOSEI.zip 
 
 # Set final path to dataset
-mv Raw CMU_MOSEI
+mv Raw CMU-MOSEI
 ```
 Remember to modify data_dir in `config.yaml`
 
