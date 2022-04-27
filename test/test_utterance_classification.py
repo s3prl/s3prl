@@ -1,8 +1,8 @@
 import torch
 
 from s3prl import Object, Output
-from s3prl.task import UtteranceClassification
 from s3prl.dataset import UtteranceClassificationDataset
+from s3prl.task import UtteranceClassification
 from s3prl.task.utterance_classification import UtteranceClassifierExample
 
 

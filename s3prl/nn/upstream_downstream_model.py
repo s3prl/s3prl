@@ -3,6 +3,7 @@ import torch.nn as nn
 import torch.nn.functional as F
 
 from s3prl import Output
+
 from . import NNModule
 
 

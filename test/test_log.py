@@ -4,6 +4,7 @@ from s3prl import Logs
 
 logger = logging.getLogger(__name__)
 
+
 def test_log():
     logs = Logs()
     logs.add_scalar("loss", 4)

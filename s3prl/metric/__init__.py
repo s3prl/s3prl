@@ -1,1 +1,1 @@
-from .common import accuracy, wer, per, cer
+from .common import accuracy, cer, per, wer

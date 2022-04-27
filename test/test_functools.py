@@ -1,7 +1,8 @@
-import types
-import pytest
 import importlib
+import types
 from typing import Union
+
+import pytest
 
 from s3prl.base.functools import resolve_qualname
 

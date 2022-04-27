@@ -1,14 +1,14 @@
-import os
 import logging
-from tqdm import tqdm
-from typing import Dict, List, Tuple
+import os
 from pathlib import Path
-from joblib import Parallel, delayed
+from typing import Dict, List, Tuple
 
+from joblib import Parallel, delayed
+from tqdm import tqdm
+
+from s3prl import Object, Output, cache
 from s3prl.util.loader import TorchaudioLoader
 from s3prl.util.tokenizer import load_tokenizer
-from s3prl import Object, Output, cache
-
 
 LIBRI_SPLITS = [
     "train-clean-100",

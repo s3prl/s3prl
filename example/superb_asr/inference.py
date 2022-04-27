@@ -3,7 +3,7 @@ from pathlib import Path
 
 import torch
 
-from s3prl import Task, Dataset, Output
+from s3prl import Dataset, Output, Task
 from s3prl.base.object import Object
 
 device = "cuda" if torch.cuda.is_available() else "cpu"

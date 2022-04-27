@@ -1,12 +1,13 @@
 from __future__ import annotations
+
 import logging
 from typing import List
 
 import torch
 import torch.nn.functional as F
 
+from s3prl import Logs, Module, Output
 from s3prl.metric import accuracy
-from s3prl import Module, Output, Logs
 
 from . import Task
 

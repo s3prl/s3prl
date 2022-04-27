@@ -1,13 +1,14 @@
 from __future__ import annotations
+
 import logging
 from typing import List
 
-import torch
 import numpy as np
+import torch
 import torch.nn.functional as F
 
+from s3prl import Logs, Module, Output
 from s3prl.metric import accuracy
-from s3prl import Module, Output, Logs
 
 from . import Task
 
@@ -301,7 +302,9 @@ class UtteranceMultiClassClassificationTask(Task):
             labels += list(batch_result.label)
             losses.append(batch_result.loss)
 
-        acc = accuracy(predictions, labels, item_same_fn=self.numpy_object_array_all_close)
+        acc = accuracy(
+            predictions, labels, item_same_fn=self.numpy_object_array_all_close
+        )
         loss = (sum(losses) / len(losses)).item()
 
         logs = Logs()

@@ -1,4 +1,5 @@
 from dotenv import dotenv_values
+
 from s3prl.corpus.fluent_speech_commands import (
     FluentSpeechCommands,
     FluentSpeechCommandsForUtteranceMultiClassClassificataion,

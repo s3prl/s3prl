@@ -1,8 +1,10 @@
-import pandas as pd
 from pathlib import Path
 
-from .base import Corpus
+import pandas as pd
+
 from s3prl import Container
+
+from .base import Corpus
 
 
 class FluentSpeechCommands(Corpus):

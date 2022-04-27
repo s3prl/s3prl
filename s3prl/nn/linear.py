@@ -2,6 +2,7 @@ from typing import List
 
 import torch
 import torch.nn as nn
+
 from s3prl import Output
 
 from . import NNModule
@@ -42,7 +43,9 @@ class FrameLevelLinear(NNModule):
 
 
 class MeanPoolingLinear(NNModule):
-    def __init__(self, input_size: int, output_size: int, hidden_size: int = 256, **kwargs):
+    def __init__(
+        self, input_size: int, output_size: int, hidden_size: int = 256, **kwargs
+    ):
         super().__init__()
         self.pre_linear = nn.Linear(input_size, hidden_size)
         self.pooling = MeanPooling()

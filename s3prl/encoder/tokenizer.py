@@ -5,7 +5,7 @@ Reference: https://www.tensorflow.org/datasets/api_docs/python/tfds/features/tex
 import abc
 from typing import List
 
-from s3prl import Object, init, Output
+from s3prl import Object, Output, init
 
 # Replacing the 2 tokens right before english starts as <eos> & <unk>
 BERT_FIRST_IDX = 997

@@ -1,7 +1,7 @@
 import logging
+from collections import OrderedDict
 from functools import partial
 from typing import Any, List, Union
-from collections import OrderedDict
 
 import torch
 

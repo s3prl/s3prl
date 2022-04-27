@@ -1,7 +1,8 @@
 import logging
 import os
-from dotenv import dotenv_values
 import tempfile
+
+from dotenv import dotenv_values
 
 from s3prl.corpus.librispeech import LibriSpeechForSUPERB
 from s3prl.encoder.tokenizer import load_tokenizer

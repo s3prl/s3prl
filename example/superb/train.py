@@ -1,19 +1,19 @@
-import os
-import math
-import logging
 import argparse
-from tqdm import tqdm
-from pathlib import Path
+import logging
+import math
+import os
 from copy import deepcopy
+from pathlib import Path
 
 import torch
 from torch.utils.data import DataLoader
+from tqdm import tqdm
 
-from s3prl.dataset.base import DataLoader, AugmentedDynamicItemDataset
-from s3prl import Object, Output, Logs, Container
+from s3prl import Container, Logs, Object, Output
+from s3prl.dataset.base import AugmentedDynamicItemDataset, DataLoader
+from s3prl.nn import S3PRLUpstream, UpstreamDownstreamModel
 from s3prl.sampler import DistributedBatchSamplerWrapper
-from s3prl.nn import UpstreamDownstreamModel, S3PRLUpstream
-from s3prl.util.configuration import qualname_to_cls, parse_override
+from s3prl.util.configuration import parse_override, qualname_to_cls
 from s3prl.util.seed import fix_random_seeds
 
 device = "cuda" if torch.cuda.is_available() else "cpu"

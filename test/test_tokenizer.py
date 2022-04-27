@@ -1,7 +1,7 @@
 from s3prl.encoder.tokenizer import (
-    load_tokenizer,
     CharacterTokenizer,
     default_phoneme_tokenizer,
+    load_tokenizer,
 )
 
 

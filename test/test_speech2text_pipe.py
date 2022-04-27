@@ -1,11 +1,12 @@
 import logging
 import os
-from dotenv import dotenv_values
 import tempfile
 
+from dotenv import dotenv_values
+
 from s3prl.corpus.librispeech import LibriSpeechForSUPERB
-from s3prl.dataset.speech2text_pipe import Speech2TextPipe
 from s3prl.dataset.base import AugmentedDynamicItemDataset
+from s3prl.dataset.speech2text_pipe import Speech2TextPipe
 
 
 def test_speech2text_pipe():

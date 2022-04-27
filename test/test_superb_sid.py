@@ -1,14 +1,15 @@
 import logging
 import tempfile
 from pathlib import Path
-from dotenv import dotenv_values
 
 import torch
+from dotenv import dotenv_values
 from torch.utils.data import DataLoader
 
-from s3prl import Output, Object
-from s3prl.superb import sid as problem, example
-from s3prl.nn import UpstreamDownstreamModel, S3PRLUpstream
+from s3prl import Object, Output
+from s3prl.nn import S3PRLUpstream, UpstreamDownstreamModel
+from s3prl.superb import example
+from s3prl.superb import sid as problem
 
 TRIAL_STEP = 5
 BATCH_SIZE = 4

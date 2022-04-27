@@ -1,13 +1,13 @@
-import re
-import types
+import functools
+import importlib
 import inspect
 import logging
-import importlib
-import functools
+import re
 import traceback
-from typing import Any
+import types
 from argparse import Namespace
 from dataclasses import dataclass
+from typing import Any
 
 from .functools import resolve_qualname
 

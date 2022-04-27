@@ -2,6 +2,7 @@ from collections import namedtuple
 from typing import List, OrderedDict, Tuple
 
 import torch.nn as nn
+
 from . import Object
 
 _EXCLUDED_PREFIX = "_excluded_prefix"

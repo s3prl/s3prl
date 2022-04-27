@@ -1,8 +1,10 @@
 import re
 from pathlib import Path
+
 from librosa.util import find_files
 
 from s3prl import Container, cache
+
 from .base import Corpus
 
 IEMOCAP_SESSION_NUM = 5
@@ -41,7 +43,7 @@ class IEMOCAP(Corpus):
             label_file = label_dir / f"{spk_and_act_and_scene}.txt"
             with label_file.open() as file:
                 content = file.read()
-            result = re.search(fr"{str(wav_path.stem)}\t(.+)\t", content)
+            result = re.search(rf"{str(wav_path.stem)}\t(.+)\t", content)
             speaker = spk_and_act_and_scene.split("_")[0]
             act = "improvised" if "impro" in spk_and_act_and_scene else "scripted"
             emotion = result.groups()[0]

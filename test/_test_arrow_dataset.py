@@ -1,11 +1,12 @@
 import os
-import pyarrow as pa
-from torch.utils.data import Dataset, DataLoader
 from pathlib import Path
-import torch
 from time import time
-from tqdm import tqdm
+
 import numpy as np
+import pyarrow as pa
+import torch
+from torch.utils.data import DataLoader, Dataset
+from tqdm import tqdm
 
 ROOT = Path("result/")
 NUM_BATCH = 500
@@ -124,6 +125,7 @@ def test_arrow_dataset():
         start = time()
         batch = dataset[i]
         from ipdb import set_trace
+
         set_trace()
         print(time() - start)
 

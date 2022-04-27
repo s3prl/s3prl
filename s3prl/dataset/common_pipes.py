@@ -3,11 +3,11 @@ from dataclasses import dataclass
 
 import torch
 import torchaudio
+
 from ..encoder.category import CategoryEncoder
-from ..encoder.tokenizer import Tokenizer, CharacterTokenizer, load_tokenizer
+from ..encoder.tokenizer import CharacterTokenizer, Tokenizer, load_tokenizer
 from ..encoder.vocabulary import generate_vocab
 from .base import AugmentedDynamicItemDataset, DataPipe
-
 
 logger = logging.getLogger(__name__)
 

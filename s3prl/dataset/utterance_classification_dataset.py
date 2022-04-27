@@ -1,13 +1,14 @@
-from typing import List
 from pathlib import Path
-from tqdm import tqdm
-from joblib import Parallel, delayed
+from typing import List
 
 import torch
+from joblib import Parallel, delayed
 from torch.nn.utils.rnn import pad_sequence
+from tqdm import tqdm
 
 from s3prl import Output, cache
 from s3prl.util.loader import Loader, TorchaudioLoader, TorchaudioMetadataLoader
+
 from .base import Dataset, in_metadata_mode
 
 

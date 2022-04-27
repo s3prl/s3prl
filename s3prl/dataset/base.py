@@ -1,27 +1,26 @@
 from __future__ import annotations
 
 import abc
-import pickle
 import logging
-import numpy as np
-from tqdm import tqdm
-from enum import Enum
+import pickle
 from copy import deepcopy
-from functools import partial
-from joblib import Parallel, delayed
 from dataclasses import dataclass, fields
-from typing import Any, List, Type, Union
+from enum import Enum
+from functools import partial
 from inspect import isclass, isfunction, ismethod
+from typing import Any, List, Type, Union
 
+import numpy as np
 import torch
 import torchaudio
-from torch.utils import data
-from torch.nn.utils.rnn import pad_sequence
-
-from speechbrain.utils.data_pipeline import DynamicItem
+from joblib import Parallel, delayed
 from speechbrain.dataio.dataset import DynamicItemDataset
+from speechbrain.utils.data_pipeline import DynamicItem
+from torch.nn.utils.rnn import pad_sequence
+from torch.utils import data
+from tqdm import tqdm
 
-from s3prl import Object, cache, Output
+from s3prl import Object, Output, cache
 
 logger = logging.getLogger(__name__)
 

@@ -1,6 +1,8 @@
-from multiprocessing.context import set_spawning_popen
-import pytest
 from argparse import Namespace
+from multiprocessing.context import set_spawning_popen
+
+import pytest
+
 from s3prl import init
 
 

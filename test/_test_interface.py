@@ -1,6 +1,6 @@
-import pytest
 import logging
 
+import pytest
 import torch.nn as nn
 
 from s3prl import Module, init

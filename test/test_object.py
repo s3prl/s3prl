@@ -5,6 +5,7 @@ from s3prl import Object
 
 logger = logging.getLogger(__name__)
 
+
 class Child(Object):
     def __init__(self, x, y, *others, a=3, b=4, **kwargs):
         super().__init__()
