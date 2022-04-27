@@ -3,16 +3,20 @@ from pathlib import Path
 
 import torch
 
-from s3prl import Task, Dataset, Output
+from s3prl import Dataset, Output, Task
 from s3prl.base.object import Object
 
 device = "cuda" if torch.cuda.is_available() else "cpu"
 
+
 def parse_args():
     parser = argparse.ArgumentParser()
-    parser.add_argument("load_from", help="The directory containing all the checkpoints")
+    parser.add_argument(
+        "load_from", help="The directory containing all the checkpoints"
+    )
     args = parser.parse_args()
     return args
+
 
 def main():
     args = parse_args()
@@ -30,6 +34,7 @@ def main():
             result = task(**batch.subset("x", "x_len", as_type="dict"))
             for name, prediction in zip(batch.name, result.prediction):
                 print(name, prediction)
+
 
 if __name__ == "__main__":
     main()

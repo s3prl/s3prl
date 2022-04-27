@@ -1,14 +1,14 @@
-import pytest
 import logging
 
+import pytest
 import torch
 
 from s3prl import Output
 from s3prl.dataset import Dataset
 from s3prl.sampler import (
     DistributedBatchSamplerWrapper,
-    MaxTimestampBatchSampler,
     FixedBatchSizeBatchSampler,
+    MaxTimestampBatchSampler,
 )
 
 logger = logging.getLogger(__name__)

@@ -1,6 +1,8 @@
 from __future__ import annotations
+
 import abc
 import functools
+
 from s3prl import Module, Output
 
 

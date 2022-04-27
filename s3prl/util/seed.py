@@ -1,6 +1,7 @@
 import random
-import torch
+
 import numpy as np
+import torch
 
 
 def fix_random_seeds(seed: int = 1337) -> None:

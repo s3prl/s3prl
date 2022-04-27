@@ -1,17 +1,17 @@
-import math
-import logging
 import argparse
-from tqdm import tqdm
+import logging
+import math
 from pathlib import Path
 
 import torch
 import torch.optim as optim
 from torch.utils.data import DataLoader
+from tqdm import tqdm
 
-from s3prl import Object, Output, Logs
-from s3prl.superb import asr as problem
+from s3prl import Logs, Object, Output
+from s3prl.nn import S3PRLUpstream, UpstreamDownstreamModel
 from s3prl.sampler import DistributedBatchSamplerWrapper
-from s3prl.nn import UpstreamDownstreamModel, S3PRLUpstream
+from s3prl.superb import asr as problem
 
 device = "cuda" if torch.cuda.is_available() else "cpu"
 logger = logging.getLogger(__name__)

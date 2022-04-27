@@ -2,11 +2,11 @@ import logging
 import tempfile
 from typing import Any
 
-import torch
 import pytest
+import torch
 import torch.optim as optim
 
-from s3prl import init, Module, Object
+from s3prl import Module, Object, init
 
 logger = logging.getLogger(__name__)
 

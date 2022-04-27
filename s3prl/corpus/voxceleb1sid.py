@@ -1,12 +1,14 @@
 import os
-from tqdm import tqdm
-from pathlib import Path
-from filelock import FileLock
 from collections import defaultdict
-from joblib import delayed, Parallel
+from pathlib import Path
+
+from filelock import FileLock
+from joblib import Parallel, delayed
+from tqdm import tqdm
+
+from s3prl import Output, cache
 
 from .base import Corpus
-from s3prl import Output, cache
 
 SPLIT_FILE_URL = "https://www.robots.ox.ac.uk/~vgg/data/voxceleb/meta/iden_split.txt"
 

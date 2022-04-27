@@ -1,8 +1,9 @@
-import pytest
 import random
 
+import pytest
 import torch
 from torch.nn.utils.rnn import pad_sequence
+
 from s3prl.nn.upstream import S3PRLUpstream
 
 device = "cuda" if torch.cuda.is_available() else "cpu"

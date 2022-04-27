@@ -1,8 +1,9 @@
 import random
+
 from librosa.util import find_files
 
+from s3prl import Object, Output, cache, init
 from s3prl.util.loader import PseudoLoader
-from s3prl import Object, Output, init, cache
 
 PSEUDO_ALL_LABELS = ["happy", "sad", "angry", "neutral"]
 

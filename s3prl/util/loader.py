@@ -1,8 +1,9 @@
 import abc
+
 import torch
 import torchaudio
 
-from s3prl import Object, init, Output
+from s3prl import Object, Output, init
 
 
 class Loader(Object):

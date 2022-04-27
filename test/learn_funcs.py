@@ -1,6 +1,6 @@
-import inspect
 import functools
 import importlib
+import inspect
 
 
 def get_args(fn):
@@ -8,6 +8,7 @@ def get_args(fn):
     def tmp(*args, **kwargs):
         print("in wrap", fn)
         return fn(*args, **kwargs)
+
     return tmp
 
 
@@ -30,6 +31,7 @@ class C:
     @get_args
     def test3(a) -> None:
         pass
+
 
 module = importlib.import_module("__main__")
 print("C.__init__", getattr(getattr(module, "C"), "__init__"))

@@ -1,10 +1,10 @@
-import inspect
 import functools
+import inspect
 
 import editdistance
 
-from .logdata import Logs
 from .container import Container
+from .logdata import Logs
 
 
 class GeneralOutput(Container):

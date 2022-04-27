@@ -3,7 +3,8 @@ from typing import Union
 
 import torch
 
-from s3prl import hub, Output
+from s3prl import Output, hub
+
 from . import NNModule
 
 CHECK_ITERATION = 10

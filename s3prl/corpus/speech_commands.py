@@ -1,12 +1,12 @@
-import re
 import hashlib
-
+import re
 from pathlib import Path
-from typing import Union, Tuple, List
+from typing import List, Tuple, Union
 
-from .base import Corpus
 from s3prl import Container, cache
 from s3prl.base.output import Output
+
+from .base import Corpus
 
 CLASSES = [
     "yes",
@@ -47,7 +47,7 @@ class SpeechCommandsV1(Corpus):
     @staticmethod
     @cache()
     def split_dataset(
-        root_dir: Union[str, Path], max_uttr_per_class=2 ** 27 - 1
+        root_dir: Union[str, Path], max_uttr_per_class=2**27 - 1
     ) -> Tuple[List[Tuple[str, str]], List[Tuple[str, str]]]:
         """Split Speech Commands into 3 set.
 

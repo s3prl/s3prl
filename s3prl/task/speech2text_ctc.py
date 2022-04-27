@@ -2,13 +2,13 @@ import logging
 from typing import List
 
 import torch
-from torch import nn
 import torch.nn.functional as F
+from torch import nn
 from torch.nn.utils.rnn import pad_sequence
 
-from s3prl.metric import wer, cer
-from s3prl import Module, Output, Logs
+from s3prl import Logs, Module, Output
 from s3prl.encoder.tokenizer import Tokenizer
+from s3prl.metric import cer, wer
 
 from . import Task
 

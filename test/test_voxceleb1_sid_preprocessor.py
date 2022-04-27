@@ -1,5 +1,6 @@
-import pytest
 from pathlib import Path
+
+import pytest
 from dotenv import dotenv_values
 
 from s3prl import set_use_cache

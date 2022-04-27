@@ -1,11 +1,12 @@
-import re
-import types
 import inspect
 import logging
+import re
+import types
 
 import torch
 
 import s3prl
+
 from . import init
 
 logger = logging.getLogger(__name__)

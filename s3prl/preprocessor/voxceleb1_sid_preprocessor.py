@@ -1,10 +1,11 @@
-import os
 import logging
-from tqdm import tqdm
+import os
 from pathlib import Path
 
-from s3prl.util.loader import TorchaudioLoader
+from tqdm import tqdm
+
 from s3prl import Object, Output, cache
+from s3prl.util.loader import TorchaudioLoader
 
 SPLIT_FILE_URL = "https://www.robots.ox.ac.uk/~vgg/data/voxceleb/meta/iden_split.txt"
 

@@ -1,5 +1,5 @@
-import logging
 import argparse
+import logging
 from pathlib import Path
 
 import torch
@@ -7,9 +7,9 @@ import torch.optim as optim
 from pytorch_lightning import Trainer
 from pytorch_lightning.callbacks import ModelCheckpoint
 
+from s3prl.nn import S3PRLUpstream, UpstreamDownstreamModel
 from s3prl.superb import asr as problem
 from s3prl.wrapper import LightningModuleSimpleWrapper
-from s3prl.nn import UpstreamDownstreamModel, S3PRLUpstream
 
 device = "cuda" if torch.cuda.is_available() else "cpu"
 logger = logging.getLogger(__name__)

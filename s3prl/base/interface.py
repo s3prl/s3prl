@@ -1,9 +1,9 @@
-import re
 import abc
-import types
+import functools
 import inspect
 import logging
-import functools
+import re
+import types
 
 logger = logging.getLogger(__name__)
 

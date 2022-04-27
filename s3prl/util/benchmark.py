@@ -1,9 +1,10 @@
 import logging
+from contextlib import ContextDecorator
 from time import time
 from typing import Any
-from contextlib import ContextDecorator
 
 logger = logging.getLogger(__name__)
+
 
 class benchmark(ContextDecorator):
     def __init__(self, name: str) -> None:

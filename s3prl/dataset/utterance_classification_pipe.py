@@ -1,9 +1,9 @@
 from .base import SequentialDataPipe
 from .common_pipes import (
-    SetOutputKeys,
-    LoadAudio,
     EncodeCategory,
     EncodeMultipleCategory,
+    LoadAudio,
+    SetOutputKeys,
 )
 
 

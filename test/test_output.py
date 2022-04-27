@@ -1,6 +1,6 @@
 import pytest
 
-from s3prl.base.output import Output, Container
+from s3prl.base.output import Container, Output
 
 
 def test_output():
@@ -57,14 +57,12 @@ def test_output():
 
 
 def test_container():
-    config = Container({
-        "a": {
-            "b": 3
-        },
-        "d": {
-            "f": 5
-        },
-    })
+    config = Container(
+        {
+            "a": {"b": 3},
+            "d": {"f": 5},
+        }
+    )
     assert config.a.b == 3
     config.d.f = 4
     assert config.d.f == 4
@@ -74,10 +72,8 @@ def test_container():
             "b": 4,
             "c": 7,
         },
-        "d": {
-            "e": 8
-        },
-        "k": 9
+        "d": {"e": 8},
+        "k": 9,
     }
 
     config.override(new_config)
