@@ -41,26 +41,26 @@ class PretrainTaskPipe(SequentialDataPipe):
         )
 
         audio_config = audio_config or dict(
-                kaldi = { 
-                    "feat_type": "fbank",
-                    "fbank": {
-                            "frame_length": 25.0,
-                            "frame_shift": 10.0,
-                            "num_mel_bins": 80,
-                            "use_log_fbank": True
-                    },
-                    "mfcc": {
-                            "frame_length": 25.0,
-                            "frame_shift": 10.0,
-                            "num_ceps": 13
-                    },
-                    "spectrogram": {
-                        "frame_length": 25.0, 
-                        "frame_shift": 10.0
-                    }
+            kaldi = { 
+                "feat_type": "fbank",
+                "fbank": {
+                        "frame_length": 25.0,
+                        "frame_shift": 10.0,
+                        "num_mel_bins": 80,
+                        "use_log_fbank": True
                 },
-                delta = {"order": 2, "win_length": 5},
-                cmvn = {"use_cmvn": True},
+                "mfcc": {
+                        "frame_length": 25.0,
+                        "frame_shift": 10.0,
+                        "num_ceps": 13
+                },
+                "spectrogram": {
+                    "frame_length": 25.0, 
+                    "frame_shift": 10.0
+                }
+            },
+            delta = {"order": 2, "win_length": 5},
+            cmvn = {"use_cmvn": True},
         )
 
         super().__init__(
