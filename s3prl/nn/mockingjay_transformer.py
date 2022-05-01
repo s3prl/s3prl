@@ -3,6 +3,7 @@ import copy
 import math
 import torch
 from torch import nn
+from s3prl import Output
 
 
 class TransformerConfig(object):
@@ -13,7 +14,7 @@ class TransformerConfig(object):
         num_hidden_layers: int = 3,                  # Number of hidden layers in the Transformer encoder.
         num_attention_heads: int = 12,               # Number of attention heads for each attention layer in the Transformer encoder.
         intermediate_size: int = 3072,               # The size of the "intermediate" (i.e., feed-forward) layer in the Transformer encoder.
-        hidden_act: str = 'gelu',                    # The non-linear activation function (function or string) in the encoder and pooler. If string, "gelu", "relu" and "swish" are supported.
+        hidden_act: str = "gelu",                    # The non-linear activation function (function or string) in the encoder and pooler. If string, "gelu", "relu" and "swish" are supported.
         hidden_dropout_prob: float = 0.1,            # The dropout probabilitiy for all fully connected layers in the embeddings, encoder, and pooler.
         attention_probs_dropout_prob: float = 0.1,   # The dropout ratio for the attention probabilities.
         initializer_range: float = 0.02,             # The sttdev of the truncated_normal_initializer for initializing all weight matrices.
@@ -348,7 +349,7 @@ class TransformerEncoder(nn.Module):
 class TransformerSpecPredictionHead(nn.Module):
     def __init__(self, config, output_dim, input_dim=None):
         super(TransformerSpecPredictionHead, self).__init__()
-        self.output_dim = output_dim
+        self.output_size = output_dim
         if input_dim is None:
             self.dense = nn.Linear(config.hidden_size, config.hidden_size)
         else:
@@ -358,14 +359,17 @@ class TransformerSpecPredictionHead(nn.Module):
         else:
             self.transform_act_fn = config.hidden_act
         self.LayerNorm = TransformerLayerNorm(config.hidden_size, eps=config.layer_norm_eps)
-        self.output = nn.Linear(config.hidden_size, self.output_dim)
+        self.output = nn.Linear(config.hidden_size, self.output_size)
 
-    def forward(self, hidden_states):
+    def forward(self, hidden_states, output_states=False):
         hidden_states = self.dense(hidden_states)
         hidden_states = self.transform_act_fn(hidden_states)
         hidden_states = self.LayerNorm(hidden_states)
-        linear_output = self.output(hidden_states)
-        return linear_output, hidden_states
+        prediction = self.output(hidden_states)
+        if output_states:
+            return Output(hidden_states=hidden_states, prediction=prediction)
+        else:
+            return Output(prediction=prediction)
 
 
 class TransformerInitModel(nn.Module):
@@ -433,6 +437,7 @@ class TransformerModel(TransformerInitModel):
         self.encoder = TransformerEncoder(config, output_attentions=output_attentions,
                                           keep_multihead_output=keep_multihead_output)
         self.apply(self.init_Transformer_weights)
+        self.input_size = input_dim
 
     def prune_heads(self, heads_to_prune):
         """ Prunes heads of the model.
@@ -447,7 +452,7 @@ class TransformerModel(TransformerInitModel):
         """
         return [layer.attention.self.multihead_output for layer in self.encoder.layer]
 
-    def forward(self, spec_input, pos_enc=None, attention_mask=None, output_all_encoded_layers=True, head_mask=None):
+    def forward(self, spec_input, pos_enc=None, attention_mask=None, output_all_encoded_layers=False, head_mask=None):
         if attention_mask is None:
             attention_mask = torch.ones_like(spec_input)
 
@@ -494,5 +499,5 @@ class TransformerModel(TransformerInitModel):
         if not output_all_encoded_layers:
             encoded_layers = encoded_layers[-1]
         if self.output_attentions:
-            return all_attentions, encoded_layers
-        return encoded_layers
+            return Output(output=all_attentions, hidden_states=encoded_layers)
+        return Output(hidden_states=encoded_layers)
