@@ -1,10 +1,13 @@
+import torch
 import logging
 import numpy as np
 from time import time
 from typing import Any
+from collections import defaultdict
 from contextlib import ContextDecorator
 
 logger = logging.getLogger(__name__)
+_history = defaultdict(list)
 
 
 class benchmark(ContextDecorator):
@@ -12,17 +15,18 @@ class benchmark(ContextDecorator):
         super().__init__()
         self.name = name
         self.freq = freq
-        self.history = []
-        self.n = 0
 
     def __enter__(self):
+        torch.cuda.synchronize()
         self.start = time()
-        self.n += 1
 
     def __exit__(self, exc_type: Any, exc_value: Any, traceback: Any) -> None:
+        torch.cuda.synchronize()
         seconds = time() - self.start
-        self.history.append(seconds)
-        if self.n % self.freq == 0:
+
+        global _history
+        _history[self.name].append(seconds)
+        if len(_history[self.name]) % self.freq == 0:
             logger.info(
-                f"{self.name}: {seconds} secs, avg {np.array(self.history).mean()} secs"
+                f"{self.name}: {seconds} secs, avg {np.array(_history[self.name]).mean()} secs"
             )
