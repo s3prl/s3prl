@@ -1,0 +1,1 @@
+{"atis/train-intent_loss": 0.2962758243083954, "_runtime": 4281, "_timestamp": 1651672813, "_step": 1047, "atis/dev-intent_loss": 0.2641877233982086, "atis/test-intent_loss": 0.2763049602508545}

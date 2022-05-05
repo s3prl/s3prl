@@ -12,7 +12,7 @@ from .model import Model
 from .dataset import AtisDataset
 import pandas as pd
 from collections import Counter
-
+import wandb
 
 class DownstreamExpert(nn.Module):
     """
@@ -146,3 +146,4 @@ class DownstreamExpert(nn.Module):
                 average,
                 global_step=global_step
             )
+            wandb.log({f'atis/{mode}-{key}': average})

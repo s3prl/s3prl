@@ -26,6 +26,7 @@ from s3prl.upstream.interfaces import Featurizer
 from s3prl.utility.helper import is_leader_process, get_model_state, show, defaultdict
 
 from huggingface_hub import HfApi, HfFolder, Repository
+import wandb
 
 SAMPLE_RATE = 16000
 
@@ -95,6 +96,7 @@ class Runner():
         self.featurizer = self._get_featurizer()
         self.downstream = self._get_downstream()
         self.all_entries = [self.upstream, self.featurizer, self.downstream]
+        wandb.init()
 
 
     def _load_weight(self, model, name):

@@ -1,0 +1,36 @@
+{
+    "os": "Linux-5.10.90-1-lts-x86_64-with-glibc2.31",
+    "python": "3.9.7",
+    "heartbeatAt": "2022-05-04T12:47:58.601092",
+    "startedAt": "2022-05-04T12:47:56.782280",
+    "docker": null,
+    "gpu": "NVIDIA GeForce RTX 3090",
+    "gpu_count": 1,
+    "cpu_count": 64,
+    "cuda": null,
+    "args": [
+        "-m",
+        "train",
+        "-n",
+        "test_atis",
+        "-u",
+        "hubert_base",
+        "-d",
+        "atis",
+        "-f",
+        "-l",
+        "-1"
+    ],
+    "state": "running",
+    "program": "/home/daniel094144/s3prl/s3prl/run_downstream.py",
+    "codePath": "s3prl/run_downstream.py",
+    "git": {
+        "remote": "git@github.com:s3prl/s3prl.git",
+        "commit": "2ceead07d9f4f5c149e88663680b1e32c5f1a4b9"
+    },
+    "email": "daniel094144@gmail.com",
+    "root": "/home/daniel094144/s3prl",
+    "host": "s04.speech",
+    "username": "daniel094144",
+    "executable": "/home/daniel094144/anaconda3/bin/python"
+}
