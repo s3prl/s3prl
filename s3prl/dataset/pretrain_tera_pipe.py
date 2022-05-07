@@ -12,7 +12,6 @@ class PretrainTaskPipe(SequentialDataPipe):
     """
     each item in the input dataset should have:
         wav_path: str
-        label: str
     """
 
     def __init__(
@@ -26,9 +25,12 @@ class PretrainTaskPipe(SequentialDataPipe):
         n_jobs: int = 6,
     ):
         output_keys = output_keys or dict(
-            x="wav",
-            x_len="wav_len",
-            train_data="masked_data",
+            x="source_feat",
+            label="target_feat",
+            label_mask="label_mask",
+            position_encoding="pos_enc",
+            attention_mask="attn_mask",
+            unique_name="id",
         )
 
         mask_args = mask_args or dict(
@@ -83,6 +85,9 @@ class PretrainTaskPipe(SequentialDataPipe):
                             output_feat_name="source_feat"),
             MaskedReconstruction(mask_args=mask_args, 
                                 source_feat_name="source_feat",
-                                target_feat_name="target_feat"),
+                                target_feat_name="target_feat",
+                                pos_enc_name="pos_enc",
+                                attn_mask_name="attn_mask",
+                                label_mask_name="label_mask",),
             SetOutputKeys(output_keys=output_keys),
         )
