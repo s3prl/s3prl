@@ -9,17 +9,18 @@ import torch
 import random
 import numpy as np
 from functools import lru_cache
-MAX_SEQLEN = 3000
+MAX_SEQLEN = 10000
 
 
 @dataclass
 class PrepareTargetFeat(DataPipe):
     use_copy: bool = True
-    source_feat_name: str = "source_feat" # tensors in the shape of: (batch_size, seq_len, feat_dim)
-    target_feat_name: str = "target_feat" # tensors in the shape of: (batch_size, seq_len, feat_dim)
+    source_feat_name: str = "source_feat" # tensors in the shape of: (batch_size, seq_len, source_feat_dim)
+    target_feat_name: str = "target_feat" # tensors in the shape of: (batch_size, seq_len, target_feat_dim)
     
     def prepare_target_feat(self, feat):
-        return copy.deepcopy(feat) if self.use_copy else feat
+        target_feat = copy.deepcopy(feat) if self.use_copy else feat
+        return target_feat.to(dtype=torch.float32)
 
     def __call__(self, dataset: AugmentedDynamicItemDataset):
         dataset.add_dynamic_item(self.prepare_target_feat, takes=self.source_feat_name, provides=self.target_feat_name)
@@ -31,7 +32,9 @@ class MaskedReconstruction(DataPipe):
     mask_args: dict = None
     source_feat_name: str = "source_feat" # tensors in the shape of: (seq_len, feat_dim)
     target_feat_name: str = "target_feat" # tensors in the shape of: (seq_len, feat_dim)
-    masked_data_name: str = "masked_data"
+    pos_enc_name: str = "pos_enc"
+    attn_mask_name: str = "attn_mask"
+    label_mask_name: str = "label_mask"
 
     def generate_masked_data(self, source_feat, target_feat):
 
@@ -42,7 +45,7 @@ class MaskedReconstruction(DataPipe):
             seq_len = target_feat.shape[0]
             
             pos_enc = fast_position_encoding(seq_len, self.mask_args["position_encoding_size"]) # (seq_len, position_encoding_size)
-            mask_label = torch.zeros_like(target_feat, dtype=torch.uint8) \
+            label_mask = torch.zeros_like(target_feat, dtype=torch.uint8) \
                         if self.mask_args["mask_proportion"] != 0 or self.mask_args["mask_frequency"] != 0 \
                         else torch.ones_like(target_feat, dtype=torch.uint8)
             attn_mask = torch.ones(seq_len) # (seq_len)
@@ -86,7 +89,7 @@ class MaskedReconstruction(DataPipe):
                     pass
 
                 # the gradients will be calculated on chosen frames
-                mask_label[chosen_intervals, :] = 1
+                label_mask[chosen_intervals, :] = 1
 
             # frequency masking
             if self.mask_args["mask_frequency"] > 0:
@@ -97,28 +100,22 @@ class MaskedReconstruction(DataPipe):
                 source_feat[:, chosen_intervals] = 0
                 
                 # the gradients will be calculated on chosen frames
-                mask_label[:spec_len, chosen_intervals] = 1   
+                label_mask[:spec_len, chosen_intervals] = 1   
             
             source_feat = source_feat.to(dtype=torch.float32)
             pos_enc = pos_enc.to(dtype=torch.float32)
-            mask_label = mask_label.to(dtype=torch.bool)
             attn_mask = attn_mask.to(dtype=torch.float32)
-            target_feat = target_feat.to(dtype=torch.float32)
+            label_mask = label_mask.to(dtype=torch.bool)
 
-        return dict(
-            source_feat=source_feat, 
-            pos_enc=pos_enc, 
-            mask_label=mask_label, 
-            attn_mask=attn_mask, 
-            target_feat=target_feat,
-        )
+        return source_feat, pos_enc, attn_mask, label_mask
 
     def __call__(self, dataset: AugmentedDynamicItemDataset):
 
         dataset.add_dynamic_item(
             self.generate_masked_data,
             takes=[self.source_feat_name, self.target_feat_name],
-            provides=self.masked_data_name,
+            provides=[self.source_feat_name, self.pos_enc_name, 
+                      self.attn_mask_name, self.label_mask_name],
         )
         return dataset
 
