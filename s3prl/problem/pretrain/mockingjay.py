@@ -117,6 +117,6 @@ class Mockingjay:
             gradient_accumulate_steps=4,
             use_valid=True,
             valid_metric="loss",
-            valid_higher_better=True,
+            valid_higher_better=False,
         ),
     )
