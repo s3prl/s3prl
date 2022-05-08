@@ -5,8 +5,7 @@ from typing import List
 
 import torch
 
-from s3prl import Logs, Module, Output
-from s3prl.metric import accuracy
+from s3prl import Logs, Output
 
 from . import Task
 from s3prl.nn.mockingjay_transformer import (
