@@ -20,11 +20,11 @@ logger = logging.getLogger(__name__)
 
 DRYRUN_CONFIG = dict(
     Trainer=dict(
-        total_steps=10,
-        log_step=2,
-        valid_step=5,
-        save_step=5,
-        eval_batch=5,
+        total_steps=200000,
+        log_step=5000,
+        valid_step=5000,
+        save_step=5000,
+        eval_batch=8,
     ),
 )
 
@@ -32,12 +32,11 @@ DRYRUN_CONFIG = dict(
 def parse_args():
     parser = argparse.ArgumentParser()
     parser.add_argument(
-        "problem", help="The problem module. E.g. s3prl.problem.pretrain.mockingjay"
+        "problem", help="The problem module. E.g. `s3prl.problem.pretrain.tera.Tera`"
     )
-    parser.add_argument("dataset_root", help="The dataset root of your problem.")
+    parser.add_argument("dataset_root", help="The dataset root for pretrain.")
     parser.add_argument("save_to", help="The directory to save checkpoint")
-    parser.add_argument("--feature_selection", default="hidden_states")
-    parser.add_argument("--n_jobs", type=int, default=6)
+    parser.add_argument("--n_jobs", type=int, default=8)
     parser.add_argument(
         "--override",
         default=None,
@@ -147,6 +146,7 @@ def main():
         logger.info("Create a new model")
         task = problem.Task(body, head, loss, **stats)
         task = task.to(device)
+    assert train_dataset.get_tool("output_dim") == task.input_size
 
     # ALL THE FOLLOWING CODES ARE FOR TRAINER
     # WHICH CAN BE LARGELY SIMPLIFIED WHEN USING OTHER TRAINER PACKAGES
