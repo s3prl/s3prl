@@ -32,7 +32,7 @@ DRYRUN_CONFIG = dict(
 def parse_args():
     parser = argparse.ArgumentParser()
     parser.add_argument(
-        "problem", help="The problem module. E.g. `s3prl.problem.pretrain.tera.Tera`"
+        "problem", help="The problem module. E.g. `s3prl.problem.ssl.tera.Tera`"
     )
     parser.add_argument("dataset_root", help="The dataset root for pretrain.")
     parser.add_argument("save_to", help="The directory to save checkpoint")
