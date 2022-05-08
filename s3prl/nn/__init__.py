@@ -4,5 +4,3 @@ from .pooling import MeanPooling
 from .rnn import RNNEncoder
 from .upstream import S3PRLUpstream
 from .upstream_downstream_model import UpstreamDownstreamModel
-from .mockingjay_transformer import TransformerModel
-from .mockingjay_transformer import TransformerSpecPredictionHead

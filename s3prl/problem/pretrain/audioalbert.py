@@ -7,7 +7,7 @@ from s3prl.sampler import (
     FixedBatchSizeBatchSampler,
 )
 from s3prl.task.feat_reconstruction_task import FeatReconstructionTask
-from s3prl.nn.audioalbert_transformer import (
+from s3prl.nn.transformer_audioalbert import (
     TransformerConfig,
     TransformerModel,
     TransformerSpecPredictionHead
