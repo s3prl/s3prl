@@ -2,7 +2,8 @@ from .common_pipes import (
     SetOutputKeys, 
     LoadAudio
 )
-from .extract_feat_pipes import ExtractKaldiFeat
+from .norm_wav_pipes import NormWavDecibel
+from .extract_feat_pipes import ExtractOnlineFeat
 from .noise_augmentation_pipes import NoiseAugmentation
 from .masked_reconstruction_pipes import PrepareTargetFeat, MaskedReconstruction
 from .base import SequentialDataPipe
@@ -22,6 +23,7 @@ class PretrainTaskPipe(SequentialDataPipe):
         audio_config: dict = None,
         audio_sample_rate: int = 16000,
         audio_channel_reduction: str = "first",
+        target_level: int = -25,
         n_jobs: int = 6,
     ):
         output_keys = output_keys or dict(
@@ -48,26 +50,21 @@ class PretrainTaskPipe(SequentialDataPipe):
         )
 
         audio_config = audio_config or dict(
-                kaldi = { 
-                    "feat_type": "fbank",
-                    "fbank": {
-                            "frame_length": 25.0,
-                            "frame_shift": 10.0,
-                            "num_mel_bins": 80,
-                            "use_log_fbank": True
-                    },
-                    "mfcc": {
-                            "frame_length": 25.0,
-                            "frame_shift": 10.0,
-                            "num_ceps": 13
-                    },
-                    "spectrogram": {
-                        "frame_length": 25.0, 
-                        "frame_shift": 10.0
-                    }
-                },
-                delta = {"order": 2, "win_length": 5},
-                cmvn = {"use_cmvn": True},
+            win_ms=25,
+            hop_ms=10,
+            n_freq=201,
+            n_mels=80,
+            n_mfcc=13,
+            input = {'channel': 0,
+                     'cmvn': True,
+                     'delta': 0,
+                     'feat_type': 'mel',
+                     'log': True},
+            target = {'channel': 1,
+                      'cmvn': True,
+                      'delta': 0,
+                      'feat_type': 'mel',
+                      'log': True},
         )
 
         super().__init__(
@@ -76,7 +73,8 @@ class PretrainTaskPipe(SequentialDataPipe):
                 audio_sample_rate=audio_sample_rate,
                 audio_channel_reduction=audio_channel_reduction,
             ),
-            ExtractKaldiFeat(audio_config=audio_config, feat_name="source_feat"),
+            NormWavDecibel(target_level=target_level),
+            ExtractOnlineFeat(audio_config=audio_config, feat_name="source_feat"),
             PrepareTargetFeat(use_copy=True, 
                             source_feat_name="source_feat",
                             target_feat_name="target_feat"),
