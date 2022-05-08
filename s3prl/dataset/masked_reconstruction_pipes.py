@@ -93,9 +93,9 @@ class MaskedReconstruction(DataPipe):
 
             # frequency masking
             if self.mask_args["mask_frequency"] > 0:
-                max_width = int(target_feat.shape[2] * self.mask_args["mask_frequency"])
+                max_width = int(source_feat.shape[-1] * self.mask_args["mask_frequency"])
                 rand_bandwidth = random.randint(0, max_width)
-                chosen_starts = torch.randperm(source_feat.shape[2] - rand_bandwidth)[:1]
+                chosen_starts = torch.randperm(source_feat.shape[-1] - rand_bandwidth)[:1]
                 chosen_intervals = _starts_to_intervals(chosen_starts, rand_bandwidth)
                 source_feat[:, chosen_intervals] = 0
                 
