@@ -96,7 +96,7 @@ class Runner():
         self.featurizer = self._get_featurizer()
         self.downstream = self._get_downstream()
         self.all_entries = [self.upstream, self.featurizer, self.downstream]
-        wandb.init()
+        wandb.init(project='atis-SF', name=f'{self.args.expname}', config=self.config)
 
 
     def _load_weight(self, model, name):
