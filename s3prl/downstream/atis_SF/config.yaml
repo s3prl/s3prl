@@ -1,0 +1,49 @@
+runner:
+  total_steps: 20000
+  gradient_clipping: 1
+  gradient_accumulate_steps: 48
+
+  log_step: 5
+  eval_step: 30
+  save_step: 300
+  max_keep: 1
+  eval_dataloaders:
+    - dev
+    - test
+
+optimizer:
+  name: AdamW
+  lr: 2.0e-4
+
+# comment the whole scheduler config block
+# to disable learning rate scheduling
+scheduler:
+  name: linear_schedule_with_warmup
+  num_warmup_steps: 200
+
+downstream_expert:
+  datarc:
+    file_path: /home/daniel094144/data/atis
+    num_workers: 0
+    train_batch_size: 8
+    eval_batch_size: 8
+  
+  augmentation: 
+    TimeStretch: 
+      min_rate: 0.9
+      max_rate: 1.1
+      p: 0.5
+    PitchShift: 
+      min_semitones: -4
+      max_semitones: 4
+      p: 0.5
+
+  modelrc:
+    is_transformer: True
+    vocab_size: 600
+    input_dim: 1024
+    enable_ctc: 0
+    num_encoder_layers: 8
+    num_decoder_layers: 4
+    emb_size: 1024
+    nhead: 4
