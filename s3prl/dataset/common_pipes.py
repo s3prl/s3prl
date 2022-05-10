@@ -1,11 +1,18 @@
 import logging
 from dataclasses import dataclass
+from typing import Callable
 
 import torch
 import torchaudio
 
 from ..encoder.category import CategoryEncoder
-from ..encoder.tokenizer import CharacterTokenizer, Tokenizer, load_tokenizer
+from ..encoder.g2p import G2P
+from ..encoder.tokenizer import (
+    CharacterTokenizer,
+    Tokenizer,
+    default_phoneme_tokenizer,
+    load_tokenizer,
+)
 from ..encoder.vocabulary import generate_vocab
 from .base import AugmentedDynamicItemDataset, DataPipe
 
@@ -191,13 +198,17 @@ class GenerateTokenizer(DataPipe):
                 f"Tokenizer (name = {self.tokenizer_name}) exists in dataset, skip generation."
             )
         except:
-            text_list = None
-            if self.text_file is None:
-                with dataset.output_keys_as([self.text_name]):
-                    text_list = [item[self.text_name] for item in dataset]
+            if self.generate:
+                text_list = None
+                if self.text_file is None:
+                    with dataset.output_keys_as([self.text_name]):
+                        text_list = [item[self.text_name] for item in dataset]
 
-            tokenizer = self.prepare_tokenizer(text_list)
-            dataset.add_tool(self.tokenizer_name, tokenizer)
+                tokenizer = self.prepare_tokenizer(text_list)
+                dataset.add_tool(self.tokenizer_name, tokenizer)
+            if not self.generate and self.vocab_type == "phoneme":
+                tokenizer = default_phoneme_tokenizer()
+                dataset.add_tool(self.tokenizer_name, tokenizer)
 
         return dataset
 
@@ -223,5 +234,32 @@ class EncodeText(DataPipe):
             provides=self.output_text_name,
         )
         dataset.add_tool("output_size", tokenizer.vocab_size)
+
+        return dataset
+
+
+@dataclass
+class Grapheme2Phoneme(DataPipe):
+    text_name: str = "transcription"
+    output_text_name: str = "phonemized_text"
+    g2p_name: str = "g2p"
+
+    def grapheme2phoneme(self, g2p: Callable, text: str):
+        return g2p(text)
+
+    def __call__(self, dataset: AugmentedDynamicItemDataset):
+        try:
+            g2p = dataset.get_tool(self.g2p_name)
+        except:
+            logger.warn(
+                f"Cannot find {self.g2p_name} in dataset, use default G2P instead."
+            )
+            dataset.add_tool(self.g2p_name, G2P())
+
+        dataset.add_dynamic_item(
+            self.grapheme2phoneme,
+            takes=[self.g2p_name, self.text_name],
+            provides=self.output_text_name,
+        )
 
         return dataset
