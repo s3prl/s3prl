@@ -27,6 +27,6 @@ class benchmark(ContextDecorator):
         global _history
         _history[self.name].append(seconds)
         if len(_history[self.name]) % self.freq == 0:
-            logger.info(
+            logger.warning(
                 f"{self.name}: {seconds} secs, avg {np.array(_history[self.name]).mean()} secs"
             )
