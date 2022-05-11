@@ -274,4 +274,7 @@ class Phonemize(DataPipe):
             provides=self.output_text_name,
         )
 
+        tokenizer = dataset.get_tool(self.tokenizer_name)
+        dataset.add_tool("output_size", tokenizer.vocab_size)
+
         return dataset

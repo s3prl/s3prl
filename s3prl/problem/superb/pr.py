@@ -11,9 +11,9 @@ class SuperbPR:
     Corpus = LibriSpeechForSUPERB
     TrainData = Speech2PhonemePipe
     TrainSampler = MaxTimestampBatchSampler
-    ValidData = Speech2TextPipe
+    ValidData = Speech2PhonemePipe
     ValidSampler = FixedBatchSizeBatchSampler
-    TestData = Speech2TextPipe
+    TestData = Speech2PhonemePipe
     TestSampler = FixedBatchSizeBatchSampler
     Downstream = RNNEncoder
     Task = Speech2TextCTCTask
