@@ -1,5 +1,5 @@
 from s3prl.corpus.librispeech import LibriSpeechForSUPERB
-from s3prl.dataset.speech2text_pipe import Speech2TextPipe
+from s3prl.dataset.speech2phoneme_pipe import Speech2PhonemePipe
 from s3prl.sampler import FixedBatchSizeBatchSampler, MaxTimestampBatchSampler
 from s3prl.task.speech2text_ctc_task import Speech2TextCTCTask
 from s3prl.nn import RNNEncoder
@@ -9,7 +9,7 @@ from s3prl.encoder.tokenizer import CharacterTokenizer
 
 class SuperbPR:
     Corpus = LibriSpeechForSUPERB
-    TrainData = Speech2TextPipe
+    TrainData = Speech2PhonemePipe
     TrainSampler = MaxTimestampBatchSampler
     ValidData = Speech2TextPipe
     ValidSampler = FixedBatchSizeBatchSampler
@@ -20,31 +20,16 @@ class SuperbPR:
 
     default_config = Container(
         Corpus=dict(),
-        TrainData=dict(
-            generate_tokenizer=False,
-            vocab_type="phoneme",
-            g2p=True,
-            labels_name="phonemized_text",
-        ),
+        TrainData=dict(),
         TrainSampler=dict(
             max_timestamp=16000 * 100,
             shuffle=True,
         ),
-        ValidData=dict(
-            generate_tokenizer=False,
-            vocab_type="phoneme",
-            g2p=True,
-            labels_name="phonemized_text",
-        ),
+        ValidData=dict(),
         ValidSampler=dict(
             batch_size=16,
         ),
-        TestData=dict(
-            generate_tokenizer=False,
-            vocab_type="phoneme",
-            g2p=True,
-            labels_name="phonemized_text",
-        ),
+        TestData=dict(),
         TestSampler=dict(
             batch_size=1,
         ),

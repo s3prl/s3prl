@@ -88,6 +88,12 @@ class AugmentedDynamicItemDataset(DynamicItemDataset):
         """
         return self._tools[key]
 
+    def has_tool(self, key):
+        """
+        Checks whether has a tool named `key`.
+        """
+        return key in self._tools
+
     def all_tools(self, copy=True):
         """
         See self.add_tool
