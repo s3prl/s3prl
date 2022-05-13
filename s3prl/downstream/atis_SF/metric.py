@@ -43,6 +43,8 @@ def parse_BI_entity(seq, tokenizer):
                         d[slot] += [seq[i-1]]
                     else: 
                         continue
+            if t == END_IDX:
+                break
     return d 
 
 def entity_f1_score(d_gt, d_hyp):
@@ -86,7 +88,7 @@ if __name__ == '__main__':
     seq = 'PHILADELPHIA B-toloc.city_name'
     tokenizer = Tokenizer.from_file('/home/daniel094144/data/atis/BI_tokenizer.json')
     id = tokenizer.encode((seq)).ids
-    print(id)
+    id = [163, 85, 34, 375, 92, 34, 373, 92, 34, 355, 92, 34, 163, 85, 5]
     # print(tokenizer.decode(id))
     d = parse_BI_entity(id, tokenizer)
     print(d)

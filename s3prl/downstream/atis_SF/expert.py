@@ -35,9 +35,9 @@ class DownstreamExpert(nn.Module):
         self.base_path = self.datarc['file_path']   
         self.is_BI = self.datarc['is_BI']
         if self.is_BI: 
-            self.tokenizer = Tokenizer.from_file(os.path.join(self.base_path, 'tokenizer.json'))
-        else:
             self.tokenizer = Tokenizer.from_file(os.path.join(self.base_path, 'BI_tokenizer.json'))
+        else:
+            self.tokenizer = Tokenizer.from_file(os.path.join(self.base_path, 'tokenizer.json'))
 
 
         aug_config = downstream_expert['augmentation'] if 'augmentation' in downstream_expert else None
@@ -158,10 +158,16 @@ class DownstreamExpert(nn.Module):
             if self.is_BI:
                 d_gt = parse_BI_entity(gt, self.tokenizer)
                 d_hyp = parse_BI_entity(hyp, self.tokenizer)
+                
+                
             else:
                 d_gt = parse_entity(gt)
                 d_hyp = parse_entity(hyp)
             f1 = entity_f1_score(d_gt, d_hyp)
+            if mode != 'train':
+                print(d_gt, d_hyp)
+                print(f1)
+                
             f1s.append(f1)
 
         records['f1'] += f1s
