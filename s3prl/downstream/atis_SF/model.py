@@ -532,7 +532,9 @@ class Seq2SeqTransformer(nn.Module):
                                        batch_first=True)
         self.generator = nn.Linear(emb_size, tgt_vocab_size)
         self.tgt_tok_emb = TokenEmbedding(tgt_vocab_size, emb_size)
-        self.feature_extractor = nn.Conv1d(emb_size, emb_size, 3, padding='same')
+        self.feature_extractor1 = nn.Conv1d(emb_size, emb_size, 3, padding='same')
+        # self.feature_extractor2 = nn.Conv1d(emb_size, emb_size, 3, padding='same')
+        # self.feature_extractor3 = nn.Conv1d(emb_size, emb_size, 3, padding='same')
 
         self.positional_encoding = PositionalEncoding(
             emb_size, dropout=dropout)
@@ -547,7 +549,9 @@ class Seq2SeqTransformer(nn.Module):
                 tgt_padding_mask: Tensor,
                 memory_key_padding_mask: Tensor):
 
-        src_emb = self.feature_extractor(src.view(src.shape[0], src.shape[2], src.shape[1]))
+        src_emb = self.feature_extractor1(src.view(src.shape[0], src.shape[2], src.shape[1]))
+        # src_emb = self.feature_extractor2(src_emb)
+        # src_emb = self.feature_extractor3(src_emb)
         src_emb = src_emb.view(src_emb.shape[0], src_emb.shape[2], src_emb.shape[1])
         tgt_emb = self.positional_encoding(self.tgt_tok_emb(trg))
 

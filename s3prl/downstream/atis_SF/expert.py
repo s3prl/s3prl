@@ -14,6 +14,9 @@ import pandas as pd
 from collections import Counter
 import wandb
 from .model import AttenDecoderModel, Seq2SeqTransformer, generate_square_subsequent_mask, create_mask
+from .metric import parse_entity, entity_f1_score, parse_BI_entity
+
+
 
 class DownstreamExpert(nn.Module):
     """
@@ -23,30 +26,38 @@ class DownstreamExpert(nn.Module):
 
     def __init__(self, upstream_dim, downstream_expert, **kwargs):
         super(DownstreamExpert, self).__init__()
+        torch.backends.cudnn.enabled = False
         self.upstream_dim = upstream_dim
         self.datarc = downstream_expert['datarc']
         self.modelrc = downstream_expert['modelrc']
         self.seq_loss = torch.nn.CrossEntropyLoss(ignore_index=0)
         # self.get_dataset()
         self.base_path = self.datarc['file_path']   
-        self.tokenizer = Tokenizer.from_file(os.path.join(self.base_path, 'tokenizer.json'))
+        self.is_BI = self.datarc['is_BI']
+        if self.is_BI: 
+            self.tokenizer = Tokenizer.from_file(os.path.join(self.base_path, 'tokenizer.json'))
+        else:
+            self.tokenizer = Tokenizer.from_file(os.path.join(self.base_path, 'BI_tokenizer.json'))
+
+
         aug_config = downstream_expert['augmentation'] if 'augmentation' in downstream_expert else None
 
-        self.train_dataset = AtisDataset(os.path.join(self.base_path, 'atis_sv_train.csv'), os.path.join(self.base_path, 'train'), self.tokenizer, aug_config)
-        self.dev_dataset = AtisDataset(os.path.join(self.base_path, 'atis_sv_dev.csv'), os.path.join(self.base_path, 'dev'), self.tokenizer)
-        self.test_dataset = AtisDataset(os.path.join(self.base_path, 'atis_sv_test.csv'),os.path.join(self.base_path, 'test'), self.tokenizer)
+        self.train_dataset = AtisDataset(os.path.join(self.base_path, 'sv_train.csv'), os.path.join(self.base_path, 'train'), self.tokenizer, aug_config)
+        self.dev_dataset = AtisDataset(os.path.join(self.base_path, 'sv_dev.csv'), os.path.join(self.base_path, 'dev'), self.tokenizer)
+        self.test_dataset = AtisDataset(os.path.join(self.base_path, 'sv_test.csv'),os.path.join(self.base_path, 'test'), self.tokenizer)
         
         self.connector = nn.Linear(upstream_dim, self.modelrc['input_dim'])
         self.objective = nn.CrossEntropyLoss()
         self.vocab_size = self.modelrc['input_dim']
         self.enable_ctc = self.modelrc['enable_ctc']
         self.is_transformer = self.modelrc['is_transformer']
+        
         self.num_encoder_layers = self.modelrc['num_encoder_layers']
         self.num_decoder_layers = self.modelrc['num_decoder_layers']
         self.emb_size = self.modelrc['emb_size']
         self.nhead = self.modelrc['nhead']
         
-
+        
         if self.is_transformer: 
             self.model = Seq2SeqTransformer(num_encoder_layers=self.modelrc['num_encoder_layers'], 
                                             num_decoder_layers=self.modelrc['num_decoder_layers'],
@@ -110,7 +121,6 @@ class DownstreamExpert(nn.Module):
         # train mode 
         if mode == 'train':
             if self.is_transformer: 
-                
                 att_output = self.model(features_pad, tgt_input, src_mask, tgt_mask, attention_mask_pad, tgt_padding_mask, attention_mask_pad)
             else:
                 ctc_output, encode_len, att_output, att_seq, dec_state = self.model(features_pad, max(label_len), 0.7, labels_pad)
@@ -120,6 +130,7 @@ class DownstreamExpert(nn.Module):
                 att_output = self.model(features_pad, tgt_input, src_mask, tgt_mask, attention_mask_pad, tgt_padding_mask, attention_mask_pad)
             else:
                 ctc_output, encode_len, att_output, att_seq, dec_state = self.model(features_pad, max(label_len))
+        
         total_loss = 0
         # intent_logits = self.model(features_pad, attention_mask_pad.cuda())
         # if ctc_output is not None:
@@ -134,16 +145,34 @@ class DownstreamExpert(nn.Module):
         #     total_loss += ctc_loss*self.model.ctc_weight
         #     del encode_len
 
-        if att_output is not None:
-            b,t,_ = att_output.shape
-            att_loss = self.seq_loss(att_output.reshape(b*t,-1),tgt_out.reshape(-1))
-            total_loss += att_loss
-      
-        records['loss'] = total_loss.cpu().item()
+        
+        b,t,_ = att_output.shape
+        att_loss = self.seq_loss(att_output.reshape(b*t,-1),tgt_out.reshape(-1))
+        total_loss += att_loss
+
+        hyps = att_output.argmax(dim=-1).squeeze().detach().tolist()
+        gts = tgt_out.squeeze().detach().tolist()
+        f1s = []
+        
+        for hyp, gt in zip(hyps, gts):
+            if self.is_BI:
+                d_gt = parse_BI_entity(gt, self.tokenizer)
+                d_hyp = parse_BI_entity(hyp, self.tokenizer)
+            else:
+                d_gt = parse_entity(gt)
+                d_hyp = parse_entity(hyp)
+            f1 = entity_f1_score(d_gt, d_hyp)
+            f1s.append(f1)
+
+        records['f1'] += f1s
+        records['loss'].append(total_loss.cpu().item())
         return total_loss
 
     # interface
     def log_records(self, mode, records, logger, global_step, **kwargs):
         for key, values in records.items():
-            wandb.log({f'atis/{mode}-{key}': values})
+            average = torch.FloatTensor(values).mean().item()
+            wandb.log({f'atis/{mode}-{key}': average})
+    
+
 

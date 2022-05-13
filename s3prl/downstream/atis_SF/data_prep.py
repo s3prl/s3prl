@@ -57,7 +57,7 @@ tokenizer.pre_tokenizer = Whitespace()
 
 d = {}
 i = 0
-with open('slot_vocabs.txt', 'r') as f: 
+with open(os.path.join(base_path,'slot_vocabs.txt'), 'r') as f: 
     for line in f: 
         line = line.strip('\n')
         line = line[1:-1]
@@ -68,7 +68,7 @@ with open('slot_vocabs.txt', 'r') as f:
 print(d)
 print(list(d.keys()))
 
-trainer = BpeTrainer(special_tokens=["PAD", "EOS", 'BOS']+list(d.keys()), vocab_size=600)
+trainer = BpeTrainer(special_tokens=["<PAD>", "<EOS>", '<BOS>']+list(d.keys()), vocab_size=600)
 tokenizer.train(files=[os.path.join(base_path, "value_train.txt"), 
                         os.path.join(base_path, "value_dev.txt"), 
                         os.path.join(base_path, "value_test.txt")], 

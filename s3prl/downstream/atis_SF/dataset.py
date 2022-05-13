@@ -6,6 +6,7 @@ from torch.utils.data import Dataset
 from tokenizers import Tokenizer
 SAMPLE_RATE = 16000
 import torchaudio
+
 from audiomentations import Compose, AddGaussianNoise, AddGaussianSNR, TimeStretch, Shift, PitchShift, Gain
 
 def reader(fname):
@@ -27,7 +28,7 @@ class AtisDataset(Dataset):
                 audio_file = os.path.join(audio_dir, id+'.wav') 
                 if os.path.exists(audio_file):
                     self.audios.append(audio_file)
-                    self.labels.append(tokenizer.encode(('BOS'+' '+label+' '+'EOS')).ids)
+                    self.labels.append(tokenizer.encode(('<BOS>'+' '+label+' '+'<EOS>')).ids)
                 else: 
                     print(f'{audio_file} is missing')
 
