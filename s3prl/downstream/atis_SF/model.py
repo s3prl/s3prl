@@ -560,11 +560,18 @@ class Seq2SeqTransformer(nn.Module):
         return self.generator(outs)
 
     def encode(self, src: Tensor, src_mask: Tensor):
-        return self.transformer.encoder(src, src_mask)
+        src_emb = self.feature_extractor1(src.view(src.shape[0], src.shape[2], src.shape[1]))
+        src_emb = src_emb.view(src_emb.shape[0], src_emb.shape[2], src_emb.shape[1])
+        
+        return self.transformer.encoder(src_emb, src_mask)
 
     def decode(self, tgt: Tensor, memory: Tensor, tgt_mask: Tensor):
-        return self.transformer.decoder(self.positional_encoding(
-                          self.tgt_tok_emb(tgt)), memory,
+        # print(memory.shape)
+        # print(tgt_mask.shape)
+        tgt = self.positional_encoding(self.tgt_tok_emb(tgt))
+        tgt = tgt.view(tgt.shape[1], tgt.shape[0], tgt.shape[2])
+        print(tgt.shape)
+        return self.transformer.decoder(tgt, memory,
                           tgt_mask)
 
 def generate_square_subsequent_mask(sz):
@@ -596,11 +603,10 @@ def greedy_decode(model, src, src_mask, max_len, start_symbol=2):
         tgt_mask = (generate_square_subsequent_mask(ys.size(0))
                     .type(torch.bool)).to(DEVICE)
         out = model.decode(ys, memory, tgt_mask)
-        out = out.transpose(0, 1)
         prob = model.generator(out[:, -1])
+        
         _, next_word = torch.max(prob, dim=1)
-        next_word = next_word.item()
-
+        next_word = next_word[0].item()
         ys = torch.cat([ys,
                         torch.ones(1, 1).type_as(src.data).fill_(next_word)], dim=0)
         if next_word == EOS_IDX:

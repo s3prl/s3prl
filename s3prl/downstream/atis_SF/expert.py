@@ -13,7 +13,7 @@ from .dataset import AtisDataset
 import pandas as pd
 from collections import Counter
 import wandb
-from .model import AttenDecoderModel, Seq2SeqTransformer, generate_square_subsequent_mask, create_mask
+from .model import AttenDecoderModel, Seq2SeqTransformer, generate_square_subsequent_mask, create_mask, greedy_decode
 from .metric import parse_entity, entity_f1_score, parse_BI_entity
 
 
@@ -127,6 +127,8 @@ class DownstreamExpert(nn.Module):
         # dev, test mode
         else: 
             if self.is_transformer: 
+                ys = list(greedy_decode(self.model, features_pad, src_mask, max_len=20).flatten().cpu().numpy().astype(int))
+                ys = ys[1:]
                 att_output = self.model(features_pad, tgt_input, src_mask, tgt_mask, attention_mask_pad, tgt_padding_mask, attention_mask_pad)
             else:
                 ctc_output, encode_len, att_output, att_seq, dec_state = self.model(features_pad, max(label_len))
@@ -146,30 +148,43 @@ class DownstreamExpert(nn.Module):
         #     del encode_len
 
         
-        b,t,_ = att_output.shape
-        att_loss = self.seq_loss(att_output.reshape(b*t,-1),tgt_out.reshape(-1))
-        total_loss += att_loss
+        if att_output is not None: 
+            b,t,_ = att_output.shape
+            att_loss = self.seq_loss(att_output.reshape(b*t,-1),tgt_out.reshape(-1))
+            total_loss += att_loss
 
-        hyps = att_output.argmax(dim=-1).squeeze().detach().tolist()
-        gts = tgt_out.squeeze().detach().tolist()
+            hyps = att_output.argmax(dim=-1).detach().tolist()
+            gts = tgt_out.detach().tolist()
+
         f1s = []
-        
+        f1s_ys = []
         for hyp, gt in zip(hyps, gts):
             if self.is_BI:
                 d_gt = parse_BI_entity(gt, self.tokenizer)
                 d_hyp = parse_BI_entity(hyp, self.tokenizer)
                 
-                
             else:
                 d_gt = parse_entity(gt)
                 d_hyp = parse_entity(hyp)
+
             f1 = entity_f1_score(d_gt, d_hyp)
             if mode != 'train':
-                print(d_gt, d_hyp)
-                print(f1)
+                if self.is_BI:
+                    d_ys = parse_BI_entity(ys, self.tokenizer)
+                    
+                else:
+                    d_ys = parse_entity(ys)
+
+                f1_ys = entity_f1_score(d_gt, d_ys)
+                f1s_ys.append(f1_ys)
+                print(d_gt, d_hyp, d_ys)
+                print(f1, f1_ys)
+                print(gt, hyp, ys)
                 
             f1s.append(f1)
 
+        if mode != 'train':
+            records['f1_greedy'] += f1s_ys
         records['f1'] += f1s
         records['loss'].append(total_loss.cpu().item())
         return total_loss
