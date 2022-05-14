@@ -57,6 +57,7 @@ requirements = {
     ],
     "doc": [
         "sphinx",
+        "furo",
     ],
 }
 
