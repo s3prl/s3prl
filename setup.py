@@ -6,7 +6,7 @@ here = pathlib.Path(__file__).parent.resolve()
 
 # Get the long description from the README file
 long_description = (here / "README.md").read_text(encoding="utf-8")
-version = (here / "version.txt").read_text(encoding="utf-8").strip()
+version = (here / "s3prl" / "version.txt").read_text(encoding="utf-8").strip()
 
 requirements = {
     "install": [
@@ -54,6 +54,9 @@ requirements = {
     ],
     "test": [
         "python-dotenv",
+    ],
+    "doc": [
+        "sphinx",
     ],
 }
 
