@@ -18,33 +18,6 @@ for x in os.walk(".."):
     sys.path.insert(0, x[0])
 
 
-# -- Project information -----------------------------------------------------
-
-project = "S3PRL"
-copyright = "2022, S3PRL"
-author = "S3PRL"
-
-# The full version, including alpha/beta/rc tags
-release = "0.4.0"
-
-
-# -- General configuration ---------------------------------------------------
-
-# Add any Sphinx extension module names here, as strings. They can be
-# extensions coming with Sphinx (named 'sphinx.ext.*') or your custom
-# ones.
-extensions = [
-    "sphinx.ext.autodoc",
-    "sphinx.ext.napoleon",
-    "sphinx.ext.viewcode",
-    "sphinx.ext.linkcode",
-]
-
-html_js_files = [
-    "js/custom.js",
-]
-
-
 def linkcode_resolve(domain, info):
     def find_source():
         obj = sys.modules[info["module"]]
@@ -79,13 +52,40 @@ def linkcode_resolve(domain, info):
     return "https://github.com/s3prl/s3prl-private/blob/%s/%s" % (tag, filename)
 
 
+# -- Project information -----------------------------------------------------
+
+project = "S3PRL"
+copyright = "2022, S3PRL Team"
+author = "S3PRL Team"
+
+# The full version, including alpha/beta/rc tags
+release = "v0.4.0"
+
+
+# -- General configuration ---------------------------------------------------
+
+# Add any Sphinx extension module names here, as strings. They can be
+# extensions coming with Sphinx (named 'sphinx.ext.*') or your custom
+# ones.
+# add extensions
+extensions = [
+    "sphinx.ext.autodoc",
+    "sphinx.ext.napoleon",
+    "sphinx.ext.viewcode",
+    "sphinx.ext.linkcode",
+]
+
+html_js_files = [
+    "js/custom.js",
+]
+
 # Add any paths that contain templates here, relative to this directory.
 templates_path = ["_templates"]
 
 # List of patterns, relative to source directory, that match files and
 # directories to ignore when looking for source files.
 # This pattern also affects html_static_path and html_extra_path.
-exclude_patterns = ["_build", "Thumbs.db", ".DS_Store"]
+exclude_patterns = []
 
 
 # -- Options for HTML output -------------------------------------------------
@@ -99,5 +99,3 @@ html_theme = "furo"
 # relative to this directory. They are copied after the builtin static files,
 # so a file named "default.css" will overwrite the builtin "default.css".
 html_static_path = ["_static"]
-
-autodoc_mock_imports = ["fairseq", "torch"]
