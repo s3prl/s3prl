@@ -19,6 +19,8 @@ requirements = {
         "fairseq @ git+https://github.com//pytorch/fairseq.git@f2146bdc7abf293186de9449bfa2272775e39e1d#egg=fairseq",
         "lighthubert @ git+https://github.com/mechanicalsea/lighthubert#egg=lighthubert",
         "transformers>=4.10.0,<5.0",
+        "speechbrain",
+        "pytorch-lightning",
     ],
     "downstream": [
         "dtw-python==1.1.6",

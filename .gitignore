@@ -158,5 +158,4 @@ experiment
 *.tsv
 
 # document files
-docs/source/
-docs/build/
+docs/source/*.rst

@@ -2,7 +2,8 @@ import logging
 from collections import OrderedDict
 
 from pytorch_lightning import LightningModule
-from s3prl import Task, Output, LogDataType
+from s3prl import Output, LogDataType
+from s3prl.task import Task
 
 logger = logging.getLogger(__name__)
 

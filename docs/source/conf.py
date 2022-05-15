@@ -13,10 +13,19 @@
 import inspect
 import os
 import sys
+from pathlib import Path
 
 for x in os.walk(".."):
     sys.path.insert(0, x[0])
 
+# -- Project information -----------------------------------------------------
+
+project = "S3PRL"
+copyright = "2022, S3PRL Team"
+author = "S3PRL Team"
+
+# The full version, including alpha/beta/rc tags
+release = "0.4.0"
 
 def linkcode_resolve(domain, info):
     def find_source():
@@ -31,8 +40,15 @@ def linkcode_resolve(domain, info):
         if isinstance(obj, property):
             return None
 
-        fn = inspect.getsourcefile(obj)
-        fn = os.path.relpath(fn, start=os.path.dirname(os.path.abspath(__file__))[:-4])
+        file_parts = Path(inspect.getsourcefile(obj)).parts
+        reversed_parts = []
+        for part in reversed(file_parts):
+            if part == "s3prl":
+                reversed_parts.append(part)
+                break
+            else:
+                reversed_parts.append(part)
+        fn = "/".join(reversed(reversed_parts))
 
         source, lineno = inspect.getsourcelines(obj)
         return fn, lineno, lineno + len(source) - 1
@@ -50,17 +66,6 @@ def linkcode_resolve(domain, info):
         )  # cannot find corresponding codeblock, use the file page instead
 
     return "https://github.com/s3prl/s3prl-private/blob/%s/%s" % (tag, filename)
-
-
-# -- Project information -----------------------------------------------------
-
-project = "S3PRL"
-copyright = "2022, S3PRL Team"
-author = "S3PRL Team"
-
-# The full version, including alpha/beta/rc tags
-release = "v0.4.0"
-
 
 # -- General configuration ---------------------------------------------------
 
