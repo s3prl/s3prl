@@ -1,6 +1,6 @@
 #!/bin/bash
 
-./refresh.sh
+./clean_docs.sh
 
 ignore_paths=$(python3 util/is_valid.py ../s3prl ../valid_paths.txt)
 

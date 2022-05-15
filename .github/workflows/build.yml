@@ -46,9 +46,9 @@ jobs:
       run: |
         pip install flake8
         # stop the build if there are Python syntax errors or undefined names
-        flake8 s3prl/nn s3prl/base s3prl/util s3prl/task s3prl/metric s3prl/corpus s3prl/encoder s3prl/dataset s3prl/preprocessor test example --count --select=E9,F63,F7,F82 --show-source --statistics
+        flake8 $(cat valid_paths.txt) --count --select=E9,F63,F7,F82 --show-source --statistics
         # exit-zero treats all errors as warnings. The GitHub editor is 127 chars wide
-        flake8 s3prl/nn s3prl/base s3prl/util s3prl/task s3prl/metric s3prl/corpus s3prl/encoder s3prl/dataset s3prl/preprocessor test example --count --exit-zero --max-complexity=10 --max-line-length=127 --statistics
+        flake8 $(cat valid_paths.txt) --count --exit-zero --max-complexity=10 --max-line-length=127 --statistics
 
     # - name: Run tests
     #   run: |
@@ -57,4 +57,5 @@ jobs:
     - name: Lint with black
       run: |
         pip install black==22.3.0
-        black --check s3prl/nn s3prl/base s3prl/util s3prl/task s3prl/metric s3prl/corpus s3prl/encoder s3prl/dataset s3prl/preprocessor test example
+        black --check $(cat valid_paths.txt)
+
