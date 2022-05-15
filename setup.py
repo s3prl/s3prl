@@ -54,8 +54,11 @@ requirements = {
         "catalyst",
         "sentencepiece",
     ],
-    "test": [
+    "dev": [
         "python-dotenv",
+        "pytest",
+        "flake8",
+        "black",
     ],
     "doc": [
         "sphinx",
