@@ -106,7 +106,7 @@ class AudioNTT2020Task6(nn.Module, NetworkCommonMixIn):
             nn.MaxPool2d(2, stride=2),
         )
         self.fc = nn.Sequential(
-            nn.Linear(64 * (n_mels // (2 ** 3)), d),
+            nn.Linear(64 * (n_mels // (2**3)), d),
             nn.ReLU(),
             nn.Dropout(p=0.3),
             nn.Linear(d, d),
