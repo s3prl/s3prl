@@ -70,6 +70,9 @@ install_requires = requirements["install"]
 extras_require = {
     k: v for k, v in requirements.items() if k not in ["install"]
 }
+extras_require = {
+    "all": requirements["dev"] + requirements["doc"],
+}
 
 # Arguments marked as "Required" below must be included for upload to PyPI.
 # Fields marked as "Optional" may be commented out.
