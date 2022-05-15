@@ -28,15 +28,15 @@ EPS = 1e-10
 ############
 class VQLayer(nn.Module):
     def __init__(self, input_size, codebook_size, code_dim, gumbel_temperature):
-        '''
-            Defines a VQ layer that follows an RNN layer.
-            input_size: an int indicating the pre-quantized input feature size,
-                usually the hidden size of RNN.
-            codebook_size: an int indicating the number of codes.
-            code_dim: an int indicating the size of each code. If not the last layer,
-                then must equal to the RNN hidden size.
-            gumbel_temperature: a float indicating the temperature for gumbel-softmax.
-        '''
+        """
+        Defines a VQ layer that follows an RNN layer.
+        input_size: an int indicating the pre-quantized input feature size,
+            usually the hidden size of RNN.
+        codebook_size: an int indicating the number of codes.
+        code_dim: an int indicating the size of each code. If not the last layer,
+            then must equal to the RNN hidden size.
+        gumbel_temperature: a float indicating the temperature for gumbel-softmax.
+        """
         super(VQLayer, self).__init__()
         # Directly map to logits without any transformation.
         self.codebook_size = codebook_size
@@ -55,22 +55,28 @@ class VQLayer(nn.Module):
             onehot_BxLxC.scatter_(1, ind.view(-1, 1), 1)
             onehot_BxLxC = onehot_BxLxC.view(*shape)
         else:
-            onehot_BxLxC = gumbel_softmax(logits_BxLxC, tau=self.gumbel_temperature, 
-                                          hard=True, eps=EPS, dim=-1)
-            self.token_usg += onehot_BxLxC.detach().cpu()\
-                        .reshape(-1,self.codebook_size).sum(dim=0).numpy()
+            onehot_BxLxC = gumbel_softmax(
+                logits_BxLxC, tau=self.gumbel_temperature, hard=True, eps=EPS, dim=-1
+            )
+            self.token_usg += (
+                onehot_BxLxC.detach()
+                .cpu()
+                .reshape(-1, self.codebook_size)
+                .sum(dim=0)
+                .numpy()
+            )
         codes_BxLxE = self.codebook_CxE(onehot_BxLxC)
 
         return logits_BxLxC, codes_BxLxE
 
     def report_ppx(self):
-        ''' Computes perplexity of distribution over codebook '''
-        acc_usg = self.token_usg/sum(self.token_usg)
-        return 2**sum(-acc_usg * np.log2(acc_usg+EPS))
+        """Computes perplexity of distribution over codebook"""
+        acc_usg = self.token_usg / sum(self.token_usg)
+        return 2 ** sum(-acc_usg * np.log2(acc_usg + EPS))
 
     def report_usg(self):
-        ''' Computes usage each entry in codebook '''
-        acc_usg = self.token_usg/sum(self.token_usg)
+        """Computes usage each entry in codebook"""
+        acc_usg = self.token_usg / sum(self.token_usg)
         # Reset
         self.token_usg = np.zeros(self.codebook_size)
         return acc_usg

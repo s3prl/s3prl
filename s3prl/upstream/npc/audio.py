@@ -20,7 +20,7 @@ from torchaudio.compliance import kaldi
 ############
 # CONSTANT #
 ############
-WINDOW_TYPE = 'hamming'
+WINDOW_TYPE = "hamming"
 SAMPLE_RATE = 16000
 
 
@@ -35,7 +35,8 @@ class CMVN(nn.Module):
 
         if mode != "global":
             raise NotImplementedError(
-                "Only support global mean variance normalization.")
+                "Only support global mean variance normalization."
+            )
 
         self.mode = mode
         self.dim = dim
@@ -43,19 +44,23 @@ class CMVN(nn.Module):
 
     def forward(self, x):
         if self.mode == "global":
-            return (x - x.mean(self.dim, keepdim=True)) \
-                   / (self.eps + x.std(self.dim, keepdim=True))
+            return (x - x.mean(self.dim, keepdim=True)) / (
+                self.eps + x.std(self.dim, keepdim=True)
+            )
 
     def extra_repr(self):
         return "mode={}, dim={}, eps={}".format(self.mode, self.dim, self.eps)
 
+
 class FeatureExtractor(nn.Module):
-    ''' Feature extractor, transforming file path to Mel spectrogram '''
-    def __init__(self, mode="fbank", num_mel_bins=80, decode_wav=False, 
-                 apply_cmvn=True, **kwargs):
+    """Feature extractor, transforming file path to Mel spectrogram"""
+
+    def __init__(
+        self, mode="fbank", num_mel_bins=80, decode_wav=False, apply_cmvn=True, **kwargs
+    ):
         super(FeatureExtractor, self).__init__()
         # ToDo: Other surface representation
-        assert mode=="fbank", "Only Mel-spectrogram implemented"
+        assert mode == "fbank", "Only Mel-spectrogram implemented"
         self.mode = mode
         self.extract_fn = kaldi.fbank
         self.apply_cmvn = apply_cmvn
@@ -66,7 +71,7 @@ class FeatureExtractor(nn.Module):
         self.decode_wav = decode_wav
         if self.decode_wav:
             # HACK: sox cannot deal with wav with incorrect file length
-            torchaudio.set_audio_backend('soundfile')
+            torchaudio.set_audio_backend("soundfile")
 
     def _load_file(self, filepath):
         if self.decode_wav:
@@ -76,32 +81,37 @@ class FeatureExtractor(nn.Module):
         return waveform, sample_rate
 
     def forward(self, waveform):
-        y = self.extract_fn(waveform,
-                            num_mel_bins=self.num_mel_bins,
-                            sample_frequency=SAMPLE_RATE,
-                            window_type = WINDOW_TYPE,
-                            **self.kwargs)
+        y = self.extract_fn(
+            waveform,
+            num_mel_bins=self.num_mel_bins,
+            sample_frequency=SAMPLE_RATE,
+            window_type=WINDOW_TYPE,
+            **self.kwargs
+        )
         # CMVN
         if self.apply_cmvn:
-            y = y.transpose(0, 1).unsqueeze(0) # TxD -> 1xDxT
+            y = y.transpose(0, 1).unsqueeze(0)  # TxD -> 1xDxT
             y = self.cmvn(y)
-            y = y.squeeze(0).transpose(0,1) #  1xDxT -> TxD
+            y = y.squeeze(0).transpose(0, 1)  #  1xDxT -> TxD
         return y
 
     def extra_repr(self):
         return "mode={}, num_mel_bins={}".format(self.mode, self.num_mel_bins)
 
     def create_msg(self):
-        ''' List msg for verbose function '''
-        msg = 'Audio spec.| Audio feat. = {}\t\t| feat. dim = {}\t| CMVN = {}'\
-                        .format(self.mode, self.num_mel_bins, self.apply_cmvn)
+        """List msg for verbose function"""
+        msg = "Audio spec.| Audio feat. = {}\t\t| feat. dim = {}\t| CMVN = {}".format(
+            self.mode, self.num_mel_bins, self.apply_cmvn
+        )
         return [msg]
+
 
 def create_transform(audio_config):
     feat_type = audio_config.pop("feat_type")
     feat_dim = audio_config.pop("feat_dim")
-    decode_wav = audio_config.pop("decode_wav",False)
-    apply_cmvn = audio_config.pop("cmvn",True)
-    transforms = FeatureExtractor(feat_type, feat_dim, decode_wav, 
-                                       apply_cmvn, **audio_config)
+    decode_wav = audio_config.pop("decode_wav", False)
+    apply_cmvn = audio_config.pop("cmvn", True)
+    transforms = FeatureExtractor(
+        feat_type, feat_dim, decode_wav, apply_cmvn, **audio_config
+    )
     return transforms, feat_dim

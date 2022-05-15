@@ -29,11 +29,11 @@ class SplitLinear(nn.Module):
             # weight = torch.zeros((1, 1, self.in_split, self.in_dim, self.out_dim))
             weight = torch.zeros((self.in_split, self.in_dim, self.out_dim))
             self.weight = nn.Parameter(weight, requires_grad=True)
-            nn.init.uniform_(self.weight, -(self.in_dim ** -0.5), self.in_dim ** -0.5)
+            nn.init.uniform_(self.weight, -(self.in_dim**-0.5), self.in_dim**-0.5)
 
             bias = torch.zeros((1, 1, self.in_split, self.out_dim))
             self.bias = nn.Parameter(bias, requires_grad=True)
-            nn.init.uniform_(self.bias, -(self.in_dim ** -0.5), self.in_dim ** -0.5)
+            nn.init.uniform_(self.bias, -(self.in_dim**-0.5), self.in_dim**-0.5)
         else:
             self.layer = nn.Linear(self.in_dim, self.out_dim)
 
