@@ -375,6 +375,14 @@ class WordTokenizer(CharacterTokenizer):
         return "word"
 
 
+class PhonemeTokenizer(WordTokenizer):
+    """Phoneme tokenizer."""
+
+    @property
+    def token_type(self) -> str:
+        return "phoneme"
+
+
 class BertTokenizer(Tokenizer):
     """Bert Tokenizer.
 
@@ -459,19 +467,21 @@ def load_tokenizer(
         return SubwordTokenizer.load_from_file(vocab_file)
     elif mode == "subword-slot":
         return SubwordSlotTokenizer.load_from_file(vocab_file, slots_file)
-    elif mode in {"word", "phoneme"}:
+    elif mode == "word":
         return WordTokenizer.load_from_file(vocab_file, vocab_list)
+    elif mode == "phoneme":
+        return PhonemeTokenizer.load_from_file(vocab_file, vocab_list)
     elif mode.startswith("bert-"):
         return BertTokenizer.load_from_file(mode)
     else:
         raise NotImplementedError("`{}` is not yet supported.".format(mode))
 
 
-def default_phoneme_tokenizer() -> WordTokenizer:
+def default_phoneme_tokenizer() -> PhonemeTokenizer:
     """Returns a default LibriSpeech phoneme tokenizer.
 
     Returns:
-        WordTokenizer: Vocabs are 71 phonemes
+        PhonemeTokenizer: Vocabs are 71 phonemes
     """
 
-    return WordTokenizer.load_from_file(vocab_list=PHONEME_VOCAB)
+    return PhonemeTokenizer.load_from_file(vocab_list=PHONEME_VOCAB)
