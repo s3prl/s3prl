@@ -58,7 +58,7 @@ requirements = {
         "python-dotenv",
         "pytest",
         "flake8",
-        "black",
+        "black==22.3.0",
     ],
     "doc": [
         "sphinx",

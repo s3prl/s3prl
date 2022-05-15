@@ -3,7 +3,7 @@
 set -x
 set -e
 
-pip install flake8 black
+pip install flake8 black==22.3.0
 
 script_dir=$(dirname $0)
 script_dir=$(readlink -f $script_dir)
