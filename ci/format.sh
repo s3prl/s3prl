@@ -6,7 +6,7 @@ set -e
 pip install flake8 black==22.3.0
 
 script_dir=$(dirname $0)
-script_dir=$(readlink -f $script_dir)
+script_dir=$(realpath $script_dir)
 s3prl_dir=$(dirname $script_dir)
 
 # stop the build if there are Python syntax errors or undefined names
