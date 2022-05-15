@@ -12,11 +12,13 @@
 ###############
 import copy
 from collections import namedtuple
-#-------------#
+
+# -------------#
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
-#-------------#
+
+# -------------#
 import torchaudio
 from torchaudio import transforms
 
@@ -30,9 +32,9 @@ EXAMPLE_SEC = 5
 
 def get_extracter(config):
     transforms = [
-        ExtractAudioFeature(**config.get('kaldi', {})),
-        Delta(**config.get('delta', {})),
-        CMVN(**config.get('cmvn', {})),
+        ExtractAudioFeature(**config.get("kaldi", {})),
+        Delta(**config.get("delta", {})),
+        CMVN(**config.get("cmvn", {})),
     ]
     extracter = nn.Sequential(*transforms)
     output_dim = extracter(torch.randn(EXAMPLE_SEC * SAMPLE_RATE)).size(-1)
@@ -41,18 +43,16 @@ def get_extracter(config):
 
 
 class ExtractAudioFeature(nn.Module):
-    def __init__(self, feat_type='fbank', **kwargs):
+    def __init__(self, feat_type="fbank", **kwargs):
         super(ExtractAudioFeature, self).__init__()
-        self.extract_fn = eval(f'torchaudio.compliance.kaldi.{feat_type}')
+        self.extract_fn = eval(f"torchaudio.compliance.kaldi.{feat_type}")
         self.kwargs = kwargs[feat_type]
         self.frame_shift = self.kwargs.get("frame_shift", 10.0)
 
     def forward(self, waveform):
         # waveform: (time, )
         x = self.extract_fn(
-            waveform.view(1, -1),
-            sample_frequency = SAMPLE_RATE,
-            **self.kwargs
+            waveform.view(1, -1), sample_frequency=SAMPLE_RATE, **self.kwargs
         )
         # x: (feat_seqlen, feat_dim)
         return x
@@ -85,6 +85,7 @@ class CMVN(nn.Module):
     def forward(self, x):
         # x: (feat_seqlen, feat_dim)
         if self.use_cmvn:
-            x = (x - x.mean(dim=0, keepdim=True)) / (self.eps + x.std(dim=0, keepdim=True))
+            x = (x - x.mean(dim=0, keepdim=True)) / (
+                self.eps + x.std(dim=0, keepdim=True)
+            )
         return x
-

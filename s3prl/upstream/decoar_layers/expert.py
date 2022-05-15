@@ -1,10 +1,12 @@
 import re
 import logging
-#-------------#
+
+# -------------#
 import torch
 import torch.nn as nn
 from torch.nn.utils.rnn import pad_sequence
-#-------------#
+
+# -------------#
 from .decoar import Decoar
 from .audio import create_transform
 from collections import OrderedDict
@@ -25,7 +27,7 @@ class UpstreamExpert(nn.Module):
 
     def __init__(self, ckpt, **kwargs):
         super(UpstreamExpert, self).__init__()
-        models = torch.load(ckpt)['model']
+        models = torch.load(ckpt)["model"]
         self.model = Decoar()
         component_state_dict = OrderedDict()
 
@@ -69,9 +71,7 @@ class UpstreamExpert(nn.Module):
         size = max(feat_lengths)
         features = pad_sequence(features, batch_first=True)
 
-        padding_mask = (
-            torch.BoolTensor(features.shape).fill_(False).to(features.device)
-        )
+        padding_mask = torch.BoolTensor(features.shape).fill_(False).to(features.device)
 
         for i in range(len(feat_lengths)):
             diff = feat_lengths[i] - size

@@ -39,7 +39,9 @@ class UpstreamExpert(UpstreamBase):
             self.extracter, self.output_dim, _ = get_preprocessor(
                 self.config, process_input_only=True
             )
-            self.downsample_rate = round(self.config.get("hop_ms", 10) * SAMPLE_RATE / 1000)
+            self.downsample_rate = round(
+                self.config.get("hop_ms", 10) * SAMPLE_RATE / 1000
+            )
 
     def _extractor_forward(self, wavs):
         feats = []

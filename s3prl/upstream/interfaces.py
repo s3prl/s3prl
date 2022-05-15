@@ -153,16 +153,16 @@ class Featurizer(nn.Module):
             if "hidden_states" in paired_features:
                 show(
                     f"[{self.name}] - Warning: {feature_selection} is not a supported args.upstream_feature_selection."
-                    f" Using \"hidden_states\" as the default key.",
-                    file=sys.stderr
+                    f' Using "hidden_states" as the default key.',
+                    file=sys.stderr,
                 )
                 feature_selection = "hidden_states"
             else:
                 show(
                     f"[{self.name}] - Error: {feature_selection} is not a supported args.upstream_feature_selection."
-                    f" The default key \"hidden_states\" is also not supported."
+                    f' The default key "hidden_states" is also not supported.'
                     f" Please specify -s with the following options: {list(paired_wavs.keys())}",
-                    file=sys.stderr
+                    file=sys.stderr,
                 )
                 raise ValueError
         self.feature_selection = feature_selection
@@ -174,7 +174,7 @@ class Featurizer(nn.Module):
             self.layer_num = len(feature)
             show(
                 f"[{self.name}] - Take a list of {self.layer_num} features and weighted sum them.",
-                file=sys.stderr
+                file=sys.stderr,
             )
             self.weights = nn.Parameter(torch.zeros(self.layer_num))
             feature = self._weighted_sum([f.cpu() for f in feature])
@@ -186,16 +186,18 @@ class Featurizer(nn.Module):
             self.downsample_rate = upstream.get_downsample_rates(feature_selection)
             show(
                 f"[{self.name}] - The selected feature {feature_selection}'s downsample rate is {self.downsample_rate}",
-                file=sys.stderr
+                file=sys.stderr,
             )
         else:
-            self.downsample_rate = round(max(len(wav) for wav in paired_wavs) / feature.size(1))
+            self.downsample_rate = round(
+                max(len(wav) for wav in paired_wavs) / feature.size(1)
+            )
             show(
                 f"[{self.name}] - Warning: The provided upstream does not give statis downsample rate"
-                " by the \"get_downsample_rates\" interface (see upstream/example/expert.py)."
+                ' by the "get_downsample_rates" interface (see upstream/example/expert.py).'
                 " The downsample rate is calculated dynamically basing on the shape of the"
                 f" input waveforms v.s. the output features: {self.downsample_rate}",
-                file=sys.stderr
+                file=sys.stderr,
             )
 
     def _select_feature(self, features):
@@ -206,7 +208,7 @@ class Featurizer(nn.Module):
 
         if isinstance(feature, (list, tuple)) and len(feature) == 1:
             feature = feature[0]
-        
+
         if isinstance(feature, (list, tuple)) and isinstance(self.layer_selection, int):
             feature = feature[self.layer_selection]
 
@@ -234,7 +236,8 @@ class Featurizer(nn.Module):
 
         if self.normalize:
             stacked_feature = F.layer_norm(
-                stacked_feature, (stacked_feature.shape[-1],))
+                stacked_feature, (stacked_feature.shape[-1],)
+            )
 
         _, *origin_shape = stacked_feature.shape
         stacked_feature = stacked_feature.view(self.layer_num, -1)
@@ -247,7 +250,13 @@ class Featurizer(nn.Module):
     def tolist(self, paired_wavs: List[Tensor], paired_feature: Tensor):
         assert paired_feature.dim() == 3, "(batch_size, max_seq_len, feat_dim)"
         feature_len = [round(len(wav) / self.downsample_rate) for wav in paired_wavs]
-        assert abs(paired_feature.size(1) - round(max([len(wav) for wav in paired_wavs]) / self.downsample_rate)) < TOLERABLE_SEQLEN_DIFF
+        assert (
+            abs(
+                paired_feature.size(1)
+                - round(max([len(wav) for wav in paired_wavs]) / self.downsample_rate)
+            )
+            < TOLERABLE_SEQLEN_DIFF
+        )
         feature = [f[:l] for f, l in zip(paired_feature, feature_len)]
         return feature
 
