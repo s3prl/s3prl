@@ -4,7 +4,12 @@ s3prl/util
 s3prl/task
 s3prl/metric
 s3prl/corpus
+s3prl/wrapper
+s3prl/problem
 s3prl/encoder
 s3prl/dataset
+s3prl/upstream
 s3prl/preprocessor
+s3prl/hub.py
+s3prl/__init__.py
 test

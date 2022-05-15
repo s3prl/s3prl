@@ -5,4 +5,4 @@ if [ -z $1 ]; then
     exit 1
 fi
 
-ag $1 $(cat module_dirs.txt)
+ag $1 $(cat valid_paths.txt)
