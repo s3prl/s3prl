@@ -2,7 +2,7 @@ from s3prl.corpus.fluent_speech_commands import (
     FluentSpeechCommandsForUtteranceMultiClassClassificataion,
 )
 from s3prl.dataset.utterance_classification_pipe import (
-    UtteranceMultipleCategoryClassificationPipe
+    UtteranceMultipleCategoryClassificationPipe,
 )
 from s3prl.sampler import (
     MaxTimestampBatchSampler,
