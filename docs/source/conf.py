@@ -15,9 +15,6 @@ import os
 import sys
 from pathlib import Path
 
-for x in os.walk(".."):
-    sys.path.insert(0, x[0])
-
 # -- Project information -----------------------------------------------------
 
 project = "S3PRL"
@@ -26,6 +23,7 @@ author = "S3PRL Team"
 
 # The full version, including alpha/beta/rc tags
 release = "0.4.0"
+
 
 def linkcode_resolve(domain, info):
     def find_source():
@@ -66,6 +64,7 @@ def linkcode_resolve(domain, info):
         )  # cannot find corresponding codeblock, use the file page instead
 
     return "https://github.com/s3prl/s3prl-private/blob/%s/%s" % (tag, filename)
+
 
 # -- General configuration ---------------------------------------------------
 
