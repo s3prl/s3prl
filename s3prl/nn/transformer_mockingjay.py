@@ -8,19 +8,20 @@ from s3prl import Output
 
 class TransformerConfig(object):
     """Configuration class to store the configuration of a `TransformerModel`."""
+
     def __init__(
-        self, 
-        hidden_size: int = 768,                      # Size of the encoder layers and the pooler layer.
-        num_hidden_layers: int = 3,                  # Number of hidden layers in the Transformer encoder.
-        num_attention_heads: int = 12,               # Number of attention heads for each attention layer in the Transformer encoder.
-        intermediate_size: int = 3072,               # The size of the "intermediate" (i.e., feed-forward) layer in the Transformer encoder.
-        hidden_act: str = "gelu",                    # The non-linear activation function (function or string) in the encoder and pooler. If string, "gelu", "relu" and "swish" are supported.
-        hidden_dropout_prob: float = 0.1,            # The dropout probabilitiy for all fully connected layers in the embeddings, encoder, and pooler.
-        attention_probs_dropout_prob: float = 0.1,   # The dropout ratio for the attention probabilities.
-        initializer_range: float = 0.02,             # The sttdev of the truncated_normal_initializer for initializing all weight matrices.
-        layer_norm_eps: float = 1.e-12,              # The epsilon used by LayerNorm.
-        share_layer: bool = False,                   # Share layer weights
-        pre_layer_norm: bool = False,                # To apply the pre layer normalization technique introduced in: https://arxiv.org/abs/2002.04745
+        self,
+        hidden_size: int = 768,  # Size of the encoder layers and the pooler layer.
+        num_hidden_layers: int = 3,  # Number of hidden layers in the Transformer encoder.
+        num_attention_heads: int = 12,  # Number of attention heads for each attention layer in the Transformer encoder.
+        intermediate_size: int = 3072,  # The size of the "intermediate" (i.e., feed-forward) layer in the Transformer encoder.
+        hidden_act: str = "gelu",  # The non-linear activation function (function or string) in the encoder and pooler. If string, "gelu", "relu" and "swish" are supported.
+        hidden_dropout_prob: float = 0.1,  # The dropout probabilitiy for all fully connected layers in the embeddings, encoder, and pooler.
+        attention_probs_dropout_prob: float = 0.1,  # The dropout ratio for the attention probabilities.
+        initializer_range: float = 0.02,  # The sttdev of the truncated_normal_initializer for initializing all weight matrices.
+        layer_norm_eps: float = 1.0e-12,  # The epsilon used by LayerNorm.
+        share_layer: bool = False,  # Share layer weights
+        pre_layer_norm: bool = False,  # To apply the pre layer normalization technique introduced in: https://arxiv.org/abs/2002.04745
     ):
         self.hidden_size = hidden_size
         self.num_hidden_layers = num_hidden_layers
@@ -36,9 +37,9 @@ class TransformerConfig(object):
 
 
 def prune_linear_layer(layer, index, dim=0):
-    """ Prune a linear layer (a model parameters) to keep only entries in index.
-        Return the pruned layer as a new layer with requires_grad=True.
-        Used to remove heads.
+    """Prune a linear layer (a model parameters) to keep only entries in index.
+    Return the pruned layer as a new layer with requires_grad=True.
+    Used to remove heads.
     """
     index = index.to(layer.weight.device)
     W = layer.weight.index_select(dim, index).clone().detach()
@@ -49,7 +50,9 @@ def prune_linear_layer(layer, index, dim=0):
             b = layer.bias[index].clone().detach()
     new_size = list(layer.weight.size())
     new_size[dim] = len(index)
-    new_layer = nn.Linear(new_size[1], new_size[0], bias=layer.bias is not None).to(layer.weight.device)
+    new_layer = nn.Linear(new_size[1], new_size[0], bias=layer.bias is not None).to(
+        layer.weight.device
+    )
     new_layer.weight.requires_grad = False
     new_layer.weight.copy_(W.contiguous())
     new_layer.weight.requires_grad = True
@@ -62,9 +65,9 @@ def prune_linear_layer(layer, index, dim=0):
 
 def gelu(x):
     """Implementation of the gelu activation function.
-        For information: OpenAI GPT's gelu is slightly different (and gives slightly different results):
-        0.5 * x * (1 + torch.tanh(math.sqrt(2 / math.pi) * (x + 0.044715 * torch.pow(x, 3))))
-        Also see https://arxiv.org/abs/1606.08415
+    For information: OpenAI GPT's gelu is slightly different (and gives slightly different results):
+    0.5 * x * (1 + torch.tanh(math.sqrt(2 / math.pi) * (x + 0.044715 * torch.pow(x, 3))))
+    Also see https://arxiv.org/abs/1606.08415
     """
     return x * 0.5 * (1.0 + torch.erf(x / math.sqrt(2.0)))
 
@@ -78,8 +81,7 @@ ACT2FN = {"gelu": gelu, "relu": torch.nn.functional.relu, "swish": swish}
 
 class TransformerLayerNorm(nn.Module):
     def __init__(self, hidden_size, eps=1e-12):
-        """Construct a layernorm module in the TF style (epsilon inside the square root).
-        """
+        """Construct a layernorm module in the TF style (epsilon inside the square root)."""
         super(TransformerLayerNorm, self).__init__()
         self.weight = nn.Parameter(torch.ones(hidden_size))
         self.bias = nn.Parameter(torch.zeros(hidden_size))
@@ -93,8 +95,8 @@ class TransformerLayerNorm(nn.Module):
 
 
 class TransformerInputRepresentations(nn.Module):
-    """Construct the input representation from spectrogram, and position encodings.
-    """
+    """Construct the input representation from spectrogram, and position encodings."""
+
     def __init__(self, config, input_dim):
         super(TransformerInputRepresentations, self).__init__()
         self.hidden_size = config.hidden_size
@@ -102,7 +104,9 @@ class TransformerInputRepresentations(nn.Module):
 
         # self.LayerNorm is not snake-cased to stick with TensorFlow model variable name and be able to load
         # any TensorFlow checkpoint file
-        self.LayerNorm = TransformerLayerNorm(config.hidden_size, eps=config.layer_norm_eps)
+        self.LayerNorm = TransformerLayerNorm(
+            config.hidden_size, eps=config.layer_norm_eps
+        )
         self.dropout = nn.Dropout(config.hidden_dropout_prob)
 
     def forward(self, spec, pos_enc):
@@ -120,7 +124,8 @@ class TransformerSelfAttention(nn.Module):
         if config.hidden_size % config.num_attention_heads != 0:
             raise ValueError(
                 "The hidden size (%d) is not a multiple of the number of attention "
-                "heads (%d)" % (config.hidden_size, config.num_attention_heads))
+                "heads (%d)" % (config.hidden_size, config.num_attention_heads)
+            )
         self.output_attentions = output_attentions
         self.keep_multihead_output = keep_multihead_output
         self.multihead_output = None
@@ -136,7 +141,10 @@ class TransformerSelfAttention(nn.Module):
         self.dropout = nn.Dropout(config.attention_probs_dropout_prob)
 
     def transpose_for_scores(self, x):
-        new_x_shape = x.size()[:-1] + (self.num_attention_heads, self.attention_head_size)
+        new_x_shape = x.size()[:-1] + (
+            self.num_attention_heads,
+            self.attention_head_size,
+        )
         x = x.view(*new_x_shape)
         return x.permute(0, 2, 1, 3)
 
@@ -189,7 +197,9 @@ class TransformerSelfOutput(nn.Module):
         self.pre_layer_norm = config.pre_layer_norm
         self.dense = nn.Linear(config.hidden_size, config.hidden_size)
         self.dropout = nn.Dropout(config.hidden_dropout_prob)
-        self.LayerNorm = TransformerLayerNorm(config.hidden_size, eps=config.layer_norm_eps)
+        self.LayerNorm = TransformerLayerNorm(
+            config.hidden_size, eps=config.layer_norm_eps
+        )
 
     def forward(self, hidden_states, input_tensor):
         hidden_states = self.dense(hidden_states)
@@ -205,8 +215,11 @@ class TransformerAttention(nn.Module):
         super(TransformerAttention, self).__init__()
         self.output_attentions = output_attentions
         self.pre_layer_norm = config.pre_layer_norm
-        self.self = TransformerSelfAttention(config, output_attentions=output_attentions,
-                                              keep_multihead_output=keep_multihead_output)
+        self.self = TransformerSelfAttention(
+            config,
+            output_attentions=output_attentions,
+            keep_multihead_output=keep_multihead_output,
+        )
         self.output = TransformerSelfOutput(config)
         if self.pre_layer_norm:
             self.LayerNorm = self.output.LayerNorm
@@ -226,7 +239,9 @@ class TransformerAttention(nn.Module):
         self.output.dense = prune_linear_layer(self.output.dense, index, dim=1)
         # Update hyper params
         self.self.num_attention_heads = self.self.num_attention_heads - len(heads)
-        self.self.all_head_size = self.self.attention_head_size * self.self.num_attention_heads
+        self.self.all_head_size = (
+            self.self.attention_head_size * self.self.num_attention_heads
+        )
 
     def forward(self, input_tensor, attention_mask, head_mask=None):
         if self.pre_layer_norm:
@@ -265,7 +280,9 @@ class TransformerOutput(nn.Module):
         self.pre_layer_norm = config.pre_layer_norm
         self.dense = nn.Linear(config.intermediate_size, config.hidden_size)
         self.dropout = nn.Dropout(config.hidden_dropout_prob)
-        self.LayerNorm = TransformerLayerNorm(config.hidden_size, eps=config.layer_norm_eps) # layer_norm for FFN
+        self.LayerNorm = TransformerLayerNorm(
+            config.hidden_size, eps=config.layer_norm_eps
+        )  # layer_norm for FFN
 
     def forward(self, hidden_states, input_tensor):
         hidden_states = self.dense(hidden_states)
@@ -281,8 +298,11 @@ class TransformerLayer(nn.Module):
         super(TransformerLayer, self).__init__()
         self.output_attentions = output_attentions
         self.pre_layer_norm = config.pre_layer_norm
-        self.attention = TransformerAttention(config, output_attentions=output_attentions,
-                                               keep_multihead_output=keep_multihead_output)
+        self.attention = TransformerAttention(
+            config,
+            output_attentions=output_attentions,
+            keep_multihead_output=keep_multihead_output,
+        )
         self.intermediate = TransformerIntermediate(config)
         self.output = TransformerOutput(config)
         if self.pre_layer_norm:
@@ -310,19 +330,34 @@ class TransformerEncoder(nn.Module):
         super(TransformerEncoder, self).__init__()
         self.output_attentions = output_attentions
         self.pre_layer_norm = config.pre_layer_norm
-        layer = TransformerLayer(config, output_attentions=output_attentions,
-                                  keep_multihead_output=keep_multihead_output)
+        layer = TransformerLayer(
+            config,
+            output_attentions=output_attentions,
+            keep_multihead_output=keep_multihead_output,
+        )
         if config.share_layer:
             self.layer = nn.ModuleList([layer for _ in range(config.num_hidden_layers)])
         else:
-            self.layer = nn.ModuleList([copy.deepcopy(layer) for _ in range(config.num_hidden_layers)])
+            self.layer = nn.ModuleList(
+                [copy.deepcopy(layer) for _ in range(config.num_hidden_layers)]
+            )
         if self.pre_layer_norm:
             # If pre-LN Transformer, a final layer_norm would be placed after the last layer,
             # and intermediate layer_norms for all layer embedding outputs
-            LayerNorm = TransformerLayerNorm(config.hidden_size, eps=config.layer_norm_eps)
-            self.LayerNorm = nn.ModuleList([copy.deepcopy(LayerNorm) for _ in range(config.num_hidden_layers + 1)])
+            LayerNorm = TransformerLayerNorm(
+                config.hidden_size, eps=config.layer_norm_eps
+            )
+            self.LayerNorm = nn.ModuleList(
+                [copy.deepcopy(LayerNorm) for _ in range(config.num_hidden_layers + 1)]
+            )
 
-    def forward(self, hidden_states, attention_mask, output_all_encoded_layers=True, head_mask=None):
+    def forward(
+        self,
+        hidden_states,
+        attention_mask,
+        output_all_encoded_layers=True,
+        head_mask=None,
+    ):
         all_encoder_layers = []
         all_attentions = []
         for i, layer_module in enumerate(self.layer):
@@ -358,7 +393,9 @@ class TransformerSpecPredictionHead(nn.Module):
             self.transform_act_fn = ACT2FN[config.hidden_act]
         else:
             self.transform_act_fn = config.hidden_act
-        self.LayerNorm = TransformerLayerNorm(config.hidden_size, eps=config.layer_norm_eps)
+        self.LayerNorm = TransformerLayerNorm(
+            config.hidden_size, eps=config.layer_norm_eps
+        )
         self.output = nn.Linear(config.hidden_size, self.output_size)
 
     def forward(self, hidden_states, output_states=False):
@@ -373,15 +410,15 @@ class TransformerSpecPredictionHead(nn.Module):
 
 
 class TransformerInitModel(nn.Module):
-    """ An abstract class to handle weights initialization."""
+    """An abstract class to handle weights initialization."""
+
     def __init__(self, config, output_attentions, *inputs, **kwargs):
         super(TransformerInitModel, self).__init__()
         self.config = config
         self.output_attentions = output_attentions
 
     def init_Transformer_weights(self, module):
-        """ Initialize the weights.
-        """
+        """Initialize the weights."""
         if isinstance(module, (nn.Linear, nn.Embedding)):
             # Slightly different from the TF version which uses truncated_normal for initialization
             # cf https://github.com/pytorch/pytorch/pull/5617
@@ -397,7 +434,7 @@ class TransformerModel(TransformerInitModel):
     """Transformer model.
     Params:
         `config`: a TransformerConfig class instance with the configuration to build a new model
-        `intput_dim`: int,  input dimension of model    
+        `intput_dim`: int,  input dimension of model
         `output_attentions`: If True, also output attentions weights computed by the model at each layer. Default: False
         `keep_multihead_output`: If True, saves output of the multi-head attention module with its gradient.
             This can be used to compute head importance metrics. Default: False
@@ -430,29 +467,50 @@ class TransformerModel(TransformerInitModel):
     masked_spec_logits = model(spec_input, pos_enc)
     ```
     """
-    def __init__(self, config, input_dim, output_attentions=False, keep_multihead_output=False, with_input_module=True):
+
+    def __init__(
+        self,
+        config,
+        input_dim,
+        output_attentions=False,
+        keep_multihead_output=False,
+        with_input_module=True,
+    ):
         super(TransformerModel, self).__init__(config, output_attentions)
         self.with_input_module = with_input_module
-        if self.with_input_module: self.input_representations = TransformerInputRepresentations(config, input_dim)
-        self.encoder = TransformerEncoder(config, output_attentions=output_attentions,
-                                          keep_multihead_output=keep_multihead_output)
+        if self.with_input_module:
+            self.input_representations = TransformerInputRepresentations(
+                config, input_dim
+            )
+        self.encoder = TransformerEncoder(
+            config,
+            output_attentions=output_attentions,
+            keep_multihead_output=keep_multihead_output,
+        )
         self.apply(self.init_Transformer_weights)
         self.input_size = input_dim
 
     def prune_heads(self, heads_to_prune):
-        """ Prunes heads of the model.
-            heads_to_prune: dict of {layer_num: list of heads to prune in this layer}
+        """Prunes heads of the model.
+        heads_to_prune: dict of {layer_num: list of heads to prune in this layer}
         """
         for layer, heads in heads_to_prune.items():
             self.encoder.layer[layer].attention.prune_heads(heads)
 
     def get_multihead_outputs(self):
-        """ Gather all multi-head outputs.
-            Return: list (layers) of multihead module outputs with gradients
+        """Gather all multi-head outputs.
+        Return: list (layers) of multihead module outputs with gradients
         """
         return [layer.attention.self.multihead_output for layer in self.encoder.layer]
 
-    def forward(self, spec_input, pos_enc=None, attention_mask=None, output_all_encoded_layers=False, head_mask=None):
+    def forward(
+        self,
+        spec_input,
+        pos_enc=None,
+        attention_mask=None,
+        output_all_encoded_layers=False,
+        head_mask=None,
+    ):
         if attention_mask is None:
             attention_mask = torch.ones_like(spec_input)
 
@@ -468,7 +526,9 @@ class TransformerModel(TransformerInitModel):
         # positions we want to attend and -10000.0 for masked positions.
         # Since we are adding it to the raw scores before the softmax, this is
         # effectively the same as removing these entirely.
-        extended_attention_mask = extended_attention_mask.to(dtype=spec_input.dtype) # fp16 compatibility
+        extended_attention_mask = extended_attention_mask.to(
+            dtype=spec_input.dtype
+        )  # fp16 compatibility
         extended_attention_mask = (1.0 - extended_attention_mask) * -10000.0
 
         # Prepare head mask if needed
@@ -478,22 +538,32 @@ class TransformerModel(TransformerInitModel):
         # and head_mask is converted to shape [num_hidden_layers x batch x num_heads x seq_length x seq_length]
         if head_mask is not None:
             if head_mask.dim() == 1:
-                head_mask = head_mask.unsqueeze(0).unsqueeze(0).unsqueeze(-1).unsqueeze(-1)
-                head_mask = head_mask.expand_as(self.config.num_hidden_layers, -1, -1, -1, -1)
+                head_mask = (
+                    head_mask.unsqueeze(0).unsqueeze(0).unsqueeze(-1).unsqueeze(-1)
+                )
+                head_mask = head_mask.expand_as(
+                    self.config.num_hidden_layers, -1, -1, -1, -1
+                )
             elif head_mask.dim() == 2:
-                head_mask = head_mask.unsqueeze(1).unsqueeze(-1).unsqueeze(-1)  # We can specify head_mask for each layer
-            head_mask = head_mask.to(dtype=spec_input.dtype) # switch to fload if need + fp16 compatibility
+                head_mask = (
+                    head_mask.unsqueeze(1).unsqueeze(-1).unsqueeze(-1)
+                )  # We can specify head_mask for each layer
+            head_mask = head_mask.to(
+                dtype=spec_input.dtype
+            )  # switch to fload if need + fp16 compatibility
         else:
             head_mask = [None] * self.config.num_hidden_layers
 
-        if self.with_input_module: 
+        if self.with_input_module:
             input_representations = self.input_representations(spec_input, pos_enc)
         else:
             input_representations = spec_input
-        encoded_layers = self.encoder(input_representations,
-                                      extended_attention_mask,
-                                      output_all_encoded_layers=output_all_encoded_layers,
-                                      head_mask=head_mask)
+        encoded_layers = self.encoder(
+            input_representations,
+            extended_attention_mask,
+            output_all_encoded_layers=output_all_encoded_layers,
+            head_mask=head_mask,
+        )
         if self.output_attentions:
             all_attentions, encoded_layers = encoded_layers
         if not output_all_encoded_layers:

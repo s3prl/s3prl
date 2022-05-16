@@ -10,8 +10,9 @@ from s3prl import Logs, Output
 from . import Task
 from s3prl.nn.transformer_mockingjay import (
     TransformerModel as BodyExample,
-    TransformerSpecPredictionHead as HeadExample
+    TransformerSpecPredictionHead as HeadExample,
 )
+
 logger = logging.getLogger(__name__)
 
 
@@ -23,7 +24,9 @@ class FeatReconstructionTask(Task):
         loss (torch.nn Loss Functions): The reconstruction loss (torch.nn.L1Loss, torch.nn.MSELoss, etc)
     """
 
-    def __init__(self, body: BodyExample, head: HeadExample, loss: torch.nn.L1Loss, **kwargs):
+    def __init__(
+        self, body: BodyExample, head: HeadExample, loss: torch.nn.L1Loss, **kwargs
+    ):
         """
         The input feature does not necessary have to be the same as the target feature.
 
@@ -49,12 +52,13 @@ class FeatReconstructionTask(Task):
         return self.head.output_size
 
     def forward(
-        self, 
-        source_feat: torch.Tensor, 
+        self,
+        source_feat: torch.Tensor,
         target_feat: torch.Tensor,
         label_mask: torch.BoolTensor,
         pos_enc: torch.Tensor,
-        attn_mask: torch.LongTensor = None):
+        attn_mask: torch.LongTensor = None,
+    ):
         """
         Args:
             source_feat (torch.Tensor): (batch_size, timestamps, input_size)
@@ -67,27 +71,32 @@ class FeatReconstructionTask(Task):
             hidden_states (torch.Tensor): (batch_size, timestamps, hidden_size)
             loss (torch.Tensor): scalar.
             prediction (torch.Tensor): (batch_size, timestamps, output_size)
-        """        
+        """
         body_states: torch.Tensor = self.body(source_feat, pos_enc, attn_mask).slice(1)
         prediction: torch.Tensor = self.head(body_states).slice(1)
 
-        assert label_mask.sum() > 0, 'Without any masking, loss might go NaN.'
-        reconstruction_loss = self.loss(prediction.masked_select(label_mask), target_feat.masked_select(label_mask))
-        
-        return Output(hidden_states=body_states, loss=reconstruction_loss, prediction=prediction)
+        assert label_mask.sum() > 0, "Without any masking, loss might go NaN."
+        reconstruction_loss = self.loss(
+            prediction.masked_select(label_mask), target_feat.masked_select(label_mask)
+        )
 
+        return Output(
+            hidden_states=body_states, loss=reconstruction_loss, prediction=prediction
+        )
 
     def _general_forward(
         self,
-        x: torch.Tensor, # source_feat
-        label: torch.Tensor, # target_feat
-        label_mask: torch.BoolTensor, # label_mask
-        position_encoding: torch.Tensor, # pos_enc
-        attention_mask: torch.LongTensor, # attn_mask
+        x: torch.Tensor,  # source_feat
+        label: torch.Tensor,  # target_feat
+        label_mask: torch.BoolTensor,  # label_mask
+        position_encoding: torch.Tensor,  # pos_enc
+        attention_mask: torch.LongTensor,  # attn_mask
         unique_name: List[str],
-    ):  
+    ):
 
-        hidden_states, loss, prediction = self(x, label, label_mask, position_encoding, attention_mask).slice(3)
+        hidden_states, loss, prediction = self(
+            x, label, label_mask, position_encoding, attention_mask
+        ).slice(3)
 
         logs = Logs()
         logs.add_hidden_state("hidden_states", hidden_states)
@@ -116,8 +125,8 @@ class FeatReconstructionTask(Task):
 
     def train_step(
         self,
-        x: torch.Tensor, # source_feat
-        label: torch.Tensor, # target_feat
+        x: torch.Tensor,  # source_feat
+        label: torch.Tensor,  # target_feat
         label_mask: torch.BoolTensor,
         position_encoding: torch.Tensor,
         attention_mask: torch.LongTensor,
@@ -139,7 +148,9 @@ class FeatReconstructionTask(Task):
             loss (torch.Tensor): scalar.
             prediction (torch.Tensor): (batch_size, timestamps, output_size)
         """
-        return self._general_forward(x, label, label_mask, position_encoding, attention_mask, unique_name)
+        return self._general_forward(
+            x, label, label_mask, position_encoding, attention_mask, unique_name
+        )
 
     def train_reduction(self, batch_results: list, on_epoch_end: bool = False):
         """
@@ -164,27 +175,31 @@ class FeatReconstructionTask(Task):
 
     def valid_step(
         self,
-        x: torch.Tensor, # source_feat
-        label: torch.Tensor, # target_feat
+        x: torch.Tensor,  # source_feat
+        label: torch.Tensor,  # target_feat
         label_mask: torch.BoolTensor,
         position_encoding: torch.Tensor,
         attention_mask: torch.LongTensor,
         unique_name: List[str],
         **kwargs,
     ):
-        return self._general_forward(x, label, label_mask, position_encoding, attention_mask, unique_name)
+        return self._general_forward(
+            x, label, label_mask, position_encoding, attention_mask, unique_name
+        )
 
     def test_step(
         self,
-        x: torch.Tensor, # source_feat
-        label: torch.Tensor, # target_feat
+        x: torch.Tensor,  # source_feat
+        label: torch.Tensor,  # target_feat
         label_mask: torch.BoolTensor,
         position_encoding: torch.Tensor,
         attention_mask: torch.LongTensor,
         unique_name: List[str],
         **kwargs,
     ):
-        return self._general_forward(x, label, label_mask, position_encoding, attention_mask, unique_name)
+        return self._general_forward(
+            x, label, label_mask, position_encoding, attention_mask, unique_name
+        )
 
     def valid_reduction(self, batch_results: list, on_epoch_end: bool = True):
         return self._general_reduction(batch_results, on_epoch_end)

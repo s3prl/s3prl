@@ -140,6 +140,7 @@ class LibriSpeechForPretrain100(LibriSpeechForPretrain):
             dataset_root, n_jobs, ["train-clean-100"], ["dev-clean"], ["test-clean"]
         )
 
+
 class LibriSpeechForPretrain360(LibriSpeechForPretrain):
     def __init__(
         self,
@@ -150,6 +151,7 @@ class LibriSpeechForPretrain360(LibriSpeechForPretrain):
             dataset_root, n_jobs, ["train-clean-360"], ["dev-clean"], ["test-clean"]
         )
 
+
 class LibriSpeechForPretrain960(LibriSpeechForPretrain):
     def __init__(
         self,
@@ -157,6 +159,9 @@ class LibriSpeechForPretrain960(LibriSpeechForPretrain):
         n_jobs: int = 4,
     ) -> None:
         super().__init__(
-            dataset_root, n_jobs, ["train-clean-100", "train-clean-360", "train-other-500"], 
-                                  ["dev-clean"], ["test-clean"]
+            dataset_root,
+            n_jobs,
+            ["train-clean-100", "train-clean-360", "train-other-500"],
+            ["dev-clean"],
+            ["test-clean"],
         )

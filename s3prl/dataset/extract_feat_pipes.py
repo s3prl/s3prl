@@ -10,7 +10,7 @@ class ExtractKaldiFeat(DataPipe):
     audio_config: dict = None
     wav_name: str = "wav"
     feat_name: str = "feat"
-    
+
     def extract_feat(self, extracter, wav):
         feat = extracter(wav)
         return feat
@@ -20,17 +20,22 @@ class ExtractKaldiFeat(DataPipe):
         dataset.add_tool("extracter", extracter)
         dataset.add_tool("output_dim", output_dim)
         dataset.add_tool("frame_shift", frame_shift)
-        dataset.add_dynamic_item(self.extract_feat, takes=["extracter", self.wav_name], provides=self.feat_name)
+        dataset.add_dynamic_item(
+            self.extract_feat,
+            takes=["extracter", self.wav_name],
+            provides=self.feat_name,
+        )
         return dataset
+
 
 @dataclass
 class ExtractOnlineFeat(DataPipe):
     audio_config: dict = None
     wav_name: str = "wav"
     feat_name: str = "feat"
-    
+
     def extract_feat(self, extracter, wav):
-        wav = wav.permute(1, 0).unsqueeze(0) # (seq_len, 1) -> (1, 1, seq_len)
+        wav = wav.permute(1, 0).unsqueeze(0)  # (seq_len, 1) -> (1, 1, seq_len)
         feat = extracter(wav)[0][0]
         return feat
 
@@ -38,5 +43,9 @@ class ExtractOnlineFeat(DataPipe):
         extracter, output_dim, _ = get_preprocessor(self.audio_config)
         dataset.add_tool("extracter", extracter)
         dataset.add_tool("output_dim", output_dim)
-        dataset.add_dynamic_item(self.extract_feat, takes=["extracter", self.wav_name], provides=self.feat_name)
+        dataset.add_dynamic_item(
+            self.extract_feat,
+            takes=["extracter", self.wav_name],
+            provides=self.feat_name,
+        )
         return dataset
