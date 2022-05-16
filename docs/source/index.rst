@@ -3,15 +3,27 @@
    You can adapt this file completely to your liking, but it should at least
    contain the root `toctree` directive.
 
-Welcome to S3PRL's documentation!
+S3PRL
 =================================
 
-.. include:: s3prl.rst
+.. image:: https://raw.githubusercontent.com/s3prl/s3prl/master/file/S3PRL-logo.png
 
+S3PRL is a toolkit targeting for Self-Supervised Learning for speech processing.
+Its full name is **S**\elf-**S**\upervised **S**\peech **P**\re-training and **R**\epresentation **L**\earning.
+It supports the following three major features:
 
-Indices and tables
-==================
+* **Pre-training**
 
-* :ref:`genindex`
-* :ref:`modindex`
-* :ref:`search`
+   * You can train the following models from scratch:
+
+   * *Mockingjay*, *Audio ALBERT*, *TERA*, *APC*, *VQ-APC*, *NPC*, and *DistilHuBERT*
+
+* **Pre-trained models collection**
+
+   * Easily load most of the existing upstream models with pretrained weights in a unified I/O interface.
+   * Pretrained models are registered through torch.hub, which means you can use these models in your own project by one-line plug-and-play without depending on this toolkit's coding style.
+
+* **Downstream Evaluation**
+
+   * Utilize upstream models in lots of downstream tasks
+   * The official implementation of the `SUPERB Benchmark <https://superbbenchmark.org/>`_
