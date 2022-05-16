@@ -3,9 +3,6 @@ Install S3PRL
 
 This page is just a prototype and should be refined.
 
-For public users
-----------------
-
 .. code-block:: bash
 
     pip install s3prl

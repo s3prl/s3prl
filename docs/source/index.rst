@@ -40,6 +40,16 @@ Getting Started
    ./tutorial/problem.rst
 
 
+How to Contribute
+-----------------
+
+.. toctree::
+   :caption: How to Contribute
+
+   ./contribute/public.rst
+   ./contribute/private.rst
+
+
 Indices and tables
 ==================
 
