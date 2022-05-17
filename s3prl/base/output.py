@@ -121,5 +121,6 @@ class Output(GeneralOutput):
         rec_id=None,
         der=None,
         accuracy=None,
+        trials=None,
     ):
         super().__init__()

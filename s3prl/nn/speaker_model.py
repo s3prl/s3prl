@@ -6,7 +6,7 @@ import torch.nn.functional as F
 from s3prl import Output
 
 from . import NNModule
-from .pooling import Self_Attentive_Pooling, Attentive_Statistics_Pooling, Temporal_Average_Pooling, Temporal_Statistics_Pooling
+from .pooling import MeanPooling
 
 class TDNN(NNModule):
         
@@ -127,44 +127,27 @@ class XVector(NNModule):
 class speaker_embedding_extractor(NNModule):
     def __init__(
                     self,
-                    backbone: str,
-                    pooling_type: str,
                     input_size: int,
-                    output_size: int
+                    output_size: int = 1500,
+                    backbone: str = "XVector",
+                    pooling_type: str = "TAP",
+                    **kwargs
                 ):
         super().__init__()
 
+        # TODO: add other backbone model; Pay attention to self.offset
         if self.arguments.backbone == "XVector":
             self.backbone = XVector(
                 input_size=input_size, output_size=output_size
             )
+            self.offset   = 14
         else:
-            raise ValueError('{} backbone type is not defined'.format(args.backbone))
+            raise ValueError('{} backbone type is not defined'.format(self.arguments.backbone))
 
+        # TODO: Add other pooling method
         pooling_type = self.arguments.pooling_type
         if pooling_type == "Temporal_Average_Pooling" or pooling_type == "TAP":
-            self.pooling = Temporal_Average_Pooling(
-                input_size=self.backbone.output_size, output_size=self.backbone.output_size
-            )
-            self.fc = nn.Linear(self.backbone.output_size, self.backbone.output_size)
-
-        elif pooling_type == "Temporal_Statistics_Pooling" or pooling_type == "TSP":
-            self.pooling = Temporal_Statistics_Pooling(
-                input_size=self.backbone.output_size, output_size=self.backbone.output_size*2
-            )
-            self.fc = nn.Linear(self.backbone.output_size*2, self.backbone.output_size)
-
-        elif pooling_type == "Self_Attentive_Pooling" or pooling_type == "SAP":
-            self.pooling = Self_Attentive_Pooling(
-                input_size=self.backbone.output_size, output_size=self.backbone.output_size
-            )
-            self.fc = nn.Linear(self.backbone.output_size, self.backbone.output_size)
-
-        elif pooling_type == "Attentive_Statistics_Pooling" or pooling_type == "ASP":
-            self.pooling = Attentive_Statistics_Pooling(
-                input_size=self.backbone.output_size, output_size=self.backbone.output_size*2
-            )
-            self.fc = nn.Linear(self.backbone.output_size*2, self.backbone.output_size)
+            self.pooling = MeanPooling()
 
         else:
             raise ValueError('{} pooling type is not defined'.format(pooling_type))
@@ -186,9 +169,12 @@ class speaker_embedding_extractor(NNModule):
         '''
 
         x = self.backbone(x).slice(1)
-        x = x.permute(0, 2, 1)
-        # TODO: add xlen into pooling
-        x = self.pooling(x).slice(1)
-        x = self.fc(x)
+
+        if xlen is not None:
+            xlen = torch.LongTensor([max(item - self.offset, 0) for item in xlen])
+        else:
+            xlen = torch.LongTensor([x.shape(1)] * x.shape(0))
+
+        x = self.pooling(x, xlen)
 
         return Output(output=x)
