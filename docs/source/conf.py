@@ -28,10 +28,6 @@ release = "0.4.0"
 def linkcode_resolve(domain, info):
     def find_source():
         obj = sys.modules[info["module"]]
-        if info["fullname"] == "InitConfig.args":
-            return None
-        if info["fullname"] == "InitConfig.kwargs":
-            return None
         for part in info["fullname"].split("."):
             obj = getattr(obj, part)
 
@@ -77,14 +73,15 @@ extensions = [
     "sphinx.ext.napoleon",
     "sphinx.ext.viewcode",
     "sphinx.ext.linkcode",
+    "sphinx.ext.autosummary",
 ]
+
+autosummary_generate = True
 
 html_js_files = [
     "js/custom.js",
 ]
-html_css_files = [
-    "css/custom.css"
-]
+html_css_files = ["css/custom.css"]
 
 # Add any paths that contain templates here, relative to this directory.
 templates_path = ["_templates"]
@@ -116,3 +113,6 @@ html_static_path = ["_static"]
 #
 # def setup(app):
 #     app.connect("autodoc-skip-member", skip)
+
+autosummary_ignore_module_all = False
+autodoc_member_order = "bysource"

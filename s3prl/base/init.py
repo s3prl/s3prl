@@ -25,7 +25,7 @@ class InitConfig:
     def realize(self):
         """
         Return:
-            module.qualname(*args, **kwargs)
+            module.qualname(\*args, \**kwargs)
         """
         module = importlib.import_module(self.module)
         qualname = self.qualname

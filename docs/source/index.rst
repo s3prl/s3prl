@@ -50,6 +50,29 @@ How to Contribute
    ./contribute/private.rst
 
 
+API Documentation
+-----------------
+
+.. autosummary::
+   :caption: API Documentation
+   :toctree: _autosummary
+   :template: custom-module-template.rst
+   :recursive:
+
+   s3prl.nn
+   s3prl.base
+   s3prl.util
+   s3prl.task
+   s3prl.metric
+   s3prl.corpus
+   s3prl.sampler
+   s3prl.wrapper
+   s3prl.problem
+   s3prl.encoder
+   s3prl.dataset
+   .. s3prl.upstream
+
+
 Indices and tables
 ==================
 
