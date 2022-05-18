@@ -11,8 +11,10 @@
 # IMPORTATION #
 ###############
 import copy
+
 import torch
 import torch.nn as nn
+
 from .vq import VQLayer
 
 

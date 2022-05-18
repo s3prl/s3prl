@@ -7,11 +7,11 @@
 """*********************************************************************************************"""
 
 
-from typing import List, Tuple
 from collections import OrderedDict
+from typing import List, Tuple
 
-import yaml
 import torch
+import yaml
 from torch import Tensor
 
 from ..interfaces import UpstreamBase

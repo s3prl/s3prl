@@ -10,13 +10,12 @@
 
 
 import argparse
-from packaging import version
-
-import torch
-from torch.nn.utils.rnn import pad_sequence
 
 import fairseq
+import torch
 from fairseq.models.wav2vec import Wav2VecModel
+from packaging import version
+from torch.nn.utils.rnn import pad_sequence
 
 from ..interfaces import UpstreamBase
 

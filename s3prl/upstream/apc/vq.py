@@ -8,14 +8,14 @@
 """*********************************************************************************************"""
 
 
+import numpy as np
+
 ###############
 # IMPORTATION #
 ###############
 import torch
-import numpy as np
 import torch.nn as nn
 from torch.nn.functional import gumbel_softmax
-
 
 ############
 # CONSTANT #

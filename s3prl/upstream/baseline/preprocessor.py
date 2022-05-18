@@ -7,16 +7,16 @@
 """*********************************************************************************************"""
 
 
+from functools import partial
+
 ###############
 # IMPORTATION #
 ###############
 import torch
 import torchaudio
-from functools import partial
 from torch.nn.utils.rnn import pad_sequence
-from torchaudio.transforms import Spectrogram, MelScale, MFCC
 from torchaudio.functional import compute_deltas
-
+from torchaudio.transforms import MFCC, MelScale, Spectrogram
 
 ############
 # CONSTANT #

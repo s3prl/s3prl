@@ -7,26 +7,30 @@
 """*********************************************************************************************"""
 
 
+import copy
+import math
+import random
+
 ###############
 # IMPORTATION #
 ###############
 import sys
-import copy
-import math
-import yaml
-import torch
-import random
-import torchaudio
-import numpy as np
-import torch.nn as nn
-from torch.nn.utils.rnn import pad_sequence
-from functools import lru_cache
 from distutils.util import strtobool
+from functools import lru_cache
+
+import numpy as np
+import torch
+import torch.nn as nn
+import torchaudio
+import yaml
+from torch.nn.utils.rnn import pad_sequence
+
+import s3prl.optimizers
+
 from ..baseline.extracter import get_extracter
 from ..baseline.preprocessor import get_preprocessor
-from .model import TransformerConfig, TransformerModel
-from .model import TransformerSpecPredictionHead
-import s3prl.optimizers
+from .model import TransformerConfig, TransformerModel, TransformerSpecPredictionHead
+
 
 #######################
 # TRANSFORMER BUILDER #

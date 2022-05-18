@@ -8,7 +8,6 @@
 
 
 import yaml
-
 from torch.nn.utils.rnn import pad_sequence
 
 from ..interfaces import UpstreamBase

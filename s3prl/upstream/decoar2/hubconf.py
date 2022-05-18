@@ -1,8 +1,10 @@
 import os
+
 import torch
 
 # -------------#
 from s3prl.utility.download import _urls_to_filepaths
+
 from .expert import UpstreamExpert as _UpstreamExpert
 
 

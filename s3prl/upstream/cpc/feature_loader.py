@@ -8,12 +8,13 @@
 """*********************************************************************************************"""
 
 
+import argparse
+import json
+
 ###############
 # IMPORTATION #
 ###############
 import os
-import json
-import argparse
 
 # -------------#
 import torch
@@ -21,7 +22,7 @@ import torchaudio
 
 # -------------#
 from .cpc_default_config import get_default_cpc_config
-from .model import CPCModel, ConcatenatedModel
+from .model import ConcatenatedModel, CPCModel
 
 
 class FeatureModule(torch.nn.Module):

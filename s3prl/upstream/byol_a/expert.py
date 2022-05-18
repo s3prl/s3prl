@@ -15,13 +15,13 @@ import math
 # -------------#
 import torch
 import torch.nn as nn
-from torch.nn.utils.rnn import pad_sequence
 
 # -------------#
 import torchaudio
+from torch.nn.utils.rnn import pad_sequence
 
 # -------------#
-from .byol_a import load_yaml_config, PrecomputedNorm, AudioNTT2020
+from .byol_a import AudioNTT2020, PrecomputedNorm, load_yaml_config
 
 
 ###################

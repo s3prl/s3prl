@@ -1,7 +1,7 @@
 def _get_hubconf_entries():
+    import importlib
     import os
     import pathlib
-    import importlib
 
     _search_root = pathlib.Path(__file__).parent
     _hubconfs = list(_search_root.glob("upstream/*/hubconf.py"))

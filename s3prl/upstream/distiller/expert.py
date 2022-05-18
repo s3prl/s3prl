@@ -3,8 +3,9 @@
     Author: Heng-Jui Chang (https://github.com/vectominist)
 """
 
-import yaml
 import torch
+import yaml
+
 from ..interfaces import UpstreamBase
 from .builder import PretrainedDistiller
 

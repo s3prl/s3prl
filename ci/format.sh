@@ -19,6 +19,6 @@ flake8 $(cat ${s3prl_dir}/valid_paths.txt) --count --exit-zero --max-complexity=
 black --check $(cat ${s3prl_dir}/valid_paths.txt)
 
 # isort
-isort --check $(cat ${s3prl_dir}/valid_paths.txt)
+isort --profile black --check $(cat ${s3prl_dir}/valid_paths.txt)
 
 echo "[CI: format.sh] Successfully pass!"

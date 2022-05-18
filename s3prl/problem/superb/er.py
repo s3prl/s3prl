@@ -1,14 +1,9 @@
-from s3prl.corpus.iemocap import IEMOCAPForSUPERB
-from s3prl.dataset.utterance_classification_pipe import (
-    UtteranceClassificationPipe,
-)
-from s3prl.sampler import (
-    MaxTimestampBatchSampler,
-    FixedBatchSizeBatchSampler,
-)
-from s3prl.task.utterance_classification_task import UtteranceClassificationTask
-from s3prl.nn import MeanPoolingLinear
 from s3prl import Container
+from s3prl.corpus.iemocap import IEMOCAPForSUPERB
+from s3prl.dataset.utterance_classification_pipe import UtteranceClassificationPipe
+from s3prl.nn import MeanPoolingLinear
+from s3prl.sampler import FixedBatchSizeBatchSampler, MaxTimestampBatchSampler
+from s3prl.task.utterance_classification_task import UtteranceClassificationTask
 
 
 class SuperbER:

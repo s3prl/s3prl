@@ -1,15 +1,16 @@
-import re
 import logging
+import re
+from collections import OrderedDict
 
 # -------------#
 import torch
 import torch.nn as nn
 from torch.nn.utils.rnn import pad_sequence
 
+from .audio import create_transform
+
 # -------------#
 from .decoar import Decoar
-from .audio import create_transform
-from collections import OrderedDict
 
 ############
 # CONSTANT #
