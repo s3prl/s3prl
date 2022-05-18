@@ -1,20 +1,16 @@
+import torch
+from torch.nn import L1Loss
+
+from s3prl import Container
 from s3prl.corpus.librispeech_for_pretrain import LibriSpeechForPretrain
-from s3prl.dataset.pretrain_tera_pipe import (
-    PretrainTaskPipe,
-)
-from s3prl.sampler import (
-    MaxTimestampBatchSampler,
-    FixedBatchSizeBatchSampler,
-)
-from s3prl.task.feat_reconstruction_task import FeatReconstructionTask
+from s3prl.dataset.pretrain_tera_pipe import PretrainTaskPipe
 from s3prl.nn.transformer_tera import (
     TransformerConfig,
     TransformerModel,
     TransformerSpecPredictionHead,
 )
-from torch.nn import L1Loss
-from s3prl import Container
-import torch
+from s3prl.sampler import FixedBatchSizeBatchSampler, MaxTimestampBatchSampler
+from s3prl.task.feat_reconstruction_task import FeatReconstructionTask
 
 
 class Tera:

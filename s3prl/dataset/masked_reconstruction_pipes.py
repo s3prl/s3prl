@@ -1,14 +1,12 @@
-from .base import (
-    AugmentedDynamicItemDataset,
-    DataPipe,
-)
-from dataclasses import dataclass
-
 import copy
-import torch
 import random
-import numpy as np
+from dataclasses import dataclass
 from functools import lru_cache
+
+import numpy as np
+import torch
+
+from .base import AugmentedDynamicItemDataset, DataPipe
 
 MAX_SEQLEN = 10000
 

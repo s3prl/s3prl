@@ -1,8 +1,8 @@
-from .common_pipes import SetOutputKeys, LoadAudio
-from .norm_wav_pipes import NormWavDecibel
-from .extract_feat_pipes import ExtractOnlineFeat
-from .masked_reconstruction_pipes import PrepareTargetFeat, MaskedReconstruction
 from .base import SequentialDataPipe
+from .common_pipes import LoadAudio, SetOutputKeys
+from .extract_feat_pipes import ExtractOnlineFeat
+from .masked_reconstruction_pipes import MaskedReconstruction, PrepareTargetFeat
+from .norm_wav_pipes import NormWavDecibel
 
 
 class PretrainTaskPipe(SequentialDataPipe):

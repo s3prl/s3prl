@@ -6,12 +6,10 @@ from typing import List
 import torch
 
 from s3prl import Logs, Output
+from s3prl.nn.transformer_mockingjay import TransformerModel as BodyExample
+from s3prl.nn.transformer_mockingjay import TransformerSpecPredictionHead as HeadExample
 
 from . import Task
-from s3prl.nn.transformer_mockingjay import (
-    TransformerModel as BodyExample,
-    TransformerSpecPredictionHead as HeadExample,
-)
 
 logger = logging.getLogger(__name__)
 

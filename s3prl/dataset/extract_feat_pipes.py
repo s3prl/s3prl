@@ -1,8 +1,9 @@
 from dataclasses import dataclass
 
-from .base import AugmentedDynamicItemDataset, DataPipe
 from s3prl.upstream.baseline.extracter import get_extracter
 from s3prl.upstream.baseline.preprocessor import get_preprocessor
+
+from .base import AugmentedDynamicItemDataset, DataPipe
 
 
 @dataclass

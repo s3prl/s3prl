@@ -1,11 +1,9 @@
-from .base import (
-    AugmentedDynamicItemDataset,
-    DataPipe,
-)
+import random
 from dataclasses import dataclass
 
 import torch
-import random
+
+from .base import AugmentedDynamicItemDataset, DataPipe
 
 
 @dataclass

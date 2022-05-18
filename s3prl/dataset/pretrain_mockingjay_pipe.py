@@ -1,8 +1,8 @@
-from .common_pipes import SetOutputKeys, LoadAudio
-from .extract_feat_pipes import ExtractKaldiFeat
-from .noise_augmentation_pipes import NoiseAugmentation
-from .masked_reconstruction_pipes import PrepareTargetFeat, MaskedReconstruction
 from .base import SequentialDataPipe
+from .common_pipes import LoadAudio, SetOutputKeys
+from .extract_feat_pipes import ExtractKaldiFeat
+from .masked_reconstruction_pipes import MaskedReconstruction, PrepareTargetFeat
+from .noise_augmentation_pipes import NoiseAugmentation
 
 
 class PretrainTaskPipe(SequentialDataPipe):
