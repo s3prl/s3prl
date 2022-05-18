@@ -4,6 +4,7 @@ from time import time
 
 import numpy as np
 import pyarrow as pa
+import pytest
 import torch
 from torch.utils.data import DataLoader, Dataset
 from tqdm import tqdm
@@ -73,6 +74,7 @@ class TestDataset(Dataset):
         return 100000
 
 
+@pytest.mark.practice
 def test_testdataset():
     dataset = TestDataset()
     dataloader = DataLoader(
@@ -114,6 +116,7 @@ class FastArrowDataset(Dataset):
         self.source.close()
 
 
+@pytest.mark.practice
 def test_arrow_dataset():
     start = time()
 
@@ -132,6 +135,7 @@ def test_arrow_dataset():
     print("all", time() - start)
 
 
+@pytest.mark.practice
 def test_fast_arrow_dataset():
     start = time()
 
@@ -145,6 +149,7 @@ def test_fast_arrow_dataset():
     print("all", time() - start)
 
 
+@pytest.mark.practice
 def test_np_dataset():
     start = time()
 
