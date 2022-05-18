@@ -21,4 +21,3 @@ repos:
         entry: ./ci/format.sh false
         language: system
         types: [python]
-        pass_filenames: false
