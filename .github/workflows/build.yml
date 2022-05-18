@@ -15,7 +15,7 @@ jobs:
       matrix:
         platform: [ubuntu-latest]
         python-version: [3.8, 3.9]
-        torchaudio-version: [0.10.0, 0.9.1, 0.8.2]
+        torchaudio-version: [0.10.2, 0.9.1, 0.8.1]
 
     runs-on: ${{ matrix.platform }}
 
