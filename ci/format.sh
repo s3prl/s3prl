@@ -39,4 +39,6 @@ else
     isort --profile black $files
 fi
 
-echo "[CI: format.sh] Successfully pass!"
+if [ "$check_only" == true ]; then
+    echo "Successfully pass format check!"
+fi
