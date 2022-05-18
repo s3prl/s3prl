@@ -53,6 +53,14 @@ jobs:
       run: |
         ./ci/format.sh
 
+    # This can be very helpful for debugging
+    # The action can create a SSH server for you to connect. After you
+    # log into the machine hosted by GitHub, it becomes easy to debug
+    # why the CI fails on a specific machine.
+
+    # - name: Setup upterm session
+    #   uses: lhotari/action-upterm@v1
+
     - name: Run tests
       run: |
         pytest

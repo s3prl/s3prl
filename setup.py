@@ -23,7 +23,7 @@ requirements = {
         "pytorch-lightning",
     ],
     "problem": [
-        "dtw-python==1.1.6",
+        "dtw-python>=1.1.6",
         "asteroid==0.4.4",
         "sacrebleu>=2.0.0",
         "kaldi_io",
