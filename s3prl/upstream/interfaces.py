@@ -1,11 +1,11 @@
 import sys
-from typing import Callable, List, Dict, Tuple, Union
+from typing import Callable, Dict, List, Tuple, Union
 
-import torch
 import numpy as np
+import torch
 import torch.nn as nn
-from torch import Tensor
 import torch.nn.functional as F
+from torch import Tensor
 
 from s3prl.utility.helper import show
 

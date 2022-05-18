@@ -1,10 +1,10 @@
+from s3prl import Container
 from s3prl.corpus.librispeech import LibriSpeechForSUPERB
 from s3prl.dataset.speech2text_pipe import Speech2TextPipe
+from s3prl.encoder.tokenizer import CharacterTokenizer
+from s3prl.nn import RNNEncoder
 from s3prl.sampler import FixedBatchSizeBatchSampler, MaxTimestampBatchSampler
 from s3prl.task.speech2text_ctc_task import Speech2TextCTCTask
-from s3prl.nn import RNNEncoder
-from s3prl import Container
-from s3prl.encoder.tokenizer import CharacterTokenizer
 
 
 class SuperbASR:

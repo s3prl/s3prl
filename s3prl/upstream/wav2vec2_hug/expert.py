@@ -3,7 +3,7 @@ from typing import List
 import torch
 import torch.nn as nn
 from torch import Tensor
-from transformers import Wav2Vec2Processor, Wav2Vec2Model
+from transformers import Wav2Vec2Model, Wav2Vec2Processor
 
 SAMPLE_RATE = 16000
 

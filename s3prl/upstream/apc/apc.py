@@ -11,9 +11,10 @@
 # IMPORTATION #
 ###############
 import copy
+
 import torch
 import torch.nn as nn
-from torch.nn.utils.rnn import pad_packed_sequence, pack_padded_sequence
+from torch.nn.utils.rnn import pack_padded_sequence, pad_packed_sequence
 
 # -------------#
 from .vq import VQLayer

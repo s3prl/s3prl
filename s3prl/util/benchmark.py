@@ -1,10 +1,11 @@
-import torch
 import logging
-import numpy as np
-from time import time
-from typing import Any
 from collections import defaultdict
 from contextlib import ContextDecorator
+from time import time
+from typing import Any
+
+import numpy as np
+import torch
 
 logger = logging.getLogger(__name__)
 _history = defaultdict(list)

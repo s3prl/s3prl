@@ -158,4 +158,7 @@ experiment
 *.tsv
 
 # document files
-docs/source/*.rst
+_build
+s3prl*.rst
+s3prl*.doctree
+*.html

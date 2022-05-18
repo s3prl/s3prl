@@ -3,7 +3,6 @@ import torch.nn as nn
 import torchaudio
 from torchaudio.compliance import kaldi
 
-
 ############
 # CONSTANT #
 ############

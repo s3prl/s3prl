@@ -15,9 +15,6 @@ import os
 import sys
 from pathlib import Path
 
-for x in os.walk(".."):
-    sys.path.insert(0, x[0])
-
 # -- Project information -----------------------------------------------------
 
 project = "S3PRL"
@@ -27,13 +24,10 @@ author = "S3PRL Team"
 # The full version, including alpha/beta/rc tags
 release = "0.4.0"
 
+
 def linkcode_resolve(domain, info):
     def find_source():
         obj = sys.modules[info["module"]]
-        if info["fullname"] == "InitConfig.args":
-            return None
-        if info["fullname"] == "InitConfig.kwargs":
-            return None
         for part in info["fullname"].split("."):
             obj = getattr(obj, part)
 
@@ -67,6 +61,7 @@ def linkcode_resolve(domain, info):
 
     return "https://github.com/s3prl/s3prl-private/blob/%s/%s" % (tag, filename)
 
+
 # -- General configuration ---------------------------------------------------
 
 # Add any Sphinx extension module names here, as strings. They can be
@@ -78,11 +73,15 @@ extensions = [
     "sphinx.ext.napoleon",
     "sphinx.ext.viewcode",
     "sphinx.ext.linkcode",
+    "sphinx.ext.autosummary",
 ]
+
+autosummary_generate = True
 
 html_js_files = [
     "js/custom.js",
 ]
+html_css_files = ["css/custom.css"]
 
 # Add any paths that contain templates here, relative to this directory.
 templates_path = ["_templates"]
@@ -104,3 +103,16 @@ html_theme = "furo"
 # relative to this directory. They are copied after the builtin static files,
 # so a file named "default.css" will overwrite the builtin "default.css".
 html_static_path = ["_static"]
+
+# Uncomment the following if you want to document __call__
+#
+# def skip(app, what, name, obj, would_skip, options):
+#     if name == "__call__":
+#         return False
+#     return would_skip
+#
+# def setup(app):
+#     app.connect("autodoc-skip-member", skip)
+
+autosummary_ignore_module_all = False
+autodoc_member_order = "bysource"

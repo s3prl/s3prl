@@ -4,15 +4,15 @@
 """
 
 import math
+
 import numpy as np
 import torch
-from torch import nn
 import torch.nn.functional as F
-
 from fairseq import utils
-from fairseq.modules import MultiheadAttention, SamePad, DynamicConv
+from fairseq.modules import DynamicConv, MultiheadAttention, SamePad
 from fairseq.modules.sparse_multihead_attention import SparseMultiheadAttention
 from fairseq.modules.transformer_sentence_encoder import init_bert_params
+from torch import nn
 
 
 class SplitLinear(nn.Module):

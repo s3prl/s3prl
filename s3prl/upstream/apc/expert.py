@@ -8,9 +8,7 @@
 
 
 import torch
-
-import torch
-from torch.nn.utils.rnn import pad_sequence, pad_packed_sequence
+from torch.nn.utils.rnn import pad_packed_sequence, pad_sequence
 
 from ..interfaces import UpstreamBase
 from .apc import APC

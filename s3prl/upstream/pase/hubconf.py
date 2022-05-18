@@ -8,12 +8,13 @@
 
 
 import os
-from typing import Tuple, List
+from typing import List, Tuple
 
 import torch
 from torch import Tensor
 
 from s3prl.utility.download import _urls_to_filepaths
+
 from .expert import UpstreamExpert as _UpstreamExpert
 
 

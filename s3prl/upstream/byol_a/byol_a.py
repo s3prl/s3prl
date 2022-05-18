@@ -7,17 +7,18 @@
 """*********************************************************************************************"""
 
 
+import logging
+
 ###############
 # IMPORTATION #
 ###############
 import re
-import yaml
-import logging
 from pathlib import Path
-from easydict import EasyDict
 
 # -------------#
 import torch
+import yaml
+from easydict import EasyDict
 from torch import nn
 
 

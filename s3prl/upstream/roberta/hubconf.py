@@ -1,5 +1,6 @@
-import os
 import glob
+import os
+
 import torch
 
 import s3prl

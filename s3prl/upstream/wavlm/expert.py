@@ -17,9 +17,8 @@ import torch
 import torch.nn.functional as F
 from torch.nn.utils.rnn import pad_sequence
 
-from .WavLM import WavLM, WavLMConfig
 from ..interfaces import UpstreamBase
-
+from .WavLM import WavLM, WavLMConfig
 
 ############
 # CONSTANT #

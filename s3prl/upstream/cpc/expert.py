@@ -7,16 +7,15 @@
 """*********************************************************************************************"""
 
 
-import torch
 import argparse
 
 import torch
 from torch.nn.utils.rnn import pad_sequence
 
 from ..interfaces import UpstreamBase
-from .model import CPCModel as cpcmodel
 from .cpc_default_config import get_default_cpc_config
-from .feature_loader import getEncoder, getAR, loadArgs
+from .feature_loader import getAR, getEncoder, loadArgs
+from .model import CPCModel as cpcmodel
 
 SAMPLE_RATE = 16000
 EXAMPLE_SEC = 3

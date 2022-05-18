@@ -1,1 +1,0 @@
-pytest test/ --log-cli-level=DEBUG -s

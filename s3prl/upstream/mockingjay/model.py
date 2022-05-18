@@ -8,15 +8,17 @@
 """*********************************************************************************************"""
 
 
+import copy
+import math
+
 ###############
 # IMPORTATION #
 ###############
 import sys
-import copy
-import math
-import torch
-import numpy as np
 from io import open
+
+import numpy as np
+import torch
 from torch import nn
 
 

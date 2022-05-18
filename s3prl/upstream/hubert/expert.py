@@ -8,19 +8,18 @@
 """*********************************************************************************************"""
 
 
+import fairseq
+import torch
+import torch.nn as nn
+import torch.nn.functional as F
+
 ###############
 # IMPORTATION #
 ###############
 from packaging import version
-
-import torch
-import torch.nn as nn
-import torch.nn.functional as F
 from torch.nn.utils.rnn import pad_sequence
 
-import fairseq
 from ..interfaces import UpstreamBase
-
 
 ############
 # CONSTANT #

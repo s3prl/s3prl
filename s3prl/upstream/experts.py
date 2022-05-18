@@ -1,6 +1,6 @@
 def _get_experts():
-    import pathlib
     import importlib
+    import pathlib
 
     _search_root = pathlib.Path(__file__).parent
     for _subdir in _search_root.iterdir():
