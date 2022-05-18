@@ -77,14 +77,30 @@ Coding-style check
     If the results show there are files modified by **pre-commit**, you need to re-stage
     these files following step 9.
 
-Commit / Push / Pull Request
---------------------------------
+Commit / Push
+-------------
 
-1.  Commit and push the changes
+12. Commit and push the changes
 
     .. code-block:: bash
 
         git commit -m "YOUR_COMMIT_MESSAGE"
         git push origin "YOUR_BRANCH"
 
-2.  If your are ready to merge your branch, send a pull request on GitHub
+Send a pull request
+-------------------
+
+Only do this when you are ready to merge your branch. Since once you send a pull request,
+every newly pushed commit will cause GitHub to run CI, but we have a limited number of
+runnable CI per month, regularized by GitHub. Hence, you should do this only after the
+branch is ready.
+
+13. Verify you can pass the CI locally
+
+    .. code-block:: bash
+
+        ./ci/format.sh
+
+        # Should add unit test check later on
+
+14. Send a pull request on GitHub
