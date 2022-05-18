@@ -7,6 +7,7 @@ from s3prl import set_use_cache
 from s3prl.corpus.voxceleb1sid import VoxCeleb1SIDForUtteranceClassification
 
 
+@pytest.mark.corpus
 @pytest.mark.parametrize("use_cache", [False, True])
 def test_voxceleb1sid(use_cache):
     with set_use_cache(use_cache):
