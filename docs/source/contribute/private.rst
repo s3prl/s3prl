@@ -1,6 +1,9 @@
 Internal S3PRL Development
 ==========================
 
+Write code
+----------
+
 1.  Make sure you have access to `s3prl/s3prl-private <https://github.com/s3prl/s3prl-private/>`_
 
 2.  Clone the repository to **S3PRL_ROOT** and install the package
@@ -13,6 +16,9 @@ Internal S3PRL Development
 
 3.  Write code into the packages listed in **S3PRL_ROOT/valid_paths.txt**
 
+Unit tests
+----------
+
 4.  Add unit tests to **S3PRL_ROOT/test/** to test your own new modules
 
 5.  Verify you pass all the tests
@@ -24,6 +30,9 @@ Internal S3PRL Development
         pytest ./test
         # or
         ./run_test.sh
+
+Documentation
+-------------
 
 6.  Make sure you write the documentation on the modules' docstring
 
@@ -42,6 +51,9 @@ Internal S3PRL Development
         # You can then use a browser to access the doc webpage on: YOUR_IP_OR_LOCALHOST:8000
 
 8.  OK now your new changes are ready to be commit
+
+Coding-style check
+------------------
 
 9.  Stage your changes
 
@@ -65,11 +77,14 @@ Internal S3PRL Development
     If the results show there are files modified by **pre-commit**, you need to re-stage
     these files following step 9.
 
-11. Commit and push the changes
+Commit / Push / Pull Request
+--------------------------------
+
+1.  Commit and push the changes
 
     .. code-block:: bash
 
         git commit -m "YOUR_COMMIT_MESSAGE"
         git push origin "YOUR_BRANCH"
 
-12. If your are ready to merge your branch, send a pull request on GitHub
+2.  If your are ready to merge your branch, send a pull request on GitHub
