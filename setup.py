@@ -10,6 +10,7 @@ version = (here / "s3prl" / "version.txt").read_text(encoding="utf-8").strip()
 
 requirements = {
     "install": [
+        "wheel",
         "torchaudio>=0.7.0",
         "torch>=1.7.0, !=1.10.0",
         "PyYAML>=5.4",
