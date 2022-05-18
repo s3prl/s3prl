@@ -16,13 +16,6 @@ jobs:
         platform: [ubuntu-18.04]
         python-version: [3.8, 3.9]
         torchaudio-version: [0.10.2, 0.9.1, 0.8.1]
-        include:
-          - os: ubuntu-20.04
-            python-version: 3.8
-            torchaudio-version: 0.10.2
-          - os: ubuntu-20.04
-            python-version: 3.9
-            torchaudio-version: 0.10.2
 
     runs-on: ${{ matrix.platform }}
 
