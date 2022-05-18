@@ -22,7 +22,7 @@ requirements = {
         "speechbrain",
         "pytorch-lightning",
     ],
-    "downstream": [
+    "problem": [
         "dtw-python==1.1.6",
         "asteroid==0.4.4",
         "sacrebleu>=2.0.0",
@@ -66,11 +66,13 @@ requirements = {
 }
 
 install_requires = requirements["install"]
+all_requires = []
+for k, v in requirements.items():
+    all_requires.append(v)
+
+extras_require = {k: v for k, v in requirements.items() if k not in ["install"]}
 extras_require = {
-    k: v for k, v in requirements.items() if k not in ["install"]
-}
-extras_require = {
-    "all": requirements["dev"] + requirements["doc"],
+    "all": all_requires,
 }
 
 # Arguments marked as "Required" below must be included for upload to PyPI.
