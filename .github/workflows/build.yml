@@ -33,6 +33,9 @@ jobs:
     - name: Upgrade pip
       run: pip3 install --upgrade pip
 
+    - name: Install wheel
+      run: pip install wheel
+
     - name: Install PyTorch & Torchaudio
       run: pip3 install torchaudio==${{ matrix.torchaudio-version }}
 
