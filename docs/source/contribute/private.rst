@@ -26,10 +26,7 @@ Unit tests
     .. code-block:: bash
 
         cd "S3PRL_ROOT"
-
-        pytest ./test
-        # or
-        ./run_test.sh
+        pytest
 
 Documentation
 -------------
