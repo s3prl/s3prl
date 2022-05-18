@@ -44,7 +44,7 @@ jobs:
 
     - name: Check coding style by ci/format.sh
       run: |
-        ./ci/format.sh
+        ./ci/format.sh true
 
     # This can be very helpful for debugging
     # The action can create a SSH server for you to connect. After you

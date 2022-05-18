@@ -3,22 +3,40 @@
 set -x
 set -e
 
-pip install flake8==3.9.2 black==22.3.0 isort==5.10.1
+if [ $# -lt 1 ]; then
+    echo "Usage: $0 [check_only_or_not (true/false)] [file1] [file2] ..."
+    exit 1
+fi
+check_only="$1"
+shift
 
 script_dir=$(dirname $0)
 script_dir=$(realpath $script_dir)
 s3prl_dir=$(dirname $script_dir)
 
+files="$*"
+if [ -z "$files" ]; then
+    files=$(cat ${s3prl_dir}/valid_paths.txt)
+fi
+
 # stop the build if there are Python syntax errors or undefined names
-flake8 $(cat ${s3prl_dir}/valid_paths.txt) --count --select=E9,F63,F7,F82 --show-source --statistics
+flake8 $files --count --select=E9,F63,F7,F82 --show-source --statistics
 
 # exit-zero treats all errors as warnings. The GitHub editor is 127 chars wide
-flake8 $(cat ${s3prl_dir}/valid_paths.txt) --count --exit-zero --max-complexity=10 --max-line-length=127 --statistics
+flake8 $files --count --exit-zero --max-complexity=10 --max-line-length=127 --statistics
 
 # black
-black --check $(cat ${s3prl_dir}/valid_paths.txt)
+if [ "$check_only" == true ]; then
+    black --check $files
+else
+    black $files
+fi
 
 # isort
-isort --profile black --check $(cat ${s3prl_dir}/valid_paths.txt)
+if [ "$check_only" == true ]; then
+    isort --profile black --check $files
+else
+    isort --profile black $files
+fi
 
 echo "[CI: format.sh] Successfully pass!"

@@ -1,76 +1,26 @@
 # Always prefer setuptools over distutils
-from setuptools import setup, find_packages
-import pathlib
+import os
+from pathlib import Path
 
-here = pathlib.Path(__file__).parent.resolve()
+from setuptools import find_packages, setup
+
+here = Path(__file__).parent.resolve()
 
 # Get the long description from the README file
 long_description = (here / "README.md").read_text(encoding="utf-8")
 version = (here / "s3prl" / "version.txt").read_text(encoding="utf-8").strip()
 
-requirements = {
-    "install": [
-        "torchaudio>=0.7.0",
-        "torch>=1.7.0, !=1.10.0",
-        "PyYAML>=5.4",
-        "tqdm>=4.56.0",
-        "numpy>=1.21",
-        "gdown>=3.12.2",
-        "fairseq @ git+https://github.com//pytorch/fairseq.git@f2146bdc7abf293186de9449bfa2272775e39e1d#egg=fairseq",
-        "lighthubert @ git+https://github.com/mechanicalsea/lighthubert#egg=lighthubert",
-        "transformers>=4.10.0,<5.0",
-        "speechbrain",
-        "pytorch-lightning",
-    ],
-    "problem": [
-        "dtw-python>=1.1.6",
-        "asteroid==0.4.4",
-        "sacrebleu>=2.0.0",
-        "kaldi_io",
-        "h5py",
-        "sox",
-        "tabulate",
-        "intervaltree",
-        "lxml",
-        "soundfile",
-        "pysndfx",
-        "nltk",
-        "normalise",
-        "mutagen",
-        "huggingface_hub>=0.2.1",
-        "joblib>=0.12.4",
-        "librosa>=0.7.2",
-        "scikit-learn>=0.23.2",
-        "scipy>=1.5.4",
-        "tensorboardX>=1.9, <2.3",
-        "matplotlib>=3.3.4",
-        "pandas>=1.1.5",
-        "Pillow>=6.2.2",
-        "numba>=0.48",
-        "cython>=0.29.21",
-        "packaging>=20.9",
-        "editdistance",
-        "easydict",
-        "catalyst",
-        "sentencepiece",
-    ],
-    "dev": [
-        "python-dotenv",
-        "pytest",
-        "pre-commit",
-    ],
-    "doc": [
-        "sphinx",
-        "furo",
-    ],
-}
+requirements = {}
+for file in os.listdir(here / "requirements"):
+    lines = [line.strip() for line in (here / "requirements" / file).open().readlines()]
+    requirements[Path(file).stem] = lines
 
 install_requires = requirements["install"]
+extras_require = {k: v for k, v in requirements.items() if k not in ["install"]}
+
 all_requires = []
 for k, v in requirements.items():
     all_requires.append(v)
-
-extras_require = {k: v for k, v in requirements.items() if k not in ["install"]}
 extras_require = {
     "all": all_requires,
 }
