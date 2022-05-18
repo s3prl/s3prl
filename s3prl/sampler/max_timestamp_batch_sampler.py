@@ -62,7 +62,8 @@ class MaxTimestampBatchSampler(Sampler):
                 return item["wav_metadata"]["num_frames"]
 
             timestamps = Parallel(n_jobs=n_jobs)(
-                delayed(get_timestamp)(item) for item in tqdm(dataset, desc="loading metadata")
+                delayed(get_timestamp)(item)
+                for item in tqdm(dataset, desc="loading metadata")
             )
         return timestamps
 

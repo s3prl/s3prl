@@ -3,7 +3,7 @@
 set -x
 set -e
 
-pip install flake8 black==22.3.0
+pip install flake8==3.9.2 black==22.3.0 isort==5.10.1
 
 script_dir=$(dirname $0)
 script_dir=$(realpath $script_dir)
@@ -17,5 +17,8 @@ flake8 $(cat ${s3prl_dir}/valid_paths.txt) --count --exit-zero --max-complexity=
 
 # black
 black --check $(cat ${s3prl_dir}/valid_paths.txt)
+
+# isort
+isort --check $(cat ${s3prl_dir}/valid_paths.txt)
 
 echo "[CI: format.sh] Successfully pass!"
