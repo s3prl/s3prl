@@ -15,6 +15,7 @@ jobs:
       matrix:
         platform: [ubuntu-latest]
         python-version: [3.8, 3.9]
+        torchaudio-version: [0.10.0, 0.9.1, 0.8.2]
 
     runs-on: ${{ matrix.platform }}
 
@@ -26,26 +27,19 @@ jobs:
       with:
         python-version: ${{ matrix.python-version }}
 
-    # - name: Conditionally install pytorch
-    #   if: matrix.platform == 'windows-latest'
-    #   run: pip3 install torch -f https://download.pytorch.org/whl/torch_stable.html
+    - name: Upgrade pip
+      run: pip3 install --upgrade pip
 
-    # - name: Install locally
-    #   run: |
-    #     python -m pip install --upgrade pip
-    #     git submodule update --init --recursive
-    #     python setup.py build_ext --inplace
-    #     python -m pip install --editable .
+    - name: Install PyTorch & Torchaudio
+      run: pip3 install torchaudio==${{ matrix.torchaudio-version }}
 
-    # - name: Install optional test requirements
-    #   run: |
-    #     python -m pip install iopath transformers pyarrow
-    #     python -m pip install git+https://github.com/facebookresearch/fairscale.git@main
+    - name: Install S3PRL
+      run: pip3 install --editable ".[all]"
 
     - name: Check coding style by ci/format.sh
       run: |
         ./ci/format.sh
 
-    # - name: Run tests
-    #   run: |
-    #       python setup.py test
+    - name: Run tests
+      run: |
+        pytest
