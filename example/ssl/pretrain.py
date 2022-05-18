@@ -169,6 +169,9 @@ def main():
         ckpt_dir.mkdir(parents=True, exist_ok=True)
         logger.info(f"Save checkpoint to: {ckpt_dir}")
 
+        if hasattr(problem, "save_checkpoint"):
+            logger.info(f"Save upstream checkpoint to: {ckpt_dir}")
+            problem.save_checkpoint(config, body, head, ckpt_dir / "upstream.ckpt")
         task.save_checkpoint(ckpt_dir / "task.ckpt")
         torch.save(optimizer.state_dict(), ckpt_dir / "optimizer.ckpt")
         torch.save(

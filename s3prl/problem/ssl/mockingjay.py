@@ -14,6 +14,7 @@ from s3prl.nn.transformer_mockingjay import (
 )
 from torch.nn import L1Loss
 from s3prl import Container
+import torch
 
 
 class Mockingjay:
@@ -113,3 +114,19 @@ class Mockingjay:
             valid_higher_better=False,
         ),
     )
+
+    def save_checkpoint(config, body, head, path):
+        all_states = {
+            "Config": {},  # placeholder
+            "SpecHead": head.state_dict(),
+            "Transformer": body.state_dict(),
+            "Upstream_Config": {
+                "transformer": config.ModelConfig,
+                "audio": config.TrainData["audio_config"],
+                "task": {"sequence_length": 0},
+            },
+        }
+        all_states["Upstream_Config"]["audio"]["target_level"] = config.TrainData[
+            "target_level"
+        ]
+        torch.save(all_states, path)
