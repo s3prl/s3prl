@@ -1,6 +1,6 @@
 python-dotenv
 pytest
 pre-commit
-flake8==3.9.2
-black==22.3.0
-isort==5.10.1
+flake8 ==3.9.2
+black ==22.3.0
+isort ==5.10.1

@@ -21,9 +21,7 @@ extras_require = {k: v for k, v in requirements.items() if k not in ["install"]}
 all_requires = []
 for k, v in requirements.items():
     all_requires.append(v)
-extras_require = {
-    "all": all_requires,
-}
+extras_require["all"] = all_requires
 
 # Arguments marked as "Required" below must be included for upload to PyPI.
 # Fields marked as "Optional" may be commented out.

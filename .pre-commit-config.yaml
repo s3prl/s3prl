@@ -18,6 +18,6 @@ repos:
     hooks:
       - id: format
         name: format
-        entry: ./ci/format.sh false
+        entry: ./ci/format.sh
         language: system
         types: [python]

@@ -96,8 +96,9 @@ branch is ready.
 
     .. code-block:: bash
 
-        ./ci/format.sh
+        ./ci/format.sh --check
+        # If this fails, simply remove --check to do the actual formatting
 
-        # Should add unit test check later on
+        pytest
 
 14. Send a pull request on GitHub
