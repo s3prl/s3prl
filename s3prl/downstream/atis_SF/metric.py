@@ -92,3 +92,13 @@ if __name__ == '__main__':
     # print(tokenizer.decode(id))
     d = parse_BI_entity(id, tokenizer)
     print(d)
+
+
+import editdistance as ed
+def uer(hypothesis, groundtruth, **kwargs):
+    err = 0
+    tot = 0
+    for p, t in zip(hypothesis, groundtruth):
+        err += float(ed.eval(p, t))
+        tot += len(t)
+    return err / tot

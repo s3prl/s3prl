@@ -477,7 +477,7 @@ class LocationAwareAttention(BaseAttention):
 
 
 '''transformer'''
-from torch.nn import Transformer
+from torch.nn import Transformer, TransformerDecoder, TransformerDecoderLayer
 from torch import Tensor
 import math
 DEVICE = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
@@ -521,7 +521,10 @@ class Seq2SeqTransformer(nn.Module):
                  nhead=4,
                  tgt_vocab_size=600,
                  dim_feedforward=512,
-                 dropout=0.1):
+                 dropout=0.1, 
+                 is_unit=False,
+                 unit_size=None,
+                 is_dual_decoder=False):
         super(Seq2SeqTransformer, self).__init__()
         self.transformer = Transformer(d_model=emb_size,
                                        nhead=nhead,
@@ -530,14 +533,26 @@ class Seq2SeqTransformer(nn.Module):
                                        dim_feedforward=dim_feedforward,
                                        dropout=dropout,
                                        batch_first=True)
+
+        
         self.generator = nn.Linear(emb_size, tgt_vocab_size)
         self.tgt_tok_emb = TokenEmbedding(tgt_vocab_size, emb_size)
-        self.feature_extractor1 = nn.Conv1d(emb_size, emb_size, 3, padding='same')
-        # self.feature_extractor2 = nn.Conv1d(emb_size, emb_size, 3, padding='same')
-        # self.feature_extractor3 = nn.Conv1d(emb_size, emb_size, 3, padding='same')
-
         self.positional_encoding = PositionalEncoding(
             emb_size, dropout=dropout)
+        self.is_unit = is_unit
+        
+        self.ctc_layer = nn.Sequential(
+            nn.Linear(emb_size, unit_size),
+        )
+        self.is_dual_decoder = is_dual_decoder
+        if self.is_dual_decoder: 
+            decoder_layer = nn.TransformerDecoderLayer(d_model=emb_size, nhead=nhead, dim_feedforward=emb_size, batch_first=True)
+            self.unit_decoder = TransformerDecoder(decoder_layer, num_decoder_layers)
+            self.unit_tok_emb = TokenEmbedding(unit_size, emb_size)
+            self.unit_positional_encoding = PositionalEncoding(emb_size, dropout=dropout)
+            self.unit_generator = nn.Linear(emb_size, unit_size)
+        
+
         
 
     def forward(self,
@@ -547,30 +562,44 @@ class Seq2SeqTransformer(nn.Module):
                 tgt_mask: Tensor,
                 src_padding_mask: Tensor,
                 tgt_padding_mask: Tensor,
-                memory_key_padding_mask: Tensor):
+                memory_key_padding_mask: Tensor, 
+                unit=None, 
+                ctc_weight=0,
+                unit_mask=None):
+        
+        memory = self.transformer.encoder(src, mask=src_mask, src_key_padding_mask=src_padding_mask)
 
-        src_emb = self.feature_extractor1(src.view(src.shape[0], src.shape[2], src.shape[1]))
-        # src_emb = self.feature_extractor2(src_emb)
-        # src_emb = self.feature_extractor3(src_emb)
-        src_emb = src_emb.view(src_emb.shape[0], src_emb.shape[2], src_emb.shape[1])
-        tgt_emb = self.positional_encoding(self.tgt_tok_emb(trg))
+        ctc_output = None
+        if self.is_unit and ctc_weight > 0.0: 
+            ctc_output = F.log_softmax(self.ctc_layer(memory), dim=-1)
 
-        outs = self.transformer(src_emb, tgt_emb, src_mask, tgt_mask, None,
-                                src_padding_mask, tgt_padding_mask, memory_key_padding_mask)
-        return self.generator(outs)
+        unit_outs = None
+        if self.is_dual_decoder: 
+            unit = self.positional_encoding(self.tgt_tok_emb(unit))
+            unit_outs = self.unit_decoder(unit, memory, tgt_mask=unit_mask)
+        
+        # main task
+        if ctc_weight < 1.0: 
+            tgt = self.positional_encoding(self.tgt_tok_emb(trg))
+            outs = self.transformer.decoder(tgt, memory, tgt_mask=tgt_mask)
+            # dual decoder for unit
+            if unit_outs is not None: 
+                return self.generator(outs), ctc_output, self.unit_generator(unit_outs)
+            else: 
+                return self.generator(outs), ctc_output, None
+        else: 
+            if unit_outs is not None: 
+                return None, ctc_output, self.unit_generator(unit_outs)
+            else: 
+                return None, ctc_output, None 
 
     def encode(self, src: Tensor, src_mask: Tensor):
-        src_emb = self.feature_extractor1(src.view(src.shape[0], src.shape[2], src.shape[1]))
-        src_emb = src_emb.view(src_emb.shape[0], src_emb.shape[2], src_emb.shape[1])
-        
-        return self.transformer.encoder(src_emb, src_mask)
+        return self.transformer.encoder(src, src_mask)
 
-    def decode(self, tgt: Tensor, memory: Tensor, tgt_mask: Tensor):
-        # print(memory.shape)
-        # print(tgt_mask.shape)
+    def decode(self, tgt: Tensor, memory: Tensor, tgt_mask: Tensor):        
         tgt = self.positional_encoding(self.tgt_tok_emb(tgt))
         tgt = tgt.view(tgt.shape[1], tgt.shape[0], tgt.shape[2])
-        print(tgt.shape)
+
         return self.transformer.decoder(tgt, memory,
                           tgt_mask)
 
@@ -587,15 +616,13 @@ def create_mask(src, tgt):
 
     tgt_mask = generate_square_subsequent_mask(tgt_seq_len)
     src_mask = torch.zeros((src_seq_len, src_seq_len),device=DEVICE).type(torch.bool)
-
-    # src_padding_mask = (src == PAD_IDX).transpose(0, 1)
     tgt_padding_mask = (tgt == PAD_IDX)
     return src_mask, tgt_mask, tgt_padding_mask
 
 def greedy_decode(model, src, src_mask, max_len, start_symbol=2):
     src = src.to(DEVICE)
     src_mask = src_mask.to(DEVICE)
-
+    print(src.shape)
     memory = model.encode(src, src_mask)
     ys = torch.ones(1, 1).fill_(start_symbol).type(torch.long).to(DEVICE)
     for i in range(max_len-1):

@@ -14,9 +14,10 @@ import pandas as pd
 from collections import Counter
 import wandb
 from .model import AttenDecoderModel, Seq2SeqTransformer, generate_square_subsequent_mask, create_mask, greedy_decode
-from .metric import parse_entity, entity_f1_score, parse_BI_entity
+from .metric import parse_entity, entity_f1_score, parse_BI_entity, uer
 
-
+PAD_IDX = 0
+EOS_IDX = 1
 
 class DownstreamExpert(nn.Module):
     """
@@ -31,9 +32,12 @@ class DownstreamExpert(nn.Module):
         self.datarc = downstream_expert['datarc']
         self.modelrc = downstream_expert['modelrc']
         self.seq_loss = torch.nn.CrossEntropyLoss(ignore_index=0)
-        # self.get_dataset()
+        
         self.base_path = self.datarc['file_path']   
         self.is_BI = self.datarc['is_BI']
+        self.unit_path = self.datarc['unit_path'] if 'unit_path' in self.datarc else None
+        self.unit_size = self.datarc['unit_size'] + 3 if 'unit_size' in self.datarc else None
+
         if self.is_BI: 
             self.tokenizer = Tokenizer.from_file(os.path.join(self.base_path, 'BI_tokenizer.json'))
         else:
@@ -41,37 +45,42 @@ class DownstreamExpert(nn.Module):
 
 
         aug_config = downstream_expert['augmentation'] if 'augmentation' in downstream_expert else None
-
-        self.train_dataset = AtisDataset(os.path.join(self.base_path, 'sv_train.csv'), os.path.join(self.base_path, 'train'), self.tokenizer, aug_config)
-        self.dev_dataset = AtisDataset(os.path.join(self.base_path, 'sv_dev.csv'), os.path.join(self.base_path, 'dev'), self.tokenizer)
-        self.test_dataset = AtisDataset(os.path.join(self.base_path, 'sv_test.csv'),os.path.join(self.base_path, 'test'), self.tokenizer)
+        
+        self.train_dataset = AtisDataset(os.path.join(self.base_path, 'sv_train.csv'), os.path.join(self.base_path, 'train'), self.tokenizer, aug_config, unit_path=self.unit_path)
+        self.dev_dataset = AtisDataset(os.path.join(self.base_path, 'sv_dev.csv'), os.path.join(self.base_path, 'dev'), self.tokenizer, unit_path=self.unit_path)
+        self.test_dataset = AtisDataset(os.path.join(self.base_path, 'sv_test.csv'),os.path.join(self.base_path, 'test'), self.tokenizer, unit_path=self.unit_path)
         
         self.connector = nn.Linear(upstream_dim, self.modelrc['input_dim'])
-        self.objective = nn.CrossEntropyLoss()
         self.vocab_size = self.modelrc['input_dim']
-        self.enable_ctc = self.modelrc['enable_ctc']
+        self.ctc_weight = self.modelrc['ctc_weight']
         self.is_transformer = self.modelrc['is_transformer']
         
         self.num_encoder_layers = self.modelrc['num_encoder_layers']
         self.num_decoder_layers = self.modelrc['num_decoder_layers']
         self.emb_size = self.modelrc['emb_size']
         self.nhead = self.modelrc['nhead']
-        
+        self.is_dual_decoder = self.modelrc['is_dual_decoder']
+        self.unit_decode_weight = self.modelrc['unit_decode_weight']
+
+        self.is_unit = False
+        if self.unit_path is not None and self.ctc_weight != 0.:
+            self.is_unit = True
+            self.ctc_loss = torch.nn.CTCLoss(blank=0, zero_infinity=False)
         
         if self.is_transformer: 
             self.model = Seq2SeqTransformer(num_encoder_layers=self.modelrc['num_encoder_layers'], 
                                             num_decoder_layers=self.modelrc['num_decoder_layers'],
                                             emb_size=self.modelrc['emb_size'], 
                                             nhead=self.modelrc['nhead'], 
-                                            tgt_vocab_size=self.modelrc['vocab_size'])
+                                            tgt_vocab_size=self.modelrc['vocab_size'], 
+                                            is_unit=self.is_unit, 
+                                            unit_size=self.unit_size,
+                                            is_dual_decoder=self.is_dual_decoder,
+                                            )
         else:
             self.model = AttenDecoderModel(self.modelrc['input_dim'], self.vocab_size)
 
-        if self.enable_ctc:
-            self.ctc_layer = nn.Sequential(
-                nn.Linear(self.emb_size, self.vocab_size), 
-                nn.ReLU() 
-            )
+        
 
     def _get_train_dataloader(self, dataset):
         return DataLoader(
@@ -100,9 +109,18 @@ class DownstreamExpert(nn.Module):
         return eval(f'self.get_{mode}_dataloader')()
 
     # Interface
-    def forward(self, mode, features, labels, records=None, **kwargs):
+    def forward(self, mode, features, labels, units=None, records=None, **kwargs):
         features_pad = pad_sequence(features, batch_first=True)
         DEVICE = features_pad.device
+
+        if units is not None: 
+            units = [torch.LongTensor(unit).to(DEVICE) for unit in units]
+            units_pad = pad_sequence(units, batch_first=True)
+            encode_len = torch.IntTensor([feature.shape[0] for feature in features]).to(DEVICE)
+            unit_len = torch.IntTensor([len(u) for u in units])
+            unit_input = units_pad[:, :-1]
+            unit_out = units_pad[:, 1:]
+        
         labels = [torch.LongTensor(label).to(DEVICE) for label in labels]
         label_len = [len(l) for l in labels]
 
@@ -115,78 +133,99 @@ class DownstreamExpert(nn.Module):
         attention_mask_pad = (1.0 - attention_mask_pad) * -100000.0
 
         src_mask, tgt_mask, tgt_padding_mask = create_mask(features_pad, tgt_input)
+        # for unit_mask
+        _ , unit_mask, unit_padding_mask = create_mask(features_pad, unit_input)
 
         features_pad = self.connector(features_pad)
 
         # train mode 
         if mode == 'train':
             if self.is_transformer: 
-                att_output = self.model(features_pad, tgt_input, src_mask, tgt_mask, attention_mask_pad, tgt_padding_mask, attention_mask_pad)
+                att_output, ctc_output, unit_output = self.model(features_pad, tgt_input, src_mask, tgt_mask, attention_mask_pad, tgt_padding_mask, attention_mask_pad, unit_input, self.ctc_weight, unit_mask)
             else:
                 ctc_output, encode_len, att_output, att_seq, dec_state = self.model(features_pad, max(label_len), 0.7, labels_pad)
         # dev, test mode
         else: 
             if self.is_transformer: 
-                ys = list(greedy_decode(self.model, features_pad, src_mask, max_len=20).flatten().cpu().numpy().astype(int))
-                ys = ys[1:]
-                att_output = self.model(features_pad, tgt_input, src_mask, tgt_mask, attention_mask_pad, tgt_padding_mask, attention_mask_pad)
+                if self.ctc_weight < 1.0:
+                    ys = list(greedy_decode(self.model, features_pad, src_mask, max_len=20).flatten().cpu().numpy().astype(int))
+                    ys = ys[1:]
+                att_output, ctc_output, unit_output = self.model(features_pad, tgt_input, src_mask, tgt_mask, attention_mask_pad, tgt_padding_mask, attention_mask_pad, unit_input, self.ctc_weight, unit_mask)
             else:
                 ctc_output, encode_len, att_output, att_seq, dec_state = self.model(features_pad, max(label_len))
         
         total_loss = 0
-        # intent_logits = self.model(features_pad, attention_mask_pad.cuda())
-        # if ctc_output is not None:
-        #     if self.paras.cudnn_ctc:
-        #         ctc_loss = self.ctc_loss(ctc_output.transpose(0,1), 
-        #                                     txt.to_sparse().values().to(device='cpu',dtype=torch.int32),
-        #                                     [ctc_output.shape[1]]*len(ctc_output),
-        #                                     #[int(encode_len.max()) for _ in encode_len],
-        #                                     txt_len.cpu().tolist())
-        #     else:
-        #         ctc_loss = self.ctc_loss(ctc_output.transpose(0,1), txt, encode_len, txt_len)
-        #     total_loss += ctc_loss*self.model.ctc_weight
-        #     del encode_len
+    
+        if ctc_output is not None and self.ctc_weight > 0.0:
+            # T, N, C for ctc_loss input
+            ctc_loss = self.ctc_loss(ctc_output.transpose(0,1), units_pad, encode_len, unit_len)
+            total_loss += ctc_loss * self.ctc_weight
+            records['ctc_loss'].append(ctc_loss.cpu().item())
 
-        
-        if att_output is not None: 
+            log_probs = nn.functional.log_softmax(ctc_output, dim=-1)
+            pred_tokens = log_probs.argmax(dim=-1)
+            
+            # decode for ctc
+            filtered_tokens = []
+            for pred_token in pred_tokens:
+                filtered_tokens.append(self.ctc_decode(pred_token.tolist(), ignore_repeat=True))
+
+            groundtruth = [self.ctc_decode(g.tolist()) for g in units]
+            # record uer for token
+            UER = uer(filtered_tokens, groundtruth)
+            records['UER'] += [UER]
+            if mode != 'train':
+                print(filtered_tokens, groundtruth)
+                print(UER)
+
+        if unit_output is not None: 
+            b,t,_ = unit_output.shape
+            unit_decode_loss = self.seq_loss(unit_output.reshape(b*t, -1), unit_out.reshape(-1))
+            total_loss += unit_decode_loss * self.unit_decode_weight
+            records['unit_decode_loss'].append(unit_decode_loss.cpu().item())
+
+        if att_output is not None and self.ctc_weight < 1.0: 
             b,t,_ = att_output.shape
-            att_loss = self.seq_loss(att_output.reshape(b*t,-1),tgt_out.reshape(-1))
-            total_loss += att_loss
+            att_loss = self.seq_loss(att_output.reshape(b*t, -1), tgt_out.reshape(-1))
+            total_loss += att_loss * (1 - self.ctc_weight)
+            records['att_loss'].append(att_loss.cpu().item())
 
             hyps = att_output.argmax(dim=-1).detach().tolist()
             gts = tgt_out.detach().tolist()
 
-        f1s = []
-        f1s_ys = []
-        for hyp, gt in zip(hyps, gts):
-            if self.is_BI:
-                d_gt = parse_BI_entity(gt, self.tokenizer)
-                d_hyp = parse_BI_entity(hyp, self.tokenizer)
-                
-            else:
-                d_gt = parse_entity(gt)
-                d_hyp = parse_entity(hyp)
-
-            f1 = entity_f1_score(d_gt, d_hyp)
-            if mode != 'train':
+            f1s = []
+            f1s_ys = []
+            for hyp, gt in zip(hyps, gts):
                 if self.is_BI:
-                    d_ys = parse_BI_entity(ys, self.tokenizer)
+                    d_gt = parse_BI_entity(gt, self.tokenizer)
+                    d_hyp = parse_BI_entity(hyp, self.tokenizer)
                     
                 else:
-                    d_ys = parse_entity(ys)
+                    d_gt = parse_entity(gt)
+                    d_hyp = parse_entity(hyp)
 
-                f1_ys = entity_f1_score(d_gt, d_ys)
-                f1s_ys.append(f1_ys)
-                print(d_gt, d_hyp, d_ys)
-                print(f1, f1_ys)
-                print(gt, hyp, ys)
+                f1 = entity_f1_score(d_gt, d_hyp)
+                if mode != 'train':
+                    if self.is_BI:
+                        d_ys = parse_BI_entity(ys, self.tokenizer)
+                        
+                    else:
+                        d_ys = parse_entity(ys)
+
+                    f1_ys = entity_f1_score(d_gt, d_ys)
+                    f1s_ys.append(f1_ys)
+                    print(d_gt, d_hyp, d_ys)
+                    print(f1, f1_ys)
+                    print(gt, hyp, ys)
+                    
+                f1s.append(f1)
+
+            if mode != 'train':
+                records['f1_greedy'] += f1s_ys
                 
-            f1s.append(f1)
+            records['f1'] += f1s
 
-        if mode != 'train':
-            records['f1_greedy'] += f1s_ys
-        records['f1'] += f1s
-        records['loss'].append(total_loss.cpu().item())
+        records['tot_loss'].append(total_loss.cpu().item())
         return total_loss
 
     # interface
@@ -195,5 +234,16 @@ class DownstreamExpert(nn.Module):
             average = torch.FloatTensor(values).mean().item()
             wandb.log({f'atis/{mode}-{key}': average})
     
+    def ctc_decode(self, idxs, ignore_repeat=False):
+        vocabs = []
+        for t, idx in enumerate(idxs):
+            v = chr(idx)
+            if idx == PAD_IDX or (ignore_repeat and t > 0 and idx == idxs[t-1]):
+                continue
+            elif idx == EOS_IDX:
+                break
+            else:
+                vocabs.append(v)
+        return "".join(vocabs)
 
 

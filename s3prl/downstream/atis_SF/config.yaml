@@ -1,11 +1,11 @@
 runner:
   total_steps: 20000
   gradient_clipping: 1
-  gradient_accumulate_steps: 48
+  gradient_accumulate_steps: 96
 
   log_step: 5
-  eval_step: 50
-  save_step: 1000
+  eval_step: 30
+  save_step: 300
   max_keep: 1
   eval_dataloaders:
     - dev
@@ -19,15 +19,17 @@ optimizer:
 # to disable learning rate scheduling
 scheduler:
   name: linear_schedule_with_warmup
-  num_warmup_steps: 200
+  num_warmup_steps: 100
 
 downstream_expert:
   datarc:
     file_path: /home/daniel094144/data/atis
     num_workers: 0
-    train_batch_size: 4
+    train_batch_size: 2
     eval_batch_size: 1
     is_BI: True
+    unit_path: /home/daniel094144/data/atis/atis_code_128_IN/code
+    unit_size: 128
   
   augmentation: 
     TimeStretch: 
@@ -43,8 +45,10 @@ downstream_expert:
     is_transformer: True
     vocab_size: 600
     input_dim: 512
-    enable_ctc: 0
+    ctc_weight: 0
     num_encoder_layers: 3
     num_decoder_layers: 3
     emb_size: 512
     nhead: 4
+    is_dual_decoder: True
+    unit_decode_weight: 0.3
