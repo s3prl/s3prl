@@ -43,7 +43,7 @@ class SuperbASR:
             sample_style="concat",
             bidirectional=True,
         ),
-        Task=dict(),
+        Task=dict(decoder=dict()),
         Optimizer=dict(
             cls="torch.optim.Adam",
             lr=1.0e-4,
