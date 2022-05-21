@@ -5,17 +5,24 @@ import torch
 from torch.utils.data import DataLoader
 
 from s3prl import Output
-from s3prl.task import Task
-from s3prl.dataset import Dataset
 from s3prl.base.object import Object
+from s3prl.dataset import Dataset
+from s3prl.task import Task
 
 device = "cuda" if torch.cuda.is_available() else "cpu"
 
+
 def parse_args():
     parser = argparse.ArgumentParser()
-    parser.add_argument("--load_from", type=str, default="result/sv", help="The directory containing all the checkpoints")
+    parser.add_argument(
+        "--load_from",
+        type=str,
+        default="result/sv",
+        help="The directory containing all the checkpoints",
+    )
     args = parser.parse_args()
     return args
+
 
 def main():
     args = parse_args()
@@ -34,6 +41,7 @@ def main():
             batch: Output = batch.to(device)
             result = task(**batch.subset("x", "x_len", as_type="dict"))
             print(result.hidden_states.shape)
+
 
 if __name__ == "__main__":
     main()

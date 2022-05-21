@@ -1,10 +1,10 @@
 from typing import List, Union
-from sklearn.metrics import accuracy_score
-from scipy.interpolate import interp1d
-from sklearn.metrics import roc_curve
-from scipy.optimize import brentq
 
 import editdistance as ed
+from scipy.interpolate import interp1d
+from scipy.optimize import brentq
+from sklearn.metrics import accuracy_score, roc_curve
+
 
 def accuracy(xs, ys, item_same_fn=None):
     if isinstance(xs, (tuple, list)):
@@ -87,7 +87,7 @@ def cer(hyps: List[str], refs: List[str]) -> float:
 
 def compute_eer(labels, scores):
     """
-        sklearn style compute eer
+    sklearn style compute eer
     """
     fpr, tpr, thresholds = roc_curve(labels, scores, pos_label=1)
     eer = brentq(lambda x: 1.0 - x - interp1d(fpr, tpr)(x), 0.0, 1.0)
@@ -97,9 +97,9 @@ def compute_eer(labels, scores):
 
 def compute_minDCF(labels, scores, p_target=0.01, c_miss=1, c_fa=1):
     """
-        MinDCF
-        Computes the minimum of the detection cost function.  The comments refer to
-        equations in Section 3 of the NIST 2016 Speaker Recognition Evaluation Plan.
+    MinDCF
+    Computes the minimum of the detection cost function.  The comments refer to
+    equations in Section 3 of the NIST 2016 Speaker Recognition Evaluation Plan.
     """
     fpr, tpr, thresholds = roc_curve(labels, scores, pos_label=1)
     fnr = 1.0 - tpr

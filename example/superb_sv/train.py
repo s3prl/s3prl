@@ -1,25 +1,36 @@
-import math
-import logging
 import argparse
-from tqdm import tqdm
+import logging
+import math
 from pathlib import Path
 
 import torch
 import torch.optim as optim
 from torch.utils.data import DataLoader
+from tqdm import tqdm
 
-from s3prl import Object, Output, Logs
-from s3prl.superb import sv as problem
+from s3prl import Logs, Object, Output
+from s3prl.nn import S3PRLUpstream, UpstreamDownstreamModel
 from s3prl.sampler import DistributedBatchSamplerWrapper
-from s3prl.nn import UpstreamDownstreamModel, S3PRLUpstream
+from s3prl.superb import sv as problem
 
 device = "cuda" if torch.cuda.is_available() else "cpu"
 logger = logging.getLogger(__name__)
 
+
 def parse_args():
     parser = argparse.ArgumentParser()
-    parser.add_argument("--voxceleb1", type=str, default="/work/jason410/PublicData/Voxceleb1", help="The root directory of VoxCeleb1")
-    parser.add_argument("--save_to", type=str, default="result/sv", help="The directory to save checkpoint")
+    parser.add_argument(
+        "--voxceleb1",
+        type=str,
+        default="/work/jason410/PublicData/Voxceleb1",
+        help="The root directory of VoxCeleb1",
+    )
+    parser.add_argument(
+        "--save_to",
+        type=str,
+        default="result/sv",
+        help="The directory to save checkpoint",
+    )
     parser.add_argument("--total_steps", type=int, default=200000)
     parser.add_argument("--log_step", type=int, default=100)
     parser.add_argument("--eval_step", type=int, default=200)
@@ -31,6 +42,7 @@ def parse_args():
     parser.add_argument("--spk_embd_dim", type=int, default=1500)
     args = parser.parse_args()
     return args
+
 
 def main():
     logging.basicConfig()
@@ -91,7 +103,7 @@ def main():
     test_dataloader = DataLoader(
         test_dataset, batch_size=1, num_workers=6, collate_fn=test_dataset.collate_fn
     )
-    
+
     latest_task = save_to / "task.ckpt"
     if latest_task.is_file():
         logger.info("Last checkpoint found. Load model and optimizer from checkpoint")
@@ -118,17 +130,17 @@ def main():
             backbone=args.backbone,
             pooling_type=args.pooling_type,
             input_size=upstream.output_size,
-            output_size=args.spk_embd_dim
+            output_size=args.spk_embd_dim,
         )
 
         model = UpstreamDownstreamModel(upstream, downstream)
 
         # Have to specify the loss_type
         task = problem.Task(
-            model=model, 
-            categories=preprocessor.statistics().category, 
+            model=model,
+            categories=preprocessor.statistics().category,
             loss_type=args.loss_type,
-            trials=test_dataset.statistics().label
+            trials=test_dataset.statistics().label,
         )
         task = task.to(device)
 
@@ -148,7 +160,7 @@ def main():
         optimizer.load_state_dict(torch.load(save_to / "optimizer.ckpt"))
     else:
         optimizer = optim.Adam(task.parameters(), lr=1e-3)
-    
+
     # The following code block demonstrate how to train with your own training loop
     # This entire block can be easily replaced with Lightning/SpeechBrain Trainer as
     #
@@ -226,7 +238,7 @@ def main():
                     logger.info(f"[Valid] step {global_step}")
                     for log in logs.values():
                         logger.info(f"{log.name}: {log.data}")
-                    
+
                     # test
                     test_results = []
                     for batch in tqdm(
@@ -239,8 +251,8 @@ def main():
                         #     test_results[key] = value
 
                     logs: Logs = task.test_reduction(
-                                            batch_results=test_results,
-                                            ).logs
+                        batch_results=test_results,
+                    ).logs
                     logger.info(f"[Test] step {global_step}")
                     for log in logs.values():
                         logger.info(f"{log.name}: {log.data}")
@@ -248,6 +260,7 @@ def main():
             if (global_step + 1) % args.save_step == 0:
                 task.save_checkpoint(save_to / "task.ckpt")
                 torch.save(optimizer.state_dict(), save_to / "optimizer.ckpt")
+
 
 if __name__ == "__main__":
     main()

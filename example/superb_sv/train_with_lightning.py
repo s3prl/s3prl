@@ -1,26 +1,36 @@
-import logging
 import argparse
+import logging
 from pathlib import Path
 
 import torch
 import torch.optim as optim
-from torch.utils.data import DataLoader
-
 from pytorch_lightning import Trainer
 from pytorch_lightning.callbacks import ModelCheckpoint
+from torch.utils.data import DataLoader
 
+from s3prl.nn import S3PRLUpstream, UpstreamDownstreamModel
+from s3prl.sampler import DistributedBatchSamplerWrapper
 from s3prl.superb import sv as problem
 from s3prl.wrapper import LightningModuleSimpleWrapper
-from s3prl.sampler import DistributedBatchSamplerWrapper
-from s3prl.nn import UpstreamDownstreamModel, S3PRLUpstream
 
 device = "cuda" if torch.cuda.is_available() else "cpu"
 logger = logging.getLogger(__name__)
 
+
 def parse_args():
     parser = argparse.ArgumentParser()
-    parser.add_argument("--voxceleb1", type=str, default="/work/jason410/PublicData/Voxceleb1", help="The root directory of VoxCeleb1")
-    parser.add_argument("--save_to", type=str, default="lightning_result/sv", help="The directory to save checkpoint")
+    parser.add_argument(
+        "--voxceleb1",
+        type=str,
+        default="/work/jason410/PublicData/Voxceleb1",
+        help="The root directory of VoxCeleb1",
+    )
+    parser.add_argument(
+        "--save_to",
+        type=str,
+        default="lightning_result/sv",
+        help="The directory to save checkpoint",
+    )
     parser.add_argument("--total_steps", type=int, default=200000)
     parser.add_argument("--log_step", type=int, default=100)
     parser.add_argument("--eval_step", type=int, default=1000)
@@ -42,6 +52,7 @@ def parse_args():
     parser.add_argument("--spk_embd_dim", type=int, default=1500)
     args = parser.parse_args()
     return args
+
 
 def main():
 
@@ -110,13 +121,13 @@ def main():
         backbone=args.backbone,
         pooling_type=args.pooling_type,
         input_size=upstream.output_size,
-        output_size=args.spk_embd_dim
+        output_size=args.spk_embd_dim,
     )
     model = UpstreamDownstreamModel(upstream, downstream)
     # Have to specify the loss_type
     task = problem.Task(
-        model=model, 
-        categories=preprocessor.statistics().category, 
+        model=model,
+        categories=preprocessor.statistics().category,
         loss_type=args.loss_type,
         trials=test_dataset.statistics().label,
     )
@@ -168,6 +179,7 @@ def main():
         dataloaders=test_dataloader,
         ckpt_path=last_ckpt,
     )
+
 
 if __name__ == "__main__":
     main()

@@ -1,14 +1,9 @@
-from s3prl.corpus.voxceleb1sv import VoxCeleb1SV
-from s3prl.dataset.speaker_verification_pipe import (
-    SpeakerClassificationPipe,
-)
-from s3prl.sampler import (
-    MaxTimestampBatchSampler,
-    FixedBatchSizeBatchSampler,
-)
-from s3prl.task.speaker_verification_task import SpeakerVerification
-from s3prl.nn import speaker_embedding_extractor
 from s3prl import Container
+from s3prl.corpus.voxceleb1sv import VoxCeleb1SV
+from s3prl.dataset.speaker_verification_pipe import SpeakerClassificationPipe
+from s3prl.nn import speaker_embedding_extractor
+from s3prl.sampler import FixedBatchSizeBatchSampler, MaxTimestampBatchSampler
+from s3prl.task.speaker_verification_task import SpeakerVerification
 
 
 class SuperbSV:

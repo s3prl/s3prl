@@ -1,18 +1,20 @@
 from __future__ import annotations
+
 import logging
 from typing import List
-from tqdm import tqdm
 
 import torch
 import torch.nn.functional as F
+from tqdm import tqdm
 
+from s3prl import Logs, Module, Output
 from s3prl.metric import accuracy, compute_eer, compute_minDCF
 from s3prl.nn import amsoftmax, softmax
-from s3prl import Module, Output, Logs
 
 from . import Task
 
 logger = logging.getLogger(__name__)
+
 
 class SpeakerClassifier(Module):
     """
@@ -39,6 +41,7 @@ class SpeakerClassifier(Module):
         output = torch.randn(x.size(0), self.output_size)
         assert Output(output=output)
 
+
 class SpeakerVerification(Task):
     """
     Attributes:
@@ -52,7 +55,7 @@ class SpeakerVerification(Task):
         categories: dict(str),
         trials: list(tuple()),
         loss_type: str = "softmax",
-        **kwargs
+        **kwargs,
     ):
         """
         model.output_size should match len(categories)
@@ -114,7 +117,7 @@ class SpeakerVerification(Task):
         x_len: torch.LongTensor,
         label: torch.LongTensor,
         unique_name: List[str],
-        **kwargs
+        **kwargs,
     ):
         spk_embeddings = self(x, x_len).slice(1)
         loss, logits = self.loss(spk_embeddings, label).slice(2)
@@ -132,7 +135,9 @@ class SpeakerVerification(Task):
             logs=logs,
         )
 
-    def _general_reduction(self, batch_results: list, on_epoch_end: bool = None, **kwargs):
+    def _general_reduction(
+        self, batch_results: list, on_epoch_end: bool = None, **kwargs
+    ):
         predictions, labels, losses = [], [], []
         for batch_result in batch_results:
             predictions += batch_result.prediction
@@ -156,7 +161,7 @@ class SpeakerVerification(Task):
         x_len: torch.LongTensor,
         label: torch.LongTensor,
         unique_name: List[str],
-        **kwargs
+        **kwargs,
     ):
         """
         Each forward step in the training loop
@@ -207,7 +212,7 @@ class SpeakerVerification(Task):
         x_len: torch.LongTensor,
         label: torch.LongTensor,
         unique_name: List[str],
-        **kwargs
+        **kwargs,
     ):
         return self._general_forward(x, x_len, label, unique_name)
 
@@ -215,11 +220,7 @@ class SpeakerVerification(Task):
         return self._general_reduction(batch_results, on_epoch_end)
 
     def test_step(
-        self,
-        x: torch.Tensor,
-        x_len: torch.LongTensor,
-        unique_name: List[str],
-        **kwargs
+        self, x: torch.Tensor, x_len: torch.LongTensor, unique_name: List[str], **kwargs
     ):
         """
         Args:
@@ -235,7 +236,9 @@ class SpeakerVerification(Task):
         spk_embeddings = self(x, x_len).slice(1)
         return Output(unique_name=unique_name, output=spk_embeddings)
 
-    def test_reduction(self, batch_results: list(), on_epoch_end: bool = None, **kwargs):
+    def test_reduction(
+        self, batch_results: list(), on_epoch_end: bool = None, **kwargs
+    ):
 
         embeddings = {}
         for batch_result in batch_results:
@@ -247,8 +250,8 @@ class SpeakerVerification(Task):
         labels = []
         for label, enroll, test in tqdm(trials, desc="Test Scoring", total=len(trials)):
             enroll_embd = embeddings[enroll]
-            test_embd   = embeddings[test]
-            score       = F.cosine_similarity(enroll_embd, test_embd, dim=0).item()
+            test_embd = embeddings[test]
+            score = F.cosine_similarity(enroll_embd, test_embd, dim=0).item()
             scores.append(score)
             labels.append(label)
 

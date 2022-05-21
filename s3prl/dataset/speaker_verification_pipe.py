@@ -1,8 +1,5 @@
 from .base import SequentialDataPipe
-from .common_pipes import (
-    LoadAudio,
-    SetOutputKeys,
-)
+from .common_pipes import LoadAudio, SetOutputKeys
 
 
 class SpeakerClassificationPipe(SequentialDataPipe):
@@ -33,5 +30,3 @@ class SpeakerClassificationPipe(SequentialDataPipe):
             ),
             SetOutputKeys(output_keys=output_keys),
         )
-
-
