@@ -520,7 +520,7 @@ class Seq2SeqTransformer(nn.Module):
                  emb_size=512,
                  nhead=4,
                  tgt_vocab_size=600,
-                 dim_feedforward=512,
+                 dim_feedforward=2048,
                  dropout=0.1, 
                  is_unit=False,
                  unit_size=None,
@@ -541,19 +541,19 @@ class Seq2SeqTransformer(nn.Module):
             emb_size, dropout=dropout)
         self.is_unit = is_unit
         
-        self.ctc_layer = nn.Sequential(
-            nn.Linear(emb_size, unit_size),
-        )
+        # for ctc unit predition
+        unit_encoder_layer = nn.TransformerEncoderLayer(d_model=emb_size, nhead=nhead, dim_feedforward=emb_size, batch_first=True)
+        # add extra encoder layer
+        self.unit_encoder = nn.TransformerEncoder(unit_encoder_layer, num_encoder_layers)
+        self.ctc_layer = nn.Linear(emb_size, unit_size)
+
         self.is_dual_decoder = is_dual_decoder
         if self.is_dual_decoder: 
             decoder_layer = nn.TransformerDecoderLayer(d_model=emb_size, nhead=nhead, dim_feedforward=emb_size, batch_first=True)
             self.unit_decoder = TransformerDecoder(decoder_layer, num_decoder_layers)
             self.unit_tok_emb = TokenEmbedding(unit_size, emb_size)
             self.unit_positional_encoding = PositionalEncoding(emb_size, dropout=dropout)
-            self.unit_generator = nn.Linear(emb_size, unit_size)
-        
-
-        
+            self.unit_generator = nn.Linear(emb_size, unit_size)    
 
     def forward(self,
                 src: Tensor,
@@ -571,7 +571,8 @@ class Seq2SeqTransformer(nn.Module):
 
         ctc_output = None
         if self.is_unit and ctc_weight > 0.0: 
-            ctc_output = F.log_softmax(self.ctc_layer(memory), dim=-1)
+            unit_ctc_output = self.unit_encoder(src, mask=src_mask, src_key_padding_mask=src_padding_mask)
+            ctc_output = F.log_softmax(self.ctc_layer(unit_ctc_output), dim=-1)
 
         unit_outs = None
         if self.is_dual_decoder: 
@@ -622,7 +623,6 @@ def create_mask(src, tgt):
 def greedy_decode(model, src, src_mask, max_len, start_symbol=2):
     src = src.to(DEVICE)
     src_mask = src_mask.to(DEVICE)
-    print(src.shape)
     memory = model.encode(src, src_mask)
     ys = torch.ones(1, 1).fill_(start_symbol).type(torch.long).to(DEVICE)
     for i in range(max_len-1):

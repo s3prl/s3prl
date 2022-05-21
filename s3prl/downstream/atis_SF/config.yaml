@@ -45,10 +45,11 @@ downstream_expert:
     is_transformer: True
     vocab_size: 600
     input_dim: 512
-    ctc_weight: 0
+    ctc_weight: 0.5
     num_encoder_layers: 3
     num_decoder_layers: 3
     emb_size: 512
     nhead: 4
-    is_dual_decoder: True
-    unit_decode_weight: 0.3
+    dim_feedforward: 512
+    is_dual_decoder: False
+    unit_decode_weight: 0
