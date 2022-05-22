@@ -1,17 +1,26 @@
 import itertools as it
-import logging
 import math
 from typing import Iterable, List
 
-import requests
 import torch
+from flashlight.lib.text.decoder import (
+    CriterionType,
+    KenLM,
+    LexiconDecoder,
+    LexiconDecoderOptions,
+    SmearingMode,
+    Trie,
+)
+from flashlight.lib.text.dictionary import (
+    Dictionary,
+    create_word_dict,
+    load_words,
+    pack_replabels,
+)
 
 from s3prl.base import Container
 
 from ..utility.download import _urls_to_filepaths
-
-logger = logging.getLogger(__name__)
-
 
 TOKEN_URL = "https://huggingface.co/datasets/s3prl/flashlight/raw/main/lexicon/librispeech_char_tokens.txt"
 
@@ -22,26 +31,6 @@ LM_URL_1 = "https://www.openslr.org/resources/11/4-gram.arpa.gz"
 LM_URL_2 = (
     "https://huggingface.co/datasets/s3prl/flashlight/resolve/main/lm/4-gram.arpa.gz"
 )
-
-try:
-    from flashlight.lib.text.decoder import (
-        CriterionType,
-        KenLM,
-        LexiconDecoder,
-        LexiconDecoderOptions,
-        SmearingMode,
-        Trie,
-    )
-    from flashlight.lib.text.dictionary import (
-        Dictionary,
-        create_word_dict,
-        load_words,
-        pack_replabels,
-    )
-except:
-    logger.warn(
-        "flashlight python bindings are required to use this functionality. Please install from https://github.com/facebookresearch/flashlight/tree/master/bindings/python"
-    )
 
 
 class BeamDecoder(object):
