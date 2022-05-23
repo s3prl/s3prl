@@ -46,7 +46,7 @@ requirements = [
     "sentencepiece",
     "huggingface_hub>=0.2.1", # TODO: Replace with v0.0.17 when it is released
     "mutagen",
-    "fairseq @ git+https://github.com//pytorch/fairseq.git@f2146bdc7abf293186de9449bfa2272775e39e1d#egg=fairseq",
+    "fairseq @ git+https://github.com//pytorch/fairseq.git@b5a039c292facba9c73f59ff34621ec131d82341#egg=fairseq",
     "lighthubert @ git+https://github.com/mechanicalsea/lighthubert#egg=lighthubert"
 ]
 
