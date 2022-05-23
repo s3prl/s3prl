@@ -24,14 +24,10 @@ class UpstreamExpert(UpstreamBase):
 
         self.frontend_model = frontend_model
         self.roberta = RobertaModel.from_pretrained(model_name_or_path, checkpoint_file)
-
-        if len(self.hooks) == 0:
-            modules = "self.roberta.model.encoder.sentence_encoder.layers"
-            for module_id, _ in enumerate(eval(modules)):
-                self.add_hook(
-                    f"{modules}[{module_id}]",
-                    lambda input, output: output.transpose(0, 1),
-                )
+        self.max_positions = self.roberta.cfg.model.max_positions
+    
+    def get_downsample_rates(self, key: str):
+        return 160
 
     def forward(self, wavs):
         with torch.no_grad():
@@ -49,7 +45,19 @@ class UpstreamExpert(UpstreamBase):
             batch_first=True,
             padding_value=self.roberta.task.source_dictionary.pad(),
         ).to(wavs[0].device)
-        features = self.roberta.extract_features(tokens)
 
-        # This forward function only does the model forward
-        # The return dict is then handled by UpstreamBase's hooks
+        bucket_layer_results = []
+        for start in range(0, tokens.size(-1), self.max_positions):
+            bucket_layer_result = self.roberta.extract_features(tokens[:, start : start + self.max_positions], return_all_hiddens=True)
+            bucket_layer_results.append(bucket_layer_result)
+
+        layer_bucket_results = [
+            [bucket_layer_results[bucket_id][layer_id] for bucket_id in range(len(bucket_layer_results))]
+            for layer_id in range(len(bucket_layer_results[0]))
+        ]
+        layer_results = [torch.cat(layer_buckets, dim=1) for layer_buckets in layer_bucket_results]
+
+        return {
+            "hidden_states": layer_results,
+            "last_hidden_state": layer_results[-1],
+        }

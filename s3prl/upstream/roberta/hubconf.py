@@ -35,6 +35,10 @@ def _vq_wav2vec_roberta(vq_wav2vec, **kwargs):
     return _roberta_local(frontend_model, **kwargs)
 
 
+def discretebert(*args, **kwargs):
+    return vq_wav2vec_kmeans_roberta(*args, **kwargs)
+
+
 def vq_wav2vec_kmeans_roberta(refresh=False, **kwargs):
     vq_wav2vec = getattr(s3prl.hub, f'vq_wav2vec_kmeans')(refresh=refresh)
 
