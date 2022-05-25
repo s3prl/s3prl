@@ -5,6 +5,7 @@ import glob
 import uuid
 import shutil
 import random
+import logging
 import tempfile
 import importlib
 from pathlib import Path
@@ -71,6 +72,8 @@ Upstream Model: {upstream_model}
 [More information needed]
 
 """
+
+logger = logging.getLogger(__name__)
 
 
 class ModelEntry:
@@ -265,6 +268,12 @@ class Runner():
         records = defaultdict(list)
         epoch = self.init_ckpt.get('Epoch', 0)
         train_split = self.config['runner'].get("train_dataloader", "train")
+
+        # configure upstream for downstream data
+        if hasattr(self.upstream.model, "prepare_for_downstream"):
+            logging.info(f"Prepare Upstream for Downstream {train_split} dataloader")
+            self.upstream.model.prepare_for_downstream(train_split, self.downstream.model.get_dataloader(train_split, epoch=0))
+
         while pbar.n < pbar.total:
             try:
                 dataloader = self.downstream.model.get_dataloader(train_split, epoch=epoch)
@@ -438,6 +447,11 @@ class Runner():
         dataloader = self.downstream.model.get_dataloader(split)
         evaluate_ratio = float(self.config["runner"].get("evaluate_ratio", 1))
         evaluate_steps = round(len(dataloader) * evaluate_ratio)
+
+        # configure upstream for downstream data
+        if hasattr(self.upstream.model, "prepare_for_downstream"):
+            logging.info(f"Prepare Upstream for Downstream {split} dataloader")
+            self.upstream.model.prepare_for_downstream(split, dataloader)
 
         batch_ids = []
         records = defaultdict(list)

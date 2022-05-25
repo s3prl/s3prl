@@ -56,6 +56,9 @@ class UpstreamExpert(UpstreamBase):
     def get_downsample_rates(self, key: str) -> int:
         return 320
 
+    def prepare_for_downstream(self, split: str, dataloader):
+        pass
+
     def forward(self, wavs):
         device = wavs[0].device
         if self.wav_normalize:
