@@ -62,3 +62,12 @@ def hubert_large_ll60k(refresh=False, *args, **kwargs):
     """
     kwargs["ckpt"] = "https://dl.fbaipublicfiles.com/hubert/hubert_large_ll60k.pt"
     return hubert_url(refresh=refresh, *args, **kwargs)
+
+
+def hubert_base_robust_mgr(refresh=False, *args, **kwargs):
+    """
+    The Base model
+        refresh (bool): whether to download ckpt/config again if existed
+    """
+    kwargs["ckpt"] = "https://www.dropbox.com/s/wfdfvv0dqsj1av9/checkpoint.best_loss_2.7821.pt?dl=0"
+    return hubert_url(refresh=refresh, *args, **kwargs)
