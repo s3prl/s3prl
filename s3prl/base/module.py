@@ -25,67 +25,69 @@ class Module(nn.Module, Object):
             assert isinstance(module, nn.Module)
             self._excluded_from_state_dict.remove(name)
 
-    def state_dict(self, destination=None, prefix="", keep_vars=False):
-        states: dict = super().state_dict(
-            destination=destination, prefix=prefix, keep_vars=keep_vars
-        )
+    # TODO: How to skip non-trainable parameters while not affecting DDP?
 
-        if hasattr(self, "_excluded_from_state_dict"):
-            if _EXCLUDED_PREFIX not in states:
-                states[_EXCLUDED_PREFIX] = []
+    # def state_dict(self, destination=None, prefix="", keep_vars=False):
+    #     states: dict = super().state_dict(
+    #         destination=destination, prefix=prefix, keep_vars=keep_vars
+    #     )
 
-            for name in self._excluded_from_state_dict:
-                module = getattr(self, name)
+    #     if hasattr(self, "_excluded_from_state_dict"):
+    #         if _EXCLUDED_PREFIX not in states:
+    #             states[_EXCLUDED_PREFIX] = []
 
-                substates = OrderedDict()
-                substates._metadata = OrderedDict()
-                subprefix = prefix + name + "."
+    #         for name in self._excluded_from_state_dict:
+    #             module = getattr(self, name)
 
-                states[_EXCLUDED_PREFIX].append(subprefix)
-                module.state_dict(
-                    destination=substates,
-                    prefix=subprefix,
-                    keep_vars=keep_vars,
-                )
-                for key in [k for k in list(substates.keys()) if k != _EXCLUDED_PREFIX]:
-                    states.pop(key)
+    #             substates = OrderedDict()
+    #             substates._metadata = OrderedDict()
+    #             subprefix = prefix + name + "."
 
-        return states
+    #             states[_EXCLUDED_PREFIX].append(subprefix)
+    #             module.state_dict(
+    #                 destination=substates,
+    #                 prefix=subprefix,
+    #                 keep_vars=keep_vars,
+    #             )
+    #             for key in [k for k in list(substates.keys()) if k != _EXCLUDED_PREFIX]:
+    #                 states.pop(key)
 
-    def _load_from_state_dict(
-        self,
-        state_dict,
-        prefix,
-        local_metadata,
-        strict,
-        missing_keys,
-        unexpected_keys,
-        error_msgs,
-    ):
-        """
-        The public method `load_state_dict` is not recursive. Hence, if a s3prl.Module
-        is inside a regular nn.Module, `s3prl.Module.load_state_dict` won't be called.
-        However, `s3prl.Module._load_from_state_dict` is recursive hence it is guaranteed
-        to be called for all the sub-modules. Hence, to override this private method might
-        be the current best solution
-        """
-        if _EXCLUDED_PREFIX in state_dict and prefix in state_dict[_EXCLUDED_PREFIX]:
-            sub_state_dict = self.state_dict(prefix=prefix)
-            sub_state_dict.pop(_EXCLUDED_PREFIX)
-            state_dict.update(sub_state_dict)
+    #     return states
 
-        super()._load_from_state_dict(
-            state_dict=state_dict,
-            prefix=prefix,
-            local_metadata=local_metadata,
-            strict=strict,
-            missing_keys=missing_keys,
-            unexpected_keys=unexpected_keys,
-            error_msgs=error_msgs,
-        )
+    # def _load_from_state_dict(
+    #     self,
+    #     state_dict,
+    #     prefix,
+    #     local_metadata,
+    #     strict,
+    #     missing_keys,
+    #     unexpected_keys,
+    #     error_msgs,
+    # ):
+    #     """
+    #     The public method `load_state_dict` is not recursive. Hence, if a s3prl.Module
+    #     is inside a regular nn.Module, `s3prl.Module.load_state_dict` won't be called.
+    #     However, `s3prl.Module._load_from_state_dict` is recursive hence it is guaranteed
+    #     to be called for all the sub-modules. Hence, to override this private method might
+    #     be the current best solution
+    #     """
+    #     if _EXCLUDED_PREFIX in state_dict and prefix in state_dict[_EXCLUDED_PREFIX]:
+    #         sub_state_dict = self.state_dict(prefix=prefix)
+    #         sub_state_dict.pop(_EXCLUDED_PREFIX)
+    #         state_dict.update(sub_state_dict)
 
-        if _EXCLUDED_PREFIX in unexpected_keys:
-            unexpected_keys.remove(_EXCLUDED_PREFIX)
+    #     super()._load_from_state_dict(
+    #         state_dict=state_dict,
+    #         prefix=prefix,
+    #         local_metadata=local_metadata,
+    #         strict=strict,
+    #         missing_keys=missing_keys,
+    #         unexpected_keys=unexpected_keys,
+    #         error_msgs=error_msgs,
+    #     )
+
+    #     if _EXCLUDED_PREFIX in unexpected_keys:
+    #         unexpected_keys.remove(_EXCLUDED_PREFIX)
 
     def checkpoint(self):
         checkpoint = super().checkpoint()

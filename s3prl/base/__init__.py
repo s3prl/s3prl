@@ -1,5 +1,5 @@
 from .cache import cache, set_use_cache
-from .container import Container
+from .container import Container, field
 from .logdata import LogData, LogDataType, Logs
 from .module import Module
 from .object import Object

@@ -8,6 +8,8 @@ from tqdm import tqdm
 
 from s3prl.dataset import Dataset, metadata_mode
 
+from .base import Sampler
+
 T_co = TypeVar("T_co", covariant=True)
 
 
@@ -40,11 +42,11 @@ class MaxTimestampBatchSampler(Sampler):
         self.shuffle = shuffle
         self.seed = seed
         self.epoch = 0
+        self.reduce_func = reduce_func or self._default_reduce_func
 
-        def default_reduce_func(timestamps):
-            return max(timestamps) * len(timestamps)
-
-        self.reduce_func = reduce_func or default_reduce_func
+    @staticmethod
+    def _default_reduce_func(timestamps):
+        return max(timestamps) * len(timestamps)
 
     @staticmethod
     def _get_timestamps_original(dataset: Dataset, n_jobs: int = 4):

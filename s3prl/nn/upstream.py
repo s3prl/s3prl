@@ -13,14 +13,14 @@ CHECK_ITERATION = 10
 class S3PRLUpstream(NNModule):
     def __init__(
         self,
-        upstream_name: str,
+        name: str,
         feature_selection: str = "hidden_states",
         layer_selection: int = None,
         layer_drop: Union[str, float] = 0.0,
     ):
         """
         Args:
-            upstream_name (str):
+            name (str):
                 can be "apc", "hubert", "wav2vec2", the names supported by s3prl.hub
             feature_selection (str):
                 cat be "hidden_states" for the defaults, or "ASR", "SID", "ER" ... etc
@@ -32,7 +32,7 @@ class S3PRLUpstream(NNModule):
                 if layer_drop == "original", then use the initial layer_drop value as released
         """
         super().__init__()
-        self.upstream = getattr(hub, upstream_name)()
+        self.upstream = getattr(hub, name)()
         self.feature_selection = feature_selection
         self.layer_selection = layer_selection
 

@@ -41,9 +41,8 @@ def test_AnyChild(helpers):
 def test_state_dict():
     linear = Linear(3, 4)
     any = AnyChild(linear)
-    any.exclude_from_state_dict("model")
     states = any.state_dict()
-    assert len(states) == 3, "only '_excluded_key', and linear.weight & linear.bias"
+    assert len(states) == 4
     any.load_state_dict(states)
 
 
@@ -51,12 +50,10 @@ def test_checkpoint(helpers):
     linear = Linear(3, 4)
     any = AnyChild(linear)
 
-    any.exclude_from_state_dict("model")
     checkpoint = any.checkpoint()
     new_any = Module.from_checkpoint(checkpoint)
     helpers.is_same_module(any, new_any, torch.randn(32, any.input_size))
 
-    any.include_to_state_dict("model")
     checkpoint = any.checkpoint()
     new_any = Module.from_checkpoint(checkpoint)
     helpers.is_same_module(any, new_any, torch.randn(32, any.input_size))
