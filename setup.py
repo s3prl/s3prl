@@ -3,6 +3,8 @@ from subprocess import check_call
 from setuptools import setup, find_packages
 from setuptools.command.install import install
 from setuptools.command.develop import develop
+from setuptools.command.egg_info import egg_info
+
 import pathlib
 
 here = pathlib.Path(__file__).parent.resolve()
@@ -76,10 +78,17 @@ class InstallCommand(install):
         check_call(["pip", "install", *install_from_github])
 
 
+class EggInfoCommand(egg_info):
+    def run(self):
+        egg_info.run(self)
+        check_call(["pip", "install", *install_from_github])
+
+
 setup(
     cmdclass={
         "install": InstallCommand,
         "dev": DevelopCommand,
+        "egg_info": EggInfoCommand,
     },
     # This is the name of your project. The first time you publish this
     # package, this name will be registered for you. It will determine how
