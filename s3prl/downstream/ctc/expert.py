@@ -88,15 +88,15 @@ class DownstreamExpert(nn.Module):
         pred_tokens = log_probs.argmax(dim=-1)
         filtered_tokens = []
         for pred_token in pred_tokens:
+            pred_token = pred_token.unique_consecutive()
             filtered_token = [
                 token
                 for token in pred_token.tolist()
                 if token != self.tokenizer.pad_idx and token != self.tokenizer.eos_idx
             ]
             filtered_tokens.append(filtered_token)
-
         hypothesis = [
-            self.tokenizer.decode(h, ignore_repeat=True) for h in filtered_tokens
+            self.tokenizer.decode(h) for h in filtered_tokens
         ]
         groundtruth = [self.tokenizer.decode(g.tolist()) for g in labels]
 
