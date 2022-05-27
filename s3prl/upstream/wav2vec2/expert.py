@@ -8,7 +8,7 @@
 
 
 import argparse
-from typing import List
+from typing import List, Union
 from packaging import version
 
 import torch
@@ -51,12 +51,13 @@ class UpstreamExpert(UpstreamBase):
                 unpad_len = min([hidden.size(1) for hidden in hiddens])
                 hiddens = [hidden[:, :unpad_len, :] for hidden in hiddens]
                 return list(zip(names, hiddens))
+
             self.hook_postprocess = postprocess
 
     def get_downsample_rates(self, key: str) -> int:
         return 320
 
-    def prepare_for_downstream(self, dataloader):
+    def configure_stats(self, wavs: List[Union[torch.Tensor, np.ndarray]]):
         pass
 
     def forward(self, wavs):
