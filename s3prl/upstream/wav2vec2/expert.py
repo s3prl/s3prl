@@ -56,7 +56,7 @@ class UpstreamExpert(UpstreamBase):
     def get_downsample_rates(self, key: str) -> int:
         return 320
 
-    def prepare_for_downstream(self, split: str, dataloader):
+    def prepare_for_downstream(self, dataloader):
         pass
 
     def forward(self, wavs):

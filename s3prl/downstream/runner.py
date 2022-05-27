@@ -271,8 +271,8 @@ class Runner():
 
         # configure upstream for downstream data
         if hasattr(self.upstream.model, "prepare_for_downstream"):
-            logging.info(f"Prepare Upstream for Downstream {train_split} dataloader")
-            self.upstream.model.prepare_for_downstream(train_split, self.downstream.model.get_dataloader(train_split, epoch=0))
+            logging.info(f"Prepare Upstream for Downstream train dataloader")
+            self.upstream.model.prepare_for_downstream(self.downstream.model.get_dataloader(train_split, epoch=0))
 
         while pbar.n < pbar.total:
             try:
@@ -447,11 +447,6 @@ class Runner():
         dataloader = self.downstream.model.get_dataloader(split)
         evaluate_ratio = float(self.config["runner"].get("evaluate_ratio", 1))
         evaluate_steps = round(len(dataloader) * evaluate_ratio)
-
-        # configure upstream for downstream data
-        if hasattr(self.upstream.model, "prepare_for_downstream"):
-            logging.info(f"Prepare Upstream for Downstream {split} dataloader")
-            self.upstream.model.prepare_for_downstream(split, dataloader)
 
         batch_ids = []
         records = defaultdict(list)
