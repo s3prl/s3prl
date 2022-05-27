@@ -66,8 +66,8 @@ def hubert_large_ll60k(refresh=False, *args, **kwargs):
 
 def hubert_base_robust_mgr(refresh=False, *args, **kwargs):
     """
-    The Base model
+    The Base model, continually trained with Libri 960 hr with Musan noise, Gaussian noise and Reverberation.
         refresh (bool): whether to download ckpt/config again if existed
     """
-    kwargs["ckpt"] = "https://www.dropbox.com/s/wfdfvv0dqsj1av9/checkpoint.best_loss_2.7821.pt?dl=0"
+    kwargs["ckpt"] = "https://huggingface.co/kphuang68/HuBERT_base_robust_mgr/resolve/main/HuBERT_base_robust_mgr_best_loss_2.7821.pt"
     return hubert_url(refresh=refresh, *args, **kwargs)
