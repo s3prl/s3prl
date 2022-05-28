@@ -27,9 +27,12 @@ downstream_expert:
     num_workers: 0
     train_batch_size: 2
     eval_batch_size: 1
-    is_BI: True
+    is_BI: False
+    is_BIO: True
     unit_path: /home/daniel094144/data/atis/atis_code_128_IN/code
+    # unit_path: /home/daniel094144/data/atis/atis_code_128_IN/char_code
     unit_size: 128
+    # unit_tokenizer: /home/daniel094144/data/atis/atis_code_128_IN/tokenizer_1000.json
   
   augmentation: 
     TimeStretch: 
@@ -45,11 +48,12 @@ downstream_expert:
     is_transformer: True
     vocab_size: 600
     input_dim: 512
-    ctc_weight: 0.5
+    ctc_weight: 0
     num_encoder_layers: 3
-    num_decoder_layers: 3
+    num_decoder_layers: 6
     emb_size: 512
     nhead: 4
-    dim_feedforward: 512
-    is_dual_decoder: False
-    unit_decode_weight: 0
+    dim_feedforward: 2048
+    is_dual_decoder: True
+    unit_decode_weight: 0.3
+    label_smoothing: 0.05

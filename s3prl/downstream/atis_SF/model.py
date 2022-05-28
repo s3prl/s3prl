@@ -549,8 +549,8 @@ class Seq2SeqTransformer(nn.Module):
 
         self.is_dual_decoder = is_dual_decoder
         if self.is_dual_decoder: 
-            decoder_layer = nn.TransformerDecoderLayer(d_model=emb_size, nhead=nhead, dim_feedforward=emb_size, batch_first=True)
-            self.unit_decoder = TransformerDecoder(decoder_layer, num_decoder_layers)
+            decoder_layer = nn.TransformerDecoderLayer(d_model=emb_size, nhead=nhead, dim_feedforward=512, batch_first=True)
+            self.unit_decoder = TransformerDecoder(decoder_layer, 3)
             self.unit_tok_emb = TokenEmbedding(unit_size, emb_size)
             self.unit_positional_encoding = PositionalEncoding(emb_size, dropout=dropout)
             self.unit_generator = nn.Linear(emb_size, unit_size)    
@@ -576,7 +576,7 @@ class Seq2SeqTransformer(nn.Module):
 
         unit_outs = None
         if self.is_dual_decoder: 
-            unit = self.positional_encoding(self.tgt_tok_emb(unit))
+            unit = self.unit_positional_encoding(self.unit_tok_emb(unit))
             unit_outs = self.unit_decoder(unit, memory, tgt_mask=unit_mask)
         
         # main task

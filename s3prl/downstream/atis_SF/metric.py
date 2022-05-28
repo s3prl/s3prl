@@ -29,7 +29,6 @@ def parse_entity(seq):
 
 def parse_BI_entity(seq, tokenizer):
     d = {}
-    v = []
 
     if hasattr(seq, '__iter__'):
         for i, t in enumerate(seq): 
@@ -47,21 +46,30 @@ def parse_BI_entity(seq, tokenizer):
                 break
     return d 
 
-def entity_f1_score(d_gt, d_hyp):
-    # FP = 0
-    # FN = 0
-    # TP = 0
-    # for k, v in zip(d_gt.keys(), d_gt.values()):
-    #     if k in d_hyp: 
-    #         if d_hyp[k] == d_gt[k]:
-    #             TP += 1
-    #         else: 
-    #             FP += 1
-    #             FN += 1
-    #     else: 
-    #         FP += 1
-    #         FN += 1 
+def parse_BIO_entity(seq, tokenizer):
+    d = {}
 
+    if hasattr(seq, '__iter__'):
+        # intent 
+        intent_beg = seq.pop(0)
+        intent_end = seq.pop(-1)
+
+        for i, t in enumerate(seq): 
+            subword = tokenizer.id_to_token(t)
+            if len(subword.split('-')) > 1 and t < 135:
+                slot = subword.split('-')[-1]
+                if subword.split('-')[0] == 'B':
+                    d[slot] = [seq[i-1]]
+                elif subword.split('-')[0] == 'I':
+                    if slot in d: 
+                        d[slot] += [seq[i-1]]
+                    else: 
+                        continue
+            if t == END_IDX:
+                break
+    return d, intent_beg
+
+def entity_f1_score(d_gt, d_hyp):
     if len(d_gt.keys()) == 0 and len(d_hyp.keys()) == 0:
         F1 = 1.0
     elif len(d_gt.keys()) == 0:

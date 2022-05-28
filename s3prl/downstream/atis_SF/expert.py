@@ -14,7 +14,7 @@ import pandas as pd
 from collections import Counter
 import wandb
 from .model import AttenDecoderModel, Seq2SeqTransformer, generate_square_subsequent_mask, create_mask, greedy_decode
-from .metric import parse_entity, entity_f1_score, parse_BI_entity, uer
+from .metric import parse_entity, entity_f1_score, parse_BI_entity, parse_BIO_entity, uer
 
 PAD_IDX = 0
 EOS_IDX = 1
@@ -31,24 +31,36 @@ class DownstreamExpert(nn.Module):
         self.upstream_dim = upstream_dim
         self.datarc = downstream_expert['datarc']
         self.modelrc = downstream_expert['modelrc']
-        self.seq_loss = torch.nn.CrossEntropyLoss(ignore_index=0)
+        self.seq_loss = torch.nn.CrossEntropyLoss(ignore_index=0, label_smoothing=self.modelrc['label_smoothing'])
         
         self.base_path = self.datarc['file_path']   
         self.is_BI = self.datarc['is_BI']
+        self.is_BIO = self.datarc['is_BIO']
         self.unit_path = self.datarc['unit_path'] if 'unit_path' in self.datarc else None
+        self.unit_tokenizer_path = self.datarc['unit_tokenizer_path'] if 'unit_tokenizer_path' in self.datarc else None
         self.unit_size = self.datarc['unit_size'] + 3 if 'unit_size' in self.datarc else None
+        self.unit_tokenizer = None
 
-        if self.is_BI: 
-            self.tokenizer = Tokenizer.from_file(os.path.join(self.base_path, 'BI_tokenizer.json'))
-        else:
-            self.tokenizer = Tokenizer.from_file(os.path.join(self.base_path, 'tokenizer.json'))
+        if self.unit_tokenizer_path is not None: 
+            self.unit_tokenizer = Tokenizer.from_file(self.unit_tokenizer_path)
 
 
         aug_config = downstream_expert['augmentation'] if 'augmentation' in downstream_expert else None
-        
-        self.train_dataset = AtisDataset(os.path.join(self.base_path, 'sv_train.csv'), os.path.join(self.base_path, 'train'), self.tokenizer, aug_config, unit_path=self.unit_path)
-        self.dev_dataset = AtisDataset(os.path.join(self.base_path, 'sv_dev.csv'), os.path.join(self.base_path, 'dev'), self.tokenizer, unit_path=self.unit_path)
-        self.test_dataset = AtisDataset(os.path.join(self.base_path, 'sv_test.csv'),os.path.join(self.base_path, 'test'), self.tokenizer, unit_path=self.unit_path)
+        if self.is_BI: 
+            self.tokenizer = Tokenizer.from_file(os.path.join(self.base_path, 'BI_tokenizer.json'))
+            self.train_dataset = AtisDataset(os.path.join(self.base_path, 'sv_BI_train.csv'), os.path.join(self.base_path, 'train'), self.tokenizer, aug_config, unit_path=self.unit_path, unit_tokenizer=self.unit_tokenizer)
+            self.dev_dataset = AtisDataset(os.path.join(self.base_path, 'sv_BI_dev.csv'), os.path.join(self.base_path, 'dev'), self.tokenizer, unit_path=self.unit_path, unit_tokenizer=self.unit_tokenizer)
+            self.test_dataset = AtisDataset(os.path.join(self.base_path, 'sv_BI_test.csv'),os.path.join(self.base_path, 'test'), self.tokenizer, unit_path=self.unit_path, unit_tokenizer=self.unit_tokenizer)
+        elif self.is_BIO: 
+            self.tokenizer = Tokenizer.from_file(os.path.join(self.base_path, 'BIO_tokenizer.json'))
+            self.train_dataset = AtisDataset(os.path.join(self.base_path, 'sv_BIO_train.csv'), os.path.join(self.base_path, 'train'), self.tokenizer, aug_config, unit_path=self.unit_path, unit_tokenizer=self.unit_tokenizer)
+            self.dev_dataset = AtisDataset(os.path.join(self.base_path, 'sv_BIO_dev.csv'), os.path.join(self.base_path, 'dev'), self.tokenizer, unit_path=self.unit_path, unit_tokenizer=self.unit_tokenizer)
+            self.test_dataset = AtisDataset(os.path.join(self.base_path, 'sv_BIO_test.csv'),os.path.join(self.base_path, 'test'), self.tokenizer, unit_path=self.unit_path, unit_tokenizer=self.unit_tokenizer)
+        else:
+            self.tokenizer = Tokenizer.from_file(os.path.join(self.base_path, 'tokenizer.json'))
+            self.train_dataset = AtisDataset(os.path.join(self.base_path, 'atis_sv_train.csv'), os.path.join(self.base_path, 'train'), self.tokenizer, aug_config, unit_path=self.unit_path, unit_tokenizer=self.unit_tokenizer)
+            self.dev_dataset = AtisDataset(os.path.join(self.base_path, 'atis_sv_dev.csv'), os.path.join(self.base_path, 'dev'), self.tokenizer, unit_path=self.unit_path, unit_tokenizer=self.unit_tokenizer)
+            self.test_dataset = AtisDataset(os.path.join(self.base_path, 'atis_sv_test.csv'),os.path.join(self.base_path, 'test'), self.tokenizer, unit_path=self.unit_path, unit_tokenizer=self.unit_tokenizer)
         
         self.connector = nn.Linear(upstream_dim, self.modelrc['input_dim'])
         self.vocab_size = self.modelrc['input_dim']
@@ -149,7 +161,7 @@ class DownstreamExpert(nn.Module):
         else: 
             if self.is_transformer: 
                 if self.ctc_weight < 1.0:
-                    ys = list(greedy_decode(self.model, features_pad, src_mask, max_len=20).flatten().cpu().numpy().astype(int))
+                    ys = list(greedy_decode(self.model, features_pad, src_mask, max_len=30).flatten().cpu().numpy().astype(int))
                     ys = ys[1:]
                 att_output, ctc_output, unit_output = self.model(features_pad, tgt_input, src_mask, tgt_mask, attention_mask_pad, tgt_padding_mask, attention_mask_pad, unit_input, self.ctc_weight, unit_mask)
             else:
@@ -196,28 +208,50 @@ class DownstreamExpert(nn.Module):
 
             f1s = []
             f1s_ys = []
+            accs = []
+            accs_ys = []
+            
             for hyp, gt in zip(hyps, gts):
+                intent_gt, intent_hyp = None, None
                 if self.is_BI:
                     d_gt = parse_BI_entity(gt, self.tokenizer)
                     d_hyp = parse_BI_entity(hyp, self.tokenizer)
-                    
+                elif self.is_BIO:
+                    d_gt, intent_gt = parse_BIO_entity(gt, self.tokenizer)
+                    d_hyp, intent_hyp = parse_BIO_entity(hyp, self.tokenizer)
                 else:
                     d_gt = parse_entity(gt)
                     d_hyp = parse_entity(hyp)
+                
+                if intent_gt is not None: 
+                    if intent_gt == intent_hyp:
+                        acc = 1.0
+                    else: 
+                        acc = 0.0
+                    accs.append(acc)
 
                 f1 = entity_f1_score(d_gt, d_hyp)
                 if mode != 'train':
                     if self.is_BI:
                         d_ys = parse_BI_entity(ys, self.tokenizer)
-                        
+                    elif self.is_BIO:
+                        d_ys, intent_ys = parse_BIO_entity(ys, self.tokenizer)
                     else:
                         d_ys = parse_entity(ys)
+
+                    if intent_ys is not None: 
+                        if intent_gt == intent_hyp:
+                            acc = 1.0
+                        else: 
+                            acc = 0.0
+                        accs_ys.append(acc)
 
                     f1_ys = entity_f1_score(d_gt, d_ys)
                     f1s_ys.append(f1_ys)
                     print(d_gt, d_hyp, d_ys)
                     print(f1, f1_ys)
                     print(gt, hyp, ys)
+                    print(intent_gt, intent_hyp, intent_ys)
                     
                 f1s.append(f1)
 
@@ -225,6 +259,8 @@ class DownstreamExpert(nn.Module):
                 records['f1_greedy'] += f1s_ys
                 
             records['f1'] += f1s
+            if self.is_BIO:
+                records['intent_acc'] += accs
 
         records['tot_loss'].append(total_loss.cpu().item())
         return total_loss
