@@ -38,7 +38,7 @@ class AudioAlbert:
         share_layer=False,  # Share layer weights
         pre_layer_norm=False,  # To apply the pre layer normalization technique introduced in: https://arxiv.org/abs/2002.04745
     )
-    
+
     default_config = Container(
         Corpus=dict(
             train_split=["train-clean-100", "train-clean-360", "train-other-500"]
