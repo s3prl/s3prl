@@ -76,9 +76,8 @@ def main():
     save_to.mkdir(exist_ok=True, parents=True)
 
     # configure any upstream
-    model_config = problem.ModelConfig(**config.ModelConfig)
-    body = problem.Body(model_config, **config.Body)
-    head = problem.Head(model_config, **config.Head)
+    body = problem.Body(**config.Body)
+    head = problem.Head(**config.Head)
     loss = problem.Loss(**config.Loss)
     stats = Container()
 
