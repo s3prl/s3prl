@@ -114,7 +114,7 @@ class Tera:
             total_steps=1000000,
             log_step=50000,
             valid_step=50000,
-            save_step=50,
+            save_step=50000,
             gradient_clipping=5.0,
             gradient_accumulate_steps=4,
             use_valid=True,
