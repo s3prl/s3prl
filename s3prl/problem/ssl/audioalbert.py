@@ -21,12 +21,24 @@ class AudioAlbert:
     ValidSampler = FixedBatchSizeBatchSampler
     TestData = PretrainTaskPipe
     TestSampler = FixedBatchSizeBatchSampler
-    ModelConfig = TransformerConfig
     Body = TransformerModel
     Head = TransformerSpecPredictionHead
     Task = FeatReconstructionTask
     Loss = L1Loss
-
+    _transformer_config = dict(
+        hidden_size=768,  # Size of the encoder layers and the pooler layer.
+        num_hidden_layers=3,  # Number of hidden layers in the Transformer encoder.
+        num_attention_heads=12,  # Number of attention heads for each attention layer in the Transformer encoder.
+        intermediate_size=3072,  # The size of the "intermediate" (i.e., feed-forward) layer in the Transformer encoder.
+        hidden_act="gelu",  # The non-linear activation function (function or string) in the encoder and pooler. If string, "gelu", "relu" and "swish" are supported.
+        hidden_dropout_prob=0.1,  # The dropout probabilitiy for all fully connected layers in the embeddings, encoder, and pooler.
+        attention_probs_dropout_prob=0.1,  # The dropout ratio for the attention probabilities.
+        initializer_range=0.02,  # The sttdev of the truncated_normal_initializer for initializing all weight matrices.
+        layer_norm_eps=1.0e-12,  # The epsilon used by LayerNorm.
+        share_layer=False,  # Share layer weights
+        pre_layer_norm=False,  # To apply the pre layer normalization technique introduced in: https://arxiv.org/abs/2002.04745
+    )
+    
     default_config = Container(
         Corpus=dict(
             train_split=["train-clean-100", "train-clean-360", "train-other-500"]
@@ -76,26 +88,16 @@ class AudioAlbert:
         TestSampler=dict(
             batch_size=2,
         ),
-        ModelConfig=dict(
-            hidden_size=768,  # Size of the encoder layers and the pooler layer.
-            num_hidden_layers=3,  # Number of hidden layers in the Transformer encoder.
-            num_attention_heads=12,  # Number of attention heads for each attention layer in the Transformer encoder.
-            intermediate_size=3072,  # The size of the "intermediate" (i.e., feed-forward) layer in the Transformer encoder.
-            hidden_act="gelu",  # The non-linear activation function (function or string) in the encoder and pooler. If string, "gelu", "relu" and "swish" are supported.
-            hidden_dropout_prob=0.1,  # The dropout probabilitiy for all fully connected layers in the embeddings, encoder, and pooler.
-            attention_probs_dropout_prob=0.1,  # The dropout ratio for the attention probabilities.
-            initializer_range=0.02,  # The sttdev of the truncated_normal_initializer for initializing all weight matrices.
-            layer_norm_eps=1.0e-12,  # The epsilon used by LayerNorm.
-            share_layer=True,  # Share layer weights
-            pre_layer_norm=False,  # To apply the pre layer normalization technique introduced in: https://arxiv.org/abs/2002.04745
-        ),
+        ModelConfig=_transformer_config,
         Body=dict(
+            config=TransformerConfig(**_transformer_config),
             input_dim=80,
             output_attentions=False,
             keep_multihead_output=False,
             with_input_module=True,
         ),
         Head=dict(
+            config=TransformerConfig(**_transformer_config),
             output_dim=80,
             input_dim=None,  # automatically use hidden_state
         ),
