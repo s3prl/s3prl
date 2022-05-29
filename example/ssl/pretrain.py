@@ -89,6 +89,7 @@ def main():
     logger.info("Preparing train data")
     train_dataset = AugmentedDynamicItemDataset(train_data, tools=stats)
     train_dataset = problem.TrainData(**config.TrainData)(train_dataset)
+    assert train_dataset.get_tool("output_dim") == problem.input_size
     train_sampler = DistributedBatchSamplerWrapper(
         problem.TrainSampler(train_dataset, **config.TrainSampler),
         num_replicas=1,
@@ -145,7 +146,6 @@ def main():
         logger.info("Create a new model")
         task = problem.Task(body, head, loss, **stats)
         task = task.to(device)
-    assert train_dataset.get_tool("output_dim") == task.input_size
 
     # ALL THE FOLLOWING CODES ARE FOR TRAINER
     # WHICH CAN BE LARGELY SIMPLIFIED WHEN USING OTHER TRAINER PACKAGES
