@@ -25,6 +25,8 @@ class Mockingjay:
     Head = TransformerSpecPredictionHead
     Task = FeatReconstructionTask
     Loss = L1Loss
+
+    input_size = 240
     _transformer_config = dict(
         hidden_size=768,  # Size of the encoder layers and the pooler layer.
         num_hidden_layers=3,  # Number of hidden layers in the Transformer encoder.
@@ -59,7 +61,7 @@ class Mockingjay:
                     "fbank": {
                         "frame_length": 25.0,
                         "frame_shift": 10.0,
-                        "num_mel_bins": 80,
+                        "num_mel_bins": input_size // 3,  # because delta={"order": 2}
                         "use_log_fbank": True,
                     },
                     "mfcc": {"frame_length": 25.0, "frame_shift": 10.0, "num_ceps": 13},
@@ -84,14 +86,14 @@ class Mockingjay:
         ModelConfig=_transformer_config,
         Body=dict(
             config=TransformerConfig(**_transformer_config),
-            input_dim=240,
+            input_dim=input_size,
             output_attentions=False,
             keep_multihead_output=False,
             with_input_module=True,
         ),
         Head=dict(
             config=TransformerConfig(**_transformer_config),
-            output_dim=240,
+            output_dim=input_size,
             input_dim=None,  # automatically use hidden_state
         ),
         Task=dict(),

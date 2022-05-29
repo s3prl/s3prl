@@ -25,6 +25,8 @@ class AudioAlbert:
     Head = TransformerSpecPredictionHead
     Task = FeatReconstructionTask
     Loss = L1Loss
+
+    input_size = 80
     _transformer_config = dict(
         hidden_size=768,  # Size of the encoder layers and the pooler layer.
         num_hidden_layers=3,  # Number of hidden layers in the Transformer encoder.
@@ -57,7 +59,7 @@ class AudioAlbert:
                 win_ms=25,
                 hop_ms=10,
                 n_freq=201,
-                n_mels=80,
+                n_mels=input_size,
                 n_mfcc=13,
                 input={
                     "channel": 0,
@@ -91,14 +93,14 @@ class AudioAlbert:
         ModelConfig=_transformer_config,
         Body=dict(
             config=TransformerConfig(**_transformer_config),
-            input_dim=80,
+            input_dim=input_size,
             output_attentions=False,
             keep_multihead_output=False,
             with_input_module=True,
         ),
         Head=dict(
             config=TransformerConfig(**_transformer_config),
-            output_dim=80,
+            output_dim=input_size,
             input_dim=None,  # automatically use hidden_state
         ),
         Task=dict(),
