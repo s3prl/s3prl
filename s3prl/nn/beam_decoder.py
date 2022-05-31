@@ -11,12 +11,7 @@ from flashlight.lib.text.decoder import (
     SmearingMode,
     Trie,
 )
-from flashlight.lib.text.dictionary import (
-    Dictionary,
-    create_word_dict,
-    load_words,
-    pack_replabels,
-)
+from flashlight.lib.text.dictionary import Dictionary, create_word_dict, load_words
 
 from s3prl.base import Container
 

@@ -37,7 +37,6 @@ def pytest_configure(config):
     config.addinivalue_line("markers", "practice: mark test as a practice")
 
 
-
 def pytest_collection_modifyitems(config, items):
     if not config.getoption("--runslow"):
         skip_slow = pytest.mark.skip(reason="need --runslow option to run")

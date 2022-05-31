@@ -5,7 +5,7 @@ Reference: https://www.tensorflow.org/datasets/api_docs/python/tfds/features/tex
 import abc
 from typing import List
 
-from s3prl import Object, Output, init
+from s3prl import Object
 
 # Replacing the 2 tokens right before english starts as <eos> & <unk>
 BERT_FIRST_IDX = 997
@@ -404,7 +404,7 @@ class BertTokenizer(Tokenizer):
                 r_idx = idx - BERT_FIRST_IDX
                 assert r_idx > 0
                 reduced_idx.append(r_idx)
-            except:
+            except AssertionError:
                 reduced_idx.append(self.unk_idx)
         reduced_idx.append(self.eos_idx)
         return reduced_idx

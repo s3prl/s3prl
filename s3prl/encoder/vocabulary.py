@@ -88,7 +88,7 @@ def generate_subword_vocab(
 
     try:
         import sentencepiece as splib
-    except:
+    except ImportError:
         raise ImportError(
             "`sentencepiece` cannot be imported, please run `pip install sentencepiece` first"
         )

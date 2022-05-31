@@ -42,9 +42,9 @@ jobs:
     - name: Install S3PRL
       run: pip3 install --editable ".[all]"
 
-    - name: Check coding style by ci/format.sh
+    - name: Check coding style by ci/format.py
       run: |
-        ./ci/format.sh --check
+        ./ci/format.py --check
 
     # This can be very helpful for debugging
     # The action can create a SSH server for you to connect. After you

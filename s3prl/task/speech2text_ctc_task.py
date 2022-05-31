@@ -1,11 +1,10 @@
 import logging
-from typing import List, Union
+from typing import Union
 
 import numpy as np
 import torch
 import torch.nn.functional as F
 from torch import nn
-from torch.nn.utils.rnn import pad_sequence
 
 from s3prl import Logs, Module, Output
 from s3prl.encoder.tokenizer import Tokenizer
