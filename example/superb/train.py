@@ -149,7 +149,8 @@ def main():
             **stats,
         )
         model = UpstreamDownstreamModel(upstream, downstream)
-        task = problem.Task(model, **{**stats, **config.Task})
+        # task = problem.Task(model, **{**stats, **config.Task})
+        task = problem.Task(model, **stats, **config.Task)
         task = task.to(device)
 
     # ALL THE FOLLOWING CODES ARE FOR TRAINER

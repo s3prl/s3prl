@@ -15,10 +15,16 @@ def pytest_addoption(parser):
     parser.addoption(
         "--runslow", action="store_true", default=False, help="run slow tests"
     )
+    parser.addoption(
+        "--runextra", action="store_true", help="run tests with extra dependencies"
+    )
 
 
 def pytest_configure(config):
     config.addinivalue_line("markers", "slow: mark test as slow to run")
+    config.addinivalue_line(
+        "markers", "extra_dependency: mask test requiring extra dependencies to run"
+    )
 
 
 def pytest_collection_modifyitems(config, items):
@@ -29,6 +35,12 @@ def pytest_collection_modifyitems(config, items):
     for item in items:
         if "slow" in item.keywords:
             item.add_marker(skip_slow)
+
+    if not config.getoption("--runextra"):
+        skip_extra = pytest.mark.skip(reason="need --runextra option to run")
+        for item in items:
+            if "extra_dependency" in item.keywords:
+                item.add_marker(skip_extra)
 
 
 class Helper:
