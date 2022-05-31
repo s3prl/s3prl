@@ -42,6 +42,9 @@ jobs:
     - name: Install S3PRL
       run: pip3 install --editable ".[all]"
 
+    - name: Install setuptools v59.5.0
+      run: pip3 install setuptools==59.5.0
+
     - name: Check coding style by ci/format.py
       run: |
         ./ci/format.py --check
