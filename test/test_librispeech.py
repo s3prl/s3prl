@@ -1,3 +1,4 @@
+import pytest
 from dotenv import dotenv_values
 
 from s3prl.corpus.librispeech import LibriSpeech, LibriSpeechForSUPERB
@@ -13,6 +14,7 @@ libri_stats = {
 }
 
 
+@pytest.mark.corpus
 def test_librispeech():
     config = dotenv_values()
     dataset_root = config["LibriSpeech"]

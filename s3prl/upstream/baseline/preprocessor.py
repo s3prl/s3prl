@@ -7,16 +7,16 @@
 """*********************************************************************************************"""
 
 
+from functools import partial
+
 ###############
 # IMPORTATION #
 ###############
 import torch
 import torchaudio
-from functools import partial
 from torch.nn.utils.rnn import pad_sequence
-from torchaudio.transforms import Spectrogram, MelScale, MFCC
 from torchaudio.functional import compute_deltas
-
+from torchaudio.transforms import MFCC, MelScale, Spectrogram
 
 ############
 # CONSTANT #
@@ -26,33 +26,35 @@ N_SAMPLED_PSEUDO_WAV = 2
 
 def get_preprocessor(audio_config, take_first_channel=True, process_input_only=False):
     """
-        Args:
-            take_first_channel:
-                bool
-                If True, the preprocessor takes input as: (*, channel=1, waveform_len),
-                    where `input` and `target` are taken from the same channel (i.e. the same and single waveform).
-                If False, the preprocessor takes input as: (*, channel=2, waveform_len),
-                    where `input` and `target` are taken from the specified channel (i.e. multiple correlated views of the same waveform).
-                    For example: preprocessor_input = torch.cat([wav_aug1.unsqueeze(1), wav_aug2.unsqueeze(1)], dim=1) # shape: (batch_size, channel=2, seq_len)     
-            process_input_only:
-                bool
-                If True, the preprocessor will process `input`
-                If False, the preprocessor will process both `input` and `target`
+    Args:
+        take_first_channel:
+            bool
+            If True, the preprocessor takes input as: (*, channel=1, waveform_len),
+                where `input` and `target` are taken from the same channel (i.e. the same and single waveform).
+            If False, the preprocessor takes input as: (*, channel=2, waveform_len),
+                where `input` and `target` are taken from the specified channel (i.e. multiple correlated views of the same waveform).
+                For example: preprocessor_input = torch.cat([wav_aug1.unsqueeze(1), wav_aug2.unsqueeze(1)], dim=1) # shape: (batch_size, channel=2, seq_len)
+        process_input_only:
+            bool
+            If True, the preprocessor will process `input`
+            If False, the preprocessor will process both `input` and `target`
     """
     assert not (take_first_channel == False and process_input_only == True)
 
-    if not 'target' in audio_config:
-        audio_config['target'] = audio_config['input']
-        
-    input_feat = audio_config['input']
-    target_feat = audio_config['target']
-    if take_first_channel:
-        input_feat['channel'] = 0
-        target_feat['channel'] = 0
+    if not "target" in audio_config:
+        audio_config["target"] = audio_config["input"]
 
-    preprocessor = OnlinePreprocessor(**audio_config, feat_list=[input_feat, target_feat])
+    input_feat = audio_config["input"]
+    target_feat = audio_config["target"]
+    if take_first_channel:
+        input_feat["channel"] = 0
+        target_feat["channel"] = 0
+
+    preprocessor = OnlinePreprocessor(
+        **audio_config, feat_list=[input_feat, target_feat]
+    )
     input_dim, target_dim = [feat.size(-1) for feat in preprocessor()]
-    
+
     if process_input_only:
         del preprocessor
         preprocessor = OnlinePreprocessor(**audio_config, feat_list=[input_feat])
@@ -60,7 +62,18 @@ def get_preprocessor(audio_config, take_first_channel=True, process_input_only=F
 
 
 class OnlinePreprocessor(torch.nn.Module):
-    def __init__(self, sample_rate=16000, win_ms=25, hop_ms=10, n_freq=201, n_mels=40, n_mfcc=13, feat_list=None, eps=1e-10, **kwargs):
+    def __init__(
+        self,
+        sample_rate=16000,
+        win_ms=25,
+        hop_ms=10,
+        n_freq=201,
+        n_mels=40,
+        n_mfcc=13,
+        feat_list=None,
+        eps=1e-10,
+        **kwargs
+    ):
         super(OnlinePreprocessor, self).__init__()
         # save preprocessing arguments
         self._sample_rate = sample_rate
@@ -73,18 +86,30 @@ class OnlinePreprocessor(torch.nn.Module):
         win = round(win_ms * sample_rate / 1000)
         hop = round(hop_ms * sample_rate / 1000)
         n_fft = (n_freq - 1) * 2
-        self._win_args = {'n_fft': n_fft, 'hop_length': hop, 'win_length': win}
-        self.register_buffer('_window', torch.hann_window(win))
-        
-        self._stft_args = {'center': True, 'pad_mode': 'reflect', 'normalized': False, 'onesided': True}
+        self._win_args = {"n_fft": n_fft, "hop_length": hop, "win_length": win}
+        self.register_buffer("_window", torch.hann_window(win))
+
+        self._stft_args = {
+            "center": True,
+            "pad_mode": "reflect",
+            "normalized": False,
+            "onesided": True,
+        }
         # stft_args: same default values as torchaudio.transforms.Spectrogram & librosa.core.spectrum._spectrogram
         self._stft = partial(torch.stft, **self._win_args, **self._stft_args)
         self._melscale = MelScale(sample_rate=sample_rate, n_mels=n_mels)
-        self._mfcc_trans = MFCC(sample_rate=sample_rate, n_mfcc=n_mfcc, log_mels=True, melkwargs=self._win_args)
+        self._mfcc_trans = MFCC(
+            sample_rate=sample_rate,
+            n_mfcc=n_mfcc,
+            log_mels=True,
+            melkwargs=self._win_args,
+        )
         self._istft = partial(torch.istft, **self._win_args, **self._stft_args)
-        
+
         self.feat_list = feat_list
-        self.register_buffer('_pseudo_wavs', torch.randn(N_SAMPLED_PSEUDO_WAV, sample_rate))
+        self.register_buffer(
+            "_pseudo_wavs", torch.randn(N_SAMPLED_PSEUDO_WAV, sample_rate)
+        )
         self.eps = eps
 
     def _magphase(self, spectrogram):
@@ -101,21 +126,24 @@ class OnlinePreprocessor(torch.nn.Module):
         return feat_list
 
     def _transpose_list(self, feats):
-        return [feat.transpose(-1, -2).contiguous() if type(feat) is torch.Tensor else feat for feat in feats]
+        return [
+            feat.transpose(-1, -2).contiguous() if type(feat) is torch.Tensor else feat
+            for feat in feats
+        ]
 
     @classmethod
     def get_feat_config(cls, feat_type, channel=0, log=False, delta=0, cmvn=False):
-        assert feat_type in ['wav', 'complx', 'linear', 'phase', 'mel', 'mfcc']
+        assert feat_type in ["wav", "complx", "linear", "phase", "mel", "mfcc"]
         assert type(channel) is int
         assert type(log) is bool
         assert type(delta) is int and delta >= 0
         assert type(cmvn) is bool
         return {
-            'feat_type': feat_type,
-            'channel': channel,
-            'log': log,
-            'delta': delta,
-            'cmvn': cmvn
+            "feat_type": feat_type,
+            "channel": channel,
+            "log": log,
+            "delta": delta,
+            "cmvn": cmvn,
         }
 
     def forward(self, wavs=None, feat_list=None, wavs_len=None):
@@ -125,7 +153,9 @@ class OnlinePreprocessor(torch.nn.Module):
 
         feat_list = self._check_list(feat_list)
         if wavs is None:
-            max_channel_id = max([int(args['channel']) if 'channel' in args else 0 for args in feat_list])
+            max_channel_id = max(
+                [int(args["channel"]) if "channel" in args else 0 for args in feat_list]
+            )
             wavs = self._pseudo_wavs[0].view(1, 1, -1).repeat(1, max_channel_id + 1, 1)
         assert wavs.dim() >= 3
 
@@ -135,10 +165,16 @@ class OnlinePreprocessor(torch.nn.Module):
             for wav in wavs:
                 nonzero_index = wav.nonzero()
                 if len(nonzero_index) == 0:
-                    wavs_len.append(wav.size(-1)) # when all elements are zero
+                    wavs_len.append(wav.size(-1))  # when all elements are zero
                 else:
-                    wavs_len.append(nonzero_index[:, -1].max().item()+1)
-            wavs = pad_sequence([wav[:wav_len].transpose(-1, -2) for wav, wav_len in zip(wavs, wavs_len)], batch_first=True).transpose(-1, -2)
+                    wavs_len.append(nonzero_index[:, -1].max().item() + 1)
+            wavs = pad_sequence(
+                [
+                    wav[:wav_len].transpose(-1, -2)
+                    for wav, wav_len in zip(wavs, wavs_len)
+                ],
+                batch_first=True,
+            ).transpose(-1, -2)
 
         wav = wavs.unsqueeze(2)
         shape = wavs.size()
@@ -151,11 +187,13 @@ class OnlinePreprocessor(torch.nn.Module):
         complx = complx.transpose(-1, -2).reshape(*mfcc.shape[:2], -1, mfcc.size(-1))
         # complx, linear, phase, mel, mfcc: (*, channel_size, feat_dim, max_len)
 
-        def select_feat(variables, feat_type, channel=0, log=False, delta=0, cmvn=False):
+        def select_feat(
+            variables, feat_type, channel=0, log=False, delta=0, cmvn=False
+        ):
             raw_feat = variables[feat_type].select(dim=-3, index=channel)
             # apply log scale
             if bool(log):
-                raw_feat = (raw_feat + self.eps).log()   
+                raw_feat = (raw_feat + self.eps).log()
             feats = [raw_feat.contiguous()]
             # apply delta for features
             for _ in range(int(delta)):
@@ -168,14 +206,18 @@ class OnlinePreprocessor(torch.nn.Module):
                 cmvn_feats = []
                 for feat, feat_len in zip(feats, feats_len):
                     feat = feat[:, :feat_len]
-                    cmvn_feat = (feat - feat.mean(dim=-1, keepdim=True)) / (feat.std(dim=-1, keepdim=True) + self.eps)
+                    cmvn_feat = (feat - feat.mean(dim=-1, keepdim=True)) / (
+                        feat.std(dim=-1, keepdim=True) + self.eps
+                    )
                     cmvn_feats.append(cmvn_feat.transpose(-1, -2))
                 feats = pad_sequence(cmvn_feats, batch_first=True).transpose(-1, -2)
             return feats
             # return: (*, feat_dim, max_len)
-        
+
         local_variables = locals()
-        return self._transpose_list([select_feat(local_variables, **args) for args in feat_list])
+        return self._transpose_list(
+            [select_feat(local_variables, **args) for args in feat_list]
+        )
         # return: [(*, max_len, feat_dim), ...]
 
     def istft(self, linears=None, phases=None, linear_power=2, complxs=None):
@@ -185,13 +227,15 @@ class OnlinePreprocessor(torch.nn.Module):
 
         if complxs is None:
             linears, phases = self._transpose_list([linears, phases])
-            complxs = linears.pow(1/linear_power).unsqueeze(-1) * torch.stack([phases.cos(), phases.sin()], dim=-1)
+            complxs = linears.pow(1 / linear_power).unsqueeze(-1) * torch.stack(
+                [phases.cos(), phases.sin()], dim=-1
+            )
         if complxs.size(-1) != 2:
             # treat complxs as: (*, max_feat_len, n_freq * 2)
             shape = complxs.size()
             complxs = complxs.view(*shape[:-1], -1, 2).transpose(-2, -3).contiguous()
         # complxs: (*, n_freq, max_feat_len, 2)
-        
+
         return self._istft(complxs, window=self._window)
         # return: (*, max_wav_len)
 
@@ -199,17 +243,23 @@ class OnlinePreprocessor(torch.nn.Module):
         # wavs: (*, channel_size, max_wav_len)
         channel1, channel2 = 0, 1
         max_channel_id = max(channel1, channel2)
-        
-        if wavs is None:    
-            wavs = self._pseudo_wavs[:max_channel_id + 1].unsqueeze(0)
+
+        if wavs is None:
+            wavs = self._pseudo_wavs[: max_channel_id + 1].unsqueeze(0)
         assert wavs.size(-2) > max_channel_id
-        
+
         feat_list = [
-            {'feat_type': 'complx', 'channel': channel1},
-            {'feat_type': 'linear', 'channel': channel2},
-            {'feat_type': 'phase', 'channel': channel2}
+            {"feat_type": "complx", "channel": channel1},
+            {"feat_type": "linear", "channel": channel2},
+            {"feat_type": "phase", "channel": channel2},
         ]
         complxs, linears, phases = self.forward(wavs, feat_list)
-        assert torch.allclose(wavs.select(dim=-2, index=channel1), self.istft(complxs=complxs), atol=atol)
-        assert torch.allclose(wavs.select(dim=-2, index=channel2), self.istft(linears=linears, phases=phases), atol=atol)
-        print('[Preprocessor] test passed: stft -> istft')
+        assert torch.allclose(
+            wavs.select(dim=-2, index=channel1), self.istft(complxs=complxs), atol=atol
+        )
+        assert torch.allclose(
+            wavs.select(dim=-2, index=channel2),
+            self.istft(linears=linears, phases=phases),
+            atol=atol,
+        )
+        print("[Preprocessor] test passed: stft -> istft")

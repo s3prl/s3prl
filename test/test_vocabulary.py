@@ -2,6 +2,7 @@ import logging
 import os
 import tempfile
 
+import pytest
 from dotenv import dotenv_values
 
 from s3prl.corpus.librispeech import LibriSpeechForSUPERB
@@ -22,6 +23,7 @@ def is_same_vocab(vocabs_1, vocabs_2):
     return True
 
 
+@pytest.mark.corpus
 def test_vocabulary():
     config = dotenv_values()
     corpus = LibriSpeechForSUPERB(config["LibriSpeech"])

@@ -7,10 +7,10 @@
 """*********************************************************************************************"""
 
 
+from pase.models.frontend import wf_builder
 from torch.nn.utils.rnn import pad_sequence
 
 from ..interfaces import UpstreamBase
-from pase.models.frontend import wf_builder
 
 
 class UpstreamExpert(UpstreamBase):

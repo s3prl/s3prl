@@ -11,8 +11,8 @@ import torch
 from torch.nn.utils.rnn import pad_sequence
 
 from ..interfaces import UpstreamBase
-from .npc import NPC
 from .audio import create_transform
+from .npc import NPC
 
 
 class UpstreamExpert(UpstreamBase):

@@ -15,6 +15,7 @@ import os
 
 # -------------#
 from s3prl.utility.download import _urls_to_filepaths
+
 from .expert import UpstreamExpert as _UpstreamExpert
 
 
@@ -33,9 +34,7 @@ def hubert_url(ckpt, refresh=False, *args, **kwargs):
         ckpt (str): URL
         refresh (bool): whether to download ckpt/config again if existed
     """
-    return hubert_local(
-        _urls_to_filepaths(ckpt, refresh=refresh), *args, **kwargs
-    )
+    return hubert_local(_urls_to_filepaths(ckpt, refresh=refresh), *args, **kwargs)
 
 
 def hubert(refresh=False, *args, **kwargs):

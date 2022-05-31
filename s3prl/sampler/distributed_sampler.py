@@ -1,10 +1,9 @@
 import logging
 from copy import deepcopy
-from typing import TypeVar, Optional, Iterator
+from typing import Iterator, Optional, TypeVar
 
 import torch.distributed as dist
 from torch.utils.data import Sampler
-
 
 T_co = TypeVar("T_co", covariant=True)
 logger = logging.getLogger(__name__)

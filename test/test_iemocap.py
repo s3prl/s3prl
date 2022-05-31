@@ -1,8 +1,10 @@
+import pytest
 from dotenv import dotenv_values
 
 from s3prl.corpus.iemocap import IEMOCAP, IEMOCAPForSUPERB
 
 
+@pytest.mark.corpus
 def test_iemocap():
     config = dotenv_values()
     dataset_root = config["IEMOCAP"]

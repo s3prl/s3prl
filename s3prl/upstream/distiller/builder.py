@@ -3,17 +3,20 @@
     Author: Heng-Jui Chang (https://github.com/vectominist)
 """
 
-import sys
 import copy
 import math
+import sys
 from distutils.util import strtobool
-import yaml
+
 import numpy as np
 import torch
+import yaml
 from torch import nn
 from torch.nn.utils.rnn import pad_sequence
-from .model import DistillerConfig, DistillerModel
+
 import s3prl.optimizers
+
+from .model import DistillerConfig, DistillerModel
 
 
 class DistillerBuilder(nn.Module):

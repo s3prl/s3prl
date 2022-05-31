@@ -1,0 +1,11 @@
+torchaudio >=0.7.0
+torch >=1.7.0,!=1.10.0
+PyYAML >=5.4
+tqdm >=4.56.0
+numpy >=1.21
+gdown >=3.12.2
+fairseq @ git+https://github.com//pytorch/fairseq.git@f2146bdc7abf293186de9449bfa2272775e39e1d#egg=fairseq
+lighthubert @ git+https://github.com/mechanicalsea/lighthubert#egg=lighthubert
+transformers >=4.10.0,<5.0
+speechbrain
+pytorch-lightning

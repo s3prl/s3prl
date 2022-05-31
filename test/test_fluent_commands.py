@@ -1,3 +1,4 @@
+import pytest
 from dotenv import dotenv_values
 
 from s3prl.corpus.fluent_speech_commands import (
@@ -6,6 +7,7 @@ from s3prl.corpus.fluent_speech_commands import (
 )
 
 
+@pytest.mark.corpus
 def test_fluent_commands():
     config = dotenv_values()
     dataset_root = config["FluentSpeechCommands"]
