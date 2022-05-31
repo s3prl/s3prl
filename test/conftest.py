@@ -21,12 +21,18 @@ def pytest_addoption(parser):
         action="store_true",
         help="for test scripts only for practice and not real test cases.",
     )
+    parser.addoption(
+        "--runextra", action="store_true", help="run tests with extra dependencies"
+    )
 
 
 def pytest_configure(config):
     config.addinivalue_line("markers", "slow: mark test as slow to run")
     config.addinivalue_line(
         "markers", "corpus: mark test as required corpus path dependency"
+    )
+    config.addinivalue_line(
+        "markers", "extra_dependency: mask test requiring extra dependencies to run"
     )
     config.addinivalue_line("markers", "practice: mark test as a practice")
 
@@ -49,6 +55,12 @@ def pytest_collection_modifyitems(config, items):
         for item in items:
             if "practice" in item.keywords:
                 item.add_marker(skip_practice)
+
+    if not config.getoption("--runextra"):
+        skip_extra = pytest.mark.skip(reason="need --runextra option to run")
+        for item in items:
+            if "extra_dependency" in item.keywords:
+                item.add_marker(skip_extra)
 
 
 class Helper:

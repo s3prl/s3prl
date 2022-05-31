@@ -7,12 +7,7 @@ import torchaudio
 
 from ..encoder.category import CategoryEncoder
 from ..encoder.g2p import G2P
-from ..encoder.tokenizer import (
-    CharacterTokenizer,
-    Tokenizer,
-    default_phoneme_tokenizer,
-    load_tokenizer,
-)
+from ..encoder.tokenizer import Tokenizer, default_phoneme_tokenizer, load_tokenizer
 from ..encoder.vocabulary import generate_vocab
 from .base import AugmentedDynamicItemDataset, DataPipe
 
@@ -197,7 +192,7 @@ class GenerateTokenizer(DataPipe):
             logger.info(
                 f"Tokenizer (name = {self.tokenizer_name}) exists in dataset, skip generation."
             )
-        except:
+        except KeyError:
             if self.generate:
                 text_list = None
                 if self.text_file is None:
@@ -222,7 +217,7 @@ class EncodeText(DataPipe):
     def __call__(self, dataset: AugmentedDynamicItemDataset):
         try:
             tokenizer = dataset.get_tool(self.tokenizer_name)
-        except:
+        except KeyError:
             raise KeyError(f"Tokenizer (name = {self.tokenizer_name}) not found!")
 
         dataset.add_dynamic_item(

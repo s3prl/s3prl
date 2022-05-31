@@ -6,7 +6,6 @@ from copy import deepcopy
 from pathlib import Path
 
 import torch
-from torch.utils.data import DataLoader
 from tqdm import tqdm
 
 from s3prl import Container, Logs, Object, Output
@@ -149,7 +148,8 @@ def main():
             **stats,
         )
         model = UpstreamDownstreamModel(upstream, downstream)
-        task = problem.Task(model, **stats)
+        # task = problem.Task(model, **{**stats, **config.Task})
+        task = problem.Task(model, **stats, **config.Task)
         task = task.to(device)
 
     # ALL THE FOLLOWING CODES ARE FOR TRAINER

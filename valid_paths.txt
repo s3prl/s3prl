@@ -14,3 +14,4 @@ s3prl/hub.py
 s3prl/__init__.py
 example
 test
+ci

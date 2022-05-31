@@ -99,6 +99,7 @@ class Output(GeneralOutput):
         class_ids=None,
         logit=None,
         prediction=None,
+        hypotheses=None,
         wav=None,
         wav_path=None,
         wav_len=None,

@@ -32,7 +32,7 @@ def read_lexicon_files(file_list: List[str]) -> Dict[str, List[str]]:
             for i, phonemes in enumerate(phonemes_all):
                 logging.info(f"{i}. {phonemes}")
         w2p[word] = phonemes_all[0]
-    logging.info(f"Taking the first phoneme sequences for a deterministic behavior.")
+    logging.info("Taking the first phoneme sequences for a deterministic behavior.")
 
     return w2p
 
