@@ -141,6 +141,19 @@ class _CallableWithConfig:
 
         if isinstance(self, _CallableWithDefaultConfig):
             logger.info(f"\n\nFINAL CONFIG:\n\n{str(all_cfg)}")
+
+            if "workspace" in all_cfg:
+                log_file = str(
+                    Workspace(all_cfg.workspace).get_log_file(self).resolve()
+                )
+                root_log = logging.getLogger()
+                formatter = logging.Formatter(
+                    f"[%(levelname)s] RANK {all_cfg.get('rank', 0)} %(asctime)s (%(module)s.%(funcName)s:%(lineno)d): %(message)s"
+                )
+                fileHandler = logging.FileHandler(log_file)
+                fileHandler.setFormatter(formatter)
+                root_log.addHandler(fileHandler)
+
         return self._func(*args, **all_cfg)
 
 

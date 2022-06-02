@@ -187,6 +187,12 @@ class Workspace(type(Path()), MutableMapping):
         assert len(method.__qualname__) > 0
         return (self / "_cfg").get(method.__qualname__, None)
 
+    def get_log_file(self, method: MethodType):
+        assert len(method.__qualname__) > 0
+        log_dir = self / "_log"
+        log_dir.mkdir(exist_ok=True, parents=True)
+        return log_dir / f"{method.__qualname__}.log"
+
     @property
     def environ(self) -> Workspace:
         return self / "_environ"
