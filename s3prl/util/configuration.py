@@ -325,6 +325,9 @@ class _CallableWithOverrideParentConfig(_CallableWithConfig):
 
             _add_doc(self, doc, last=False)
 
+        doc = f"\n\n.. note::\n\n    Parent method: :py:obj:`~{self._parent_method.__module__}.{self._parent_method.__qualname__}`"
+        _add_doc(self, doc, last=False)
+
     @property
     def default_cfg(self) -> Container:
         return self._default_cfg.readonly()
