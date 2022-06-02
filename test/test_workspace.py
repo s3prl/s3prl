@@ -160,9 +160,7 @@ def test_workspace_environ():
 def test_workspace_link():
     with TemporaryDirectory() as filepath:
         workspace = Workspace(filepath)
-        data = dict(
-            a=3, b=4, c=5
-        )
+        data = dict(a=3, b=4, c=5)
         (workspace / "hello_dir").put(data, "valid_best", "yaml")
         workspace.link_from("temp", (workspace / "hello_dir"), "valid_best")
         assert (workspace / "temp.yaml").is_symlink()

@@ -3,13 +3,12 @@ import logging
 import torch.nn as nn
 
 from s3prl import Container, field
-from s3prl.dataset.base import AugmentedDynamicItemDataset
+from s3prl.base import Logs
+from s3prl.dataset.base import AugmentedDynamicItemDataset, DataLoader
 from s3prl.nn import S3PRLUpstream, UpstreamDownstreamModel
 from s3prl.problem.base import Problem
 from s3prl.problem.trainer import Trainer
 from s3prl.util import workspace
-from s3prl.base import Logs
-from s3prl.dataset.base import DataLoader
 from s3prl.util.configuration import default_cfg
 from s3prl.util.workspace import Workspace, as_type
 

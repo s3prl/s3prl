@@ -162,7 +162,7 @@ class Problem:
                 f"Run stage {stage_index}: {func.__qualname__} with config:\n{stage_cfg}"
             )
             func(**stage_cfg)
-            stages_state_dir.put("", done_mark, "txt")
+            stages_state_dir.put(True, done_mark, "txt")
 
     @staticmethod
     def get_execution_order(cfg):

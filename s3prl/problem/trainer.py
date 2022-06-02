@@ -439,7 +439,7 @@ class Trainer:
         eval_batch=field(
             -1,
             "How many batches to evaluate. Use -1 to run all batches (entire epoch)",
-            int
+            int,
         ),
         n_jobs=field(4, "The number of workers for the dataloader", int),
         device=field("cuda:0", "The device for inference", str),
@@ -455,7 +455,11 @@ class Trainer:
         sampler = workspace[f"{cfg.split_name}_sampler"]
         dataloader = DataLoader(dataset, sampler, num_workers=cfg.n_jobs)
         task = workspace["valid_best_task"]
-        logs: Logs = cls.evaluate(cfg.split_name, task, dataloader, cfg.device, cfg.eval_batch)
-        workspace.put({k: v for k, v in logs.Scalar.items()}, f"{cfg.split_name}_metrics", "yaml")
+        logs: Logs = cls.evaluate(
+            cfg.split_name, task, dataloader, cfg.device, cfg.eval_batch
+        )
+        workspace.put(
+            {k: v for k, v in logs.Scalar.items()}, f"{cfg.split_name}_metrics", "yaml"
+        )
         for key, value in logs.Scalar.items():
             logger.info(f"{key}: {value}")

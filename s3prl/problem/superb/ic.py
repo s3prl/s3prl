@@ -102,7 +102,7 @@ class SuperbIC(SuperbProblem):
         ),
         stage_2=dict(
             _method="inference",
-        )
+        ),
     )
     @classmethod
     def run_stages(cls, **cfg):
