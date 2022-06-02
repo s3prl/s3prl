@@ -423,12 +423,12 @@ class Trainer:
         workspace=field(
             "???",
             "The workspace containing the following keys:\n"
-            "  - \{split\}_dataset: Any pytorch Dataset\n"
-            "  - \{split\}_sampler: Any pytorch batch smapler\n"
+            "  - {split}_dataset: Any pytorch Dataset\n"
+            "  - {split}_sampler: Any pytorch batch smapler\n"
             "  - valid_best_task: A trained Task to be inference\n"
             "\n"
             "And the function will provide:\n"
-            "  - \{split\}_metrics: a dictionary with {metric_name: metric_value}",
+            "  - {split}_metrics: a dictionary with {metric_name: metric_value}",
             str,
         ),
         dryrun=field(
