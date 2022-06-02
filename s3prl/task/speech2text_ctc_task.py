@@ -79,7 +79,7 @@ class Speech2TextCTCTask(Task):
     def output_size(self):
         return self.model.output_size
 
-    def forward(self, x: torch.Tensor, x_len: torch.LongTensor):
+    def predict(self, x: torch.Tensor, x_len: torch.LongTensor):
         """
         Args:
             x (torch.Tensor): (batch_size, timestamps, input_size)
@@ -109,7 +109,7 @@ class Speech2TextCTCTask(Task):
         unique_name: np.ndarray,
         beam_decode: bool = False,
     ):
-        logits, prediction, x_len = self(x, x_len).slice(3)
+        logits, prediction, x_len = self.predict(x, x_len).slice(3)
         log_probs = F.log_softmax(logits, dim=2)
 
         y = class_ids

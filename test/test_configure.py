@@ -1,5 +1,5 @@
 from s3prl import Container
-from s3prl.util.configuration import parse_override
+from s3prl.util.override import parse_override
 
 
 def test_configuration():

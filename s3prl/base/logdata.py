@@ -60,19 +60,19 @@ class Logs(Container):
         return output
 
     @property
-    def Scalar(self):
+    def Scalar(self) -> Container:
         return self.filter_data_type(LogDataType.SCALAR)
 
     @property
-    def Audio(self):
+    def Audio(self) -> Container:
         return self.filter_data_type(LogDataType.AUDIO)
 
     @property
-    def Image(self):
+    def Image(self) -> Container:
         return self.filter_data_type(LogDataType.IMAGE)
 
     @property
-    def Hidden_State(self):
+    def Hidden_State(self) -> Container:
         return self.filter_data_type(LogDataType.HIDDEN_STATE)
 
     @property

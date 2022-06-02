@@ -8,6 +8,16 @@ class Task(NNModule):
         super().__init__()
 
     @abc.abstractmethod
+    def predict(self):
+        raise NotImplementedError
+
+    def forward(self, split: str, *args, **kwargs):
+        return getattr(self, f"{split}_step")(*args, **kwargs)
+
+    def reduction(self, split: str, *args, **kwargs):
+        return getattr(self, f"{split}_reduction")(*args, **kwargs)
+
+    @abc.abstractmethod
     def train_step(self):
         raise NotImplementedError
 
