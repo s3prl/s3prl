@@ -91,6 +91,11 @@ class SuperbIC(SuperbProblem):
         """
         super().train(**cfg)
 
+    @override_parent_cfg()
+    @classmethod
+    def inference(cls, **cfg):
+        super().inference(**cfg)
+
     @override_parent_cfg(
         start_stage=0,
         final_stage=2,
