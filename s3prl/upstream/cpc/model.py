@@ -14,7 +14,8 @@
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
-#-------------#
+
+# -------------#
 import torchaudio
 
 
@@ -22,7 +23,6 @@ import torchaudio
 # NETWORKS #
 ############
 class IDModule(nn.Module):
-
     def __init__(self, *args, **kwargs):
         super(IDModule, self).__init__()
 
@@ -31,16 +31,11 @@ class IDModule(nn.Module):
 
 
 class ChannelNorm(nn.Module):
-
-    def __init__(self,
-                 numFeatures,
-                 epsilon=1e-05,
-                 affine=True):
+    def __init__(self, numFeatures, epsilon=1e-05, affine=True):
 
         super(ChannelNorm, self).__init__()
         if affine:
-            self.weight = nn.parameter.Parameter(torch.Tensor(1,
-                                                              numFeatures, 1))
+            self.weight = nn.parameter.Parameter(torch.Tensor(1, numFeatures, 1))
             self.bias = nn.parameter.Parameter(torch.Tensor(1, numFeatures, 1))
         else:
             self.weight = None
@@ -59,7 +54,7 @@ class ChannelNorm(nn.Module):
 
         cumMean = x.mean(dim=1, keepdim=True)
         cumVar = x.var(dim=1, keepdim=True)
-        x = (x - cumMean)*torch.rsqrt(cumVar + self.epsilon)
+        x = (x - cumMean) * torch.rsqrt(cumVar + self.epsilon)
 
         if self.weight is not None:
             x = x * self.weight + self.bias
@@ -67,10 +62,7 @@ class ChannelNorm(nn.Module):
 
 
 class CPCEncoder(nn.Module):
-
-    def __init__(self,
-                 sizeHidden=512,
-                 normMode="layerNorm"):
+    def __init__(self, sizeHidden=512, normMode="layerNorm"):
 
         super(CPCEncoder, self).__init__()
 
@@ -79,7 +71,10 @@ class CPCEncoder(nn.Module):
             raise ValueError(f"Norm mode must be in {validModes}")
 
         if normMode == "instanceNorm":
-            def normLayer(x): return nn.InstanceNorm1d(x, affine=True)
+
+            def normLayer(x):
+                return nn.InstanceNorm1d(x, affine=True)
+
         elif normMode == "ID":
             normLayer = IDModule
         elif normMode == "layerNorm":
@@ -92,8 +87,7 @@ class CPCEncoder(nn.Module):
         self.batchNorm0 = normLayer(sizeHidden)
         self.conv1 = nn.Conv1d(sizeHidden, sizeHidden, 8, stride=4, padding=2)
         self.batchNorm1 = normLayer(sizeHidden)
-        self.conv2 = nn.Conv1d(sizeHidden, sizeHidden, 4,
-                               stride=2, padding=1)
+        self.conv2 = nn.Conv1d(sizeHidden, sizeHidden, 4, stride=2, padding=1)
         self.batchNorm2 = normLayer(sizeHidden)
         self.conv3 = nn.Conv1d(sizeHidden, sizeHidden, 4, stride=2, padding=1)
         self.batchNorm3 = normLayer(sizeHidden)
@@ -114,15 +108,12 @@ class CPCEncoder(nn.Module):
 
 
 class MFCCEncoder(nn.Module):
-
-    def __init__(self,
-                 dimEncoded):
+    def __init__(self, dimEncoded):
 
         super(MFCCEncoder, self).__init__()
         melkwargs = {"n_mels": max(128, dimEncoded), "n_fft": 321}
         self.dimEncoded = dimEncoded
-        self.MFCC = torchaudio.transforms.MFCC(n_mfcc=dimEncoded,
-                                               melkwargs=melkwargs)
+        self.MFCC = torchaudio.transforms.MFCC(n_mfcc=dimEncoded, melkwargs=melkwargs)
 
     def forward(self, x):
         x = x.view(x.size(0), -1)
@@ -131,27 +122,25 @@ class MFCCEncoder(nn.Module):
 
 
 class LFBEnconder(nn.Module):
-
     def __init__(self, dimEncoded, normalize=True):
 
         super(LFBEnconder, self).__init__()
         self.dimEncoded = dimEncoded
-        self.conv = nn.Conv1d(1, 2 * dimEncoded,
-                              400, stride=1)
-        self.register_buffer('han', torch.hann_window(400).view(1, 1, 400))
-        self.instancenorm = nn.InstanceNorm1d(dimEncoded, momentum=1) \
-            if normalize else None
+        self.conv = nn.Conv1d(1, 2 * dimEncoded, 400, stride=1)
+        self.register_buffer("han", torch.hann_window(400).view(1, 1, 400))
+        self.instancenorm = (
+            nn.InstanceNorm1d(dimEncoded, momentum=1) if normalize else None
+        )
 
     def forward(self, x):
 
         N, C, L = x.size()
         x = self.conv(x)
         x = x.view(N, self.dimEncoded, 2, -1)
-        x = x[:, :, 0, :]**2 + x[:, :, 1, :]**2
-        x = x.view(N * self.dimEncoded, 1,  -1)
-        x = torch.nn.functional.conv1d(x, self.han, bias=None,
-                                       stride=160, padding=350)
-        x = x.view(N, self.dimEncoded,  -1)
+        x = x[:, :, 0, :] ** 2 + x[:, :, 1, :] ** 2
+        x = x.view(N * self.dimEncoded, 1, -1)
+        x = torch.nn.functional.conv1d(x, self.han, bias=None, stride=160, padding=350)
+        x = x.view(N, self.dimEncoded, -1)
         x = torch.log(1 + torch.abs(x))
 
         # Normalization
@@ -161,27 +150,25 @@ class LFBEnconder(nn.Module):
 
 
 class CPCAR(nn.Module):
-
-    def __init__(self,
-                 dimEncoded,
-                 dimOutput,
-                 keepHidden,
-                 nLevelsGRU,
-                 mode="GRU",
-                 reverse=False):
+    def __init__(
+        self, dimEncoded, dimOutput, keepHidden, nLevelsGRU, mode="GRU", reverse=False
+    ):
 
         super(CPCAR, self).__init__()
         self.RESIDUAL_STD = 0.1
 
         if mode == "LSTM":
-            self.baseNet = nn.LSTM(dimEncoded, dimOutput,
-                                   num_layers=nLevelsGRU, batch_first=True)
+            self.baseNet = nn.LSTM(
+                dimEncoded, dimOutput, num_layers=nLevelsGRU, batch_first=True
+            )
         elif mode == "RNN":
-            self.baseNet = nn.RNN(dimEncoded, dimOutput,
-                                  num_layers=nLevelsGRU, batch_first=True)
+            self.baseNet = nn.RNN(
+                dimEncoded, dimOutput, num_layers=nLevelsGRU, batch_first=True
+            )
         else:
-            self.baseNet = nn.GRU(dimEncoded, dimOutput,
-                                  num_layers=nLevelsGRU, batch_first=True)
+            self.baseNet = nn.GRU(
+                dimEncoded, dimOutput, num_layers=nLevelsGRU, batch_first=True
+            )
 
         self.hidden = None
         self.keepHidden = keepHidden
@@ -213,7 +200,6 @@ class CPCAR(nn.Module):
 
 
 class NoAr(nn.Module):
-
     def __init__(self, *args):
         super(NoAr, self).__init__()
 
@@ -225,17 +211,19 @@ class BiDIRARTangled(nn.Module):
     r"""
     Research: bidirectionnal model for BERT training.
     """
-    def __init__(self,
-                 dimEncoded,
-                 dimOutput,
-                 nLevelsGRU):
+
+    def __init__(self, dimEncoded, dimOutput, nLevelsGRU):
 
         super(BiDIRARTangled, self).__init__()
-        assert(dimOutput % 2 == 0)
+        assert dimOutput % 2 == 0
 
-        self.ARNet = nn.GRU(dimEncoded, dimOutput // 2,
-                            num_layers=nLevelsGRU, batch_first=True,
-                            bidirectional=True)
+        self.ARNet = nn.GRU(
+            dimEncoded,
+            dimOutput // 2,
+            num_layers=nLevelsGRU,
+            batch_first=True,
+            bidirectional=True,
+        )
 
     def getDimOutput(self):
         return self.ARNet.hidden_size * 2
@@ -251,18 +239,18 @@ class BiDIRAR(nn.Module):
     r"""
     Research: bidirectionnal model for BERT training.
     """
-    def __init__(self,
-                 dimEncoded,
-                 dimOutput,
-                 nLevelsGRU):
+
+    def __init__(self, dimEncoded, dimOutput, nLevelsGRU):
 
         super(BiDIRAR, self).__init__()
-        assert(dimOutput % 2 == 0)
+        assert dimOutput % 2 == 0
 
-        self.netForward = nn.GRU(dimEncoded, dimOutput // 2,
-                                 num_layers=nLevelsGRU, batch_first=True)
-        self.netBackward = nn.GRU(dimEncoded, dimOutput // 2,
-                                  num_layers=nLevelsGRU, batch_first=True)
+        self.netForward = nn.GRU(
+            dimEncoded, dimOutput // 2, num_layers=nLevelsGRU, batch_first=True
+        )
+        self.netBackward = nn.GRU(
+            dimEncoded, dimOutput // 2, num_layers=nLevelsGRU, batch_first=True
+        )
 
     def getDimOutput(self):
         return self.netForward.hidden_size * 2
@@ -282,10 +270,7 @@ class BiDIRAR(nn.Module):
 
 
 class CPCModel(nn.Module):
-
-    def __init__(self,
-                 encoder,
-                 AR):
+    def __init__(self, encoder, AR):
 
         super(CPCModel, self).__init__()
         self.gEncoder = encoder
@@ -298,7 +283,6 @@ class CPCModel(nn.Module):
 
 
 class ConcatenatedModel(nn.Module):
-
     def __init__(self, model_list):
 
         super(ConcatenatedModel, self).__init__()
@@ -312,5 +296,4 @@ class ConcatenatedModel(nn.Module):
             cFeature, encodedData, label = model(batchData, label)
             outFeatures.append(cFeature)
             outEncoded.append(encodedData)
-        return torch.cat(outFeatures, dim=2), \
-            torch.cat(outEncoded, dim=2), label
+        return torch.cat(outFeatures, dim=2), torch.cat(outEncoded, dim=2), label

@@ -156,3 +156,9 @@ spk2utt
 experiment
 *.tar.gz
 *.tsv
+
+# document files
+_build
+s3prl*.rst
+s3prl*.doctree
+*.html

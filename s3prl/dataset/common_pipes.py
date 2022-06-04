@@ -1,11 +1,13 @@
 import logging
 from dataclasses import dataclass
+from typing import Callable
 
 import torch
 import torchaudio
 
 from ..encoder.category import CategoryEncoder
-from ..encoder.tokenizer import CharacterTokenizer, Tokenizer, load_tokenizer
+from ..encoder.g2p import G2P
+from ..encoder.tokenizer import Tokenizer, default_phoneme_tokenizer, load_tokenizer
 from ..encoder.vocabulary import generate_vocab
 from .base import AugmentedDynamicItemDataset, DataPipe
 
@@ -190,14 +192,15 @@ class GenerateTokenizer(DataPipe):
             logger.info(
                 f"Tokenizer (name = {self.tokenizer_name}) exists in dataset, skip generation."
             )
-        except:
-            text_list = None
-            if self.text_file is None:
-                with dataset.output_keys_as([self.text_name]):
-                    text_list = [item[self.text_name] for item in dataset]
+        except KeyError:
+            if self.generate:
+                text_list = None
+                if self.text_file is None:
+                    with dataset.output_keys_as([self.text_name]):
+                        text_list = [item[self.text_name] for item in dataset]
 
-            tokenizer = self.prepare_tokenizer(text_list)
-            dataset.add_tool(self.tokenizer_name, tokenizer)
+                tokenizer = self.prepare_tokenizer(text_list)
+                dataset.add_tool(self.tokenizer_name, tokenizer)
 
         return dataset
 
@@ -208,13 +211,13 @@ class EncodeText(DataPipe):
     output_text_name: str = "tokenized_text"
     tokenizer_name: str = "tokenizer"
 
-    def encode_text(self, tokenizer: Tokenizer, text: str):
+    def encode_text(self, tokenizer: Tokenizer, text: str) -> torch.LongTensor:
         return torch.LongTensor(tokenizer.encode(text))
 
     def __call__(self, dataset: AugmentedDynamicItemDataset):
         try:
             tokenizer = dataset.get_tool(self.tokenizer_name)
-        except:
+        except KeyError:
             raise KeyError(f"Tokenizer (name = {self.tokenizer_name}) not found!")
 
         dataset.add_dynamic_item(
@@ -222,6 +225,51 @@ class EncodeText(DataPipe):
             takes=[self.tokenizer_name, self.text_name],
             provides=self.output_text_name,
         )
+        dataset.add_tool("output_size", tokenizer.vocab_size)
+
+        return dataset
+
+
+@dataclass
+class Phonemize(DataPipe):
+    text_name: str = "transcription"
+    phonemized_text_name: str = "phonemized_text"
+    output_text_name: str = "tokenized_text"
+    g2p_name: str = "g2p"
+    tokenizer_name: str = "tokenizer"
+
+    def grapheme2phoneme(self, g2p: Callable, text: str) -> str:
+        return g2p(text)
+
+    def encode_text(self, tokenizer: Tokenizer, text: str) -> torch.LongTensor:
+        return torch.LongTensor(tokenizer.encode(text))
+
+    def __call__(self, dataset: AugmentedDynamicItemDataset):
+        if not dataset.has_tool(self.g2p_name):
+            logger.warn(
+                f"Cannot find {self.g2p_name} in dataset, use default G2P instead."
+            )
+            dataset.add_tool(self.g2p_name, G2P())
+
+        if not dataset.has_tool(self.tokenizer_name):
+            logger.warn(
+                f"Cannot find {self.tokenizer_name} in dataset, use default tokenizer instead."
+            )
+            dataset.add_tool(self.tokenizer_name, default_phoneme_tokenizer())
+
+        dataset.add_dynamic_item(
+            self.grapheme2phoneme,
+            takes=[self.g2p_name, self.text_name],
+            provides=self.phonemized_text_name,
+        )
+
+        dataset.add_dynamic_item(
+            self.encode_text,
+            takes=[self.tokenizer_name, self.phonemized_text_name],
+            provides=self.output_text_name,
+        )
+
+        tokenizer = dataset.get_tool(self.tokenizer_name)
         dataset.add_tool("output_size", tokenizer.vocab_size)
 
         return dataset

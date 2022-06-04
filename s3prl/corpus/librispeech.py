@@ -7,6 +7,7 @@ from typing import Any, Dict, List
 from joblib import Parallel, delayed
 
 from s3prl import Container, Output, cache
+from s3prl.util import registry
 
 from .base import Corpus
 
@@ -151,32 +152,18 @@ class LibriSpeech(Corpus):
         return data
 
 
-class LibriSpeechForSpeech2Text(LibriSpeech):
-    def __init__(
-        self,
-        dataset_root: str,
-        n_jobs: int = 4,
-        train_split: List[str] = ["train-clean-100"],
-        valid_split: List[str] = ["dev-clean"],
-        test_split: List[str] = ["test-clean"],
-    ) -> None:
-        super().__init__(dataset_root, n_jobs, train_split, valid_split, test_split)
-
-    def __call__(self):
-        train_data, valid_data, test_data = self.data_split
-        return Output(
-            train_data=train_data,
-            valid_data=valid_data,
-            test_data=test_data,
-        )
-
-
-class LibriSpeechForSUPERB(LibriSpeechForSpeech2Text):
-    def __init__(
-        self,
-        dataset_root: str,
-        n_jobs: int = 4,
-    ) -> None:
-        super().__init__(
-            dataset_root, n_jobs, ["train-clean-100"], ["dev-clean"], ["test-clean"]
-        )
+registry.put()
+def librispeech_for_speech2text(
+    dataset_root: str,
+    n_jobs: int = 4,
+    train_split: List[str] = ["train-clean-100"],
+    valid_split: List[str] = ["dev-clean"],
+    test_split: List[str] = ["test-clean"],
+):
+    corpus = LibriSpeech(dataset_root, n_jobs, train_split, valid_split, test_split)
+    train_data, valid_data, test_data = corpus.data_split
+    return Output(
+        train_data=train_data,
+        valid_data=valid_data,
+        test_data=test_data,
+    )

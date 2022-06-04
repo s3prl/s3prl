@@ -8,18 +8,21 @@
 """*********************************************************************************************"""
 
 
+import argparse
+import json
+
 ###############
 # IMPORTATION #
 ###############
 import os
-import json
-import argparse
-#-------------#
+
+# -------------#
 import torch
 import torchaudio
-#-------------#
+
+# -------------#
 from .cpc_default_config import get_default_cpc_config
-from .model import CPCModel, ConcatenatedModel
+from .model import ConcatenatedModel, CPCModel
 
 
 class FeatureModule(torch.nn.Module):
@@ -93,18 +96,20 @@ def loadArgs(args, locArgs, forbiddenAttr=None):
 def getCheckpointData(pathDir):
     if not os.path.isdir(pathDir):
         return None
-    checkpoints = [x for x in os.listdir(pathDir)
-                   if os.path.splitext(x)[1] == '.pt'
-                   and os.path.splitext(x[11:])[0].isdigit()]
+    checkpoints = [
+        x
+        for x in os.listdir(pathDir)
+        if os.path.splitext(x)[1] == ".pt" and os.path.splitext(x[11:])[0].isdigit()
+    ]
     if len(checkpoints) == 0:
         print("No checkpoints found at " + pathDir)
         return None
     checkpoints.sort(key=lambda x: int(os.path.splitext(x[11:])[0]))
     data = os.path.join(pathDir, checkpoints[-1])
-    with open(os.path.join(pathDir, 'checkpoint_logs.json'), 'rb') as file:
+    with open(os.path.join(pathDir, "checkpoint_logs.json"), "rb") as file:
         logs = json.load(file)
 
-    with open(os.path.join(pathDir, 'checkpoint_args.json'), 'rb') as file:
+    with open(os.path.join(pathDir, "checkpoint_args.json"), "rb") as file:
         args = json.load(file)
 
     args = argparse.Namespace(**args)
@@ -116,33 +121,43 @@ def getCheckpointData(pathDir):
 
 def getEncoder(args):
 
-    if args.encoder_type == 'mfcc':
+    if args.encoder_type == "mfcc":
         from .model import MFCCEncoder
+
         return MFCCEncoder(args.hiddenEncoder)
-    elif args.encoder_type == 'lfb':
+    elif args.encoder_type == "lfb":
         from .model import LFBEnconder
+
         return LFBEnconder(args.hiddenEncoder)
     else:
         from .model import CPCEncoder
+
         return CPCEncoder(args.hiddenEncoder, args.normMode)
 
 
 def getAR(args):
-    if args.arMode == 'transformer':
+    if args.arMode == "transformer":
         from .transformers import buildTransformerAR
-        arNet = buildTransformerAR(args.hiddenEncoder, 1,
-                                   args.sizeWindow // 160, args.abspos)
+
+        arNet = buildTransformerAR(
+            args.hiddenEncoder, 1, args.sizeWindow // 160, args.abspos
+        )
         args.hiddenGar = args.hiddenEncoder
-    elif args.arMode == 'no_ar':
+    elif args.arMode == "no_ar":
         from .model import NoAr
+
         arNet = NoAr()
     else:
         from .model import CPCAR
-        arNet = CPCAR(args.hiddenEncoder, args.hiddenGar,
-                      args.samplingType == "sequential",
-                      args.nLevelsGRU,
-                      mode=args.arMode,
-                      reverse=args.cpc_mode == "reverse")
+
+        arNet = CPCAR(
+            args.hiddenEncoder,
+            args.hiddenGar,
+            args.samplingType == "sequential",
+            args.nLevelsGRU,
+            mode=args.arMode,
+            reverse=args.cpc_mode == "reverse",
+        )
     return arNet
 
 
@@ -153,9 +168,10 @@ def loadModel(pathCheckpoints, loadStateDict=True):
         print(f"Loading checkpoint {path}")
         _, _, locArgs = getCheckpointData(os.path.dirname(path))
 
-        doLoad = locArgs.load is not None and \
-            (len(locArgs.load) > 1 or
-             os.path.dirname(locArgs.load[0]) != os.path.dirname(path))
+        doLoad = locArgs.load is not None and (
+            len(locArgs.load) > 1
+            or os.path.dirname(locArgs.load[0]) != os.path.dirname(path)
+        )
 
         if doLoad:
             m_, hg, he = loadModel(locArgs.load, loadStateDict=False)
@@ -169,7 +185,7 @@ def loadModel(pathCheckpoints, loadStateDict=True):
 
         if loadStateDict:
             print(f"Loading the state dict at {path}")
-            state_dict = torch.load(path, 'cpu')
+            state_dict = torch.load(path, "cpu")
             m_.load_state_dict(state_dict["gEncoder"], strict=False)
         if not doLoad:
             hiddenGar += locArgs.hiddenGar
@@ -191,13 +207,16 @@ def get_module(i_module):
     return i_module
 
 
-def save_checkpoint(model_state, criterion_state, optimizer_state, best_state,
-                    path_checkpoint):
+def save_checkpoint(
+    model_state, criterion_state, optimizer_state, best_state, path_checkpoint
+):
 
-    state_dict = {"gEncoder": model_state,
-                  "cpcCriterion": criterion_state,
-                  "optimizer": optimizer_state,
-                  "best": best_state}
+    state_dict = {
+        "gEncoder": model_state,
+        "cpcCriterion": criterion_state,
+        "optimizer": optimizer_state,
+        "best": best_state,
+    }
 
     torch.save(state_dict, path_checkpoint)
 
@@ -205,8 +224,9 @@ def save_checkpoint(model_state, criterion_state, optimizer_state, best_state,
 def toOneHot(inputVector, nItems):
 
     batchSize, seqSize = inputVector.size()
-    out = torch.zeros((batchSize, seqSize, nItems),
-                      device=inputVector.device, dtype=torch.long)
+    out = torch.zeros(
+        (batchSize, seqSize, nItems), device=inputVector.device, dtype=torch.long
+    )
     out.scatter_(2, inputVector.view(batchSize, seqSize, 1), 1)
     return out
 
@@ -218,8 +238,7 @@ def seqNormalization(out):
     return (out - mean) / torch.sqrt(var + 1e-08)
 
 
-def buildFeature(featureMaker, seqPath, strict=False,
-                 maxSizeSeq=64000, seqNorm=False):
+def buildFeature(featureMaker, seqPath, strict=False, maxSizeSeq=64000, seqNorm=False):
     r"""
     Apply the featureMaker to the given file.
     Arguments:

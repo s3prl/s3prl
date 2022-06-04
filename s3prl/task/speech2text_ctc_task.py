@@ -1,15 +1,15 @@
 import logging
-from typing import List
+from typing import Union
 
 import numpy as np
 import torch
 import torch.nn.functional as F
 from torch import nn
-from torch.nn.utils.rnn import pad_sequence
 
 from s3prl import Logs, Module, Output
 from s3prl.encoder.tokenizer import Tokenizer
 from s3prl.metric import cer, wer
+from s3prl.nn import BeamDecoder
 
 from . import Task
 
@@ -38,13 +38,19 @@ class Speech2TextCTCExample(Module):
 
 class Speech2TextCTCTask(Task):
     def __init__(
-        self, model: Speech2TextCTCExample, tokenizer: Tokenizer, **kwargs
+        self,
+        model: Speech2TextCTCExample,
+        tokenizer: Tokenizer,
+        decoder: Union[BeamDecoder, dict] = None,
+        **kwargs
     ) -> None:
         """Speech-to-text task with CTC objective
 
         Args:
             model (Speech2TextCTCExample)
             tokenizer (Tokenizer): Text tokenizer.
+            decoder (Union[BeamDecoder, dict], optional):
+                Beam decoder or decoder's config. Defaults to None.
         """
 
         super().__init__()
@@ -52,6 +58,13 @@ class Speech2TextCTCTask(Task):
         self.model = model
         self.tokenizer = tokenizer
         assert self.model.output_size == self.tokenizer.vocab_size
+
+        if BeamDecoder is None:
+            decoder = None
+        if isinstance(decoder, dict):
+            decoder = BeamDecoder(**decoder)
+            logger.info("Using flashlight decoder.")
+        self.decoder = decoder
 
         self.criterion = nn.CTCLoss(
             blank=self.tokenizer.pad_idx,
@@ -66,7 +79,7 @@ class Speech2TextCTCTask(Task):
     def output_size(self):
         return self.model.output_size
 
-    def forward(self, x: torch.Tensor, x_len: torch.LongTensor):
+    def predict(self, x: torch.Tensor, x_len: torch.LongTensor):
         """
         Args:
             x (torch.Tensor): (batch_size, timestamps, input_size)
@@ -94,8 +107,9 @@ class Speech2TextCTCTask(Task):
         labels: np.ndarray,
         class_ids: torch.LongTensor,
         unique_name: np.ndarray,
+        beam_decode: bool = False,
     ):
-        logits, prediction, x_len = self(x, x_len).slice(3)
+        logits, prediction, x_len = self.predict(x, x_len).slice(3)
         log_probs = F.log_softmax(logits, dim=2)
 
         y = class_ids
@@ -110,21 +124,27 @@ class Speech2TextCTCTask(Task):
         logs = Logs()
         logs.add_hidden_state("logits", logits)
 
+        hyps = None
+        if beam_decode and self.decoder is not None:
+            hyps = self.decoder.decode(log_probs.detach())
+
         return Output(
             loss=loss,
             prediction=prediction,
             labels=labels.tolist(),
             unique_name=unique_name,
             logs=logs,
+            hypotheses=hyps,
         )
 
     def _general_reduction(self, batch_results: list, on_epoch_end: bool = None):
-        predictions, labels, losses = [], [], []
+        predictions, labels, losses, beam_hyps = [], [], [], []
         for batch_result in batch_results:
             predictions += batch_result.prediction
             labels += batch_result.labels
             losses.append(batch_result.loss)
-        # labels = [label.tolist() for label in labels]
+            if batch_result.hypotheses is not None:
+                beam_hyps += [" ".join(hyp[0].words) for hyp in batch_result.hypotheses]
 
         word_error_rate = wer(predictions, labels)
         char_error_rate = cer(predictions, labels)
@@ -134,6 +154,12 @@ class Speech2TextCTCTask(Task):
         logs.add_scalar("loss", loss)
         logs.add_scalar("wer", word_error_rate)
         logs.add_scalar("cer", char_error_rate)
+
+        if len(beam_hyps) > 0:
+            word_error_rate = wer(beam_hyps, labels)
+            char_error_rate = cer(beam_hyps, labels)
+            logs.add_scalar("wer_beam", word_error_rate)
+            logs.add_scalar("char_beam", char_error_rate)
 
         return Output(
             logs=logs,
@@ -196,7 +222,14 @@ class Speech2TextCTCTask(Task):
         class_ids: torch.LongTensor,
         unique_name: np.ndarray,
     ):
-        return self._general_forward(x, x_len, labels, class_ids, unique_name)
+        return self._general_forward(
+            x,
+            x_len,
+            labels,
+            class_ids,
+            unique_name,
+            beam_decode=self.decoder is not None,
+        )
 
     def train_reduction(self, batch_results: list, on_epoch_end: bool = None):
         """

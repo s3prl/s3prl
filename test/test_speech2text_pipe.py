@@ -2,17 +2,20 @@ import logging
 import os
 import tempfile
 
+import pytest
 from dotenv import dotenv_values
 
-from s3prl.corpus.librispeech import LibriSpeechForSUPERB
+from s3prl.corpus.librispeech import librispeech_for_speech2text
 from s3prl.dataset.base import AugmentedDynamicItemDataset
 from s3prl.dataset.speech2text_pipe import Speech2TextPipe
 
 
+@pytest.mark.corpus
 def test_speech2text_pipe():
     config = dotenv_values()
-    corpus = LibriSpeechForSUPERB(config["LibriSpeech"])
-    train_data, valid_data, test_data, corpus_stats = corpus().split(3)
+    train_data, valid_data, test_data, corpus_stats = librispeech_for_speech2text(
+        config["LibriSpeech"]
+    ).split(3)
 
     dataset = AugmentedDynamicItemDataset(train_data)
     dataset_char = Speech2TextPipe(generate_tokenizer=True, vocab_type="character")(

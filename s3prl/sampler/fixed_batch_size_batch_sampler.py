@@ -1,8 +1,9 @@
 from typing import Iterator, TypeVar
 
-from torch.utils.data import Sampler, SequentialSampler, BatchSampler
 from speechbrain.dataio.sampler import ReproducibleRandomSampler
+from torch.utils.data import BatchSampler, Sampler, SequentialSampler
 
+from .base import Sampler
 
 T_co = TypeVar("T_co", covariant=True)
 

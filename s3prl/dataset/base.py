@@ -21,6 +21,7 @@ from torch.utils import data
 from tqdm import tqdm
 
 from s3prl import Object, Output, cache
+from s3prl.util import registry
 
 logger = logging.getLogger(__name__)
 
@@ -42,6 +43,10 @@ class AugmentedDynamicItemDataset(DynamicItemDataset):
         self._global_stats = {}
         for name, item in global_stats.items():
             self.add_global_stats(name, item)
+
+    def __init_subclass__(cls) -> None:
+        registry.put(cls.__name__)(cls)
+        return super().__init_subclass__()
 
     def _dynamic_global_stats(self, id, name):
         return self._global_stats[name]
@@ -87,6 +92,12 @@ class AugmentedDynamicItemDataset(DynamicItemDataset):
         See self.add_tool
         """
         return self._tools[key]
+
+    def has_tool(self, key):
+        """
+        Checks whether has a tool named `key`.
+        """
+        return key in self._tools
 
     def all_tools(self, copy=True):
         """
@@ -243,6 +254,10 @@ class DataPipe:
         if isinstance(value, DynamicItem):
             value.func = value.func.__get__(self)
         return value
+
+    def __init_subclass__(cls) -> None:
+        registry.put(cls.__name__)(cls)
+        return super().__init_subclass__()
 
 
 class SequentialDataPipe(DataPipe):

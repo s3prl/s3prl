@@ -101,6 +101,7 @@ class Output(GeneralOutput):
         logit=None,
         prediction=None,
         position_encoding=None,
+        hypotheses=None,
         wav=None,
         wav_path=None,
         wav_len=None,

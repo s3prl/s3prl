@@ -1,61 +1,102 @@
-from s3prl.corpus.iemocap import IEMOCAPForSUPERB
-from s3prl.dataset.utterance_classification_pipe import (
-    UtteranceClassificationPipe,
-)
-from s3prl.sampler import (
-    MaxTimestampBatchSampler,
-    FixedBatchSizeBatchSampler,
-)
-from s3prl.task.utterance_classification_task import UtteranceClassificationTask
+from s3prl.corpus.iemocap import iemocap_for_superb
+from s3prl.dataset.utterance_classification_pipe import UtteranceClassificationPipe
 from s3prl.nn import MeanPoolingLinear
-from s3prl import Container
+from s3prl.sampler import FixedBatchSizeBatchSampler, MaxTimestampBatchSampler
+from s3prl.task.utterance_classification_task import UtteranceClassificationTask
+from s3prl.util.configuration import override_parent_cfg
+
+from .base import SuperbProblem
 
 
-class SuperbER:
-    Corpus = IEMOCAPForSUPERB
-    TrainData = UtteranceClassificationPipe
-    TrainSampler = MaxTimestampBatchSampler
-    ValidData = UtteranceClassificationPipe
-    ValidSampler = FixedBatchSizeBatchSampler
-    TestData = UtteranceClassificationPipe
-    TestSampler = FixedBatchSizeBatchSampler
-    Downstream = MeanPoolingLinear
-    Task = UtteranceClassificationTask
+class SuperbER(SuperbProblem):
+    """
+    Superb Emotion Classification problem
+    """
 
-    default_config = Container(
-        Corpus=dict(),
-        TrainData=dict(
+    @override_parent_cfg(
+        corpus=dict(
+            _cls=iemocap_for_superb,
+            dataset_root="???",
+        ),
+        train_datapipe=dict(
+            _cls=UtteranceClassificationPipe,
             train_category_encoder=True,
         ),
-        TrainSampler=dict(
+        train_sampler=dict(
+            _cls=MaxTimestampBatchSampler,
             max_timestamp=16000 * 200,
             shuffle=True,
         ),
-        ValidData=dict(),
-        ValidSampler=dict(
+        valid_datapipe=dict(
+            _cls=UtteranceClassificationPipe,
+        ),
+        valid_sampler=dict(
+            _cls=FixedBatchSizeBatchSampler,
             batch_size=2,
         ),
-        TestData=dict(),
-        TestSampler=dict(
+        test_datapipe=dict(
+            _cls=UtteranceClassificationPipe,
+        ),
+        test_sampler=dict(
+            _cls=FixedBatchSizeBatchSampler,
             batch_size=2,
         ),
-        Downstream=dict(
+        downstream=dict(
+            _cls=MeanPoolingLinear,
             hidden_size=256,
         ),
-        Task=dict(),
-        Optimizer=dict(
-            cls="torch.optim.Adam",
+        task=dict(
+            _cls=UtteranceClassificationTask,
+        ),
+    )
+    @classmethod
+    def setup_problem(cls, **cfg):
+        """
+        This setups the ER problem, containing train/valid/test datasets & samplers and a task object
+        """
+        super().setup_problem(**cfg)
+
+    @override_parent_cfg(
+        optimizer=dict(
+            _cls="torch.optim.Adam",
             lr=1.0e-4,
         ),
-        Trainer=dict(
+        trainer=dict(
             total_steps=1000,
             log_step=100,
-            valid_step=500,
+            eval_step=500,
             save_step=100,
-            gradient_clipping=1,
+            gradient_clipping=1.0,
             gradient_accumulate_steps=4,
-            use_valid=True,
             valid_metric="accuracy",
             valid_higher_better=True,
         ),
     )
+    @classmethod
+    def train(cls, **cfg):
+        """
+        Train the setup problem with the train/valid datasets & samplers and the task object
+        """
+        super().train(**cfg)
+
+    @override_parent_cfg()
+    @classmethod
+    def inference(cls, **cfg):
+        super().inference(**cfg)
+
+    @override_parent_cfg(
+        start_stage=0,
+        final_stage=2,
+        stage_0=dict(
+            _method="setup_problem",
+        ),
+        stage_1=dict(
+            _method="train",
+        ),
+        stage_2=dict(
+            _method="inference",
+        ),
+    )
+    @classmethod
+    def run_stages(cls, **cfg):
+        super().run_stages(**cfg)

@@ -2,9 +2,10 @@ import logging
 import os
 import tempfile
 
+import pytest
 from dotenv import dotenv_values
 
-from s3prl.corpus.librispeech import LibriSpeechForSUPERB
+from s3prl.corpus.librispeech import LibriSpeech
 from s3prl.encoder.tokenizer import load_tokenizer
 from s3prl.encoder.vocabulary import generate_vocab
 
@@ -22,9 +23,10 @@ def is_same_vocab(vocabs_1, vocabs_2):
     return True
 
 
+@pytest.mark.corpus
 def test_vocabulary():
     config = dotenv_values()
-    corpus = LibriSpeechForSUPERB(config["LibriSpeech"])
+    corpus = LibriSpeech(config["LibriSpeech"])
     text_list = corpus.data_dict["train-clean-100"]["text_list"]
 
     with tempfile.TemporaryDirectory() as directory:

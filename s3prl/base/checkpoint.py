@@ -62,7 +62,7 @@ class Checkpoint:
         torch.save(self.checkpoint(), path)
 
     @classmethod
-    def load_checkpoint(cls, path: str):
+    def load_checkpoint(cls, path: str, override: dict = None):
         # TODO: More sophisticated loading. E.g. different objects use different loader
         # Might be saving to a directory instead of just a file
         checkpoint: dict = torch.load(str(path))

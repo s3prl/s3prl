@@ -1,11 +1,13 @@
+import pytest
 from dotenv import dotenv_values
 
 from s3prl.corpus.fluent_speech_commands import (
     FluentSpeechCommands,
-    FluentSpeechCommandsForUtteranceMultiClassClassificataion,
+    fsc_for_multiple_classfication,
 )
 
 
+@pytest.mark.corpus
 def test_fluent_commands():
     config = dotenv_values()
     dataset_root = config["FluentSpeechCommands"]
@@ -14,5 +16,6 @@ def test_fluent_commands():
     dataset.data_split
     dataset.all_data
 
-    dataset = FluentSpeechCommandsForUtteranceMultiClassClassificataion(dataset_root)
-    train_data, valid_data, test_data, stats = dataset().split(3)
+    train_data, valid_data, test_data, stats = fsc_for_multiple_classfication(
+        dataset_root
+    ).split(3)

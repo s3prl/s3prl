@@ -1,5 +1,8 @@
 import logging
 
+from s3prl.util.configuration import default_cfg
+from s3prl.util.workspace import Workspace
+
 logger = logging.getLogger(__name__)
 
 
@@ -19,3 +22,12 @@ def print_dict(obj, indent=0):
 
     else:
         logger.debug(f"{' ' * indent * 4 + str(obj)}")
+
+
+@default_cfg(
+    workspace="???",
+    key="???",
+)
+def print_workspace_item(option):
+    workspace = Workspace(option.workspace)
+    print(workspace[option.key])

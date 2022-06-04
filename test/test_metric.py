@@ -12,3 +12,4 @@ def test_metric():
 
     assert isclose(cer(hyps, refs), 0.2)
     assert isclose(wer(hyps, refs), 0.5)
+    assert isclose(per(hyps, refs), 0.5)

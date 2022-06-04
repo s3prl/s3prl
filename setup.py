@@ -1,56 +1,27 @@
 # Always prefer setuptools over distutils
-from setuptools import setup, find_packages
-import pathlib
+import os
+from pathlib import Path
 
-here = pathlib.Path(__file__).parent.resolve()
+from setuptools import find_packages, setup
+
+here = Path(__file__).parent.resolve()
 
 # Get the long description from the README file
 long_description = (here / "README.md").read_text(encoding="utf-8")
-version = (here / "version.txt").read_text(encoding="utf-8").strip()
+version = (here / "s3prl" / "version.txt").read_text(encoding="utf-8").strip()
 
-requirements = [
-    "torch>=1.7.0, !=1.10.0",
-    "torchaudio>=0.7.0",
-    "torchvision>=0.8.0",
-    "joblib>=0.12.4",
-    "librosa>=0.7.2",
-    "scipy>=1.5.4",
-    "scikit-learn>=0.23.2",
-    "PyYAML>=5.4",
-    "tqdm>=4.56.0",
-    "numpy>=1.21",
-    "pandas>=1.1.5",
-    "tensorboardX>=1.9, <2.3",
-    "matplotlib>=3.3.4",
-    "Pillow>=6.2.2",
-    "numba>=0.48",
-    "gdown>=3.12.2",
-    "cython>=0.29.21",
-    "packaging>=20.9",
-    "transformers>=4.10.0,<5.0",
-    "dtw-python==1.1.6",
-    "asteroid==0.4.4",
-    "sacrebleu>=2.0.0",
-    "kaldi_io",
-    "h5py",
-    "sox",
-    "tabulate",
-    "intervaltree",
-    "lxml",
-    "soundfile",
-    "pysndfx",
-    "nltk",
-    "normalise",
-    "editdistance",
-    "easydict",
-    "catalyst",
-    "sentencepiece",
-    "huggingface_hub>=0.2.1",  # TODO: Replace with v0.0.17 when it is released
-    "mutagen",
-    "fairseq @ git+https://github.com//pytorch/fairseq.git@f2146bdc7abf293186de9449bfa2272775e39e1d#egg=fairseq",
-    "lighthubert @ git+https://github.com/mechanicalsea/lighthubert#egg=lighthubert",
-    "python-dotenv",
-]
+requirements = {}
+for file in os.listdir(here / "requirements"):
+    lines = [line.strip() for line in (here / "requirements" / file).open().readlines()]
+    requirements[Path(file).stem] = lines
+
+install_requires = requirements["install"]
+extras_require = {k: v for k, v in requirements.items() if k not in ["install"]}
+
+all_requires = []
+for k, v in requirements.items():
+    all_requires.append(v)
+extras_require["all"] = all_requires
 
 # Arguments marked as "Required" below must be included for upload to PyPI.
 # Fields marked as "Optional" may be commented out.
@@ -164,7 +135,7 @@ setup(
     #
     # For an analysis of "install_requires" vs pip's requirements files see:
     # https://packaging.python.org/en/latest/requirements.html
-    install_requires=requirements,  # Optional
+    install_requires=install_requires,  # Optional
     # List additional groups of dependencies here (e.g. development
     # dependencies). Users will be able to install these using the "extras"
     # syntax, for example:
@@ -173,15 +144,12 @@ setup(
     #
     # Similar to `install_requires` above, these must be valid existing
     # projects.
-    # extras_require={  # Optional
-    #     'dev': ['check-manifest'],
-    #     'test': ['coverage'],
-    # },
+    extras_require=extras_require,
     # If there are data files included in your packages that need to be
     # installed, specify them here.
-    # package_data={  # Optional
-    #     'sample': ['package_data.dat'],
-    # },
+    package_data={  # Optional
+        "s3prl": ["version.txt"],
+    },
     # Although 'package_data' is the preferred approach, in some case you may
     # need to place data files outside of your packages. See:
     # http://docs.python.org/distutils/setupscript.html#installing-additional-files
@@ -195,11 +163,11 @@ setup(
     #
     # For example, the following would provide a command called `sample` which
     # executes the function `main` from this package when invoked:
-    # entry_points={  # Optional
-    #     'console_scripts': [
-    #         'sample=sample:main',
-    #     ],
-    # },
+    entry_points={  # Optional
+        "console_scripts": [
+            "s3prl-cli=s3prl.cli:main",
+        ],
+    },
     # List additional URLs that are relevant to your project as a dict.
     #
     # This field corresponds to the "Project-URL" metadata fields:

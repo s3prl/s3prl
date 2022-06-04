@@ -64,7 +64,6 @@ class UpstreamDownstreamModel(NNModule):
 
         if not self.upstream_trainable:
             self.upstream.requires_grad_(False)
-            self.exclude_from_state_dict("upstream")
 
         if self.weighted_sum:
             self.weights = nn.Parameter(torch.zeros(self.upstream.num_hidden_state))

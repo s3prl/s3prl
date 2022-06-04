@@ -1,4 +1,3 @@
-from ..encoder.tokenizer import Tokenizer
 from .base import SequentialDataPipe
 from .common_pipes import EncodeText, GenerateTokenizer, LoadAudio, SetOutputKeys
 

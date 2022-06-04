@@ -1,10 +1,13 @@
-
 ###############
 # IMPORTATION #
 ###############
 import torch.nn as nn
-#-------------#
-from fairseq.models.wav2vec.wav2vec2 import TransformerEncoder, TransformerSentenceEncoderLayer
+
+# -------------#
+from fairseq.models.wav2vec.wav2vec2 import (
+    TransformerEncoder,
+    TransformerSentenceEncoderLayer,
+)
 
 #######
 # APC #
@@ -26,17 +29,19 @@ args = {
     "layer_norm_first": False,
 }
 
+
 class Config:
     pass
+
 
 class Decoar2(nn.Module):
     def __init__(self):
         """
-            input_size: an int indicating the input feature size, e.g., 80 for Mel.
-            hidden_size: an int indicating the RNN hidden size.
-            num_layers: an int indicating the number of RNN layers.
-            dropout: a float indicating the RNN dropout rate.
-            residual: a bool indicating whether to apply residual connections.
+        input_size: an int indicating the input feature size, e.g., 80 for Mel.
+        hidden_size: an int indicating the RNN hidden size.
+        num_layers: an int indicating the number of RNN layers.
+        dropout: a float indicating the RNN dropout rate.
+        residual: a bool indicating whether to apply residual connections.
         """
         super(Decoar2, self).__init__()
         config = Config()

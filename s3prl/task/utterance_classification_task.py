@@ -74,7 +74,7 @@ class UtteranceClassificationTask(Task):
     def output_size(self):
         return len(self.categories)
 
-    def forward(self, x: torch.Tensor, x_len: torch.LongTensor):
+    def predict(self, x: torch.Tensor, x_len: torch.LongTensor):
         """
         Args:
             x (torch.Tensor): (batch_size, timestamps, input_size)
@@ -98,7 +98,7 @@ class UtteranceClassificationTask(Task):
         class_id: torch.LongTensor,
         unique_name: List[str],
     ):
-        logits, prediction = self(x, x_len).slice(2)
+        logits, prediction = self.predict(x, x_len).slice(2)
         loss = F.cross_entropy(logits, class_id)
 
         logs = Logs()
@@ -223,7 +223,7 @@ class UtteranceMultiClassClassificationTask(Task):
     def output_size(self):
         return self.model.output_size
 
-    def forward(self, x: torch.Tensor, x_len: torch.LongTensor):
+    def predict(self, x: torch.Tensor, x_len: torch.LongTensor):
         """
         Args:
             x (torch.Tensor): (batch_size, timestamps, input_size)
@@ -272,7 +272,7 @@ class UtteranceMultiClassClassificationTask(Task):
             prediction: np.ndarray
             label: np.ndarray
         """
-        logit, prediction = self(x, x_len).slice(2)
+        logit, prediction = self.predict(x, x_len).slice(2)
         loss = sum(
             [
                 F.cross_entropy(sub_logit, class_id)

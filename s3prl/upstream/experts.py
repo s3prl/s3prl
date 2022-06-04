@@ -1,6 +1,6 @@
 def _get_experts():
-    import pathlib
     import importlib
+    import pathlib
 
     _search_root = pathlib.Path(__file__).parent
     for _subdir in _search_root.iterdir():
@@ -16,10 +16,13 @@ def _get_experts():
                     continue
 
                 full_package = f"{__package__}{_module_name}"
-                print(f'[{__name__}] Warning: can not import {full_package}: {str(e)}. Pass.')
+                print(
+                    f"[{__name__}] Warning: can not import {full_package}: {str(e)}. Pass."
+                )
                 continue
-            
+
             globals()[_name] = getattr(_module, "UpstreamExpert")
+
 
 _get_experts()
 del globals()["_get_experts"]

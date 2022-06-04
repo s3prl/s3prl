@@ -11,14 +11,15 @@
 # IMPORTATION #
 ###############
 import os
-#-------------#
+
+# -------------#
 from .expert import UpstreamExpert as _UpstreamExpert
 
 
 def baseline_local(model_config, *args, **kwargs):
     """
-        Baseline feature
-            model_config: PATH
+    Baseline feature
+        model_config: PATH
     """
     assert os.path.isfile(model_config)
     return _UpstreamExpert(model_config, *args, **kwargs)
@@ -26,54 +27,56 @@ def baseline_local(model_config, *args, **kwargs):
 
 def baseline(*args, **kwargs):
     """
-        Baseline feature - Fbank, or Mel-scale spectrogram
+    Baseline feature - Fbank, or Mel-scale spectrogram
     """
     return fbank(*args, **kwargs)
 
 
 def spectrogram(*args, **kwargs):
     """
-        Baseline feature - Linear-scale spectrogram
+    Baseline feature - Linear-scale spectrogram
     """
-    kwargs['model_config'] = os.path.join(os.path.dirname(__file__), 'spectrogram.yaml')
+    kwargs["model_config"] = os.path.join(os.path.dirname(__file__), "spectrogram.yaml")
     return baseline_local(*args, **kwargs)
 
 
 def fbank(*args, **kwargs):
     """
-        Baseline feature - Fbank, or Mel-scale spectrogram
+    Baseline feature - Fbank, or Mel-scale spectrogram
     """
-    kwargs['model_config'] = os.path.join(os.path.dirname(__file__), 'fbank.yaml')
+    kwargs["model_config"] = os.path.join(os.path.dirname(__file__), "fbank.yaml")
     return baseline_local(*args, **kwargs)
 
 
 def fbank_no_cmvn(*args, **kwargs):
     """
-        Baseline feature - Fbank, or Mel-scale spectrogram
+    Baseline feature - Fbank, or Mel-scale spectrogram
     """
-    kwargs['model_config'] = os.path.join(os.path.dirname(__file__), 'fbank_no_cmvn.yaml')
+    kwargs["model_config"] = os.path.join(
+        os.path.dirname(__file__), "fbank_no_cmvn.yaml"
+    )
     return baseline_local(*args, **kwargs)
 
 
 def mfcc(*args, **kwargs):
     """
-        Baseline feature - MFCC
+    Baseline feature - MFCC
     """
-    kwargs['model_config'] = os.path.join(os.path.dirname(__file__), 'mfcc.yaml')
+    kwargs["model_config"] = os.path.join(os.path.dirname(__file__), "mfcc.yaml")
     return baseline_local(*args, **kwargs)
 
 
 def mel(*args, **kwargs):
     """
-        Baseline feature - Mel
+    Baseline feature - Mel
     """
-    kwargs['model_config'] = os.path.join(os.path.dirname(__file__), 'mel.yaml')
+    kwargs["model_config"] = os.path.join(os.path.dirname(__file__), "mel.yaml")
     return baseline_local(*args, **kwargs)
 
 
 def linear(*args, **kwargs):
     """
-        Baseline feature - Linear
+    Baseline feature - Linear
     """
-    kwargs['model_config'] = os.path.join(os.path.dirname(__file__), 'linear.yaml')
+    kwargs["model_config"] = os.path.join(os.path.dirname(__file__), "linear.yaml")
     return baseline_local(*args, **kwargs)

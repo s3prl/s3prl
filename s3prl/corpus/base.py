@@ -3,14 +3,10 @@ from typing import Any
 
 import pandas as pd
 
-from s3prl import Container
+from s3prl import Container, Object
 
 
-class Corpus:
-    @abc.abstractmethod
-    def __call__(self, *args: Any, **kwds: Any) -> Any:
-        raise NotImplementedError
-
+class Corpus(Object):
     @property
     @abc.abstractmethod
     def all_data(self) -> dict:

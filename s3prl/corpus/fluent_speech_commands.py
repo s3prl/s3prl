@@ -3,6 +3,7 @@ from pathlib import Path
 import pandas as pd
 
 from s3prl import Container
+from s3prl.util import registry
 
 from .base import Corpus
 
@@ -63,11 +64,8 @@ class FluentSpeechCommands(Corpus):
         return list(self.train.keys()), list(self.valid.keys()), list(self.test.keys())
 
 
-class FluentSpeechCommandsForUtteranceMultiClassClassificataion(FluentSpeechCommands):
-    def __init__(self, dataset_root: str, n_jobs: int = 4) -> None:
-        super().__init__(dataset_root, n_jobs)
-
-    @staticmethod
+@registry.put()
+def fsc_for_multiple_classfication(dataset_root: str, n_jobs: int = 4):
     def format_fields(data_points):
         return {
             key: dict(
@@ -77,10 +75,10 @@ class FluentSpeechCommandsForUtteranceMultiClassClassificataion(FluentSpeechComm
             for key, value in data_points.items()
         }
 
-    def __call__(self):
-        train_data, valid_data, test_data = self.data_split
-        return Container(
-            train_data=self.format_fields(train_data),
-            valid_data=self.format_fields(valid_data),
-            test_data=self.format_fields(test_data),
-        )
+    corpus = FluentSpeechCommands(dataset_root, n_jobs)
+    train_data, valid_data, test_data = corpus.data_split
+    return Container(
+        train_data=format_fields(train_data),
+        valid_data=format_fields(valid_data),
+        test_data=format_fields(test_data),
+    )

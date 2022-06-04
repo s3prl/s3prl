@@ -1,12 +1,14 @@
-from tqdm import tqdm
 from typing import Iterator, TypeVar
-from joblib import Parallel, delayed
 
 import torch
-from torch.utils.data import Sampler
+from joblib import Parallel, delayed
 from speechbrain.dataio.dataset import DynamicItemDataset
+from torch.utils.data import Sampler
+from tqdm import tqdm
 
-from s3prl.dataset import metadata_mode, Dataset
+from s3prl.dataset import Dataset, metadata_mode
+
+from .base import Sampler
 
 T_co = TypeVar("T_co", covariant=True)
 
@@ -40,11 +42,11 @@ class MaxTimestampBatchSampler(Sampler):
         self.shuffle = shuffle
         self.seed = seed
         self.epoch = 0
+        self.reduce_func = reduce_func or self._default_reduce_func
 
-        def default_reduce_func(timestamps):
-            return max(timestamps) * len(timestamps)
-
-        self.reduce_func = reduce_func or default_reduce_func
+    @staticmethod
+    def _default_reduce_func(timestamps):
+        return max(timestamps) * len(timestamps)
 
     @staticmethod
     def _get_timestamps_original(dataset: Dataset, n_jobs: int = 4):
@@ -62,7 +64,8 @@ class MaxTimestampBatchSampler(Sampler):
                 return item["wav_metadata"]["num_frames"]
 
             timestamps = Parallel(n_jobs=n_jobs)(
-                delayed(get_timestamp)(item) for item in tqdm(dataset, desc="loading metadata")
+                delayed(get_timestamp)(item)
+                for item in tqdm(dataset, desc="loading metadata")
             )
         return timestamps
 

@@ -5,7 +5,7 @@ Reference: https://www.tensorflow.org/datasets/api_docs/python/tfds/features/tex
 import abc
 from typing import List
 
-from s3prl import Object, Output, init
+from s3prl import Object
 
 # Replacing the 2 tokens right before english starts as <eos> & <unk>
 BERT_FIRST_IDX = 997
@@ -13,7 +13,7 @@ BERT_FIRST_IDX = 997
 BERT_LAST_IDX = 29635
 
 # Default vocabularies
-CHARACTER_VOCAB = list(" ABCDEFGHIJKLMNOPQRSTUVWXYZ'")
+CHARACTER_VOCAB = list(" 'ABCDEFGHIJKLMNOPQRSTUVWXYZ")
 PHONEME_VOCAB = "SIL SPN AA0 AA1 AA2 AE0 AE1 AE2 AH0 AH1 AH2 AO0 AO1 AO2 AW0 AW1 AW2 AY0 AY1 AY2 B CH D DH EH0 EH1 EH2 ER0 ER1 ER2 EY0 EY1 EY2 F G HH IH0 IH1 IH2 IY0 IY1 IY2 JH K L M N NG OW0 OW1 OW2 OY0 OY1 OY2 P R S SH T TH UH0 UH1 UH2 UW0 UW1 UW2 V W Y Z ZH".split(
     " "
 )
@@ -375,6 +375,14 @@ class WordTokenizer(CharacterTokenizer):
         return "word"
 
 
+class PhonemeTokenizer(WordTokenizer):
+    """Phoneme tokenizer."""
+
+    @property
+    def token_type(self) -> str:
+        return "phoneme"
+
+
 class BertTokenizer(Tokenizer):
     """Bert Tokenizer.
 
@@ -396,7 +404,7 @@ class BertTokenizer(Tokenizer):
                 r_idx = idx - BERT_FIRST_IDX
                 assert r_idx > 0
                 reduced_idx.append(r_idx)
-            except:
+            except AssertionError:
                 reduced_idx.append(self.unk_idx)
         reduced_idx.append(self.eos_idx)
         return reduced_idx
@@ -459,19 +467,21 @@ def load_tokenizer(
         return SubwordTokenizer.load_from_file(vocab_file)
     elif mode == "subword-slot":
         return SubwordSlotTokenizer.load_from_file(vocab_file, slots_file)
-    elif mode in {"word", "phoneme"}:
+    elif mode == "word":
         return WordTokenizer.load_from_file(vocab_file, vocab_list)
+    elif mode == "phoneme":
+        return PhonemeTokenizer.load_from_file(vocab_file, vocab_list)
     elif mode.startswith("bert-"):
         return BertTokenizer.load_from_file(mode)
     else:
         raise NotImplementedError("`{}` is not yet supported.".format(mode))
 
 
-def default_phoneme_tokenizer() -> WordTokenizer:
+def default_phoneme_tokenizer() -> PhonemeTokenizer:
     """Returns a default LibriSpeech phoneme tokenizer.
 
     Returns:
-        WordTokenizer: Vocabs are 71 phonemes
+        PhonemeTokenizer: Vocabs are 71 phonemes
     """
 
-    return WordTokenizer.load_from_file(vocab_list=PHONEME_VOCAB)
+    return PhonemeTokenizer.load_from_file(vocab_list=PHONEME_VOCAB)

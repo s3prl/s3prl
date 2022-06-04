@@ -1,11 +1,87 @@
+from __future__ import annotations
+
+import importlib
 import logging
 from collections import OrderedDict
+from copy import deepcopy
 from functools import partial
-from typing import Any, List, Union
+from types import FunctionType
+from typing import Any, Callable, List, Union
 
 import torch
+import yaml
+
+from s3prl.util import registry
+from s3prl.util.override import parse_overrides
 
 logger = logging.getLogger(__name__)
+
+
+def _qualname_to_cls(qualname: str):
+    # TODO
+    # This assume that the qualname does not have dot
+    # Hence it can't support classmethod, whose qualname is {class_name}.{method_name}
+    module_name, cls_name = qualname.rsplit(".", maxsplit=1)
+    cls = getattr(importlib.import_module(module_name), cls_name)
+    return cls
+
+
+class field:
+    def __init__(
+        self,
+        value,
+        description: str,
+        dtype: type = None,
+        check_fn: Callable[[Any], bool] = None,
+    ) -> None:
+        self.value = value
+        self.dtype = dtype
+        self.description = description
+        self.check_fn = check_fn or (lambda x: True)
+
+    @classmethod
+    def sanitize(cls, obj):
+        """
+        Ensure the output of this function is not wrapped by **field**
+        """
+        if isinstance(obj, __class__):
+            return obj.value
+        else:
+            return obj
+
+    def update(self, value):
+        if not self.check_fn(value):
+            raise ValueError(
+                f"The input value {value} does not pass the check function {self.check_fn}: {self.description}"
+            )
+        self.value = value
+
+    def __str__(self):
+        return self.show(None)
+
+    def __repr__(self):
+        return f"{__class__.__name__}(value={self.value}, dtype={self.dtype}), description={self.description}, check_fn={self.check_fn}"
+
+    def show(self, show_value_func: callable = None):
+        show_value_func = show_value_func or str
+        basic = show_value_func(self.value)
+
+        basic += "    [COMMENT] "
+        if self.dtype is not None:
+            if not isinstance(self.dtype, type):
+                basic += f"({self.dtype}) "
+            elif self.dtype.__module__ == "builtins":
+                basic += f"({self.dtype.__qualname__}) "
+            else:
+                basic += f"({self.dtype.__module__}.{self.dtype.__qualname__}) "
+
+        message = (
+            self.description.replace("\n", " [NEWLINE] ")
+            .replace(":", "[DOT]")
+            .replace(" ", "[SPACE]")
+        )
+        basic += message
+        return basic
 
 
 class Container(OrderedDict):
@@ -81,7 +157,112 @@ class Container(OrderedDict):
         "split",
         "select",
         "deselect",
+        "to_dict",
+        "clone",
+        "readonly",
+        "writable",
     ]
+
+    UNFILLED_PATTERN = "???"
+    QUALNAME_PATTERN = "_cls"
+
+    def check_no_unfilled_field(self):
+        unfilled_fields = self.unfilled_fields()
+        if len(unfilled_fields) > 0:
+            raise ValueError(
+                "There are unfilled but required fields in "
+                f"the config:\n\n{unfilled_fields}"
+            )
+
+    def unfilled_fields(self):
+        unfilleds = self.list_unfilled_fields()
+        override = []
+        for field in unfilleds:
+            override.append(f"{field}={__class__.UNFILLED_PATTERN}")
+        override_dict = __class__(parse_overrides(override))
+        override_dict.update(self, True, False)
+        return override_dict
+
+    def list_unfilled_fields(self):
+        unfilleds = []
+        self._unfilled_fields(self, "", unfilleds)
+        return unfilleds
+
+    @classmethod
+    def _unfilled_fields(cls, obj, parent: str, unfilleds: list):
+        if isinstance(obj, (tuple, list)):
+            for idx, item in enumerate(obj):
+                cls._unfilled_fields(item, f"{parent}[{idx}].", unfilleds)
+        elif isinstance(obj, dict):
+            for key, item in obj.items():
+                cls._unfilled_fields(item, f"{parent}{key}.", unfilleds)
+        elif isinstance(obj, str) and __class__.UNFILLED_PATTERN in obj:
+            unfilleds.append(parent[:-1])
+        elif isinstance(obj, field):
+            if isinstance(obj.value, str) and __class__.UNFILLED_PATTERN in obj.value:
+                unfilleds.append(parent[:-1])
+
+    def kwds(self):
+        new_copy = self.clone()
+        self._no_underscore(new_copy)
+        return new_copy
+
+    @classmethod
+    def _no_underscore(cls, obj):
+        if isinstance(obj, dict):
+            for key in list(obj.keys()):
+                if key.startswith("_"):
+                    obj.pop(key)
+                else:
+                    cls._no_underscore(obj[key])
+
+    def cls_fields(self, holder: list = None):
+        holder = []
+        self._cls_fields(self, "", holder)
+        return holder
+
+    @classmethod
+    def _cls_fields(cls, obj, parent: str, clses: list):
+        if isinstance(obj, (tuple, list)):
+            for idx, item in enumerate(obj):
+                cls._cls_fields(item, f"{parent}[{idx}].", clses)
+        elif isinstance(obj, dict):
+            for key, item in obj.items():
+                if key == __class__.QUALNAME_PATTERN:
+                    clses.append((parent[:-1], item))
+                else:
+                    cls._cls_fields(item, f"{parent}{key}.", clses)
+
+    def indented_str(self, indent: str):
+        ori_str = str(self)
+        indented_lines = [f"{indent}{line}" for line in ori_str.split("\n")]
+        return "\n".join(indented_lines)
+
+    def clone(self) -> Container:
+        """
+        Clone a writable version
+        """
+        original_readonly = getattr(self, "_readonly", False)
+        new_copy = deepcopy(self.writable())
+        if original_readonly:
+            self.readonly()
+        else:
+            self.writable()
+        return new_copy
+
+    def readonly(self) -> Container:
+        """
+        Turn the Container into Read-Only in place
+        """
+        super(__class__, self).__setattr__("_readonly", True)
+        return self
+
+    def writable(self) -> Container:
+        """
+        Turn the Container into Writable in place
+        """
+        super(__class__, self).__setattr__("_readonly", False)
+        return self
 
     def _normalize_key(self, k):
         if isinstance(k, int):
@@ -93,19 +274,28 @@ class Container(OrderedDict):
         Nestedly update old dict with new dict. Allow duplicate.
         """
         self.update(new_dict, override=True)
+        return self
 
     def add(self, new_dict: dict):
         """
         Nestedly update old dict with new dict. Not allow duplicate.
         """
         self.update(new_dict, override=False)
+        return self
 
-    def update(self, new_dict: dict, override: bool):
+    def update(self, new_dict: dict, override: bool, create: bool = True):
         for key, value in new_dict.items():
+            if not create and key not in self:
+                continue
+
             if isinstance(value, dict):
                 if key not in self:
                     self.__setitem__(key, __class__())
-                self.__getitem__(key).update(value, override)
+                target = self.__getitem__(key)
+                if isinstance(target, __class__):
+                    target.update(value, override, create)
+                else:
+                    self.__setitem__(key, value)
             else:
                 if hasattr(self, key):
                     if not override:
@@ -118,17 +308,93 @@ class Container(OrderedDict):
                                 f"override option is false. {key} exists in the original dict"
                             )
                 self.__setitem__(key, value)
+            if key.startswith("_"):
+                # special keys like "_cls" and "_name" should be at the first
+                self.move_to_end(key, last=False)
 
     def __getitem__(self, k):
         k = self._normalize_key(k)
         return super().__getitem__(k)
 
-    def __setitem__(self, k, v) -> None:
+    @staticmethod
+    def deserialize_cls(key):
+        cls = key
+        try:
+            cls = _qualname_to_cls(key)
+        except:
+            try:
+                cls = registry.get(key)
+            except:
+                pass
+        return cls
+
+    @staticmethod
+    def serialize_cls(cls):
+        key = cls
+        try:
+            if registry.contains(cls):
+                key = registry.serialize(cls)
+            else:
+                key = f"{cls.__module__}.{cls.__qualname__}"
+        except:
+            pass
+        return key
+
+    def __setitem__(self, k, v, replace_field=False) -> None:
+        if hasattr(self, "_readonly") and self._readonly:
+            raise RuntimeError(
+                f"This {__class__.__name__} is set to Read-Only. "
+                "You should call 'writable' before any modificaation."
+            )
+
         k = self._normalize_key(k)
         assert k not in self._reserved_keys, f"'{k}' cannot be used"
         if type(v) == dict:
             v = __class__(v)
-        super().__setitem__(k, v)
+        if k == __class__.QUALNAME_PATTERN:
+            v = self.deserialize_cls(v)
+        if (
+            k in self
+            and isinstance(self[k], field)
+            and not isinstance(v, field)
+            and not replace_field
+        ):
+            self[k].update(v)
+        else:
+            super().__setitem__(k, v)
+
+    def to_dict(self, must_invertible=True):
+        return self.to_dict_impl(self, must_invertible)
+
+    @classmethod
+    def to_dict_impl(cls, dictionary: Container, must_invertible=True):
+        result = dict()
+        for k, v in dictionary.items():
+            if isinstance(v, Container):
+                v = cls.to_dict_impl(v, must_invertible)
+            elif k == __class__.QUALNAME_PATTERN:
+                if isinstance(v, field):
+                    if must_invertible:
+                        v = v.value
+                    else:
+                        v = v.show(cls.serialize_cls)
+                else:
+                    v = cls.serialize_cls(v)
+            elif isinstance(v, field):
+                if must_invertible:
+                    v = v.value
+                else:
+                    v = v.show()
+            result[k] = v
+        return result
+
+    def __str__(self) -> str:
+        return yaml.dump(
+            self.to_dict(must_invertible=False), sort_keys=False, width=float("inf")
+        )
+
+    def __repr__(self) -> str:
+        return yaml.dump(self.to_dict(), sort_keys=False, width=float("inf"))
 
     def __getattribute__(self, name: str) -> Any:
         keys = super().keys()
@@ -151,7 +417,7 @@ class Container(OrderedDict):
 
     @staticmethod
     def _detach_impl(obj):
-        return obj.detach()
+        return obj.detach() if isinstance(obj, torch.Tensor) else obj
 
     def cpu(self):
         self._recursive_apply(self, self._cpu_impl)
@@ -159,7 +425,7 @@ class Container(OrderedDict):
 
     @staticmethod
     def _cpu_impl(obj):
-        return obj.cpu()
+        return obj.cpu() if isinstance(obj, torch.Tensor) else obj
 
     def to(self, target):
         self._recursive_apply(self, partial(self._to_impl, target=target))
@@ -167,18 +433,43 @@ class Container(OrderedDict):
 
     @staticmethod
     def _to_impl(obj, target):
-        return obj.to(target)
+        return obj.to(target) if isinstance(obj, torch.Tensor) else obj
+
+    def extract_fields(self):
+        self._extract_field_impl(self)
+        return self
+
+    @classmethod
+    def _extract_field_impl(cls, obj):
+        if isinstance(obj, field):
+            return obj.value
+        elif isinstance(obj, list):
+            for index in range(len(obj)):
+                obj[index] = cls._extract_field_impl(obj[index])
+        elif isinstance(obj, __class__):
+            for key in list(obj.keys()):
+                if isinstance(obj[key], field):
+                    replace_field = True
+                    value = obj[key].value
+                else:
+                    replace_field = False
+                    value = obj[key]
+                obj.__setitem__(key, cls._extract_field_impl(value), replace_field)
+        elif isinstance(obj, dict):
+            for key in list(obj.keys()):
+                obj[key] = cls._extract_field_impl(obj[key])
+        return obj
 
     @classmethod
     def _recursive_apply(cls, obj, apply_fn):
-        if isinstance(obj, torch.Tensor):
-            obj = apply_fn(obj)
-        elif isinstance(obj, (list, tuple)):
+        if isinstance(obj, list):
             for index in range(len(obj)):
                 obj[index] = cls._recursive_apply(obj[index], apply_fn)
         elif isinstance(obj, dict):
             for key in list(obj.keys()):
                 obj[key] = cls._recursive_apply(obj[key], apply_fn)
+        else:
+            return apply_fn(obj)
         return obj
 
     def subset(
