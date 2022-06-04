@@ -317,7 +317,11 @@ class _CallableWithOverrideParentConfig(_CallableWithConfig):
         self.add_default_cfg_doc()
 
         if len(stage_cfgs) > 0:
-            doc = f"\n\n.. hint::\n\n    Run the following stages sequentially. Please refer to the documentation of each stage.\n\n"
+            doc = f"\n\n.. hint::\n\n    Run the following stages sequentially. Please refer to the documentation of each stage.\n"
+            doc += "    Each stage has its config, however, the top-level options (like to most outer 'workspace' option) will be automatically "
+            doc += "    populated to each stage config. Hence, by simply assigin the most outer workspace, each stage's workspace is assigned "
+            doc += "    with the same value. You can still set each stage's option by `stage_0=dict(workspace='specific_path')`, the stage-specific "
+            doc += "    value will override the auto-assigned top-level value."
 
             for step_id, key, stage_cfg in stage_cfgs:
                 stage_method = getattr(owner, field.sanitize(stage_cfg["_method"]))

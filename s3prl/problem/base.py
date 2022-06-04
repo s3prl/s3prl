@@ -48,8 +48,8 @@ class Problem:
         SuperbIC.run_stages(workspace=workspace, start_stage=1, final_stage=-1)
 
     You can also execute each Stage one-by-one, you can also easily access the output of each Stage
-    to see the results. Given that `SuperbIC.train` will provide a `valid_best` key to the workspace,
-    you can access that checkpoint by `workspace["valid_best"]`
+    to see the results. Given that `SuperbIC.train` will provide a `valid_best_task` key to the workspace,
+    you can access that checkpoint by `workspace["valid_best_task"]`
 
     .. code-block:: python
 
@@ -65,7 +65,7 @@ class Problem:
         )
 
         # in another python session
-        ckpt = workspace["valid_best"]
+        ckpt = workspace["valid_best_task"]
 
     Basically, workspace help abstract out all the file handling details and act like a dictionary,
     so that you only need to put and get stuffs via their `key`.
@@ -83,7 +83,10 @@ class Problem:
         SuperbIC.setup_problem(
             workspace=workspace,
             corpus=dict(
-                dataset_root="your dataset path"
+                dataset_root="your dataset path",
+            )
+            upstream=dict(
+                name="fbank",
             )
         )
 
@@ -97,6 +100,37 @@ class Problem:
 
         trainer = pl.Trainer(n_gpus=1)
         trainer.fit(task, train_dataset, valid_dataset)
+
+    Besides importing these functions and use in your python script, you can also directly call them
+    in the command line. We provide an all-in-one CLI tool for S3PRL.
+
+    .. code-block:: shell
+
+        s3prl-cli [module path] [stage function qualname] OVERRIDE1 OVERRIDE2 ...
+
+    .. note:
+
+        OVERRIDE is in the format of "dictionary_key_path=value". That is, if you want to override the `inner` field in
+        dict(outer=dict(inner=3)), you can use `outer.inner=5`. The config will becomes dict(outer=dict(inner=5))
+
+    You can see the `--usage` page of the SuperbIC problem to see what are the necessary options to provide
+
+    .. code-block:: shell
+
+        s3prl-cli s3prl.problem.superb.ic SuperbIC.setup_problem --usage
+
+    You can first run a single **Stage** `setup_problem` to create the necessary components of the SuperbIC problem,
+    and then run the second **Stage** `train` and so on...
+
+    .. code-block:: shell
+
+        s3prl-cli s3prl.problem.superb.ic SuperbIC.setup_problem workspace=result/tmp upstream.name=fbank corpus.dataset_root='fluent_speech_command_path'
+
+    Or, you can run all the **Stages** at once with `run_stages`.
+
+    .. code-block:: shell
+
+        s3prl-cli s3prl.problem.superb.ic SuperbIC.run_stages workspace=result/tmp upstream.name=fbank corpus.dataset_root='fluent_speech_command_path'
 
     """
 

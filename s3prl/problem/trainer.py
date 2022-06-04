@@ -49,7 +49,7 @@ class Trainer:
             "\nThe workspace should have the following keys:\n"
             "  'train_dataset', 'train_sampler', 'valid_dataset', 'valid_sampler', and 'task'\n"
             "\nWill put the following keys into this workspace:\n"
-            "  'valid_best': the trained task\n",
+            "  'valid_best_task': the trained task\n",
             "str or Path or Workspace",
         ),
         resume=field(
