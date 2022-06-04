@@ -6,6 +6,8 @@ BI_SLOT = [i for i in range(3, 135)]
 VALUE = [i for i in range(83, 600+1)]
 
 END_IDX = 1
+SEP_IDX = 3
+MID_IDX = 4
 
 def parse_entity(seq):
     d = {}
@@ -48,26 +50,52 @@ def parse_BI_entity(seq, tokenizer):
 
 def parse_BIO_entity(seq, tokenizer):
     d = {}
-
+    intent_beg = 0
     if hasattr(seq, '__iter__'):
         # intent 
-        intent_beg = seq.pop(0)
-        intent_end = seq.pop(-1)
+        if len(seq) > 2:
+            intent_beg = seq.pop(0)
+            intent_end = seq.pop(-1)
 
+            for i, t in enumerate(seq): 
+                subword = tokenizer.id_to_token(t)
+                if len(subword.split('-')) > 1 and t < 135:
+                    slot = subword.split('-')[-1]
+                    if subword.split('-')[0] == 'B':
+                        d[slot] = [seq[i-1]]
+                    elif subword.split('-')[0] == 'I':
+                        if slot in d: 
+                            d[slot] += [seq[i-1]]
+                        else: 
+                            continue
+                if t == END_IDX:
+                    break
+    return d, intent_beg
+
+def parse_split_entity(seq, tokenizer):
+    d = {}
+    intent = ''
+    if hasattr(seq, '__iter__'):
+        decode_list = []
         for i, t in enumerate(seq): 
             subword = tokenizer.id_to_token(t)
-            if len(subword.split('-')) > 1 and t < 135:
-                slot = subword.split('-')[-1]
-                if subword.split('-')[0] == 'B':
-                    d[slot] = [seq[i-1]]
-                elif subword.split('-')[0] == 'I':
-                    if slot in d: 
-                        d[slot] += [seq[i-1]]
-                    else: 
-                        continue
+            decode_list.append(subword)
             if t == END_IDX:
                 break
-    return d, intent_beg
+        
+        decoded = ''.join(decode_list)
+        pairs = decoded.split(';')
+        # for intent 
+        if len(pairs) > 2: 
+            intent = pairs.pop(0)
+            pairs.pop(-1)
+            # for slot and value
+            for p in pairs: 
+                value = p.split(':')[0]
+                slot = p.split(':')[-1]
+                d[slot] = value
+
+    return d, intent
 
 def entity_f1_score(d_gt, d_hyp):
     if len(d_gt.keys()) == 0 and len(d_hyp.keys()) == 0:

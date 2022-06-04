@@ -28,9 +28,6 @@ for split in splits:
             l = label.split()[1:-1]
 
             intent = label.split()[-1]
-            if intent not in intent_dict: 
-                intent_dict[intent] = j
-                j += 1
 
             s, v = [], []
             
@@ -46,8 +43,13 @@ for split in splits:
             sv = []
             f.write(' '.join(v))
             f.write('\n')
+            # add intent to dict
+            intent = intent.split('#')[0]
+            if intent not in intent_dict: 
+                intent_dict[intent] = i
             # add intent 
             sv.append(intent)
+            
             for slot, value in zip(s, v):
                 # B-slot vegas
                 sv.append(value)

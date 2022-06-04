@@ -9,12 +9,12 @@ from torch.utils.data import DataLoader
 from torch.nn.utils.rnn import pad_sequence
 from tokenizers import Tokenizer
 # from .model import Model
-from .dataset import AtisDataset
+
 import pandas as pd
 from collections import Counter
 import wandb
 from .model import AttenDecoderModel, Seq2SeqTransformer, generate_square_subsequent_mask, create_mask, greedy_decode
-from .metric import parse_entity, entity_f1_score, parse_BI_entity, parse_BIO_entity, uer
+from .metric import parse_entity, entity_f1_score, parse_BI_entity, parse_BIO_entity, parse_split_entity, uer
 
 PAD_IDX = 0
 EOS_IDX = 1
@@ -34,8 +34,10 @@ class DownstreamExpert(nn.Module):
         self.seq_loss = torch.nn.CrossEntropyLoss(ignore_index=0, label_smoothing=self.modelrc['label_smoothing'])
         
         self.base_path = self.datarc['file_path']   
+        self.audio_path = self.datarc['audio_path']   
         self.is_BI = self.datarc['is_BI']
         self.is_BIO = self.datarc['is_BIO']
+        self.is_split = self.datarc['is_split']
         self.unit_path = self.datarc['unit_path'] if 'unit_path' in self.datarc else None
         self.unit_tokenizer_path = self.datarc['unit_tokenizer_path'] if 'unit_tokenizer_path' in self.datarc else None
         self.unit_size = self.datarc['unit_size'] + 3 if 'unit_size' in self.datarc else None
@@ -43,24 +45,47 @@ class DownstreamExpert(nn.Module):
 
         if self.unit_tokenizer_path is not None: 
             self.unit_tokenizer = Tokenizer.from_file(self.unit_tokenizer_path)
-
+        
+        # import dataset
+        if self.datarc['corpus'] == 'atis':
+            from .dataset import AtisDataset as Dataset
+            train_audio_path = os.path.join(self.audio_path, 'train')
+            dev_audio_path = os.path.join(self.audio_path, 'dev')
+            test_audio_path = os.path.join(self.audio_path, 'test')
+        elif self.datarc['corpus'] == 'slurp':
+            from .dataset import SlurpDataset as Dataset
+            audio_path = self.audio_path
+            train_audio_path = audio_path
+            dev_audio_path = audio_path
+            test_audio_path = audio_path
+        else: 
+            raise NotImplementedError
 
         aug_config = downstream_expert['augmentation'] if 'augmentation' in downstream_expert else None
+        
+
         if self.is_BI: 
             self.tokenizer = Tokenizer.from_file(os.path.join(self.base_path, 'BI_tokenizer.json'))
-            self.train_dataset = AtisDataset(os.path.join(self.base_path, 'sv_BI_train.csv'), os.path.join(self.base_path, 'train'), self.tokenizer, aug_config, unit_path=self.unit_path, unit_tokenizer=self.unit_tokenizer)
-            self.dev_dataset = AtisDataset(os.path.join(self.base_path, 'sv_BI_dev.csv'), os.path.join(self.base_path, 'dev'), self.tokenizer, unit_path=self.unit_path, unit_tokenizer=self.unit_tokenizer)
-            self.test_dataset = AtisDataset(os.path.join(self.base_path, 'sv_BI_test.csv'),os.path.join(self.base_path, 'test'), self.tokenizer, unit_path=self.unit_path, unit_tokenizer=self.unit_tokenizer)
+            self.train_dataset = Dataset(os.path.join(self.base_path, 'sv_BI_train.csv'), train_audio_path, self.tokenizer, aug_config, unit_path=self.unit_path, unit_tokenizer=self.unit_tokenizer)
+            self.dev_dataset = Dataset(os.path.join(self.base_path, 'sv_BI_dev.csv'), dev_audio_path, self.tokenizer, unit_path=self.unit_path, unit_tokenizer=self.unit_tokenizer)
+            self.test_dataset = Dataset(os.path.join(self.base_path, 'sv_BI_test.csv'), test_audio_path, self.tokenizer, unit_path=self.unit_path, unit_tokenizer=self.unit_tokenizer)
         elif self.is_BIO: 
             self.tokenizer = Tokenizer.from_file(os.path.join(self.base_path, 'BIO_tokenizer.json'))
-            self.train_dataset = AtisDataset(os.path.join(self.base_path, 'sv_BIO_train.csv'), os.path.join(self.base_path, 'train'), self.tokenizer, aug_config, unit_path=self.unit_path, unit_tokenizer=self.unit_tokenizer)
-            self.dev_dataset = AtisDataset(os.path.join(self.base_path, 'sv_BIO_dev.csv'), os.path.join(self.base_path, 'dev'), self.tokenizer, unit_path=self.unit_path, unit_tokenizer=self.unit_tokenizer)
-            self.test_dataset = AtisDataset(os.path.join(self.base_path, 'sv_BIO_test.csv'),os.path.join(self.base_path, 'test'), self.tokenizer, unit_path=self.unit_path, unit_tokenizer=self.unit_tokenizer)
+            self.train_dataset = Dataset(os.path.join(self.base_path, 'sv_BIO_train.csv'), train_audio_path, self.tokenizer, aug_config, unit_path=self.unit_path, unit_tokenizer=self.unit_tokenizer)
+            self.dev_dataset = Dataset(os.path.join(self.base_path, 'sv_BIO_dev.csv'), dev_audio_path, self.tokenizer, unit_path=self.unit_path, unit_tokenizer=self.unit_tokenizer)
+            self.test_dataset = Dataset(os.path.join(self.base_path, 'sv_BIO_test.csv'), test_audio_path, self.tokenizer, unit_path=self.unit_path, unit_tokenizer=self.unit_tokenizer)
+        
+        elif self.is_split: 
+            self.tokenizer = Tokenizer.from_file(os.path.join(self.base_path, 'split_tokenizer.json'))
+            self.train_dataset = Dataset(os.path.join(self.base_path, 'sv_split_train.csv'), train_audio_path, self.tokenizer, aug_config, unit_path=self.unit_path, unit_tokenizer=self.unit_tokenizer)
+            self.dev_dataset = Dataset(os.path.join(self.base_path, 'sv_split_dev.csv'), dev_audio_path, self.tokenizer, unit_path=self.unit_path, unit_tokenizer=self.unit_tokenizer)
+            self.test_dataset = Dataset(os.path.join(self.base_path, 'sv_split_test.csv'), test_audio_path, self.tokenizer, unit_path=self.unit_path, unit_tokenizer=self.unit_tokenizer)
+
         else:
             self.tokenizer = Tokenizer.from_file(os.path.join(self.base_path, 'tokenizer.json'))
-            self.train_dataset = AtisDataset(os.path.join(self.base_path, 'atis_sv_train.csv'), os.path.join(self.base_path, 'train'), self.tokenizer, aug_config, unit_path=self.unit_path, unit_tokenizer=self.unit_tokenizer)
-            self.dev_dataset = AtisDataset(os.path.join(self.base_path, 'atis_sv_dev.csv'), os.path.join(self.base_path, 'dev'), self.tokenizer, unit_path=self.unit_path, unit_tokenizer=self.unit_tokenizer)
-            self.test_dataset = AtisDataset(os.path.join(self.base_path, 'atis_sv_test.csv'),os.path.join(self.base_path, 'test'), self.tokenizer, unit_path=self.unit_path, unit_tokenizer=self.unit_tokenizer)
+            self.train_dataset = Dataset(os.path.join(self.base_path, 'atis_sv_train.csv'), train_audio_path, self.tokenizer, aug_config, unit_path=self.unit_path, unit_tokenizer=self.unit_tokenizer)
+            self.dev_dataset = Dataset(os.path.join(self.base_path, 'atis_sv_dev.csv'), dev_audio_path, self.tokenizer, unit_path=self.unit_path, unit_tokenizer=self.unit_tokenizer)
+            self.test_dataset = Dataset(os.path.join(self.base_path, 'atis_sv_test.csv'), test_audio_path, self.tokenizer, unit_path=self.unit_path, unit_tokenizer=self.unit_tokenizer)
         
         self.connector = nn.Linear(upstream_dim, self.modelrc['input_dim'])
         self.vocab_size = self.modelrc['input_dim']
@@ -74,6 +99,10 @@ class DownstreamExpert(nn.Module):
         self.is_dual_decoder = self.modelrc['is_dual_decoder']
         self.unit_decode_weight = self.modelrc['unit_decode_weight']
 
+        self.is_bart_decoder = self.modelrc['is_bart_decoder']
+        self.pass_extra_encoder = self.modelrc['pass_extra_encoder']
+        self.max_decode_len = self.modelrc['max_decode_len']
+        
         self.is_unit = False
         if self.unit_path is not None and self.ctc_weight != 0.:
             self.is_unit = True
@@ -89,7 +118,8 @@ class DownstreamExpert(nn.Module):
                                             is_unit=self.is_unit, 
                                             unit_size=self.unit_size,
                                             is_dual_decoder=self.is_dual_decoder,
-                                            )
+                                            is_bart_decoder=self.is_bart_decoder,
+                                            pass_extra_encoder=self.pass_extra_encoder)
         else:
             self.model = AttenDecoderModel(self.modelrc['input_dim'], self.vocab_size)
 
@@ -126,6 +156,8 @@ class DownstreamExpert(nn.Module):
         features_pad = pad_sequence(features, batch_first=True)
         DEVICE = features_pad.device
 
+        unit_input, unit_out, unit_mask = None, None, None
+        
         if units is not None: 
             units = [torch.LongTensor(unit).to(DEVICE) for unit in units]
             units_pad = pad_sequence(units, batch_first=True)
@@ -133,7 +165,8 @@ class DownstreamExpert(nn.Module):
             unit_len = torch.IntTensor([len(u) for u in units])
             unit_input = units_pad[:, :-1]
             unit_out = units_pad[:, 1:]
-        
+            _ , unit_mask, unit_padding_mask = create_mask(features_pad, unit_input)
+
         labels = [torch.LongTensor(label).to(DEVICE) for label in labels]
         label_len = [len(l) for l in labels]
 
@@ -147,7 +180,7 @@ class DownstreamExpert(nn.Module):
 
         src_mask, tgt_mask, tgt_padding_mask = create_mask(features_pad, tgt_input)
         # for unit_mask
-        _ , unit_mask, unit_padding_mask = create_mask(features_pad, unit_input)
+        
 
         features_pad = self.connector(features_pad)
 
@@ -161,7 +194,7 @@ class DownstreamExpert(nn.Module):
         else: 
             if self.is_transformer: 
                 if self.ctc_weight < 1.0:
-                    ys = list(greedy_decode(self.model, features_pad, src_mask, max_len=30).flatten().cpu().numpy().astype(int))
+                    ys = list(greedy_decode(self.model, features_pad, src_mask, max_len=self.max_decode_len).flatten().cpu().numpy().astype(int))
                     ys = ys[1:]
                 att_output, ctc_output, unit_output = self.model(features_pad, tgt_input, src_mask, tgt_mask, attention_mask_pad, tgt_padding_mask, attention_mask_pad, unit_input, self.ctc_weight, unit_mask)
             else:
@@ -219,6 +252,9 @@ class DownstreamExpert(nn.Module):
                 elif self.is_BIO:
                     d_gt, intent_gt = parse_BIO_entity(gt, self.tokenizer)
                     d_hyp, intent_hyp = parse_BIO_entity(hyp, self.tokenizer)
+                elif self.is_split:
+                    d_gt, intent_gt = parse_split_entity(gt, self.tokenizer)
+                    d_hyp, intent_hyp = parse_split_entity(hyp, self.tokenizer)
                 else:
                     d_gt = parse_entity(gt)
                     d_hyp = parse_entity(hyp)
@@ -232,10 +268,13 @@ class DownstreamExpert(nn.Module):
 
                 f1 = entity_f1_score(d_gt, d_hyp)
                 if mode != 'train':
+                    intent_ys = None
                     if self.is_BI:
                         d_ys = parse_BI_entity(ys, self.tokenizer)
                     elif self.is_BIO:
                         d_ys, intent_ys = parse_BIO_entity(ys, self.tokenizer)
+                    elif self.is_split:
+                        d_ys, intent_ys = parse_split_entity(ys, self.tokenizer)
                     else:
                         d_ys = parse_entity(ys)
 
@@ -259,7 +298,7 @@ class DownstreamExpert(nn.Module):
                 records['f1_greedy'] += f1s_ys
                 
             records['f1'] += f1s
-            if self.is_BIO:
+            if self.is_BIO or self.is_split:
                 records['intent_acc'] += accs
 
         records['tot_loss'].append(total_loss.cpu().item())

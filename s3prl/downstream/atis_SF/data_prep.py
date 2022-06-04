@@ -10,7 +10,7 @@ base_path = '/home/daniel094144/data/atis'
 splits = ['train', 'dev', 'test'] 
 
 for split in splits:
-    df = pd.read_csv(os.path.join(base_path, f"nlu_iob/iob.{split}",) sep='\t', header=None)
+    df = pd.read_csv(os.path.join(base_path, f"nlu_iob/iob.{split}"), sep='\t', header=None)
     text = df[0].values
     label = df[1].values
 

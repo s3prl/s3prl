@@ -524,8 +524,14 @@ class Seq2SeqTransformer(nn.Module):
                  dropout=0.1, 
                  is_unit=False,
                  unit_size=None,
-                 is_dual_decoder=False):
+                 is_dual_decoder=False,
+                 is_bart_decoder=False,
+                 pass_extra_encoder=False):
         super(Seq2SeqTransformer, self).__init__()
+
+        self.is_bart_decoder = is_bart_decoder
+
+
         self.transformer = Transformer(d_model=emb_size,
                                        nhead=nhead,
                                        num_encoder_layers=num_encoder_layers,
@@ -533,20 +539,30 @@ class Seq2SeqTransformer(nn.Module):
                                        dim_feedforward=dim_feedforward,
                                        dropout=dropout,
                                        batch_first=True)
-
-        
         self.generator = nn.Linear(emb_size, tgt_vocab_size)
         self.tgt_tok_emb = TokenEmbedding(tgt_vocab_size, emb_size)
         self.positional_encoding = PositionalEncoding(
             emb_size, dropout=dropout)
         self.is_unit = is_unit
         
+        # replace decoder to pre-trained bart decoder
+        if self.is_bart_decoder: 
+            from transformers import AutoModelForSeq2SeqLM
+
+            decoder_model = AutoModelForSeq2SeqLM.from_pretrained('facebook/bart-base')
+            del self.transformer.decoder
+            self.transformer.decoder = decoder_model.model.decoder
+            self.tgt_tok_emb = TokenEmbedding(tgt_vocab_size, emb_size)
+            self.positional_encoding = PositionalEncoding(emb_size, dropout=dropout)
+            
+
         # for ctc unit predition
         unit_encoder_layer = nn.TransformerEncoderLayer(d_model=emb_size, nhead=nhead, dim_feedforward=emb_size, batch_first=True)
         # add extra encoder layer
         self.unit_encoder = nn.TransformerEncoder(unit_encoder_layer, num_encoder_layers)
         self.ctc_layer = nn.Linear(emb_size, unit_size)
 
+        self.pass_extra_encoder = pass_extra_encoder
         self.is_dual_decoder = is_dual_decoder
         if self.is_dual_decoder: 
             decoder_layer = nn.TransformerDecoderLayer(d_model=emb_size, nhead=nhead, dim_feedforward=512, batch_first=True)
@@ -567,7 +583,8 @@ class Seq2SeqTransformer(nn.Module):
                 ctc_weight=0,
                 unit_mask=None):
         
-        memory = self.transformer.encoder(src, mask=src_mask, src_key_padding_mask=src_padding_mask)
+        if not self.pass_extra_encoder:
+            memory = self.transformer.encoder(src, mask=src_mask, src_key_padding_mask=src_padding_mask)
 
         ctc_output = None
         if self.is_unit and ctc_weight > 0.0: 
@@ -582,7 +599,14 @@ class Seq2SeqTransformer(nn.Module):
         # main task
         if ctc_weight < 1.0: 
             tgt = self.positional_encoding(self.tgt_tok_emb(trg))
-            outs = self.transformer.decoder(tgt, memory, tgt_mask=tgt_mask)
+            if self.is_bart_decoder: 
+                if self.pass_extra_encoder:
+                    outs = self.transformer.decoder(input_ids=trg, encoder_hidden_states=src, encoder_attention_mask=src_padding_mask).last_hidden_state
+                else:
+                    outs = self.transformer.decoder(input_ids=trg, encoder_hidden_states=memory).last_hidden_state
+                
+            else:
+                outs = self.transformer.decoder(tgt, memory, tgt_mask=tgt_mask)
             # dual decoder for unit
             if unit_outs is not None: 
                 return self.generator(outs), ctc_output, self.unit_generator(unit_outs)
@@ -597,12 +621,18 @@ class Seq2SeqTransformer(nn.Module):
     def encode(self, src: Tensor, src_mask: Tensor):
         return self.transformer.encoder(src, src_mask)
 
-    def decode(self, tgt: Tensor, memory: Tensor, tgt_mask: Tensor):        
-        tgt = self.positional_encoding(self.tgt_tok_emb(tgt))
-        tgt = tgt.view(tgt.shape[1], tgt.shape[0], tgt.shape[2])
-
-        return self.transformer.decoder(tgt, memory,
-                          tgt_mask)
+    def decode(self, tgt: Tensor, memory: Tensor, tgt_mask: Tensor, src_mask=None):        
+        if self.is_bart_decoder: 
+            if self.pass_extra_encoder:
+                return self.transformer.decoder(input_ids=tgt.transpose(1, 0), encoder_hidden_states=memory, encoder_attention_mask=src_mask).last_hidden_state
+            else:
+                return self.transformer.decoder(input_ids=tgt.transpose(1, 0), encoder_hidden_states=memory).last_hidden_state
+        else:
+            tgt = self.positional_encoding(self.tgt_tok_emb(tgt))
+            tgt = tgt.view(tgt.shape[1], tgt.shape[0], tgt.shape[2])
+        
+            return self.transformer.decoder(tgt, memory, tgt_mask) 
+            
 
 def generate_square_subsequent_mask(sz):
     mask = (torch.triu(torch.ones((sz, sz), device=DEVICE)) == 1).transpose(0, 1)
@@ -620,22 +650,27 @@ def create_mask(src, tgt):
     tgt_padding_mask = (tgt == PAD_IDX)
     return src_mask, tgt_mask, tgt_padding_mask
 
-def greedy_decode(model, src, src_mask, max_len, start_symbol=2):
+def greedy_decode(model, src, src_mask, max_len, start_symbol=2, pass_extra_encoder=False):
     src = src.to(DEVICE)
     src_mask = src_mask.to(DEVICE)
-    memory = model.encode(src, src_mask)
-    ys = torch.ones(1, 1).fill_(start_symbol).type(torch.long).to(DEVICE)
-    for i in range(max_len-1):
+    if not pass_extra_encoder:
+        memory = model.encode(src, src_mask)
         memory = memory.to(DEVICE)
-        tgt_mask = (generate_square_subsequent_mask(ys.size(0))
-                    .type(torch.bool)).to(DEVICE)
-        out = model.decode(ys, memory, tgt_mask)
+
+    ys = torch.ones(1, 1).fill_(start_symbol).type(torch.long).to(DEVICE)
+    for _ in range(max_len-1):
+        tgt_mask = (generate_square_subsequent_mask(ys.size(0)).type(torch.bool)).to(DEVICE)
+        if pass_extra_encoder:
+            out = model.decode(ys, src, tgt_mask, src_mask=src_mask)
+        else: 
+            out = model.decode(ys, memory, tgt_mask)
+
         prob = model.generator(out[:, -1])
         
         _, next_word = torch.max(prob, dim=1)
         next_word = next_word[0].item()
         ys = torch.cat([ys,
-                        torch.ones(1, 1).type_as(src.data).fill_(next_word)], dim=0)
+                        torch.ones(1, 1).fill_(next_word).type(torch.long).to(DEVICE)], dim=0)
         if next_word == EOS_IDX:
             break
     return ys

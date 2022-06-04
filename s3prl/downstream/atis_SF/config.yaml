@@ -1,10 +1,10 @@
 runner:
-  total_steps: 20000
+  total_steps: 10000
   gradient_clipping: 1
   gradient_accumulate_steps: 96
 
   log_step: 5
-  eval_step: 30
+  eval_step: 50
   save_step: 300
   max_keep: 1
   eval_dataloaders:
@@ -23,12 +23,18 @@ scheduler:
 
 downstream_expert:
   datarc:
+    # corpus: slurp 
+    corpus: atis
     file_path: /home/daniel094144/data/atis
-    num_workers: 0
+    # file_path: /home/daniel094144/data/slurp/slurp/dataset/slurp
+    # audio_path: /home/daniel094144/data/slurp/slurp/audio/slurp_real
+    audio_path: /home/daniel094144/data/atis
+    num_workers: 4
     train_batch_size: 2
     eval_batch_size: 1
     is_BI: False
     is_BIO: True
+    is_split: False
     unit_path: /home/daniel094144/data/atis/atis_code_128_IN/code
     # unit_path: /home/daniel094144/data/atis/atis_code_128_IN/char_code
     unit_size: 128
@@ -46,7 +52,7 @@ downstream_expert:
 
   modelrc:
     is_transformer: True
-    vocab_size: 600
+    vocab_size: 600 # 600
     input_dim: 512
     ctc_weight: 0
     num_encoder_layers: 3
@@ -55,5 +61,8 @@ downstream_expert:
     nhead: 4
     dim_feedforward: 2048
     is_dual_decoder: True
-    unit_decode_weight: 0.3
+    unit_decode_weight: 0.1
     label_smoothing: 0.05
+    is_bart_decoder: False
+    pass_extra_encoder: False
+    max_decode_len: 40
