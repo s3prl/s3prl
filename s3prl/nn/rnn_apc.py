@@ -8,7 +8,7 @@ from s3prl import Output
 from s3prl.nn.vq_apc import VQLayer
 
 
-class APC(nn.Module):
+class ApcModel(nn.Module):
     def __init__(self, input_size, hidden_size, num_layers, dropout, residual, vq=None):
         """
         input_size: an int indicating the input feature size, e.g., 80 for Mel.
@@ -17,7 +17,7 @@ class APC(nn.Module):
         dropout: a float indicating the RNN dropout rate.
         residual: a bool indicating whether to apply residual connections.
         """
-        super(APC, self).__init__()
+        super(ApcModel, self).__init__()
 
         assert num_layers > 0
         self.hidden_size = hidden_size

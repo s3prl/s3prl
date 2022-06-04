@@ -1,11 +1,10 @@
-import torch
 from torch.nn import L1Loss
 
 from s3prl import Container
 from s3prl.corpus.librispeech_for_pretrain import LibriSpeechForPretrain
 from s3prl.dataset.pretrain_apc_pipe import PretrainTaskPipe
 from s3prl.nn.identity import Identity
-from s3prl.nn.rnn_apc import APC
+from s3prl.nn.rnn_apc import ApcModel
 from s3prl.sampler import FixedBatchSizeBatchSampler, MaxTimestampBatchSampler
 from s3prl.task.autoregressive_reconstruction_task import (
     AutoregressiveReconstructionTask,
@@ -20,7 +19,7 @@ class Apc:
     ValidSampler = FixedBatchSizeBatchSampler
     TestData = PretrainTaskPipe
     TestSampler = FixedBatchSizeBatchSampler
-    Body = APC
+    Body = ApcModel
     Head = Identity
     Task = AutoregressiveReconstructionTask
     Loss = L1Loss
