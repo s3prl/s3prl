@@ -4,6 +4,7 @@ from pathlib import Path
 from librosa.util import find_files
 
 from s3prl import Container, cache
+from s3prl.util import registry
 
 from .base import Corpus
 
@@ -83,14 +84,8 @@ class IEMOCAP(Corpus):
         return Container(self.sessions[session_id - 1][act])
 
 
-class IEMOCAPForSUPERB(IEMOCAP):
-    def __init__(
-        self, dataset_root: str, test_session: int = 1, n_jobs: int = 4
-    ) -> None:
-        super().__init__(dataset_root, n_jobs)
-        self.test_session = test_session
-
-    @staticmethod
+@registry.put()
+def iemocap_for_superb(dataset_root: str, test_session: int = 1, n_jobs: int = 4):
     def format_fields(data_points):
         return {
             key: dict(
@@ -100,7 +95,6 @@ class IEMOCAPForSUPERB(IEMOCAP):
             for key, value in data_points.items()
         }
 
-    @staticmethod
     def filter_data(data: Container):
         for key in list(data.keys()):
             data_point = data[key]
@@ -110,21 +104,21 @@ class IEMOCAPForSUPERB(IEMOCAP):
                 data_point.emotion = "hap"
         return data
 
-    def __call__(self):
-        valid_session = (self.test_session + 1) % IEMOCAP_SESSION_NUM
-        train_sessions = [
-            s + 1
-            for s in list(range(IEMOCAP_SESSION_NUM))
-            if s + 1 not in [valid_session, self.test_session]
-        ]
-        train_data = Container()
-        for session_id in train_sessions:
-            train_data.add(self.get_whole_session(session_id))
-        valid_data = self.get_whole_session(valid_session)
-        test_data = self.get_whole_session(self.test_session)
+    corpus = IEMOCAP(dataset_root, n_jobs)
+    valid_session = (test_session + 1) % IEMOCAP_SESSION_NUM
+    train_sessions = [
+        s + 1
+        for s in list(range(IEMOCAP_SESSION_NUM))
+        if s + 1 not in [valid_session, test_session]
+    ]
+    train_data = Container()
+    for session_id in train_sessions:
+        train_data.add(corpus.get_whole_session(session_id))
+    valid_data = corpus.get_whole_session(valid_session)
+    test_data = corpus.get_whole_session(test_session)
 
-        return Container(
-            train_data=self.format_fields(self.filter_data(train_data)),
-            valid_data=self.format_fields(self.filter_data(valid_data)),
-            test_data=self.format_fields(self.filter_data(test_data)),
-        )
+    return Container(
+        train_data=format_fields(filter_data(train_data)),
+        valid_data=format_fields(filter_data(valid_data)),
+        test_data=format_fields(filter_data(test_data)),
+    )

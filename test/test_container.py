@@ -56,10 +56,10 @@ def test_container_cls_fields():
     config.cls_fields == [("a.cls", config.a.cls)]
 
 
-def test_public():
+def test_kwds():
     config = Container(a=3, _cls="hello")
     assert config._cls == "hello"
-    assert "_cls" not in config.public()
+    assert "_cls" not in config.kwds()
 
 
 def test_container_field():

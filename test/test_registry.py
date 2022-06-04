@@ -8,8 +8,14 @@ class NewClass:
         pass
 
 
+@registry.put()
+def example_func():
+    pass
+
+
 def test_registry():
     assert registry.get("new_class") == NewClass
+    assert registry.get("example_func") == example_func
 
 
 def test_container_with_registry():

@@ -7,10 +7,6 @@ from s3prl import Container, Object
 
 
 class Corpus(Object):
-    @abc.abstractmethod
-    def __call__(self, *args: Any, **kwds: Any) -> Any:
-        raise NotImplementedError
-
     @property
     @abc.abstractmethod
     def all_data(self) -> dict:

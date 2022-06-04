@@ -2,8 +2,14 @@ _key_to_cls = dict()
 _cls_to_key = dict()
 
 
-def put(key: str = "The _cls key name used in cfg"):
+def put(key: str = None):
+    """
+    key: the _cls field in the config. When key==None, Use the __name__ of the registering object
+    """
+    _key = key
+
     def wrapper(cls_or_func):
+        key = _key or cls_or_func.__name__
         global _key_to_cls, _cls_to_key
         assert key not in _key_to_cls, f"Duplicated key in registry: {key}"
         _key_to_cls[key] = cls_or_func

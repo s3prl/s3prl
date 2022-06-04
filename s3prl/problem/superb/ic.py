@@ -3,9 +3,7 @@ from __future__ import annotations
 import torch.nn as nn
 
 from s3prl import Container, field
-from s3prl.corpus.fluent_speech_commands import (
-    FluentSpeechCommandsForUtteranceMultiClassClassificataion,
-)
+from s3prl.corpus.fluent_speech_commands import fsc_for_multiple_classfication
 from s3prl.dataset.utterance_classification_pipe import (
     UtteranceMultipleCategoryClassificationPipe,
 )
@@ -27,7 +25,7 @@ class SuperbIC(SuperbProblem):
 
     @override_parent_cfg(
         corpus=dict(
-            _cls=FluentSpeechCommandsForUtteranceMultiClassClassificataion,
+            _cls=fsc_for_multiple_classfication,
             dataset_root="???",
         ),
         train_datapipe=dict(

@@ -1,7 +1,7 @@
 import pytest
 from dotenv import dotenv_values
 
-from s3prl.corpus.librispeech import LibriSpeech, LibriSpeechForSUPERB
+from s3prl.corpus.librispeech import LibriSpeech, librispeech_for_speech2text
 
 libri_stats = {
     "train-clean-100": 28539,
@@ -30,8 +30,9 @@ def test_librispeech():
     for key, val in libri_stats.items():
         assert len(dataset.get_corpus_splits([key])) == val
 
-    corpus = LibriSpeechForSUPERB(dataset_root)
-    train_data, valid_data, test_data = corpus().slice(3)
+    train_data, valid_data, test_data = librispeech_for_speech2text(dataset_root).slice(
+        3
+    )
 
     assert len(train_data) == libri_stats["train-clean-100"]
     assert len(valid_data) == libri_stats["dev-clean"]

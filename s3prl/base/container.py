@@ -202,7 +202,7 @@ class Container(OrderedDict):
             if isinstance(obj.value, str) and __class__.UNFILLED_PATTERN in obj.value:
                 unfilleds.append(parent[:-1])
 
-    def public(self):
+    def kwds(self):
         new_copy = self.clone()
         self._no_underscore(new_copy)
         return new_copy

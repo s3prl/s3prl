@@ -191,14 +191,14 @@ class Trainer:
 
         optimizer = cfg.optimizer._cls(
             wrapped_task.parameters(),
-            **cfg.optimizer.public(),
+            **cfg.optimizer.kwds(),
         )
         if optimizer_state:
             optimizer.load_state_dict(optimizer_state)
 
         scheduler = None
         if cfg.use_scheduler:
-            scheduler = cfg.scheduler._cls(optimizer, **cfg.scheduler.public())
+            scheduler = cfg.scheduler._cls(optimizer, **cfg.scheduler.kwds())
             if scheduler_state:
                 scheduler.load_state_dict(scheduler_state)
 

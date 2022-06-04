@@ -104,51 +104,50 @@ class SuperbProblem(Problem, Trainer):
         workspace = Workspace(cfg.workspace)
 
         if not isinstance(cfg.upstream, nn.Module):
-            upstream = cfg.upstream._cls(**cfg.upstream.public())
+            upstream = cfg.upstream._cls(**cfg.upstream.kwds())
         else:
             upstream = cfg.upstream
 
         stats = Container(upstream_rate=upstream.downsample_rate)
 
         logger.info("Preparing corpus")
-        corpus = cfg.corpus._cls(**cfg.corpus.public())
-        train_data, valid_data, test_data, corpus_stats = corpus().split(3)
+        train_data, valid_data, test_data, corpus_stats = cfg.corpus._cls(
+            **cfg.corpus.kwds()
+        ).split(3)
         stats.add(corpus_stats)
 
         logger.info("Preparing train data")
         train_dataset = AugmentedDynamicItemDataset(train_data, tools=stats)
-        train_dataset = cfg.train_datapipe._cls(**cfg.train_datapipe.public())(
+        train_dataset = cfg.train_datapipe._cls(**cfg.train_datapipe.kwds())(
             train_dataset
         )
         train_sampler = cfg.train_sampler._cls(
-            train_dataset, **cfg.train_sampler.public()
+            train_dataset, **cfg.train_sampler.kwds()
         )
         stats.add(train_dataset.all_tools())
 
         logger.info("Preparing valid data")
         valid_dataset = AugmentedDynamicItemDataset(valid_data, tools=stats)
-        valid_dataset = cfg.valid_datapipe._cls(**cfg.valid_datapipe.public())(
+        valid_dataset = cfg.valid_datapipe._cls(**cfg.valid_datapipe.kwds())(
             valid_dataset
         )
         valid_sampler = cfg.valid_sampler._cls(
-            valid_dataset, **cfg.valid_sampler.public()
+            valid_dataset, **cfg.valid_sampler.kwds()
         )
 
         logger.info("Preparing test data")
         test_dataset = AugmentedDynamicItemDataset(test_data, tools=stats)
-        test_dataset = cfg.test_datapipe._cls(**cfg.test_datapipe.public())(
-            test_dataset
-        )
-        test_sampler = cfg.test_sampler._cls(test_dataset, **cfg.test_sampler.public())
+        test_dataset = cfg.test_datapipe._cls(**cfg.test_datapipe.kwds())(test_dataset)
+        test_sampler = cfg.test_sampler._cls(test_dataset, **cfg.test_sampler.kwds())
 
         logger.info("Preparing model and task")
         downstream = cfg.downstream._cls(
             upstream.output_size,
             **stats,
-            **cfg.downstream.public(),
+            **cfg.downstream.kwds(),
         )
         model = UpstreamDownstreamModel(upstream, downstream)
-        task = cfg.task._cls(model, **stats, **cfg.task.public())
+        task = cfg.task._cls(model, **stats, **cfg.task.kwds())
 
         workspace["train_dataset"] = train_dataset
         workspace["train_sampler"] = train_sampler
