@@ -41,14 +41,6 @@ class FeatReconstructionTask(Task):
         self.head = head
         self.loss = loss
 
-    @property
-    def input_size(self):
-        return self.body.input_size
-
-    @property
-    def output_size(self):
-        return self.head.output_size
-
     def forward(
         self,
         source_feat: torch.Tensor,
@@ -70,8 +62,8 @@ class FeatReconstructionTask(Task):
             loss (torch.Tensor): scalar.
             prediction (torch.Tensor): (batch_size, timestamps, output_size)
         """
-        body_states: torch.Tensor = self.body(source_feat, pos_enc, attn_mask).slice(1)
-        prediction: torch.Tensor = self.head(body_states).slice(1)
+        body_output: torch.Tensor = self.body(source_feat, pos_enc, attn_mask)
+        prediction: torch.Tensor = self.head(body_output).prediction
 
         assert label_mask.sum() > 0, "Without any masking, loss might go NaN."
         reconstruction_loss = self.loss(
@@ -79,7 +71,9 @@ class FeatReconstructionTask(Task):
         )
 
         return Output(
-            hidden_states=body_states, loss=reconstruction_loss, prediction=prediction
+            loss=reconstruction_loss,
+            hidden_states=body_output.hidden_states,
+            prediction=prediction,
         )
 
     def _general_forward(
@@ -92,12 +86,13 @@ class FeatReconstructionTask(Task):
         unique_name: List[str],
     ):
 
-        hidden_states, loss, prediction = self(
+        loss, hidden_states, prediction = self(
             x, label, label_mask, position_encoding, attention_mask
         ).slice(3)
 
         logs = Logs()
         logs.add_hidden_state("hidden_states", hidden_states)
+        logs.add_hidden_state("prediction", prediction)
 
         return Output(
             loss=loss,

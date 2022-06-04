@@ -399,7 +399,8 @@ class TransformerSpecPredictionHead(nn.Module):
         )
         self.output = nn.Linear(config.hidden_size, self.output_size)
 
-    def forward(self, hidden_states, output_states=False):
+    def forward(self, inputs, output_states=False):
+        hidden_states = inputs.hidden_states
         hidden_states = self.dense(hidden_states)
         hidden_states = self.transform_act_fn(hidden_states)
         hidden_states = self.LayerNorm(hidden_states)
