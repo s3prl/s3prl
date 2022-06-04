@@ -16,13 +16,14 @@ logger = logging.getLogger(__name__)
 
 
 class Workspace(type(Path()), MutableMapping):
-    def __new__(cls, path=None):
-        if path is None:
-            path = tempfile.mkdtemp()
-            is_temp = True
-        else:
+    def __new__(cls, *args, **kwds):
+        if len(args) > 0:
             is_temp = False
-        obj = super().__new__(cls, path)
+        else:
+            args = [tempfile.mkdtemp(), *args]
+            is_temp = True
+
+        obj = super().__new__(cls, *args, **kwds)
         obj._is_temp = is_temp
         obj._rank = 0
         obj._default_dtype = None

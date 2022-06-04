@@ -1,8 +1,10 @@
 import os
 from pathlib import Path
 from tempfile import TemporaryDirectory
+import tempfile
 
 import pytest
+import torch
 import torch.nn as nn
 import torch.optim
 
@@ -165,3 +167,11 @@ def test_workspace_link():
         workspace.link_from("temp", (workspace / "hello_dir"), "valid_best")
         assert (workspace / "temp.yaml").is_symlink()
         assert workspace["temp"] == data
+
+
+def test_workspace_pickle():
+    with tempfile.TemporaryDirectory() as tempdir:
+        with tempfile.NamedTemporaryFile() as file:
+            workspace = Workspace(tempdir)
+            torch.save(workspace, file.name)
+            workspace = torch.load(file.name)
