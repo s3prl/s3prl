@@ -1,30 +1,32 @@
+import logging
 import os
 import re
-import logging
-from collections import defaultdict
-from functools import partial
-from pathlib import Path
 import subprocess
 import tempfile
+from collections import defaultdict
+from concurrent.futures import ProcessPoolExecutor, as_completed
+from functools import partial
+from pathlib import Path
 
+import numpy as np
 import torch
 import torch.nn as nn
-import numpy as np
-from tqdm import tqdm
-from scipy.spatial import distance
 from dtw import dtw
-from concurrent.futures import ProcessPoolExecutor, as_completed
-from s3prl.util import workspace
-from s3prl.util.configuration import override_parent_cfg, default_cfg, field
-from .base import SuperbProblem
-from s3prl import Container
-from s3prl.sampler import FixedBatchSizeBatchSampler
-from s3prl.util.workspace import Workspace, as_type
-from s3prl.dataset.base import AugmentedDynamicItemDataset
-from s3prl.dataset.dump_feature_pipe import DumpFeaturePipe
-from s3prl.corpus.quesst14 import quesst14_for_qbe
-from s3prl.task.dump_feature import DumpFeature
 from lxml import etree
+from scipy.spatial import distance
+from tqdm import tqdm
+
+from s3prl import Container
+from s3prl.corpus.quesst14 import quesst14_for_qbe
+from s3prl.dataset.base import AugmentedDynamicItemDataset, SequentialDataPipe
+from s3prl.dataset.common_pipes import ApplySoxEffectOnFile, SetOutputKeys
+from s3prl.sampler import FixedBatchSizeBatchSampler
+from s3prl.task.dump_feature import DumpFeature
+from s3prl.util import workspace
+from s3prl.util.configuration import default_cfg, field, override_parent_cfg
+from s3prl.util.workspace import Workspace, as_type
+
+from .base import SuperbProblem
 
 logger = logging.getLogger(__name__)
 
@@ -41,6 +43,24 @@ def cosine_neg_log(query, doc):
     return dist
 
 
+class QbeDumpFeaturePipe(SequentialDataPipe):
+    def __init__(
+        self,
+        output_keys: dict = None,
+        effects: list = None,
+    ):
+        output_keys = output_keys or dict(
+            x="wav",
+            x_len="wav_len",
+            unique_name="id",
+        )
+
+        super().__init__(
+            ApplySoxEffectOnFile(effects=effects),
+            SetOutputKeys(output_keys=output_keys),
+        )
+
+
 class SuperbQBE(SuperbProblem):
     @default_cfg(
         workspace="???",
@@ -49,7 +69,7 @@ class SuperbQBE(SuperbProblem):
             dataset_root="???",
         ),
         all_datapipe=dict(
-            _cls=DumpFeaturePipe,
+            _cls=QbeDumpFeaturePipe,
             effects=[
                 ["channels", "1"],
                 ["rate", "16000"],
@@ -190,7 +210,9 @@ class SuperbQBE(SuperbProblem):
         metrics = cls._scoring(test_results, layer_dir, scoring_dir, is_valid=False)
         layer_dir.put(metrics, "test_metrics", "yaml")
         workspace.link_from("valid_best_metrics", layer_dir, "test_metrics")
-        logger.info(f"The best valid layer's (layer {best_layer_id}) test maxTWV: {metrics.maxTWV}")
+        logger.info(
+            f"The best valid layer's (layer {best_layer_id}) test maxTWV: {metrics.maxTWV}"
+        )
 
     @override_parent_cfg(
         start_stage=0,
