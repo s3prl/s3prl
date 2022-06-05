@@ -26,6 +26,8 @@ from typing import Any, Callable
 
 from s3prl import Container, field
 from s3prl.util.doc import _longestCommonPrefix
+from s3prl.base.container import _qualname_to_cls
+from s3prl.util import registry
 
 from .workspace import Workspace
 
@@ -89,7 +91,15 @@ class _CallableWithConfig:
                 value = value.value
             if value == Container.UNFILLED_PATTERN:
                 continue
-            if value not in clses:
+            if isinstance(value, str):
+                try:
+                    value = _qualname_to_cls(value)
+                except:
+                    try:
+                        value = registry.get(value)
+                    except:
+                        pass
+            if isinstance(value, type) and value not in clses:
                 clses.append(value)
 
         content += f"{indent}- *All Config (default):*\n\n{indent}{', '.join([f':py:obj:`~{value.__module__}.{value.__qualname__}`' for value in clses])}\n\n{indent}.. code-block:: yaml\n\n{default_cfg.indented_str(indent * 2)}\n"

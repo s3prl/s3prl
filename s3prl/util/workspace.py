@@ -18,6 +18,7 @@ logger = logging.getLogger(__name__)
 class Workspace(type(Path()), MutableMapping):
     def __new__(cls, *args, **kwds):
         if len(args) > 0:
+            args = [Path(args[0]).resolve(), *args]
             is_temp = False
         else:
             args = [tempfile.mkdtemp(), *args]
@@ -84,7 +85,7 @@ class Workspace(type(Path()), MutableMapping):
                 return filepath
         return None
 
-    def get(self, *identifier_and_default, get_filepath=False) -> Any:
+    def get(self, *identifier_and_default) -> Any:
         """
         Get an object
         """
@@ -186,7 +187,10 @@ class Workspace(type(Path()), MutableMapping):
 
     def get_cfg(self, method: MethodType):
         assert len(method.__qualname__) > 0
-        return (self / "_cfg").get(method.__qualname__, None)
+        cfg = (self / "_cfg").get(method.__qualname__, None)
+        if cfg is not None:
+            cfg = Container(cfg)
+        return cfg
 
     def get_log_file(self, method: MethodType):
         assert len(method.__qualname__) > 0

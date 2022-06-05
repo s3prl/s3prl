@@ -21,6 +21,7 @@ from torch.utils import data
 from tqdm import tqdm
 
 from s3prl import Object, Output, cache
+from s3prl.base.container import _qualname_to_cls
 from s3prl.util import registry
 
 logger = logging.getLogger(__name__)

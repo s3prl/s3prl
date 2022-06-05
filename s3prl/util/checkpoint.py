@@ -68,7 +68,7 @@ class NumpyHandler(FileHandler):
 
     @classmethod
     def load(cls, path):
-        np.load(path)
+        return np.load(path)
 
 
 class YamlHandler(FileHandler):

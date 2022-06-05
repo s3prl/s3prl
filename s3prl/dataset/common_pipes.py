@@ -94,6 +94,36 @@ class LoadAudio(DataPipe):
 
 
 @dataclass
+class ApplySoxEffectOnFile(DataPipe):
+    effects: list = None
+    wav_path_name: str = "wav_path"
+    wav_name: str = "wav"
+
+    def _apply_effects_file(self, path: str):
+        wav, _ = torchaudio.sox_effects.apply_effects_file(
+            path,
+            effects=self.effects,
+        )
+        wav = wav.squeeze(0)
+        wav = wav.view(-1, 1)
+        return wav
+
+    def compute_length(self, wav):
+        return len(wav)
+
+    def __call__(self, dataset: AugmentedDynamicItemDataset):
+        dataset.add_dynamic_item(
+            self._apply_effects_file, takes=self.wav_path_name, provides=self.wav_name
+        )
+        dataset.add_dynamic_item(
+            self.compute_length,
+            takes=self.wav_name,
+            provides=f"{self.wav_name}_len",
+        )
+        return dataset
+
+
+@dataclass
 class EncodeCategory(DataPipe):
     train_category_encoder: bool = False
     label_name: str = "label"

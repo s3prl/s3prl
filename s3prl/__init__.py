@@ -13,7 +13,7 @@ from .base import (
     init,
     set_use_cache,
 )
-from .util.configuration import Workspace
+from .util.workspace import Workspace
 
 with (_Path(__file__).parent.resolve() / "version.txt").open() as file:
     __version__ = file.read().strip()

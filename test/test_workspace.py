@@ -175,3 +175,9 @@ def test_workspace_pickle():
             workspace = Workspace(tempdir)
             torch.save(workspace, file.name)
             workspace = torch.load(file.name)
+
+
+def test_workspace_rank():
+    with tempfile.TemporaryDirectory() as tempdir:
+        workspace = Workspace(tempdir)
+        feat_dir = workspace / "feat"
