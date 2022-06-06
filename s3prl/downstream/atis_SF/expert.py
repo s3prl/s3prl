@@ -33,14 +33,15 @@ class DownstreamExpert(nn.Module):
         self.modelrc = downstream_expert['modelrc']
         self.seq_loss = torch.nn.CrossEntropyLoss(ignore_index=0, label_smoothing=self.modelrc['label_smoothing'])
         
+        self.aux_target = self.datarc['aux_target'] if 'aux_target' in self.datarc else None
         self.base_path = self.datarc['file_path']   
         self.audio_path = self.datarc['audio_path']   
         self.is_BI = self.datarc['is_BI']
         self.is_BIO = self.datarc['is_BIO']
         self.is_split = self.datarc['is_split']
         self.unit_path = self.datarc['unit_path'] if 'unit_path' in self.datarc else None
-        self.unit_tokenizer_path = self.datarc['unit_tokenizer_path'] if 'unit_tokenizer_path' in self.datarc else None
-        self.unit_size = self.datarc['unit_size'] + 3 if 'unit_size' in self.datarc else None
+        self.unit_tokenizer_path = self.datarc['unit_tokenizer_path'] if 'unit_tokenizer_path' in self.datarc else None        
+
         self.unit_tokenizer = None
 
         if self.unit_tokenizer_path is not None: 
@@ -66,26 +67,26 @@ class DownstreamExpert(nn.Module):
 
         if self.is_BI: 
             self.tokenizer = Tokenizer.from_file(os.path.join(self.base_path, 'BI_tokenizer.json'))
-            self.train_dataset = Dataset(os.path.join(self.base_path, 'sv_BI_train.csv'), train_audio_path, self.tokenizer, aug_config, unit_path=self.unit_path, unit_tokenizer=self.unit_tokenizer)
-            self.dev_dataset = Dataset(os.path.join(self.base_path, 'sv_BI_dev.csv'), dev_audio_path, self.tokenizer, unit_path=self.unit_path, unit_tokenizer=self.unit_tokenizer)
-            self.test_dataset = Dataset(os.path.join(self.base_path, 'sv_BI_test.csv'), test_audio_path, self.tokenizer, unit_path=self.unit_path, unit_tokenizer=self.unit_tokenizer)
+            self.train_dataset = Dataset(os.path.join(self.base_path, 'sv_BI_train.csv'), train_audio_path, self.tokenizer, aug_config, unit_path=self.unit_path, unit_tokenizer=self.unit_tokenizer, aux_target=self.aux_target)
+            self.dev_dataset = Dataset(os.path.join(self.base_path, 'sv_BI_dev.csv'), dev_audio_path, self.tokenizer, unit_path=self.unit_path, unit_tokenizer=self.unit_tokenizer, aux_target=self.aux_target)
+            self.test_dataset = Dataset(os.path.join(self.base_path, 'sv_BI_test.csv'), test_audio_path, self.tokenizer, unit_path=self.unit_path, unit_tokenizer=self.unit_tokenizer, aux_target=self.aux_target)
         elif self.is_BIO: 
             self.tokenizer = Tokenizer.from_file(os.path.join(self.base_path, 'BIO_tokenizer.json'))
-            self.train_dataset = Dataset(os.path.join(self.base_path, 'sv_BIO_train.csv'), train_audio_path, self.tokenizer, aug_config, unit_path=self.unit_path, unit_tokenizer=self.unit_tokenizer)
-            self.dev_dataset = Dataset(os.path.join(self.base_path, 'sv_BIO_dev.csv'), dev_audio_path, self.tokenizer, unit_path=self.unit_path, unit_tokenizer=self.unit_tokenizer)
-            self.test_dataset = Dataset(os.path.join(self.base_path, 'sv_BIO_test.csv'), test_audio_path, self.tokenizer, unit_path=self.unit_path, unit_tokenizer=self.unit_tokenizer)
+            self.train_dataset = Dataset(os.path.join(self.base_path, 'sv_BIO_train.csv'), train_audio_path, self.tokenizer, aug_config, unit_path=self.unit_path, unit_tokenizer=self.unit_tokenizer, aux_target=self.aux_target)
+            self.dev_dataset = Dataset(os.path.join(self.base_path, 'sv_BIO_dev.csv'), dev_audio_path, self.tokenizer, unit_path=self.unit_path, unit_tokenizer=self.unit_tokenizer, aux_target=self.aux_target)
+            self.test_dataset = Dataset(os.path.join(self.base_path, 'sv_BIO_test.csv'), test_audio_path, self.tokenizer, unit_path=self.unit_path, unit_tokenizer=self.unit_tokenizer, aux_target=self.aux_target)
         
         elif self.is_split: 
             self.tokenizer = Tokenizer.from_file(os.path.join(self.base_path, 'split_tokenizer.json'))
-            self.train_dataset = Dataset(os.path.join(self.base_path, 'sv_split_train.csv'), train_audio_path, self.tokenizer, aug_config, unit_path=self.unit_path, unit_tokenizer=self.unit_tokenizer)
-            self.dev_dataset = Dataset(os.path.join(self.base_path, 'sv_split_dev.csv'), dev_audio_path, self.tokenizer, unit_path=self.unit_path, unit_tokenizer=self.unit_tokenizer)
-            self.test_dataset = Dataset(os.path.join(self.base_path, 'sv_split_test.csv'), test_audio_path, self.tokenizer, unit_path=self.unit_path, unit_tokenizer=self.unit_tokenizer)
+            self.train_dataset = Dataset(os.path.join(self.base_path, 'sv_split_train.csv'), train_audio_path, self.tokenizer, aug_config, unit_path=self.unit_path, unit_tokenizer=self.unit_tokenizer, aux_target=self.aux_target)
+            self.dev_dataset = Dataset(os.path.join(self.base_path, 'sv_split_dev.csv'), dev_audio_path, self.tokenizer, unit_path=self.unit_path, unit_tokenizer=self.unit_tokenizer, aux_target=self.aux_target)
+            self.test_dataset = Dataset(os.path.join(self.base_path, 'sv_split_test.csv'), test_audio_path, self.tokenizer, unit_path=self.unit_path, unit_tokenizer=self.unit_tokenizer, aux_target=self.aux_target)
 
         else:
             self.tokenizer = Tokenizer.from_file(os.path.join(self.base_path, 'tokenizer.json'))
-            self.train_dataset = Dataset(os.path.join(self.base_path, 'atis_sv_train.csv'), train_audio_path, self.tokenizer, aug_config, unit_path=self.unit_path, unit_tokenizer=self.unit_tokenizer)
-            self.dev_dataset = Dataset(os.path.join(self.base_path, 'atis_sv_dev.csv'), dev_audio_path, self.tokenizer, unit_path=self.unit_path, unit_tokenizer=self.unit_tokenizer)
-            self.test_dataset = Dataset(os.path.join(self.base_path, 'atis_sv_test.csv'), test_audio_path, self.tokenizer, unit_path=self.unit_path, unit_tokenizer=self.unit_tokenizer)
+            self.train_dataset = Dataset(os.path.join(self.base_path, 'sv_train.csv'), train_audio_path, self.tokenizer, aug_config, unit_path=self.unit_path, unit_tokenizer=self.unit_tokenizer, aux_target=self.aux_target)
+            self.dev_dataset = Dataset(os.path.join(self.base_path, 'sv_dev.csv'), dev_audio_path, self.tokenizer, unit_path=self.unit_path, unit_tokenizer=self.unit_tokenizer, aux_target=self.aux_target)
+            self.test_dataset = Dataset(os.path.join(self.base_path, 'sv_test.csv'), test_audio_path, self.tokenizer, unit_path=self.unit_path, unit_tokenizer=self.unit_tokenizer, aux_target=self.aux_target)
         
         self.connector = nn.Linear(upstream_dim, self.modelrc['input_dim'])
         self.vocab_size = self.modelrc['input_dim']
@@ -103,11 +104,21 @@ class DownstreamExpert(nn.Module):
         self.pass_extra_encoder = self.modelrc['pass_extra_encoder']
         self.max_decode_len = self.modelrc['max_decode_len']
         
+        
         self.is_unit = False
-        if self.unit_path is not None and self.ctc_weight != 0.:
+        if self.unit_path is not None and self.ctc_weight != 0. or self.aux_target is not None:
             self.is_unit = True
             self.ctc_loss = torch.nn.CTCLoss(blank=0, zero_infinity=False)
         
+        # unit size check
+        self.unit_size = self.datarc['unit_size'] + 3 if 'unit_size' in self.datarc else None
+        if self.unit_size is None: 
+            if self.aux_target == 'phn':
+                self.unit_size = len(self.train_dataset.g2p.phonemes) + 3
+            elif self.aux_target == 'text':
+                self.unit_size = len(self.train_dataset.g2p.graphemes) + 3
+
+        print(self.unit_size)
         if self.is_transformer: 
             self.model = Seq2SeqTransformer(num_encoder_layers=self.modelrc['num_encoder_layers'], 
                                             num_decoder_layers=self.modelrc['num_decoder_layers'],
@@ -308,7 +319,8 @@ class DownstreamExpert(nn.Module):
     def log_records(self, mode, records, logger, global_step, **kwargs):
         for key, values in records.items():
             average = torch.FloatTensor(values).mean().item()
-            wandb.log({f'atis/{mode}-{key}': average})
+            corpus = self.datarc['corpus']
+            wandb.log({f'{corpus}/{mode}-{key}': average})
     
     def ctc_decode(self, idxs, ignore_repeat=False):
         vocabs = []

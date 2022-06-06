@@ -8,7 +8,7 @@ import pandas as pd
 '''preprocess file'''
 # base_path = '/home/daniel094144/data/atis'
 base_path = '/home/daniel094144/data/slurp/slurp/dataset/slurp'
-splits = ['train', 'devel', 'test']
+splits = ['train', 'dev', 'test']
 
 for split in splits:
     df = pd.read_json(os.path.join(base_path, f"{split}.jsonl"), lines=True)
@@ -84,16 +84,13 @@ for split in splits:
                 sv.append(slot)
             
             sv.append(intent)
-            ids.append(file_idx[0]) # first file name
-            # ids.append(idx) # slurp_id
-            sv_all.append(' '.join(sv))
-    # print(sv_all)
-    # print(ids)
-    # quit()
-
-    sv_df = pd.DataFrame({'id': ids, 'label':sv_all})
+            for f_id in file_idx:
+                ids.append(f_id) # first file name
+                sv_all.append(' '.join(sv))
+                
+    sv_df = pd.DataFrame({'id': ids, 'label': sv_all})
     sv_df.to_csv(os.path.join(base_path, f'sv_BIO_{split}.csv'))
-
+    print(f'# of data in {split}: {len(ids)}')
 '''tokenizer'''
 output_tokenizer_path = os.path.join(base_path, "BIO_tokenizer.json")
 
@@ -115,7 +112,7 @@ print(list(d.keys()))
 
 trainer = BpeTrainer(special_tokens=["<PAD>", "<EOS>", '<BOS>']+list(d.keys())+list(intent_d.keys()), vocab_size=1000)
 tokenizer.train(files=[os.path.join(base_path, "slurp_value_train.txt"), 
-                        os.path.join(base_path, "slurp_value_devel.txt"), 
+                        os.path.join(base_path, "slurp_value_dev.txt"), 
                         os.path.join(base_path, "slurp_value_test.txt")], 
                         trainer=trainer)
 

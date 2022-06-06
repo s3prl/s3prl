@@ -555,12 +555,12 @@ class Seq2SeqTransformer(nn.Module):
             self.tgt_tok_emb = TokenEmbedding(tgt_vocab_size, emb_size)
             self.positional_encoding = PositionalEncoding(emb_size, dropout=dropout)
             
-
-        # for ctc unit predition
-        unit_encoder_layer = nn.TransformerEncoderLayer(d_model=emb_size, nhead=nhead, dim_feedforward=emb_size, batch_first=True)
-        # add extra encoder layer
-        self.unit_encoder = nn.TransformerEncoder(unit_encoder_layer, num_encoder_layers)
-        self.ctc_layer = nn.Linear(emb_size, unit_size)
+        if self.is_unit:
+            # for ctc unit predition
+            unit_encoder_layer = nn.TransformerEncoderLayer(d_model=emb_size, nhead=nhead, dim_feedforward=emb_size, batch_first=True)
+            # add extra encoder layer
+            self.unit_encoder = nn.TransformerEncoder(unit_encoder_layer, num_encoder_layers)
+            self.ctc_layer = nn.Linear(emb_size, unit_size)
 
         self.pass_extra_encoder = pass_extra_encoder
         self.is_dual_decoder = is_dual_decoder

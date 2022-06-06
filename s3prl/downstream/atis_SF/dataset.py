@@ -8,6 +8,7 @@ SAMPLE_RATE = 16000
 import torchaudio
 from audiomentations import Compose, AddGaussianNoise, AddGaussianSNR, TimeStretch, Shift, PitchShift, Gain
 import numpy as np
+from g2p_en import G2p
 
 def reader(fname):
     wav, ori_sr = torchaudio.load(fname)
@@ -20,27 +21,52 @@ EOS_IDX = 1
 PAD_IDX = 0
 
 class AtisDataset(Dataset):
-    def __init__(self, csv_file, audio_dir, tokenizer, aug_config=None, unit_path=None, unit_tokenizer=None):
+    def __init__(self, csv_file, audio_dir, tokenizer, aug_config=None, unit_path=None, unit_tokenizer=None, aux_target=None):
         df = pd.read_csv(csv_file)
         ids = df['id'].values
         labels = df['label'].values
+        transcriptions = df['transcription'].values
+
         self.audios = []
         self.labels = []
         self.unit_tokenizer = unit_tokenizer
-        
-        if unit_path is not None: 
+        self.aux_target = aux_target
+        self.g2p = G2p()
+        # modify original g2p
+        self.g2p.phonemes = self.g2p.phonemes[4:]
+        self.g2p.graphemes = self.g2p.graphemes[3:] + ["'"]
+        self.g2p.g2idx = {g: idx for idx, g in enumerate(self.g2p.graphemes)}
+        self.g2p.p2idx = {p: idx for idx, p in enumerate(self.g2p.phonemes)}
+
+
+        if unit_path is not None or self.aux_target is not None: 
             self.is_unit = True
+        else: 
+            self.is_unit = False
+            
         if self.is_unit: 
             self.units = []
         self.aug_config = aug_config
-        for id, label in zip(ids, labels):
+        for id, label, txt in zip(ids, labels, transcriptions):
             if type(label) is not float:
                 audio_file = os.path.join(audio_dir, id+'.wav') 
                 if os.path.exists(audio_file):
                     self.audios.append(audio_file)
                     self.labels.append(tokenizer.encode(('<BOS>'+' '+label+' '+'<EOS>')).ids)
                     if self.is_unit:
-                        self.units.append(os.path.join(unit_path, id+'.wav.code'))
+                        if self.aux_target == 'unit':
+                            self.units.append(os.path.join(unit_path, id+'.wav.code'))
+                        elif self.aux_target == 'phn':
+                            try:
+                                self.units.append(self.g2p(txt.lower()))
+                            except: 
+                                # g2p fails
+                                print(f'fails for g2p conversion: {txt.lower()}')
+                                self.units.append([])
+                        elif self.aux_target == 'text':
+                            self.units.append(txt.lower())
+                        else: 
+                            raise NotImplementedError
 
                 else: 
                     print(f'{audio_file} is missing')
@@ -63,12 +89,24 @@ class AtisDataset(Dataset):
 
         if self.is_unit:
             if self.unit_tokenizer is not None: 
-                with open(self.units[idx], 'r') as f: 
-                    for line in f:
-                        unit = list(np.array(self.unit_tokenizer.encode((line)).ids).astype(int) + 3)
+                if self.aux_target == 'unit':
+                    with open(self.units[idx], 'r') as f: 
+                        for line in f:
+                            unit = list(np.array(self.unit_tokenizer.encode((line)).ids).astype(int) + 3)
+                if self.aux_target == 'phn' or self.aux_target == 'text':
+                    # TODO: support for text tokenizer
+                    pass
+
 
             else: 
-                unit = list(np.loadtxt(self.units[idx]).astype(int) + 3)
+                if self.aux_target == 'unit':
+                    unit = list(np.loadtxt(self.units[idx]).astype(int) + 3)
+                elif self.aux_target == 'phn':
+                    # phoneme id
+                    unit = [self.g2p.p2idx[u] + 3 for u in self.units[idx] if u != ' ']
+                elif self.aux_target == 'text':
+                    # character id
+                    unit = [self.g2p.g2idx[u] + 3 for u in self.units[idx] if u != ' ']
                 
             unit = np.array([BOS_IDX] + unit + [EOS_IDX])
             return torch.tensor(audio), label, unit
@@ -78,7 +116,7 @@ class AtisDataset(Dataset):
         return zip(*samples)
         
 class SlurpDataset(Dataset):
-    def __init__(self, csv_file, audio_dir, tokenizer, aug_config=None, unit_path=None, unit_tokenizer=None):
+    def __init__(self, csv_file, audio_dir, tokenizer, aug_config=None, unit_path=None, unit_tokenizer=None, aux_target=None):
         df = pd.read_csv(csv_file)
         ids = df['id'].values
         labels = df['label'].values

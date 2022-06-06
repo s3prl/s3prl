@@ -23,36 +23,45 @@ scheduler:
 
 downstream_expert:
   datarc:
-    # corpus: slurp 
-    corpus: atis
-    file_path: /home/daniel094144/data/atis
-    # file_path: /home/daniel094144/data/slurp/slurp/dataset/slurp
-    # audio_path: /home/daniel094144/data/slurp/slurp/audio/slurp_real
-    audio_path: /home/daniel094144/data/atis
+    # slurp / atis
+    corpus: slurp 
+    # corpus: atis
+
+    # file_path: /home/daniel094144/data/atis
+    file_path: /home/daniel094144/data/slurp/slurp/dataset/slurp
+
+    audio_path: /home/daniel094144/data/slurp/slurp/audio/slurp_real
+    # audio_path: /home/daniel094144/data/atis
+    
     num_workers: 4
     train_batch_size: 2
     eval_batch_size: 1
     is_BI: False
     is_BIO: True
     is_split: False
-    unit_path: /home/daniel094144/data/atis/atis_code_128_IN/code
+    # unit_path: /home/daniel094144/data/atis/atis_code_128_IN/code
     # unit_path: /home/daniel094144/data/atis/atis_code_128_IN/char_code
-    unit_size: 128
+    # unit_size: 128
     # unit_tokenizer: /home/daniel094144/data/atis/atis_code_128_IN/tokenizer_1000.json
+    # aux_target: phn # phn / text / unit
   
   augmentation: 
-    TimeStretch: 
-      min_rate: 0.9
-      max_rate: 1.1
-      p: 0.5
+    # TimeStretch: 
+    #   min_rate: 0.9
+    #   max_rate: 1.1
+    #   p: 0.5
     # PitchShift: 
     #   min_semitones: -4
     #   max_semitones: 4
     #   p: 0.5
+    # AddGaussianNoise:
+    #   min_amplitude: 0.0
+    #   max_amplitude: 0.015
+    #   p: 0.5
 
   modelrc:
     is_transformer: True
-    vocab_size: 600 # 600
+    vocab_size: 1000 # 600 for atis / 1000 for slurp
     input_dim: 512
     ctc_weight: 0
     num_encoder_layers: 3
@@ -60,8 +69,8 @@ downstream_expert:
     emb_size: 512
     nhead: 4
     dim_feedforward: 2048
-    is_dual_decoder: True
-    unit_decode_weight: 0.1
+    is_dual_decoder: False
+    unit_decode_weight: 0
     label_smoothing: 0.05
     is_bart_decoder: False
     pass_extra_encoder: False

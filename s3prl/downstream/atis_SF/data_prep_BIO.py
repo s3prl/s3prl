@@ -19,7 +19,7 @@ for split in splits:
 
     sv_all = []
     ids = []
-    
+    transcriptions = []
     
     with open(os.path.join(base_path, f'value_BIO_{split}.txt'), 'w') as f: 
         for i, (text, label) in enumerate(zip(text, label)):
@@ -27,6 +27,7 @@ for split in splits:
             t = text.split()[2:-1]
             l = label.split()[1:-1]
 
+            transcriptions.append(' '.join(t))
             intent = label.split()[-1]
 
             s, v = [], []
@@ -59,11 +60,13 @@ for split in splits:
             ids.append(idx)
             sv_all.append(' '.join(sv))
         
-    sv_df = pd.DataFrame({'id': ids, 'label': sv_all})
+    sv_df = pd.DataFrame({'id': ids, 'label': sv_all, 'transcription': transcriptions})
     sv_df.to_csv(os.path.join(base_path, f'sv_BIO_{split}.csv'))
+    
 
 print(list(d.keys()))
 print(len(list(intent_dict.keys())))
+
 
 
 # '''tokenizer'''
