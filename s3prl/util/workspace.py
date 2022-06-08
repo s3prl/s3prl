@@ -18,10 +18,10 @@ logger = logging.getLogger(__name__)
 class Workspace(type(Path()), MutableMapping):
     def __new__(cls, *args, **kwds):
         if len(args) > 0:
-            args = [Path(args[0]).resolve(), *args]
+            args = [Path(*args).resolve()]
             is_temp = False
         else:
-            args = [tempfile.mkdtemp(), *args]
+            args = [tempfile.mkdtemp()]
             is_temp = True
 
         obj = super().__new__(cls, *args, **kwds)

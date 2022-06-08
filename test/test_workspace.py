@@ -181,3 +181,6 @@ def test_workspace_rank():
     with tempfile.TemporaryDirectory() as tempdir:
         workspace = Workspace(tempdir)
         feat_dir = workspace / "feat"
+
+def test_workspace_path():
+    assert str(Workspace("hello")) == str(Path("hello").resolve())
