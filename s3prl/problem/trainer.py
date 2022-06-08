@@ -352,7 +352,9 @@ class Trainer:
         logger.info(f"{split_name} at step {global_step}")
         for name, value in logs.scalars():
             logger.info(f"{name}: {value}")
-            tensorboard.add_scalar(f"{split_name}-{name}", value)
+            tensorboard.add_scalar(
+                f"{split_name}-{name}", value, global_step=global_step
+            )
 
     @classmethod
     def save_checkpoint(
