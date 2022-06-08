@@ -1,9 +1,15 @@
+import logging
 from enum import Enum
 from operator import setitem
 
 import torch
+import numpy as np
+from tensorboardX import SummaryWriter
 
+from .workspace import Workspace
 from .container import Container
+
+logger = logging.getLogger(__name__)
 
 
 class LogDataType(Enum):
@@ -53,31 +59,18 @@ class Logs(Container):
         self.add_data(name, data, LogDataType.HIDDEN_STATE)
 
     def filter_data_type(self, data_type):
-        output = Container()
         for key, value in self.items():
             if value.data_type == data_type:
-                output[key] = value.data
-        return output
+                yield key, value.data
 
-    @property
-    def Scalar(self) -> Container:
+    def scalars(self) -> Container:
         return self.filter_data_type(LogDataType.SCALAR)
 
-    @property
-    def Audio(self) -> Container:
+    def audios(self) -> Container:
         return self.filter_data_type(LogDataType.AUDIO)
 
-    @property
-    def Image(self) -> Container:
+    def images(self) -> Container:
         return self.filter_data_type(LogDataType.IMAGE)
 
-    @property
-    def Hidden_State(self) -> Container:
+    def hidden_states(self) -> Container:
         return self.filter_data_type(LogDataType.HIDDEN_STATE)
-
-    @property
-    def All_Data(self):
-        output = Container()
-        for key, value in self.items():
-            output[key] = value.data
-        return output

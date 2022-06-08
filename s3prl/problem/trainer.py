@@ -291,7 +291,7 @@ class Trainer:
                     )
                     cls.log_results("valid", logs, tf_logger, global_step)
                     valid_metric_key = cfg.trainer.valid_metric
-                    valid_metric = logs.Scalar
+                    valid_metric = Container({k: v for k, v in logs.scalars()})
                     new_metric = valid_metric[valid_metric_key]
                     best_metric = valid_best_metric.get(valid_metric_key, None)
                     if best_metric is None:
@@ -350,7 +350,7 @@ class Trainer:
         global_step: int,
     ):
         logger.info(f"{split_name} at step {global_step}")
-        for name, value in logs.Scalar.items():
+        for name, value in logs.scalars():
             logger.info(f"{name}: {value}")
             tensorboard.add_scalar(f"{split_name}-{name}", value)
 
@@ -459,7 +459,7 @@ class Trainer:
             cfg.split_name, task, dataloader, cfg.device, cfg.eval_batch
         )
         workspace.put(
-            {k: v for k, v in logs.Scalar.items()}, f"{cfg.split_name}_metrics", "yaml"
+            {k: v for k, v in logs.scalars()}, f"{cfg.split_name}_metrics", "yaml"
         )
-        for key, value in logs.Scalar.items():
+        for key, value in logs.scalars():
             logger.info(f"{key}: {value}")

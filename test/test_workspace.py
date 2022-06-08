@@ -182,5 +182,8 @@ def test_workspace_rank():
         workspace = Workspace(tempdir)
         feat_dir = workspace / "feat"
 
+
 def test_workspace_path():
-    assert str(Workspace("hello")) == str(Path("hello").resolve())
+    workspace = Workspace("hello")
+    assert str(workspace.resolve()) == str(Path("hello").resolve())
+    assert str(workspace) == str(Path("hello"))

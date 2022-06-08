@@ -190,7 +190,9 @@ class AugmentedDynamicItemDataset(DynamicItemDataset):
         available_keys = [
             key
             for key in available_keys
-            if not key.startswith("_") and key not in self._global_stats
+            if not key.startswith("_")
+            and key not in self._global_stats
+            and key not in self._tools
         ]
         return available_keys
 
@@ -204,6 +206,9 @@ class AugmentedDynamicItemDataset(DynamicItemDataset):
     def save_checkpoint(self, path):
         with open(path, "wb") as file:
             pickle.dump(self, file)
+
+    def keys(self):
+        return list(self.data.keys())
 
     @classmethod
     def load_checkpoint(cls, path):
@@ -246,8 +251,18 @@ class DatasetBuilder:
 class DataPipe:
     n_jobs: int = 6
 
+    def __call__(
+        self, dataset: Union[dict, AugmentedDynamicItemDataset], **kwds
+    ) -> Any:
+        if isinstance(dataset, dict):
+            dataset = AugmentedDynamicItemDataset(dataset)
+        dataset.add_tools(kwds)
+        return self.forward(dataset)
+
     @abc.abstractmethod
-    def __call__(self, *args: Any, **kwds: Any) -> Any:
+    def forward(
+        self, dataset: AugmentedDynamicItemDataset
+    ) -> AugmentedDynamicItemDataset:
         raise NotImplementedError
 
     def __getattribute__(self, name):
@@ -296,7 +311,9 @@ class SequentialDataPipe(DataPipe):
 
         self._pipes = pipes
 
-    def __call__(self, dataset: AugmentedDynamicItemDataset) -> Any:
+    def forward(
+        self, dataset: AugmentedDynamicItemDataset
+    ) -> AugmentedDynamicItemDataset:
         for pipe in self._pipes:
             dataset = pipe(dataset)
         return dataset

@@ -117,9 +117,8 @@ class SuperbProblem(Problem, Trainer):
         stats.add(corpus_stats)
 
         logger.info("Preparing train data")
-        train_dataset = AugmentedDynamicItemDataset(train_data, tools=stats)
-        train_dataset = cfg.train_datapipe._cls(**cfg.train_datapipe.kwds())(
-            train_dataset
+        train_dataset = cfg.train_datapipe._cls(**cfg.train_datapipe.kwds(), **stats)(
+            train_data, **stats
         )
         train_sampler = cfg.train_sampler._cls(
             train_dataset, **cfg.train_sampler.kwds()
@@ -127,17 +126,17 @@ class SuperbProblem(Problem, Trainer):
         stats.add(train_dataset.all_tools())
 
         logger.info("Preparing valid data")
-        valid_dataset = AugmentedDynamicItemDataset(valid_data, tools=stats)
-        valid_dataset = cfg.valid_datapipe._cls(**cfg.valid_datapipe.kwds())(
-            valid_dataset
+        valid_dataset = cfg.valid_datapipe._cls(**cfg.valid_datapipe.kwds(), **stats)(
+            valid_data, **stats
         )
         valid_sampler = cfg.valid_sampler._cls(
             valid_dataset, **cfg.valid_sampler.kwds()
         )
 
         logger.info("Preparing test data")
-        test_dataset = AugmentedDynamicItemDataset(test_data, tools=stats)
-        test_dataset = cfg.test_datapipe._cls(**cfg.test_datapipe.kwds())(test_dataset)
+        test_dataset = cfg.test_datapipe._cls(**cfg.test_datapipe.kwds(), **stats)(
+            test_data, **stats
+        )
         test_sampler = cfg.test_sampler._cls(test_dataset, **cfg.test_sampler.kwds())
 
         logger.info("Preparing model and task")

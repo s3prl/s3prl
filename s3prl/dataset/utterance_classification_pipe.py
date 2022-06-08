@@ -20,6 +20,7 @@ class UtteranceClassificationPipe(SequentialDataPipe):
         audio_sample_rate: int = 16000,
         audio_channel_reduction: str = "first",
         train_category_encoder: bool = False,
+        **kwds,
     ):
         output_keys = output_keys or dict(
             x="wav",
@@ -52,6 +53,7 @@ class UtteranceMultipleCategoryClassificationPipe(SequentialDataPipe):
         audio_sample_rate: int = 16000,
         audio_channel_reduction: str = "first",
         train_category_encoder: bool = False,
+        **kwds,
     ):
         output_keys = output_keys or dict(
             x="wav",
