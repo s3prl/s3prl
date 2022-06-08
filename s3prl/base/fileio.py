@@ -7,6 +7,7 @@ from dataclasses import dataclass
 from pathlib import Path
 from typing import Any, List, Union
 
+import h5py
 import numpy as np
 import torch
 import yaml
@@ -99,6 +100,18 @@ class StringHandler(FileHandler):
             return eval(file.read())
 
 
+class HDF5Handler(FileHandler):
+    @classmethod
+    def save(cls, item, path):
+        with h5py.File(path, "w") as wf:
+            wf.create_dataset("T_hat", data=item)
+
+    @classmethod
+    def load(cls, path):
+        data = h5py.File(path, "r")
+        return data["T_hat"][:]
+
+
 type_info = {
     "pkl": PickleHandler,
     "pt": TorchHandler,
@@ -106,6 +119,7 @@ type_info = {
     "yaml": YamlHandler,
     "obj": S3PRLObjectHandler,
     "txt": StringHandler,
+    "h5": HDF5Handler,
 }
 
 
