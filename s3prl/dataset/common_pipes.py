@@ -50,13 +50,38 @@ class LoadPseudoAudio(DataPipe):
 class LoadAudio(DataPipe):
     audio_sample_rate: int = 16000
     audio_channel_reduction: str = "first"
+    sox_effects: list = None
+    crop_segment: bool = False
+
     wav_path_name: str = "wav_path"
     wav_name: str = "wav"
+    start_sec_name: str = "start_sec"
+    end_sec_name: str = "end_sec"
 
-    def load_audio(self, wav_path, metadata: bool = False):
+    def load_audio(
+        self,
+        wav_path,
+        start_sec: float = None,
+        end_sec: float = None,
+        metadata: bool = False,
+    ):
         if not metadata:
             torchaudio.set_audio_backend("sox_io")
-            wav, sr = torchaudio.load(wav_path)
+            wav, sr = torchaudio.load(
+                wav_path,
+                frame_offset=round(start_sec * self.audio_sample_rate)
+                if self.crop_segment
+                else 0,
+                num_frames=round((end_sec - start_sec) * self.audio_sample_rate)
+                if self.crop_segment
+                else -1,
+            )
+
+            if self.sox_effects is not None:
+                wav, sr = torchaudio.sox_effects.apply_effects_tensor(
+                    wav, sr, effects=self.sox_effects
+                )
+
             if sr != self.audio_sample_rate:
                 resampler = torchaudio.transforms.Resample(sr, self.audio_sample_rate)
                 wav = resampler(wav)
@@ -71,50 +96,32 @@ class LoadAudio(DataPipe):
         else:
             torchaudio.set_audio_backend("sox_io")
             info = torchaudio.info(wav_path)
+            num_frames = (
+                info.num_frames
+                if not self.crop_segment
+                else round((end_sec - start_sec) * self.audio_sample_rate)
+            )
             ratio = self.audio_sample_rate / info.sample_rate
             return dict(
                 sample_rate=self.audio_sample_rate,
-                num_frames=round(info.num_frames * ratio),
+                num_frames=round(num_frames * ratio),
                 num_channels=1,
             )
 
     def compute_length(self, wav):
         return len(wav)
 
-    def __call__(self, dataset: AugmentedDynamicItemDataset):
-        dataset.add_dynamic_item_and_metadata(
-            self.load_audio, takes=self.wav_path_name, provide=self.wav_name
-        )
-        dataset.add_dynamic_item(
-            self.compute_length,
-            takes=self.wav_name,
-            provides=f"{self.wav_name}_len",
-        )
-        return dataset
-
-
-@dataclass
-class ApplySoxEffectOnFile(DataPipe):
-    effects: list = None
-    wav_path_name: str = "wav_path"
-    wav_name: str = "wav"
-
-    def _apply_effects_file(self, path: str):
-        wav, _ = torchaudio.sox_effects.apply_effects_file(
-            path,
-            effects=self.effects,
-        )
-        wav = wav.squeeze(0)
-        wav = wav.view(-1, 1)
-        return wav
-
-    def compute_length(self, wav):
-        return len(wav)
-
-    def __call__(self, dataset: AugmentedDynamicItemDataset):
-        dataset.add_dynamic_item(
-            self._apply_effects_file, takes=self.wav_path_name, provides=self.wav_name
-        )
+    def forward(self, dataset: AugmentedDynamicItemDataset):
+        if not self.crop_segment:
+            dataset.add_dynamic_item_and_metadata(
+                self.load_audio, takes=self.wav_path_name, provide=self.wav_name
+            )
+        else:
+            dataset.add_dynamic_item_and_metadata(
+                self.load_audio,
+                takes=[self.wav_path_name, self.start_sec_name, self.end_sec_name],
+                provide=self.wav_name,
+            )
         dataset.add_dynamic_item(
             self.compute_length,
             takes=self.wav_name,
@@ -136,7 +143,7 @@ class EncodeCategory(DataPipe):
     def encode_label(self, category, label):
         return category.encode(label)
 
-    def __call__(self, dataset: AugmentedDynamicItemDataset):
+    def forward(self, dataset: AugmentedDynamicItemDataset):
         if self.train_category_encoder:
             with dataset.output_keys_as([self.label_name]):
                 labels = [item[self.label_name] for item in dataset]
@@ -164,7 +171,7 @@ class EncodeMultipleCategory(EncodeCategory):
             [category.encode(label) for category, label in zip(categories, labels)]
         )
 
-    def __call__(self, dataset: AugmentedDynamicItemDataset):
+    def forward(self, dataset: AugmentedDynamicItemDataset):
         if self.train_category_encoder:
             with dataset.output_keys_as([self.label_name]):
                 labels = [item[self.label_name] for item in dataset]
@@ -216,7 +223,7 @@ class GenerateTokenizer(DataPipe):
         )
         return tokenizer
 
-    def __call__(self, dataset: AugmentedDynamicItemDataset):
+    def forward(self, dataset: AugmentedDynamicItemDataset):
         try:
             tokenizer = dataset.get_tool(self.tokenizer_name)
             logger.info(
@@ -244,7 +251,7 @@ class EncodeText(DataPipe):
     def encode_text(self, tokenizer: Tokenizer, text: str) -> torch.LongTensor:
         return torch.LongTensor(tokenizer.encode(text))
 
-    def __call__(self, dataset: AugmentedDynamicItemDataset):
+    def forward(self, dataset: AugmentedDynamicItemDataset):
         try:
             tokenizer = dataset.get_tool(self.tokenizer_name)
         except KeyError:
@@ -274,7 +281,7 @@ class Phonemize(DataPipe):
     def encode_text(self, tokenizer: Tokenizer, text: str) -> torch.LongTensor:
         return torch.LongTensor(tokenizer.encode(text))
 
-    def __call__(self, dataset: AugmentedDynamicItemDataset):
+    def forward(self, dataset: AugmentedDynamicItemDataset):
         if not dataset.has_tool(self.g2p_name):
             logger.warn(
                 f"Cannot find {self.g2p_name} in dataset, use default G2P instead."

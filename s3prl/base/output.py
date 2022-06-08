@@ -118,5 +118,8 @@ class Output(GeneralOutput):
         valid_data=None,
         test_data=None,
         stats=None,
+        rec_id=None,
+        der=None,
+        accuracy=None,
     ):
         super().__init__()

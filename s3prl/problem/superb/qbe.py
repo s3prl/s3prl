@@ -18,8 +18,8 @@ from tqdm import tqdm
 
 from s3prl import Container
 from s3prl.corpus.quesst14 import quesst14_for_qbe
-from s3prl.dataset.base import AugmentedDynamicItemDataset, SequentialDataPipe
-from s3prl.dataset.common_pipes import ApplySoxEffectOnFile, SetOutputKeys
+from s3prl.dataset.base import AugmentedDynamicItemDataset, SequentialDataPipe, DataPipe
+from s3prl.dataset.common_pipes import LoadAudio, SetOutputKeys
 from s3prl.sampler import FixedBatchSizeBatchSampler
 from s3prl.task.dump_feature import DumpFeature
 from s3prl.util import workspace
@@ -43,22 +43,26 @@ def cosine_neg_log(query, doc):
     return dist
 
 
-class QbeDumpFeaturePipe(SequentialDataPipe):
+class QbeDumpFeaturePipe(DataPipe):
     def __init__(
         self,
         output_keys: dict = None,
-        effects: list = None,
+        sox_effects: list = None,
     ):
         output_keys = output_keys or dict(
             x="wav",
             x_len="wav_len",
             unique_name="id",
         )
-
-        super().__init__(
-            ApplySoxEffectOnFile(effects=effects),
+        self.pipes = SequentialDataPipe(
+            LoadAudio(sox_effects=sox_effects),
             SetOutputKeys(output_keys=output_keys),
         )
+
+    def forward(
+        self, dataset: AugmentedDynamicItemDataset
+    ) -> AugmentedDynamicItemDataset:
+        return self.pipes(dataset)
 
 
 class SuperbQBE(SuperbProblem):
@@ -70,7 +74,7 @@ class SuperbQBE(SuperbProblem):
         ),
         all_datapipe=dict(
             _cls=QbeDumpFeaturePipe,
-            effects=[
+            sox_effects=[
                 ["channels", "1"],
                 ["rate", "16000"],
                 ["gain", "-3.0"],
