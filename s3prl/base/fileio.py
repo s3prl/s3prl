@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import logging
+import re
 import os
 import pickle
 from dataclasses import dataclass
@@ -112,6 +113,52 @@ class HDF5Handler(FileHandler):
         return data["T_hat"][:]
 
 
+class RTTMHandler(FileHandler):
+    @classmethod
+    def save(cls, all_segments: dict, path):
+        assert isinstance(all_segments, dict)
+        fmt = "SPEAKER {:s} 1 {:7.2f} {:7.2f} <NA> <NA> {:s} <NA>"
+        with open(path, "w") as wf:
+            for recor, segments in all_segments.items():
+                for spk, segs in segments.items():
+                    for start, end in segs:
+                        print(
+                            fmt.format(
+                                recor,
+                                start,
+                                end,
+                                spk,
+                            ),
+                            file=wf,
+                        )
+
+    @classmethod
+    def load(cls, path: str):
+        output = dict()
+        with open(path) as file:
+            lines = [line.strip() for line in file.readlines()]
+            for line in lines:
+                line = re.sub(" +", " ", line)
+                line = re.sub("\t+", " ", line)
+                fields = line.split(" ")
+                if fields[0] != "SPEAKER":
+                    continue
+                recor = fields[1]
+                start = float(fields[3])
+                end = float(fields[4])
+                spk = fields[7]
+
+                if recor not in output:
+                    output[recor] = dict()
+
+                if spk not in output[recor]:
+                    output[recor][spk] = []
+
+                output[recor][spk].append((start, end))
+
+        return output
+
+
 type_info = {
     "pkl": PickleHandler,
     "pt": TorchHandler,
@@ -120,6 +167,7 @@ type_info = {
     "obj": S3PRLObjectHandler,
     "txt": StringHandler,
     "h5": HDF5Handler,
+    "rttm": RTTMHandler,
 }
 
 

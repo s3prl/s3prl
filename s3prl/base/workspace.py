@@ -57,7 +57,7 @@ class Workspace(type(Path()), MutableMapping):
         parent_dir = Path(parent_dir)
         stems = [Path(item).stem for item in os.listdir(str(parent_dir))]
         assert len(set(stems)) == len(stems), (
-            f"There are duplicated keys in {str(parent_dir)}. "
+            f"There are duplicated keys in {str(parent_dir)}: {sorted(stems)}. "
             "Might be caused by the same filename while different extensions (dtype), "
             "or a directory has the same name as a file's stem. This is considered as "
             "a bad practice in S3PRL, since this can cause confusion when distributing "
