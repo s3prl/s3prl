@@ -43,6 +43,7 @@ class SuperbSDDatapipe(SequentialDataPipe):
                 x_len="wav_len",
                 label="multiclass_tag",
                 rec_id="unchunked_id",
+                order_in_rec="chunk_index",
             ),
         )
 
@@ -77,8 +78,8 @@ class SuperbSD(SuperbProblem):
         ),
         test_sampler=dict(
             _cls=GroupSameItemSampler,
-            item_name="unchunked_id",
-            item_order_name="chunk_index",
+            item_name="rec_id",
+            item_order_name="order_in_rec",
         ),
         downstream=dict(
             _cls=SuperbSDModel,
