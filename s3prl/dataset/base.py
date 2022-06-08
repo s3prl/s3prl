@@ -20,8 +20,7 @@ from torch.nn.utils.rnn import pad_sequence
 from torch.utils import data
 from tqdm import tqdm
 
-from s3prl import Object, Output, cache
-from s3prl.base.container import _qualname_to_cls
+from s3prl import Object, Container, cache
 from s3prl.util import registry
 
 logger = logging.getLogger(__name__)
@@ -335,7 +334,7 @@ def default_collate_fn(samples, padding_value: int = 0):
         else:
             values = np.array(values, dtype="object")
         padded_samples[key] = values
-    return Output(padded_samples)
+    return Container(padded_samples)
 
 
 class DataLoader(data.DataLoader):

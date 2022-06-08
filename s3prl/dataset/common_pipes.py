@@ -18,8 +18,22 @@ logger = logging.getLogger(__name__)
 class SetOutputKeys(DataPipe):
     output_keys: dict = None
 
-    def __call__(self, dataset: AugmentedDynamicItemDataset):
+    def forward(self, dataset: AugmentedDynamicItemDataset):
         dataset.set_output_keys(self.output_keys)
+        return dataset
+
+
+class RenameItems(DataPipe):
+    def __init__(self, **kwds):
+        self.mapping = kwds
+
+    @staticmethod
+    def identity(x):
+        return x
+
+    def forward(self, dataset: AugmentedDynamicItemDataset):
+        for k, v in self.mapping.items():
+            dataset.add_dynamic_item(self.identity, takes=v, provides=k)
         return dataset
 
 
@@ -36,7 +50,7 @@ class LoadPseudoAudio(DataPipe):
             num_channels=1,
         )
 
-    def __call__(self, dataset: AugmentedDynamicItemDataset):
+    def forward(self, dataset: AugmentedDynamicItemDataset):
         dataset.add_dynamic_item(
             self.load_wav, takes="wav_path", provides=["wav", "wav_len"]
         )

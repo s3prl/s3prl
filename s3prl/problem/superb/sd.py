@@ -5,7 +5,7 @@ import torch.nn as nn
 from s3prl.corpus.kaldi import kaldi_for_multiclass_tagging
 from s3prl.dataset.multiclass_tagging import BuildMultiClassTagging
 from s3prl.dataset.chunking import UnfoldChunkByFrame
-from s3prl.dataset.common_pipes import LoadAudio, SetOutputKeys
+from s3prl.dataset.common_pipes import LoadAudio, RenameItems
 from s3prl.dataset.base import SequentialDataPipe
 from s3prl.nn.rnn import SuperbSDModel
 from s3prl.sampler import (
@@ -38,13 +38,11 @@ class SuperbSDDatapipe(SequentialDataPipe):
                 sample_rate=sample_rate, feat_frame_shift=upstream_rate
             ),
             LoadAudio(crop_segment=True, audio_sample_rate=sample_rate),
-            SetOutputKeys(
-                output_keys=dict(
-                    x="wav",
-                    x_len="wav_len",
-                    label="multiclass_tag",
-                    rec_id="unchunked_id",
-                )
+            RenameItems(
+                x="wav",
+                x_len="wav_len",
+                label="multiclass_tag",
+                rec_id="unchunked_id",
             ),
         )
 
