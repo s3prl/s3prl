@@ -1,13 +1,6 @@
-# -*- coding: utf-8 -*- #
-"""
-Author       Jiatong Shi, Leo Yang
-Source       Refactored from https://github.com/hitachi-speech/EEND
-Copyright    Copyright(c), Johns Hopkins University, National Taiwan University
-"""
-
 import os
-from pathlib import Path
 from collections import defaultdict
+from pathlib import Path
 
 from s3prl import Container
 

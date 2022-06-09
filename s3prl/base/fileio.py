@@ -1,9 +1,9 @@
 from __future__ import annotations
 
 import logging
-import re
 import os
 import pickle
+import re
 from dataclasses import dataclass
 from pathlib import Path
 from typing import Any, List, Union
@@ -14,8 +14,8 @@ import torch
 import yaml
 from filelock import FileLock
 
-from .object import Object
 from .container import Container
+from .object import Object
 
 logger = logging.getLogger(__name__)
 

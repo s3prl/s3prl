@@ -1,7 +1,7 @@
 from copy import deepcopy
 from dataclasses import dataclass
 
-from .base import DataPipe, AugmentedDynamicItemDataset
+from .base import AugmentedDynamicItemDataset, DataPipe
 
 
 def _count_frames(data_len, size, step):

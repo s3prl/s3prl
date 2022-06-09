@@ -1,10 +1,10 @@
 import torch
-from s3prl.dataset.base import AugmentedDynamicItemDataset
 
-from s3prl.util.pseudo_data import pseudo_audio
-from s3prl.dataset.common_pipes import LoadAudio
+from s3prl.dataset.base import AugmentedDynamicItemDataset
 from s3prl.dataset.chunking import UnfoldChunkByFrame, UnfoldChunkBySec
+from s3prl.dataset.common_pipes import LoadAudio
 from s3prl.dataset.multiclass_tagging import BuildMultiClassTagging
+from s3prl.util.pseudo_data import pseudo_audio
 
 
 def test_chunk_pipe():

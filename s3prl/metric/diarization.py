@@ -1,6 +1,7 @@
-import torch
-import numpy as np
 from itertools import permutations
+
+import numpy as np
+import torch
 
 
 def calc_diarization_error(pred, label, length):

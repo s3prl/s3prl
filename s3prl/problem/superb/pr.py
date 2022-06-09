@@ -4,7 +4,9 @@ from s3prl.nn import RNNEncoder
 from s3prl.sampler import FixedBatchSizeBatchSampler, MaxTimestampBatchSampler
 from s3prl.task.speech2text_ctc_task import Speech2TextCTCTask
 from s3prl.util.configuration import override_parent_cfg
+
 from .base import SuperbProblem
+
 
 class SuperbPR(SuperbProblem):
     @override_parent_cfg(

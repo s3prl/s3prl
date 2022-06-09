@@ -25,9 +25,9 @@ import re
 from typing import Any, Callable
 
 from s3prl import Container, field
-from s3prl.util.doc import _longestCommonPrefix
 from s3prl.base.container import _qualname_to_cls
 from s3prl.util import registry
+from s3prl.util.doc import _longestCommonPrefix
 
 from .workspace import Workspace
 

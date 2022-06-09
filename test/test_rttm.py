@@ -1,7 +1,8 @@
 import re
 import tempfile
-from s3prl.base.workspace import Workspace
+
 from s3prl.base.fileio import RTTMHandler
+from s3prl.base.workspace import Workspace
 
 
 def test_rttm():

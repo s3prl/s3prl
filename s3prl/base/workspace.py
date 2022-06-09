@@ -1,5 +1,4 @@
 from __future__ import annotations
-from typing import Union
 
 import logging
 import os
@@ -8,7 +7,7 @@ import tempfile
 from collections.abc import MutableMapping
 from pathlib import Path
 from types import MethodType
-from typing import Any
+from typing import Any, Union
 
 from s3prl.base.container import Container, field
 from s3prl.util.checkpoint import as_type, load, save

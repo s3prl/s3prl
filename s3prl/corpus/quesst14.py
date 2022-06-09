@@ -2,8 +2,9 @@ import re
 from pathlib import Path
 
 from s3prl import Container
-from .base import Corpus
 from s3prl.util import registry
+
+from .base import Corpus
 
 
 class Quesst14:

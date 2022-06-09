@@ -20,7 +20,7 @@ from torch.nn.utils.rnn import pad_sequence
 from torch.utils import data
 from tqdm import tqdm
 
-from s3prl import Object, Container, cache
+from s3prl import Container, Object, cache
 from s3prl.util import registry
 
 logger = logging.getLogger(__name__)

@@ -1,12 +1,7 @@
-"""
-Author       Jiatong Shi
-Source       Refactored from https://github.com/hitachi-speech/EEND
-Copyright    Copyright(c), Johns Hopkins University
-"""
-
-import torch
-import numpy as np
 from itertools import permutations
+
+import numpy as np
+import torch
 
 
 # compute mask to remove the padding positions

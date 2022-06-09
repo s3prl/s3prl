@@ -1,10 +1,12 @@
-from s3prl.base.output import Output
-from s3prl.util import workspace
-from .base import Task
 import torch
 import torch.nn as nn
-from s3prl.util.workspace import Workspace
+
 from s3prl.base import Logs
+from s3prl.base.output import Output
+from s3prl.util import workspace
+from s3prl.util.workspace import Workspace
+
+from .base import Task
 
 
 class DumpFeature(Task):

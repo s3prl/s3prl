@@ -153,6 +153,8 @@ class LibriSpeech(Corpus):
 
 
 registry.put()
+
+
 def librispeech_for_speech2text(
     dataset_root: str,
     n_jobs: int = 4,

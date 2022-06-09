@@ -1,7 +1,7 @@
 import os
+import tempfile
 from pathlib import Path
 from tempfile import TemporaryDirectory
-import tempfile
 
 import pytest
 import torch

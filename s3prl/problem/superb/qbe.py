@@ -18,7 +18,7 @@ from tqdm import tqdm
 
 from s3prl import Container
 from s3prl.corpus.quesst14 import quesst14_for_qbe
-from s3prl.dataset.base import AugmentedDynamicItemDataset, SequentialDataPipe, DataPipe
+from s3prl.dataset.base import AugmentedDynamicItemDataset, DataPipe, SequentialDataPipe
 from s3prl.dataset.common_pipes import LoadAudio, SetOutputKeys
 from s3prl.sampler import FixedBatchSizeBatchSampler
 from s3prl.task.dump_feature import DumpFeature

@@ -1,29 +1,30 @@
 from __future__ import annotations
 
-import re
 import logging
-from pathlib import Path
+import re
 import subprocess
+from pathlib import Path
+
 import numpy as np
-from tqdm import tqdm
 from scipy.signal import medfilt
+from tqdm import tqdm
 
 from s3prl.base import Container
 from s3prl.base.workspace import Workspace
 from s3prl.corpus.kaldi import kaldi_for_multiclass_tagging
-from s3prl.dataset.multiclass_tagging import BuildMultiClassTagging
+from s3prl.dataset.base import SequentialDataPipe
 from s3prl.dataset.chunking import UnfoldChunkByFrame
 from s3prl.dataset.common_pipes import LoadAudio, RenameItems
-from s3prl.dataset.base import SequentialDataPipe
+from s3prl.dataset.multiclass_tagging import BuildMultiClassTagging
 from s3prl.encoder.category import CategoryEncoder
 from s3prl.nn.rnn import SuperbSDModel
 from s3prl.sampler import (
     FixedBatchSizeBatchSampler,
-    MaxTimestampBatchSampler,
     GroupSameItemSampler,
+    MaxTimestampBatchSampler,
 )
 from s3prl.task.diarization import DiarizationPIT
-from s3prl.util.configuration import default_cfg, override_parent_cfg, field
+from s3prl.util.configuration import default_cfg, field, override_parent_cfg
 
 from .base import SuperbProblem
 

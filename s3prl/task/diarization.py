@@ -1,20 +1,13 @@
-"""
-#   Source       Refactored from https://github.com/hitachi-speech/EEND
-#   Author       Jiatong Shi, Leo Yang
-#   Copyright    Copyright(c), Johns Hopkins University, National Taiwan University
-"""
-
 import numpy as np
-import torch.nn as nn
-
 import torch
 import torch.nn as nn
 
 from s3prl import Logs
 from s3prl.base.output import Output
 from s3prl.base.workspace import Workspace
-from s3prl.metric.pit import pit_loss, get_label_perm
 from s3prl.metric.diarization import calc_diarization_error
+from s3prl.metric.pit import get_label_perm, pit_loss
+
 from .base import Task
 
 TOLERANT_FRAME_DIFF = 2

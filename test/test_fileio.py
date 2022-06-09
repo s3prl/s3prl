@@ -1,9 +1,9 @@
 import tempfile
 from pathlib import Path
 
-import torch
 import numpy as np
 import pytest
+import torch
 
 from s3prl.util.workspace import Workspace
 

@@ -1,3 +1,4 @@
+from collections import defaultdict
 from typing import Iterator, TypeVar
 
 import torch
@@ -5,7 +6,6 @@ from joblib import Parallel, delayed
 from speechbrain.dataio.dataset import DynamicItemDataset
 from torch.utils.data import Sampler
 from tqdm import tqdm
-from collections import defaultdict
 
 from .base import Sampler
 
