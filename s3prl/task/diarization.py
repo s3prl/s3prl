@@ -14,7 +14,7 @@ from s3prl import Logs
 from s3prl.base.output import Output
 from s3prl.base.workspace import Workspace
 from s3prl.metric.pit import pit_loss, get_label_perm
-from s3prl.metric.diar import calc_diarization_error
+from s3prl.metric.diarization import calc_diarization_error
 from .base import Task
 
 TOLERANT_FRAME_DIFF = 2
@@ -29,16 +29,11 @@ class DiarizationPIT(Task):
     def __init__(
         self,
         model: nn.Module,
-        workspace: Workspace = None,
-        save_prediction_to: str = "prediction",
         **kwargs,
     ):
         super().__init__()
         self.model = model
         self.objective = pit_loss
-        self.prediction_dir = None
-        if workspace is not None:
-            self.prediction_dir = Workspace(workspace) / save_prediction_to
 
     def _tile_representations(self, reps, factor):
         """
@@ -83,7 +78,7 @@ class DiarizationPIT(Task):
         predicted = self.model(x, x_len)
         return predicted
 
-    def forward(self, split: str, x, x_len, label, rec_id, **kwargs):
+    def forward(self, split: str, x, x_len, label, rec_id, workspace=None, **kwds):
         predicted, _ = self.predict(x, x_len)
 
         assert (
@@ -119,13 +114,15 @@ class DiarizationPIT(Task):
         else:
             SAD_MR, SAD_FR, MI, FA, CF, ACC, DER = 0, 0, 0, 0, 0, 0, 0
 
-        if split == "test" and self.prediction_dir is not None:
-            predict = predicted.data.cpu().numpy()
-            predict = np.vstack(list(predict))
+        if split == "test" and workspace is not None:
+            predict = [p[:l] for p, l in zip(predicted.data.cpu().numpy(), x_len)]
+            predict = np.vstack(predict)
             predict = 1 / (1 + np.exp(-predict))
+
+            workspace = Workspace(workspace)
             rec_unique_id = set(list(rec_id))
             assert len(rec_unique_id) == 1
-            self.prediction_dir.put(predict, list(rec_unique_id)[0], "h5")
+            (workspace / "prediction").put(predict, list(rec_unique_id)[0], "h5")
 
         return Output(
             loss=loss,
@@ -133,7 +130,9 @@ class DiarizationPIT(Task):
             der=DER,
         )
 
-    def reduction(self, split: str, batch_results: list, on_epoch_end: bool = None):
+    def reduction(
+        self, split: str, batch_results: list, on_epoch_end: bool = None, **kwds
+    ):
         accs, ders = [], []
         for batch_result in batch_results:
             accs.append(batch_result.accuracy)

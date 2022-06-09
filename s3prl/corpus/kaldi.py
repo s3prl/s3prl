@@ -20,10 +20,12 @@ def _kaldi_for_multiclass_tagging(split_root: str):
         data[reco]["wav_path"] = path
         data[reco]["start_sec"] = 0
         data[reco]["end_sec"] = datadir.reco2dur[reco]
-        data[reco]["segments"] = defaultdict(list)
+        data[reco]["segments"] = dict()
 
     for utt, (reco, st, et) in datadir.segments.items():
         spk = datadir.utt2spk[utt]
+        if spk not in data[reco]["segments"]:
+            data[reco]["segments"][spk] = []
         data[reco]["segments"][spk].append((st, et))
 
     return data

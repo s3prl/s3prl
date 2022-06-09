@@ -108,7 +108,9 @@ class SuperbProblem(Problem, Trainer):
         else:
             upstream = cfg.upstream
 
-        stats = Container(upstream_rate=upstream.downsample_rate)
+        stats = Container(
+            upstream_rate=upstream.downsample_rate, frame_shift=upstream.downsample_rate
+        )
 
         logger.info("Preparing corpus")
         train_data, valid_data, test_data, corpus_stats = cfg.corpus._cls(
@@ -148,6 +150,9 @@ class SuperbProblem(Problem, Trainer):
         model = UpstreamDownstreamModel(upstream, downstream)
         task = cfg.task._cls(model, workspace=workspace, **stats, **cfg.task.kwds())
 
+        workspace.put(train_data, "train_data")
+        workspace.put(valid_data, "valid_data")
+        workspace.put(test_data, "test_data")
         workspace["train_dataset"] = train_dataset
         workspace["train_sampler"] = train_sampler
         workspace["valid_dataset"] = valid_dataset
