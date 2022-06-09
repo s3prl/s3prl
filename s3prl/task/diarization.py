@@ -14,11 +14,6 @@ TOLERANT_FRAME_DIFF = 2
 
 
 class DiarizationPIT(Task):
-    """
-    Used to handle downstream-specific operations
-    eg. downstream forward, metric computation, contents to log
-    """
-
     def __init__(
         self,
         model: nn.Module,
