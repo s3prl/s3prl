@@ -148,7 +148,7 @@ class SuperbProblem(Problem, Trainer):
             **cfg.downstream.kwds(),
         )
         model = UpstreamDownstreamModel(upstream, downstream)
-        task = cfg.task._cls(model, workspace=workspace, **stats, **cfg.task.kwds())
+        task = cfg.task._cls(model, **stats, **cfg.task.kwds())
 
         workspace.put(train_data, "train_data")
         workspace.put(valid_data, "valid_data")

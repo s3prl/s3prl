@@ -112,7 +112,7 @@ class SuperbQBE(SuperbProblem):
         all_dataset = cfg.all_datapipe._cls(**cfg.all_datapipe.kwds())(all_dataset)
         all_sampler = cfg.all_sampler._cls(all_dataset, **cfg.all_sampler.kwds())
 
-        task = cfg.task._cls(model, workspace=workspace, **cfg.task.kwds())
+        task = cfg.task._cls(model, **cfg.task.kwds())
 
         workspace.update(
             dict(
@@ -374,7 +374,7 @@ class SuperbQBE(SuperbProblem):
                 )
 
         workspace.mkdir(exist_ok=True, parents=True)
-        xml_path = str(workspace / "benchmark.stdlist.xml")
+        xml_path = str((workspace / "benchmark.stdlist.xml").resolve())
         etree.ElementTree(root).write(
             xml_path,
             encoding="UTF-8",
