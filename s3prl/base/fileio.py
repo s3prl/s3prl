@@ -194,10 +194,8 @@ def save(filepath: str, obj: Any):
         ext = "obj"
     elif isinstance(obj, np.ndarray):
         ext = "npy"
-    elif isinstance(obj, (int, float, bool, str, list)):
-        ext = "txt"
-    elif isinstance(obj, dict):
-        ext = "yaml"
+    elif isinstance(obj, torch.Tensor):
+        ext = "pt"
     else:
         ext = "pkl"
 
