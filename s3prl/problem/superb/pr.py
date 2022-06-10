@@ -1,6 +1,6 @@
 from s3prl.corpus.librispeech import librispeech_for_speech2text
 from s3prl.dataset.speech2phoneme_pipe import Speech2PhonemePipe
-from s3prl.nn import RNNEncoder
+from s3prl.nn.linear import FrameLevelLinear
 from s3prl.sampler import FixedBatchSizeBatchSampler, MaxTimestampBatchSampler
 from s3prl.task.speech2text_ctc_task import Speech2TextCTCTask
 from s3prl.util.configuration import override_parent_cfg
@@ -37,15 +37,7 @@ class SuperbPR(SuperbProblem):
             batch_size=1,
         ),
         downstream=dict(
-            _cls=RNNEncoder,
-            module="LSTM",
-            hidden_size=[1024, 1024],
-            dropout=[0.2, 0.2],
-            layer_norm=[False, False],
-            proj=[False, False],
-            sample_rate=[1, 1],
-            sample_style="concat",
-            bidirectional=True,
+            _cls=FrameLevelLinear,
         ),
         task=dict(
             _cls=Speech2TextCTCTask,
