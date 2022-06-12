@@ -18,9 +18,9 @@ class ExtractKaldiFeat(DataPipe):
         return feat
 
     def __call__(self, dataset: AugmentedDynamicItemDataset):
-        extracter, output_dim, frame_shift = get_extracter(self.audio_config)
+        extracter, feat_dim, frame_shift = get_extracter(self.audio_config)
         dataset.add_tool("extracter", extracter)
-        dataset.add_tool("output_dim", output_dim)
+        dataset.add_tool("feat_dim", feat_dim)
         dataset.add_tool("frame_shift", frame_shift)
         dataset.add_dynamic_item(
             self.extract_feat,
@@ -42,9 +42,9 @@ class ExtractOnlineFeat(DataPipe):
         return feat
 
     def __call__(self, dataset: AugmentedDynamicItemDataset):
-        extracter, output_dim, _ = get_preprocessor(self.audio_config)
+        extracter, feat_dim, _ = get_preprocessor(self.audio_config)
         dataset.add_tool("extracter", extracter)
-        dataset.add_tool("output_dim", output_dim)
+        dataset.add_tool("feat_dim", feat_dim)
         dataset.add_dynamic_item(
             self.extract_feat,
             takes=["extracter", self.wav_name],
@@ -64,9 +64,9 @@ class ExtractApcFeat(DataPipe):
         return feat
 
     def __call__(self, dataset: AugmentedDynamicItemDataset):
-        extracter, output_dim = create_transform(self.audio_config)
+        extracter, feat_dim = create_transform(self.audio_config)
         dataset.add_tool("extracter", extracter)
-        dataset.add_tool("output_dim", output_dim)
+        dataset.add_tool("feat_dim", feat_dim)
         dataset.add_dynamic_item(
             self.extract_feat,
             takes=["extracter", self.wav_name],
