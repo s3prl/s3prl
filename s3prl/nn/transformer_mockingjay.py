@@ -327,8 +327,12 @@ class TransformerLayer(nn.Module):
 
 
 class TransformerEncoder(nn.Module):
-    def __init__(self, config, output_attentions=False, keep_multihead_output=False):
+    def __init__(
+        self, config, output_attentions=False, keep_multihead_output=False, **kwargs
+    ):
         super(TransformerEncoder, self).__init__()
+        if type(config) is dict:
+            config = TransformerConfig(**config)
         self.output_attentions = output_attentions
         self.pre_layer_norm = config.pre_layer_norm
         layer = TransformerLayer(
@@ -383,8 +387,10 @@ class TransformerEncoder(nn.Module):
 
 
 class TransformerSpecPredictionHead(nn.Module):
-    def __init__(self, config, output_dim, input_dim=None):
+    def __init__(self, config, output_dim, input_dim=None, **kwargs):
         super(TransformerSpecPredictionHead, self).__init__()
+        if type(config) is dict:
+            config = TransformerConfig(**config)
         self.output_size = output_dim
         if input_dim is None:
             self.dense = nn.Linear(config.hidden_size, config.hidden_size)
