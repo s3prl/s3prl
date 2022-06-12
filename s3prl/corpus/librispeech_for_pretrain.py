@@ -4,6 +4,7 @@ from pathlib import Path
 from typing import Any, Dict, List
 
 from s3prl import Container, Output, cache
+from s3prl.util import registry
 
 from .base import Corpus
 from .librispeech import check_no_repeat
@@ -19,7 +20,7 @@ LIBRI_SPLITS = [
 ]
 
 
-class LibriSpeech(Corpus):
+class LibriSpeechNoTxt(Corpus):
     def __init__(
         self,
         dataset_root: str,
@@ -110,7 +111,7 @@ class LibriSpeech(Corpus):
         return data
 
 
-class LibriSpeechForPretrain(LibriSpeech):
+class LibriSpeechForPretrain(LibriSpeechNoTxt):
     def __init__(
         self,
         dataset_root: str,
@@ -130,38 +131,22 @@ class LibriSpeechForPretrain(LibriSpeech):
         )
 
 
-class LibriSpeechForPretrain100(LibriSpeechForPretrain):
-    def __init__(
-        self,
-        dataset_root: str,
-        n_jobs: int = 4,
-    ) -> None:
-        super().__init__(
-            dataset_root, n_jobs, ["train-clean-100"], ["dev-clean"], ["test-clean"]
-        )
+registry.put()
 
 
-class LibriSpeechForPretrain360(LibriSpeechForPretrain):
-    def __init__(
-        self,
-        dataset_root: str,
-        n_jobs: int = 4,
-    ) -> None:
-        super().__init__(
-            dataset_root, n_jobs, ["train-clean-360"], ["dev-clean"], ["test-clean"]
-        )
-
-
-class LibriSpeechForPretrain960(LibriSpeechForPretrain):
-    def __init__(
-        self,
-        dataset_root: str,
-        n_jobs: int = 4,
-    ) -> None:
-        super().__init__(
-            dataset_root,
-            n_jobs,
-            ["train-clean-100", "train-clean-360", "train-other-500"],
-            ["dev-clean"],
-            ["test-clean"],
-        )
+def librispeech_for_pretrain(
+    dataset_root: str,
+    n_jobs: int = 8,
+    train_split: List[str] = ["train-clean-100", "train-clean-360", "train-other-500"],
+    valid_split: List[str] = ["dev-clean"],
+    test_split: List[str] = ["test-clean"],
+):
+    corpus = LibriSpeechForPretrain(
+        dataset_root, n_jobs, train_split, valid_split, test_split
+    )
+    train_data, valid_data, test_data = corpus.data_split
+    return Output(
+        train_data=train_data,
+        valid_data=valid_data,
+        test_data=test_data,
+    )
