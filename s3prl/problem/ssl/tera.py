@@ -1,142 +1,188 @@
 import torch
 from torch.nn import L1Loss
 
-from s3prl import Container
-from s3prl.corpus.librispeech_for_pretrain import LibriSpeechForPretrain
+from s3prl.corpus.librispeech_for_pretrain import librispeech_for_pretrain
 from s3prl.dataset.pretrain_tera_pipe import PretrainTaskPipe
-from s3prl.nn.transformer_tera import (
-    TransformerConfig,
-    TransformerModel,
-    TransformerSpecPredictionHead,
-)
+from s3prl.nn.transformer_tera import TransformerModel, TransformerSpecPredictionHead
 from s3prl.sampler import FixedBatchSizeBatchSampler, MaxTimestampBatchSampler
+from s3prl.task import Task
 from s3prl.task.feat_reconstruction_task import FeatReconstructionTask
+from s3prl.util.configuration import override_parent_cfg
+from s3prl.util.workspace import Workspace
+
+from .base import SslProblem
+
+_input_size = 80
+_transformer_config = dict(
+    hidden_size=768,  # Size of the encoder layers and the pooler layer.
+    num_hidden_layers=3,  # Number of hidden layers in the Transformer encoder.
+    num_attention_heads=12,  # Number of attention heads for each attention layer in the Transformer encoder.
+    intermediate_size=3072,  # The size of the "intermediate" (i.e., feed-forward) layer in the Transformer encoder.
+    hidden_act="gelu",  # The non-linear activation function (function or string) in the encoder and pooler. If string, "gelu", "relu" and "swish" are supported.
+    hidden_dropout_prob=0.1,  # The dropout probabilitiy for all fully connected layers in the embeddings, encoder, and pooler.
+    attention_probs_dropout_prob=0.1,  # The dropout ratio for the attention probabilities.
+    initializer_range=0.02,  # The sttdev of the truncated_normal_initializer for initializing all weight matrices.
+    layer_norm_eps=1.0e-12,  # The epsilon used by LayerNorm.
+    share_layer=False,  # Share layer weights
+    pre_layer_norm=False,  # To apply the pre layer normalization technique introduced in: https://arxiv.org/abs/2002.04745
+)
+
+pretrain_task_pipe_config = dict(
+    _cls=PretrainTaskPipe,
+    mask_args=dict(
+        position_encoding_size=768,  # int, this should be identical to `hidden_size`
+        mask_proportion=0.15,  # float, mask this percentage of all spectrogram frames in each sequence at random during MAM training
+        mask_consecutive_min=7,  # int, mask this amount of consecutive frames
+        mask_consecutive_max=7,  # int, mask this amount of consecutive frames
+        mask_allow_overlap=True,  # bool, allow overlap masking
+        mask_bucket_ratio=1.5,  # float, only used when overlap is not allowed. sample a mask from each bucket in size of [sampled mask_consecutive * mask_bucket_ratio]
+        mask_frequency=0.2,  # int, mask maximum this percentage of frequency bands, set to 0 for no frequency mask
+    ),
+    noise_args=dict(
+        noise_proportion=0.0,  # float, for this percentage of the time, Gaussian noise will be applied on all frames during MAM training, set to 0 for no noise
+    ),
+    audio_config=dict(
+        win_ms=25,
+        hop_ms=10,
+        n_freq=201,
+        n_mels=_input_size,
+        n_mfcc=13,
+        input={
+            "channel": 0,
+            "cmvn": True,
+            "delta": 0,
+            "feat_type": "mel",
+            "log": True,
+        },
+        target={
+            "channel": 1,
+            "cmvn": True,
+            "delta": 0,
+            "feat_type": "mel",
+            "log": True,
+        },
+    ),
+    target_level=-25,
+)
 
 
-class Tera:
-    Corpus = LibriSpeechForPretrain
-    TrainData = PretrainTaskPipe
-    TrainSampler = MaxTimestampBatchSampler
-    ValidData = PretrainTaskPipe
-    ValidSampler = FixedBatchSizeBatchSampler
-    TestData = PretrainTaskPipe
-    TestSampler = FixedBatchSizeBatchSampler
-    Body = TransformerModel
-    Head = TransformerSpecPredictionHead
-    Task = FeatReconstructionTask
-    Loss = L1Loss
+class Tera(SslProblem):
+    """
+    Tera pre-train problem
+    """
 
-    input_size = 80
-    _transformer_config = dict(
-        hidden_size=768,  # Size of the encoder layers and the pooler layer.
-        num_hidden_layers=3,  # Number of hidden layers in the Transformer encoder.
-        num_attention_heads=12,  # Number of attention heads for each attention layer in the Transformer encoder.
-        intermediate_size=3072,  # The size of the "intermediate" (i.e., feed-forward) layer in the Transformer encoder.
-        hidden_act="gelu",  # The non-linear activation function (function or string) in the encoder and pooler. If string, "gelu", "relu" and "swish" are supported.
-        hidden_dropout_prob=0.1,  # The dropout probabilitiy for all fully connected layers in the embeddings, encoder, and pooler.
-        attention_probs_dropout_prob=0.1,  # The dropout ratio for the attention probabilities.
-        initializer_range=0.02,  # The sttdev of the truncated_normal_initializer for initializing all weight matrices.
-        layer_norm_eps=1.0e-12,  # The epsilon used by LayerNorm.
-        share_layer=False,  # Share layer weights
-        pre_layer_norm=False,  # To apply the pre layer normalization technique introduced in: https://arxiv.org/abs/2002.04745
-    )
-
-    default_config = Container(
-        Corpus=dict(
-            train_split=["train-clean-100", "train-clean-360", "train-other-500"]
+    @override_parent_cfg(
+        corpus=dict(
+            _cls=librispeech_for_pretrain,
+            dataset_root="???",
         ),
-        TrainData=dict(
-            mask_args=dict(
-                position_encoding_size=768,  # int, this should be identical to `hidden_size`
-                mask_proportion=0.15,  # float, mask this percentage of all spectrogram frames in each sequence at random during MAM training
-                mask_consecutive_min=7,  # int, mask this amount of consecutive frames
-                mask_consecutive_max=7,  # int, mask this amount of consecutive frames
-                mask_allow_overlap=True,  # bool, allow overlap masking
-                mask_bucket_ratio=1.5,  # float, only used when overlap is not allowed. sample a mask from each bucket in size of [sampled mask_consecutive * mask_bucket_ratio]
-                mask_frequency=0.2,  # int, mask maximum this percentage of frequency bands, set to 0 for no frequency mask
-            ),
-            noise_args=dict(
-                noise_proportion=0.0,  # float, for this percentage of the time, Gaussian noise will be applied on all frames during MAM training, set to 0 for no noise
-            ),
-            audio_config=dict(
-                win_ms=25,
-                hop_ms=10,
-                n_freq=201,
-                n_mels=input_size,
-                n_mfcc=13,
-                input={
-                    "channel": 0,
-                    "cmvn": True,
-                    "delta": 0,
-                    "feat_type": "mel",
-                    "log": True,
-                },
-                target={
-                    "channel": 1,
-                    "cmvn": True,
-                    "delta": 0,
-                    "feat_type": "mel",
-                    "log": True,
-                },
-            ),
-            target_level=-25,
-        ),
-        TrainSampler=dict(
+        train_datapipe=pretrain_task_pipe_config,
+        train_sampler=dict(
+            _cls=MaxTimestampBatchSampler,
             max_timestamp=16000 * 20,
             shuffle=True,
         ),
-        ValidData=dict(),
-        ValidSampler=dict(
+        valid_datapipe=pretrain_task_pipe_config,
+        valid_sampler=dict(
+            _cls=FixedBatchSizeBatchSampler,
             batch_size=2,
         ),
-        TestData=dict(),
-        TestSampler=dict(
+        test_datapipe=pretrain_task_pipe_config,
+        test_sampler=dict(
+            _cls=FixedBatchSizeBatchSampler,
             batch_size=2,
         ),
-        ModelConfig=_transformer_config,
-        Body=dict(
-            config=TransformerConfig(**_transformer_config),
-            input_dim=input_size,
+        upstream=dict(
+            _cls=TransformerModel,
+            config=_transformer_config,
+            input_dim=_input_size,
             output_attentions=False,
             keep_multihead_output=False,
             with_input_module=True,
         ),
-        Head=dict(
-            config=TransformerConfig(**_transformer_config),
-            output_dim=input_size,
-            input_dim=None,  # automatically use hidden_state dim
+        predictor=dict(
+            _cls=TransformerSpecPredictionHead,
+            config=_transformer_config,
+            output_dim=_input_size,
+            input_dim=None,  # automatically use `hidden_size` from `_transformer_config`
         ),
-        Task=dict(),
-        Loss=dict(),
-        Optimizer=dict(
-            cls="torch.optim.AdamW",
+        task=dict(
+            _cls=FeatReconstructionTask,
+            loss=L1Loss,
+        ),
+    )
+    @classmethod
+    def setup_problem(cls, **cfg):
+        """
+        This setups the Mockingjay problem, containing train/valid/test datasets & samplers and a task object
+        """
+        super().setup_problem(**cfg)
+
+    @override_parent_cfg(
+        optimizer=dict(
+            _cls="torch.optim.AdamW",
             lr=2.0e-4,
         ),
-        Trainer=dict(
+        trainer=dict(
             total_steps=1000000,
-            log_step=50000,
-            valid_step=50000,
+            eval_step=50000,
             save_step=50000,
             gradient_clipping=5.0,
             gradient_accumulate_steps=4,
-            use_valid=True,
             valid_metric="loss",
             valid_higher_better=False,
         ),
     )
+    @classmethod
+    def train(cls, **cfg):
+        """
+        Train the setup problem with the train/valid datasets & samplers and the task object
+        """
+        super().train(**cfg)
 
-    def save_checkpoint(config, body, head, path):
+    @override_parent_cfg()
+    @classmethod
+    def inference(cls, **cfg):
+        super().inference(**cfg)
+
+    @classmethod
+    def save_additional(
+        cls,
+        additional_dir: Workspace,
+        workspace: Workspace,
+        task: Task,
+    ):
+        setup_problem_cfg = workspace.get_cfg(cls.setup_problem)
         all_states = {
             "Config": {},  # placeholder
-            "SpecHead": head.state_dict(),
-            "Transformer": body.state_dict(),
+            "SpecHead": task.predictor.state_dict(),
+            "Transformer": task.upstream.state_dict(),
             "Upstream_Config": {
-                "transformer": config.ModelConfig,
-                "audio": config.TrainData["audio_config"],
+                "transformer": setup_problem_cfg["upstream"]["config"],
+                "audio": setup_problem_cfg["train_datapipe"]["audio_config"],
                 "task": {"sequence_length": 0},
             },
         }
-        all_states["Upstream_Config"]["audio"]["target_level"] = config.TrainData[
-            "target_level"
-        ]
-        torch.save(all_states, path)
+        all_states["Upstream_Config"]["audio"]["target_level"] = setup_problem_cfg[
+            "train_datapipe"
+        ]["target_level"]
+        torch.save(
+            all_states, str(additional_dir.parent.resolve()) + "/all_states.ckpt"
+        )
+
+    @override_parent_cfg(
+        start_stage=0,
+        final_stage=2,
+        stage_0=dict(
+            _method="setup_problem",
+        ),
+        stage_1=dict(
+            _method="train",
+        ),
+        stage_2=dict(
+            _method="inference",
+        ),
+    )
+    @classmethod
+    def run_stages(cls, **cfg):
+        super().run_stages(**cfg)
