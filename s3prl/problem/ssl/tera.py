@@ -36,7 +36,7 @@ pretrain_task_pipe_config = dict(
         mask_consecutive_max=7,  # int, mask this amount of consecutive frames
         mask_allow_overlap=True,  # bool, allow overlap masking
         mask_bucket_ratio=1.5,  # float, only used when overlap is not allowed. sample a mask from each bucket in size of [sampled mask_consecutive * mask_bucket_ratio]
-        mask_frequency=0.2,  # int, mask maximum this percentage of frequency bands, set to 0 for no frequency mask
+        mask_frequency=0.2,  # float, mask maximum this percentage of frequency bands, set to 0 for no frequency mask
     ),
     noise_args=dict(
         noise_proportion=0.0,  # float, for this percentage of the time, Gaussian noise will be applied on all frames during MAM training, set to 0 for no noise
