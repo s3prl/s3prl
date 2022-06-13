@@ -7,7 +7,7 @@ import tempfile
 from collections.abc import MutableMapping
 from pathlib import Path
 from types import MethodType
-from typing import Any
+from typing import Any, Union
 
 from s3prl.base.container import Container, field
 from s3prl.util.checkpoint import as_type, load, save
@@ -34,7 +34,18 @@ class Workspace(type(Path()), MutableMapping):
         workspace.set_rank(self._rank)
         return workspace
 
+    @property
+    def parent(self):
+        parent = super().parent
+        parent.set_rank(self._rank)
+        return parent
+
     def __repr__(self):
+        if not hasattr(self, "_rank"):
+            logger.info(
+                "This is not a valid workspace as it does not have rank information"
+            )
+            return super().__repr__()
         return f"{__class__.__name__}('{str(self)}', rank={self._rank})"
 
     def __del__(self):
@@ -57,7 +68,7 @@ class Workspace(type(Path()), MutableMapping):
         parent_dir = Path(parent_dir)
         stems = [Path(item).stem for item in os.listdir(str(parent_dir))]
         assert len(set(stems)) == len(stems), (
-            f"There are duplicated keys in {str(parent_dir)}. "
+            f"There are duplicated keys in {str(parent_dir)}: {sorted(stems)}. "
             "Might be caused by the same filename while different extensions (dtype), "
             "or a directory has the same name as a file's stem. This is considered as "
             "a bad practice in S3PRL, since this can cause confusion when distributing "
@@ -69,7 +80,7 @@ class Workspace(type(Path()), MutableMapping):
         stem2file = {Path(item).stem: item for item in os.listdir(str(parent_dir))}
         return stem2file.get(stem)
 
-    def get_filepath(self, identifier):
+    def get_filepath(self, identifier) -> Union[Path, None]:
         """
         Get an object
         """
@@ -79,7 +90,7 @@ class Workspace(type(Path()), MutableMapping):
             filename = None
 
         if filename is not None:
-            filepath = (self / filename).resolve()
+            filepath = Path((self / filename).resolve())
             if len(filepath.suffix) > 0:
                 return filepath
         return None
@@ -125,7 +136,7 @@ class Workspace(type(Path()), MutableMapping):
         else:
             shutil.rmtree(filepath)
 
-    def put(self, value, identifier, dtype=None):
+    def put(self, value, identifier, dtype=None) -> Union[Path, None]:
         if self._rank > 0:
             return
 
@@ -139,8 +150,9 @@ class Workspace(type(Path()), MutableMapping):
         else:
             save(self / identifier, as_type(value, dtype))
 
-        # post examination to prevent duplicated file stems
-        assert self._find_file(self, identifier) is not None
+        filepath = self.get_filepath(identifier)
+        assert filepath is not None
+        return filepath
 
     def __setitem__(self, identifier, value):
         self.put(value, identifier)

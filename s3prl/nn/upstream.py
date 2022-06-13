@@ -105,7 +105,7 @@ class S3PRLUpstream(NNModule):
             hidden_states = [hidden_states]
 
         hidden_states_len = [
-            torch.LongTensor([round(l.item() / downsample_rate) for l in wav_len]).to(
+            torch.LongTensor([min(int(l.item() / downsample_rate), hidden_states[0].size(1)) for l in wav_len]).to(
                 wav.device
             )
         ] * len(hidden_states)

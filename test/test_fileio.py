@@ -1,7 +1,9 @@
 import tempfile
 from pathlib import Path
 
+import numpy as np
 import pytest
+import torch
 
 from s3prl.util.workspace import Workspace
 
@@ -16,3 +18,12 @@ def test_save_load(item, ext):
         workspace.put(item, "item", ext)
         new_item = workspace["item"]
         assert item == new_item
+
+
+def test_hdf5():
+    with tempfile.TemporaryDirectory() as dirpath:
+        workspace = Workspace(dirpath)
+        item = torch.randn(10, 2).numpy()
+        workspace.put(item, "item", "h5")
+        new_item = workspace["item"]
+        assert np.allclose(item, new_item)

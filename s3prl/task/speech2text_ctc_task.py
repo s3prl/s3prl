@@ -211,6 +211,7 @@ class Speech2TextCTCTask(Task):
         labels: np.ndarray,
         class_ids: torch.LongTensor,
         unique_name: np.ndarray,
+        **kwds,
     ):
         return self._general_forward(x, x_len, labels, class_ids, unique_name)
 
@@ -221,6 +222,7 @@ class Speech2TextCTCTask(Task):
         labels: np.ndarray,
         class_ids: torch.LongTensor,
         unique_name: np.ndarray,
+        **kwds,
     ):
         return self._general_forward(
             x,
@@ -231,7 +233,7 @@ class Speech2TextCTCTask(Task):
             beam_decode=self.decoder is not None,
         )
 
-    def train_reduction(self, batch_results: list, on_epoch_end: bool = None):
+    def train_reduction(self, batch_results: list, on_epoch_end: bool = None, **kwds):
         """
         After several forward steps, outputs should be collected untouched (but detaching the Tensors)
         into a list and passed as batch_results. This function examine the collected items and compute
@@ -252,8 +254,8 @@ class Speech2TextCTCTask(Task):
         """
         return self._general_reduction(batch_results, on_epoch_end)
 
-    def valid_reduction(self, batch_results: list, on_epoch_end: bool = None):
+    def valid_reduction(self, batch_results: list, on_epoch_end: bool = None, **kwds):
         return self._general_reduction(batch_results, on_epoch_end)
 
-    def test_reduction(self, batch_results: list, on_epoch_end: bool = None):
+    def test_reduction(self, batch_results: list, on_epoch_end: bool = None, **kwds):
         return self._general_reduction(batch_results, on_epoch_end)

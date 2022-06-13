@@ -213,3 +213,34 @@ class RNNEncoder(NNModule):
     @property
     def output_size(self):
         return self.arguments.output_size
+
+
+class SuperbSDModel(NNModule):
+    def __init__(self, input_size, output_size, rnn_layers, hidden_size, **kwargs):
+        super().__init__()
+
+        self.use_rnn = rnn_layers > 0
+        if self.use_rnn:
+            self.rnn = nn.LSTM(
+                input_size, hidden_size, num_layers=rnn_layers, batch_first=True
+            )
+            self.linear = nn.Linear(hidden_size, output_size)
+        else:
+            self.linear = nn.Linear(input_size, output_size)
+
+    @property
+    def input_size(self):
+        return self.arguments.input_size
+
+    @property
+    def output_size(self):
+        return self.arguments.output_size
+
+    def forward(self, features, features_len):
+        features = features.float()
+        if self.use_rnn:
+            hidden, _ = self.rnn(features)
+            predicted = self.linear(hidden)
+        else:
+            predicted = self.linear(features)
+        return predicted, features_len

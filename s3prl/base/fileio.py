@@ -3,17 +3,19 @@ from __future__ import annotations
 import logging
 import os
 import pickle
+import re
 from dataclasses import dataclass
 from pathlib import Path
 from typing import Any, List, Union
 
+import h5py
 import numpy as np
 import torch
 import yaml
 from filelock import FileLock
 
-from .object import Object
 from .container import Container
+from .object import Object
 
 logger = logging.getLogger(__name__)
 
@@ -99,6 +101,64 @@ class StringHandler(FileHandler):
             return eval(file.read())
 
 
+class HDF5Handler(FileHandler):
+    @classmethod
+    def save(cls, item, path):
+        with h5py.File(path, "w") as wf:
+            wf.create_dataset("T_hat", data=item)
+
+    @classmethod
+    def load(cls, path):
+        data = h5py.File(path, "r")
+        return data["T_hat"][:]
+
+
+class RTTMHandler(FileHandler):
+    @classmethod
+    def save(cls, all_segments: dict, path):
+        assert isinstance(all_segments, dict)
+        fmt = "SPEAKER {:s} 1 {:7.2f} {:7.2f} <NA> <NA> {:s} <NA>"
+        with open(path, "w") as wf:
+            for recor, segments in all_segments.items():
+                for spk, segs in segments.items():
+                    for start, end in segs:
+                        print(
+                            fmt.format(
+                                recor,
+                                start,
+                                end,
+                                spk,
+                            ),
+                            file=wf,
+                        )
+
+    @classmethod
+    def load(cls, path: str):
+        output = dict()
+        with open(path) as file:
+            lines = [line.strip() for line in file.readlines()]
+            for line in lines:
+                line = re.sub(" +", " ", line)
+                line = re.sub("\t+", " ", line)
+                fields = line.split(" ")
+                if fields[0] != "SPEAKER":
+                    continue
+                recor = fields[1]
+                start = float(fields[3])
+                end = float(fields[4])
+                spk = fields[7]
+
+                if recor not in output:
+                    output[recor] = dict()
+
+                if spk not in output[recor]:
+                    output[recor][spk] = []
+
+                output[recor][spk].append((start, end))
+
+        return output
+
+
 type_info = {
     "pkl": PickleHandler,
     "pt": TorchHandler,
@@ -106,6 +166,8 @@ type_info = {
     "yaml": YamlHandler,
     "obj": S3PRLObjectHandler,
     "txt": StringHandler,
+    "h5": HDF5Handler,
+    "rttm": RTTMHandler,
 }
 
 
@@ -132,10 +194,8 @@ def save(filepath: str, obj: Any):
         ext = "obj"
     elif isinstance(obj, np.ndarray):
         ext = "npy"
-    elif isinstance(obj, (int, float, bool, str, list)):
-        ext = "txt"
-    elif isinstance(obj, dict):
-        ext = "yaml"
+    elif isinstance(obj, torch.Tensor):
+        ext = "pt"
     else:
         ext = "pkl"
 

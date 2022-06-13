@@ -2,12 +2,12 @@ import logging
 from enum import Enum
 from operator import setitem
 
-import torch
 import numpy as np
+import torch
 from tensorboardX import SummaryWriter
 
-from .workspace import Workspace
 from .container import Container
+from .workspace import Workspace
 
 logger = logging.getLogger(__name__)
 

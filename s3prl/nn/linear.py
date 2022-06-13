@@ -15,6 +15,7 @@ class FrameLevelLinear(NNModule):
         input_size: int,
         output_size: int,
         hidden_sizes: List[int] = None,
+        **kwds,
     ):
         super().__init__()
         latest_size = input_size
@@ -36,10 +37,10 @@ class FrameLevelLinear(NNModule):
     def output_size(self):
         return self.arguments.output_size
 
-    def forward(self, xs):
-        ys = self.hidden_layers(xs)
+    def forward(self, x, x_len):
+        ys = self.hidden_layers(x)
         ys = self.model(ys)
-        return Output(output=ys)
+        return Output(output=ys, output_len=x_len)
 
 
 class MeanPoolingLinear(NNModule):

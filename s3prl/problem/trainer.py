@@ -395,6 +395,7 @@ class Trainer:
         dataloader,
         device: str = "cuda:0",
         eval_batch: int = -1,
+        eval_workspace: Workspace = None,
     ):
         task = task.to(device)
         with torch.no_grad():
@@ -410,10 +411,10 @@ class Trainer:
                     break
                 batch = batch.to(device)
                 task.eval()
-                result = task(split_name, **batch)
+                result = task(split_name, **batch, workspace=eval_workspace)
                 batch_results.append(result.cacheable())
 
-        logs = task.reduction(split_name, batch_results).logs
+        logs = task.reduction(split_name, batch_results, workspace=eval_workspace).logs
         return logs
 
     INFERENCE_DRYRUN_CONFIG = dict(
@@ -458,7 +459,12 @@ class Trainer:
         dataloader = DataLoader(dataset, sampler, num_workers=cfg.n_jobs)
         task = workspace["valid_best_task"]
         logs: Logs = cls.evaluate(
-            cfg.split_name, task, dataloader, cfg.device, cfg.eval_batch
+            cfg.split_name,
+            task,
+            dataloader,
+            cfg.device,
+            cfg.eval_batch,
+            workspace,
         )
         workspace.put(
             {k: v for k, v in logs.scalars()}, f"{cfg.split_name}_metrics", "yaml"

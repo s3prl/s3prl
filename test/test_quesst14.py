@@ -1,6 +1,6 @@
 import pytest
-
 from dotenv import dotenv_values
+
 from s3prl.corpus.quesst14 import quesst14_for_qbe
 
 
