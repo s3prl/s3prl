@@ -1,6 +1,7 @@
 import os
 from collections import defaultdict
 from pathlib import Path
+from typing import List
 
 from filelock import FileLock
 from joblib import Parallel, delayed
