@@ -235,6 +235,7 @@ class Trainer:
                     wrapped_task.train()
                     batch = batch.to(device)
                     result: Output = wrapped_task("train", **batch)
+                    # result: Output = wrapped_task.train_step(**batch)
                     (result.loss / cfg.trainer.gradient_accumulate_steps).backward()
                     batch_results.append(result.cacheable())
 
@@ -412,9 +413,11 @@ class Trainer:
                 batch = batch.to(device)
                 task.eval()
                 result = task(split_name, **batch, workspace=eval_workspace)
+                # result = task.valid_step(**batch)
                 batch_results.append(result.cacheable())
 
         logs = task.reduction(split_name, batch_results, workspace=eval_workspace).logs
+        # logs = task.valid_reduction(batch_results).logs
         return logs
 
     INFERENCE_DRYRUN_CONFIG = dict(

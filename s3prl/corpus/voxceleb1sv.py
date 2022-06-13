@@ -124,15 +124,13 @@ class VoxCeleb1(Corpus):
         return None
 
 
-class VoxCeleb1SV(VoxCeleb1):
-    def __init__(self, dataset_root: str, n_jobs: int = 4) -> None:
-        super().__init__(dataset_root, n_jobs)
+def VoxCeleb1SV(dataset_root: str, n_jobs: int = 4):
 
-    def __call__(self):
-        return Output(
-            train_data=self.train_data,
-            valid_data=self.valid_data,
-            test_data=self.test_data,
-            trials=self.test_trials,
-            categories=self.categories,
-        )
+    voxceleb1 = VoxCeleb1(dataset_root, n_jobs)
+    return Output(
+        train_data=voxceleb1.train_data,
+        valid_data=voxceleb1.valid_data,
+        test_data=voxceleb1.test_data,
+        trials=voxceleb1.test_trials,
+        categories=voxceleb1.categories,
+    )

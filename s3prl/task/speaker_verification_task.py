@@ -55,6 +55,7 @@ class SpeakerVerification(Task):
         categories: dict(str),
         trials: list(tuple()),
         loss_type: str = "softmax",
+        *args,
         **kwargs,
     ):
         """
@@ -97,7 +98,7 @@ class SpeakerVerification(Task):
     def output_size(self):
         return len(self.categories)
 
-    def forward(self, x: torch.Tensor, x_len: torch.LongTensor):
+    def predict(self, x: torch.Tensor, x_len: torch.LongTensor):
         """
         Args:
             x (torch.Tensor): (batch_size, timestamps, input_size)
@@ -117,9 +118,10 @@ class SpeakerVerification(Task):
         x_len: torch.LongTensor,
         label: torch.LongTensor,
         unique_name: List[str],
+        *args,
         **kwargs,
     ):
-        spk_embeddings = self(x, x_len).slice(1)
+        spk_embeddings = self.predict(x, x_len).slice(1)
         loss, logits = self.loss(spk_embeddings, label).slice(2)
 
         prediction = [index for index in logits.argmax(dim=-1).detach().cpu().tolist()]
@@ -136,7 +138,7 @@ class SpeakerVerification(Task):
         )
 
     def _general_reduction(
-        self, batch_results: list, on_epoch_end: bool = None, **kwargs
+        self, batch_results: list, on_epoch_end: bool = None, *args, **kwargs
     ):
         predictions, labels, losses = [], [], []
         for batch_result in batch_results:
@@ -161,6 +163,7 @@ class SpeakerVerification(Task):
         x_len: torch.LongTensor,
         label: torch.LongTensor,
         unique_name: List[str],
+        *args,
         **kwargs,
     ):
         """
@@ -185,7 +188,9 @@ class SpeakerVerification(Task):
         """
         return self._general_forward(x, x_len, label, unique_name)
 
-    def train_reduction(self, batch_results: list, on_epoch_end: bool = None, **kwargs):
+    def train_reduction(
+        self, batch_results: list, on_epoch_end: bool = None, *args, **kwargs
+    ):
         """
         After several forward steps, outputs should be collected untouched (but detaching the Tensors)
         into a list and passed as batch_results. This function examine the collected items and compute
@@ -212,15 +217,27 @@ class SpeakerVerification(Task):
         x_len: torch.LongTensor,
         label: torch.LongTensor,
         unique_name: List[str],
+        *args,
         **kwargs,
     ):
         return self._general_forward(x, x_len, label, unique_name)
 
-    def valid_reduction(self, batch_results: list, on_epoch_end: bool = None):
+    def valid_reduction(
+        self,
+        batch_results: list,
+        on_epoch_end: bool = None,
+        *args,
+        **kwargs,
+    ):
         return self._general_reduction(batch_results, on_epoch_end)
 
     def test_step(
-        self, x: torch.Tensor, x_len: torch.LongTensor, unique_name: List[str], **kwargs
+        self,
+        x: torch.Tensor,
+        x_len: torch.LongTensor,
+        unique_name: List[str],
+        *args,
+        **kwargs,
     ):
         """
         Args:
@@ -233,11 +250,11 @@ class SpeakerVerification(Task):
             output (torch.Tensor):
                 speaker embeddings corresponding to unique_name
         """
-        spk_embeddings = self(x, x_len).slice(1)
+        spk_embeddings = self.predict(x, x_len).slice(1)
         return Output(unique_name=unique_name, output=spk_embeddings)
 
     def test_reduction(
-        self, batch_results: list(), on_epoch_end: bool = None, **kwargs
+        self, batch_results: list(), on_epoch_end: bool = None, *args, **kwargs
     ):
 
         embeddings = {}

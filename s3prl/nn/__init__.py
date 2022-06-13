@@ -14,6 +14,3 @@ except ImportError:
 
     logging.warning("Cannot import flashlight, thus cannot use BeamDecoder.")
     BeamDecoder = None
-
-from .speaker_model import speaker_embedding_extractor
-from .speaker_loss import amsoftmax, softmax
