@@ -26,8 +26,7 @@ _transformer_config = dict(
     share_layer=False,  # Share layer weights
     pre_layer_norm=False,  # To apply the pre layer normalization technique introduced in: https://arxiv.org/abs/2002.04745
 )
-
-pretrain_task_pipe_config = dict(
+_pretrain_task_pipe_config = dict(
     _cls=PretrainTaskPipe,
     mask_args=dict(
         position_encoding_size=768,  # int, this should be identical to `hidden_size`
@@ -76,18 +75,18 @@ class Tera(SslProblem):
             _cls=librispeech_for_pretrain,
             dataset_root="???",
         ),
-        train_datapipe=pretrain_task_pipe_config,
+        train_datapipe=_pretrain_task_pipe_config,
         train_sampler=dict(
             _cls=MaxTimestampBatchSampler,
             max_timestamp=16000 * 20,
             shuffle=True,
         ),
-        valid_datapipe=pretrain_task_pipe_config,
+        valid_datapipe=_pretrain_task_pipe_config,
         valid_sampler=dict(
             _cls=FixedBatchSizeBatchSampler,
             batch_size=2,
         ),
-        test_datapipe=pretrain_task_pipe_config,
+        test_datapipe=_pretrain_task_pipe_config,
         test_sampler=dict(
             _cls=FixedBatchSizeBatchSampler,
             batch_size=2,
@@ -153,16 +152,16 @@ class Tera(SslProblem):
         task: Task,
     ):
         setup_problem_cfg = workspace.get_cfg(cls.setup_problem)
-        all_states = {
-            "Config": {},  # placeholder
-            "SpecHead": task.predictor.state_dict(),
-            "Transformer": task.upstream.state_dict(),
-            "Upstream_Config": {
-                "transformer": setup_problem_cfg["upstream"]["config"],
-                "audio": setup_problem_cfg["train_datapipe"]["audio_config"],
-                "task": {"sequence_length": 0},
-            },
-        }
+        all_states = dict(
+            Config={},  # placeholder
+            SpecHead=task.predictor.state_dict(),
+            Transformer=task.upstream.state_dict(),
+            Upstream_Config=dict(
+                transformer=setup_problem_cfg["upstream"]["config"],
+                audio=setup_problem_cfg["train_datapipe"]["audio_config"],
+                task=dict(sequence_length=0),
+            ),
+        )
         all_states["Upstream_Config"]["audio"]["target_level"] = setup_problem_cfg[
             "train_datapipe"
         ]["target_level"]
