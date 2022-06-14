@@ -47,16 +47,16 @@ class FeatReconstructionTask(Task):
 
     def predict(
         self,
-        x: torch.Tensor,  # source_feat
-        label: torch.Tensor,  # target_feat
+        x: torch.Tensor,
+        label: torch.Tensor,
         label_mask: torch.BoolTensor,
-        position_encoding: torch.Tensor,  # pos_enc: torch.Tensor,
-        attention_mask: torch.LongTensor,  # attn_mask
+        position_encoding: torch.Tensor,
+        attention_mask: torch.LongTensor,
     ):
         """
         Args:
-            x (torch.Tensor): (batch_size, timestamps, input_size)
-            label (torch.Tensor): (batch_size, timestamps, output_size)
+            x (torch.Tensor): source_feat - (batch_size, timestamps, input_size)
+            label (torch.Tensor): target_feat - (batch_size, timestamps, output_size)
             label_mask (torch.BoolTensor): (batch_size, timestamps, output_size)
             position_encoding (torch.Tensor): (batch_size, timestamps, input_size)
             attention_mask (torch.LongTensor): (batch_size, timestamps)
@@ -84,11 +84,11 @@ class FeatReconstructionTask(Task):
 
     def _general_forward(
         self,
-        x: torch.Tensor,  # source_feat
-        label: torch.Tensor,  # target_feat
-        label_mask: torch.BoolTensor,  # label_mask
-        position_encoding: torch.Tensor,  # pos_enc
-        attention_mask: torch.LongTensor,  # attn_mask
+        x: torch.Tensor,
+        label: torch.Tensor,
+        label_mask: torch.BoolTensor,
+        position_encoding: torch.Tensor,
+        attention_mask: torch.LongTensor,
         unique_name: List[str],
     ):
 
@@ -124,8 +124,8 @@ class FeatReconstructionTask(Task):
 
     def train_step(
         self,
-        x: torch.Tensor,  # source_feat
-        label: torch.Tensor,  # target_feat
+        x: torch.Tensor,
+        label: torch.Tensor,
         label_mask: torch.BoolTensor,
         position_encoding: torch.Tensor,
         attention_mask: torch.LongTensor,
@@ -174,8 +174,8 @@ class FeatReconstructionTask(Task):
 
     def valid_step(
         self,
-        x: torch.Tensor,  # source_feat
-        label: torch.Tensor,  # target_feat
+        x: torch.Tensor,
+        label: torch.Tensor,
         label_mask: torch.BoolTensor,
         position_encoding: torch.Tensor,
         attention_mask: torch.LongTensor,
@@ -188,8 +188,8 @@ class FeatReconstructionTask(Task):
 
     def test_step(
         self,
-        x: torch.Tensor,  # source_feat
-        label: torch.Tensor,  # target_feat
+        x: torch.Tensor,
+        label: torch.Tensor,
         label_mask: torch.BoolTensor,
         position_encoding: torch.Tensor,
         attention_mask: torch.LongTensor,
