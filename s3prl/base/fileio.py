@@ -196,6 +196,8 @@ def save(filepath: str, obj: Any):
         ext = "npy"
     elif isinstance(obj, torch.Tensor):
         ext = "pt"
+    elif isinstance(obj, (int, float, bool, str)):
+        ext = "txt"
     else:
         ext = "pkl"
 

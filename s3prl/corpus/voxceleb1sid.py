@@ -7,6 +7,7 @@ from joblib import Parallel, delayed
 from tqdm import tqdm
 
 from s3prl import Output, cache
+from s3prl.util import registry
 
 from .base import Corpus
 
@@ -84,14 +85,12 @@ class VoxCeleb1SID(Corpus):
         return label
 
 
-class VoxCeleb1SIDForUtteranceClassification(VoxCeleb1SID):
-    def __init__(self, dataset_root: str, n_jobs: int = 4) -> None:
-        super().__init__(dataset_root, n_jobs)
-
-    def __call__(self):
-        train_data, valid_data, test_data = self.data_split
-        return Output(
-            train_data=train_data,
-            valid_data=valid_data,
-            test_data=test_data,
-        )
+@registry.put()
+def voxceleb1_for_utt_classification(dataset_root: str, n_jobs: int = 4):
+    corpus = VoxCeleb1SID(dataset_root, n_jobs)
+    train_data, valid_data, test_data = corpus.data_split
+    return Output(
+        train_data=train_data,
+        valid_data=valid_data,
+        test_data=test_data,
+    )

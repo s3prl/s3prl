@@ -42,7 +42,7 @@ class Speech2TextCTCTask(Task):
         model: Speech2TextCTCExample,
         tokenizer: Tokenizer,
         decoder: Union[BeamDecoder, dict] = None,
-        **kwargs
+        **kwargs,
     ) -> None:
         """Speech-to-text task with CTC objective
 

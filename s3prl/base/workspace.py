@@ -194,6 +194,8 @@ class Workspace(type(Path()), MutableMapping):
 
     def put_cfg(self, method: MethodType, cfg: dict):
         assert len(method.__qualname__) > 0
+        if isinstance(cfg, Container):
+            cfg = cfg.to_dict()
         (self / "_cfg").put(cfg, method.__qualname__, "yaml")
 
     def get_cfg(self, method: MethodType):

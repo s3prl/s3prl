@@ -2,8 +2,8 @@ import torch
 import torch.nn as nn
 
 from s3prl.base import Logs
-from s3prl.base.workspace import Workspace
 from s3prl.base.output import Output
+from s3prl.base.workspace import Workspace
 from s3prl.util import workspace
 from s3prl.util.workspace import Workspace
 
@@ -27,7 +27,9 @@ class DumpFeature(Task):
             feat_dir.put(feat, name, "npy")
         return Output()
 
-    def reduction(self, split: str, batch_results: list, on_epoch_end: bool = None, **kwds):
+    def reduction(
+        self, split: str, batch_results: list, on_epoch_end: bool = None, **kwds
+    ):
         return Output(
             logs=Logs(),
         )

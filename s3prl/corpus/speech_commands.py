@@ -5,6 +5,7 @@ from typing import List, Tuple, Union
 
 from s3prl import Container, cache
 from s3prl.base.output import Output
+from s3prl.util import registry
 
 from .base import Corpus
 
@@ -141,15 +142,10 @@ class SpeechCommandsV1(Corpus):
         return list(self.train.keys()), list(self.valid.keys()), list(self.test.keys())
 
 
-class SpeechCommandsV1ForSUPERB(SpeechCommandsV1):
-    """
-    TODO: Weighted Sampling!
-    """
+@registry.put()
+def gsc_v1_for_superb(dataset_root: str, n_jobs: int = 4):
+    corpus = SpeechCommandsV1(dataset_root, n_jobs)
 
-    def __init__(self, dataset_root: str, n_jobs: int = 4) -> None:
-        super().__init__(dataset_root, n_jobs)
-
-    @staticmethod
     def format_fields(data: dict):
         formated_data = Container(
             {
@@ -162,10 +158,9 @@ class SpeechCommandsV1ForSUPERB(SpeechCommandsV1):
         )
         return formated_data
 
-    def __call__(self):
-        train_data, valid_data, test_data = self.data_split
-        return Output(
-            train_data=self.format_fields(train_data),
-            valid_data=self.format_fields(valid_data),
-            test_data=self.format_fields(test_data),
-        )
+    train_data, valid_data, test_data = corpus.data_split
+    return Output(
+        train_data=format_fields(train_data),
+        valid_data=format_fields(valid_data),
+        test_data=format_fields(test_data),
+    )

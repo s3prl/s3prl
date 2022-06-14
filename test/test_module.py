@@ -23,8 +23,8 @@ class AnyChild(Module):
     def output_size(self):
         return self.model.output_size
 
-    def forward(self, x):
-        return self.model(x)
+    def forward(self, x, x_len=None):
+        return self.model(x, x_len)
 
 
 def test_Linear(helpers):

@@ -25,16 +25,6 @@ def test_container_unfilled_fields():
     assert len(config.unfilled_fields()) == 0
 
 
-def test_container_readonly():
-    config = Container(a="hello", b=3, c=dict(x=dict(y="???")), z=["he", "???", "best"])
-    config.readonly()
-    with pytest.raises(RuntimeError):
-        config.c = 6
-
-    config.writable()
-    config.c = 6
-
-
 def test_container_cls():
     from s3prl.nn.pooling import MeanPooling
 

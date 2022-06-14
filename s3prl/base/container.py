@@ -159,8 +159,6 @@ class Container(OrderedDict):
         "deselect",
         "to_dict",
         "clone",
-        "readonly",
-        "writable",
     ]
 
     UNFILLED_PATTERN = "???"
@@ -239,30 +237,7 @@ class Container(OrderedDict):
         return "\n".join(indented_lines)
 
     def clone(self) -> Container:
-        """
-        Clone a writable version
-        """
-        original_readonly = getattr(self, "_readonly", False)
-        new_copy = deepcopy(self.writable())
-        if original_readonly:
-            self.readonly()
-        else:
-            self.writable()
-        return new_copy
-
-    def readonly(self) -> Container:
-        """
-        Turn the Container into Read-Only in place
-        """
-        super(__class__, self).__setattr__("_readonly", True)
-        return self
-
-    def writable(self) -> Container:
-        """
-        Turn the Container into Writable in place
-        """
-        super(__class__, self).__setattr__("_readonly", False)
-        return self
+        return deepcopy(self)
 
     def _normalize_key(self, k):
         if isinstance(k, int):
@@ -292,6 +267,9 @@ class Container(OrderedDict):
                 if key not in self:
                     self.__setitem__(key, __class__())
                 target = self.__getitem__(key)
+                if isinstance(target, dict):
+                    target = Container(target)
+                    self.__setitem__(key, target)
                 if isinstance(target, __class__):
                     target.update(value, override, create)
                 else:
@@ -341,12 +319,6 @@ class Container(OrderedDict):
         return key
 
     def __setitem__(self, k, v, replace_field=False) -> None:
-        if hasattr(self, "_readonly") and self._readonly:
-            raise RuntimeError(
-                f"This {__class__.__name__} is set to Read-Only. "
-                "You should call 'writable' before any modificaation."
-            )
-
         k = self._normalize_key(k)
         assert k not in self._reserved_keys, f"'{k}' cannot be used"
         if type(v) == dict:
@@ -370,7 +342,7 @@ class Container(OrderedDict):
     def to_dict_impl(cls, dictionary: Container, must_invertible=True):
         result = dict()
         for k, v in dictionary.items():
-            if isinstance(v, Container):
+            if isinstance(v, dict):
                 v = cls.to_dict_impl(v, must_invertible)
             elif k == __class__.QUALNAME_PATTERN:
                 if isinstance(v, field):

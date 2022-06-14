@@ -24,7 +24,7 @@ from s3prl.sampler import (
     MaxTimestampBatchSampler,
 )
 from s3prl.task.diarization import DiarizationPIT
-from s3prl.util.configuration import default_cfg, field, override_parent_cfg
+from s3prl.util.configuration import default_cfg, field
 
 from .base import SuperbProblem
 
@@ -98,66 +98,70 @@ class SuperbSD(SuperbProblem):
     Superb Intent Classification problem
     """
 
-    @override_parent_cfg(
-        corpus=dict(
-            _cls=kaldi_for_multiclass_tagging,
-            dataset_root="???",
-        ),
-        train_datapipe=dict(
-            _cls=SuperbSDDatapipe,
-        ),
-        train_sampler=dict(
-            _cls=MaxTimestampBatchSampler,
-            max_timestamp=16000 * 200,
-            shuffle=True,
-        ),
-        valid_datapipe=dict(
-            _cls=SuperbSDDatapipe,
-        ),
-        valid_sampler=dict(
-            _cls=FixedBatchSizeBatchSampler,
-            batch_size=2,
-        ),
-        test_datapipe=dict(
-            _cls=SuperbSDDatapipe,
-        ),
-        test_sampler=dict(
-            _cls=GroupSameItemSampler,
-            item_name="rec_id",
-            item_order_name="order_in_rec",
-        ),
-        downstream=dict(
-            _cls=SuperbSDModel,
-            output_size=2,  # speaker num per recording
-            hidden_size=256,
-            rnn_layers=1,
-        ),
-        task=dict(
-            _cls=DiarizationPIT,
-        ),
+    @default_cfg(
+        **SuperbProblem.setup.default_except(
+            corpus=dict(
+                _cls=kaldi_for_multiclass_tagging,
+                dataset_root="???",
+            ),
+            train_datapipe=dict(
+                _cls=SuperbSDDatapipe,
+            ),
+            train_sampler=dict(
+                _cls=MaxTimestampBatchSampler,
+                max_timestamp=16000 * 200,
+                shuffle=True,
+            ),
+            valid_datapipe=dict(
+                _cls=SuperbSDDatapipe,
+            ),
+            valid_sampler=dict(
+                _cls=FixedBatchSizeBatchSampler,
+                batch_size=2,
+            ),
+            test_datapipe=dict(
+                _cls=SuperbSDDatapipe,
+            ),
+            test_sampler=dict(
+                _cls=GroupSameItemSampler,
+                item_name="rec_id",
+                item_order_name="order_in_rec",
+            ),
+            downstream=dict(
+                _cls=SuperbSDModel,
+                output_size=2,  # speaker num per recording
+                hidden_size=256,
+                rnn_layers=1,
+            ),
+            task=dict(
+                _cls=DiarizationPIT,
+            ),
+        )
     )
     @classmethod
-    def setup_problem(cls, **cfg):
+    def setup(cls, **cfg):
         """
         This setups the IC problem, containing train/valid/test datasets & samplers and a task object
         """
-        super().setup_problem(**cfg)
+        super().setup(**cfg)
 
-    @override_parent_cfg(
-        optimizer=dict(
-            _cls="torch.optim.Adam",
-            lr=1.0e-4,
-        ),
-        trainer=dict(
-            total_steps=1000,
-            log_step=100,
-            eval_step=500,
-            save_step=100,
-            gradient_clipping=1.0,
-            gradient_accumulate_steps=4,
-            valid_metric="der",
-            valid_higher_better=False,
-        ),
+    @default_cfg(
+        **SuperbProblem.train.default_except(
+            optimizer=dict(
+                _cls="torch.optim.Adam",
+                lr=1.0e-4,
+            ),
+            trainer=dict(
+                total_steps=1000,
+                log_step=100,
+                eval_step=500,
+                save_step=100,
+                gradient_clipping=1.0,
+                gradient_accumulate_steps=4,
+                valid_metric="der",
+                valid_higher_better=False,
+            ),
+        )
     )
     @classmethod
     def train(cls, **cfg):
@@ -166,7 +170,7 @@ class SuperbSD(SuperbProblem):
         """
         super().train(**cfg)
 
-    @override_parent_cfg()
+    @default_cfg(**SuperbProblem.inference.default_cfg)
     @classmethod
     def inference(cls, **cfg):
         super().inference(**cfg)
@@ -245,21 +249,16 @@ class SuperbSD(SuperbProblem):
         logger.info(f"Best DER on test data: {best_der}")
         workspace.put(dict(der=best_der), "test_metric", "yaml")
 
-    @override_parent_cfg(
-        start_stage=0,
-        final_stage=3,
-        stage_0=dict(
-            _method="setup_problem",
-        ),
-        stage_1=dict(
-            _method="train",
-        ),
-        stage_2=dict(
-            _method="inference",
-        ),
-        stage_3=dict(
-            _method="scoring",
-        ),
+    @default_cfg(
+        **SuperbProblem.run_stages.default_except(
+            stages=["setup", "train", "inference", "scoring"],
+            start_stage="setup",
+            final_stage="scoring",
+            setup=setup.default_cfg.deselect("workspace", "resume", "dryrun"),
+            train=train.default_cfg.deselect("workspace", "resume", "dryrun"),
+            inference=inference.default_cfg.deselect("workspace", "resume", "dryrun"),
+            scoring=scoring.default_cfg.deselect("workspace"),
+        )
     )
     @classmethod
     def run_stages(cls, **cfg):

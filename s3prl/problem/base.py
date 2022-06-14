@@ -4,7 +4,6 @@ The general usage of the :py:obj:`~s3prl.problem` package
 
 
 import logging
-from subprocess import call
 
 from s3prl import field
 from s3prl.base.container import Container
@@ -71,7 +70,7 @@ class Problem:
     so that you only need to put and get stuffs via their `key`.
 
     For the :py:obj:`~s3prl.problem.superb.base.SuperbProblem`, there is a Stage before `train`
-    called :py:obj:`~s3prl.problem.superb.base.SuperbProblem.setup_problem`. This Stage handles
+    called :py:obj:`~s3prl.problem.superb.base.SuperbProblem.setup`. This Stage handles
     the data preprocessing and model building, so that you can simply load them to `train` at the
     next Stage. Also, you can use the workspace to retrive these preprocessed objects in another python
     session and train them with other toolkits, as they are just regular Dataset, Sampler, and
@@ -80,7 +79,7 @@ class Problem:
     .. code-block:: python
 
         # in one python session
-        SuperbIC.setup_problem(
+        SuperbIC.setup(
             workspace=workspace,
             corpus=dict(
                 dataset_root="your dataset path",
@@ -117,14 +116,14 @@ class Problem:
 
     .. code-block:: shell
 
-        s3prl-cli s3prl.problem.superb.ic SuperbIC.setup_problem --usage
+        s3prl-cli s3prl.problem.superb.ic SuperbIC.setup --usage
 
-    You can first run a single **Stage** `setup_problem` to create the necessary components of the SuperbIC problem,
+    You can first run a single **Stage** `setup` to create the necessary components of the SuperbIC problem,
     and then run the second **Stage** `train` and so on...
 
     .. code-block:: shell
 
-        s3prl-cli s3prl.problem.superb.ic SuperbIC.setup_problem workspace=result/tmp upstream.name=fbank corpus.dataset_root='fluent_speech_command_path'
+        s3prl-cli s3prl.problem.superb.ic SuperbIC.setup workspace=result/tmp upstream.name=fbank corpus.dataset_root='fluent_speech_command_path'
 
     Or, you can run all the **Stages** at once with `run_stages`.
 
@@ -147,63 +146,33 @@ class Problem:
         )
 
     @default_cfg(
-        workspace=field(
-            "???",
-            "The default workspace for all the stages\nEach Stage will use this if a stage-specific workspace is not given",
-            "str or Path or Workspace",
-        ),
-        resume=field(True, "The default resume option for all the stages", bool),
-        start_stage=field(0, "Start from this stage", int),
+        workspace=field("???", "The workspace shared across stages", str),
+        resume=field(False, "The resume flag shared across stages", bool),
+        dryrun=field(False, "The dryrun flag shared across stages", bool),
+        stages=[field("???", "The stage methods to run through", str)],
+        start_stage=field("???", "Start from this stage", "int or str"),
         final_stage=field(
-            0,
+            "???",
             "The final stage. End at this stage (inclusive). That is, when start_stage=0, final_stage=1, there will be two Stages executed",
-            int,
-        ),
-        stage_0=dict(
-            _method=field(
-                "???",
-                "The __name__ of the classmethod to be ran for this stage.\n"
-                "The other keys below are used as the **kwargs (**cfg) into this classmethod",
-            ),
+            "int or str",
         ),
     )
     @classmethod
     def run_stages(cls, **cfg):
-        cfg = Container(cfg)
-        stages_state_dir = Workspace(cfg.workspace) / "_stages"
-        sorted_stage_cfgs = cls.get_execution_order(cfg)
-        for stage_index, stage_cfg in sorted_stage_cfgs[
-            cfg.start_stage : cfg.final_stage + 1
-        ]:
-            done_mark = f"{stage_index}.done"
-            if done_mark in stages_state_dir:
-                if cfg.resume:
-                    logger.info(
-                        f"Skip stage {stage_index} since it was already done and 'resume' is True"
-                    )
-                    continue
-                else:
-                    logger.info(
-                        f"Delete stage {stage_index}.done mark since 'resume' is False and this stage should be re-executed"
-                    )
-                    stages_state_dir.remove(done_mark)
+        if isinstance(cfg["start_stage"], str):
+            cfg["start_stage"] = cfg["stages"].index(cfg["start_stage"])
 
-            func = getattr(cls, stage_cfg._method)
-            assert callable(
-                func
-            ), f"{func} is not callable and cannot be used as a stage"
-            logger.info(
-                f"Run stage {stage_index}: {func.__qualname__} with config:\n{stage_cfg}"
+        if isinstance(cfg["final_stage"], str):
+            cfg["final_stage"] = cfg["stages"].index(cfg["final_stage"])
+
+        for stage_name in cfg["stages"][cfg["start_stage"] : cfg["final_stage"] + 1]:
+            stage_func = getattr(cls, stage_name)
+            stage_cfg = cfg[stage_name]
+            stage_cfg.override(
+                dict(
+                    workspace=cfg["workspace"],
+                    resume=cfg["resume"],
+                    dryrun=cfg["dryrun"],
+                )
             )
-            func(**stage_cfg)
-            stages_state_dir.put(True, done_mark, "txt")
-
-    @staticmethod
-    def get_execution_order(cfg):
-        cfg = Container(cfg)
-        stage_func_cfgs = []
-        for key in list(cfg.keys()):
-            if key.startswith("stage_"):
-                stage_func_cfgs.append((int(key.split("stage_")[-1]), cfg[key]))
-        stage_func_cfgs.sort(key=lambda x: x[0])
-        return stage_func_cfgs
+            stage_func(**stage_cfg)

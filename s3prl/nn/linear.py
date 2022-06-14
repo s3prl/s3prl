@@ -37,7 +37,7 @@ class FrameLevelLinear(NNModule):
     def output_size(self):
         return self.arguments.output_size
 
-    def forward(self, x, x_len):
+    def forward(self, x, x_len=None):
         ys = self.hidden_layers(x)
         ys = self.model(ys)
         return Output(output=ys, output_len=x_len)

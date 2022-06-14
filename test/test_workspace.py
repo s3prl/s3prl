@@ -154,9 +154,9 @@ def test_workspace_environ():
         )
         assert dict(workspace.environ) == environ
         assert (workspace / "_environ" / "output_size.txt").is_file()
-        assert (workspace / "_environ" / "categories.txt").is_file()
+        assert (workspace / "_environ" / "categories.pkl").is_file()
         assert (workspace / "_environ" / "pred.txt").is_file()
-        assert (workspace / "_environ" / "stats.yaml").is_file()
+        assert (workspace / "_environ" / "stats.pkl").is_file()
 
 
 def test_workspace_link():

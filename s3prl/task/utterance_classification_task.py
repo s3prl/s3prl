@@ -159,7 +159,7 @@ class UtteranceClassificationTask(Task):
         """
         return self._general_forward(x, x_len, class_id, unique_name)
 
-    def train_reduction(self, batch_results: list, on_epoch_end: bool = False):
+    def train_reduction(self, batch_results: list, on_epoch_end: bool = False, **kwds):
         """
         After several forward steps, outputs should be collected untouched (but detaching the Tensors)
         into a list and passed as batch_results. This function examine the collected items and compute
@@ -200,10 +200,10 @@ class UtteranceClassificationTask(Task):
     ):
         return self._general_forward(x, x_len, class_id, unique_name)
 
-    def valid_reduction(self, batch_results: list, on_epoch_end: bool = True):
+    def valid_reduction(self, batch_results: list, on_epoch_end: bool = True, **kwds):
         return self._general_reduction(batch_results, on_epoch_end)
 
-    def test_reduction(self, batch_results: list, on_epoch_end: bool = True):
+    def test_reduction(self, batch_results: list, on_epoch_end: bool = True, **kwds):
         return self._general_reduction(batch_results, on_epoch_end)
 
 
@@ -259,6 +259,7 @@ class UtteranceMultiClassClassificationTask(Task):
         class_ids: torch.LongTensor,
         labels: np.ndarray,
         unique_name: List[str],
+        **kwds,
     ):
         """
         Args:
@@ -295,7 +296,9 @@ class UtteranceMultiClassClassificationTask(Task):
     def numpy_object_array_all_close(x, y):
         return not (x != y).sum() > 0
 
-    def _general_reduction(self, batch_results: list, on_epoch_end: bool = None):
+    def _general_reduction(
+        self, batch_results: list, on_epoch_end: bool = None, **kwds
+    ):
         losses, predictions, labels = [], [], []
         for batch_result in batch_results:
             predictions += list(batch_result.prediction)
@@ -318,7 +321,7 @@ class UtteranceMultiClassClassificationTask(Task):
     def train_step(self, *args, **kwargs):
         return self._general_forward(*args, **kwargs)
 
-    def train_reduction(self, batch_results: list, on_epoch_end: bool = False):
+    def train_reduction(self, batch_results: list, on_epoch_end: bool = False, **kwds):
         return self._general_reduction(batch_results, on_epoch_end)
 
     def valid_step(self, *args, **kwargs):
@@ -327,8 +330,8 @@ class UtteranceMultiClassClassificationTask(Task):
     def test_step(self, *args, **kwargs):
         return self._general_forward(*args, **kwargs)
 
-    def valid_reduction(self, batch_results: list, on_epoch_end: bool = True):
+    def valid_reduction(self, batch_results: list, on_epoch_end: bool = True, **kwds):
         return self._general_reduction(batch_results, on_epoch_end)
 
-    def test_reduction(self, batch_results: list, on_epoch_end: bool = True):
+    def test_reduction(self, batch_results: list, on_epoch_end: bool = True, **kwds):
         return self._general_reduction(batch_results, on_epoch_end)

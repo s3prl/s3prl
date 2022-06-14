@@ -85,7 +85,7 @@ class IEMOCAP(Corpus):
 
 
 @registry.put()
-def iemocap_for_superb(dataset_root: str, test_session: int = 1, n_jobs: int = 4):
+def iemocap_for_superb(dataset_root: str, test_fold: int = 1, n_jobs: int = 4):
     def format_fields(data_points):
         return {
             key: dict(
@@ -105,6 +105,7 @@ def iemocap_for_superb(dataset_root: str, test_session: int = 1, n_jobs: int = 4
         return data
 
     corpus = IEMOCAP(dataset_root, n_jobs)
+    test_session = test_fold + 1
     valid_session = (test_session + 1) % IEMOCAP_SESSION_NUM
     train_sessions = [
         s + 1

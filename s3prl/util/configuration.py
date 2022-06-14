@@ -57,8 +57,11 @@ def _add_doc(obj, doc, last=True):
 class _CallableWithConfig:
     @property
     @abc.abstractmethod
-    def default_cfg(self):
+    def default_cfg(self) -> Container:
         raise NotImplementedError
+
+    def default_except(self, **kwds):
+        return self.default_cfg.clone().override(kwds)
 
     @property
     @abc.abstractmethod
@@ -132,15 +135,12 @@ class _CallableWithConfig:
                 all_cfg.override(saved_cfg)
                 all_cfg.override(cfg)
 
-        non_stage_cfgs = Container()
-        for key in all_cfg.keys():
-            match = re.search("stage", key)  # include start_stage and final_stage
-            if match is None:
-                non_stage_cfgs[key] = all_cfg[key]
-        for key in all_cfg.keys():
-            match = re.search("stage_(\d)+", key)
-            if match is not None:
-                all_cfg[key].override(non_stage_cfgs)
+                if self.__qualname__ in workspace / "_done":
+                    logger.info(
+                        f"This method was already finished once in this workspace {workspace}. "
+                        "Skip and return the saved result."
+                    )
+                    return (workspace / "_done")[self.__qualname__]
 
         all_cfg.check_no_unfilled_field()
 
@@ -164,7 +164,14 @@ class _CallableWithConfig:
                 fileHandler.setFormatter(formatter)
                 root_log.addHandler(fileHandler)
 
-        return self._func(*args, **all_cfg)
+        result = self._func(*args, **all_cfg)
+
+        if "workspace" in all_cfg:
+            (workspace / "_done")[self.__qualname__] = result
+            logger.info(
+                f"Save execution result to {(workspace / '_done').get_filepath(self.__qualname__)}"
+            )
+        return result
 
 
 class _CallableWithDefaultConfig(_CallableWithConfig):
@@ -184,7 +191,7 @@ class _CallableWithDefaultConfig(_CallableWithConfig):
 
     @property
     def default_cfg(self) -> Container:
-        return self._default_cfg.readonly()
+        return self._default_cfg.clone()
 
     def __set_name__(self, owner, name):
         if hasattr(self._func, "__set_name__"):
@@ -344,7 +351,7 @@ class _CallableWithOverrideParentConfig(_CallableWithConfig):
 
     @property
     def default_cfg(self) -> Container:
-        return self._default_cfg.readonly()
+        return self._default_cfg.clone()
 
 
 def override_parent_cfg(**cfg):

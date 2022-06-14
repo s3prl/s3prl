@@ -99,7 +99,7 @@ class SuperbProblem(Problem, Trainer):
         ),
     )
     @classmethod
-    def setup_problem(cls, **cfg):
+    def setup(cls, **cfg) -> Container:
         cfg = Container(cfg)
         workspace = Workspace(cfg.workspace)
 

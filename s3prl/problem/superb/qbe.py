@@ -23,7 +23,7 @@ from s3prl.dataset.common_pipes import LoadAudio, SetOutputKeys
 from s3prl.sampler import FixedBatchSizeBatchSampler
 from s3prl.task.dump_feature import DumpFeature
 from s3prl.util import workspace
-from s3prl.util.configuration import default_cfg, field, override_parent_cfg
+from s3prl.util.configuration import default_cfg, field
 from s3prl.util.workspace import Workspace, as_type
 
 from .base import SuperbProblem
@@ -93,7 +93,7 @@ class SuperbQBE(SuperbProblem):
         ),
     )
     @classmethod
-    def setup_problem(cls, **cfg):
+    def setup(cls, **cfg):
         cfg = Container(cfg)
         workspace = Workspace(cfg.workspace)
 
@@ -128,8 +128,10 @@ class SuperbQBE(SuperbProblem):
         # This is for easy reuse the inference command for feature extraction
         workspace.link_from("valid_best_task", workspace, "task")
 
-    @override_parent_cfg(
-        split_name="all",
+    @default_cfg(
+        **SuperbProblem.inference.default_except(
+            split_name="all",
+        )
     )
     @classmethod
     def inference(cls, **cfg):
@@ -162,8 +164,7 @@ class SuperbQBE(SuperbProblem):
 
         layer_mtwv = []
         scoring_dir = (
-            Workspace(workspace.get_cfg(cls.setup_problem).corpus.dataset_root)
-            / "scoring"
+            Workspace(workspace.get_cfg(cls.setup).corpus.dataset_root) / "scoring"
         )
         for layer_id in range(num_layers):
             queries = []
@@ -218,18 +219,15 @@ class SuperbQBE(SuperbProblem):
             f"The best valid layer's (layer {best_layer_id}) test maxTWV: {metrics.maxTWV}"
         )
 
-    @override_parent_cfg(
-        start_stage=0,
-        final_stage=2,
-        stage_0=dict(
-            _method="setup_problem",
-        ),
-        stage_1=dict(
-            _method="inference",
-        ),
-        stage_2=dict(
-            _method="dtw_for_quesst14",
-        ),
+    @default_cfg(
+        **SuperbProblem.run_stages.default_except(
+            stages=["setup", "inference", "dtw_for_quesst14"],
+            start_stage="setup",
+            final_stage="dtw_for_quesst14",
+            setup=setup.default_cfg.deselect("workspace", "resume", "dryrun"),
+            inference=inference.default_cfg.deselect("workspace", "dryrun"),
+            dtw_for_quesst14=dtw_for_quesst14.default_cfg.deselect("workspace"),
+        )
     )
     @classmethod
     def run_stages(cls, **cfg):
