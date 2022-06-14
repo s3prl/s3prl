@@ -1,82 +1,156 @@
+import torch
 from torch.nn import L1Loss
 
-from s3prl import Container
-from s3prl.corpus.librispeech_for_pretrain import LibriSpeechForPretrain
+from s3prl.corpus.librispeech_for_pretrain import librispeech_for_pretrain
 from s3prl.dataset.pretrain_apc_pipe import PretrainTaskPipe
 from s3prl.nn.identity import Identity
 from s3prl.nn.rnn_apc import ApcModel
 from s3prl.sampler import FixedBatchSizeBatchSampler, MaxTimestampBatchSampler
+from s3prl.task import Task
 from s3prl.task.autoregressive_reconstruction_task import (
     AutoregressiveReconstructionTask,
 )
+from s3prl.util.configuration import override_parent_cfg
+from s3prl.util.workspace import Workspace
+
+from .base import SslProblem
+
+_input_size = 80
+_pretrain_task_pipe_config = dict(
+    _cls=PretrainTaskPipe,
+    n_future=5,
+    audio_config=dict(
+        feat_type="fbank",  # Feature type
+        feat_dim=_input_size,  # Feature dimension
+        frame_length=25,  # Window size in ms
+        frame_shift=10,  # Hop size in ms
+        decode_wav=False,
+        cmvn=True,  # Apply uttr.-wised CMVN on Mel spectrogram
+    ),
+    n_jobs=8,
+)
 
 
-class Apc:
-    Corpus = LibriSpeechForPretrain
-    TrainData = PretrainTaskPipe
-    TrainSampler = MaxTimestampBatchSampler
-    ValidData = PretrainTaskPipe
-    ValidSampler = FixedBatchSizeBatchSampler
-    TestData = PretrainTaskPipe
-    TestSampler = FixedBatchSizeBatchSampler
-    Body = ApcModel
-    Head = Identity
-    Task = AutoregressiveReconstructionTask
-    Loss = L1Loss
+class Apc(SslProblem):
+    """
+    Apc pre-train problem
+    """
 
-    input_size = 80
-
-    default_config = Container(
-        Corpus=dict(
-            train_split=["train-clean-100", "train-clean-360", "train-other-500"]
+    @override_parent_cfg(
+        corpus=dict(
+            _cls=librispeech_for_pretrain,
+            dataset_root="???",
         ),
-        TrainData=dict(
-            n_future=5,
-            audio_config=dict(
-                feat_type="fbank",  # Feature type
-                feat_dim=input_size,  # Feature dimension
-                frame_length=25,  # Window size in ms
-                frame_shift=10,  # Hop size in ms
-                decode_wav=False,
-                cmvn=True,  # Apply uttr.-wised CMVN on Mel spectrogram
-            ),
-            n_jobs=8,
-        ),
-        TrainSampler=dict(
+        train_datapipe=_pretrain_task_pipe_config,
+        train_sampler=dict(
+            _cls=MaxTimestampBatchSampler,
             max_timestamp=16000 * 20,
             shuffle=True,
         ),
-        ValidData=dict(),
-        ValidSampler=dict(
+        valid_datapipe=_pretrain_task_pipe_config,
+        valid_sampler=dict(
+            _cls=FixedBatchSizeBatchSampler,
             batch_size=2,
         ),
-        TestData=dict(),
-        TestSampler=dict(
+        test_datapipe=_pretrain_task_pipe_config,
+        test_sampler=dict(
+            _cls=FixedBatchSizeBatchSampler,
             batch_size=2,
         ),
-        Body=dict(
-            input_size=input_size,
+        upstream=dict(
+            _cls=ApcModel,
+            input_size=_input_size,
             num_layers=3,
             hidden_size=512,
             dropout=0.1,
             residual=True,
         ),
-        Head=dict(),
-        Task=dict(),
-        Loss=dict(),
-        Optimizer=dict(
-            cls="torch.optim.AdamW",
+        predictor=dict(
+            _cls=Identity,
+        ),
+        task=dict(
+            _cls=AutoregressiveReconstructionTask,
+            loss=L1Loss,
+        ),
+    )
+    @classmethod
+    def setup_problem(cls, **cfg):
+        """
+        This setups the Mockingjay problem, containing train/valid/test datasets & samplers and a task object
+        """
+        super().setup_problem(**cfg)
+
+    @override_parent_cfg(
+        optimizer=dict(
+            _cls="torch.optim.AdamW",
             lr=0.0001,  # set to 0.00001 for some datasets if you encounter NaN during training
         ),
-        Trainer=dict(
+        trainer=dict(
             total_steps=1000000,
-            log_step=50000,
-            valid_step=50000,
+            eval_step=50000,
             save_step=50000,
             gradient_clipping=5.0,
             gradient_accumulate_steps=4,
-            use_valid=True,
             valid_metric="loss",
             valid_higher_better=False,
         ),
     )
+    @classmethod
+    def train(cls, **cfg):
+        """
+        Train the setup problem with the train/valid datasets & samplers and the task object
+        """
+        super().train(**cfg)
+
+    @override_parent_cfg()
+    @classmethod
+    def inference(cls, **cfg):
+        super().inference(**cfg)
+
+    @classmethod
+    def save_additional(
+        cls,
+        additional_dir: Workspace,
+        workspace: Workspace,
+        task: Task,
+    ):
+        setup_problem_cfg = workspace.get_cfg(cls.setup_problem)
+        setup_problem_cfg["upstream"].pop("_cls")
+        setup_problem_cfg["upstream"].pop("input_size")
+        apc_config = dict(
+            model=dict(
+                paras=setup_problem_cfg["upstream"],
+            ),
+            task=dict(
+                sequence_length=0,
+                n_future=setup_problem_cfg["train_datapipe"]["n_future"],
+            ),
+            data=dict(
+                audio=setup_problem_cfg["train_datapipe"]["audio_config"],
+            ),
+        )
+        all_states = dict(
+            config=apc_config,
+            model=task.upstream.state_dict(),
+            Upstream_Config=apc_config,
+        )
+        torch.save(
+            all_states, str(additional_dir.parent.resolve()) + "/all_states.ckpt"
+        )
+
+    @override_parent_cfg(
+        start_stage=0,
+        final_stage=2,
+        stage_0=dict(
+            _method="setup_problem",
+        ),
+        stage_1=dict(
+            _method="train",
+        ),
+        stage_2=dict(
+            _method="inference",
+        ),
+    )
+    @classmethod
+    def run_stages(cls, **cfg):
+        super().run_stages(**cfg)
