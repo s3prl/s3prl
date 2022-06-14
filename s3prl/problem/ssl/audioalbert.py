@@ -113,7 +113,7 @@ class AudioAlbert(SslProblem):
     @classmethod
     def setup_problem(cls, **cfg):
         """
-        This setups the Mockingjay problem, containing train/valid/test datasets & samplers and a task object
+        This setups the AudioAlbert problem, containing train/valid/test datasets & samplers and a task object
         """
         super().setup_problem(**cfg)
 

@@ -113,7 +113,7 @@ class Tera(SslProblem):
     @classmethod
     def setup_problem(cls, **cfg):
         """
-        This setups the Mockingjay problem, containing train/valid/test datasets & samplers and a task object
+        This setups the Tera problem, containing train/valid/test datasets & samplers and a task object
         """
         super().setup_problem(**cfg)
 
