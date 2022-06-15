@@ -53,7 +53,7 @@ class SuperbPR(SuperbProblem):
         **SuperbProblem.train.default_except(
             optimizer=dict(
                 _cls="torch.optim.Adam",
-                lr=1.0e-4,
+                lr=1.0e-2,
             ),
             trainer=dict(
                 total_steps=100000,
