@@ -31,3 +31,4 @@ from .ic import SuperbIC
 from .ks import SuperbKS
 from .pr import SuperbPR
 from .sid import SuperbSID
+from .sv import SuperbSV
