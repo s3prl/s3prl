@@ -114,7 +114,7 @@ class Speech2TextCTCTask(Task):
 
         y = class_ids
         y_len = torch.tensor(
-            [(ids != 0).long().sum() for ids in class_ids],
+            [(ids != self.tokenizer.pad_idx).long().sum() for ids in class_ids],
             dtype=torch.long,
             device=logits.device,
         )

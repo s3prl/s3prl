@@ -5,8 +5,6 @@ Reference: https://www.tensorflow.org/datasets/api_docs/python/tfds/features/tex
 import abc
 from typing import List
 
-from s3prl import Object
-
 # Replacing the 2 tokens right before english starts as <eos> & <unk>
 BERT_FIRST_IDX = 997
 # Drop rest of tokens
@@ -19,7 +17,7 @@ PHONEME_VOCAB = "SIL SPN AA0 AA1 AA2 AE0 AE1 AE2 AH0 AH1 AH2 AO0 AO1 AO2 AW0 AW1
 )
 
 
-class Tokenizer(Object):
+class Tokenizer:
     def __init__(self):
         super().__init__()
 

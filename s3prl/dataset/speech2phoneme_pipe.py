@@ -13,7 +13,7 @@ class Speech2PhonemePipe(SequentialDataPipe):
         output_keys = dict(
             x="wav",
             x_len="wav_len",
-            labels="transcription",
+            labels="phonemized_text",
             class_ids="tokenized_text",
             unique_name="id",
         )
