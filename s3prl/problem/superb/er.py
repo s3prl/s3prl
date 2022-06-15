@@ -36,8 +36,8 @@ class SuperbER(SuperbProblem):
                 train_category_encoder=True,
             ),
             train_sampler=dict(
-                _cls=MaxTimestampBatchSampler,
-                max_timestamp=16000 * 200,
+                _cls=FixedBatchSizeBatchSampler,
+                batch_size=4,
                 shuffle=True,
             ),
             valid_datapipe=dict(
@@ -45,14 +45,14 @@ class SuperbER(SuperbProblem):
             ),
             valid_sampler=dict(
                 _cls=FixedBatchSizeBatchSampler,
-                batch_size=2,
+                batch_size=4,
             ),
             test_datapipe=dict(
                 _cls=UtteranceClassificationPipe,
             ),
             test_sampler=dict(
                 _cls=FixedBatchSizeBatchSampler,
-                batch_size=2,
+                batch_size=4,
             ),
             downstream=dict(
                 _cls=MeanPoolingLinear,
@@ -77,12 +77,12 @@ class SuperbER(SuperbProblem):
                 lr=1.0e-4,
             ),
             trainer=dict(
-                total_steps=1000,
-                log_step=100,
-                eval_step=500,
-                save_step=100,
+                total_steps=30000,
+                log_step=500,
+                eval_step=1000,
+                save_step=1000,
                 gradient_clipping=1.0,
-                gradient_accumulate_steps=4,
+                gradient_accumulate_steps=8,
                 valid_metric="accuracy",
                 valid_higher_better=True,
             ),

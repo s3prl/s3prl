@@ -102,7 +102,9 @@ class Trainer:
                 int,
             ),
             eval_batch=field(
-                -1, "Only go through 'eval_batch' steps when doing evaluation. Use -1 to disable", int
+                -1,
+                "Only go through 'eval_batch' steps when doing evaluation. Use -1 to disable",
+                int,
             ),
             gradient_clipping=field(
                 1.0, "Clipping the gradient is essential especially for RNNs", float

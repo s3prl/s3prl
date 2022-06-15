@@ -18,11 +18,7 @@ from s3prl.dataset.common_pipes import LoadAudio, RenameItems
 from s3prl.dataset.multiclass_tagging import BuildMultiClassTagging
 from s3prl.encoder.category import CategoryEncoder
 from s3prl.nn.rnn import SuperbSDModel
-from s3prl.sampler import (
-    FixedBatchSizeBatchSampler,
-    GroupSameItemSampler,
-    MaxTimestampBatchSampler,
-)
+from s3prl.sampler import FixedBatchSizeBatchSampler, GroupSameItemSampler
 from s3prl.task.diarization import DiarizationPIT
 from s3prl.util.configuration import default_cfg, field
 
@@ -108,8 +104,8 @@ class SuperbSD(SuperbProblem):
                 _cls=SuperbSDDatapipe,
             ),
             train_sampler=dict(
-                _cls=MaxTimestampBatchSampler,
-                max_timestamp=16000 * 200,
+                _cls=FixedBatchSizeBatchSampler,
+                batch_size=8,
                 shuffle=True,
             ),
             valid_datapipe=dict(
@@ -117,7 +113,7 @@ class SuperbSD(SuperbProblem):
             ),
             valid_sampler=dict(
                 _cls=FixedBatchSizeBatchSampler,
-                batch_size=2,
+                batch_size=1,
             ),
             test_datapipe=dict(
                 _cls=SuperbSDDatapipe,
@@ -152,10 +148,10 @@ class SuperbSD(SuperbProblem):
                 lr=1.0e-4,
             ),
             trainer=dict(
-                total_steps=1000,
-                log_step=100,
+                total_steps=30000,
+                log_step=500,
                 eval_step=500,
-                save_step=100,
+                save_step=500,
                 gradient_clipping=1.0,
                 gradient_accumulate_steps=4,
                 valid_metric="der",

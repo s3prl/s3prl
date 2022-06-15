@@ -23,8 +23,8 @@ class SuperbASR(SuperbProblem):
                 _cls=Speech2TextPipe,
             ),
             train_sampler=dict(
-                _cls=MaxTimestampBatchSampler,
-                max_timestamp=16000 * 100,
+                _cls=FixedBatchSizeBatchSampler,
+                batch_size=32,
                 shuffle=True,
             ),
             valid_datapipe=dict(
@@ -32,7 +32,7 @@ class SuperbASR(SuperbProblem):
             ),
             valid_sampler=dict(
                 _cls=FixedBatchSizeBatchSampler,
-                batch_size=32,
+                batch_size=1,
             ),
             test_datapipe=dict(
                 _cls=Speech2TextPipe,

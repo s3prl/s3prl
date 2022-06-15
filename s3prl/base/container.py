@@ -507,7 +507,7 @@ class Container(OrderedDict):
     def split(self, start_or_end: int, end: int = None, step: int = 1):
         selected = self.slice(start_or_end, end, step, as_type="dict")
         deselected = self.deselect(*list(selected.keys()))
-        return *list(selected.values()), deselected
+        return [*list(selected.values()), deselected]
 
     def select(self, *names: List[str]):
         return self.subset(*names, as_type="dict")
