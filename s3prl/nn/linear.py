@@ -45,12 +45,19 @@ class FrameLevelLinear(NNModule):
 
 class MeanPoolingLinear(NNModule):
     def __init__(
-        self, input_size: int, output_size: int, hidden_size: int = 256, **kwargs
+        self,
+        input_size: int,
+        output_size: int,
+        hidden_size: int = 256,
+        **kwargs,
     ):
         super().__init__()
-        self.pre_linear = nn.Linear(input_size, hidden_size)
+        latest_size = input_size
+        if hidden_size is not None:
+            self.pre_linear = nn.Linear(latest_size, hidden_size)
+            latest_size = hidden_size
         self.pooling = MeanPooling()
-        self.post_linear = nn.Linear(hidden_size, output_size)
+        self.post_linear = nn.Linear(latest_size, output_size)
 
     @property
     def input_size(self):
@@ -61,7 +68,8 @@ class MeanPoolingLinear(NNModule):
         return self.arguments.output_size
 
     def forward(self, xs, xs_len=None):
-        xs = self.pre_linear(xs)
+        if hasattr(self, "pre_linear"):
+            xs = self.pre_linear(xs)
         xs_pooled = self.pooling(xs, xs_len)
         ys = self.post_linear(xs_pooled)
         return Output(output=ys)
