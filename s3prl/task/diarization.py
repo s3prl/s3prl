@@ -6,7 +6,7 @@ from s3prl import Logs
 from s3prl.base.output import Output
 from s3prl.base.workspace import Workspace
 from s3prl.metric.diarization import calc_diarization_error
-from s3prl.metric.pit import get_label_perm, pit_loss
+from s3prl.nn.pit import get_label_perm, pit_loss
 
 from .base import Task
 
