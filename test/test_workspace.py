@@ -8,7 +8,7 @@ import torch
 import torch.nn as nn
 import torch.optim
 
-from s3prl.nn.linear import MeanPoolingLinear
+from s3prl.nn import UtteranceLevel
 from s3prl.util.workspace import Checkpoint, Workspace
 
 
@@ -26,13 +26,13 @@ def test_workspace():
         with pytest.raises(KeyError):
             workspace["hello"]
 
-        model = MeanPoolingLinear(3, 4, 128)
+        model = UtteranceLevel(3, 4, [128])
         workspace["model"] = model
         new_model = workspace["model"]
         assert id(model) != id(new_model)
         assert torch.allclose(
-            model.state_dict()["pre_linear.weight"].view(-1),
-            new_model.state_dict()["pre_linear.weight"].view(-1),
+            model.state_dict()["final_proj.weight"].view(-1),
+            new_model.state_dict()["final_proj.weight"].view(-1),
         )
         assert "model" in workspace
         assert (workspace / "model.obj").is_file()
@@ -132,7 +132,7 @@ def test_delete():
 
 
 def test_workspace_environ():
-    from s3prl.nn.linear import MeanPoolingLinear
+    from s3prl.nn import UtteranceLevel
 
     with TemporaryDirectory() as filepath:
         workspace = Workspace(filepath)
@@ -140,7 +140,7 @@ def test_workspace_environ():
             output_size=3,
             categories=[1, 2, 3],
             pred="hello",
-            model=MeanPoolingLinear(3, 4),
+            model=UtteranceLevel(3, 4),
             stats=dict(k=4),
         )
         workspace.environ.update(environ)

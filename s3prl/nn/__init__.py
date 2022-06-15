@@ -1,6 +1,7 @@
 from .base import NNModule
-from .linear import FrameLevelLinear, MeanPoolingLinear
 from .pooling import MeanPooling
+from .common import FrameLevel, UtteranceLevel
+from .linear import FrameLevelLinear, MeanPoolingLinear
 from .rnn import RNNEncoder
 from .upstream import S3PRLUpstream
 from .upstream_downstream_model import UpstreamDownstreamModel

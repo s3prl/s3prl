@@ -211,8 +211,6 @@ class Container(OrderedDict):
             for key in list(obj.keys()):
                 if key.startswith("_"):
                     obj.pop(key)
-                else:
-                    cls._no_underscore(obj[key])
 
     def cls_fields(self, holder: list = None):
         holder = []
@@ -296,14 +294,18 @@ class Container(OrderedDict):
 
     @staticmethod
     def deserialize_cls(key):
+        if key == __class__.UNFILLED_PATTERN:
+            return key
+
         cls = key
-        try:
-            cls = _qualname_to_cls(key)
-        except:
+        if not (isinstance(key, type) or callable(key)):
             try:
-                cls = registry.get(key)
+                cls = _qualname_to_cls(key)
             except:
-                pass
+                try:
+                    cls = registry.get(key)
+                except:
+                    raise ValueError(f"Cannot resolve _cls = {key}")
         return cls
 
     @staticmethod
@@ -324,7 +326,11 @@ class Container(OrderedDict):
         if type(v) == dict:
             v = __class__(v)
         if k == __class__.QUALNAME_PATTERN:
-            v = self.deserialize_cls(v)
+            if isinstance(v, field):
+                cls = self.deserialize_cls(v.value)
+                v.value = cls
+            else:
+                v = self.deserialize_cls(v)
         if (
             k in self
             and isinstance(self[k], field)

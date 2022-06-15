@@ -34,6 +34,16 @@ from .workspace import Workspace
 logger = logging.getLogger(__name__)
 
 
+def _add_doc(obj, doc, last=True):
+    indent = _preprocess_doc(obj)
+    doc = "\n".join([f"{indent}{line}" for line in doc.split("\n")])
+
+    if last:
+        obj.__doc__ = f"{obj.__doc__}\n{doc}"
+    else:
+        obj.__doc__ = f"{doc}\n{obj.__doc__}"
+
+
 def _preprocess_doc(obj):
     obj.__doc__ = obj.__doc__ or ""
     doc = obj.__doc__

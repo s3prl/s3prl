@@ -47,8 +47,10 @@ def test_container_cls_fields():
 
 
 def test_kwds():
-    config = Container(a=3, _cls="hello")
-    assert config._cls == "hello"
+    from s3prl.nn.pooling import MeanPooling
+
+    config = Container(a=3, _cls="s3prl.nn.pooling.MeanPooling")
+    assert config._cls == MeanPooling
     assert "_cls" not in config.kwds()
 
 

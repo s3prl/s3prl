@@ -1,8 +1,8 @@
 import torch
 
-from s3prl.nn import FrameLevelLinear
+from s3prl.nn import FrameLevel
 
 
-def test_FrameLevelLinear(helpers):
-    module = FrameLevelLinear(3, 4, [5, 6])
+def test_FrameLevel(helpers):
+    module = FrameLevel(3, 4, [5, 6])
     helpers.validate_module(module, torch.randn(32, module.input_size))

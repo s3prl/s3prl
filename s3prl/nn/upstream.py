@@ -84,21 +84,21 @@ class S3PRLUpstream(NNModule):
     def output_size(self):
         return self._output_size
 
-    def forward(self, wav, wav_len, **kwargs):
+    def forward(self, x, x_len, **kwargs):
         """
         Args:
-            wav (torch.Tensor): (B, T, 1)
-            wav_len (torch.LongTensor): (B, )
+            x (torch.Tensor): (B, T, 1)
+            x_len (torch.LongTensor): (B, )
 
         Return:
             hidden_states (list): a list of torch.Tensor (B, T, H)
             hidden_states_len (list): a list of torch.LongTensor (B, )
         """
-        assert wav.dim() == 3
-        assert wav.size(-1) == self.input_size
+        assert x.dim() == 3
+        assert x.size(-1) == self.input_size
 
-        wavs = [w.view(-1)[:l] for w, l in zip(wav, wav_len)]
-        hidden_states = self.upstream(wavs)[self.feature_selection]
+        xs = [w.view(-1)[:l] for w, l in zip(x, x_len)]
+        hidden_states = self.upstream(xs)[self.feature_selection]
         downsample_rate = self.upstream.get_downsample_rates(self.feature_selection)
 
         if isinstance(hidden_states, torch.Tensor):
@@ -108,9 +108,9 @@ class S3PRLUpstream(NNModule):
             torch.LongTensor(
                 [
                     min(int(l.item() / downsample_rate), hidden_states[0].size(1))
-                    for l in wav_len
+                    for l in x_len
                 ]
-            ).to(wav.device)
+            ).to(x.device)
         ] * len(hidden_states)
 
         if self.layer_selection is not None:

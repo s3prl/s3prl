@@ -1,49 +1,18 @@
-from typing import List
-
-import torch
-import torch.nn as nn
-
-from s3prl import Output
-
-from . import NNModule
-from .pooling import MeanPooling
+from .common import FrameLevel, UtteranceLevel
 
 
-class FrameLevelLinear(NNModule):
+class FrameLevelLinear(FrameLevel):
     def __init__(
         self,
         input_size: int,
         output_size: int,
-        hidden_sizes: List[int] = None,
+        hidden_size: int = 256,
         **kwds,
     ):
-        super().__init__()
-        latest_size = input_size
-        hidden_layers = []
-        if hidden_sizes is not None:
-            for size in hidden_sizes:
-                hidden_layers += [
-                    nn.Linear(latest_size, size),
-                ]
-                latest_size = size
-        self.hidden_layers = nn.Sequential(*hidden_layers)
-        self.model = nn.Linear(latest_size, output_size)
-
-    @property
-    def input_size(self):
-        return self.arguments.input_size
-
-    @property
-    def output_size(self):
-        return self.arguments.output_size
-
-    def forward(self, x, x_len=None):
-        ys = self.hidden_layers(x)
-        ys = self.model(ys)
-        return Output(output=ys, output_len=x_len)
+        super().__init__(input_size, output_size, hidden_sizes=[hidden_size])
 
 
-class MeanPoolingLinear(NNModule):
+class MeanPoolingLinear(UtteranceLevel):
     def __init__(
         self,
         input_size: int,
@@ -51,25 +20,4 @@ class MeanPoolingLinear(NNModule):
         hidden_size: int = 256,
         **kwargs,
     ):
-        super().__init__()
-        latest_size = input_size
-        if hidden_size is not None:
-            self.pre_linear = nn.Linear(latest_size, hidden_size)
-            latest_size = hidden_size
-        self.pooling = MeanPooling()
-        self.post_linear = nn.Linear(latest_size, output_size)
-
-    @property
-    def input_size(self):
-        return self.arguments.input_size
-
-    @property
-    def output_size(self):
-        return self.arguments.output_size
-
-    def forward(self, xs, xs_len=None):
-        if hasattr(self, "pre_linear"):
-            xs = self.pre_linear(xs)
-        xs_pooled = self.pooling(xs, xs_len)
-        ys = self.post_linear(xs_pooled)
-        return Output(output=ys)
+        super().__init__(input_size, output_size, hidden_sizes=[hidden_size])

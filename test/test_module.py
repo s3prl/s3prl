@@ -4,7 +4,7 @@ import torch
 import torch.nn as nn
 
 from s3prl import Module
-from s3prl.nn import FrameLevelLinear as Linear
+from s3prl.nn import FrameLevel as Linear
 
 
 class AnyChild(Module):
@@ -42,7 +42,7 @@ def test_state_dict():
     linear = Linear(3, 4)
     any = AnyChild(linear)
     states = any.state_dict()
-    assert len(states) == 4
+    assert len(states) == 6
     any.load_state_dict(states)
 
 

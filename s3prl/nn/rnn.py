@@ -150,6 +150,7 @@ class RNNEncoder(NNModule):
         input_size: int,
         output_size: int,
         module: str = "LSTM",
+        proj_size: int = 1024,
         hidden_size: List[int] = [1024],
         dropout: List[float] = [0.0],
         layer_norm: List[bool] = [False],
@@ -157,7 +158,7 @@ class RNNEncoder(NNModule):
         sample_rate: List[int] = [1],
         sample_style: str = "drop",
         bidirectional: bool = False,
-        **kwargs,
+        **kwds,
     ):
         """RNN Encoder for sequence to sequence modeling, e.g., ASR.
 
@@ -177,6 +178,9 @@ class RNNEncoder(NNModule):
 
         prev_size = input_size
 
+        self.proj = nn.Linear(prev_size, proj_size)
+        prev_size = proj_size
+
         self.rnns = nn.ModuleList()
         for i in range(len(hidden_size)):
             rnn_layer = RNNLayer(
@@ -195,9 +199,9 @@ class RNNEncoder(NNModule):
 
         self.linear = nn.Linear(prev_size, output_size)
 
-    def forward(self, xs: torch.Tensor, xs_len: torch.LongTensor) -> Output:
-        # FIXME: hack for incorrect upstream length
-        xs_len = torch.clamp_max(xs_len, xs.shape[1])
+    def forward(self, x: torch.Tensor, x_len: torch.LongTensor) -> Output:
+        xs, xs_len = x, x_len
+        xs = self.proj(xs)
 
         for rnn in self.rnns:
             xs, xs_len = rnn(xs, xs_len).slice(2)

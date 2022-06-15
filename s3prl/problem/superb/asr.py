@@ -5,6 +5,7 @@ from s3prl.corpus.librispeech import librispeech_for_speech2text
 from s3prl.dataset.speech2text_pipe import Speech2TextPipe
 from s3prl.encoder.tokenizer import CharacterTokenizer
 from s3prl.nn import RNNEncoder
+from s3prl.nn.specaug import ModelWithSpecaug
 from s3prl.sampler import FixedBatchSizeBatchSampler, MaxTimestampBatchSampler
 from s3prl.task.speech2text_ctc_task import Speech2TextCTCTask
 from s3prl.util.configuration import default_cfg
@@ -24,7 +25,7 @@ class SuperbASR(SuperbProblem):
             ),
             train_sampler=dict(
                 _cls=FixedBatchSizeBatchSampler,
-                batch_size=32,
+                batch_size=16,
                 shuffle=True,
             ),
             valid_datapipe=dict(
@@ -42,15 +43,20 @@ class SuperbASR(SuperbProblem):
                 batch_size=1,
             ),
             downstream=dict(
-                _cls=RNNEncoder,
-                module="LSTM",
-                hidden_size=[1024, 1024],
-                dropout=[0.2, 0.2],
-                layer_norm=[False, False],
-                proj=[False, False],
-                sample_rate=[1, 1],
-                sample_style="concat",
-                bidirectional=True,
+                _cls=ModelWithSpecaug,
+                model_cfg=dict(
+                    _cls=RNNEncoder,
+                    module="LSTM",
+                    proj_size=1024,
+                    hidden_size=[1024, 1024],
+                    dropout=[0.2, 0.2],
+                    layer_norm=[False, False],
+                    proj=[False, False],
+                    sample_rate=[1, 1],
+                    sample_style="concat",
+                    bidirectional=True,
+                ),
+                specaug_cfg=dict(),
             ),
             task=dict(
                 _cls=Speech2TextCTCTask,
