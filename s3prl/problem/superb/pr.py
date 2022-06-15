@@ -19,8 +19,8 @@ class SuperbPR(SuperbProblem):
                 _cls=Speech2PhonemePipe,
             ),
             train_sampler=dict(
-                _cls=MaxTimestampBatchSampler,
-                max_timestamp=16000 * 100,
+                _cls=FixedBatchSizeBatchSampler,
+                batch_size=8,
                 shuffle=True,
             ),
             valid_datapipe=dict(
@@ -28,14 +28,14 @@ class SuperbPR(SuperbProblem):
             ),
             valid_sampler=dict(
                 _cls=FixedBatchSizeBatchSampler,
-                batch_size=16,
+                batch_size=8,
             ),
             test_datapipe=dict(
                 _cls=Speech2PhonemePipe,
             ),
             test_sampler=dict(
                 _cls=FixedBatchSizeBatchSampler,
-                batch_size=1,
+                batch_size=8,
             ),
             downstream=dict(
                 _cls=FrameLevelLinear,
@@ -56,12 +56,12 @@ class SuperbPR(SuperbProblem):
                 lr=1.0e-4,
             ),
             trainer=dict(
-                total_steps=200000,
+                total_steps=100000,
                 log_step=100,
-                eval_step=2000,
-                save_step=500,
+                eval_step=1000,
+                save_step=100,
                 gradient_clipping=1.0,
-                gradient_accumulate_steps=1,
+                gradient_accumulate_steps=2,
                 valid_metric="wer",
                 valid_higher_better=False,
             ),

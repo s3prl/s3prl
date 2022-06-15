@@ -1,7 +1,7 @@
 from typing import Iterator, TypeVar
 
 from speechbrain.dataio.sampler import ReproducibleRandomSampler
-from torch.utils.data import BatchSampler, Sampler, SequentialSampler
+from torch.utils.data import BatchSampler, Sampler, SequentialSampler, RandomSampler
 
 from .base import Sampler
 
@@ -25,7 +25,7 @@ class FixedBatchSizeBatchSampler(Sampler):
 
         super().__init__(dataset)
         if shuffle:
-            self.sampler = ReproducibleRandomSampler(dataset, seed=seed)
+            self.sampler = RandomSampler(dataset)
         else:
             self.sampler = SequentialSampler(dataset)
 
