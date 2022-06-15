@@ -9,6 +9,7 @@
 import torch
 
 from s3prl import Container, Output
+
 from .base import NNModule
 
 DEFAULT_TIME_WARP_MODE = "bicubic"

@@ -3,7 +3,7 @@ from typing import List
 import torch
 import torch.nn as nn
 
-from s3prl import Output, Container
+from s3prl import Container, Output
 
 from . import NNModule
 
