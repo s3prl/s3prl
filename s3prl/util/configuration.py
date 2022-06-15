@@ -44,16 +44,6 @@ def _preprocess_doc(obj):
     return indent
 
 
-def _add_doc(obj, doc, last=True):
-    indent = _preprocess_doc(obj)
-    doc = "\n".join([f"{indent}{line}" for line in doc.split("\n")])
-
-    if last:
-        obj.__doc__ = f"{obj.__doc__}\n{doc}"
-    else:
-        obj.__doc__ = f"{doc}\n{obj.__doc__}"
-
-
 class _CallableWithConfig:
     @property
     @abc.abstractmethod
@@ -287,113 +277,6 @@ def default_cfg(**cfg):
 
     def wrapper(caller):
         wrapped_caller = _CallableWithDefaultConfig(caller, cfg)
-        return wrapped_caller
-
-    return wrapper
-
-
-class _CallableWithOverrideParentConfig(_CallableWithConfig):
-    def __init__(self, caller: Callable, override_cfg: dict) -> None:
-        self._caller = caller
-        assert isinstance(caller, classmethod)
-        self._func = caller.__func__
-        self._override_cfg = Container(override_cfg)
-
-    @property
-    def is_classmethod(self):
-        return True
-
-    def __set_name__(self, owner, name):
-        if hasattr(self._func, "__set_name__"):
-            self._func.__set_name__(owner, name)
-
-        if isinstance(self._caller, classmethod):
-            setattr(owner, name, classmethod(self))
-
-        self._parent_method = getattr(super(owner, owner), name)
-        overridden_default_cfg: Container = self._parent_method.default_cfg.clone()
-        overridden_default_cfg.override(self._override_cfg)
-
-        stage_cfgs = []
-        for key in overridden_default_cfg.keys():
-            match = re.search("stage_(\d)+", key)
-            if match is not None:
-                step_id = int(match.groups()[0])
-                if field.sanitize(overridden_default_cfg[key]["_method"]) != "???":
-                    stage_cfgs.append((step_id, key, overridden_default_cfg[key]))
-        stage_cfgs.sort(key=lambda x: x[0])
-        if len(stage_cfgs) > 0:
-            for step_id, key, stage_cfg in stage_cfgs:
-                stage_method = getattr(owner, field.sanitize(stage_cfg["_method"]))
-                stage_default_cfg = stage_method.default_cfg.clone()
-                stage_default_cfg.override(stage_cfg)
-                overridden_default_cfg[key] = stage_default_cfg
-
-        self._default_cfg = overridden_default_cfg
-        functools.update_wrapper(self, self._func)
-        self.add_default_cfg_doc()
-
-        doc = f"\n\n.. hint::\n\n    Run the following stages sequentially. Please refer to the documentation of each stage.\n"
-        doc += "    Each stage has its config, however, the top-level options (like to most outer 'workspace' option) will be automatically "
-        doc += "    populated to each stage config. Hence, by simply assigin the most outer workspace, each stage's workspace is assigned "
-        doc += "    with the same value. You can still set each stage's option by `stage_0=dict(workspace='specific_path')`, the stage-specific "
-        doc += "    value will override the auto-assigned top-level value.\n\n"
-
-        if len(stage_cfgs) > 0:
-            for step_id, key, stage_cfg in stage_cfgs:
-                stage_method = getattr(owner, field.sanitize(stage_cfg["_method"]))
-                doc += f"    |  **stage {step_id}:** :py:obj:`~{stage_method.__module__}.{stage_method.__qualname__}`\n"
-
-            _add_doc(self, doc, last=False)
-
-        doc = f"\n\n.. note::\n\n    Parent method: :py:obj:`~{self._parent_method.__module__}.{self._parent_method.__qualname__}`"
-        _add_doc(self, doc, last=False)
-
-    @property
-    def default_cfg(self) -> Container:
-        return self._default_cfg.clone()
-
-
-def override_parent_cfg(**cfg):
-    """
-    **Usage**
-
-    This has the simliar usage as the `default_cfg`, while it first takes the same-name parent method's \
-        default config as its default config, and then override it with the overridding cfg.
-
-    .. code-block:: python
-
-        @override_parent_cfg(
-            a=100,
-        )
-        def train(cls, **cfg):
-            assert "a" in cfg
-            assert "x" in cfg["b"]
-            assert "y" in cfg["b"]
-
-    You can then call `cls.train`:
-
-    .. code-block:: python
-
-        cls.train()
-
-    The `cls.train` method will then get the follow final cfg, taking the default config \
-        from either the `override_parent_cfg` or `default_cfg` of its `parent.train` method
-
-    .. code-block:: python
-
-        cfg = {
-            "a": 100,
-            "b": {
-                "x": 7,
-                "y": 8,
-            }
-        }
-
-    """
-
-    def wrapper(caller):
-        wrapped_caller = _CallableWithOverrideParentConfig(caller, cfg)
         return wrapped_caller
 
     return wrapper

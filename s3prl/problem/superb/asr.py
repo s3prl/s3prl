@@ -7,7 +7,7 @@ from s3prl.encoder.tokenizer import CharacterTokenizer
 from s3prl.nn import RNNEncoder
 from s3prl.sampler import FixedBatchSizeBatchSampler, MaxTimestampBatchSampler
 from s3prl.task.speech2text_ctc_task import Speech2TextCTCTask
-from s3prl.util.configuration import default_cfg, override_parent_cfg
+from s3prl.util.configuration import default_cfg
 
 from .base import SuperbProblem
 

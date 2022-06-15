@@ -2,7 +2,7 @@ import tempfile
 
 import pytest
 
-from s3prl.util.configuration import default_cfg, override_parent_cfg
+from s3prl.util.configuration import default_cfg
 from s3prl.util.workspace import Workspace
 
 
@@ -65,27 +65,6 @@ def test_callable_with_cfg_cls():
         Utility.train(cfg=dict(apple=3))
 
 
-class ChildUtility(Utility):
-    @override_parent_cfg(
-        a=7,
-        c=5,
-        d=4,
-    )
-    @classmethod
-    def train(cls, **cfg):
-        """
-        This is Utility.train function
-        """
-        return cfg
-
-
-def test_callable_with_cfg_child_cls():
-    overridden_cfg = ChildUtility.train(z=8)
-    assert overridden_cfg == dict(a=7, b=4, c=5, d=4, z=8)
-    assert "a: 7" in ChildUtility.train.__doc__
-    assert "b: 4" in ChildUtility.train.__doc__
-
-
 class ResumableUtility:
     @default_cfg(a=7, c=5, d=4, resume=True, workspace="???")
     @classmethod
@@ -96,17 +75,7 @@ class ResumableUtility:
         return cfg
 
 
-class ResumableChildUtility(Utility):
-    @override_parent_cfg(a=7, c=5, d=4, resume=True, workspace="???")
-    @classmethod
-    def train(cls, **cfg):
-        """
-        This is Utility.train function
-        """
-        return cfg
-
-
-@pytest.mark.parametrize("cls", [ResumableUtility, ResumableChildUtility])
+@pytest.mark.parametrize("cls", [ResumableUtility])
 def test_resumable(cls):
     with tempfile.TemporaryDirectory() as tempdir:
         old_cfg = cls.train(workspace=tempdir, z=8, c=1)
