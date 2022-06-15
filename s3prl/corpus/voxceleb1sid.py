@@ -7,6 +7,7 @@ from joblib import Parallel, delayed
 from tqdm import tqdm
 
 from s3prl import Output, cache
+from s3prl.base.cache import _cache_root
 from s3prl.util import registry
 
 from .base import Corpus
@@ -49,7 +50,7 @@ class VoxCeleb1SID(Corpus):
     @staticmethod
     def _get_standard_usage(dataset_root: Path):
         split_filename = SPLIT_FILE_URL.split("/")[-1]
-        split_filepath = dataset_root / split_filename
+        split_filepath = Path(_cache_root) / split_filename
         if not split_filepath.is_file():
             with FileLock(str(split_filepath) + ".lock"):
                 os.system(f"wget {SPLIT_FILE_URL} -O {str(split_filepath)}")
