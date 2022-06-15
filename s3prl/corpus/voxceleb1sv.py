@@ -15,11 +15,9 @@ SPLIT_FILE_URL = "https://www.robots.ox.ac.uk/~vgg/data/voxceleb/meta/iden_split
 TRIAL_FILE_URL = "https://openslr.magicdatatech.com/resources/49/voxceleb1_test_v2.txt"
 
 
-class VoxCeleb1(Corpus):
+class VoxCeleb1SV(Corpus):
     def __init__(self, dataset_root: str, n_jobs: int = 4) -> None:
-
         self.dataset_root = Path(dataset_root).resolve()
-
         train_path, valid_path, test_path, speakerid2label = self.format_path(
             self.dataset_root
         )
@@ -27,7 +25,6 @@ class VoxCeleb1(Corpus):
         self.train_data = self.path2data(train_path, speakerid2label)
         self.valid_data = self.path2data(valid_path, speakerid2label)
         self.test_data = {uid: {"wav_path": uid, "label": None} for uid in test_path}
-
         self.test_trials = self.format_test_trials(self.dataset_root)
 
     @staticmethod
@@ -124,13 +121,12 @@ class VoxCeleb1(Corpus):
         return None
 
 
-def VoxCeleb1SV(dataset_root: str, n_jobs: int = 4):
-
-    voxceleb1 = VoxCeleb1(dataset_root, n_jobs)
+def voxceleb1_for_sv(dataset_root: str, n_jobs: int = 4):
+    corpus = VoxCeleb1SV(dataset_root, n_jobs)
     return Output(
-        train_data=voxceleb1.train_data,
-        valid_data=voxceleb1.valid_data,
-        test_data=voxceleb1.test_data,
-        trials=voxceleb1.test_trials,
-        categories=voxceleb1.categories,
+        train_data=corpus.train_data,
+        valid_data=corpus.valid_data,
+        test_data=corpus.test_data,
+        trials=corpus.test_trials,
+        categories=corpus.categories,
     )

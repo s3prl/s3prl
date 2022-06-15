@@ -7,14 +7,13 @@ from tqdm import tqdm
 
 from s3prl import Container, field
 from s3prl.base.logdata import Logs
-from s3prl.corpus.voxceleb1sv import VoxCeleb1SV
+from s3prl.corpus.voxceleb1sv import voxceleb1_for_sv
 from s3prl.dataset.base import DataLoader
 from s3prl.dataset.speaker_verification_pipe import SpeakerClassificationPipe
 from s3prl.nn import speaker_embedding_extractor
-from s3prl.problem.trainer import Trainer
 from s3prl.sampler import FixedBatchSizeBatchSampler, MaxTimestampBatchSampler
 from s3prl.task.speaker_verification_task import SpeakerVerification
-from s3prl.util.configuration import override_parent_cfg
+from s3prl.util.configuration import default_cfg
 from s3prl.util.workspace import Workspace
 
 from .base import SuperbProblem
@@ -27,65 +26,69 @@ class SuperbSV(SuperbProblem):
     Superb Speaker Verification problem
     """
 
-    @override_parent_cfg(
-        corpus=dict(
-            _cls=VoxCeleb1SV,
-            dataset_root="???",
-        ),
-        train_datapipe=dict(
-            _cls=SpeakerClassificationPipe,
-            train_category_encoder=True,
-        ),
-        train_sampler=dict(
-            _cls=MaxTimestampBatchSampler,
-            max_timestamp=16000 * 200,
-            shuffle=True,
-        ),
-        valid_datapipe=dict(
-            _cls=SpeakerClassificationPipe,
-        ),
-        valid_sampler=dict(
-            _cls=FixedBatchSizeBatchSampler,
-            batch_size=2,
-        ),
-        test_datapipe=dict(
-            _cls=SpeakerClassificationPipe,
-        ),
-        test_sampler=dict(
-            _cls=FixedBatchSizeBatchSampler,
-            batch_size=2,
-        ),
-        downstream=dict(
-            _cls=speaker_embedding_extractor,
-            hidden_size=256,
-        ),
-        task=dict(
-            _cls=SpeakerVerification,
-        ),
+    @default_cfg(
+        **SuperbProblem.setup.default_except(
+            corpus=dict(
+                _cls=voxceleb1_for_sv,
+                dataset_root="???",
+            ),
+            train_datapipe=dict(
+                _cls=SpeakerClassificationPipe,
+                train_category_encoder=True,
+            ),
+            train_sampler=dict(
+                _cls=FixedBatchSizeBatchSampler,
+                batch_size=10,
+                shuffle=True,
+            ),
+            valid_datapipe=dict(
+                _cls=SpeakerClassificationPipe,
+            ),
+            valid_sampler=dict(
+                _cls=FixedBatchSizeBatchSampler,
+                batch_size=1,
+            ),
+            test_datapipe=dict(
+                _cls=SpeakerClassificationPipe,
+            ),
+            test_sampler=dict(
+                _cls=FixedBatchSizeBatchSampler,
+                batch_size=1,
+            ),
+            downstream=dict(
+                _cls=speaker_embedding_extractor,
+                hidden_size=256,
+            ),
+            task=dict(
+                _cls=SpeakerVerification,
+            ),
+        )
     )
     @classmethod
-    def setup_problem(cls, **cfg):
+    def setup(cls, **cfg):
         """
-        This setups the IC problem, containing train/valid/test datasets & samplers and a task object
+        This setups the ASV problem, containing train/valid/test datasets & samplers and a task object
         """
-        super().setup_problem(**cfg)
+        super().setup(**cfg)
 
-    @override_parent_cfg(
-        optimizer=dict(
-            _cls="torch.optim.Adam",
-            lr=1.0e-4,
-        ),
-        trainer=dict(
-            total_steps=1000,
-            log_step=100,
-            eval_step=500,
-            save_step=100,
-            gradient_clipping=1.0,
-            gradient_accumulate_steps=4,
-            valid_metric="accuracy",
-            valid_higher_better=True,
-            max_keep=2,
-        ),
+    @default_cfg(
+        **SuperbProblem.train.default_except(
+            optimizer=dict(
+                _cls="torch.optim.Adam",
+                lr=1.0e-4,
+            ),
+            trainer=dict(
+                total_steps=200000,
+                log_step=500,
+                eval_step=field(1e10, "ASV do not use validation set"),
+                save_step=20000,
+                gradient_clipping=1.0,
+                gradient_accumulate_steps=5,
+                valid_metric="eer",
+                valid_higher_better=False,
+                max_keep=10,
+            ),
+        )
     )
     @classmethod
     def train(cls, **cfg):
@@ -94,11 +97,24 @@ class SuperbSV(SuperbProblem):
         """
         super().train(**cfg)
 
-    @override_parent_cfg(
-        inference_steps=field(
-            "???",
-            "The steps used for inference\n",
-            "egs: 900,,1000 - use the checkpoint of 90 and 100 steps for inference",
+    @default_cfg(
+        **SuperbProblem.inference.default_except(
+            inference_steps=field(
+                [
+                    20000,
+                    40000,
+                    60000,
+                    80000,
+                    100000,
+                    120000,
+                    140000,
+                    160000,
+                    180000,
+                    200000,
+                ],
+                "The steps used for inference\n",
+                "egs: [900, 1000] - use the checkpoint of 90 and 100 steps for inference",
+            )
         )
     )
     @classmethod
@@ -112,8 +128,7 @@ class SuperbSV(SuperbProblem):
         sampler = workspace[f"{cfg.split_name}_sampler"]
         dataloader = DataLoader(dataset, sampler, num_workers=cfg.n_jobs)
 
-        inference_steps = cfg.inference_steps.split(",,")
-        for step in inference_steps:
+        for step in cfg.inference_steps:
 
             step_dir = workspace / f"step-{step}"
             task = step_dir["task"]
@@ -133,18 +148,15 @@ class SuperbSV(SuperbProblem):
             for key in logs.keys():
                 logger.info(f"{key}: {logs[key].data}")
 
-    @override_parent_cfg(
-        start_stage=0,
-        final_stage=2,
-        stage_0=dict(
-            _method="setup_problem",
-        ),
-        stage_1=dict(
-            _method="train",
-        ),
-        stage_2=dict(
-            _method="inference",
-        ),
+    @default_cfg(
+        **SuperbProblem.run_stages.default_except(
+            stages=["setup", "train", "inference"],
+            start_stage="setup",
+            final_stage="inference",
+            setup=setup.default_cfg.deselect("workspace", "resume", "dryrun"),
+            train=train.default_cfg.deselect("workspace", "resume", "dryrun"),
+            inference=inference.default_cfg.deselect("workspace", "resume", "dryrun"),
+        )
     )
     @classmethod
     def run_stages(cls, **cfg):
