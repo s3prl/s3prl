@@ -6,18 +6,28 @@ from torch.nn.functional import gumbel_softmax
 EPS = 1e-10
 
 
-class VQLayer(nn.Module):
+class VqApcLayer(nn.Module):
+    """
+    The Vq Layer.
+    Currently used in the upstream model of VQ-APC (nn/rnn_apc.py).
+    Defines a VQ layer that follows an RNN layer.
+    """
+
     def __init__(self, input_size, codebook_size, code_dim, gumbel_temperature):
         """
-        Defines a VQ layer that follows an RNN layer.
-        input_size: an int indicating the pre-quantized input feature size,
-            usually the hidden size of RNN.
-        codebook_size: an int indicating the number of codes.
-        code_dim: an int indicating the size of each code. If not the last layer,
-            then must equal to the RNN hidden size.
-        gumbel_temperature: a float indicating the temperature for gumbel-softmax.
+        Args:
+            input_size (int):
+                An int indicating the pre-quantized input feature size,
+                usually the hidden size of RNN.
+            codebook_size (int):
+                An int indicating the number of codes.
+            code_dim (int):
+                An int indicating the size of each code. If not the last layer,
+                then must equal to the RNN hidden size.
+            gumbel_temperature (float):
+                A float indicating the temperature for gumbel-softmax.
         """
-        super(VQLayer, self).__init__()
+        super(VqApcLayer, self).__init__()
         # Directly map to logits without any transformation.
         self.codebook_size = codebook_size
         self.vq_logits = nn.Linear(input_size, codebook_size)

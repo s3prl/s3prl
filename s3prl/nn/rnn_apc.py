@@ -5,7 +5,7 @@ import torch.nn as nn
 from torch.nn.utils.rnn import pack_padded_sequence, pad_packed_sequence
 
 from s3prl import Output
-from s3prl.nn.vq_apc import VQLayer
+from s3prl.nn.vq_apc import VqApcLayer
 
 
 class RnnApc(nn.Module):
@@ -58,7 +58,7 @@ class RnnApc(nn.Module):
             assert sum(self.vq_code_dims) == hidden_size
             for cs, cd in zip(codebook_size, self.vq_code_dims):
                 self.vq_layers.append(
-                    VQLayer(input_size=cd, code_dim=cd, codebook_size=cs, **vq_config)
+                    VqApcLayer(input_size=cd, code_dim=cd, codebook_size=cs, **vq_config)
                 )
             self.vq_layers = nn.ModuleList(self.vq_layers)
 
