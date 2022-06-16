@@ -6,8 +6,8 @@ from typing import List
 import torch
 
 from s3prl import Logs, Output
-from s3prl.nn.transformer_mockingjay import TransformerModel as BodyExample
-from s3prl.nn.transformer_mockingjay import TransformerSpecPredictionHead as HeadExample
+from s3prl.nn.transformer_mockingjay import TransformerMockingjay as UpstreamExample
+from s3prl.nn.transformer_mockingjay import TransformerSpecPredictionHead as PredictorExample
 
 from . import Task
 
@@ -24,8 +24,8 @@ class FeatReconstructionTask(Task):
 
     def __init__(
         self,
-        upstream: BodyExample,
-        predictor: HeadExample,
+        upstream: UpstreamExample,
+        predictor: PredictorExample,
         loss: torch.nn.L1Loss,
         **kwargs,
     ):

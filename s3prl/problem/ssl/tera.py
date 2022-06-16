@@ -3,7 +3,10 @@ from torch.nn import L1Loss
 
 from s3prl.corpus.librispeech_for_pretrain import librispeech_for_pretrain
 from s3prl.dataset.pretrain_tera_pipe import PretrainTaskPipe
-from s3prl.nn.transformer_tera import TransformerModel, TransformerSpecPredictionHead
+from s3prl.nn.transformer_mockingjay import (
+    TransformerMockingjay,
+    TransformerSpecPredictionHead,
+)
 from s3prl.sampler import FixedBatchSizeBatchSampler, MaxTimestampBatchSampler
 from s3prl.task import Task
 from s3prl.task.feat_reconstruction_task import FeatReconstructionTask
@@ -92,7 +95,7 @@ class Tera(SslProblem):
             batch_size=2,
         ),
         upstream=dict(
-            _cls=TransformerModel,
+            _cls=TransformerMockingjay,
             config=_transformer_config,
             input_dim=_input_size,
             output_attentions=False,
