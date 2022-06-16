@@ -17,7 +17,7 @@ from s3prl.dataset.chunking import UnfoldChunkByFrame
 from s3prl.dataset.common_pipes import LoadAudio, RenameItems
 from s3prl.dataset.multiclass_tagging import BuildMultiClassTagging
 from s3prl.encoder.category import CategoryEncoder
-from s3prl.nn.rnn import SuperbSDModel
+from s3prl.nn.rnn import SuperbDiarizationModel
 from s3prl.sampler import FixedBatchSizeBatchSampler, GroupSameItemSampler
 from s3prl.task.diarization import DiarizationPIT
 from s3prl.util.configuration import default_cfg, field
@@ -124,7 +124,7 @@ class SuperbSD(SuperbProblem):
                 item_order_name="order_in_rec",
             ),
             downstream=dict(
-                _cls=SuperbSDModel,
+                _cls=SuperbDiarizationModel,
                 output_size=2,  # speaker num per recording
                 hidden_size=256,
                 rnn_layers=1,

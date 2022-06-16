@@ -219,7 +219,7 @@ class RNNEncoder(NNModule):
         return self.arguments.output_size
 
 
-class SuperbSDModel(NNModule):
+class SuperbDiarizationModel(NNModule):
     def __init__(self, input_size, output_size, rnn_layers, hidden_size, **kwargs):
         super().__init__()
 
