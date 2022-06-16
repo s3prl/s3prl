@@ -7,7 +7,7 @@ import torch
 
 from s3prl import Logs, Output
 from s3prl.nn.transformer_mockingjay import TransformerMockingjay as UpstreamExample
-from s3prl.nn.transformer_mockingjay import TransformerSpecPredictionHead as PredictorExample
+from s3prl.nn.predictor_mockingjay import PredictorMockingjay as PredictorExample
 
 from . import Task
 

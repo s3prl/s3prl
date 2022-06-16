@@ -394,37 +394,6 @@ class TransformerEncoder(nn.Module):
         return all_encoder_layers
 
 
-class TransformerSpecPredictionHead(nn.Module):
-    def __init__(self, config, output_dim, input_dim=None, **kwargs):
-        super(TransformerSpecPredictionHead, self).__init__()
-        if type(config) is dict:
-            config = TransformerConfig(**config)
-        self.output_size = output_dim
-        if input_dim is None:
-            self.dense = nn.Linear(config.hidden_size, config.hidden_size)
-        else:
-            self.dense = nn.Linear(input_dim, config.hidden_size)
-        if isinstance(config.hidden_act, str):
-            self.transform_act_fn = ACT2FN[config.hidden_act]
-        else:
-            self.transform_act_fn = config.hidden_act
-        self.LayerNorm = TransformerLayerNorm(
-            config.hidden_size, eps=config.layer_norm_eps
-        )
-        self.output = nn.Linear(config.hidden_size, self.output_size)
-
-    def forward(self, inputs, output_states=False):
-        hidden_states = inputs.hidden_states
-        hidden_states = self.dense(hidden_states)
-        hidden_states = self.transform_act_fn(hidden_states)
-        hidden_states = self.LayerNorm(hidden_states)
-        prediction = self.output(hidden_states)
-        if output_states:
-            return Output(hidden_states=hidden_states, prediction=prediction)
-        else:
-            return Output(prediction=prediction)
-
-
 class TransformerInitModel(nn.Module):
     """
     An abstract class to handle weights initialization.
@@ -537,13 +506,14 @@ class TransformerMockingjay(TransformerInitModel):
                 input sequence length in the current batch. It's the mask that we typically use for attention when
                 a batch has varying length sentences.
             output_all_encoded_layers (bool):
-                A boolean which controls the content of the `encoded_layers` output as described below. Default: `True`.
+                A boolean which controls the content of the `encoded_layers` output as described below.
+                Default: True
             head_mask (torch.Tensor):
                 An optional torch.Tensor of shape [num_heads] or [num_layers, num_heads] with indices between 0 and 1.
                 It's a mask to be used to nullify some heads of the transformer. 1.0 => head is fully masked, 0.0 => head is not masked.
         Return:
             Output (s3prl.Output):
-                A Output module that contains `hidden_states` and/or `output`
+                A Output module that contains `hidden_states` and/or `output`.
 
                 hidden_states (encoded_layers):
                     controled by the `output_all_encoded_layers` argument of `forward`:

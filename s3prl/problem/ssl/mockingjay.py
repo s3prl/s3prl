@@ -3,10 +3,8 @@ from torch.nn import L1Loss
 
 from s3prl.corpus.librispeech_for_pretrain import librispeech_for_pretrain
 from s3prl.dataset.pretrain_mockingjay_pipe import PretrainTaskPipe
-from s3prl.nn.transformer_mockingjay import (
-    TransformerMockingjay,
-    TransformerSpecPredictionHead,
-)
+from s3prl.nn.transformer_mockingjay import TransformerMockingjay
+from s3prl.nn.predictor_mockingjay import PredictorMockingjay
 from s3prl.sampler import FixedBatchSizeBatchSampler, MaxTimestampBatchSampler
 from s3prl.task import Task
 from s3prl.task.feat_reconstruction_task import FeatReconstructionTask
@@ -93,7 +91,7 @@ class Mockingjay(SslProblem):
             with_input_module=True,
         ),
         predictor=dict(
-            _cls=TransformerSpecPredictionHead,
+            _cls=PredictorMockingjay,
             config=_transformer_config,
             output_dim=_input_size,
             input_dim=None,  # automatically use `hidden_size` from `_transformer_config`
