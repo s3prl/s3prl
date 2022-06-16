@@ -58,7 +58,9 @@ class RnnApc(nn.Module):
             assert sum(self.vq_code_dims) == hidden_size
             for cs, cd in zip(codebook_size, self.vq_code_dims):
                 self.vq_layers.append(
-                    VqApcLayer(input_size=cd, code_dim=cd, codebook_size=cs, **vq_config)
+                    VqApcLayer(
+                        input_size=cd, code_dim=cd, codebook_size=cs, **vq_config
+                    )
                 )
             self.vq_layers = nn.ModuleList(self.vq_layers)
 
@@ -96,13 +98,14 @@ class RnnApc(nn.Module):
 
     def forward(self, frames_BxLxM, seq_lengths_B, testing=False):
         """
-        Args::
+        Args:
             frames_BxLxM (torch.LongTensor):
                 A 3d-tensor representing the input features.
             seq_lengths_B (list):
                 A list containing the sequence lengths of `frames_BxLxM`.
             testing (bool):
                 A bool indicating training or testing phase.
+                Default: False
         Return:
             Output (s3prl.Output):
                 An Output module that contains `hidden_states` and `prediction`
@@ -150,9 +153,9 @@ class RnnApc(nn.Module):
                 q_feat = []
                 offet = 0
                 for vq_layer, cd in zip(self.vq_layers, self.vq_code_dims):
-                    _, q_f = vq_layer(
+                    q_f = vq_layer(
                         rnn_outputs_BxLxH[:, :, offet : offet + cd], testing
-                    )
+                    ).output
                     q_feat.append(q_f)
                     offet += cd
                 rnn_outputs_BxLxH = torch.cat(q_feat, dim=-1)

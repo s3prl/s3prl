@@ -3,6 +3,8 @@ import torch
 import torch.nn as nn
 from torch.nn.functional import gumbel_softmax
 
+from s3prl import Output
+
 EPS = 1e-10
 
 
@@ -35,7 +37,23 @@ class VqApcLayer(nn.Module):
         self.codebook_CxE = nn.Linear(codebook_size, code_dim, bias=False)
         self.token_usg = np.zeros(codebook_size)
 
-    def forward(self, inputs_BxLxI, testing, lens=None):
+    def forward(self, inputs_BxLxI, testing=False):
+        """
+        Args:
+            inputs_BxLxI (torch.LongTensor):
+                A 3d-tensor representing the input features.
+            testing (bool):
+                A bool indicating training or testing phase.
+                Default: False
+        Return:
+            Output (s3prl.Output):
+                An Output module that contains `output` and `logit`
+
+                output (codes_BxLxE):
+                    The VQ codes.
+                logit (logits_BxLxC):
+                    The VQ logits.
+        """
         logits_BxLxC = self.vq_logits(inputs_BxLxI)
         if testing:
             # During inference, just take the max index.
@@ -57,15 +75,19 @@ class VqApcLayer(nn.Module):
             )
         codes_BxLxE = self.codebook_CxE(onehot_BxLxC)
 
-        return logits_BxLxC, codes_BxLxE
+        return Output(output=codes_BxLxE, logit=logits_BxLxC)
 
     def report_ppx(self):
-        """Computes perplexity of distribution over codebook"""
+        """
+        Computes perplexity of distribution over codebook.
+        """
         acc_usg = self.token_usg / sum(self.token_usg)
         return 2 ** sum(-acc_usg * np.log2(acc_usg + EPS))
 
     def report_usg(self):
-        """Computes usage each entry in codebook"""
+        """
+        Computes usage each entry in codebook.
+        """
         acc_usg = self.token_usg / sum(self.token_usg)
         # Reset
         self.token_usg = np.zeros(self.codebook_size)
