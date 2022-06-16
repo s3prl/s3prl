@@ -4,7 +4,7 @@ from torch.nn import L1Loss
 from s3prl.corpus.librispeech_for_pretrain import librispeech_for_pretrain
 from s3prl.dataset.pretrain_apc_pipe import PretrainTaskPipe
 from s3prl.nn.identity import Identity
-from s3prl.nn.rnn_apc import ApcModel
+from s3prl.nn.rnn_apc import RnnApc
 from s3prl.sampler import FixedBatchSizeBatchSampler, MaxTimestampBatchSampler
 from s3prl.task import Task
 from s3prl.task.autoregressive_reconstruction_task import (
@@ -58,7 +58,7 @@ class Apc(SslProblem):
             batch_size=2,
         ),
         upstream=dict(
-            _cls=ApcModel,
+            _cls=RnnApc,
             input_size=_input_size,
             num_layers=3,
             hidden_size=512,

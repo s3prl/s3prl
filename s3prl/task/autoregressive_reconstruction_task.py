@@ -7,7 +7,7 @@ import torch
 
 from s3prl import Logs, Output
 from s3prl.nn.identity import Identity as HeadExample
-from s3prl.nn.rnn_apc import ApcModel as BodyExample
+from s3prl.nn.rnn_apc import RnnApc as BodyExample
 
 from . import Task
 
