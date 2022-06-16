@@ -67,7 +67,7 @@ class DiarizationPIT(Task):
         return predicted
 
     def forward(self, split: str, x, x_len, label, rec_id, workspace=None, **kwds):
-        predicted, _ = self.predict(x, x_len)
+        predicted, _ = self.predict(x, x_len).slice(2)
 
         assert (
             abs(predicted.size(1) - label.size(1)) <= TOLERANT_FRAME_DIFF

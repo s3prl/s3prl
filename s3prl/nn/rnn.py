@@ -208,7 +208,7 @@ class RNNEncoder(NNModule):
 
         logits = self.linear(xs)
 
-        return Output(logit=logits, output_len=xs_len)
+        return Output(output=logits, output_len=xs_len)
 
     @property
     def input_size(self):
@@ -247,4 +247,8 @@ class SuperbDiarizationModel(NNModule):
             predicted = self.linear(hidden)
         else:
             predicted = self.linear(features)
-        return predicted, features_len
+
+        return Output(
+            output=predicted,
+            output_len=features_len,
+        )
