@@ -54,7 +54,7 @@ class PredictorMockingjay(nn.Module):
                 Default: False
         Return:
             Output (s3prl.Output):
-                A Output module that contains `prediction` and/or `hidden_states`.
+                An Output module that contains `prediction` and/or `hidden_states`.
         """
         hidden_states = inputs.hidden_states
         hidden_states = self.dense(hidden_states)

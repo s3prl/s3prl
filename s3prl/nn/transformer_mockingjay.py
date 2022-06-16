@@ -513,7 +513,7 @@ class TransformerMockingjay(TransformerInitModel):
                 It's a mask to be used to nullify some heads of the transformer. 1.0 => head is fully masked, 0.0 => head is not masked.
         Return:
             Output (s3prl.Output):
-                A Output module that contains `hidden_states` and/or `output`.
+                An Output module that contains `hidden_states` and/or `output`.
 
                 hidden_states (encoded_layers):
                     controled by the `output_all_encoded_layers` argument of `forward`:

@@ -14,9 +14,9 @@ class PredictorIdentity(nn.Module):
     def forward(self, output: Output):
         """
         Args:
-            output (s3prl.Output): A Output module
+            output (s3prl.Output): An Output module
 
         Return:
-            output (s3prl.Output): exactly the same as input, a Output module
+            output (s3prl.Output): exactly the same as input, an Output module
         """
         return output

@@ -105,7 +105,7 @@ class RnnApc(nn.Module):
                 A bool indicating training or testing phase.
         Return:
             Output (s3prl.Output):
-                A Output module that contains `hidden_states` and `prediction`
+                An Output module that contains `hidden_states` and `prediction`
 
                 hidden_states (hiddens_NxBxLxH):
                     The RNN hidden representations across all layers.
