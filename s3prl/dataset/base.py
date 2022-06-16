@@ -4,7 +4,6 @@ import abc
 import logging
 import pickle
 from copy import deepcopy
-from dataclasses import dataclass, fields
 from enum import Enum
 from functools import partial
 from inspect import isclass, isfunction, ismethod
@@ -33,29 +32,15 @@ class AugmentedDynamicItemDataset(DynamicItemDataset):
         dynamic_items=[],
         output_keys=[],
         tools: dict = {},
-        global_stats: dict = {},
     ):
         super().__init__(data, dynamic_items, output_keys)
         self._tools = {}
         for name, item in tools.items():
             self.add_tool(name, item)
 
-        self._global_stats = {}
-        for name, item in global_stats.items():
-            self.add_global_stats(name, item)
-
     def __init_subclass__(cls) -> None:
         registry.put(cls.__name__)(cls)
         return super().__init_subclass__()
-
-    def _dynamic_global_stats(self, id, name):
-        return self._global_stats[name]
-
-    def add_global_stats(self, name: str, item: Any):
-        self._global_stats[name] = item
-        self.add_dynamic_item(
-            partial(self._dynamic_global_stats, name=name), takes="id", provides=name
-        )
 
     def _dynamic_tools(self, id, name):
         return self._tools[name]
@@ -105,19 +90,18 @@ class AugmentedDynamicItemDataset(DynamicItemDataset):
         """
         return deepcopy(self._tools) if copy else self._tools
 
-    def add_output_keys(self, keys):
-        if isinstance(keys, list):
-            keys = {key: key for key in keys}
+    def update_output_keys(self, keys: dict):
         mapping = self.pipeline.output_mapping.copy()
         mapping.update(keys)
         self.set_output_keys(mapping)
 
-    def add_dynamic_item(self, func, takes=None, provides=None):
-        if isinstance(func, DynamicItem):
-            logger.warning(f"Ignoring default takes: {takes}, and provides {provides}")
-            takes = func.takes
-            provides = func.provides
-        super().add_dynamic_item(func, takes, provides)
+    def replace_output_key(self, old_key: str, new_key: str):
+        mapping = self.pipeline.output_mapping.copy()
+        for key in list(mapping.keys()):
+            value = mapping[key]
+            if value == old_key:
+                mapping[key] = new_key
+                self.update_output_keys(mapping)
 
     def add_dynamic_item_and_metadata(self, func, takes=None, provide=None):
         """
@@ -159,7 +143,7 @@ class AugmentedDynamicItemDataset(DynamicItemDataset):
         id_to_metadata = {idx: metadata for idx, metadata in zip(ids, metadatas)}
 
         mapping_name = f"_id_to_metadata_for_{provide}"
-        self.add_global_stats(mapping_name, id_to_metadata)
+        self.add_tool(mapping_name, id_to_metadata)
         self.add_dynamic_item(
             self._get_metadata,
             takes=["id", mapping_name],
@@ -189,9 +173,7 @@ class AugmentedDynamicItemDataset(DynamicItemDataset):
         available_keys = [
             key
             for key in available_keys
-            if not key.startswith("_")
-            and key not in self._global_stats
-            and key not in self._tools
+            if not key.startswith("_") and key not in self._tools
         ]
         return available_keys
 
@@ -216,40 +198,7 @@ class AugmentedDynamicItemDataset(DynamicItemDataset):
         return obj
 
 
-@dataclass
-class DatasetBuilder:
-    audio_sample_rate: int = 16000
-
-    def __getattribute__(self, name):
-        value = super().__getattribute__(name)
-        if isinstance(value, DynamicItem):
-            value.func = value.func.__get__(self)
-        return value
-
-    def load_audio(self, wav_path, metadata: bool = False):
-        if not metadata:
-            torchaudio.set_audio_backend("sox_io")
-            wav, sr = torchaudio.load(wav_path)
-            if sr != self.audio_sample_rate:
-                resampler = torchaudio.transforms.Resample(sr, self.audio_sample_rate)
-                wav = resampler(wav)
-            wav = wav.view(-1, 1)
-            return wav
-        else:
-            torchaudio.set_audio_backend("sox_io")
-            info = torchaudio.info(wav_path)
-            ratio = self.audio_sample_rate / info.sample_rate
-            return dict(
-                sample_rate=self.audio_sample_rate,
-                num_frames=round(info.num_frames * ratio),
-                num_channels=1,
-            )
-
-
-@dataclass
-class DataPipe:
-    n_jobs: int = 6
-
+class DataPipe(object):
     def __call__(
         self, dataset: Union[dict, AugmentedDynamicItemDataset], **kwds
     ) -> Any:
@@ -278,35 +227,23 @@ class DataPipe:
 class SequentialDataPipe(DataPipe):
     def __init__(
         self,
-        *pipes_or_classes: List[Union[DataPipe, Type]],
-        config: dict = None,
-        configs: List[dict] = None,
+        *pipes_or_cfgs: List[Union[DataPipe, Type, dict]],
+        **global_cfg,
     ) -> None:
-        assert len(pipes_or_classes) > 0
-        if isinstance(pipes_or_classes[0], DataPipe):
-            pipes, pipe_classes = pipes_or_classes, None
-        elif isclass(pipes_or_classes[0]):
-            pipes, pipe_classes = None, pipes_or_classes
+        assert len(pipes_or_cfgs) > 0
+        if isinstance(pipes_or_cfgs[0], DataPipe):
+            pipes, pipe_cfgs = pipes_or_cfgs, None
+        elif isinstance(pipes_or_cfgs[0], dict):
+            pipes, pipe_cfgs = None, pipes_or_cfgs
         else:
             raise ValueError
 
         if pipes is None:
-            assert int(configs is not None) + int(config is not None) == 1
-        if pipes is not None:
-            assert configs is None and config is None
-
-        if pipes is None:
-            if config is not None:
-                configs = [config for _ in pipe_classes]
-            assert len(configs) == len(pipe_classes)
-
             pipes = []
-            for pipe_class, config in zip(pipe_classes, configs):
-                related_fields = [field.name for field in fields(pipe_class)]
-                related_config = {
-                    k: v for k, v in config.items() if k in related_fields
-                }
-                pipes.append(pipe_class(**related_config))
+            for pipe_cfg in pipe_cfgs:
+                pipe_cfg = Container(pipe_cfg)
+                pipe = pipe_cfg._cls(**pipe_cfg.kwds(), **global_cfg)
+                pipes.append(pipe)
 
         self._pipes = pipes
 

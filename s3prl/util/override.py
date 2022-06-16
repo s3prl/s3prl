@@ -59,13 +59,16 @@ def parse_overrides(options: list):
     config = {}
     for option in options:
         option: str = option.strip()
+        assert "=" in option, f"Invalid option: {option}"
         key, value_str = option.split("=", maxsplit=1)
         key, value_str = key.strip(), value_str.strip()
         remaining = key.split(".")
 
         try:
             value = eval(value_str)
-        except:
+        except Exception as e:
+            if "newdict" in value_str or "Container" in value_str:
+                raise
             value = value_str
 
         logger.debug(f"{key} = {value}")

@@ -14,7 +14,7 @@ from s3prl.base.workspace import Workspace
 from s3prl.corpus.kaldi import kaldi_for_multiclass_tagging
 from s3prl.dataset.base import SequentialDataPipe
 from s3prl.dataset.chunking import UnfoldChunkByFrame
-from s3prl.dataset.common_pipes import LoadAudio, RenameItems
+from s3prl.dataset.common_pipes import LoadAudio, SetOutputKeys
 from s3prl.dataset.multiclass_tagging import BuildMultiClassTagging
 from s3prl.encoder.category import CategoryEncoder
 from s3prl.nn.rnn import SuperbDiarizationModel
@@ -30,7 +30,7 @@ logger = logging.getLogger(__name__)
 class SuperbSDDatapipe(SequentialDataPipe):
     def __init__(
         self,
-        upstream_rate: int,
+        feat_frame_shift: int,
         sample_rate: int = 16000,
         **kwds,
     ):
@@ -39,14 +39,14 @@ class SuperbSDDatapipe(SequentialDataPipe):
                 min_chunk_frames=2000,
                 max_chunk_frames=2000,
                 step_frames=2000,
-                feat_frame_shift=upstream_rate,
+                feat_frame_shift=feat_frame_shift,
                 sample_rate=sample_rate,
             ),
             BuildMultiClassTagging(
-                sample_rate=sample_rate, feat_frame_shift=upstream_rate
+                sample_rate=sample_rate, feat_frame_shift=feat_frame_shift
             ),
-            LoadAudio(crop_segment=True, audio_sample_rate=sample_rate),
-            RenameItems(
+            LoadAudio(audio_sample_rate=sample_rate),
+            SetOutputKeys(
                 x="wav",
                 x_len="wav_len",
                 label="multiclass_tag",
@@ -100,28 +100,35 @@ class SuperbSD(SuperbProblem):
                 _cls=kaldi_for_multiclass_tagging,
                 dataset_root="???",
             ),
-            train_datapipe=dict(
-                _cls=SuperbSDDatapipe,
-            ),
+            train_datapipe={
+                "0": dict(
+                    _cls=SuperbSDDatapipe,
+                    train_category_encoder=True,
+                ),
+            },
             train_sampler=dict(
                 _cls=FixedBatchSizeBatchSampler,
                 batch_size=8,
                 shuffle=True,
             ),
-            valid_datapipe=dict(
-                _cls=SuperbSDDatapipe,
-            ),
+            valid_datapipe={
+                "0": dict(
+                    _cls=SuperbSDDatapipe,
+                ),
+            },
             valid_sampler=dict(
                 _cls=FixedBatchSizeBatchSampler,
                 batch_size=1,
             ),
-            test_datapipe=dict(
-                _cls=SuperbSDDatapipe,
-            ),
+            test_datapipe={
+                "0": dict(
+                    _cls=SuperbSDDatapipe,
+                ),
+            },
             test_sampler=dict(
                 _cls=GroupSameItemSampler,
-                item_name="rec_id",
-                item_order_name="order_in_rec",
+                item_name="unchunked_id",
+                item_order_name="chunk_index",
             ),
             downstream=dict(
                 _cls=SuperbDiarizationModel,

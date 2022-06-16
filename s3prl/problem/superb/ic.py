@@ -25,25 +25,31 @@ class SuperbIC(SuperbProblem):
                 _cls=fsc_for_multiple_classfication,
                 dataset_root="???",
             ),
-            train_datapipe=dict(
-                _cls=UtteranceMultipleCategoryClassificationPipe,
-                train_category_encoder=True,
-            ),
+            train_datapipe={
+                "0": dict(
+                    _cls=UtteranceMultipleCategoryClassificationPipe,
+                    train_category_encoder=True,
+                ),
+            },
             train_sampler=dict(
                 _cls=FixedBatchSizeBatchSampler,
                 batch_size=32,
                 shuffle=True,
             ),
-            valid_datapipe=dict(
-                _cls=UtteranceMultipleCategoryClassificationPipe,
-            ),
+            valid_datapipe={
+                "0": dict(
+                    _cls=UtteranceMultipleCategoryClassificationPipe,
+                ),
+            },
             valid_sampler=dict(
                 _cls=FixedBatchSizeBatchSampler,
                 batch_size=32,
             ),
-            test_datapipe=dict(
-                _cls=UtteranceMultipleCategoryClassificationPipe,
-            ),
+            test_datapipe={
+                "0": dict(
+                    _cls=UtteranceMultipleCategoryClassificationPipe,
+                ),
+            },
             test_sampler=dict(
                 _cls=FixedBatchSizeBatchSampler,
                 batch_size=32,
@@ -99,9 +105,9 @@ class SuperbIC(SuperbProblem):
             stages=["setup", "train", "inference"],
             start_stage="setup",
             final_stage="inference",
-            setup=setup.default_cfg.deselect("workspace", "resume", "dryrun"),
-            train=train.default_cfg.deselect("workspace", "resume", "dryrun"),
-            inference=inference.default_cfg.deselect("workspace", "resume", "dryrun"),
+            setup=setup.default_cfg.deselect("workspace", "resume"),
+            train=train.default_cfg.deselect("workspace", "resume"),
+            inference=inference.default_cfg.deselect("workspace", "resume"),
         )
     )
     @classmethod

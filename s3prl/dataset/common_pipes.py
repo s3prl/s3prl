@@ -14,30 +14,18 @@ from .base import AugmentedDynamicItemDataset, DataPipe
 logger = logging.getLogger(__name__)
 
 
-@dataclass
 class SetOutputKeys(DataPipe):
-    output_keys: dict = None
+    def __init__(self, output_keys: dict = None, **kwds) -> None:
+        super().__init__()
+        output_keys = output_keys or {}
+        output_keys.update(kwds)
+        self.output_keys = output_keys
 
     def forward(self, dataset: AugmentedDynamicItemDataset):
-        dataset.set_output_keys(self.output_keys)
+        dataset.update_output_keys(self.output_keys)
         return dataset
 
 
-class RenameItems(DataPipe):
-    def __init__(self, **kwds):
-        self.mapping = kwds
-
-    @staticmethod
-    def identity(x):
-        return x
-
-    def forward(self, dataset: AugmentedDynamicItemDataset):
-        for k, v in self.mapping.items():
-            dataset.add_dynamic_item(self.identity, takes=v, provides=k)
-        return dataset
-
-
-@dataclass
 class LoadPseudoAudio(DataPipe):
     def load_wav(self, wav_path):
         wav = torch.randn(16000 * 10)
@@ -65,7 +53,6 @@ class LoadAudio(DataPipe):
     audio_sample_rate: int = 16000
     audio_channel_reduction: str = "first"
     sox_effects: list = None
-    crop_segment: bool = False
 
     wav_path_name: str = "wav_path"
     wav_name: str = "wav"
@@ -79,15 +66,17 @@ class LoadAudio(DataPipe):
         end_sec: float = None,
         metadata: bool = False,
     ):
+        crop_segment = start_sec is not None and end_sec is not None
+
         if not metadata:
             torchaudio.set_audio_backend("sox_io")
             wav, sr = torchaudio.load(
                 wav_path,
                 frame_offset=round(start_sec * self.audio_sample_rate)
-                if self.crop_segment
+                if crop_segment
                 else 0,
                 num_frames=round((end_sec - start_sec) * self.audio_sample_rate)
-                if self.crop_segment
+                if crop_segment
                 else -1,
             )
 
@@ -112,7 +101,7 @@ class LoadAudio(DataPipe):
             info = torchaudio.info(wav_path)
             num_frames = (
                 info.num_frames
-                if not self.crop_segment
+                if not crop_segment
                 else round((end_sec - start_sec) * self.audio_sample_rate)
             )
             ratio = self.audio_sample_rate / info.sample_rate
@@ -126,7 +115,13 @@ class LoadAudio(DataPipe):
         return len(wav)
 
     def forward(self, dataset: AugmentedDynamicItemDataset):
-        if not self.crop_segment:
+        item = dataset[0]
+        if self.start_sec_name in item and self.end_sec_name in item:
+            crop_segment = True
+        else:
+            crop_segment = False
+
+        if not crop_segment:
             dataset.add_dynamic_item_and_metadata(
                 self.load_audio, takes=self.wav_path_name, provide=self.wav_name
             )

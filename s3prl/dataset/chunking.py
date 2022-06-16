@@ -24,6 +24,22 @@ def _gen_frame_indices(
 
 @dataclass
 class UnfoldChunkByFrame(DataPipe):
+    """
+    Given a dataset with items containing `start_sec_name` and `end_sec_name`.
+    For each item, produce `((end_sec_name - start_sec_name) * sample_rate / feat_frame_shift) / chunk_frames`
+    items with the smaller durations between `min_chunk_frames` and `max_chunk_frames`
+
+    Args:
+        sample_rate (int): The sample_rate of the audio.
+        feat_frame_shift (int): The target feature's frame_shift
+        min_chunk_frames (int): The min frames for a chunk
+        max_chunk_frames (int): The max frames for a chunk
+        step_frames (int): The step frames for each sliding window
+        use_last_samples (bool): whether to drop the last samples of an utterance which cannot form an window
+        start_sec_name (str): The key name for the starting second of the audio
+        end_sec_name (str): The key name for the ending second of the audio
+    """
+
     sample_rate: int = 16000
     feat_frame_shift: int = 160
 

@@ -32,25 +32,31 @@ class SuperbSV(SuperbProblem):
                 _cls=voxceleb1_for_sv,
                 dataset_root="???",
             ),
-            train_datapipe=dict(
-                _cls=SpeakerClassificationPipe,
-                train_category_encoder=True,
-            ),
+            train_datapipe={
+                "0": dict(
+                    _cls=SpeakerClassificationPipe,
+                    train_category_encoder=True,
+                ),
+            },
             train_sampler=dict(
                 _cls=FixedBatchSizeBatchSampler,
                 batch_size=10,
                 shuffle=True,
             ),
-            valid_datapipe=dict(
-                _cls=SpeakerClassificationPipe,
-            ),
+            valid_datapipe={
+                "0": dict(
+                    _cls=SpeakerClassificationPipe,
+                ),
+            },
             valid_sampler=dict(
                 _cls=FixedBatchSizeBatchSampler,
                 batch_size=1,
             ),
-            test_datapipe=dict(
-                _cls=SpeakerClassificationPipe,
-            ),
+            test_datapipe={
+                "0": dict(
+                    _cls=SpeakerClassificationPipe,
+                ),
+            },
             test_sampler=dict(
                 _cls=FixedBatchSizeBatchSampler,
                 batch_size=1,

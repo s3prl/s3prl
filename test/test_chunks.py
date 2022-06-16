@@ -17,7 +17,7 @@ def test_chunk_pipe():
             min_chunk_frames=25, step_frames=25, feat_frame_shift=320
         )(data)
         assert dataset[0]["end_sec"] - dataset[0]["start_sec"] == 25 * 320 / 16000
-        dataset = LoadAudio(crop_segment=True)(dataset)
+        dataset = LoadAudio()(dataset)
         assert len(dataset[0]["wav"]) == 25 * 320
 
     with pseudo_audio([8, 20, 15], 16000) as (audio_files, num_samples):
@@ -31,7 +31,7 @@ def test_chunk_pipe():
             - dataset.data[dataset.keys()[0]]["start_sec"]
             == 2.5
         )
-        dataset = LoadAudio(crop_segment=True)(dataset)
+        dataset = LoadAudio()(dataset)
         assert len(dataset[0]["wav"]) == 2.5 * 16000
 
 

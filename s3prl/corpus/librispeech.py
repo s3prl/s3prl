@@ -1,4 +1,5 @@
 import logging
+import re
 import os
 from collections import defaultdict
 from pathlib import Path
@@ -53,6 +54,27 @@ def check_no_repeat(splits: List[str]) -> bool:
     return True
 
 
+def _parse_spk_to_gender(speaker_file: Path) -> dict:
+    speaker_file = Path(speaker_file)
+    with speaker_file.open() as file:
+        lines = [line.strip() for line in file.readlines()]
+    for line_id in range(len(lines)):
+        line = lines[line_id]
+        if "SEX" in line and "SUBSET" in line and "MINUTES" in line and "NAME" in line:
+            break
+
+    line_id += 1  # first line with speaker info
+    spk2gender = {}
+    for line_id in range(line_id, len(lines)):
+        line = lines[line_id]
+        line = re.sub("\t+", " ", line)
+        line = re.sub(" +", " ", line)
+        parts = line.split("|", maxsplit=4)
+        ID, SEX, SUBSET, MINUTES, NAME = parts
+        spk2gender[int(ID)] = SEX.strip()
+    return spk2gender
+
+
 class LibriSpeech(Corpus):
     def __init__(
         self,
@@ -100,6 +122,7 @@ class LibriSpeech(Corpus):
         dataset_root: str, splits: List[str], n_jobs: int = 4
     ) -> Dict[str, Dict[str, List[Any]]]:
 
+        spkr2gender = _parse_spk_to_gender(Path(dataset_root) / "SPEAKERS.TXT")
         data_dict = {}
         for split in splits:
             split_dir = os.path.join(dataset_root, split)
@@ -123,12 +146,12 @@ class LibriSpeech(Corpus):
                     )
                 ]
             )
-
             data_dict[split] = {
                 "name_list": list(name_list),
                 "wav_list": list(wav_list),
                 "text_list": list(text_list),
                 "spkr_list": list(spkr_list),
+                "gender_list": [spkr2gender[spkr] for spkr in spkr_list],
             }
 
         return data_dict
@@ -143,6 +166,7 @@ class LibriSpeech(Corpus):
                     "wav_path": data_dict[split]["wav_list"][i],
                     "transcription": data_dict[split]["text_list"][i],
                     "speaker": data_dict[split]["spkr_list"][i],
+                    "gender": data_dict[split]["gender_list"][i],
                     "corpus_split": split,
                 }
                 for split in splits

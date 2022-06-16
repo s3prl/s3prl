@@ -12,6 +12,8 @@ from s3prl.util.workspace import Workspace
 
 logger = logging.getLogger(__name__)
 
+all_problems = {}
+
 
 class Problem:
     """
@@ -144,11 +146,15 @@ class Problem:
             f".. hint::\n\n    Please refer to :py:obj:`~s3prl.problem.base.Problem` for the general usage of this :py:obj:`~s3prl.problem` package\n",
             last=False,
         )
+        global all_problems
+        assert (
+            cls.__name__ not in all_problems
+        ), f"Duplicated problem class name: {cls.__name__}"
+        all_problems[cls.__name__] = cls
 
     @default_cfg(
         workspace=field("???", "The workspace shared across stages", str),
         resume=field(False, "The resume flag shared across stages", bool),
-        dryrun=field(False, "The dryrun flag shared across stages", bool),
         stages=[field("???", "The stage methods to run through", str)],
         start_stage=field("???", "Start from this stage", "int or str"),
         final_stage=field(
@@ -172,7 +178,6 @@ class Problem:
                 dict(
                     workspace=cfg["workspace"],
                     resume=cfg["resume"],
-                    dryrun=cfg["dryrun"],
                 )
             )
             stage_func(**stage_cfg)

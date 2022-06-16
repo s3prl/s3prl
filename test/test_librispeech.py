@@ -2,6 +2,7 @@ import pytest
 from dotenv import dotenv_values
 
 from s3prl.corpus.librispeech import LibriSpeech, librispeech_for_speech2text
+from s3prl.corpus.librilight import librilight_for_speech2text
 
 libri_stats = {
     "train-clean-100": 28539,
@@ -40,3 +41,12 @@ def test_librispeech():
 
     keys = list(train_data.keys())
     assert keys[0] == "103-1240-0000"
+
+
+@pytest.mark.corpus
+def test_librilight():
+    config = dotenv_values()
+    train_data, valid_data, test_data = librilight_for_speech2text(
+        config["LibriLight"], config["LibriSpeech"]
+    ).slice(3)
+    assert len(train_data) == 48

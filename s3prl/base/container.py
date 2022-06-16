@@ -205,6 +205,23 @@ class Container(OrderedDict):
         self._no_underscore(new_copy)
         return new_copy
 
+    def tolist(self):
+        """
+        Each key is a float, return the sorted (by float) values
+        """
+        keys = self.keys()
+        keys = [int(key) for key in keys]
+        keys.sort(key=lambda x: x)
+        return [self[str(key)] for key in keys if self[str(key)] is not None]
+
+    def instantiate(self):
+        """
+        Calling self._cls with other fields as **kwds
+        """
+        assert "_cls" in self
+        assert callable(self._cls)
+        return self._cls(**self.kwds())
+
     @classmethod
     def _no_underscore(cls, obj):
         if isinstance(obj, dict):
@@ -372,7 +389,7 @@ class Container(OrderedDict):
         )
 
     def __repr__(self) -> str:
-        return yaml.dump(self.to_dict(), sort_keys=False, width=float("inf"))
+        return str(self.to_dict())
 
     def __getattribute__(self, name: str) -> Any:
         keys = super().keys()
