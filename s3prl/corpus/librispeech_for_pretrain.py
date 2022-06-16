@@ -19,7 +19,7 @@ LIBRI_SPLITS = [
 ]
 
 
-class LibriSpeech(Corpus):
+class LibriSpeechForPretrain(Corpus):
     def __init__(
         self,
         dataset_root: str,
@@ -110,7 +110,7 @@ class LibriSpeech(Corpus):
         return data
 
 
-class LibriSpeechForPretrain(LibriSpeech):
+class LibriSpeechForPretraining(LibriSpeechForPretrain):
     def __init__(
         self,
         dataset_root: str,
@@ -130,7 +130,7 @@ class LibriSpeechForPretrain(LibriSpeech):
         )
 
 
-class LibriSpeechForPretrain100(LibriSpeechForPretrain):
+class LibriSpeechForPretrain100(LibriSpeechForPretraining):
     def __init__(
         self,
         dataset_root: str,
@@ -141,7 +141,7 @@ class LibriSpeechForPretrain100(LibriSpeechForPretrain):
         )
 
 
-class LibriSpeechForPretrain360(LibriSpeechForPretrain):
+class LibriSpeechForPretrain360(LibriSpeechForPretraining):
     def __init__(
         self,
         dataset_root: str,
@@ -152,7 +152,7 @@ class LibriSpeechForPretrain360(LibriSpeechForPretrain):
         )
 
 
-class LibriSpeechForPretrain960(LibriSpeechForPretrain):
+class LibriSpeechForPretrain960(LibriSpeechForPretraining):
     def __init__(
         self,
         dataset_root: str,
