@@ -3,7 +3,7 @@ from torch.nn import L1Loss
 
 from s3prl.corpus.librispeech_for_pretrain import librispeech_for_pretrain
 from s3prl.dataset.pretrain_apc_pipe import PretrainTaskPipe
-from s3prl.nn.identity import Identity
+from s3prl.nn.predictor_identity import PredictorIdentity
 from s3prl.nn.rnn_apc import RnnApc
 from s3prl.sampler import FixedBatchSizeBatchSampler, MaxTimestampBatchSampler
 from s3prl.task import Task
@@ -66,7 +66,7 @@ class Apc(SslProblem):
             residual=True,
         ),
         predictor=dict(
-            _cls=Identity,
+            _cls=PredictorIdentity,
         ),
         task=dict(
             _cls=AutoregressiveReconstructionTask,

@@ -6,8 +6,8 @@ from typing import List
 import torch
 
 from s3prl import Logs, Output
-from s3prl.nn.identity import Identity as HeadExample
-from s3prl.nn.rnn_apc import RnnApc as BodyExample
+from s3prl.nn.rnn_apc import RnnApc as UpstreamExample
+from s3prl.nn.predictor_identity import PredictorIdentity as PredictorExample
 
 from . import Task
 
@@ -24,8 +24,8 @@ class AutoregressiveReconstructionTask(Task):
 
     def __init__(
         self,
-        upstream: BodyExample,
-        predictor: HeadExample,
+        upstream: UpstreamExample,
+        predictor: PredictorExample,
         loss: torch.nn.L1Loss,
         **kwargs,
     ):
