@@ -32,7 +32,7 @@ def main():
     args, cfg = parser.parse_known_args()
     cfg = parse_overrides(cfg)
 
-    logging.basicConfig(level=getattr(logging, args.verbose))
+    logging.basicConfig(level=getattr(logging, args.verbose), force=True)
 
     module = importlib.import_module(args.module)
     target = module

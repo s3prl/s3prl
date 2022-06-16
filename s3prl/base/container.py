@@ -265,10 +265,10 @@ class Container(OrderedDict):
                 if key not in self:
                     self.__setitem__(key, __class__())
                 target = self.__getitem__(key)
-                if isinstance(target, dict):
+                if isinstance(target, dict) and not isinstance(target, Container):
                     target = Container(target)
                     self.__setitem__(key, target)
-                if isinstance(target, __class__):
+                if isinstance(target, __class__) and not isinstance(value, newdict):
                     target.update(value, override, create)
                 else:
                     self.__setitem__(key, value)
@@ -520,3 +520,7 @@ class Container(OrderedDict):
 
     def deselect(self, *names: List[str]):
         return self.subset(*names, as_type="dict", exclude=True)
+
+
+class newdict(Container):
+    pass
