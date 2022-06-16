@@ -8,16 +8,27 @@ from s3prl import Output
 from s3prl.nn.vq_apc import VQLayer
 
 
-class ApcModel(nn.Module):
+class RnnApc(nn.Module):
+    """
+    The RNN model.
+    Currently supporting upstreams models of APC, VQ-APC.
+    """
+
     def __init__(self, input_size, hidden_size, num_layers, dropout, residual, vq=None):
         """
-        input_size: an int indicating the input feature size, e.g., 80 for Mel.
-        hidden_size: an int indicating the RNN hidden size.
-        num_layers: an int indicating the number of RNN layers.
-        dropout: a float indicating the RNN dropout rate.
-        residual: a bool indicating whether to apply residual connections.
+        Args:
+            input_size (int):
+                An int indicating the input feature size, e.g., 80 for Mel.
+            hidden_size (int):
+                An int indicating the RNN hidden size.
+            num_layers (int):
+                An int indicating the number of RNN layers.
+            dropout (float):
+                A float indicating the RNN dropout rate.
+            residual (bool):
+                A bool indicating whether to apply residual connections.
         """
-        super(ApcModel, self).__init__()
+        super(RnnApc, self).__init__()
 
         assert num_layers > 0
         self.hidden_size = hidden_size
@@ -85,14 +96,23 @@ class ApcModel(nn.Module):
 
     def forward(self, frames_BxLxM, seq_lengths_B, testing=False):
         """
-        Input:
-            frames_BxLxM: a 3d-tensor representing the input features.
-            seq_lengths_B: sequence length of frames_BxLxM.
-            testing: a bool indicating training or testing phase.
+        Args::
+            frames_BxLxM (torch.LongTensor):
+                A 3d-tensor representing the input features.
+            seq_lengths_B (list):
+                A list containing the sequence lengths of `frames_BxLxM`.
+            testing (bool):
+                A bool indicating training or testing phase.
         Return:
-            predicted_BxLxM: the predicted output; used for training.
-            hiddens_NxBxLxH: the RNN hidden representations across all layers.
+            Output (s3prl.Output):
+                A Output module that contains `hidden_states` and `prediction`
+
+                hidden_states (hiddens_NxBxLxH):
+                    The RNN hidden representations across all layers.
+                prediction (predicted_BxLxM):
+                    The predicted output; used for training.
         """
+
         max_seq_len = frames_BxLxM.size(1)
 
         # N is the number of RNN layers.
