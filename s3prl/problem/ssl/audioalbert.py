@@ -2,7 +2,7 @@ import torch
 from torch.nn import L1Loss
 
 from s3prl.corpus.librispeech_for_pretrain import librispeech_for_pretrain
-from s3prl.dataset.pretrain_audioalbert_pipe import PretrainTaskPipe
+from s3prl.dataset.pretrain_audioalbert_pipe import PretrainAudioAlbertPipe
 from s3prl.nn.transformer_mockingjay import TransformerMockingjay
 from s3prl.nn.predictor_mockingjay import PredictorMockingjay
 from s3prl.sampler import FixedBatchSizeBatchSampler, MaxTimestampBatchSampler
@@ -28,7 +28,7 @@ _transformer_config = dict(
     pre_layer_norm=False,  # To apply the pre layer normalization technique introduced in: https://arxiv.org/abs/2002.04745
 )
 _pretrain_task_pipe_config = dict(
-    _cls=PretrainTaskPipe,
+    _cls=PretrainAudioAlbertPipe,
     mask_args=dict(
         position_encoding_size=768,  # int, this should be identical to `hidden_size`
         mask_proportion=0.15,  # float, mask this percentage of all spectrogram frames in each sequence at random during MAM training

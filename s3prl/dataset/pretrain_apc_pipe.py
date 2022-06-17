@@ -4,7 +4,7 @@ from .common_pipes import LoadAudio, SetOutputKeys
 from .extract_feat_pipes import ExtractApcFeat
 
 
-class PretrainTaskPipe(SequentialDataPipe):
+class PretrainApcPipe(SequentialDataPipe):
     """
     each item in the input dataset should have:
         wav_path: str

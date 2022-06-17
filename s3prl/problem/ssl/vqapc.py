@@ -2,7 +2,7 @@ import torch
 from torch.nn import L1Loss
 
 from s3prl.corpus.librispeech_for_pretrain import librispeech_for_pretrain
-from s3prl.dataset.pretrain_apc_pipe import PretrainTaskPipe
+from s3prl.dataset.pretrain_apc_pipe import PretrainApcPipe
 from s3prl.nn.predictor_identity import PredictorIdentity
 from s3prl.nn.rnn_apc import RnnApc
 from s3prl.sampler import FixedBatchSizeBatchSampler, MaxTimestampBatchSampler
@@ -17,7 +17,7 @@ from .base import SslProblem
 
 _input_size = 80
 _pretrain_task_pipe_config = dict(
-    _cls=PretrainTaskPipe,
+    _cls=PretrainApcPipe,
     n_future=5,
     audio_config=dict(
         feat_type="fbank",  # Feature type

@@ -2,10 +2,9 @@ from .base import SequentialDataPipe
 from .common_pipes import LoadAudio, SetOutputKeys
 from .extract_feat_pipes import ExtractKaldiFeat
 from .masked_reconstruction_pipes import MaskedReconstruction, PrepareTargetFeat
-from .noise_augmentation_pipes import NoiseAugmentation
 
 
-class PretrainTaskPipe(SequentialDataPipe):
+class PretrainMockingjayPipe(SequentialDataPipe):
     """
     each item in the input dataset should have:
         wav_path: str
