@@ -6,8 +6,8 @@ from typing import List
 import torch
 
 from s3prl import Logs, Output
-from s3prl.nn.transformer_mockingjay import TransformerMockingjay as UpstreamExample
 from s3prl.nn.predictor_mockingjay import PredictorMockingjay as PredictorExample
+from s3prl.nn.transformer_mockingjay import TransformerMockingjay as UpstreamExample
 
 from . import Task
 
@@ -27,6 +27,7 @@ class FeatReconstructionTask(Task):
         upstream: UpstreamExample,
         predictor: PredictorExample,
         loss: torch.nn.L1Loss,
+        loss_config: dict = {},
         **kwargs,
     ):
         """
@@ -43,15 +44,15 @@ class FeatReconstructionTask(Task):
         super().__init__()
         self.upstream = upstream
         self.predictor = predictor
-        self.loss = loss()
+        self.loss = loss(**loss_config)
 
     def predict(
         self,
         x: torch.Tensor,
         label: torch.Tensor,
-        label_mask: torch.BoolTensor,
-        position_encoding: torch.Tensor,
-        attention_mask: torch.LongTensor,
+        label_mask: torch.BoolTensor = None,
+        position_encoding: torch.Tensor = None,
+        attention_mask: torch.LongTensor = None,
     ):
         """
         Args:
@@ -66,15 +67,21 @@ class FeatReconstructionTask(Task):
             loss (torch.Tensor): scalar.
             prediction (torch.Tensor): (batch_size, timestamps, output_size)
         """
-        upstream_output: torch.Tensor = self.upstream(
-            x, position_encoding, attention_mask
-        )
+        if position_encoding is None and attention_mask is None:
+            upstream_output: torch.Tensor = self.upstream(x)
+        else:
+            upstream_output: torch.Tensor = self.upstream(
+                x, position_encoding, attention_mask
+            )
         prediction: torch.Tensor = self.predictor(upstream_output).prediction
 
-        assert label_mask.sum() > 0, "Without any masking, loss might go NaN."
-        reconstruction_loss = self.loss(
-            prediction.masked_select(label_mask), label.masked_select(label_mask)
-        )
+        if label_mask is None:
+            reconstruction_loss = self.loss(prediction, label)
+        else:
+            assert label_mask.sum() > 0, "Without any masking, loss might go NaN."
+            reconstruction_loss = self.loss(
+                prediction.masked_select(label_mask), label.masked_select(label_mask)
+            )
 
         return Output(
             loss=reconstruction_loss,
@@ -86,10 +93,10 @@ class FeatReconstructionTask(Task):
         self,
         x: torch.Tensor,
         label: torch.Tensor,
-        label_mask: torch.BoolTensor,
-        position_encoding: torch.Tensor,
-        attention_mask: torch.LongTensor,
-        unique_name: List[str],
+        label_mask: torch.BoolTensor = None,
+        position_encoding: torch.Tensor = None,
+        attention_mask: torch.LongTensor = None,
+        unique_name: List[str] = None,
     ):
 
         loss, hidden_states, prediction = self.predict(
@@ -126,10 +133,10 @@ class FeatReconstructionTask(Task):
         self,
         x: torch.Tensor,
         label: torch.Tensor,
-        label_mask: torch.BoolTensor,
-        position_encoding: torch.Tensor,
-        attention_mask: torch.LongTensor,
-        unique_name: List[str],
+        label_mask: torch.BoolTensor = None,
+        position_encoding: torch.Tensor = None,
+        attention_mask: torch.LongTensor = None,
+        unique_name: List[str] = None,
         **kwargs,
     ):
         """
@@ -176,10 +183,10 @@ class FeatReconstructionTask(Task):
         self,
         x: torch.Tensor,
         label: torch.Tensor,
-        label_mask: torch.BoolTensor,
-        position_encoding: torch.Tensor,
-        attention_mask: torch.LongTensor,
-        unique_name: List[str],
+        label_mask: torch.BoolTensor = None,
+        position_encoding: torch.Tensor = None,
+        attention_mask: torch.LongTensor = None,
+        unique_name: List[str] = None,
         **kwargs,
     ):
         return self._general_forward(
@@ -190,10 +197,10 @@ class FeatReconstructionTask(Task):
         self,
         x: torch.Tensor,
         label: torch.Tensor,
-        label_mask: torch.BoolTensor,
-        position_encoding: torch.Tensor,
-        attention_mask: torch.LongTensor,
-        unique_name: List[str],
+        label_mask: torch.BoolTensor = None,
+        position_encoding: torch.Tensor = None,
+        attention_mask: torch.LongTensor = None,
+        unique_name: List[str] = None,
         **kwargs,
     ):
         return self._general_forward(
