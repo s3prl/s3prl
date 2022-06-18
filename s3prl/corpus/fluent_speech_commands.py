@@ -65,10 +65,12 @@ class FluentSpeechCommands(Corpus):
 
     @classmethod
     def download_dataset(cls, tgt_dir: str) -> None:
-        assert os.path.exists(tgt_dir), "Target directory does not exist"
-
+        import os
         import requests
         import tarfile
+        
+        assert os.path.exists(tgt_dir), "Target directory does not exist"
+
         def unzip_targz_then_delete(filepath: str):
             with tarfile.open(os.path.abspath(filepath)) as tar:
                 tar.extractall(path=os.path.abspath(tgt_dir))
