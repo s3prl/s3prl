@@ -1,7 +1,7 @@
 import torch
 from torch.nn import L1Loss
 
-from s3prl.corpus.librispeech_for_pretrain import librispeech_for_pretrain
+from s3prl.corpus.librispeech import librispeech_for_pretrain
 from s3prl.dataset.pretrain_apc_pipe import PretrainApcPipe
 from s3prl.nn.predictor_identity import PredictorIdentity
 from s3prl.nn.rnn_apc import RnnApc
