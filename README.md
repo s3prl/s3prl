@@ -9,7 +9,7 @@
     <a href="https://github.com/s3prl/s3prl/issues"><img alt="Bitbucket open issues" src="https://img.shields.io/github/issues/s3prl/s3prl"></a>
 </p>
 
-## Notice
+## Notice for pull requests
 
 Please note that if you did not **explicitly** discuss with Andy and Leo about your planning development, **by default** it will **NOT** be merged into S3PRL and is better to be maintained in your own repository where you have the full permission.
 
