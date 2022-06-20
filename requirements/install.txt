@@ -1,6 +1,6 @@
 torchaudio >=0.7.0
 torch >=1.7.0,!=1.10.0
-PyYAML >=5.4
+PyYAML ==5.4.1
 tqdm >=4.56.0
 numpy >=1.21
 gdown >=3.12.2
