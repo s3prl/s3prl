@@ -100,7 +100,7 @@ def voxceleb1_for_utt_classification(dataset_root: str, n_jobs: int = 4):
 
 
 @registry.put()
-def mini_voxceleb1(dataset_root: str, force_download=False):
+def mini_voxceleb1(dataset_root: str, force_download: bool = False):
     dataset_root = Path(dataset_root)
     if not dataset_root.is_dir() or force_download:
         dataset_root.mkdir(exist_ok=True, parents=True)
