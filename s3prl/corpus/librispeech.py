@@ -12,6 +12,8 @@ from s3prl.util import registry
 
 from .base import Corpus
 
+logger = logging.getLogger(__name__)
+
 LIBRI_SPLITS = [
     "train-clean-100",
     "train-clean-360",
@@ -32,7 +34,7 @@ def read_text(file: Path) -> str:
             if idx == line.split(" ")[0]:
                 return line[:-1].split(" ", 1)[1]
 
-    logging.warning(f"Transcription of {file} not found!")
+    logger.warning(f"Transcription of {file} not found!")
 
 
 def check_no_repeat(splits: List[str]) -> bool:
@@ -46,7 +48,7 @@ def check_no_repeat(splits: List[str]) -> bool:
             repeated += f" {key} ({val} times)"
 
     if len(repeated) != 0:
-        logging.warning(
+        logger.warning(
             f"Found repeated splits in corpus: {repeated}, which might cause unexpected behaviors."
         )
         return False
@@ -127,7 +129,7 @@ class LibriSpeech(Corpus):
         for split in splits:
             split_dir = os.path.join(dataset_root, split)
             if not os.path.exists(split_dir):
-                logging.info(f"Split {split} is not downloaded. Skip data collection.")
+                logger.info(f"Split {split} is not downloaded. Skip data collection.")
                 continue
 
             wav_list = list(Path(split_dir).rglob("*.flac"))
@@ -176,40 +178,52 @@ class LibriSpeech(Corpus):
         return data
 
     @classmethod
-    def download_dataset(cls, target_dir: str, splits: List[str] = ["train-clean-100", "dev-clean", "test-clean"]) -> None:
+    def download_dataset(
+        cls,
+        target_dir: str,
+        splits: List[str] = ["train-clean-100", "dev-clean", "test-clean"],
+    ) -> None:
         import os
         import requests
         import tarfile
-        
-        assert os.path.exists(os.path.abspath(tgt_dir)), "Target directory does not exist"
+
+        target_dir = Path(target_dir)
+        target_dir.mkdir(exist_ok=True, parents=True)
 
         def unzip_targz_then_delete(filepath: str):
             with tarfile.open(os.path.abspath(filepath)) as tar:
-                tar.extractall(path=os.path.abspath(tgt_dir))
+                tar.extractall(path=os.path.abspath(target_dir))
             os.remove(os.path.abspath(filepath))
 
         def download_from_url(url: str):
             filename = url.split("/")[-1].replace(" ", "_")
-            filepath = os.path.join(tgt_dir, filename)
+            filepath = os.path.join(target_dir, filename)
 
             r = requests.get(url, stream=True)
             if r.ok:
-                logging.info(f"Saving {filename} to", os.path.abspath(filepath))
+                logger.info(f"Saving {filename} to {os.path.abspath(filepath)}")
                 with open(filepath, "wb") as f:
-                    for chunk in r.iter_content(chunk_size=1024*1024*10):
+                    for chunk in r.iter_content(chunk_size=1024 * 1024 * 10):
                         if chunk:
                             f.write(chunk)
                             f.flush()
                             os.fsync(f.fileno())
-                logging.info(f"{filename} successfully downloaded")
+                logger.info(f"{filename} successfully downloaded")
                 unzip_targz_then_delete(filepath)
             else:
-                logging.info(f"Download failed: status code {r.status_code}\n{r.text}")
+                logger.info(f"Download failed: status code {r.status_code}\n{r.text}")
 
         for split in splits:
-            if not os.path.exists(os.path.join(os.path.abspath(tgt_dir), "Librispeech/" + split)):
-                download_from_url("https://www.openslr.org/resources/12/" + split + ".tar.gz")
-        logging.info(", ".join(splits) + f"downloaded. Located at {os.path.abspath(tgt_dir)}/Librispeech/")        
+            if not os.path.exists(
+                os.path.join(os.path.abspath(target_dir), "Librispeech/" + split)
+            ):
+                download_from_url(
+                    "https://www.openslr.org/resources/12/" + split + ".tar.gz"
+                )
+        logger.info(
+            ", ".join(splits)
+            + f"downloaded. Located at {os.path.abspath(target_dir)}/Librispeech/"
+        )
 
 
 @registry.put()

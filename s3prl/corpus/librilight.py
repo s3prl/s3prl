@@ -106,7 +106,7 @@ class LibriLight(Corpus):
         self._data = Container(self._collect_data(roots, n_jobs))
 
     @classmethod
-    def download_corpus(cls, dataset_root: str):
+    def download_dataset(cls, dataset_root: str):
         Path(dataset_root).mkdir(parents=True, exist_ok=True)
         subprocess.check_call(
             [
@@ -117,9 +117,7 @@ class LibriLight(Corpus):
             ]
         )
         subprocess.check_call(
-            [
-                "tar", "-C", str(Path(dataset_root)), "zxvf", "librispeech_finetuning.tgz"
-            ]
+            ["tar", "-C", str(Path(dataset_root)), "zxvf", "librispeech_finetuning.tgz"]
         )
 
     @property
