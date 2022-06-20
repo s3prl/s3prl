@@ -6,8 +6,6 @@ from speechbrain.dataio.dataset import DynamicItemDataset
 from torch.utils.data import Sampler
 from tqdm import tqdm
 
-from s3prl.dataset import Dataset, metadata_mode
-
 from .base import Sampler
 
 T_co = TypeVar("T_co", covariant=True)
@@ -30,10 +28,10 @@ class MaxTimestampBatchSampler(Sampler):
         n_jobs: int = 4,
     ) -> None:
         if get_timestamps_func is None:
-            if isinstance(dataset, Dataset):
-                get_timestamps_func = self._get_timestamps_original
-            elif isinstance(dataset, DynamicItemDataset):
+            if isinstance(dataset, DynamicItemDataset):
                 get_timestamps_func = self._get_timestamps_dynamic_item_dataset
+            else:
+                raise ValueError("Unsupported dataset type")
         timestamps = get_timestamps_func(dataset, n_jobs)
 
         super().__init__(timestamps)
@@ -47,12 +45,6 @@ class MaxTimestampBatchSampler(Sampler):
     @staticmethod
     def _default_reduce_func(timestamps):
         return max(timestamps) * len(timestamps)
-
-    @staticmethod
-    def _get_timestamps_original(dataset: Dataset, n_jobs: int = 4):
-        with metadata_mode():
-            timestamps = [item.timestamp for item in dataset]
-        return timestamps
 
     @staticmethod
     def _get_timestamps_dynamic_item_dataset(

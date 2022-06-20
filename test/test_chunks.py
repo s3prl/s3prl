@@ -27,8 +27,8 @@ def test_chunk_pipe():
         }
         dataset = UnfoldChunkBySec(min_chunk_secs=2.5, step_secs=2.5)(data)
         assert (
-            dataset.data[dataset.keys()[0]]["end_sec"]
-            - dataset.data[dataset.keys()[0]]["start_sec"]
+            dataset.data[list(dataset.data.keys())[0]]["end_sec"]
+            - dataset.data[list(dataset.data.keys())[0]]["start_sec"]
             == 2.5
         )
         dataset = LoadAudio()(dataset)
