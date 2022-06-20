@@ -188,7 +188,7 @@ class Trainer:
         pbar = tqdm(
             total=cfg.trainer.total_steps,
             dynamic_ncols=True,
-            desc="overall",
+            desc="train",
             file=tqdm_file,
         )
         pbar.n = global_step
@@ -201,13 +201,8 @@ class Trainer:
         while pbar.n < pbar.total:
             train_sampler.set_epoch(epoch),
             batch_results = []
-            for batch in tqdm(
-                train_dataloader,
-                dynamic_ncols=True,
-                desc="train",
-                total=len(train_dataloader),
-                file=tqdm_file,
-            ):
+            logger.info(f"Start epoch {epoch}")
+            for batch in train_dataloader:
                 # try/except block for forward/backward
                 try:
                     if pbar.n >= pbar.total:
