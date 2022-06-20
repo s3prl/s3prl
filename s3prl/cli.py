@@ -36,8 +36,6 @@ def main():
     parser.add_argument("-u", "--usage", action="store_true")
     parser.add_argument("-v", "--verbose", default="INFO")
     args, cfg = parser.parse_known_args()
-    cfg = parse_overrides(cfg)
-
     logging.basicConfig(level=getattr(logging, args.verbose), force=True)
 
     if args.module is not None:
@@ -49,6 +47,8 @@ def main():
         classname, stepname = args.qualname.split(".")
         cls = all_problems[classname]
         target = getattr(cls, stepname)
+
+    cfg = parse_overrides(cfg)
 
     if args.usage:
         print(f"Documentation of {target.__module__}.{target.__qualname__}\n\n")

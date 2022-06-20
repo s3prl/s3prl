@@ -322,7 +322,7 @@ class Container(OrderedDict):
                 try:
                     cls = registry.get(key)
                 except:
-                    raise ValueError(f"Cannot resolve _cls = {key}")
+                    logger.error(f"Cannot resolve _cls = {key}. Might be an error.")
         return cls
 
     @staticmethod

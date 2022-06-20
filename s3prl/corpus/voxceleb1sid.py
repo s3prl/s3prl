@@ -1,12 +1,14 @@
+from genericpath import exists
 import os
 from collections import defaultdict
 from pathlib import Path
 
 from filelock import FileLock
+from librosa.util import find_files
 from joblib import Parallel, delayed
 from tqdm import tqdm
 
-from s3prl import Output, cache
+from s3prl import Output, cache, Container
 from s3prl.base.cache import _cache_root
 from s3prl.util import registry
 
@@ -94,4 +96,33 @@ def voxceleb1_for_utt_classification(dataset_root: str, n_jobs: int = 4):
         train_data=train_data,
         valid_data=valid_data,
         test_data=test_data,
+    )
+
+
+@registry.put()
+def mini_voxceleb1(dataset_root: str, force_download=False):
+    dataset_root = Path(dataset_root)
+    if not dataset_root.is_dir() or force_download:
+        dataset_root.mkdir(exist_ok=True, parents=True)
+        os.system(f"rm -rf {dataset_root}")
+        os.system(f"git lfs install")
+        os.system(
+            f"git clone https://huggingface.co/datasets/s3prl/mini_voxceleb1 {dataset_root}"
+        )
+
+    def prepare_datadict(split_root: str):
+        files = find_files(Path(split_root))
+        data = {}
+        for file in files:
+            file = Path(file)
+            data[file.stem] = dict(
+                wav_path=file.resolve(), label=file.name.split("-")[0]
+            )
+        return data
+
+    dataset_root = Path(dataset_root)
+    return Container(
+        train_data=prepare_datadict(dataset_root / "train"),
+        valid_data=prepare_datadict(dataset_root / "valid"),
+        test_data=prepare_datadict(dataset_root / "test"),
     )
