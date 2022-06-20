@@ -1,5 +1,5 @@
-from genericpath import exists
 import os
+import logging
 from collections import defaultdict
 from pathlib import Path
 from typing import List
@@ -16,6 +16,7 @@ from s3prl.util import registry
 from .base import Corpus
 
 SPLIT_FILE_URL = "https://www.robots.ox.ac.uk/~vgg/data/voxceleb/meta/iden_split.txt"
+logger = logging.getLogger(__name__)
 
 
 class VoxCeleb1SID(Corpus):
@@ -89,12 +90,15 @@ class VoxCeleb1SID(Corpus):
         return label
 
     @classmethod
-    def download_dataset(cls, target_dir: str, splits: List[str] = ["dev", "test"]) -> None:
+    def download_dataset(
+        cls, target_dir: str, splits: List[str] = ["dev", "test"]
+    ) -> None:
         tgt_dir = os.path.abspath(target_dir)
         assert os.path.exists(tgt_dir), "Target directory does not exist"
 
         import requests
         from zipfile import ZipFile
+
         def unzip_then_delete(filepath: str, split: str):
             assert os.path.exists(filepath), "File not found!"
 
@@ -108,38 +112,41 @@ class VoxCeleb1SID(Corpus):
 
             r = requests.get(url, stream=True)
             if r.ok:
-                logging.info(f"Saving {filename} to", filepath)
+                logger.info(f"Saving {filename} to", filepath)
                 with open(filepath, "wb") as f:
-                    for chunk in r.iter_content(chunk_size=1024*1024*10):
+                    for chunk in r.iter_content(chunk_size=1024 * 1024 * 10):
                         if chunk:
                             f.write(chunk)
                             f.flush()
                             os.fsync(f.fileno())
-                logging.info(f"{filename} successfully downloaded")
+                logger.info(f"{filename} successfully downloaded")
             else:
-                logging.info(f"Download failed: status code {r.status_code}\n{r.text}")
+                logger.info(f"Download failed: status code {r.status_code}\n{r.text}")
 
             return filepath
 
         def download_dev():
             partpaths = []
 
-            for part in ["a","b","c","d"]: 
+            for part in ["a", "b", "c", "d"]:
                 if os.path.exists(os.path.join(tgt_dir, f"vox1_dev_wav_parta{part}")):
-                    logging.info(f"vox1_dev_wav_parta{part} exists, skip donwload")
+                    logger.info(f"vox1_dev_wav_parta{part} exists, skip donwload")
                     partpaths.append(os.path.join(tgt_dir, f"vox1_dev_wav_parta{part}"))
                     continue
-                fp = download_from_url(f"https://thor.robots.ox.ac.uk/~vgg/data/voxceleb/vox1a/vox1_dev_wav_parta{part}", "dev")
+                fp = download_from_url(
+                    f"https://thor.robots.ox.ac.uk/~vgg/data/voxceleb/vox1a/vox1_dev_wav_parta{part}",
+                    "dev",
+                )
                 partpaths.append(fp)
 
-            zippath = os.path.join(tgt_dir,"vox1_dev_wav.zip")
+            zippath = os.path.join(tgt_dir, "vox1_dev_wav.zip")
             with open(zippath, "wb") as outfile:
                 for f in partpaths:
                     with open(f, "rb") as infile:
-                        for line in infile: 
+                        for line in infile:
                             outfile.write(line)
 
-            for f in partpaths: 
+            for f in partpaths:
                 os.remove(f)
             unzip_then_delete(zippath, "dev")
 
@@ -148,10 +155,13 @@ class VoxCeleb1SID(Corpus):
                 if split == "dev":
                     download_dev()
                 else:
-                    filepath = download_from_url("https://thor.robots.ox.ac.uk/~vgg/data/voxceleb/vox1a/vox1_test_wav.zip", "test")
+                    filepath = download_from_url(
+                        "https://thor.robots.ox.ac.uk/~vgg/data/voxceleb/vox1a/vox1_test_wav.zip",
+                        "test",
+                    )
                     unzip_then_delete(filepath, "test")
 
-        logging.info(f"Voxceleb1 dataset downloaded. Located at {tgt_dir}/Voxceleb1/")  
+        logger.info(f"Voxceleb1 dataset downloaded. Located at {tgt_dir}/Voxceleb1/")
 
 
 @registry.put()
