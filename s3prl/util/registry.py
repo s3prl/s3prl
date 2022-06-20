@@ -1,8 +1,12 @@
+import logging
+
 _key_to_cls = dict()
 _cls_to_key = dict()
 
+logger = logging.getLogger(__name__)
 
-def put(key: str = None, force: bool = False):
+
+def put(key: str = None):
     """
     key: the _cls field in the config. When key==None, Use the __name__ of the registering object
     """
@@ -11,8 +15,11 @@ def put(key: str = None, force: bool = False):
     def wrapper(cls_or_func):
         key = _key or cls_or_func.__name__
         global _key_to_cls, _cls_to_key
-        if not force:
-            assert key not in _key_to_cls or cls_or_func == _key_to_cls[key], f"Duplicated key in registry: {key}"
+        if key in _key_to_cls:
+            logger.warning(
+                f"Duplicated registration of the same key name: {key}. "
+                f"{_key_to_cls[key]} will be replaced by {cls_or_func}."
+            )
         _key_to_cls[key] = cls_or_func
         _cls_to_key[cls_or_func] = key
         return cls_or_func
