@@ -1,3 +1,4 @@
+import logging
 from pathlib import Path
 
 import pandas as pd
@@ -6,6 +7,8 @@ from s3prl import Container
 from s3prl.util import registry
 
 from .base import Corpus
+
+logger = logging.getLogger(__name__)
 
 
 class FluentSpeechCommands(Corpus):
@@ -96,11 +99,18 @@ class FluentSpeechCommands(Corpus):
 
     @classmethod
     def download_dataset(cls, tgt_dir: str) -> None:
+        """
+        Download and unzip the dataset to :code:`tgt_dir`/fluent_speech_commands_dataset
+
+        Args:
+            tgt_dir (str): The root directory containing many different datasets
+        """
         import os
         import requests
         import tarfile
-        
-        assert os.path.exists(tgt_dir), "Target directory does not exist"
+
+        tgt_dir = Path(tgt_dir)
+        tgt_dir.mkdir(exists_ok=True, parents=True)
 
         def unzip_targz_then_delete(filepath: str):
             with tarfile.open(os.path.abspath(filepath)) as tar:
@@ -113,22 +123,35 @@ class FluentSpeechCommands(Corpus):
 
             r = requests.get(url, stream=True)
             if r.ok:
-                logging.info(f"Saving {filename} to", os.path.abspath(filepath))
+                logger.info(f"Saving {filename} to", os.path.abspath(filepath))
                 with open(filepath, "wb") as f:
-                    for chunk in r.iter_content(chunk_size=1024*1024*10):
+                    for chunk in r.iter_content(chunk_size=1024 * 1024 * 10):
                         if chunk:
                             f.write(chunk)
                             f.flush()
                             os.fsync(f.fileno())
-                logging.info(f"{filename} successfully downloaded")
+                logger.info(f"{filename} successfully downloaded")
                 unzip_targz_then_delete(filepath)
             else:
-                logging.info(f"Download failed: status code {r.status_code}\n{r.text}")
+                logger.info(f"Download failed: status code {r.status_code}\n{r.text}")
 
-        if not (os.path.exists(os.path.join(os.path.abspath(tgt_dir), "fluent_speech_commands_dataset/wavs")) and 
-                os.path.exists(os.path.join(os.path.abspath(tgt_dir), "fluent_speech_commands_dataset/data/speakers"))):
+        if not (
+            os.path.exists(
+                os.path.join(
+                    os.path.abspath(tgt_dir), "fluent_speech_commands_dataset/wavs"
+                )
+            )
+            and os.path.exists(
+                os.path.join(
+                    os.path.abspath(tgt_dir),
+                    "fluent_speech_commands_dataset/data/speakers",
+                )
+            )
+        ):
             download_from_url("http://140.112.21.28:9000/fluent.tar.gz")
-        logging.info(f"Fluent speech commands dataset downloaded. Located at {os.path.abspath(tgt_dir)}/fluent_speech_commands_dataset/") 
+        logger.info(
+            f"Fluent speech commands dataset downloaded. Located at {os.path.abspath(tgt_dir)}/fluent_speech_commands_dataset/"
+        )
 
 
 @registry.put()
