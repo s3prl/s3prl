@@ -1,8 +1,6 @@
 import logging
-from multiprocessing.sharedctypes import Value
-from pydoc import resolve
-import re
 import os
+import re
 import subprocess
 from collections import defaultdict
 from pathlib import Path

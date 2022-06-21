@@ -1,22 +1,3 @@
-"""
-This is an easy interface to retrieve all the self-supervised learning (SSL) pre-trained models
-supported in S3PRL. the :code:`name` argument for :obj:`S3PRLUpstream` specifies the checkpoint,
-and then the pre-trained models in this checkpoint will be automatically constructed and
-initialized.
-
-For each SSL learning method, like wav2vec 2.0, there are several checkpoint variants, trained by
-different amount of unlabeled data, or different model sizes. Hence there are also various
-:code:`name` to retrieve these different models.
-
-Different learning methods also have different official places to extract the representation. Like
-there is **c** and **z** vectors in wav2vec. You can 
-
-The following includes the model information for each :code:`name`, including the releasing date,
-paper, citation, model architecture, pre-training data, 
-
-"""
-
-
 from typing import Union
 
 import torch
@@ -29,6 +10,24 @@ CHECK_ITERATION = 10
 
 
 class S3PRLUpstream(NNModule):
+    """
+    This is an easy interface for using all the S3PRL SSL models.
+
+    Args:
+        name (str):
+            can be "apc", "hubert", "wav2vec2". See above model information for all the supported names
+        feature_selection (str):
+            **"hidden_states"** is the default which extracts all layers, different :code:`name`
+            comes with different supported :code:`feature_selection` options. See the above
+            model information for the supported options. (Only a few have options other than **hidden_states**)
+        layer_selection (int):
+            a specific layer in the feature selected by **feature_selection**
+        layer_drop (float):
+            By default, set upstream's layer_drop (if exists) to 0 to prevent inconsistant
+            number of layers during multiple inference.
+            if layer_drop == "original", then use the initial layer_drop value as released
+    """
+
     def __init__(
         self,
         name: str,
@@ -36,21 +35,6 @@ class S3PRLUpstream(NNModule):
         layer_selection: int = None,
         layer_drop: Union[str, float] = 0.0,
     ):
-        """
-        Args:
-            name (str):
-                can be "apc", "hubert", "wav2vec2", the names supported by s3prl.hub
-            feature_selection (str):
-                "hidden_states" is the default to extract all layers, different :code:`name`
-                comes with different supported :code:`feature_selection` options. See the above
-                model information for the supported options.
-            layer_selection (int):
-                a specific layer selected after feature_selection
-            layer_drop (float):
-                By default, set upstream's layer_drop (if exists) to 0 to prevent inconsistant
-                number of layers during multiple inference.
-                if layer_drop == "original", then use the initial layer_drop value as released
-        """
         super().__init__()
         self.upstream = getattr(hub, name)()
         self.feature_selection = feature_selection
@@ -111,8 +95,12 @@ class S3PRLUpstream(NNModule):
             x_len (torch.LongTensor): (B, )
 
         Return:
-            hidden_states (list): a list of torch.Tensor (B, T, H)
-            hidden_states_len (list): a list of torch.LongTensor (B, )
+            :obj:`s3prl.base.container.Container`
+
+            hidden_states (List[torch.FloatTensor]):
+                list of (B, T / :obj:`downsample_rate`, :obj:`output_size`),
+                list length: :obj:`num_hidden_state`
+            hidden_states_len (torch.LongTensor): (B, )
         """
         assert x.dim() == 3
         assert x.size(-1) == self.input_size
@@ -124,14 +112,12 @@ class S3PRLUpstream(NNModule):
         if isinstance(hidden_states, torch.Tensor):
             hidden_states = [hidden_states]
 
-        hidden_states_len = [
-            torch.LongTensor(
-                [
-                    min(int(l.item() / downsample_rate), hidden_states[0].size(1))
-                    for l in x_len
-                ]
-            ).to(x.device)
-        ] * len(hidden_states)
+        hidden_states_len = torch.LongTensor(
+            [
+                min(int(l.item() / downsample_rate), hidden_states[0].size(1))
+                for l in x_len
+            ]
+        ).to(x.device)
 
         if self.layer_selection is not None:
             hidden_states = hidden_states[self.layer_selection]

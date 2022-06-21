@@ -5,22 +5,7 @@ import torch.nn.functional as F
 from s3prl import Output
 
 from . import NNModule
-
-
-class UpstreamExample(nn.Module):
-    def __init__(self):
-        super().__init__()
-        self.input_size: int = 1
-        self.output_size: int = 768
-        self.num_hidden_state: int = 1
-
-    def forward(self, wav, wav_len) -> Output:
-        assert wav.dim() == 3
-        assert wav.size(-1) == self.input_size
-
-        hidden_states = [torch.randn(wav.size(0), wav.size(1) // 160, self.output_size)]
-        hidden_states_len = [torch.LongTensor([h.size(1) for h in hidden_states])]
-        return Output(hidden_states=hidden_states, hidden_states_len=hidden_states_len)
+from .upstream import S3PRLUpstream
 
 
 class DownstreamExample(nn.Module):
@@ -36,7 +21,7 @@ class DownstreamExample(nn.Module):
 class UpstreamDownstreamModel(NNModule):
     def __init__(
         self,
-        upstream: UpstreamExample,
+        upstream: S3PRLUpstream,
         downstream: DownstreamExample,
         weighted_sum: bool = True,
         upstream_trainable: bool = False,
@@ -44,7 +29,7 @@ class UpstreamDownstreamModel(NNModule):
     ):
         """
         Args:
-            upstream (UpstreamExample)
+            upstream (S3PRLUpstream)
             downstream (DownstreamExample)
             weighted_sum (bool):
                 if True, add trainable weights on top of the extracted upstream representation
@@ -97,14 +82,12 @@ class UpstreamDownstreamModel(NNModule):
             hidden_state = (stacked_hidden_states * weights.view(-1, 1, 1, 1)).sum(
                 dim=0
             )
-            hidden_state_len = hidden_states_len[0]
         else:
             hidden_state = hidden_states[-1]
-            hidden_state_len = hidden_states_len[-1]
 
         assert (
             hidden_state.size(-1)
             == self.upstream.output_size
             == self.downstream.input_size
         )
-        return self.downstream(hidden_state, hidden_state_len, *args, **kwargs)
+        return self.downstream(hidden_state, hidden_states_len, *args, **kwargs)

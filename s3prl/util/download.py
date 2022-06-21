@@ -1,30 +1,32 @@
-import os
 import hashlib
-from filelock import FileLock
+import os
 
-import torch
 import gdown
+import torch
+from filelock import FileLock
 
 
 def _download(filename, url, refresh, agent):
-    dirpath = f'{torch.hub.get_dir()}/s3prl_cache'
+    dirpath = f"{torch.hub.get_dir()}/s3prl_cache"
     os.makedirs(dirpath, exist_ok=True)
-    filepath = f'{dirpath}/{filename}'
+    filepath = f"{dirpath}/{filename}"
     with FileLock(filepath + ".lock"):
         if not os.path.isfile(filepath) or refresh:
-            if agent == 'wget':
-                os.system(f'wget {url} -O {filepath}')
-            elif agent == 'gdown':
+            if agent == "wget":
+                os.system(f"wget {url} -O {filepath}")
+            elif agent == "gdown":
                 gdown.download(url, filepath, use_cookies=False)
             else:
-                print('[Download] - Unknown download agent. Only \'wget\' and \'gdown\' are supported.')
+                print(
+                    "[Download] - Unknown download agent. Only 'wget' and 'gdown' are supported."
+                )
                 raise NotImplementedError
         else:
-            print(f'Using cache found in {filepath}\nfor {url}')
+            print(f"Using cache found in {filepath}\nfor {url}")
     return filepath
 
 
-def _urls_to_filepaths(*args, refresh=False, agent='wget'):
+def _urls_to_filepaths(*args, refresh=False, agent="wget"):
     """
     Preprocess the URL specified in *args into local file paths after downloading
 
@@ -64,8 +66,10 @@ def _gdriveids_to_filepaths(*args, refresh=False):
 
     def gdriveid_to_url(gdriveid):
         if type(gdriveid) is str and len(gdriveid) > 0:
-            return f'https://drive.google.com/uc?id={gdriveid}'
+            return f"https://drive.google.com/uc?id={gdriveid}"
         else:
             return None
 
-    return _urls_to_filepaths(*[gdriveid_to_url(gid) for gid in args], refresh=refresh, agent='gdown')
+    return _urls_to_filepaths(
+        *[gdriveid_to_url(gid) for gid in args], refresh=refresh, agent="gdown"
+    )

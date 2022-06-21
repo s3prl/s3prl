@@ -1,6 +1,6 @@
 import logging
-import re
 import os
+import re
 from collections import defaultdict
 from pathlib import Path
 from typing import Any, Dict, List
@@ -184,8 +184,9 @@ class LibriSpeech(Corpus):
         splits: List[str] = ["train-clean-100", "dev-clean", "test-clean"],
     ) -> None:
         import os
-        import requests
         import tarfile
+
+        import requests
 
         target_dir = Path(target_dir)
         target_dir.mkdir(exist_ok=True, parents=True)

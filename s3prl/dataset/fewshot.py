@@ -1,7 +1,8 @@
-from copy import deepcopy
 import random
-from dataclasses import dataclass
 from collections import defaultdict
+from copy import deepcopy
+from dataclasses import dataclass
+
 from .base import AugmentedDynamicItemDataset, DataPipe
 
 

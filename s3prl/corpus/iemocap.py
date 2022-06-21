@@ -1,4 +1,5 @@
 import re
+import logging
 from pathlib import Path
 
 from librosa.util import find_files
@@ -11,6 +12,8 @@ from .base import Corpus
 IEMOCAP_SESSION_NUM = 5
 LABEL_DIR_PATH = "dialog/EmoEvaluation"
 WAV_DIR_PATH = "sentences/wav"
+
+logger = logging.getLogger(__name__)
 
 
 class IEMOCAP(Corpus):
@@ -123,12 +126,14 @@ class IEMOCAP(Corpus):
     @classmethod
     def download_dataset(cls, tgt_dir: str) -> None:
         import os
-        import requests
         import tarfile
 
-        assert os.path.exists(os.path.abspath(tgt_dir)), "Target directory does not exist"
+        import requests
 
-        
+        assert os.path.exists(
+            os.path.abspath(tgt_dir)
+        ), "Target directory does not exist"
+
         def unzip_targz_then_delete(filepath: str):
             with tarfile.open(os.path.abspath(filepath)) as tar:
                 tar.extractall(path=os.path.abspath(tgt_dir))
@@ -140,21 +145,23 @@ class IEMOCAP(Corpus):
 
             r = requests.get(url, stream=True)
             if r.ok:
-                logging.info(f"Saving {filename} to", os.path.abspath(filepath))
+                logger.info(f"Saving {filename} to", os.path.abspath(filepath))
                 with open(filepath, "wb") as f:
-                    for chunk in r.iter_content(chunk_size=1024*1024*10):
+                    for chunk in r.iter_content(chunk_size=1024 * 1024 * 10):
                         if chunk:
                             f.write(chunk)
                             f.flush()
                             os.fsync(f.fileno())
-                logging.info(f"{filename} successfully downloaded")
+                logger.info(f"{filename} successfully downloaded")
                 unzip_targz_then_delete(filepath)
             else:
-                logging.info(f"Download failed: status code {r.status_code}\n{r.text}")
+                logger.info(f"Download failed: status code {r.status_code}\n{r.text}")
 
         if not os.path.exists(os.path.join(os.path.abspath(tgt_dir), "IEMOCAP/")):
             download_from_url("http://140.112.21.28:9000/IEMOCAP.tar.gz")
-        logging.info(f"IEMOCAP dataset downloaded. Located at {os.path.abspath(tgt_dir)}/IEMOCAP/")
+        logger.info(
+            f"IEMOCAP dataset downloaded. Located at {os.path.abspath(tgt_dir)}/IEMOCAP/"
+        )
 
 
 @registry.put()

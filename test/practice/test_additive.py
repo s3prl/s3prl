@@ -1,8 +1,10 @@
+from pathlib import Path
+
+import pandas as pd
 import pytest
 import torchaudio
-import pandas as pd
-from pathlib import Path
 from librosa.util import find_files
+
 from s3prl.dataset.base import SequentialDataPipe
 from s3prl.dataset.common_pipes import LoadAudio
 from s3prl.dataset.effects import AdditiveNoise, Reverberation, ShiftPitchAndResample

@@ -1,10 +1,10 @@
 import random
-import torchaudio
-from typing import List
 from dataclasses import dataclass
-from speechbrain.processing.signal_processing import compute_amplitude, dB_to_amplitude
+from typing import List
 
 import torch
+import torchaudio
+from speechbrain.processing.signal_processing import compute_amplitude, dB_to_amplitude
 
 from s3prl.base.container import Container
 
