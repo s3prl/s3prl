@@ -1,4 +1,22 @@
-from multiprocessing.sharedctypes import Value
+"""
+This is an easy interface to retrieve all the self-supervised learning (SSL) pre-trained models
+supported in S3PRL. the :code:`name` argument for :obj:`S3PRLUpstream` specifies the checkpoint,
+and then the pre-trained models in this checkpoint will be automatically constructed and
+initialized.
+
+For each SSL learning method, like wav2vec 2.0, there are several checkpoint variants, trained by
+different amount of unlabeled data, or different model sizes. Hence there are also various
+:code:`name` to retrieve these different models.
+
+Different learning methods also have different official places to extract the representation. Like
+there is **c** and **z** vectors in wav2vec. You can 
+
+The following includes the model information for each :code:`name`, including the releasing date,
+paper, citation, model architecture, pre-training data, 
+
+"""
+
+
 from typing import Union
 
 import torch
@@ -23,7 +41,9 @@ class S3PRLUpstream(NNModule):
             name (str):
                 can be "apc", "hubert", "wav2vec2", the names supported by s3prl.hub
             feature_selection (str):
-                cat be "hidden_states" for the defaults, or "ASR", "SID", "ER" ... etc
+                "hidden_states" is the default to extract all layers, different :code:`name`
+                comes with different supported :code:`feature_selection` options. See the above
+                model information for the supported options.
             layer_selection (int):
                 a specific layer selected after feature_selection
             layer_drop (float):
