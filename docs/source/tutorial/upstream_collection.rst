@@ -11,7 +11,7 @@ available in S3PRL. the :code:`name` argument for :obj:`s3prl.nn.upstream.S3PRLU
 and then the pre-trained models in this checkpoint will be automatically constructed and
 initialized.
 
-Here is an example on how to get a hubert model and its representation:
+Here is an example on how to get a hubert model and its representation using the :code:`name='hubert'`:
 
 .. code-block:: python
 
@@ -22,7 +22,8 @@ Here is an example on how to get a hubert model and its representation:
 
     SAMPLE_RATE = 16000
 
-    model = S3PRLUpstream("hubert").cuda()
+    name = "hubert"
+    model = S3PRLUpstream(name).cuda()
     model.eval()
 
     with torch.no_grad():
@@ -46,7 +47,7 @@ paper, citation, model architecture, pre-training data, criterion, and their sou
 
 SSL Method
 --------------------------------------------------------
-(`arxiv <https://arxiv.org/>`_)
+`Paper full title with arxiv link <https://arxiv.org/>`_
 
 .. _my-reference-label:
 
@@ -735,3 +736,117 @@ hubert_large_ll60k
 
 - Unlabled Speech: LibriLight ll60k hours
 
+
+DistilHuBERT
+----------------------
+`DistilHuBERT: Speech Representation Learning by Layer-wise Distillation of Hidden-unit BERT <https://arxiv.org/abs/2110.01900>`_
+
+    @inproceedings{chang2022distilhubert,
+        title={DistilHuBERT: Speech representation learning by layer-wise distillation of hidden-unit BERT},
+        author={Chang, Heng-Jui and Yang, Shu-wen and Lee, Hung-yi},
+        booktitle={ICASSP 2022-2022 IEEE International Conference on Acoustics, Speech and Signal Processing (ICASSP)},
+        pages={7087--7091},
+        year={2022},
+        organization={IEEE}
+    }
+
+
+distilhubert
+~~~~~~~~~~~~~~~~~~~~~
+
+Alias of `distilhubert_base`_
+
+
+distilhubert_base
+~~~~~~~~~~~~~~~~~~~~~
+
+- Teacher: `hubert_base`_
+- Unlabled Speech: LibriSpeech 960hr
+
+
+
+Unispeech-SAT
+--------------------------------------------------
+`Unispeech-sat: Universal speech representation learning with speaker aware pre-training <https://arxiv.org/abs/2110.05752>`_
+
+.. code-block:: bash
+
+    @inproceedings{chen2022unispeech,
+        title={Unispeech-sat: Universal speech representation learning with speaker aware pre-training},
+        author={Chen, Sanyuan and Wu, Yu and Wang, Chengyi and Chen, Zhengyang and Chen, Zhuo and Liu, Shujie and Wu, Jian and Qian, Yao and Wei, Furu and Li, Jinyu and others},
+        booktitle={ICASSP 2022-2022 IEEE International Conference on Acoustics, Speech and Signal Processing (ICASSP)},
+        pages={6152--6156},
+        year={2022},
+        organization={IEEE}
+    }
+
+
+unispeech_sat
+~~~~~~~~~~~~~~~~~~~~~
+
+Alias of `unispeech_sat_base`_
+
+
+unispeech_sat_base
+~~~~~~~~~~~~~~~~~~~~~~
+
+- Model Architecture: 12 layers Transformer blocks
+- Unlabled Speech: LibriSpeech 960 hours
+
+
+unispeech_sat_base_plus
+~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+- Model Architecture: 12 layers Transformer blocks
+- Unlabled Speech: LibriLight 60k hours + Gigaspeech 10k hours + VoxPopuli 24k hours = 94k hours
+
+
+unispeech_sat_large
+~~~~~~~~~~~~~~~~~~~~~~~~
+
+- Model Architecture: 24 layers Transformer blocks
+- Unlabled Speech: LibriLight 60k hours + Gigaspeech 10k hours + VoxPopuli 24k hours = 94k hours
+
+
+
+WavLM
+--------------------------------------------------
+`WavLM: Large-Scale Self-Supervised Pre-Training for Full Stack Speech Processing <https://arxiv.org/abs/2110.13900>`_
+
+.. code-block:: bash
+
+    @article{Chen2021WavLM,
+        title   = {WavLM: Large-Scale Self-Supervised  Pre-training   for Full Stack Speech Processing},
+        author  = {Sanyuan Chen and Chengyi Wang and Zhengyang Chen and Yu Wu and Shujie Liu and Zhuo Chen and Jinyu Li and Naoyuki Kanda and Takuya Yoshioka and Xiong Xiao and Jian Wu and Long Zhou and Shuo Ren and Yanmin Qian and Yao Qian and Jian Wu and Michael Zeng and Furu Wei},
+        eprint={2110.13900},
+        archivePrefix={arXiv},
+        primaryClass={cs.CL},
+        year={2021}
+    }
+
+
+wavlm
+~~~~~~~~~~~~~~~~~
+
+Alias of `wavlm_base_plus`_
+
+
+wavlm_base
+~~~~~~~~~~~~~~~~
+
+- Model Architecture: 12 layers Transformer blocks
+- Unlabled Speech: LibriSpeech 960 hours
+
+
+wavlm_base_plus
+~~~~~~~~~~~~~~~~~~~~~
+
+- Model Architecture: 12 layers Transformer blocks
+- Unlabled Speech: LibriLight 60k hours + Gigaspeech 10k hours + VoxPopuli 24k hours = 94k hours
+
+
+wavlm_large
+~~~~~~~~~~~~~~~~~~~~~
+
+- Model Architecture: 24 layers Transformer blocks
+- Unlabled Speech: LibriLight 60k hours + Gigaspeech 10k hours + VoxPopuli 24k hours = 94k hours
