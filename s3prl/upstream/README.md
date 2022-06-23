@@ -86,7 +86,7 @@ Jun 14 2021 | HuBERT | hubert / hubert_large_ll60k | [arxiv](https://arxiv.org/a
 Dec 3 2019 | DeCoAR | decoar | [arxiv](https://arxiv.org/abs/1912.01679) | Mel | 10ms | [LibriSpeech-960](http://www.openslr.org/12) | O | [speech-representations](https://github.com/awslabs/speech-representations)
 Dec 11 2020 | DeCoAR 2.0 | decoar2 | [arxiv](https://arxiv.org/abs/2012.06659) | Mel | 10ms | [LibriSpeech-960](http://www.openslr.org/12) | O | [speech-representations](https://github.com/awslabs/speech-representations)
 Oct 5 2021 | DistilHuBERT | distilhubert | [arxiv](https://arxiv.org/abs/2110.01900) | wav | 20ms | [LibriSpeech-960](http://www.openslr.org/12) | O | [S3PRL](https://github.com/s3prl/s3prl)
-
+May 27 2022 | Robust HuBERT | hubert_base_robust_mgr | [arxiv](https://arxiv.org/abs/2203.16104) | wav | 20ms | [LibriSpeech-960](http://www.openslr.org/12) with mgr distortion | X | Unavailable
 ### Acoustic Feature Upstreams
 
 We also provide classic acoustic features as baselines. For each upstream with `Name`, you can configure their options (available by their `Backend`) in `s3prl/upstream/baseline/Name.yaml`.

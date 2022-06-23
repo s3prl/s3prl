@@ -19,7 +19,7 @@ indexs = []		# Index of Segments in the Same Video
 starts = []		# Start time of Segment in Video
 ends = []		# End time of Segment in Video
 labels_2a = []	# 2-class classification	1 = Positive+Neutral, -1 = Negative
-labels_2b = []	# 2-class classification:	1 = Positve, 0 = Neutral, -1 = Negative
+labels_2b = []	# 3-class classification:	1 = Positve, 0 = Neutral, -1 = Negative
 labels_6 = []	# 6-class emotion classification
 labels_7 = []	# 7-class classification:	[-2,-1,0,1,2,3]
 splits = [] 	# 0 = Training, 1 = Validation, 2 = Testing
@@ -31,10 +31,10 @@ def label2a(a):	# negative/non-negative: simply <0 or >=0 (used in most papers)
 
 def label2b(a):	# negative / positive: <0 or >0 (used in some papers)
 	if a < 0:
-		return 0
+		return -1
 	if a > 0:
 		return 1
-	return -1
+	return 0
 
 def label7(a):
    	if a < -2:	return -3
@@ -99,7 +99,7 @@ print('Class negative     (0): ', labels_2a.count(0))
 print('--------------------------------------')
 print('---------- 3-class sentiment ---------')
 print('Class positive (1): ', labels_2b.count(+1))
-print('Class neutral (0): ', labels_2b.count(0))
+print('Class neutral  (0): ', labels_2b.count(0))
 print('Class negative (-1): ', labels_2b.count(-1))
 print('--------------------------------------')
 print('--------- 6-class emotion ------------')

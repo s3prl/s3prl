@@ -261,7 +261,7 @@ class TransformerForMaskedAcousticModel(TransformerInitModel):
         pred_spec, pred_state = self.SpecHead(sequence_output)
 
         if spec_label is not None and mask_label is not None:
-            assert mask_label.sum() > 0, 'Without any masking, loss might go NaN. Modify your data preprocessing (utility/mam.py)'
+            assert mask_label.sum() > 0, 'Without any masking, loss might go NaN. Check your pretrain data processing (s3prl/pretrain/mockingjay/task.py)'
             masked_spec_loss = self.loss(pred_spec.masked_select(mask_label), spec_label.masked_select(mask_label))
             return masked_spec_loss, pred_spec
         elif self.output_attentions:

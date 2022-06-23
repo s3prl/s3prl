@@ -9,9 +9,9 @@
     <a href="https://github.com/s3prl/s3prl/issues"><img alt="Bitbucket open issues" src="https://img.shields.io/github/issues/s3prl/s3prl"></a>
 </p>
 
-## Announcement
+## Notice for pull requests
 
-If you wish to submit to SUPERB benchmark while you find [superbbenchmark.org](www.superbbenchmark.org) is down temporarily, please try to use [140.112.21.28](140.112.21.28) as an alternative. They share the same backend. We will make the official domain work as soon as possible.
+Please note that if you did not explicitly discuss with Andy and Leo (the owners of the repository) about your planning development, by default it will not be merged into S3PRL and is better to be maintained in your own repository where you have the full permission. This is the common courtesy in our point of view hence there is no exception. Thanks for your understanding!
 
 ## What's New
 
