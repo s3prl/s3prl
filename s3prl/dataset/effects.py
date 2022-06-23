@@ -59,7 +59,7 @@ class AdditiveNoise(DataPipe):
         target *= 1 - noise_amplitude_factor
 
         if target.size(1) > noise.size(1) and not repeat:
-            start = random.randint(0, target.size(1) - noise.size(1))
+            start = 0
             pre_pad = noise.new_zeros(1, start, 1)
             post_pad = noise.new_zeros(1, target.size(1) - (start + noise.size(1)), 1)
             noise = torch.cat((pre_pad, noise, post_pad), dim=1)
@@ -68,7 +68,7 @@ class AdditiveNoise(DataPipe):
                 num_repeat = target.size(1) // noise.size(1) + 1
                 noise = noise.expand(num_repeat, -1, -1).reshape(1, -1, 1)
 
-            start = random.randint(0, noise.size(1) - target.size(1))
+            start = 0
             noise = noise[:, start : start + target.size(1), :]
         assert noise.size(1) == target_len.item()
 
