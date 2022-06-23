@@ -1,6 +1,7 @@
 from typing import Union
 
 import torch
+import torch.nn.functional as F
 
 from s3prl import Output, hub
 
@@ -26,6 +27,8 @@ class S3PRLUpstream(NNModule):
             By default, set upstream's layer_drop (if exists) to 0 to prevent inconsistant
             number of layers during multiple inference.
             if layer_drop == "original", then use the initial layer_drop value as released
+        normalize (bool):
+            Apply layer-norm on the feature across the hidden_size dimension. This is helpful for convergence
     """
 
     def __init__(
@@ -34,11 +37,14 @@ class S3PRLUpstream(NNModule):
         feature_selection: str = "hidden_states",
         layer_selection: int = None,
         layer_drop: Union[str, float] = 0.0,
+        normalize: bool = True,
+        refresh: bool = False,
     ):
         super().__init__()
-        self.upstream = getattr(hub, name)()
+        self.upstream = getattr(hub, name)(refresh=refresh)
         self.feature_selection = feature_selection
         self.layer_selection = layer_selection
+        self.normalize = normalize
 
         if hasattr(self.upstream, "layer_drop"):
             if layer_drop == "original":
@@ -122,6 +128,12 @@ class S3PRLUpstream(NNModule):
         if self.layer_selection is not None:
             hidden_states = hidden_states[self.layer_selection]
             hidden_states_len = hidden_states_len[self.layer_selection]
+
+        if self.normalize:
+            hidden_states = [
+                F.layer_norm(hidden_state, (hidden_state.size(-1),))
+                for hidden_state in hidden_states
+            ]
 
         return Output(
             hidden_states=hidden_states,

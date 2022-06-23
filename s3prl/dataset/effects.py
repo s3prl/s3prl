@@ -11,16 +11,26 @@ from s3prl.base.container import Container
 from .base import AugmentedDynamicItemDataset, DataPipe
 
 
-@dataclass
 class AdditiveNoise(DataPipe):
-    noise_paths: List[str] = None
-    snrs: List[float] = None
-    sample_rate: int = 16000
-    repeat: bool = True
-    noise_paths_hook: dict = None
+    def __init__(
+        self,
+        noise_paths: List[str] = None,
+        snrs: List[float] = None,
+        sample_rate: int = 16000,
+        repeat: bool = True,
+        noise_paths_hook: dict = None,
+        wav_name: str = "wav",
+        noisy_name: str = "wav_noisy",
+        **kwds,
+    ):
+        self.noise_paths = noise_paths
+        self.snrs = snrs
+        self.sample_rate = sample_rate
+        self.repeat = repeat
+        self.noise_paths_hook = noise_paths_hook
+        self.wav_name = wav_name
+        self.noisy_name = noisy_name
 
-    wav_name: str = "wav"
-    noisy_name: str = "wav_noisy"
 
     def add_noise(self, target, noise_paths):
         snrs = self.snrs or [-3, 0, 3]
@@ -115,6 +125,7 @@ class Reverberation(ApplySoxEffects):
         sample_rate: int = 16000,
         wav_name: str = "wav",
         reverbed_name: str = "wav_reverb",
+        **kwds,
     ):
         super().__init__(
             effects=[
@@ -142,6 +153,7 @@ class ShiftPitchAndResample(ApplySoxEffects):
         sample_rate: int = 16000,
         wav_name: str = "wav",
         pitched_name: str = "wav_pitch",
+        **kwds,
     ):
         command = ["pitch", str(shift_cent)]
         if quick:

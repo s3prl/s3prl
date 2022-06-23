@@ -29,11 +29,17 @@ class RatioSampler(DataPipe):
         return dataset
 
 
-@dataclass
 class BalancedRatioSampler(DataPipe):
-    target_name: str = None
-    ratio: float = 1.0
-    seed: int = 0
+    def __init__(
+        self,
+        target_name: str ,
+        ratio: float = 1.0,
+        seed: int = 0,
+        **kwds,
+    ):
+        self.target_name = target_name
+        self.ratio = ratio
+        self.seed = seed
 
     def forward(
         self, dataset: AugmentedDynamicItemDataset

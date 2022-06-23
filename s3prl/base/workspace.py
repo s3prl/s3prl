@@ -147,7 +147,7 @@ class Workspace(type(Path()), MutableMapping):
         assert self.is_dir()
 
         dtype = dtype or self._default_dtype
-        logger.warning(f"Put '{identifier}' into {repr(self)}")
+        logger.info(f"Put '{identifier}' into {repr(self)}")
         if dtype is None:
             save(self / identifier, value)
         else:

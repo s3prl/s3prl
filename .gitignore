@@ -162,3 +162,5 @@ _build
 s3prl*.rst
 s3prl*.doctree
 *.html
+JSALT
+*.wav
