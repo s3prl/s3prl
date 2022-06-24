@@ -423,6 +423,8 @@ class Trainer:
     def inference(cls, **cfg):
         cfg = Container(cfg)
         workspace = Workspace(cfg.workspace)
+        fix_random_seeds()
+
         dataset = workspace[f"{cfg.split_name}_dataset"]
         sampler = workspace[f"{cfg.split_name}_sampler"]
         dataloader = DataLoader(dataset, sampler, num_workers=cfg.n_jobs)

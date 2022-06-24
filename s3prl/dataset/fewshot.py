@@ -6,10 +6,16 @@ from dataclasses import dataclass
 from .base import AugmentedDynamicItemDataset, DataPipe
 
 
-@dataclass
 class RatioSampler(DataPipe):
-    ratio: float = 1.0
-    seed: int = 0
+    def __init__(
+        self,
+        ratio: float = 1.0,
+        seed: int = 0,
+        **kwds,
+    ) -> None:
+        super().__init__()
+        self.ratio = ratio
+        self.seed = seed
 
     def forward(
         self, dataset: AugmentedDynamicItemDataset
@@ -32,7 +38,7 @@ class RatioSampler(DataPipe):
 class BalancedRatioSampler(DataPipe):
     def __init__(
         self,
-        target_name: str ,
+        target_name: str,
         ratio: float = 1.0,
         seed: int = 0,
         **kwds,

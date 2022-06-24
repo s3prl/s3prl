@@ -11,6 +11,7 @@ from s3prl.problem.trainer import Trainer
 from s3prl.util import workspace
 from s3prl.util.configuration import default_cfg
 from s3prl.util.workspace import Workspace, as_type
+from s3prl.util.seed import fix_random_seeds
 
 logger = logging.getLogger(__name__)
 
@@ -108,6 +109,7 @@ class SuperbProblem(Problem, Trainer):
     def setup(cls, **cfg) -> Container:
         cfg = Container(cfg)
         workspace = Workspace(cfg.workspace)
+        fix_random_seeds()
 
         if not isinstance(cfg.upstream, nn.Module):
             upstream = cfg.upstream._cls(**cfg.upstream.kwds())

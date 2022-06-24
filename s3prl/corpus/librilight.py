@@ -115,7 +115,7 @@ class LibriLight(Corpus):
             ]
         )
         subprocess.check_call(
-            ["tar", "-C", str(Path(dataset_root)), "zxvf", "librispeech_finetuning.tgz"]
+            ["tar", "zxvf", "librispeech_finetuning.tgz", "-C", str(Path(dataset_root))]
         )
 
     @property
