@@ -2,8 +2,8 @@ import torch
 from torch.nn import L1Loss
 
 from s3prl import Container
-from s3prl.corpus.librispeech_for_pretrain import LibriSpeechForPretraining
-from s3prl.dataset.pretrain_audioalbert_pipe import PretrainAudioAlbertPipe
+from s3prl.corpus.librispeech_for_pretrain import LibriSpeechForPretrain
+from s3prl.dataset.pretrain_audioalbert_pipe import PretrainTaskPipe
 from s3prl.nn.transformer_audioalbert import (
     TransformerConfig,
     TransformerModel,
@@ -14,12 +14,12 @@ from s3prl.task.feat_reconstruction_task import FeatReconstructionTask
 
 
 class AudioAlbert:
-    Corpus = LibriSpeechForPretraining
-    TrainData = PretrainAudioAlbertPipe
+    Corpus = LibriSpeechForPretrain
+    TrainData = PretrainTaskPipe
     TrainSampler = MaxTimestampBatchSampler
-    ValidData = PretrainAudioAlbertPipe
+    ValidData = PretrainTaskPipe
     ValidSampler = FixedBatchSizeBatchSampler
-    TestData = PretrainAudioAlbertPipe
+    TestData = PretrainTaskPipe
     TestSampler = FixedBatchSizeBatchSampler
     Body = TransformerModel
     Head = TransformerSpecPredictionHead

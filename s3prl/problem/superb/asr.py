@@ -19,24 +19,30 @@ class SuperbASR(SuperbProblem):
                 _cls=librispeech_for_speech2text,
                 dataset_root="???",
             ),
-            train_datapipe=dict(
-                _cls=Speech2TextPipe,
-            ),
+            train_datapipe={
+                "0": dict(
+                    _cls=Speech2TextPipe,
+                ),
+            },
             train_sampler=dict(
                 _cls=FixedBatchSizeBatchSampler,
                 batch_size=16,
                 shuffle=True,
             ),
-            valid_datapipe=dict(
-                _cls=Speech2TextPipe,
-            ),
+            valid_datapipe={
+                "0": dict(
+                    _cls=Speech2TextPipe,
+                )
+            },
             valid_sampler=dict(
                 _cls=FixedBatchSizeBatchSampler,
                 batch_size=1,
             ),
-            test_datapipe=dict(
-                _cls=Speech2TextPipe,
-            ),
+            test_datapipe={
+                "0": dict(
+                    _cls=Speech2TextPipe,
+                )
+            },
             test_sampler=dict(
                 _cls=FixedBatchSizeBatchSampler,
                 batch_size=1,
@@ -98,9 +104,9 @@ class SuperbASR(SuperbProblem):
             stages=["setup", "train", "inference"],
             start_stage="setup",
             final_stage="inference",
-            setup=setup.default_cfg.deselect("workspace", "resume", "dryrun"),
-            train=train.default_cfg.deselect("workspace", "resume", "dryrun"),
-            inference=inference.default_cfg.deselect("workspace", "resume", "dryrun"),
+            setup=setup.default_cfg.deselect("workspace", "resume"),
+            train=train.default_cfg.deselect("workspace", "resume"),
+            inference=inference.default_cfg.deselect("workspace", "resume"),
         )
     )
     @classmethod

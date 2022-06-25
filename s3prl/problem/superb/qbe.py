@@ -72,14 +72,16 @@ class SuperbQBE(SuperbProblem):
             _cls=quesst14_for_qbe,
             dataset_root="???",
         ),
-        all_datapipe=dict(
-            _cls=QbeDumpFeaturePipe,
-            sox_effects=[
-                ["channels", "1"],
-                ["rate", "16000"],
-                ["gain", "-3.0"],
-            ],
-        ),
+        all_datapipe={
+            "0": dict(
+                _cls=QbeDumpFeaturePipe,
+                sox_effects=[
+                    ["channels", "1"],
+                    ["rate", "16000"],
+                    ["gain", "-3.0"],
+                ],
+            ),
+        },
         all_sampler=dict(
             _cls=FixedBatchSizeBatchSampler,
             batch_size=1,
@@ -109,7 +111,7 @@ class SuperbQBE(SuperbProblem):
 
         logger.info("Preparing train data")
         all_dataset = AugmentedDynamicItemDataset(all_data)
-        all_dataset = cfg.all_datapipe._cls(**cfg.all_datapipe.kwds())(all_dataset)
+        all_dataset = SequentialDataPipe(*cfg.all_datapipe.tolist())(all_data)
         all_sampler = cfg.all_sampler._cls(all_dataset, **cfg.all_sampler.kwds())
 
         task = cfg.task._cls(model, **cfg.task.kwds())

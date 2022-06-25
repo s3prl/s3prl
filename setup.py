@@ -11,9 +11,11 @@ long_description = (here / "README.md").read_text(encoding="utf-8")
 version = (here / "s3prl" / "version.txt").read_text(encoding="utf-8").strip()
 
 requirements = {}
+requirement_files = []
 for file in os.listdir(here / "requirements"):
     lines = [line.strip() for line in (here / "requirements" / file).open().readlines()]
     requirements[Path(file).stem] = lines
+    requirement_files.append(f"requirements/{file}")
 
 install_requires = requirements["install"]
 extras_require = {k: v for k, v in requirements.items() if k not in ["install"]}
@@ -155,7 +157,7 @@ setup(
     # http://docs.python.org/distutils/setupscript.html#installing-additional-files
     #
     # In this case, 'data_file' will be installed into '<sys.prefix>/my_data'
-    # data_files=[('my_data', ['data/data_file'])],  # Optional
+    data_files=[("requirements", requirement_files)],  # Optional
     # To provide executable scripts, use entry points in preference to the
     # "scripts" keyword. Entry points provide cross-platform support and allow
     # `pip` to create the appropriate form of executable for the target

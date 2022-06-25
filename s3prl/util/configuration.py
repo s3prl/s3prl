@@ -141,6 +141,8 @@ class _CallableWithConfig:
                         "Skip and return the saved result."
                     )
                     return (workspace / "_done")[self.__qualname__]
+            elif self.__qualname__ in workspace / "_done":
+                (workspace / "_done").remove(self.__qualname__)
 
         all_cfg.check_no_unfilled_field()
 

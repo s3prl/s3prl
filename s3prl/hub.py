@@ -5,7 +5,6 @@ def _get_hubconf_entries():
 
     _search_root = pathlib.Path(__file__).parent
     _hubconfs = list(_search_root.glob("upstream/*/hubconf.py"))
-    _hubconfs += list(_search_root.glob("downstream/*/hubconf.py"))
 
     for _hubconf in _hubconfs:
         relpath = _hubconf.relative_to(_search_root)

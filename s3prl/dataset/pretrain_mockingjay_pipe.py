@@ -5,7 +5,7 @@ from .masked_reconstruction_pipes import MaskedReconstruction, PrepareTargetFeat
 from .noise_augmentation_pipes import NoiseAugmentation
 
 
-class PretrainMockingjayPipe(SequentialDataPipe):
+class PretrainTaskPipe(SequentialDataPipe):
     """
     each item in the input dataset should have:
         wav_path: str

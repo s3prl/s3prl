@@ -16,25 +16,31 @@ class SuperbKS(SuperbProblem):
                 _cls=gsc_v1_for_superb,
                 dataset_root="???",
             ),
-            train_datapipe=dict(
-                _cls=UtteranceClassificationPipe,
-                train_category_encoder=True,
-            ),
+            train_datapipe={
+                "0": dict(
+                    _cls=UtteranceClassificationPipe,
+                    train_category_encoder=True,
+                ),
+            },
             train_sampler=dict(
                 _cls=FixedBatchSizeBatchSampler,
                 batch_size=32,
                 shuffle=True,
             ),
-            valid_datapipe=dict(
-                _cls=UtteranceClassificationPipe,
-            ),
+            valid_datapipe={
+                "0": dict(
+                    _cls=UtteranceClassificationPipe,
+                ),
+            },
             valid_sampler=dict(
                 _cls=FixedBatchSizeBatchSampler,
                 batch_size=32,
             ),
-            test_datapipe=dict(
-                _cls=UtteranceClassificationPipe,
-            ),
+            test_datapipe={
+                "0": dict(
+                    _cls=UtteranceClassificationPipe,
+                ),
+            },
             test_sampler=dict(
                 _cls=FixedBatchSizeBatchSampler,
                 batch_size=32,
@@ -83,9 +89,9 @@ class SuperbKS(SuperbProblem):
         stages=["setup", "train", "inference"],
         start_stage="setup",
         final_stage="inference",
-        setup=setup.default_cfg.deselect("workspace", "resume", "dryrun"),
-        train=train.default_cfg.deselect("workspace", "resume", "dryrun"),
-        inference=inference.default_cfg.deselect("workspace", "resume", "dryrun"),
+        setup=setup.default_cfg.deselect("workspace", "resume"),
+        train=train.default_cfg.deselect("workspace", "resume"),
+        inference=inference.default_cfg.deselect("workspace", "resume"),
     )
     @classmethod
     def run_stages(cls, **cfg):

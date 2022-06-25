@@ -4,7 +4,6 @@ import pytest
 import torch
 
 from s3prl import Output
-from s3prl.dataset import Dataset
 from s3prl.sampler import (
     DistributedBatchSamplerWrapper,
     FixedBatchSizeBatchSampler,
@@ -12,24 +11,6 @@ from s3prl.sampler import (
 )
 
 logger = logging.getLogger(__name__)
-
-
-class TimestampDataset(Dataset):
-    def __init__(self, timestamps) -> None:
-        super().__init__()
-        self.timestamps = timestamps
-        self.data = [torch.randn(timestamp) for timestamp in timestamps]
-
-    def __len__(self):
-        return len(self.timestamps)
-
-    def __getitem__(self, index):
-        if self.in_metadata_mode():
-            return Output(timestamp=self.timestamps[index])
-        return Output(output=self.data[index])
-
-    def collate_fn(self, samples):
-        return zip(*samples)
 
 
 def _merge_batch_indices(batch_indices):
@@ -50,18 +31,6 @@ def test_distributed_sampler(world_size):
 
 
 timestamps = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
-
-
-@pytest.mark.parametrize("max_timestamp", [10, 11, 12, 20, sum(timestamps)])
-def test_MaxTimestampBatchSampler(max_timestamp):
-    dataset = TimestampDataset(timestamps)
-    iter1 = list(iter(MaxTimestampBatchSampler(dataset, max_timestamp, shuffle=False)))
-    iter2 = list(iter(MaxTimestampBatchSampler(dataset, max_timestamp, shuffle=True)))
-    indices1 = sorted(_merge_batch_indices(iter1))
-    indices2 = sorted(_merge_batch_indices(iter2))
-    assert indices1 == indices2 == list(range(len(timestamps)))
-
-
 data = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
 
 

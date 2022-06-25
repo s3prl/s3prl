@@ -2,8 +2,8 @@ import torch
 from torch.nn import L1Loss
 
 from s3prl import Container
-from s3prl.corpus.librispeech_for_pretrain import LibriSpeechForPretraining
-from s3prl.dataset.pretrain_mockingjay_pipe import PretrainMockingjayPipe
+from s3prl.corpus.librispeech_for_pretrain import LibriSpeechForPretrain
+from s3prl.dataset.pretrain_mockingjay_pipe import PretrainTaskPipe
 from s3prl.nn.transformer_mockingjay import (
     TransformerConfig,
     TransformerModel,
@@ -14,12 +14,12 @@ from s3prl.task.feat_reconstruction_task import FeatReconstructionTask
 
 
 class Mockingjay:
-    Corpus = LibriSpeechForPretraining
-    TrainData = PretrainMockingjayPipe
+    Corpus = LibriSpeechForPretrain
+    TrainData = PretrainTaskPipe
     TrainSampler = MaxTimestampBatchSampler
-    ValidData = PretrainMockingjayPipe
+    ValidData = PretrainTaskPipe
     ValidSampler = FixedBatchSizeBatchSampler
-    TestData = PretrainMockingjayPipe
+    TestData = PretrainTaskPipe
     TestSampler = FixedBatchSizeBatchSampler
     Body = TransformerModel
     Head = TransformerSpecPredictionHead

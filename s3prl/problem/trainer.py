@@ -31,18 +31,6 @@ class DistributedDataParallel(torch.nn.parallel.DistributedDataParallel):
 
 
 class Trainer:
-
-    TRAIN_DRYRUN_CONFIG = dict(
-        trainer=dict(
-            total_steps=10,
-            log_step=2,
-            eval_step=2,
-            save_step=5,
-            eval_batch=5,
-            gradient_accumulate_steps=1,
-        )
-    )
-
     @default_cfg(
         workspace=field(
             "???",
@@ -53,7 +41,7 @@ class Trainer:
             "str or Path or Workspace",
         ),
         resume=field(
-            True,
+            False,
             "If true, load the config of the previous run (if exists) as the default config, and the saved checkpoints if exists",
             bool,
         ),
@@ -63,11 +51,6 @@ class Trainer:
         rank=field(0, "The global rank when distributed training", int),
         world_size=field(
             1, "The total number of processes when distributed training", int
-        ),
-        dryrun=field(
-            False,
-            "Only train & valid a few steps. Helpful to make sure the entire training process won't crash",
-            bool,
         ),
         optimizer=dict(
             _cls=field(
@@ -127,9 +110,6 @@ class Trainer:
     @classmethod
     def train(cls, **cfg):
         cfg = Container(cfg)
-        if cfg.dryrun:
-            cfg.override(cls.TRAIN_DRYRUN_CONFIG)
-
         fix_random_seeds(cfg.seed)
 
         workspace = Workspace(cfg.workspace)
@@ -208,7 +188,7 @@ class Trainer:
         pbar = tqdm(
             total=cfg.trainer.total_steps,
             dynamic_ncols=True,
-            desc="overall",
+            desc="train",
             file=tqdm_file,
         )
         pbar.n = global_step
@@ -221,13 +201,8 @@ class Trainer:
         while pbar.n < pbar.total:
             train_sampler.set_epoch(epoch),
             batch_results = []
-            for batch in tqdm(
-                train_dataloader,
-                dynamic_ncols=True,
-                desc="train",
-                total=len(train_dataloader),
-                file=tqdm_file,
-            ):
+            logger.info(f"Start epoch {epoch}")
+            for batch in train_dataloader:
                 # try/except block for forward/backward
                 try:
                     if pbar.n >= pbar.total:
@@ -422,11 +397,8 @@ class Trainer:
         # logs = task.valid_reduction(batch_results).logs
         return logs
 
-    INFERENCE_DRYRUN_CONFIG = dict(
-        eval_batch=5,
-    )
-
     @default_cfg(
+        task_name=field("valid_best_task", "The task to be inferenced", str),
         split_name=field("test", "The split of a dataset and sampler pair", str),
         workspace=field(
             "???",
@@ -439,11 +411,6 @@ class Trainer:
             "  - {split}_metrics: a dictionary with {metric_name: metric_value}",
             str,
         ),
-        dryrun=field(
-            False,
-            "If dryrun, just run through a few steps to make sure nothing will crash",
-            bool,
-        ),
         eval_batch=field(
             -1,
             "How many batches to evaluate. Use -1 to run all batches (entire epoch)",
@@ -455,14 +422,11 @@ class Trainer:
     @classmethod
     def inference(cls, **cfg):
         cfg = Container(cfg)
-        if cfg.dryrun:
-            cfg.override(cls.INFERENCE_DRYRUN_CONFIG)
-
         workspace = Workspace(cfg.workspace)
         dataset = workspace[f"{cfg.split_name}_dataset"]
         sampler = workspace[f"{cfg.split_name}_sampler"]
         dataloader = DataLoader(dataset, sampler, num_workers=cfg.n_jobs)
-        task = workspace["valid_best_task"]
+        task = workspace[cfg.task_name]
         logs: Logs = cls.evaluate(
             cfg.split_name,
             task,

@@ -4,7 +4,7 @@ import torch.nn as nn
 
 from s3prl import Container, field
 from s3prl.base import Logs
-from s3prl.dataset.base import AugmentedDynamicItemDataset, DataLoader
+from s3prl.dataset.base import SequentialDataPipe
 from s3prl.nn import S3PRLUpstream, UpstreamDownstreamModel
 from s3prl.problem.base import Problem
 from s3prl.problem.trainer import Trainer
@@ -31,13 +31,15 @@ class SuperbProblem(Problem, Trainer):
             ),
             dataset_root=field("???", "The root path of the corpus", str),
         ),
-        train_datapipe=dict(
-            _cls=field(
-                "???",
-                "\nThe datapipe class to be applied to the corpus. You can add the **kwargs right below this _cls key",
-                str,
-            ),
-        ),
+        train_datapipe={
+            "0": dict(
+                _cls=field(
+                    "???",
+                    "\nThe first datapipe class to be applied to the corpus. You can add the **kwargs right below this _cls key",
+                    str,
+                ),
+            )
+        },
         train_sampler=dict(
             _cls=field(
                 "???",
@@ -45,13 +47,15 @@ class SuperbProblem(Problem, Trainer):
                 str,
             ),
         ),
-        valid_datapipe=dict(
-            _cls=field(
-                "???",
-                "\nThe datapipe class to be applied to the corpus. You can add the **kwargs right below this _cls key",
-                str,
-            ),
-        ),
+        valid_datapipe={
+            "0": dict(
+                _cls=field(
+                    "???",
+                    "\nThe first datapipe class to be applied to the corpus. You can add the **kwargs right below this _cls key",
+                    str,
+                ),
+            )
+        },
         valid_sampler=dict(
             _cls=field(
                 "???",
@@ -59,13 +63,15 @@ class SuperbProblem(Problem, Trainer):
                 str,
             ),
         ),
-        test_datapipe=dict(
-            _cls=field(
-                "???",
-                "\nThe datapipe class to be applied to the corpus. You can add the **kwargs right below this _cls key",
-                str,
-            ),
-        ),
+        test_datapipe={
+            "0": dict(
+                _cls=field(
+                    "???",
+                    "\nThe first datapipe class to be applied to the corpus. You can add the **kwargs right below this _cls key",
+                    str,
+                ),
+            )
+        },
         test_sampler=dict(
             _cls=field(
                 "???",
@@ -109,7 +115,7 @@ class SuperbProblem(Problem, Trainer):
             upstream = cfg.upstream
 
         stats = Container(
-            upstream_rate=upstream.downsample_rate, frame_shift=upstream.downsample_rate
+            feat_frame_shift=upstream.downsample_rate,
         )
 
         logger.info("Preparing corpus")
@@ -119,7 +125,7 @@ class SuperbProblem(Problem, Trainer):
         stats.add(corpus_stats)
 
         logger.info("Preparing train data")
-        train_dataset = cfg.train_datapipe._cls(**cfg.train_datapipe.kwds(), **stats)(
+        train_dataset = SequentialDataPipe(*cfg.train_datapipe.tolist(), **stats)(
             train_data, **stats
         )
         train_sampler = cfg.train_sampler._cls(
@@ -128,7 +134,7 @@ class SuperbProblem(Problem, Trainer):
         stats.add(train_dataset.all_tools())
 
         logger.info("Preparing valid data")
-        valid_dataset = cfg.valid_datapipe._cls(**cfg.valid_datapipe.kwds(), **stats)(
+        valid_dataset = SequentialDataPipe(*cfg.valid_datapipe.tolist(), **stats)(
             valid_data, **stats
         )
         valid_sampler = cfg.valid_sampler._cls(
@@ -136,7 +142,7 @@ class SuperbProblem(Problem, Trainer):
         )
 
         logger.info("Preparing test data")
-        test_dataset = cfg.test_datapipe._cls(**cfg.test_datapipe.kwds(), **stats)(
+        test_dataset = SequentialDataPipe(*cfg.test_datapipe.tolist(), **stats)(
             test_data, **stats
         )
         test_sampler = cfg.test_sampler._cls(test_dataset, **cfg.test_sampler.kwds())

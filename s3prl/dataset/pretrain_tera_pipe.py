@@ -6,7 +6,7 @@ from .noise_augmentation_pipes import NoiseAugmentation
 from .norm_wav_pipes import NormWavDecibel
 
 
-class PretrainTeraPipe(SequentialDataPipe):
+class PretrainTaskPipe(SequentialDataPipe):
     """
     each item in the input dataset should have:
         wav_path: str

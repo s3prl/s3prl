@@ -15,24 +15,30 @@ class SuperbPR(SuperbProblem):
                 _cls=librispeech_for_speech2text,
                 dataset_root="???",
             ),
-            train_datapipe=dict(
-                _cls=Speech2PhonemePipe,
-            ),
+            train_datapipe={
+                "0": dict(
+                    _cls=Speech2PhonemePipe,
+                ),
+            },
             train_sampler=dict(
                 _cls=FixedBatchSizeBatchSampler,
                 batch_size=8,
                 shuffle=True,
             ),
-            valid_datapipe=dict(
-                _cls=Speech2PhonemePipe,
-            ),
+            valid_datapipe={
+                "0": dict(
+                    _cls=Speech2PhonemePipe,
+                ),
+            },
             valid_sampler=dict(
                 _cls=FixedBatchSizeBatchSampler,
                 batch_size=8,
             ),
-            test_datapipe=dict(
-                _cls=Speech2PhonemePipe,
-            ),
+            test_datapipe={
+                "0": dict(
+                    _cls=Speech2PhonemePipe,
+                ),
+            },
             test_sampler=dict(
                 _cls=FixedBatchSizeBatchSampler,
                 batch_size=8,

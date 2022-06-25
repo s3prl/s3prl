@@ -10,5 +10,5 @@ def test_load_audio():
 
         data[0]["start_sec"] = 1
         data[0]["end_sec"] = 3
-        dataset = LoadAudio(crop_segment=True)({0: data[0]})
+        dataset = LoadAudio()({0: data[0]})
         assert len(dataset[0]["wav"]) == 32000

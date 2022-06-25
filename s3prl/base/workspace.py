@@ -4,6 +4,7 @@ import logging
 import os
 import shutil
 import tempfile
+import yaml
 from collections.abc import MutableMapping
 from pathlib import Path
 from types import MethodType
@@ -145,6 +146,7 @@ class Workspace(type(Path()), MutableMapping):
         assert self.is_dir()
 
         dtype = dtype or self._default_dtype
+        logger.warning(f"Put '{identifier}' into {repr(self)}")
         if dtype is None:
             save(self / identifier, value)
         else:
@@ -232,6 +234,18 @@ class Workspace(type(Path()), MutableMapping):
         if link_file.is_symlink():
             link_file.unlink()
         link_file.symlink_to(src_path.resolve())
+
+
+def _workspace_representer(dumper, data):
+    return dumper.represent_scalar('!workspace', str(data))
+
+yaml.add_representer(Workspace, _workspace_representer)
+
+def _workspace_constructor(loader, node):
+    value = loader.construct_scalar(node)
+    return Workspace(value)
+
+yaml.add_constructor('!workspace', _workspace_constructor)
 
 
 class Checkpoint(Workspace):

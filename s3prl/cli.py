@@ -7,16 +7,22 @@ import importlib
 import torch
 import torch.distributed as dist
 from s3prl.util.override import parse_overrides
+from s3prl.problem.base import all_problems
 
 logger = logging.getLogger(__name__)
 
 
 def main():
     parser = argparse.ArgumentParser()
-    parser.add_argument("module", help="The module")
     parser.add_argument(
         "qualname",
         help="The qualname of the function to use as a binary tool",
+    )
+    parser.add_argument(
+        "-m",
+        "--module",
+        help="The module of the qualname. "
+        "If not given, find the qualname object from the problem package.",
     )
     parser.add_argument(
         "--local_rank",
@@ -30,14 +36,19 @@ def main():
     parser.add_argument("-u", "--usage", action="store_true")
     parser.add_argument("-v", "--verbose", default="INFO")
     args, cfg = parser.parse_known_args()
-    cfg = parse_overrides(cfg)
-
     logging.basicConfig(level=getattr(logging, args.verbose), force=True)
 
-    module = importlib.import_module(args.module)
-    target = module
-    for name in args.qualname.split("."):
-        target = getattr(target, name)
+    if args.module is not None:
+        module = importlib.import_module(args.module)
+        target = module
+        for name in args.qualname.split("."):
+            target = getattr(target, name)
+    else:
+        classname, stepname = args.qualname.split(".")
+        cls = all_problems[classname]
+        target = getattr(cls, stepname)
+
+    cfg = parse_overrides(cfg)
 
     if args.usage:
         print(f"Documentation of {target.__module__}.{target.__qualname__}\n\n")
