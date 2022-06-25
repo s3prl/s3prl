@@ -16,18 +16,19 @@ from s3prl.util.workspace import Workspace
 from .base import SslProblem
 
 _input_size = 80
+_audio_config = dict(
+    feat_type="fbank",  # Feature type
+    feat_dim=_input_size,  # Feature dimension
+    frame_length=25,  # Window size in ms
+    frame_shift=10,  # Hop size in ms
+    decode_wav=False,
+    cmvn=True,  # Apply uttr.-wised CMVN on Mel spectrogram
+)
 _pretrain_task_pipe_config = dict(
     _cls=PretrainApcPipe,
     n_future=5,
-    audio_config=dict(
-        feat_type="fbank",  # Feature type
-        feat_dim=_input_size,  # Feature dimension
-        frame_length=25,  # Window size in ms
-        frame_shift=10,  # Hop size in ms
-        decode_wav=False,
-        cmvn=True,  # Apply uttr.-wised CMVN on Mel spectrogram
-    ),
     n_jobs=8,
+    **_audio_config,
 )
 
 
@@ -121,12 +122,8 @@ class Apc(SslProblem):
             model=dict(
                 paras=setup_problem_cfg["upstream"],
             ),
-            task=dict(
-                sequence_length=0,
-                n_future=setup_problem_cfg["train_datapipe"]["n_future"],
-            ),
             data=dict(
-                audio=setup_problem_cfg["train_datapipe"]["audio_config"],
+                audio=_audio_config,
             ),
         )
         all_states = dict(

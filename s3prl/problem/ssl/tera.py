@@ -14,6 +14,46 @@ from s3prl.util.workspace import Workspace
 from .base import SslProblem
 
 _input_size = 80
+_mask_args = dict(
+    position_encoding_size=768,  # int, this should be identical to `hidden_size`
+    mask_proportion=0.15,  # float, mask this percentage of all spectrogram frames in each sequence at random during MAM training
+    mask_consecutive_min=7,  # int, mask this amount of consecutive frames
+    mask_consecutive_max=7,  # int, mask this amount of consecutive frames
+    mask_allow_overlap=True,  # bool, allow overlap masking
+    mask_bucket_ratio=1.5,  # float, only used when overlap is not allowed. sample a mask from each bucket in size of [sampled mask_consecutive * mask_bucket_ratio]
+    mask_frequency=0.2,  # float, mask maximum this percentage of frequency bands, set to 0 for no frequency mask
+)
+_noise_args = dict(
+    noise_proportion=0.0,  # float, for this percentage of the time, Gaussian noise will be applied on all frames during MAM training, set to 0 for no noise
+)
+_audio_config = dict(
+    win_ms=25,
+    hop_ms=10,
+    n_freq=201,
+    n_mels=_input_size,
+    n_mfcc=13,
+    input={
+        "channel": 0,
+        "cmvn": True,
+        "delta": 0,
+        "feat_type": "mel",
+        "log": True,
+    },
+    target={
+        "channel": 1,
+        "cmvn": True,
+        "delta": 0,
+        "feat_type": "mel",
+        "log": True,
+    },
+)
+_pretrain_task_pipe_config = dict(
+    _cls=PretrainTeraPipe,
+    target_level=-25,
+    **_mask_args,
+    **_noise_args,
+    **_audio_config,
+)
 _transformer_config = dict(
     hidden_size=768,  # Size of the encoder layers and the pooler layer.
     num_hidden_layers=3,  # Number of hidden layers in the Transformer encoder.
@@ -26,43 +66,6 @@ _transformer_config = dict(
     layer_norm_eps=1.0e-12,  # The epsilon used by LayerNorm.
     share_layer=False,  # Share layer weights
     pre_layer_norm=False,  # To apply the pre layer normalization technique introduced in: https://arxiv.org/abs/2002.04745
-)
-_pretrain_task_pipe_config = dict(
-    _cls=PretrainTeraPipe,
-    mask_args=dict(
-        position_encoding_size=768,  # int, this should be identical to `hidden_size`
-        mask_proportion=0.15,  # float, mask this percentage of all spectrogram frames in each sequence at random during MAM training
-        mask_consecutive_min=7,  # int, mask this amount of consecutive frames
-        mask_consecutive_max=7,  # int, mask this amount of consecutive frames
-        mask_allow_overlap=True,  # bool, allow overlap masking
-        mask_bucket_ratio=1.5,  # float, only used when overlap is not allowed. sample a mask from each bucket in size of [sampled mask_consecutive * mask_bucket_ratio]
-        mask_frequency=0.2,  # float, mask maximum this percentage of frequency bands, set to 0 for no frequency mask
-    ),
-    noise_args=dict(
-        noise_proportion=0.0,  # float, for this percentage of the time, Gaussian noise will be applied on all frames during MAM training, set to 0 for no noise
-    ),
-    audio_config=dict(
-        win_ms=25,
-        hop_ms=10,
-        n_freq=201,
-        n_mels=_input_size,
-        n_mfcc=13,
-        input={
-            "channel": 0,
-            "cmvn": True,
-            "delta": 0,
-            "feat_type": "mel",
-            "log": True,
-        },
-        target={
-            "channel": 1,
-            "cmvn": True,
-            "delta": 0,
-            "feat_type": "mel",
-            "log": True,
-        },
-    ),
-    target_level=-25,
 )
 
 
@@ -152,20 +155,19 @@ class Tera(SslProblem):
         workspace: Workspace,
         task: Task,
     ):
-        setup_problem_cfg = workspace.get_cfg(cls.setup_problem)
         all_states = dict(
             Config={},  # placeholder
             SpecHead=task.predictor.state_dict(),
             Transformer=task.upstream.state_dict(),
             Upstream_Config=dict(
-                transformer=setup_problem_cfg["upstream"]["config"],
-                audio=setup_problem_cfg["train_datapipe"]["audio_config"],
+                transformer=_transformer_config,
+                audio=_audio_config,
                 task=dict(sequence_length=0),
             ),
         )
-        all_states["Upstream_Config"]["audio"]["target_level"] = setup_problem_cfg[
-            "train_datapipe"
-        ]["target_level"]
+        all_states["Upstream_Config"]["audio"][
+            "target_level"
+        ] = _pretrain_task_pipe_config["target_level"]
         torch.save(
             all_states, str(additional_dir.parent.resolve()) + "/all_states.ckpt"
         )
