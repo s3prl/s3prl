@@ -14,12 +14,8 @@ MAX_SEQLEN = 10000
 @dataclass
 class PrepareTargetFeat(DataPipe):
     use_copy: bool = True
-    source_feat_name: str = (
-        "source_feat"  # tensors in the shape of: (batch_size, seq_len, source_feat_dim)
-    )
-    target_feat_name: str = (
-        "target_feat"  # tensors in the shape of: (batch_size, seq_len, target_feat_dim)
-    )
+    source_feat_name: str = "source_feat"
+    target_feat_name: str = "target_feat"
 
     def prepare_target_feat(self, feat):
         target_feat = copy.deepcopy(feat) if self.use_copy else feat
@@ -36,32 +32,52 @@ class PrepareTargetFeat(DataPipe):
 
 @dataclass
 class MaskedReconstruction(DataPipe):
-    mask_args: dict = None
-    source_feat_name: str = (
-        "source_feat"  # tensors in the shape of: (seq_len, feat_dim)
-    )
-    target_feat_name: str = (
-        "target_feat"  # tensors in the shape of: (seq_len, feat_dim)
-    )
+    position_encoding_size: int = 768
+    mask_proportion: float = 0.15
+    mask_consecutive_min: int = 7
+    mask_consecutive_max: int = 7
+    mask_allow_overlap: bool = True
+    mask_bucket_ratio: float = 1.5
+    mask_frequency: int = 0
+    source_feat_name: str = "source_feat"
+    target_feat_name: str = "target_feat"
+    masked_feat_name: str = "masked_feat"
     pos_enc_name: str = "pos_enc"
     attn_mask_name: str = "attn_mask"
     label_mask_name: str = "label_mask"
+    """
+    Args:
+        position_encoding_size (int): this should be identical to `hidden_size`
+        mask_proportion (float): mask this percentage of all spectrogram frames in each sequence at random during MAM training
+        mask_consecutive_min (int): mask this amount of consecutive frames
+        mask_consecutive_max (int): mask this amount of consecutive frames
+        mask_allow_overlap (bool): allow overlap masking
+        mask_bucket_ratio (float): only used when overlap is not allowed. sample a mask from each bucket in size of [sampled mask_consecutive * mask_bucket_ratio]
+        mask_frequency (float): mask maximum this percentage of frequency bands, set to 0 for no frequency mask
+        source_feat_name (str): handle for the `takes` (input)
+        target_feat_name (str): handle for the `takes` (input)
+        masked_feat_name (str): handle for the `provides` (output)
+        pos_enc_name (str): handle for the `provides` (output)
+        attn_mask_name (str): handle for the `provides` (output)
+        label_mask_name (str): handle for the `provides` (output)
+    """
 
     def generate_masked_data(self, source_feat, target_feat):
 
         with torch.no_grad():
+
+            masked_feat = copy.deepcopy(source_feat)
 
             # Record length for each uttr
             spec_len = (target_feat.sum(dim=-1) != 0).long().sum(dim=-1).tolist()
             seq_len = target_feat.shape[0]
 
             pos_enc = fast_position_encoding(
-                seq_len, self.mask_args["position_encoding_size"]
+                seq_len, self.position_encoding_size
             )  # (seq_len, position_encoding_size)
             label_mask = (
                 torch.zeros_like(target_feat, dtype=torch.uint8)
-                if self.mask_args["mask_proportion"] != 0
-                or self.mask_args["mask_frequency"] != 0
+                if self.mask_proportion != 0 or self.mask_frequency != 0
                 else torch.ones_like(target_feat, dtype=torch.uint8)
             )
             attn_mask = torch.ones(seq_len)  # (seq_len)
@@ -76,24 +92,20 @@ class MaskedReconstruction(DataPipe):
                 return intervals.view(-1)
 
             # time masking
-            if self.mask_args["mask_proportion"] > 0:
+            if self.mask_proportion > 0:
                 mask_consecutive = random.randint(
-                    self.mask_args["mask_consecutive_min"],
-                    self.mask_args["mask_consecutive_max"],
+                    self.mask_consecutive_min,
+                    self.mask_consecutive_max,
                 )
                 valid_start_max = max(
                     spec_len - mask_consecutive - 1, 0
                 )  # compute max valid start point for a consecutive mask
-                proportion = round(
-                    spec_len * self.mask_args["mask_proportion"] / mask_consecutive
-                )
-                if self.mask_args["mask_allow_overlap"]:
+                proportion = round(spec_len * self.mask_proportion / mask_consecutive)
+                if self.mask_allow_overlap:
                     # draw `proportion` samples from the range (0, valid_index_range) and without replacement
                     chosen_starts = torch.randperm(valid_start_max + 1)[:proportion]
                 else:
-                    mask_bucket_size = round(
-                        mask_consecutive * self.mask_args["mask_bucket_ratio"]
-                    )
+                    mask_bucket_size = round(mask_consecutive * self.mask_bucket_ratio)
                     rand_start = random.randint(
                         0, min(mask_consecutive, valid_start_max)
                     )
@@ -109,14 +121,14 @@ class MaskedReconstruction(DataPipe):
                 dice = random.random()
                 # mask to zero
                 if dice < 0.8:
-                    source_feat[chosen_intervals, :] = 0
+                    masked_feat[chosen_intervals, :] = 0
                 # replace to random frames
                 elif dice >= 0.8 and dice < 0.9:
                     random_starts = torch.randperm(valid_start_max + 1)[:proportion]
                     random_intervals = _starts_to_intervals(
                         random_starts, mask_consecutive
                     )
-                    source_feat[chosen_intervals, :] = source_feat[random_intervals, :]
+                    masked_feat[chosen_intervals, :] = masked_feat[random_intervals, :]
                 # do nothing
                 else:
                     pass
@@ -125,26 +137,24 @@ class MaskedReconstruction(DataPipe):
                 label_mask[chosen_intervals, :] = 1
 
             # frequency masking
-            if self.mask_args["mask_frequency"] > 0:
-                max_width = int(
-                    source_feat.shape[-1] * self.mask_args["mask_frequency"]
-                )
+            if self.mask_frequency > 0:
+                max_width = int(masked_feat.shape[-1] * self.mask_frequency)
                 rand_bandwidth = random.randint(0, max_width)
-                chosen_starts = torch.randperm(source_feat.shape[-1] - rand_bandwidth)[
+                chosen_starts = torch.randperm(masked_feat.shape[-1] - rand_bandwidth)[
                     :1
                 ]
                 chosen_intervals = _starts_to_intervals(chosen_starts, rand_bandwidth)
-                source_feat[:, chosen_intervals] = 0
+                masked_feat[:, chosen_intervals] = 0
 
                 # the gradients will be calculated on chosen frames
                 label_mask[:spec_len, chosen_intervals] = 1
 
-            source_feat = source_feat.to(dtype=torch.float32)
+            masked_feat = masked_feat.to(dtype=torch.float32)
             pos_enc = pos_enc.to(dtype=torch.float32)
             attn_mask = attn_mask.to(dtype=torch.float32)
             label_mask = label_mask.to(dtype=torch.bool)
 
-        return source_feat, pos_enc, attn_mask, label_mask
+        return masked_feat, pos_enc, attn_mask, label_mask
 
     def __call__(self, dataset: AugmentedDynamicItemDataset):
 
@@ -152,7 +162,7 @@ class MaskedReconstruction(DataPipe):
             self.generate_masked_data,
             takes=[self.source_feat_name, self.target_feat_name],
             provides=[
-                self.source_feat_name,
+                self.masked_feat_name,
                 self.pos_enc_name,
                 self.attn_mask_name,
                 self.label_mask_name,
