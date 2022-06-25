@@ -9,6 +9,13 @@ from torch import nn
 from s3prl import Logs, Module, Output
 from s3prl.encoder.tokenizer import Tokenizer
 from s3prl.metric import cer, wer
+from s3prl.metric.slot_filling import (
+    slot_edit_f1_full,
+    slot_edit_f1_part,
+    slot_type_f1,
+    slot_value_cer,
+    slot_value_wer,
+)
 from s3prl.nn import BeamDecoder
 
 from . import Task
@@ -42,6 +49,7 @@ class Speech2TextCTCTask(Task):
         model: Speech2TextCTCExample,
         tokenizer: Tokenizer,
         decoder: Union[BeamDecoder, dict] = None,
+        slot_filling: bool = False,
         **kwargs,
     ) -> None:
         """Speech-to-text task with CTC objective
@@ -57,6 +65,7 @@ class Speech2TextCTCTask(Task):
 
         self.model = model
         self.tokenizer = tokenizer
+        self.slot_filling = slot_filling
         assert self.model.output_size == self.tokenizer.vocab_size
 
         if BeamDecoder is None:
@@ -146,6 +155,9 @@ class Speech2TextCTCTask(Task):
             if batch_result.hypotheses is not None:
                 beam_hyps += [" ".join(hyp[0].words) for hyp in batch_result.hypotheses]
 
+        if self.slot_filling:
+            labels = [self.tokenizer.decode(self.tokenizer.encode(l)) for l in labels]
+
         word_error_rate = wer(predictions, labels)
         char_error_rate = cer(predictions, labels)
         loss = (sum(losses) / len(losses)).item()
@@ -154,6 +166,13 @@ class Speech2TextCTCTask(Task):
         logs.add_scalar("loss", loss)
         logs.add_scalar("wer", word_error_rate)
         logs.add_scalar("cer", char_error_rate)
+
+        if self.slot_filling:
+            logs.add_scalar("slot_type_f1", slot_type_f1(predictions, labels))
+            logs.add_scalar("slot_value_cer", slot_value_cer(predictions, labels))
+            logs.add_scalar("slot_value_wer", slot_value_wer(predictions, labels))
+            logs.add_scalar("slot_edit_f1_full", slot_edit_f1_full(predictions, labels))
+            logs.add_scalar("slot_edit_f1_part", slot_edit_f1_part(predictions, labels))
 
         if len(beam_hyps) > 0:
             word_error_rate = wer(beam_hyps, labels)
