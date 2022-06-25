@@ -3,7 +3,7 @@ from typing import List
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
-from pooling import (
+from .pooling import (
     Attentive_Statistics_Pooling,
     Self_Attentive_Pooling,
     Temporal_Average_Pooling,
