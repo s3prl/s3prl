@@ -1,6 +1,8 @@
 from collections import Counter
+
 from s3prl.dataset.base import AugmentedDynamicItemDataset
 from s3prl.dataset.fewshot import BalancedRatioSampler
+
 
 def test_balanced_ratio_sampler():
     data = {
@@ -36,7 +38,9 @@ def test_balanced_ratio_sampler():
         ),
     }
     dataset = AugmentedDynamicItemDataset(data)
-    dataset: AugmentedDynamicItemDataset = BalancedRatioSampler(target_name="speaker", ratio=0.5)(dataset)
+    dataset: AugmentedDynamicItemDataset = BalancedRatioSampler(
+        target_name="speaker", ratio=0.5
+    )(dataset)
     with dataset.output_keys_as(["speaker"]):
         speakers = [item["speaker"] for item in dataset]
         speakers = Counter(speakers)

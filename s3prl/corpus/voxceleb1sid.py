@@ -1,15 +1,15 @@
-import os
 import logging
+import os
 from collections import defaultdict
 from pathlib import Path
 from typing import List
 
 from filelock import FileLock
-from librosa.util import find_files
 from joblib import Parallel, delayed
+from librosa.util import find_files
 from tqdm import tqdm
 
-from s3prl import Output, cache, Container
+from s3prl import Container, Output, cache
 from s3prl.base.cache import _cache_root
 from s3prl.util import registry
 
@@ -96,8 +96,9 @@ class VoxCeleb1SID(Corpus):
         tgt_dir = os.path.abspath(target_dir)
         assert os.path.exists(tgt_dir), "Target directory does not exist"
 
-        import requests
         from zipfile import ZipFile
+
+        import requests
 
         def unzip_then_delete(filepath: str, split: str):
             assert os.path.exists(filepath), "File not found!"

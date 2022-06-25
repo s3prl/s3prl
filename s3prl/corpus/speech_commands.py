@@ -144,13 +144,18 @@ class SpeechCommandsV1(Corpus):
     @classmethod
     def download_dataset(cls, tgt_dir: str) -> None:
         import os
-        import requests
         import tarfile
 
-        assert os.path.exists(os.path.abspath(tgt_dir)), "Target directory does not exist"
+        import requests
+
+        assert os.path.exists(
+            os.path.abspath(tgt_dir)
+        ), "Target directory does not exist"
 
         def unzip_targz_then_delete(filepath: str, filename: str):
-            file_path = os.path.join(os.path.abspath(tgt_dir),"CORPORA_DIR" ,filename.replace(".tar.gz", ""))
+            file_path = os.path.join(
+                os.path.abspath(tgt_dir), "CORPORA_DIR", filename.replace(".tar.gz", "")
+            )
             os.makedirs(file_path)
 
             with tarfile.open(os.path.abspath(filepath)) as tar:
@@ -165,7 +170,7 @@ class SpeechCommandsV1(Corpus):
             if r.ok:
                 logging.info(f"Saving {filename} to", os.path.abspath(filepath))
                 with open(filepath, "wb") as f:
-                    for chunk in r.iter_content(chunk_size=1024*1024*10):
+                    for chunk in r.iter_content(chunk_size=1024 * 1024 * 10):
                         if chunk:
                             f.write(chunk)
                             f.flush()
@@ -175,11 +180,24 @@ class SpeechCommandsV1(Corpus):
             else:
                 logging.info(f"Download failed: status code {r.status_code}\n{r.text}")
 
-        if not os.path.exists(os.path.join(os.path.abspath(tgt_dir), "CORPORA_DIR/speech_commands_v0.01")):
-            download_from_url("http://download.tensorflow.org/data/speech_commands_v0.01.tar.gz")
-        if not os.path.exists(os.path.join(os.path.abspath(tgt_dir), "CORPORA_DIR/speech_commands_test_set_v0.01")):
-            download_from_url("http://download.tensorflow.org/data/speech_commands_test_set_v0.01.tar.gz")
-        logging.info(f"Speech commands dataset downloaded. Located at {os.path.abspath(tgt_dir)}/CORPORA_DIR/")
+        if not os.path.exists(
+            os.path.join(os.path.abspath(tgt_dir), "CORPORA_DIR/speech_commands_v0.01")
+        ):
+            download_from_url(
+                "http://download.tensorflow.org/data/speech_commands_v0.01.tar.gz"
+            )
+        if not os.path.exists(
+            os.path.join(
+                os.path.abspath(tgt_dir), "CORPORA_DIR/speech_commands_test_set_v0.01"
+            )
+        ):
+            download_from_url(
+                "http://download.tensorflow.org/data/speech_commands_test_set_v0.01.tar.gz"
+            )
+        logging.info(
+            f"Speech commands dataset downloaded. Located at {os.path.abspath(tgt_dir)}/CORPORA_DIR/"
+        )
+
 
 @registry.put()
 def gsc_v1_for_superb(dataset_root: str, n_jobs: int = 4):

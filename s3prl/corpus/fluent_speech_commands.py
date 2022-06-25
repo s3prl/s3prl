@@ -1,5 +1,5 @@
-import os
 import logging
+import os
 from pathlib import Path
 
 import pandas as pd
@@ -107,8 +107,9 @@ class FluentSpeechCommands(Corpus):
             tgt_dir (str): The root directory containing many different datasets
         """
         import os
-        import requests
         import tarfile
+
+        import requests
 
         tgt_dir = Path(tgt_dir)
         tgt_dir.mkdir(exists_ok=True, parents=True)

@@ -23,27 +23,33 @@ class SuperbSF(SuperbProblem):
                 _cls=snips_for_speech2text,
                 dataset_root="???",
             ),
-            train_datapipe=dict(
-                _cls=Speech2TextPipe,
-                vocab_type="character-slot",
-                vocab_file=_urls_to_filepaths(VOCAB_URL),
-                slots_file=_urls_to_filepaths(SLOTS_URL),
-            ),
+            train_datapipe={
+                "0": dict(
+                    _cls=Speech2TextPipe,
+                    vocab_type="character-slot",
+                    vocab_file=_urls_to_filepaths(VOCAB_URL),
+                    slots_file=_urls_to_filepaths(SLOTS_URL),
+                ),
+            },
             train_sampler=dict(
                 _cls=FixedBatchSizeBatchSampler,
                 batch_size=16,
                 shuffle=True,
             ),
-            valid_datapipe=dict(
-                _cls=Speech2TextPipe,
-            ),
+            valid_datapipe={
+                "0": dict(
+                    _cls=Speech2TextPipe,
+                )
+            },
             valid_sampler=dict(
                 _cls=FixedBatchSizeBatchSampler,
                 batch_size=1,
             ),
-            test_datapipe=dict(
-                _cls=Speech2TextPipe,
-            ),
+            test_datapipe={
+                "0": dict(
+                    _cls=Speech2TextPipe,
+                )
+            },
             test_sampler=dict(
                 _cls=FixedBatchSizeBatchSampler,
                 batch_size=1,
@@ -88,7 +94,7 @@ class SuperbSF(SuperbProblem):
                 gradient_clipping=1.0,
                 gradient_accumulate_steps=1,
                 valid_metric="slot_type_f1",
-                valid_higher_better=False,
+                valid_higher_better=True,
             ),
         )
     )

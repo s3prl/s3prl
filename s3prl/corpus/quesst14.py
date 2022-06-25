@@ -57,10 +57,13 @@ class Quesst14:
     @classmethod
     def download_dataset(cls, tgt_dir: str) -> None:
         import os
-        import requests
         import tarfile
 
-        assert os.path.exists(os.path.abspath(tgt_dir)), "Target directory does not exist"
+        import requests
+
+        assert os.path.exists(
+            os.path.abspath(tgt_dir)
+        ), "Target directory does not exist"
 
         def unzip_targz_then_delete(filepath: str):
             with tarfile.open(os.path.abspath(filepath)) as tar:
@@ -75,7 +78,7 @@ class Quesst14:
             if r.ok:
                 logging.info(f"Saving {filename} to", os.path.abspath(filepath))
                 with open(filepath, "wb") as f:
-                    for chunk in r.iter_content(chunk_size=1024*1024*10):
+                    for chunk in r.iter_content(chunk_size=1024 * 1024 * 10):
                         if chunk:
                             f.write(chunk)
                             f.flush()
@@ -85,9 +88,13 @@ class Quesst14:
             else:
                 logging.info(f"Download failed: status code {r.status_code}\n{r.text}")
 
-        if not os.path.exists(os.path.join(os.path.abspath(tgt_dir), "quesst14Database/")):
+        if not os.path.exists(
+            os.path.join(os.path.abspath(tgt_dir), "quesst14Database/")
+        ):
             download_from_url("https://speech.fit.vutbr.cz/files/quesst14Database.tgz")
-        logging.info(f"Quesst14 dataset downloaded. Located at {os.path.abspath(tgt_dir)}/quesst14Database/")
+        logging.info(
+            f"Quesst14 dataset downloaded. Located at {os.path.abspath(tgt_dir)}/quesst14Database/"
+        )
 
 
 @registry.put()
