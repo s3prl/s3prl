@@ -3,11 +3,16 @@ from typing import List
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
+from pooling import (
+    Attentive_Statistics_Pooling,
+    Self_Attentive_Pooling,
+    Temporal_Average_Pooling,
+    Temporal_Statistics_Pooling,
+)
 
 from s3prl import Output
 
 from . import NNModule
-from .pooling import MeanPooling
 
 
 class TDNN(NNModule):
@@ -143,10 +148,32 @@ class speaker_embedding_extractor(NNModule):
                 "{} backbone type is not defined".format(self.arguments.backbone)
             )
 
-        # TODO: Add other pooling method
         pooling_type = self.arguments.pooling_type
         if pooling_type == "Temporal_Average_Pooling" or pooling_type == "TAP":
-            self.pooling = MeanPooling()
+            self.pooling = Temporal_Average_Pooling(
+                input_size=self.backbone.output_size,
+                output_size=self.backbone.output_size,
+            )
+
+        elif pooling_type == "Temporal_Statistics_Pooling" or pooling_type == "TSP":
+            self.pooling = Temporal_Statistics_Pooling(
+                input_size=self.backbone.output_size,
+                output_size=2 * self.backbone.output_size,
+            )
+            self.arguments.output_size = 2 * self.backbone.output_size
+
+        elif pooling_type == "Self_Attentive_Pooling" or pooling_type == "SAP":
+            self.pooling = Self_Attentive_Pooling(
+                input_size=self.backbone.output_size,
+                output_size=self.backbone.output_size,
+            )
+
+        elif pooling_type == "Attentive_Statistics_Pooling" or pooling_type == "ASP":
+            self.pooling = Attentive_Statistics_Pooling(
+                input_size=self.backbone.output_size,
+                output_size=2 * self.backbone.output_size,
+            )
+            self.arguments.output_size = 2 * self.backbone.output_size
 
         else:
             raise ValueError("{} pooling type is not defined".format(pooling_type))

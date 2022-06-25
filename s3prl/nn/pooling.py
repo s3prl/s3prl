@@ -45,16 +45,21 @@ class Temporal_Average_Pooling(NNModule):
     def output_size(self):
         return self.arguments.output_size
 
-    def forward(self, x):
+    def forward(self, xs, xs_len=None):
         """
         Computes Temporal Average Pooling Module
         Args:
-            x (torch.Tensor): Input tensor (#batch, channels, frames).
+            xs (torch.Tensor): Input tensor (#batch, channels, frames).
+            xs_len: with the lengths for each sample
         Returns:
             torch.Tensor: Output tensor (#batch, channels)
         """
-        x = torch.mean(x, axis=2)
-        return Output(output=x)
+        pooled_list = []
+        for x, x_len in zip(xs, xs_len):
+            pooled = torch.mean(x[:x_len], dim=0)
+            pooled_list.append(pooled)
+
+        return torch.stack(pooled_list)
 
 
 class Temporal_Statistics_Pooling(NNModule):
@@ -74,18 +79,22 @@ class Temporal_Statistics_Pooling(NNModule):
     def output_size(self):
         return self.arguments.output_size
 
-    def forward(self, x):
+    def forward(self, xs, xs_len=None):
         """
         Computes Temporal Statistics Pooling Module
         Args:
-            x (torch.Tensor): Input tensor (#batch, channels, frames).
+            xs (torch.Tensor): Input tensor (#batch, channels, frames).
+            xs_len: with the lengths for each sample
         Returns:
-            torch.Tensor: Output tensor (#batch, channels*2)
+            torch.Tensor: Output tensor (#batch, channels)
         """
-        mean = torch.mean(x, axis=2)
-        var = torch.var(x, axis=2)
-        x = torch.cat((mean, var), axis=1)
-        return Output(output=x)
+        pooled_list = []
+        for x, x_len in zip(xs, xs_len):
+            mean = torch.mean(x[:x_len], dim=0)
+            var = torch.var(x[:x_len], dim=0)
+            pooled = torch.cat((mean, var))
+            pooled_list.append(pooled)
+        return torch.stack(pooled_list)
 
 
 class Self_Attentive_Pooling(NNModule):
@@ -107,20 +116,24 @@ class Self_Attentive_Pooling(NNModule):
     def output_size(self):
         return self.arguments.output_size
 
-    def forward(self, x):
+    def forward(self, xs, xs_len=None):
         """
         Computes Self-Attentive Pooling Module
         Args:
-            x (torch.Tensor): Input tensor (#batch, channels, frames).
+            xs (torch.Tensor): Input tensor (#batch, channels, frames).
+            xs_len: with the lengths for each sample
         Returns:
             torch.Tensor: Output tensor (#batch, channels)
         """
-        x = x.permute(0, 2, 1)
-        h = torch.tanh(self.sap_linear(x))
-        w = torch.matmul(h, self.attention).squeeze(dim=2)
-        w = F.softmax(w, dim=1).view(x.size(0), x.size(1), 1)
-        x = torch.sum(x * w, dim=1)
-        return Output(output=x)
+        pooled_list = []
+        for x, x_len in zip(xs, xs_len):
+            x = x[:x_len].unsqueeze(0)
+            h = torch.tanh(self.sap_linear(x))
+            w = torch.matmul(h, self.attention).squeeze(dim=2)
+            w = F.softmax(w, dim=1).view(x.size(0), x.size(1), 1)
+            x = torch.sum(x * w, dim=1)
+            pooled_list.append(x.squeeze(0))
+        return torch.stack(pooled_list)
 
 
 class Attentive_Statistics_Pooling(NNModule):
@@ -142,19 +155,23 @@ class Attentive_Statistics_Pooling(NNModule):
     def output_size(self):
         return self.arguments.output_size
 
-    def forward(self, x):
+    def forward(self, xs, xs_len=None):
         """
         Computes Attentive Statistics Pooling Module
         Args:
-            x (torch.Tensor): Input tensor (#batch, channels, frames).
+            xs (torch.Tensor): Input tensor (#batch, channels, frames).
+            xs_len: with the lengths for each sample
         Returns:
-            torch.Tensor: Output tensor (#batch, channels*2)
+            torch.Tensor: Output tensor (#batch, channels)
         """
-        x = x.permute(0, 2, 1)
-        h = torch.tanh(self.sap_linear(x))
-        w = torch.matmul(h, self.attention).squeeze(dim=2)
-        w = F.softmax(w, dim=1).view(x.size(0), x.size(1), 1)
-        mu = torch.sum(x * w, dim=1)
-        rh = torch.sqrt((torch.sum((x**2) * w, dim=1) - mu**2).clamp(min=1e-5))
-        x = torch.cat((mu, rh), 1)
-        return Output(output=x)
+        pooled_list = []
+        for x, x_len in zip(xs, xs_len):
+            x = x[:x_len].unsqueeze(0)
+            h = torch.tanh(self.sap_linear(x))
+            w = torch.matmul(h, self.attention).squeeze(dim=2)
+            w = F.softmax(w, dim=1).view(x.size(0), x.size(1), 1)
+            mu = torch.sum(x * w, dim=1)
+            rh = torch.sqrt((torch.sum((x**2) * w, dim=1) - mu**2).clamp(min=1e-5))
+            x = torch.cat((mu, rh), 1).squeeze(0)
+            pooled_list.append(x)
+        return torch.stack(pooled_list)
