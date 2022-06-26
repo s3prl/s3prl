@@ -28,10 +28,10 @@ class MeanPooling(NNModule):
 
 
 # TODO: add x_len into pooling
-class Temporal_Average_Pooling(NNModule):
+class TemporalAveragePooling(NNModule):
     def __init__(self, input_size: int, output_size: int):
         """
-        Temporal_Average_Pooling
+        TemporalAveragePooling
         Paper: Multi-Task Learning with High-Order Statistics for X-vector based Text-Independent Speaker Verification
         Link: https://arxiv.org/pdf/1903.12058.pdf
         """
@@ -62,10 +62,10 @@ class Temporal_Average_Pooling(NNModule):
         return torch.stack(pooled_list)
 
 
-class Temporal_Statistics_Pooling(NNModule):
+class TemporalStatisticsPooling(NNModule):
     def __init__(self, input_size: int, output_size: int):
         """
-        Temporal_Statistics_Pooling
+        TemporalStatisticsPooling
         Paper: X-vectors: Robust DNN Embeddings for Speaker Recognition
         Link： http://www.danielpovey.com/files/2018_icassp_xvectors.pdf
         """
@@ -97,10 +97,10 @@ class Temporal_Statistics_Pooling(NNModule):
         return torch.stack(pooled_list)
 
 
-class Self_Attentive_Pooling(NNModule):
+class SelfAttentivePooling(NNModule):
     def __init__(self, input_size: int, output_size: int):
         """
-        Self_Attentive_Pooling
+        SelfAttentivePooling
         Paper: Self-Attentive Speaker Embeddings for Text-Independent Speaker Verification
         Link： https://danielpovey.com/files/2018_interspeech_xvector_attention.pdf
         """
@@ -136,10 +136,10 @@ class Self_Attentive_Pooling(NNModule):
         return torch.stack(pooled_list)
 
 
-class Attentive_Statistics_Pooling(NNModule):
+class AttentiveStatisticsPooling(NNModule):
     def __init__(self, input_size: int, output_size: int):
         """
-        Attentive_Statistics_Pooling
+        AttentiveStatisticsPooling
         Paper: Attentive Statistics Pooling for Deep Speaker Embedding
         Link: https://arxiv.org/pdf/1803.10963.pdf
         """

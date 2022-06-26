@@ -10,7 +10,7 @@ from s3prl.base.logdata import Logs
 from s3prl.corpus.voxceleb1sv import voxceleb1_for_sv
 from s3prl.dataset.base import DataLoader
 from s3prl.dataset.speaker_verification_pipe import SpeakerClassificationPipe
-from s3prl.nn import speaker_embedding_extractor
+from s3prl.nn import SpeakerEmbeddingExtractor
 from s3prl.sampler import FixedBatchSizeBatchSampler, MaxTimestampBatchSampler
 from s3prl.task.speaker_verification_task import SpeakerVerification
 from s3prl.util.configuration import default_cfg
@@ -62,7 +62,7 @@ class SuperbSV(SuperbProblem):
                 batch_size=1,
             ),
             downstream=dict(
-                _cls=speaker_embedding_extractor,
+                _cls=SpeakerEmbeddingExtractor,
                 hidden_size=256,
             ),
             task=dict(

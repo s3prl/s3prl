@@ -3,16 +3,16 @@ from typing import List
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
-from .pooling import (
-    Attentive_Statistics_Pooling,
-    Self_Attentive_Pooling,
-    Temporal_Average_Pooling,
-    Temporal_Statistics_Pooling,
-)
 
 from s3prl import Output
 
 from . import NNModule
+from .pooling import (
+    AttentiveStatisticsPooling,
+    SelfAttentivePooling,
+    TemporalAveragePooling,
+    TemporalStatisticsPooling,
+)
 
 
 class TDNN(NNModule):
@@ -128,7 +128,7 @@ class XVector(NNModule):
         return Output(output=x)
 
 
-class speaker_embedding_extractor(NNModule):
+class SpeakerEmbeddingExtractor(NNModule):
     def __init__(
         self,
         input_size: int,
@@ -149,27 +149,27 @@ class speaker_embedding_extractor(NNModule):
             )
 
         pooling_type = self.arguments.pooling_type
-        if pooling_type == "Temporal_Average_Pooling" or pooling_type == "TAP":
-            self.pooling = Temporal_Average_Pooling(
+        if pooling_type == "TemporalAveragePooling" or pooling_type == "TAP":
+            self.pooling = TemporalAveragePooling(
                 input_size=self.backbone.output_size,
                 output_size=self.backbone.output_size,
             )
 
-        elif pooling_type == "Temporal_Statistics_Pooling" or pooling_type == "TSP":
-            self.pooling = Temporal_Statistics_Pooling(
+        elif pooling_type == "TemporalStatisticsPooling" or pooling_type == "TSP":
+            self.pooling = TemporalStatisticsPooling(
                 input_size=self.backbone.output_size,
                 output_size=2 * self.backbone.output_size,
             )
             self.arguments.output_size = 2 * self.backbone.output_size
 
-        elif pooling_type == "Self_Attentive_Pooling" or pooling_type == "SAP":
-            self.pooling = Self_Attentive_Pooling(
+        elif pooling_type == "SelfAttentivePooling" or pooling_type == "SAP":
+            self.pooling = SelfAttentivePooling(
                 input_size=self.backbone.output_size,
                 output_size=self.backbone.output_size,
             )
 
-        elif pooling_type == "Attentive_Statistics_Pooling" or pooling_type == "ASP":
-            self.pooling = Attentive_Statistics_Pooling(
+        elif pooling_type == "AttentiveStatisticsPooling" or pooling_type == "ASP":
+            self.pooling = AttentiveStatisticsPooling(
                 input_size=self.backbone.output_size,
                 output_size=2 * self.backbone.output_size,
             )
