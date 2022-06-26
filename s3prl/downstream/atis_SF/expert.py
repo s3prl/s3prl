@@ -13,7 +13,7 @@ from tokenizers import Tokenizer
 import pandas as pd
 from collections import Counter
 import wandb
-from .model import AttenDecoderModel, Seq2SeqTransformer, generate_square_subsequent_mask, create_mask, greedy_decode
+from .model import AttenDecoderModel, Seq2SeqTransformer, generate_square_subsequent_mask, create_mask, greedy_decode, Conv2dSubsampling
 from .metric import parse_entity, entity_f1_score, parse_BI_entity, parse_BIO_entity, parse_split_entity, uer
 
 PAD_IDX = 0
@@ -88,7 +88,12 @@ class DownstreamExpert(nn.Module):
             self.dev_dataset = Dataset(os.path.join(self.base_path, 'sv_dev.csv'), dev_audio_path, self.tokenizer, unit_path=self.unit_path, unit_tokenizer=self.unit_tokenizer, aux_target=self.aux_target)
             self.test_dataset = Dataset(os.path.join(self.base_path, 'sv_test.csv'), test_audio_path, self.tokenizer, unit_path=self.unit_path, unit_tokenizer=self.unit_tokenizer, aux_target=self.aux_target)
         
-        self.connector = nn.Linear(upstream_dim, self.modelrc['input_dim'])
+        if self.modelrc['input_layer'] == 'conv2d':
+            self.connector = Conv2dSubsampling(upstream_dim, self.modelrc['input_dim'])
+        else: 
+            self.connector = nn.Linear(upstream_dim, self.modelrc['input_dim'])
+
+
         self.vocab_size = self.modelrc['input_dim']
         self.ctc_weight = self.modelrc['ctc_weight']
         self.is_transformer = self.modelrc['is_transformer']
@@ -118,7 +123,6 @@ class DownstreamExpert(nn.Module):
             elif self.aux_target == 'text':
                 self.unit_size = len(self.train_dataset.g2p.graphemes) + 3
 
-        print(self.unit_size)
         if self.is_transformer: 
             self.model = Seq2SeqTransformer(num_encoder_layers=self.modelrc['num_encoder_layers'], 
                                             num_decoder_layers=self.modelrc['num_decoder_layers'],
@@ -130,7 +134,12 @@ class DownstreamExpert(nn.Module):
                                             unit_size=self.unit_size,
                                             is_dual_decoder=self.is_dual_decoder,
                                             is_bart_decoder=self.is_bart_decoder,
-                                            pass_extra_encoder=self.pass_extra_encoder)
+                                            pass_extra_encoder=self.pass_extra_encoder, 
+                                            ctc_weight=self.ctc_weight, 
+                                            unit_decoder_layer=self.modelrc['unit_decoder_layer'], 
+                                            unit_decoder_dim_feedforward=self.modelrc['unit_decoder_dim_feedforward'],
+                                            unit_decoder_emb_size=self.modelrc['unit_decoder_emb_size']
+                                            )
         else:
             self.model = AttenDecoderModel(self.modelrc['input_dim'], self.vocab_size)
 
@@ -168,15 +177,6 @@ class DownstreamExpert(nn.Module):
         DEVICE = features_pad.device
 
         unit_input, unit_out, unit_mask = None, None, None
-        
-        if units is not None: 
-            units = [torch.LongTensor(unit).to(DEVICE) for unit in units]
-            units_pad = pad_sequence(units, batch_first=True)
-            encode_len = torch.IntTensor([feature.shape[0] for feature in features]).to(DEVICE)
-            unit_len = torch.IntTensor([len(u) for u in units])
-            unit_input = units_pad[:, :-1]
-            unit_out = units_pad[:, 1:]
-            _ , unit_mask, unit_padding_mask = create_mask(features_pad, unit_input)
 
         labels = [torch.LongTensor(label).to(DEVICE) for label in labels]
         label_len = [len(l) for l in labels]
@@ -188,12 +188,26 @@ class DownstreamExpert(nn.Module):
         attention_mask = [torch.ones((feature.shape[0])).to(DEVICE) for feature in features] 
         attention_mask_pad = pad_sequence(attention_mask,batch_first=True)
         attention_mask_pad = (1.0 - attention_mask_pad) * -100000.0
+        
+        if self.modelrc['input_layer'] == 'conv2d':
+            attention_mask_pad = attention_mask_pad.unsqueeze(1)
+            features_pad, attention_mask_pad = self.connector(features_pad, attention_mask_pad)
+            attention_mask_pad = attention_mask_pad.squeeze(1)
+        
+        else:
+            features_pad = self.connector(features_pad)
 
         src_mask, tgt_mask, tgt_padding_mask = create_mask(features_pad, tgt_input)
-        # for unit_mask
-        
 
-        features_pad = self.connector(features_pad)
+        if units is not None: 
+            units = [torch.LongTensor(unit).to(DEVICE) for unit in units]
+            units_pad = pad_sequence(units, batch_first=True)
+            encode_len = torch.IntTensor([feature.shape[0] for feature in features]).to(DEVICE)
+            unit_len = torch.IntTensor([len(u) for u in units])
+            unit_input = units_pad[:, :-1]
+            unit_out = units_pad[:, 1:]
+            _ , unit_mask, unit_padding_mask = create_mask(features_pad, unit_input)
+
 
         # train mode 
         if mode == 'train':

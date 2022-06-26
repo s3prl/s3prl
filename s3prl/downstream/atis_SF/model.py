@@ -526,7 +526,12 @@ class Seq2SeqTransformer(nn.Module):
                  unit_size=None,
                  is_dual_decoder=False,
                  is_bart_decoder=False,
-                 pass_extra_encoder=False):
+                 pass_extra_encoder=False,
+                 ctc_weight=0, 
+                 unit_decoder_layer=None,
+                 unit_decoder_dim_feedforward=None,
+                 unit_decoder_emb_size=None,
+                ):
         super(Seq2SeqTransformer, self).__init__()
 
         self.is_bart_decoder = is_bart_decoder
@@ -538,12 +543,14 @@ class Seq2SeqTransformer(nn.Module):
                                        num_decoder_layers=num_decoder_layers,
                                        dim_feedforward=dim_feedforward,
                                        dropout=dropout,
-                                       batch_first=True)
+                                       batch_first=True, 
+                                       norm_first=True)
         self.generator = nn.Linear(emb_size, tgt_vocab_size)
         self.tgt_tok_emb = TokenEmbedding(tgt_vocab_size, emb_size)
         self.positional_encoding = PositionalEncoding(
             emb_size, dropout=dropout)
         self.is_unit = is_unit
+        
         
         # replace decoder to pre-trained bart decoder
         if self.is_bart_decoder: 
@@ -555,7 +562,7 @@ class Seq2SeqTransformer(nn.Module):
             self.tgt_tok_emb = TokenEmbedding(tgt_vocab_size, emb_size)
             self.positional_encoding = PositionalEncoding(emb_size, dropout=dropout)
             
-        if self.is_unit:
+        if self.is_unit and ctc_weight > 0:
             # for ctc unit predition
             unit_encoder_layer = nn.TransformerEncoderLayer(d_model=emb_size, nhead=nhead, dim_feedforward=emb_size, batch_first=True)
             # add extra encoder layer
@@ -564,12 +571,13 @@ class Seq2SeqTransformer(nn.Module):
 
         self.pass_extra_encoder = pass_extra_encoder
         self.is_dual_decoder = is_dual_decoder
-        if self.is_dual_decoder: 
-            decoder_layer = nn.TransformerDecoderLayer(d_model=emb_size, nhead=nhead, dim_feedforward=512, batch_first=True)
-            self.unit_decoder = TransformerDecoder(decoder_layer, 3)
-            self.unit_tok_emb = TokenEmbedding(unit_size, emb_size)
-            self.unit_positional_encoding = PositionalEncoding(emb_size, dropout=dropout)
-            self.unit_generator = nn.Linear(emb_size, unit_size)    
+        if self.is_dual_decoder and unit_decoder_layer is not None and unit_decoder_dim_feedforward is not None and unit_decoder_emb_size is not None:  
+            decoder_layer = nn.TransformerDecoderLayer(d_model=unit_decoder_emb_size, nhead=nhead, dim_feedforward=unit_decoder_dim_feedforward, batch_first=True)
+            self.unit_decoder = TransformerDecoder(decoder_layer, unit_decoder_layer)
+            self.unit_tok_emb = TokenEmbedding(unit_size, unit_decoder_emb_size)
+            self.unit_positional_encoding = PositionalEncoding(unit_decoder_emb_size, dropout=dropout)
+            self.unit_generator = nn.Linear(unit_decoder_emb_size, unit_size)   
+            # self.unit_connector = nn.Linear(emb_size, unit_decoder_emb_size)   
 
     def forward(self,
                 src: Tensor,
@@ -595,6 +603,8 @@ class Seq2SeqTransformer(nn.Module):
         if self.is_dual_decoder: 
             unit = self.unit_positional_encoding(self.unit_tok_emb(unit))
             unit_outs = self.unit_decoder(unit, memory, tgt_mask=unit_mask)
+            # src = self.unit_connector(src)
+            # unit_outs = self.unit_decoder(unit, src, tgt_mask=unit_mask)
         
         # main task
         if ctc_weight < 1.0: 
@@ -674,3 +684,43 @@ def greedy_decode(model, src, src_mask, max_len, start_symbol=2, pass_extra_enco
         if next_word == EOS_IDX:
             break
     return ys
+
+class Conv2dSubsampling(torch.nn.Module):
+    """Convolutional 2D subsampling (to 1/4 length).
+    Args:
+        idim (int): Input dimension.
+        odim (int): Output dimension.
+        dropout_rate (float): Dropout rate.
+    """
+
+    def __init__(self, idim, odim, dropout_rate=0.1):
+        """Construct an Conv2dSubsampling object."""
+        super(Conv2dSubsampling, self).__init__()
+        self.conv = torch.nn.Sequential(
+            torch.nn.Conv2d(1, odim, 3, 2),
+            torch.nn.ReLU(),
+            torch.nn.Conv2d(odim, odim, 3, 2),
+            torch.nn.ReLU(),
+        )
+        self.out = torch.nn.Sequential(
+            torch.nn.Linear(odim * (((idim - 1) // 2 - 1) // 2), odim),
+        )
+
+    def forward(self, x, x_mask):
+        """Subsample x.
+        Args:
+            x (torch.Tensor): Input tensor (#batch, time, idim).
+            x_mask (torch.Tensor): Input mask (#batch, 1, time).
+        Returns:
+            torch.Tensor: Subsampled tensor (#batch, time', odim),
+                where time' = time // 4.
+            torch.Tensor: Subsampled mask (#batch, 1, time'),
+                where time' = time // 4.
+        """
+        x = x.unsqueeze(1)  # (b, c, t, f)
+        x = self.conv(x)
+        b, c, t, f = x.size()
+        x = self.out(x.transpose(1, 2).contiguous().view(b, t, c * f))
+        if x_mask is None:
+            return x, None
+        return x, x_mask[:, :, :-2:2][:, :, :-2:2]

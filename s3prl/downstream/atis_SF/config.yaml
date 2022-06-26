@@ -1,11 +1,11 @@
 runner:
-  total_steps: 10000
+  total_steps: 20000
   gradient_clipping: 1
   gradient_accumulate_steps: 96
 
   log_step: 5
-  eval_step: 50
-  save_step: 300
+  eval_step: 100
+  save_step: 500
   max_keep: 1
   eval_dataloaders:
     - dev
@@ -32,7 +32,7 @@ downstream_expert:
 
     audio_path: /home/daniel094144/data/slurp/slurp/audio/slurp_real
     # audio_path: /home/daniel094144/data/atis
-    
+
     num_workers: 4
     train_batch_size: 2
     eval_batch_size: 1
@@ -41,15 +41,16 @@ downstream_expert:
     is_split: False
     # unit_path: /home/daniel094144/data/atis/atis_code_128_IN/code
     # unit_path: /home/daniel094144/data/atis/atis_code_128_IN/char_code
-    # unit_size: 128
-    # unit_tokenizer: /home/daniel094144/data/atis/atis_code_128_IN/tokenizer_1000.json
-    # aux_target: phn # phn / text / unit
+    unit_size: 1000
+    # unit_tokenizer_path: /home/daniel094144/data/atis/text_subword_tokenizer.json
+    unit_tokenizer_path: /home/daniel094144/data/slurp/slurp/dataset/slurp/text_subword_tokenizer.json
+    aux_target: text # phn / text / unit
   
   augmentation: 
-    # TimeStretch: 
-    #   min_rate: 0.9
-    #   max_rate: 1.1
-    #   p: 0.5
+    TimeStretch: 
+      min_rate: 0.9
+      max_rate: 1.1
+      p: 0.5
     # PitchShift: 
     #   min_semitones: -4
     #   max_semitones: 4
@@ -60,6 +61,7 @@ downstream_expert:
     #   p: 0.5
 
   modelrc:
+    input_layer: linear # conv2d / linear
     is_transformer: True
     vocab_size: 1000 # 600 for atis / 1000 for slurp
     input_dim: 512
@@ -69,9 +71,29 @@ downstream_expert:
     emb_size: 512
     nhead: 4
     dim_feedforward: 2048
-    is_dual_decoder: False
-    unit_decode_weight: 0
+    is_dual_decoder: True
+    unit_decode_weight: 1
     label_smoothing: 0.05
     is_bart_decoder: False
     pass_extra_encoder: False
     max_decode_len: 40
+    unit_decoder_layer: 2
+    unit_decoder_dim_feedforward: 2048
+    unit_decoder_emb_size: 512
+
+  # comment the whole specaug config block
+# to disable specaug on representation
+
+specaug:
+  adaptive: false
+  adaptive_number_ratio: 0.04
+  adaptive_size_ratio: 0.04
+  max_n_time_masks: 20
+  apply_time_warp: False
+  apply_time_mask: False
+  apply_freq_mask: True
+  time_warp_window: 5
+  time_mask_width_range: [0, 40]
+  freq_mask_width_range: [0, 50]
+  num_freq_mask: 4
+  num_time_mask: 2

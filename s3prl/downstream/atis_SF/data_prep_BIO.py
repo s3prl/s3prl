@@ -14,15 +14,15 @@ i = 0
 j = 0
 for split in splits:
     df = pd.read_csv(os.path.join(base_path, f"nlu_iob/iob.{split}"), sep='\t', header=None)
-    text = df[0].values
-    label = df[1].values
+    texts = df[0].values
+    labels = df[1].values
 
     sv_all = []
     ids = []
     transcriptions = []
     
     with open(os.path.join(base_path, f'value_BIO_{split}.txt'), 'w') as f: 
-        for i, (text, label) in enumerate(zip(text, label)):
+        for i, (text, label) in enumerate(zip(texts, labels)):
             idx = text.split()[0]
             t = text.split()[2:-1]
             l = label.split()[1:-1]

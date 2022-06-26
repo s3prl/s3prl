@@ -21,12 +21,15 @@ for split in splits:
 
     sv_all = []
     ids = []
+    sentences = df['sentence'].values
+    transcriptions = []
+
     d = {}
     intent_d = {}
     intent_index = 0
     dic_index = 0
     with open(os.path.join(base_path, f'slurp_value_{split}.txt'), 'w') as f: 
-        for i, (l, r, idx, intent) in enumerate(zip(label, recordings, slurp_id, intents)):
+        for i, (l, r, idx, intent, txt) in enumerate(zip(label, recordings, slurp_id, intents, sentences)):
             file_idx = [r[i]["file"] for i in range(len(r))]
 
             s, v = [], []
@@ -66,9 +69,6 @@ for split in splits:
                 #     d[content[0][:-1]] = dic_index
                 #     dic_index += 1
                 # v.append(content[1][1:])
-            # print(i)
-            # print(s)
-            # print(v)
 
             sv = []
             f.write(' '.join(v))
@@ -87,8 +87,9 @@ for split in splits:
             for f_id in file_idx:
                 ids.append(f_id) # first file name
                 sv_all.append(' '.join(sv))
+                transcriptions.append(txt)
                 
-    sv_df = pd.DataFrame({'id': ids, 'label': sv_all})
+    sv_df = pd.DataFrame({'id': ids, 'label': sv_all, 'transcription': transcriptions})
     sv_df.to_csv(os.path.join(base_path, f'sv_BIO_{split}.csv'))
     print(f'# of data in {split}: {len(ids)}')
 '''tokenizer'''
