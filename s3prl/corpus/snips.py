@@ -76,11 +76,6 @@ class SNIPS(Corpus):
             new_wav_list, name_list, spkr_list = [], [], []
             uf = 0
             for i in trange(len(wav_list), desc="checking files"):
-                # if uid in transcripts:
-                #     for spk in speaker_list:
-                #         if uid[: len(spk)] == spk:
-                #             new_list.append(split_list[i])
-                #             break
                 uid = wav_list[i].stem
                 if uid in transcripts:
                     spkr = uid.split("-")[0]

@@ -100,12 +100,18 @@ class Speech2TextCTCTask(Task):
         """
 
         logits, x_len = self.model(x, x_len).slice(2)
-        logits_argmax = torch.argmax(logits, dim=2).detach().cpu()
+        predicted_tokens = torch.argmax(logits, dim=2).detach().cpu()
+        filtered_tokens = [
+            [
+                token
+                for token in pred_token.tolist()
+                if token != self.tokenizer.pad_idx and token != self.tokenizer.eos_idx
+            ]
+            for pred_token in predicted_tokens
+        ]
         predictions = [
-            self.tokenizer.decode(
-                logits_argmax[b, : x_len[b]].tolist(), ignore_repeat=True
-            )
-            for b in range(len(logits_argmax))
+            self.tokenizer.decode(token_list, ignore_repeat=True)
+            for token_list in filtered_tokens
         ]
         return Output(logit=logits, prediction=predictions, output_size=x_len)
 

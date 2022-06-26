@@ -1,7 +1,7 @@
 from s3prl.corpus.librispeech import librispeech_for_speech2text
 from s3prl.dataset.speech2phoneme_pipe import Speech2PhonemePipe
 from s3prl.nn.linear import FrameLevelLinear
-from s3prl.sampler import FixedBatchSizeBatchSampler, MaxTimestampBatchSampler
+from s3prl.sampler import FixedBatchSizeBatchSampler
 from s3prl.task.speech2text_ctc_task import Speech2TextCTCTask
 from s3prl.util.configuration import default_cfg
 

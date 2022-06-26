@@ -1,15 +1,16 @@
 import re
+from typing import List, Tuple
 
 from .common import cer, wer
 
 
-def clean(ref):
+def clean(ref: str) -> str:
     ref = re.sub(r"B\-(\S+) ", "", ref)
     ref = re.sub(r" E\-(\S+)", "", ref)
     return ref
 
 
-def parse(hyp, ref):
+def parse(hyp: str, ref: str) -> Tuple[str, str, str, str]:
     gex = re.compile(r"B\-(\S+) (.+?) E\-\1")
 
     hyp = re.sub(r" +", " ", hyp)
@@ -30,7 +31,7 @@ def parse(hyp, ref):
     return ref, hyp, ref_slots, hyp_slots
 
 
-def slot_type_f1(hypothesis, groundtruth, **kwargs):
+def slot_type_f1(hypothesis: List[str], groundtruth: List[str], **kwargs) -> float:
     F1s = []
     for p, t in zip(hypothesis, groundtruth):
         ref_text, hyp_text, ref_slots, hyp_slots = parse(p, t)
@@ -72,7 +73,7 @@ def slot_type_f1(hypothesis, groundtruth, **kwargs):
     return sum(F1s) / len(F1s)
 
 
-def slot_value_cer(hypothesis, groundtruth, **kwargs):
+def slot_value_cer(hypothesis: List[str], groundtruth: List[str], **kwargs) -> float:
     value_hyps = []
     value_refs = []
     for p, t in zip(hypothesis, groundtruth):
@@ -114,7 +115,7 @@ def slot_value_cer(hypothesis, groundtruth, **kwargs):
     return cer(value_hyps, value_refs)
 
 
-def slot_value_wer(hypothesis, groundtruth, **kwargs):
+def slot_value_wer(hypothesis: List[str], groundtruth: List[str], **kwargs) -> float:
     value_hyps = []
     value_refs = []
     for p, t in zip(hypothesis, groundtruth):
@@ -156,7 +157,9 @@ def slot_value_wer(hypothesis, groundtruth, **kwargs):
     return wer(value_hyps, value_refs)
 
 
-def slot_edit_f1(hypothesis, groundtruth, loop_over_all_slot, **kwargs):
+def slot_edit_f1(
+    hypothesis: List[str], groundtruth: List[str], loop_over_all_slot: bool, **kwargs
+) -> float:
     test_case, TPs, FNs, FPs = [], 0, 0, 0
 
     slot2F1 = {}  # defaultdict(lambda: [0,0,0]) # TPs, FNs, FPs
@@ -220,9 +223,9 @@ def slot_edit_f1(hypothesis, groundtruth, loop_over_all_slot, **kwargs):
     return 100.0 * 2 * all_TPs / (2 * all_TPs + all_FPs + all_FNs)
 
 
-def slot_edit_f1_full(hypothesis, groundtruth, **kwargs):
+def slot_edit_f1_full(hypothesis: List[str], groundtruth: List[str], **kwargs) -> float:
     return slot_edit_f1(hypothesis, groundtruth, loop_over_all_slot=True, **kwargs)
 
 
-def slot_edit_f1_part(hypothesis, groundtruth, **kwargs):
+def slot_edit_f1_part(hypothesis: List[str], groundtruth: List[str], **kwargs) -> float:
     return slot_edit_f1(hypothesis, groundtruth, loop_over_all_slot=False, **kwargs)
