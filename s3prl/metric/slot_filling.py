@@ -220,7 +220,7 @@ def slot_edit_f1(
         all_FNs += slot2F1[slot][1]
         all_FPs += slot2F1[slot][2]
 
-    return 100.0 * 2 * all_TPs / (2 * all_TPs + all_FPs + all_FNs)
+    return 2 * all_TPs / (2 * all_TPs + all_FPs + all_FNs)
 
 
 def slot_edit_f1_full(hypothesis: List[str], groundtruth: List[str], **kwargs) -> float:

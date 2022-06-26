@@ -71,7 +71,15 @@ class SuperbSF(SuperbProblem):
             ),
             task=dict(
                 _cls=Speech2TextCTCTask,
-                slot_filling=True,
+                log_metrics=[
+                    "wer",
+                    "cer",
+                    "slot_type_f1",
+                    "slot_value_cer",
+                    "slot_value_wer",
+                    "slot_edit_f1_full",
+                    "slot_edit_f1_part",
+                ],
             ),
         )
     )

@@ -1,5 +1,5 @@
 import logging
-from typing import Union
+from typing import List, Union
 
 import numpy as np
 import torch
@@ -8,7 +8,7 @@ from torch import nn
 
 from s3prl import Logs, Module, Output
 from s3prl.encoder.tokenizer import Tokenizer
-from s3prl.metric import cer, wer
+from s3prl.metric import cer, per, wer
 from s3prl.metric.slot_filling import (
     slot_edit_f1_full,
     slot_edit_f1_part,
@@ -49,7 +49,7 @@ class Speech2TextCTCTask(Task):
         model: Speech2TextCTCExample,
         tokenizer: Tokenizer,
         decoder: Union[BeamDecoder, dict] = None,
-        slot_filling: bool = False,
+        log_metrics: List[str] = ["cer", "wer"],
         **kwargs,
     ) -> None:
         """Speech-to-text task with CTC objective
@@ -59,13 +59,15 @@ class Speech2TextCTCTask(Task):
             tokenizer (Tokenizer): Text tokenizer.
             decoder (Union[BeamDecoder, dict], optional):
                 Beam decoder or decoder's config. Defaults to None.
+            log_metrics (List[str], optional):
+                Metrics to be logged. Defaults to ["cer", "wer"].
         """
 
         super().__init__()
 
         self.model = model
         self.tokenizer = tokenizer
-        self.slot_filling = slot_filling
+        self.log_metrics = log_metrics
         assert self.model.output_size == self.tokenizer.vocab_size
 
         if BeamDecoder is None:
@@ -104,14 +106,13 @@ class Speech2TextCTCTask(Task):
         filtered_tokens = [
             [
                 token
-                for token in pred_token.tolist()
+                for token in pred_token.unique_consecutive().tolist()
                 if token != self.tokenizer.pad_idx and token != self.tokenizer.eos_idx
             ]
             for pred_token in predicted_tokens
         ]
         predictions = [
-            self.tokenizer.decode(token_list, ignore_repeat=True)
-            for token_list in filtered_tokens
+            self.tokenizer.decode(token_list) for token_list in predicted_tokens
         ]
         return Output(logit=logits, prediction=predictions, output_size=x_len)
 
@@ -157,34 +158,39 @@ class Speech2TextCTCTask(Task):
         for batch_result in batch_results:
             predictions += batch_result.prediction
             labels += batch_result.labels
-            losses.append(batch_result.loss)
+            losses.append(batch_result.loss.item())
             if batch_result.hypotheses is not None:
                 beam_hyps += [" ".join(hyp[0].words) for hyp in batch_result.hypotheses]
 
-        if self.slot_filling:
+        if self.tokenizer.token_type in {"character-slot", "subword-slot"}:
             labels = [self.tokenizer.decode(self.tokenizer.encode(l)) for l in labels]
 
-        word_error_rate = wer(predictions, labels)
-        char_error_rate = cer(predictions, labels)
-        loss = (sum(losses) / len(losses)).item()
-
         logs = Logs()
-        logs.add_scalar("loss", loss)
-        logs.add_scalar("wer", word_error_rate)
-        logs.add_scalar("cer", char_error_rate)
+        logs.add_scalar("loss", np.mean(losses))
 
-        if self.slot_filling:
+        # print("*R* " + labels[0])
+        # print("*H* " + predictions[0])
+
+        if "wer" in self.log_metrics:
+            logs.add_scalar("wer", wer(predictions, labels))
+        if "cer" in self.log_metrics:
+            logs.add_scalar("cer", cer(predictions, labels))
+        if "per" in self.log_metrics:
+            logs.add_scalar("per", per(predictions, labels))
+        if "slot_type_f1" in self.log_metrics:
             logs.add_scalar("slot_type_f1", slot_type_f1(predictions, labels))
+        if "slot_value_cer" in self.log_metrics:
             logs.add_scalar("slot_value_cer", slot_value_cer(predictions, labels))
+        if "slot_value_wer" in self.log_metrics:
             logs.add_scalar("slot_value_wer", slot_value_wer(predictions, labels))
+        if "slot_edit_f1_full" in self.log_metrics:
             logs.add_scalar("slot_edit_f1_full", slot_edit_f1_full(predictions, labels))
+        if "slot_edit_f1_part" in self.log_metrics:
             logs.add_scalar("slot_edit_f1_part", slot_edit_f1_part(predictions, labels))
 
         if len(beam_hyps) > 0:
-            word_error_rate = wer(beam_hyps, labels)
-            char_error_rate = cer(beam_hyps, labels)
-            logs.add_scalar("wer_beam", word_error_rate)
-            logs.add_scalar("char_beam", char_error_rate)
+            logs.add_scalar("wer_beam", wer(beam_hyps, labels))
+            logs.add_scalar("char_beam", cer(beam_hyps, labels))
 
         return Output(
             logs=logs,

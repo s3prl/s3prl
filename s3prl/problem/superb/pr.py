@@ -48,6 +48,7 @@ class SuperbPR(SuperbProblem):
             ),
             task=dict(
                 _cls=Speech2TextCTCTask,
+                log_metrics=["per"],
             ),
         )
     )
@@ -68,7 +69,7 @@ class SuperbPR(SuperbProblem):
                 save_step=100,
                 gradient_clipping=1.0,
                 gradient_accumulate_steps=2,
-                valid_metric="wer",
+                valid_metric="per",
                 valid_higher_better=False,
             ),
         )

@@ -251,7 +251,7 @@ class GenerateTokenizer(DataPipe):
             )
         except KeyError:
             if self.generate:
-                if os.path.exists(self.vocab_file):
+                if self.vocab_file is not None and os.path.exists(self.vocab_file):
                     tokenizer = load_tokenizer(
                         self.vocab_type,
                         vocab_file=self.vocab_file,
