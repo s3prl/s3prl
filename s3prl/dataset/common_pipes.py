@@ -1,4 +1,5 @@
 import logging
+import os
 from dataclasses import dataclass
 from typing import Callable
 
@@ -206,10 +207,20 @@ class GenerateTokenizer(DataPipe):
     text_name: str = "transcription"
     vocab_type: str = "character"
     text_file: str = None
+    vocab_file: str = None
     slots_file: str = None
     vocab_args: dict = None
 
     def prepare_tokenizer(self, text_list: str = None) -> Tokenizer:
+        """Generates tokenizer from text data.
+
+        Args:
+            text_list (str, optional): List of text. Defaults to None.
+
+        Returns:
+            Tokenizer: Generated tokenizer
+        """
+
         vocab_args = self.vocab_args or {}
         assert isinstance(vocab_args, dict)
 
@@ -240,12 +251,20 @@ class GenerateTokenizer(DataPipe):
             )
         except KeyError:
             if self.generate:
-                text_list = None
-                if self.text_file is None:
-                    with dataset.output_keys_as([self.text_name]):
-                        text_list = [item[self.text_name] for item in dataset]
+                if self.vocab_file is not None and os.path.exists(self.vocab_file):
+                    tokenizer = load_tokenizer(
+                        self.vocab_type,
+                        vocab_file=self.vocab_file,
+                        slots_file=self.slots_file,
+                    )
+                else:
+                    text_list = None
+                    if self.text_file is None:
+                        with dataset.output_keys_as([self.text_name]):
+                            text_list = [item[self.text_name] for item in dataset]
 
-                tokenizer = self.prepare_tokenizer(text_list)
+                    tokenizer = self.prepare_tokenizer(text_list)
+
                 dataset.add_tool(self.tokenizer_name, tokenizer)
 
         return dataset

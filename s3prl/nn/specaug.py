@@ -112,7 +112,7 @@ class SpecAug(torch.nn.Module):
         """Forward SpecAug."""
         xs, x_lengths = x, x_len
         for batch_id, x_len in enumerate(x_lengths):
-            xs[batch_id, :x_len] = 0
+            xs[batch_id, x_len:] = 0
 
         assert len(xs[0].size()) == 2
         xs, _ = self.apply_specaug(xs, x_lengths)

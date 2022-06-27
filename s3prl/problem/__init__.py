@@ -4,5 +4,6 @@ from .superb.ic import SuperbIC
 from .superb.pr import SuperbPR
 from .superb.qbe import SuperbQBE
 from .superb.sd import SuperbSD
+from .superb.sf import SuperbSF
 from .superb.sid import SuperbSID
 from .superb.sv import SuperbSV

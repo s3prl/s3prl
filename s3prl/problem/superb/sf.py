@@ -1,24 +1,33 @@
-from s3prl.corpus.librispeech import librispeech_for_speech2text
+from pydoc import classname
+
+from s3prl.corpus.snips import snips_for_speech2text
 from s3prl.dataset.speech2text_pipe import Speech2TextPipe
 from s3prl.nn import RNNEncoder
 from s3prl.nn.specaug import ModelWithSpecaug
 from s3prl.sampler import FixedBatchSizeBatchSampler
 from s3prl.task.speech2text_ctc_task import Speech2TextCTCTask
 from s3prl.util.configuration import default_cfg
+from s3prl.utility.download import _urls_to_filepaths
 
 from .base import SuperbProblem
 
+VOCAB_URL = "https://huggingface.co/datasets/s3prl/SNIPS/raw/main/character.txt"
+SLOTS_URL = "https://huggingface.co/datasets/s3prl/SNIPS/raw/main/slots.txt"
 
-class SuperbASR(SuperbProblem):
+
+class SuperbSF(SuperbProblem):
     @default_cfg(
         **SuperbProblem.setup.default_except(
             corpus=dict(
-                _cls=librispeech_for_speech2text,
+                _cls=snips_for_speech2text,
                 dataset_root="???",
             ),
             train_datapipe={
                 "0": dict(
                     _cls=Speech2TextPipe,
+                    vocab_type="character-slot",
+                    vocab_file=_urls_to_filepaths(VOCAB_URL),
+                    slots_file=_urls_to_filepaths(SLOTS_URL),
                 ),
             },
             train_sampler=dict(
@@ -67,6 +76,15 @@ class SuperbASR(SuperbProblem):
             ),
             task=dict(
                 _cls=Speech2TextCTCTask,
+                log_metrics=[
+                    "wer",
+                    "cer",
+                    "slot_type_f1",
+                    "slot_value_cer",
+                    "slot_value_wer",
+                    "slot_edit_f1_full",
+                    "slot_edit_f1_part",
+                ],
             ),
         )
     )
@@ -87,8 +105,8 @@ class SuperbASR(SuperbProblem):
                 save_step=500,
                 gradient_clipping=1.0,
                 gradient_accumulate_steps=1,
-                valid_metric="wer",
-                valid_higher_better=False,
+                valid_metric="slot_type_f1",
+                valid_higher_better=True,
             ),
         )
     )
@@ -106,9 +124,9 @@ class SuperbASR(SuperbProblem):
             stages=["setup", "train", "inference"],
             start_stage="setup",
             final_stage="inference",
-            setup=setup.default_cfg.deselect("workspace", "resume"),
-            train=train.default_cfg.deselect("workspace", "resume"),
-            inference=inference.default_cfg.deselect("workspace", "resume"),
+            setup=setup.default_cfg.deselect("workspace", "resume", "dryrun"),
+            train=train.default_cfg.deselect("workspace", "resume", "dryrun"),
+            inference=inference.default_cfg.deselect("workspace", "resume", "dryrun"),
         )
     )
     @classmethod

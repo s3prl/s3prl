@@ -30,5 +30,6 @@ from .er import SuperbER
 from .ic import SuperbIC
 from .ks import SuperbKS
 from .pr import SuperbPR
+from .sf import SuperbSF
 from .sid import SuperbSID
 from .sv import SuperbSV

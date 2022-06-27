@@ -16,6 +16,9 @@ PHONEME_VOCAB = "SIL SPN AA0 AA1 AA2 AE0 AE1 AE2 AH0 AH1 AH2 AO0 AO1 AO2 AW0 AW1
     " "
 )
 
+# Mapping for character-slot tokenizer (SNIPS)
+translator = str.maketrans("ÁÃÄÅÆÇÈÉÊËÍÏÐÒÓÔÖØÚÛĘŃŌŞŪ", "AAAAACEEEEIIDOOOOOUUENOSU")
+
 
 class Tokenizer:
     def __init__(self):
@@ -147,11 +150,12 @@ class CharacterSlotTokenizer(Tokenizer):
     def encode(self, s: str) -> List[int]:
         # Always strip trailing space, \r and \n
         sent, iobs = s.strip("\r\n ").split("\t")
+        sent = sent.translate(translator)
         sent = sent.split(" ")[1:-1]
         iobs = iobs.split(" ")[1:-1]
         tokens = []
         for i, (wrd, iob) in enumerate(zip(sent, iobs)):
-            if wrd in "?!.,;-":
+            if wrd in '?!.,;-–…"':
                 continue
             if wrd == "&":
                 wrd = "AND"
