@@ -112,7 +112,7 @@ class Speech2TextCTCTask(Task):
             for pred_token in predicted_tokens
         ]
         predictions = [
-            self.tokenizer.decode(token_list) for token_list in predicted_tokens
+            self.tokenizer.decode(token_list) for token_list in filtered_tokens
         ]
         return Output(logit=logits, prediction=predictions, output_size=x_len)
 
@@ -163,13 +163,12 @@ class Speech2TextCTCTask(Task):
                 beam_hyps += [" ".join(hyp[0].words) for hyp in batch_result.hypotheses]
 
         if self.tokenizer.token_type in {"character-slot", "subword-slot"}:
-            labels = [self.tokenizer.decode(self.tokenizer.encode(l)) for l in labels]
+            labels = [
+                self.tokenizer.decode(self.tokenizer.encode(label)) for label in labels
+            ]
 
         logs = Logs()
         logs.add_scalar("loss", np.mean(losses))
-
-        # print("*R* " + labels[0])
-        # print("*H* " + predictions[0])
 
         if "wer" in self.log_metrics:
             logs.add_scalar("wer", wer(predictions, labels))
