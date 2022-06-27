@@ -1,5 +1,3 @@
-from pydoc import classname
-
 from s3prl.corpus.librispeech import librispeech_for_speech2text
 from s3prl.dataset.speech2text_pipe import Speech2TextPipe
 from s3prl.nn import RNNEncoder
@@ -25,7 +23,7 @@ class SuperbASR(SuperbProblem):
             },
             train_sampler=dict(
                 _cls=FixedBatchSizeBatchSampler,
-                batch_size=16,
+                batch_size=32,
                 shuffle=True,
             ),
             valid_datapipe={
@@ -60,7 +58,12 @@ class SuperbASR(SuperbProblem):
                     sample_style="concat",
                     bidirectional=True,
                 ),
-                specaug_cfg=dict(),
+                specaug_cfg=dict(
+                    freq_mask_width_range=(0, 50),
+                    num_freq_mask=4,
+                    time_mask_width_range=(0, 40),
+                    num_time_mask=2,
+                ),
             ),
             task=dict(
                 _cls=Speech2TextCTCTask,

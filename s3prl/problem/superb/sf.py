@@ -67,7 +67,12 @@ class SuperbSF(SuperbProblem):
                     sample_style="concat",
                     bidirectional=True,
                 ),
-                specaug_cfg=dict(),
+                specaug_cfg=dict(
+                    freq_mask_width_range=(0, 50),
+                    num_freq_mask=4,
+                    time_mask_width_range=(0, 40),
+                    num_time_mask=2,
+                ),
             ),
             task=dict(
                 _cls=Speech2TextCTCTask,

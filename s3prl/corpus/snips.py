@@ -1,8 +1,8 @@
 import logging
 from pathlib import Path
-from typing import Any, Dict, List, Tuple
+from typing import Any, Dict, List
 
-from tqdm import tqdm, trange
+from tqdm import trange
 
 from s3prl import Container, Output, cache
 from s3prl.util import registry

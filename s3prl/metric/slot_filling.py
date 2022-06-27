@@ -1,5 +1,5 @@
 import re
-from typing import List, Tuple
+from typing import Dict, List, Tuple
 
 from .common import cer, wer
 
@@ -31,26 +31,35 @@ def parse(hyp: str, ref: str) -> Tuple[str, str, str, str]:
     return ref, hyp, ref_slots, hyp_slots
 
 
+def get_slot_dict(
+    hyp: str, ref: str
+) -> Tuple[Dict[str, List[str]], Dict[str, List[str]]]:
+    ref_text, hyp_text, ref_slots, hyp_slots = parse(hyp, ref)
+
+    ref_slots = ref_slots.split(";")
+    hyp_slots = hyp_slots.split(";")
+    ref_dict, hyp_dict = {}, {}
+
+    if ref_slots[0] != "":
+        for ref_slot in ref_slots:
+            v, k = ref_slot.split(":")
+            ref_dict.setdefault(k, [])
+            ref_dict[k].append(v)
+
+    if hyp_slots[0] != "":
+        for hyp_slot in hyp_slots:
+            v, k = hyp_slot.split(":")
+            hyp_dict.setdefault(k, [])
+            hyp_dict[k].append(v)
+
+    return ref_dict, hyp_dict
+
+
 def slot_type_f1(hypothesis: List[str], groundtruth: List[str], **kwargs) -> float:
     F1s = []
     for p, t in zip(hypothesis, groundtruth):
-        ref_text, hyp_text, ref_slots, hyp_slots = parse(p, t)
+        ref_dict, hyp_dict = get_slot_dict(p, t)
 
-        ref_slots = ref_slots.split(";")
-        hyp_slots = hyp_slots.split(";")
-        unique_slots = []
-        ref_dict = {}
-        hyp_dict = {}
-        if ref_slots[0] != "":
-            for ref_slot in ref_slots:
-                v, k = ref_slot.split(":")
-                ref_dict.setdefault(k, [])
-                ref_dict[k].append(v)
-        if hyp_slots[0] != "":
-            for hyp_slot in hyp_slots:
-                v, k = hyp_slot.split(":")
-                hyp_dict.setdefault(k, [])
-                hyp_dict[k].append(v)
         # Slot Type F1 evaluation
         if len(hyp_dict.keys()) == 0 and len(ref_dict.keys()) == 0:
             F1 = 1.0
@@ -70,29 +79,15 @@ def slot_type_f1(hypothesis: List[str], groundtruth: List[str], **kwargs) -> flo
             P = P / len(hyp_dict.keys())
             F1 = 2 * P * R / (P + R) if (P + R) > 0 else 0.0
         F1s.append(F1)
+
     return sum(F1s) / len(F1s)
 
 
 def slot_value_cer(hypothesis: List[str], groundtruth: List[str], **kwargs) -> float:
-    value_hyps = []
-    value_refs = []
+    value_hyps, value_refs = [], []
     for p, t in zip(hypothesis, groundtruth):
-        ref_text, hyp_text, ref_slots, hyp_slots = parse(p, t)
-        ref_slots = ref_slots.split(";")
-        hyp_slots = hyp_slots.split(";")
-        unique_slots = []
-        ref_dict = {}
-        hyp_dict = {}
-        if ref_slots[0] != "":
-            for ref_slot in ref_slots:
-                v, k = ref_slot.split(":")
-                ref_dict.setdefault(k, [])
-                ref_dict[k].append(v)
-        if hyp_slots[0] != "":
-            for hyp_slot in hyp_slots:
-                v, k = hyp_slot.split(":")
-                hyp_dict.setdefault(k, [])
-                hyp_dict[k].append(v)
+        ref_dict, hyp_dict = get_slot_dict(p, t)
+
         # Slot Value WER/CER evaluation
         unique_slots = list(ref_dict.keys())
         for slot in unique_slots:
@@ -119,22 +114,8 @@ def slot_value_wer(hypothesis: List[str], groundtruth: List[str], **kwargs) -> f
     value_hyps = []
     value_refs = []
     for p, t in zip(hypothesis, groundtruth):
-        ref_text, hyp_text, ref_slots, hyp_slots = parse(p, t)
-        ref_slots = ref_slots.split(";")
-        hyp_slots = hyp_slots.split(";")
-        unique_slots = []
-        ref_dict = {}
-        hyp_dict = {}
-        if ref_slots[0] != "":
-            for ref_slot in ref_slots:
-                v, k = ref_slot.split(":")
-                ref_dict.setdefault(k, [])
-                ref_dict[k].append(v)
-        if hyp_slots[0] != "":
-            for hyp_slot in hyp_slots:
-                v, k = hyp_slot.split(":")
-                hyp_dict.setdefault(k, [])
-                hyp_dict[k].append(v)
+        ref_dict, hyp_dict = get_slot_dict(p, t)
+
         # Slot Value WER/CER evaluation
         unique_slots = list(ref_dict.keys())
         for slot in unique_slots:
@@ -160,26 +141,10 @@ def slot_value_wer(hypothesis: List[str], groundtruth: List[str], **kwargs) -> f
 def slot_edit_f1(
     hypothesis: List[str], groundtruth: List[str], loop_over_all_slot: bool, **kwargs
 ) -> float:
-    test_case, TPs, FNs, FPs = [], 0, 0, 0
-
     slot2F1 = {}  # defaultdict(lambda: [0,0,0]) # TPs, FNs, FPs
     for p, t in zip(hypothesis, groundtruth):
-        ref_text, hyp_text, ref_slots, hyp_slots = parse(p, t)
-        ref_slots = ref_slots.split(";")
-        hyp_slots = hyp_slots.split(";")
-        unique_slots = []
-        ref_dict = {}
-        hyp_dict = {}
-        if ref_slots[0] != "":
-            for ref_slot in ref_slots:
-                v, k = ref_slot.split(":")
-                ref_dict.setdefault(k, [])
-                ref_dict[k].append(v)
-        if hyp_slots[0] != "":
-            for hyp_slot in hyp_slots:
-                v, k = hyp_slot.split(":")
-                hyp_dict.setdefault(k, [])
-                hyp_dict[k].append(v)
+        ref_dict, hyp_dict = get_slot_dict(p, t)
+
         # Collecting unique slots
         unique_slots = list(ref_dict.keys())
         if loop_over_all_slot:
