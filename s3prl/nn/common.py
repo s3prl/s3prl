@@ -76,8 +76,7 @@ class UtteranceLevel(NNModule):
 
         self.hidden_layers = nn.Sequential(*hidden_layers)
 
-        pooling_cfg = Container(pooling_cfg)
-        self.pooling = pooling_cfg._cls(**pooling_cfg.kwds())
+        self.pooling = Container(pooling_cfg).instantiate()
         self.final_proj = nn.Linear(latest_size, output_size)
 
     @property

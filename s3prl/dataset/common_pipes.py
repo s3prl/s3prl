@@ -1,3 +1,4 @@
+import random
 import logging
 import os
 from dataclasses import dataclass
@@ -27,28 +28,6 @@ class SetOutputKeys(DataPipe):
         return dataset
 
 
-class LoadPseudoAudio(DataPipe):
-    def load_wav(self, wav_path):
-        wav = torch.randn(16000 * 10)
-        return wav, len(wav)
-
-    def load_metadatas(self, wav_path):
-        return dict(
-            sample_rate=16000,
-            num_frames=500,
-            num_channels=1,
-        )
-
-    def forward(self, dataset: AugmentedDynamicItemDataset):
-        dataset.add_dynamic_item(
-            self.load_wav, takes="wav_path", provides=["wav", "wav_len"]
-        )
-        dataset.add_dynamic_item(
-            self.load_metadata, takes="wav_path", provides="wav_metadata"
-        )
-        return dataset
-
-
 @dataclass
 class LoadAudio(DataPipe):
     audio_sample_rate: int = 16000
@@ -65,52 +44,36 @@ class LoadAudio(DataPipe):
         wav_path,
         start_sec: float = None,
         end_sec: float = None,
-        metadata: bool = False,
     ):
         crop_segment = start_sec is not None and end_sec is not None
 
-        if not metadata:
-            torchaudio.set_audio_backend("sox_io")
-            wav, sr = torchaudio.load(
-                wav_path,
-                frame_offset=round(start_sec * self.audio_sample_rate)
-                if crop_segment
-                else 0,
-                num_frames=round((end_sec - start_sec) * self.audio_sample_rate)
-                if crop_segment
-                else -1,
+        torchaudio.set_audio_backend("sox_io")
+        wav, sr = torchaudio.load(
+            wav_path,
+            frame_offset=round(start_sec * self.audio_sample_rate)
+            if crop_segment
+            else 0,
+            num_frames=round((end_sec - start_sec) * self.audio_sample_rate)
+            if crop_segment
+            else -1,
+        )
+
+        if self.sox_effects is not None:
+            wav, sr = torchaudio.sox_effects.apply_effects_tensor(
+                wav, sr, effects=self.sox_effects
             )
 
-            if self.sox_effects is not None:
-                wav, sr = torchaudio.sox_effects.apply_effects_tensor(
-                    wav, sr, effects=self.sox_effects
-                )
+        if sr != self.audio_sample_rate:
+            resampler = torchaudio.transforms.Resample(sr, self.audio_sample_rate)
+            wav = resampler(wav)
 
-            if sr != self.audio_sample_rate:
-                resampler = torchaudio.transforms.Resample(sr, self.audio_sample_rate)
-                wav = resampler(wav)
+        if self.audio_channel_reduction == "first":
+            wav = wav[0]
+        elif self.audio_channel_reduction == "mean":
+            wav = wav.mean(dim=0)
 
-            if self.audio_channel_reduction == "first":
-                wav = wav[0]
-            elif self.audio_channel_reduction == "mean":
-                wav = wav.mean(dim=0)
-
-            wav = wav.view(-1, 1)
-            return wav
-        else:
-            torchaudio.set_audio_backend("sox_io")
-            info = torchaudio.info(wav_path)
-            num_frames = (
-                info.num_frames
-                if not crop_segment
-                else round((end_sec - start_sec) * self.audio_sample_rate)
-            )
-            ratio = self.audio_sample_rate / info.sample_rate
-            return dict(
-                sample_rate=self.audio_sample_rate,
-                num_frames=round(num_frames * ratio),
-                num_channels=1,
-            )
+        wav = wav.view(-1, 1)
+        return wav
 
     def compute_length(self, wav):
         return len(wav)
@@ -123,14 +86,14 @@ class LoadAudio(DataPipe):
             crop_segment = False
 
         if not crop_segment:
-            dataset.add_dynamic_item_and_metadata(
-                self.load_audio, takes=self.wav_path_name, provide=self.wav_name
+            dataset.add_dynamic_item(
+                self.load_audio, takes=self.wav_path_name, provides=self.wav_name
             )
         else:
-            dataset.add_dynamic_item_and_metadata(
+            dataset.add_dynamic_item(
                 self.load_audio,
                 takes=[self.wav_path_name, self.start_sec_name, self.end_sec_name],
-                provide=self.wav_name,
+                provides=self.wav_name,
             )
         dataset.add_dynamic_item(
             self.compute_length,
@@ -337,4 +300,35 @@ class Phonemize(DataPipe):
         tokenizer = dataset.get_tool(self.tokenizer_name)
         dataset.add_tool("output_size", tokenizer.vocab_size)
 
+        return dataset
+
+
+@dataclass
+class RandomCrop(DataPipe):
+    """
+    Completely randomized for every batch even with the same datapoint id.
+    Only suitable for training.
+    """
+
+    sample_rate: int = 16000
+    max_secs: float = None
+
+    wav_name: str = "wav"
+    crop_name: str = "wav_crop"
+
+    def crop_wav(self, wav):
+        if self.max_secs is not None and wav.size(0) > self.max_secs * self.sample_rate:
+            start = random.randint(0, wav.size(0) - self.max_secs * self.sample_rate)
+            end = start + self.max_secs * self.sample_rate
+            wav = wav[round(start) : round(end)]
+        return wav, wav.size(0)
+
+    def forward(
+        self, dataset: AugmentedDynamicItemDataset
+    ) -> AugmentedDynamicItemDataset:
+        dataset.add_dynamic_item(
+            self.crop_wav,
+            takes=[self.wav_name],
+            provides=[self.crop_name, f"{self.crop_name}_len"],
+        )
         return dataset

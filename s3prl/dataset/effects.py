@@ -63,7 +63,6 @@ class AdditiveNoise(DataPipe):
 
         if target.size(1) > noise.size(1) and not repeat:
             start = random.randint(0, target.size(1) - noise.size(1))
-            print(f"START: {start}")
             pre_pad = noise.new_zeros(1, start, 1)
             post_pad = noise.new_zeros(1, target.size(1) - (start + noise.size(1)), 1)
             noise = torch.cat((pre_pad, noise, post_pad), dim=1)

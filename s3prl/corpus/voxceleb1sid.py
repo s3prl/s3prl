@@ -26,13 +26,13 @@ class VoxCeleb1SID(Corpus):
         uid2split = self._get_standard_usage(self.dataset_root)
         self._split2uids = defaultdict(list)
         for uid, split in uid2split.items():
-            self._split2uids[split].append(uid)
+            self._split2uids[split].append(Path(uid.replace("/", "-")).stem)
 
         uid2wavpath = self._find_wavs_with_uids(
             self.dataset_root, sorted(uid2split.keys()), n_jobs=n_jobs
         )
         self._data = {
-            uid: {
+            Path(uid.replace("/", "-")).stem: {
                 "wav_path": uid2wavpath[uid],
                 "label": self._build_label(uid),
             }

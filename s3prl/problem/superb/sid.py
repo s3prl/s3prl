@@ -1,10 +1,39 @@
 from s3prl import Container
 from s3prl.corpus.voxceleb1sid import voxceleb1_for_utt_classification
+from s3prl.dataset.base import DataPipe, SequentialDataPipe
+from s3prl.dataset.common_pipes import RandomCrop, SetOutputKeys
 from s3prl.dataset.utterance_classification_pipe import UtteranceClassificationPipe
 from s3prl.nn import MeanPoolingLinear
 from s3prl.sampler import FixedBatchSizeBatchSampler, MaxTimestampBatchSampler
 from s3prl.task.utterance_classification_task import UtteranceClassificationTask
 from s3prl.util.configuration import default_cfg
+
+
+class SuperbSIDTrainPipe(DataPipe):
+    def __init__(
+        self,
+        train_category_encoder: bool = False,
+        max_secs: float = None,
+        **kwds,
+    ) -> None:
+        self.pipes = SequentialDataPipe(
+            UtteranceClassificationPipe(
+                train_category_encoder=train_category_encoder,
+                max_secs=max_secs,
+            ),
+            RandomCrop(max_secs=max_secs),
+            SetOutputKeys(
+                dict(
+                    x="wav_crop",
+                    x_len="wav_crop_len",
+                )
+            ),
+        )
+
+    def forward(self, dataset):
+        dataset = self.pipes(dataset)
+        return dataset
+
 
 from .base import SuperbProblem
 
@@ -22,8 +51,9 @@ class SuperbSID(SuperbProblem):
             ),
             train_datapipe={
                 "0": dict(
-                    _cls=UtteranceClassificationPipe,
+                    _cls=SuperbSIDTrainPipe,
                     train_category_encoder=True,
+                    max_secs=8.0,
                 ),
             },
             train_sampler=dict(
