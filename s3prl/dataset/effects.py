@@ -10,6 +10,8 @@ from s3prl.base.container import Container
 
 from .base import AugmentedDynamicItemDataset, DataPipe
 
+NUM_ALL_SEED = 1000000
+
 
 class AdditiveNoise(DataPipe):
     def __init__(
@@ -33,16 +35,17 @@ class AdditiveNoise(DataPipe):
         self.noisy_name = noisy_name
         self.seed = seed
 
-    def add_noise(self, target, data_id, noise_setting: dict):
-        noise_path, snr = noise_setting[data_id]
-        noisy = self._add_noise_impl(
-            target, noise_path, snr, self.repeat, self.sample_rate
-        )
-        return noisy
-
-    @staticmethod
-    def _add_noise_impl(target, noise_path, snr, repeat: bool, sample_rate: int):
+    def add_noise(self, target, data_id: str, seeds: List[int]):
         assert target.dim() == 2 and target.size(-1) == 1
+        seed = seeds[data_id]
+        random.seed(seed)
+
+        noise_paths = self.noise_paths or Container(self.noise_paths_hook).instantiate()
+        noise_path = random.sample(sorted(noise_paths), k=1)[0]
+        snr = random.uniform(self.snrs[0], self.snrs[1])
+        repeat = self.repeat
+        sample_rate = self.sample_rate
+
         noise, sr = torchaudio.load(noise_path)
         if sr != sample_rate:
             noise = torchaudio.transforms.Resample(sr, sample_rate)(noise)
@@ -59,7 +62,8 @@ class AdditiveNoise(DataPipe):
         target *= 1 - noise_amplitude_factor
 
         if target.size(1) > noise.size(1) and not repeat:
-            start = 0
+            start = random.randint(0, target.size(1) - noise.size(1))
+            print(f"START: {start}")
             pre_pad = noise.new_zeros(1, start, 1)
             post_pad = noise.new_zeros(1, target.size(1) - (start + noise.size(1)), 1)
             noise = torch.cat((pre_pad, noise, post_pad), dim=1)
@@ -68,7 +72,7 @@ class AdditiveNoise(DataPipe):
                 num_repeat = target.size(1) // noise.size(1) + 1
                 noise = noise.expand(num_repeat, -1, -1).reshape(1, -1, 1)
 
-            start = 0
+            start = random.randint(0, target.size(1) - noise.size(1))
             noise = noise[:, start : start + target.size(1), :]
         assert noise.size(1) == target_len.item()
 
@@ -81,24 +85,18 @@ class AdditiveNoise(DataPipe):
     def forward(
         self, dataset: AugmentedDynamicItemDataset
     ) -> AugmentedDynamicItemDataset:
-        noise_paths = self.noise_paths or Container(self.noise_paths_hook).instantiate()
-        noise_paths = sorted(noise_paths)
-        if len(noise_paths) < len(dataset):
-            noise_paths = noise_paths * (len(dataset) // len(noise_paths) + 1)
-
-        noise_setting = dict()
+        seeds = dict()
+        all_seeds = list(range(NUM_ALL_SEED))
         random.seed(self.seed)
-        random.shuffle(noise_paths)
+        random.shuffle(all_seeds)
         with dataset.output_keys_as(["id"]):
             for data_index, item in enumerate(dataset):
-                data_id = item["id"]
-                snr = random.uniform(self.snrs[0], self.snrs[0])
-                noise_setting[data_id] = (noise_paths[data_index], snr)
+                seeds[item["id"]] = all_seeds[data_index]
 
-        dataset.add_tool("noise_setting", noise_setting)
+        dataset.add_tool("seeds", seeds)
         dataset.add_dynamic_item(
             self.add_noise,
-            takes=[self.wav_name, "id", "noise_setting"],
+            takes=[self.wav_name, "id", "seeds"],
             provides=self.noisy_name,
         )
         dataset.replace_output_key(self.wav_name, self.noisy_name)

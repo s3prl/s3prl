@@ -12,7 +12,6 @@ from s3prl.dataset.effects import AdditiveNoise, Reverberation, ShiftPitchAndRes
 
 @pytest.mark.practice
 def test_add_noise():
-    noises = find_files("/home/leo/d/datasets/noise_data/NOISEX-92/")
     data = {
         "1": dict(
             wav_path="/home/leo/d/datasets/LibriSpeech/test-clean/1089/134686/1089-134686-0000.flac"
@@ -43,11 +42,14 @@ def test_noise_and_reverb_and_pitch():
                 _cls="librosa.util.find_files",
                 directory="/home/leo/d/datasets/noise_data/NOISEX-92/",
             ),
-            snrs=[-9, -6, -3],
+            snrs=(-3, 3),
             wav_name="wav_pitch",
+            seed=113,
+            repeat=False,
         ),
-        Reverberation(reverberance=100, hf_damping=100, wav_name="wav_noisy"),
+        Reverberation(reverberance=(70, 80), hf_damping=(80, 90), wav_name="wav_noisy"),
     )
     dataset = pipes(data)
-    noisy = dataset[0]["wav_pitch"]
-    torchaudio.save("pitch.wav", noisy.view(1, -1), sample_rate=16000)
+    for data_id, data in enumerate(dataset):
+        reverb = data["wav_reverb"]
+        torchaudio.save(f"{data_id}_reverb.wav", reverb.view(1, -1), sample_rate=16000)
