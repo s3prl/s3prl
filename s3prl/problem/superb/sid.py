@@ -19,7 +19,6 @@ class SuperbSIDTrainPipe(DataPipe):
         self.pipes = SequentialDataPipe(
             UtteranceClassificationPipe(
                 train_category_encoder=train_category_encoder,
-                max_secs=max_secs,
             ),
             RandomCrop(max_secs=max_secs),
             SetOutputKeys(
