@@ -86,8 +86,8 @@ class field:
 
 class Container(OrderedDict):
     """
-    You can just Container just like a normal dictionary (with some)
-    augmented functions
+    You can use Container just like a normal dictionary (with some
+    augmented functions):
 
     .. code-block:: python
 
@@ -103,50 +103,54 @@ class Container(OrderedDict):
     future. In the following examples, we use the 'result' for
     demonstration.
 
-    0.
-    Assume:
-    result = Container(output=3, loss=4)
+    .. code-block:: python
+
+        result = Container(output=3, loss=4)
 
     The core usages of Container are:
 
-    1.
-    Get value as a Namespace. Personally, I don't like to see the
-    ["something"] syntax which is very noisy. Hence, the following
-    is possible
+    1. Get value as a Namespace.
 
-    assert result.output == result["output"] == 3
+    .. code-block:: python
 
-    2.
-    Get value by index. The OrderedDict is ordered-sensitive with
+        assert result.output == result["output"] == 3
+
+    2. Get value by index. The OrderedDict is ordered-sensitive with
     the initialization arguments. That is:
 
-    Container(output=3, loss=4) != Container(loss=4, output=3)
+    .. code-block:: python
+
+        Container(output=3, loss=4) != Container(loss=4, output=3)
 
     On the other hand, in common machine learning we don't use integer
     as keys which are not informative. Hence, we can use integers as the
     ordered keys to access the ordered values:
 
-    assert 3 == result[0] == result.output
-    assert 4 == result[1] == result.loss
+    .. code-block:: python
 
-    3.
-    To get a subset of the Container as a smaller version of
+        assert 3 == result[0] == result.output
+        assert 4 == result[1] == result.loss
+
+    3. To get a subset of the Container as a smaller version of
     Container or as a tuple containing only values to act like
     the conventional function return
 
-    assert 3 == result.subset("output")
-    assert (4, 3) == result.subset("loss", "output")
-    assert (4, 3) == result.subset(1, 0)
-    assert 4 == result.subset(1)
-    assert Container(loss=4) == result.subset("loss", as_type="dict")
+    .. code-block:: python
 
-    4.
-    Similar to 3, but leverage the 2. function to enable slicing.
+        assert 3 == result.subset("output")
+        assert (4, 3) == result.subset("loss", "output")
+        assert (4, 3) == result.subset(1, 0)
+        assert 4 == result.subset(1)
+        assert Container(loss=4) == result.subset("loss", as_type="dict")
 
-    assert 3 == result.slice(1)
-    assert (3, 4) == result.slice(2)
-    assert 4 == result.slice(1, 2)
-    assert Container(loss=4) == result.slice(1, 2, as_type="dict")
+    4. Similar to 3, but leverage the 2. function to enable slicing.
+
+    .. code-block:: python
+
+        assert 3 == result.slice(1)
+        assert (3, 4) == result.slice(2)
+        assert 4 == result.slice(1, 2)
+        assert Container(loss=4) == result.slice(1, 2, as_type="dict")
 
     Important note for the functions 2. and 4.
     The length of a Container object can change across S3PRL versions.
