@@ -86,6 +86,17 @@ class field:
 
 class Container(OrderedDict):
     """
+    You can just Container just like a normal dictionary (with some)
+    augmented functions
+
+    .. code-block:: python
+
+        obj = Container({"a": 3, "b": 4})
+
+        # or
+
+        obj = Container(a=3, b=4)
+
     The core function of the Container class is to provide the
     easy-to-use and intuitive interface for manipulating the returning
     dictionary/namespace which can have more key-value pairs in the

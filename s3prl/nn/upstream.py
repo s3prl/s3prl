@@ -37,7 +37,7 @@ class S3PRLUpstream(NNModule):
         feature_selection: str = "hidden_states",
         layer_selection: int = None,
         layer_drop: Union[str, float] = 0.0,
-        normalize: bool = True,
+        normalize: bool = False,
         refresh: bool = False,
     ):
         super().__init__()

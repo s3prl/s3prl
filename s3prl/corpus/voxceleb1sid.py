@@ -167,6 +167,28 @@ class VoxCeleb1SID(Corpus):
 
 @registry.put()
 def voxceleb1_for_utt_classification(dataset_root: str, n_jobs: int = 4):
+    """
+    Args:
+        dataset_root: (str) The dataset root of VoxCeleb1
+
+    Return:
+        A :obj:`s3prl.base.container.Container` in
+
+        .. code-block:: yaml
+
+            train_data:
+                data_id1:
+                    wav_path: (str) waveform path
+                    labels: (List[str]) The labels for action, object and location
+                data_id2:
+
+            valid_data:
+                The same format as train_data
+
+            test_data:
+                The same format as valid_data
+    """
+
     corpus = VoxCeleb1SID(dataset_root, n_jobs)
     train_data, valid_data, test_data = corpus.data_split
     return Output(
@@ -178,6 +200,29 @@ def voxceleb1_for_utt_classification(dataset_root: str, n_jobs: int = 4):
 
 @registry.put()
 def mini_voxceleb1(dataset_root: str, force_download: bool = False):
+    """
+    Args:
+        dataset_root: (str) The dataset root of mini-VoxCeleb1
+
+    Return:
+        A :obj:`s3prl.base.container.Container` in
+
+        .. code-block:: yaml
+
+            train_data:
+                data_id1:
+                    wav_path: (str) waveform path
+                    labels: (List[str]) The labels for action, object and location
+                data_id2:
+
+            valid_data:
+                The same format as train_data
+
+            test_data:
+                The same format as valid_data
+    """
+
+
     dataset_root = Path(dataset_root)
     if not dataset_root.is_dir() or force_download:
         dataset_root.mkdir(exist_ok=True, parents=True)
