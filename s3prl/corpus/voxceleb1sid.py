@@ -178,8 +178,8 @@ def voxceleb1_for_utt_classification(dataset_root: str, n_jobs: int = 4):
 
             train_data:
                 data_id1:
-                    wav_path: (str) waveform path
-                    labels: (List[str]) The labels for action, object and location
+                    wav_path (str): waveform path
+                    label (str) : The labels for action, object and location
                 data_id2:
 
             valid_data:
@@ -211,8 +211,8 @@ def mini_voxceleb1(dataset_root: str, force_download: bool = False):
 
             train_data:
                 data_id1:
-                    wav_path: (str) waveform path
-                    labels: (List[str]) The labels for action, object and location
+                    wav_path (str): waveform path
+                    label (str): The labels for action, object and location
                 data_id2:
 
             valid_data:
