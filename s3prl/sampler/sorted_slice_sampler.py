@@ -1,7 +1,6 @@
 import torch
 from collections import OrderedDict
 from typing import Iterator, TypeVar
-from pydantic import DataclassTypeError
 
 from speechbrain.dataio.sampler import ReproducibleRandomSampler
 from torch.utils.data import BatchSampler, RandomSampler, Sampler, SequentialSampler
