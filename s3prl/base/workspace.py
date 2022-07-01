@@ -119,7 +119,7 @@ class Workspace(type(Path()), MutableMapping):
         if filepath is not None:
             return load(filepath)
 
-        if default is not None:
+        if len(identifier_and_default) == 2:
             return default
         else:
             raise KeyError(f"identifier '{identifier}' does not exist in {self}")
