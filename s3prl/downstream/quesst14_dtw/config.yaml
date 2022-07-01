@@ -11,9 +11,9 @@ downstream_expert:
   silence_frame:
 
   datarc:
-    dataset_root: /corpora/quesst14Database
+    dataset_root: /home/leo/d/datasets/quesst14Database
     num_workers: 8
-    batch_size: 16
+    batch_size: 1
 
   dtwrc:
     # Any metric defined by scipy.spatial.distance.cdist, e.g.

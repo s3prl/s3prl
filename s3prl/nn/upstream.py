@@ -120,7 +120,7 @@ class S3PRLUpstream(NNModule):
 
         hidden_states_len = torch.LongTensor(
             [
-                min(int(l.item() / downsample_rate), hidden_states[0].size(1))
+                min(round(l.item() / downsample_rate), hidden_states[0].size(1))
                 for l in x_len
             ]
         ).to(x.device)
