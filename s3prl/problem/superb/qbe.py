@@ -84,7 +84,7 @@ class SuperbQBE(SuperbProblem):
         },
         all_sampler=dict(
             _cls=FixedBatchSizeBatchSampler,
-            batch_size=1,
+            batch_size=16,
         ),
         upstream=dict(
             _cls="S3PRLUpstream",
