@@ -102,15 +102,25 @@ class Workspace(type(Path()), MutableMapping):
         Get an object
         """
         identifier = identifier_and_default[0]
+        default = None
         if len(identifier_and_default) > 2:
             raise ValueError("get takes at most 2 arguments")
+        elif len(identifier_and_default) == 2:
+            default = identifier_and_default[1]
+
+        parts = identifier.split("/")
+        if len(parts) > 1:
+            subspace = self
+            for part in parts[:-1]:
+                subspace = subspace / part
+            return subspace.get(parts[-1], default)
 
         filepath = self.get_filepath(identifier)
         if filepath is not None:
             return load(filepath)
 
-        if len(identifier_and_default) == 2:
-            return identifier_and_default[1]
+        if default is not None:
+            return default
         else:
             raise KeyError(f"identifier '{identifier}' does not exist in {self}")
 
@@ -142,12 +152,19 @@ class Workspace(type(Path()), MutableMapping):
         if self._rank > 0:
             return
 
+        parts = identifier.split("/")
+        if len(parts) > 1:
+            subspace = self
+            for part in parts[:-1]:
+                subspace = subspace / part
+            return subspace.put(value, parts[-1], dtype=dtype)
+
         if not self.exists():
             self.mkdir(exist_ok=True, parents=True)
         assert self.is_dir()
 
         dtype = dtype or self._default_dtype
-        logger.info(f"Put '{identifier}' into {repr(self)}")
+        logger.debug(f"Put '{identifier}' into {repr(self)}")
         if dtype is None:
             save(self / identifier, value)
         else:

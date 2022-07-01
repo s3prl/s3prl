@@ -187,3 +187,17 @@ def test_workspace_path():
     workspace = Workspace("hello")
     assert str(workspace.resolve()) == str(Path("hello").resolve())
     assert str(workspace) == str(Path("hello"))
+
+
+def test_workspace_get_from_subspace():
+    ws = Workspace()
+    sub = ws / "tmp" / "another"
+    sub["hello"] = 3
+    assert ws["tmp/another/hello"] == 3
+
+
+def test_workspace_put_to_subspace():
+    ws = Workspace()
+    sub = ws / "tmp"
+    sub["another/hello"] = 3
+    assert ws["tmp/another/hello"] == 3
