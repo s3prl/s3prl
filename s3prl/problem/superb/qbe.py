@@ -149,6 +149,10 @@ class SuperbQBE(SuperbProblem):
             -1,
             "Only take the first 'doc_num' docs to be searched by the queries. Set -1 to disable",
         ),
+        layers=field(
+            None,
+            "Which layers to examine. Default will use all the layers of the given upstream",
+        ),
     )
     @classmethod
     def dtw_for_quesst14(cls, **cfg):
@@ -168,7 +172,9 @@ class SuperbQBE(SuperbProblem):
         scoring_dir = (
             Workspace(workspace.get_cfg(cls.setup).corpus.dataset_root) / "scoring"
         )
-        for layer_id in range(num_layers):
+
+        layers = cfg.layers or range(num_layers)
+        for layer_id in layers:
             queries = []
             for key in tqdm(
                 valid_query_keys, desc=f"Load valid query features for layer {layer_id}"
@@ -385,12 +391,17 @@ class SuperbQBE(SuperbProblem):
         os.chdir(str(scoring_dir))
 
         target = "groundtruth_quesst14_dev" if is_valid else "groundtruth_quesst14_eval"
-        result = subprocess.check_output(
-            f"./score-TWV-Cnxe.sh {Path(xml_path).parent} {target} -10", shell=True
-        ).decode("utf-8")
+        try:
+            result = subprocess.check_output(
+                f"./score-TWV-Cnxe.sh {Path(xml_path).parent} {target} -10",
+                shell=True,
+            ).decode("utf-8")
+        except subprocess.CalledProcessError as e:
+            result = e.output.decode("utf-8")
 
-        actTWV, maxTWV, threshold, actCnxe, minCnxe = re.search(
-            "actTWV: (.+) maxTWV: (.+) Threshold: (.+)\nactCnxe: (.+) minCnxe: (.+)\n",
+        assert "maxTWV" in result
+        actTWV, maxTWV, threshold = re.search(
+            "actTWV: (.+) maxTWV: (.+) Threshold: (.+)\n",
             result,
         ).groups()
 
@@ -399,6 +410,4 @@ class SuperbQBE(SuperbProblem):
             actTWV=float(actTWV.strip()),
             maxTWV=float(maxTWV.strip()),
             threshold=float(threshold.strip()),
-            actCnxe=float(actCnxe.strip()),
-            minCnxe=float(minCnxe.strip()),
         )
