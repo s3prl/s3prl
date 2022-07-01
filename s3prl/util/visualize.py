@@ -1,5 +1,6 @@
 import logging
 
+from s3prl import Container
 from s3prl.util.configuration import default_cfg
 from s3prl.util.workspace import Workspace
 
@@ -28,6 +29,7 @@ def print_dict(obj, indent=0):
     workspace="???",
     key="???",
 )
-def print_workspace_item(option):
-    workspace = Workspace(option.workspace)
-    print(workspace[option.key])
+def print_workspace_item(**cfg):
+    cfg = Container(cfg)
+    workspace = Workspace(cfg.workspace)
+    print(workspace[cfg.key])
