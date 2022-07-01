@@ -164,7 +164,7 @@ class SuperbQBE(SuperbProblem):
         if cfg.doc_num != -1:
             doc_keys = doc_keys[: cfg.doc_num]
 
-        layer_mtwv = []
+        layer_mtwv = {}
         scoring_dir = (
             Workspace(workspace.get_cfg(cls.setup).corpus.dataset_root) / "scoring"
         )
@@ -186,11 +186,11 @@ class SuperbQBE(SuperbProblem):
             layer_dir = workspace / f"valid_layer_{layer_id}"
             metrics = cls._scoring(valid_results, layer_dir, scoring_dir, is_valid=True)
             layer_dir.put(metrics, "metrics", "yaml")
-            layer_mtwv.append(metrics.maxTWV)
+            layer_mtwv[layer_id] = metrics.maxTWV
         del queries
         del docs
 
-        layer_mtwv = [(layer_id, mtwv) for layer_id, mtwv in enumerate(layer_mtwv)]
+        layer_mtwv = [(layer_id, mtwv) for layer_id, mtwv in layer_mtwv.items()]
         layer_mtwv.sort(key=lambda x: x[1], reverse=True)
         logger.info("Sorted all-layer results:")
         for layer_id, mtwv in layer_mtwv:
