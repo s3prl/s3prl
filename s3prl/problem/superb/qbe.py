@@ -149,7 +149,6 @@ class SuperbQBE(SuperbProblem):
             -1,
             "Only take the first 'doc_num' docs to be searched by the queries. Set -1 to disable",
         ),
-        layer_id=1,
     )
     @classmethod
     def dtw_for_quesst14(cls, **cfg):
@@ -165,41 +164,41 @@ class SuperbQBE(SuperbProblem):
         if cfg.doc_num != -1:
             doc_keys = doc_keys[: cfg.doc_num]
 
-        # layer_mtwv = {}
+        layer_mtwv = {}
         scoring_dir = (
             Workspace(workspace.get_cfg(cls.setup).corpus.dataset_root) / "scoring"
         )
 
-        # layers = cfg.layers or range(num_layers)
-        # for layer_id in layers:
-        #     queries = []
-        #     for key in tqdm(
-        #         valid_query_keys, desc=f"Load valid query features for layer {layer_id}"
-        #     ):
-        #         queries.append(torch.from_numpy(feat_dir[key][layer_id]))
+        layers = cfg.layers or range(num_layers)
+        for layer_id in layers:
+            queries = []
+            for key in tqdm(
+                valid_query_keys, desc=f"Load valid query features for layer {layer_id}"
+            ):
+                queries.append(torch.from_numpy(feat_dir[key][layer_id]))
 
-        #     docs = []
-        #     for key in tqdm(doc_keys, desc=f"Load doc features for layer {layer_id}"):
-        #         docs.append(torch.from_numpy(feat_dir[key][layer_id]))
+            docs = []
+            for key in tqdm(doc_keys, desc=f"Load doc features for layer {layer_id}"):
+                docs.append(torch.from_numpy(feat_dir[key][layer_id]))
 
-        #     valid_results = cls.dtw(
-        #         queries, valid_query_keys, docs, doc_keys, **cfg.dtw.kwds()
-        #     )
+            valid_results = cls.dtw(
+                queries, valid_query_keys, docs, doc_keys, **cfg.dtw.kwds()
+            )
 
-        #     layer_dir = workspace / f"valid_layer_{layer_id}"
-        #     metrics = cls._scoring(valid_results, layer_dir, scoring_dir, is_valid=True)
-        #     layer_dir.put(metrics, "metrics", "yaml")
-        #     layer_mtwv[layer_id] = metrics.maxTWV
-        # del queries
-        # del docs
+            layer_dir = workspace / f"valid_layer_{layer_id}"
+            metrics = cls._scoring(valid_results, layer_dir, scoring_dir, is_valid=True)
+            layer_dir.put(metrics, "metrics", "yaml")
+            layer_mtwv[layer_id] = metrics.maxTWV
+        del queries
+        del docs
 
-        # layer_mtwv = [(layer_id, mtwv) for layer_id, mtwv in layer_mtwv.items()]
-        # layer_mtwv.sort(key=lambda x: x[1], reverse=True)
-        # logger.info("Sorted all-layer results:")
-        # for layer_id, mtwv in layer_mtwv:
-        #     logger.info(f"Layer {layer_id} valid maxTWV: {mtwv}")
+        layer_mtwv = [(layer_id, mtwv) for layer_id, mtwv in layer_mtwv.items()]
+        layer_mtwv.sort(key=lambda x: x[1], reverse=True)
+        logger.info("Sorted all-layer results:")
+        for layer_id, mtwv in layer_mtwv:
+            logger.info(f"Layer {layer_id} valid maxTWV: {mtwv}")
 
-        best_layer_id = cfg.layer_id
+        best_layer_id = layer_mtwv[0][0]
         logger.info(f"The best valid layer: {best_layer_id}")
 
         test_query_keys = workspace["test_query_keys"]
