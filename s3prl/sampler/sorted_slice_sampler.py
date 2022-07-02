@@ -2,6 +2,7 @@ import torch
 from collections import OrderedDict
 from typing import Iterator, TypeVar
 
+from tqdm import tqdm
 from speechbrain.dataio.sampler import ReproducibleRandomSampler
 from torch.utils.data import BatchSampler, RandomSampler, Sampler, SequentialSampler
 
@@ -38,7 +39,7 @@ class SortedSliceSampler(Sampler):
 
         lengths = {}
         with dataset.output_keys_as(["wav_path"]):
-            for data_index, item in enumerate(dataset):
+            for data_index, item in enumerate(tqdm(dataset, desc="Read wav_path audio length")):
                 info = torchaudio.info(item["wav_path"])
                 length = info.num_frames
                 lengths[data_index] = length
