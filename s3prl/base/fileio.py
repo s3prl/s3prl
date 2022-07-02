@@ -18,6 +18,7 @@ from .container import Container
 from .object import Object
 
 logger = logging.getLogger(__name__)
+logging.getLogger("filelock").setLevel(logging.WARNING)
 
 
 class FileHandler:

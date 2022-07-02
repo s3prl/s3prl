@@ -15,7 +15,6 @@ from s3prl.base.container import Container, field
 from s3prl.util.checkpoint import as_type, load, save
 
 logger = logging.getLogger(__name__)
-logging.getLogger("filelock").setLevel(logging.DEBUG)
 
 
 class Workspace(type(Path()), MutableMapping):
