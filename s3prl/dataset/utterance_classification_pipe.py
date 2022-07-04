@@ -19,6 +19,7 @@ class UtteranceClassificationPipe(SequentialDataPipe):
         output_keys: dict = None,
         audio_sample_rate: int = 16000,
         audio_channel_reduction: str = "first",
+        sox_effects: list = None,
         train_category_encoder: bool = False,
         **kwds,
     ):
@@ -34,6 +35,7 @@ class UtteranceClassificationPipe(SequentialDataPipe):
             LoadAudio(
                 audio_sample_rate=audio_sample_rate,
                 audio_channel_reduction=audio_channel_reduction,
+                sox_effects=sox_effects,
             ),
             EncodeCategory(train_category_encoder=train_category_encoder),
             SetOutputKeys(output_keys=output_keys),
@@ -52,6 +54,7 @@ class UtteranceMultipleCategoryClassificationPipe(SequentialDataPipe):
         output_keys: dict = None,
         audio_sample_rate: int = 16000,
         audio_channel_reduction: str = "first",
+        sox_effects: list = None,
         train_category_encoder: bool = False,
         **kwds,
     ):
@@ -67,6 +70,7 @@ class UtteranceMultipleCategoryClassificationPipe(SequentialDataPipe):
             LoadAudio(
                 audio_sample_rate=audio_sample_rate,
                 audio_channel_reduction=audio_channel_reduction,
+                sox_effects=sox_effects,
             ),
             EncodeMultipleCategory(train_category_encoder=train_category_encoder),
             SetOutputKeys(output_keys=output_keys),

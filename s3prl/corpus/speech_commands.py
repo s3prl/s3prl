@@ -6,12 +6,15 @@ import re
 from pathlib import Path
 from typing import List, Tuple, Union
 
+import torchaudio
+
 from s3prl import Container, cache
 from s3prl.base.output import Output
 from s3prl.util import registry
 
 from .base import Corpus
 
+torchaudio.set_audio_backend("sox_io")
 logger = logging.getLogger(__name__)
 
 CLASSES = [
@@ -36,6 +39,7 @@ class SpeechCommandsV1(Corpus):
         dataset_root (str): should contain a 'dev' sub-folder for the training/validation set
             and a 'test' sub-folder for the testing set
     """
+
     def __init__(self, dataset_root: str, n_jobs: int = 4) -> None:
         dataset_root = Path(dataset_root)
         train_dataset_root = dataset_root / "dev"
@@ -214,15 +218,24 @@ def gsc_v1_for_superb(dataset_root: str, n_jobs: int = 4):
     corpus = SpeechCommandsV1(dataset_root, n_jobs)
 
     def format_fields(data: dict):
-        formated_data = Container(
-            {
-                key: {
-                    "wav_path": value.wav_path,
-                    "label": value.class_name,
-                }
-                for key, value in data.items()
+        formated_data = Container()
+        for key, value in data.items():
+            data_point = {
+                "wav_path": value.wav_path,
+                "label": value.class_name,
+                "start_sec": None,
+                "end_sec": None,
             }
-        )
+            if value.class_name == "_silence_":
+                info = torchaudio.info(value.wav_path)
+                for start in list(range(info.num_frames))[::info.sample_rate]:
+                    seg = data_point.copy()
+                    end = min(start + 1 * info.sample_rate, info.num_frames)
+                    seg["start_sec"] = start / info.sample_rate
+                    seg["end_sec"] = end / info.sample_rate
+                    formated_data[f"{key}_{start}_{end}"] = seg
+            else:
+                formated_data[key] = data_point
         return formated_data
 
     train_data, valid_data, test_data = corpus.data_split

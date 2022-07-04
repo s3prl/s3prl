@@ -47,7 +47,9 @@ class BalancedWeightedSampler(Sampler):
         generator = torch.Generator()
         generator.manual_seed(self.epoch + self.seed)
 
-        sampler = WeightedRandomSampler(self.weights, len(self.weights) * self.duplicate, generator=generator)
+        sampler = WeightedRandomSampler(
+            self.weights, len(self.weights) * self.duplicate, generator=generator
+        )
         indices = list(sampler)
 
         batch = []

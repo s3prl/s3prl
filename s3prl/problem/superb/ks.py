@@ -2,11 +2,13 @@ from s3prl import Container
 from s3prl.corpus.speech_commands import gsc_v1_for_superb
 from s3prl.dataset.utterance_classification_pipe import UtteranceClassificationPipe
 from s3prl.nn import MeanPoolingLinear
-from s3prl.sampler import FixedBatchSizeBatchSampler, MaxTimestampBatchSampler
+from s3prl.sampler import FixedBatchSizeBatchSampler, BalancedWeightedSampler
 from s3prl.task.utterance_classification_task import UtteranceClassificationTask
 from s3prl.util.configuration import default_cfg
 
 from .base import SuperbProblem
+
+EFFECTS = [["channels", "1"], ["rate", "16000"], ["gain", "-3.0"]]
 
 
 class SuperbKS(SuperbProblem):
@@ -20,25 +22,27 @@ class SuperbKS(SuperbProblem):
                 "0": dict(
                     _cls=UtteranceClassificationPipe,
                     train_category_encoder=True,
+                    sox_effects=EFFECTS,
                 ),
             },
             train_sampler=dict(
-                _cls=FixedBatchSizeBatchSampler,
+                _cls=BalancedWeightedSampler,
                 batch_size=32,
-                shuffle=True,
             ),
             valid_datapipe={
                 "0": dict(
                     _cls=UtteranceClassificationPipe,
+                    sox_effects=EFFECTS,
                 ),
             },
             valid_sampler=dict(
-                _cls=FixedBatchSizeBatchSampler,
+                _cls=BalancedWeightedSampler,
                 batch_size=32,
             ),
             test_datapipe={
                 "0": dict(
                     _cls=UtteranceClassificationPipe,
+                    sox_effects=EFFECTS,
                 ),
             },
             test_sampler=dict(
