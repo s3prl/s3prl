@@ -10,6 +10,7 @@ from s3prl.util.override import parse_overrides
 from s3prl.problem.base import all_problems
 
 logger = logging.getLogger(__name__)
+LOGGING_FORMAT = "[%(levelname)s] %(asctime)s (%(module)s.%(funcName)s:%(lineno)d): %(message)s"
 
 
 def main():
@@ -36,7 +37,10 @@ def main():
     parser.add_argument("-u", "--usage", action="store_true")
     parser.add_argument("-v", "--verbose", default="INFO")
     args, cfg = parser.parse_known_args()
-    logging.basicConfig(level=getattr(logging, args.verbose), force=True)
+
+    root_logger = logging.getLogger()
+    root_logger.handlers = []
+    logging.basicConfig(level=getattr(logging, args.verbose), format=LOGGING_FORMAT)
 
     if args.module is not None:
         module = importlib.import_module(args.module)

@@ -21,6 +21,11 @@ from s3prl.util.workspace import Workspace
 
 logger = logging.getLogger(__name__)
 
+ACCEPTABLE_ERRORS = [
+    "CUDA out of memory",
+    "Unable to find a valid cuDNN algorithm to run convolution",  # Usually caused by CUDA OOM
+]
+
 
 class DistributedDataParallel(torch.nn.parallel.DistributedDataParallel):
     def __getattr__(self, name):
@@ -217,18 +222,22 @@ class Trainer:
                     batch_results.append(result.cacheable())
 
                 except RuntimeError as e:
-                    if "CUDA out of memory" in str(e):
-                        if cfg.world_size > 1:
-                            raise
-                        logger.warning(
-                            f"[Runner] - CUDA out of memory at step {global_step}"
-                        )
-                        with torch.cuda.device(device):
-                            torch.cuda.empty_cache()
-                        optimizer.zero_grad()
-                        continue
-                    else:
+                    if cfg.world_size > 1:
                         raise
+
+                    acceptable = False
+                    for acc_err in ACCEPTABLE_ERRORS:
+                        if str(e) in acc_err:
+                            acceptable = True
+                            break
+                    if not acceptable:
+                        raise
+
+                    logger.warning(f"Step {global_step}: {str(e)}")
+                    with torch.cuda.device(device):
+                        torch.cuda.empty_cache()
+                    optimizer.zero_grad()
+                    continue
 
                 backward_steps += 1
                 if backward_steps % cfg.trainer.gradient_accumulate_steps > 0:
