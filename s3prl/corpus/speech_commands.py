@@ -31,9 +31,14 @@ CLASSES = [
 
 
 class SpeechCommandsV1(Corpus):
+    """
+    Args:
+        dataset_root (str): should contain a 'dev' sub-folder for the training/validation set
+            and a 'test' sub-folder for the testing set
+    """
     def __init__(self, dataset_root: str, n_jobs: int = 4) -> None:
         dataset_root = Path(dataset_root)
-        train_dataset_root = dataset_root / "train"
+        train_dataset_root = dataset_root / "dev"
         test_dataset_root = dataset_root / "test"
 
         train_list, valid_list = self.split_dataset(train_dataset_root)
