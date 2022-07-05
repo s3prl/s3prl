@@ -2,11 +2,16 @@ import logging
 import re
 import logging
 from pathlib import Path
-
 from librosa.util import find_files
+import torch
+from torch.utils.data import random_split
+from typing import List
+from copy import deepcopy
 
 from s3prl import Container, cache
 from s3prl.util import registry
+from s3prl.util.download import _urls_to_filepaths
+from s3prl.base import fileio
 
 from .base import Corpus
 
@@ -166,7 +171,9 @@ class IEMOCAP(Corpus):
 
 
 @registry.put()
-def iemocap_for_superb(dataset_root: str, test_fold: int = 0, n_jobs: int = 4):
+def iemocap_for_superb(
+    dataset_root: str, test_fold: int = 0, valid_ratio: float = 0.2, n_jobs: int = 4
+):
     """
     This is the specific setting used in the SUPERB paper, where we only use
     4 emotion classes: :code:`happy`, :code:`angry`, :code:`neutral`, and :code:`sad`
@@ -198,41 +205,50 @@ def iemocap_for_superb(dataset_root: str, test_fold: int = 0, n_jobs: int = 4):
             test_data:
                 same format as train_data
     """
-
-    def format_fields(data_points):
-        return {
-            key: dict(
-                wav_path=value.wav_path,
-                label=value.emotion,
-            )
-            for key, value in data_points.items()
-        }
-
-    def filter_data(data: Container):
-        for key in list(data.keys()):
-            data_point = data[key]
-            if data_point.emotion not in ["neu", "hap", "ang", "sad", "exc"]:
-                del data[key]
-            if data_point.emotion == "exc":
-                data_point.emotion = "hap"
-        return data
-
     corpus = IEMOCAP(dataset_root, n_jobs)
-    test_session = test_fold + 1
-    valid_session = (test_session + 1) % IEMOCAP_SESSION_NUM
-    train_sessions = [
-        s + 1
-        for s in list(range(IEMOCAP_SESSION_NUM))
-        if s + 1 not in [valid_session, test_session]
+    all_datapoints = corpus.all_data
+
+    def format_fields(data: Container):
+        result = Container()
+        for data_id in data.keys():
+            datapoint = data[data_id]
+            result[data_id] = dict(
+                wav_path=datapoint["wav_path"], label=datapoint["emotion"]
+            )
+        return result
+
+    def filter_data(data_ids: List[str]):
+        result = Container()
+        for data_id in data_ids:
+            data_point = deepcopy(all_datapoints[data_id])
+            if data_point.emotion in ["neu", "hap", "ang", "sad", "exc"]:
+                if data_point.emotion == "exc":
+                    data_point.emotion = "hap"
+                result[data_id] = data_point
+        return result
+
+    test_session_id = (test_fold + 1) % IEMOCAP_SESSION_NUM
+    train_meta_data_json = _urls_to_filepaths(
+        f"https://huggingface.co/datasets/s3prl/iemocap_split/raw/main/Session{test_session_id}/train_meta_data.json"
+    )
+    test_meta_data_json = _urls_to_filepaths(
+        f"https://huggingface.co/datasets/s3prl/iemocap_split/raw/main/Session{test_session_id}/test_meta_data.json"
+    )
+    dev_ids = [
+        Path(item["path"]).stem for item in fileio.load(train_meta_data_json, "json")["meta_data"]
     ]
-    train_data = Container()
-    for session_id in train_sessions:
-        train_data.add(corpus.get_whole_session(session_id))
-    valid_data = corpus.get_whole_session(valid_session)
-    test_data = corpus.get_whole_session(test_session)
+    test_ids = [
+        Path(item["path"]).stem for item in fileio.load(test_meta_data_json, "json")["meta_data"]
+    ]
+
+    train_len = int((1 - valid_ratio) * len(dev_ids))
+    train_valid_lens = [train_len, len(dev_ids) - train_len]
+
+    torch.manual_seed(0)
+    train_ids, valid_ids = random_split(dev_ids, train_valid_lens)
 
     return Container(
-        train_data=format_fields(filter_data(train_data)),
-        valid_data=format_fields(filter_data(valid_data)),
-        test_data=format_fields(filter_data(test_data)),
+        train_data=format_fields(filter_data(train_ids)),
+        valid_data=format_fields(filter_data(valid_ids)),
+        test_data=format_fields(filter_data(test_ids)),
     )

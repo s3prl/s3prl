@@ -4,6 +4,7 @@ import logging
 import os
 import pickle
 import re
+import json
 from dataclasses import dataclass
 from pathlib import Path
 from typing import Any, List, Union
@@ -114,6 +115,19 @@ class HDF5Handler(FileHandler):
         return data["T_hat"][:]
 
 
+class JSONHandler(FileHandler):
+    @classmethod
+    def save(cls, item, path):
+        with open(path, "w") as file:
+            json.dump(item, file)
+
+    @classmethod
+    def load(cls, path):
+        with open(path) as file:
+            data = json.load(file)
+        return data
+
+
 class RTTMHandler(FileHandler):
     @classmethod
     def save(cls, all_segments: dict, path):
@@ -169,6 +183,7 @@ type_info = {
     "txt": StringHandler,
     "h5": HDF5Handler,
     "rttm": RTTMHandler,
+    "json": JSONHandler,
 }
 
 
@@ -211,8 +226,8 @@ def save(filepath: str, obj: Any):
         handler.save(obj, filepath)
 
 
-def load(filepath: str):
-    ext = Path(filepath).suffix
+def load(filepath: str, ext: str = None):
+    ext = ext or Path(filepath).suffix
     handler: FileHandler = type_info[ext.strip(".")]
     return handler.load(str(filepath))
 
