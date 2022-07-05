@@ -153,6 +153,8 @@ class DownstreamExpert(nn.Module):
         for pred_tokens, pred_words, target_tokens, target_words in zip(
             pred_tokens_all, pred_words_all, target_tokens_all, target_words_all):
 
+            pred_tokens = pred_tokens.split()
+            target_tokens = target_tokens.split()
             unit_error_sum += editdistance.eval(pred_tokens, target_tokens)
             unit_length_sum += len(target_tokens)
 
@@ -332,10 +334,10 @@ class DownstreamExpert(nn.Module):
         print(f'{split} loss: {loss}')
 
         uer, wer = self._compute_metrics(
-            records['target_tokens'],
-            records['target_words'],
             records['pred_tokens'],
             records['pred_words'],
+            records['target_tokens'],
+            records['target_words'],
         )
 
         logger.add_scalar(f'asr/{split}-loss', loss, global_step=global_step)
