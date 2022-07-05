@@ -3,6 +3,7 @@
 Reference: https://www.tensorflow.org/datasets/api_docs/python/tfds/features/text_lib
 """
 import abc
+import re
 from typing import List
 
 # Replacing the 2 tokens right before english starts as <eos> & <unk>
@@ -17,7 +18,9 @@ PHONEME_VOCAB = "SIL SPN AA0 AA1 AA2 AE0 AE1 AE2 AH0 AH1 AH2 AO0 AO1 AO2 AW0 AW1
 )
 
 # Mapping for character-slot tokenizer (SNIPS)
-translator = str.maketrans("ÁÃÄÅÆÇÈÉÊËÍÏÐÒÓÔÖØÚÛĘŃŌŞŪ", "AAAAACEEEEIIDOOOOOUUENOSU")
+translator = str.maketrans(
+    'ÁÃÄÅÆÇÈÉÊËÍÏÐÒÓÔÖØÚÛĘŃŌŞŪ"–…', "AAAAACEEEEIIDOOOOOUUENOSU   "
+)
 
 
 class Tokenizer:
@@ -139,6 +142,7 @@ class CharacterSlotTokenizer(Tokenizer):
         # <pad> = 0, <eos> = 1, <unk> = 2
         self._vocab_list = ["<pad>", "<eos>", "<unk>"] + vocab_list
         self._vocab2idx = {v: idx for idx, v in enumerate(self._vocab_list)}
+        self.space_idx = self.vocab_to_idx(" ")
         self.slots = slots
         self.slot2id = {
             self.slots[i]: (i + len(self._vocab_list)) for i in range(len(self.slots))
@@ -150,7 +154,10 @@ class CharacterSlotTokenizer(Tokenizer):
     def encode(self, s: str) -> List[int]:
         # Always strip trailing space, \r and \n
         sent, iobs = s.strip("\r\n ").split("\t")
+        sent = sent.replace("楽園追放", "EXPELLED")
+        sent = sent.replace("官方杂志", "")
         sent = sent.translate(translator)
+        sent = re.sub(" +", " ", sent).strip(" ")
         sent = sent.split(" ")[1:-1]
         iobs = iobs.split(" ")[1:-1]
         tokens = []
@@ -167,7 +174,10 @@ class CharacterSlotTokenizer(Tokenizer):
             if i == (len(sent) - 1):
                 tokens.append(self.eos_idx)
             else:
-                tokens.append(self.vocab_to_idx(" "))
+                if len(tokens) > 0 and tokens[-1] != self.space_idx:
+                    tokens.append(self.space_idx)
+        if len(tokens) == 0 or tokens[-1] != self.eos_idx:
+            tokens.append(self.eos_idx)
         return tokens
 
     def decode(self, idxs: List[int], ignore_repeat: bool = False) -> str:
