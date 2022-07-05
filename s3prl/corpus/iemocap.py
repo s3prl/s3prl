@@ -166,7 +166,7 @@ class IEMOCAP(Corpus):
 
 
 @registry.put()
-def iemocap_for_superb(dataset_root: str, test_fold: int = 1, n_jobs: int = 4):
+def iemocap_for_superb(dataset_root: str, test_fold: int = 0, n_jobs: int = 4):
     """
     This is the specific setting used in the SUPERB paper, where we only use
     4 emotion classes: :code:`happy`, :code:`angry`, :code:`neutral`, and :code:`sad`
