@@ -1,9 +1,9 @@
 import torch
 import torch.nn.functional as F
+from lighthubert import LightHuBERT, LightHuBERTConfig
 from torch.nn.utils.rnn import pad_sequence
 
 from ..interfaces import UpstreamBase
-from lighthubert import LightHuBERT, LightHuBERTConfig
 
 
 class UpstreamExpert(UpstreamBase):

@@ -10,8 +10,8 @@ from s3prl.problem.base import Problem
 from s3prl.problem.trainer import Trainer
 from s3prl.util import workspace
 from s3prl.util.configuration import default_cfg
-from s3prl.util.workspace import Workspace, as_type
 from s3prl.util.seed import fix_random_seeds
+from s3prl.util.workspace import Workspace, as_type
 
 logger = logging.getLogger(__name__)
 
