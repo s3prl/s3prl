@@ -23,7 +23,7 @@ class SuperbASR(SuperbProblem):
             },
             train_sampler=dict(
                 _cls=FixedBatchSizeBatchSampler,
-                batch_size=32,
+                batch_size=16,
                 shuffle=True,
             ),
             valid_datapipe={
