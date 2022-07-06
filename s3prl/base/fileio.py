@@ -131,8 +131,28 @@ class JSONHandler(FileHandler):
 class RTTMHandler(FileHandler):
     @classmethod
     def save(cls, all_segments: dict, path):
+        """
+        .. code-block:: python
+
+            all_segments = {
+                recor_id1: {
+                    spk_name1: [
+                        (start_sec, end_sec),
+                        (start_sec, end_sec),
+                    ],
+                    spk_name2: [
+                        (start_sec, end_sec),
+                    ]
+                },
+                recor_id2: {
+                    spk_name1: [
+                        (start_sec, end_sec),
+                    ]
+                },
+            }
+        """
         assert isinstance(all_segments, dict)
-        fmt = "SPEAKER {:s} 1 {:7.2f} {:7.2f} <NA> <NA> {:s} <NA>"
+        fmt = "SPEAKER {:s} 1 {:7.2f} {:7.2f} <NA> <NA> {:s} <NA>".replace(" ", "\t")
         with open(path, "w") as wf:
             for recor, segments in all_segments.items():
                 for spk, segs in segments.items():
@@ -141,7 +161,7 @@ class RTTMHandler(FileHandler):
                             fmt.format(
                                 recor,
                                 start,
-                                end,
+                                end - start,
                                 spk,
                             ),
                             file=wf,
@@ -153,14 +173,14 @@ class RTTMHandler(FileHandler):
         with open(path) as file:
             lines = [line.strip() for line in file.readlines()]
             for line in lines:
-                line = re.sub(" +", " ", line)
                 line = re.sub("\t+", " ", line)
+                line = re.sub(" +", " ", line)
                 fields = line.split(" ")
                 if fields[0] != "SPEAKER":
                     continue
                 recor = fields[1]
                 start = float(fields[3])
-                end = float(fields[4])
+                end = start + float(fields[4])
                 spk = fields[7]
 
                 if recor not in output:

@@ -50,6 +50,7 @@ class SuperbSDDatapipe(SequentialDataPipe):
                 x="wav",
                 x_len="wav_len",
                 label="multiclass_tag",
+                label_len="tag_len",
                 rec_id="unchunked_id",
                 order_in_rec="chunk_index",
             ),
@@ -194,13 +195,14 @@ class SuperbSD(SuperbProblem):
         frame_shift=field(
             None,
             "The frame shift of the prediction np.ndarray. Used to map the frame-level prediction back to seconds",
+            int,
         ),
     )
     @classmethod
     def scoring(cls, **cfg):
         cfg = Container(cfg)
         workspace = Workspace(cfg.workspace)
-        frame_shift = cfg.frame_shift or workspace.environ["frame_shift"]
+        frame_shift = cfg.frame_shift or workspace.environ["feat_frame_shift"]
         test_data: dict = workspace[cfg.test_data]
         test_segments = {
             reco: data_point["segments"] for reco, data_point in test_data.items()
@@ -223,8 +225,9 @@ class SuperbSD(SuperbProblem):
                 for p in tqdm(
                     (workspace / cfg.prediction).files(), desc="prediction to seconds"
                 ):
+                    pred_np = (workspace / cfg.prediction)[p]
                     segments = prediction_numpy_to_segment_secs(
-                        (workspace / cfg.prediction)[p],
+                        pred_np,
                         threshold,
                         median_filter,
                         frame_shift,
@@ -293,8 +296,12 @@ class SuperbSD(SuperbProblem):
         assert result == 0, "The scoring step fail."
         with open(cfg.score_file) as file:
             lines = file.readlines()
-            overall_line = lines[-2].strip()
-            overall_line = re.sub(" +", " ", overall_line)
+            overall_lines = [line for line in lines if "OVERALL" in line]
+            assert len(overall_lines) == 1
+            overall_line = overall_lines[0]
             overall_line = re.sub("\t+", " ", overall_line)
+            overall_line = re.sub(" +", " ", overall_line)
             overall_der = float(overall_line.split(" ")[3])
+            # The overall der line should look like:
+            # *** OVERALL *** DER JER ...
         return overall_der

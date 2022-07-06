@@ -63,18 +63,22 @@ class DiarizationPIT(Task):
         return inputs, labels
 
     def predict(self, x, x_len):
-        predicted = self.model(x, x_len)
-        return predicted
+        predicted, predicted_len = self.model(x, x_len).slice(2)
+        return Output(
+            output=predicted,
+            output_len=predicted_len,
+        )
 
-    def forward(self, split: str, x, x_len, label, rec_id, workspace=None, **kwds):
-        predicted, _ = self.predict(x, x_len).slice(2)
+    def forward(self, split: str, x, x_len, label, label_len, rec_id, workspace=None, **kwds):
+        predicted, predicted_len = self.predict(x, x_len).slice(2)
 
-        assert (
-            abs(predicted.size(1) - label.size(1)) <= TOLERANT_FRAME_DIFF
-        ), f"predicted: {predicted.shape}, label: {label.shape}, TOLERANT_FRAME_DIFF: {TOLERANT_FRAME_DIFF}"
+        for pl, ll in zip(predicted_len, label_len):
+            assert (
+                abs(pl - ll) <= TOLERANT_FRAME_DIFF
+            ), f"predicted: {pl}, label: {ll}, TOLERANT_FRAME_DIFF: {TOLERANT_FRAME_DIFF}"
 
         predicted, label = self._match_length(predicted, label)
-        loss, perm_idx, perm_list = self.objective(predicted, label.float(), x_len)
+        loss, perm_idx, perm_list = self.objective(predicted, label.float(), label_len)
         label_perm = get_label_perm(label, perm_idx, perm_list)
 
         (
@@ -87,7 +91,7 @@ class DiarizationPIT(Task):
             speaker_miss,
             speaker_falarm,
             speaker_error,
-        ) = calc_diarization_error(predicted, label_perm, x_len)
+        ) = calc_diarization_error(predicted, label_perm, label_len)
 
         if speech_scored > 0 and speaker_scored > 0 and num_frames > 0:
             SAD_MR, SAD_FR, MI, FA, CF, ACC, DER = (
@@ -103,7 +107,12 @@ class DiarizationPIT(Task):
             SAD_MR, SAD_FR, MI, FA, CF, ACC, DER = 0, 0, 0, 0, 0, 0, 0
 
         if split == "test" and workspace is not None:
-            predict = [p[:l] for p, l in zip(predicted.data.cpu().numpy(), x_len)]
+            if len(label_len) > 1:
+                assert len(set(label_len[:-1].tolist())) == 1, (
+                    f"Except the final chunk, other chunks from the same recording should have the same length"
+                )
+
+            predict = [p[:l] for p, l in zip(predicted.data.cpu().numpy(), label_len)]
             predict = np.vstack(predict)
             predict = 1 / (1 + np.exp(-predict))
 

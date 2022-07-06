@@ -21,6 +21,7 @@ class BuildMultiClassTagging(DataPipe):
 
     # output
     tag_name: str = "multiclass_tag"
+    tag_len_name: str = "tag_len"
     category_name: str = "tag_category"
     all_category_name: str = "all_tag_category"
 
@@ -64,7 +65,7 @@ class BuildMultiClassTagging(DataPipe):
                         else None
                     )
                     T[rel_seg_start_frame:rel_seg_end_frame, class_idx] = 1
-        return T, category
+        return T, frame_num, category
 
     def forward(
         self, dataset: AugmentedDynamicItemDataset
@@ -88,6 +89,7 @@ class BuildMultiClassTagging(DataPipe):
             ],
             provides=[
                 self.tag_name,
+                self.tag_len_name,
                 self.category_name,
             ],
         )
