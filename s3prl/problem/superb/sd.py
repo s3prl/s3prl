@@ -134,7 +134,7 @@ class SuperbSD(SuperbProblem):
             downstream=dict(
                 _cls=SuperbDiarizationModel,
                 output_size=2,  # speaker num per recording
-                hidden_size=256,
+                hidden_size=512,
                 rnn_layers=1,
             ),
             task=dict(

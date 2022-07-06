@@ -1,5 +1,6 @@
 from copy import deepcopy
 from dataclasses import dataclass
+from collections import OrderedDict
 
 from .base import AugmentedDynamicItemDataset, DataPipe
 
@@ -54,7 +55,7 @@ class UnfoldChunkByFrame(DataPipe):
     def forward(
         self, dataset: AugmentedDynamicItemDataset
     ) -> AugmentedDynamicItemDataset:
-        unfolded_items = {}
+        unfolded_items = OrderedDict()
         for item in dataset:
             key = item.pop("id")
 
@@ -103,7 +104,7 @@ class UnfoldChunkBySec(DataPipe):
     def forward(
         self, dataset: AugmentedDynamicItemDataset
     ) -> AugmentedDynamicItemDataset:
-        unfolded_items = {}
+        unfolded_items = OrderedDict()
         for item in dataset:
             key = item.pop("id")
             for unfold_index, (start, end) in enumerate(
