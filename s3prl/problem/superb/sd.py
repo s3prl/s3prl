@@ -213,6 +213,11 @@ class SuperbSD(SuperbProblem):
         scoring_dir = workspace / "scoring"
         scoring_dir.mkdir(exist_ok=True, parents=True)
         all_ders = []
+
+        reco2pred = {}
+        for p in tqdm((workspace / cfg.prediction).files(), desc="Load prediction"):
+            reco2pred[p] = (workspace / cfg.prediction)[p]
+
         for median_filter in cfg.median_filters:
             for threshold in cfg.thresholds:
                 logger.info(
@@ -225,9 +230,8 @@ class SuperbSD(SuperbProblem):
                 for p in tqdm(
                     (workspace / cfg.prediction).files(), desc="prediction to seconds"
                 ):
-                    pred_np = (workspace / cfg.prediction)[p]
                     segments = prediction_numpy_to_segment_secs(
-                        pred_np,
+                        reco2pred[p],
                         threshold,
                         median_filter,
                         frame_shift,
@@ -290,7 +294,7 @@ class SuperbSD(SuperbProblem):
                 shell=True,
             ).decode("utf-8")
         result = subprocess.check_call(
-            f"python3 {dscore_dir}/score.py -s {cfg.gt_rttm} -r {cfg.hyp_rttm} > {cfg.score_file}",
+            f"python3 {dscore_dir}/score.py -r {cfg.gt_rttm} -s {cfg.hyp_rttm} > {cfg.score_file}",
             shell=True,
         )
         assert result == 0, "The scoring step fail."
