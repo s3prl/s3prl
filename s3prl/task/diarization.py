@@ -112,7 +112,9 @@ class DiarizationPIT(Task):
                     f"Except the final chunk, other chunks from the same recording should have the same length"
                 )
 
-            predict = [p[:l] for p, l in zip(predicted.data.cpu().numpy(), label_len)]
+            predict = predicted.detach().cpu().numpy()
+            # TODO:
+            # predict = [p[:l] for p, l in zip(predicted.data.cpu().numpy(), predicted_len)]
             predict = np.vstack(predict)
             predict = 1 / (1 + np.exp(-predict))
 
