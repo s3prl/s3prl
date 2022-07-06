@@ -57,7 +57,10 @@ class UnfoldChunkByFrame(DataPipe):
         unfolded_items = {}
         for item in dataset:
             key = item.pop("id")
-            data_len = round(
+
+            # TODO: Check whether int v.s. round affect the final result
+            # Original SUPERB uses int, however it makes more sense to use round
+            data_len = int(
                 (item[self.end_sec_name] - item[self.start_sec_name])
                 * self.sample_rate
                 / self.feat_frame_shift

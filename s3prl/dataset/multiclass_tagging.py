@@ -39,7 +39,7 @@ class BuildMultiClassTagging(DataPipe):
         if self.intra_or_inter == "inter":
             category = all_tag_category
         elif self.intra_or_inter == "intra":
-            classes_in_this_segment = segments.keys()
+            classes_in_this_segment = sorted(segments.keys())
             category = CategoryEncoder(list(classes_in_this_segment))
         else:
             raise ValueError("Only 'inter' or 'intra' is supported")

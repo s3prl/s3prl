@@ -108,6 +108,9 @@ class Workspace(type(Path()), MutableMapping):
         elif len(identifier_and_default) == 2:
             default = identifier_and_default[1]
 
+        if not isinstance(identifier, str):
+            identifier = str(identifier)
+
         parts = identifier.split("/")
         if len(parts) > 1:
             subspace = self
@@ -151,6 +154,9 @@ class Workspace(type(Path()), MutableMapping):
     def put(self, value, identifier, dtype=None) -> Union[Path, None]:
         if self._rank > 0:
             return
+
+        if not isinstance(identifier, str):
+            identifier = str(identifier)
 
         parts = identifier.split("/")
         if len(parts) > 1:
