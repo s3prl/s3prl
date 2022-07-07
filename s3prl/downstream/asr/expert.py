@@ -332,10 +332,10 @@ class DownstreamExpert(nn.Module):
         print(f'{split} loss: {loss}')
 
         uer, wer = self._compute_metrics(
-            records['target_tokens'],
-            records['target_words'],
             records['pred_tokens'],
             records['pred_words'],
+            records['target_tokens'],
+            records['target_words'],
         )
 
         logger.add_scalar(f'asr/{split}-loss', loss, global_step=global_step)
