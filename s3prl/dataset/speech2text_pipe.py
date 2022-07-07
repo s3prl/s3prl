@@ -11,7 +11,7 @@ class Speech2TextPipe(SequentialDataPipe):
 
     def __init__(
         self,
-        generate_tokenizer: bool = True,
+        generate_tokenizer: bool = False,
         vocab_type: str = "character",
         text_file: str = None,
         vocab_file: str = None,

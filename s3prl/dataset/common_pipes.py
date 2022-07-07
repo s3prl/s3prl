@@ -229,6 +229,8 @@ class GenerateTokenizer(DataPipe):
                     tokenizer = self.prepare_tokenizer(text_list)
 
                 dataset.add_tool(self.tokenizer_name, tokenizer)
+            else:
+                logger.warning("No tokenizer is found or generated. No-op for this DataPipe")
 
         return dataset
 

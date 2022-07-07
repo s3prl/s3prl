@@ -19,6 +19,7 @@ class SuperbASR(SuperbProblem):
             train_datapipe={
                 "0": dict(
                     _cls=Speech2TextPipe,
+                    generate_tokenizer=True,
                 ),
             },
             train_sampler=dict(

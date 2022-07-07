@@ -229,13 +229,18 @@ class Container(OrderedDict):
         keys.sort(key=lambda x: x)
         return [self[str(key)] for key in keys if self[str(key)] is not None]
 
-    def instantiate(self):
+    def instantiate(self, **override: dict):
         """
         Calling self._cls with other fields as **kwds
         """
-        assert "_cls" in self
-        assert callable(self._cls)
-        return self._cls(**self.kwds())
+        new_self: __class__ = deepcopy(self)
+        new_self = new_self.extract_fields()
+        assert "_cls" in new_self
+        assert callable(new_self._cls)
+        return new_self._cls(**new_self.kwds().override(override))
+
+    def call(self, **override: dict):
+        return self.instantiate(**override)
 
     @classmethod
     def _no_underscore(cls, obj):
@@ -404,7 +409,7 @@ class Container(OrderedDict):
         )
 
     def __repr__(self) -> str:
-        return str(self.to_dict())
+        return f"Container({str(self.to_dict())})"
 
     def __getattribute__(self, name: str) -> Any:
         keys = super().keys()

@@ -25,6 +25,7 @@ class SuperbSF(SuperbProblem):
             train_datapipe={
                 "0": dict(
                     _cls=Speech2TextPipe,
+                    generate_tokenizer=True,
                     vocab_type="character-slot",
                     vocab_file=_urls_to_filepaths(VOCAB_URL),
                     slots_file=_urls_to_filepaths(SLOTS_URL),
