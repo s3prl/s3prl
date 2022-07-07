@@ -2,7 +2,7 @@ from s3prl.corpus.librispeech import librispeech_for_speech2text
 from s3prl.dataset.speech2text_pipe import Speech2TextPipe
 from s3prl.nn import RNNEncoder
 from s3prl.nn.specaug import ModelWithSpecaug
-from s3prl.sampler import FixedBatchSizeBatchSampler
+from s3prl.sampler import FixedBatchSizeBatchSampler, SortedBucketingSampler
 from s3prl.task.speech2text_ctc_task import Speech2TextCTCTask
 from s3prl.util.configuration import default_cfg
 
@@ -23,8 +23,9 @@ class SuperbASR(SuperbProblem):
                 ),
             },
             train_sampler=dict(
-                _cls=FixedBatchSizeBatchSampler,
-                batch_size=16,
+                _cls=SortedBucketingSampler,
+                batch_size=32,
+                max_length=2000,  # due to this tiny max_length, the effective batch_size is always 16
                 shuffle=True,
             ),
             valid_datapipe={
