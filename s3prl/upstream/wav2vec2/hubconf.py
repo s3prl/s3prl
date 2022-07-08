@@ -71,7 +71,16 @@ def wav2vec2_large_ll60k(refresh=False, *args, **kwargs):
     return wav2vec2_url(refresh=refresh, *args, **kwargs)
 
 
-def wav2vec2_xlsr(refresh=False, *args, **kwargs):
+def wav2vec2_large_lv60_cv_swbd_fsh(refresh=False, *args, **kwargs):
+    """
+        The Large model trained on Libri-Light 60k hours + CommonVoice + Switchboard + Fisher
+            refresh (bool): whether to download ckpt/config again if existed
+    """
+    kwargs['ckpt'] = 'https://dl.fbaipublicfiles.com/fairseq/wav2vec/w2v_large_lv_fsh_swbd_cv.pt'
+    return wav2vec2_url(refresh=refresh, *args, **kwargs)
+
+
+def xlsr_53(refresh=False, *args, **kwargs):
     """
         The wav2vec 2.0 model trained on multilingual presented in https://arxiv.org/abs/2006.13979
             refresh (bool): whether to download ckpt/config again if existed
@@ -80,10 +89,19 @@ def wav2vec2_xlsr(refresh=False, *args, **kwargs):
     return wav2vec2_url(refresh=refresh, *args, **kwargs)
 
 
-def wav2vec2_large_lv60_cv_swbd_fsh(refresh=False, *args, **kwargs):
+def xls_r_300m(refresh=False, *args, **kwargs):
     """
-        The Large model trained on Libri-Light 60k hours + CommonVoice + Switchboard + Fisher
-            refresh (bool): whether to download ckpt/config again if existed
+    XLS-R, this smallest size has the same parameters as the Largs model of wav2vec 2.0 and HuBERT
     """
-    kwargs['ckpt'] = 'https://dl.fbaipublicfiles.com/fairseq/wav2vec/w2v_large_lv_fsh_swbd_cv.pt'
+    kwargs['ckpt'] = 'https://dl.fbaipublicfiles.com/fairseq/wav2vec/xlsr2_300m.pt'
+    return wav2vec2_url(refresh=refresh, *args, **kwargs)
+
+
+def xls_r_1b(refresh=False, *args, **kwargs):
+    kwargs['ckpt'] = 'https://dl.fbaipublicfiles.com/fairseq/wav2vec/xlsr2_960m_1000k.pt'
+    return wav2vec2_url(refresh=refresh, *args, **kwargs)
+
+
+def xls_r_2b(refresh=False, *args, **kwargs):
+    kwargs['ckpt'] = 'https://dl.fbaipublicfiles.com/fairseq/wav2vec/xlsr2_2B_1000k.pt'
     return wav2vec2_url(refresh=refresh, *args, **kwargs)
