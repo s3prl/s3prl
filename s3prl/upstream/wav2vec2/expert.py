@@ -35,6 +35,7 @@ class UpstreamExpert(UpstreamBase):
 
         model, cfg, task = self.load_model(ckpt)
         self.model = model[0]
+        self.model.feature_grad_mult = 0.0
         self.wav_normalize = cfg.task.normalize
 
         # These options are only used for aligning representations between s3prl and huggingface

@@ -43,6 +43,7 @@ class UpstreamExpert(UpstreamBase):
             [ckpt]
         )
         self.model = model[0]
+        self.model.feature_grad_mult = 0.0
         self.task = task
 
         if len(self.hooks) == 0:
