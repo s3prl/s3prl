@@ -37,7 +37,8 @@ class UpstreamExpert(UpstreamBase):
         checkpoint = torch.load(ckpt)
         self.cfg = WavLMConfig(checkpoint["cfg"])
         self.model = WavLM(self.cfg)
-        self.model.load_state_dict(checkpoint["model"])
+        self.model.load_state_dict(checkpoint['model'])
+        self.model.feature_grad_mult = 0.0
 
         if len(self.hooks) == 0:
             module_name = "self.model.encoder.layers"

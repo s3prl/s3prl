@@ -8,14 +8,20 @@
 
 
 import argparse
+import tempfile
+import dataclasses
 from typing import List
+from packaging import version
+from filelock import FileLock
 
 import fairseq
+import omegaconf
 import numpy as np
 import torch
 import torch.nn.functional as F
 from packaging import version
 from torch.nn.utils.rnn import pad_sequence
+from fairseq.tasks.audio_pretraining import AudioPretrainingConfig
 
 from s3prl.utility.helper import zero_mean_unit_var_norm
 
@@ -29,8 +35,9 @@ class UpstreamExpert(UpstreamBase):
             "0.10.2"
         ), "Please install the fairseq master branch."
 
-        model, cfg, task = fairseq.checkpoint_utils.load_model_ensemble_and_task([ckpt])
+        model, cfg, task = self.load_model(ckpt)
         self.model = model[0]
+        self.model.feature_grad_mult = 0.0
         self.wav_normalize = cfg.task.normalize
 
         # These options are only used for aligning representations between s3prl and huggingface
@@ -52,9 +59,45 @@ class UpstreamExpert(UpstreamBase):
                 unpad_len = min([hidden.size(1) for hidden in hiddens])
                 hiddens = [hidden[:, :unpad_len, :] for hidden in hiddens]
                 return list(zip(names, hiddens))
+
             self.hook_postprocess = postprocess
 
         self._init_layerdrop = self.model.encoder.layerdrop
+
+    @staticmethod
+    def load_model(ckpt_path: str):
+        """
+        Sanitize the config in the checkpoint as there are some irrelevant fields
+        in the released checkpoint which can cause the model loading to fail
+        """
+        ckpt_state = torch.load(ckpt_path, map_location="cpu")
+
+        def fix_cfg(cfg):
+            for key in list(cfg.keys()):
+                if key not in ["task", "model"]:
+                    cfg.pop(key)
+
+            fields_pretraining = [
+                field.name for field in dataclasses.fields(AudioPretrainingConfig)
+            ]
+            for key in list(cfg["task"].keys()):
+                if key not in fields_pretraining:
+                    cfg["task"].pop(key)
+
+        if "cfg" in ckpt_state:
+            cfg = ckpt_state["cfg"]
+            if isinstance(cfg, omegaconf.DictConfig):
+                with omegaconf.open_dict(cfg):
+                    fix_cfg(cfg)
+            else:
+                fix_cfg(cfg)
+
+            if not isinstance(cfg, omegaconf.DictConfig):
+                cfg = omegaconf.OmegaConf.create(cfg)
+            ckpt_state["cfg"] = cfg
+
+        model, cfg, task = fairseq.checkpoint_utils.load_model_ensemble_and_task([ckpt_path], state=ckpt_state)
+        return model, cfg, task
 
     @property
     def layer_drop(self):

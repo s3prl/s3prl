@@ -40,6 +40,7 @@ class UpstreamExpert(UpstreamBase):
 
         model, cfg, task = fairseq.checkpoint_utils.load_model_ensemble_and_task([ckpt])
         self.model = model[0]
+        self.model.feature_grad_mult = 0.0
         self.task = task
 
         if len(self.hooks) == 0:
