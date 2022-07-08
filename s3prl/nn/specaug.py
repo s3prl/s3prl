@@ -41,9 +41,9 @@ class ModelWithSpecaug(NNModule):
         return self.model.output_size
 
     def forward(self, x, x_len, **kwds) -> Output:
-        y, y_len = self.specaug(x, x_len)
-        result = self.model(x=y, x_len=y_len, **kwds)
-        return result
+        if self.training:
+            x, x_len = self.specaug(x, x_len)
+        return self.model(x=x, x_len=x_len, **kwds)
 
 
 class SpecAug(torch.nn.Module):
@@ -110,13 +110,11 @@ class SpecAug(torch.nn.Module):
 
     def forward(self, x, x_len):
         """Forward SpecAug."""
-        xs, x_lengths = x, x_len
-        for batch_id, x_len in enumerate(x_lengths):
-            xs[batch_id, x_len:] = 0
-
-        assert len(xs[0].size()) == 2
-        xs, _ = self.apply_specaug(xs, x_lengths)
-        return xs, x_lengths
+        assert len(x.shape) == 3
+        x, _ = self.apply_specaug(x, x_len)
+        for batch_id in range(len(x)):
+            x[batch_id, x_len[batch_id]:] = 0
+        return x, x_len
 
 
 class TimeWarp(torch.nn.Module):
