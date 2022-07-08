@@ -5,6 +5,7 @@ import glob
 import uuid
 import shutil
 import random
+import logging
 import tempfile
 import importlib
 from pathlib import Path
@@ -71,6 +72,8 @@ Upstream Model: {upstream_model}
 [More information needed]
 
 """
+
+logger = logging.getLogger(__name__)
 
 
 class ModelEntry:
@@ -222,6 +225,11 @@ class Runner():
         with open(os.path.join(path, "README.md"), "w") as f:
             f.write(model_card)
 
+    @staticmethod
+    def _get_wavs_from_dataloader(dataloader):
+        for (wavs, *others) in dataloader:
+            for wav in wavs:
+                yield wav
 
     def train(self):
         # trainable parameters and train/eval mode
@@ -265,6 +273,14 @@ class Runner():
         records = defaultdict(list)
         epoch = self.init_ckpt.get('Epoch', 0)
         train_split = self.config['runner'].get("train_dataloader", "train")
+
+        # configure upstream for downstream data
+        if hasattr(self.upstream.model, "configure_stats"):
+            logging.info(f"Prepare Upstream for Downstream train dataloader")
+            train_dataloader = self.downstream.model.get_dataloader(train_split, epoch=0)
+            train_wavs = self._get_wavs_from_dataloader(train_dataloader)
+            self.upstream.model.configure_stats(train_wavs)
+
         while pbar.n < pbar.total:
             try:
                 dataloader = self.downstream.model.get_dataloader(train_split, epoch=epoch)

@@ -5,6 +5,7 @@ import yaml
 import glob
 import torch
 import random
+import logging
 import argparse
 import importlib
 import torchaudio
@@ -87,6 +88,7 @@ def get_downstream_args():
     parser.add_argument('--cache_dir', help='The cache directory for pretrained model downloading')
     parser.add_argument('--verbose', action='store_true', help='Print model infomation')
     parser.add_argument('--disable_cudnn', action='store_true', help='Disable CUDNN')
+    parser.add_argument('--logging', default="INFO")
 
     args = parser.parse_args()
     backup_files = []
@@ -163,6 +165,8 @@ def main():
     if args.cache_dir is not None:
         torch.hub.set_dir(args.cache_dir)
 
+    logging.basicConfig(level=getattr(logging, args.logging))
+
     # When torch.distributed.launch is used
     if args.local_rank is not None:
         torch.cuda.set_device(args.local_rank)
@@ -188,7 +192,7 @@ def main():
         huggingface_token = HfApi().login(username=hf_user, password=hf_password)
         HfFolder.save_token(huggingface_token)
         print(f"Logged into Hugging Face Hub with user: {hf_user}")
-    
+
     # Save command
     if is_leader_process():
         with open(os.path.join(args.expdir, f'args_{get_time_tag()}.yaml'), 'w') as file:
