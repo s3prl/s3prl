@@ -12,6 +12,16 @@ T_co = TypeVar("T_co", covariant=True)
 
 
 class SortedSliceSampler(Sampler):
+    """
+    This sampler should only be used for training hence is always in random shuffle mode
+
+    Args:
+        dataset (DynamicItemDataset)
+        batch_size (int): the default batch size
+        max_length (int): if a batch contains at least on utt longer than max_length, half the batch
+        get_length_func (callable): get the length of each item in the dataset, if None, a default function will be used
+    """
+
     def __init__(
         self,
         dataset,
@@ -35,11 +45,14 @@ class SortedSliceSampler(Sampler):
     @staticmethod
     def get_length(dataset):
         import torchaudio
+
         torchaudio.set_audio_backend("sox_io")
 
         lengths = {}
         with dataset.output_keys_as(["wav_path"]):
-            for data_index, item in enumerate(tqdm(dataset, desc="Read wav_path audio length")):
+            for data_index, item in enumerate(
+                tqdm(dataset, desc="Read wav_path audio length")
+            ):
                 info = torchaudio.info(item["wav_path"])
                 length = info.num_frames
                 lengths[data_index] = length
@@ -54,11 +67,12 @@ class SortedSliceSampler(Sampler):
 
         indices = torch.randperm(len(self.id2length), generator=generator).tolist()
 
-        batch_size = self.batch_size
         for indice in indices:
             length = self.id2length[indice]
             if length > self.max_length:
                 batch_size = self.batch_size // 2
+            else:
+                batch_size = self.batch_size
             start_position = self.sorted_ids.index(indice)
             batch = self.sorted_ids[start_position : start_position + batch_size]
             yield batch
@@ -76,6 +90,7 @@ class SortedBucketingSampler(Sampler):
         get_length_func (callable): get the length of each item in the dataset, if None, a default function will be used
         shuffle (bool): Whether to shuffle the data points
     """
+
     def __init__(
         self,
         dataset,
@@ -103,11 +118,14 @@ class SortedBucketingSampler(Sampler):
     @staticmethod
     def get_length(dataset):
         import torchaudio
+
         torchaudio.set_audio_backend("sox_io")
 
         lengths = {}
         with dataset.output_keys_as(["wav_path"]):
-            for data_index, item in enumerate(tqdm(dataset, desc="Read wav_path audio length")):
+            for data_index, item in enumerate(
+                tqdm(dataset, desc="Read wav_path audio length")
+            ):
                 info = torchaudio.info(item["wav_path"])
                 length = info.num_frames
                 lengths[data_index] = length
@@ -121,14 +139,17 @@ class SortedBucketingSampler(Sampler):
         generator.manual_seed(self.epoch + self.seed)
 
         batches = []
-        batch_size = self.batch_size
         position = 0
         while position < len(self.sorted_ids):
             indice = self.sorted_ids[position]
             length = self.id2length[indice]
             if length > self.max_length:
                 batch_size = self.batch_size // 2
-            batch = self.sorted_ids[position : min(position + batch_size, len(self.sorted_ids))]
+            else:
+                batch_size = self.batch_size
+            batch = self.sorted_ids[
+                position : min(position + batch_size, len(self.sorted_ids))
+            ]
             position += batch_size
             if self.shuffle:
                 shuffled_batch_indices = torch.randperm(len(batch), generator=generator)
