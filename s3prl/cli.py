@@ -10,7 +10,7 @@ from s3prl.util.override import parse_overrides
 from s3prl.problem.base import all_problems
 
 logger = logging.getLogger(__name__)
-LOGGING_FORMAT = "[%(levelname)s] %(asctime)s (%(module)s.%(funcName)s:%(lineno)d): %(message)s"
+LOGGING_FORMAT = "%(levelname)s | %(asctime)s | %(module)s:%(lineno)d | %(message)s"
 
 
 def main():
