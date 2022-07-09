@@ -25,6 +25,7 @@ optimizer:
 downstream_expert:
   datarc:
     root: /groups/public/benchmark/IEMOCAP
+    meta_data: ./downstream/emotion/meta_data
     test_fold: fold1
     pre_load: True
     train_batch_size: 4
