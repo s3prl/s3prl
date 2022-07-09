@@ -20,6 +20,7 @@ class SortedSliceSampler(Sampler):
         batch_size (int): the default batch size
         max_length (int): if a batch contains at least on utt longer than max_length, half the batch
         get_length_func (callable): get the length of each item in the dataset, if None, a default function will be used
+        in_batch_shuffle (bool): if False, batches are sorted by length from long to short
     """
 
     def __init__(
@@ -29,12 +30,14 @@ class SortedSliceSampler(Sampler):
         max_length: int = 300000,
         get_length_func: callable = None,
         seed: int = 12345678,
+        in_batch_shuffle: bool = False,
     ) -> None:
         super().__init__(dataset)
         self.epoch = 0
         self.seed = seed
         self.batch_size = batch_size
         self.max_length = max_length
+        self.in_batch_shuffle = in_batch_shuffle
 
         get_length_func = get_length_func or self.get_length
         self.id2length = get_length_func(dataset)
@@ -75,6 +78,11 @@ class SortedSliceSampler(Sampler):
                 batch_size = self.batch_size
             start_position = self.sorted_ids.index(indice)
             batch = self.sorted_ids[start_position : start_position + batch_size]
+
+            if self.in_batch_shuffle:
+                inbatch_indices = torch.randperm(len(batch), generator=generator).tolist()
+                batch = [batch[idx] for idx in inbatch_indices]
+
             yield batch
 
     def __len__(self):
@@ -88,7 +96,8 @@ class SortedBucketingSampler(Sampler):
         batch_size (int): the default batch size
         max_length (int): if a batch contains at least on utt longer than max_length, half the batch
         get_length_func (callable): get the length of each item in the dataset, if None, a default function will be used
-        shuffle (bool): Whether to shuffle the data points
+        shuffle (bool): Whether to shuffle the batches
+        in_batch_shuffle (bool): if False, batches are sorted by length from long to short
     """
 
     def __init__(
@@ -98,6 +107,7 @@ class SortedBucketingSampler(Sampler):
         max_length: int = 300000,
         get_length_func: callable = None,
         shuffle: bool = False,
+        in_batch_shuffle: bool = False,
         seed: int = 12345678,
     ) -> None:
         super().__init__(dataset)
@@ -106,6 +116,7 @@ class SortedBucketingSampler(Sampler):
         self.batch_size = batch_size
         self.max_length = max_length
         self.shuffle = shuffle
+        self.in_batch_shuffle = in_batch_shuffle
 
         get_length_func = get_length_func or self.get_length
         self.id2length = get_length_func(dataset)
@@ -151,7 +162,7 @@ class SortedBucketingSampler(Sampler):
                 position : min(position + batch_size, len(self.sorted_ids))
             ]
             position += batch_size
-            if self.shuffle:
+            if self.in_batch_shuffle:
                 shuffled_batch_indices = torch.randperm(len(batch), generator=generator)
                 batch = [batch[idx] for idx in shuffled_batch_indices]
             batches.append(batch)
