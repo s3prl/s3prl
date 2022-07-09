@@ -41,8 +41,9 @@ class ModelWithSpecaug(NNModule):
         return self.model.output_size
 
     def forward(self, x, x_len, **kwds) -> Output:
-        y, y_len = self.specaug(x, x_len)
-        result = self.model(x=y, x_len=y_len, **kwds)
+        if self.training:
+            x, x_len = self.specaug(x, x_len)
+        result = self.model(x=x, x_len=x_len, **kwds)
         return result
 
 
