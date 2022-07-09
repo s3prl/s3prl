@@ -218,10 +218,14 @@ def as_type(obj: Any, ext: str):
     return TypeAssigner(obj, ext)
 
 
-def save(filepath: str, obj: Any):
+def save(filepath: str, obj: Any, ext: str = None):
     filepath = Path(filepath)
     filepath.parent.mkdir(exist_ok=True, parents=True)
     lockpath = filepath.parent / f".{filepath.stem}.lock"
+
+    assert not (isinstance(obj, TypeAssigner) and (ext is not None))
+    if ext is not None:
+        obj = TypeAssigner(obj, ext)
 
     if isinstance(obj, TypeAssigner):
         ext = obj.ext
