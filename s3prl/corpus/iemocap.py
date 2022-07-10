@@ -6,7 +6,7 @@ from pathlib import Path
 from librosa.util import find_files
 
 from s3prl import Container, cache
-from s3prl.util import registry
+from s3prl.util import registry, pseudo_data
 
 from .base import Corpus
 
@@ -236,3 +236,23 @@ def iemocap_for_superb(dataset_root: str, test_fold: int = 1, n_jobs: int = 4):
         valid_data=format_fields(filter_data(valid_data)),
         test_data=format_fields(filter_data(test_data)),
     )
+
+def get_pseudodata(
+    size: int = 100, extension: str = 'wav'
+) -> Container:
+    import random
+    import string
+
+    secs = [random.randint(1,5) for i in range(size)]
+
+    with pseudo_audio(secs, ext=extension) as (filepaths, num_samples):
+        data = Container(
+            {
+                "/".join(Path(filepath).parts[-2:]): {
+                    "wav_path": filepath,
+                    "label": random.choice(["neu", "hap", "ang", "sad", "exc"])
+                }
+                for filepath in filepaths
+            }
+        )
+        return data

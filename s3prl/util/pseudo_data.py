@@ -10,17 +10,17 @@ SAMPLE_RATE = 16000
 
 
 class pseudo_audio:
-    def __init__(self, secs: int, sample_rate: int = SAMPLE_RATE):
+    def __init__(self, secs: int, sample_rate: int = SAMPLE_RATE, ext: str = 'wav'):
         self.tempdir = Path(tempfile.TemporaryDirectory().name)
         self.tempdir.mkdir(parents=True, exist_ok=True)
         self.num_samples = []
         for n, sec in enumerate(secs):
             wav = torch.randn(1, sample_rate * sec)
             torchaudio.save(
-                str(self.tempdir / f"{n}.wav"), wav, sample_rate=sample_rate
+                str(self.tempdir / f"{n}.{ext}"), wav, sample_rate=sample_rate
             )
             self.num_samples.append(wav.size(-1))
-        self.filepaths = [str(self.tempdir / f"{i}.wav") for i in range(len(secs))]
+        self.filepaths = [str(self.tempdir / f"{i}.{ext}") for i in range(len(secs))]
 
     def __enter__(self):
         return self.filepaths, self.num_samples

@@ -11,7 +11,7 @@ from tqdm import tqdm
 
 from s3prl import Container, Output, cache
 from s3prl.base.cache import _cache_root
-from s3prl.util import registry
+from s3prl.util import registry, pseudo_data
 
 from .base import Corpus
 
@@ -248,3 +248,22 @@ def mini_voxceleb1(dataset_root: str, force_download: bool = False):
         valid_data=prepare_datadict(dataset_root / "valid"),
         test_data=prepare_datadict(dataset_root / "test"),
     )
+
+def get_pseudodata(
+    size: int = 100, extension: str = 'wav'
+) -> Container:
+    import random
+
+    secs = [random.randint(1,5) for i in range(size)]
+
+    with pseudo_audio(secs, ext=extension) as (filepaths, num_samples):
+        data = Container(
+            {
+                "/".join(Path(filepath).parts[-2:]): {
+                    "wav_path": filepath,
+                    "labels": f"speaker_{random.randint(0,1039)}"
+                }
+                for filepath in filepaths
+            }
+        )
+        return data

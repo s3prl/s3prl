@@ -5,7 +5,7 @@ from pathlib import Path
 import pandas as pd
 
 from s3prl import Container, Workspace
-from s3prl.util import registry
+from s3prl.util import registry, pseudo_data
 
 from .base import Corpus
 
@@ -262,3 +262,27 @@ def mini_fsc(dataset_root: str, n_jobs: int = 4, force_download: bool = False):
         valid_data=format_fields(valid_data),
         test_data=format_fields(test_data),
     )
+
+def get_pseudodata(
+    size: int = 100, extension: str = 'wav'
+) -> Container:
+    import random
+    import string
+
+    secs = [random.randint(1,5) for i in range(size)]
+    transcripts = [
+        "".join(random.choice(string.ascii_letters.upper() + ' '*10) for i in range(10))
+        for j in range(size)
+    ]
+
+    with pseudo_audio(secs, ext=extension) as (filepaths, num_samples):
+        data = Container(
+            {
+                "/".join(Path(filepath).parts[-2:]): {
+                    "wav_path": filepath,
+                    "labels": [transcripts[i], transcripts[i], transcripts[i]]
+                }
+                for i, filepath in enumerate(filepaths)
+            }
+        )
+        return data

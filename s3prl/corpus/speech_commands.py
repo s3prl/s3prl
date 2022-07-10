@@ -8,7 +8,7 @@ from typing import List, Tuple, Union
 
 from s3prl import Container, cache
 from s3prl.base.output import Output
-from s3prl.util import registry
+from s3prl.util import registry, pseudo_data
 
 from .base import Corpus
 
@@ -226,3 +226,22 @@ def gsc_v1_for_superb(dataset_root: str, n_jobs: int = 4):
         valid_data=format_fields(valid_data),
         test_data=format_fields(test_data),
     )
+
+def get_pseudodata(
+    size: int = 100, extension: str = 'wav'
+) -> Container:
+    import random
+
+    secs = [random.randint(2,15) for i in range(size)]
+
+    with pseudo_data(secs, ext=extension) as (filepaths, num_samples):
+        data = Container(
+            {
+                "/".join(Path(filepath).parts[-2:]): {
+                    "wav_path": filepath,
+                    "label": random.choice(CLASSES)
+                }
+                for filepath in filepaths
+            }
+        )
+        return data
