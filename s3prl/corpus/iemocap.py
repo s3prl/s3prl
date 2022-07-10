@@ -227,12 +227,12 @@ def iemocap_for_superb(
                 result[data_id] = data_point
         return result
 
-    test_session_id = (test_fold + 1) % IEMOCAP_SESSION_NUM
+    test_session_id = test_fold + 1
     train_meta_data_json = _urls_to_filepaths(
-        f"https://huggingface.co/datasets/s3prl/iemocap_split/raw/main/Session{test_session_id}/train_meta_data.json"
+        f"https://huggingface.co/datasets/s3prl/iemocap_split/raw/4097f2b496c41eed016d4e5eb0ada4cccd46d1f3/Session{test_session_id}/train_meta_data.json",
     )
     test_meta_data_json = _urls_to_filepaths(
-        f"https://huggingface.co/datasets/s3prl/iemocap_split/raw/main/Session{test_session_id}/test_meta_data.json"
+        f"https://huggingface.co/datasets/s3prl/iemocap_split/raw/4097f2b496c41eed016d4e5eb0ada4cccd46d1f3/Session{test_session_id}/test_meta_data.json",
     )
     dev_ids = [
         Path(item["path"]).stem for item in fileio.load(train_meta_data_json, "json")["meta_data"]
