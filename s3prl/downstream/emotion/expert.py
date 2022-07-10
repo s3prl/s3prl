@@ -28,6 +28,8 @@ class DownstreamExpert(nn.Module):
         self.modelrc = downstream_expert['modelrc']
 
         DATA_ROOT = self.datarc['root']
+        meta_data = self.datarc["meta_data"]
+
         self.fold = self.datarc.get('test_fold') or kwargs.get("downstream_variant")
         if self.fold is None:
             self.fold = "fold1"
@@ -35,11 +37,11 @@ class DownstreamExpert(nn.Module):
         print(f"[Expert] - using the testing fold: \"{self.fold}\". Ps. Use -o config.downstream_expert.datarc.test_fold=fold2 to change test_fold in config.")
 
         train_path = os.path.join(
-            DATA_ROOT, 'meta_data', self.fold.replace('fold', 'Session'), 'train_meta_data.json')
+            meta_data, self.fold.replace('fold', 'Session'), 'train_meta_data.json')
         print(f'[Expert] - Training path: {train_path}')
 
         test_path = os.path.join(
-            DATA_ROOT, 'meta_data', self.fold.replace('fold', 'Session'), 'test_meta_data.json')
+            meta_data, self.fold.replace('fold', 'Session'), 'test_meta_data.json')
         print(f'[Expert] - Testing path: {test_path}')
         
         dataset = IEMOCAPDataset(DATA_ROOT, train_path, self.datarc['pre_load'])

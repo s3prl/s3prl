@@ -584,13 +584,7 @@ python3 run_downstream.py -m evaluate -e result/downstream/ExpName/best-states-d
 1. Download dataset and unzip. You will need to fill a form in IEMOCAP official website to get the dataset.
     - https://sail.usc.edu/iemocap/
 
-2. Preprocess
-
-    ```bash
-    python3 ./downstream/emotion/IEMOCAP_preprocess.py "/path/to/IEMOCAP"
-    ```
-
-3. Change the path in `downstream/emotion/config.yaml`
+2. Change the path in `downstream/emotion/config.yaml`
     ```yaml
     downstream_expert:
         datarc:
