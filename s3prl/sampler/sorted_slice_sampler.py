@@ -1,8 +1,8 @@
-import torch
 from collections import OrderedDict
 from typing import Iterator, TypeVar
-from pydantic import DataclassTypeError
 
+import torch
+from pydantic import DataclassTypeError
 from speechbrain.dataio.sampler import ReproducibleRandomSampler
 from torch.utils.data import BatchSampler, RandomSampler, Sampler, SequentialSampler
 
@@ -35,6 +35,7 @@ class SortedSliceSampler(Sampler):
     @staticmethod
     def get_length(dataset):
         import torchaudio
+
         torchaudio.set_audio_backend("sox_io")
 
         lengths = {}

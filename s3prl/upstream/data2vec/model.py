@@ -8,27 +8,20 @@ import math
 from dataclasses import dataclass, field
 from typing import Optional
 
-from omegaconf import II
-
 import torch
+import torch.distributed as dist
 import torch.nn as nn
 import torch.nn.functional as F
-import torch.distributed as dist
-
-from fairseq.modules import EMAModule, EMAModuleConfig
 from fairseq.data.data_utils import compute_mask_indices
 from fairseq.models import BaseFairseqModel, register_model
 from fairseq.models.wav2vec import (
     ConvFeatureExtractionModel,
-    Wav2Vec2Config,
     TransformerEncoder,
+    Wav2Vec2Config,
 )
-from fairseq.modules import (
-    GradMultiply,
-    LayerNorm,
-)
+from fairseq.modules import EMAModule, EMAModuleConfig, GradMultiply, LayerNorm
 from fairseq.utils import index_put
-
+from omegaconf import II
 
 logger = logging.getLogger(__name__)
 

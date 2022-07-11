@@ -25,7 +25,7 @@ class UpstreamExpert(UpstreamBase):
         self.frontend_model = frontend_model
         self.roberta = RobertaModel.from_pretrained(model_name_or_path, checkpoint_file)
         self.max_positions = self.roberta.cfg.model.max_positions
-    
+
     def get_downsample_rates(self, key: str):
         return 160
 
@@ -48,14 +48,21 @@ class UpstreamExpert(UpstreamBase):
 
         bucket_layer_results = []
         for start in range(0, tokens.size(-1), self.max_positions):
-            bucket_layer_result = self.roberta.extract_features(tokens[:, start : start + self.max_positions], return_all_hiddens=True)
+            bucket_layer_result = self.roberta.extract_features(
+                tokens[:, start : start + self.max_positions], return_all_hiddens=True
+            )
             bucket_layer_results.append(bucket_layer_result)
 
         layer_bucket_results = [
-            [bucket_layer_results[bucket_id][layer_id] for bucket_id in range(len(bucket_layer_results))]
+            [
+                bucket_layer_results[bucket_id][layer_id]
+                for bucket_id in range(len(bucket_layer_results))
+            ]
             for layer_id in range(len(bucket_layer_results[0]))
         ]
-        layer_results = [torch.cat(layer_buckets, dim=1) for layer_buckets in layer_bucket_results]
+        layer_results = [
+            torch.cat(layer_buckets, dim=1) for layer_buckets in layer_bucket_results
+        ]
 
         return {
             "hidden_states": layer_results,

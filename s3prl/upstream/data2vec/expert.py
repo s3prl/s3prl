@@ -1,15 +1,16 @@
 import argparse
 from typing import List
-from packaging import version
 
-import torch
 import fairseq
 import numpy as np
+import torch
 import torch.nn.functional as F
+from packaging import version
 from torch.nn.utils.rnn import pad_sequence
 
-from ..interfaces import UpstreamBase
 from s3prl.utility.helper import zero_mean_unit_var_norm
+
+from ..interfaces import UpstreamBase
 from . import model
 
 
