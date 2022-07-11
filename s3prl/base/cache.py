@@ -11,10 +11,18 @@ from filelock import FileLock
 
 logger = logging.getLogger(__name__)
 
-# TODO: make this changeable
 _use_cache = True
 _cache_root = Path.home() / ".cache/s3prl/"
-_cache_root.mkdir(exist_ok=True, parents=True)
+
+
+def get_cache_root():
+    _cache_root.mkdir(exist_ok=True, parents=True)
+    return Path(_cache_root)
+
+
+def set_cache_root(root_path: str):
+    global _cache_root
+    _cache_root = Path(root_path)
 
 
 class set_use_cache:
