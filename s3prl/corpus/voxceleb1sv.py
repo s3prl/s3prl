@@ -27,14 +27,18 @@ class VoxCeleb1SV(Corpus):
         self.test_data = {uid: {"wav_path": uid, "label": None} for uid in test_path}
         self.test_trials = self.format_test_trials(self.dataset_root)
 
-    @staticmethod
-    def path2data(path, speakerid2label):
+    @classmethod
+    def path2uid(cls, path):
+        return "-".join(Path(path).parts[-3:])
+
+    @classmethod
+    def path2data(cls, paths, speakerid2label):
         data = {
-            uid: {
-                "wav_path": uid,
-                "label": speakerid2label[uid.split("/")[-3]],
+            cls.path2uid(path): {
+                "wav_path": path,
+                "label": speakerid2label[Path(path).parts[-3]],
             }
-            for uid in path
+            for path in paths
         }
         return data
 
