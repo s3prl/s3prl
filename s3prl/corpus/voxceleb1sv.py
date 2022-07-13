@@ -7,7 +7,9 @@ from filelock import FileLock
 from joblib import Parallel, delayed
 from tqdm import tqdm
 
-from s3prl import Output, cache
+from s3prl import Container, Output, cache
+from s3prl.base.cache import get_cache_root
+from s3prl.util.download import _urls_to_filepaths
 
 from .base import Corpus
 
@@ -25,7 +27,7 @@ class VoxCeleb1SV(Corpus):
         self.train_data = self.path2data(train_path, speakerid2label)
         self.valid_data = self.path2data(valid_path, speakerid2label)
         self.test_data = {uid: {"wav_path": uid, "label": None} for uid in test_path}
-        self.test_trials = self.format_test_trials(self.dataset_root)
+        self.test_trials = self.format_test_trials()
 
     @classmethod
     def path2uid(cls, path):
@@ -45,9 +47,8 @@ class VoxCeleb1SV(Corpus):
     @staticmethod
     @cache()
     def format_path(dataset_root):
-
         split_filename = SPLIT_FILE_URL.split("/")[-1]
-        split_filepath = dataset_root / split_filename
+        split_filepath = get_cache_root() / split_filename
         if not split_filepath.is_file():
             with FileLock(str(split_filepath) + ".lock"):
                 os.system(f"wget {SPLIT_FILE_URL} -O {str(split_filepath)}")
@@ -93,25 +94,20 @@ class VoxCeleb1SV(Corpus):
 
         return train, valid, test, speakerid2label
 
-    @staticmethod
-    @cache()
-    def format_test_trials(dataset_root):
-
+    @classmethod
+    def format_test_trials(cls):
         trial_filename = TRIAL_FILE_URL.split("/")[-1]
-        trial_filepath = dataset_root / trial_filename
+        trial_filepath = get_cache_root() / trial_filename
         if not trial_filepath.is_file():
             with FileLock(str(trial_filepath) + ".lock"):
                 os.system(f"wget {TRIAL_FILE_URL} -O {str(trial_filepath)}")
 
-        usage_list = open(trial_filepath, "r").readlines()
-
+        trial_list = open(trial_filepath, "r").readlines()
         test_trials = []
-        prefix = dataset_root / "test/wav"
-
-        for string in tqdm(usage_list, desc="Prepare testing trials"):
+        for string in tqdm(trial_list, desc="Prepare testing trials"):
             pair = string.split()
             test_trials.append(
-                (int(pair[0]), str(prefix / pair[1]), str(prefix / pair[2]))
+                (int(pair[0]), cls.path2uid(pair[1]), cls.path2uid(pair[2]))
             )
 
         return test_trials
@@ -127,8 +123,20 @@ class VoxCeleb1SV(Corpus):
 
 def voxceleb1_for_sv(dataset_root: str, n_jobs: int = 4):
     corpus = VoxCeleb1SV(dataset_root, n_jobs)
+    all_data = Container(corpus.train_data).add(corpus.valid_data)
+
+    ignored_utts_path = _urls_to_filepaths(
+        "https://huggingface.co/datasets/s3prl/voxceleb1_too_short_utts/raw/main/utt"
+    )
+    with open(ignored_utts_path) as file:
+        ignored_utts = [line.strip() for line in file.readlines()]
+
+    for utt in ignored_utts:
+        assert utt in all_data
+
+    all_data = Container({k: v for k, v in all_data.items() if k not in ignored_utts})
     return Output(
-        train_data=corpus.train_data,
+        train_data=all_data,
         valid_data=corpus.valid_data,
         test_data=corpus.test_data,
         trials=corpus.test_trials,

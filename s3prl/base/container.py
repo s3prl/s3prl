@@ -242,6 +242,9 @@ class Container(OrderedDict):
     def call(self, **override: dict):
         return self.instantiate(**override)
 
+    def __call__(self, **override: dict) -> Any:
+        return self.instantiate(**override)
+
     @classmethod
     def _no_underscore(cls, obj):
         if isinstance(obj, dict):

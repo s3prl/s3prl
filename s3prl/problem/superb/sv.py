@@ -9,9 +9,9 @@ from s3prl import Container, field
 from s3prl.base.logdata import Logs
 from s3prl.corpus.voxceleb1sv import voxceleb1_for_sv
 from s3prl.dataset.base import DataLoader
-from s3prl.dataset.speaker_verification_pipe import SpeakerClassificationPipe
-from s3prl.nn import SpeakerEmbeddingExtractor
-from s3prl.sampler import FixedBatchSizeBatchSampler, MaxTimestampBatchSampler
+from s3prl.dataset.speaker_verification_pipe import SpeakerVerificationPipe
+from s3prl.nn.speaker_model import SuperbXvector
+from s3prl.sampler import FixedBatchSizeBatchSampler
 from s3prl.task.speaker_verification_task import SpeakerVerification
 from s3prl.util.configuration import default_cfg
 from s3prl.util.workspace import Workspace
@@ -34,8 +34,8 @@ class SuperbSV(SuperbProblem):
             ),
             train_datapipe={
                 "0": dict(
-                    _cls=SpeakerClassificationPipe,
-                    train_category_encoder=True,
+                    _cls=SpeakerVerificationPipe,
+                    random_crop_secs=8.0,
                 ),
             },
             train_sampler=dict(
@@ -45,7 +45,7 @@ class SuperbSV(SuperbProblem):
             ),
             valid_datapipe={
                 "0": dict(
-                    _cls=SpeakerClassificationPipe,
+                    _cls=SpeakerVerificationPipe,
                 ),
             },
             valid_sampler=dict(
@@ -54,7 +54,7 @@ class SuperbSV(SuperbProblem):
             ),
             test_datapipe={
                 "0": dict(
-                    _cls=SpeakerClassificationPipe,
+                    _cls=SpeakerVerificationPipe,
                 ),
             },
             test_sampler=dict(
@@ -62,11 +62,15 @@ class SuperbSV(SuperbProblem):
                 batch_size=1,
             ),
             downstream=dict(
-                _cls=SpeakerEmbeddingExtractor,
-                hidden_size=256,
+                _cls=SuperbXvector,
             ),
             task=dict(
                 _cls=SpeakerVerification,
+                loss_type="amsoftmax",
+                loss_cfg=dict(
+                    margin=0.4,
+                    scale=30,
+                )
             ),
         )
     )
@@ -80,7 +84,7 @@ class SuperbSV(SuperbProblem):
     @default_cfg(
         **SuperbProblem.train.default_except(
             optimizer=dict(
-                _cls="torch.optim.Adam",
+                _cls="torch.optim.AdamW",
                 lr=1.0e-4,
             ),
             trainer=dict(
@@ -88,7 +92,7 @@ class SuperbSV(SuperbProblem):
                 log_step=500,
                 eval_step=field(1e10, "ASV do not use validation set"),
                 save_step=20000,
-                gradient_clipping=1.0,
+                gradient_clipping=1.0e+3,
                 gradient_accumulate_steps=5,
                 valid_metric="eer",
                 valid_higher_better=False,
@@ -149,7 +153,7 @@ class SuperbSV(SuperbProblem):
                 test_results.append(result.cacheable())
 
             logs: Logs = task.test_reduction(test_results).logs
-            logger.info(f"[Test] - Step {step}")
+            logger.info(f"Step {step}")
 
             for key in logs.keys():
                 logger.info(f"{key}: {logs[key].data}")

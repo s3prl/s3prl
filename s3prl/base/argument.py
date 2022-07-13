@@ -1,7 +1,10 @@
 import functools
 import inspect
+import logging
 import types
 from argparse import Namespace
+
+logger = logging.getLogger(__name__)
 
 
 def save_arguments(func: types.FunctionType):
@@ -12,7 +15,12 @@ def save_arguments(func: types.FunctionType):
         params = list(sig.parameters.values())
         self_name = params[0].name
 
-        ba = sig.bind(self, *args, **kwargs)
+        try:
+            ba = sig.bind(self, *args, **kwargs)
+        except TypeError as e:
+            logger.error(f"Error happens in {func}")
+            raise
+
         ba.apply_defaults()
         arguments = ba.arguments
         arguments.pop(self_name)

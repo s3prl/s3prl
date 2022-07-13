@@ -14,6 +14,8 @@ from .pooling import (
     TemporalStatisticsPooling,
 )
 
+XVECTOR_TDNNS_LENGTH_REDUCTION = 14
+
 
 class TDNN(NNModule):
     def __init__(
@@ -92,19 +94,61 @@ class TDNN(NNModule):
         return x
 
 
-class XVector(NNModule):
-    def __init__(self, input_size: int, output_size: int = 1500, **kwargs):
+class XVectorBackbone(NNModule):
+    def __init__(
+        self,
+        input_size: int,
+        output_size: int = 1500,
+        dropout_p: float = 0.0,
+        batch_norm: False = True,
+        **unused
+    ):
         super().__init__()
         """
-        XVector model as in https://danielpovey.com/files/2018_odyssey_xvector_lid.pdf
+        The TDNN layers the same as in https://danielpovey.com/files/2018_odyssey_xvector_lid.pdf
         This model only include the blocks before the pooling layer
         """
         self.module = nn.Sequential(
-            TDNN(input_size=input_size, output_size=512, context_size=5, dilation=1),
-            TDNN(input_size=512, output_size=512, context_size=3, dilation=2),
-            TDNN(input_size=512, output_size=512, context_size=3, dilation=3),
-            TDNN(input_size=512, output_size=512, context_size=1, dilation=1),
-            TDNN(input_size=512, output_size=output_size, context_size=1, dilation=1),
+            TDNN(
+                input_size=input_size,
+                output_size=512,
+                context_size=5,
+                dilation=1,
+                dropout_p=dropout_p,
+                batch_norm=batch_norm,
+            ),
+            TDNN(
+                input_size=512,
+                output_size=512,
+                context_size=3,
+                dilation=2,
+                dropout_p=dropout_p,
+                batch_norm=batch_norm,
+            ),
+            TDNN(
+                input_size=512,
+                output_size=512,
+                context_size=3,
+                dilation=3,
+                dropout_p=dropout_p,
+                batch_norm=batch_norm,
+            ),
+            TDNN(
+                input_size=512,
+                output_size=512,
+                context_size=1,
+                dilation=1,
+                dropout_p=dropout_p,
+                batch_norm=batch_norm,
+            ),
+            TDNN(
+                input_size=512,
+                output_size=output_size,
+                context_size=1,
+                dilation=1,
+                dropout_p=dropout_p,
+                batch_norm=batch_norm,
+            ),
         )
 
     @property
@@ -141,8 +185,10 @@ class SpeakerEmbeddingExtractor(NNModule):
 
         # TODO: add other backbone model; Pay attention to self.offset
         if self.arguments.backbone == "XVector":
-            self.backbone = XVector(input_size=input_size, output_size=output_size)
-            self.offset = 14
+            self.backbone = XVectorBackbone(
+                input_size=input_size, output_size=output_size
+            )
+            self.offset = XVECTOR_TDNNS_LENGTH_REDUCTION
         else:
             raise ValueError(
                 "{} backbone type is not defined".format(self.arguments.backbone)
@@ -203,4 +249,88 @@ class SpeakerEmbeddingExtractor(NNModule):
 
         x = self.pooling(x, xlen)
 
+        return Output(output=x)
+
+
+class _UtteranceExtractor(NNModule):
+    def __init__(self, input_size, output_size, **kwargs):
+        super().__init__()
+        self.linear1 = nn.Linear(input_size, output_size)
+        self.linear2 = nn.Linear(output_size, output_size)
+        self.act_fn = nn.ReLU()
+
+    @property
+    def input_size(self):
+        return self.arguments.input_size
+
+    @property
+    def output_size(self):
+        return self.arguments.output_size
+
+    def forward(self, x_BxH):
+        hid_BxH = self.linear1(x_BxH)
+        hid_BxH = self.act_fn(hid_BxH)
+
+        if self.training:
+            hid_BxH = self.linear2(hid_BxH)
+            hid_BxH = self.act_fn(hid_BxH)
+
+        return hid_BxH
+
+
+class SuperbXvector(NNModule):
+    """
+    This has some small differences compared to the original Xvector
+
+    Args:
+        input_size (int): The input feature size, usually is the output size of upstream models
+        output_size (int): (default, 512) The size of the speaker embedding
+        hidden_size (int): (default, 512) The major hidden size in the network
+        aggregation_size (int): (default, 1500) The output size of the x-vector, which is usually large
+        dropout_p (float): (default, 0.0) The dropout rate
+        batch_norm (bool): (default, False) Use batch norm for TDNN layers
+    """
+
+    def __init__(
+        self,
+        input_size: int,
+        output_size: int = 512,
+        hidden_size: int = 512,
+        aggregation_size: int = 1500,
+        dropout_p: float = 0.0,
+        batch_norm: bool = False,
+        **kwds,
+    ):
+        super().__init__()
+        self._input_size = input_size
+        self._output_size = output_size
+
+        self.projector = nn.Linear(input_size, hidden_size)
+        self.tdnns = XVectorBackbone(
+            hidden_size, aggregation_size, dropout_p=dropout_p, batch_norm=batch_norm
+        )
+        latest_size = self.tdnns.output_size
+
+        self.pooling = TemporalStatisticsPooling(latest_size)
+        latest_size = self.pooling.output_size
+
+        self.affine = _UtteranceExtractor(latest_size, output_size)
+
+    @property
+    def input_size(self):
+        return self._input_size
+
+    @property
+    def output_size(self):
+        return self._output_size
+
+    def forward(self, x, x_len):
+        x = self.projector(x)
+
+        x = self.tdnns(x).slice(1)
+        x_len = x_len - XVECTOR_TDNNS_LENGTH_REDUCTION
+        assert (x_len <= 0).sum() == 0, "The input sequence is too short for the X-vector model"
+
+        x = self.pooling(x, x_len)
+        x = self.affine(x)
         return Output(output=x)

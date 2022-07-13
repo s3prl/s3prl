@@ -1,13 +1,13 @@
 from __future__ import annotations
 
 import logging
-from typing import List
+from typing import List, Tuple, Dict
 
 import torch
 import torch.nn.functional as F
 from tqdm import tqdm
 
-from s3prl import Logs, Module, Output
+from s3prl import Logs, Module, Output, Container
 from s3prl.metric import accuracy, compute_eer, compute_minDCF
 from s3prl.nn import amsoftmax, softmax
 
@@ -44,50 +44,46 @@ class SpeakerClassifier(Module):
 
 class SpeakerVerification(Task):
     """
-    Attributes:
-        input_size (int): defined by model.input_size
-        output_size (int): defined by len(categories)
+    model.output_size should match len(categories)
+
+    Args:
+        model (SpeakerClassifier):
+            actual model or a callable config for the model
+        categories (dict[str]):
+            each key in the Dictionary is the final prediction content in str.
+            use categories[key] to encode as numeric label
+        trials (List[Tuple[int, str, str]]):
+            each tuple in the list consists of (label, enroll_utt, test_utt)
+        loss_type (str): softmax or amsoftmax
+        loss_cfg (dict): **kwds for loss_type class
     """
 
     def __init__(
         self,
         model: SpeakerClassifier,
-        categories: dict(str),
-        trials: list(tuple()),
-        loss_type: str = "softmax",
-        *args,
-        **kwargs,
+        categories: Dict[str, int],
+        trials: List[Tuple[int, str, str]],
+        loss_type: str = "amsoftmax",
+        loss_cfg: dict = None,
+        **unused,
     ):
-        """
-        model.output_size should match len(categories)
-
-        Args:
-            model (SpeakerClassifier)
-            categories (dict[str]):
-                each key in the Dictionary is the final prediction content in str.
-                use categories[key] to encode as numeric label
-            trials:
-                each tuple in the list consists of (enroll_path, test_path, label)
-        """
-
         super().__init__()
-        self.model = model
+        self.model = Container(model)() if isinstance(model, dict) else model
         self.categories = categories
         self.trials = trials
 
         if loss_type == "amsoftmax":
-            self.loss = amsoftmax(
-                input_size=self.model.output_size, output_size=len(self.categories)
-            )
-
+            loss_cls = amsoftmax
         elif loss_type == "softmax":
-            self.loss = softmax(
-                input_size=self.model.output_size, output_size=len(self.categories)
-            )
-
+            loss_cls = softmax
         else:
-            raise ValueError("{} loss type is not defined".format(loss_type))
+            raise ValueError(f"Unsupported loss_type {loss_type}")
 
+        self.loss = loss_cls(
+            input_size=self.model.output_size,
+            output_size=len(self.categories),
+            **loss_cfg,
+        )
         assert self.loss.output_size == len(categories)
 
     @property
@@ -118,8 +114,7 @@ class SpeakerVerification(Task):
         x_len: torch.LongTensor,
         label: torch.LongTensor,
         unique_name: List[str],
-        *args,
-        **kwargs,
+        **unused,
     ):
         spk_embeddings = self.predict(x, x_len).slice(1)
         loss, logits = self.loss(spk_embeddings, label).slice(2)
@@ -138,7 +133,7 @@ class SpeakerVerification(Task):
         )
 
     def _general_reduction(
-        self, batch_results: list, on_epoch_end: bool = None, *args, **kwargs
+        self, batch_results: list, on_epoch_end: bool = None, **unused
     ):
         predictions, labels, losses = [], [], []
         for batch_result in batch_results:
@@ -163,8 +158,7 @@ class SpeakerVerification(Task):
         x_len: torch.LongTensor,
         label: torch.LongTensor,
         unique_name: List[str],
-        *args,
-        **kwargs,
+        **unused,
     ):
         """
         Each forward step in the training loop
@@ -188,9 +182,7 @@ class SpeakerVerification(Task):
         """
         return self._general_forward(x, x_len, label, unique_name)
 
-    def train_reduction(
-        self, batch_results: list, on_epoch_end: bool = None, *args, **kwargs
-    ):
+    def train_reduction(self, batch_results: list, on_epoch_end: bool = None, **unused):
         """
         After several forward steps, outputs should be collected untouched (but detaching the Tensors)
         into a list and passed as batch_results. This function examine the collected items and compute
@@ -217,8 +209,7 @@ class SpeakerVerification(Task):
         x_len: torch.LongTensor,
         label: torch.LongTensor,
         unique_name: List[str],
-        *args,
-        **kwargs,
+        **unused,
     ):
         return self._general_forward(x, x_len, label, unique_name)
 
@@ -226,8 +217,7 @@ class SpeakerVerification(Task):
         self,
         batch_results: list,
         on_epoch_end: bool = None,
-        *args,
-        **kwargs,
+        **unused,
     ):
         return self._general_reduction(batch_results, on_epoch_end)
 
@@ -236,8 +226,7 @@ class SpeakerVerification(Task):
         x: torch.Tensor,
         x_len: torch.LongTensor,
         unique_name: List[str],
-        *args,
-        **kwargs,
+        **unused,
     ):
         """
         Args:
@@ -254,7 +243,7 @@ class SpeakerVerification(Task):
         return Output(unique_name=unique_name, output=spk_embeddings)
 
     def test_reduction(
-        self, batch_results: list(), on_epoch_end: bool = None, *args, **kwargs
+        self, batch_results: list(), on_epoch_end: bool = None, **unused
     ):
 
         embeddings = {}

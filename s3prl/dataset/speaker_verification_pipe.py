@@ -1,8 +1,8 @@
 from .base import SequentialDataPipe
-from .common_pipes import LoadAudio, SetOutputKeys
+from .common_pipes import LoadAudio, RandomCrop, SetOutputKeys
 
 
-class SpeakerClassificationPipe(SequentialDataPipe):
+class SpeakerVerificationPipe(SequentialDataPipe):
     """
     each item in the input dataset should have:
         wav_path: str
@@ -11,22 +11,30 @@ class SpeakerClassificationPipe(SequentialDataPipe):
 
     def __init__(
         self,
-        output_keys: dict = None,
         audio_sample_rate: int = 16000,
         audio_channel_reduction: str = "first",
-        **kwargs
+        random_crop_secs: float = -1,
+        **unused,
     ):
-        output_keys = output_keys or dict(
+        pipes = [
+            LoadAudio(
+                audio_sample_rate=audio_sample_rate,
+                audio_channel_reduction=audio_channel_reduction,
+            ),
+        ]
+        output_keys = dict(
             x="wav",
             x_len="wav_len",
             label="label",
             unique_name="id",
         )
 
-        super().__init__(
-            LoadAudio(
-                audio_sample_rate=audio_sample_rate,
-                audio_channel_reduction=audio_channel_reduction,
-            ),
-            SetOutputKeys(output_keys=output_keys),
-        )
+        if random_crop_secs != -1:
+            pipes.append(
+                RandomCrop(sample_rate=audio_sample_rate, max_secs=random_crop_secs)
+            )
+            output_keys["x"] = "wav_crop"
+            output_keys["x_len"] = "wav_crop_len"
+
+        pipes.append(SetOutputKeys(**output_keys))
+        super().__init__(*pipes)

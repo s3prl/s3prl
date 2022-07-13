@@ -27,7 +27,6 @@ class MeanPooling(NNModule):
         return torch.stack(pooled_list)
 
 
-# TODO: add x_len into pooling
 class TemporalAveragePooling(NNModule):
     def __init__(self, input_size: int, output_size: int):
         """
@@ -45,7 +44,7 @@ class TemporalAveragePooling(NNModule):
     def output_size(self):
         return self.arguments.output_size
 
-    def forward(self, xs, xs_len=None):
+    def forward(self, xs, xs_len):
         """
         Computes Temporal Average Pooling Module
         Args:
@@ -63,21 +62,22 @@ class TemporalAveragePooling(NNModule):
 
 
 class TemporalStatisticsPooling(NNModule):
-    def __init__(self, input_size: int, output_size: int):
+    def __init__(self, input_size: int, **unused):
         """
         TemporalStatisticsPooling
         Paper: X-vectors: Robust DNN Embeddings for Speaker Recognition
         Link： http://www.danielpovey.com/files/2018_icassp_xvectors.pdf
         """
         super().__init__()
+        self._input_size = input_size
 
     @property
     def input_size(self):
-        return self.arguments.input_size
+        return self._input_size
 
     @property
     def output_size(self):
-        return self.arguments.output_size
+        return self._input_size * 2
 
     def forward(self, xs, xs_len=None):
         """
@@ -91,7 +91,7 @@ class TemporalStatisticsPooling(NNModule):
         pooled_list = []
         for x, x_len in zip(xs, xs_len):
             mean = torch.mean(x[:x_len], dim=0)
-            var = torch.var(x[:x_len], dim=0)
+            var = torch.std(x[:x_len], dim=0)
             pooled = torch.cat((mean, var))
             pooled_list.append(pooled)
         return torch.stack(pooled_list)
