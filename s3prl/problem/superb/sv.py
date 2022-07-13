@@ -21,6 +21,14 @@ from .base import SuperbProblem
 logger = logging.getLogger(__name__)
 
 
+EFFECTS = [
+    ["channels", "1"],
+    ["rate", "16000"],
+    ["gain", "-3.0"],
+    ["silence", "1", "0.1", "0.1%", "-1", "0.1", "0.1%"],
+]
+
+
 class SuperbSV(SuperbProblem):
     """
     Superb Speaker Verification problem
@@ -36,6 +44,7 @@ class SuperbSV(SuperbProblem):
                 "0": dict(
                     _cls=SpeakerVerificationPipe,
                     random_crop_secs=8.0,
+                    sox_effects=EFFECTS,
                 ),
             },
             train_sampler=dict(
@@ -46,6 +55,7 @@ class SuperbSV(SuperbProblem):
             valid_datapipe={
                 "0": dict(
                     _cls=SpeakerVerificationPipe,
+                    sox_effects=EFFECTS,
                 ),
             },
             valid_sampler=dict(
@@ -55,6 +65,7 @@ class SuperbSV(SuperbProblem):
             test_datapipe={
                 "0": dict(
                     _cls=SpeakerVerificationPipe,
+                    sox_effects=EFFECTS,
                 ),
             },
             test_sampler=dict(
@@ -70,7 +81,7 @@ class SuperbSV(SuperbProblem):
                 loss_cfg=dict(
                     margin=0.4,
                     scale=30,
-                )
+                ),
             ),
         )
     )
@@ -92,7 +103,7 @@ class SuperbSV(SuperbProblem):
                 log_step=500,
                 eval_step=field(1e10, "ASV do not use validation set"),
                 save_step=20000,
-                gradient_clipping=1.0e+3,
+                gradient_clipping=1.0e3,
                 gradient_accumulate_steps=5,
                 valid_metric="eer",
                 valid_higher_better=False,

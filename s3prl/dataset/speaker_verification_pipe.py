@@ -1,3 +1,5 @@
+from typing import List
+
 from .base import SequentialDataPipe
 from .common_pipes import LoadAudio, RandomCrop, SetOutputKeys
 
@@ -14,12 +16,14 @@ class SpeakerVerificationPipe(SequentialDataPipe):
         audio_sample_rate: int = 16000,
         audio_channel_reduction: str = "first",
         random_crop_secs: float = -1,
+        sox_effects: List[List] = None,
         **unused,
     ):
         pipes = [
             LoadAudio(
                 audio_sample_rate=audio_sample_rate,
                 audio_channel_reduction=audio_channel_reduction,
+                sox_effects=sox_effects,
             ),
         ]
         output_keys = dict(

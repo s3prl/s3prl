@@ -40,7 +40,7 @@ class AdditiveNoise(DataPipe):
         seed = seeds[data_id]
         random.seed(seed)
 
-        noise_paths = self.noise_paths or Container(self.noise_paths_hook).instantiate()
+        noise_paths = self.noise_paths or Container(self.noise_paths_hook)()
         noise_path = random.sample(sorted(noise_paths), k=1)[0]
         snr = random.uniform(self.snrs[0], self.snrs[1])
         repeat = self.repeat
