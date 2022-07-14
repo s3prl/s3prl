@@ -106,3 +106,15 @@ def test_extract_fields():
 def test_tolist():
     config = Container({"1": "a", "2": "b", "-1": "c", "-2": "d", "-3": None})
     assert config.tolist() == ["d", "c", "a", "b"]
+
+
+def test_cls():
+    from s3prl.nn.linear import FrameLevel
+
+    frame_cfg = Container(CLS="FrameLevel")
+    frame_model = frame_cfg(32, 68)
+    assert isinstance(frame_model, FrameLevel)
+
+    frame_cfg = Container(_cls="FrameLevel")
+    frame_model = frame_cfg(32, 68)
+    assert isinstance(frame_model, FrameLevel)

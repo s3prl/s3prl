@@ -26,5 +26,5 @@ def test_s3prl_upstream(name):
     wavs_len = torch.LongTensor(samples).to(device)
 
     hidden_states, hidden_states_len = upstream(wavs, wavs_len).slice(2)
-    for h, hl in zip(hidden_states, hidden_states_len):
-        assert abs(h.size(1) - hl.max().item()) < TOLERATE_FRAME_NUM_DIFF
+    for h in hidden_states:
+        assert abs(h.size(1) - hidden_states_len.max().item()) < TOLERATE_FRAME_NUM_DIFF

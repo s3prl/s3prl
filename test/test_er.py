@@ -3,6 +3,8 @@ import yaml
 from tqdm import tqdm
 from dotenv import dotenv_values
 
+from s3prl import Workspace
+from s3prl.base import fileio
 from s3prl.problem import SuperbER
 from s3prl.downstream.emotion.expert import DownstreamExpert
 from torch.utils.data import Subset
@@ -16,7 +18,9 @@ def test_er_dataset(fold_id):
         config["datarc"]["root"] = IEMOCAP
         config["datarc"]["meta_data"] = "./s3prl/downstream/emotion/meta_data"
         config["datarc"]["test_fold"] = f"fold{fold_id + 1}"
-    expert = DownstreamExpert(320, config, "result/tmp")
+
+    workspace = Workspace()
+    expert = DownstreamExpert(320, config, str(workspace))
 
     train_dataset_v3 = expert.get_dataloader("train").dataset
     valid_dataset_v3 = expert.get_dataloader("dev").dataset
@@ -37,14 +41,12 @@ def test_er_dataset(fold_id):
         test_paths.append(name)
     test_paths.sort()
 
-    from s3prl.base import fileio
-
-    fileio.save("result/train", train_paths, "txt")
-    fileio.save("result/valid", valid_paths, "txt")
-    fileio.save("result/test", test_paths, "txt")
+    fileio.save(workspace / "train", train_paths, "txt")
+    fileio.save(workspace / "valid", valid_paths, "txt")
+    fileio.save(workspace / "test", test_paths, "txt")
 
     cfg = SuperbER.setup.default_cfg
-    train_data, valid_data, test_data = cfg.corpus(IEMOCAP, test_fold=fold_id).slice(3)
+    train_data, valid_data, test_data = cfg.corpus(dataset_root=IEMOCAP, test_fold=fold_id).slice(3)
     train_dataset_v4 = cfg.train_datapipe["0"]()(train_data)
     valid_dataset_v4 = cfg.valid_datapipe["0"]()(valid_data, **train_dataset_v4.all_tools())
     test_dataset_v4 = cfg.test_datapipe["0"]()(test_data, **train_dataset_v4.all_tools())

@@ -177,7 +177,7 @@ class Container(OrderedDict):
     ]
 
     UNFILLED_PATTERN = "???"
-    QUALNAME_PATTERN = "_cls"
+    QUALNAME_PATTERNS = ["_cls", "CLS"]
 
     def check_no_unfilled_field(self):
         unfilled_fields = self.unfilled_fields()
@@ -230,13 +230,18 @@ class Container(OrderedDict):
         return [self[str(key)] for key in keys if self[str(key)] is not None]
 
     def _instantiate(self, *args, **kwds):
-        new_self: __class__ = deepcopy(self)
+        new_self = deepcopy(self)
         new_self = new_self.extract_fields()
-        assert "_cls" in new_self
-        assert callable(new_self._cls)
 
+        cls = None
+        for pattern in __class__.QUALNAME_PATTERNS:
+            if pattern in new_self:
+                assert cls is None, f"Duplicated keys for cls: {list(new_self.keys())}"
+                cls = new_self[pattern]
+
+        assert callable(cls)
         effective_kwds = new_self.kwds().override(kwds)
-        return new_self._cls(*args, **effective_kwds)
+        return cls(*args, **effective_kwds)
 
     def __call__(self, *args, **kwds: dict) -> Any:
         """
@@ -264,7 +269,7 @@ class Container(OrderedDict):
                 cls._cls_fields(item, f"{parent}[{idx}].", clses)
         elif isinstance(obj, dict):
             for key, item in obj.items():
-                if key == __class__.QUALNAME_PATTERN:
+                if key in __class__.QUALNAME_PATTERNS:
                     clses.append((parent[:-1], item))
                 else:
                     cls._cls_fields(item, f"{parent}{key}.", clses)
@@ -365,7 +370,7 @@ class Container(OrderedDict):
         assert k not in self._reserved_keys, f"'{k}' cannot be used"
         if type(v) == dict:
             v = __class__(v)
-        if k == __class__.QUALNAME_PATTERN:
+        if k in __class__.QUALNAME_PATTERNS:
             if isinstance(v, field):
                 cls = self.deserialize_cls(v.value)
                 v.value = cls
@@ -390,7 +395,7 @@ class Container(OrderedDict):
         for k, v in dictionary.items():
             if isinstance(v, dict):
                 v = cls.to_dict_impl(v, must_invertible)
-            elif k == __class__.QUALNAME_PATTERN:
+            elif k in __class__.QUALNAME_PATTERNS:
                 if isinstance(v, field):
                     if must_invertible:
                         v = v.value
