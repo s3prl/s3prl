@@ -91,8 +91,8 @@ class TemporalStatisticsPooling(NNModule):
         pooled_list = []
         for x, x_len in zip(xs, xs_len):
             mean = torch.mean(x[:x_len], dim=0)
-            var = torch.std(x[:x_len], dim=0)
-            pooled = torch.cat((mean, var))
+            std = torch.std(x[:x_len], dim=0)
+            pooled = torch.cat((mean, std), dim=-1)
             pooled_list.append(pooled)
         return torch.stack(pooled_list)
 
