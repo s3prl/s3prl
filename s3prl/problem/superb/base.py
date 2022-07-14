@@ -5,7 +5,7 @@ import torch.nn as nn
 from s3prl import Container, field
 from s3prl.base import Logs
 from s3prl.dataset.base import SequentialDataPipe
-from s3prl.nn import S3PRLUpstream, UpstreamDownstreamModel
+from s3prl.nn import S3PRLUpstream, UpstreamDriver, UpstreamDownstreamModel
 from s3prl.problem.base import Problem
 from s3prl.problem.trainer import Trainer
 from s3prl.util import workspace
@@ -82,12 +82,34 @@ class SuperbProblem(Problem, Trainer):
         ),
         upstream=dict(
             _cls=field(
-                S3PRLUpstream,
+                UpstreamDriver,
                 "\nThe class of the upstream model following the specific interface. You can add the **kwargs right below this _cls key",
                 str,
             ),
-            name="???",
-            feature_selection="hidden_states",
+            cls=field(S3PRLUpstream, "The callable to create the upstream model"),
+            cfg=field(
+                dict(
+                    name="???",
+                    feature_selection="hidden_states",
+                ),
+                "The **kwds for the cls callable for the upstream model",
+            ),
+            freeze_upstream=field(
+                True,
+                "Set the entire upstream model's requires_grad to False, or else, leave it alone",
+            ),
+            normalize=field(
+                False, "Apply layer-norm to upstream model's each layer hidden_state"
+            ),
+            weighted_sum=field(
+                True,
+                "If True, apply weighted-sum on the selected layers; If False, take the final layer.\n"
+                "For the selected layers, see the 'layer_selections' option",
+            ),
+            layer_selections=field(
+                None,
+                "If None, select all layers; Or, select the subset layers defined by this option",
+            ),
         ),
         downstream=dict(
             _cls=field(
@@ -112,7 +134,7 @@ class SuperbProblem(Problem, Trainer):
         fix_random_seeds()
 
         if not isinstance(cfg.upstream, nn.Module):
-            upstream = cfg.upstream._cls(**cfg.upstream.kwds())
+            upstream = cfg.upstream()
         else:
             upstream = cfg.upstream
 
@@ -121,42 +143,32 @@ class SuperbProblem(Problem, Trainer):
         )
 
         logger.info("Preparing corpus")
-        train_data, valid_data, test_data, corpus_stats = cfg.corpus._cls(
-            **cfg.corpus.kwds()
-        ).split(3)
+        train_data, valid_data, test_data, corpus_stats = cfg.corpus().split(3)
         stats.add(corpus_stats)
 
         logger.info("Preparing train data")
         train_dataset = SequentialDataPipe(*cfg.train_datapipe.tolist(), **stats)(
             train_data, **stats
         )
-        train_sampler = cfg.train_sampler._cls(
-            train_dataset, **cfg.train_sampler.kwds()
-        )
+        train_sampler = cfg.train_sampler(train_dataset)
         stats.add(train_dataset.all_tools())
 
         logger.info("Preparing valid data")
         valid_dataset = SequentialDataPipe(*cfg.valid_datapipe.tolist(), **stats)(
             valid_data, **stats
         )
-        valid_sampler = cfg.valid_sampler._cls(
-            valid_dataset, **cfg.valid_sampler.kwds()
-        )
+        valid_sampler = cfg.valid_sampler(valid_dataset)
 
         logger.info("Preparing test data")
         test_dataset = SequentialDataPipe(*cfg.test_datapipe.tolist(), **stats)(
             test_data, **stats
         )
-        test_sampler = cfg.test_sampler._cls(test_dataset, **cfg.test_sampler.kwds())
+        test_sampler = cfg.test_sampler(test_dataset)
 
         logger.info("Preparing model and task")
-        downstream = cfg.downstream._cls(
-            upstream.output_size,
-            **stats,
-            **cfg.downstream.kwds(),
-        )
+        downstream = cfg.downstream(upstream.output_size, **stats)
         model = UpstreamDownstreamModel(upstream, downstream)
-        task = cfg.task._cls(model, **stats, **cfg.task.kwds())
+        task = cfg.task(model, **stats)
 
         workspace["train_data"] = train_data
         workspace["valid_data"] = valid_data

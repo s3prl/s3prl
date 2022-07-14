@@ -14,7 +14,7 @@ from torch.utils.data import Subset
 def test_er_dataset(fold_id):
     IEMOCAP = dotenv_values()["IEMOCAP"]
     with open("./s3prl/downstream/emotion/config.yaml") as file:
-        config = yaml.load(file)["downstream_expert"]
+        config = yaml.load(file, Loader=yaml.FullLoader)["downstream_expert"]
         config["datarc"]["root"] = IEMOCAP
         config["datarc"]["meta_data"] = "./s3prl/downstream/emotion/meta_data"
         config["datarc"]["test_fold"] = f"fold{fold_id + 1}"
