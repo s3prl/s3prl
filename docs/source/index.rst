@@ -69,7 +69,6 @@ API Documentation
    s3prl.sampler
    s3prl.metric
    s3prl.base
-   .. s3prl.upstream
 
 
 Indices and tables
