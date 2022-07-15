@@ -103,11 +103,6 @@ def test_extract_fields():
     assert config.extract_fields().b == 0.1
 
 
-def test_tolist():
-    config = Container({"1": "a", "2": "b", "-1": "c", "-2": "d", "-3": None})
-    assert config.tolist() == ["d", "c", "a", "b"]
-
-
 def test_cls():
     from s3prl.nn.linear import FrameLevel
 

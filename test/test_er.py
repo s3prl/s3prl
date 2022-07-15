@@ -47,9 +47,9 @@ def test_er_dataset(fold_id):
 
     cfg = SuperbER.setup.default_cfg
     train_data, valid_data, test_data = cfg.corpus(dataset_root=IEMOCAP, test_fold=fold_id).slice(3)
-    train_dataset_v4 = cfg.train_datapipe["0"]()(train_data)
-    valid_dataset_v4 = cfg.valid_datapipe["0"]()(valid_data, **train_dataset_v4.all_tools())
-    test_dataset_v4 = cfg.test_datapipe["0"]()(test_data, **train_dataset_v4.all_tools())
+    train_dataset_v4 = cfg.train_datapipe()(train_data)
+    valid_dataset_v4 = cfg.valid_datapipe()(valid_data, **train_dataset_v4.all_tools())
+    test_dataset_v4 = cfg.test_datapipe()(test_data, **train_dataset_v4.all_tools())
 
     def compare_dataset(v3, v4):
         data_v3 = {}
