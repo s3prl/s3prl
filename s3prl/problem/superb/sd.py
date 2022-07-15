@@ -98,47 +98,47 @@ class SuperbSD(SuperbProblem):
     @default_cfg(
         **SuperbProblem.setup.default_except(
             corpus=dict(
-                _cls=kaldi_for_multiclass_tagging,
+                CLS=kaldi_for_multiclass_tagging,
                 dataset_root="???",
             ),
             train_datapipe={
                 "0": dict(
-                    _cls=SuperbSDDatapipe,
+                    CLS=SuperbSDDatapipe,
                     train_category_encoder=True,
                 ),
             },
             train_sampler=dict(
-                _cls=FixedBatchSizeBatchSampler,
+                CLS=FixedBatchSizeBatchSampler,
                 batch_size=8,
                 shuffle=True,
             ),
             valid_datapipe={
                 "0": dict(
-                    _cls=SuperbSDDatapipe,
+                    CLS=SuperbSDDatapipe,
                 ),
             },
             valid_sampler=dict(
-                _cls=FixedBatchSizeBatchSampler,
+                CLS=FixedBatchSizeBatchSampler,
                 batch_size=1,
             ),
             test_datapipe={
                 "0": dict(
-                    _cls=SuperbSDDatapipe,
+                    CLS=SuperbSDDatapipe,
                 ),
             },
             test_sampler=dict(
-                _cls=GroupSameItemSampler,
+                CLS=GroupSameItemSampler,
                 item_name="unchunked_id",
                 item_order_name="chunk_index",
             ),
             downstream=dict(
-                _cls=SuperbDiarizationModel,
+                CLS=SuperbDiarizationModel,
                 output_size=2,  # speaker num per recording
                 hidden_size=512,
                 rnn_layers=1,
             ),
             task=dict(
-                _cls=DiarizationPIT,
+                CLS=DiarizationPIT,
             ),
         )
     )
@@ -152,7 +152,7 @@ class SuperbSD(SuperbProblem):
     @default_cfg(
         **SuperbProblem.train.default_except(
             optimizer=dict(
-                _cls="torch.optim.Adam",
+                CLS="torch.optim.Adam",
                 lr=1.0e-4,
             ),
             trainer=dict(

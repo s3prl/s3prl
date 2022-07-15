@@ -15,46 +15,46 @@ class SuperbKS(SuperbProblem):
     @default_cfg(
         **SuperbProblem.setup.default_except(
             corpus=dict(
-                _cls=gsc_v1_for_superb,
+                CLS=gsc_v1_for_superb,
                 dataset_root="???",
             ),
             train_datapipe={
                 "0": dict(
-                    _cls=UtteranceClassificationPipe,
+                    CLS=UtteranceClassificationPipe,
                     train_category_encoder=True,
                     sox_effects=EFFECTS,
                 ),
             },
             train_sampler=dict(
-                _cls=BalancedWeightedSampler,
+                CLS=BalancedWeightedSampler,
                 batch_size=32,
             ),
             valid_datapipe={
                 "0": dict(
-                    _cls=UtteranceClassificationPipe,
+                    CLS=UtteranceClassificationPipe,
                     sox_effects=EFFECTS,
                 ),
             },
             valid_sampler=dict(
-                _cls=BalancedWeightedSampler,
+                CLS=BalancedWeightedSampler,
                 batch_size=32,
             ),
             test_datapipe={
                 "0": dict(
-                    _cls=UtteranceClassificationPipe,
+                    CLS=UtteranceClassificationPipe,
                     sox_effects=EFFECTS,
                 ),
             },
             test_sampler=dict(
-                _cls=FixedBatchSizeBatchSampler,
+                CLS=FixedBatchSizeBatchSampler,
                 batch_size=32,
             ),
             downstream=dict(
-                _cls=MeanPoolingLinear,
+                CLS=MeanPoolingLinear,
                 hidden_size=256,
             ),
             task=dict(
-                _cls=UtteranceClassificationTask,
+                CLS=UtteranceClassificationTask,
             ),
         )
     )
@@ -65,7 +65,7 @@ class SuperbKS(SuperbProblem):
     @default_cfg(
         **SuperbProblem.train.default_except(
             optimizer=dict(
-                _cls="torch.optim.Adam",
+                CLS="torch.optim.Adam",
                 lr=1.0e-4,
             ),
             trainer=dict(

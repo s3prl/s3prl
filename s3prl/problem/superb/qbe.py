@@ -69,12 +69,12 @@ class SuperbQBE(SuperbProblem):
     @default_cfg(
         workspace="???",
         corpus=dict(
-            _cls=quesst14_for_qbe,
+            CLS=quesst14_for_qbe,
             dataset_root="???",
         ),
         all_datapipe={
             "0": dict(
-                _cls=QbeDumpFeaturePipe,
+                CLS=QbeDumpFeaturePipe,
                 sox_effects=[
                     ["channels", "1"],
                     ["rate", "16000"],
@@ -83,15 +83,15 @@ class SuperbQBE(SuperbProblem):
             ),
         },
         all_sampler=dict(
-            _cls=FixedBatchSizeBatchSampler,
+            CLS=FixedBatchSizeBatchSampler,
             batch_size=1,
         ),
         upstream=dict(
-            _cls="S3PRLUpstream",
+            CLS="S3PRLUpstream",
             name="???",
         ),
         task=dict(
-            _cls=DumpFeature,
+            CLS=DumpFeature,
         ),
     )
     @classmethod
@@ -100,21 +100,21 @@ class SuperbQBE(SuperbProblem):
         workspace = Workspace(cfg.workspace)
 
         if not isinstance(cfg.upstream, nn.Module):
-            model = cfg.upstream._cls(**cfg.upstream.kwds())
+            model = cfg.upstream.CLS(**cfg.upstream.kwds())
         else:
             model = cfg.upstream
 
         logger.info("Preparing corpus")
-        all_data, valid_query_keys, test_query_keys, doc_keys = cfg.corpus._cls(
+        all_data, valid_query_keys, test_query_keys, doc_keys = cfg.corpus.CLS(
             **cfg.corpus.kwds()
         ).slice(4)
 
         logger.info("Preparing train data")
         all_dataset = AugmentedDynamicItemDataset(all_data)
         all_dataset = SequentialDataPipe(*cfg.all_datapipe.tolist())(all_data)
-        all_sampler = cfg.all_sampler._cls(all_dataset, **cfg.all_sampler.kwds())
+        all_sampler = cfg.all_sampler.CLS(all_dataset, **cfg.all_sampler.kwds())
 
-        task = cfg.task._cls(model, **cfg.task.kwds())
+        task = cfg.task.CLS(model, **cfg.task.kwds())
 
         workspace.update(
             dict(

@@ -25,65 +25,65 @@ class SuperbProblem(Problem, Trainer):
             "str or Path or Workspace",
         ),
         corpus=dict(
-            _cls=field(
+            CLS=field(
                 "???",
-                "\nThe corpus class. You can add the **kwargs right below this _cls key",
+                "\nThe corpus class. You can add the **kwargs right below this CLS key",
                 str,
             ),
             dataset_root=field("???", "The root path of the corpus", str),
         ),
         train_datapipe={
             "0": dict(
-                _cls=field(
+                CLS=field(
                     "???",
-                    "\nThe first datapipe class to be applied to the corpus. You can add the **kwargs right below this _cls key",
+                    "\nThe first datapipe class to be applied to the corpus. You can add the **kwargs right below this CLS key",
                     str,
                 ),
             )
         },
         train_sampler=dict(
-            _cls=field(
+            CLS=field(
                 "???",
-                "\nThe batch sampler class. You can add the **kwargs right below this _cls key",
+                "\nThe batch sampler class. You can add the **kwargs right below this CLS key",
                 str,
             ),
         ),
         valid_datapipe={
             "0": dict(
-                _cls=field(
+                CLS=field(
                     "???",
-                    "\nThe first datapipe class to be applied to the corpus. You can add the **kwargs right below this _cls key",
+                    "\nThe first datapipe class to be applied to the corpus. You can add the **kwargs right below this CLS key",
                     str,
                 ),
             )
         },
         valid_sampler=dict(
-            _cls=field(
+            CLS=field(
                 "???",
-                "\nThe batch sampler class. You can add the **kwargs right below this _cls key",
+                "\nThe batch sampler class. You can add the **kwargs right below this CLS key",
                 str,
             ),
         ),
         test_datapipe={
             "0": dict(
-                _cls=field(
+                CLS=field(
                     "???",
-                    "\nThe first datapipe class to be applied to the corpus. You can add the **kwargs right below this _cls key",
+                    "\nThe first datapipe class to be applied to the corpus. You can add the **kwargs right below this CLS key",
                     str,
                 ),
             )
         },
         test_sampler=dict(
-            _cls=field(
+            CLS=field(
                 "???",
-                "\nThe batch sampler class. You can add the **kwargs right below this _cls key",
+                "\nThe batch sampler class. You can add the **kwargs right below this CLS key",
                 str,
             ),
         ),
         upstream=dict(
-            _cls=field(
+            CLS=field(
                 S3PRLUpstreamDriver,
-                "\nThe class of the upstream model following the specific interface. You can add the **kwargs right below this _cls key",
+                "\nThe class of the upstream model following the specific interface. You can add the **kwargs right below this CLS key",
                 str,
             ),
             name="???",
@@ -106,17 +106,17 @@ class SuperbProblem(Problem, Trainer):
             ),
         ),
         downstream=dict(
-            _cls=field(
+            CLS=field(
                 "???",
-                "\nThe downstream model class for each task. You can add the **kwargs right below this _cls key",
+                "\nThe downstream model class for each task. You can add the **kwargs right below this CLS key",
                 str,
             ),
         ),
         task=dict(
-            _cls=field(
+            CLS=field(
                 "???",
                 "\nThe task class defining what to do for each train/valid/test step in the train/valid/test dataloader loop"
-                "\nYou can add the **kwargs right below this _cls key",
+                "\nYou can add the **kwargs right below this CLS key",
                 str,
             ),
         ),

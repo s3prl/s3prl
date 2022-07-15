@@ -23,7 +23,7 @@ class SuperbER(SuperbProblem):
     @default_cfg(
         **SuperbProblem.setup.default_except(
             corpus=dict(
-                _cls=iemocap_for_superb,
+                CLS=iemocap_for_superb,
                 dataset_root="???",
                 test_fold=field(
                     "???",
@@ -33,39 +33,39 @@ class SuperbER(SuperbProblem):
             ),
             train_datapipe={
                 "0": dict(
-                    _cls=UtteranceClassificationPipe,
+                    CLS=UtteranceClassificationPipe,
                     train_category_encoder=True,
                 ),
             },
             train_sampler=dict(
-                _cls=FixedBatchSizeBatchSampler,
+                CLS=FixedBatchSizeBatchSampler,
                 batch_size=4,
                 shuffle=True,
             ),
             valid_datapipe={
                 "0": dict(
-                    _cls=UtteranceClassificationPipe,
+                    CLS=UtteranceClassificationPipe,
                 ),
             },
             valid_sampler=dict(
-                _cls=FixedBatchSizeBatchSampler,
+                CLS=FixedBatchSizeBatchSampler,
                 batch_size=4,
             ),
             test_datapipe={
                 "0": dict(
-                    _cls=UtteranceClassificationPipe,
+                    CLS=UtteranceClassificationPipe,
                 ),
             },
             test_sampler=dict(
-                _cls=FixedBatchSizeBatchSampler,
+                CLS=FixedBatchSizeBatchSampler,
                 batch_size=4,
             ),
             downstream=dict(
-                _cls=MeanPoolingLinear,
+                CLS=MeanPoolingLinear,
                 hidden_size=256,
             ),
             task=dict(
-                _cls=UtteranceClassificationTask,
+                CLS=UtteranceClassificationTask,
             ),
         )
     )
@@ -79,7 +79,7 @@ class SuperbER(SuperbProblem):
     @default_cfg(
         **SuperbProblem.train.default_except(
             optimizer=dict(
-                _cls="torch.optim.Adam",
+                CLS="torch.optim.Adam",
                 lr=1.0e-4,
             ),
             trainer=dict(

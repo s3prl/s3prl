@@ -19,12 +19,12 @@ class SuperbSF(SuperbProblem):
     @default_cfg(
         **SuperbProblem.setup.default_except(
             corpus=dict(
-                _cls=snips_for_speech2text,
+                CLS=snips_for_speech2text,
                 dataset_root="???",
             ),
             train_datapipe={
                 "0": dict(
-                    _cls=Speech2TextPipe,
+                    CLS=Speech2TextPipe,
                     generate_tokenizer=True,
                     vocab_type="character-slot",
                     vocab_file=_urls_to_filepaths(VOCAB_URL),
@@ -32,32 +32,32 @@ class SuperbSF(SuperbProblem):
                 ),
             },
             train_sampler=dict(
-                _cls=FixedBatchSizeBatchSampler,
+                CLS=FixedBatchSizeBatchSampler,
                 batch_size=32,
                 shuffle=True,
             ),
             valid_datapipe={
                 "0": dict(
-                    _cls=Speech2TextPipe,
+                    CLS=Speech2TextPipe,
                 )
             },
             valid_sampler=dict(
-                _cls=FixedBatchSizeBatchSampler,
+                CLS=FixedBatchSizeBatchSampler,
                 batch_size=1,
             ),
             test_datapipe={
                 "0": dict(
-                    _cls=Speech2TextPipe,
+                    CLS=Speech2TextPipe,
                 )
             },
             test_sampler=dict(
-                _cls=FixedBatchSizeBatchSampler,
+                CLS=FixedBatchSizeBatchSampler,
                 batch_size=1,
             ),
             downstream=dict(
-                _cls=ModelWithSpecaug,
+                CLS=ModelWithSpecaug,
                 model_cfg=dict(
-                    _cls=RNNEncoder,
+                    CLS=RNNEncoder,
                     module="LSTM",
                     proj_size=1024,
                     hidden_size=[1024, 1024],
@@ -76,7 +76,7 @@ class SuperbSF(SuperbProblem):
                 ),
             ),
             task=dict(
-                _cls=Speech2TextCTCTask,
+                CLS=Speech2TextCTCTask,
                 log_metrics=[
                     "wer",
                     "cer",
@@ -96,7 +96,7 @@ class SuperbSF(SuperbProblem):
     @default_cfg(
         **SuperbProblem.train.default_except(
             optimizer=dict(
-                _cls="torch.optim.Adam",
+                CLS="torch.optim.Adam",
                 lr=1.0e-4,
             ),
             trainer=dict(

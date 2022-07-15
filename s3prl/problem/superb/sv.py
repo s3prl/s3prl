@@ -38,46 +38,46 @@ class SuperbSV(SuperbProblem):
     @default_cfg(
         **SuperbProblem.setup.default_except(
             corpus=dict(
-                _cls=voxceleb1_for_sv,
+                CLS=voxceleb1_for_sv,
                 dataset_root="???",
             ),
             train_datapipe={
                 "0": dict(
-                    _cls=SpeakerVerificationPipe,
+                    CLS=SpeakerVerificationPipe,
                     random_crop_secs=8.0,
                     sox_effects=EFFECTS,
                 ),
             },
             train_sampler=dict(
-                _cls=FixedBatchSizeBatchSampler,
+                CLS=FixedBatchSizeBatchSampler,
                 batch_size=10,
                 shuffle=True,
             ),
             valid_datapipe={
                 "0": dict(
-                    _cls=SpeakerVerificationPipe,
+                    CLS=SpeakerVerificationPipe,
                     sox_effects=EFFECTS,
                 ),
             },
             valid_sampler=dict(
-                _cls=FixedBatchSizeBatchSampler,
+                CLS=FixedBatchSizeBatchSampler,
                 batch_size=1,
             ),
             test_datapipe={
                 "0": dict(
-                    _cls=SpeakerVerificationPipe,
+                    CLS=SpeakerVerificationPipe,
                     sox_effects=EFFECTS,
                 ),
             },
             test_sampler=dict(
-                _cls=FixedBatchSizeBatchSampler,
+                CLS=FixedBatchSizeBatchSampler,
                 batch_size=1,
             ),
             downstream=dict(
-                _cls=SuperbXvector,
+                CLS=SuperbXvector,
             ),
             task=dict(
-                _cls=SpeakerVerification,
+                CLS=SpeakerVerification,
                 loss_type="amsoftmax",
                 loss_cfg=dict(
                     margin=0.4,
@@ -96,7 +96,7 @@ class SuperbSV(SuperbProblem):
     @default_cfg(
         **SuperbProblem.train.default_except(
             optimizer=dict(
-                _cls="torch.optim.AdamW",
+                CLS="torch.optim.AdamW",
                 lr=1.0e-4,
             ),
             trainer=dict(

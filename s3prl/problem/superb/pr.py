@@ -12,42 +12,42 @@ class SuperbPR(SuperbProblem):
     @default_cfg(
         **SuperbProblem.setup.default_except(
             corpus=dict(
-                _cls=librispeech_for_speech2text,
+                CLS=librispeech_for_speech2text,
                 dataset_root="???",
             ),
             train_datapipe={
                 "0": dict(
-                    _cls=Speech2PhonemePipe,
+                    CLS=Speech2PhonemePipe,
                 ),
             },
             train_sampler=dict(
-                _cls=SortedSliceSampler,
+                CLS=SortedSliceSampler,
                 batch_size=16,
                 max_length=300000,
             ),
             valid_datapipe={
                 "0": dict(
-                    _cls=Speech2PhonemePipe,
+                    CLS=Speech2PhonemePipe,
                 ),
             },
             valid_sampler=dict(
-                _cls=FixedBatchSizeBatchSampler,
+                CLS=FixedBatchSizeBatchSampler,
                 batch_size=8,
             ),
             test_datapipe={
                 "0": dict(
-                    _cls=Speech2PhonemePipe,
+                    CLS=Speech2PhonemePipe,
                 ),
             },
             test_sampler=dict(
-                _cls=FixedBatchSizeBatchSampler,
+                CLS=FixedBatchSizeBatchSampler,
                 batch_size=8,
             ),
             downstream=dict(
-                _cls=FrameLevelLinear,
+                CLS=FrameLevelLinear,
             ),
             task=dict(
-                _cls=Speech2TextCTCTask,
+                CLS=Speech2TextCTCTask,
                 log_metrics=["per"],
             ),
         )
@@ -59,7 +59,7 @@ class SuperbPR(SuperbProblem):
     @default_cfg(
         **SuperbProblem.train.default_except(
             optimizer=dict(
-                _cls="torch.optim.Adam",
+                CLS="torch.optim.Adam",
                 lr=1.0e-2,
             ),
             trainer=dict(

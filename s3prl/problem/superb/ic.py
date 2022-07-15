@@ -22,44 +22,44 @@ class SuperbIC(SuperbProblem):
     @default_cfg(
         **SuperbProblem.setup.default_except(
             corpus=dict(
-                _cls=fsc_for_multiple_classfication,
+                CLS=fsc_for_multiple_classfication,
                 dataset_root="???",
             ),
             train_datapipe={
                 "0": dict(
-                    _cls=UtteranceMultipleCategoryClassificationPipe,
+                    CLS=UtteranceMultipleCategoryClassificationPipe,
                     train_category_encoder=True,
                 ),
             },
             train_sampler=dict(
-                _cls=FixedBatchSizeBatchSampler,
+                CLS=FixedBatchSizeBatchSampler,
                 batch_size=32,
                 shuffle=True,
             ),
             valid_datapipe={
                 "0": dict(
-                    _cls=UtteranceMultipleCategoryClassificationPipe,
+                    CLS=UtteranceMultipleCategoryClassificationPipe,
                 ),
             },
             valid_sampler=dict(
-                _cls=FixedBatchSizeBatchSampler,
+                CLS=FixedBatchSizeBatchSampler,
                 batch_size=32,
             ),
             test_datapipe={
                 "0": dict(
-                    _cls=UtteranceMultipleCategoryClassificationPipe,
+                    CLS=UtteranceMultipleCategoryClassificationPipe,
                 ),
             },
             test_sampler=dict(
-                _cls=FixedBatchSizeBatchSampler,
+                CLS=FixedBatchSizeBatchSampler,
                 batch_size=32,
             ),
             downstream=dict(
-                _cls=MeanPoolingLinear,
+                CLS=MeanPoolingLinear,
                 hidden_size=256,
             ),
             task=dict(
-                _cls=UtteranceMultiClassClassificationTask,
+                CLS=UtteranceMultiClassClassificationTask,
             ),
         )
     )
@@ -73,7 +73,7 @@ class SuperbIC(SuperbProblem):
     @default_cfg(
         **SuperbProblem.train.default_except(
             optimizer=dict(
-                _cls="torch.optim.Adam",
+                CLS="torch.optim.Adam",
                 lr=1.0e-4,
             ),
             trainer=dict(
