@@ -159,6 +159,7 @@ class UpstreamDriver(NNModule):
         super().__init__()
         cfg = cfg or dict()
         self.upstream = cls(**cfg)
+        self.freeze_upstream = freeze_upstream
         self.normalize = normalize
         self.weighted_sum = weighted_sum
         self.layer_selections = layer_selections
@@ -205,6 +206,9 @@ class UpstreamDriver(NNModule):
             x (torch.FloatTensor): (batch_size, seq_len, 1)
             x_len (torch.LongTensor): (batch_size)
         """
+        if self.freeze_upstream:
+            self.upstream.eval()
+
         hs, h_len = self.upstream(x, x_len).slice(2)
 
         if self.normalize:
