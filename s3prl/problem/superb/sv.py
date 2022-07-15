@@ -41,34 +41,28 @@ class SuperbSV(SuperbProblem):
                 CLS=voxceleb1_for_sv,
                 dataset_root="???",
             ),
-            train_datapipe={
-                "0": dict(
-                    CLS=SpeakerVerificationPipe,
-                    random_crop_secs=8.0,
-                    sox_effects=EFFECTS,
-                ),
-            },
+            train_datapipe=dict(
+                CLS=SpeakerVerificationPipe,
+                random_crop_secs=8.0,
+                sox_effects=EFFECTS,
+            ),
             train_sampler=dict(
                 CLS=FixedBatchSizeBatchSampler,
                 batch_size=10,
                 shuffle=True,
             ),
-            valid_datapipe={
-                "0": dict(
-                    CLS=SpeakerVerificationPipe,
-                    sox_effects=EFFECTS,
-                ),
-            },
+            valid_datapipe=dict(
+                CLS=SpeakerVerificationPipe,
+                sox_effects=EFFECTS,
+            ),
             valid_sampler=dict(
                 CLS=FixedBatchSizeBatchSampler,
                 batch_size=1,
             ),
-            test_datapipe={
-                "0": dict(
-                    CLS=SpeakerVerificationPipe,
-                    sox_effects=EFFECTS,
-                ),
-            },
+            test_datapipe=dict(
+                CLS=SpeakerVerificationPipe,
+                sox_effects=EFFECTS,
+            ),
             test_sampler=dict(
                 CLS=FixedBatchSizeBatchSampler,
                 batch_size=1,

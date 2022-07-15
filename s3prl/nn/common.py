@@ -15,7 +15,7 @@ class FrameLevel(NNModule):
         output_size: int,
         hidden_sizes: List[int] = [256],
         activation: str = None,
-        **kwds,
+        **unused,
     ):
         """
         activation: ReLU
@@ -57,9 +57,9 @@ class UtteranceLevel(NNModule):
         hidden_sizes: List[int] = [256],
         activation: str = None,
         pooling_cfg: dict = dict(
-            _cls="MeanPooling",
+            CLS="MeanPooling",
         ),
-        **kwds,
+        **unused,
     ):
         super().__init__()
         pooling_cfg = pooling_cfg

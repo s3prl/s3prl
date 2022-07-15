@@ -22,34 +22,28 @@ class SuperbSF(SuperbProblem):
                 CLS=snips_for_speech2text,
                 dataset_root="???",
             ),
-            train_datapipe={
-                "0": dict(
-                    CLS=Speech2TextPipe,
-                    generate_tokenizer=True,
-                    vocab_type="character-slot",
-                    vocab_file=_urls_to_filepaths(VOCAB_URL),
-                    slots_file=_urls_to_filepaths(SLOTS_URL),
-                ),
-            },
+            train_datapipe=dict(
+                CLS=Speech2TextPipe,
+                generate_tokenizer=True,
+                vocab_type="character-slot",
+                vocab_file=_urls_to_filepaths(VOCAB_URL),
+                slots_file=_urls_to_filepaths(SLOTS_URL),
+            ),
             train_sampler=dict(
                 CLS=FixedBatchSizeBatchSampler,
                 batch_size=32,
                 shuffle=True,
             ),
-            valid_datapipe={
-                "0": dict(
-                    CLS=Speech2TextPipe,
-                )
-            },
+            valid_datapipe=dict(
+                CLS=Speech2TextPipe,
+            ),
             valid_sampler=dict(
                 CLS=FixedBatchSizeBatchSampler,
                 batch_size=1,
             ),
-            test_datapipe={
-                "0": dict(
-                    CLS=Speech2TextPipe,
-                )
-            },
+            test_datapipe=dict(
+                CLS=Speech2TextPipe,
+            ),
             test_sampler=dict(
                 CLS=FixedBatchSizeBatchSampler,
                 batch_size=1,

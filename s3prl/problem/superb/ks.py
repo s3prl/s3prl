@@ -18,33 +18,27 @@ class SuperbKS(SuperbProblem):
                 CLS=gsc_v1_for_superb,
                 dataset_root="???",
             ),
-            train_datapipe={
-                "0": dict(
-                    CLS=UtteranceClassificationPipe,
-                    train_category_encoder=True,
-                    sox_effects=EFFECTS,
-                ),
-            },
+            train_datapipe=dict(
+                CLS=UtteranceClassificationPipe,
+                train_category_encoder=True,
+                sox_effects=EFFECTS,
+            ),
             train_sampler=dict(
                 CLS=BalancedWeightedSampler,
                 batch_size=32,
             ),
-            valid_datapipe={
-                "0": dict(
-                    CLS=UtteranceClassificationPipe,
-                    sox_effects=EFFECTS,
-                ),
-            },
+            valid_datapipe=dict(
+                CLS=UtteranceClassificationPipe,
+                sox_effects=EFFECTS,
+            ),
             valid_sampler=dict(
                 CLS=BalancedWeightedSampler,
                 batch_size=32,
             ),
-            test_datapipe={
-                "0": dict(
-                    CLS=UtteranceClassificationPipe,
-                    sox_effects=EFFECTS,
-                ),
-            },
+            test_datapipe=dict(
+                CLS=UtteranceClassificationPipe,
+                sox_effects=EFFECTS,
+            ),
             test_sampler=dict(
                 CLS=FixedBatchSizeBatchSampler,
                 batch_size=32,

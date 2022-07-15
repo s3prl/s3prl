@@ -43,9 +43,12 @@ def parse_overrides(options: list):
     """
     Example usgae:
         [
-            "optimizer.lr=1.0e-3",
-            "optimizer.name=AdamW",
-            "runner.eval_dataloaders=['dev', 'test']",
+            "--optimizer.lr",
+            "1.0e-3",
+            "--optimizer.name",
+            "AdamW",
+            "--runner.eval_dataloaders",
+            "['dev', 'test']",
         ]
 
     Convert to:
@@ -57,10 +60,11 @@ def parse_overrides(options: list):
     from s3prl import Container, newdict
 
     config = {}
-    for option in options:
-        option: str = option.strip()
-        assert "=" in option, f"Invalid option: {option}"
-        key, value_str = option.split("=", maxsplit=1)
+    for position in range(0, len(options), 2):
+        key: str = options[position]
+        assert key.startswith("--")
+        key = key.strip("--")
+        value_str: str = options[position + 1]
         key, value_str = key.strip(), value_str.strip()
         remaining = key.split(".")
 

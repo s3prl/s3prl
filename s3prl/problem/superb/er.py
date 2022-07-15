@@ -31,31 +31,25 @@ class SuperbER(SuperbProblem):
                     "The other sessions will be used for training and validation.",
                 ),
             ),
-            train_datapipe={
-                "0": dict(
-                    CLS=UtteranceClassificationPipe,
-                    train_category_encoder=True,
-                ),
-            },
+            train_datapipe=dict(
+                CLS=UtteranceClassificationPipe,
+                train_category_encoder=True,
+            ),
             train_sampler=dict(
                 CLS=FixedBatchSizeBatchSampler,
                 batch_size=4,
                 shuffle=True,
             ),
-            valid_datapipe={
-                "0": dict(
-                    CLS=UtteranceClassificationPipe,
-                ),
-            },
+            valid_datapipe=dict(
+                CLS=UtteranceClassificationPipe,
+            ),
             valid_sampler=dict(
                 CLS=FixedBatchSizeBatchSampler,
                 batch_size=4,
             ),
-            test_datapipe={
-                "0": dict(
-                    CLS=UtteranceClassificationPipe,
-                ),
-            },
+            test_datapipe=dict(
+                CLS=UtteranceClassificationPipe,
+            ),
             test_sampler=dict(
                 CLS=FixedBatchSizeBatchSampler,
                 batch_size=4,

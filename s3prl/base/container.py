@@ -190,7 +190,7 @@ class Container(OrderedDict):
         unfilleds = self.list_unfilled_fields()
         override = []
         for field in unfilleds:
-            override.append(f"{field}={__class__.UNFILLED_PATTERN}")
+            override += [f"--{field}", f"{__class__.UNFILLED_PATTERN}"]
         override_dict = __class__(parse_overrides(override))
         override_dict.update(self, True, False)
         return override_dict
@@ -216,17 +216,8 @@ class Container(OrderedDict):
 
     def kwds(self):
         new_copy = self.clone()
-        self._no_underscore(new_copy)
+        self._no_cls(new_copy)
         return new_copy
-
-    def tolist(self):
-        """
-        Each key is a float, return the sorted (by float) values
-        """
-        keys = self.keys()
-        keys = [int(key) for key in keys]
-        keys.sort(key=lambda x: x)
-        return [self[str(key)] for key in keys if self[str(key)] is not None]
 
     def _instantiate(self, *args, **kwds):
         new_self = deepcopy(self)
@@ -250,10 +241,10 @@ class Container(OrderedDict):
         return self._instantiate(*args, **kwds)
 
     @classmethod
-    def _no_underscore(cls, obj):
+    def _no_cls(cls, obj):
         if isinstance(obj, dict):
             for key in list(obj.keys()):
-                if key.startswith("_"):
+                if key in cls.QUALNAME_PATTERNS:
                     obj.pop(key)
 
     def cls_fields(self, holder: list = None):

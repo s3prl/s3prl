@@ -48,32 +48,26 @@ class SuperbSID(SuperbProblem):
                 CLS=voxceleb1_for_utt_classification,
                 dataset_root="???",
             ),
-            train_datapipe={
-                "0": dict(
-                    CLS=SuperbSIDTrainPipe,
-                    train_category_encoder=True,
-                    max_secs=8.0,
-                ),
-            },
+            train_datapipe=dict(
+                CLS=SuperbSIDTrainPipe,
+                train_category_encoder=True,
+                max_secs=8.0,
+            ),
             train_sampler=dict(
                 CLS=FixedBatchSizeBatchSampler,
                 batch_size=8,
                 shuffle=True,
             ),
-            valid_datapipe={
-                "0": dict(
-                    CLS=UtteranceClassificationPipe,
-                )
-            },
+            valid_datapipe=dict(
+                CLS=UtteranceClassificationPipe,
+            ),
             valid_sampler=dict(
                 CLS=FixedBatchSizeBatchSampler,
                 batch_size=1,
             ),
-            test_datapipe={
-                "0": dict(
-                    CLS=UtteranceClassificationPipe,
-                )
-            },
+            test_datapipe=dict(
+                CLS=UtteranceClassificationPipe,
+            ),
             test_sampler=dict(
                 CLS=FixedBatchSizeBatchSampler,
                 batch_size=1,

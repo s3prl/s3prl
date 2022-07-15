@@ -32,15 +32,13 @@ class SuperbProblem(Problem, Trainer):
             ),
             dataset_root=field("???", "The root path of the corpus", str),
         ),
-        train_datapipe={
-            "0": dict(
-                CLS=field(
-                    "???",
-                    "\nThe first datapipe class to be applied to the corpus. You can add the **kwargs right below this CLS key",
-                    str,
-                ),
-            )
-        },
+        train_datapipe=dict(
+            CLS=field(
+                "???",
+                "\nThe first datapipe class to be applied to the corpus. You can add the **kwargs right below this CLS key",
+                str,
+            ),
+        ),
         train_sampler=dict(
             CLS=field(
                 "???",
@@ -48,15 +46,13 @@ class SuperbProblem(Problem, Trainer):
                 str,
             ),
         ),
-        valid_datapipe={
-            "0": dict(
-                CLS=field(
-                    "???",
-                    "\nThe first datapipe class to be applied to the corpus. You can add the **kwargs right below this CLS key",
-                    str,
-                ),
-            )
-        },
+        valid_datapipe=dict(
+            CLS=field(
+                "???",
+                "\nThe first datapipe class to be applied to the corpus. You can add the **kwargs right below this CLS key",
+                str,
+            ),
+        ),
         valid_sampler=dict(
             CLS=field(
                 "???",
@@ -64,15 +60,13 @@ class SuperbProblem(Problem, Trainer):
                 str,
             ),
         ),
-        test_datapipe={
-            "0": dict(
-                CLS=field(
-                    "???",
-                    "\nThe first datapipe class to be applied to the corpus. You can add the **kwargs right below this CLS key",
-                    str,
-                ),
-            )
-        },
+        test_datapipe=dict(
+            CLS=field(
+                "???",
+                "\nThe first datapipe class to be applied to the corpus. You can add the **kwargs right below this CLS key",
+                str,
+            ),
+        ),
         test_sampler=dict(
             CLS=field(
                 "???",
@@ -141,22 +135,16 @@ class SuperbProblem(Problem, Trainer):
         stats.add(corpus_stats)
 
         logger.info("Preparing train data")
-        train_dataset = SequentialDataPipe(*cfg.train_datapipe.tolist(), **stats)(
-            train_data, **stats
-        )
+        train_dataset = cfg.train_datapipe(**stats)(train_data, **stats)
         train_sampler = cfg.train_sampler(train_dataset)
         stats.add(train_dataset.all_tools())
 
         logger.info("Preparing valid data")
-        valid_dataset = SequentialDataPipe(*cfg.valid_datapipe.tolist(), **stats)(
-            valid_data, **stats
-        )
+        valid_dataset = cfg.valid_datapipe(**stats)(valid_data, **stats)
         valid_sampler = cfg.valid_sampler(valid_dataset)
 
         logger.info("Preparing test data")
-        test_dataset = SequentialDataPipe(*cfg.test_datapipe.tolist(), **stats)(
-            test_data, **stats
-        )
+        test_dataset = cfg.test_datapipe(**stats)(test_data, **stats)
         test_sampler = cfg.test_sampler(test_dataset)
 
         logger.info("Preparing model and task")

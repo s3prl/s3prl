@@ -24,13 +24,15 @@ class ModelWithSpecaug(NNModule):
         output_size: int,
         model_cfg: dict,
         specaug_cfg: dict = None,
-        **kwds,
+        **unused,
     ) -> None:
         super().__init__()
-        self.specaug = SpecAug(**(specaug_cfg or dict()))
-        model_cfg = Container(model_cfg)
-        model_cfg.override(dict(input_size=input_size, output_size=output_size))
-        self.model = model_cfg._cls(**model_cfg.kwds())
+        specaug_cfg = Container(specaug_cfg or dict())
+        if not "CLS" in specaug_cfg:
+            specaug_cfg["CLS"] = SpecAug
+
+        self.specaug = specaug_cfg()
+        self.model = Container(model_cfg)(input_size=input_size, output_size=output_size)
 
     @property
     def input_size(self):

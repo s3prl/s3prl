@@ -199,6 +199,8 @@ class _CallableWithDefaultConfig(_CallableWithConfig):
         if isinstance(self._caller, classmethod):
             setattr(owner, name, classmethod(self))
 
+        registry.put(self.__qualname__)(getattr(owner, name))
+
         default_cfg = self.default_cfg.clone()
         stage_cfgs = []
         for key in default_cfg.keys():
@@ -286,7 +288,8 @@ def default_cfg(**cfg):
 
     def wrapper(caller):
         wrapped_caller = _CallableWithDefaultConfig(caller, cfg)
-        registry.put(wrapped_caller.__qualname__)(wrapped_caller)
+        if len(wrapped_caller.__qualname__.split(".")) == 1:
+            registry.put(wrapped_caller.__qualname__)(wrapped_caller)
         return wrapped_caller
 
     return wrapper

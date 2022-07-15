@@ -16,32 +16,26 @@ class SuperbASR(SuperbProblem):
                 CLS=librispeech_for_speech2text,
                 dataset_root="???",
             ),
-            train_datapipe={
-                "0": dict(
-                    CLS=Speech2TextPipe,
-                    generate_tokenizer=True,
-                ),
-            },
+            train_datapipe=dict(
+                CLS=Speech2TextPipe,
+                generate_tokenizer=True,
+            ),
             train_sampler=dict(
                 CLS=SortedBucketingSampler,
                 batch_size=32,
                 max_length=2000,  # due to this tiny max_length, the effective batch_size is always 16
                 shuffle=True,
             ),
-            valid_datapipe={
-                "0": dict(
-                    CLS=Speech2TextPipe,
-                )
-            },
+            valid_datapipe=dict(
+                CLS=Speech2TextPipe,
+            ),
             valid_sampler=dict(
                 CLS=FixedBatchSizeBatchSampler,
                 batch_size=1,
             ),
-            test_datapipe={
-                "0": dict(
-                    CLS=Speech2TextPipe,
-                )
-            },
+            test_datapipe=dict(
+                CLS=Speech2TextPipe,
+            ),
             test_sampler=dict(
                 CLS=FixedBatchSizeBatchSampler,
                 batch_size=1,

@@ -25,31 +25,25 @@ class SuperbIC(SuperbProblem):
                 CLS=fsc_for_multiple_classfication,
                 dataset_root="???",
             ),
-            train_datapipe={
-                "0": dict(
-                    CLS=UtteranceMultipleCategoryClassificationPipe,
-                    train_category_encoder=True,
-                ),
-            },
+            train_datapipe=dict(
+                CLS=UtteranceMultipleCategoryClassificationPipe,
+                train_category_encoder=True,
+            ),
             train_sampler=dict(
                 CLS=FixedBatchSizeBatchSampler,
                 batch_size=32,
                 shuffle=True,
             ),
-            valid_datapipe={
-                "0": dict(
-                    CLS=UtteranceMultipleCategoryClassificationPipe,
-                ),
-            },
+            valid_datapipe=dict(
+                CLS=UtteranceMultipleCategoryClassificationPipe,
+            ),
             valid_sampler=dict(
                 CLS=FixedBatchSizeBatchSampler,
                 batch_size=32,
             ),
-            test_datapipe={
-                "0": dict(
-                    CLS=UtteranceMultipleCategoryClassificationPipe,
-                ),
-            },
+            test_datapipe=dict(
+                CLS=UtteranceMultipleCategoryClassificationPipe,
+            ),
             test_sampler=dict(
                 CLS=FixedBatchSizeBatchSampler,
                 batch_size=32,

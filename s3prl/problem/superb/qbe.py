@@ -72,16 +72,14 @@ class SuperbQBE(SuperbProblem):
             CLS=quesst14_for_qbe,
             dataset_root="???",
         ),
-        all_datapipe={
-            "0": dict(
-                CLS=QbeDumpFeaturePipe,
-                sox_effects=[
-                    ["channels", "1"],
-                    ["rate", "16000"],
-                    ["gain", "-3.0"],
-                ],
-            ),
-        },
+        all_datapipe=dict(
+            CLS=QbeDumpFeaturePipe,
+            sox_effects=[
+                ["channels", "1"],
+                ["rate", "16000"],
+                ["gain", "-3.0"],
+            ],
+        ),
         all_sampler=dict(
             CLS=FixedBatchSizeBatchSampler,
             batch_size=1,
