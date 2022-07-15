@@ -5,7 +5,7 @@ import torch.nn as nn
 from s3prl import Container, field
 from s3prl.base import Logs
 from s3prl.dataset.base import SequentialDataPipe
-from s3prl.nn import S3PRLUpstream, UpstreamDriver, UpstreamDownstreamModel
+from s3prl.nn import S3PRLUpstreamDriver, UpstreamDownstreamModel
 from s3prl.problem.base import Problem
 from s3prl.problem.trainer import Trainer
 from s3prl.util import workspace
@@ -82,18 +82,12 @@ class SuperbProblem(Problem, Trainer):
         ),
         upstream=dict(
             _cls=field(
-                UpstreamDriver,
+                S3PRLUpstreamDriver,
                 "\nThe class of the upstream model following the specific interface. You can add the **kwargs right below this _cls key",
                 str,
             ),
-            cls=field(S3PRLUpstream, "The callable to create the upstream model"),
-            cfg=field(
-                dict(
-                    name="???",
-                    feature_selection="hidden_states",
-                ),
-                "The **kwds for the cls callable for the upstream model",
-            ),
+            name="???",
+            feature_selection="hidden_states",
             freeze_upstream=field(
                 True,
                 "Set the entire upstream model's requires_grad to False, or else, leave it alone",

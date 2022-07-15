@@ -224,6 +224,33 @@ class UpstreamDriver(NNModule):
         return Output(output=y, output_len=h_len)
 
 
+class S3PRLUpstreamDriver(UpstreamDriver):
+    def __init__(
+        self,
+        name: str,
+        feature_selection: str = "hidden_states",
+        layer_drop: Union[str, float] = 0.0,
+        refresh: bool = False,
+        freeze_upstream: bool = True,
+        normalize: bool = False,
+        weighted_sum: bool = True,
+        layer_selections: List[int] = None,
+    ):
+        super().__init__(
+            S3PRLUpstream,
+            dict(
+                name=name,
+                feature_selection=feature_selection,
+                layer_drop=layer_drop,
+                refresh=refresh,
+            ),
+            freeze_upstream,
+            normalize,
+            weighted_sum,
+            layer_selections,
+        )
+
+
 def _deterministic_num_layers(get_layer_output_sizes: callable):
     num_hidden_states = []
     for _ in range(CHECK_ITERATION):
