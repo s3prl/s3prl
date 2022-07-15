@@ -26,7 +26,7 @@ class VoxCeleb1SV(Corpus):
         self.categories = speakerid2label
         self.train_data = self.path2data(train_path, speakerid2label)
         self.valid_data = self.path2data(valid_path, speakerid2label)
-        self.test_data = {uid: {"wav_path": uid, "label": None} for uid in test_path}
+        self.test_data = {self.path2uid(path): {"wav_path": path, "label": None} for path in test_path}
         self.test_trials = self.format_test_trials()
 
     @classmethod

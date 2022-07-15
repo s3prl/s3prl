@@ -141,8 +141,6 @@ class SuperbSV(SuperbProblem):
     @classmethod
     def inference(cls, **cfg):
         cfg = Container(cfg)
-        if cfg.dryrun:
-            cfg.override(cls.INFERENCE_DRYRUN_CONFIG)
 
         workspace = Workspace(cfg.workspace)
         dataset = workspace[f"{cfg.split_name}_dataset"]
