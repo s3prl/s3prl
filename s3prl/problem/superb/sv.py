@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import logging
 
+import torch
 import torch.nn as nn
 from tqdm import tqdm
 
@@ -147,25 +148,32 @@ class SuperbSV(SuperbProblem):
         sampler = workspace[f"{cfg.split_name}_sampler"]
         dataloader = DataLoader(dataset, sampler, num_workers=cfg.n_jobs)
 
-        for step in cfg.inference_steps:
+        with torch.no_grad():
+            all_eers = []
+            for step in cfg.inference_steps:
+                step_dir = workspace / f"step-{step}"
+                task = step_dir["task"]
+                task = task.to(cfg.device)
+                task.eval()
 
-            step_dir = workspace / f"step-{step}"
-            task = step_dir["task"]
-            task = task.to(cfg.device)
+                test_results = []
+                for batch_idx, batch in enumerate(
+                    tqdm(dataloader, desc="Test", total=len(dataloader))
+                ):
+                    batch = batch.to(cfg.device)
+                    result = task.test_step(**batch)
+                    test_results.append(result.cacheable())
 
-            test_results = []
-            for batch_idx, batch in enumerate(
-                tqdm(dataloader, desc="Test", total=len(dataloader))
-            ):
-                batch = batch.to(cfg.device)
-                result = task.test_step(**batch)
-                test_results.append(result.cacheable())
+                logs: Logs = task.test_reduction(test_results).logs
+                logger.info(f"Step {step}")
 
-            logs: Logs = task.test_reduction(test_results).logs
-            logger.info(f"Step {step}")
+                metrics = {key: value for key, value in logs.scalars()}
+                step_dir.pur(metrics, "test_metrics", "yaml")
+                for key, value in metrics.items():
+                    logger.info(f"{key}: {value}")
+                all_eers.append(metrics["EER"])
 
-            for key in logs.keys():
-                logger.info(f"{key}: {logs[key].data}")
+            workspace.put({"minEER": min(all_eers)}, "test_metrics", "yaml")
 
     @default_cfg(
         **SuperbProblem.run_stages.default_except(

@@ -399,11 +399,9 @@ class Trainer:
                 batch = batch.to(device)
                 task.eval()
                 result = task(split_name, **batch, workspace=eval_workspace)
-                # result = task.valid_step(**batch)
                 batch_results.append(result.cacheable())
 
         logs = task.reduction(split_name, batch_results, workspace=eval_workspace).logs
-        # logs = task.valid_reduction(batch_results).logs
         return logs
 
     @default_cfg(
