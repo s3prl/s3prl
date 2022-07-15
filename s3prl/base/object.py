@@ -1,8 +1,8 @@
 import logging
 
 from s3prl.base.argument import Argument
-from s3prl.util import registry
 
+from . import registry
 from .checkpoint import Checkpoint
 
 logger = logging.getLogger(__name__)

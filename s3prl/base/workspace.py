@@ -11,8 +11,8 @@ from typing import Any, Union
 
 import yaml
 
-from s3prl.base.container import Container, field
-from s3prl.util.checkpoint import as_type, load, save
+from .container import Container, field
+from .fileio import as_type, load, save
 
 logger = logging.getLogger(__name__)
 

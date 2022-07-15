@@ -6,8 +6,9 @@ import importlib
 
 import torch
 import torch.distributed as dist
+
+from s3prl.base import registry
 from s3prl.util.override import parse_overrides
-from s3prl.problem.base import all_problems
 
 logger = logging.getLogger(__name__)
 LOGGING_FORMAT = "%(levelname)s | %(asctime)s | %(module)s:%(lineno)d | %(message)s"
@@ -18,12 +19,6 @@ def main():
     parser.add_argument(
         "qualname",
         help="The qualname of the function to use as a binary tool",
-    )
-    parser.add_argument(
-        "-m",
-        "--module",
-        help="The module of the qualname. "
-        "If not given, find the qualname object from the problem package.",
     )
     parser.add_argument(
         "--local_rank",
@@ -42,21 +37,12 @@ def main():
     root_logger.handlers = []
     logging.basicConfig(level=getattr(logging, args.verbose), format=LOGGING_FORMAT)
 
-    if args.module is not None:
-        module = importlib.import_module(args.module)
-        target = module
-        for name in args.qualname.split("."):
-            target = getattr(target, name)
-    else:
-        classname, stepname = args.qualname.split(".")
-        cls = all_problems[classname]
-        target = getattr(cls, stepname)
-
+    func = registry.get(args.qualname)
     cfg = parse_overrides(cfg)
 
     if args.usage:
-        print(f"Documentation of {target.__module__}.{target.__qualname__}\n\n")
-        print(target.__doc__)
+        print(f"Documentation of {func.__module__}.{func.__qualname__}\n\n")
+        print(func.__doc__)
         return
 
     if args.refresh and "workspace" in cfg:
@@ -64,7 +50,7 @@ def main():
 
     local_rank = os.environ.get("LOCAL_RANK") or args.local_rank
     if local_rank is None:
-        target(**cfg)
+        func(**cfg)
     else:
         # When torch.distributed.launch is used
         torch.distributed.init_process_group("nccl")
@@ -72,7 +58,7 @@ def main():
         cfg["device"] = f"cuda:{local_rank}"
         cfg["rank"] = dist.get_rank()
         cfg["world_size"] = dist.get_world_size()
-        target(**cfg)
+        func(**cfg)
 
 
 if __name__ == "__main__":

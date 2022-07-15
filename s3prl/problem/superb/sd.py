@@ -101,31 +101,25 @@ class SuperbSD(SuperbProblem):
                 CLS=kaldi_for_multiclass_tagging,
                 dataset_root="???",
             ),
-            train_datapipe={
-                "0": dict(
-                    CLS=SuperbSDDatapipe,
-                    train_category_encoder=True,
-                ),
-            },
+            train_datapipe=dict(
+                CLS=SuperbSDDatapipe,
+                train_category_encoder=True,
+            ),
             train_sampler=dict(
                 CLS=FixedBatchSizeBatchSampler,
                 batch_size=8,
                 shuffle=True,
             ),
-            valid_datapipe={
-                "0": dict(
-                    CLS=SuperbSDDatapipe,
-                ),
-            },
+            valid_datapipe=dict(
+                CLS=SuperbSDDatapipe,
+            ),
             valid_sampler=dict(
                 CLS=FixedBatchSizeBatchSampler,
                 batch_size=1,
             ),
-            test_datapipe={
-                "0": dict(
-                    CLS=SuperbSDDatapipe,
-                ),
-            },
+            test_datapipe=dict(
+                CLS=SuperbSDDatapipe,
+            ),
             test_sampler=dict(
                 CLS=GroupSameItemSampler,
                 item_name="unchunked_id",

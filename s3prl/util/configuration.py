@@ -24,8 +24,7 @@ import logging
 import re
 from typing import Any, Callable
 
-from s3prl import Container, field
-from s3prl.base.container import _qualname_to_cls
+from s3prl.base.container import _qualname_to_cls, Container, field
 from s3prl.util import registry
 from s3prl.util.doc import _longestCommonPrefix
 
@@ -124,9 +123,7 @@ class _CallableWithConfig:
         all_cfg.override(cfg)
 
         if "workspace" in all_cfg:
-            assert (
-                cfg.workspace != cfg.UNFILLED_PATTERN
-            ), "You should fill the 'workspace' field"
+            assert "workspace" in cfg, "You should fill the 'workspace' field"
             workspace = Workspace(cfg.workspace)
 
             saved_cfg = workspace.get_cfg(self)
@@ -289,6 +286,7 @@ def default_cfg(**cfg):
 
     def wrapper(caller):
         wrapped_caller = _CallableWithDefaultConfig(caller, cfg)
+        registry.put(wrapped_caller.__qualname__)(wrapped_caller)
         return wrapped_caller
 
     return wrapper

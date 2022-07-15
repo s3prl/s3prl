@@ -11,9 +11,6 @@ from typing import Any, Callable, List, Union
 import torch
 import yaml
 
-from s3prl.util import registry
-from s3prl.util.override import parse_overrides
-
 logger = logging.getLogger(__name__)
 
 
@@ -188,6 +185,8 @@ class Container(OrderedDict):
             )
 
     def unfilled_fields(self):
+        from s3prl.util.override import parse_overrides
+
         unfilleds = self.list_unfilled_fields()
         override = []
         for field in unfilleds:
@@ -339,6 +338,8 @@ class Container(OrderedDict):
 
     @staticmethod
     def deserialize_cls(key):
+        from s3prl.util import registry
+
         if key == __class__.UNFILLED_PATTERN:
             return key
 
@@ -355,6 +356,8 @@ class Container(OrderedDict):
 
     @staticmethod
     def serialize_cls(cls):
+        from s3prl.util import registry
+
         key = cls
         try:
             if registry.contains(cls):
