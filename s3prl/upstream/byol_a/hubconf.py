@@ -6,14 +6,10 @@
 #   Copyright    [ Copyleft(c), Speech Lab, NTU, Taiwan ]
 """*********************************************************************************************"""
 
-
-###############
-# IMPORTATION #
-###############
 import os
-import torch
-#-------------#
+
 from s3prl.util.download import _urls_to_filepaths
+
 from .expert import UpstreamExpert as _UpstreamExpert
 
 # FIXME (Leo): These are wrong according to the original author
@@ -55,16 +51,20 @@ from .expert import UpstreamExpert as _UpstreamExpert
 
 # def byol_a_1024(refresh=False, *args, **kwargs):
 #     """
-#             refresh (bool): whether to download ckpt/config again if existed
+#     refresh (bool): whether to download ckpt/config again if existed
 #     """
-#     kwargs['ckpt'] = 'https://github.com/nttcslab/byol-a/raw/master/pretrained_weights/AudioNTT2020-BYOLA-64x96d1024.pth'
+#     kwargs[
+        "ckpt"
+    ] = "https://github.com/nttcslab/byol-a/raw/master/pretrained_weights/AudioNTT2020-BYOLA-64x96d1024.pth"
 #     return byol_a_url(refresh=refresh, *args, **kwargs)
 
 
 # def byol_a_512(refresh=False, *args, **kwargs):
 #     """
-#             refresh (bool): whether to download ckpt/config again if existed
+#     refresh (bool): whether to download ckpt/config again if existed
 #     """
-#     kwargs['ckpt'] = 'https://github.com/nttcslab/byol-a/raw/master/pretrained_weights/AudioNTT2020-BYOLA-64x96d512.pth'
+#     kwargs[
+        "ckpt"
+    ] = "https://github.com/nttcslab/byol-a/raw/master/pretrained_weights/AudioNTT2020-BYOLA-64x96d512.pth"
 #     return byol_a_url(refresh=refresh, *args, **kwargs)
 

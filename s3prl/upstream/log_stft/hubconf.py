@@ -1,10 +1,5 @@
-# -*- coding: utf-8 -*- #
-
-###############
-# IMPORTATION #
-###############
 import os
-#-------------#
+
 from .expert import UpstreamExpert as _UpstreamExpert
 
 

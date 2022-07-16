@@ -9,13 +9,10 @@
 """*********************************************************************************************"""
 
 
-###############
-# IMPORTATION #
-###############
 import os
 
-# -------------#
 from s3prl.util.download import _urls_to_filepaths
+
 from .expert import UpstreamExpert as _UpstreamExpert
 
 

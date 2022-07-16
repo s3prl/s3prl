@@ -1,7 +1,17 @@
+_available_options = []
+
+
+def available_options():
+    return _available_options.copy()
+
+
 def _get_hubconf_entries():
     import os
+    import logging
     import pathlib
     import importlib
+
+    logger = logging.getLogger(__name__)
 
     _search_root = pathlib.Path(__file__).parent
     _hubconfs = list(_search_root.glob("upstream/*/hubconf.py"))
@@ -15,16 +25,19 @@ def _get_hubconf_entries():
 
         except ModuleNotFoundError as e:
             if "pase" in _module_name:
-                # pase is not installed by default. See upstream/pase/README.md
+                full_package = f"{__package__}{_module_name}"
+                logger.warning(
+                    f"Can not import {full_package}: {str(e)}. Please see {relpath.parent / 'README.md'}"
+                )
                 continue
-
-            full_package = f"{__package__}{_module_name}"
-            print(f'[{__name__}] Warning: can not import {full_package}: {str(e)}. Please see {relpath.parent / "README.md"}')
-            continue
+            raise
 
         for variable_name in dir(_module):
             _variable = getattr(_module, variable_name)
-            if callable(_variable) and variable_name[0] != '_':
+            if callable(_variable) and variable_name[0] != "_":
+                global _all_options
+                _available_options.append(variable_name)
+
                 globals()[variable_name] = _variable
 
 _get_hubconf_entries()
