@@ -1,6 +1,6 @@
 from fairseq.tasks.speech_to_text import SpeechToTextTask
 from fairseq.data import FairseqDataset, data_utils, ResamplingDataset, ConcatDataset
-from fairseq.data.audio.speech_to_text_dataset import SpeechToTextDataset, SpeechToTextDatasetCreator, S2TDataConfig
+from .Fairseq_SpeechToTextDataset import SpeechToTextDataset, SpeechToTextDatasetCreator, S2TDataConfig
 from typing import Dict, List, Optional, Tuple
 import torchaudio
 import torch
