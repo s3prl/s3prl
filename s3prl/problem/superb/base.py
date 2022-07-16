@@ -121,11 +121,7 @@ class SuperbProblem(Problem, Trainer):
         workspace = Workspace(cfg.workspace)
         fix_random_seeds()
 
-        if not isinstance(cfg.upstream, nn.Module):
-            upstream = cfg.upstream()
-        else:
-            upstream = cfg.upstream
-
+        upstream = cfg.upstream()
         stats = Container(
             feat_frame_shift=upstream.downsample_rate,
         )
