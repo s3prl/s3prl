@@ -92,5 +92,5 @@ class SuperbKS(SuperbProblem):
         inference=inference.default_cfg.deselect("workspace", "resume"),
     )
     @classmethod
-    def run_stages(cls, **cfg):
-        super().run_stages(**cfg)
+    def run(cls, **cfg):
+        super().run(**cfg)

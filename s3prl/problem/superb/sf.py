@@ -115,7 +115,7 @@ class SuperbSF(SuperbProblem):
         super().inference(**cfg)
 
     @default_cfg(
-        **SuperbProblem.run_stages.default_except(
+        **SuperbProblem.run.default_except(
             stages=["setup", "train", "inference"],
             start_stage="setup",
             final_stage="inference",
@@ -125,5 +125,5 @@ class SuperbSF(SuperbProblem):
         )
     )
     @classmethod
-    def run_stages(cls, **cfg):
-        super().run_stages(**cfg)
+    def run(cls, **cfg):
+        super().run(**cfg)

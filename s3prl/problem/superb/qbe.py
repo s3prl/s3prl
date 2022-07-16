@@ -222,7 +222,7 @@ class SuperbQBE(SuperbProblem):
         )
 
     @default_cfg(
-        **SuperbProblem.run_stages.default_except(
+        **SuperbProblem.run.default_except(
             stages=["setup", "inference", "dtw_for_quesst14"],
             start_stage="setup",
             final_stage="dtw_for_quesst14",
@@ -232,8 +232,8 @@ class SuperbQBE(SuperbProblem):
         )
     )
     @classmethod
-    def run_stages(cls, **cfg):
-        super().run_stages(**cfg)
+    def run(cls, **cfg):
+        super().run(**cfg)
 
     @classmethod
     def dtw(

@@ -254,7 +254,7 @@ class SuperbSD(SuperbProblem):
         workspace.put(dict(der=best_der), "test_metric", "yaml")
 
     @default_cfg(
-        **SuperbProblem.run_stages.default_except(
+        **SuperbProblem.run.default_except(
             stages=["setup", "train", "inference", "scoring"],
             start_stage="setup",
             final_stage="scoring",
@@ -265,8 +265,8 @@ class SuperbSD(SuperbProblem):
         )
     )
     @classmethod
-    def run_stages(cls, **cfg):
-        super().run_stages(**cfg)
+    def run(cls, **cfg):
+        super().run(**cfg)
 
     @default_cfg(
         dscore_dir=field("???", "The directory containing the 'dscore' repository"),

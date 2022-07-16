@@ -16,8 +16,8 @@ logger = logging.getLogger(__name__)
 class Problem:
     """
     A **Problem** is a sequence of Stage to be executed to solve a specific corpus-task pair.
-    By running the `run_stages` classmethod, you can execute a complete recipe from scratch.
-    Besides `run_stages`, there are other classmethods, and each of them is a **Stage** utility.
+    By running the `run` classmethod, you can execute a complete recipe from scratch.
+    Besides `run`, there are other classmethods, and each of them is a **Stage** utility.
 
     .. note::
 
@@ -37,14 +37,14 @@ class Problem:
         from s3prl.problem.superb.ic import SuperbIC
 
         workspace = Workspace("result/tmp")
-        SuperbIC.run_stages(workspace=workspace, resume=True)
+        SuperbIC.run(workspace=workspace, resume=True)
 
-    The Problem's `run_stages` function also support to run from a specific stage to another stage,
+    The Problem's `run` function also support to run from a specific stage to another stage,
     in case you want to resume the recipe execution from the middle.
 
     .. code-block:: python
 
-        SuperbIC.run_stages(workspace=workspace, start_stage=1, final_stage=-1)
+        SuperbIC.run(workspace=workspace, start_stage=1, final_stage=-1)
 
     You can also execute each Stage one-by-one, you can also easily access the output of each Stage
     to see the results. Given that `SuperbIC.train` will provide a `valid_best_task` key to the workspace,
@@ -125,18 +125,18 @@ class Problem:
 
         s3prl-cli s3prl.problem.superb.ic SuperbIC.setup workspace=result/tmp upstream.name=fbank corpus.dataset_root='fluent_speech_command_path'
 
-    Or, you can run all the **Stages** at once with `run_stages`.
+    Or, you can run all the **Stages** at once with `run`.
 
     .. code-block:: shell
 
-        s3prl-cli s3prl.problem.superb.ic SuperbIC.run_stages workspace=result/tmp upstream.name=fbank corpus.dataset_root='fluent_speech_command_path'
+        s3prl-cli s3prl.problem.superb.ic SuperbIC.run workspace=result/tmp upstream.name=fbank corpus.dataset_root='fluent_speech_command_path'
 
     """
 
     def __init_subclass__(cls) -> None:
         _add_doc(
             cls,
-            f".. hint::\n\n    **To run all stages at once:** :py:obj:`~{cls.run_stages.__module__}.{cls.run_stages.__qualname__}`\n",
+            f".. hint::\n\n    **To run all stages at once:** :py:obj:`~{cls.run.__module__}.{cls.run.__qualname__}`\n",
             last=False,
         )
         _add_doc(
@@ -157,7 +157,7 @@ class Problem:
         ),
     )
     @classmethod
-    def run_stages(cls, **cfg):
+    def run(cls, **cfg):
         if isinstance(cfg["start_stage"], str):
             cfg["start_stage"] = cfg["stages"].index(cfg["start_stage"])
 

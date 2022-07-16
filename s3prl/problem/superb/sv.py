@@ -170,7 +170,7 @@ class SuperbSV(SuperbProblem):
             workspace.put({"minEER": min(all_eers)}, "test_metrics", "yaml")
 
     @default_cfg(
-        **SuperbProblem.run_stages.default_except(
+        **SuperbProblem.run.default_except(
             stages=["setup", "train", "inference"],
             start_stage="setup",
             final_stage="inference",
@@ -180,5 +180,5 @@ class SuperbSV(SuperbProblem):
         )
     )
     @classmethod
-    def run_stages(cls, **cfg):
-        super().run_stages(**cfg)
+    def run(cls, **cfg):
+        super().run(**cfg)

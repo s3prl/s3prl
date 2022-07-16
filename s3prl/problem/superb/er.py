@@ -101,7 +101,7 @@ class SuperbER(SuperbProblem):
         super().inference(**cfg)
 
     @default_cfg(
-        **SuperbProblem.run_stages.default_except(
+        **SuperbProblem.run.default_except(
             stages=["setup", "train", "inference"],
             start_stage="setup",
             final_stage="inference",
@@ -111,12 +111,12 @@ class SuperbER(SuperbProblem):
         )
     )
     @classmethod
-    def run_stages(cls, **cfg):
-        super().run_stages(**cfg)
+    def run(cls, **cfg):
+        super().run(**cfg)
 
     @default_cfg(
         num_fold=field(5, "The number of folds to run cross validation", int),
-        **run_stages.default_except(
+        **run.default_except(
             workspace=field(
                 "???",
                 "The root workspace for all folds.\n"
@@ -132,9 +132,9 @@ class SuperbER(SuperbProblem):
         ),
     )
     @classmethod
-    def run_cross_validation(cls, **cfg):
+    def cross_validation(cls, **cfg):
         """
-        Except 'num_fold', all other fields are for 'run_stages' for every fold. That is, all folds shared the same
+        Except 'num_fold', all other fields are for 'run' for every fold. That is, all folds shared the same
         config (training hypers, dataset root, etc) except 'workspace' and 'test_fold' are different
         """
         cfg = Container(cfg)
@@ -147,7 +147,7 @@ class SuperbER(SuperbProblem):
 
             fold_cfg.workspace = workspace
             fold_cfg.setup.corpus.test_fold = fold_id
-            cls.run_stages(
+            cls.run(
                 **fold_cfg,
             )
         metrics = defaultdict(list)
