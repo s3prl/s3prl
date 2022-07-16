@@ -7,15 +7,11 @@
 """*********************************************************************************************"""
 
 
-###############
-# IMPORTATION #
-###############
 import os
 
 import torch
 
-# -------------#
-from s3prl.utility.download import _gdriveids_to_filepaths, _urls_to_filepaths
+from s3prl.util.download import _urls_to_filepaths
 
 from .expert import UpstreamExpert as _UpstreamExpert
 
@@ -30,17 +26,6 @@ def mockingjay_local(ckpt, options_config=None, *args, **kwargs):
     if options_config is not None:
         assert os.path.isfile(options_config)
     return _UpstreamExpert(ckpt, options_config, *args, **kwargs)
-
-
-def mockingjay_gdriveid(ckpt, refresh=False, *args, **kwargs):
-    """
-    The model from google drive id
-        ckpt (str): The unique id in the google drive share link
-        refresh (bool): whether to download ckpt/config again if existed
-    """
-    return mockingjay_local(
-        _gdriveids_to_filepaths(ckpt, refresh=refresh), *args, **kwargs
-    )
 
 
 def mockingjay_url(ckpt, refresh=False, *args, **kwargs):
@@ -108,7 +93,7 @@ def mockingjay_logMelBase_T_AdamW_b32_200k_100hr(refresh=False, *args, **kwargs)
     Total steps: 200k
     Unlabled Speech: 100hr
     """
-    kwargs["ckpt"] = "https://www.dropbox.com/s/luorglf8mdg67l2/states-200000.ckpt?dl=0"
+    kwargs["ckpt"] = "https://www.dropbox.com/s/luorglf8mdg67l2/states-200000.ckpt?dl=1"
     return mockingjay_url(refresh=refresh, *args, **kwargs)
 
 
@@ -128,7 +113,7 @@ def mockingjay_logMelLinearLarge_T_AdamW_b32_500k_360hr_drop1(
     Total steps: 500k
     Unlabled Speech: 360hr
     """
-    kwargs["ckpt"] = "https://www.dropbox.com/s/zwsfa6w2iy2cc68/states-500000.ckpt?dl=0"
+    kwargs["ckpt"] = "https://www.dropbox.com/s/zwsfa6w2iy2cc68/states-500000.ckpt?dl=1"
     return mockingjay_url(refresh=refresh, *args, **kwargs)
 
 
@@ -148,7 +133,7 @@ def mockingjay_logMelBase_T_AdamW_b32_1m_960hr(refresh=False, *args, **kwargs):
     """
     kwargs[
         "ckpt"
-    ] = "https://www.dropbox.com/s/jzx0xggk663jev6/states-1000000.ckpt?dl=0"
+    ] = "https://www.dropbox.com/s/jzx0xggk663jev6/states-1000000.ckpt?dl=1"
     return mockingjay_url(refresh=refresh, *args, **kwargs)
 
 
@@ -164,7 +149,7 @@ def mockingjay_logMelBase_T_AdamW_b32_1m_960hr_drop1(refresh=False, *args, **kwa
     """
     kwargs[
         "ckpt"
-    ] = "https://www.dropbox.com/s/7f9z6dzc7oix6qv/states-1000000.ckpt?dl=0"
+    ] = "https://www.dropbox.com/s/7f9z6dzc7oix6qv/states-1000000.ckpt?dl=1"
     return mockingjay_url(refresh=refresh, *args, **kwargs)
 
 
@@ -180,5 +165,5 @@ def mockingjay_logMelBase_T_AdamW_b32_1m_960hr_seq3k(refresh=False, *args, **kwa
     """
     kwargs[
         "ckpt"
-    ] = "https://www.dropbox.com/s/qnnvdrai2tfmjmh/states-1000000.ckpt?dl=0"
+    ] = "https://www.dropbox.com/s/qnnvdrai2tfmjmh/states-1000000.ckpt?dl=1"
     return mockingjay_url(refresh=refresh, *args, **kwargs)

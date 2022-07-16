@@ -7,15 +7,9 @@
 """*********************************************************************************************"""
 
 
-###############
-# IMPORTATION #
-###############
 import os
 
-import torch
-
-# -------------#
-from s3prl.utility.download import _gdriveids_to_filepaths, _urls_to_filepaths
+from s3prl.util.download import _urls_to_filepaths
 
 from .expert import UpstreamExpert as _UpstreamExpert
 
@@ -28,15 +22,6 @@ def tera_local(ckpt, *args, **kwargs):
     """
     assert os.path.isfile(ckpt)
     return _UpstreamExpert(ckpt, *args, **kwargs)
-
-
-def tera_gdriveid(ckpt, refresh=False, *args, **kwargs):
-    """
-    The model from google drive id
-        ckpt (str): The unique id in the google drive share link
-        refresh (bool): whether to download ckpt/config again if existed
-    """
-    return tera_local(_gdriveids_to_filepaths(ckpt, refresh=refresh), *args, **kwargs)
 
 
 def tera_url(ckpt, refresh=False, *args, **kwargs):
@@ -90,7 +75,7 @@ def tera_logMelBase_T_F_AdamW_b32_200k_100hr(refresh=False, *args, **kwargs):
     Total steps: 200k
     Unlabled Speech: 100hr
     """
-    kwargs["ckpt"] = "https://www.dropbox.com/s/o36qt1zgtn3tsep/states-200000.ckpt?dl=0"
+    kwargs["ckpt"] = "https://www.dropbox.com/s/o36qt1zgtn3tsep/states-200000.ckpt?dl=1"
     return tera_url(refresh=refresh, *args, **kwargs)
 
 
@@ -103,7 +88,7 @@ def tera_logMelBase_T_F_M_AdamW_b32_200k_100hr(refresh=False, *args, **kwargs):
     Total steps: 200k
     Unlabled Speech: 100hr
     """
-    kwargs["ckpt"] = "https://www.dropbox.com/s/l9ryl82k64m1lsk/states-200000.ckpt?dl=0"
+    kwargs["ckpt"] = "https://www.dropbox.com/s/l9ryl82k64m1lsk/states-200000.ckpt?dl=1"
     return tera_url(refresh=refresh, *args, **kwargs)
 
 
@@ -123,7 +108,7 @@ def tera_logMelBase_T_F_AdamW_b32_1m_960hr(refresh=False, *args, **kwargs):
     """
     kwargs[
         "ckpt"
-    ] = "https://www.dropbox.com/s/98olxex0m7oy9ta/states-1000000.ckpt?dl=0"
+    ] = "https://www.dropbox.com/s/98olxex0m7oy9ta/states-1000000.ckpt?dl=1"
     return tera_url(refresh=refresh, *args, **kwargs)
 
 
@@ -139,7 +124,7 @@ def tera_logMelBase_T_F_AdamW_b32_1m_960hr_drop1(refresh=False, *args, **kwargs)
     """
     kwargs[
         "ckpt"
-    ] = "https://www.dropbox.com/s/2ekbt2gxlkbvfz0/states-1000000.ckpt?dl=0"
+    ] = "https://www.dropbox.com/s/2ekbt2gxlkbvfz0/states-1000000.ckpt?dl=1"
     return tera_url(refresh=refresh, *args, **kwargs)
 
 
@@ -155,7 +140,7 @@ def tera_logMelBase_T_F_AdamW_b32_1m_960hr_seq3k(refresh=False, *args, **kwargs)
     """
     kwargs[
         "ckpt"
-    ] = "https://www.dropbox.com/s/tfysinbalpm3gsj/states-1000000.ckpt?dl=0"
+    ] = "https://www.dropbox.com/s/tfysinbalpm3gsj/states-1000000.ckpt?dl=1"
     return tera_url(refresh=refresh, *args, **kwargs)
 
 
@@ -171,7 +156,7 @@ def tera_logMelBase_T_F_M_AdamW_b32_1m_960hr_drop1(refresh=False, *args, **kwarg
     """
     kwargs[
         "ckpt"
-    ] = "https://www.dropbox.com/s/xdoj9wdo87lztv1/states-1000000.ckpt?dl=0"
+    ] = "https://www.dropbox.com/s/xdoj9wdo87lztv1/states-1000000.ckpt?dl=1"
     return tera_url(refresh=refresh, *args, **kwargs)
 
 
@@ -189,5 +174,5 @@ def tera_fbankBase_T_F_AdamW_b32_200k_100hr(refresh=False, *args, **kwargs):
     Total steps: 200k
     Unlabled Speech: 100hr
     """
-    kwargs["ckpt"] = "https://www.dropbox.com/s/i32ob29m6afufot/states-200000.ckpt?dl=0"
+    kwargs["ckpt"] = "https://www.dropbox.com/s/i32ob29m6afufot/states-200000.ckpt?dl=1"
     return tera_url(refresh=refresh, *args, **kwargs)

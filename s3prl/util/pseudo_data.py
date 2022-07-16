@@ -1,4 +1,5 @@
 import shutil
+import random
 import tempfile
 from pathlib import Path
 from typing import Any
@@ -27,3 +28,26 @@ class pseudo_audio:
 
     def __exit__(self, exc_type: Any, exc_value: Any, traceback: Any) -> None:
         shutil.rmtree(self.tempdir)
+
+
+def get_pseudo_wavs(
+    seed: int = 0,
+    n: int = 3,
+    min_secs: int = 3,
+    max_secs: int = 15,
+    sample_rate: int = SAMPLE_RATE,
+    device: str = "cpu",
+):
+    random.seed(seed)
+    torch.manual_seed(seed)
+
+    wavs = []
+    wav_lengths = []
+    for _ in range(n):
+        wav_length = random.randint(min_secs * sample_rate, max_secs * sample_rate)
+        wav = torch.randn(wav_length, requires_grad=True)
+
+        wav_lengths.append(wav_length)
+        wavs.append(wav)
+
+    return wavs

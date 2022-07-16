@@ -7,11 +7,14 @@ import math
 
 import numpy as np
 import torch
-from fairseq.models.wav2vec.wav2vec2 import ConvFeatureExtractionModel
-from fairseq.modules import GradMultiply
 from torch import nn
 
-from .module import SplitLinear, TransformerEncoder
+from .module import (
+    SplitLinear,
+    TransformerEncoder,
+    ConvFeatureExtractionModel,
+    GradMultiply,
+)
 
 
 class DistillerConfig:

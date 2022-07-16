@@ -1,32 +1,34 @@
+import logging
+import shutil
+import tempfile
 import hashlib
-import os
+import requests
+import subprocess
 
-import gdown
 import torch
+from tqdm import tqdm
+from pathlib import Path
 from filelock import FileLock
 
-
-def _download(filename, url, refresh, agent):
-    dirpath = f"{torch.hub.get_dir()}/s3prl_cache"
-    os.makedirs(dirpath, exist_ok=True)
-    filepath = f"{dirpath}/{filename}"
-    with FileLock(filepath + ".lock"):
-        if not os.path.isfile(filepath) or refresh:
-            if agent == "wget":
-                os.system(f"wget {url} -O {filepath}")
-            elif agent == "gdown":
-                gdown.download(url, filepath, use_cookies=False)
-            else:
-                print(
-                    "[Download] - Unknown download agent. Only 'wget' and 'gdown' are supported."
-                )
-                raise NotImplementedError
-        else:
-            print(f"Using cache found in {filepath}\nfor {url}")
-    return filepath
+logger = logging.getLogger(__name__)
 
 
-def _urls_to_filepaths(*args, refresh=False, agent="wget"):
+def _requests_get(url: str, filepath: str):
+    subprocess.check_call(["wget", f"{url}", "-O", f"{filepath}"])
+
+
+def _download(filepath: Path, url, refresh):
+    if not filepath.is_file() or refresh:
+        with tempfile.TemporaryDirectory() as tempdir:
+            temppath = Path(tempdir) / filepath.name
+            with FileLock(str(temppath) + ".lock"):
+                _requests_get(url, temppath)
+            filepath.parent.mkdir(exist_ok=True, parents=True)
+            shutil.move(temppath, filepath)
+    logger.info(f"Using cache found in {filepath}\nfor {url}")
+
+
+def _urls_to_filepaths(*args, refresh=False, download: bool = True):
     """
     Preprocess the URL specified in *args into local file paths after downloading
 
@@ -37,39 +39,18 @@ def _urls_to_filepaths(*args, refresh=False, agent="wget"):
         Same number of downloaded file paths
     """
 
-    def url_to_filename(url):
-        assert type(url) is str
+    def _url_to_filepath(url):
+        assert isinstance(url, str)
         m = hashlib.sha256()
         m.update(str.encode(url))
-        return str(m.hexdigest())
+        filepath = (
+            Path(torch.hub.get_dir())
+            / "s3prl"
+            / f"{str(m.hexdigest())}.{Path(url).name}"
+        )
+        if download:
+            _download(filepath, url, refresh=refresh)
+        return str(filepath.resolve())
 
-    def url_to_path(url, refresh):
-        if type(url) is str and len(url) > 0:
-            return _download(url_to_filename(url), url, refresh, agent=agent)
-        else:
-            return None
-
-    paths = [url_to_path(url, refresh) for url in args]
+    paths = [_url_to_filepath(url) for url in args]
     return paths if len(paths) > 1 else paths[0]
-
-
-def _gdriveids_to_filepaths(*args, refresh=False):
-    """
-    Preprocess the Google Drive id specified in *args into local file paths after downloading
-
-    Args:
-        Any number of Google Drive ids (1 ~ any)
-
-    Return:
-        Same number of downloaded file paths
-    """
-
-    def gdriveid_to_url(gdriveid):
-        if type(gdriveid) is str and len(gdriveid) > 0:
-            return f"https://drive.google.com/uc?id={gdriveid}"
-        else:
-            return None
-
-    return _urls_to_filepaths(
-        *[gdriveid_to_url(gid) for gid in args], refresh=refresh, agent="gdown"
-    )
