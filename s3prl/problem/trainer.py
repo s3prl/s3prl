@@ -58,7 +58,7 @@ class Trainer:
             1, "The total number of processes when distributed training", int
         ),
         optimizer=dict(
-            _cls=field(
+            CLS=field(
                 torch.optim.Adam,
                 "The class used to create the optimizer. The below are **kwargs for the __init__",
                 str,
@@ -68,7 +68,7 @@ class Trainer:
         ),
         use_scheduler=field(False, "Whether to enable the scheduler", bool),
         scheduler=dict(
-            _cls=field(
+            CLS=field(
                 CyclicLR,
                 "The class used to create the scheduler. The below are **kwargs for the __init__",
                 str,
@@ -176,7 +176,7 @@ class Trainer:
             num_workers=cfg.n_jobs,
         )
 
-        optimizer = cfg.optimizer._cls(
+        optimizer = cfg.optimizer.CLS(
             wrapped_task.parameters(),
             **cfg.optimizer.kwds(),
         )
@@ -185,7 +185,7 @@ class Trainer:
 
         scheduler = None
         if cfg.use_scheduler:
-            scheduler = cfg.scheduler._cls(optimizer, **cfg.scheduler.kwds())
+            scheduler = cfg.scheduler.CLS(optimizer, **cfg.scheduler.kwds())
             if scheduler_state:
                 scheduler.load_state_dict(scheduler_state)
 
