@@ -134,17 +134,18 @@ class SuperbProblem(Problem, Trainer):
         train_dataset = cfg.train_datapipe(**stats)(train_data, **stats)
         train_sampler = cfg.train_sampler(train_dataset)
         stats.add(train_dataset.all_tools())
+        workspace.environ.update(stats)
 
         logger.info("Preparing valid data")
-        valid_dataset = cfg.valid_datapipe(**stats)(valid_data, **stats)
+        valid_dataset = cfg.valid_datapipe(**dict(workspace.environ))(valid_data, **dict(workspace.environ))
         valid_sampler = cfg.valid_sampler(valid_dataset)
 
         logger.info("Preparing test data")
-        test_dataset = cfg.test_datapipe(**stats)(test_data, **stats)
+        test_dataset = cfg.test_datapipe(**dict(workspace.environ))(test_data, **dict(workspace.environ))
         test_sampler = cfg.test_sampler(test_dataset)
 
         logger.info("Preparing model and task")
-        downstream = cfg.downstream(upstream.output_size, **stats)
+        downstream = cfg.downstream(upstream.output_size, **dict(workspace.environ))
         model = UpstreamDownstreamModel(upstream, downstream)
         task = cfg.task(model, **stats)
 
@@ -158,4 +159,3 @@ class SuperbProblem(Problem, Trainer):
         workspace["test_dataset"] = test_dataset
         workspace["test_sampler"] = test_sampler
         workspace["task"] = task
-        workspace.environ.update(stats)

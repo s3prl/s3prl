@@ -10,7 +10,7 @@ from .configuration import default_cfg
 def visualize(**cfg):
     cfg = Container(cfg)
     item = fileio.load(cfg.path)
-    print(item)
+    print(repr(item))
     if cfg.interact:
         from ipdb import set_trace
 
