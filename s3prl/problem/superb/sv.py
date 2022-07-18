@@ -162,7 +162,7 @@ class SuperbSV(SuperbProblem):
                 logger.info(f"Step {step}")
 
                 metrics = {key: value for key, value in logs.scalars()}
-                step_dir.pur(metrics, "test_metrics", "yaml")
+                step_dir.put(metrics, "test_metrics", "yaml")
                 for key, value in metrics.items():
                     logger.info(f"{key}: {value}")
                 all_eers.append(metrics["EER"])
