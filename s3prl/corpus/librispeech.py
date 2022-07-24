@@ -242,3 +242,20 @@ def librispeech_for_speech2text(
         valid_data=valid_data,
         test_data=test_data,
     )
+
+
+@registry.put()
+def librispeech_for_pretrain(
+    dataset_root: str,
+    n_jobs: int = 8,
+    train_split: List[str] = ["train-clean-100", "train-clean-360", "train-other-500"],
+    valid_split: List[str] = ["dev-clean"],
+    test_split: List[str] = ["test-clean"],
+):
+    corpus = LibriSpeech(dataset_root, n_jobs, train_split, valid_split, test_split)
+    train_data, valid_data, test_data = corpus.data_split
+    return Output(
+        train_data=train_data,
+        valid_data=valid_data,
+        test_data=test_data,
+    )

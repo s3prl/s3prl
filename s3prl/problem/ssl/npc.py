@@ -2,14 +2,12 @@ import torch
 from torch.nn import L1Loss
 
 from s3prl.corpus.librispeech import librispeech_for_pretrain
-from s3prl.dataset.pretrain_apc_pipe import PretrainApcPipe
+from s3prl.dataset.pretrain_npc_pipe import PretrainNpcPipe
+from s3prl.nn.cnn_npc import CnnNpc
 from s3prl.nn.predictor_identity import PredictorIdentity
-from s3prl.nn.rnn_apc import RnnApc
 from s3prl.sampler import FixedBatchSizeBatchSampler, MaxTimestampBatchSampler
 from s3prl.task import Task
-from s3prl.task.autoregressive_reconstruction_task import (
-    AutoregressiveReconstructionTask,
-)
+from s3prl.task.feat_reconstruction_task import FeatReconstructionTask
 from s3prl.util.configuration import override_parent_cfg
 from s3prl.util.workspace import Workspace
 
@@ -25,16 +23,15 @@ _audio_config = dict(
     cmvn=True,  # Apply uttr.-wised CMVN on Mel spectrogram
 )
 _pretrain_task_pipe_config = dict(
-    _cls=PretrainApcPipe,
-    n_future=5,
+    _cls=PretrainNpcPipe,
     n_jobs=8,
     **_audio_config,
 )
 
 
-class Apc(SslProblem):
+class Npc(SslProblem):
     """
-    Apc pre-train problem
+    Npc pre-train problem
     """
 
     @override_parent_cfg(
@@ -59,32 +56,55 @@ class Apc(SslProblem):
             batch_size=2,
         ),
         upstream=dict(
-            _cls=RnnApc,
+            _cls=CnnNpc,
             input_size=_input_size,
-            num_layers=3,
-            hidden_size=512,
-            dropout=0.1,
-            residual=True,
+            kernel_size=15,  # Receptive field size (R) = kernel_size + 2*(n_blocks)
+            mask_size=5,  # Desired input mask size (M_in) as described in NPC paper
+            n_blocks=4,  # Number of ConvBlocks stacked in NPC model
+            hidden_size=512,  # Dimension of feature of all layers
+            dropout=0.1,  # Dropout in ConvBlock
+            residual=True,  # Residual connection in ConvBlock
+            batch_norm=True,  # Apply BatchNorm in ConvBlock
+            activate="relu",  # Activation function of ConvBlock
+            disable_cross_layer=False,  # Apply Masked ConvBlock at last layer only
+            vq=dict(
+                codebook_size=[
+                    64,
+                    64,
+                    64,
+                    64,
+                ],  # Codebook size of each group in VQ-layer
+                code_dim=[
+                    128,
+                    128,
+                    128,
+                    128,
+                ],  # Dim of each group summing up to hidden_size
+                gumbel_temperature=1.0,  # Temperature of Gumbel Softmax in VQ-layer
+            ),
         ),
         predictor=dict(
             _cls=PredictorIdentity,
         ),
         task=dict(
-            _cls=AutoregressiveReconstructionTask,
+            _cls=FeatReconstructionTask,
             loss=L1Loss,
+            loss_config=dict(
+                reduction="mean"
+            ),  # the npc official implementation use reduction='none', then calculates the mean loss on valid part manually, here we use a label mask to replace it.
         ),
     )
     @classmethod
     def setup_problem(cls, **cfg):
         """
-        This setups the Apc problem, containing train/valid/test datasets & samplers and a task object
+        This setups the Npc problem, containing train/valid/test datasets & samplers and a task object
         """
         super().setup_problem(**cfg)
 
     @override_parent_cfg(
         optimizer=dict(
-            _cls="torch.optim.AdamW",
-            lr=0.0001,  # set to 0.00001 for some datasets if you encounter NaN during training
+            _cls="torch.optim.Adam",
+            lr=0.001,
         ),
         trainer=dict(
             total_steps=1000000,

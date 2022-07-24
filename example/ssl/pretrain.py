@@ -89,7 +89,7 @@ def main():
     logger.info("Preparing train data")
     train_dataset = AugmentedDynamicItemDataset(train_data, tools=stats)
     train_dataset = problem.TrainData(**config.TrainData)(train_dataset)
-    assert train_dataset.get_tool("output_dim") == problem.input_size
+    assert train_dataset.get_tool("feat_dim") == problem.input_size
     train_sampler = DistributedBatchSamplerWrapper(
         problem.TrainSampler(train_dataset, **config.TrainSampler),
         num_replicas=1,
