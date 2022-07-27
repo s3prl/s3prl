@@ -7,4 +7,4 @@ from .superb.sd import SuperbSD
 from .superb.sf import SuperbSF
 from .superb.sid import SuperbSID
 from .superb.sv import SuperbSV
-from .hear.timestamp import HearTimestamp
+from .hear.dcase_2016_task2 import Dcase2016Task2

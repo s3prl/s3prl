@@ -543,7 +543,7 @@ class HearEventPredictionTask(Task):
                 score_and_postprocessing.append((primary_score, postprocessing))
             score_and_postprocessing.sort(reverse=True)
 
-            if name == "valid":
+            if name in ["valid", "test"]:
                 self.best_postprocessing = score_and_postprocessing[0][1]
                 logger.info(f"Best postprocessing: {self.best_postprocessing}")
 
