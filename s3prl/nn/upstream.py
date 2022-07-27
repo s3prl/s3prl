@@ -301,6 +301,10 @@ class UpstreamDownstreamModel(NNModule):
     def output_size(self):
         return self.downstream.output_size
 
+    @property
+    def feat_frame_shift(self):
+        return self.upstream.downsample_rate
+
     def forward(self, wav, wav_len, *args, **kwargs):
         h, h_len = self.upstream(wav, wav_len).slice(2)
         return self.downstream(h, h_len, *args, **kwargs)

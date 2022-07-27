@@ -1,5 +1,4 @@
 from dataclasses import dataclass
-from unicodedata import category
 
 import numpy as np
 

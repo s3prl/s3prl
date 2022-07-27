@@ -95,6 +95,7 @@ class Output(GeneralOutput):
         loss=None,
         label=None,
         labels=None,
+        length=None,
         label_mask=None,
         class_id=None,
         class_ids=None,
