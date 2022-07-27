@@ -11,7 +11,7 @@
 
 ## Notice for pull requests
 
-Please note that if you did not explicitly discuss with Andy and Leo (the owners of the repository) about your planning development, by default it will not be merged into S3PRL and is better to be maintained in your own repository where you have the full permission. This is the common courtesy in our point of view hence there is no exception. Thanks for your understanding!
+Please note that if you did not explicitly discuss with Andy and Leo (the owners of the repository) about your planning development, by default it will not be merged into S3PRL and is better to be maintained in your own repository. Please see our [pull request policy](.github/PULL_REQUEST_TEMPLATE.md). Thanks for your understanding!
 
 ## What's New
 
