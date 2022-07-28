@@ -9,8 +9,8 @@
 from torch.nn.utils.rnn import pad_sequence
 
 from ..interfaces import UpstreamBase
-from .vggish import VGGish
 from .audio import waveform_to_examples
+from .vggish import VGGish
 
 
 class UpstreamExpert(UpstreamBase):
@@ -52,7 +52,7 @@ class UpstreamExpert(UpstreamBase):
 
     def forward(self, wavs):
         device = wavs[0].device
-        
+
         outputs = []
         for wav in wavs:
             # each example is in - (num_examples, 1, num_frames, num_bands)
@@ -60,7 +60,7 @@ class UpstreamExpert(UpstreamBase):
             feature = self.model(feature.to(device))
             outputs.append(feature)
         outputs = pad_sequence(outputs, batch_first=True)
-        
+
         return {
             "last_hidden_state": outputs,
             "hidden_states": [outputs],

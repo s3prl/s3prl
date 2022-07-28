@@ -13,8 +13,7 @@
 # limitations under the License.
 
 """*********************************************************************************************"""
-# Harri Taylor originally adopted from the TensorFlow Authors,
-# later modified by the S3PRL team.
+# Harri Taylor originally adopted from the TensorFlow Authors.
 # Modification: Return torch tensors rather than numpy arrays
 """*********************************************************************************************"""
 
@@ -22,10 +21,9 @@
 """Compute input examples for VGGish from audio waveform."""
 
 
-import torch
-
 import numpy as np
 import resampy
+import torch
 
 from . import vggish_params
 
@@ -62,22 +60,25 @@ def waveform_to_examples(data, sample_rate=16000, return_tensor=True):
         hop_length_secs=vggish_params.STFT_HOP_LENGTH_SECONDS,
         num_mel_bins=vggish_params.NUM_MEL_BINS,
         lower_edge_hertz=vggish_params.MEL_MIN_HZ,
-        upper_edge_hertz=vggish_params.MEL_MAX_HZ)
+        upper_edge_hertz=vggish_params.MEL_MAX_HZ,
+    )
 
     # Frame features into examples.
     features_sample_rate = 1.0 / vggish_params.STFT_HOP_LENGTH_SECONDS
-    example_window_length = int(round(
-        vggish_params.EXAMPLE_WINDOW_SECONDS * features_sample_rate))
-    example_hop_length = int(round(
-        vggish_params.EXAMPLE_HOP_SECONDS * features_sample_rate))
+    example_window_length = int(
+        round(vggish_params.EXAMPLE_WINDOW_SECONDS * features_sample_rate)
+    )
+    example_hop_length = int(
+        round(vggish_params.EXAMPLE_HOP_SECONDS * features_sample_rate)
+    )
     log_mel_examples = frame(
-        log_mel,
-        window_length=example_window_length,
-        hop_length=example_hop_length)
+        log_mel, window_length=example_window_length, hop_length=example_hop_length
+    )
 
     if return_tensor:
-        log_mel_examples = torch.tensor(
-            log_mel_examples, requires_grad=True)[:, None, :, :].float()
+        log_mel_examples = torch.tensor(log_mel_examples, requires_grad=True)[
+            :, None, :, :
+        ].float()
 
     return log_mel_examples
 
@@ -129,12 +130,7 @@ def periodic_hann(window_length):
     return 0.5 - (0.5 * np.cos(2 * np.pi / window_length * np.arange(window_length)))
 
 
-def stft_magnitude(
-    signal, 
-    fft_length,
-    hop_length=None,
-    window_length=None
-    ):
+def stft_magnitude(signal, fft_length, hop_length=None, window_length=None):
     """
     Calculate the short-time Fourier transform magnitude.
     Args:
@@ -170,7 +166,8 @@ def hertz_to_mel(frequencies_hertz):
         on the mel scale.
     """
     return _MEL_HIGH_FREQUENCY_Q * np.log(
-            1.0 + (frequencies_hertz / _MEL_BREAK_FREQUENCY_HERTZ))
+        1.0 + (frequencies_hertz / _MEL_BREAK_FREQUENCY_HERTZ)
+    )
 
 
 def spectrogram_to_mel_matrix(
@@ -178,8 +175,8 @@ def spectrogram_to_mel_matrix(
     num_spectrogram_bins=129,
     audio_sample_rate=8000,
     lower_edge_hertz=125.0,
-    upper_edge_hertz=3800.0
-    ):
+    upper_edge_hertz=3800.0,
+):
     """
     Return a matrix that can post-multiply spectrogram rows to make mel.
     Returns a np.array matrix A that can be used to post-multiply a matrix S of
@@ -212,37 +209,43 @@ def spectrogram_to_mel_matrix(
     Raises:
         ValueError: if frequency edges are incorrectly ordered or out of range.
     """
-    nyquist_hertz = audio_sample_rate / 2.
+    nyquist_hertz = audio_sample_rate / 2.0
     if lower_edge_hertz < 0.0:
         raise ValueError("lower_edge_hertz %.1f must be >= 0" % lower_edge_hertz)
     if lower_edge_hertz >= upper_edge_hertz:
-        raise ValueError("lower_edge_hertz %.1f >= upper_edge_hertz %.1f" %
-                                         (lower_edge_hertz, upper_edge_hertz))
+        raise ValueError(
+            "lower_edge_hertz %.1f >= upper_edge_hertz %.1f"
+            % (lower_edge_hertz, upper_edge_hertz)
+        )
     if upper_edge_hertz > nyquist_hertz:
-        raise ValueError("upper_edge_hertz %.1f is greater than Nyquist %.1f" %
-                                         (upper_edge_hertz, nyquist_hertz))
+        raise ValueError(
+            "upper_edge_hertz %.1f is greater than Nyquist %.1f"
+            % (upper_edge_hertz, nyquist_hertz)
+        )
     spectrogram_bins_hertz = np.linspace(0.0, nyquist_hertz, num_spectrogram_bins)
     spectrogram_bins_mel = hertz_to_mel(spectrogram_bins_hertz)
     # The i'th mel band (starting from i=1) has center frequency
     # band_edges_mel[i], lower edge band_edges_mel[i-1], and higher edge
     # band_edges_mel[i+1].  Thus, we need num_mel_bins + 2 values in
     # the band_edges_mel arrays.
-    band_edges_mel = np.linspace(hertz_to_mel(lower_edge_hertz),
-                                                             hertz_to_mel(upper_edge_hertz), num_mel_bins + 2)
+    band_edges_mel = np.linspace(
+        hertz_to_mel(lower_edge_hertz), hertz_to_mel(upper_edge_hertz), num_mel_bins + 2
+    )
     # Matrix to post-multiply feature arrays whose rows are num_spectrogram_bins
     # of spectrogram values.
     mel_weights_matrix = np.empty((num_spectrogram_bins, num_mel_bins))
     for i in range(num_mel_bins):
-        lower_edge_mel, center_mel, upper_edge_mel = band_edges_mel[i:i + 3]
+        lower_edge_mel, center_mel, upper_edge_mel = band_edges_mel[i : i + 3]
         # Calculate lower and upper slopes for every spectrogram bin.
         # Line segments are linear in the *mel* domain, not hertz.
-        lower_slope = ((spectrogram_bins_mel - lower_edge_mel) /
-                                     (center_mel - lower_edge_mel))
-        upper_slope = ((upper_edge_mel - spectrogram_bins_mel) /
-                                     (upper_edge_mel - center_mel))
+        lower_slope = (spectrogram_bins_mel - lower_edge_mel) / (
+            center_mel - lower_edge_mel
+        )
+        upper_slope = (upper_edge_mel - spectrogram_bins_mel) / (
+            upper_edge_mel - center_mel
+        )
         # .. then intersect them with each other and zero.
-        mel_weights_matrix[:, i] = np.maximum(0.0, np.minimum(lower_slope,
-                                                                                                                    upper_slope))
+        mel_weights_matrix[:, i] = np.maximum(0.0, np.minimum(lower_slope, upper_slope))
     # HTK excludes the spectrogram DC bin; make sure it always gets a zero
     # coefficient.
     mel_weights_matrix[0, :] = 0.0
@@ -256,7 +259,7 @@ def log_mel_spectrogram(
     window_length_secs=0.025,
     hop_length_secs=0.010,
     **kwargs
-    ):
+):
     """
     Convert waveform to a log magnitude mel-frequency spectrogram.
     Args:
@@ -274,13 +277,17 @@ def log_mel_spectrogram(
     hop_length_samples = int(round(audio_sample_rate * hop_length_secs))
     fft_length = 2 ** int(np.ceil(np.log(window_length_samples) / np.log(2.0)))
     spectrogram = stft_magnitude(
-                    data,
-                    fft_length=fft_length,
-                    hop_length=hop_length_samples,
-                    window_length=window_length_samples
-                )
-    mel_spectrogram = np.dot(spectrogram, spectrogram_to_mel_matrix(
-                        num_spectrogram_bins=spectrogram.shape[1],
-                        audio_sample_rate=audio_sample_rate, **kwargs)
-                    )
+        data,
+        fft_length=fft_length,
+        hop_length=hop_length_samples,
+        window_length=window_length_samples,
+    )
+    mel_spectrogram = np.dot(
+        spectrogram,
+        spectrogram_to_mel_matrix(
+            num_spectrogram_bins=spectrogram.shape[1],
+            audio_sample_rate=audio_sample_rate,
+            **kwargs
+        ),
+    )
     return np.log(mel_spectrogram + log_offset)
