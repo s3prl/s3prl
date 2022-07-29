@@ -1,4 +1,4 @@
-from s3prl.corpus.hear import dcase_2016_task2
+from s3prl.corpus.hear import maestro
 from s3prl.util.configuration import default_cfg, field
 from s3prl.nn.hear import HearFullyConnectedPrediction
 from s3prl.task.hear_timestamp import HearEventPredictionTask
@@ -6,12 +6,12 @@ from s3prl.task.hear_timestamp import HearEventPredictionTask
 from .timestamp import HearTimestamp
 
 
-class Dcase2016Task2(HearTimestamp):
+class Maestro(HearTimestamp):
     @default_cfg(
         **HearTimestamp.setup.default_except(
             corpus=dict(
                 CLS=field(
-                    dcase_2016_task2,
+                    maestro,
                     "\nThe corpus class. You can add the **kwargs right below this CLS key",
                     str,
                 ),
@@ -20,6 +20,10 @@ class Dcase2016Task2(HearTimestamp):
                     "The root path of the corpus",
                     str,
                 ),
+                test_fold=field(
+                    "???",
+                    "The testing fold id. Options: [0, 1, 2, 3, 4]"
+                )
             ),
             downstream=dict(
                 CLS=field(
@@ -27,7 +31,7 @@ class Dcase2016Task2(HearTimestamp):
                     "\nThe downstream model class for each task. You can add the **kwargs right below this CLS key",
                     str,
                 ),
-                output_size=11,
+                output_size=86,
                 hidden_layers=2,
             ),
             task=dict(

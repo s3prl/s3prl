@@ -8,3 +8,4 @@ from .superb.sf import SuperbSF
 from .superb.sid import SuperbSID
 from .superb.sv import SuperbSV
 from .hear.dcase_2016_task2 import Dcase2016Task2
+from .hear.maestro import Maestro
