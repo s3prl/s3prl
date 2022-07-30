@@ -22,6 +22,8 @@ from s3prl.metric.hear import (
 
 logger = logging.getLogger(__name__)
 
+SAMPLE_RATE = 16000
+
 
 def create_events_from_prediction(
     prediction_dict: Dict[float, torch.Tensor],
@@ -199,125 +201,6 @@ class OneHotToCrossEntropyLoss(torch.nn.Module):
         return self.loss(y_hat, y)
 
 
-class AbstractPredictionModel(torch.nn.Module):
-    def __init__(
-        self,
-        model: torch.nn.Module,
-        category: CategoryEncoder,
-        scores: List[ScoreFunction],
-        prediction_type: str,
-    ):
-        super().__init__()
-        self.predictor = model
-        self.category = category
-        self.scores = scores
-
-        if prediction_type == "multilabel":
-            self.activation: torch.nn.Module = torch.nn.Sigmoid()
-            self.logit_loss = torch.nn.BCEWithLogitsLoss()
-        elif prediction_type == "multiclass":
-            self.activation = torch.nn.Softmax()
-            self.logit_loss = OneHotToCrossEntropyLoss()
-        else:
-            raise ValueError(f"Unknown prediction_type {prediction_type}")
-
-    def forward(self, x):
-        # x = self.layernorm(x)
-        x = self.predictor(x)
-        return x
-
-    def training_step(self, batch, batch_idx):
-        # training_step defined the train loop.
-        # It is independent of forward
-        x, y, _ = batch
-        y_hat = self.predictor.forward_logit(x)
-        loss = self.predictor.logit_loss(y_hat, y)
-        # Logging to TensorBoard by default
-        self.log("train_loss", loss)
-        return loss
-
-    def _step(self, batch, batch_idx):
-        # -> Dict[str, Union[torch.Tensor, List(str)]]:
-        x, y, metadata = batch
-        y_hat = self.predictor.forward_logit(x)
-        y_pr = self.predictor(x)
-        z = {
-            "prediction": y_pr,
-            "prediction_logit": y_hat,
-            "target": y,
-        }
-        # https://stackoverflow.com/questions/38987/how-do-i-merge-two-dictionaries-in-a-single-expression-taking-union-of-dictiona
-        return {**z, **metadata}
-
-    def validation_step(self, batch, batch_idx):
-        return self._step(batch, batch_idx)
-
-    def test_step(self, batch, batch_idx):
-        return self._step(batch, batch_idx)
-
-    def log_scores(self, name: str, score_args):
-        """
-        Logs the metric score value for each score defined for the model.
-        The first score in the first `self.scores` is the optimization criterion.
-        """
-        assert hasattr(self, "scores"), "Scores for the model should be defined"
-        end_scores = {}
-        for score in self.scores:
-            score_ret = score(*score_args)
-            validate_score_return_type(score_ret)
-            # If the returned score is a tuple, store each subscore as separate entry
-            if isinstance(score_ret, tuple):
-                end_scores[f"{name}_{score}"] = score_ret[0][1]
-                # All other scores will also be logged
-                for (subscore, value) in score_ret:
-                    end_scores[f"{name}_{score}_{subscore}"] = value
-            elif isinstance(score_ret, float):
-                end_scores[f"{name}_{score}"] = score_ret
-            else:
-                raise ValueError(
-                    f"Return type {type(score_ret)} is unexpected. Return type of "
-                    "the score function should either be a "
-                    "tuple(tuple) or float."
-                )
-
-        self.log(
-            f"{name}_score", end_scores[f"{name}_{str(self.scores[0])}"], logger=True
-        )
-        for score_name in end_scores:
-            self.log(score_name, end_scores[score_name], prog_bar=True, logger=True)
-
-    def _score_epoch_end(self, name: str, outputs: List[Dict[str, List[Any]]]):
-        """
-        Return at the end of every validation and test epoch.
-        :param name: "val" or "test"
-        :param outputs: Unflattened minibatches from {name}_step,
-            each with "target", "prediction", and additional metadata,
-            with a list of values for each instance in the batch.
-        :return:
-        """
-        raise NotImplementedError("Implement this in children")
-
-    def validation_epoch_end(self, outputs: List[Dict[str, List[Any]]]):
-        self._score_epoch_end("val", outputs)
-
-    def test_epoch_end(self, outputs: List[Dict[str, List[Any]]]):
-        self._score_epoch_end("test", outputs)
-
-    def _flatten_batched_outputs(self, outputs, keys: List[str]) -> Dict:
-        flat_outputs_default: DefaultDict = defaultdict(list)
-        for output in outputs:
-            assert set(output.keys()) == set(keys), f"{output.keys()} != {keys}"
-            for key in keys:
-                flat_outputs_default[key] += output[key]
-        flat_outputs = dict(flat_outputs_default)
-        for key in keys:
-            flat_outputs[key] = torch.stack(flat_outputs[key])
-        return flat_outputs
-
-
-SAMPLE_RATE = 16000
-
-
 class HearEventPredictionTask(Task):
     def __init__(
         self,
@@ -335,8 +218,12 @@ class HearEventPredictionTask(Task):
         assert isinstance(self.model.feat_frame_shift, int)
         self.feat_frame_shift = self.model.feat_frame_shift
 
-        self.label_to_idx = {category.decode(idx): idx for idx in range(len(category))}
-        self.idx_to_label = {idx: category.decode(idx) for idx in range(len(category))}
+        self.label_to_idx = {
+            str(category.decode(idx)): idx for idx in range(len(category))
+        }
+        self.idx_to_label = {
+            idx: str(category.decode(idx)) for idx in range(len(category))
+        }
         self.scores = [
             available_scores[score](label_to_idx=self.label_to_idx) for score in scores
         ]
@@ -388,8 +275,9 @@ class HearEventPredictionTask(Task):
         y_hat, y_hat_len = self.model(x, x_len)
         y_hat = self._match_length(y_hat, y)
 
+        assert y_hat.size(-1) == y.size(-1), f"{y_hat.size(-1)} == {y.size(-1)}"
+
         hidden_size = y_hat.size(-1)
-        assert y_hat.size(-1) == y.size(-1) == hidden_size
         loss = self.logit_loss(
             y_hat.reshape(-1, hidden_size).float(), y.reshape(-1, hidden_size).float()
         )
@@ -415,7 +303,14 @@ class HearEventPredictionTask(Task):
         )
 
     def _step(
-        self, x, x_len, y, y_len, unique_name: List[str], order_in_rec: List[int], **kwds
+        self,
+        x,
+        x_len,
+        y,
+        y_len,
+        unique_name: List[str],
+        order_in_rec: List[int],
+        **kwds,
     ):
         y_pr, y_hat, y_pr_len = self.predict(x, x_len)
         y_pr = self._match_length(y_pr, y)
