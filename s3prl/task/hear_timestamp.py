@@ -15,7 +15,6 @@ from s3prl.nn.upstream import SAMPLE_RATE
 from s3prl.task.base import Task
 from s3prl.encoder.category import CategoryEncoder
 from s3prl.metric.hear import (
-    ScoreFunction,
     available_scores,
     validate_score_return_type,
 )
@@ -207,7 +206,7 @@ class HearEventPredictionTask(Task):
         model: torch.nn.Module,
         category: CategoryEncoder,
         prediction_type: str,
-        scores: List[ScoreFunction],
+        scores: List[str],
         valid_target_events: Dict[str, List[Dict[str, Any]]],
         test_target_events: Dict[str, List[Dict[str, Any]]],
         postprocessing_grid: Dict[str, List[float]],

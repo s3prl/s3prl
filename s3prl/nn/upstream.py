@@ -52,9 +52,10 @@ class S3PRLUpstream(NNModule):
         feature_selection: str = "hidden_states",
         layer_drop: Union[str, float] = 0.0,
         refresh: bool = False,
+        legacy: bool = False,
     ):
         super().__init__()
-        self.upstream = getattr(hub, name)(refresh=refresh)
+        self.upstream = getattr(hub, name)(refresh=refresh, legacy=legacy)
         self.feature_selection = feature_selection
         self._downsample_rate = self.upstream.get_downsample_rates(
             self.feature_selection
@@ -235,6 +236,7 @@ class S3PRLUpstreamDriver(UpstreamDriver):
         normalize: bool = False,
         weighted_sum: bool = True,
         layer_selections: List[int] = None,
+        legacy: bool = False,
     ):
         super().__init__(
             S3PRLUpstream,
@@ -243,6 +245,7 @@ class S3PRLUpstreamDriver(UpstreamDriver):
                 feature_selection=feature_selection,
                 layer_drop=layer_drop,
                 refresh=refresh,
+                legacy=legacy,
             ),
             freeze_upstream,
             normalize,

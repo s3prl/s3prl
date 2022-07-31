@@ -1,6 +1,9 @@
+from multiprocessing.sharedctypes import Value
 from typing import List
 
 import torch
+
+from s3prl.nn.pooling import MeanPooling, TemporalStatisticsPooling
 
 
 class HearFullyConnectedPrediction(torch.nn.Module):
@@ -14,11 +17,19 @@ class HearFullyConnectedPrediction(torch.nn.Module):
         dropout: float = 0.1,
         initialization=torch.nn.init.xavier_uniform_,
         hidden_norm=torch.nn.BatchNorm1d,
+        pooling: str = None,
         **kwds,
     ):
         super().__init__()
         self._input_size = input_size
         self._output_size = output_size
+
+        if pooling == "mean":
+            self.pooling = MeanPooling()
+        elif pooling == "statistics":
+            self.pooling = TemporalStatisticsPooling()
+        elif isinstance(pooling, str):
+            raise ValueError(f"Unsupported pooling type {pooling}")
 
         hidden_modules: List[torch.nn.Module] = []
         curdim = input_size
@@ -70,4 +81,8 @@ class HearFullyConnectedPrediction(torch.nn.Module):
 
         if len(shape) == 3:
             x = x.reshape(bs, ts, -1)
+            if hasattr(self, "pooling"):
+                x = self.pooling(x, x_len)
+                x_len = x.new_ones(len(x))
+
         return x, x_len

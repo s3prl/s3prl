@@ -1,4 +1,5 @@
 import logging
+from collections import defaultdict
 
 from s3prl import Container, field, Workspace
 from s3prl.nn import S3PRLUpstreamDriver, UpstreamDownstreamModel
@@ -6,13 +7,16 @@ from s3prl.problem.base import Problem
 from s3prl.problem.trainer import Trainer
 from s3prl.util.configuration import default_cfg
 from s3prl.util.seed import fix_random_seeds
-from s3prl.dataset.hear_timestamp import HearTimestampDatapipe
-from s3prl.sampler import FixedBatchSizeBatchSampler, GroupSameItemSampler
+from s3prl.dataset.utterance_classification_pipe import HearScenePipe
+from s3prl.sampler import FixedBatchSizeBatchSampler
+from s3prl.task.utterance_classification_task import UtteranceClassificationTask
+from s3prl.nn.hear import HearFullyConnectedPrediction
+from s3prl.task.hear_scene import HearScenePredictionTask
 
 logger = logging.getLogger(__name__)
 
 
-class HearTimestamp(Problem, Trainer):
+class HearScene(Problem, Trainer):
     @default_cfg(
         workspace=field(
             "???",
@@ -34,7 +38,7 @@ class HearTimestamp(Problem, Trainer):
         ),
         train_datapipe=dict(
             CLS=field(
-                HearTimestampDatapipe,
+                HearScenePipe,
                 "\nThe first datapipe class to be applied to the corpus. You can add the **kwargs right below this CLS key",
                 str,
             ),
@@ -45,31 +49,29 @@ class HearTimestamp(Problem, Trainer):
                 "\nThe batch sampler class. You can add the **kwargs right below this CLS key",
                 str,
             ),
-            batch_size=5,
+            batch_size="???",
         ),
         valid_datapipe=dict(
             CLS=field(
-                HearTimestampDatapipe,
+                HearScenePipe,
                 "\nThe first datapipe class to be applied to the corpus. You can add the **kwargs right below this CLS key",
                 str,
             ),
         ),
         valid_sampler=dict(
-            CLS=GroupSameItemSampler,
-            item_name="unchunked_id",
-            item_order_name="chunk_index",
+            CLS=FixedBatchSizeBatchSampler,
+            batch_size=1,
         ),
         test_datapipe=dict(
             CLS=field(
-                HearTimestampDatapipe,
+                HearScenePipe,
                 "\nThe first datapipe class to be applied to the corpus. You can add the **kwargs right below this CLS key",
                 str,
             ),
         ),
         test_sampler=dict(
-            CLS=GroupSameItemSampler,
-            item_name="unchunked_id",
-            item_order_name="chunk_index",
+            CLS=FixedBatchSizeBatchSampler,
+            batch_size=1,
         ),
         upstream=dict(
             CLS=field(
@@ -95,21 +97,25 @@ class HearTimestamp(Problem, Trainer):
                 None,
                 "If None, select all layers; Or, select the subset layers defined by this option",
             ),
+            legacy=True,  # FIXME: Leo
         ),
         downstream=dict(
             CLS=field(
-                "???",
+                HearFullyConnectedPrediction,
                 "\nThe downstream model class for each task. You can add the **kwargs right below this CLS key",
                 str,
             ),
+            pooling="mean",
         ),
         task=dict(
             CLS=field(
-                "???",
+                HearScenePredictionTask,
                 "\nThe task class defining what to do for each train/valid/test step in the train/valid/test dataloader loop"
                 "\nYou can add the **kwargs right below this CLS key",
                 str,
             ),
+            prediction_type="???",
+            scores="???",
         ),
     )
     @classmethod
@@ -160,3 +166,98 @@ class HearTimestamp(Problem, Trainer):
         workspace["test_dataset"] = test_dataset
         workspace["test_sampler"] = test_sampler
         workspace["task"] = task
+
+    @default_cfg(
+        **Trainer.train.default_except(
+            optimizer=dict(
+                CLS="torch.optim.Adam",
+                lr=1.0e-3,
+            ),
+            trainer=dict(
+                total_steps=10,
+                log_step=2,
+                eval_step=10,
+                save_step=10,
+                gradient_clipping=1.0,
+                gradient_accumulate_steps=1,
+                valid_metric="???",
+                valid_higher_better="???",
+            ),
+        )
+    )
+    @classmethod
+    def train(cls, **cfg):
+        """
+        Train the setup problem with the train/valid datasets & samplers and the task object
+        """
+        super().train(**cfg)
+
+    @default_cfg(**Trainer.inference.default_cfg)
+    @classmethod
+    def inference(cls, **cfg):
+        super().inference(**cfg)
+
+    @default_cfg(
+        **Problem.run.default_except(
+            stages=["setup", "train", "inference"],
+            start_stage="setup",
+            final_stage="inference",
+            setup=setup.default_cfg.deselect("workspace", "resume"),
+            train=train.default_cfg.deselect("workspace", "resume"),
+            inference=inference.default_cfg.deselect("workspace", "resume"),
+        )
+    )
+    @classmethod
+    def run(cls, **cfg):
+        super().run(**cfg)
+
+    @default_cfg(
+        num_fold=field(5, "The number of folds to run cross validation", int),
+        **run.default_except(
+            workspace=field(
+                "???",
+                "The root workspace for all folds.\n"
+                "Each fold will use a 'fold_{id}' sub-workspace under this root workspace",
+            ),
+            setup=dict(
+                corpus=dict(
+                    test_fold=field(
+                        "TBD", "This will be auto-set by 'run_cross_validation'"
+                    )
+                )
+            ),
+        ),
+    )
+    @classmethod
+    def cross_validation(cls, **cfg):
+        """
+        Except 'num_fold', all other fields are for 'run' for every fold. That is, all folds shared the same
+        config (training hypers, dataset root, etc) except 'workspace' and 'test_fold' are different
+        """
+        cfg = Container(cfg)
+        workspaces = [
+            str(Workspace(cfg.workspace) / f"fold_{fold_id}")
+            for fold_id in range(cfg.num_fold)
+        ]
+        for fold_id, workspace in enumerate(workspaces):
+            fold_cfg = cfg.clone().deselect("num_fold")
+
+            fold_cfg.workspace = workspace
+            fold_cfg.setup.corpus.test_fold = fold_id
+            cls.run(
+                **fold_cfg,
+            )
+        metrics = defaultdict(list)
+        for fold_id, workspace in enumerate(workspaces):
+            workspace = Workspace(workspace)
+            metric = workspace["test_metrics"]
+            for key, value in metric.items():
+                metrics[key].append(value)
+
+        avg_result = dict()
+        for key, values in metrics.items():
+            avg_score = sum(values) / len(values)
+            avg_result[key] = avg_score
+            logger.info(f"Average {key}: {avg_score}")
+
+        Workspace(cfg.workspace).put(avg_result, "avg_test_metrics", "yaml")

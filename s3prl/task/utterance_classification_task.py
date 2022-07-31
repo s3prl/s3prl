@@ -7,7 +7,7 @@ import numpy as np
 import torch
 import torch.nn.functional as F
 
-from s3prl import Logs, Module, Output
+from s3prl import Logs, Module, Output, Container
 from s3prl.metric import accuracy
 
 from . import Task
@@ -64,7 +64,6 @@ class UtteranceClassificationTask(Task):
         self.model = model
         self.category = category
         assert self.model.output_size == len(category)
-        self._current_best_acc = 0.0
 
     @property
     def input_size(self):
@@ -84,7 +83,12 @@ class UtteranceClassificationTask(Task):
             logits (torch.Tensor): (batch_size, output_size)
             prediction (list): prediction strings
         """
-        logits: torch.Tensor = self.model(x, x_len).slice(1)
+        result = self.model(x, x_len)
+        if isinstance(result, Container):
+            logits = result.slice(1)
+        else:
+            logits = result[0]
+
         predictions = [
             self.category.decode(index)
             for index in logits.argmax(dim=-1).detach().cpu().tolist()
@@ -213,7 +217,6 @@ class UtteranceMultiClassClassificationTask(Task):
         self.model = model
         self.categories = categories
         assert self.model.output_size == sum([len(c) for c in categories])
-        self._current_best_acc = 0.0
 
     @property
     def input_size(self):

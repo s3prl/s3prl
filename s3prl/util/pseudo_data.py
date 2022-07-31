@@ -2,7 +2,7 @@ import shutil
 import random
 import tempfile
 from pathlib import Path
-from typing import Any
+from typing import Any, List
 
 import torch
 import torchaudio
@@ -11,7 +11,7 @@ SAMPLE_RATE = 16000
 
 
 class pseudo_audio:
-    def __init__(self, secs: int, sample_rate: int = SAMPLE_RATE):
+    def __init__(self, secs: List[int], sample_rate: int = SAMPLE_RATE):
         self.tempdir = Path(tempfile.TemporaryDirectory().name)
         self.tempdir.mkdir(parents=True, exist_ok=True)
         self.num_samples = []

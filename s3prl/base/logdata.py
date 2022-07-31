@@ -44,6 +44,7 @@ class Logs(Container):
         if isinstance(data, torch.Tensor):
             assert data.dim() == 0
             data = data.item()
+        data = float(data)
         self.add_data(name, data, LogDataType.SCALAR)
 
     def add_text(self, name, data):

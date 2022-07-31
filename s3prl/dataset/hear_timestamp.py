@@ -13,7 +13,6 @@ class HearTimestampDatapipe(SequentialDataPipe):
     ):
         super().__init__(
             UnfoldChunkBySec(
-                sample_rate=sample_rate,
                 min_chunk_secs=4.0,
                 max_chunk_secs=4.0,
                 step_secs=4.0,

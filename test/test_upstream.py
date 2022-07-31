@@ -3,7 +3,6 @@ import random
 import pytest
 import torch
 from torch.nn.utils.rnn import pad_sequence
-from wandb import set_trace
 
 from s3prl.nn.upstream import (
     S3PRLUpstream,

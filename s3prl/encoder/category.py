@@ -2,9 +2,9 @@ from dataclasses import dataclass
 from typing import List
 
 
-@dataclass
 class CategoryEncoder:
-    category: List[str]
+    def __init__(self, category: List[str]):
+        self.category = list(category)
 
     def __len__(self):
         return len(self.category)
