@@ -236,7 +236,7 @@ class S3PRLUpstreamDriver(UpstreamDriver):
         normalize: bool = False,
         weighted_sum: bool = True,
         layer_selections: List[int] = None,
-        legacy: bool = False,
+        legacy: bool = True,  # FIXME (Leo): This is a temporary solution
     ):
         super().__init__(
             S3PRLUpstream,
