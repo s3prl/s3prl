@@ -16,7 +16,7 @@ def data2vec_local(*args, **kwargs):
     return data2vec_custom(*args, **kwargs)
 
 
-def wav2vec2_url(*args, **kwargs):
+def data2vec_url(*args, **kwargs):
     return data2vec_custom(*args, **kwargs)
 
 

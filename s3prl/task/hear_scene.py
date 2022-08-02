@@ -57,60 +57,21 @@ class HearScenePredictionTask(Task):
         else:
             raise ValueError(f"Unknown prediction_type {prediction_type}")
 
-    def train_step(self, x, x_len, y, **kwds):
-        y_hat, _ = self.model(x, x_len)
-
-        hidden_size = y_hat.size(-1)
-        loss = self.logit_loss(
-            y_hat.reshape(-1, hidden_size).float(), y.reshape(-1, hidden_size).float()
-        )
-
-        logs = Logs()
-        logs.add_scalar("loss", loss)
-
-        return Output(
-            loss=loss,
-            logs=logs,
-        )
-
-    def train_reduction(self, batch_results: list, on_epoch_end: bool = None, **kwds):
-        loss = []
-        for batch in batch_results:
-            loss.append(batch["loss"])
-        loss = torch.FloatTensor(loss).mean().item()
-
-        logs = Logs()
-        logs.add_scalar("loss", loss)
-        return Output(
-            logs=logs,
-        )
-
     def predict(self, x, x_len):
         logits, _ = self.model(x, x_len)
         prediction = self.activation(logits)
         return prediction, logits
 
-    def _step(
-        self,
-        x,
-        x_len,
-        y,
-        unique_name: List[str],
-        **kwds,
-    ):
+    def forward(self, split, x, x_len, y, labels, **kwds):
         y_pr, y_hat = self.predict(x, x_len)
+        loss = self.logit_loss(y_hat.float(), y.float())
 
         return Output(
+            loss=loss,
             label=y,  # (batch_size, num_class)
             logit=y_hat,  # (batch_size, num_class)
             prediction=y_pr,  # (batch_size, num_class)
         )
-
-    def valid_step(self, *args, **kwds):
-        return self._step(*args, **kwds)
-
-    def test_step(self, *args, **kwds):
-        return self._step(*args, **kwds)
 
     def log_scores(self, score_args, logs: Logs):
         """Logs the metric score value for each score defined for the model"""
@@ -140,13 +101,9 @@ class HearScenePredictionTask(Task):
 
         return logs
 
-    def valid_reduction(self, batch_results: list, on_epoch_end: bool = None, **kwds):
-        return self.eval_reduction("valid", batch_results, on_epoch_end)
-
-    def test_reduction(self, batch_results: list, on_epoch_end: bool = None, **kwds):
-        return self.eval_reduction("test", batch_results, on_epoch_end)
-
-    def eval_reduction(self, name: str, batch_results: List, on_epoch_end: bool = None):
+    def reduction(
+        self, split: str, batch_results: List, on_epoch_end: bool = None, **kwds
+    ):
         target, prediction, prediction_logit = [], [], []
         for batch in batch_results:
             target.append(batch["label"])
@@ -158,17 +115,9 @@ class HearScenePredictionTask(Task):
         prediction_logit = torch.cat(prediction_logit, dim=0)
 
         logs = Logs()
-        logs.add_scalar(f"{name}_loss", self.logit_loss(prediction_logit, target))
+        logs.add_scalar(f"loss", self.logit_loss(prediction_logit, target))
 
-        if name == "test":
-            # Cache all predictions for later serialization
-            self.test_predictions = {
-                "target": target.detach().cpu(),
-                "prediction": prediction.detach().cpu(),
-                "prediction_logit": prediction_logit.detach().cpu(),
-            }
-
-        if name in ["test", "valid"]:
+        if split in ["valid", "test"]:
             logs = self.log_scores(
                 score_args=(
                     prediction.detach().cpu().numpy(),

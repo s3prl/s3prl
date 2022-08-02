@@ -1,7 +1,9 @@
 import logging
 
+from s3prl import newdict
 from s3prl.corpus.hear import hear_scene_trainvaltest
 from s3prl.util.configuration import default_cfg, field
+from s3prl.sampler import FixedBatchSizeBatchSampler
 
 from .scene import HearScene
 
@@ -23,8 +25,10 @@ class FSD50k(HearScene):
                     str,
                 ),
             ),
-            train_sampler=dict(
-                batch_size=32,
+            train_sampler=newdict(
+                CLS=FixedBatchSizeBatchSampler,
+                batch_size=10,
+                shuffle=True,
             ),
             task=dict(
                 prediction_type="multilabel",
@@ -39,6 +43,10 @@ class FSD50k(HearScene):
     @default_cfg(
         **HearScene.train.default_except(
             trainer=dict(
+                total_steps=40000,
+                log_step=100,
+                eval_step=1000,
+                save_step=100,
                 valid_metric="mAP",
                 valid_higher_better=True,
             )

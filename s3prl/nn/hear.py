@@ -12,7 +12,7 @@ class HearFullyConnectedPrediction(torch.nn.Module):
         input_size: int,
         output_size: int,
         hidden_dim: int = 1024,
-        hidden_layers: int = None,
+        hidden_layers: int = 2,
         norm_after_activation: bool = False,
         dropout: float = 0.1,
         initialization=torch.nn.init.xavier_uniform_,
@@ -71,6 +71,10 @@ class HearFullyConnectedPrediction(torch.nn.Module):
         return self._output_size
 
     def forward(self, x: torch.Tensor, x_len) -> torch.Tensor:
+        if hasattr(self, "pooling"):
+            x = self.pooling(x, x_len)
+            x_len = x.new_ones(len(x))
+
         shape = x.shape
         if len(shape) == 3:
             bs, ts, hidden_size = x.shape
@@ -81,8 +85,5 @@ class HearFullyConnectedPrediction(torch.nn.Module):
 
         if len(shape) == 3:
             x = x.reshape(bs, ts, -1)
-            if hasattr(self, "pooling"):
-                x = self.pooling(x, x_len)
-                x_len = x.new_ones(len(x))
 
         return x, x_len

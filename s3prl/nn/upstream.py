@@ -49,13 +49,14 @@ class S3PRLUpstream(NNModule):
     def __init__(
         self,
         name: str,
+        ckpt: str = None,
         feature_selection: str = "hidden_states",
         layer_drop: Union[str, float] = 0.0,
         refresh: bool = False,
         legacy: bool = False,
     ):
         super().__init__()
-        self.upstream = getattr(hub, name)(refresh=refresh, legacy=legacy)
+        self.upstream = getattr(hub, name)(ckpt=ckpt, refresh=refresh, legacy=legacy)
         self.feature_selection = feature_selection
         self._downsample_rate = self.upstream.get_downsample_rates(
             self.feature_selection
@@ -229,6 +230,7 @@ class S3PRLUpstreamDriver(UpstreamDriver):
     def __init__(
         self,
         name: str,
+        ckpt: str = None,
         feature_selection: str = "hidden_states",
         layer_drop: Union[str, float] = 0.0,
         refresh: bool = False,
@@ -242,6 +244,7 @@ class S3PRLUpstreamDriver(UpstreamDriver):
             S3PRLUpstream,
             dict(
                 name=name,
+                ckpt=ckpt,
                 feature_selection=feature_selection,
                 layer_drop=layer_drop,
                 refresh=refresh,

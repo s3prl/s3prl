@@ -64,10 +64,10 @@ class Maestro(HearTimestamp):
                 lr=1.0e-3,
             ),
             trainer=dict(
-                total_steps=100,
+                total_steps=15000,
                 log_step=100,
-                eval_step=2000,
-                save_step=100,
+                eval_step=500,
+                save_step=500,
                 gradient_clipping=1.0,
                 gradient_accumulate_steps=1,
                 valid_metric="event_onset_50ms_fms",

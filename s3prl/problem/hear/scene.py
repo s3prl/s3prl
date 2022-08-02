@@ -105,6 +105,7 @@ class HearScene(Problem, Trainer):
                 "\nThe downstream model class for each task. You can add the **kwargs right below this CLS key",
                 str,
             ),
+            hidden_layers=2,
             pooling="mean",
         ),
         task=dict(
@@ -174,10 +175,10 @@ class HearScene(Problem, Trainer):
                 lr=1.0e-3,
             ),
             trainer=dict(
-                total_steps=10,
-                log_step=2,
-                eval_step=10,
-                save_step=10,
+                total_steps=150000,
+                log_step=100,
+                eval_step=1000,
+                save_step=100,
                 gradient_clipping=1.0,
                 gradient_accumulate_steps=1,
                 valid_metric="???",

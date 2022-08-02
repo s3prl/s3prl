@@ -42,6 +42,10 @@ class ESC50(HearScene):
     @default_cfg(
         **HearScene.train.default_except(
             trainer=dict(
+                total_steps=4000,
+                log_step=100,
+                eval_step=500,
+                save_step=100,
                 valid_metric="top1_acc",
                 valid_higher_better=True,
             )
