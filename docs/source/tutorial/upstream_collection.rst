@@ -29,7 +29,7 @@ Here is an example on how to get a hubert model and its representation using the
     with torch.no_grad():
         wav_lens = torch.LongTensor([1.5, 2, 3]) * SAMPLE_RATE
         wavs = pad_sequence([torch.randn(l, 1) for l in wav_lens], batch_first=True).cuda()
-        hidden_states, hidden_states_len = model(wavs).slice(2)
+        hidden_states, hidden_states_len = model(wavs,wav_lens).slice(2)
 
 .. tip::
 

@@ -45,7 +45,8 @@ class ModelWithSpecaug(NNModule):
     def forward(self, x, x_len, **kwds) -> Output:
         if self.training:
             x, x_len = self.specaug(x, x_len)
-        return self.model(x=x, x_len=x_len, **kwds)
+        result = self.model(x=x, x_len=x_len, **kwds)
+        return result
 
 
 class SpecAug(torch.nn.Module):
@@ -255,7 +256,7 @@ class MaskAlongAxis(torch.nn.Module):
         # mask_length: (B, num_mask, 1)
         mask_length = torch.randint(
             self.mask_width_range[0],
-            T,
+            T + 1,
             (B, num_mask),
             device=spec.device,
         ).unsqueeze(2)
