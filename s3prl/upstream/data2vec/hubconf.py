@@ -2,7 +2,7 @@ import os
 import torch
 
 # -------------#
-from s3prl.utility.download import _urls_to_filepaths
+from s3prl.util.download import _urls_to_filepaths
 from .expert import UpstreamExpert as _UpstreamExpert
 
 

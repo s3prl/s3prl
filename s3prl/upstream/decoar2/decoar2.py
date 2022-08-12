@@ -4,7 +4,7 @@
 ###############
 import torch.nn as nn
 #-------------#
-from fairseq.models.wav2vec.wav2vec2 import TransformerEncoder, TransformerSentenceEncoderLayer
+from fairseq.models.wav2vec.wav2vec2 import TransformerEncoder, Wav2Vec2Config
 
 #######
 # APC #
@@ -26,9 +26,6 @@ args = {
     "layer_norm_first": False,
 }
 
-class Config:
-    pass
-
 class Decoar2(nn.Module):
     def __init__(self):
         """
@@ -39,7 +36,7 @@ class Decoar2(nn.Module):
             residual: a bool indicating whether to apply residual connections.
         """
         super(Decoar2, self).__init__()
-        config = Config()
+        config = Wav2Vec2Config()
         for arg_name, arg_val in args.items():
             setattr(config, arg_name, arg_val)
 

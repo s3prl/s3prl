@@ -1,7 +1,7 @@
 import os
 import torch
 #-------------#
-from s3prl.utility.download import _urls_to_filepaths
+from s3prl.util.download import _urls_to_filepaths
 from .expert import UpstreamExpert as _UpstreamExpert
 
 
@@ -26,5 +26,7 @@ def decoar2(refresh=False, *args, **kwargs):
         The apc standard model on 360hr
             refresh (bool): whether to download ckpt/config again if existed
     """
-    kwargs['ckpt'] = 'https://speech-representation.s3.us-west-2.amazonaws.com/checkpoint_decoar2.pt'
+    kwargs[
+        "ckpt"
+    ] = "https://huggingface.co/s3prl/decoar2/resolve/main/checkpoint_decoar2.pt"
     return decoar2_url(refresh=refresh, *args, **kwargs)

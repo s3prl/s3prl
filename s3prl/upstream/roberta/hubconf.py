@@ -3,7 +3,7 @@ import glob
 import torch
 
 import s3prl
-from s3prl.utility.download import _urls_to_filepaths
+from s3prl.util.download import _urls_to_filepaths
 
 from ..interfaces import Featurizer as _Featurizer
 from .expert import UpstreamExpert as _UpstreamExpert
