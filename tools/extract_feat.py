@@ -51,13 +51,8 @@ if __name__ == "__main__":
     if args.all:
         options = [
             name
-            for name in hub.__dict__
-            if (not name.startswith("_"))
-            and callable(getattr(hub, name))
-            and (not "local" in name)
-            and (not "url" in name)
-            and (not "custom" in name)
-            and (not "gdriveid" in name)
+            for name in hub.options(only_registered_ckpt=True)
+            if (not name == "customized_upstream")
             and (
                 not "mos" in name
             )  # mos models do not have hidden_states key. They only return a single mos score
@@ -67,7 +62,12 @@ if __name__ == "__main__":
             and (
                 not "pase" in name
             )  # pase_plus needs lots of dependencies and is difficult to be tested and is not very worthy today
-            and (not name == "xls_r_2b")  # FIXME: (Leo) skip due to too high MEM cost
+            and (
+                not name == "xls_r_1b"
+            )  # skip due to too large model, too long download time
+            and (
+                not name == "xls_r_2b"
+            )  # skip due to too large model, too long download time
         ]
 
         logger.info(f"Extract for: {options}")

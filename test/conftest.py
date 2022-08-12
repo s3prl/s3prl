@@ -6,8 +6,6 @@ import pytest
 import torch
 import torch.optim as optim
 
-from s3prl import Module, Object, init
-
 logger = logging.getLogger(__name__)
 
 
@@ -85,6 +83,8 @@ def pytest_collection_modifyitems(config, items):
 class Helper:
     @classmethod
     def validate_object(cls, obj: Any):
+        from s3prl import init
+
         serialized = init.serialize(obj)
         new_obj = init.deserialize(serialized)
         new_serialized = init.serialize(new_obj)
@@ -92,7 +92,7 @@ class Helper:
         return new_obj
 
     @classmethod
-    def get_single_tensor(cls, obj: Object):
+    def get_single_tensor(cls, obj):
         if isinstance(obj, torch.Tensor):
             return obj
         if isinstance(obj, (tuple, list)):
@@ -107,7 +107,7 @@ class Helper:
             return None
 
     @classmethod
-    def validate_module(cls, module: Module, *args, device="cpu", **kwargs):
+    def validate_module(cls, module, *args, device="cpu", **kwargs):
         optimizer = optim.Adam(module.parameters(), lr=1e-3)
         y = cls.get_single_tensor(module(*args, **kwargs))
 
@@ -116,6 +116,8 @@ class Helper:
         optimizer.step()
 
         with tempfile.NamedTemporaryFile() as file:
+            from s3prl import Object
+
             module.save_checkpoint(file.name)
             module_reload = Object.load_checkpoint(file.name).to(device)
 
@@ -123,7 +125,7 @@ class Helper:
         return module_reload
 
     @classmethod
-    def is_same_module(cls, module1: Module, module2: Module, *args, **kwargs):
+    def is_same_module(cls, module1, module2, *args, **kwargs):
         module1.eval()
         module2.eval()
         with torch.no_grad():

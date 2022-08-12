@@ -5,6 +5,7 @@ import argparse
 from pathlib import Path
 from subprocess import check_call
 
+import s3prl
 from s3prl.util.download import _urls_to_filepaths
 from s3prl.upstream.utils import merge_with_parent, load_fairseq_ckpt
 from s3prl.upstream.roberta.roberta_model import (
@@ -19,7 +20,7 @@ def load_and_convert_fairseq_ckpt(fairseq_source: str, output_path: str):
     """
     Args:
         fairseq_source (str): either URL for the tar file or the untared directory path
-        output_path (str): organized checkpoint path
+        output_path (str): converted checkpoint path
     """
     if fairseq_source.startswith("http"):
         tar_file = _urls_to_filepaths(fairseq_source)
@@ -94,7 +95,7 @@ if __name__ == "__main__":
 
     parser = argparse.ArgumentParser()
     parser.add_argument("fairseq_ckpt")
-    parser.add_argument("--output_dir", default="./result/organized_ckpts")
+    parser.add_argument("--output_dir", default=Path(s3prl.__file__).parent.parent / "converted_ckpts")
     args = parser.parse_args()
 
     Path(args.output_dir).parent.mkdir(exist_ok=True, parents=True)

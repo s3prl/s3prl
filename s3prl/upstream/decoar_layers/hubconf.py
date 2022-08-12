@@ -25,5 +25,5 @@ def decoar_layers(*args, refresh=False, **kwargs):
     """
     kwargs[
         "ckpt"
-    ] = "https://huggingface.co/s3prl/decoar/resolve/main/checkpoint_decoar.pt"
-    return decoar_layers_url(refresh=refresh, *args, **kwargs)
+    ] = "https://huggingface.co/s3prl/converted_ckpts/resolve/main/checkpoint_decoar.pt"
+    return decoar_layers_url(*args, refresh=refresh, **kwargs)

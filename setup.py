@@ -1,9 +1,5 @@
 # Always prefer setuptools over distutils
-from subprocess import check_call
 from setuptools import setup, find_packages
-from setuptools.command.install import install
-from setuptools.command.develop import develop
-from setuptools.command.egg_info import egg_info
 
 import pathlib
 
@@ -56,40 +52,7 @@ requirements = [
 # Arguments marked as "Required" below must be included for upload to PyPI.
 # Fields marked as "Optional" may be commented out.
 
-install_from_github = [
-    "fairseq@git+https://github.com//pytorch/fairseq.git@b5a039c292facba9c73f59ff34621ec131d82341#egg=fairseq",
-    "lighthubert@git+https://github.com/mechanicalsea/lighthubert#egg=lighthubert",
-]
-
-
-class DevelopCommand(develop):
-    """Pre-installation for development mode."""
-
-    def run(self):
-        develop.run(self)
-        check_call(["pip", "install", *install_from_github])
-
-
-class InstallCommand(install):
-    """Post-installation for installation mode."""
-
-    def run(self):
-        install.run(self)
-        check_call(["pip", "install", *install_from_github])
-
-
-class EggInfoCommand(egg_info):
-    def run(self):
-        egg_info.run(self)
-        check_call(["pip", "install", *install_from_github])
-
-
 setup(
-    cmdclass={
-        "install": InstallCommand,
-        "dev": DevelopCommand,
-        "egg_info": EggInfoCommand,
-    },
     # This is the name of your project. The first time you publish this
     # package, this name will be registered for you. It will determine how
     # users can install this project, e.g.:

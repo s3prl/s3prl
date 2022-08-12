@@ -3,6 +3,7 @@ import tempfile
 from typing import List
 from pathlib import Path
 
+import s3prl
 from s3prl.util.download import _urls_to_filepaths
 from s3prl.upstream.utils import merge_with_parent, load_fairseq_ckpt
 
@@ -60,7 +61,7 @@ if __name__ == "__main__":
 
     parser = argparse.ArgumentParser()
     parser.add_argument("fairseq_ckpt")
-    parser.add_argument("--output_dir", default="./result/organized_ckpts")
+    parser.add_argument("--output_dir", default=Path(s3prl.__file__).parent.parent / "converted_ckpts")
     args = parser.parse_args()
 
     Path(args.output_dir).parent.mkdir(exist_ok=True, parents=True)

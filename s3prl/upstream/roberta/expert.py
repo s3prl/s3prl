@@ -1,7 +1,6 @@
 import torch
 from torch.nn.utils.rnn import pad_sequence
 
-from fairseq.models.roberta import RobertaModel
 from ..interfaces import UpstreamBase
 from .convert import load_converted_model
 

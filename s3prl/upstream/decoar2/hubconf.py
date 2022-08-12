@@ -28,7 +28,7 @@ def decoar2_url(*args, **kwargs):
         The model from URL
             ckpt (str): URL
     """
-    return decoar2_local(_urls_to_filepaths(ckpt, refresh=refresh), *args, **kwargs)
+    return decoar2_custom(*args, **kwargs)
 
 
 def decoar2(*args, refresh=False, **kwargs):
@@ -38,5 +38,5 @@ def decoar2(*args, refresh=False, **kwargs):
     """
     kwargs[
         "ckpt"
-    ] = "https://huggingface.co/s3prl/decoar2/resolve/main/checkpoint_decoar2.pt"
-    return decoar2_url(refresh=refresh, *args, **kwargs)
+    ] = "https://huggingface.co/s3prl/converted_ckpts/resolve/main/checkpoint_decoar2.pt"
+    return decoar2_url(*args, refresh=refresh, **kwargs)

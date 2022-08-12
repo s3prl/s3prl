@@ -1,19 +1,15 @@
 import os
-import re
-import sys
 import yaml
 import glob
 import torch
 import random
 import argparse
-import importlib
 import torchaudio
 import numpy as np
 from argparse import Namespace
 from torch.distributed import is_initialized, get_world_size
 
 from s3prl import hub
-from s3prl import downstream
 from s3prl.downstream.runner import Runner
 from s3prl.utility.helper import backup, get_time_tag, hack_isinstance, is_leader_process, override
 
@@ -45,8 +41,7 @@ def get_downstream_args():
     parser.add_argument('-c', '--config', help='The yaml file for configuring the whole experiment except the upstream model')
 
     # downstream settings
-    downstreams = [attr for attr in dir(downstream.experts) if attr[0] != '_']
-    parser.add_argument('-d', '--downstream', choices=downstreams, help='\
+    parser.add_argument('-d', '--downstream', help='\
         Typically downstream dataset need manual preparation.\
         Please check downstream/README.md for details'
     )

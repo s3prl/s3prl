@@ -52,7 +52,7 @@ def hubert_base(refresh=False, legacy=False, **kwargs):
     """
     kwargs["ckpt"] = "https://dl.fbaipublicfiles.com/hubert/hubert_base_ls960.pt"
     if not legacy:
-        kwargs["ckpt"] = "result/organized_ckpts/hubert_base_ls960.pt"
+        kwargs["ckpt"] = "https://huggingface.co/s3prl/converted_ckpts/resolve/main/hubert_base_ls960.pt"
     return hubert_custom(refresh=refresh, legacy=legacy, **kwargs)
 
 
@@ -63,7 +63,7 @@ def hubert_large_ll60k(refresh=False, legacy=False, **kwargs):
     """
     kwargs["ckpt"] = "https://dl.fbaipublicfiles.com/hubert/hubert_large_ll60k.pt"
     if not legacy:
-        kwargs["ckpt"] = "result/organized_ckpts/hubert_large_ll60k.pt"
+        kwargs["ckpt"] = "https://huggingface.co/s3prl/converted_ckpts/resolve/main/hubert_large_ll60k.pt"
     return hubert_custom(refresh=refresh, legacy=legacy, **kwargs)
 
 
@@ -78,5 +78,5 @@ def hubert_base_robust_mgr(refresh=False, legacy=False, **kwargs):
     if not legacy:
         kwargs[
             "ckpt"
-        ] = "result/organized_ckpts/HuBERT_base_robust_mgr_best_loss_2.7821.pt"
+        ] = "https://huggingface.co/s3prl/converted_ckpts/resolve/main/HuBERT_base_robust_mgr_best_loss_2.7821.pt"
     return hubert_custom(refresh=refresh, legacy=legacy, **kwargs)
