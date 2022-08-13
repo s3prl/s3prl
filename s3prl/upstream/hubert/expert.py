@@ -28,8 +28,10 @@ class UpstreamExpert(UpstreamBase):
         super().__init__(**kwargs)
         model, task_cfg = load_converted_model(ckpt)
         self.model = model
-        self.model.feature_grad_mult = 0.0
         self.task_cfg = task_cfg
+
+        self.model.feature_grad_mult = 0.0
+        self.model.encoder.layerdrop = 0.0
 
         if len(self.hooks) == 0:
             module_name = "self.model.encoder.layers"
@@ -81,8 +83,10 @@ class LegacyUpstreamExpert(UpstreamBase):
 
         model, cfg, task = fairseq.checkpoint_utils.load_model_ensemble_and_task([ckpt])
         self.model = model[0]
-        self.model.feature_grad_mult = 0.0
         self.task = task
+
+        self.model.feature_grad_mult = 0.0
+        self.model.encoder.layerdrop = 0.0
 
         if len(self.hooks) == 0:
             module_name = "self.model.encoder.layers"

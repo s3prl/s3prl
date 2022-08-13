@@ -15,10 +15,11 @@ class UpstreamExpert(UpstreamBase):
     def __init__(self, ckpt, **kwargs):
         super().__init__(**kwargs)
         model, task_cfg = load_converted_model(ckpt)
-
         self.model = model
-        self.model.feature_grad_mult = 0.0
         self.wav_normalize = task_cfg.normalize
+
+        self.model.feature_grad_mult = 0.0
+        self.model.encoder.layerdrop = 0.0
 
         # These options are only used for aligning representations between s3prl and huggingface
         # See utility/compare_wav2vec2.py
@@ -76,8 +77,10 @@ class LegacyUpstreamExpert(UpstreamBase):
         super().__init__(**kwargs)
         model, cfg, task = self.load_model(ckpt)
         self.model = model[0]
-        self.model.feature_grad_mult = 0.0
         self.wav_normalize = cfg.task.normalize
+
+        self.model.feature_grad_mult = 0.0
+        self.model.encoder.layerdrop = 0.0
 
         # These options are only used for aligning representations between s3prl and huggingface
         # See utility/compare_wav2vec2.py
