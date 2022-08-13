@@ -42,8 +42,6 @@ class UpstreamExpert(UpstreamBase):
 
             self.hook_postprocess = postprocess
 
-        self._init_layerdrop = self.model.encoder.layerdrop
-
     def get_downsample_rates(self, key: str) -> int:
         return 320
 
@@ -103,8 +101,6 @@ class LegacyUpstreamExpert(UpstreamBase):
 
             self.hook_postprocess = postprocess
 
-        self._init_layerdrop = self.model.encoder.layerdrop
-
     @staticmethod
     def load_model(ckpt_path: str):
         """
@@ -146,18 +142,6 @@ class LegacyUpstreamExpert(UpstreamBase):
             [ckpt_path], state=ckpt_state
         )
         return model, cfg, task
-
-    @property
-    def layer_drop(self):
-        return self.model.encoder.layerdrop
-
-    def set_layer_drop(self, layerdrop: float = None):
-        if isinstance(layerdrop, float):
-            self.model.encoder.layerdrop = layerdrop
-        elif layerdrop is None:
-            self.model.encoder.layerdrop = self._init_layerdrop
-        else:
-            raise ValueError("layerdrop can only be float or None")
 
     def get_downsample_rates(self, key: str) -> int:
         return 320

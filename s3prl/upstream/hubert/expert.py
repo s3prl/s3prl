@@ -28,6 +28,7 @@ class UpstreamExpert(UpstreamBase):
         super().__init__(**kwargs)
         model, task_cfg = load_converted_model(ckpt)
         self.model = model
+        self.model.feature_grad_mult = 0.0
         self.task_cfg = task_cfg
 
         if len(self.hooks) == 0:
@@ -46,20 +47,6 @@ class UpstreamExpert(UpstreamBase):
                 return list(zip(names, hiddens))
 
             self.hook_postprocess = postprocess
-
-        self._init_layerdrop = self.model.encoder.layerdrop
-
-    @property
-    def layer_drop(self):
-        return self.model.encoder.layerdrop
-
-    def set_layer_drop(self, layerdrop: float = None):
-        if isinstance(layerdrop, float):
-            self.model.encoder.layerdrop = layerdrop
-        elif layerdrop is None:
-            self.model.encoder.layerdrop = self._init_layerdrop
-        else:
-            raise ValueError("layerdrop can only be float or None")
 
     def get_downsample_rates(self, key: str) -> int:
         return 320
@@ -114,20 +101,6 @@ class LegacyUpstreamExpert(UpstreamBase):
 
             self.hook_postprocess = postprocess
 
-        self._init_layerdrop = self.model.encoder.layerdrop
-
-    @property
-    def layer_drop(self):
-        return self.model.encoder.layerdrop
-
-    def set_layer_drop(self, layerdrop: float = None):
-        if isinstance(layerdrop, float):
-            self.model.encoder.layerdrop = layerdrop
-        elif layerdrop is None:
-            self.model.encoder.layerdrop = self._init_layerdrop
-        else:
-            raise ValueError("layerdrop can only be float or None")
-
     def get_downsample_rates(self, key: str) -> int:
         return 320
 
@@ -159,9 +132,7 @@ class LegacyUpstreamExpert(UpstreamBase):
         logger.warning("Use the legacy expert for HuBERT which depends on fairseq")
         import fairseq
 
-        model, cfg, task = fairseq.checkpoint_utils.load_model_ensemble_and_task(
-            [ckpt]
-        )
+        model, cfg, task = fairseq.checkpoint_utils.load_model_ensemble_and_task([ckpt])
         self.model = model[0]
         self.model.feature_grad_mult = 0.0
         self.task = task
