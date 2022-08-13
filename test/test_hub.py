@@ -14,6 +14,8 @@ from s3prl.util.download import _urls_to_filepaths
 
 logger = logging.getLogger(__name__)
 
+TEST_MORE_ITER = 2
+TRAIN_MORE_ITER = 5
 SAMPLE_RATE = 16000
 EXTRACTED_GT_DIR = Path(s3prl.__file__).parent.parent / "sample_hidden_states"
 
@@ -77,7 +79,6 @@ def _compare_with_extracted(name: str):
 
         _all_hidden_states_same(hs, hs_gt)
 
-        TEST_MORE_ITER = 2
         for i in range(TEST_MORE_ITER):
             more_hs = _extract_feat(model)
             for h1, h2 in zip(hs, more_hs):
@@ -85,12 +86,18 @@ def _compare_with_extracted(name: str):
                     h1, h2
                 ), "should have deterministic representation in eval mode"
 
-        TEST_MORE_ITER = 2
         for i in range(TEST_MORE_ITER):
             more_hs = _extract_feat(model, seed=i + 1)
             assert len(hs) == len(
                 more_hs
             ), "should have deterministic num_layer in eval mode"
+
+    model.train()
+    for i in range(TRAIN_MORE_ITER):
+        more_hs = _extract_feat(model, seed=i + 1)
+        assert len(hs) == len(
+            more_hs
+        ), "should have deterministic num_layer in train mode"
 
 
 def _test_model(name: str):
