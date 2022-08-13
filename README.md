@@ -64,13 +64,8 @@ If you find this toolkit helpful to your research, please do consider citing [ou
 
 1. **Python** >= 3.6
 2. Install **sox** on your OS
-3. Install s3prl
-
-```sh
-pip install -e ./
-```
-
-4. Some upstream models require special dependencies. If you encounter error with a specific upstream model, you can look into the `README.md` under each `upstream` folder. E.g., `upstream/pase/README.md`
+3. Install s3prl: [Read doc](https://s3prl.github.io/s3prl/tutorial/installation.html#)
+4. (Optional) Some upstream models require special dependencies. If you encounter error with a specific upstream model, you can look into the `README.md` under each `upstream` folder. E.g., `upstream/pase/README.md`
 
 ## Development pattern for contributors
 
