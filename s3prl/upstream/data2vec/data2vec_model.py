@@ -10,9 +10,6 @@ import math
 import copy
 from dataclasses import dataclass, field
 from typing import Optional
-from omegaconf import II
-
-from omegaconf import II
 
 import torch
 import torch.nn as nn
@@ -198,7 +195,7 @@ class Data2VecAudioConfig(Wav2Vec2Config):
     )
 
     # when to finish annealing ema decay rate
-    ema_anneal_end_step: int = II("optimization.max_update")
+    ema_anneal_end_step: int = None
 
     ema_transformer_only: bool = field(
         default=True,
@@ -209,7 +206,7 @@ class Data2VecAudioConfig(Wav2Vec2Config):
         metadata={"help": "whether to momentum update only the transformer layers"},
     )
 
-    max_update: int = II("optimization.max_update")
+    max_update: int = None
 
     min_target_var: float = field(
         default=0.1, metadata={"help": "stop training if target var falls below this"}

@@ -7,8 +7,7 @@ from pathlib import Path
 from subprocess import check_call
 
 import torch
-import s3prl
-from s3prl import S3PRLUpstream, Featurizer
+from s3prl.nn import S3PRLUpstream, Featurizer
 from s3prl.util.pseudo_data import get_pseudo_wavs
 from s3prl.util.download import _urls_to_filepaths
 
@@ -17,13 +16,14 @@ logger = logging.getLogger(__name__)
 TEST_MORE_ITER = 2
 TRAIN_MORE_ITER = 5
 SAMPLE_RATE = 16000
-EXTRACTED_GT_DIR = Path(s3prl.__file__).parent.parent / "sample_hidden_states"
+EXTRACTED_GT_DIR = Path(__file__).parent.parent / "sample_hidden_states"
 
 # Expect the following directory structure:
 #
 # -- s3prl/  (repository root)
 # ---- s3prl/  (package root)
 # ---- test/
+# ------- test_upstream.py
 # ---- sample_hidden_states/
 
 
@@ -49,13 +49,16 @@ def _prepare_sample_hidden_states():
 
 def _extract_feat(model: S3PRLUpstream, seed: int = 0):
     wavs, wavs_len = get_pseudo_wavs(seed=seed, padded=True)
-    hs_and_lens = model(wavs, wavs_len)
-    hidden_states = [h for h, l in hs_and_lens]
-    return hidden_states
+    all_hs, all_lens = model(wavs, wavs_len)
+    return all_hs
 
 
 def _all_hidden_states_same(hs1, hs2):
     for h1, h2 in zip(hs1, hs2):
+        if h1.size(1) != h2.size(1):
+            min_seqlen = min(h1.size(1), h2.size(1))
+            h1 = h1[:, :min_seqlen, :]
+            h2 = h2[:, :min_seqlen, :]
         assert torch.allclose(h1, h2)
 
 

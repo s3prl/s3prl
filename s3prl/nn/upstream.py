@@ -37,7 +37,10 @@ class S3PRLUpstream(nn.Module):
         super().__init__()
         self.upstream = getattr(hub, name)(ckpt=path_or_url, refresh=refresh)
 
-        hs = self.upstream(get_pseudo_wavs())["hidden_states"]
+        self.upstream.eval()
+        with torch.no_grad():
+            hs = self.upstream(get_pseudo_wavs())["hidden_states"]
+        self.upstream.train()
         self._num_layers = len(hs)
 
         self._hidden_sizes = []
@@ -67,14 +70,12 @@ class S3PRLUpstream(nn.Module):
     def _match_length(self, xs, target_max_len: int):
         xs_max_len = xs.size(1)
 
-        assert abs(target_max_len - xs_max_len) < TOLERABLE_SEQLEN_DIFF
-        factor = int(round(target_max_len / xs_max_len))
-        assert factor == 1
-
         if xs_max_len > target_max_len:
+            assert round(xs_max_len / target_max_len) == 1
             xs = xs[:, :target_max_len, :]
 
         elif xs_max_len < target_max_len:
+            assert round(target_max_len / xs_max_len) == 1
             xs = torch.cat(
                 (xs, xs[:, -1:, :].repeat(1, target_max_len - xs_max_len, 1)), dim=1
             )
@@ -99,12 +100,12 @@ class S3PRLUpstream(nn.Module):
         all_hs = []
         all_lens = []
         for h, stride in zip(hidden_states, self.downsample_rates):
-            expected_max_h_len = round(max_wav_len / stride)
+            expected_max_h_len = max_wav_len // stride + 1
             h = self._match_length(h, expected_max_h_len)
             assert h.size(1) == expected_max_h_len
             all_hs.append(h)
 
-            h_len = (wavs_len.float() / stride).round().long()
+            h_len = torch.div(wavs_len, stride, rounding_mode="floor") + 1
             all_lens.append(h_len)
 
         return all_hs, all_lens
