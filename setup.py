@@ -1,12 +1,7 @@
 # Always prefer setuptools over distutils
 import os
 from pathlib import Path
-
-from subprocess import check_call
 from setuptools import setup, find_packages
-from setuptools.command.install import install
-from setuptools.command.develop import develop
-from setuptools.command.egg_info import egg_info
 
 here = Path(__file__).parent.resolve()
 
@@ -32,31 +27,7 @@ extras_require["all"] = all_requires
 # Arguments marked as "Required" below must be included for upload to PyPI.
 # Fields marked as "Optional" may be commented out.
 
-class InstallCommand(install):
-    """Post-installation for installation mode."""
-
-    def run(self):
-        install.run(self)
-
-
-class DevelopCommand(develop):
-    """Post-installation for development mode."""
-
-    def run(self):
-        develop.run(self)
-
-
-class EggInfoCommand(egg_info):
-    def run(self):
-        egg_info.run(self)
-
-
 setup(
-    cmdclass={
-        "install": InstallCommand,
-        "dev": DevelopCommand,
-        "egg_info": EggInfoCommand,
-    },
     # This is the name of your project. The first time you publish this
     # package, this name will be registered for you. It will determine how
     # users can install this project, e.g.:
