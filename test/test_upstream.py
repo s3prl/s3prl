@@ -8,7 +8,7 @@ from subprocess import check_call
 
 import torch
 import s3prl
-from s3prl import hub
+from s3prl import S3PRLUpstream, Featurizer
 from s3prl.util.pseudo_data import get_pseudo_wavs
 from s3prl.util.download import _urls_to_filepaths
 
@@ -19,11 +19,10 @@ TRAIN_MORE_ITER = 5
 SAMPLE_RATE = 16000
 EXTRACTED_GT_DIR = Path(s3prl.__file__).parent.parent / "sample_hidden_states"
 
-# Expect the follow directory structure:
+# Expect the following directory structure:
 #
-# -- s3prl/
-# ---- s3prl/
-# ------- hub.py
+# -- s3prl/  (repository root)
+# ---- s3prl/  (package root)
 # ---- test/
 # ---- sample_hidden_states/
 
@@ -48,9 +47,10 @@ def _prepare_sample_hidden_states():
         check_call("git pull".split(), cwd=EXTRACTED_GT_DIR)
 
 
-def _extract_feat(model: torch.nn.Module, seed: int = 0):
-    wavs = get_pseudo_wavs(seed=seed)
-    hidden_states = model(wavs)["hidden_states"]
+def _extract_feat(model: S3PRLUpstream, seed: int = 0):
+    wavs, wavs_len = get_pseudo_wavs(seed=seed, padded=True)
+    hs_and_lens = model(wavs, wavs_len)
+    hidden_states = [h for h, l in hs_and_lens]
     return hidden_states
 
 
@@ -69,8 +69,7 @@ def _load_ground_truth(name: str):
 
 
 def _compare_with_extracted(name: str):
-    cls = getattr(hub, name)
-    model = cls()
+    model = S3PRLUpstream(name)
     model.eval()
 
     with torch.no_grad():
@@ -105,7 +104,7 @@ def _test_model(name: str):
     Test the upstream with the name: 'name' can successfully forward and backward
     """
     with torch.autograd.set_detect_anomaly(True):
-        model = getattr(hub, name)()
+        model = S3PRLUpstream(name)
         hs = _extract_feat(model)
         h_sum = 0
         for h in hs:
@@ -124,7 +123,7 @@ def test_all_model():
 
     options = [
         name
-        for name in hub.options(only_registered_ckpt=True)
+        for name in S3PRLUpstream.available_names(only_registered_ckpt=True)
         if (not name == "customized_upstream")
         and (
             not "mos" in name
@@ -169,3 +168,19 @@ def test_one_model(upstream_name: str):
     _prepare_sample_hidden_states()
     _compare_with_extracted(upstream_name)
     _test_model(upstream_name)
+
+
+@pytest.mark.parametrize("layer_selections", [None, [0, 4, 9]])
+@pytest.mark.parametrize("normalize", [False, True])
+def test_featurizer(layer_selections, normalize):
+    model = S3PRLUpstream("hubert")
+    featurizer = Featurizer(
+        model, layer_selections=layer_selections, normalize=normalize
+    )
+
+    wavs, wavs_len = get_pseudo_wavs(padded=True)
+    all_hs, all_lens = model(wavs, wavs_len)
+    hs, hs_len = featurizer(all_hs, all_lens)
+
+    assert isinstance(hs, torch.FloatTensor)
+    assert isinstance(hs_len, torch.LongTensor)
