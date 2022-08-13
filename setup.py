@@ -15,7 +15,7 @@ for file in os.listdir(here / "requirements"):
     lines = [line.strip() for line in (here / "requirements" / file).open().readlines()]
     requirements[Path(file).stem] = lines
     requirement_files.append(f"requirements/{file}")
-requirements["all+dev"] = requirements["all"] + requirements["dev"]
+requirements["dev"] = requirements["all"] + requirements["dev"]
 
 install_requires = requirements["install"]
 extras_require = {k: v for k, v in requirements.items() if k not in ["install"]}

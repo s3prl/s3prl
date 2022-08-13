@@ -16,21 +16,59 @@ TOLERABLE_SEQLEN_DIFF = 3
 
 class S3PRLUpstream(nn.Module):
     """
-    This is an easy interface for using all the S3PRL SSL models
+    This is an easy interface for using all the models in S3PRL.
 
     Args:
         name (str):
-            can be "apc", "hubert", "wav2vec2". See above model information for all the supported names
+            can be "apc", "hubert", "wav2vec2". See :obj:`available_names` for all the supported names
 
         path_or_url (str):
             The source of the checkpoint. Might be a local path or a URL
 
         refresh (bool): (default, False)
-            If true, force to re-download the checkpoint even if it exists
+            If false, only downlaod checkpoint if not yet downloaded before.
+            If true, force to re-download the checkpoint.
+
+    .. note::
+
+        When using **S3PRLUpstream** with :code:`refresh=True` and multiprocessing (e.g. DDP),
+        the checkpoint will only be downloaded once, and the other processes will simply
+        re-use the newly downloaded checkpoint, instead of re-downloading on every processes,
+        which can be very time/bandwidth consuming.
+
+    Example::
+
+        >>> import torch
+        >>> from s3prl.nn import S3PRLUpstream
+        ...
+        >>> model = S3PRLUpstream("hubert")
+        >>> model.eval()
+        ...
+        >>> with torch.no_grad():
+        ...     wavs = torch.randn(2, 16000 * 2)
+        ...     wavs_len = torch.LongTensor([16000 * 1, 16000 * 2])
+        ...     all_hs, all_hs_len = model(wavs, wavs_len)
+        ...
+        >>> for hs, hs_len in zip(all_hs, all_hs_len):
+        ...     assert isinstance(hs, torch.FloatTensor)
+        ...     assert isinstance(hs_len, torch.LongTensor)
+        ...
+        ...     batch_size, max_seq_len, hidden_size = hs.shape
+        ...     assert hs_len.dim() == 1
     """
 
     @classmethod
-    def available_names(cls, only_registered_ckpt: bool = False):
+    def available_names(cls, only_registered_ckpt: bool = False) -> List[str]:
+        """
+        All the available names supported by this S3PRLUpstream
+
+        Args:
+            only_registered_ckpt (bool):
+                ignore entry names which require to give `path_or_url`.
+                That is, the entry names without the registered checkpoint sources.
+                These names end with :code:`_local` (for local path), :code:`_url`
+                (for URL) or :code:`_custom` (auto-determine path or URL)
+        """
         return hub.options(only_registered_ckpt)
 
     def __init__(self, name: str, path_or_url: str = None, refresh: bool = False):
@@ -56,15 +94,27 @@ class S3PRLUpstream(nn.Module):
             raise ValueError
 
     @property
-    def num_layers(self):
+    def num_layers(self) -> int:
+        """
+        Number of hidden sizes. All the upstream have a deterministic
+        number of layers. That is, layer drop is turned off by default.
+        """
         return self._num_layers
 
     @property
-    def downsample_rates(self):
+    def downsample_rates(self) -> List[int]:
+        """
+        Downsampling rate from 16000 Hz audio of each layer.
+        Usually, all layers have the same downsampling rate,
+        but might not be the case for some advanced upstreams.
+        """
         return self._downsample_rates
 
     @property
-    def hidden_sizes(self):
+    def hidden_sizes(self) -> List[int]:
+        """
+        The hidden size of each layer
+        """
         return self._hidden_sizes
 
     def _match_length(self, xs, target_max_len: int):
@@ -85,8 +135,14 @@ class S3PRLUpstream(nn.Module):
     def forward(self, wavs: torch.FloatTensor, wavs_len: torch.LongTensor):
         """
         Args:
-            wavs: (batch_size, seqlen)
-            wavs_len: (batch_size)
+            wavs (torch.FloatTensor): (batch_size, seqlen)
+            wavs_len (torch.LongTensor): (batch_size, )
+
+        Return:
+            List[torch.FloatTensor], List[torch.LongTensor]
+
+            1. all the layers of hidden states: List[ (batch_size, max_seq_len, hidden_size) ]
+            2. the valid length for each hidden states: List[ (batch_size, ) ]
         """
         wavs_list = []
         for wav, wav_len in zip(wavs, wavs_len):
@@ -113,7 +169,45 @@ class S3PRLUpstream(nn.Module):
 
 class Featurizer(nn.Module):
     """
+    Featurizer take the :obj:`S3PRLUpstream`'s multiple layer of hidden_states and
+    reduce (standardize) them into a single hidden_states, to connect with downstream NNs.
+
     This basic Featurizer expects all the layers to have same stride and hidden_size
+    When the input upstream only have a single layer of hidden states, use that directly.
+    If multiple layers are presented, add a trainable weighted-sum on top of those layers.
+
+    Args:
+        upstream (:obj:`S3PRLUpstream`):
+            the upstream to extract features, this upstream is used only for initialization
+            and will not be kept in this Featurizer object
+        layer_selections (List[int]):
+            To select a subset of hidden states from the given upstream by layer ids (0-index)
+            If None (default), than all the layer of hidden states are selected
+        normalize (bool):
+            Whether to apply layer norm on all the hidden states before weighted-sum
+            This can help convergence in some cases, but not used in SUPERB to ensure the
+            fidelity of each upstream's extracted representation.
+
+    Example::
+
+        >>> import torch
+        >>> from s3prl.nn import S3PRLUpstream
+        ...
+        >>> model = S3PRLUpstream("hubert")
+        >>> model.eval()
+        ...
+        >>> with torch.no_grad():
+        ...     wavs = torch.randn(2, 16000 * 2)
+        ...     wavs_len = torch.LongTensor([16000 * 1, 16000 * 2])
+        ...     all_hs, all_hs_len = model(wavs, wavs_len)
+        ...
+        >>> featurizer = Featurizer(model)
+        >>> hs, hs_len = featurizer(all_hs, all_hs_len)
+        ...
+        >>> assert isinstance(hs, torch.FloatTensor)
+        >>> assert isinstance(hs_len, torch.LongTensor)
+        >>> batch_size, max_seq_len, hidden_size = hs.shape
+        >>> assert hs_len.dim() == 1
     """
 
     def __init__(
@@ -137,7 +231,10 @@ class Featurizer(nn.Module):
             self.weights = nn.Parameter(torch.zeros(len(self.layer_selections)))
 
     @property
-    def output_size(self):
+    def output_size(self) -> int:
+        """
+        The hidden size of the final weighted-sum result
+        """
         return self._output_size
 
     def _weighted_sum(self, all_hs, all_lens):
@@ -160,6 +257,17 @@ class Featurizer(nn.Module):
     def forward(
         self, all_hs: List[torch.FloatTensor], all_lens: List[torch.LongTensor]
     ):
+        """
+        Args:
+            all_hs (List[torch.FloatTensor]): List[ (batch_size, seq_len, hidden_size) ]
+            all_lens (List[torch.LongTensor]): List[ (batch_size, ) ]
+
+        Return:
+            torch.FloatTensor, torch.LongTensor
+
+            1. The weighted-sum result, (batch_size, seq_len, hidden_size)
+            2. the valid length of the result, (batch_size, )
+        """
         if len(all_hs) == 1:
             return all_hs[0], all_lens[0]
 
