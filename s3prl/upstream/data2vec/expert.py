@@ -1,26 +1,20 @@
-import argparse
-from typing import List
-from packaging import version
-
 import torch
-import fairseq
-import numpy as np
 import torch.nn.functional as F
 from torch.nn.utils.rnn import pad_sequence
 
 from ..interfaces import UpstreamBase
-from s3prl.utility.helper import zero_mean_unit_var_norm
-from . import model
+from .convert import load_converted_model
 
 
 class UpstreamExpert(UpstreamBase):
     def __init__(self, ckpt, **kwargs):
         super().__init__(**kwargs)
-        model, cfg, task = fairseq.checkpoint_utils.load_model_ensemble_and_task(
-            [ckpt], strict=False
-        )
-        self.model = model[0]
-        self.wav_normalize = cfg.task.normalize
+        model, task_cfg = load_converted_model(ckpt)
+        self.model = model
+        self.wav_normalize = task_cfg.normalize
+
+        self.model.feature_grad_mult = 0.0
+        self.model.encoder.layerdrop = 0.0
 
         if len(self.hooks) == 0:
             module_name = "self.model.encoder.layers"

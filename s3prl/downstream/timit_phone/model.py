@@ -15,7 +15,7 @@ class ConvBank(nn.Module):
     def __init__(self, input_dim, output_class_num, kernels, cnn_size, hidden_size, dropout, **kwargs):
         super(ConvBank, self).__init__()
         self.drop_p = dropout
-        
+
         self.in_linear = nn.Linear(input_dim, hidden_size)
         latest_size = hidden_size
 
@@ -33,7 +33,7 @@ class ConvBank(nn.Module):
 
         conv_feats = []
         hidden = hidden.transpose(1, 2).contiguous()
-        for cnn in self.cnns:   
+        for cnn in self.cnns:
             conv_feats.append(cnn(hidden))
         hidden = torch.cat(conv_feats, dim=1).transpose(1, 2).contiguous()
         hidden = F.dropout(F.relu(hidden), p=self.drop_p)

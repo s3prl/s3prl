@@ -4,7 +4,9 @@
 """
 
 import os
-from s3prl.utility.download import _urls_to_filepaths
+
+from s3prl.util.download import _urls_to_filepaths
+
 from .expert import UpstreamExpert as _UpstreamExpert
 
 
@@ -40,5 +42,5 @@ def distilhubert_base(refresh=False, *args, **kwargs):
     """
     kwargs[
         "ckpt"
-    ] = "https://www.dropbox.com/s/hcfczqo5ao8tul3/disilhubert_ls960_4-8-12.ckpt?dl=0"
+    ] = "https://www.dropbox.com/s/hcfczqo5ao8tul3/disilhubert_ls960_4-8-12.ckpt?dl=1"
     return distiller_url(refresh=refresh, *args, **kwargs)

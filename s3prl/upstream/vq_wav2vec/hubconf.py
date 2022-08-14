@@ -8,50 +8,61 @@
 
 
 import os
-#-------------#
-from s3prl.utility.download import _urls_to_filepaths
+
+from s3prl.util.download import _urls_to_filepaths
+
 from .expert import UpstreamExpert as _UpstreamExpert
+from .expert import LegacyUpstreamExpert as _LegacyUpstreamExpert
 
 
-def vq_wav2vec_local(ckpt, *args, **kwargs):
-    """
-        The model from local ckpt
-            ckpt (str): PATH
-    """
+def vq_wav2vec_custom(
+    ckpt: str, *args, legacy: bool = False, refresh: bool = False, **kwargs
+):
+    if ckpt.startswith("http"):
+        ckpt = _urls_to_filepaths(ckpt, refresh=refresh)
+
     assert os.path.isfile(ckpt)
-    return _UpstreamExpert(ckpt, *args, **kwargs)
+    if legacy:
+        return _LegacyUpstreamExpert(ckpt, *args, **kwargs)
+    else:
+        return _UpstreamExpert(ckpt, *args, **kwargs)
 
 
-def vq_wav2vec_url(ckpt, refresh=False, *args, **kwargs):
-    """
-        The model from google drive id
-            ckpt (str): URL
-            refresh (bool): whether to download ckpt/config again if existed
-    """
-    return vq_wav2vec_local(_urls_to_filepaths(ckpt, refresh=refresh), *args, **kwargs)
+def wav2vec2_local(*args, **kwargs):
+    return vq_wav2vec_custom(*args, **kwargs)
+
+
+def wav2vec2_url(*args, **kwargs):
+    return vq_wav2vec_custom(*args, **kwargs)
 
 
 def vq_wav2vec(refresh=False, *args, **kwargs):
     """
-        The default model - Large model with context vector
-            refresh (bool): whether to download ckpt/config again if existed
+    The default model - Large model with context vector
+        refresh (bool): whether to download ckpt/config again if existed
     """
     return vq_wav2vec_gumbel(refresh=refresh, *args, **kwargs)
 
 
-def vq_wav2vec_gumbel(refresh=False, *args, **kwargs):
+def vq_wav2vec_gumbel(refresh=False, legacy=False, **kwargs):
     """
-        The Gumbel model
-            refresh (bool): whether to download ckpt/config again if existed
+    The Gumbel model
+        refresh (bool): whether to download ckpt/config again if existed
     """
-    kwargs['ckpt'] = 'https://dl.fbaipublicfiles.com/fairseq/wav2vec/vq-wav2vec.pt'
-    return vq_wav2vec_url(refresh=refresh, *args, **kwargs)
+    kwargs["ckpt"] = "https://dl.fbaipublicfiles.com/fairseq/wav2vec/vq-wav2vec.pt"
+    if not legacy:
+        kwargs["ckpt"] = "https://huggingface.co/s3prl/converted_ckpts/resolve/main/vq-wav2vec.pt"
+    return vq_wav2vec_custom(refresh=refresh, legacy=legacy, **kwargs)
 
 
-def vq_wav2vec_kmeans(refresh=False, *args, **kwargs):
+def vq_wav2vec_kmeans(refresh=False, legacy=False, **kwargs):
     """
-        The K-means model
-            refresh (bool): whether to download ckpt/config again if existed
+    The K-means model
+        refresh (bool): whether to download ckpt/config again if existed
     """
-    kwargs['ckpt'] = 'https://dl.fbaipublicfiles.com/fairseq/wav2vec/vq-wav2vec_kmeans.pt'
-    return vq_wav2vec_url(refresh=refresh, *args, **kwargs)
+    kwargs[
+        "ckpt"
+    ] = "https://dl.fbaipublicfiles.com/fairseq/wav2vec/vq-wav2vec_kmeans.pt"
+    if not legacy:
+        kwargs["ckpt"] = "https://huggingface.co/s3prl/converted_ckpts/resolve/main/vq-wav2vec_kmeans.pt"
+    return vq_wav2vec_custom(refresh=refresh, legacy=legacy, **kwargs)

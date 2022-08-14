@@ -19,7 +19,6 @@ from torch.nn.parallel import DistributedDataParallel as DDP
 from torch.distributed import is_initialized, get_rank, get_world_size
 
 from s3prl import hub
-from s3prl import downstream
 from s3prl.optimizers import get_optimizer
 from s3prl.schedulers import get_scheduler
 from s3prl.upstream.interfaces import Featurizer
@@ -182,7 +181,9 @@ class Runner():
 
 
     def _get_downstream(self):
-        Downstream = getattr(downstream.experts, self.args.downstream)
+        expert = importlib.import_module(f"s3prl.downstream.{self.args.downstream}.expert")
+        Downstream = getattr(expert, "DownstreamExpert")
+
         model = Downstream(
             upstream_dim = self.featurizer.model.output_dim,
             upstream_rate = self.featurizer.model.downsample_rate,

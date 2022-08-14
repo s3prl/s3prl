@@ -6,13 +6,49 @@
 import math
 import numpy as np
 import torch
-from torch import nn
+import torch.nn as nn
 import torch.nn.functional as F
 
-from fairseq import utils
-from fairseq.modules import MultiheadAttention, SamePad, DynamicConv
-from fairseq.modules.sparse_multihead_attention import SparseMultiheadAttention
-from fairseq.modules.transformer_sentence_encoder import init_bert_params
+from s3prl.upstream.wav2vec2.wav2vec2_model import (
+    MultiheadAttention,
+    SamePad,
+    get_activation_fn,
+    ConvFeatureExtractionModel,
+    GradMultiply,
+)
+
+
+def init_bert_params(module):
+    """
+    Initialize the weights specific to the BERT Model.
+    This overrides the default initializations depending on the specified arguments.
+        1. If normal_init_linear_weights is set then weights of linear
+           layer will be initialized using the normal distribution and
+           bais will be set to the specified value.
+        2. If normal_init_embed_weights is set then weights of embedding
+           layer will be initialized using the normal distribution.
+        3. If normal_init_proj_weights is set then weights of
+           in_project_weight for MultiHeadAttention initialized using
+           the normal distribution (to be validated).
+    """
+
+    def normal_(data):
+        # with FSDP, module params will be on CUDA, so we cast them back to CPU
+        # so that the RNG is consistent with and without FSDP
+        data.copy_(data.cpu().normal_(mean=0.0, std=0.02).to(data.device))
+
+    if isinstance(module, nn.Linear):
+        normal_(module.weight.data)
+        if module.bias is not None:
+            module.bias.data.zero_()
+    if isinstance(module, nn.Embedding):
+        normal_(module.weight.data)
+        if module.padding_idx is not None:
+            module.weight.data[module.padding_idx].zero_()
+    if isinstance(module, MultiheadAttention):
+        normal_(module.q_proj.weight.data)
+        normal_(module.k_proj.weight.data)
+        normal_(module.v_proj.weight.data)
 
 
 class SplitLinear(nn.Module):
@@ -79,7 +115,7 @@ class TransformerSentenceEncoderLayer(nn.Module):
         self.activation_dropout = activation_dropout
 
         # Initialize blocks
-        self.activation_fn = utils.get_activation_fn(activation_fn)
+        self.activation_fn = get_activation_fn(activation_fn)
         self.attention_type = attention_type
         if attention_type == "original":
             self.self_attn = MultiheadAttention(
@@ -89,6 +125,10 @@ class TransformerSentenceEncoderLayer(nn.Module):
                 self_attention=True,
             )
         elif attention_type == "sparse":
+            from fairseq.modules.sparse_multihead_attention import (
+                SparseMultiheadAttention,
+            )
+
             self.self_attn = SparseMultiheadAttention(
                 self.embedding_dim,
                 num_attention_heads,
@@ -98,6 +138,8 @@ class TransformerSentenceEncoderLayer(nn.Module):
                 expressivity=16,
             )
         elif attention_type == "dynamic":
+            from fairseq.modules import DynamicConv
+
             self.self_attn = DynamicConv(
                 self.embedding_dim,
                 kernel_size=31,

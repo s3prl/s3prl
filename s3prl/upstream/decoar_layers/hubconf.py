@@ -1,32 +1,29 @@
-###############
-# IMPORTATION #
-###############
-import os
-#-------------#
-from s3prl.utility.download import _urls_to_filepaths
+from s3prl.util.download import _urls_to_filepaths
+
 from .expert import UpstreamExpert as _UpstreamExpert
 
 
-def decoar_layers_local(ckpt, *args, **kwargs):
-    """
-        The model from local ckpt
-            ckpt (str): PATH
-            feature_selection (str): 'c' (default) or 'z'
-    """
-    assert os.path.isfile(ckpt)
+def decoar_layers_custom(ckpt: str, refresh=False, *args, **kwargs):
+    if ckpt.startswith("http"):
+        ckpt = _urls_to_filepaths(ckpt, refresh=refresh)
+
     return _UpstreamExpert(ckpt, *args, **kwargs)
 
-def decoar_layers_url(ckpt, refresh=False, *args, **kwargs):
-    """
-        The model from URL
-            ckpt (str): URL
-    """
-    return decoar_layers_local(_urls_to_filepaths(ckpt, refresh=refresh), *args, **kwargs)
 
-def decoar_layers(refresh=False, *args, **kwargs):
+def decoar_layers_local(*args, **kwargs):
+    return decoar_layers_custom(*args, **kwargs)
+
+
+def decoar_layers_url(*args, **kwargs):
+    return decoar_layers_custom(*args, **kwargs)
+
+
+def decoar_layers(*args, refresh=False, **kwargs):
     """
-        The apc standard model on 360hr
-            refresh (bool): whether to download ckpt/config again if existed
+    The apc standard model on 360hr
+        refresh (bool): whether to download ckpt/config again if existed
     """
-    kwargs['ckpt'] = 'https://speech-representation.s3.us-west-2.amazonaws.com/checkpoint_decoar.pt'
-    return decoar_layers_url(refresh=refresh, *args, **kwargs)
+    kwargs[
+        "ckpt"
+    ] = "https://huggingface.co/s3prl/converted_ckpts/resolve/main/checkpoint_decoar.pt"
+    return decoar_layers_url(*args, refresh=refresh, **kwargs)

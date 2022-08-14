@@ -1,0 +1,46 @@
+upstream
+========
+
+**(s3prl.nn.upstream)**
+
+.. automodule:: s3prl.nn.upstream
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Featurizer
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. autoclass:: Featurizer
+   :members:
+   :undoc-members:
+   :show-inheritance:
+   :member-order: bysource
+
+S3PRLUpstream
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. autoclass:: S3PRLUpstream
+   :members:
+   :undoc-members:
+   :show-inheritance:
+   :member-order: bysource
+
+
+
+
+

@@ -1,0 +1,7 @@
+torchaudio >=0.7.0
+torch >=1.7.0
+tqdm >=4.56.0
+numpy >=1.21
+PyYAML >=5.4.1
+filelock
+omegaconf

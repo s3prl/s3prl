@@ -1,21 +1,24 @@
-# -*- coding: utf-8 -*- #
-"""*********************************************************************************************"""
-#   FileName     [ upstream/pase/expert.py ]
-#   Synopsis     [ the pase wrapper ]
-#   Author       [ santi-pdp/pase ]
-#   Reference    [ https://github.com/santi-pdp/pase/blob/master/pase ]
-"""*********************************************************************************************"""
-
-
+import logging
 from torch.nn.utils.rnn import pad_sequence
 
 from ..interfaces import UpstreamBase
-from pase.models.frontend import wf_builder
+
+logger = logging.getLogger(__name__)
 
 
 class UpstreamExpert(UpstreamBase):
     def __init__(self, ckpt, model_config, **kwargs):
         super().__init__(**kwargs)
+
+        try:
+            from pase.models.frontend import wf_builder
+
+        except ModuleNotFoundError:
+            logger.error(
+                "Please check https://github.com/s3prl/s3prl/blob/master/s3prl/upstream/pase/README.md "
+                "for how to install the dependencies of PASE+."
+            )
+            raise
 
         def build_pase(ckpt, model_config):
             pase = wf_builder(model_config)
