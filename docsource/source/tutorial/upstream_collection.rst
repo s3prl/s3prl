@@ -72,15 +72,6 @@ name2
 
 The detailed specific information for this checkpoint variant (:code:`name=name2`)
 
-.. tip::
-
-    All the models supported by :obj:`s3prl.nn.upstream.S3PRLUpstream` using :code:`name` have at least one feature
-    extraction mode: :code:`hidden_states`, which extract all the hidden_states of a model.
-
-    Different learning methods also have different official places to extract the representation. Like
-    there is **c** and **z** vectors in wav2vec. You can use different **feature_selection** option
-    to get these specific layers. The supported **feature_selection** options are listed below.
-
 
 
 Mockingjay
