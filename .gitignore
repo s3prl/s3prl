@@ -156,6 +156,8 @@ spk2utt
 experiment
 *.tar.gz
 *.tsv
-docs_src/build
-docs_src/source/_autosummary/
+docsource/build
+docsource/source/_autosummary/
+sample_hidden_states/
+converted_ckpts/
 
