@@ -426,6 +426,7 @@
         <span class="k">assert</span> <span class="nb">len</span><span class="p">(</span><span class="nb">set</span><span class="p">(</span><span class="n">upstream</span><span class="o">.</span><span class="n">hidden_sizes</span><span class="p">))</span> <span class="o">==</span> <span class="mi">1</span>
         <span class="k">assert</span> <span class="nb">len</span><span class="p">(</span><span class="nb">set</span><span class="p">(</span><span class="n">upstream</span><span class="o">.</span><span class="n">downsample_rates</span><span class="p">))</span> <span class="o">==</span> <span class="mi">1</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_output_size</span> <span class="o">=</span> <span class="n">upstream</span><span class="o">.</span><span class="n">hidden_sizes</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_downsample_rate</span> <span class="o">=</span> <span class="n">upstream</span><span class="o">.</span><span class="n">downsample_rates</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">normalize</span> <span class="o">=</span> <span class="n">normalize</span>
 
         <span class="k">if</span> <span class="n">upstream</span><span class="o">.</span><span class="n">num_layers</span> <span class="o">&gt;</span> <span class="mi">1</span><span class="p">:</span>
@@ -439,9 +440,16 @@
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">output_size</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">int</span><span class="p">:</span>
         <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        The hidden size of the final weighted-sum result</span>
+<span class="sd">        The hidden size of the final weighted-sum output</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_output_size</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">downsample_rate</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">int</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        The downsample rate (from 16k Hz waveform) of the final weighted-sum output</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_downsample_rate</span>
 
     <span class="k">def</span> <span class="nf">_weighted_sum</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">all_hs</span><span class="p">,</span> <span class="n">all_lens</span><span class="p">):</span>
         <span class="k">assert</span> <span class="nb">len</span><span class="p">(</span><span class="n">all_hs</span><span class="p">)</span> <span class="o">==</span> <span class="nb">len</span><span class="p">(</span><span class="n">all_lens</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">1</span>
