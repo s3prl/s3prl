@@ -8,7 +8,6 @@ import tempfile
 from tqdm import tqdm
 from urllib.request import urlopen, Request
 
-import torch
 from pathlib import Path
 from filelock import FileLock
 
@@ -29,6 +28,11 @@ def set_dir(d):
 
 
 def _download_url_to_file(url, dst, hash_prefix=None, progress=True):
+    """
+    This function is not thread-safe. Please ensure only a single
+    thread or process can enter this block at the same time
+    """
+
     file_size = None
     req = Request(url, headers={"User-Agent": "torch.hub"})
     u = urlopen(req)
@@ -102,8 +106,10 @@ def _download(filepath: Path, url, refresh: bool, new_enough_secs: float = 2.0):
             _download_url_to_file(url, filepath)
 
     logger.info(f"Using URL's local file: {filepath}")
-    if lock_file.is_file():
+    try:
         lock_file.unlink()
+    except FileNotFoundError:
+        pass
 
 
 def _urls_to_filepaths(*args, refresh=False, download: bool = True):
