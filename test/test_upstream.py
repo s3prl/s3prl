@@ -187,3 +187,16 @@ def test_featurizer(layer_selections, normalize):
 
     assert isinstance(hs, torch.FloatTensor)
     assert isinstance(hs_len, torch.LongTensor)
+
+
+def test_upstream_properties():
+    model = S3PRLUpstream("hubert")
+    featurizer = Featurizer(model)
+    assert isinstance(model.hidden_sizes, (tuple, list)) and isinstance(
+        model.hidden_sizes[0], int
+    )
+    assert isinstance(model.downsample_rates, (tuple, list)) and isinstance(
+        model.downsample_rates[0], int
+    )
+    assert isinstance(featurizer.output_size, int)
+    assert isinstance(featurizer.downsample_rate, int)

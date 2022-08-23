@@ -220,6 +220,7 @@ class Featurizer(nn.Module):
         assert len(set(upstream.hidden_sizes)) == 1
         assert len(set(upstream.downsample_rates)) == 1
         self._output_size = upstream.hidden_sizes[0]
+        self._downsample_rate = upstream.downsample_rates[0]
         self.normalize = normalize
 
         if upstream.num_layers > 1:
@@ -233,9 +234,16 @@ class Featurizer(nn.Module):
     @property
     def output_size(self) -> int:
         """
-        The hidden size of the final weighted-sum result
+        The hidden size of the final weighted-sum output
         """
         return self._output_size
+
+    @property
+    def downsample_rate(self) -> int:
+        """
+        The downsample rate (from 16k Hz waveform) of the final weighted-sum output
+        """
+        return self._downsample_rate
 
     def _weighted_sum(self, all_hs, all_lens):
         assert len(all_hs) == len(all_lens) > 1
