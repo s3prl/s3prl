@@ -4,7 +4,7 @@ import torch
 import torch.nn as nn
 from torch.nn.utils.rnn import pack_padded_sequence, pad_packed_sequence
 
-from s3prl import Output
+from s3prl.nn.interface import AbsFrameModel
 
 from . import NNModule
 
@@ -106,7 +106,7 @@ class RNNLayer(NNModule):
         if self.proj:
             self.pj_layer = nn.Linear(self.out_size, self.out_size)
 
-    def forward(self, xs: torch.Tensor, xs_len: torch.LongTensor) -> Output:
+    def forward(self, xs: torch.Tensor, xs_len: torch.LongTensor):
         if not self.training:
             self.layer.flatten_parameters()
 
@@ -133,7 +133,7 @@ class RNNLayer(NNModule):
         if self.proj:
             output = torch.tanh(self.pj_layer(output))
 
-        return Output(output=output, output_len=xs_len)
+        return output, xs_len
 
     @property
     def input_size(self):
@@ -144,7 +144,7 @@ class RNNLayer(NNModule):
         return self.out_size
 
 
-class RNNEncoder(NNModule):
+class RNNEncoder(AbsFrameModel):
     def __init__(
         self,
         input_size: int,
@@ -158,7 +158,6 @@ class RNNEncoder(NNModule):
         sample_rate: List[int] = [1],
         sample_style: str = "drop",
         bidirectional: bool = False,
-        **kwds,
     ):
         """RNN Encoder for sequence to sequence modeling, e.g., ASR.
 
@@ -175,6 +174,8 @@ class RNNEncoder(NNModule):
             bidirectional (bool, optional): Whether RNN layers are bidirectional. Defaults to False.
         """
         super().__init__()
+        self._input_size = input_size
+        self._output_size = output_size
 
         prev_size = input_size
 
@@ -199,24 +200,24 @@ class RNNEncoder(NNModule):
 
         self.linear = nn.Linear(prev_size, output_size)
 
-    def forward(self, x: torch.Tensor, x_len: torch.LongTensor) -> Output:
+    def forward(self, x: torch.Tensor, x_len: torch.LongTensor):
         xs, xs_len = x, x_len
         xs = self.proj(xs)
 
         for rnn in self.rnns:
-            xs, xs_len = rnn(xs, xs_len).slice(2)
+            xs, xs_len = rnn(xs, xs_len)
 
         logits = self.linear(xs)
 
-        return Output(output=logits, output_len=xs_len)
+        return logits, x_len
 
     @property
     def input_size(self):
-        return self.arguments.input_size
+        return self._input_size
 
     @property
     def output_size(self):
-        return self.arguments.output_size
+        return self._output_size
 
 
 class SuperbDiarizationModel(NNModule):
@@ -248,7 +249,4 @@ class SuperbDiarizationModel(NNModule):
         else:
             predicted = self.linear(features)
 
-        return Output(
-            output=predicted,
-            output_len=features_len,
-        )
+        return predicted, features_len

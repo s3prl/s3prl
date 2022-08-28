@@ -46,7 +46,7 @@ class FrameLevel(NNModule):
     def forward(self, x, x_len=None):
         ys = self.hidden_layers(x)
         ys = self.final_proj(ys)
-        return Output(output=ys, output_len=x_len)
+        return ys, x_len
 
 
 class UtteranceLevel(NNModule):
@@ -91,7 +91,4 @@ class UtteranceLevel(NNModule):
         x = self.hidden_layers(x)
         x_pooled = self.pooling(x, x_len)
         y = self.final_proj(x_pooled)
-        return Output(
-            output=y,
-            output_len=y.new_ones(len(y)).long(),
-        )
+        return y, y.new_ones(len(y)).long()

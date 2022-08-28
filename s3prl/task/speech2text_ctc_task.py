@@ -36,11 +36,12 @@ class Speech2TextCTCExample(Module):
             x_len (torch.LongTensor): (batch_size, )
 
         Return:
-            output (torch.Tensor): (batch_size, output_size)
+            y (torch.Tensor): (batch_size, output_size)
+            y_len (torch.LongTensor): (batch_size)
         """
         assert x.size(-1) == self.input_size
         output = torch.randn(x.size(0), x.size(1), self.output_size)
-        assert Output(output=output)
+        assert output, x_len
 
 
 class Speech2TextCTCTask(Task):
@@ -82,13 +83,11 @@ class Speech2TextCTCTask(Task):
             zero_infinity=True,
         )
 
-    @property
-    def input_size(self):
-        return self.model.input_size
+    def get_state(self):
+        return {}
 
-    @property
-    def output_size(self):
-        return self.model.output_size
+    def set_state(self, state: dict):
+        pass
 
     def predict(self, x: torch.Tensor, x_len: torch.LongTensor):
         """
@@ -101,7 +100,7 @@ class Speech2TextCTCTask(Task):
             prediction (list): prediction strings
         """
 
-        logits, x_len = self.model(x, x_len).slice(2)
+        logits, x_len = self.model(x, x_len)
         predicted_tokens = torch.argmax(logits, dim=2).detach().cpu()
         filtered_tokens = [
             [

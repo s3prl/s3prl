@@ -6,6 +6,7 @@ from typing import Any
 
 import torch
 import torchaudio
+from torch.nn.utils.rnn import pad_sequence
 
 SAMPLE_RATE = 16000
 
@@ -32,22 +33,25 @@ class pseudo_audio:
 
 def get_pseudo_wavs(
     seed: int = 0,
-    n: int = 3,
-    min_secs: int = 3,
-    max_secs: int = 15,
+    n: int = 2,
+    min_secs: int = 1,
+    max_secs: int = 3,
     sample_rate: int = SAMPLE_RATE,
     device: str = "cpu",
+    padded: bool = False,
 ):
     random.seed(seed)
     torch.manual_seed(seed)
 
     wavs = []
-    wav_lengths = []
+    wavs_len = []
     for _ in range(n):
         wav_length = random.randint(min_secs * sample_rate, max_secs * sample_rate)
-        wav = torch.randn(wav_length, requires_grad=True)
-
-        wav_lengths.append(wav_length)
+        wav = torch.randn(wav_length, requires_grad=True).to(device)
+        wavs_len.append(wav_length)
         wavs.append(wav)
 
-    return wavs
+    if not padded:
+        return wavs
+    else:
+        return pad_sequence(wavs, batch_first=True), torch.LongTensor(wavs_len)

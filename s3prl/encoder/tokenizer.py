@@ -32,6 +32,9 @@ class Tokenizer:
     def decode(self, idxs: List[int], ignore_repeat: bool = False) -> str:
         raise NotImplementedError
 
+    def __len__(self):
+        return self.vocab_size
+
     @abc.abstractproperty
     def vocab_size(self) -> int:
         raise NotImplementedError
