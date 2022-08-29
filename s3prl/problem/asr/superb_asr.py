@@ -16,7 +16,7 @@ from s3prl.nn.upstream import S3PRLUpstream, Featurizer, UpstreamDownstreamModel
 from s3prl.nn.interface import AbsFrameModel, AbsUpstream, AbsFeaturizer
 from s3prl.sampler import SortedBucketingSampler, FixedBatchSizeBatchSampler
 
-from .core import ASR
+from .backbone import ASR
 
 logger = logging.getLogger(__name__)
 

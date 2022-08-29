@@ -38,7 +38,7 @@ class DistributedDataParallel(torch.nn.parallel.DistributedDataParallel):
             return getattr(self.module, name)
 
 
-class Common:
+class Utility:
     @classmethod
     def get_current_arguments(cls) -> dict:
         frame = inspect.currentframe().f_back

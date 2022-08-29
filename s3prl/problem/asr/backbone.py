@@ -5,12 +5,12 @@ import logging
 from pathlib import Path
 from torch.utils.data import DataLoader
 
-from s3prl.problem.common import Common
+from s3prl.problem.utils import Utility
 
 logger = logging.getLogger(__name__)
 
 
-class ASR(Common):
+class ASR(Utility):
     @classmethod
     def run(
         cls,
@@ -19,6 +19,7 @@ class ASR(Common):
         remove_all_cache: bool = False,
         start: int = 0,
         stop: int = None,
+        start_stage_id: int = 0,
         num_workers: int = 6,
         eval_batch: int = -1,
         device: str = "cuda",
@@ -55,7 +56,7 @@ class ASR(Common):
         if remove_all_cache:
             shutil.rmtree(cache_dir)
 
-        stage_id = 0
+        stage_id = start_stage_id
         if start <= stage_id:
             logger.info(f"Stage {stage_id}: prepare data")
             train_csv, valid_csv, test_csvs = cls.prepare_data(
@@ -73,7 +74,7 @@ class ASR(Common):
 
         cls.stage_check(stage_id, stop, check_fn)
 
-        stage_id = 1
+        stage_id += 1
         if start <= stage_id:
             logger.info(f"Stage {stage_id}: prepare tokenizer data")
             tokenizer_data_path = cls.prepare_tokenizer_data(
@@ -97,7 +98,7 @@ class ASR(Common):
 
         cls.stage_check(stage_id, stop, check_fn)
 
-        stage_id = 2
+        stage_id += 1
         if start <= stage_id:
             logger.info(f"Stage {stage_id}: build tokenizer")
             tokenizer_path = cls.build_tokenizer(
@@ -121,7 +122,7 @@ class ASR(Common):
 
         cls.stage_check(stage_id, stop, check_fn)
 
-        stage_id = 3
+        stage_id += 1
         train_dir = target_dir / "train"
         if start <= stage_id:
             logger.info(f"Stage {stage_id}: Train Model")
@@ -184,7 +185,7 @@ class ASR(Common):
 
         cls.stage_check(stage_id, stop, check_fn)
 
-        stage_id = 4
+        stage_id += 1
         if start <= stage_id:
             test_ckpt_dir: Path = Path(
                 test_ckpt_dir or target_dir / "train" / "valid_best"
@@ -229,6 +230,8 @@ class ASR(Common):
                 )
                 test_metrics = {name: float(value) for name, value in logs.scalars()}
                 cls.save_yaml(test_metrics, test_dir / f"result.yaml")
+
+        return stage_id
 
     @classmethod
     def build_dataset_and_sampler(

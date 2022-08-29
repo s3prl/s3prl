@@ -129,7 +129,7 @@ class S3PRLUpstream(nn.Module):
     def forward(self, wavs: torch.FloatTensor, wavs_len: torch.LongTensor):
         """
         Args:
-            wavs (torch.FloatTensor): (batch_size, seqlen)
+            wavs (torch.FloatTensor): (batch_size, seqlen) or (batch_size, seqlen, 1)
             wavs_len (torch.LongTensor): (batch_size, )
 
         Return:
@@ -138,6 +138,9 @@ class S3PRLUpstream(nn.Module):
             1. all the layers of hidden states: List[ (batch_size, max_seq_len, hidden_size) ]
             2. the valid length for each hidden states: List[ (batch_size, ) ]
         """
+        if wavs.dim() == 3:
+            wavs = wavs.squeeze(-1)
+
         wavs_list = []
         for wav, wav_len in zip(wavs, wavs_len):
             wavs_list.append(wav[:wav_len])
