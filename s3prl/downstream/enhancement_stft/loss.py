@@ -15,8 +15,8 @@ from asteroid.losses import PITLossWrapper
 
 device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
 
-class MSELoss(object):
-    def __init__(self, num_srcs, mask_type):
+class EnhLoss(object):
+    def __init__(self, num_srcs, loss_type, mask_type, log='none'):
         """
         Args:
             num_srcs (int):
@@ -30,41 +30,45 @@ class MSELoss(object):
                 for details
         """
         self.num_srcs = num_srcs
+        self.loss_type = loss_type
         self.mask_type = mask_type
+        assert self.loss_type in ["MSE", "L1"]
         assert self.mask_type in ["AM", "PSM", "NPSM"]
+        if self.loss_type == "MSE":
+            self.loss = torch.nn.MSELoss(reduction='none')
+        elif self.loss_type == "L1":
+            self.loss = torch.nn.L1Loss(reduction='none')
+        self.log = log
 
     def compute_loss(self, masks, feat_length, source_attr, target_attr):
         feat_length = feat_length.to(device)
         mixture_spect = source_attr["magnitude"].to(device)
-        targets_spect = [t.to(device) for t in target_attr["magnitude"]]
+        targets_spect = target_attr["magnitude"][0].to(device)
         mixture_phase = source_attr["phase"].to(device)
-        targets_phase = [t.to(device) for t in target_attr["phase"]]
+        targets_phase = target_attr["phase"][0].to(device)
 
-        def loss(permute):
-            loss_for_permute = []
-            for s, t in enumerate(permute):
-                if self.mask_type == "AM":
-                    refer_spect = targets_spect[t]
-                elif self.mask_type == "PSM":
-                    refer_spect = targets_spect[t] * torch.cos(mixture_phase - targets_phase[t])
-                elif self.mask_type == "NPSM":
-                    refer_spect = targets_spect[t] * F.relu(torch.cos(mixture_phase - targets_phase[t]))
-                else:
-                    raise ValueError("Mask type not defined.")
+        if self.mask_type == "AM":
+            refer_spect = targets_spect
+        elif self.mask_type == "PSM":
+            refer_spect = targets_spect * torch.cos(mixture_phase - targets_phase)
+        elif self.mask_type == "NPSM":
+            refer_spect = targets_spect * F.relu(torch.cos(mixture_phase - targets_phase))
+        else:
+            raise ValueError("Mask type not defined.")
 
-                utt_loss = torch.sum(
-                    torch.sum(
-                        torch.pow(masks[s] * mixture_spect - refer_spect, 2), -1),
-                    -1)
-                loss_for_permute.append(utt_loss)
-            loss_perutt = sum(loss_for_permute) / feat_length
-            return loss_perutt
+        if self.log == 'none':
+            pass
+        elif self.log == 'log1p':
+            mixture_spect = torch.log1p(mixture_spect)
+            refer_spect = torch.log1p(refer_spect)
+        else:
+            raise ValueError("Log type not defined.")
 
-        num_utts = feat_length.shape[0]
-        pscore = torch.stack(
-            [loss(p) for p in permutations(range(self.num_srcs))])
-        min_perutt, _ = torch.min(pscore, dim=0)
-        return torch.sum(min_perutt) / (self.num_srcs * num_utts)
+        loss = self.loss(masks[0] * mixture_spect, refer_spect)
+        loss = torch.sum(loss, dim=(1, 2))
+        loss = loss / feat_length
+        loss = torch.mean(loss)
+        return loss
 
 class SISDRLoss(object):
     def __init__(self, num_srcs, n_fft, hop_length, win_length, window, center):
