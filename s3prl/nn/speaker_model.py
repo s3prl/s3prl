@@ -101,7 +101,7 @@ class XVectorBackbone(NNModule):
         output_size: int = 1500,
         dropout_p: float = 0.0,
         batch_norm: False = True,
-        **unused
+        **unused,
     ):
         super().__init__()
         """
@@ -179,7 +179,7 @@ class SpeakerEmbeddingExtractor(NNModule):
         output_size: int = 1500,
         backbone: str = "XVector",
         pooling_type: str = "TAP",
-        **kwargs
+        **kwargs,
     ):
         super().__init__()
 
@@ -329,7 +329,9 @@ class SuperbXvector(NNModule):
 
         x = self.tdnns(x).slice(1)
         x_len = x_len - XVECTOR_TDNNS_LENGTH_REDUCTION
-        assert (x_len <= 0).sum() == 0, "The input sequence is too short for the X-vector model"
+        assert (
+            x_len <= 0
+        ).sum() == 0, "The input sequence is too short for the X-vector model"
 
         x = self.pooling(x, x_len)
         x = self.affine(x)

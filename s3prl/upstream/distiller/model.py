@@ -10,10 +10,10 @@ import torch
 from torch import nn
 
 from .module import (
-    SplitLinear,
-    TransformerEncoder,
     ConvFeatureExtractionModel,
     GradMultiply,
+    SplitLinear,
+    TransformerEncoder,
 )
 
 

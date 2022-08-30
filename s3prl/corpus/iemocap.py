@@ -1,17 +1,17 @@
 import logging
 import re
-import logging
-from pathlib import Path
-from librosa.util import find_files
-import torch
-from torch.utils.data import random_split
-from typing import List
 from copy import deepcopy
+from pathlib import Path
+from typing import List
+
+import torch
+from librosa.util import find_files
+from torch.utils.data import random_split
 
 from s3prl import Container, cache
+from s3prl.base import fileio
 from s3prl.util import registry
 from s3prl.util.download import _urls_to_filepaths
-from s3prl.base import fileio
 
 from .base import Corpus
 
@@ -235,10 +235,12 @@ def iemocap_for_superb(
         f"https://huggingface.co/datasets/s3prl/iemocap_split/raw/4097f2b496c41eed016d4e5eb0ada4cccd46d1f3/Session{test_session_id}/test_meta_data.json",
     )
     dev_ids = [
-        Path(item["path"]).stem for item in fileio.load(train_meta_data_json, "json")["meta_data"]
+        Path(item["path"]).stem
+        for item in fileio.load(train_meta_data_json, "json")["meta_data"]
     ]
     test_ids = [
-        Path(item["path"]).stem for item in fileio.load(test_meta_data_json, "json")["meta_data"]
+        Path(item["path"]).stem
+        for item in fileio.load(test_meta_data_json, "json")["meta_data"]
     ]
 
     train_len = int((1 - valid_ratio) * len(dev_ids))

@@ -7,7 +7,6 @@ from torch.nn.utils.rnn import pad_sequence
 
 from ..interfaces import UpstreamBase
 from .audio import create_transform
-
 from .decoar2 import Decoar2
 
 EXAMPLE_FEAT_SEQLEN = 1000

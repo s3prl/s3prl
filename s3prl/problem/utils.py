@@ -1,25 +1,28 @@
-import os
-import sys
-import yaml
-import math
-import torch
-import shutil
+import argparse
 import inspect
 import logging
-import argparse
-import omegaconf
-from time import time
-from tqdm import tqdm
-from typing import List
-from pathlib import Path
+import math
+import os
+import shutil
+import sys
 from copy import deepcopy
 from datetime import datetime
+from pathlib import Path
+from time import time
+from typing import List
+
+import omegaconf
+import torch
+import yaml
 from tensorboardX import SummaryWriter
 from torch.utils.data import DataLoader
+from tqdm import tqdm
 
-from s3prl.util.seed import fix_random_seeds
-from s3prl.util.override import parse_overrides
+from s3prl.nn.interface import AbsFeaturizer, AbsUpstream
+from s3prl.nn.upstream import Featurizer, S3PRLUpstream, UpstreamDownstreamModel
 from s3prl.sampler import DistributedBatchSamplerWrapper
+from s3prl.util.override import parse_overrides
+from s3prl.util.seed import fix_random_seeds
 
 logger = logging.getLogger(__name__)
 
@@ -39,6 +42,66 @@ class DistributedDataParallel(torch.nn.parallel.DistributedDataParallel):
 
 
 class Utility:
+    @classmethod
+    def build_collate_fn(cls, _mode: str):
+        from s3prl.dataset.base import default_collate_fn
+
+        return default_collate_fn
+
+    @classmethod
+    def build_upstream(cls, name: str) -> AbsUpstream:
+        """
+        From waveform to a list of hidden states
+        """
+        upstream = S3PRLUpstream(name)
+        return upstream
+
+    @classmethod
+    def build_featurizer(
+        cls, _upstream, layer_selections: List[int], normalize: bool
+    ) -> AbsFeaturizer:
+        """
+        Reduce a list of hidden states to a single hidden state
+        """
+        featurizer = Featurizer(
+            _upstream, layer_selections=layer_selections, normalize=normalize
+        )
+        return featurizer
+
+    @classmethod
+    def build_model(
+        cls,
+        _model_output_size: str,
+        _build_upstream: dict,
+        _build_featurizer: dict,
+        _build_downstream: dict,
+        upstream_trainable: bool,
+    ):
+        upstream = cls.build_upstream(**_build_upstream)
+        featurizer: Featurizer = cls.build_featurizer(upstream, **_build_featurizer)
+        downstream = cls.build_downstream(
+            featurizer.output_size,
+            _model_output_size,
+            featurizer.downsample_rate,
+            **_build_downstream,
+        )
+        model = UpstreamDownstreamModel(
+            upstream, featurizer, downstream, upstream_trainable
+        )
+        return model
+
+    @classmethod
+    def build_optimizer(cls, _parameters, name: str, conf: dict):
+        opt_cls = getattr(torch.optim, name)
+        opt = opt_cls(_parameters, **conf)
+        return opt
+
+    @classmethod
+    def build_scheduler(cls, _optimizer, name: str, conf: dict):
+        scheduler_cls = getattr(torch.optim.lr_scheduler, name)
+        scheduler = scheduler_cls(_optimizer, **conf)
+        return scheduler
+
     @classmethod
     def get_current_arguments(cls) -> dict:
         frame = inspect.currentframe().f_back

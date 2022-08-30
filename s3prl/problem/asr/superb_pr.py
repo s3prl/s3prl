@@ -1,11 +1,13 @@
-import torch
 import pickle
 from pathlib import Path
+from typing import List, Tuple
+
+import torch
 from omegaconf import MISSING
-from typing import Tuple, List
+
+from s3prl.nn.interface import AbsFrameModel
 
 from .superb_asr import SuperbASR
-from s3prl.nn.interface import AbsFrameModel
 
 
 class SuperbPR(SuperbASR):
@@ -110,6 +112,7 @@ class SuperbPR(SuperbASR):
         _tokenizer_path: str,
     ):
         import pandas as pd
+
         from s3prl.dataset.speech2phoneme_pipe import Speech2PhonemePipe
 
         data_points = {}
@@ -138,7 +141,7 @@ class SuperbPR(SuperbASR):
         valid: dict = None,
         test: dict = None,
     ):
-        from s3prl.sampler import SortedSliceSampler, FixedBatchSizeBatchSampler
+        from s3prl.sampler import FixedBatchSizeBatchSampler, SortedSliceSampler
 
         if _mode == "train":
             sampler = SortedSliceSampler(_dataset, **train)

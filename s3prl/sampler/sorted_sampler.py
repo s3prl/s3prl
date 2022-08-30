@@ -1,10 +1,10 @@
-import torch
 from collections import OrderedDict
 from typing import Iterator, TypeVar
 
-from tqdm import tqdm
+import torch
 from speechbrain.dataio.sampler import ReproducibleRandomSampler
 from torch.utils.data import BatchSampler, RandomSampler, Sampler, SequentialSampler
+from tqdm import tqdm
 
 from .base import Sampler
 
@@ -80,7 +80,9 @@ class SortedSliceSampler(Sampler):
             batch = self.sorted_ids[start_position : start_position + batch_size]
 
             if self.in_batch_shuffle:
-                inbatch_indices = torch.randperm(len(batch), generator=generator).tolist()
+                inbatch_indices = torch.randperm(
+                    len(batch), generator=generator
+                ).tolist()
                 batch = [batch[idx] for idx in inbatch_indices]
 
             yield batch

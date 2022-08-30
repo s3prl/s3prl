@@ -1,8 +1,9 @@
-import shutil
-import pickle
 import inspect
 import logging
+import pickle
+import shutil
 from pathlib import Path
+
 from torch.utils.data import DataLoader
 
 from s3prl.problem.utils import Utility

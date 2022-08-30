@@ -6,7 +6,6 @@ import torch
 import torch.nn.functional as F
 from torch import nn
 
-from s3prl import Logs, Module, Output
 from s3prl.encoder.tokenizer import Tokenizer
 from s3prl.metric import cer, per, wer
 from s3prl.metric.slot_filling import (
@@ -23,11 +22,19 @@ from . import Task
 logger = logging.getLogger(__name__)
 
 
-class Speech2TextCTCExample(Module):
+class Speech2TextCTCExample(torch.nn.Module):
     def __init__(self, input_size=3, output_size=4):
         super().__init__()
-        self.input_size = input_size
-        self.output_size = output_size
+        self._input_size = input_size
+        self._output_size = output_size
+
+    @property
+    def input_size(self):
+        return self._input_size
+
+    @property
+    def output_size(self):
+        return self._output_size
 
     def forward(self, x, x_len):
         """
@@ -47,11 +54,10 @@ class Speech2TextCTCExample(Module):
 class Speech2TextCTCTask(Task):
     def __init__(
         self,
-        model: Speech2TextCTCExample,
+        model: torch.nn.Module,
         tokenizer: Tokenizer,
         decoder: Union[BeamDecoder, dict] = None,
         log_metrics: List[str] = ["cer", "wer"],
-        **kwargs,
     ) -> None:
         """Speech-to-text task with CTC objective
 
@@ -69,7 +75,7 @@ class Speech2TextCTCTask(Task):
         self.model = model
         self.tokenizer = tokenizer
         self.log_metrics = log_metrics
-        assert self.model.output_size == self.tokenizer.vocab_size
+        assert self.model.output_size == len(self.tokenizer)
 
         if BeamDecoder is None:
             decoder = None
@@ -83,12 +89,6 @@ class Speech2TextCTCTask(Task):
             zero_infinity=True,
         )
 
-    def get_state(self):
-        return {}
-
-    def set_state(self, state: dict):
-        pass
-
     def predict(self, x: torch.Tensor, x_len: torch.LongTensor):
         """
         Args:
@@ -98,6 +98,7 @@ class Speech2TextCTCTask(Task):
         Return:
             logits (torch.Tensor): (batch_size, timestamps, output_size)
             prediction (list): prediction strings
+            valid_length
         """
 
         logits, x_len = self.model(x, x_len)
@@ -113,10 +114,11 @@ class Speech2TextCTCTask(Task):
         predictions = [
             self.tokenizer.decode(token_list) for token_list in filtered_tokens
         ]
-        return Output(logit=logits, prediction=predictions, output_size=x_len)
+        return logits, predictions, x_len
 
-    def _general_forward(
+    def forward(
         self,
+        mode: str,
         x: torch.Tensor,
         x_len: torch.LongTensor,
         labels: np.ndarray,
@@ -124,88 +126,11 @@ class Speech2TextCTCTask(Task):
         unique_name: np.ndarray,
         beam_decode: bool = False,
     ):
-        logits, prediction, x_len = self.predict(x, x_len).slice(3)
-        log_probs = F.log_softmax(logits, dim=2)
-
-        y = class_ids
-        y_len = torch.tensor(
-            [(ids != self.tokenizer.pad_idx).long().sum() for ids in class_ids],
-            dtype=torch.long,
-            device=logits.device,
-        )
-
-        loss = self.criterion(log_probs.transpose(0, 1), y, x_len, y_len)
-
-        logs = Logs()
-        logs.add_hidden_state("logits", logits)
-
-        hyps = None
-        if beam_decode and self.decoder is not None:
-            hyps = self.decoder.decode(log_probs.detach())
-
-        return Output(
-            loss=loss,
-            prediction=prediction,
-            labels=labels.tolist(),
-            unique_name=unique_name,
-            logs=logs,
-            hypotheses=hyps,
-        )
-
-    def _general_reduction(self, batch_results: list, on_epoch_end: bool = None):
-        predictions, labels, losses, beam_hyps = [], [], [], []
-        for batch_result in batch_results:
-            predictions += batch_result.prediction
-            labels += batch_result.labels
-            losses.append(batch_result.loss.item())
-            if batch_result.hypotheses is not None:
-                beam_hyps += [" ".join(hyp[0].words) for hyp in batch_result.hypotheses]
-
-        if self.tokenizer.token_type in {"character-slot", "subword-slot"}:
-            labels = [
-                self.tokenizer.decode(self.tokenizer.encode(label)) for label in labels
-            ]
-
-        logs = Logs()
-        logs.add_scalar("loss", np.mean(losses))
-
-        if "wer" in self.log_metrics:
-            logs.add_scalar("wer", wer(predictions, labels))
-        if "cer" in self.log_metrics:
-            logs.add_scalar("cer", cer(predictions, labels))
-        if "per" in self.log_metrics:
-            logs.add_scalar("per", per(predictions, labels))
-        if "slot_type_f1" in self.log_metrics:
-            logs.add_scalar("slot_type_f1", slot_type_f1(predictions, labels))
-        if "slot_value_cer" in self.log_metrics:
-            logs.add_scalar("slot_value_cer", slot_value_cer(predictions, labels))
-        if "slot_value_wer" in self.log_metrics:
-            logs.add_scalar("slot_value_wer", slot_value_wer(predictions, labels))
-        if "slot_edit_f1_full" in self.log_metrics:
-            logs.add_scalar("slot_edit_f1_full", slot_edit_f1_full(predictions, labels))
-        if "slot_edit_f1_part" in self.log_metrics:
-            logs.add_scalar("slot_edit_f1_part", slot_edit_f1_part(predictions, labels))
-
-        if len(beam_hyps) > 0:
-            logs.add_scalar("wer_beam", wer(beam_hyps, labels))
-            logs.add_scalar("char_beam", cer(beam_hyps, labels))
-
-        return Output(
-            logs=logs,
-        )
-
-    def train_step(
-        self,
-        x: torch.Tensor,
-        x_len: torch.LongTensor,
-        labels: np.ndarray,
-        class_ids: torch.LongTensor,
-        unique_name: np.ndarray,
-    ):
         """
         Each forward step in the training loop
 
         Args:
+            mode (str): train / valid / test
             x (torch.Tensor):
                 Input waveform or acoustic features.
                 (batch_size, timestamps, input_size)
@@ -220,71 +145,69 @@ class Speech2TextCTCTask(Task):
             unique_name (np.ndarray):
                 Unique names for each sample.
 
-        Return:
-            loss (torch.Tensor):
-                undetached loss. When using this module. Please sanitize this loss before
-                collecting the returning Namespace into a list for future aggregation/reduction
-            saver (Callable[str, None]):
-                end-user can simply call the saver with a customized directory
-                and don't need to take care of how to save the data in to correct format
-            logits:
-                this is not required, just to let the end-user get as many info as possible
-                so that people can do more things with the internal states
         """
-        return self._general_forward(x, x_len, labels, class_ids, unique_name)
+        logits, prediction, x_len = self.predict(x, x_len)
+        log_probs = F.log_softmax(logits, dim=2)
 
-    def valid_step(
-        self,
-        x: torch.Tensor,
-        x_len: torch.LongTensor,
-        labels: np.ndarray,
-        class_ids: torch.LongTensor,
-        unique_name: np.ndarray,
-        **kwds,
-    ):
-        return self._general_forward(x, x_len, labels, class_ids, unique_name)
-
-    def test_step(
-        self,
-        x: torch.Tensor,
-        x_len: torch.LongTensor,
-        labels: np.ndarray,
-        class_ids: torch.LongTensor,
-        unique_name: np.ndarray,
-        **kwds,
-    ):
-        return self._general_forward(
-            x,
-            x_len,
-            labels,
-            class_ids,
-            unique_name,
-            beam_decode=self.decoder is not None,
+        y = class_ids
+        y_len = torch.tensor(
+            [(ids != self.tokenizer.pad_idx).long().sum() for ids in class_ids],
+            dtype=torch.long,
+            device=logits.device,
         )
 
-    def train_reduction(self, batch_results: list, on_epoch_end: bool = None, **kwds):
-        """
-        After several forward steps, outputs should be collected untouched (but detaching the Tensors)
-        into a list and passed as batch_results. This function examine the collected items and compute
-        metrics across these batches. This function might be called in the middle of an epoch for quick
-        logging, or after exactly an epoch to know the epoch level performance.
+        loss = self.criterion(log_probs.transpose(0, 1), y, x_len, y_len)
 
-        Args:
-            batch_results (List[cacheable version of the output of self.train_step])
-            on_epoch_end (bool):
-                usually you should keep the same behavior between sub-epoch and epoch level
-                this parameter is here in case you need specific postprocessing which must
-                only be done right on the end of an epoch
+        hyps = None
+        if beam_decode and self.decoder is not None:
+            hyps = self.decoder.decode(log_probs.detach())
 
-        Return:
-            logs (List[Log]):
-                a list of content to log onto any logger
-                each content should be in the Log class format
-        """
-        return self._general_reduction(batch_results, on_epoch_end)
+        cacheable = dict(
+            loss=loss.detach().cpu().item(),
+            prediction=prediction,
+            label=labels.tolist(),
+            unique_name=unique_name,
+            hypotheses=hyps,
+        )
 
-    def valid_reduction(self, batch_results: list, on_epoch_end: bool = None, **kwds):
-        return self._general_reduction(batch_results, on_epoch_end)
+        return loss, cacheable
 
-    def test_reduction(self, batch_results: list, on_epoch_end: bool = None, **kwds):
-        return self._general_reduction(batch_results, on_epoch_end)
+    def reduction(self, mode: str, cached_results: List[dict]):
+        cached_results = self.dict_of_list(cached_results)
+
+        losses = cached_results["loss"]
+        predictions = cached_results["prediction"]
+        labels = cached_results["label"]
+        beam_hyps = [" ".join(hyp[0].words) for hyp in cached_results["hypotheses"]]
+
+        # FIXME: cleaner solution?
+        if self.tokenizer.token_type in {"character-slot", "subword-slot"}:
+            labels = [
+                self.tokenizer.decode(self.tokenizer.encode(label)) for label in labels
+            ]
+
+        logs = {}
+        logs["loss"] = float(np.mean(losses))
+
+        if "wer" in self.log_metrics:
+            logs["wer"] = wer(predictions, labels)
+        if "cer" in self.log_metrics:
+            logs["cer"] = cer(predictions, labels)
+        if "per" in self.log_metrics:
+            logs["per"] = per(predictions, labels)
+        if "slot_type_f1" in self.log_metrics:
+            logs["slot_type_f1"] = slot_type_f1(predictions, labels)
+        if "slot_value_cer" in self.log_metrics:
+            logs["slot_value_cer"] = slot_value_cer(predictions, labels)
+        if "slot_value_wer" in self.log_metrics:
+            logs["slot_value_wer"] = slot_value_wer(predictions, labels)
+        if "slot_edit_f1_full" in self.log_metrics:
+            logs["slot_edit_f1_full"] = slot_edit_f1_full(predictions, labels)
+        if "slot_edit_f1_part" in self.log_metrics:
+            logs["slot_edit_f1_part"] = slot_edit_f1_part(predictions, labels)
+
+        if len(beam_hyps) > 0:
+            logs["wer_beam"] = wer(beam_hyps, labels)
+            logs["char_beam"] = cer(beam_hyps, labels)
+
+        return logs

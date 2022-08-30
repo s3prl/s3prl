@@ -1,7 +1,8 @@
 import logging
 import random
+
 from s3prl.dataset.base import AugmentedDynamicItemDataset
-from s3prl.sampler import SortedSliceSampler, SortedBucketingSampler
+from s3prl.sampler import SortedBucketingSampler, SortedSliceSampler
 
 logger = logging.getLogger(__name__)
 

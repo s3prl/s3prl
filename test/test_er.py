@@ -1,17 +1,19 @@
 import pytest
 import yaml
-from tqdm import tqdm
 from dotenv import dotenv_values
-
-from s3prl import Workspace
-from s3prl.base import fileio
-from s3prl.problem import SuperbER
-from s3prl.downstream.emotion.expert import DownstreamExpert
 from torch.utils.data import Subset
+from tqdm import tqdm
+
+from s3prl.downstream.emotion.expert import DownstreamExpert
+
 
 @pytest.mark.corpus
 @pytest.mark.parametrize("fold_id", [0, 1, 2, 3, 4])
 def test_er_dataset(fold_id):
+    from s3prl import Workspace
+    from s3prl.base import fileio
+    from s3prl.problem import SuperbER
+
     IEMOCAP = dotenv_values()["IEMOCAP"]
     with open("./s3prl/downstream/emotion/config.yaml") as file:
         config = yaml.load(file, Loader=yaml.FullLoader)["downstream_expert"]
@@ -46,7 +48,9 @@ def test_er_dataset(fold_id):
     fileio.save(workspace / "test", test_paths, "txt")
 
     cfg = SuperbER.setup.default_cfg
-    train_data, valid_data, test_data = cfg.corpus(dataset_root=IEMOCAP, test_fold=fold_id).slice(3)
+    train_data, valid_data, test_data = cfg.corpus(
+        dataset_root=IEMOCAP, test_fold=fold_id
+    ).slice(3)
     train_dataset_v4 = cfg.train_datapipe()(train_data)
     valid_dataset_v4 = cfg.valid_datapipe()(valid_data, **train_dataset_v4.all_tools())
     test_dataset_v4 = cfg.test_datapipe()(test_data, **train_dataset_v4.all_tools())

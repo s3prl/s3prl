@@ -1,22 +1,23 @@
-from locale import normalize
-import torch
-import pickle
 import logging
-import pandas as pd
+import pickle
 from pathlib import Path
 from typing import List
+
+import pandas as pd
+import torch
 from omegaconf import MISSING
-from torch.utils.data import Dataset, DataLoader
+from torch.utils.data import Dataset
 
-from s3prl.encoder.g2p import G2P
-from s3prl.encoder.tokenizer import Tokenizer, load_tokenizer
-from s3prl.encoder.vocabulary import generate_vocab
 from s3prl.corpus.librispeech import librispeech_for_speech2text
-from s3prl.nn.upstream import S3PRLUpstream, Featurizer, UpstreamDownstreamModel
-from s3prl.nn.interface import AbsFrameModel, AbsUpstream, AbsFeaturizer
-from s3prl.sampler import SortedBucketingSampler, FixedBatchSizeBatchSampler
+from s3prl.dataset.speech2text_pipe import Speech2TextPipe
+from s3prl.encoder.g2p import G2P
+from s3prl.encoder.tokenizer import load_tokenizer
+from s3prl.encoder.vocabulary import generate_vocab
+from s3prl.nn.interface import AbsFrameModel
+from s3prl.nn.upstream import Featurizer, S3PRLUpstream, UpstreamDownstreamModel
+from s3prl.sampler import FixedBatchSizeBatchSampler, SortedBucketingSampler
 
-from .backbone import ASR
+from .run import ASR
 
 logger = logging.getLogger(__name__)
 
@@ -237,8 +238,6 @@ class SuperbASR(ASR):
         """
         _mode is in ["train", "valid", "test"]
         """
-        from s3prl.dataset.speech2text_pipe import Speech2TextPipe
-
         data_points = {}
         csv = pd.read_csv(_data_csv)
         for _, row in csv.iterrows():
@@ -277,32 +276,6 @@ class SuperbASR(ASR):
         return sampler
 
     @classmethod
-    def build_collate_fn(cls, _mode: str):
-        from s3prl.dataset.base import default_collate_fn
-
-        return default_collate_fn
-
-    @classmethod
-    def build_upstream(cls, name: str) -> AbsUpstream:
-        """
-        From waveform to a list of hidden states
-        """
-        upstream = S3PRLUpstream(name)
-        return upstream
-
-    @classmethod
-    def build_featurizer(
-        cls, _upstream, layer_selections: List[int], normalize: bool
-    ) -> AbsFeaturizer:
-        """
-        Reduce a list of hidden states to a single hidden state
-        """
-        featurizer = Featurizer(
-            _upstream, layer_selections=layer_selections, normalize=normalize
-        )
-        return featurizer
-
-    @classmethod
     def build_downstream(
         cls,
         _downstream_input_size: int,
@@ -325,37 +298,3 @@ class SuperbASR(ASR):
             specaug_cfg=specaug_cfg,
         )
         return downstream
-
-    @classmethod
-    def build_model(
-        cls,
-        _model_output_size: str,
-        _build_upstream: dict,
-        _build_featurizer: dict,
-        _build_downstream: dict,
-        upstream_trainable: bool,
-    ) -> AbsFrameModel:
-        upstream = cls.build_upstream(**_build_upstream)
-        featurizer: Featurizer = cls.build_featurizer(upstream, **_build_featurizer)
-        downstream = cls.build_downstream(
-            featurizer.output_size,
-            _model_output_size,
-            featurizer.downsample_rate,
-            **_build_downstream,
-        )
-        model = UpstreamDownstreamModel(
-            upstream, featurizer, downstream, upstream_trainable
-        )
-        return model
-
-    @classmethod
-    def build_optimizer(cls, _parameters, name: str, conf: dict):
-        opt_cls = getattr(torch.optim, name)
-        opt = opt_cls(_parameters, **conf)
-        return opt
-
-    @classmethod
-    def build_scheduler(cls, _optimizer, name: str, conf: dict):
-        scheduler_cls = getattr(torch.optim.lr_scheduler, name)
-        scheduler = scheduler_cls(_optimizer, **conf)
-        return scheduler

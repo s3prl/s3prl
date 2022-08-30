@@ -8,9 +8,9 @@
 #   Copyright    [ Copyleft(c), Speech Lab, NTU, Taiwan ]
 """*********************************************************************************************"""
 
-import torch
 import logging
 
+import torch
 from torch.nn.utils.rnn import pad_sequence
 
 from ..interfaces import UpstreamBase

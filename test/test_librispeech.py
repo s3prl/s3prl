@@ -16,7 +16,7 @@ libri_stats = {
 
 
 @pytest.mark.corpus
-def test_librispeech():
+def test_librispeech_dataset():
     config = dotenv_values()
     dataset_root = config["LibriSpeech"]
     dataset = LibriSpeech(
@@ -28,12 +28,13 @@ def test_librispeech():
     data = dataset.all_data
     assert len(data) == 292367
 
-    for key, val in libri_stats.items():
-        assert len(dataset.get_corpus_splits([key])) == val
 
-    train_data, valid_data, test_data = librispeech_for_speech2text(dataset_root).slice(
-        3
-    )
+@pytest.mark.corpus
+def test_librispeech_parsing():
+    config = dotenv_values()
+    train_data, valid_data, test_data = librispeech_for_speech2text(
+        config["LibriSpeech"]
+    ).values()
 
     assert len(train_data) == libri_stats["train-clean-100"]
     assert len(valid_data) == libri_stats["dev-clean"]
@@ -48,5 +49,5 @@ def test_librilight():
     config = dotenv_values()
     train_data, valid_data, test_data = librilight_for_speech2text(
         config["LibriLight"], config["LibriSpeech"]
-    ).slice(3)
+    )
     assert len(train_data) == 48

@@ -2,7 +2,7 @@ from s3prl import Container
 from s3prl.corpus.speech_commands import gsc_v1_for_superb
 from s3prl.dataset.utterance_classification_pipe import UtteranceClassificationPipe
 from s3prl.nn import MeanPoolingLinear
-from s3prl.sampler import FixedBatchSizeBatchSampler, BalancedWeightedSampler
+from s3prl.sampler import BalancedWeightedSampler, FixedBatchSizeBatchSampler
 from s3prl.task.utterance_classification_task import UtteranceClassificationTask
 from s3prl.util.configuration import default_cfg
 

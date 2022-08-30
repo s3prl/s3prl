@@ -1,6 +1,7 @@
+from typing import List, Tuple
+
 import torch
 import torch.nn as nn
-from typing import List, Tuple
 
 
 class AbsUpstream(nn.Module):

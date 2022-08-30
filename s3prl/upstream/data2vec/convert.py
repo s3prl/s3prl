@@ -1,13 +1,13 @@
-import torch
 from pathlib import Path
 
-from s3prl.upstream.utils import merge_with_parent, load_fairseq_ckpt
+import torch
 
-from s3prl.upstream.wav2vec2.wav2vec2_model import AudioPretrainingConfig
 from s3prl.upstream.data2vec.data2vec_model import (
     Data2VecAudioConfig,
     Data2VecAudioModel,
 )
+from s3prl.upstream.utils import load_fairseq_ckpt, merge_with_parent
+from s3prl.upstream.wav2vec2.wav2vec2_model import AudioPretrainingConfig
 
 
 def load_and_convert_fairseq_ckpt(fairseq_source: str, output_path: str):

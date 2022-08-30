@@ -1,27 +1,25 @@
-import re
-import math
+import contextlib
 import inspect
 import logging
-import contextlib
-from dataclasses import fields, _MISSING_TYPE
+import math
+import re
 from argparse import ArgumentError, Namespace
-from omegaconf import MISSING, II, DictConfig, open_dict
+from dataclasses import _MISSING_TYPE, dataclass, field, fields
+from enum import Enum, EnumMeta
+from typing import Any, Dict, List, Optional, Tuple
 
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
+from omegaconf import II, MISSING, DictConfig, open_dict
 from torch import Tensor
-from dataclasses import dataclass, field
-
-from enum import Enum, EnumMeta
-from typing import List, Dict, Optional, Any, Tuple
 
 from s3prl.upstream.wav2vec2.wav2vec2_model import (
+    FairseqDropout,
+    LayerNorm,
     MultiheadAttention,
     get_activation_fn,
     get_available_activation_fns,
-    LayerNorm,
-    FairseqDropout,
 )
 from s3prl.upstream.wav2vec2.wav2vec2_model import quant_noise as apply_quant_noise_
 

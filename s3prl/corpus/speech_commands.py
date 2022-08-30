@@ -1,10 +1,9 @@
-import os
-import logging
 import hashlib
 import logging
+import os
 import re
 from pathlib import Path
-from typing import List, Tuple, Union
+from typing import List, OrderedDict, Tuple, Union
 
 import torchaudio
 
@@ -40,10 +39,9 @@ class SpeechCommandsV1(Corpus):
             and a 'test' sub-folder for the testing set
     """
 
-    def __init__(self, dataset_root: str, n_jobs: int = 4) -> None:
-        dataset_root = Path(dataset_root)
-        train_dataset_root = dataset_root / "dev"
-        test_dataset_root = dataset_root / "test"
+    def __init__(self, gsc1: str, gsc1_test: str, n_jobs: int = 4) -> None:
+        train_dataset_root = Path(gsc1)
+        test_dataset_root = Path(gsc1_test)
 
         train_list, valid_list = self.split_dataset(train_dataset_root)
         train_list = self.parse_train_valid_data_list(train_list, train_dataset_root)
@@ -218,7 +216,7 @@ def gsc_v1_for_superb(dataset_root: str, n_jobs: int = 4):
     corpus = SpeechCommandsV1(dataset_root, n_jobs)
 
     def format_fields(data: dict):
-        formated_data = Container()
+        formated_data = OrderedDict()
         for key, value in data.items():
             data_point = {
                 "wav_path": value.wav_path,
@@ -228,7 +226,7 @@ def gsc_v1_for_superb(dataset_root: str, n_jobs: int = 4):
             }
             if value.class_name == "_silence_":
                 info = torchaudio.info(value.wav_path)
-                for start in list(range(info.num_frames))[::info.sample_rate]:
+                for start in list(range(info.num_frames))[:: info.sample_rate]:
                     seg = data_point.copy()
                     end = min(start + 1 * info.sample_rate, info.num_frames)
                     seg["start_sec"] = start / info.sample_rate
@@ -239,7 +237,7 @@ def gsc_v1_for_superb(dataset_root: str, n_jobs: int = 4):
         return formated_data
 
     train_data, valid_data, test_data = corpus.data_split
-    return Output(
+    return dict(
         train_data=format_fields(train_data),
         valid_data=format_fields(valid_data),
         test_data=format_fields(test_data),

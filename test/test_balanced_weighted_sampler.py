@@ -1,8 +1,9 @@
-import pytest
 from collections import Counter
 
-from s3prl.sampler import BalancedWeightedSampler
+import pytest
+
 from s3prl.dataset.base import AugmentedDynamicItemDataset
+from s3prl.sampler import BalancedWeightedSampler
 
 
 def test_balanced_weighted_sampler():

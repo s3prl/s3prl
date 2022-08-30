@@ -1,5 +1,6 @@
-from s3prl.base import fileio
 from s3prl import Container, field
+from s3prl.base import fileio
+
 from .configuration import default_cfg
 
 

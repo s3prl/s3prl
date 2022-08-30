@@ -1,14 +1,11 @@
 import logging
 import os
 import re
-from collections import defaultdict
+from collections import OrderedDict, defaultdict
 from pathlib import Path
 from typing import Any, Dict, List
 
 from joblib import Parallel, delayed
-
-from s3prl import Container, Output, cache
-from s3prl.util import registry
 
 from .base import Corpus
 
@@ -98,10 +95,10 @@ class LibriSpeech(Corpus):
         self.valid = self._data_to_dict(self.data_dict, valid_split)
         self.test = self._data_to_dict(self.data_dict, test_split)
 
-        self._data = Container()
-        self._data.add(self.train)
-        self._data.add(self.valid)
-        self._data.add(self.test)
+        self._data = OrderedDict()
+        self._data.update(self.train)
+        self._data.update(self.valid)
+        self._data.update(self.test)
 
     def get_corpus_splits(self, splits: List[str]):
         return self._data_to_dict(self.data_dict, splits)
@@ -119,7 +116,6 @@ class LibriSpeech(Corpus):
         )
 
     @staticmethod
-    @cache()
     def _collect_data(
         dataset_root: str, splits: List[str], n_jobs: int = 4
     ) -> Dict[str, Dict[str, List[Any]]]:
@@ -161,8 +157,8 @@ class LibriSpeech(Corpus):
     @staticmethod
     def _data_to_dict(
         data_dict: Dict[str, Dict[str, List[Any]]], splits: List[str]
-    ) -> Container:
-        data = Container(
+    ) -> dict():
+        data = dict(
             {
                 name: {
                     "wav_path": data_dict[split]["wav_list"][i],
@@ -227,7 +223,6 @@ class LibriSpeech(Corpus):
         )
 
 
-@registry.put()
 def librispeech_for_speech2text(
     dataset_root: str,
     n_jobs: int = 4,
@@ -237,7 +232,7 @@ def librispeech_for_speech2text(
 ):
     corpus = LibriSpeech(dataset_root, n_jobs, train_split, valid_split, test_split)
     train_data, valid_data, test_data = corpus.data_split
-    return Output(
+    return dict(
         train_data=train_data,
         valid_data=valid_data,
         test_data=test_data,

@@ -112,9 +112,10 @@ class LegacyUpstreamExpert(UpstreamBase):
         Sanitize the config in the checkpoint as there are some irrelevant fields
         in the released checkpoint which can cause the model loading to fail
         """
+        import dataclasses
+
         import fairseq
         import omegaconf
-        import dataclasses
         from fairseq.tasks.audio_pretraining import AudioPretrainingConfig
 
         ckpt_state = torch.load(ckpt_path, map_location="cpu")

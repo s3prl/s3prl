@@ -3,15 +3,11 @@ import os
 import re
 import subprocess
 from collections import defaultdict
-from multiprocessing.sharedctypes import Value
 from pathlib import Path
-from pydoc import resolve
 from typing import Any, Dict, List
 
 from joblib import Parallel, delayed
 
-from s3prl import Container, Output, cache
-from s3prl.util import registry
 from s3prl.util.download import _urls_to_filepaths
 
 from .base import Corpus
@@ -103,7 +99,7 @@ class LibriLight(Corpus):
         else:
             raise ValueError(f"Unsupported split: {train_split}")
 
-        self._data = Container(self._collect_data(roots, n_jobs))
+        self._data = self._collect_data(roots, n_jobs)
 
     @classmethod
     def download_dataset(cls, dataset_root: str):
@@ -125,7 +121,6 @@ class LibriLight(Corpus):
         return self._data
 
     @staticmethod
-    @cache()
     def _collect_data(
         roots: List[Path], n_jobs: int = 4
     ) -> Dict[str, Dict[str, List[Any]]]:
@@ -157,7 +152,6 @@ class LibriLight(Corpus):
         return data_dict
 
 
-@registry.put()
 def librilight_for_speech2text(
     librilight_root: str,
     librispeech_root: str,
@@ -165,14 +159,13 @@ def librilight_for_speech2text(
     train_split: str = "10min-fold0",
     valid_split: List[str] = ["dev-clean"],
     test_split: List[str] = ["test-clean"],
-    **kwds,
 ):
     from .librispeech import LibriSpeech
 
     train_corpus = LibriLight(librilight_root, train_split=train_split)
     eval_corpus = LibriSpeech(librispeech_root, n_jobs, [], valid_split, test_split)
     _, valid_data, test_data = eval_corpus.data_split
-    return Output(
+    return dict(
         train_data=train_corpus.all_data,
         valid_data=valid_data,
         test_data=test_data,

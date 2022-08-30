@@ -3,16 +3,13 @@ from __future__ import annotations
 import abc
 import logging
 import pickle
+from collections import OrderedDict
 from copy import deepcopy
-from enum import Enum
 from functools import partial
-from inspect import isclass, isfunction, ismethod
 from typing import Any, List, Type, Union
 
 import numpy as np
 import torch
-import torchaudio
-from joblib import Parallel, delayed
 from speechbrain.dataio.dataset import DynamicItemDataset
 from speechbrain.utils.data_pipeline import DynamicItem
 from torch.nn.utils.rnn import pad_sequence
@@ -34,6 +31,7 @@ class AugmentedDynamicItemDataset(DynamicItemDataset):
         tools: dict = {},
     ):
         super().__init__(data, dynamic_items, output_keys)
+        assert isinstance(data, OrderedDict)
         self._tools = {}
         for name, item in tools.items():
             self.add_tool(name, item)

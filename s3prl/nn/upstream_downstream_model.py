@@ -2,7 +2,7 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 
-from s3prl import Output, Container
+from s3prl import Container, Output
 
 from . import NNModule
 from .upstream import S3PRLUpstream
@@ -42,7 +42,9 @@ class UpstreamDownstreamModel(NNModule):
                 whether to do layer_norm on top of the extracted upstream hidden_states
         """
         super().__init__()
-        self.upstream = upstream if isinstance(upstream, nn.Module) else Container(upstream)()
+        self.upstream = (
+            upstream if isinstance(upstream, nn.Module) else Container(upstream)()
+        )
         self.weighted_sum = weighted_sum
         self.upstream_trainable = upstream_trainable
         self.layer_norm = layer_norm
@@ -53,7 +55,9 @@ class UpstreamDownstreamModel(NNModule):
         if self.weighted_sum:
             self.weights = nn.Parameter(torch.zeros(self.upstream.num_hidden_state))
 
-        self.downstream = downstream if isinstance(downstream, nn.Module) else Container(downstream)()
+        self.downstream = (
+            downstream if isinstance(downstream, nn.Module) else Container(downstream)()
+        )
         assert upstream.input_size == 1
         assert upstream.output_size == downstream.input_size
 

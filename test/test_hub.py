@@ -1,11 +1,12 @@
-import pytest
 import logging
 import traceback
 
+import pytest
 import torch
+
 from s3prl import hub
-from s3prl.util.pseudo_data import get_pseudo_wavs
 from s3prl.util.download import _urls_to_filepaths
+from s3prl.util.pseudo_data import get_pseudo_wavs
 
 logger = logging.getLogger()
 

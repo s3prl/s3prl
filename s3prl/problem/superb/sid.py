@@ -14,7 +14,6 @@ class SuperbSIDTrainPipe(DataPipe):
         self,
         train_category_encoder: bool = False,
         max_secs: float = None,
-        **kwds,
     ) -> None:
         self.pipes = SequentialDataPipe(
             UtteranceClassificationPipe(

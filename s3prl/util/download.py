@@ -1,14 +1,14 @@
+import hashlib
 import logging
 import shutil
-import tempfile
-import hashlib
-import requests
 import subprocess
-
-import torch
-from tqdm import tqdm
+import tempfile
 from pathlib import Path
+
+import requests
+import torch
 from filelock import FileLock
+from tqdm import tqdm
 
 logger = logging.getLogger(__name__)
 

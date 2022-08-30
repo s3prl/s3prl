@@ -1,6 +1,6 @@
+from collections import OrderedDict
 from copy import deepcopy
 from dataclasses import dataclass
-from collections import OrderedDict
 
 from .base import AugmentedDynamicItemDataset, DataPipe
 

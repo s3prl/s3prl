@@ -1,6 +1,6 @@
-import random
 import logging
 import os
+import random
 from dataclasses import dataclass
 from typing import Callable
 
@@ -230,7 +230,9 @@ class GenerateTokenizer(DataPipe):
 
                 dataset.add_tool(self.tokenizer_name, tokenizer)
             else:
-                logger.warning("No tokenizer is found or generated. No-op for this DataPipe")
+                logger.warning(
+                    "No tokenizer is found or generated. No-op for this DataPipe"
+                )
 
         return dataset
 

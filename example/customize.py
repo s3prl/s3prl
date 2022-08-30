@@ -1,8 +1,9 @@
-import torch
+from typing import List, Tuple
+
 import pandas as pd
+import torch
 import torch.nn as nn
 from omegaconf import MISSING
-from typing import Tuple, List
 
 from s3prl.nn.interface import AbsFrameModel, AbsUpstream
 from s3prl.problem.asr.superb_asr import SuperbASR

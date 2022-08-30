@@ -6,10 +6,10 @@ def available_options():
 
 
 def _get_hubconf_entries():
-    import os
-    import logging
-    import pathlib
     import importlib
+    import logging
+    import os
+    import pathlib
 
     logger = logging.getLogger(__name__)
 

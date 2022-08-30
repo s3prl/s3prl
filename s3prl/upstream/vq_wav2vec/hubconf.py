@@ -11,8 +11,8 @@ import os
 
 from s3prl.util.download import _urls_to_filepaths
 
-from .expert import UpstreamExpert as _UpstreamExpert
 from .expert import LegacyUpstreamExpert as _LegacyUpstreamExpert
+from .expert import UpstreamExpert as _UpstreamExpert
 
 
 def vq_wav2vec_custom(

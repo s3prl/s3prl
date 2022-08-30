@@ -10,8 +10,8 @@ from s3prl.problem.base import Problem
 from s3prl.problem.trainer import Trainer
 from s3prl.util import workspace
 from s3prl.util.configuration import default_cfg
-from s3prl.util.workspace import Workspace, as_type
 from s3prl.util.seed import fix_random_seeds
+from s3prl.util.workspace import Workspace, as_type
 
 logger = logging.getLogger(__name__)
 
@@ -137,11 +137,15 @@ class SuperbProblem(Problem, Trainer):
         workspace.environ.update(stats)
 
         logger.info("Preparing valid data")
-        valid_dataset = cfg.valid_datapipe(**dict(workspace.environ))(valid_data, **dict(workspace.environ))
+        valid_dataset = cfg.valid_datapipe(**dict(workspace.environ))(
+            valid_data, **dict(workspace.environ)
+        )
         valid_sampler = cfg.valid_sampler(valid_dataset)
 
         logger.info("Preparing test data")
-        test_dataset = cfg.test_datapipe(**dict(workspace.environ))(test_data, **dict(workspace.environ))
+        test_dataset = cfg.test_datapipe(**dict(workspace.environ))(
+            test_data, **dict(workspace.environ)
+        )
         test_sampler = cfg.test_sampler(test_dataset)
 
         logger.info("Preparing model and task")

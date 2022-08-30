@@ -191,7 +191,7 @@ def voxceleb1_for_utt_classification(dataset_root: str, n_jobs: int = 4):
 
     corpus = VoxCeleb1SID(dataset_root, n_jobs)
     train_data, valid_data, test_data = corpus.data_split
-    return Output(
+    return dict(
         train_data=train_data,
         valid_data=valid_data,
         test_data=test_data,
@@ -221,7 +221,6 @@ def mini_voxceleb1(dataset_root: str, force_download: bool = False):
             test_data:
                 The same format as valid_data
     """
-
 
     dataset_root = Path(dataset_root)
     if not dataset_root.is_dir() or force_download:

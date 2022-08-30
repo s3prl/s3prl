@@ -1,8 +1,9 @@
-import shutil
-import pickle
 import inspect
 import logging
+import pickle
+import shutil
 from pathlib import Path
+
 from torch.utils.data import DataLoader
 
 from s3prl.problem.utils import Utility
@@ -19,6 +20,7 @@ class Common(Utility):
         remove_all_cache: bool = False,
         start: int = 0,
         stop: int = None,
+        start_stage_id: int = 0,
         num_workers: int = 6,
         eval_batch: int = -1,
         device: str = "cuda",
@@ -54,7 +56,7 @@ class Common(Utility):
         if remove_all_cache:
             shutil.rmtree(cache_dir)
 
-        stage_id = 0
+        stage_id = start_stage_id
         if start <= stage_id:
             logger.info(f"Stage {stage_id}: prepare data")
             train_csv, valid_csv, test_csvs = cls.prepare_data(
@@ -72,55 +74,35 @@ class Common(Utility):
 
         cls.stage_check(stage_id, stop, check_fn)
 
-        stage_id = 1
+        stage_id += 1
         if start <= stage_id:
-            logger.info(f"Stage {stage_id}: prepare tokenizer data")
-            tokenizer_data_path = cls.prepare_tokenizer_data(
+            logger.info(f"Stage {stage_id}: build encoder")
+            encoder_path = cls.build_encoder(
                 target_dir,
                 cache_dir,
                 train_csv,
+                valid_csv,
+                test_csvs,
                 _get_path_only=False,
-                **prepare_tokenizer_data,
+                **build_encoder,
             )
 
-        tokenizer_data_path = cls.prepare_tokenizer_data(
+        encoder_path = cls.build_encoder(
             target_dir,
             cache_dir,
             train_csv,
+            valid_csv,
+            test_csvs,
             _get_path_only=True,
-            **prepare_tokenizer_data,
+            **build_encoder,
         )
 
         def check_fn():
-            assert Path(tokenizer_data_path).is_file()
+            assert Path(encoder_path).is_file()
 
         cls.stage_check(stage_id, stop, check_fn)
 
-        stage_id = 2
-        if start <= stage_id:
-            logger.info(f"Stage {stage_id}: build tokenizer")
-            tokenizer_path = cls.build_tokenizer(
-                target_dir,
-                cache_dir,
-                tokenizer_data_path,
-                _get_path_only=False,
-                **build_tokenizer,
-            )
-
-        tokenizer_path = cls.build_tokenizer(
-            target_dir,
-            cache_dir,
-            tokenizer_data_path,
-            _get_path_only=True,
-            **build_tokenizer,
-        )
-
-        def check_fn():
-            assert Path(tokenizer_path).is_file()
-
-        cls.stage_check(stage_id, stop, check_fn)
-
-        stage_id = 3
+        stage_id += 1
         train_dir = target_dir / "train"
         if start <= stage_id:
             logger.info(f"Stage {stage_id}: Train Model")
@@ -129,7 +111,7 @@ class Common(Utility):
                 cache_dir,
                 "train",
                 train_csv,
-                tokenizer_path,
+                encoder_path,
                 build_dataset,
                 build_batch_sampler,
             )
@@ -138,23 +120,23 @@ class Common(Utility):
                 cache_dir,
                 "valid",
                 valid_csv,
-                tokenizer_path,
+                encoder_path,
                 build_dataset,
                 build_batch_sampler,
             )
 
-            with Path(tokenizer_path).open("rb") as f:
-                tokenizer = pickle.load(f)
+            with Path(encoder_path).open("rb") as f:
+                encoder = pickle.load(f)
 
             init_model = dict(
-                _model_output_size=len(tokenizer),
+                _model_output_size=len(encoder),
                 _build_upstream=build_upstream,
                 _build_featurizer=build_featurizer,
                 _build_downstream=build_downstream,
                 **build_model,
             )
             init_task = dict(
-                _tokenizer=tokenizer,
+                _encoder=encoder,
                 **build_task,
             )
 
@@ -183,7 +165,7 @@ class Common(Utility):
 
         cls.stage_check(stage_id, stop, check_fn)
 
-        stage_id = 4
+        stage_id += 1
         if start <= stage_id:
             test_ckpt_dir: Path = Path(
                 test_ckpt_dir or target_dir / "train" / "valid_best"
@@ -205,7 +187,7 @@ class Common(Utility):
                     cache_dir,
                     "test",
                     test_csv,
-                    tokenizer_path,
+                    encoder_path,
                     build_dataset,
                     build_batch_sampler,
                 )
@@ -236,7 +218,7 @@ class Common(Utility):
         _cache_dir: str,
         _mode: str,
         _data_csv: str,
-        _tokenizer_path: str,
+        _encoder_path: str,
         _build_dataset: dict,
         _build_batch_sampler: dict,
     ):
@@ -246,7 +228,7 @@ class Common(Utility):
             _cache_dir,
             _mode,
             _data_csv,
-            _tokenizer_path,
+            _encoder_path,
             **_build_dataset,
         )
         logger.info(f"Build {_mode} batch sampler")
@@ -261,8 +243,8 @@ class Common(Utility):
         return dataset, batch_sampler
 
     @classmethod
-    def build_task(cls, _model, _tokenizer: str, log_metrics: list):
-        from s3prl.task.speech2text_ctc_task import Speech2TextCTCTask
+    def build_task(cls, _model, _encoder):
+        from s3prl.task.utterance_classification_task import UtteranceClassificationTask
 
-        task = Speech2TextCTCTask(_model, _tokenizer, log_metrics=log_metrics)
+        task = UtteranceClassificationTask(_model, _encoder)
         return task

@@ -1,6 +1,7 @@
+from pathlib import Path
+
 import pytest
 from dotenv import dotenv_values
-from pathlib import Path
 
 from s3prl import Workspace
 from s3prl.base import fileio

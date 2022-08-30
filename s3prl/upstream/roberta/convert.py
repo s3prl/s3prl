@@ -1,18 +1,19 @@
-import os
-import glob
-import torch
 import argparse
+import glob
+import os
 from pathlib import Path
 from subprocess import check_call
 
-from s3prl.util.download import _urls_to_filepaths
-from s3prl.upstream.utils import merge_with_parent, load_fairseq_ckpt
+import torch
+
+from s3prl.upstream.roberta.dictionary import Dictionary
 from s3prl.upstream.roberta.roberta_model import (
     MaskedLMConfig,
-    RobertaModel,
     RobertaEncoder,
+    RobertaModel,
 )
-from s3prl.upstream.roberta.dictionary import Dictionary
+from s3prl.upstream.utils import load_fairseq_ckpt, merge_with_parent
+from s3prl.util.download import _urls_to_filepaths
 
 
 def load_and_convert_fairseq_ckpt(fairseq_source: str, output_path: str):

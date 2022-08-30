@@ -69,7 +69,9 @@ class DiarizationPIT(Task):
             output_len=predicted_len,
         )
 
-    def forward(self, split: str, x, x_len, label, label_len, rec_id, workspace=None, **kwds):
+    def forward(
+        self, split: str, x, x_len, label, label_len, rec_id, workspace=None, **kwds
+    ):
         predicted, predicted_len = self.predict(x, x_len).slice(2)
 
         for pl, ll in zip(predicted_len, label_len):
@@ -108,9 +110,9 @@ class DiarizationPIT(Task):
 
         if split == "test" and workspace is not None:
             if len(label_len) > 1:
-                assert len(set(label_len[:-1].tolist())) == 1, (
-                    f"Except the final chunk, other chunks from the same recording should have the same length"
-                )
+                assert (
+                    len(set(label_len[:-1].tolist())) == 1
+                ), f"Except the final chunk, other chunks from the same recording should have the same length"
 
             predict = predicted.detach().cpu().numpy()
             # TODO:

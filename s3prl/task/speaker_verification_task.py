@@ -1,13 +1,13 @@
 from __future__ import annotations
 
 import logging
-from typing import List, Tuple, Dict
+from typing import Dict, List, Tuple
 
 import torch
 import torch.nn.functional as F
 from tqdm import tqdm
 
-from s3prl import Logs, Module, Output, Container
+from s3prl import Container, Logs, Module, Output
 from s3prl.metric import accuracy, compute_eer, compute_minDCF
 from s3prl.nn import amsoftmax, softmax
 

@@ -38,7 +38,7 @@ class UtteranceClassifierExample(Module):
         """
         assert x.size(-1) == self.input_size
         output = torch.randn(x.size(0), self.output_size)
-        assert Output(output=output)
+        assert output
 
 
 class UtteranceClassificationTask(Task):
@@ -48,7 +48,7 @@ class UtteranceClassificationTask(Task):
         output_size (int): defined by len(categories)
     """
 
-    def __init__(self, model: UtteranceClassifierExample, category, **kwargs):
+    def __init__(self, model: UtteranceClassifierExample, category):
         """
         model.output_size should match len(categories)
 
@@ -84,12 +84,12 @@ class UtteranceClassificationTask(Task):
             logits (torch.Tensor): (batch_size, output_size)
             prediction (list): prediction strings
         """
-        logits: torch.Tensor = self.model(x, x_len).slice(1)
+        logits: torch.Tensor = self.model(x, x_len)
         predictions = [
             self.category.decode(index)
             for index in logits.argmax(dim=-1).detach().cpu().tolist()
         ]
-        return Output(logit=logits, prediction=predictions)
+        return logits, predictions
 
     def _general_forward(
         self,
@@ -98,7 +98,7 @@ class UtteranceClassificationTask(Task):
         class_id: torch.LongTensor,
         unique_name: List[str],
     ):
-        logits, prediction = self.predict(x, x_len).slice(2)
+        logits, prediction = self.predict(x, x_len)
         loss = F.cross_entropy(logits, class_id)
 
         logs = Logs()

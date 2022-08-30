@@ -7,8 +7,8 @@ import s3prl
 from s3prl.util.download import _urls_to_filepaths
 
 from ..interfaces import Featurizer as _Featurizer
-from .expert import UpstreamExpert as _UpstreamExpert
 from .expert import LegacyUpstreamExpert as _LegacyUpstreamExpert
+from .expert import UpstreamExpert as _UpstreamExpert
 
 
 class _vq_wav2vec_codeids_wrapper(torch.nn.Module):
@@ -70,6 +70,7 @@ def vq_wav2vec_kmeans_roberta(refresh=False, legacy=False, **kwargs):
             "result/organized_ckpts/vq_wav2vec_kmeans_roberta.pt",
             _vq_wav2vec_codeids_wrapper(vq_wav2vec),
         )
+
 
 def discretebert(*args, legacy=False, **kwargs):
     return vq_wav2vec_kmeans_roberta(*args, legacy=legacy, **kwargs)

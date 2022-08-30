@@ -1,7 +1,7 @@
-import torch
-from collections import OrderedDict, Counter
+from collections import Counter, OrderedDict
 from typing import Iterator, TypeVar
 
+import torch
 from torch.utils.data import Sampler, WeightedRandomSampler
 
 from .base import Sampler

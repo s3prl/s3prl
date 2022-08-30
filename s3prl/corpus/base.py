@@ -1,12 +1,9 @@
 import abc
-from typing import Any
 
 import pandas as pd
 
-from s3prl import Container, Object
 
-
-class Corpus(Object):
+class Corpus:
     @property
     @abc.abstractmethod
     def all_data(self) -> dict:
@@ -30,7 +27,7 @@ class Corpus(Object):
     def dataframe_to_datapoints(df: pd.DataFrame, unique_name_fn: callable):
         data_points = {}
         for _, row in df.iterrows():
-            data_point = Container()
+            data_point = dict()
             for name, value in row.iteritems():
                 data_point[name] = value
             unique_name = unique_name_fn(data_point)

@@ -32,7 +32,9 @@ class ModelWithSpecaug(NNModule):
             specaug_cfg["CLS"] = SpecAug
 
         self.specaug = specaug_cfg()
-        self.model = Container(model_cfg)(input_size=input_size, output_size=output_size)
+        self.model = Container(model_cfg)(
+            input_size=input_size, output_size=output_size
+        )
 
     @property
     def input_size(self):
@@ -115,7 +117,7 @@ class SpecAug(torch.nn.Module):
         assert len(x.shape) == 3
         x, _ = self.apply_specaug(x, x_len)
         for batch_id in range(len(x)):
-            x[batch_id, x_len[batch_id]:] = 0
+            x[batch_id, x_len[batch_id] :] = 0
         return x, x_len
 
 

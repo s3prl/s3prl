@@ -21,6 +21,9 @@ def test_rttm():
         with open(work / "tmp.rttm") as file:
             first_line = file.readline().strip()
             assert (
-                re.search("SPEAKER (.+) 1 (.+) (.+) <NA> <NA> (.+) <NA>".replace(" ", "\t"), first_line)
+                re.search(
+                    "SPEAKER (.+) 1 (.+) (.+) <NA> <NA> (.+) <NA>".replace(" ", "\t"),
+                    first_line,
+                )
                 is not None
             )

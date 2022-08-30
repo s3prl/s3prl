@@ -91,4 +91,4 @@ class UtteranceLevel(NNModule):
         x = self.hidden_layers(x)
         x_pooled = self.pooling(x, x_len)
         y = self.final_proj(x_pooled)
-        return y, y.new_ones(len(y)).long()
+        return y
