@@ -220,7 +220,7 @@ class ASR(Utility):
                 )
 
                 _, _, valid_best_task, _ = cls.load_model_and_task(test_ckpt_dir)
-                logs = cls.evaluate(
+                logs: dict = cls.evaluate(
                     "test",
                     valid_best_task,
                     test_dl,
@@ -229,7 +229,7 @@ class ASR(Utility):
                     device,
                     **evaluate,
                 )
-                test_metrics = {name: float(value) for name, value in logs.scalars()}
+                test_metrics = {name: float(value) for name, value in logs.items()}
                 cls.save_yaml(test_metrics, test_dir / f"result.yaml")
 
         return stage_id

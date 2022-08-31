@@ -7,7 +7,6 @@ class FrameLevelLinear(FrameLevel):
         input_size: int,
         output_size: int,
         hidden_size: int = 256,
-        **kwds,
     ):
         super().__init__(input_size, output_size, hidden_sizes=[hidden_size])
 
@@ -18,6 +17,5 @@ class MeanPoolingLinear(UtteranceLevel):
         input_size: int,
         output_size: int,
         hidden_size: int = 256,
-        **kwargs,
     ):
         super().__init__(input_size, output_size, hidden_sizes=[hidden_size])

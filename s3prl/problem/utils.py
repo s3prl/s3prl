@@ -41,6 +41,15 @@ class DistributedDataParallel(torch.nn.parallel.DistributedDataParallel):
             return getattr(self.module, name)
 
 
+def force_cacheable(data: dict):
+    output = dict()
+    for key, value in data.items():
+        if isinstance(value, torch.Tensor):
+            value = value.detach().cpu()
+        output[key] = value
+    return output
+
+
 class Utility:
     @classmethod
     def build_collate_fn(cls, _mode: str):
@@ -281,9 +290,9 @@ class Utility:
 
                     wrapped_task.train()
                     batch = batch.to(device)
-                    result = wrapped_task("train", **batch)
-                    (result.loss / gradient_accumulate_steps).backward()
-                    batch_results.append(result.cacheable())
+                    loss, cacheable = wrapped_task("train", **batch)
+                    (loss / gradient_accumulate_steps).backward()
+                    batch_results.append(force_cacheable(cacheable))
 
                 except RuntimeError as e:
                     if _world_size > 1:
@@ -326,14 +335,14 @@ class Utility:
                     continue
 
                 if global_step % log_step == 0:
-                    logs = wrapped_task.reduction("train", batch_results).logs
+                    logs = wrapped_task.reduction("train", batch_results)
                     cls.log_results("train", logs, tf_logger, global_step)
                     batch_results = []
 
                 save_names = []
 
                 if global_step % eval_step == 0:
-                    logs = cls.evaluate(
+                    logs: dict = cls.evaluate(
                         "valid",
                         task,
                         valid_dataloader,
@@ -342,7 +351,7 @@ class Utility:
                         _device,
                     )
                     cls.log_results("valid", logs, tf_logger, global_step)
-                    valid_metrics = {k: float(v) for k, v in logs.scalars()}
+                    valid_metrics = {k: float(v) for k, v in logs.items()}
                     new_metric = valid_metrics[valid_metric]
                     best_metric = valid_best_metrics.get(valid_metric)
                     if best_metric is None:
@@ -407,6 +416,7 @@ class Utility:
         _dump_dir: str,
         _device: str,
     ):
+        assert _mode in ["valid", "test"]
         task = _task.to(_device)
         with torch.no_grad():
             batch_results = []
@@ -417,22 +427,23 @@ class Utility:
                     break
                 batch = batch.to(_device)
                 task.eval()
-                result = task(_mode, **batch, workspace=_dump_dir)
-                batch_results.append(result.cacheable())
+                loss, cacheable = task(_mode, dump_dir=_dump_dir, **batch)
+                batch_results.append(force_cacheable(cacheable))
 
-        logs = task.reduction(_mode, batch_results, workspace=_dump_dir).logs
+        logs = task.reduction(_mode, batch_results, dump_dir=_dump_dir)
         return logs
 
     @classmethod
     def log_results(
         cls,
         split_name: str,
-        logs,
+        logs: dict,
         tensorboard: SummaryWriter,
         global_step: int,
     ):
         logger.info(f"{split_name} at step {global_step}")
-        for name, value in logs.scalars():
+        for name, value in logs.items():
+            value = float(value)
             logger.info(f"{name}: {value}")
             tensorboard.add_scalar(
                 f"{split_name}-{name}", value, global_step=global_step

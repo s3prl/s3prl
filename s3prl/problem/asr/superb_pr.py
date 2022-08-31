@@ -1,11 +1,13 @@
 import pickle
 from pathlib import Path
-from typing import List, Tuple
 
-import torch
+import pandas as pd
 from omegaconf import MISSING
 
-from s3prl.nn.interface import AbsFrameModel
+from s3prl.dataset.speech2phoneme_pipe import Speech2PhonemePipe
+from s3prl.encoder.tokenizer import default_phoneme_tokenizer
+from s3prl.nn.linear import FrameLevelLinear
+from s3prl.sampler import FixedBatchSizeBatchSampler, SortedSliceSampler
 
 from .superb_asr import SuperbASR
 
@@ -95,8 +97,6 @@ class SuperbPR(SuperbASR):
         _tokenizer_data_path,
         _get_path_only=False,
     ):
-        from s3prl.encoder.tokenizer import default_phoneme_tokenizer
-
         tokenizer_path = Path(_target_dir) / "default_phone_tokenizer.pkl"
         with tokenizer_path.open("wb") as f:
             pickle.dump(default_phoneme_tokenizer(), f)
@@ -111,10 +111,6 @@ class SuperbPR(SuperbASR):
         _data_csv: str,
         _tokenizer_path: str,
     ):
-        import pandas as pd
-
-        from s3prl.dataset.speech2phoneme_pipe import Speech2PhonemePipe
-
         data_points = {}
         csv = pd.read_csv(_data_csv)
         for _, row in csv.iterrows():
@@ -141,8 +137,6 @@ class SuperbPR(SuperbASR):
         valid: dict = None,
         test: dict = None,
     ):
-        from s3prl.sampler import FixedBatchSizeBatchSampler, SortedSliceSampler
-
         if _mode == "train":
             sampler = SortedSliceSampler(_dataset, **train)
         elif _mode == "valid":
@@ -160,8 +154,6 @@ class SuperbPR(SuperbASR):
         _downstream_downsample_rate: int,
         hidden_size: int,
     ):
-        from s3prl.nn.linear import FrameLevelLinear
-
         return FrameLevelLinear(
             _downstream_input_size, _downstream_output_size, hidden_size=hidden_size
         )

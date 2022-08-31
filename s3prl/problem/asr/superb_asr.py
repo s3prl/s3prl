@@ -2,19 +2,17 @@ import logging
 import pickle
 from pathlib import Path
 from typing import List
+from collections import OrderedDict
 
 import pandas as pd
-import torch
 from omegaconf import MISSING
 from torch.utils.data import Dataset
 
-from s3prl.corpus.librispeech import librispeech_for_speech2text
+from s3prl.corpus.librispeech import LibriSpeech
 from s3prl.dataset.speech2text_pipe import Speech2TextPipe
-from s3prl.encoder.g2p import G2P
 from s3prl.encoder.tokenizer import load_tokenizer
 from s3prl.encoder.vocabulary import generate_vocab
 from s3prl.nn.interface import AbsFrameModel
-from s3prl.nn.upstream import Featurizer, S3PRLUpstream, UpstreamDownstreamModel
 from s3prl.sampler import FixedBatchSizeBatchSampler, SortedBucketingSampler
 
 from .run import ASR
@@ -130,6 +128,7 @@ class SuperbASR(ASR):
         train_set: str,
         valid_set: str,
         test_sets: List[str],
+        n_jobs: int = 6,
         _get_path_only=False,
     ):
         target_dir = Path(_target_dir)
@@ -141,12 +140,8 @@ class SuperbASR(ASR):
         if _get_path_only:
             return train_path, valid_path, test_paths
 
-        train_data, valid_data, test_data = librispeech_for_speech2text(
-            dataset_root,
-            train_split=[train_set],
-            valid_split=[valid_set],
-            test_split=test_sets,
-        ).slice(3)
+        corpus = LibriSpeech(dataset_root, n_jobs, [train_set], [valid_set], test_sets)
+        train_data, valid_data, test_data = corpus.data_split
 
         def dict_to_csv(data_dict, csv_path):
             keys = sorted(list(data_dict.keys()))
@@ -238,7 +233,7 @@ class SuperbASR(ASR):
         """
         _mode is in ["train", "valid", "test"]
         """
-        data_points = {}
+        data_points = OrderedDict()
         csv = pd.read_csv(_data_csv)
         for _, row in csv.iterrows():
             data_points[row["id"]] = {

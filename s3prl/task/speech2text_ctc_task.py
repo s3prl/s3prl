@@ -71,9 +71,11 @@ class Speech2TextCTCTask(Task):
         """
 
         super().__init__()
-
         self.model = model
+
+        assert isinstance(tokenizer, Tokenizer)
         self.tokenizer = tokenizer
+
         self.log_metrics = log_metrics
         assert self.model.output_size == len(self.tokenizer)
 
@@ -98,7 +100,7 @@ class Speech2TextCTCTask(Task):
         Return:
             logits (torch.Tensor): (batch_size, timestamps, output_size)
             prediction (list): prediction strings
-            valid_length
+            valid_length (torch.LongTensor): (batch_size, )
         """
 
         logits, x_len = self.model(x, x_len)
@@ -125,6 +127,7 @@ class Speech2TextCTCTask(Task):
         class_ids: torch.LongTensor,
         unique_name: np.ndarray,
         beam_decode: bool = False,
+        dump_dir: str = None,
     ):
         """
         Each forward step in the training loop
@@ -172,15 +175,17 @@ class Speech2TextCTCTask(Task):
 
         return loss, cacheable
 
-    def reduction(self, mode: str, cached_results: List[dict]):
-        cached_results = self.dict_of_list(cached_results)
+    def reduction(self, mode: str, cached_results: List[dict], dump_dir: str = None):
+        results = self.parse_cached_results(cached_results)
 
-        losses = cached_results["loss"]
-        predictions = cached_results["prediction"]
-        labels = cached_results["label"]
-        beam_hyps = [" ".join(hyp[0].words) for hyp in cached_results["hypotheses"]]
+        losses = results["loss"]
+        predictions = results["prediction"]
+        labels = results["label"]
 
-        # FIXME: cleaner solution?
+        beam_hyps = None
+        if results["hypotheses"][0] is not None:
+            beam_hyps = [" ".join(hyp[0].words) for hyp in results["hypotheses"]]
+
         if self.tokenizer.token_type in {"character-slot", "subword-slot"}:
             labels = [
                 self.tokenizer.decode(self.tokenizer.encode(label)) for label in labels
@@ -206,7 +211,7 @@ class Speech2TextCTCTask(Task):
         if "slot_edit_f1_part" in self.log_metrics:
             logs["slot_edit_f1_part"] = slot_edit_f1_part(predictions, labels)
 
-        if len(beam_hyps) > 0:
+        if beam_hyps is not None:
             logs["wer_beam"] = wer(beam_hyps, labels)
             logs["char_beam"] = cer(beam_hyps, labels)
 

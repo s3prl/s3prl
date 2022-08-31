@@ -221,19 +221,3 @@ class LibriSpeech(Corpus):
             ", ".join(splits)
             + f"downloaded. Located at {os.path.abspath(target_dir)}/Librispeech/"
         )
-
-
-def librispeech_for_speech2text(
-    dataset_root: str,
-    n_jobs: int = 4,
-    train_split: List[str] = ["train-clean-100"],
-    valid_split: List[str] = ["dev-clean"],
-    test_split: List[str] = ["test-clean"],
-):
-    corpus = LibriSpeech(dataset_root, n_jobs, train_split, valid_split, test_split)
-    train_data, valid_data, test_data = corpus.data_split
-    return dict(
-        train_data=train_data,
-        valid_data=valid_data,
-        test_data=test_data,
-    )

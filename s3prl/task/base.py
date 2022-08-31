@@ -10,15 +10,16 @@ class Task(torch.nn.Module):
         super().__init__()
 
     def get_state(self):
+        # self.model will be separately saved, do not save self.model.state_dict() here
         return {}
 
     def set_state(self, state: dict):
         pass
 
-    def dict_of_lists(self, list_of_dicts: List[dict]):
-        keys = list(list_of_dicts[0].keys())
+    def parse_cached_results(self, cached_results: List[dict]):
+        keys = list(cached_results[0].keys())
         dol = defaultdict(list)
-        for d in list_of_dicts:
+        for d in cached_results:
             assert sorted(keys) == sorted(list(d.keys()))
             for k, v in d.items():
                 if isinstance(v, (tuple, list)):
@@ -50,13 +51,13 @@ class Task(torch.nn.Module):
         raise NotImplementedError
 
     @abc.abstractmethod
-    def train_reduction(self, batch_results: list):
+    def train_reduction(self):
         raise NotImplementedError
 
     @abc.abstractmethod
-    def valid_reduction(self, batch_results: list):
+    def valid_reduction(self):
         raise NotImplementedError
 
     @abc.abstractmethod
-    def test_reduction(self, batch_results: list):
+    def test_reduction(self):
         raise NotImplementedError
