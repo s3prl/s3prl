@@ -1,8 +1,8 @@
 import logging
 import pickle
+from collections import OrderedDict
 from pathlib import Path
 from typing import List
-from collections import OrderedDict
 
 import pandas as pd
 from omegaconf import MISSING
@@ -13,6 +13,8 @@ from s3prl.dataset.speech2text_pipe import Speech2TextPipe
 from s3prl.encoder.tokenizer import load_tokenizer
 from s3prl.encoder.vocabulary import generate_vocab
 from s3prl.nn.interface import AbsFrameModel
+from s3prl.nn.rnn import RNNEncoder
+from s3prl.nn.specaug import ModelWithSpecaug
 from s3prl.sampler import FixedBatchSizeBatchSampler, SortedBucketingSampler
 
 from .run import ASR
@@ -230,9 +232,6 @@ class SuperbASR(ASR):
         _data_csv: str,
         _tokenizer_path: str,
     ):
-        """
-        _mode is in ["train", "valid", "test"]
-        """
         data_points = OrderedDict()
         csv = pd.read_csv(_data_csv)
         for _, row in csv.iterrows():
@@ -244,7 +243,7 @@ class SuperbASR(ASR):
         with open(_tokenizer_path, "rb") as f:
             tokenizer = pickle.load(f)
 
-        dataset = Speech2TextPipe(generate_tokenizer=False,)(
+        dataset = Speech2TextPipe(generate_tokenizer=False)(
             data_points,
             tools={"tokenizer": tokenizer},
         )
@@ -280,17 +279,6 @@ class SuperbASR(ASR):
         model_cfg: dict,
         specaug_cfg: dict,
     ) -> AbsFrameModel:
-        """
-        Feed the single hidden state to the downstream model
-        """
-        from s3prl.nn.rnn import RNNEncoder
-        from s3prl.nn.specaug import ModelWithSpecaug
-
-        model_cfg["CLS"] = RNNEncoder
-        downstream = ModelWithSpecaug(
-            input_size=_downstream_input_size,
-            output_size=_downstream_output_size,
-            model_cfg=model_cfg,
-            specaug_cfg=specaug_cfg,
-        )
+        model = RNNEncoder(_downstream_input_size, _downstream_output_size, **model_cfg)
+        downstream = ModelWithSpecaug(model, **specaug_cfg)
         return downstream

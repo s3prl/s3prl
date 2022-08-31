@@ -8,11 +8,11 @@ import pandas as pd
 from omegaconf import MISSING
 from torch.utils.data import Dataset
 
+from s3prl.corpus.speech_commands import SpeechCommandsV1
+from s3prl.dataset.utterance_classification_pipe import UtteranceClassificationPipe
 from s3prl.nn.interface import AbsFrameModel
 from s3prl.nn.linear import MeanPoolingLinear
-from s3prl.corpus.speech_commands import SpeechCommandsV1
 from s3prl.sampler import BalancedWeightedSampler, FixedBatchSizeBatchSampler
-from s3prl.dataset.utterance_classification_pipe import UtteranceClassificationPipe
 
 from .run import Common
 

@@ -7,6 +7,7 @@ from pathlib import Path
 from torch.utils.data import DataLoader
 
 from s3prl.problem.utils import Utility
+from s3prl.task.utterance_classification_task import UtteranceClassificationTask
 
 logger = logging.getLogger(__name__)
 
@@ -244,7 +245,5 @@ class Common(Utility):
 
     @classmethod
     def build_task(cls, _model, _encoder):
-        from s3prl.task.utterance_classification_task import UtteranceClassificationTask
-
         task = UtteranceClassificationTask(_model, _encoder)
         return task

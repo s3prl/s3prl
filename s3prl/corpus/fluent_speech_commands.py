@@ -1,11 +1,9 @@
 import logging
 import os
+from collections import OrderedDict
 from pathlib import Path
 
 import pandas as pd
-
-from s3prl import Container, Workspace
-from s3prl.util import registry
 
 from .base import Corpus
 
@@ -35,10 +33,10 @@ class FluentSpeechCommands(Corpus):
             self._get_unique_name,
         )
 
-        data_points = Container()
-        data_points.add(self.train)
-        data_points.add(self.valid)
-        data_points.add(self.test)
+        data_points = OrderedDict()
+        data_points.update(self.train)
+        data_points.update(self.valid)
+        data_points.update(self.test)
         data_points = {key: self._parse_data(data) for key, data in data_points.items()}
         self._all_data = data_points
 
@@ -47,7 +45,7 @@ class FluentSpeechCommands(Corpus):
         return Path(data_point["path"]).stem
 
     def _parse_data(self, data):
-        return Container(
+        return dict(
             path=self.dataset_root / data["path"],
             speakerId=data["speakerId"],
             transcription=data["transcription"],
@@ -154,111 +152,3 @@ class FluentSpeechCommands(Corpus):
         logger.info(
             f"Fluent speech commands dataset downloaded. Located at {os.path.abspath(tgt_dir)}/fluent_speech_commands_dataset/"
         )
-
-
-@registry.put()
-def fsc_for_multiple_classfication(dataset_root: str, n_jobs: int = 4):
-    """
-    Args:
-        dataset_root: (str) The dataset root of fluent speech command
-
-    Return:
-        A :obj:`s3prl.base.container.Container` in
-
-        .. code-block:: yaml
-
-            train_data:
-                data_id1:
-                    wav_path: (str) waveform path
-                    labels: (List[str]) The labels for action, object and location
-                data_id2:
-
-            valid_data:
-                The same format as train_data
-
-            test_data:
-                The same format as valid_data
-    """
-
-    def format_fields(data_points):
-        return {
-            key: dict(
-                wav_path=value.path,
-                labels=[value.action, value.object, value.location],
-            )
-            for key, value in data_points.items()
-        }
-
-    corpus = FluentSpeechCommands(dataset_root, n_jobs)
-    train_data, valid_data, test_data = corpus.data_split
-    return Container(
-        train_data=format_fields(train_data),
-        valid_data=format_fields(valid_data),
-        test_data=format_fields(test_data),
-    )
-
-
-@registry.put()
-def mini_fsc(dataset_root: str, n_jobs: int = 4, force_download: bool = False):
-    """
-    Args:
-        dataset_root: (str) The dataset root of fluent speech command
-
-    Return:
-        A :obj:`s3prl.base.container.Container` in
-
-        .. code-block:: yaml
-
-            train_data:
-                data_id1:
-                    wav_path: (str) waveform path
-                    labels: (List[str]) The labels for action, object and location
-                data_id2:
-
-            valid_data:
-                The same format as train_data
-
-            test_data:
-                The same format as valid_data
-    """
-
-    def format_fields(data_points):
-        return {
-            key: dict(
-                wav_path=value.path,
-                labels=[value.action, value.object, value.location],
-            )
-            for key, value in data_points.items()
-        }
-
-    dataset_root = Path(dataset_root)
-    if not dataset_root.is_dir() or force_download:
-        dataset_root.mkdir(exist_ok=True, parents=True)
-        os.system(f"rm -rf {dataset_root}")
-        os.system(f"git lfs install")
-        os.system(
-            f"git clone https://huggingface.co/datasets/s3prl/mini_fsc {dataset_root}"
-        )
-
-    def get_split(root: Workspace, split: str):
-        root = Workspace(root)
-
-        assert (root / f"{split}.tar.gz").is_file()
-        if not (root / split).is_dir():
-            (root / split).mkdir(exist_ok=True, parents=True)
-            os.system(f"tar -zxvf {root / f'{split}.tar.gz'} -C {root}")
-
-        metadata = (root / split)["metadata"]
-        for _, item in metadata.items():
-            item["path"] = Path((root / item["path"]).resolve())
-        return metadata
-
-    train_data = get_split(dataset_root, "train")
-    valid_data = get_split(dataset_root, "valid")
-    test_data = get_split(dataset_root, "test")
-
-    return Container(
-        train_data=format_fields(train_data),
-        valid_data=format_fields(valid_data),
-        test_data=format_fields(test_data),
-    )

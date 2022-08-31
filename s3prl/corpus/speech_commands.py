@@ -1,8 +1,8 @@
 import hashlib
 import logging
 import re
-from pathlib import Path
 from collections import OrderedDict
+from pathlib import Path
 from typing import List, Tuple, Union
 
 from .base import Corpus

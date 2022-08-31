@@ -8,33 +8,16 @@
 
 import torch
 
-from s3prl import Container, Output
-
-from .base import NNModule
-
 DEFAULT_TIME_WARP_MODE = "bicubic"
 
 
-class ModelWithSpecaug(NNModule):
+class ModelWithSpecaug(torch.nn.Module):
     """ """
 
-    def __init__(
-        self,
-        input_size: int,
-        output_size: int,
-        model_cfg: dict,
-        specaug_cfg: dict = None,
-        **unused,
-    ) -> None:
+    def __init__(self, model: torch.nn.Module, **specaug_conf) -> None:
         super().__init__()
-        specaug_cfg = Container(specaug_cfg or dict())
-        if not "CLS" in specaug_cfg:
-            specaug_cfg["CLS"] = SpecAug
-
-        self.specaug = specaug_cfg()
-        self.model = Container(model_cfg)(
-            input_size=input_size, output_size=output_size
-        )
+        self.model = model
+        self.specaug = SpecAug(**specaug_conf)
 
     @property
     def input_size(self):
@@ -44,10 +27,10 @@ class ModelWithSpecaug(NNModule):
     def output_size(self):
         return self.model.output_size
 
-    def forward(self, x, x_len, **kwds) -> Output:
+    def forward(self, x, x_len, **kwds):
         if self.training:
             x, x_len = self.specaug(x, x_len)
-        return self.model(x=x, x_len=x_len, **kwds)
+        return self.model(x, x_len, **kwds)
 
 
 class SpecAug(torch.nn.Module):

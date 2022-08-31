@@ -1,10 +1,9 @@
-from dataclasses import dataclass
 from typing import List
 
 
-@dataclass
 class CategoryEncoder:
-    category: List[str]
+    def __init__(self, category: List[str]) -> None:
+        self.category = category
 
     def __len__(self):
         return len(self.category)
@@ -14,3 +13,15 @@ class CategoryEncoder:
 
     def decode(self, index):
         return self.category[index]
+
+
+class CategoryEncoders:
+    def __init__(self, categories: List[List[str]]) -> None:
+        self.categories = [CategoryEncoder(c) for c in categories]
+
+    def __len__(self):
+        return sum([len(c) for c in self.categories])
+
+    def __iter__(self) -> List[CategoryEncoder]:
+        for c in self.categories:
+            yield c

@@ -1,6 +1,6 @@
 import logging
-import math
 import pickle
+from ast import literal_eval
 from pathlib import Path
 from typing import OrderedDict
 
@@ -8,22 +8,24 @@ import pandas as pd
 from omegaconf import MISSING
 from torch.utils.data import Dataset
 
-from s3prl.corpus.voxceleb1sid import VoxCeleb1SID
-from s3prl.dataset.common_pipes import RandomCrop
-from s3prl.dataset.utterance_classification_pipe import UtteranceClassificationPipe
-from s3prl.encoder.category import CategoryEncoder
+from s3prl.corpus.fluent_speech_commands import FluentSpeechCommands
+from s3prl.dataset.utterance_classification_pipe import (
+    UtteranceMultipleCategoryClassificationPipe,
+)
+from s3prl.encoder.category import CategoryEncoders
 from s3prl.nn.interface import AbsUtteranceModel
 from s3prl.nn.linear import MeanPoolingLinear
 from s3prl.sampler import FixedBatchSizeBatchSampler
+from s3prl.task.utterance_classification_task import (
+    UtteranceMultiClassClassificationTask,
+)
 
 from .run import Common
 
 logger = logging.getLogger(__name__)
 
-EFFECTS = [["channels", "1"], ["rate", "16000"], ["gain", "-3.0"]]
 
-
-class SuperbSID(Common):
+class SuperbIC(Common):
     @classmethod
     def default_config(cls) -> dict:
         return dict(
@@ -34,18 +36,17 @@ class SuperbSID(Common):
             remove_all_cache=False,
             prepare_data=dict(dataset_root=MISSING),
             build_encoder=dict(),
-            build_dataset=dict(
-                max_secs=8.0,
-            ),
+            build_dataset=dict(),
             build_batch_sampler=dict(
                 train=dict(
-                    batch_size=8,
+                    batch_size=32,
+                    shuffle=True,
                 ),
                 valid=dict(
-                    batch_size=1,
+                    batch_size=32,
                 ),
                 test=dict(
-                    batch_size=1,
+                    batch_size=32,
                 ),
             ),
             build_upstream=dict(
@@ -80,7 +81,7 @@ class SuperbSID(Common):
                 eval_step=2000,
                 save_step=500,
                 gradient_clipping=1.0,
-                gradient_accumulate_steps=4,
+                gradient_accumulate_steps=1,
                 valid_metric="accuracy",
                 valid_higher_better=True,
                 auto_resume=True,
@@ -107,8 +108,20 @@ class SuperbSID(Common):
         if _get_path_only:
             return train_path, valid_path, test_paths
 
-        corpus = VoxCeleb1SID(dataset_root, n_jobs)
+        def format_fields(data_points: dict):
+            return {
+                key: dict(
+                    wav_path=value["path"],
+                    labels=[value["action"], value["object"], value["location"]],
+                )
+                for key, value in data_points.items()
+            }
+
+        corpus = FluentSpeechCommands(dataset_root, n_jobs)
         train_data, valid_data, test_data = corpus.data_split
+        train_data = format_fields(train_data)
+        valid_data = format_fields(valid_data)
+        test_data = format_fields(test_data)
 
         def dict_to_csv(data_dict, csv_path):
             keys = sorted(list(data_dict.keys()))
@@ -147,8 +160,10 @@ class SuperbSID(Common):
         test_csvs = [pd.read_csv(path) for path in _test_csv_paths]
         all_csv = pd.concat([train_csv, valid_csv, *test_csvs])
 
-        labels = all_csv["label"].tolist()
-        encoder = CategoryEncoder(labels)
+        labels = all_csv["labels"].apply(literal_eval).tolist()
+        encoder = CategoryEncoders(
+            [list(sorted(set((label)))) for label in zip(*labels)]
+        )
         with open(encoder_path, "wb") as f:
             pickle.dump(encoder, f)
 
@@ -162,49 +177,25 @@ class SuperbSID(Common):
         _mode: str,
         _data_csv: str,
         _encoder_path: str,
-        max_secs: float,
     ):
         data_points = OrderedDict()
         csv = pd.read_csv(_data_csv)
+        csv["labels"] = csv["labels"].apply(literal_eval)
         for _, row in csv.iterrows():
-            if "start_sec" in row and "end_sec" in row:
-                start_sec = row["start_sec"]
-                end_sec = row["end_sec"]
-
-                if math.isnan(start_sec):
-                    start_sec = None
-
-                if math.isnan(end_sec):
-                    end_sec = None
-
-            else:
-                start_sec = None
-                end_sec = None
-
             data_points[row["id"]] = {
                 "wav_path": row["wav_path"],
-                "label": row["label"],
-                "start_sec": start_sec,
-                "end_sec": end_sec,
+                "labels": row["labels"],
             }
 
         with open(_encoder_path, "rb") as f:
             encoder = pickle.load(f)
 
-        dataset = UtteranceClassificationPipe(
-            train_category_encoder=False, sox_effects=EFFECTS
+        dataset = UtteranceMultipleCategoryClassificationPipe(
+            train_category_encoder=False
         )(
             data_points,
-            tools={"category": encoder},
+            tools={"categories": encoder},
         )
-        dataset = RandomCrop(max_secs=max_secs)(dataset)
-        dataset.update_output_keys(
-            dict(
-                x="wav_crop",
-                x_len="wav_crop_len",
-            )
-        )
-
         return dataset
 
     @classmethod
@@ -240,3 +231,7 @@ class SuperbSID(Common):
             _downstream_input_size, _downstream_output_size, hidden_size
         )
         return model
+
+    @classmethod
+    def build_task(cls, _model, _encoder):
+        return UtteranceMultiClassClassificationTask(_model, _encoder)

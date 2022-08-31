@@ -17,10 +17,8 @@ logger = logging.getLogger(__name__)
 
 
 class SetOutputKeys(DataPipe):
-    def __init__(self, output_keys: dict = None, **kwds) -> None:
+    def __init__(self, output_keys: dict = None) -> None:
         super().__init__()
-        output_keys = output_keys or {}
-        output_keys.update(kwds)
         self.output_keys = output_keys
 
     def forward(self, dataset: AugmentedDynamicItemDataset):

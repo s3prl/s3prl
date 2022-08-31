@@ -5,8 +5,8 @@ import numpy as np
 import torch
 import torch.nn.functional as F
 
+from s3prl.encoder.category import CategoryEncoder, CategoryEncoders
 from s3prl.metric import accuracy
-from s3prl.encoder.category import CategoryEncoder
 
 from . import Task
 
@@ -126,13 +126,11 @@ class UtteranceClassificationTask(Task):
 
 
 class UtteranceMultiClassClassificationTask(Task):
-    def __init__(
-        self, model: UtteranceClassifierExample, categories: List[CategoryEncoder]
-    ):
+    def __init__(self, model: UtteranceClassifierExample, categories: CategoryEncoders):
         super().__init__()
         self.model = model
         self.categories = categories
-        assert self.model.output_size == sum([len(c) for c in categories])
+        assert self.model.output_size == len(categories)
 
     def predict(self, x: torch.Tensor, x_len: torch.LongTensor):
         """
@@ -144,9 +142,9 @@ class UtteranceMultiClassClassificationTask(Task):
             logit (torch.Tensor): List[(batch_size, sub_output_size)]
             prediction (np.array): (batch_size, num_category)
         """
-        logits: torch.Tensor = self.model(x, x_len).slice(1)
-        logit_start = 0
+        logits: torch.Tensor = self.model(x, x_len)
 
+        logit_start = 0
         sub_logits, sub_predictions = [], []
         for category in self.categories:
             logit_end = logit_start + len(category)
@@ -185,7 +183,7 @@ class UtteranceMultiClassClassificationTask(Task):
             prediction: np.ndarray
             label: np.ndarray
         """
-        logit, prediction = self.predict(x, x_len).slice(2)
+        logit, prediction = self.predict(x, x_len)
         loss = sum(
             [
                 F.cross_entropy(sub_logit, class_id)
