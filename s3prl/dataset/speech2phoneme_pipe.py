@@ -9,7 +9,7 @@ class Speech2PhonemePipe(SequentialDataPipe):
         transcription: str
     """
 
-    def __init__(self, **kwds):
+    def __init__(self):
         output_keys = dict(
             x="wav",
             x_len="wav_len",

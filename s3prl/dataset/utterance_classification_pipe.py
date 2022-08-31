@@ -55,7 +55,6 @@ class UtteranceMultipleCategoryClassificationPipe(SequentialDataPipe):
         audio_channel_reduction: str = "first",
         sox_effects: list = None,
         train_category_encoder: bool = False,
-        **kwds,
     ):
         output_keys = output_keys or dict(
             x="wav",

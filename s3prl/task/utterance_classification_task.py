@@ -94,6 +94,7 @@ class UtteranceClassificationTask(Task):
         x: torch.Tensor,
         x_len: torch.LongTensor,
         class_id: torch.LongTensor,
+        label: List[str],
         unique_name: List[str],
         _dump_dir: str = None,
     ):

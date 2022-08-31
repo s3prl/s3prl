@@ -1,3 +1,4 @@
+from json import tool
 import pickle
 from pathlib import Path
 from collections import OrderedDict
@@ -123,7 +124,10 @@ class SuperbPR(SuperbASR):
         with open(_tokenizer_path, "rb") as f:
             tokenizer = pickle.load(f)
 
-        dataset = Speech2PhonemePipe()(data_points, tokenizer=tokenizer)
+        dataset = Speech2PhonemePipe()(
+            data_points,
+            tools={"tokenizer": tokenizer},
+        )
         return dataset
 
     @classmethod

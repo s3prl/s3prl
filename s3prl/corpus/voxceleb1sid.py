@@ -6,24 +6,23 @@ from typing import List
 
 from filelock import FileLock
 from joblib import Parallel, delayed
-from librosa.util import find_files
 from tqdm import tqdm
-
-from s3prl import Container, Output, cache
-from s3prl.base.cache import _cache_root
-from s3prl.util import registry
 
 from .base import Corpus
 
-SPLIT_FILE_URL = "https://www.robots.ox.ac.uk/~vgg/data/voxceleb/meta/iden_split.txt"
 logger = logging.getLogger(__name__)
+
+SPLIT_FILE_URL = "https://www.robots.ox.ac.uk/~vgg/data/voxceleb/meta/iden_split.txt"
+CACHE_ROOT = Path.home() / ".cache" / "s3prl"
 
 
 class VoxCeleb1SID(Corpus):
-    def __init__(self, dataset_root: str, n_jobs: int = 4) -> None:
+    def __init__(
+        self, dataset_root: str, n_jobs: int = 4, cache_root: str = CACHE_ROOT
+    ) -> None:
         self.dataset_root = Path(dataset_root).resolve()
 
-        uid2split = self._get_standard_usage(self.dataset_root)
+        uid2split = self._get_standard_usage(self.dataset_root, cache_root)
         self._split2uids = defaultdict(list)
         for uid, split in uid2split.items():
             self._split2uids[split].append(Path(uid.replace("/", "-")).stem)
@@ -52,9 +51,9 @@ class VoxCeleb1SID(Corpus):
         )
 
     @staticmethod
-    def _get_standard_usage(dataset_root: Path):
+    def _get_standard_usage(dataset_root: Path, cache_root: Path):
         split_filename = SPLIT_FILE_URL.split("/")[-1]
-        split_filepath = Path(_cache_root) / split_filename
+        split_filepath = Path(cache_root) / split_filename
         if not split_filepath.is_file():
             with FileLock(str(split_filepath) + ".lock"):
                 os.system(f"wget {SPLIT_FILE_URL} -O {str(split_filepath)}")
@@ -70,7 +69,6 @@ class VoxCeleb1SID(Corpus):
         return standard_usage
 
     @staticmethod
-    @cache()
     def _find_wavs_with_uids(dataset_root, uids, n_jobs=4):
         def find_wav_with_uid(uid):
             found_wavs = list(dataset_root.glob(f"*/wav/{uid}"))
@@ -163,87 +161,3 @@ class VoxCeleb1SID(Corpus):
                     unzip_then_delete(filepath, "test")
 
         logger.info(f"Voxceleb1 dataset downloaded. Located at {tgt_dir}/Voxceleb1/")
-
-
-@registry.put()
-def voxceleb1_for_utt_classification(dataset_root: str, n_jobs: int = 4):
-    """
-    Args:
-        dataset_root: (str) The dataset root of VoxCeleb1
-
-    Return:
-        A :obj:`s3prl.base.container.Container` in
-
-        .. code-block:: yaml
-
-            train_data:
-                data_id1:
-                    wav_path (str): waveform path
-                    label (str) : The labels for action, object and location
-                data_id2:
-
-            valid_data:
-                The same format as train_data
-
-            test_data:
-                The same format as valid_data
-    """
-
-    corpus = VoxCeleb1SID(dataset_root, n_jobs)
-    train_data, valid_data, test_data = corpus.data_split
-    return dict(
-        train_data=train_data,
-        valid_data=valid_data,
-        test_data=test_data,
-    )
-
-
-@registry.put()
-def mini_voxceleb1(dataset_root: str, force_download: bool = False):
-    """
-    Args:
-        dataset_root: (str) The dataset root of mini-VoxCeleb1
-
-    Return:
-        A :obj:`s3prl.base.container.Container` in
-
-        .. code-block:: yaml
-
-            train_data:
-                data_id1:
-                    wav_path (str): waveform path
-                    label (str): The labels for action, object and location
-                data_id2:
-
-            valid_data:
-                The same format as train_data
-
-            test_data:
-                The same format as valid_data
-    """
-
-    dataset_root = Path(dataset_root)
-    if not dataset_root.is_dir() or force_download:
-        dataset_root.mkdir(exist_ok=True, parents=True)
-        os.system(f"rm -rf {dataset_root}")
-        os.system(f"git lfs install")
-        os.system(
-            f"git clone https://huggingface.co/datasets/s3prl/mini_voxceleb1 {dataset_root}"
-        )
-
-    def prepare_datadict(split_root: str):
-        files = find_files(Path(split_root))
-        data = {}
-        for file in files:
-            file = Path(file)
-            data[file.stem] = dict(
-                wav_path=file.resolve(), label=file.name.split("-")[0]
-            )
-        return data
-
-    dataset_root = Path(dataset_root)
-    return Container(
-        train_data=prepare_datadict(dataset_root / "train"),
-        valid_data=prepare_datadict(dataset_root / "valid"),
-        test_data=prepare_datadict(dataset_root / "test"),
-    )

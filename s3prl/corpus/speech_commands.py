@@ -1,19 +1,12 @@
 import hashlib
 import logging
-import os
 import re
 from pathlib import Path
-from typing import List, OrderedDict, Tuple, Union
-
-import torchaudio
-
-from s3prl import Container, cache
-from s3prl.base.output import Output
-from s3prl.util import registry
+from collections import OrderedDict
+from typing import List, Tuple, Union
 
 from .base import Corpus
 
-torchaudio.set_audio_backend("sox_io")
 logger = logging.getLogger(__name__)
 
 CLASSES = [
@@ -52,13 +45,12 @@ class SpeechCommandsV1(Corpus):
         self.valid = self.list_to_dict(valid_list)
         self.test = self.list_to_dict(test_list)
 
-        self._data = Container()
-        self._data.add(self.train)
-        self._data.update(self.valid, override=True)  # background noises are duplicated
-        self._data.add(self.test)
+        self._data = OrderedDict()
+        self._data.update(self.train)
+        self._data.update(self.valid)
+        self._data.update(self.test)
 
     @staticmethod
-    @cache()
     def split_dataset(
         root_dir: Union[str, Path], max_uttr_per_class=2**27 - 1
     ) -> Tuple[List[Tuple[str, str]], List[Tuple[str, str]]]:
@@ -95,7 +87,6 @@ class SpeechCommandsV1(Corpus):
         return train_list, valid_list
 
     @staticmethod
-    @cache()
     def parse_train_valid_data_list(data_list, train_dataset_root: Path):
         data = [
             (class_name, audio_path)
@@ -112,7 +103,6 @@ class SpeechCommandsV1(Corpus):
         return data
 
     @staticmethod
-    @cache()
     def parse_test_data_list(test_dataset_root: Path):
         data = [
             (class_dir.name, audio_path)
@@ -128,7 +118,7 @@ class SpeechCommandsV1(Corpus):
 
     @classmethod
     def list_to_dict(cls, data_list):
-        data = Container(
+        data = dict(
             {
                 cls.path_to_unique_name(audio_path): {
                     "wav_path": audio_path,
@@ -209,36 +199,3 @@ class SpeechCommandsV1(Corpus):
         logger.info(
             f"Speech commands dataset downloaded. Located at {os.path.abspath(tgt_dir)}/CORPORA_DIR/"
         )
-
-
-@registry.put()
-def gsc_v1_for_superb(dataset_root: str, n_jobs: int = 4):
-    corpus = SpeechCommandsV1(dataset_root, n_jobs)
-
-    def format_fields(data: dict):
-        formated_data = OrderedDict()
-        for key, value in data.items():
-            data_point = {
-                "wav_path": value.wav_path,
-                "label": value.class_name,
-                "start_sec": None,
-                "end_sec": None,
-            }
-            if value.class_name == "_silence_":
-                info = torchaudio.info(value.wav_path)
-                for start in list(range(info.num_frames))[:: info.sample_rate]:
-                    seg = data_point.copy()
-                    end = min(start + 1 * info.sample_rate, info.num_frames)
-                    seg["start_sec"] = start / info.sample_rate
-                    seg["end_sec"] = end / info.sample_rate
-                    formated_data[f"{key}_{start}_{end}"] = seg
-            else:
-                formated_data[key] = data_point
-        return formated_data
-
-    train_data, valid_data, test_data = corpus.data_split
-    return dict(
-        train_data=format_fields(train_data),
-        valid_data=format_fields(valid_data),
-        test_data=format_fields(test_data),
-    )

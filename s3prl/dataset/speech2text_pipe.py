@@ -17,7 +17,6 @@ class Speech2TextPipe(SequentialDataPipe):
         vocab_file: str = None,
         slots_file: str = None,
         vocab_args: dict = None,
-        **kwds,
     ):
         output_keys = dict(
             x="wav",

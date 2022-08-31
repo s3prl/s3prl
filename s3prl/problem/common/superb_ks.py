@@ -1,24 +1,24 @@
 import logging
 import math
 import pickle
-from cmath import isnan
 from pathlib import Path
-from tracemalloc import start
-from typing import List, OrderedDict
+from typing import OrderedDict
 
 import pandas as pd
-import torch
 from omegaconf import MISSING
-from torch.utils.data import DataLoader, Dataset
+from torch.utils.data import Dataset
 
-from s3prl.corpus.speech_commands import gsc_v1_for_superb
-from s3prl.nn.interface import AbsFeaturizer, AbsFrameModel, AbsUpstream
-from s3prl.nn.upstream import Featurizer, S3PRLUpstream, UpstreamDownstreamModel
+from s3prl.nn.interface import AbsFrameModel
+from s3prl.nn.linear import MeanPoolingLinear
+from s3prl.corpus.speech_commands import SpeechCommandsV1
 from s3prl.sampler import BalancedWeightedSampler, FixedBatchSizeBatchSampler
+from s3prl.dataset.utterance_classification_pipe import UtteranceClassificationPipe
 
 from .run import Common
 
 logger = logging.getLogger(__name__)
+
+EFFECTS = [["channels", "1"], ["rate", "16000"], ["gain", "-3.0"]]
 
 
 class SuperbKS(Common):
@@ -104,7 +104,40 @@ class SuperbKS(Common):
         if _get_path_only:
             return train_path, valid_path, test_paths
 
-        train_data, valid_data, test_data = gsc_v1_for_superb(gsc1, gsc1_test).values()
+        def gsc_v1_for_superb(gsc1: str, gsc1_test: str, n_jobs: int = 6):
+            corpus = SpeechCommandsV1(gsc1, gsc1_test, n_jobs)
+
+            def format_fields(data: dict):
+                import torchaudio
+
+                formated_data = OrderedDict()
+                for key, value in data.items():
+                    data_point = {
+                        "wav_path": value["wav_path"],
+                        "label": value["class_name"],
+                        "start_sec": None,
+                        "end_sec": None,
+                    }
+                    if value["class_name"] == "_silence_":
+                        info = torchaudio.info(value["wav_path"])
+                        for start in list(range(info.num_frames))[:: info.sample_rate]:
+                            seg = data_point.copy()
+                            end = min(start + 1 * info.sample_rate, info.num_frames)
+                            seg["start_sec"] = start / info.sample_rate
+                            seg["end_sec"] = end / info.sample_rate
+                            formated_data[f"{key}_{start}_{end}"] = seg
+                    else:
+                        formated_data[key] = data_point
+                return formated_data
+
+            train_data, valid_data, test_data = corpus.data_split
+            return (
+                format_fields(train_data),
+                format_fields(valid_data),
+                format_fields(test_data),
+            )
+
+        train_data, valid_data, test_data = gsc_v1_for_superb(gsc1, gsc1_test)
 
         def dict_to_csv(data_dict, csv_path):
             keys = sorted(list(data_dict.keys()))
@@ -161,15 +194,6 @@ class SuperbKS(Common):
         _data_csv: str,
         _encoder_path: str,
     ):
-        """
-        _mode is in ["train", "valid", "test"]
-        """
-        EFFECTS = [["channels", "1"], ["rate", "16000"], ["gain", "-3.0"]]
-
-        from s3prl.dataset.utterance_classification_pipe import (
-            UtteranceClassificationPipe,
-        )
-
         data_points = OrderedDict()
         csv = pd.read_csv(_data_csv)
         for _, row in csv.iterrows():
@@ -199,7 +223,10 @@ class SuperbKS(Common):
 
         dataset = UtteranceClassificationPipe(
             train_category_encoder=False, sox_effects=EFFECTS
-        )(data_points, category=encoder)
+        )(
+            data_points,
+            tools={"category": encoder},
+        )
         return dataset
 
     @classmethod
@@ -246,46 +273,7 @@ class SuperbKS(Common):
         _downstream_downsample_rate: int,
         hidden_size: int,
     ) -> AbsFrameModel:
-        """
-        Feed the single hidden state to the downstream model
-        """
-        from s3prl.nn.linear import MeanPoolingLinear
-
         model = MeanPoolingLinear(
             _downstream_input_size, _downstream_output_size, hidden_size
         )
         return model
-
-    @classmethod
-    def build_model(
-        cls,
-        _model_output_size: str,
-        _build_upstream: dict,
-        _build_featurizer: dict,
-        _build_downstream: dict,
-        upstream_trainable: bool,
-    ) -> AbsFrameModel:
-        upstream = cls.build_upstream(**_build_upstream)
-        featurizer: Featurizer = cls.build_featurizer(upstream, **_build_featurizer)
-        downstream = cls.build_downstream(
-            featurizer.output_size,
-            _model_output_size,
-            featurizer.downsample_rate,
-            **_build_downstream,
-        )
-        model = UpstreamDownstreamModel(
-            upstream, featurizer, downstream, upstream_trainable
-        )
-        return model
-
-    @classmethod
-    def build_optimizer(cls, _parameters, name: str, conf: dict):
-        opt_cls = getattr(torch.optim, name)
-        opt = opt_cls(_parameters, **conf)
-        return opt
-
-    @classmethod
-    def build_scheduler(cls, _optimizer, name: str, conf: dict):
-        scheduler_cls = getattr(torch.optim.lr_scheduler, name)
-        scheduler = scheduler_cls(_optimizer, **conf)
-        return scheduler

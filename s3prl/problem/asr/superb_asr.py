@@ -244,9 +244,10 @@ class SuperbASR(ASR):
         with open(_tokenizer_path, "rb") as f:
             tokenizer = pickle.load(f)
 
-        dataset = Speech2TextPipe(
-            generate_tokenizer=False,
-        )(data_points, tokenizer=tokenizer)
+        dataset = Speech2TextPipe(generate_tokenizer=False,)(
+            data_points,
+            tools={"tokenizer": tokenizer},
+        )
         return dataset
 
     @classmethod

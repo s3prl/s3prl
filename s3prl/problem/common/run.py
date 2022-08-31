@@ -208,7 +208,7 @@ class Common(Utility):
                     device,
                     **evaluate,
                 )
-                test_metrics = {name: float(value) for name, value in logs.scalars()}
+                test_metrics = {name: float(value) for name, value in logs.items()}
                 cls.save_yaml(test_metrics, test_dir / f"result.yaml")
 
     @classmethod

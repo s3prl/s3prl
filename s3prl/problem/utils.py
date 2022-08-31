@@ -50,6 +50,15 @@ def force_cacheable(data: dict):
     return output
 
 
+def to_device(data, device: str):
+    output = dict()
+    for key, value in data.items():
+        if isinstance(value, torch.Tensor):
+            value = value.to(device)
+        output[key] = value
+    return output
+
+
 class Utility:
     @classmethod
     def build_collate_fn(cls, _mode: str):
@@ -194,7 +203,15 @@ class Utility:
         if resume:
             resume_ckpt_dir = Path(resume_ckpt_dir or _train_dir / ckpt_dirs[0])
             logger.info(f"Loading checkpoints from {resume_ckpt_dir}")
-            _, _, task, _ = cls.load_model_and_task(resume_ckpt_dir)
+            try:
+                _, _, task, _ = cls.load_model_and_task(resume_ckpt_dir)
+            except:
+                logger.error(
+                    "Fail to load the checkpoint. "
+                    "The config-specified task or model is not the same one as that saved in the checkpoint. "
+                    "You can set '--train.auto_resume False' to ignore the old checkpoint to avoid this behavior."
+                )
+                raise
 
             optimizer_state = torch.load(
                 resume_ckpt_dir / "optimizer.pt", map_location="cpu"
@@ -289,7 +306,7 @@ class Utility:
                     global_step = pbar.n + 1
 
                     wrapped_task.train()
-                    batch = batch.to(device)
+                    batch = to_device(batch, device)
                     loss, cacheable = wrapped_task("train", **batch)
                     (loss / gradient_accumulate_steps).backward()
                     batch_results.append(force_cacheable(cacheable))
@@ -425,7 +442,7 @@ class Utility:
             ):
                 if batch_idx == _eval_batch:
                     break
-                batch = batch.to(_device)
+                batch = to_device(batch, _device)
                 task.eval()
                 loss, cacheable = task(_mode, _dump_dir=_dump_dir, **batch)
                 batch_results.append(force_cacheable(cacheable))

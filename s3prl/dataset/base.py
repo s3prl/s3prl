@@ -1,12 +1,8 @@
-from __future__ import annotations
-
-import abc
 import logging
-import pickle
 from collections import OrderedDict
 from copy import deepcopy
 from functools import partial
-from typing import Any, List, Type, Union
+from typing import Any, List, Union
 
 import numpy as np
 import torch
@@ -14,10 +10,6 @@ from speechbrain.dataio.dataset import DynamicItemDataset
 from speechbrain.utils.data_pipeline import DynamicItem
 from torch.nn.utils.rnn import pad_sequence
 from torch.utils import data
-from tqdm import tqdm
-
-from s3prl import Container, Object, cache
-from s3prl.util import registry
 
 logger = logging.getLogger(__name__)
 
@@ -35,10 +27,6 @@ class AugmentedDynamicItemDataset(DynamicItemDataset):
         self._tools = {}
         for name, item in tools.items():
             self.add_tool(name, item)
-
-    def __init_subclass__(cls) -> None:
-        registry.put(cls.__name__)(cls)
-        return super().__init_subclass__()
 
     def _dynamic_tools(self, id, name):
         return self._tools[name]
@@ -103,87 +91,19 @@ class AugmentedDynamicItemDataset(DynamicItemDataset):
         mapping.update(keys)
         self.set_output_keys(mapping)
 
-    def replace_output_key(self, old_key: str, new_key: str):
-        """
-        Given an existing mapping:
 
-        .. code-block:: python
-
-            {
-                "x": "wav",
-                "x_len": "wav_len",
-            }
-
-        If :code:`old_key = "wav"` and :code:`new_key = "noisy_wav"`, after calling this
-        method the output mapping will become
-
-        .. code-block:: python
-
-            {
-                "x": "noisy_wav",
-                "x_len": "wav_len",
-            }
-
-        This can be useful when you are augmenting the original output.
-        """
-        mapping = self.pipeline.output_mapping.copy()
-        for key in list(mapping.keys()):
-            value = mapping[key]
-            if value == old_key:
-                mapping[key] = new_key
-                self.update_output_keys(mapping)
-
-    def keys(self) -> List[str]:
-        """
-        List all the :code:`static_item` and :code:`dynamic_item` in the dataset.
-        :code:`static_item` resides directly in the memory and are given by the dataset
-        initialization dictionary. :code:`dynamic_item` are content computed
-        on-the-fly basing on :code:`static_item`.
-        """
-        available_keys: List[str] = list(self.pipeline.key_to_node.keys())
-        for dynamic_item in self.pipeline.dynamic_items:
-            provides = dynamic_item.provides
-            assert isinstance(provides, (list, tuple))
-            available_keys += provides
-        available_keys = [
-            key
-            for key in available_keys
-            if not key.startswith("_") and key not in self._tools
-        ]
-        return available_keys
-
-    def __getitem__(self, index):
-        """
-        This remain all the usage of the original SpeechBrain DynamicItemDataset.__getitem__,
-        except that by default it uses :obj:`keys` as the default :code:`output_keys`
-        """
-        if len(self.pipeline.output_mapping) == 0:
-            with self.output_keys_as(self.keys()):
-                return super().__getitem__(index)
-        else:
-            return super().__getitem__(index)
-
-    def save_checkpoint(self, path):
-        with open(path, "wb") as file:
-            pickle.dump(self, file)
-
-    @classmethod
-    def load_checkpoint(cls, path):
-        with open(path, "rb") as file:
-            obj = pickle.load(file)
-        return obj
-
-
-class DataPipe(object):
+class DataPipe:
     def __call__(
-        self, dataset: Union[dict, AugmentedDynamicItemDataset], **kwds
+        self, dataset: Union[dict, AugmentedDynamicItemDataset], tools: dict = None
     ) -> Any:
         if isinstance(dataset, dict):
             dataset = AugmentedDynamicItemDataset(dataset)
-        dataset.add_tools(kwds)
+
+        if tools is not None:
+            dataset.add_tools(tools)
+
         return self.forward(dataset)
 
-    @abc.abstractmethod
     def forward(
         self, dataset: AugmentedDynamicItemDataset
     ) -> AugmentedDynamicItemDataset:
@@ -195,32 +115,9 @@ class DataPipe(object):
             value.func = value.func.__get__(self)
         return value
 
-    def __init_subclass__(cls) -> None:
-        registry.put(cls.__name__)(cls)
-        return super().__init_subclass__()
-
 
 class SequentialDataPipe(DataPipe):
-    def __init__(
-        self,
-        *pipes_or_cfgs: List[Union[DataPipe, Type, dict]],
-        **global_cfg,
-    ) -> None:
-        assert len(pipes_or_cfgs) > 0
-        if isinstance(pipes_or_cfgs[0], DataPipe):
-            pipes, pipe_cfgs = pipes_or_cfgs, None
-        elif isinstance(pipes_or_cfgs[0], dict):
-            pipes, pipe_cfgs = None, pipes_or_cfgs
-        else:
-            raise ValueError
-
-        if pipes is None:
-            pipes = []
-            for pipe_cfg in pipe_cfgs:
-                pipe_cfg = Container(pipe_cfg)
-                pipe = pipe_cfg._cls(**pipe_cfg.kwds(), **global_cfg)
-                pipes.append(pipe)
-
+    def __init__(self, *pipes: List[DataPipe]) -> None:
         self._pipes = pipes
 
     def forward(
@@ -233,11 +130,11 @@ class SequentialDataPipe(DataPipe):
 
 def default_collate_fn(samples, padding_value: int = 0):
     """
-    Each item in **DynamicItemDataset** is a :obj:`s3prl.base.container.Container`
-    This function pad (or transform into numpy list) a batch of :obj:`s3prl.base.container.Container`.
+    Each item in **DynamicItemDataset** is a dict
+    This function pad (or transform into numpy list) a batch of dict
 
     Args:
-        samples (List[:obj:`s3prl.base.container.Container`]): Suppose each Container is in
+        samples (List[dict]): Suppose each Container is in
 
             .. code-block:: yaml
 
@@ -245,7 +142,7 @@ def default_collate_fn(samples, padding_value: int = 0):
                 label: a single string
 
     Return:
-        :obj:`s3prl.base.container.Container`
+        dict
 
         .. code-block:: yaml
 
@@ -267,45 +164,4 @@ def default_collate_fn(samples, padding_value: int = 0):
         else:
             values = np.array(values, dtype="object")
         padded_samples[key] = values
-    return Container(padded_samples)
-
-
-class DataLoader(data.DataLoader):
-    """
-    This DataLoader is just a helper class to enforce the use of the **batch_sampler**.
-    Since S3PRL only provides **batch_sampler**. See :obj:`s3prl.sampler`
-    """
-
-    def __init__(
-        self,
-        dataset,
-        batch_sampler,
-        num_workers: int = 0,
-        collate_fn=None,
-        pin_memory: bool = False,
-        timeout: float = 0,
-        worker_init_fn=None,
-        multiprocessing_context=None,
-        generator=None,
-        prefetch_factor: int = 2,
-        persistent_workers: bool = False,
-    ):
-        collate_fn = collate_fn or default_collate_fn
-
-        super().__init__(
-            dataset,
-            batch_size=1,
-            shuffle=False,
-            sampler=None,
-            batch_sampler=batch_sampler,
-            num_workers=num_workers,
-            collate_fn=collate_fn,
-            pin_memory=pin_memory,
-            drop_last=False,
-            timeout=timeout,
-            worker_init_fn=worker_init_fn,
-            multiprocessing_context=multiprocessing_context,
-            generator=generator,
-            prefetch_factor=prefetch_factor,
-            persistent_workers=persistent_workers,
-        )
+    return padded_samples

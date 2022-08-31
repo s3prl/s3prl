@@ -2,20 +2,27 @@ import logging
 import math
 import pickle
 from pathlib import Path
-from typing import List, OrderedDict
+from typing import OrderedDict
 
 import pandas as pd
 from omegaconf import MISSING
 from torch.utils.data import Dataset
 
-from s3prl.corpus.voxceleb1sid import voxceleb1_for_utt_classification
-from s3prl.nn.interface import AbsFeaturizer, AbsUpstream, AbsUtteranceModel
-from s3prl.nn.upstream import Featurizer, S3PRLUpstream, UpstreamDownstreamModel
+from s3prl.nn.interface import AbsUtteranceModel
+from s3prl.encoder.category import CategoryEncoder
+from s3prl.corpus.voxceleb1sid import VoxCeleb1SID
+from s3prl.dataset.common_pipes import RandomCrop
+from s3prl.nn.linear import MeanPoolingLinear
+from s3prl.dataset.utterance_classification_pipe import (
+    UtteranceClassificationPipe,
+)
 from s3prl.sampler import FixedBatchSizeBatchSampler
 
 from .run import Common
 
 logger = logging.getLogger(__name__)
+
+EFFECTS = [["channels", "1"], ["rate", "16000"], ["gain", "-3.0"]]
 
 
 class SuperbSID(Common):
@@ -50,7 +57,9 @@ class SuperbSID(Common):
                 layer_selections=None,
                 normalize=False,
             ),
-            build_downstream=dict(hidden_size=256),
+            build_downstream=dict(
+                hidden_size=256,
+            ),
             build_model=dict(
                 upstream_trainable=False,
             ),
@@ -88,6 +97,7 @@ class SuperbSID(Common):
         _target_dir,
         _cache_dir,
         dataset_root: str,
+        n_jobs: int = 6,
         _get_path_only=False,
     ):
         target_dir = Path(_target_dir)
@@ -99,9 +109,8 @@ class SuperbSID(Common):
         if _get_path_only:
             return train_path, valid_path, test_paths
 
-        train_data, valid_data, test_data = voxceleb1_for_utt_classification(
-            dataset_root
-        ).values()
+        corpus = VoxCeleb1SID(dataset_root, n_jobs)
+        train_data, valid_data, test_data = corpus.data_split
 
         def dict_to_csv(data_dict, csv_path):
             keys = sorted(list(data_dict.keys()))
@@ -131,8 +140,6 @@ class SuperbSID(Common):
         _test_csv_paths,
         _get_path_only=False,
     ):
-        from s3prl.encoder.category import CategoryEncoder
-
         encoder_path = Path(_target_dir) / "encoder.pkl"
         if _get_path_only:
             return encoder_path
@@ -159,17 +166,6 @@ class SuperbSID(Common):
         _encoder_path: str,
         max_secs: float,
     ):
-        """
-        _mode is in ["train", "valid", "test"]
-        """
-        from s3prl.dataset.common_pipes import RandomCrop
-
-        EFFECTS = [["channels", "1"], ["rate", "16000"], ["gain", "-3.0"]]
-
-        from s3prl.dataset.utterance_classification_pipe import (
-            UtteranceClassificationPipe,
-        )
-
         data_points = OrderedDict()
         csv = pd.read_csv(_data_csv)
         for _, row in csv.iterrows():
@@ -199,9 +195,17 @@ class SuperbSID(Common):
 
         dataset = UtteranceClassificationPipe(
             train_category_encoder=False, sox_effects=EFFECTS
-        )(data_points, category=encoder)
+        )(
+            data_points,
+            tools={"category": encoder},
+        )
         dataset = RandomCrop(max_secs=max_secs)(dataset)
-        dataset.update_output_keys(dict(x="wav_crop", x_len="wav_crop_len"))
+        dataset.update_output_keys(
+            dict(
+                x="wav_crop",
+                x_len="wav_crop_len",
+            )
+        )
 
         return dataset
 
@@ -234,34 +238,7 @@ class SuperbSID(Common):
         _downstream_downsample_rate: int,
         hidden_size: int,
     ) -> AbsUtteranceModel:
-        """
-        Feed the single hidden state to the downstream model
-        """
-        from s3prl.nn.linear import MeanPoolingLinear
-
         model = MeanPoolingLinear(
             _downstream_input_size, _downstream_output_size, hidden_size
-        )
-        return model
-
-    @classmethod
-    def build_model(
-        cls,
-        _model_output_size: str,
-        _build_upstream: dict,
-        _build_featurizer: dict,
-        _build_downstream: dict,
-        upstream_trainable: bool,
-    ) -> AbsUtteranceModel:
-        upstream = cls.build_upstream(**_build_upstream)
-        featurizer: Featurizer = cls.build_featurizer(upstream, **_build_featurizer)
-        downstream = cls.build_downstream(
-            featurizer.output_size,
-            _model_output_size,
-            featurizer.downsample_rate,
-            **_build_downstream,
-        )
-        model = UpstreamDownstreamModel(
-            upstream, featurizer, downstream, upstream_trainable
         )
         return model
