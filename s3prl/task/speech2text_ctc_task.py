@@ -120,14 +120,14 @@ class Speech2TextCTCTask(Task):
 
     def forward(
         self,
-        mode: str,
+        _mode: str,
         x: torch.Tensor,
         x_len: torch.LongTensor,
         labels: np.ndarray,
         class_ids: torch.LongTensor,
         unique_name: np.ndarray,
         beam_decode: bool = False,
-        dump_dir: str = None,
+        _dump_dir: str = None,
     ):
         """
         Each forward step in the training loop
@@ -175,7 +175,7 @@ class Speech2TextCTCTask(Task):
 
         return loss, cacheable
 
-    def reduction(self, mode: str, cached_results: List[dict], dump_dir: str = None):
+    def reduction(self, _mode: str, cached_results: List[dict], _dump_dir: str = None):
         results = self.parse_cached_results(cached_results)
 
         losses = results["loss"]

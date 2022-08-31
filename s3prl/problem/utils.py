@@ -427,10 +427,10 @@ class Utility:
                     break
                 batch = batch.to(_device)
                 task.eval()
-                loss, cacheable = task(_mode, dump_dir=_dump_dir, **batch)
+                loss, cacheable = task(_mode, _dump_dir=_dump_dir, **batch)
                 batch_results.append(force_cacheable(cacheable))
 
-        logs = task.reduction(_mode, batch_results, dump_dir=_dump_dir)
+        logs = task.reduction(_mode, batch_results, _dump_dir=_dump_dir)
         return logs
 
     @classmethod

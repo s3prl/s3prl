@@ -1,5 +1,6 @@
 import pickle
 from pathlib import Path
+from collections import OrderedDict
 
 import pandas as pd
 from omegaconf import MISSING
@@ -111,7 +112,7 @@ class SuperbPR(SuperbASR):
         _data_csv: str,
         _tokenizer_path: str,
     ):
-        data_points = {}
+        data_points = OrderedDict()
         csv = pd.read_csv(_data_csv)
         for _, row in csv.iterrows():
             data_points[row["id"]] = {

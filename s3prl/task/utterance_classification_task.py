@@ -1,5 +1,3 @@
-from __future__ import annotations
-
 import logging
 from typing import List
 
@@ -7,15 +5,15 @@ import numpy as np
 import torch
 import torch.nn.functional as F
 
-from s3prl import Logs, Module, Output
 from s3prl.metric import accuracy
+from s3prl.encoder.category import CategoryEncoder
 
 from . import Task
 
 logger = logging.getLogger(__name__)
 
 
-class UtteranceClassifierExample(Module):
+class UtteranceClassifierExample(torch.nn.Module):
     """
     Attributes:
         input_size: int
@@ -24,8 +22,16 @@ class UtteranceClassifierExample(Module):
 
     def __init__(self, input_size=3, output_size=4):
         super().__init__()
-        self.input_size = input_size
-        self.output_size = output_size
+        self._input_size = input_size
+        self._output_size = output_size
+
+    @property
+    def input_size(self):
+        return self._input_size
+
+    @property
+    def output_size(self):
+        return self._output_size
 
     def forward(self, x, x_len):
         """
@@ -48,7 +54,7 @@ class UtteranceClassificationTask(Task):
         output_size (int): defined by len(categories)
     """
 
-    def __init__(self, model: UtteranceClassifierExample, category):
+    def __init__(self, model: UtteranceClassifierExample, category: CategoryEncoder):
         """
         model.output_size should match len(categories)
 
@@ -64,15 +70,6 @@ class UtteranceClassificationTask(Task):
         self.model = model
         self.category = category
         assert self.model.output_size == len(category)
-        self._current_best_acc = 0.0
-
-    @property
-    def input_size(self):
-        return self.model.input_size
-
-    @property
-    def output_size(self):
-        return len(self.categories)
 
     def predict(self, x: torch.Tensor, x_len: torch.LongTensor):
         """
@@ -91,137 +88,50 @@ class UtteranceClassificationTask(Task):
         ]
         return logits, predictions
 
-    def _general_forward(
+    def forward(
         self,
+        _mode: str,
         x: torch.Tensor,
         x_len: torch.LongTensor,
         class_id: torch.LongTensor,
         unique_name: List[str],
+        _dump_dir: str = None,
     ):
         logits, prediction = self.predict(x, x_len)
         loss = F.cross_entropy(logits, class_id)
 
-        logs = Logs()
-        logs.add_hidden_state("logits", logits)
-
-        return Output(
-            loss=loss,
+        cacheable = dict(
+            loss=loss.detach().cpu(),
             prediction=prediction,
             label=[self.category.decode(idx) for idx in class_id],
             unique_name=unique_name,
-            logs=logs,
         )
 
-    def _general_reduction(self, batch_results: list, on_epoch_end: bool = None):
-        predictions, labels, losses = [], [], []
-        for batch_result in batch_results:
-            predictions += batch_result.prediction
-            labels += batch_result.label
-            losses.append(batch_result.loss)
+        return loss, cacheable
+
+    def reduction(self, _mode: str, cached_results: List[dict], _dump_dir: str = None):
+        results = self.parse_cached_results(cached_results)
+        predictions = results["prediction"]
+        labels = results["label"]
+        losses = results["loss"]
 
         acc = accuracy(predictions, labels)
         loss = (sum(losses) / len(losses)).item()
 
-        logs = Logs()
-        logs.add_scalar("loss", loss)
-        logs.add_scalar("accuracy", acc)
-
-        return Output(
-            logs=logs,
+        return dict(
+            loss=loss,
+            accuracy=acc,
         )
-
-    def train_step(
-        self,
-        x: torch.Tensor,
-        x_len: torch.LongTensor,
-        class_id: torch.LongTensor,
-        unique_name: List[str],
-        **kwargs,
-    ):
-        """
-        Each forward step in the training loop
-
-        Args:
-            x (torch.Tensor): (batch_size, timestamps, input_size)
-            class_id (List[str])
-            unique_name (List[str])
-
-        Return:
-            loss (torch.Tensor):
-                undetached loss. When using this module. Please sanitize this loss before
-                collecting the returning Namespace into a list for future aggregation/reduction
-            saver (Callable[str, None]):
-                end-user can simply call the saver with a customized directory
-                and don't need to take care of how to save the data in to correct format
-            logits:
-                this is not required, just to let the end-user get as many info as possible
-                so that people can do more things with the internal states
-        """
-        return self._general_forward(x, x_len, class_id, unique_name)
-
-    def train_reduction(self, batch_results: list, on_epoch_end: bool = False, **kwds):
-        """
-        After several forward steps, outputs should be collected untouched (but detaching the Tensors)
-        into a list and passed as batch_results. This function examine the collected items and compute
-        metrics across these batches. This function might be called in the middle of an epoch for quick
-        logging, or after exactly an epoch to know the epoch level performance.
-
-        Args:
-            batch_results (List[cacheable version of the output of self.train_step])
-            on_epoch_end (bool):
-                usually you should keep the same behavior between sub-epoch and epoch level
-                this parameter is here in case you need specific postprocessing which must
-                only be done right on the end of an epoch
-
-        Return:
-            logs (List[Log]):
-                a list of content to log onto any logger
-                each content should be in the Log class format
-        """
-        return self._general_reduction(batch_results, on_epoch_end)
-
-    def valid_step(
-        self,
-        x: torch.Tensor,
-        x_len: torch.LongTensor,
-        class_id: torch.LongTensor,
-        unique_name: List[str],
-        **kwargs,
-    ):
-        return self._general_forward(x, x_len, class_id, unique_name)
-
-    def test_step(
-        self,
-        x: torch.Tensor,
-        x_len: torch.LongTensor,
-        class_id: torch.LongTensor,
-        unique_name: List[str],
-        **kwargs,
-    ):
-        return self._general_forward(x, x_len, class_id, unique_name)
-
-    def valid_reduction(self, batch_results: list, on_epoch_end: bool = True, **kwds):
-        return self._general_reduction(batch_results, on_epoch_end)
-
-    def test_reduction(self, batch_results: list, on_epoch_end: bool = True, **kwds):
-        return self._general_reduction(batch_results, on_epoch_end)
 
 
 class UtteranceMultiClassClassificationTask(Task):
-    def __init__(self, model: UtteranceClassifierExample, categories, **kwargs):
+    def __init__(
+        self, model: UtteranceClassifierExample, categories: List[CategoryEncoder]
+    ):
         super().__init__()
         self.model = model
         self.categories = categories
         assert self.model.output_size == sum([len(c) for c in categories])
-        self._current_best_acc = 0.0
-
-    @property
-    def input_size(self):
-        return self.model.input_size
-
-    @property
-    def output_size(self):
-        return self.model.output_size
 
     def predict(self, x: torch.Tensor, x_len: torch.LongTensor):
         """
@@ -250,16 +160,17 @@ class UtteranceMultiClassClassificationTask(Task):
             logit_start = logit_end
         prediction = np.array(sub_predictions, dtype="object").T
 
-        return Output(logit=sub_logits, prediction=prediction)
+        return sub_logits, prediction
 
-    def _general_forward(
+    def forward(
         self,
+        _mode: str,
         x: torch.Tensor,
         x_len: torch.LongTensor,
         class_ids: torch.LongTensor,
         labels: np.ndarray,
         unique_name: List[str],
-        **kwds,
+        _dump_dir: str = None,
     ):
         """
         Args:
@@ -281,57 +192,31 @@ class UtteranceMultiClassClassificationTask(Task):
             ]
         )
 
-        logs = Logs()
-        logs.add_hidden_state("logit", logit)
-
-        return Output(
-            loss=loss,
+        cacheable = dict(
+            loss=loss.detach().cpu(),
             prediction=prediction,
             label=labels,
             unique_name=unique_name,
-            logs=logs,
         )
+
+        return loss, cacheable
 
     @staticmethod
     def numpy_object_array_all_close(x, y):
         return not (x != y).sum() > 0
 
-    def _general_reduction(
-        self, batch_results: list, on_epoch_end: bool = None, **kwds
-    ):
-        losses, predictions, labels = [], [], []
-        for batch_result in batch_results:
-            predictions += list(batch_result.prediction)
-            labels += list(batch_result.label)
-            losses.append(batch_result.loss)
+    def reduction(self, _mode: str, cached_results: List[dict], _dump_dir: str = None):
+        results = self.parse_cached_results(cached_results)
+        losses = results["loss"]
+        predictions = results["prediction"]
+        labels = results["label"]
 
         acc = accuracy(
             predictions, labels, item_same_fn=self.numpy_object_array_all_close
         )
         loss = (sum(losses) / len(losses)).item()
 
-        logs = Logs()
-        logs.add_scalar("loss", loss)
-        logs.add_scalar("accuracy", acc)
-
-        return Output(
-            logs=logs,
+        return dict(
+            loss=loss,
+            accuracy=acc,
         )
-
-    def train_step(self, *args, **kwargs):
-        return self._general_forward(*args, **kwargs)
-
-    def train_reduction(self, batch_results: list, on_epoch_end: bool = False, **kwds):
-        return self._general_reduction(batch_results, on_epoch_end)
-
-    def valid_step(self, *args, **kwargs):
-        return self._general_forward(*args, **kwargs)
-
-    def test_step(self, *args, **kwargs):
-        return self._general_forward(*args, **kwargs)
-
-    def valid_reduction(self, batch_results: list, on_epoch_end: bool = True, **kwds):
-        return self._general_reduction(batch_results, on_epoch_end)
-
-    def test_reduction(self, batch_results: list, on_epoch_end: bool = True, **kwds):
-        return self._general_reduction(batch_results, on_epoch_end)
