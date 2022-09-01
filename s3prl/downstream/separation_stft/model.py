@@ -20,7 +20,7 @@ class SepRNN(torch.nn.Module):
                  non_linear="relu",
                  bidirectional=True):
         super(SepRNN, self).__init__()
-        if non_linear not in ["relu", "sigmoid", "tanh", "none"]:
+        if non_linear not in ["relu", "sigmoid", "tanh"]:
             raise ValueError(
                 "Unsupported non-linear type:{}".format(non_linear))
         self.num_spks = num_spks
@@ -42,9 +42,8 @@ class SepRNN(torch.nn.Module):
         ])
         self.non_linear = {
             "relu": torch.nn.functional.relu,
-            "sigmoid": torch.sigmoid,
-            "tanh": torch.nn.functional.tanh,
-            "none": torch.nn.Identity()
+            "sigmoid": torch.nn.functional.sigmoid,
+            "tanh": torch.nn.functional.tanh
         }[non_linear]
         self.num_bins = num_bins
 

@@ -30,13 +30,9 @@ import torch.nn.functional as F
 from .model import SepRNN
 from .dataset import SeparationDataset
 from asteroid.metrics import get_metrics
-from .loss import SepLoss, SISDRLoss
-from itertools import permutations
+from .loss import MSELoss, SISDRLoss
 
 device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
-
-COMPUTE_METRICS = ["si_sdr"]
-EPS = 1e-10
 
 def match_length(feat_list, length_list):
     assert len(feat_list) == len(length_list)
@@ -53,6 +49,36 @@ def match_length(feat_list, length_list):
             new_feat[:feat_list[i].size(0), :] = feat_list[i]
             new_feat_list.append(new_feat)
     return new_feat_list
+
+# We cannot guarantee the predicted STFT feature is always valid.
+# In our experiments, we often observe impulse at the end of signal.
+# This function is used to suppress the impluse.
+def postprocess(x, pad_zeros=True):
+    y = np.copy(x)
+    p = int(np.max(np.nonzero(y))) + 1 # y[p:] = 0
+    if p < x.shape[0] - 2048:
+        print("Warning: the predicted signal is 0 from sample {} to {}".format(p, x.shape[0]))
+        return x
+    window_size = 512
+    start_p = p - window_size
+    if start_p <= 0: # the wav length too short
+        print("Warning: the length of wav is too short")
+        return x
+    else:
+        max_value = np.max(np.abs(y[:start_p]))
+        invalid = np.nonzero(np.abs(y[start_p:p]) > max_value)[0]
+        if len(invalid) == 0:
+            return x
+        else:
+            invalid_pos = np.min(invalid) + start_p
+            z = np.copy(x)
+            if pad_zeros:
+                z[invalid_pos:] = 0
+                print("Set from {} to {} 0, {} samples".format(invalid_pos, x.shape[0], x.shape[0] - invalid_pos))
+            else:
+                z[invalid_pos:] = np.random.normal(loc=0.0, scale=0.01, size=(x.shape[0] - invalid_pos,))
+                print("Set from {} to {} Gaussian noise, {} samples".format(invalid_pos, x.shape[0], x.shape[0] - invalid_pos))
+            return z
 
 class DownstreamExpert(nn.Module):
     """
@@ -119,8 +145,17 @@ class DownstreamExpert(nn.Module):
             raise ValueError("Model type not defined.")
 
         self.loss_type = self.modelrc["loss_type"]
-        self.log = self.modelrc["log"]
-        self.objective = SepLoss(self.datarc['num_speakers'], self.loss_type, self.modelrc["mask_type"], self.log)
+        if self.modelrc["loss_type"] == "MSE":
+            self.objective = MSELoss(self.datarc['num_speakers'], self.modelrc["mask_type"])
+        elif self.modelrc["loss_type"] == "SISDR":
+            self.objective = SISDRLoss(self.datarc['num_speakers'], 
+                    n_fft=self.datarc['n_fft'], 
+                    hop_length=self.upstream_rate,
+                    win_length=self.datarc['win_length'], 
+                    window=self.datarc['window'], 
+                    center=self.datarc['center'])
+        else:
+            raise ValueError("Loss type not defined.")
         
         self.register_buffer("best_score", torch.ones(1) * -10000)
 
@@ -218,6 +253,7 @@ class DownstreamExpert(nn.Module):
             loss:
                 the loss to be optimized, should not be detached
         """
+        
         # match the feature length to STFT feature length
         features = match_length(features, feat_length)
         features = pack_sequence(features)
@@ -225,42 +261,33 @@ class DownstreamExpert(nn.Module):
 
         # evaluate the separation quality of predict sources
         if mode == 'dev' or mode == 'test':
-            if self.log == 'none':
-                predict_stfts = [torch.squeeze(m.cpu() * source_attr['stft']) for m in mask_list]
-                predict_stfts_np = [np.transpose(s.data.numpy()) for s in predict_stfts]
-            elif self.log == 'log1p':
-                phase = source_attr['stft'] / (source_attr['stft'].abs() + EPS)
-                predict_stfts = [torch.squeeze(torch.expm1(m.cpu() * torch.log1p(source_attr['stft'].abs())) * phase) for m in mask_list]
-                predict_stfts_np = [np.transpose(s.data.numpy()) for s in predict_stfts]
-            else:
-                raise ValueError("log type not defined.")
+            if mode == 'dev':
+                COMPUTE_METRICS = ["si_sdr"]
+            elif mode == 'test':
+                COMPUTE_METRICS = ["si_sdr", "stoi", "pesq"]
+            predict_stfts = [torch.squeeze(m * source_attr['stft'].to(device)) for m in mask_list]
+            predict_stfts_np = [np.transpose(s.data.cpu().numpy()) for s in predict_stfts]
 
             assert len(wav_length) == 1
             # reconstruct the signal using iSTFT
-            predict_srcs_np = [librosa.util.fix_length(librosa.istft(stft_mat,
+            predict_srcs_np = [postprocess(librosa.istft(stft_mat,
                 hop_length=self.upstream_rate,
                 win_length=self.datarc['win_length'], 
                 window=self.datarc['window'], 
-                center=self.datarc['center']), size=wav_length[0]) for stft_mat in predict_stfts_np]
+                center=self.datarc['center'],
+                length=wav_length[0])) for stft_mat in predict_stfts_np]
             predict_srcs_np = np.stack(predict_srcs_np, 0)
             gt_srcs_np = torch.cat(target_wav_list, 0).data.cpu().numpy()
             mix_np = source_wav.data.cpu().numpy()
 
-            perm_list = [list(perm) for perm in list(permutations(range(len(gt_srcs_np))))]
-            utt_metrics_list = [get_metrics(
+            utt_metrics = get_metrics(
                 mix_np,
                 gt_srcs_np,
-                predict_srcs_np[perm, :],
+                predict_srcs_np,
                 sample_rate = self.datarc['rate'],
                 metrics_list = COMPUTE_METRICS,
-                compute_permutation=False,
-            ) for perm in perm_list]
-
-            utt_metrics = {}
-            for metric in COMPUTE_METRICS:
-                input_metric = "input_" + metric
-                utt_metrics[input_metric] = utt_metrics_list[0][input_metric]
-                utt_metrics[metric] = np.max([k[metric] for k in utt_metrics_list])
+                compute_permutation=True,
+            )
 
             for metric in COMPUTE_METRICS:
                 input_metric = "input_" + metric
@@ -282,8 +309,10 @@ class DownstreamExpert(nn.Module):
                 records['ref'].append(gt_srcs_np)
                 records['uttname'].append(uttname_list[0])
 
-        if self.loss_type == "MSE" or self.loss_type == "L1":
+        if self.loss_type == "MSE": # mean square loss
             loss = self.objective.compute_loss(mask_list, feat_length, source_attr, target_attr)
+        elif self.loss_type == "SISDR": # end-to-end SI-SNR loss
+            loss = self.objective.compute_loss(mask_list, feat_length, source_attr, wav_length, target_wav_list)
         else:
             raise ValueError("Loss type not defined.")
 
@@ -334,6 +363,10 @@ class DownstreamExpert(nn.Module):
             )
             return []
         else:
+            if mode == 'dev':
+                COMPUTE_METRICS = ["si_sdr"]
+            elif mode == 'test':
+                COMPUTE_METRICS = ["si_sdr", "stoi", "pesq"]
             avg_loss = np.mean(records["loss"])
             logger.add_scalar(
                 f"separation_stft/{mode}-loss", avg_loss, global_step=global_step
