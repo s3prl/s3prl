@@ -6,8 +6,6 @@ from torch.nn.utils.rnn import pack_padded_sequence, pad_packed_sequence
 
 from s3prl.nn.interface import AbsFrameModel
 
-from . import NNModule
-
 
 def downsample(
     x: torch.Tensor, x_len: torch.LongTensor, sample_rate: int, sample_style: str
@@ -46,7 +44,7 @@ def downsample(
     return x, x_len
 
 
-class RNNLayer(NNModule):
+class RNNLayer(nn.Module):
     def __init__(
         self,
         input_size: int,
@@ -220,9 +218,11 @@ class RNNEncoder(AbsFrameModel):
         return self._output_size
 
 
-class SuperbDiarizationModel(NNModule):
-    def __init__(self, input_size, output_size, rnn_layers, hidden_size, **kwargs):
+class SuperbDiarizationModel(AbsFrameModel):
+    def __init__(self, input_size, output_size, rnn_layers, hidden_size):
         super().__init__()
+        self._input_size = input_size
+        self._output_size = output_size
 
         self.use_rnn = rnn_layers > 0
         if self.use_rnn:
@@ -235,11 +235,11 @@ class SuperbDiarizationModel(NNModule):
 
     @property
     def input_size(self):
-        return self.arguments.input_size
+        return self._input_size
 
     @property
     def output_size(self):
-        return self.arguments.output_size
+        return self._output_size
 
     def forward(self, features, features_len):
         features = features.float()

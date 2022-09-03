@@ -1,10 +1,8 @@
-import numpy as np
 import torch
 import torch.nn as nn
+from typing import List
+from pathlib import Path
 
-from s3prl import Logs
-from s3prl.base.output import Output
-from s3prl.base.workspace import Workspace
 from s3prl.metric.diarization import calc_diarization_error
 from s3prl.nn.pit import get_label_perm, pit_loss
 
@@ -17,7 +15,6 @@ class DiarizationPIT(Task):
     def __init__(
         self,
         model: nn.Module,
-        **kwargs,
     ):
         super().__init__()
         self.model = model
@@ -63,16 +60,21 @@ class DiarizationPIT(Task):
         return inputs, labels
 
     def predict(self, x, x_len):
-        predicted, predicted_len = self.model(x, x_len).slice(2)
-        return Output(
-            output=predicted,
-            output_len=predicted_len,
-        )
+        predicted, predicted_len = self.model(x, x_len)
+        return predicted, predicted_len
 
     def forward(
-        self, split: str, x, x_len, label, label_len, rec_id, workspace=None, **kwds
+        self,
+        _mode: str,
+        x,
+        x_len,
+        label,
+        label_len,
+        record_id: str,
+        chunk_id: int,
+        _dump_dir: str = None,
     ):
-        predicted, predicted_len = self.predict(x, x_len).slice(2)
+        predicted, predicted_len = self.predict(x, x_len)
 
         for pl, ll in zip(predicted_len, label_len):
             assert (
@@ -108,41 +110,40 @@ class DiarizationPIT(Task):
         else:
             SAD_MR, SAD_FR, MI, FA, CF, ACC, DER = 0, 0, 0, 0, 0, 0, 0
 
-        if split == "test" and workspace is not None:
+        if _mode == "test" and _dump_dir is not None:
+            assert (
+                len(set(list(record_id))) == 1
+            ), "During testing, all utterances in a batch should come from the same recording"
+
             if len(label_len) > 1:
                 assert (
                     len(set(label_len[:-1].tolist())) == 1
                 ), f"Except the final chunk, other chunks from the same recording should have the same length"
 
-            predict = predicted.detach().cpu().numpy()
-            # TODO:
-            # predict = [p[:l] for p, l in zip(predicted.data.cpu().numpy(), predicted_len)]
-            predict = np.vstack(predict)
-            predict = 1 / (1 + np.exp(-predict))
+            predicted_sorted = []
+            for idx in chunk_id.long().topk(len(chunk_id), largest=False).indices:
+                predicted_sorted.append(predicted[idx])
 
-            workspace = Workspace(workspace)
-            rec_unique_id = set(list(rec_id))
-            assert len(rec_unique_id) == 1
-            (workspace / "prediction").put(predict, list(rec_unique_id)[0], "h5")
+            predict = torch.vstack(predicted_sorted)
+            predict = predict.detach().cpu()
+            predict = 1 / (1 + (-predict).exp())
 
-        return Output(
-            loss=loss,
+            prediction_dir = Path(_dump_dir) / f"prediction"
+            prediction_dir.mkdir(exist_ok=True, parents=True)
+            torch.save(predict, prediction_dir / f"{record_id[0]}.pt")
+
+        cacheable = dict(
+            loss=loss.detach().cpu(),
             accuracy=ACC,
             der=DER,
         )
 
-    def reduction(
-        self, split: str, batch_results: list, on_epoch_end: bool = None, **kwds
-    ):
-        accs, ders = [], []
-        for batch_result in batch_results:
-            accs.append(batch_result.accuracy)
-            ders.append(batch_result.der)
+        return loss, cacheable
 
-        logs = Logs()
-        logs.add_scalar("accuracy", torch.FloatTensor(accs).mean().item())
-        logs.add_scalar("der", torch.FloatTensor(ders).mean().item())
-
-        return Output(
-            logs=logs,
+    def reduction(self, _mode: str, cached_results: List[dict], _dump_dir: str = None):
+        results = self.parse_cached_results(cached_results)
+        logs = dict(
+            accuracy=torch.FloatTensor(results["accuracy"]).mean().item(),
+            der=torch.FloatTensor(results["der"]).mean().item(),
         )
+        return logs

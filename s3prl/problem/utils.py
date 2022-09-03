@@ -273,12 +273,6 @@ class Utility:
             num_workers=_num_workers,
             collate_fn=cls.build_collate_fn("train"),
         )
-        valid_dataloader = DataLoader(
-            _valid_dataset,
-            batch_sampler=_valid_batch_sampler,
-            num_workers=_num_workers,
-            collate_fn=cls.build_collate_fn("valid"),
-        )
 
         tqdm_file = sys.stderr if _rank == 0 else open(os.devnull, "w")
         pbar = tqdm(
@@ -362,10 +356,12 @@ class Utility:
                     logs: dict = cls._evaluate(
                         "valid",
                         task,
-                        valid_dataloader,
+                        _valid_dataset,
+                        _valid_batch_sampler,
                         _eval_batch,
                         _train_dir,
                         _device,
+                        _num_workers,
                     )
                     cls._log_results("valid", logs, tf_logger, global_step)
                     valid_metrics = {k: float(v) for k, v in logs.items()}
@@ -428,17 +424,27 @@ class Utility:
         cls,
         _mode: str,
         _task,
-        _dataloader,
+        _dataset,
+        _batch_sampler,
         _eval_batch: int,
         _dump_dir: str,
         _device: str,
+        _num_workers: int,
     ):
         assert _mode in ["valid", "test"]
+
+        dataloader = DataLoader(
+            _dataset,
+            batch_sampler=_batch_sampler,
+            num_workers=_num_workers,
+            collate_fn=cls.build_collate_fn(_mode),
+        )
+
         task = _task.to(_device)
         with torch.no_grad():
             batch_results = []
             for batch_idx, batch in enumerate(
-                tqdm(_dataloader, desc=_mode, total=len(_dataloader))
+                tqdm(dataloader, desc=_mode, total=len(dataloader))
             ):
                 if batch_idx == _eval_batch:
                     break

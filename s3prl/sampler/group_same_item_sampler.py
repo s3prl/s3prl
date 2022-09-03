@@ -5,21 +5,12 @@ class GroupSameItemSampler(object):
     def __init__(
         self,
         dataset,
-        item_name: str,
-        item_order_name: str,
+        meta_name: str,
     ) -> None:
-        indices = defaultdict(list)
-        with dataset.output_keys_as([item_name, item_order_name]):
-            for idx, data_point in enumerate(dataset):
-                item = data_point[item_name]
-                order = int(data_point[item_order_name])
-                indices[item].append((idx, order))
-
-        self.sorted_indices = []
-        for item, values in indices.items():
-            values.sort(key=lambda x: x[1])
-            batch_indices = [idx for idx, order in values]
-            self.sorted_indices.append(batch_indices)
+        self.indices = defaultdict(list)
+        for idx in range(len(dataset)):
+            meta = dataset.fetch_meta(idx)
+            self.indices[meta[meta_name]].append(idx)
 
         self.epoch = 0
 
@@ -27,7 +18,7 @@ class GroupSameItemSampler(object):
         self.epoch = epoch
 
     def __iter__(self):
-        for batch_indices in self.sorted_indices:
+        for batch_indices in self.indices.values():
             yield batch_indices
 
     def __len__(self):

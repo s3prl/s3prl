@@ -64,7 +64,6 @@ def prediction_numpy_to_segment_secs(
     frame_shift: int = 160,
     subsampling: int = 1,
     sampling_rate: int = 16000,
-    tag_category: CategoryEncoder = None,
 ):
     """
     prediction: (timestamps, class_num), all values are in 0~1
@@ -78,10 +77,7 @@ def prediction_numpy_to_segment_secs(
         frames = np.pad(frames, (1, 1), "constant")
         (changes,) = np.where(np.diff(frames, axis=0) != 0)
         if len(changes) > 0:
-            if tag_category is not None:
-                class_name = tag_category.decode(classid)
-            else:
-                class_name = str(classid)
+            class_name = str(classid)
             segments[class_name] = []
             for s, e in zip(changes[::2], changes[1::2]):
                 start = s * factor

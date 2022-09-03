@@ -301,6 +301,10 @@ class UpstreamDownstreamModel(nn.Module):
         return 1
 
     @property
+    def downsample_rate(self):
+        return self.featurizer.downsample_rate
+
+    @property
     def output_size(self):
         return self.downstream.output_size
 
