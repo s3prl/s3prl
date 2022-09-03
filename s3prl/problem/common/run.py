@@ -1,4 +1,3 @@
-import inspect
 import logging
 import pickle
 import shutil
@@ -44,9 +43,9 @@ class Common(Utility):
         train: dict = {},
         evaluate: dict = {},
     ):
-        cls.save_yaml(
-            cls.get_current_arguments(),
-            Path(target_dir) / "configs" / f"{cls.get_time_tag()}.yaml",
+        cls._save_yaml(
+            cls._get_current_arguments(),
+            Path(target_dir) / "configs" / f"{cls._get_time_tag()}.yaml",
         )
 
         target_dir: Path = Path(target_dir)
@@ -73,7 +72,7 @@ class Common(Utility):
             for test_csv in test_csvs:
                 assert Path(test_csv).is_file()
 
-        cls.stage_check(stage_id, stop, check_fn)
+        cls._stage_check(stage_id, stop, check_fn)
 
         stage_id += 1
         if start <= stage_id:
@@ -101,13 +100,13 @@ class Common(Utility):
         def check_fn():
             assert Path(encoder_path).is_file()
 
-        cls.stage_check(stage_id, stop, check_fn)
+        cls._stage_check(stage_id, stop, check_fn)
 
         stage_id += 1
         train_dir = target_dir / "train"
         if start <= stage_id:
             logger.info(f"Stage {stage_id}: Train Model")
-            train_ds, train_bs = cls.build_dataset_and_sampler(
+            train_ds, train_bs = cls._build_dataset_and_sampler(
                 target_dir,
                 cache_dir,
                 "train",
@@ -116,7 +115,7 @@ class Common(Utility):
                 build_dataset,
                 build_batch_sampler,
             )
-            valid_ds, valid_bs = cls.build_dataset_and_sampler(
+            valid_ds, valid_bs = cls._build_dataset_and_sampler(
                 target_dir,
                 cache_dir,
                 "valid",
@@ -164,7 +163,7 @@ class Common(Utility):
         def check_fn():
             assert (train_dir / "valid_best").is_dir()
 
-        cls.stage_check(stage_id, stop, check_fn)
+        cls._stage_check(stage_id, stop, check_fn)
 
         stage_id += 1
         if start <= stage_id:
@@ -183,7 +182,7 @@ class Common(Utility):
                 test_dir.mkdir(exist_ok=True, parents=True)
 
                 logger.info(f"Stage {stage_id}.{test_idx}: Test model on {test_csv}")
-                test_ds, test_bs = cls.build_dataset_and_sampler(
+                test_ds, test_bs = cls._build_dataset_and_sampler(
                     target_dir,
                     cache_dir,
                     "test",
@@ -192,28 +191,23 @@ class Common(Utility):
                     build_dataset,
                     build_batch_sampler,
                 )
-                test_dl = DataLoader(
-                    test_ds,
-                    batch_sampler=test_bs,
-                    num_workers=num_workers,
-                    collate_fn=cls.build_collate_fn("test"),
-                )
 
                 _, _, valid_best_task, _ = cls.load_model_and_task(test_ckpt_dir)
-                logs = cls.evaluate(
+                logs = cls._evaluate(
                     "test",
                     valid_best_task,
-                    test_dl,
+                    test_ds,
+                    test_bs,
                     eval_batch,
                     test_dir,
                     device,
-                    **evaluate,
+                    num_workers
                 )
                 test_metrics = {name: float(value) for name, value in logs.items()}
-                cls.save_yaml(test_metrics, test_dir / f"result.yaml")
+                cls._save_yaml(test_metrics, test_dir / f"result.yaml")
 
     @classmethod
-    def build_dataset_and_sampler(
+    def _build_dataset_and_sampler(
         cls,
         _target_dir: str,
         _cache_dir: str,
