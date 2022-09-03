@@ -1,9 +1,12 @@
 import logging
 import shutil
+from typing import List
 from pathlib import Path
 
 from s3prl.problem.utils import Utility
 from s3prl.task.diarization import DiarizationPIT
+
+from .util import kaldi_dir_to_rttm, make_rttm_and_score
 
 logger = logging.getLogger(__name__)
 
@@ -38,6 +41,7 @@ class Diarization(Utility):
         save_model: dict = {},
         save_task: dict = {},
         train: dict = {},
+        scoring: dict = {},
     ):
         cls._save_yaml(
             cls._get_current_arguments(),
@@ -67,6 +71,15 @@ class Diarization(Utility):
             assert Path(train_data).is_dir() and Path(valid_data).is_dir()
             for test_data in test_datas:
                 assert Path(test_data).is_dir()
+
+        cls._stage_check(stage_id, stop, check_fn)
+
+        test_rttms = []
+        for test_data in test_datas:
+            logger.info(f"Prepare RTTM for {test_data}")
+            test_rttm = target_dir / f"{Path(test_data).stem}.rttm"
+            kaldi_dir_to_rttm(test_data, test_rttm)
+            test_rttms.append(test_rttm)
 
         model_output_size = num_speaker
         model = cls.build_model(
@@ -140,22 +153,27 @@ class Diarization(Utility):
         cls._stage_check(stage_id, stop, check_fn)
 
         stage_id += 1
-        if start <= stage_id:
-            test_ckpt_dir: Path = Path(
-                test_ckpt_dir or target_dir / "train" / "valid_best"
+        test_ckpt_dir: Path = Path(test_ckpt_dir or target_dir / "train" / "valid_best")
+        test_dirs = []
+        for test_idx, test_data in enumerate(test_datas):
+            test_name = Path(test_data).stem
+            test_dir: Path = (
+                target_dir
+                / "evaluate"
+                / test_ckpt_dir.relative_to(train_dir).as_posix().replace("/", "-")
+                / test_name
             )
+            test_dirs.append(test_dir)
+
+        if start <= stage_id:
             logger.info(f"Stage {stage_id}: Test model: {test_ckpt_dir}")
             for test_idx, test_data in enumerate(test_datas):
-                test_name = Path(test_data).stem
-                test_dir: Path = (
-                    target_dir
-                    / "evaluate"
-                    / test_ckpt_dir.relative_to(train_dir).as_posix().replace("/", "-")
-                    / test_name
-                )
+                test_dir = test_dirs[test_idx]
                 test_dir.mkdir(exist_ok=True, parents=True)
 
-                logger.info(f"Stage {stage_id}.{test_idx}: Test model on {test_dir}")
+                logger.info(
+                    f"Stage {stage_id}.{test_idx}: Test model on {test_dir} and dump prediction"
+                )
                 test_ds, test_bs = cls._build_dataset_and_sampler(
                     target_dir,
                     cache_dir,
@@ -179,9 +197,49 @@ class Diarization(Utility):
                     num_workers,
                 )
                 test_metrics = {name: float(value) for name, value in logs.items()}
-                cls._save_yaml(test_metrics, test_dir / f"result.yaml")
+                cls._save_yaml(test_metrics, test_dir / "result.yaml")
+
+        def check_fn():
+            for test_dir in test_dirs:
+                assert (test_dir / "prediction").is_dir()
+
+        cls._stage_check(stage_id, stop, check_fn)
+
+        stage_id += 1
+        if start <= stage_id:
+            logger.info(f"Stage {stage_id}: Score model: {test_ckpt_dir}")
+            cls.scoring(stage_id, test_dirs, test_rttms, frame_shift, **scoring)
 
         return stage_id
+
+    @classmethod
+    def scoring(
+        cls,
+        _stage_id: int,
+        _test_dirs: List[str],
+        _test_rttms: List[str],
+        _frame_shift: int,
+        thresholds: List[int],
+        median_filters: List[int],
+    ):
+        for test_idx, test_dir in enumerate(_test_dirs):
+            logger.info(
+                f"Stage {_stage_id}.{test_idx}: Make RTTM and Score from prediction"
+            )
+            best_der, (best_th, best_med) = make_rttm_and_score(
+                test_dir / "prediction",
+                test_dir / "score",
+                _test_rttms[test_idx],
+                _frame_shift,
+                thresholds,
+                median_filters,
+            )
+
+            logger.info(f"Best dscore DER: {best_der}")
+            cls._save_yaml(
+                dict(der=best_der, threshold=best_th, median_filter=best_med),
+                test_dir / "dscore.yaml",
+            )
 
     @classmethod
     def _build_dataset_and_sampler(

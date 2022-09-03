@@ -82,6 +82,10 @@ class SuperbSD(Diarization):
                 auto_resume=True,
                 resume_ckpt_dir=None,
             ),
+            scoring=dict(
+                thresholds=[0.3, 0.4, 0.5, 0.6, 0.7],
+                median_filters=[1, 11],
+            ),
         )
 
     @classmethod
