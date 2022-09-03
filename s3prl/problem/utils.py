@@ -121,7 +121,7 @@ class Utility:
         return scheduler
 
     @classmethod
-    def get_current_arguments(cls) -> dict:
+    def _get_current_arguments(cls) -> dict:
         frame = inspect.currentframe().f_back
         args, _, _, values = inspect.getargvalues(frame)
 
@@ -132,11 +132,11 @@ class Utility:
         return config
 
     @classmethod
-    def get_time_tag(cls):
+    def _get_time_tag(cls):
         return datetime.fromtimestamp(time()).strftime("%Y_%m_%d_%H_%M_%S")
 
     @classmethod
-    def stage_check(cls, stage_id: int, stop: int, check_fn: callable):
+    def _stage_check(cls, stage_id: int, stop: int, check_fn: callable):
         try:
             check_fn()
         except:
@@ -353,13 +353,13 @@ class Utility:
 
                 if global_step % log_step == 0:
                     logs = wrapped_task.reduction("train", batch_results)
-                    cls.log_results("train", logs, tf_logger, global_step)
+                    cls._log_results("train", logs, tf_logger, global_step)
                     batch_results = []
 
                 save_names = []
 
                 if global_step % eval_step == 0:
-                    logs: dict = cls.evaluate(
+                    logs: dict = cls._evaluate(
                         "valid",
                         task,
                         valid_dataloader,
@@ -367,7 +367,7 @@ class Utility:
                         _train_dir,
                         _device,
                     )
-                    cls.log_results("valid", logs, tf_logger, global_step)
+                    cls._log_results("valid", logs, tf_logger, global_step)
                     valid_metrics = {k: float(v) for k, v in logs.items()}
                     new_metric = valid_metrics[valid_metric]
                     best_metric = valid_best_metrics.get(valid_metric)
@@ -400,7 +400,7 @@ class Utility:
                         epoch=epoch,
                         valid_best_metrics=valid_best_metrics,
                     )
-                    cls.save_ckpts_to_dir(
+                    cls._save_ckpts_to_dir(
                         _train_dir / name,
                         (
                             task.module
@@ -424,7 +424,7 @@ class Utility:
             tf_logger.close()
 
     @classmethod
-    def evaluate(
+    def _evaluate(
         cls,
         _mode: str,
         _task,
@@ -451,7 +451,7 @@ class Utility:
         return logs
 
     @classmethod
-    def log_results(
+    def _log_results(
         cls,
         split_name: str,
         logs: dict,
@@ -467,7 +467,7 @@ class Utility:
             )
 
     @classmethod
-    def save_yaml(cls, data, path):
+    def _save_yaml(cls, data, path):
         Path(path).parent.mkdir(exist_ok=True, parents=True)
 
         with Path(path).open("w") as f:
@@ -483,7 +483,7 @@ class Utility:
             raise
 
     @classmethod
-    def save_ckpts_to_dir(
+    def _save_ckpts_to_dir(
         cls,
         _ckpts_dir: str,
         _task,
@@ -508,7 +508,7 @@ class Utility:
         if _scheduler is not None:
             torch.save(_scheduler.state_dict(), ckpts_dir / "scheduler.pt")
 
-        cls.save_yaml(_training_stats, _ckpts_dir / "training_stats.yaml")
+        cls._save_yaml(_training_stats, _ckpts_dir / "training_stats.yaml")
 
     @classmethod
     def save_model(

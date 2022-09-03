@@ -22,6 +22,52 @@ from .run import ASR
 logger = logging.getLogger(__name__)
 
 
+def prepare_common_tokenizer(
+    _target_dir,
+    _cache_dir,
+    _tokenizer_data_path,
+    _get_path_only=False,
+    tokenizer_name: str = None,
+    vocab_file: str = None,
+    vocab_type: str = "character",
+    vocab_args: dict = None,
+    slots_file: str = None,
+):
+    if tokenizer_name is None:
+        tokenizer_name = f"{Path(_tokenizer_data_path).stem}-{vocab_type}.tokenizer"
+    tokenizer_path = Path(_target_dir) / f"{tokenizer_name}.pkl"
+
+    if _get_path_only:
+        return tokenizer_path
+
+    if vocab_file is not None:
+        tokenizer = load_tokenizer(
+            vocab_type,
+            vocab_file=vocab_file,
+            slots_file=slots_file,
+        )
+    else:
+        vocab_args = vocab_args or {}
+        assert isinstance(vocab_args, dict)
+
+        vocab_result = generate_vocab(
+            vocab_type, text_file=str(_tokenizer_data_path), **vocab_args
+        )
+        vocab_list = vocab_result if isinstance(vocab_result, list) else None
+        vocab_file = vocab_result if isinstance(vocab_result, str) else None
+        tokenizer = load_tokenizer(
+            vocab_type,
+            vocab_file=vocab_file,
+            vocab_list=vocab_list,
+            slots_file=slots_file,
+        )
+
+    with open(tokenizer_path, "wb") as f:
+        pickle.dump(tokenizer, f)
+
+    return tokenizer_path
+
+
 class SuperbASR(ASR):
     @classmethod
     def default_config(cls) -> dict:
@@ -187,41 +233,15 @@ class SuperbASR(ASR):
         _cache_dir,
         _tokenizer_data_path,
         _get_path_only=False,
-        tokenizer_name: str = None,
-        vocab_type: str = "character",
-        vocab_args: dict = None,
-        slots_file: str = None,
+        **config,
     ):
-        if tokenizer_name is None:
-            tokenizer_name = f"{Path(_tokenizer_data_path).stem}-{vocab_type}.tokenizer"
-        tokenizer_path = Path(_target_dir) / f"{tokenizer_name}.pkl"
-
-        if _get_path_only:
-            return tokenizer_path
-
-        vocab_args = vocab_args or {}
-        if vocab_type == "subword":
-            vocab_args["output_file"] = str(tokenizer_path)
-
-        vocab_result = generate_vocab(
-            vocab_type,
-            text_file=str(_tokenizer_data_path),
-            **vocab_args,
+        return prepare_common_tokenizer(
+            _target_dir,
+            _cache_dir,
+            _tokenizer_data_path,
+            _get_path_only=_get_path_only,
+            **config,
         )
-        vocab_list = vocab_result if isinstance(vocab_result, list) else None
-        vocab_file = vocab_result if isinstance(vocab_result, str) else None
-
-        tokenizer = load_tokenizer(
-            vocab_type,
-            vocab_file=vocab_file,
-            vocab_list=vocab_list,
-            slots_file=slots_file,
-        )
-
-        with (Path(_target_dir) / f"{tokenizer_name}.pkl").open("wb") as f:
-            pickle.dump(tokenizer, f)
-
-        return tokenizer_path
 
     @classmethod
     def build_dataset(
@@ -257,10 +277,14 @@ class SuperbASR(ASR):
         _mode: str,
         _data_csv: str,
         _dataset: Dataset,
-        train: dict = {},
-        valid: dict = {},
-        test: dict = {},
+        train: dict = None,
+        valid: dict = None,
+        test: dict = None,
     ):
+        train = train or {}
+        valid = valid or {}
+        test = test or {}
+
         if _mode == "train":
             sampler = SortedBucketingSampler(_dataset, **train)
         elif _mode == "valid":

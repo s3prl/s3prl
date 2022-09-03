@@ -1,6 +1,4 @@
 from typing import Iterator, TypeVar
-
-from speechbrain.dataio.sampler import ReproducibleRandomSampler
 from torch.utils.data import BatchSampler, RandomSampler, Sampler, SequentialSampler
 
 from .base import Sampler

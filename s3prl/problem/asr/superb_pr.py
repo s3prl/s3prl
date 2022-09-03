@@ -142,6 +142,10 @@ class SuperbPR(SuperbASR):
         valid: dict = None,
         test: dict = None,
     ):
+        train = train or {}
+        valid = valid or {}
+        test = test or {}
+
         if _mode == "train":
             sampler = SortedSliceSampler(_dataset, **train)
         elif _mode == "valid":

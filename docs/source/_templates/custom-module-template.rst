@@ -52,10 +52,11 @@
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 .. autoclass:: {{ item }}
+   :member-order: bysource
    :members:
    :undoc-members:
+   :inherited-members:
    :show-inheritance:
-   :member-order: bysource
 
 {%- endfor %}
 {% endif %}

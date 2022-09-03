@@ -1,12 +1,9 @@
 import logging
 from pathlib import Path
 from typing import Any, Dict, List
+from collections import OrderedDict
 
 from tqdm import trange
-
-from s3prl import Container, Output, cache
-from s3prl.util import registry
-
 from .base import Corpus
 
 
@@ -30,10 +27,10 @@ class SNIPS(Corpus):
         self.valid = self._data_to_dict(self.data_dict, ["valid"])
         self.test = self._data_to_dict(self.data_dict, ["test"])
 
-        self._data = Container()
-        self._data.add(self.train)
-        self._data.add(self.valid)
-        self._data.add(self.test)
+        self._data = OrderedDict()
+        self._data.update(self.train)
+        self._data.update(self.valid)
+        self._data.update(self.test)
 
     @property
     def all_data(self):
@@ -48,7 +45,6 @@ class SNIPS(Corpus):
         )
 
     @staticmethod
-    @cache()
     def _collect_data(
         dataset_root: str,
         train_speakers: List[str],
@@ -118,8 +114,8 @@ class SNIPS(Corpus):
     @staticmethod
     def _data_to_dict(
         data_dict: Dict[str, Dict[str, List[Any]]], splits: List[str]
-    ) -> Container:
-        data = Container(
+    ) -> dict:
+        data = dict(
             {
                 name: {
                     "wav_path": data_dict[split]["wav_list"][i],
@@ -132,28 +128,3 @@ class SNIPS(Corpus):
             }
         )
         return data
-
-
-@registry.put()
-def snips_for_speech2text(
-    dataset_root: str,
-    train_speakers: List[str] = [
-        "Ivy",
-        "Joanna",
-        "Joey",
-        "Justin",
-        "Kendra",
-        "Kimberly",
-        "Matthew",
-        "Salli",
-    ],
-    valid_speakers: List[str] = ["Aditi", "Amy", "Geraint", "Nicole"],
-    test_speakers: List[str] = ["Brian", "Emma", "Raveena", "Russell"],
-):
-    corpus = SNIPS(dataset_root, train_speakers, valid_speakers, test_speakers)
-    train_data, valid_data, test_data = corpus.data_split
-    return Output(
-        train_data=train_data,
-        valid_data=valid_data,
-        test_data=test_data,
-    )

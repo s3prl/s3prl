@@ -463,6 +463,8 @@ def load_tokenizer(
     Returns:
         Tokenizer: Text tokenizer.
     """
+    if slots_file is not None and not mode.endswith("slot"):
+        mode = f"{mode}-slot"
 
     if mode == "character":
         return CharacterTokenizer.load_from_file(vocab_file, vocab_list)
