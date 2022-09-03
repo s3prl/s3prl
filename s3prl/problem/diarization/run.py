@@ -3,7 +3,7 @@ import shutil
 from typing import List
 from pathlib import Path
 
-from s3prl.problem.utils import Utility
+from s3prl.problem.base import Problem
 from s3prl.task.diarization import DiarizationPIT
 
 from .util import kaldi_dir_to_rttm, make_rttm_and_score
@@ -11,7 +11,7 @@ from .util import kaldi_dir_to_rttm, make_rttm_and_score
 logger = logging.getLogger(__name__)
 
 
-class Diarization(Utility):
+class Diarization(Problem):
     @classmethod
     def run(
         cls,

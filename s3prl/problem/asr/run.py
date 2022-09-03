@@ -6,12 +6,12 @@ from pathlib import Path
 
 from torch.utils.data import DataLoader
 
-from s3prl.problem.utils import Utility
+from s3prl.problem.base import Problem
 
 logger = logging.getLogger(__name__)
 
 
-class ASR(Utility):
+class ASR(Problem):
     @classmethod
     def run(
         cls,

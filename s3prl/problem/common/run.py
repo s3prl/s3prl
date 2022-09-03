@@ -3,15 +3,13 @@ import pickle
 import shutil
 from pathlib import Path
 
-from torch.utils.data import DataLoader
-
-from s3prl.problem.utils import Utility
+from s3prl.problem.base import Problem
 from s3prl.task.utterance_classification_task import UtteranceClassificationTask
 
 logger = logging.getLogger(__name__)
 
 
-class Common(Utility):
+class Common(Problem):
     @classmethod
     def run(
         cls,
