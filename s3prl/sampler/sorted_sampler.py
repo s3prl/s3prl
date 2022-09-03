@@ -23,7 +23,6 @@ class SortedSliceSampler:
         seed: int = 12345678,
         in_batch_shuffle: bool = False,
     ) -> None:
-        super().__init__(dataset)
         self.epoch = 0
         self.seed = seed
         self.batch_size = batch_size
@@ -103,7 +102,6 @@ class SortedBucketingSampler:
         in_batch_shuffle: bool = False,
         seed: int = 12345678,
     ) -> None:
-        super().__init__(dataset)
         self.epoch = 0
         self.seed = seed
         self.batch_size = batch_size

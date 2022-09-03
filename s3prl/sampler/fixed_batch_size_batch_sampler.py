@@ -1,7 +1,7 @@
-from torch.utils.data import BatchSampler, RandomSampler, Sampler, SequentialSampler
+from torch.utils.data import BatchSampler, RandomSampler, SequentialSampler
 
 
-class FixedBatchSizeBatchSampler(Sampler):
+class FixedBatchSizeBatchSampler:
     """
     The reduced timestamps for a batch should not exceed the max_timestamp.
     If shuffled, each indices are first shuffled before aggregated into batches
@@ -16,7 +16,6 @@ class FixedBatchSizeBatchSampler(Sampler):
     ) -> None:
         self.batch_size = batch_size
 
-        super().__init__(dataset)
         if shuffle:
             self.sampler = RandomSampler(dataset)
         else:

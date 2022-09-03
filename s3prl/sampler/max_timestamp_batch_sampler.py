@@ -24,7 +24,6 @@ class MaxTimestampBatchSampler:
         )
         timestamps = get_timestamps_func(dataset, n_jobs)
 
-        super().__init__(timestamps)
         self.timestamps = timestamps
         self.max_timestamp = max_timestamp
         self.shuffle = shuffle

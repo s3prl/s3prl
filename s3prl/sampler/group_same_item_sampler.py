@@ -1,7 +1,7 @@
 from collections import defaultdict
 
 
-class GroupSameItemSampler(object):
+class GroupSameItemSampler:
     def __init__(
         self,
         dataset,

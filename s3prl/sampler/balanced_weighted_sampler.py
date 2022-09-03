@@ -16,7 +16,6 @@ class BalancedWeightedSampler:
         duplicate: int = 1,
         seed: int = 12345678,
     ) -> None:
-        super().__init__(dataset)
         self.epoch = 0
         self.seed = seed
         self.batch_size = batch_size
