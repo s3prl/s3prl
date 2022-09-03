@@ -1,15 +1,13 @@
-from collections import Counter, OrderedDict
+from collections import Counter
 from typing import Iterator, TypeVar
 
 import torch
-from torch.utils.data import Sampler, WeightedRandomSampler
-
-from .base import Sampler
+from torch.utils.data import WeightedRandomSampler
 
 T_co = TypeVar("T_co", covariant=True)
 
 
-class BalancedWeightedSampler(Sampler):
+class BalancedWeightedSampler:
     def __init__(
         self,
         dataset,

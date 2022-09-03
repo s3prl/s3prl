@@ -1,19 +1,18 @@
 import logging
 from copy import deepcopy
 from typing import Iterator, Optional, TypeVar
+from torch.utils.data import BatchSampler
 
 import torch.distributed as dist
-
-from .base import Sampler
 
 T_co = TypeVar("T_co", covariant=True)
 logger = logging.getLogger(__name__)
 
 
-class DistributedBatchSamplerWrapper(Sampler):
+class DistributedBatchSamplerWrapper:
     def __init__(
         self,
-        batch_sampler: Sampler,
+        batch_sampler: BatchSampler,
         num_replicas: Optional[int] = None,
         rank: Optional[int] = None,
         allow_duplicates: bool = False,

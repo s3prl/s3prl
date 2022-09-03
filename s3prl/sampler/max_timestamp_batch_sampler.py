@@ -1,17 +1,9 @@
-from typing import Iterator, TypeVar
-
 import torch
 from joblib import Parallel, delayed
-from speechbrain.dataio.dataset import DynamicItemDataset
-from torch.utils.data import Sampler
 from tqdm import tqdm
 
-from .base import Sampler
 
-T_co = TypeVar("T_co", covariant=True)
-
-
-class MaxTimestampBatchSampler(Sampler):
+class MaxTimestampBatchSampler:
     """
     The reduced timestamps for a batch should not exceed the max_timestamp.
     If shuffled, each indices are first shuffled before aggregated into batches
@@ -27,11 +19,9 @@ class MaxTimestampBatchSampler(Sampler):
         reduce_func: callable = None,
         n_jobs: int = 4,
     ) -> None:
-        if get_timestamps_func is None:
-            if isinstance(dataset, DynamicItemDataset):
-                get_timestamps_func = self._get_timestamps_dynamic_item_dataset
-            else:
-                raise ValueError("Unsupported dataset type")
+        get_timestamps_func = (
+            get_timestamps_func or self._get_timestamps_dynamic_item_dataset
+        )
         timestamps = get_timestamps_func(dataset, n_jobs)
 
         super().__init__(timestamps)
@@ -47,9 +37,7 @@ class MaxTimestampBatchSampler(Sampler):
         return max(timestamps) * len(timestamps)
 
     @staticmethod
-    def _get_timestamps_dynamic_item_dataset(
-        dataset: DynamicItemDataset, n_jobs: int = 4
-    ):
+    def _get_timestamps_dynamic_item_dataset(dataset, n_jobs: int = 4):
         with dataset.output_keys_as(["wav_metadata"]):
 
             def get_timestamp(item):
@@ -67,7 +55,7 @@ class MaxTimestampBatchSampler(Sampler):
     def _evaluate_reduced_timestamps(self, batch_indices):
         return self.reduce_func([self.timestamps[indice] for indice in batch_indices])
 
-    def __iter__(self) -> Iterator[T_co]:
+    def __iter__(self):
         if self.shuffle:
             generator = torch.Generator()
             generator.manual_seed(self.epoch + self.seed)

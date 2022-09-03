@@ -1,9 +1,4 @@
-from typing import Iterator, TypeVar
 from torch.utils.data import BatchSampler, RandomSampler, Sampler, SequentialSampler
-
-from .base import Sampler
-
-T_co = TypeVar("T_co", covariant=True)
 
 
 class FixedBatchSizeBatchSampler(Sampler):
@@ -34,7 +29,7 @@ class FixedBatchSizeBatchSampler(Sampler):
     def _evaluate_reduced_timestamps(self, batch_indices):
         return self.reduce_func([self.timestamps[indice] for indice in batch_indices])
 
-    def __iter__(self) -> Iterator[T_co]:
+    def __iter__(self):
         batch_sampler = BatchSampler(
             self.sampler, batch_size=self.batch_size, drop_last=False
         )

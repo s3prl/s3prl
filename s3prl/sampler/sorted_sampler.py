@@ -1,17 +1,8 @@
-from collections import OrderedDict
-from typing import Iterator, TypeVar
-
 import torch
-from speechbrain.dataio.sampler import ReproducibleRandomSampler
-from torch.utils.data import BatchSampler, RandomSampler, Sampler, SequentialSampler
 from tqdm import tqdm
 
-from .base import Sampler
 
-T_co = TypeVar("T_co", covariant=True)
-
-
-class SortedSliceSampler(Sampler):
+class SortedSliceSampler:
     """
     This sampler should only be used for training hence is always in random shuffle mode
 
@@ -64,7 +55,7 @@ class SortedSliceSampler(Sampler):
     def set_epoch(self, epoch: int):
         self.epoch = epoch
 
-    def __iter__(self) -> Iterator[T_co]:
+    def __iter__(self):
         generator = torch.Generator()
         generator.manual_seed(self.epoch + self.seed)
 
@@ -91,7 +82,7 @@ class SortedSliceSampler(Sampler):
         return len(list(iter(self)))
 
 
-class SortedBucketingSampler(Sampler):
+class SortedBucketingSampler:
     """
     Args:
         dataset (DynamicItemDataset)
@@ -147,7 +138,7 @@ class SortedBucketingSampler(Sampler):
     def set_epoch(self, epoch: int):
         self.epoch = epoch
 
-    def __iter__(self) -> Iterator[T_co]:
+    def __iter__(self):
         generator = torch.Generator()
         generator.manual_seed(self.epoch + self.seed)
 
