@@ -1,5 +1,3 @@
-from __future__ import annotations
-
 import logging
 from typing import Dict, List, Tuple
 
@@ -7,7 +5,6 @@ import torch
 import torch.nn.functional as F
 from tqdm import tqdm
 
-from s3prl import Container, Logs, Module, Output
 from s3prl.metric import accuracy, compute_eer, compute_minDCF
 from s3prl.nn import amsoftmax, softmax
 
@@ -16,7 +13,7 @@ from . import Task
 logger = logging.getLogger(__name__)
 
 
-class SpeakerClassifier(Module):
+class SpeakerClassifier(torch.nn.Module):
     """
     Attributes:
         input_size: int
@@ -25,8 +22,16 @@ class SpeakerClassifier(Module):
 
     def __init__(self, input_size=3, output_size=4):
         super().__init__()
-        self.input_size = input_size
-        self.output_size = output_size
+        self._input_size = input_size
+        self._output_size = output_size
+
+    @property
+    def input_size(self):
+        return self._input_size
+
+    @property
+    def output_size(self):
+        return self._output_size
 
     def forward(self, x, x_len):
         """
@@ -39,7 +44,7 @@ class SpeakerClassifier(Module):
         """
         assert x.size(-1) == self.input_size
         output = torch.randn(x.size(0), self.output_size)
-        assert Output(output=output)
+        assert output
 
 
 class SpeakerVerification(Task):
@@ -62,15 +67,14 @@ class SpeakerVerification(Task):
         self,
         model: SpeakerClassifier,
         categories: Dict[str, int],
-        trials: List[Tuple[int, str, str]],
+        test_trials: List[Tuple[int, str, str]] = None,
         loss_type: str = "amsoftmax",
         loss_cfg: dict = None,
-        **unused,
     ):
         super().__init__()
-        self.model = Container(model)() if isinstance(model, dict) else model
+        self.model = model
         self.categories = categories
-        self.trials = trials
+        self.trials = test_trials
 
         if loss_type == "amsoftmax":
             loss_cls = amsoftmax
@@ -86,14 +90,6 @@ class SpeakerVerification(Task):
         )
         assert self.loss.output_size == len(categories)
 
-    @property
-    def input_size(self):
-        return self.model.input_size
-
-    @property
-    def output_size(self):
-        return len(self.categories)
-
     def predict(self, x: torch.Tensor, x_len: torch.LongTensor):
         """
         Args:
@@ -101,56 +97,12 @@ class SpeakerVerification(Task):
             x_len (torch.LongTensor): (batch_size, )
 
         Return:
-            hidden_states (torch.Tensor): (batch_size, output_size)
-            hidden_states_len (list): (batch_size, )
+            torch.Tensor
+
+            (batch_size, output_size)
         """
-        spk_embeddings = self.model(x, x_len).slice(1)
-
-        return Output(hidden_states=spk_embeddings)
-
-    def _general_forward(
-        self,
-        x: torch.Tensor,
-        x_len: torch.LongTensor,
-        label: torch.LongTensor,
-        unique_name: List[str],
-        **unused,
-    ):
-        spk_embeddings = self.predict(x, x_len).slice(1)
-        loss, logits = self.loss(spk_embeddings, label).slice(2)
-
-        prediction = [index for index in logits.argmax(dim=-1).detach().cpu().tolist()]
-
-        logs = Logs()
-        logs.add_hidden_state("logits", logits)
-
-        return Output(
-            loss=loss,
-            prediction=prediction,
-            label=label,
-            unique_name=unique_name,
-            logs=logs,
-        )
-
-    def _general_reduction(
-        self, batch_results: list, on_epoch_end: bool = None, **unused
-    ):
-        predictions, labels, losses = [], [], []
-        for batch_result in batch_results:
-            predictions += batch_result.prediction
-            labels += list(batch_result.label.cpu().numpy())
-            losses.append(batch_result.loss)
-
-        acc = accuracy(predictions, labels)
-        loss = (sum(losses) / len(losses)).item()
-
-        logs = Logs()
-        logs.add_scalar("loss", loss)
-        logs.add_scalar("accuracy", acc)
-
-        return Output(
-            logs=logs,
-        )
+        spk_embeddings = self.model(x, x_len)
+        return spk_embeddings
 
     def train_step(
         self,
@@ -158,75 +110,38 @@ class SpeakerVerification(Task):
         x_len: torch.LongTensor,
         label: torch.LongTensor,
         unique_name: List[str],
-        **unused,
+        _dump_dir: str = None,
     ):
-        """
-        Each forward step in the training loop
+        spk_embeddings = self.predict(x, x_len)
+        loss, logits = self.loss(spk_embeddings, label)
+        prediction = [index for index in logits.argmax(dim=-1).detach().cpu().tolist()]
 
-        Args:
-            x (torch.Tensor): (batch_size, timestamps, input_size)
-            x_len: torch.LongTensor
-            label: torch.LongTensor
-            unique_name (List[str])
+        cacheable = dict(
+            loss=loss.detach().cpu().item(),
+            label=label,
+            prediction=prediction,
+            unique_name=unique_name,
+        )
 
-        Return:
-            loss (torch.Tensor):
-                undetached loss. When using this module. Please sanitize this loss before
-                collecting the returning Namespace into a list for future aggregation/reduction
-            prediction (List[int])
-            label: torch.LongTensor
-            unique_name (List[str])
-            logits:
-                this is not required, just to let the end-user get as many info as possible
-                so that people can do more things with the internal states
-        """
-        return self._general_forward(x, x_len, label, unique_name)
+        return loss, cacheable
 
-    def train_reduction(self, batch_results: list, on_epoch_end: bool = None, **unused):
-        """
-        After several forward steps, outputs should be collected untouched (but detaching the Tensors)
-        into a list and passed as batch_results. This function examine the collected items and compute
-        metrics across these batches. This function might be called in the middle of an epoch for quick
-        logging, or after exactly an epoch to know the epoch level performance.
+    def train_reduction(self, cached_results: list, _dump_dir: str = None):
+        results = self.parse_cached_results(cached_results)
+        acc = accuracy(results["prediction"], results["label"])
+        loss = (sum(results["loss"]) / len(results["loss"])).item()
 
-        Args:
-            batch_results (List[cacheable version of the output of self.train_step])
-            on_epoch_end (bool):
-                usually you should keep the same behavior between sub-epoch and epoch level
-                this parameter is here in case you need specific postprocessing which must
-                only be done right on the end of an epoch
-
-        Return:
-            logs (List[Log]):
-                a list of content to log onto any logger
-                each content should be in the Log class format
-        """
-        return self._general_reduction(batch_results, on_epoch_end)
-
-    def valid_step(
-        self,
-        x: torch.Tensor,
-        x_len: torch.LongTensor,
-        label: torch.LongTensor,
-        unique_name: List[str],
-        **unused,
-    ):
-        return self._general_forward(x, x_len, label, unique_name)
-
-    def valid_reduction(
-        self,
-        batch_results: list,
-        on_epoch_end: bool = None,
-        **unused,
-    ):
-        return self._general_reduction(batch_results, on_epoch_end)
+        return dict(
+            loss=loss,
+            accuracy=acc,
+        )
 
     def test_step(
         self,
         x: torch.Tensor,
         x_len: torch.LongTensor,
+        label: torch.LongStorage,
         unique_name: List[str],
-        **unused,
+        _dump_dir: str,
     ):
         """
         Args:
@@ -239,17 +154,19 @@ class SpeakerVerification(Task):
             output (torch.Tensor):
                 speaker embeddings corresponding to unique_name
         """
-        spk_embeddings = self.predict(x, x_len).slice(1)
-        return Output(unique_name=unique_name, output=spk_embeddings)
+        spk_embeddings = self.predict(x, x_len)
 
-    def test_reduction(
-        self, batch_results: list(), on_epoch_end: bool = None, **unused
-    ):
+        cacheable = dict(
+            unique_name=unique_name.tolist(),
+            spk_embedding=spk_embeddings.detach().cpu().unbind(dim=0),
+        )
+        return None, cacheable
 
+    def test_reduction(self, cached_results: List[dict], _dump_dir: str):
+        results = self.parse_cached_results(cached_results)
         embeddings = {}
-        for batch_result in batch_results:
-            for key, value in zip(batch_result.unique_name, batch_result.output):
-                embeddings[key] = value
+        for name, emb in zip(results["unique_name"], results["spk_embedding"]):
+            embeddings[name] = emb
 
         trials = self.trials
         scores = []
@@ -265,10 +182,9 @@ class SpeakerVerification(Task):
 
         minDCF, minDCFthreshold = compute_minDCF(labels, scores, p_target=0.01)
 
-        logs = Logs()
-        logs.add_scalar("EER", EER)
-        logs.add_scalar("EERthreshold", EERthreshold.item())
-        logs.add_scalar("minDCF", minDCF)
-        logs.add_scalar("minDCF_threshold", minDCFthreshold)
-
-        return Output(logs=logs)
+        return dict(
+            EER=EER,
+            EERthreshold=EERthreshold.item(),
+            minDCF=minDCF,
+            minDCF_threshold=minDCFthreshold,
+        )

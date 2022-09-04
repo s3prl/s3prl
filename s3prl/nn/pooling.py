@@ -2,12 +2,8 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 
-from s3prl import Output
 
-from . import NNModule
-
-
-class MeanPooling(NNModule):
+class MeanPooling(nn.Module):
     def __init__(self):
         super().__init__()
 
@@ -27,7 +23,7 @@ class MeanPooling(NNModule):
         return torch.stack(pooled_list)
 
 
-class TemporalAveragePooling(NNModule):
+class TemporalAveragePooling(nn.Module):
     def __init__(self, input_size: int, output_size: int):
         """
         TemporalAveragePooling
@@ -35,14 +31,16 @@ class TemporalAveragePooling(NNModule):
         Link: https://arxiv.org/pdf/1903.12058.pdf
         """
         super().__init__()
+        self._indim = input_size
+        self._outdim = output_size
 
     @property
     def input_size(self):
-        return self.arguments.input_size
+        return self._indim
 
     @property
     def output_size(self):
-        return self.arguments.output_size
+        return self._outdim
 
     def forward(self, xs, xs_len):
         """
@@ -61,7 +59,7 @@ class TemporalAveragePooling(NNModule):
         return torch.stack(pooled_list)
 
 
-class TemporalStatisticsPooling(NNModule):
+class TemporalStatisticsPooling(nn.Module):
     def __init__(self, input_size: int, **unused):
         """
         TemporalStatisticsPooling
@@ -97,7 +95,7 @@ class TemporalStatisticsPooling(NNModule):
         return torch.stack(pooled_list)
 
 
-class SelfAttentivePooling(NNModule):
+class SelfAttentivePooling(nn.Module):
     def __init__(self, input_size: int, output_size: int):
         """
         SelfAttentivePooling
@@ -105,16 +103,19 @@ class SelfAttentivePooling(NNModule):
         Link： https://danielpovey.com/files/2018_interspeech_xvector_attention.pdf
         """
         super().__init__()
+        self._indim = input_size
+        self._outdim = output_size
+
         self.sap_linear = nn.Linear(input_size, input_size)
         self.attention = nn.Parameter(torch.FloatTensor(input_size, 1))
 
     @property
     def input_size(self):
-        return self.arguments.input_size
+        return self._indim
 
     @property
     def output_size(self):
-        return self.arguments.output_size
+        return self._outdim
 
     def forward(self, xs, xs_len=None):
         """
@@ -136,7 +137,7 @@ class SelfAttentivePooling(NNModule):
         return torch.stack(pooled_list)
 
 
-class AttentiveStatisticsPooling(NNModule):
+class AttentiveStatisticsPooling(nn.Module):
     def __init__(self, input_size: int, output_size: int):
         """
         AttentiveStatisticsPooling
@@ -144,16 +145,19 @@ class AttentiveStatisticsPooling(NNModule):
         Link: https://arxiv.org/pdf/1803.10963.pdf
         """
         super().__init__()
+        self._indim = input_size
+        self._outdim = output_size
+
         self.sap_linear = nn.Linear(input_size, input_size)
         self.attention = nn.Parameter(torch.FloatTensor(input_size, 1))
 
     @property
     def input_size(self):
-        return self.arguments.input_size
+        return self._indim
 
     @property
     def output_size(self):
-        return self.arguments.output_size
+        return self._outdim
 
     def forward(self, xs, xs_len=None):
         """

@@ -164,7 +164,6 @@ class SuperbASR(ASR):
                 auto_resume=True,
                 resume_ckpt_dir=None,
             ),
-            evaluate=dict(),
         )
 
     @classmethod

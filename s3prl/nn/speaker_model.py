@@ -1,12 +1,7 @@
-from typing import List
-
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
 
-from s3prl import Output
-
-from . import NNModule
 from .pooling import (
     AttentiveStatisticsPooling,
     SelfAttentivePooling,
@@ -17,7 +12,7 @@ from .pooling import (
 XVECTOR_TDNNS_LENGTH_REDUCTION = 14
 
 
-class TDNN(NNModule):
+class TDNN(nn.Module):
     def __init__(
         self,
         input_size: int,
@@ -41,21 +36,28 @@ class TDNN(NNModule):
             context size 1 and dilation 1 is equivalent to [0]
         """
         super().__init__()
+        self._indim = input_size
+        self._outdim = output_size
+        self.context_size = context_size
+        self.dilation = dilation
+        self.stride = stride
+        self.dropout_p = dropout_p
+        self.batch_norm = batch_norm
 
         self.kernel = nn.Linear(input_size * context_size, output_size)
         self.nonlinearity = nn.ReLU()
-        if self.arguments.batch_norm:
+        if batch_norm:
             self.bn = nn.BatchNorm1d(output_size)
-        if self.arguments.dropout_p:
-            self.drop = nn.Dropout(p=self.dropout_p)
+        if dropout_p:
+            self.drop = nn.Dropout(p=dropout_p)
 
     @property
     def input_size(self):
-        return self.arguments.input_size
+        return self._indim
 
     @property
     def output_size(self):
-        return self.arguments.output_size
+        return self._outdim
 
     def forward(self, x):
         """
@@ -74,19 +76,19 @@ class TDNN(NNModule):
         # Unfold input into smaller temporal contexts
         x = F.unfold(
             x,
-            (self.arguments.context_size, self.input_size),
+            (self.context_size, self.input_size),
             stride=(1, self.input_size),
-            dilation=(self.arguments.dilation, 1),
+            dilation=(self.dilation, 1),
         )
 
         x = x.transpose(1, 2)
         x = self.kernel(x)
         x = self.nonlinearity(x)
 
-        if self.arguments.dropout_p:
+        if self.dropout_p:
             x = self.drop(x)
 
-        if self.arguments.batch_norm:
+        if self.batch_norm:
             x = x.transpose(1, 2)
             x = self.bn(x)
             x = x.transpose(1, 2)
@@ -94,20 +96,22 @@ class TDNN(NNModule):
         return x
 
 
-class XVectorBackbone(NNModule):
+class XVectorBackbone(nn.Module):
     def __init__(
         self,
         input_size: int,
         output_size: int = 1500,
         dropout_p: float = 0.0,
         batch_norm: False = True,
-        **unused,
     ):
         super().__init__()
         """
         The TDNN layers the same as in https://danielpovey.com/files/2018_odyssey_xvector_lid.pdf
         This model only include the blocks before the pooling layer
         """
+        self._indim = input_size
+        self._outdim = output_size
+
         self.module = nn.Sequential(
             TDNN(
                 input_size=input_size,
@@ -153,11 +157,11 @@ class XVectorBackbone(NNModule):
 
     @property
     def input_size(self):
-        return self.arguments.input_size
+        return self._indim
 
     @property
     def output_size(self):
-        return self.arguments.output_size
+        return self._outdim
 
     def forward(self, x):
         """
@@ -168,33 +172,33 @@ class XVectorBackbone(NNModule):
         """
 
         x = self.module(x)
+        return x
 
-        return Output(output=x)
 
-
-class SpeakerEmbeddingExtractor(NNModule):
+class SpeakerEmbeddingExtractor(nn.Module):
     def __init__(
         self,
         input_size: int,
         output_size: int = 1500,
         backbone: str = "XVector",
         pooling_type: str = "TAP",
-        **kwargs,
     ):
         super().__init__()
+        self._indim = input_size
+        self._outdim = output_size
 
         # TODO: add other backbone model; Pay attention to self.offset
-        if self.arguments.backbone == "XVector":
+        if backbone == "XVector":
             self.backbone = XVectorBackbone(
                 input_size=input_size, output_size=output_size
             )
             self.offset = XVECTOR_TDNNS_LENGTH_REDUCTION
         else:
             raise ValueError(
-                "{} backbone type is not defined".format(self.arguments.backbone)
+                "{} backbone type is not defined".format(backbone)
             )
 
-        pooling_type = self.arguments.pooling_type
+        pooling_type = pooling_type
         if pooling_type == "TemporalAveragePooling" or pooling_type == "TAP":
             self.pooling = TemporalAveragePooling(
                 input_size=self.backbone.output_size,
@@ -206,7 +210,7 @@ class SpeakerEmbeddingExtractor(NNModule):
                 input_size=self.backbone.output_size,
                 output_size=2 * self.backbone.output_size,
             )
-            self.arguments.output_size = 2 * self.backbone.output_size
+            self._outdim = 2 * self.backbone.output_size
 
         elif pooling_type == "SelfAttentivePooling" or pooling_type == "SAP":
             self.pooling = SelfAttentivePooling(
@@ -219,18 +223,18 @@ class SpeakerEmbeddingExtractor(NNModule):
                 input_size=self.backbone.output_size,
                 output_size=2 * self.backbone.output_size,
             )
-            self.arguments.output_size = 2 * self.backbone.output_size
+            self._outdim = 2 * self.backbone.output_size
 
         else:
             raise ValueError("{} pooling type is not defined".format(pooling_type))
 
     @property
     def input_size(self):
-        return self.arguments.input_size
+        return self._indim
 
     @property
     def output_size(self):
-        return self.arguments.output_size
+        return self._outdim
 
     def forward(self, x, xlen=None):
         """
@@ -240,7 +244,7 @@ class SpeakerEmbeddingExtractor(NNModule):
             x: size (batch, output_size)
         """
 
-        x = self.backbone(x).slice(1)
+        x = self.backbone(x)
 
         if xlen is not None:
             xlen = torch.LongTensor([max(item - self.offset, 0) for item in xlen])
@@ -249,23 +253,26 @@ class SpeakerEmbeddingExtractor(NNModule):
 
         x = self.pooling(x, xlen)
 
-        return Output(output=x)
+        return x
 
 
-class _UtteranceExtractor(NNModule):
-    def __init__(self, input_size, output_size, **kwargs):
+class _UtteranceExtractor(nn.Module):
+    def __init__(self, input_size, output_size):
         super().__init__()
+        self._indim = input_size
+        self._outdim = output_size
+
         self.linear1 = nn.Linear(input_size, output_size)
         self.linear2 = nn.Linear(output_size, output_size)
         self.act_fn = nn.ReLU()
 
     @property
     def input_size(self):
-        return self.arguments.input_size
+        return self._indim
 
     @property
     def output_size(self):
-        return self.arguments.output_size
+        return self._outdim
 
     def forward(self, x_BxH):
         hid_BxH = self.linear1(x_BxH)
@@ -278,7 +285,7 @@ class _UtteranceExtractor(NNModule):
         return hid_BxH
 
 
-class SuperbXvector(NNModule):
+class SuperbXvector(nn.Module):
     """
     This has some small differences compared to the original Xvector
 
@@ -299,7 +306,6 @@ class SuperbXvector(NNModule):
         aggregation_size: int = 1500,
         dropout_p: float = 0.0,
         batch_norm: bool = False,
-        **kwds,
     ):
         super().__init__()
         self._input_size = input_size
@@ -327,7 +333,7 @@ class SuperbXvector(NNModule):
     def forward(self, x, x_len):
         x = self.projector(x)
 
-        x = self.tdnns(x).slice(1)
+        x = self.tdnns(x)
         x_len = x_len - XVECTOR_TDNNS_LENGTH_REDUCTION
         assert (
             x_len <= 0
@@ -335,4 +341,4 @@ class SuperbXvector(NNModule):
 
         x = self.pooling(x, x_len)
         x = self.affine(x)
-        return Output(output=x)
+        return x

@@ -61,6 +61,10 @@ def to_device(data, device: str):
 
 class Problem:
     @classmethod
+    def default_config(cls):
+        raise NotImplementedError
+
+    @classmethod
     def build_collate_fn(cls, _mode: str):
         from s3prl.dataset.base import default_collate_fn
 
@@ -558,13 +562,14 @@ class Problem:
         torch.save(state, _task_ckpt_path)
 
     @classmethod
-    def load_model_and_task(cls, _ckpts_dir: str):
+    def load_model_and_task(cls, _ckpts_dir: str, _task_overrides: dict = None):
         model_ckpt_path = Path(_ckpts_dir) / "model.pt"
         model, model_extra_conf = cls.load_model(model_ckpt_path)
 
         task_ckpt_path = Path(_ckpts_dir) / "task.pt"
         ckpt = torch.load(task_ckpt_path, map_location="cpu")
-        task = cls.build_task(model, **ckpt["init_task"])
+        init_task = {**ckpt["init_task"], **_task_overrides}
+        task = cls.build_task(model, **init_task)
         task.set_state(ckpt["task_state"])
 
         task_extra_conf = ckpt["extra_conf"]

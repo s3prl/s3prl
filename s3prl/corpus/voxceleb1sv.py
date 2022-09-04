@@ -1,15 +1,8 @@
 import logging
-import os
-from collections import defaultdict
 from pathlib import Path
-
-from filelock import FileLock
-from joblib import Parallel, delayed
 from tqdm import tqdm
 
-from s3prl import Container, Output, cache
-from s3prl.base.cache import get_cache_root
-from s3prl.util.download import _urls_to_filepaths
+from s3prl.util.download import _download
 
 from .base import Corpus
 
@@ -18,10 +11,13 @@ TRIAL_FILE_URL = "https://openslr.magicdatatech.com/resources/49/voxceleb1_test_
 
 
 class VoxCeleb1SV(Corpus):
-    def __init__(self, dataset_root: str, n_jobs: int = 4) -> None:
+    def __init__(
+        self, dataset_root: str, download_dir: str, force_download: bool = True
+    ) -> None:
         self.dataset_root = Path(dataset_root).resolve()
+
         train_path, valid_path, test_path, speakerid2label = self.format_path(
-            self.dataset_root
+            self.dataset_root, download_dir, force_download
         )
         self.categories = speakerid2label
         self.train_data = self.path2data(train_path, speakerid2label)
@@ -29,7 +25,7 @@ class VoxCeleb1SV(Corpus):
         self.test_data = {
             self.path2uid(path): {"wav_path": path, "label": None} for path in test_path
         }
-        self.test_trials = self.format_test_trials()
+        self.test_trials = self.format_test_trials(download_dir, force_download)
 
     @classmethod
     def path2uid(cls, path):
@@ -47,13 +43,10 @@ class VoxCeleb1SV(Corpus):
         return data
 
     @staticmethod
-    @cache()
-    def format_path(dataset_root):
+    def format_path(dataset_root, download_dir, force_download: bool):
         split_filename = SPLIT_FILE_URL.split("/")[-1]
-        split_filepath = get_cache_root() / split_filename
-        if not split_filepath.is_file():
-            with FileLock(str(split_filepath) + ".lock"):
-                os.system(f"wget {SPLIT_FILE_URL} -O {str(split_filepath)}")
+        split_filepath = Path(download_dir) / split_filename
+        _download(split_filepath, SPLIT_FILE_URL, refresh=force_download)
 
         usage_list = open(split_filepath, "r").readlines()
         train, valid, test = [], [], []
@@ -97,12 +90,10 @@ class VoxCeleb1SV(Corpus):
         return train, valid, test, speakerid2label
 
     @classmethod
-    def format_test_trials(cls):
+    def format_test_trials(cls, download_dir: str, force_download: bool):
         trial_filename = TRIAL_FILE_URL.split("/")[-1]
-        trial_filepath = get_cache_root() / trial_filename
-        if not trial_filepath.is_file():
-            with FileLock(str(trial_filepath) + ".lock"):
-                os.system(f"wget {TRIAL_FILE_URL} -O {str(trial_filepath)}")
+        trial_filepath = Path(download_dir) / trial_filename
+        _download(trial_filepath, TRIAL_FILE_URL, refresh=force_download)
 
         trial_list = open(trial_filepath, "r").readlines()
         test_trials = []
@@ -116,31 +107,8 @@ class VoxCeleb1SV(Corpus):
 
     @property
     def all_data(self):
-        return self.train_data, self.valid_data, self.test_data, self.test_trial
+        return self.train_data, self.valid_data, self.test_data, self.test_trials
 
     @property
     def data_split_ids(self):
         return None
-
-
-def voxceleb1_for_sv(dataset_root: str, n_jobs: int = 4):
-    corpus = VoxCeleb1SV(dataset_root, n_jobs)
-    all_data = Container(corpus.train_data).add(corpus.valid_data)
-
-    ignored_utts_path = _urls_to_filepaths(
-        "https://huggingface.co/datasets/s3prl/voxceleb1_too_short_utts/raw/main/utt"
-    )
-    with open(ignored_utts_path) as file:
-        ignored_utts = [line.strip() for line in file.readlines()]
-
-    for utt in ignored_utts:
-        assert utt in all_data
-
-    all_data = Container({k: v for k, v in all_data.items() if k not in ignored_utts})
-    return Output(
-        train_data=all_data,
-        valid_data=corpus.valid_data,
-        test_data=corpus.test_data,
-        trials=corpus.test_trials,
-        categories=corpus.categories,
-    )

@@ -17,7 +17,6 @@ class SpeakerVerificationPipe(SequentialDataPipe):
         audio_channel_reduction: str = "first",
         random_crop_secs: float = -1,
         sox_effects: List[List] = None,
-        **unused,
     ):
         pipes = [
             LoadAudio(
@@ -40,5 +39,5 @@ class SpeakerVerificationPipe(SequentialDataPipe):
             output_keys["x"] = "wav_crop"
             output_keys["x_len"] = "wav_crop_len"
 
-        pipes.append(SetOutputKeys(**output_keys))
+        pipes.append(SetOutputKeys(output_keys))
         super().__init__(*pipes)
