@@ -59,6 +59,14 @@ API Documentation
    :template: custom-module-template.rst
    :recursive:
 
+   s3prl.nn
+   s3prl.metric
+   s3prl.corpus
+   s3prl.dataset
+   s3prl.sampler
+   s3prl.encoder
+   s3prl.task
+   s3prl.util
    s3prl.problem
 
 
