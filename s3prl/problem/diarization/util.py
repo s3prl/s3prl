@@ -1,12 +1,15 @@
+import logging
 import os
 import re
-import torch
-import logging
 import subprocess
-import numpy as np
-from typing import List
 from pathlib import Path
+from typing import List
+
+import numpy as np
+import pandas as pd
+import torch
 from scipy.signal import medfilt
+from tqdm import tqdm
 
 logger = logging.getLogger(__name__)
 
@@ -162,3 +165,130 @@ def get_overall_der_from_dscore_file(score_result: str):
         # The overall der line should look like:
         # *** OVERALL *** DER JER ...
     return overall_der
+
+
+def csv_to_kaldi_dir(csv: str, data_dir: str):
+    logger.info(f"Convert csv {csv} into kaldi data directory {data_dir}")
+
+    data_dir: Path = Path(data_dir)
+    data_dir.mkdir(exist_ok=True, parents=True)
+
+    df = pd.read_csv(csv)
+    required = ["record_id", "wav_path", "utt_id", "speaker", "start_sec", "end_sec"]
+    for r in required:
+        assert r in df.columns
+
+    reco2path = {}
+    reco2dur = {}
+    utt2spk = {}
+    spk2utt = {}
+    segments = []
+    for rowid, row in tqdm(df.iterrows(), total=len(df)):
+        record_id, wav_path, duration, utt_id, speaker, start_sec, end_sec = (
+            row["record_id"],
+            row["wav_path"],
+            row["duration"],
+            row["utt_id"],
+            row["speaker"],
+            row["start_sec"],
+            row["end_sec"],
+        )
+        if record_id in reco2path:
+            assert wav_path == reco2path[record_id]
+        else:
+            reco2path[record_id] = wav_path
+
+        if record_id not in reco2dur:
+            reco2dur[record_id] = duration
+        else:
+            assert reco2dur[record_id] == duration
+
+        if utt_id not in utt2spk:
+            utt2spk[utt_id] = str(speaker)
+        else:
+            assert utt2spk[utt_id] == str(speaker)
+
+        if speaker not in spk2utt:
+            spk2utt[speaker] = []
+        spk2utt[speaker].append(utt_id)
+
+        segments.append((utt_id, record_id, str(start_sec), str(end_sec)))
+
+    with (data_dir / "wav.scp").open("w") as f:
+        f.writelines([f"{reco} {path}\n" for reco, path in reco2path.items()])
+
+    with (data_dir / "reco2dur").open("w") as f:
+        f.writelines([f"{reco} {dur}\n" for reco, dur in reco2dur.items()])
+
+    with (data_dir / "utt2spk").open("w") as f:
+        f.writelines([f"{utt} {spk}\n" for utt, spk in utt2spk.items()])
+
+    with (data_dir / "spk2utt").open("w") as f:
+        f.writelines([f"{spk} {' '.join(utts)}\n" for spk, utts in spk2utt.items()])
+
+    with (data_dir / "segments").open("w") as f:
+        f.writelines(
+            [f"{utt} {record} {start} {end}\n" for utt, record, start, end in segments]
+        )
+
+
+def kaldi_dir_to_csv(data_dir: str, csv: str):
+    logger.info(f"Convert kaldi data directory {data_dir} into csv {csv}")
+
+    data_dir: Path = Path(data_dir)
+
+    assert (data_dir / "wav.scp").is_file()
+    assert (data_dir / "segments").is_file()
+    assert (data_dir / "utt2spk").is_file()
+    assert (data_dir / "reco2dur").is_file()
+
+    reco2path = {}
+    with (data_dir / "wav.scp").open() as f:
+        for line in f.readlines():
+            line = line.strip()
+            reco, path = line.split(" ")
+            reco2path[reco] = path
+
+    reco2dur = {}
+    with (data_dir / "reco2dur").open() as f:
+        for line in f.readlines():
+            line = line.strip()
+            reco, duration = line.split(" ")
+            reco2dur[reco] = float(duration)
+
+    utt2spk = {}
+    with (data_dir / "utt2spk").open() as f:
+        for line in f.readlines():
+            line = line.strip()
+            utt, spk = line.split(" ")
+            utt2spk[utt] = spk
+
+    row = []
+    with (data_dir / "segments").open("r") as f:
+        for line in f.readlines():
+            line = line.strip()
+            utt, reco, start, end = line.split(" ")
+            row.append(
+                (
+                    reco,
+                    reco2path[reco],
+                    reco2dur[reco],
+                    utt,
+                    utt2spk[utt],
+                    float(start),
+                    float(end),
+                )
+            )
+
+    recos, wav_paths, durations, utts, spks, starts, ends = zip(*row)
+    pd.DataFrame(
+        data=dict(
+            record_id=recos,
+            wav_path=wav_paths,
+            utt_id=utts,
+            speaker=spks,
+            start_sec=starts,
+            end_sec=ends,
+            duration=durations,
+        )
+    ).to_csv(csv, index=False)

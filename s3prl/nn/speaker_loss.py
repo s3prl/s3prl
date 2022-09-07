@@ -87,9 +87,7 @@ class amsoftmax(nn.Module):
         label_view = label.view(-1, 1)
         if label_view.is_cuda:
             label_view = label_view.cpu()
-        delt_costh = torch.zeros(costh.size()).scatter_(
-            1, label_view, self.margin
-        )
+        delt_costh = torch.zeros(costh.size()).scatter_(1, label_view, self.margin)
         if x.is_cuda:
             delt_costh = delt_costh.cuda()
         costh_m = costh - delt_costh

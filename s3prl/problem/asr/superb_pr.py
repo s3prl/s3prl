@@ -1,6 +1,6 @@
 import pickle
 from collections import OrderedDict
-from json import tool
+from dataclasses import dataclass
 from pathlib import Path
 
 import pandas as pd
@@ -15,18 +15,17 @@ from .superb_asr import SuperbASR
 
 
 class SuperbPR(SuperbASR):
-    @classmethod
-    def default_config(cls) -> dict:
+    def default_config(self) -> dict:
         return dict(
             start=0,
             stop=None,
             target_dir=MISSING,
-            cache_dir=str(Path.home() / ".cache" / "s3prl" / "data"),
+            cache_dir=None,
             remove_all_cache=False,
             prepare_data=dict(
                 dataset_root=MISSING,
-                train_set="train-clean-100",
-                valid_set="dev-clean",
+                train_sets=["train-clean-100"],
+                valid_sets=["dev-clean"],
                 test_sets=["test-clean"],
             ),
             prepare_tokenizer_data=dict(),
@@ -82,7 +81,7 @@ class SuperbPR(SuperbASR):
                 eval_step=2000,
                 save_step=500,
                 gradient_clipping=1.0,
-                gradient_accumulate_steps=1,
+                gradient_accumulate=1,
                 valid_metric="per",
                 valid_higher_better=False,
                 auto_resume=True,
@@ -91,37 +90,56 @@ class SuperbPR(SuperbASR):
             evaluate=dict(),
         )
 
-    @classmethod
     def build_tokenizer(
-        cls,
-        _target_dir,
-        _cache_dir,
-        _tokenizer_data_path,
-        _get_path_only=False,
+        self,
+        build_tokenizer: dict,
+        target_dir: str,
+        cache_dir: str,
+        tokenizer_data_path: str,
+        get_path_only: bool = False,
     ):
-        tokenizer_path = Path(_target_dir) / "default_phone_tokenizer.pkl"
+        """
+        Build the tokenizer from the data prepared by :obj:`prepare_tokenizer_data`
+        By default use the :obj:`default_phoneme_tokenizer`
+
+        Args:
+            build_tokenizer (dict): same in :obj:`default_config`, not used
+            target_dir (str): Current experinment directory
+            cache_dir (str): If the parsing or preprocessing takes too long time, you can save
+                the temporary files into this directory. This directory is expected to be shared
+                across different training sessions (different hypers and :code:`target_dir`)
+            tokenizer_data_path (str): The text file from :obj:`prepare_tokenizer_data`
+            get_path_only (str): Directly return the filepaths no matter they exist or not.
+
+        Returns:
+            str
+
+            filepath of the pickled :obj:`s3prl.encoder.tokenizer.Tokenizer`
+        """
+
+        tokenizer_path = Path(target_dir) / "default_phone_tokenizer.pkl"
         with tokenizer_path.open("wb") as f:
             pickle.dump(default_phoneme_tokenizer(), f)
         return tokenizer_path
 
-    @classmethod
     def build_dataset(
-        cls,
-        _target_dir: str,
-        _cache_dir: str,
-        _mode: str,
-        _data_csv: str,
-        _tokenizer_path: str,
+        self,
+        build_dataset: dict,
+        target_dir: str,
+        cache_dir: str,
+        mode: str,
+        data_csv: str,
+        tokenizer_path: str,
     ):
         data_points = OrderedDict()
-        csv = pd.read_csv(_data_csv)
+        csv = pd.read_csv(data_csv)
         for _, row in csv.iterrows():
             data_points[row["id"]] = {
                 "wav_path": row["wav_path"],
                 "transcription": row["transcription"],
             }
 
-        with open(_tokenizer_path, "rb") as f:
+        with open(tokenizer_path, "rb") as f:
             tokenizer = pickle.load(f)
 
         dataset = Speech2PhonemePipe()(
@@ -130,39 +148,79 @@ class SuperbPR(SuperbASR):
         )
         return dataset
 
-    @classmethod
     def build_batch_sampler(
-        cls,
-        _target_dir: str,
-        _cache_dir: str,
-        _mode: str,
-        _data_csv: str,
-        _dataset,
-        train: dict = None,
-        valid: dict = None,
-        test: dict = None,
+        self,
+        build_batch_sampler: dict,
+        target_dir: str,
+        cache_dir: str,
+        mode: str,
+        data_csv: str,
+        dataset,
     ):
-        train = train or {}
-        valid = valid or {}
-        test = test or {}
+        """
+        Return the batch sampler for torch DataLoader.
 
-        if _mode == "train":
-            sampler = SortedSliceSampler(_dataset, **train)
-        elif _mode == "valid":
-            sampler = FixedBatchSizeBatchSampler(_dataset, **valid)
-        elif _mode == "test":
-            sampler = FixedBatchSizeBatchSampler(_dataset, **test)
+        Args:
+            build_batch_sampler (dict): same in :obj:`default_config`
+
+                ====================  ====================
+                key                   description
+                ====================  ====================
+                train                 (dict) - arguments for :obj:`SortedSliceSampler`
+                valid                 (dict) - arguments for :obj:`FixedBatchSizeBatchSampler`
+                test                  (dict) - arguments for :obj:`FixedBatchSizeBatchSampler`
+                ====================  ====================
+
+            target_dir (str): Current experiment directory
+            cache_dir (str): If the preprocessing takes too long time, save
+                the temporary files into this directory. This directory is expected to be shared
+                across different training sessions (different hypers and :code:`target_dir`)
+            mode (str): train/valid/test
+            data_csv (str): the :code:`mode` specific csv from :obj:`prepare_data`
+            dataset: the dataset from :obj:`build_dataset`
+
+        Returns:
+            batch sampler for torch DataLoader
+        """
+
+        @dataclass
+        class Config:
+            train: dict = None
+            valid: dict = None
+            test: dict = None
+
+        conf = Config(**build_batch_sampler)
+
+        if mode == "train":
+            sampler = SortedSliceSampler(dataset, **(conf.train or {}))
+        elif mode == "valid":
+            sampler = FixedBatchSizeBatchSampler(dataset, **(conf.valid or {}))
+        elif mode == "test":
+            sampler = FixedBatchSizeBatchSampler(dataset, **(conf.test or {}))
 
         return sampler
 
-    @classmethod
     def build_downstream(
-        cls,
-        _downstream_input_size: int,
-        _downstream_output_size: int,
-        _downstream_downsample_rate: int,
-        hidden_size: int,
+        self,
+        build_downstream: dict,
+        downstream_input_size: int,
+        downstream_output_size: int,
+        downstream_input_stride: int,
     ):
+        """
+        Return the task-specific downstream model.
+        By default build the :obj:`FrameLevelLinear`
+
+        Args:
+            build_downstream (dict): same in :obj:`default_config`,
+                supports arguments in :obj:`FrameLevelLinear`
+            downstream_input_size (int): the required input size of the model
+            downstream_output_size (int): the required output size of the model
+            downstream_input_stride (int): the input feature's stride (from 16 KHz)
+
+        Returns:
+            :obj:`s3prl.nn.interface.AbsFrameModel`
+        """
         return FrameLevelLinear(
-            _downstream_input_size, _downstream_output_size, hidden_size=hidden_size
+            downstream_input_size, downstream_output_size, **build_downstream
         )

@@ -5,6 +5,7 @@ import torch
 import torch.nn.functional as F
 from tqdm import tqdm
 
+from s3prl.encoder.category import CategoryEncoder
 from s3prl.metric import accuracy, compute_eer, compute_minDCF
 from s3prl.nn import amsoftmax, softmax
 
@@ -57,7 +58,7 @@ class SpeakerVerification(Task):
         categories (dict[str]):
             each key in the Dictionary is the final prediction content in str.
             use categories[key] to encode as numeric label
-        trials (List[Tuple[int, str, str]]):
+        test_trials (List[Tuple[int, str, str]]):
             each tuple in the list consists of (label, enroll_utt, test_utt)
         loss_type (str): softmax or amsoftmax
         loss_cfg (dict): **kwds for loss_type class
@@ -66,14 +67,14 @@ class SpeakerVerification(Task):
     def __init__(
         self,
         model: SpeakerClassifier,
-        categories: Dict[str, int],
+        category: CategoryEncoder,
         test_trials: List[Tuple[int, str, str]] = None,
         loss_type: str = "amsoftmax",
         loss_cfg: dict = None,
     ):
         super().__init__()
         self.model = model
-        self.categories = categories
+        self.category = category
         self.trials = test_trials
 
         if loss_type == "amsoftmax":
@@ -83,12 +84,20 @@ class SpeakerVerification(Task):
         else:
             raise ValueError(f"Unsupported loss_type {loss_type}")
 
-        self.loss = loss_cls(
+        self.loss: torch.nn.Module = loss_cls(
             input_size=self.model.output_size,
-            output_size=len(self.categories),
+            output_size=len(self.category),
             **loss_cfg,
         )
-        assert self.loss.output_size == len(categories)
+        assert self.loss.output_size == len(category)
+
+    def get_state(self):
+        return {
+            "loss_state": self.loss.state_dict(),
+        }
+
+    def set_state(self, state: dict):
+        self.loss.load_state_dict(state["loss_state"])
 
     def predict(self, x: torch.Tensor, x_len: torch.LongTensor):
         """

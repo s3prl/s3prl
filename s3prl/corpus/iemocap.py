@@ -8,9 +8,6 @@ import torch
 from librosa.util import find_files
 from torch.utils.data import random_split
 
-from s3prl import Container, cache
-from s3prl.base import fileio
-from s3prl.util import registry
 from s3prl.util.download import _urls_to_filepaths
 
 from .base import Corpus
@@ -33,17 +30,16 @@ class IEMOCAP(Corpus):
     def __init__(self, dataset_root: str, n_jobs: int = 4) -> None:
         self.dataset_root = Path(dataset_root)
         self.sessions = [
-            Container(self._preprocess_single_session(self.dataset_root, session_id))
+            (self._preprocess_single_session(self.dataset_root, session_id))
             for session_id in range(1, IEMOCAP_SESSION_NUM + 1)
         ]
 
-        self._all_data = Container()
+        self._all_data = dict()
         for session in self.sessions:
-            self._all_data.add(session.improvised)
-            self._all_data.add(session.scripted)
+            self._all_data.update(session["improvised"])
+            self._all_data.update(session["scripted"])
 
     @staticmethod
-    @cache()
     def _preprocess_single_session(dataset_root: Path, session_id: int):
         data = dict(
             improvised={},
@@ -80,7 +76,7 @@ class IEMOCAP(Corpus):
     def all_data(self):
         """
         Return:
-            :obj:`s3prl.base.container.Container`
+            dict
 
             all the data points of IEMOCAP in the format of
 
@@ -96,7 +92,7 @@ class IEMOCAP(Corpus):
                 data_id2:
                     ...
         """
-        return Container(self._all_data)
+        return deepcopy(self._all_data.copy())
 
     def get_whole_session(self, session_id: int):
         """
@@ -104,15 +100,15 @@ class IEMOCAP(Corpus):
             session_id (int): The session index selected from 1, 2, 3, 4, 5
 
         Return:
-            :obj:`s3prl.base.container.Container`
+            dict
 
             data points in a single session (containing improvised and scripted recordings) in the
             same format as :obj:`all_data`
         """
-        output = Container()
-        output.add(self.get_session_with_act(session_id, "improvised"))
-        output.add(self.get_session_with_act(session_id, "scripted"))
-        return Container(output)
+        output = dict()
+        output.update(self.get_session_with_act(session_id, "improvised"))
+        output.update(self.get_session_with_act(session_id, "scripted"))
+        return deepcopy(output)
 
     def get_session_with_act(self, session_id: int, act: str):
         """
@@ -127,7 +123,7 @@ class IEMOCAP(Corpus):
             same format as :obj:`all_data`
         """
         assert act in ["improvised", "scripted"]
-        return Container(self.sessions[session_id - 1][act])
+        return deepcopy(self.sessions[session_id - 1][act])
 
     @classmethod
     def download_dataset(cls, tgt_dir: str) -> None:
@@ -168,89 +164,3 @@ class IEMOCAP(Corpus):
         logger.info(
             f"IEMOCAP dataset downloaded. Located at {os.path.abspath(tgt_dir)}/IEMOCAP/"
         )
-
-
-@registry.put()
-def iemocap_for_superb(
-    dataset_root: str, test_fold: int = 0, valid_ratio: float = 0.2, n_jobs: int = 4
-):
-    """
-    This is the specific setting used in the SUPERB paper, where we only use
-    4 emotion classes: :code:`happy`, :code:`angry`, :code:`neutral`, and :code:`sad`
-    with balanced data points and the :code:`excited` class is merged into :code:`happy` class.
-
-    When test_fold is 0, then session 1 will be used as testing set; session 2 will be
-    used as validation set; the others are used as the training set
-
-    Args:
-        dataset_root (str): The dataset root of IEMOCAP
-        test_fold (int): the fold for cross validation, starting from index 0
-
-    Return:
-        :obj:`s3prl.base.container.Container`
-
-        .. code-block:: yaml
-
-            train_data:
-                data_id1:
-                    wav_path (str): The waveform path
-                    label (str): The emotion label
-
-                data_id2:
-                    ...
-
-            valid_data:
-                same format as train_data
-
-            test_data:
-                same format as train_data
-    """
-    corpus = IEMOCAP(dataset_root, n_jobs)
-    all_datapoints = corpus.all_data
-
-    def format_fields(data: Container):
-        result = Container()
-        for data_id in data.keys():
-            datapoint = data[data_id]
-            result[data_id] = dict(
-                wav_path=datapoint["wav_path"], label=datapoint["emotion"]
-            )
-        return result
-
-    def filter_data(data_ids: List[str]):
-        result = Container()
-        for data_id in data_ids:
-            data_point = deepcopy(all_datapoints[data_id])
-            if data_point.emotion in ["neu", "hap", "ang", "sad", "exc"]:
-                if data_point.emotion == "exc":
-                    data_point.emotion = "hap"
-                result[data_id] = data_point
-        return result
-
-    test_session_id = test_fold + 1
-    train_meta_data_json = _urls_to_filepaths(
-        f"https://huggingface.co/datasets/s3prl/iemocap_split/raw/4097f2b496c41eed016d4e5eb0ada4cccd46d1f3/Session{test_session_id}/train_meta_data.json",
-    )
-    test_meta_data_json = _urls_to_filepaths(
-        f"https://huggingface.co/datasets/s3prl/iemocap_split/raw/4097f2b496c41eed016d4e5eb0ada4cccd46d1f3/Session{test_session_id}/test_meta_data.json",
-    )
-    dev_ids = [
-        Path(item["path"]).stem
-        for item in fileio.load(train_meta_data_json, "json")["meta_data"]
-    ]
-    test_ids = [
-        Path(item["path"]).stem
-        for item in fileio.load(test_meta_data_json, "json")["meta_data"]
-    ]
-
-    train_len = int((1 - valid_ratio) * len(dev_ids))
-    train_valid_lens = [train_len, len(dev_ids) - train_len]
-
-    torch.manual_seed(0)
-    train_ids, valid_ids = random_split(dev_ids, train_valid_lens)
-
-    return Container(
-        train_data=format_fields(filter_data(train_ids)),
-        valid_data=format_fields(filter_data(valid_ids)),
-        test_data=format_fields(filter_data(test_ids)),
-    )

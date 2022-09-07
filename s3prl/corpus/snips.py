@@ -1,9 +1,10 @@
 import logging
+from collections import OrderedDict
 from pathlib import Path
 from typing import Any, Dict, List
-from collections import OrderedDict
 
 from tqdm import trange
+
 from .base import Corpus
 
 

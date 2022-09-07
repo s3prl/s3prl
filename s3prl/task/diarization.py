@@ -1,7 +1,8 @@
+from pathlib import Path
+from typing import List
+
 import torch
 import torch.nn as nn
-from typing import List
-from pathlib import Path
 
 from s3prl.metric.diarization import calc_diarization_error
 from s3prl.nn.pit import get_label_perm, pit_loss

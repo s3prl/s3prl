@@ -75,9 +75,7 @@ class Speech2TextCTCTask(Task):
 
         assert isinstance(tokenizer, Tokenizer)
         self.tokenizer = tokenizer
-
         self.log_metrics = log_metrics
-        assert self.model.output_size == len(self.tokenizer)
 
         if BeamDecoder is None:
             decoder = None

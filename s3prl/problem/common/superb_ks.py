@@ -1,6 +1,7 @@
 import logging
 import math
 import pickle
+from collections import Counter
 from pathlib import Path
 from typing import OrderedDict
 
@@ -10,7 +11,7 @@ from torch.utils.data import Dataset
 
 from s3prl.corpus.speech_commands import SpeechCommandsV1
 from s3prl.dataset.utterance_classification_pipe import UtteranceClassificationPipe
-from s3prl.nn.interface import AbsFrameModel
+from s3prl.encoder.category import CategoryEncoder
 from s3prl.nn.linear import MeanPoolingLinear
 from s3prl.sampler import BalancedWeightedSampler, FixedBatchSizeBatchSampler
 
@@ -21,98 +22,94 @@ logger = logging.getLogger(__name__)
 EFFECTS = [["channels", "1"], ["rate", "16000"], ["gain", "-3.0"]]
 
 
-class SuperbKS(Common):
-    @classmethod
-    def default_config(cls) -> dict:
-        """
-        Args:
-            start (int):
-                The starting stage of the problem script.
-                Default: 0
-            stop (int):
-                The stoping stage of the problem script, set `None` to reach the final stage.
-                Default: None
-            target_dir (str):
-                The directory that stores the script result.
-                Default: MISSING
-            cache_dir (str):
-                The directory that caches the processed data.
-                Default: /home/user/.cache/s3prl/data
-            remove_all_cache (bool):
-                Whether to remove all the cache stored under `cache_dir`.
-                Default: False
-            prepare_data (dict):
-                The dict that stores the prepare data config.
-                Default: dict(gsc1=MISSING,gsc1_test=MISSING,)
-            build_encoder (dict):
-                The dict that stores the encoder config.
-                Default: dict()
-            build_dataset (dict):
-                The dict that stores the dataset config.
-                Default: dict()
-            build_batch_sampler (dict):
-                The dict that stores the batch sampler config.
-                Default: dict(
-                    train=dict(batch_size=32,),
-                    valid=dict(batch_size=32,),
-                    test=dict(batch_size=32,),
-                )
-            build_upstream (dict):
-                The dict that stores the upstream config.
-                Default: dict(name="fbank",)
-            build_featurizer (dict):
-                The dict that stores the featurizer config.
-                Default: dict(layer_selections=None, normalize=False,)
-            build_downstream (dict):
-                The dict that stores the downstream config.
-                Default: dict(hidden_size=256,)
-            build_model (dict):
-                The dict that stores the model config.
-                Default: dict(upstream_trainable=False,)
-            build_task (dict):
-                The dict that stores the task config.
-                Default: dict()
-            build_optimizer (dict):
-                The dict that stores the optimizer config.
-                Default: dict(
-                    name="Adam",
-                    conf=dict(lr=1.0e-4,),
-                )
-            build_scheduler (dict):
-                The dict that stores the scheduler config.
-                Default: dict(name="ExponentialLR",gamma=0.9,)
-            save_model (dict):
-                The dict that stores the save model config.
-                Default: dict()
-            save_task (dict):
-                The dict that stores the save task config.
-                Default: dict()
-            train (dict):
-                The dict that stores the training script config.
-                Default: dict(
-                    total_steps=200000,
-                    log_step=100,
-                    eval_step=2000,
-                    save_step=500,
-                    gradient_clipping=1.0,
-                    gradient_accumulate_steps=1,
-                    valid_metric="accuracy",
-                    valid_higher_better=True,
-                    auto_resume=True,
-                    resume_ckpt_dir=None,
-                )
-            evaluate (dict):
-                The dict that stores the evaluation script config.
-                Default: dict()
+def gsc1_for_classification(
+    target_dir: str,
+    cache_dir: str,
+    gsc1: str,
+    gsc1_test: str,
+    get_path_only: bool = False,
+):
+    """
+    Prepare Google Speech Command for classfication task
+    following :obj:`SuperbKS.prepare_data` format.
 
-        Return:
-            default_config (dict): The dict that stores all the config
-        """
+    Args:
+        gsc1 (str): The root path of the Google Speech Command V1 training set
+        gsc1_test (str): The root path of the Google Speech Command V1 test set
+        **others: refer to :obj:`SuperbKS.prepare_data`
+    """
+    target_dir = Path(target_dir)
+
+    train_path = target_dir / f"train.csv"
+    valid_path = target_dir / f"valid.csv"
+    test_paths = [target_dir / f"test.csv"]
+
+    if get_path_only:
+        return train_path, valid_path, test_paths
+
+    def gsc_v1_for_superb(gsc1: str, gsc1_test: str):
+        corpus = SpeechCommandsV1(gsc1, gsc1_test)
+
+        def format_fields(data: dict):
+            import torchaudio
+
+            formated_data = OrderedDict()
+            for key, value in data.items():
+                data_point = {
+                    "wav_path": value["wav_path"],
+                    "label": value["class_name"],
+                    "start_sec": None,
+                    "end_sec": None,
+                }
+                if value["class_name"] == "_silence_":
+                    # NOTE: for silence, crop into 1-second segments, which
+                    # is the standard way reported in the original paper
+                    info = torchaudio.info(value["wav_path"])
+                    for start in list(range(info.num_frames))[:: info.sample_rate]:
+                        seg = data_point.copy()
+                        end = min(start + 1 * info.sample_rate, info.num_frames)
+                        seg["start_sec"] = start / info.sample_rate
+                        seg["end_sec"] = end / info.sample_rate
+                        formated_data[f"{key}_{start}_{end}"] = seg
+                else:
+                    formated_data[key] = data_point
+            return formated_data
+
+        train_data, valid_data, test_data = corpus.data_split
+        return (
+            format_fields(train_data),
+            format_fields(valid_data),
+            format_fields(test_data),
+        )
+
+    train_data, valid_data, test_data = gsc_v1_for_superb(gsc1, gsc1_test)
+
+    def dict_to_csv(data_dict, csv_path):
+        keys = sorted(list(data_dict.keys()))
+        fields = sorted(data_dict[keys[0]].keys())
+        data = dict()
+        for field in fields:
+            data[field] = []
+            for key in keys:
+                data[field].append(data_dict[key][field])
+        data["id"] = keys
+        df = pd.DataFrame(data)
+        df.to_csv(csv_path, index=False)
+
+    dict_to_csv(train_data, train_path)
+    dict_to_csv(valid_data, valid_path)
+    dict_to_csv(test_data, test_paths[0])
+
+    return train_path, valid_path, test_paths
+
+
+class SuperbKS(Common):
+    def default_config(self) -> dict:
         return dict(
             start=0,
             stop=None,
             target_dir=MISSING,
-            cache_dir=str(Path.home() / ".cache" / "s3prl" / "data"),
+            cache_dir=None,
             remove_all_cache=False,
             prepare_data=dict(
                 gsc1=MISSING,
@@ -123,6 +120,7 @@ class SuperbKS(Common):
             build_batch_sampler=dict(
                 train=dict(
                     batch_size=32,
+                    shuffle=True,
                 ),
                 valid=dict(
                     batch_size=32,
@@ -161,7 +159,7 @@ class SuperbKS(Common):
                 eval_step=2000,
                 save_step=500,
                 gradient_clipping=1.0,
-                gradient_accumulate_steps=1,
+                gradient_accumulate=1,
                 valid_metric="accuracy",
                 valid_higher_better=True,
                 auto_resume=True,
@@ -170,141 +168,86 @@ class SuperbKS(Common):
             evaluate=dict(),
         )
 
-    @classmethod
     def prepare_data(
-        cls,
-        _target_dir,
-        _cache_dir,
-        gsc1: str,
-        gsc1_test: str,
-        _get_path_only=False,
+        self,
+        prepare_data: dict,
+        target_dir: str,
+        cache_dir: str,
+        get_path_only: bool = False,
     ):
         """
+        Prepare the task-specific data metadata (path, labels...).
+        By default call :obj:`gsc1_for_classification` with :code:`**prepare_data`
+
         Args:
-            _target_dir (str):
-                The directory that stores the script result.
-            _cache_dir (str):
-                The directory that caches the processed data.
-            gsc1 (str):
-                The path that points to the gsc1 file.
-            gsc1_test (str):
-                The path that points to the gsc1 test file.
-            _get_path_only (bool):
-                Whether to prepare only the path and not the actual data.
-                Default: False
+            prepare_data (dict): same in :obj:`default_config`,
+                support arguments in :obj:`gsc1_for_classification`
+            target_dir (str): Parse your corpus and save the csv file into this directory
+            cache_dir (str): If the parsing or preprocessing takes too long time, you can save
+                the temporary files into this directory. This directory is expected to be shared
+                across different training sessions (different hypers and :code:`target_dir`)
+            get_path_only (str): Directly return the filepaths no matter they exist or not.
 
-        Return:
-            train_path (str):
-                The path that points to the prepared train csv file.
-                Default: "`_target_dir`/train.csv"
-            valid_path (str):
-                The path that points to the prepared valid csv file.
-                Default: "`_target_dir`/valid.csv"
-            test_paths (list[str]):
-                The path that points to the prepared test csv files.
-                Default: ["`_target_dir`/test.csv",]
+        Returns:
+            tuple
+
+            1. train_path (str)
+            2. valid_path (str)
+            3. test_paths (List[str])
+
+            Each path (str) should be a csv file containing the following columns:
+
+            ====================  ====================
+            column                description
+            ====================  ====================
+            id                    (str) - the unique id for this data point
+            wav_path              (str) - the absolute path of the waveform file
+            label                 (str) - a string label of the waveform
+            start_sec             (float) - optional, load the waveform from :code:`start_sec` seconds. If not presented or is :code:`math.nan`, load from the beginning.
+            end_sec               (float) - optional, load the waveform from :code:`end_sec` seconds. If not presented or is :code:`math.nan`, load to the end.
+            ====================  ====================
         """
-        target_dir = Path(_target_dir)
+        return gsc1_for_classification(
+            **self._get_current_arguments(flatten_dict="prepare_data")
+        )
 
-        train_path = target_dir / f"train.csv"
-        valid_path = target_dir / f"valid.csv"
-        test_paths = [target_dir / f"test.csv"]
-
-        if _get_path_only:
-            return train_path, valid_path, test_paths
-
-        def gsc_v1_for_superb(gsc1: str, gsc1_test: str, n_jobs: int = 6):
-            corpus = SpeechCommandsV1(gsc1, gsc1_test, n_jobs)
-
-            def format_fields(data: dict):
-                import torchaudio
-
-                formated_data = OrderedDict()
-                for key, value in data.items():
-                    data_point = {
-                        "wav_path": value["wav_path"],
-                        "label": value["class_name"],
-                        "start_sec": None,
-                        "end_sec": None,
-                    }
-                    if value["class_name"] == "_silence_":
-                        info = torchaudio.info(value["wav_path"])
-                        for start in list(range(info.num_frames))[:: info.sample_rate]:
-                            seg = data_point.copy()
-                            end = min(start + 1 * info.sample_rate, info.num_frames)
-                            seg["start_sec"] = start / info.sample_rate
-                            seg["end_sec"] = end / info.sample_rate
-                            formated_data[f"{key}_{start}_{end}"] = seg
-                    else:
-                        formated_data[key] = data_point
-                return formated_data
-
-            train_data, valid_data, test_data = corpus.data_split
-            return (
-                format_fields(train_data),
-                format_fields(valid_data),
-                format_fields(test_data),
-            )
-
-        train_data, valid_data, test_data = gsc_v1_for_superb(gsc1, gsc1_test)
-
-        def dict_to_csv(data_dict, csv_path):
-            keys = sorted(list(data_dict.keys()))
-            fields = sorted(data_dict[keys[0]].keys())
-            data = dict()
-            for field in fields:
-                data[field] = []
-                for key in keys:
-                    data[field].append(data_dict[key][field])
-            data["id"] = keys
-            df = pd.DataFrame(data)
-            df.to_csv(csv_path, index=False)
-
-        dict_to_csv(train_data, train_path)
-        dict_to_csv(valid_data, valid_path)
-        dict_to_csv(test_data, test_paths[0])
-
-        return train_path, valid_path, test_paths
-
-    @classmethod
     def build_encoder(
-        cls,
-        _target_dir,
-        _cache_dir,
-        _train_csv_path,
-        _valid_csv_path,
-        _test_csv_paths,
-        _get_path_only=False,
+        self,
+        build_encoder: dict,
+        target_dir: str,
+        cache_dir: str,
+        train_csv_path: str,
+        valid_csv_path: str,
+        test_csv_paths: list,
+        get_path_only: bool = False,
     ):
         """
+        Build the encoder (for the labels) given the data metadata, and return the saved encoder path.
+        By default generate and save a :obj:`s3prl.encoder.CategoryEncoder` from the :code:`label` column of all the csv files.
+
         Args:
-            _target_dir (str):
-                The directory that stores the script result.
-            _cache_dir (str):
-                The directory that caches the processed data.
-            _train_csv_path (str):
-                The path that points to the prepared train csv file.
-            _valid_csv_path (str):
-                The path that points to the prepared valid csv file.
-            _test_csv_paths (str):
-                The path that points to the prepared test csv files.
-            _get_path_only (bool):
-                Whether to prepare only the path and not the actual data.
-                Default: False
+            build_encoder (dict): same in :obj:`default_config`, no argument supported for now
+            target_dir (str): Save your encoder into this directory
+            cache_dir (str): If the preprocessing takes too long time, you can save
+                the temporary files into this directory. This directory is expected to be shared
+                across different training sessions (different hypers and :code:`target_dir`)
+            train_csv_path (str): the train path from :obj:`prepare_data`
+            valid_csv_path (str): the valid path from :obj:`prepare_data`
+            test_csv_paths (List[str]): the test paths from :obj:`prepare_data`
+            get_path_only (str): Directly return the filepaths no matter they exist or not.
 
-        Return:
-            encoder (CategoryEncoders):
-                The builded encoder object.
+        Returns:
+            str
+
+            tokenizer_path: The tokenizer should be saved in the pickle format
         """
-        from s3prl.encoder.category import CategoryEncoder
-
-        encoder_path = Path(_target_dir) / "encoder.pkl"
-        if _get_path_only:
+        encoder_path = Path(target_dir) / "encoder.pkl"
+        if get_path_only:
             return encoder_path
 
-        train_csv = pd.read_csv(_train_csv_path)
-        valid_csv = pd.read_csv(_valid_csv_path)
-        test_csvs = [pd.read_csv(path) for path in _test_csv_paths]
+        train_csv = pd.read_csv(train_csv_path)
+        valid_csv = pd.read_csv(valid_csv_path)
+        test_csvs = [pd.read_csv(path) for path in test_csv_paths]
         all_csv = pd.concat([train_csv, valid_csv, *test_csvs])
 
         labels = all_csv["label"].tolist()
@@ -314,35 +257,46 @@ class SuperbKS(Common):
 
         return encoder
 
-    @classmethod
     def build_dataset(
-        cls,
-        _target_dir: str,
-        _cache_dir: str,
-        _mode: str,
-        _data_csv: str,
-        _encoder_path: str,
+        self,
+        build_dataset: dict,
+        target_dir: str,
+        cache_dir: str,
+        mode: str,
+        data_csv: str,
+        encoder_path: str,
     ):
         """
-        Args:
-            _target_dir (str):
-                The directory that stores the script result.
-            _cache_dir (str):
-                The directory that caches the processed data.
-            _mode (str):
-                The mode of the dataset.
-                Default choices: ("train", "valid", "test")
-            _data_csv (str):
-                The path that points to the prepared (train/valid/test) csv file.
-            _encoder_path (str):
-                The path that points to the stored encoder object file.
+        Build the dataset for train/valid/test.
 
-        Return:
-            dataset (UtteranceClassificationPipe):
-                The builded dataset object.
+        Args:
+            build_dataset (dict): same in :obj:`default_config`, no argument supported for now
+            target_dir (str): Current experiment directory
+            cache_dir (str): If the preprocessing takes too long time, you can save
+                the temporary files into this directory. This directory is expected to be shared
+                across different training sessions (different hypers and :code:`target_dir`)
+            mode (str): train/valid/test
+            data_csv (str): The metadata csv file for the specific :code:`mode`
+            encoder_path (str): The pickled encoder path for encoding the labels
+
+        Returns:
+            torch Dataset
+
+            For all train/valid/test mode, the dataset should return each item as a dictionary
+            containing the following keys:
+
+            ====================  ====================
+            key                   description
+            ====================  ====================
+            x                     (torch.FloatTensor) - the waveform in (seq_len, 1)
+            x_len                 (int) - the waveform length :code:`seq_len`
+            class_id              (int) - the encoded class id
+            label                 (str) - the class name
+            unique_name           (str) - the unique id for this datapoint
+            ====================  ====================
         """
         data_points = OrderedDict()
-        csv = pd.read_csv(_data_csv)
+        csv = pd.read_csv(data_csv)
         for _, row in csv.iterrows():
             if "start_sec" in row and "end_sec" in row:
                 start_sec = row["start_sec"]
@@ -365,7 +319,7 @@ class SuperbKS(Common):
                 "end_sec": end_sec,
             }
 
-        with open(_encoder_path, "rb") as f:
+        with open(encoder_path, "rb") as f:
             encoder = pickle.load(f)
 
         dataset = UtteranceClassificationPipe(
@@ -376,94 +330,94 @@ class SuperbKS(Common):
         )
         return dataset
 
-    @classmethod
     def build_batch_sampler(
-        cls,
-        _target_dir: str,
-        _cache_dir: str,
-        _mode: str,
-        _data_csv: str,
-        _dataset: Dataset,
-        train: dict = {},
-        valid: dict = {},
-        test: dict = {},
+        self,
+        build_batch_sampler: dict,
+        target_dir: str,
+        cache_dir: str,
+        mode: str,
+        data_csv: str,
+        dataset: Dataset,
     ):
         """
+        Return the batch sampler for torch DataLoader.
+        By default for train and valid, use :obj:`BalancedWeightedSampler`; for test use
+        :obj:`FixedBatchSizeBatchSampler`
+
         Args:
-            _target_dir (str):
-                The directory that stores the script result.
-            _cache_dir (str):
-                The directory that caches the processed data.
-            _mode (str):
-                The mode of the dataset.
-                Default choices: ("train", "valid", "test")
-            _data_csv (str):
-                The path that points to the prepared (train/valid/test) csv file.
-            _dataset (Dataset):
-                The dataset object.
-            train (dict):
-                The args for the batch sampler during "train" `_mode`.
-                Default: dict()
-            valid (dict):
-                The args for the batch sampler during "valid" `_mode`.
-                Default: dict()
-            test (dict):
-                The args for the batch sampler during "test" `_mode`.
-                Default: dict()
+            build_batch_sampler (dict): same in :obj:`default_config`
 
-        Return:
-            sampler (BalancedWeightedSampler):
-                The builded batch sampler object depended on the given `_mode`.
+                ====================  ====================
+                key                   description
+                ====================  ====================
+                train                 (dict) - arguments for :obj:`BalancedWeightedSampler`
+                valid                 (dict) - arguments for :obj:`BalancedWeightedSampler`
+                test                  (dict) - arguments for :obj:`FixedBatchSizeBatchSampler`
+                ====================  ====================
+
+            target_dir (str): Current experiment directory
+            cache_dir (str): If the preprocessing takes too long time, save
+                the temporary files into this directory. This directory is expected to be shared
+                across different training sessions (different hypers and :code:`target_dir`)
+            mode (str): train/valid/test
+            data_csv (str): the :code:`mode` specific csv from :obj:`prepare_data`
+            dataset: the dataset from :obj:`build_dataset`
+
+        Returns:
+            batch sampler for torch DataLoader
         """
-        from collections import Counter
 
-        csv = pd.read_csv(_data_csv)
+        def _build_batch_sampler(
+            train: dict = None, valid: dict = None, test: dict = None
+        ):
+            train = train or {}
+            valid = valid or {}
+            test = test or {}
 
-        def get_weights(csv):
-            labels = csv["label"].tolist()
-            class2weight = Counter()
-            class2weight.update(labels)
+            csv = pd.read_csv(data_csv)
 
-            weights = []
-            for row_id, row in csv.iterrows():
-                weights.append(len(csv) / class2weight[row["label"]])
+            def get_weights(csv):
+                labels = csv["label"].tolist()
+                class2weight = Counter()
+                class2weight.update(labels)
 
-            return weights
+                weights = []
+                for row_id, row in csv.iterrows():
+                    weights.append(len(csv) / class2weight[row["label"]])
 
-        if _mode == "train":
-            sampler = BalancedWeightedSampler(csv, get_weights=get_weights, **train)
-        elif _mode == "valid":
-            sampler = BalancedWeightedSampler(csv, get_weights=get_weights, **valid)
-        elif _mode == "test":
-            sampler = FixedBatchSizeBatchSampler(csv, **test)
+                return weights
 
-        return sampler
+            if mode == "train":
+                return BalancedWeightedSampler(csv, get_weights=get_weights, **train)
+            elif mode == "valid":
+                return BalancedWeightedSampler(csv, get_weights=get_weights, **valid)
+            elif mode == "test":
+                return FixedBatchSizeBatchSampler(csv, **test)
 
-    @classmethod
+        return _build_batch_sampler(**build_batch_sampler)
+
     def build_downstream(
-        cls,
-        _downstream_input_size: int,
-        _downstream_output_size: int,
-        _downstream_downsample_rate: int,
-        hidden_size: int,
-    ) -> AbsFrameModel:
+        self,
+        build_downstream: dict,
+        downstream_input_size: int,
+        downstream_output_size: int,
+        downstream_downsample_rate: int,
+    ):
         """
-        Args:
-            _downstream_input_size (int):
-                The input size of the downstream model.
-            _downstream_output_size (int):
-                The output size of the downstream model.
-            _downstream_downsample_rate (int):
-                The downstream downsample rate.
-            hidden_size (int):
-                The hidden state size of the downstream model.
+        Return the task-specific downstream model.
+        By default build the :obj:`MeanPoolingLinear` model
 
-        Return:
-            model (AbsFrameModel):
-                The builded downstream model object.
-                Defualt: MeanPoolingLinear
+        Args:
+            build_downstream (dict): same in :obj:`default_config`,
+                support arguments of :obj:`MeanPoolingLinear`
+            downstream_input_size (int): the required input size of the model
+            downstream_output_size (int): the required output size of the model
+            downstream_input_stride (int): the input feature's stride (from 16 KHz)
+
+        Returns:
+            :obj:`AbsUtteranceModel`
         """
         model = MeanPoolingLinear(
-            _downstream_input_size, _downstream_output_size, hidden_size
+            downstream_input_size, downstream_output_size, **build_downstream
         )
         return model

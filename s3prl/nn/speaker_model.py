@@ -194,9 +194,7 @@ class SpeakerEmbeddingExtractor(nn.Module):
             )
             self.offset = XVECTOR_TDNNS_LENGTH_REDUCTION
         else:
-            raise ValueError(
-                "{} backbone type is not defined".format(backbone)
-            )
+            raise ValueError("{} backbone type is not defined".format(backbone))
 
         pooling_type = pooling_type
         if pooling_type == "TemporalAveragePooling" or pooling_type == "TAP":

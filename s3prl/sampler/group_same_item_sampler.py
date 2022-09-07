@@ -5,12 +5,12 @@ class GroupSameItemSampler:
     def __init__(
         self,
         dataset,
-        meta_name: str,
+        item: str,
     ) -> None:
         self.indices = defaultdict(list)
         for idx in range(len(dataset)):
-            meta = dataset.fetch_meta(idx)
-            self.indices[meta[meta_name]].append(idx)
+            info = dataset.get_info(idx)
+            self.indices[info[item]].append(idx)
 
         self.epoch = 0
 

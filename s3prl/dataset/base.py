@@ -9,7 +9,6 @@ import torch
 from speechbrain.dataio.dataset import DynamicItemDataset
 from speechbrain.utils.data_pipeline import DynamicItem
 from torch.nn.utils.rnn import pad_sequence
-from torch.utils import data
 
 logger = logging.getLogger(__name__)
 
@@ -154,10 +153,12 @@ def default_collate_fn(samples, padding_value: int = 0):
     padded_samples = dict()
     for key in keys:
         values = [sample[key] for sample in samples]
-        if isinstance(values[0], (int, float)):
-            values = torch.tensor(values)
+        if isinstance(values[0], int):
+            values = torch.LongTensor(values)
+        elif isinstance(values[0], float):
+            values = torch.FloatTensor(values)
         elif isinstance(values[0], np.ndarray):
-            values = [torch.from_numpy(value) for value in values]
+            values = [torch.from_numpy(value).float() for value in values]
             values = pad_sequence(values, batch_first=True, padding_value=padding_value)
         elif isinstance(values[0], torch.Tensor):
             values = pad_sequence(values, batch_first=True, padding_value=padding_value)

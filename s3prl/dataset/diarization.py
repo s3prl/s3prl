@@ -17,7 +17,6 @@ import sys
 import numpy as np
 import pandas as pd
 import soundfile as sf
-
 from torch.utils.data.dataset import Dataset
 
 
@@ -99,7 +98,7 @@ class DiarizationDataset(Dataset):
     def __len__(self):
         return len(self.chunk_indices)
 
-    def fetch_meta(self, i):
+    def get_info(self, i):
         rec, chunk_id, st, ed = self.chunk_indices[i]
         return dict(
             record_id=rec,

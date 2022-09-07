@@ -3,7 +3,7 @@ from typing import List
 
 class CategoryEncoder:
     def __init__(self, category: List[str]) -> None:
-        self.category = category
+        self.category = list(category)
 
     def __len__(self):
         return len(self.category)

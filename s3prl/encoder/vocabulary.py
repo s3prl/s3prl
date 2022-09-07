@@ -175,3 +175,5 @@ def generate_vocab(
         return generate_subword_vocab(
             text_list=text_list, text_file=text_file, **kwargs
         )
+    else:
+        raise ValueError(f"Unsupported mode (vocabulary type): {mode}")

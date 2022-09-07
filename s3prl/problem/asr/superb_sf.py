@@ -1,10 +1,13 @@
-import pandas as pd
+from dataclasses import dataclass
 from pathlib import Path
+from typing import List
+
+import pandas as pd
 from omegaconf import MISSING
 
-from s3prl.util.download import _urls_to_filepaths
-from s3prl.sampler import FixedBatchSizeBatchSampler
 from s3prl.corpus.snips import SNIPS
+from s3prl.sampler import FixedBatchSizeBatchSampler
+from s3prl.util.download import _urls_to_filepaths
 
 from .superb_asr import SuperbASR
 
@@ -12,14 +15,53 @@ VOCAB_URL = "https://huggingface.co/datasets/s3prl/SNIPS/raw/main/character.txt"
 SLOTS_URL = "https://huggingface.co/datasets/s3prl/SNIPS/raw/main/slots.txt"
 
 
+def audio_snips_for_slot_filling(
+    target_dir: str,
+    cache_dir: str,
+    dataset_root: str,
+    train_speakers: List[str],
+    valid_speakers: List[str],
+    test_speakers: List[str],
+    get_path_only: bool = False,
+):
+    target_dir = Path(target_dir)
+
+    train_path = target_dir / f"train.csv"
+    valid_path = target_dir / f"valid.csv"
+    test_paths = [target_dir / f"test.csv"]
+
+    if get_path_only:
+        return train_path, valid_path, test_paths
+
+    corpus = SNIPS(dataset_root, train_speakers, valid_speakers, test_speakers)
+    train_data, valid_data, test_data = corpus.data_split
+
+    def dict_to_csv(data_dict, csv_path):
+        keys = sorted(list(data_dict.keys()))
+        fields = sorted(data_dict[keys[0]].keys())
+        data = dict()
+        for field in fields:
+            data[field] = []
+            for key in keys:
+                data[field].append(data_dict[key][field])
+        data["id"] = keys
+        df = pd.DataFrame(data)
+        df.to_csv(csv_path, index=False)
+
+    dict_to_csv(train_data, train_path)
+    dict_to_csv(valid_data, valid_path)
+    dict_to_csv(test_data, test_paths[0])
+
+    return train_path, valid_path, test_paths
+
+
 class SuperbSF(SuperbASR):
-    @classmethod
-    def default_config(cls) -> dict:
+    def default_config(self) -> dict:
         return dict(
             start=0,
             stop=None,
             target_dir=MISSING,
-            cache_dir=str(Path.home() / ".cache" / "s3prl" / "data"),
+            cache_dir=None,
             remove_all_cache=False,
             prepare_data=dict(
                 dataset_root=MISSING,
@@ -64,7 +106,7 @@ class SuperbSF(SuperbASR):
                 normalize=False,
             ),
             build_downstream=dict(
-                model_cfg=dict(
+                model_conf=dict(
                     module="LSTM",
                     proj_size=1024,
                     hidden_size=[1024, 1024],
@@ -75,7 +117,7 @@ class SuperbSF(SuperbASR):
                     sample_style="concat",
                     bidirectional=True,
                 ),
-                specaug_cfg=dict(
+                specaug_conf=dict(
                     freq_mask_width_range=(0, 50),
                     num_freq_mask=4,
                     time_mask_width_range=(0, 40),
@@ -114,7 +156,7 @@ class SuperbSF(SuperbASR):
                 eval_step=2000,
                 save_step=500,
                 gradient_clipping=1.0,
-                gradient_accumulate_steps=1,
+                gradient_accumulate=1,
                 valid_metric="slot_type_f1",
                 valid_higher_better=True,
                 auto_resume=True,
@@ -122,66 +164,94 @@ class SuperbSF(SuperbASR):
             ),
         )
 
-    @classmethod
     def prepare_data(
-        cls,
-        _target_dir,
-        _cache_dir,
-        dataset_root,
-        train_speakers,
-        valid_speakers,
-        test_speakers,
-        _get_path_only=False,
+        self,
+        prepare_data: dict,
+        target_dir: str,
+        cache_dir: str,
+        get_path_only: bool = False,
     ):
-        target_dir = Path(_target_dir)
+        """
+        Prepare the task-specific data metadata (path, labels...).
+        By default call :obj:`audio_snips_for_slot_filling` with :code:`**prepare_data`
 
-        train_path = target_dir / f"train.csv"
-        valid_path = target_dir / f"valid.csv"
-        test_paths = [target_dir / f"test.csv"]
+        Args:
+            prepare_data (dict): same in :obj:`default_config`, support arguments in :obj:`audio_snips_for_slot_filling`
+            target_dir (str): Parse your corpus and save the csv file into this directory
+            cache_dir (str): If the parsing or preprocessing takes too long time, you can save
+                the temporary files into this directory. This directory is expected to be shared
+                across different training sessions (different hypers and :code:`target_dir`)
+            get_path_only (str): Directly return the filepaths no matter they exist or not.
 
-        if _get_path_only:
-            return train_path, valid_path, test_paths
+        Returns:
+            tuple
 
-        corpus = SNIPS(dataset_root, train_speakers, valid_speakers, test_speakers)
-        train_data, valid_data, test_data = corpus.data_split
+            1. train_path (str)
+            2. valid_path (str)
+            3. test_paths (List[str])
 
-        def dict_to_csv(data_dict, csv_path):
-            keys = sorted(list(data_dict.keys()))
-            fields = sorted(data_dict[keys[0]].keys())
-            data = dict()
-            for field in fields:
-                data[field] = []
-                for key in keys:
-                    data[field].append(data_dict[key][field])
-            data["id"] = keys
-            df = pd.DataFrame(data)
-            df.to_csv(csv_path, index=False)
+            Each path (str) should be a csv file containing the following columns:
 
-        dict_to_csv(train_data, train_path)
-        dict_to_csv(valid_data, valid_path)
-        dict_to_csv(test_data, test_paths[0])
+            ====================  ====================
+            column                description
+            ====================  ====================
+            id                    (str) - the unique id for this data point
+            wav_path              (str) - the absolute path of the waveform file
+            transcription         (str) - a text string
+            ====================  ====================
+        """
+        return audio_snips_for_slot_filling(
+            **self._get_current_arguments(flatten_dict="prepare_data")
+        )
 
-        return train_path, valid_path, test_paths
-
-    @classmethod
     def build_batch_sampler(
-        cls,
-        _target_dir: str,
-        _cache_dir: str,
-        _mode: str,
-        _data_csv: str,
-        _dataset,
-        train: dict = None,
-        valid: dict = None,
-        test: dict = None,
+        self,
+        build_batch_sampler: dict,
+        target_dir: str,
+        cache_dir: str,
+        mode: str,
+        data_csv: str,
+        dataset,
     ):
-        train = train or {}
-        valid = valid or {}
-        test = test or {}
+        """
+        Return the batch sampler for torch DataLoader.
 
-        if _mode == "train":
-            return FixedBatchSizeBatchSampler(_dataset, **train)
-        elif _mode == "valid":
-            return FixedBatchSizeBatchSampler(_dataset, **valid)
-        elif _mode == "test":
-            return FixedBatchSizeBatchSampler(_dataset, **test)
+        Args:
+            build_batch_sampler (dict): same in :obj:`default_config`
+
+                ====================  ====================
+                key                   description
+                ====================  ====================
+                train                 (dict) - arguments for :obj:`FixedBatchSizeBatchSampler`
+                valid                 (dict) - arguments for :obj:`FixedBatchSizeBatchSampler`
+                test                  (dict) - arguments for :obj:`FixedBatchSizeBatchSampler`
+                ====================  ====================
+
+            target_dir (str): Current experiment directory
+            cache_dir (str): If the preprocessing takes too long time, save
+                the temporary files into this directory. This directory is expected to be shared
+                across different training sessions (different hypers and :code:`target_dir`)
+            mode (str): train/valid/test
+            data_csv (str): the :code:`mode` specific csv from :obj:`prepare_data`
+            dataset: the dataset from :obj:`build_dataset`
+
+        Returns:
+            batch sampler for torch DataLoader
+        """
+
+        @dataclass
+        class Config:
+            train: dict = None
+            valid: dict = None
+            test: dict = None
+
+        conf = Config(**build_batch_sampler)
+
+        if mode == "train":
+            return FixedBatchSizeBatchSampler(dataset, **(conf.train or {}))
+        elif mode == "valid":
+            return FixedBatchSizeBatchSampler(dataset, **(conf.valid or {}))
+        elif mode == "test":
+            return FixedBatchSizeBatchSampler(dataset, **(conf.test or {}))
+        else:
+            raise ValueError(f"Unsupported mode: {mode}")

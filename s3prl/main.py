@@ -17,4 +17,4 @@ if __name__ == "__main__":
         )
         exit(0)
 
-    cls.main(sys.argv[2:])
+    cls().main(sys.argv[2:])

@@ -1,5 +1,6 @@
 import logging
 from pathlib import Path
+
 from tqdm import tqdm
 
 from s3prl.util.download import _download
