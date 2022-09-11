@@ -1,10 +1,8 @@
 import logging
 
 import pytest
-import torch
 
-from s3prl import Output
-from s3prl.sampler import (
+from s3prl.dataio.sampler import (
     DistributedBatchSamplerWrapper,
     FixedBatchSizeBatchSampler,
     MaxTimestampBatchSampler,

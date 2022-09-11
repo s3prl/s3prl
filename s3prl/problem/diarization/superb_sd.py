@@ -5,7 +5,7 @@ from omegaconf import MISSING
 
 from s3prl.dataset.diarization import DiarizationDataset
 from s3prl.nn.rnn import SuperbDiarizationModel
-from s3prl.sampler import FixedBatchSizeBatchSampler, GroupSameItemSampler
+from s3prl.dataio.sampler import FixedBatchSizeBatchSampler, GroupSameItemSampler
 
 from .run import Diarization
 from .util import kaldi_dir_to_csv

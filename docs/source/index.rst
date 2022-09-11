@@ -60,14 +60,11 @@ API Documentation
    :recursive:
 
    s3prl.nn
-   s3prl.metric
-   s3prl.corpus
-   s3prl.dataset
-   s3prl.sampler
-   s3prl.encoder
-   s3prl.task
-   s3prl.util
    s3prl.problem
+   s3prl.task
+   s3prl.dataio
+   s3prl.metric
+   s3prl.util
 
 
 Indices and tables

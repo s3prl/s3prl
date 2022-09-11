@@ -24,7 +24,7 @@ from tqdm import tqdm
 
 from s3prl.dataset.base import default_collate_fn
 from s3prl.nn.upstream import Featurizer, S3PRLUpstream, UpstreamDownstreamModel
-from s3prl.sampler import DistributedBatchSamplerWrapper
+from s3prl.dataio.sampler import DistributedBatchSamplerWrapper
 from s3prl.task import Task
 from s3prl.util.override import parse_overrides
 from s3prl.util.seed import fix_random_seeds

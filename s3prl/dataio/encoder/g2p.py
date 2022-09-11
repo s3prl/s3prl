@@ -2,7 +2,7 @@ import logging
 from collections import defaultdict
 from typing import Dict, List, Tuple
 
-from ..utility.download import _urls_to_filepaths
+from s3prl.util.download import _urls_to_filepaths
 
 DEFAULT_LEXICON_URL = [
     "https://huggingface.co/datasets/s3prl/g2p/raw/main/lexicon/librispeech-lexicon-200k-g2p.txt",

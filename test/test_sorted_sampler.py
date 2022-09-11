@@ -2,7 +2,7 @@ import logging
 import random
 
 from s3prl.dataset.base import AugmentedDynamicItemDataset
-from s3prl.sampler import SortedBucketingSampler, SortedSliceSampler
+from s3prl.dataio.sampler import SortedBucketingSampler, SortedSliceSampler
 
 logger = logging.getLogger(__name__)
 
