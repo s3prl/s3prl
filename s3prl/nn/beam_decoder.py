@@ -13,9 +13,7 @@ from flashlight.lib.text.decoder import (
 )
 from flashlight.lib.text.dictionary import Dictionary, create_word_dict, load_words
 
-from s3prl.base import Container
-
-from ..utility.download import _urls_to_filepaths
+from s3prl.util.download import _urls_to_filepaths
 
 TOKEN_URL = "https://huggingface.co/datasets/s3prl/flashlight/raw/main/lexicon/librispeech_char_tokens.txt"
 
@@ -149,7 +147,7 @@ class BeamDecoder(object):
                 timesteps.append(i)
         return timesteps
 
-    def decode(self, emissions: torch.Tensor) -> List[List[Container]]:
+    def decode(self, emissions: torch.Tensor) -> List[List[dict]]:
         """Decode sequence.
 
         Args:
@@ -169,7 +167,7 @@ class BeamDecoder(object):
             nbest_results = results[: self.nbest]
             hyps.append(
                 [
-                    Container(
+                    dict(
                         tokens=self.get_tokens(result.tokens),
                         score=result.score,
                         timesteps=self.get_timesteps(result.tokens),

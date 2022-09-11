@@ -57,8 +57,6 @@ def parse_overrides(options: list):
             "runner": {"eval_dataloaders": ["dev", "test"]}
         }
     """
-    from s3prl import Container, newdict
-
     config = {}
     for position in range(0, len(options), 2):
         key: str = options[position]

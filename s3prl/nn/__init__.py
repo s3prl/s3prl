@@ -1,4 +1,3 @@
-from .base import NNModule
 from .common import FrameLevel, UtteranceLevel
 from .linear import FrameLevelLinear, MeanPoolingLinear
 from .pooling import MeanPooling

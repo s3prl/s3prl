@@ -1,38 +1,33 @@
+from pathlib import Path
+
 import torch
 import torch.nn as nn
-
-from s3prl.base import Logs
-from s3prl.base.output import Output
-from s3prl.base.workspace import Workspace
-from s3prl.util import workspace
-from s3prl.util.workspace import Workspace
 
 from .base import Task
 
 
 class DumpFeature(Task):
-    def __init__(self, model: nn.Module, **kwds) -> None:
+    def __init__(self, model: nn.Module, dump_feat_dir: str = "feat") -> None:
         super().__init__()
         self.model = model
+        self.dump_feat_dir = dump_feat_dir
 
     @torch.no_grad()
-    def forward(self, split: str, x, x_len, unique_name, workspace: Workspace, **kwds):
+    def forward(self, split: str, x, x_len, unique_name, _dump_dir: str):
         self.model.eval()
         feats, feats_len = self.model(x, x_len).slice(2)
         feats = torch.stack(
             feats, dim=1
         )  # (batch_size, num_layer, seqlen, hidden_size)
 
-        feat_dir = workspace / "feat"
+        feat_dir = Path(_dump_dir) / self.dump_feat_dir
         for feat, feat_len, name in zip(feats, feats_len, unique_name):
             feat = feat[:, :feat_len, :]
-            feat = feat.detach().cpu().numpy()
-            feat_dir.put(feat, name, "npy")
-        return Output()
+            feat = feat.detach().cpu()
+            torch.save(feat, str(feat_dir / f"{name}.pt"))
 
-    def reduction(
-        self, split: str, batch_results: list, on_epoch_end: bool = None, **kwds
-    ):
-        return Output(
-            logs=Logs(),
-        )
+        pseudo_loss = torch.zeros(1, requires_grad=True)
+        return pseudo_loss, {}
+
+    def reduction(self, split: str, batch_results: list, _dump_dir: str):
+        return {}
