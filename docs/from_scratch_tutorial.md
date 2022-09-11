@@ -9,7 +9,7 @@ at s3prl root directory (s3prl-private/)
 ```shell
 $ mkdir docs
 $ cd docs
-$ sphinx-quickstart    
+$ sphinx-quickstart
 $ cd ..
 $ sphinx-apidoc -d 3 --separate --implicit-namespace -o docs ./s3prl s3prl/downstream s3prl/interface s3prl/preprocess s3prl/pretrain s3prl/problem s3prl/sampler s3prl/submit s3prl/superb s3prl/upstream s3prl/utility s3prl/wrapper s3prl/__init__.py s3prl/hub.py s3prl/optimizers.py s3prl/run_downstream.py s3prl/run_pretrain.py s3prl/run_while.sh s3prl/schedulers.py
 ```

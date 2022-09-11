@@ -1,13 +1,13 @@
+import torch
 from pathlib import Path
 
-import torch
-
+import s3prl
+from s3prl.upstream.utils import merge_with_parent, load_fairseq_ckpt
+from s3prl.upstream.wav2vec2.wav2vec2_model import AudioPretrainingConfig
 from s3prl.upstream.data2vec.data2vec_model import (
     Data2VecAudioConfig,
     Data2VecAudioModel,
 )
-from s3prl.upstream.utils import load_fairseq_ckpt, merge_with_parent
-from s3prl.upstream.wav2vec2.wav2vec2_model import AudioPretrainingConfig
 
 
 def load_and_convert_fairseq_ckpt(fairseq_source: str, output_path: str):
@@ -50,7 +50,7 @@ if __name__ == "__main__":
 
     parser = argparse.ArgumentParser()
     parser.add_argument("fairseq_ckpt")
-    parser.add_argument("--output_dir", default="./result/organized_ckpts")
+    parser.add_argument("--output_dir", default=Path(s3prl.__file__).parent.parent / "converted_ckpts")
     args = parser.parse_args()
 
     Path(args.output_dir).parent.mkdir(exist_ok=True, parents=True)

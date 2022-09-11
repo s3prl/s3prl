@@ -1,6 +1,6 @@
 :tocdepth: 2
 
-Use S3PRL pre-trained models collection
+S3PRL Upstream Collection
 =======================================
 
 We collect almost all the existing SSL pre-trained models in S3PRL,
@@ -16,20 +16,22 @@ Here is an example on how to get a hubert model and its representation using the
 .. code-block:: python
 
     import torch
-    from torch.nn.utils.rnn import pad_sequence
+    from s3prl.nn import S3PRLUpstream
 
-    from s3prl.nn.upstream import S3PRLUpstream
-
-    SAMPLE_RATE = 16000
-
-    name = "hubert"
-    model = S3PRLUpstream(name).cuda()
+    model = S3PRLUpstream("hubert")
     model.eval()
 
     with torch.no_grad():
-        wav_lens = torch.LongTensor([1.5, 2, 3]) * SAMPLE_RATE
-        wavs = pad_sequence([torch.randn(l, 1) for l in wav_lens], batch_first=True).cuda()
-        hidden_states, hidden_states_len = model(wavs).slice(2)
+        wavs = torch.randn(2, 16000 * 2)
+        wavs_len = torch.LongTensor([16000 * 1, 16000 * 2])
+        all_hs, all_hs_len = model(wavs, wavs_len)
+
+    for hs, hs_len in zip(all_hs, all_hs_len):
+        assert isinstance(hs, torch.FloatTensor)
+        assert isinstance(hs_len, torch.LongTensor)
+
+        batch_size, max_seq_len, hidden_size = hs.shape
+        assert hs_len.dim() == 1
 
 .. tip::
 
@@ -48,8 +50,6 @@ paper, citation, model architecture, pre-training data, criterion, and their sou
 SSL Method
 --------------------------------------------------------
 `Paper full title with arxiv link <https://arxiv.org/>`_
-
-.. _my-reference-label:
 
 .. code-block:: bash
 
@@ -71,15 +71,6 @@ name2
 ~~~~~~~~~~~~~~~~~~~
 
 The detailed specific information for this checkpoint variant (:code:`name=name2`)
-
-.. tip::
-
-    All the models supported by :obj:`s3prl.nn.upstream.S3PRLUpstream` using :code:`name` have at least one feature
-    extraction mode: :code:`hidden_states`, which extract all the hidden_states of a model.
-
-    Different learning methods also have different official places to extract the representation. Like
-    there is **c** and **z** vectors in wav2vec. You can use different **feature_selection** option
-    to get these specific layers. The supported **feature_selection** options are listed below.
 
 
 
@@ -581,7 +572,7 @@ vq-wav2vec
 .. note::
 
     We only take the Conv encoders' hidden_states for vq-wav2vec in this SSL method category.
-    If you wish to consider the BERT model after ths Conv encoders, please refer to `DiscreteBERT`_.
+    If you wish to consider the BERT model after ths Conv encoders, please refer to `Discrete BERT`_.
 
 vq_wav2vec
 ~~~~~~~~~~~
@@ -605,7 +596,7 @@ This is the official vq-wav2vec model from fairseq.
 This model uses K-means as the quantization technique
 
 
-DiscreteBERT
+Discrete BERT
 --------------------------------------------------
 `vq-wav2vec: Self-supervised learning of discrete speech representations <https://arxiv.org/abs/1910.05453>`_
 
@@ -681,7 +672,30 @@ wav2vec2_large_ll60k
 - Unlabled Speech: LibriLight LL60k hours
 
 
-wav2vec2_xlsr
+wav2vec2_large_lv60_cv_swbd_fsh
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The Large model trained on Libri-Light 60k hours + CommonVoice + Switchboard + Fisher
+
+- Architecture: 24-layer Transformer encoders
+- Unlabeled Speech: Libri-Light 60k hours + CommonVoice + Switchboard + Fisher
+
+
+wav2vec2_conformer_relpos
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+- Architecture: 24-layer Conformer encoders with relative positional encoding
+- Unlabeled Speech: LibriLight LL60k hours
+
+
+wav2vec2_conformer_rope
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+- Architecture: 24-layer Conformer encoders with ROPE positional encoding
+- Unlabeled Speech: LibriLight LL60k hours
+
+
+xlsr_53
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 The wav2vec 2.0 model trained on multilingual presented in `Unsupervised Cross-lingual Representation Learning for Speech Recognition <https://arxiv.org/abs/2006.13979>`_
@@ -696,10 +710,36 @@ The wav2vec 2.0 model trained on multilingual presented in `Unsupervised Cross-l
     }
 
 
-wav2vec2_large_lv60_cv_swbd_fsh
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+XLS-R
+--------------------------------------------------
+`XLS-R: Self-supervised Cross-lingual Speech Representation Learning at Scale <https://arxiv.org/abs/2111.09296>`_
 
-The Large model trained on Libri-Light 60k hours + CommonVoice + Switchboard + Fisher
+.. code-block:: bash
+
+    @article{babu2021xls,
+    title={XLS-R: Self-supervised cross-lingual speech representation learning at scale},
+    author={Babu, Arun and Wang, Changhan and Tjandra, Andros and Lakhotia, Kushal and Xu, Qiantong and Goyal, Naman and Singh, Kritika and von Platen, Patrick and Saraf, Yatharth and Pino, Juan and others},
+    journal={arXiv preprint arXiv:2111.09296},
+    year={2021}
+    }
+
+
+xls_r_300m
+~~~~~~~~~~~~~~~~~~~~~
+
+- Unlabled Speech: 128 languages, 436K hours
+
+
+xls_r_1b
+~~~~~~~~~~~~~~~~~~~~~
+
+- Unlabled Speech: 128 languages, 436K hours
+
+
+xls_r_2b
+~~~~~~~~~~~~~~~~~~~~~
+
+- Unlabled Speech: 128 languages, 436K hours
 
 
 HuBERT
@@ -741,6 +781,8 @@ DistilHuBERT
 ----------------------
 `DistilHuBERT: Speech Representation Learning by Layer-wise Distillation of Hidden-unit BERT <https://arxiv.org/abs/2110.01900>`_
 
+.. code-block:: bash
+
     @inproceedings{chang2022distilhubert,
         title={DistilHuBERT: Speech representation learning by layer-wise distillation of hidden-unit BERT},
         author={Chang, Heng-Jui and Yang, Shu-wen and Lee, Hung-yi},
@@ -763,6 +805,26 @@ distilhubert_base
 - Teacher: `hubert_base`_
 - Unlabled Speech: LibriSpeech 960hr
 
+
+HuBERT-MGR
+--------------------------------------------------
+`Improving Distortion Robustness of Self-supervised Speech Processing Tasks with Domain Adaptation <https://arxiv.org/abs/2203.16104>`_
+
+.. code-block:: bash
+
+    @article{huang2022improving,
+        title={Improving Distortion Robustness of Self-supervised Speech Processing Tasks with Domain Adaptation},
+        author={Huang, Kuan Po and Fu, Yu-Kuan and Zhang, Yu and Lee, Hung-yi},
+        journal={arXiv preprint arXiv:2203.16104},
+        year={2022}
+    }
+
+
+hubert_base_robust_mgr
+~~~~~~~~~~~~~~~~~~~~~~~
+
+- Unlabled Speech: LibriSpeech 960hr
+- Augmentation: MUSAN, gaussian, reverberation
 
 
 Unispeech-SAT
@@ -850,3 +912,37 @@ wavlm_large
 
 - Model Architecture: 24 layers Transformer blocks
 - Unlabled Speech: LibriLight 60k hours + Gigaspeech 10k hours + VoxPopuli 24k hours = 94k hours
+
+
+data2vec
+--------------------------------------------------
+`data2vec: A General Framework for Self-supervised Learning in Speech, Vision and Language <https://arxiv.org/abs/2202.03555>`_
+
+.. code-block:: bash
+
+    @article{baevski2022data2vec,
+    title={Data2vec: A general framework for self-supervised learning in speech, vision and language},
+    author={Baevski, Alexei and Hsu, Wei-Ning and Xu, Qiantong and Babu, Arun and Gu, Jiatao and Auli, Michael},
+    journal={arXiv preprint arXiv:2202.03555},
+    year={2022}
+    }
+
+
+data2vec
+~~~~~~~~~~~~~~~~~
+
+Alias of `data2vec_base_960`_
+
+
+data2vec_base_960
+~~~~~~~~~~~~~~~~~~
+
+- Model Architecture: 12 layers Transformer blocks
+- Unlabled Speech: LibriSpeech 960 hours
+
+
+data2vec_large_ll60k
+~~~~~~~~~~~~~~~~~~~~~
+
+- Model Architecture: 24 layers Transformer blocks
+- Unlabled Speech: LibriLight 60k hours

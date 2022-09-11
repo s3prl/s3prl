@@ -31,7 +31,9 @@ def wavlm_url(ckpt, refresh=False, *args, **kwargs):
         ckpt (str): URL
         refresh (bool): whether to download ckpt/config again if existed
     """
-    return wavlm_local(_urls_to_filepaths(ckpt, refresh=refresh), *args, **kwargs)
+    return wavlm_local(
+        _urls_to_filepaths(ckpt, refresh=refresh), *args, **kwargs
+    )
 
 
 def wavlm(refresh=False, *args, **kwargs):
@@ -54,7 +56,6 @@ def wavlm_base(refresh=False, *args, **kwargs):
 
     # Google Drive
     # kwargs["ckpt"] = "https://drive.google.com/u/0/uc?id=19-C7SMQvEFAYLG5uc47NX_MY03JCbI4x&export=download"
-    # kwargs["agent"] = 'gdown'
     return wavlm_url(refresh=refresh, *args, **kwargs)
 
 
@@ -70,7 +71,6 @@ def wavlm_base_plus(refresh=False, *args, **kwargs):
 
     # Google Drive
     # kwargs["ckpt"] = "https://drive.google.com/u/1/uc?id=1PlbT_9_B4F9BsD_ija84sUTVw7almNX8&export=download"
-    # kwargs["agent"] = 'gdown'
     return wavlm_url(refresh=refresh, *args, **kwargs)
 
 
@@ -86,5 +86,4 @@ def wavlm_large(refresh=False, *args, **kwargs):
 
     # Google Drive
     # kwargs["ckpt"] = "https://drive.google.com/u/1/uc?id=1p8nbj16b7YA16sqPZ4E0JUL-oIDUBGwU&export=download"
-    # kwargs["agent"] = 'gdown'
     return wavlm_url(refresh=refresh, *args, **kwargs)

@@ -1,16 +1,6 @@
-# Copyright (c) Facebook, Inc. All Rights Reserved
-
-# -*- coding: utf-8 -*- #
-"""*********************************************************************************************"""
-#   FileName     [ upstream/wav2vec/expert.py ]
-#   Synopsis     [ the wav2vec wrapper ]
-#   Author       [ S3PRL ]
-#   Copyright    [ Copyleft(c), Speech Lab, NTU, Taiwan ]
-"""*********************************************************************************************"""
-
+import torch
 import logging
 
-import torch
 from torch.nn.utils.rnn import pad_sequence
 
 from ..interfaces import UpstreamBase
@@ -23,10 +13,6 @@ EXAMPLE_SEC = 5
 
 
 class UpstreamExpert(UpstreamBase):
-    """
-    The wav2vec wrapper
-    """
-
     def __init__(self, ckpt, **kwargs):
         super().__init__(**kwargs)
         self.model, task_cfg = load_converted_model(ckpt)
@@ -77,10 +63,6 @@ class UpstreamExpert(UpstreamBase):
 
 
 class LegacyUpstreamExpert(UpstreamBase):
-    """
-    The wav2vec wrapper
-    """
-
     def __init__(self, ckpt, **kwargs):
         super().__init__(**kwargs)
         logger.warning("Use the legacy expert for HuBERT which depends on fairseq")

@@ -1,16 +1,17 @@
-import tempfile
-from pathlib import Path
-from typing import List
-
 import torch
+import tempfile
+from typing import List
+from pathlib import Path
+
+import s3prl
+from s3prl.util.download import _urls_to_filepaths
+from s3prl.upstream.utils import merge_with_parent, load_fairseq_ckpt
 
 from s3prl.upstream.hubert.hubert_model import (
+    HubertPretrainingConfig,
     HubertConfig,
     HubertModel,
-    HubertPretrainingConfig,
 )
-from s3prl.upstream.utils import load_fairseq_ckpt, merge_with_parent
-from s3prl.util.download import _urls_to_filepaths
 
 
 def load_and_convert_fairseq_ckpt(fairseq_source: str, output_path: str = None):
@@ -60,7 +61,7 @@ if __name__ == "__main__":
 
     parser = argparse.ArgumentParser()
     parser.add_argument("fairseq_ckpt")
-    parser.add_argument("--output_dir", default="./result/organized_ckpts")
+    parser.add_argument("--output_dir", default=Path(s3prl.__file__).parent.parent / "converted_ckpts")
     args = parser.parse_args()
 
     Path(args.output_dir).parent.mkdir(exist_ok=True, parents=True)

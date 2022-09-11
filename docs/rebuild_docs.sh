@@ -5,3 +5,5 @@ rm -rf ./source/_autosummary
 
 make clean html
 
+touch build/html/.nojekyll
+

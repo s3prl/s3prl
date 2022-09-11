@@ -1,6 +1,6 @@
-from pathlib import Path as _Path
+from pathlib import Path
 
-from . import dataset, metric, nn, problem, task, util
+from . import hub
 
-with (_Path(__file__).parent.resolve() / "version.txt").open() as file:
-    __version__ = file.read().strip()
+with (Path(__file__).parent / "version.txt").open() as file:
+    __version__ = file.read()

@@ -56,7 +56,6 @@ def unispeech_sat_base(refresh=False, *args, **kwargs):
 
     # Google Drive
     # kwargs["ckpt"] = "https://drive.google.com/u/1/uc?id=1j6WMIdOIu_GMtRVINTqjxMsHq_cf98_b&export=download"
-    # kwargs["agent"] = 'gdown'
     return unispeech_sat_url(refresh=refresh, *args, **kwargs)
 
 
@@ -72,7 +71,6 @@ def unispeech_sat_base_plus(refresh=False, *args, **kwargs):
 
     # Google Drive
     # kwargs["ckpt"] = "https://drive.google.com/u/1/uc?id=1AymTVpum41nMlGQLqheRO_kaFKbxZvvV&export=download"
-    # kwargs["agent"] = 'gdown'
     return unispeech_sat_url(refresh=refresh, *args, **kwargs)
 
 
@@ -88,5 +86,4 @@ def unispeech_sat_large(refresh=False, *args, **kwargs):
 
     # Google Drive
     # kwargs["ckpt"] = "https://drive.google.com/u/1/uc?id=15FR4Y1vohoVnOTc_ob7K9OUn0L1KrV1A&export=download"
-    # kwargs["agent"] = 'gdown'
     return unispeech_sat_url(refresh=refresh, *args, **kwargs)

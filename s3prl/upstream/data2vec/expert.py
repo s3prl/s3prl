@@ -13,6 +13,9 @@ class UpstreamExpert(UpstreamBase):
         self.model = model
         self.wav_normalize = task_cfg.normalize
 
+        self.model.feature_grad_mult = 0.0
+        self.model.encoder.layerdrop = 0.0
+
         if len(self.hooks) == 0:
             module_name = "self.model.encoder.layers"
             for module_id in range(len(eval(module_name))):

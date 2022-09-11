@@ -1,22 +1,23 @@
 Install S3PRL
 =============
 
-Regular installation
+Minimal installation
 --------------------
 
-.. warning::
-
-    This is not yet ready. Please use the approach below.
+This installation only enables the **S3PRL Upstream collection** function to
+keep the minimal dependency. To enable all the functions including downstream benchmarking,
+you need to follow `Full installation`_.
 
 .. code-block:: bash
 
     pip install s3prl
 
+
 Editable installation
 ---------------------
 
 Installing a package in the editable mode means when you use a imported class/function,
-the code supporting the class/function is right in your cloned repository.
+the source code of the class/function is right in your cloned repository.
 So, when you modify the code inside it, the newly imported class/function will reflect
 your modification.
 
@@ -26,21 +27,29 @@ your modification.
     cd s3prl
     pip install -e .
 
-Various installation sets
+
+Full installation
+------------------
+
+Install all the dependencies to enable all the S3PRL functions. However, there are **LOTS**
+of dependencies.
+
+.. code-block:: bash
+
+    pip install s3prl[all]
+
+    # editable
+    pip install ".[all]"
+
+
+Development installation
 -------------------------
 
-The installation approaches above only cover the most commonly used functionality of S3PRL:
-**pre-trained model collection**. So we can keep the dependency simple.
-If you wish to run the tasks with our **problem** modules, you will need to install more
-dependencies.
+Install dependencies of full installation and extra packages for development,
+including **pytest** for unit-testing and **sphinx** for documentation.
+
+Usually, you will use this installation variant only in editable mode
 
 .. code-block:: bash
 
-    pip install -e ".[problem]"
-
-If you wish to develop new functions, you will need extra dependencies for unit-test, pre-commit
-and documentation. Please use
-
-.. code-block:: bash
-
-    pip install -e ".[all]"
+    pip install ".[dev]"

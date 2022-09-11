@@ -1,46 +1,45 @@
-_available_options = []
+from s3prl.upstream.apc.hubconf import *
+from s3prl.upstream.audio_albert.hubconf import *
+from s3prl.upstream.baseline.hubconf import *
+# from s3prl.upstream.byol_a.hubconf import *  # FIXME: (Leo)
+from s3prl.upstream.cpc.hubconf import *
+from s3prl.upstream.data2vec.hubconf import *
+from s3prl.upstream.decoar.hubconf import *
+from s3prl.upstream.decoar_layers.hubconf import *
+from s3prl.upstream.decoar2.hubconf import *
+from s3prl.upstream.distiller.hubconf import *
+from s3prl.upstream.example.hubconf import *
+from s3prl.upstream.hubert.hubconf import *
+# from s3prl.upstream.lighthubert.hubconf import *  # FIXME: (Leo)
+from s3prl.upstream.log_stft.hubconf import *
+from s3prl.upstream.mockingjay.hubconf import *
+from s3prl.upstream.mos_prediction.hubconf import *
+from s3prl.upstream.npc.hubconf import *
+from s3prl.upstream.pase.hubconf import *
+from s3prl.upstream.roberta.hubconf import *
+from s3prl.upstream.tera.hubconf import *
+from s3prl.upstream.unispeech_sat.hubconf import *
+from s3prl.upstream.vq_apc.hubconf import *
+from s3prl.upstream.vq_wav2vec.hubconf import *
+from s3prl.upstream.wav2vec.hubconf import *
+from s3prl.upstream.wav2vec2.hubconf import *
+from s3prl.upstream.wavlm.hubconf import *
+
+from s3prl.downstream.timit_phone.hubconf import timit_posteriorgram
 
 
-def available_options():
-    return _available_options.copy()
-
-
-def _get_hubconf_entries():
-    import importlib
-    import logging
-    import os
-    import pathlib
-
-    logger = logging.getLogger(__name__)
-
-    _search_root = pathlib.Path(__file__).parent
-    _hubconfs = list(_search_root.glob("upstream/*/hubconf.py"))
-
-    for _hubconf in _hubconfs:
-        relpath = _hubconf.relative_to(_search_root)
-        try:
-            _module_name = (
-                "." + str(relpath).replace(os.path.sep, ".")[:-3]
-            )  # remove .py
-            _module = importlib.import_module(_module_name, package=__package__)
-
-        except ModuleNotFoundError as e:
-            if "pase" in _module_name:
-                full_package = f"{__package__}{_module_name}"
-                logger.warning(
-                    f"Can not import {full_package}: {str(e)}. Please see {relpath.parent / 'README.md'}"
-                )
+def options(only_registered_ckpt: bool = False):
+    all_options = []
+    for name, value in globals().items():
+        torch_hubconf_policy = not name.startswith("_") and callable(value)
+        if torch_hubconf_policy and name != "options":
+            if only_registered_ckpt and (
+                name.endswith("_local")
+                or name.endswith("_url")
+                or name.endswith("_gdriveid")
+                or name.endswith("_custom")
+            ):
                 continue
-            raise
+            all_options.append(name)
 
-        for variable_name in dir(_module):
-            _variable = getattr(_module, variable_name)
-            if callable(_variable) and variable_name[0] != "_":
-                global _all_options
-                _available_options.append(variable_name)
-
-                globals()[variable_name] = _variable
-
-
-_get_hubconf_entries()
-del globals()["_get_hubconf_entries"]
+    return all_options

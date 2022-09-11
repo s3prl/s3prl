@@ -1,3 +1,4 @@
+from .upstream import S3PRLUpstream, Featurizer
 from .common import FrameLevel, UtteranceLevel
 from .linear import FrameLevelLinear, MeanPoolingLinear
 from .pooling import MeanPooling

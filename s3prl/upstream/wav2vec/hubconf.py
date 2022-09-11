@@ -11,9 +11,14 @@ import os
 
 from s3prl.util.download import _urls_to_filepaths
 
-from .expert import LegacyUpstreamExpert as _LegacyUpstreamExpert
 from .expert import UpstreamExpert as _UpstreamExpert
+from .expert import LegacyUpstreamExpert as _LegacyUpstreamExpert
 
+def wav2vec_custom(
+    ckpt: str, *args, legacy: bool = False, refresh: bool = False, **kwargs
+):
+    if ckpt.startswith("http"):
+        ckpt = _urls_to_filepaths(ckpt, refresh=refresh)
 
 def wav2vec_custom(
     ckpt: str, *args, legacy: bool = False, refresh: bool = False, **kwargs
@@ -51,5 +56,5 @@ def wav2vec_large(refresh=False, legacy=False, **kwargs):
     """
     kwargs["ckpt"] = "https://dl.fbaipublicfiles.com/fairseq/wav2vec/wav2vec_large.pt"
     if not legacy:
-        kwargs["ckpt"] = "result/organized_ckpts/wav2vec_large.pt"
+        kwargs["ckpt"] = "https://huggingface.co/s3prl/converted_ckpts/resolve/main/wav2vec_large.pt"
     return wav2vec_custom(refresh=refresh, legacy=legacy, **kwargs)

@@ -1,19 +1,18 @@
-import argparse
-import logging
-from copy import deepcopy
-from dataclasses import dataclass, is_dataclass
-
 import torch
+import logging
+import argparse
+from copy import deepcopy
+from dataclasses import is_dataclass, dataclass
 
-from s3prl.util.download import _urls_to_filepaths
 from s3prl.util.pseudo_data import get_pseudo_wavs
+from s3prl.util.download import _urls_to_filepaths
 
 logger = logging.getLogger(__name__)
 
 
 def load_fairseq_ckpt(source: str, **override):
-    from fairseq.checkpoint_utils import load_checkpoint_to_cpu
     from omegaconf import OmegaConf
+    from fairseq.checkpoint_utils import load_checkpoint_to_cpu
 
     source = str(source)
     if source.startswith("http"):

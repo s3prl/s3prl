@@ -7,13 +7,12 @@
 #   Author       [ S3PRL / Kushal Lakhotia]
 """*********************************************************************************************"""
 
-import logging
 import os
+import logging
 
 from s3prl.util.download import _urls_to_filepaths
-
-from .expert import LegacyUpstreamExpert as _LegacyUpstreamExpert
 from .expert import UpstreamExpert as _UpstreamExpert
+from .expert import LegacyUpstreamExpert as _LegacyUpstreamExpert
 
 logger = logging.getLogger(__name__)
 
@@ -54,7 +53,7 @@ def wav2vec2_base_960(refresh=False, legacy=False, **kwargs):
     """
     kwargs["ckpt"] = "https://dl.fbaipublicfiles.com/fairseq/wav2vec/wav2vec_small.pt"
     if not legacy:
-        kwargs["ckpt"] = "result/organized_ckpts/wav2vec_small.pt"
+        kwargs["ckpt"] = "https://huggingface.co/s3prl/converted_ckpts/resolve/main/wav2vec_small.pt"
     return wav2vec2_custom(refresh=refresh, legacy=legacy, **kwargs)
 
 
@@ -65,7 +64,7 @@ def wav2vec2_large_960(refresh=False, legacy=False, **kwargs):
     """
     kwargs["ckpt"] = "https://dl.fbaipublicfiles.com/fairseq/wav2vec/libri960_big.pt"
     if not legacy:
-        kwargs["ckpt"] = "result/organized_ckpts/libri960_big.pt"
+        kwargs["ckpt"] = "https://huggingface.co/s3prl/converted_ckpts/resolve/main/libri960_big.pt"
     return wav2vec2_custom(refresh=refresh, legacy=legacy, **kwargs)
 
 
@@ -76,7 +75,7 @@ def wav2vec2_large_ll60k(refresh=False, legacy=False, **kwargs):
     """
     kwargs["ckpt"] = "https://dl.fbaipublicfiles.com/fairseq/wav2vec/wav2vec_vox_new.pt"
     if not legacy:
-        kwargs["ckpt"] = "result/organized_ckpts/wav2vec_vox_new.pt"
+        kwargs["ckpt"] = "https://huggingface.co/s3prl/converted_ckpts/resolve/main/wav2vec_vox_new.pt"
     return wav2vec2_custom(refresh=refresh, legacy=legacy, **kwargs)
 
 
@@ -89,7 +88,7 @@ def wav2vec2_large_lv60_cv_swbd_fsh(refresh=False, legacy=False, **kwargs):
         "ckpt"
     ] = "https://dl.fbaipublicfiles.com/fairseq/wav2vec/w2v_large_lv_fsh_swbd_cv.pt"
     if not legacy:
-        kwargs["ckpt"] = "result/organized_ckpts/w2v_large_lv_fsh_swbd_cv.pt"
+        kwargs["ckpt"] = "https://huggingface.co/s3prl/converted_ckpts/resolve/main/w2v_large_lv_fsh_swbd_cv.pt"
     return wav2vec2_custom(refresh=refresh, legacy=legacy, **kwargs)
 
 
@@ -100,7 +99,7 @@ def xlsr_53(refresh=False, legacy=False, **kwargs):
     """
     kwargs["ckpt"] = "https://dl.fbaipublicfiles.com/fairseq/wav2vec/xlsr_53_56k.pt"
     if not legacy:
-        kwargs["ckpt"] = "result/organized_ckpts/xlsr_53_56k.pt"
+        kwargs["ckpt"] = "https://huggingface.co/s3prl/converted_ckpts/resolve/main/xlsr_53_56k.pt"
     return wav2vec2_custom(refresh=refresh, legacy=legacy, **kwargs)
 
 
@@ -110,7 +109,7 @@ def xls_r_300m(refresh=False, legacy=False, **kwargs):
     """
     kwargs["ckpt"] = "https://dl.fbaipublicfiles.com/fairseq/wav2vec/xlsr2_300m.pt"
     if not legacy:
-        kwargs["ckpt"] = "result/organized_ckpts/xlsr2_300m.pt"
+        kwargs["ckpt"] = "https://huggingface.co/s3prl/converted_ckpts/resolve/main/xlsr2_300m.pt"
     return wav2vec2_custom(refresh=refresh, legacy=legacy, **kwargs)
 
 
@@ -118,13 +117,15 @@ def xls_r_1b(refresh=False, legacy=False, **kwargs):
     kwargs[
         "ckpt"
     ] = "https://dl.fbaipublicfiles.com/fairseq/wav2vec/xlsr2_960m_1000k.pt"
-    assert legacy
+    if not legacy:
+        kwargs["ckpt"] = "https://huggingface.co/s3prl/converted_ckpts/resolve/main/xlsr2_960m_1000k.pt"
     return wav2vec2_custom(refresh=refresh, legacy=legacy, **kwargs)
 
 
 def xls_r_2b(refresh=False, legacy=False, **kwargs):
     kwargs["ckpt"] = "https://dl.fbaipublicfiles.com/fairseq/wav2vec/xlsr2_2B_1000k.pt"
-    assert legacy
+    if not legacy:
+        kwargs["ckpt"] = "https://huggingface.co/s3prl/converted_ckpts/resolve/main/xlsr2_2B_1000k.pt"
     return wav2vec2_custom(refresh=refresh, legacy=legacy, **kwargs)
 
 
@@ -133,7 +134,7 @@ def wav2vec2_conformer_relpos(refresh=False, legacy=False, **kwargs):
         "ckpt"
     ] = "https://dl.fbaipublicfiles.com/fairseq/conformer/wav2vec2/librilight/LL_relpos_PT_no_FT"
     if not legacy:
-        kwargs["ckpt"] = "result/organized_ckpts/LL_relpos_PT_no_FT.pt"
+        kwargs["ckpt"] = "https://huggingface.co/s3prl/converted_ckpts/resolve/main/LL_relpos_PT_no_FT.pt"
     return wav2vec2_custom(refresh=refresh, legacy=legacy, **kwargs)
 
 
@@ -142,5 +143,5 @@ def wav2vec2_conformer_rope(refresh=False, legacy=False, **kwargs):
         "ckpt"
     ] = "https://dl.fbaipublicfiles.com/fairseq/conformer/wav2vec2/librilight/LL_rope_PT_no_FT"
     if not legacy:
-        kwargs["ckpt"] = "result/organized_ckpts/LL_rope_PT_no_FT.pt"
+        kwargs["ckpt"] = "https://huggingface.co/s3prl/converted_ckpts/resolve/main/LL_rope_PT_no_FT.pt"
     return wav2vec2_custom(refresh=refresh, legacy=legacy, **kwargs)

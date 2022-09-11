@@ -5,6 +5,10 @@ import torch.nn.functional as F
 from torch.nn.utils.rnn import pad_sequence
 
 from s3prl.utility.helper import zero_mean_unit_var_norm
+from ..interfaces import UpstreamBase
+from .convert import load_converted_model
+
+logger = logging.getLogger(__name__)
 
 from ..interfaces import UpstreamBase
 from .convert import load_converted_model
@@ -16,10 +20,11 @@ class UpstreamExpert(UpstreamBase):
     def __init__(self, ckpt, **kwargs):
         super().__init__(**kwargs)
         model, task_cfg = load_converted_model(ckpt)
-
         self.model = model
-        self.model.feature_grad_mult = 0.0
         self.wav_normalize = task_cfg.normalize
+
+        self.model.feature_grad_mult = 0.0
+        self.model.encoder.layerdrop = 0.0
 
         # These options are only used for aligning representations between s3prl and huggingface
         # See utility/compare_wav2vec2.py
@@ -42,8 +47,6 @@ class UpstreamExpert(UpstreamBase):
                 return list(zip(names, hiddens))
 
             self.hook_postprocess = postprocess
-
-        self._init_layerdrop = self.model.encoder.layerdrop
 
     def get_downsample_rates(self, key: str) -> int:
         return 320
@@ -79,8 +82,10 @@ class LegacyUpstreamExpert(UpstreamBase):
         super().__init__(**kwargs)
         model, cfg, task = self.load_model(ckpt)
         self.model = model[0]
-        self.model.feature_grad_mult = 0.0
         self.wav_normalize = cfg.task.normalize
+
+        self.model.feature_grad_mult = 0.0
+        self.model.encoder.layerdrop = 0.0
 
         # These options are only used for aligning representations between s3prl and huggingface
         # See utility/compare_wav2vec2.py
@@ -104,18 +109,15 @@ class LegacyUpstreamExpert(UpstreamBase):
 
             self.hook_postprocess = postprocess
 
-        self._init_layerdrop = self.model.encoder.layerdrop
-
     @staticmethod
     def load_model(ckpt_path: str):
         """
         Sanitize the config in the checkpoint as there are some irrelevant fields
         in the released checkpoint which can cause the model loading to fail
         """
-        import dataclasses
-
         import fairseq
         import omegaconf
+        import dataclasses
         from fairseq.tasks.audio_pretraining import AudioPretrainingConfig
 
         ckpt_state = torch.load(ckpt_path, map_location="cpu")
@@ -148,18 +150,6 @@ class LegacyUpstreamExpert(UpstreamBase):
             [ckpt_path], state=ckpt_state
         )
         return model, cfg, task
-
-    @property
-    def layer_drop(self):
-        return self.model.encoder.layerdrop
-
-    def set_layer_drop(self, layerdrop: float = None):
-        if isinstance(layerdrop, float):
-            self.model.encoder.layerdrop = layerdrop
-        elif layerdrop is None:
-            self.model.encoder.layerdrop = self._init_layerdrop
-        else:
-            raise ValueError("layerdrop can only be float or None")
 
     def get_downsample_rates(self, key: str) -> int:
         return 320

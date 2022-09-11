@@ -5,9 +5,9 @@
 
 # S3PRL has no contribution to this file
 
-import copy
 import logging
 import math
+import copy
 from dataclasses import dataclass, field
 from typing import Optional
 
@@ -18,14 +18,16 @@ import torch.nn.functional as F
 from omegaconf import II
 
 from s3prl.upstream.wav2vec2.wav2vec2_model import (
+    Wav2Vec2Config,
     ConvFeatureExtractionModel,
+    Wav2Vec2Config,
+    TransformerEncoder,
     GradMultiply,
     LayerNorm,
-    TransformerEncoder,
-    Wav2Vec2Config,
-    compute_mask_indices,
     index_put,
+    compute_mask_indices,
 )
+
 
 logger = logging.getLogger(__name__)
 
@@ -194,7 +196,7 @@ class Data2VecAudioConfig(Wav2Vec2Config):
     )
 
     # when to finish annealing ema decay rate
-    ema_anneal_end_step: int = II("optimization.max_update")
+    ema_anneal_end_step: int = None
 
     ema_transformer_only: bool = field(
         default=True,
@@ -205,7 +207,7 @@ class Data2VecAudioConfig(Wav2Vec2Config):
         metadata={"help": "whether to momentum update only the transformer layers"},
     )
 
-    max_update: int = II("optimization.max_update")
+    max_update: int = None
 
     min_target_var: float = field(
         default=0.1, metadata={"help": "stop training if target var falls below this"}

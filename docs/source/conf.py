@@ -11,7 +11,7 @@
 # documentation root, use os.path.abspath to make it absolute, like shown here.
 #
 import inspect
-import s3prl
+import os
 import sys
 from pathlib import Path
 
@@ -22,7 +22,8 @@ copyright = "2022, S3PRL Team"
 author = "S3PRL Team"
 
 # The full version, including alpha/beta/rc tags
-release = s3prl.__version__
+with (Path(__file__).parent.parent.parent / "s3prl" / "version.txt").open() as f:
+    release = f.read()
 
 
 def linkcode_resolve(domain, info):
@@ -59,7 +60,7 @@ def linkcode_resolve(domain, info):
             info["module"].replace(".", "/") + ".py"
         )  # cannot find corresponding codeblock, use the file page instead
 
-    return "https://github.com/s3prl/s3prl-private/blob/%s/%s" % (tag, filename)
+    return "https://github.com/s3prl/s3prl/blob/%s/%s" % (tag, filename)
 
 
 # -- General configuration ---------------------------------------------------

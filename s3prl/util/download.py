@@ -1,15 +1,15 @@
-import hashlib
-import logging
 import os
-import shutil
 import sys
-import tempfile
 import time
-from pathlib import Path
-from urllib.request import Request, urlopen
-
-from filelock import FileLock
+import logging
+import hashlib
+import shutil
+import tempfile
 from tqdm import tqdm
+from urllib.request import urlopen, Request
+
+from pathlib import Path
+from filelock import FileLock
 
 logger = logging.getLogger(__name__)
 

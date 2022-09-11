@@ -12,7 +12,7 @@ Write code
 
         git clone s3prl/s3prl-private "S3PRL_ROOT"
         cd "S3PRL_ROOT"
-        pip install -e ".[all]"  # This installs the dependencies for the full functionality of S3PRL
+        pip install -e ".[dev]"  # This installs the dependencies for the full functionality of S3PRL
 
 3.  Write code into the packages listed in **S3PRL_ROOT/valid_paths.txt**
 

@@ -8,11 +8,9 @@
 
 
 import os
-
 import torch
 
 from s3prl.util.download import _urls_to_filepaths
-
 from .expert import UpstreamExpert as _UpstreamExpert
 
 
@@ -61,9 +59,8 @@ def pase_plus(refresh=False, **kwargs):
             skip = torch.mean(skip_re, dim=3)
         return skip
 
-    from typing import List, Tuple
-
     from torch import Tensor
+    from typing import List, Tuple
 
     def hook_postprocess(hiddens: List[Tuple[str, Tensor]]):
         remained_hiddens = [x for x in hiddens if x[0] != "self.model"]

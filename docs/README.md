@@ -9,13 +9,13 @@ conda create -y -n doc python=3.8
 conda activate doc
 
 cd $S3PRL_ROOT
-pip install ".[all]"
+pip install ".[dev]"
 ```
 
 2. Auto-generate HTML files for all the packages, modules and their submodules listed in `$S3PRL_ROOT/valid_paths.txt`. The HTML files will appear in `$S3PRL_ROOT/docs/build/html`
 
 ```sh
-cd $S3PRL_ROOT/docs
+cd $S3PRL_ROOT/docs_src
 ./rebuild_docs.sh
 ```
 

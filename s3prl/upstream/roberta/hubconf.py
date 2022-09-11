@@ -9,6 +9,7 @@ from s3prl.util.download import _urls_to_filepaths
 from ..interfaces import Featurizer as _Featurizer
 from .expert import LegacyUpstreamExpert as _LegacyUpstreamExpert
 from .expert import UpstreamExpert as _UpstreamExpert
+from .expert import LegacyUpstreamExpert as _LegacyUpstreamExpert
 
 
 class _vq_wav2vec_codeids_wrapper(torch.nn.Module):
@@ -67,7 +68,10 @@ def vq_wav2vec_kmeans_roberta(refresh=False, legacy=False, **kwargs):
     else:
         vq_wav2vec = getattr(s3prl.hub, f"vq_wav2vec_kmeans")()
         return _UpstreamExpert(
-            "result/organized_ckpts/vq_wav2vec_kmeans_roberta.pt",
+            _urls_to_filepaths(
+                "https://huggingface.co/s3prl/converted_ckpts/resolve/main/vq_wav2vec_kmeans_roberta.pt",
+                refresh=refresh,
+            ),
             _vq_wav2vec_codeids_wrapper(vq_wav2vec),
         )
 

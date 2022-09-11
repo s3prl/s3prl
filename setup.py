@@ -15,14 +15,10 @@ for file in os.listdir(here / "requirements"):
     lines = [line.strip() for line in (here / "requirements" / file).open().readlines()]
     requirements[Path(file).stem] = lines
     requirement_files.append(f"requirements/{file}")
+requirements["dev"] = requirements["all"] + requirements["dev"]
 
 install_requires = requirements["install"]
 extras_require = {k: v for k, v in requirements.items() if k not in ["install"]}
-
-all_requires = []
-for k, v in requirements.items():
-    all_requires.append(v)
-extras_require["all"] = all_requires
 
 # Arguments marked as "Required" below must be included for upload to PyPI.
 # Fields marked as "Optional" may be commented out.
@@ -150,6 +146,7 @@ setup(
     # installed, specify them here.
     package_data={  # Optional
         "s3prl": ["version.txt"],
+        "s3prl.upstream": ["*/*.yaml"]
     },
     # Although 'package_data' is the preferred approach, in some case you may
     # need to place data files outside of your packages. See:

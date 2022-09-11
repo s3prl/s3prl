@@ -1,5 +1,3 @@
-import os
-
 from s3prl.util.download import _urls_to_filepaths
 
 from .expert import UpstreamExpert as _UpstreamExpert
@@ -25,5 +23,7 @@ def decoar_layers(*args, refresh=False, **kwargs):
     The apc standard model on 360hr
         refresh (bool): whether to download ckpt/config again if existed
     """
-    kwargs["ckpt"] = "result/organized_ckpts/checkpoint_decoar.pt"
-    return decoar_layers_custom(*args, refresh=refresh, **kwargs)
+    kwargs[
+        "ckpt"
+    ] = "https://huggingface.co/s3prl/converted_ckpts/resolve/main/checkpoint_decoar.pt"
+    return decoar_layers_url(*args, refresh=refresh, **kwargs)

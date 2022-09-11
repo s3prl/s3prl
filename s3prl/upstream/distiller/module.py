@@ -11,11 +11,11 @@ import torch.nn as nn
 import torch.nn.functional as F
 
 from s3prl.upstream.wav2vec2.wav2vec2_model import (
-    ConvFeatureExtractionModel,
-    GradMultiply,
     MultiheadAttention,
     SamePad,
     get_activation_fn,
+    ConvFeatureExtractionModel,
+    GradMultiply,
 )
 
 
