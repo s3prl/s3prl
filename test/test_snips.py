@@ -1,7 +1,7 @@
 import pytest
 from dotenv import dotenv_values
 
-from s3prl.corpus.snips import snips_for_speech2text
+from s3prl.dataio.corpus.snips import snips_for_speech2text
 
 
 @pytest.mark.corpus

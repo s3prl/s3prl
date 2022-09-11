@@ -11,7 +11,7 @@
 # documentation root, use os.path.abspath to make it absolute, like shown here.
 #
 import inspect
-import os
+import s3prl
 import sys
 from pathlib import Path
 
@@ -22,7 +22,7 @@ copyright = "2022, S3PRL Team"
 author = "S3PRL Team"
 
 # The full version, including alpha/beta/rc tags
-release = "0.4.0"
+release = s3prl.__version__
 
 
 def linkcode_resolve(domain, info):

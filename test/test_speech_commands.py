@@ -3,7 +3,7 @@ from collections import Counter
 import pytest
 from dotenv import dotenv_values
 
-from s3prl.corpus.speech_commands import SpeechCommandsV1
+from s3prl.dataio.corpus.speech_commands import SpeechCommandsV1
 
 
 def _class_counter(data_dict):

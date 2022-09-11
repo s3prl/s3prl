@@ -1,7 +1,7 @@
 import pytest
 from dotenv import dotenv_values
 
-from s3prl.corpus.quesst14 import quesst14_for_qbe
+from s3prl.dataio.corpus.quesst14 import quesst14_for_qbe
 
 
 @pytest.mark.corpus

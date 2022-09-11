@@ -5,7 +5,7 @@ import numpy as np
 import torch
 import torch.nn.functional as F
 
-from s3prl.encoder.category import CategoryEncoder, CategoryEncoders
+from s3prl.dataio.encoder.category import CategoryEncoder, CategoryEncoders
 from s3prl.metric import accuracy
 
 from . import Task

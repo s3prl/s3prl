@@ -5,7 +5,7 @@ import tempfile
 import pytest
 from dotenv import dotenv_values
 
-from s3prl.corpus.librispeech import librispeech_for_speech2text
+from s3prl.dataio.corpus.librispeech import librispeech_for_speech2text
 from s3prl.dataset.base import AugmentedDynamicItemDataset
 from s3prl.dataset.speech2text_pipe import Speech2TextPipe
 

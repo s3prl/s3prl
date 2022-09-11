@@ -1,8 +1,8 @@
 import pytest
 from dotenv import dotenv_values
 
-from s3prl.corpus.librilight import librilight_for_speech2text
-from s3prl.corpus.librispeech import LibriSpeech, librispeech_for_speech2text
+from s3prl.dataio.corpus.librilight import librilight_for_speech2text
+from s3prl.dataio.corpus.librispeech import LibriSpeech, librispeech_for_speech2text
 
 libri_stats = {
     "train-clean-100": 28539,

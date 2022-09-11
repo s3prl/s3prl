@@ -7,9 +7,9 @@ import pandas as pd
 from omegaconf import MISSING
 
 from s3prl.dataset.speech2phoneme_pipe import Speech2PhonemePipe
-from s3prl.encoder.tokenizer import default_phoneme_tokenizer
+from s3prl.dataio.encoder.tokenizer import default_phoneme_tokenizer
 from s3prl.nn.linear import FrameLevelLinear
-from s3prl.sampler import FixedBatchSizeBatchSampler, SortedSliceSampler
+from s3prl.dataio.sampler import FixedBatchSizeBatchSampler, SortedSliceSampler
 
 from .superb_asr import SuperbASR
 
@@ -114,7 +114,7 @@ class SuperbPR(SuperbASR):
         Returns:
             str
 
-            filepath of the pickled :obj:`s3prl.encoder.tokenizer.Tokenizer`
+            filepath of the pickled :obj:`s3prl.dataio.encoder.tokenizer.Tokenizer`
         """
 
         tokenizer_path = Path(target_dir) / "default_phone_tokenizer.pkl"

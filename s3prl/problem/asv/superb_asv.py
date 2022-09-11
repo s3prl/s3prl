@@ -6,11 +6,11 @@ from pathlib import Path
 import pandas as pd
 from omegaconf import MISSING
 
-from s3prl.corpus.voxceleb1sv import VoxCeleb1SV
+from s3prl.dataio.corpus.voxceleb1sv import VoxCeleb1SV
 from s3prl.dataset.common_pipes import LoadAudio, RandomCrop
-from s3prl.encoder.category import CategoryEncoder
+from s3prl.dataio.encoder.category import CategoryEncoder
 from s3prl.nn.speaker_model import SuperbXvector
-from s3prl.sampler import FixedBatchSizeBatchSampler
+from s3prl.dataio.sampler import FixedBatchSizeBatchSampler
 from s3prl.util.download import _download
 
 from .run import ASV
@@ -222,7 +222,7 @@ class SuperbASV(ASV):
     ):
         """
         Build the encoder (for the labels) given the data metadata, and return the saved encoder path.
-        By default generate and save a :obj:`s3prl.encoder.CategoryEncoder` from the :code:`label` column of the train csv.
+        By default generate and save a :obj:`s3prl.dataio.encoder.CategoryEncoder` from the :code:`label` column of the train csv.
 
         Args:
             build_encoder (dict): same in :obj:`default_config`, no argument supported for now

@@ -7,10 +7,10 @@ from typing import Callable
 import torch
 import torchaudio
 
-from ..encoder.category import CategoryEncoder
-from ..encoder.g2p import G2P
-from ..encoder.tokenizer import Tokenizer, default_phoneme_tokenizer, load_tokenizer
-from ..encoder.vocabulary import generate_vocab
+from s3prl.dataio.encoder.category import CategoryEncoder
+from s3prl.dataio.encoder.g2p import G2P
+from s3prl.dataio.encoder.tokenizer import Tokenizer, default_phoneme_tokenizer, load_tokenizer
+from s3prl.dataio.encoder.vocabulary import generate_vocab
 from .base import AugmentedDynamicItemDataset, DataPipe
 
 logger = logging.getLogger(__name__)

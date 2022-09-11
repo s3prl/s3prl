@@ -9,14 +9,13 @@ import pandas as pd
 from omegaconf import MISSING
 from torch.utils.data import Dataset
 
-from s3prl.corpus.librispeech import LibriSpeech
+from s3prl.dataio.corpus.librispeech import LibriSpeech
 from s3prl.dataset.speech2text_pipe import Speech2TextPipe
-from s3prl.encoder.tokenizer import load_tokenizer
-from s3prl.encoder.vocabulary import generate_vocab
-from s3prl.nn.interface import AbsFrameModel
+from s3prl.dataio.encoder.tokenizer import load_tokenizer
+from s3prl.dataio.encoder.vocabulary import generate_vocab
 from s3prl.nn.rnn import RNNEncoder
 from s3prl.nn.specaug import ModelWithSpecaug
-from s3prl.sampler import FixedBatchSizeBatchSampler, SortedBucketingSampler
+from s3prl.dataio.sampler import FixedBatchSizeBatchSampler, SortedBucketingSampler
 
 from .run import ASR
 
@@ -89,10 +88,10 @@ def prepare_common_tokenizer(
         vocab_type (str): character / phoneme / word / subword
         vocab_args (dict):
             when :code:`vocab_type` is character / phoneme / word, supports arguments in
-                :obj:`s3prl.encoder.vocabulary.generate_basic_vocab`
+                :obj:`s3prl.dataio.encoder.vocabulary.generate_basic_vocab`
 
             whe :code:`vocab_type` is subword, supports arguments in
-                :obj:`s3prl.encoder.vocabulary.generate_subword_vocab`
+                :obj:`s3prl.dataio.encoder.vocabulary.generate_subword_vocab`
         slots_file (str): If presented, the pre-defined slots will be used to encode the
             special tokens
 
@@ -344,7 +343,7 @@ class SuperbASR(ASR):
         Returns:
             str
 
-            filepath of the pickled :obj:`s3prl.encoder.tokenizer.Tokenizer`
+            filepath of the pickled :obj:`s3prl.dataio.encoder.tokenizer.Tokenizer`
         """
         return prepare_common_tokenizer(
             **self._get_current_arguments(flatten_dict="build_tokenizer")

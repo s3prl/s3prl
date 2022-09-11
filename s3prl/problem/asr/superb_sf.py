@@ -5,8 +5,8 @@ from typing import List
 import pandas as pd
 from omegaconf import MISSING
 
-from s3prl.corpus.snips import SNIPS
-from s3prl.sampler import FixedBatchSizeBatchSampler
+from s3prl.dataio.corpus.snips import SNIPS
+from s3prl.dataio.sampler import FixedBatchSizeBatchSampler
 from s3prl.util.download import _urls_to_filepaths
 
 from .superb_asr import SuperbASR

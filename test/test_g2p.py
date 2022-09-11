@@ -1,6 +1,6 @@
 import logging
 
-from s3prl.encoder.g2p import G2P
+from s3prl.dataio.encoder.g2p import G2P
 
 
 def test_g2p():

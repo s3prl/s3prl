@@ -1,4 +1,4 @@
-from s3prl.encoder.tokenizer import CharacterTokenizer, default_phoneme_tokenizer
+from s3prl.dataio.encoder.tokenizer import CharacterTokenizer, default_phoneme_tokenizer
 
 
 def test_tokenizer():

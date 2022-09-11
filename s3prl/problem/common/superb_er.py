@@ -11,7 +11,7 @@ import torch
 from omegaconf import MISSING
 from torch.utils.data import random_split
 
-from s3prl.corpus.iemocap import IEMOCAP
+from s3prl.dataio.corpus.iemocap import IEMOCAP
 from s3prl.dataset.utterance_classification_pipe import UtteranceClassificationPipe
 from s3prl.util.download import _download
 

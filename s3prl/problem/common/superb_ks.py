@@ -9,11 +9,11 @@ import pandas as pd
 from omegaconf import MISSING
 from torch.utils.data import Dataset
 
-from s3prl.corpus.speech_commands import SpeechCommandsV1
+from s3prl.dataio.corpus.speech_commands import SpeechCommandsV1
 from s3prl.dataset.utterance_classification_pipe import UtteranceClassificationPipe
-from s3prl.encoder.category import CategoryEncoder
+from s3prl.dataio.encoder.category import CategoryEncoder
 from s3prl.nn.linear import MeanPoolingLinear
-from s3prl.sampler import BalancedWeightedSampler, FixedBatchSizeBatchSampler
+from s3prl.dataio.sampler import BalancedWeightedSampler, FixedBatchSizeBatchSampler
 
 from .run import Common
 
@@ -223,7 +223,7 @@ class SuperbKS(Common):
     ):
         """
         Build the encoder (for the labels) given the data metadata, and return the saved encoder path.
-        By default generate and save a :obj:`s3prl.encoder.CategoryEncoder` from the :code:`label` column of all the csv files.
+        By default generate and save a :obj:`s3prl.dataio.encoder.CategoryEncoder` from the :code:`label` column of all the csv files.
 
         Args:
             build_encoder (dict): same in :obj:`default_config`, no argument supported for now

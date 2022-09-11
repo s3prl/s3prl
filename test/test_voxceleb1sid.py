@@ -4,7 +4,7 @@ import pytest
 from dotenv import dotenv_values
 
 from s3prl import set_use_cache
-from s3prl.corpus.voxceleb1sid import voxceleb1_for_utt_classification
+from s3prl.dataio.corpus.voxceleb1sid import voxceleb1_for_utt_classification
 
 
 @pytest.mark.corpus

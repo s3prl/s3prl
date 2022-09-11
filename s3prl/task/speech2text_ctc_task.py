@@ -6,7 +6,7 @@ import torch
 import torch.nn.functional as F
 from torch import nn
 
-from s3prl.encoder.tokenizer import Tokenizer
+from s3prl.dataio.encoder.tokenizer import Tokenizer
 from s3prl.metric import cer, per, wer
 from s3prl.metric.slot_filling import (
     slot_edit_f1_full,

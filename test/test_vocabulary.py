@@ -5,9 +5,9 @@ import tempfile
 import pytest
 from dotenv import dotenv_values
 
-from s3prl.corpus.librispeech import LibriSpeech
-from s3prl.encoder.tokenizer import load_tokenizer
-from s3prl.encoder.vocabulary import generate_vocab
+from s3prl.dataio.corpus.librispeech import LibriSpeech
+from s3prl.dataio.encoder.tokenizer import load_tokenizer
+from s3prl.dataio.encoder.vocabulary import generate_vocab
 
 SAMPLE = "GOOD MORNING MY FRIEND"
 

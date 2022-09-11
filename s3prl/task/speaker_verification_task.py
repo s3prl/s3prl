@@ -5,7 +5,7 @@ import torch
 import torch.nn.functional as F
 from tqdm import tqdm
 
-from s3prl.encoder.category import CategoryEncoder
+from s3prl.dataio.encoder.category import CategoryEncoder
 from s3prl.metric import accuracy, compute_eer, compute_minDCF
 from s3prl.nn import amsoftmax, softmax
 

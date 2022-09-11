@@ -1,9 +1,8 @@
 from dataclasses import dataclass
-from unicodedata import category
 
 import numpy as np
 
-from s3prl.encoder.category import CategoryEncoder
+from s3prl.dataio.encoder.category import CategoryEncoder
 
 from .base import AugmentedDynamicItemDataset, DataPipe
 
