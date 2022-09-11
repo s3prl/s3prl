@@ -1,6 +1,7 @@
 from s3prl.upstream.apc.hubconf import *
 from s3prl.upstream.audio_albert.hubconf import *
 from s3prl.upstream.baseline.hubconf import *
+
 # from s3prl.upstream.byol_a.hubconf import *  # FIXME: (Leo)
 from s3prl.upstream.cpc.hubconf import *
 from s3prl.upstream.data2vec.hubconf import *
@@ -10,6 +11,7 @@ from s3prl.upstream.decoar2.hubconf import *
 from s3prl.upstream.distiller.hubconf import *
 from s3prl.upstream.example.hubconf import *
 from s3prl.upstream.hubert.hubconf import *
+
 # from s3prl.upstream.lighthubert.hubconf import *  # FIXME: (Leo)
 from s3prl.upstream.log_stft.hubconf import *
 from s3prl.upstream.mockingjay.hubconf import *

@@ -41,7 +41,9 @@ if __name__ == "__main__":
 
     parser = argparse.ArgumentParser()
     parser.add_argument("fairseq_ckpt")
-    parser.add_argument("--output_dir", default=Path(s3prl.__file__).parent.parent / "converted_ckpts")
+    parser.add_argument(
+        "--output_dir", default=Path(s3prl.__file__).parent.parent / "converted_ckpts"
+    )
     args = parser.parse_args()
 
     Path(args.output_dir).parent.mkdir(exist_ok=True, parents=True)

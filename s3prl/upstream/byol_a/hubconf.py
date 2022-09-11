@@ -63,4 +63,3 @@ from .expert import UpstreamExpert as _UpstreamExpert
 #     """
 #     kwargs["ckpt"] = "https://github.com/nttcslab/byol-a/raw/master/pretrained_weights/AudioNTT2020-BYOLA-64x96d512.pth"
 #     return byol_a_url(refresh=refresh, *args, **kwargs)
-

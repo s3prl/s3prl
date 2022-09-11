@@ -9,7 +9,11 @@ import torchaudio
 
 from s3prl.dataio.encoder.category import CategoryEncoder
 from s3prl.dataio.encoder.g2p import G2P
-from s3prl.dataio.encoder.tokenizer import Tokenizer, default_phoneme_tokenizer, load_tokenizer
+from s3prl.dataio.encoder.tokenizer import (
+    Tokenizer,
+    default_phoneme_tokenizer,
+    load_tokenizer,
+)
 from s3prl.dataio.encoder.vocabulary import generate_vocab
 from .base import AugmentedDynamicItemDataset, DataPipe
 

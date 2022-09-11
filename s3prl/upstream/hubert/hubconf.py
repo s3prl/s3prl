@@ -52,7 +52,9 @@ def hubert_base(refresh=False, legacy=False, **kwargs):
     """
     kwargs["ckpt"] = "https://dl.fbaipublicfiles.com/hubert/hubert_base_ls960.pt"
     if not legacy:
-        kwargs["ckpt"] = "https://huggingface.co/s3prl/converted_ckpts/resolve/main/hubert_base_ls960.pt"
+        kwargs[
+            "ckpt"
+        ] = "https://huggingface.co/s3prl/converted_ckpts/resolve/main/hubert_base_ls960.pt"
     return hubert_custom(refresh=refresh, legacy=legacy, **kwargs)
 
 
@@ -63,7 +65,9 @@ def hubert_large_ll60k(refresh=False, legacy=False, **kwargs):
     """
     kwargs["ckpt"] = "https://dl.fbaipublicfiles.com/hubert/hubert_large_ll60k.pt"
     if not legacy:
-        kwargs["ckpt"] = "https://huggingface.co/s3prl/converted_ckpts/resolve/main/hubert_large_ll60k.pt"
+        kwargs[
+            "ckpt"
+        ] = "https://huggingface.co/s3prl/converted_ckpts/resolve/main/hubert_large_ll60k.pt"
     return hubert_custom(refresh=refresh, legacy=legacy, **kwargs)
 
 

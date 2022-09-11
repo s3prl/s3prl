@@ -18,7 +18,7 @@ from typing import Dict, List
 import omegaconf
 import torch
 import yaml
-from tensorboardX import SummaryWriter
+from torch.utils.tensorboard.writer import SummaryWriter
 from torch.utils.data import DataLoader
 from tqdm import tqdm
 
@@ -962,7 +962,9 @@ class Problem:
 
         schema = omegaconf.OmegaConf.create(self.default_config())
         config = omegaconf.OmegaConf.merge(schema, yaml_conf, override_conf)
-        config = omegaconf.OmegaConf.to_object(config)
+        config = omegaconf.OmegaConf.to_container(
+            config, resolve=True, throw_on_missing=True
+        )
         logger.info(config)
 
         self.run(**config)

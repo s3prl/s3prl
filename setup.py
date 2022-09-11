@@ -163,7 +163,7 @@ setup(
     # executes the function `main` from this package when invoked:
     entry_points={  # Optional
         "console_scripts": [
-            "s3prl-cli=s3prl.cli:main",
+            "s3prl-main=s3prl.main:main",
         ],
     },
     # List additional URLs that are relevant to your project as a dict.
