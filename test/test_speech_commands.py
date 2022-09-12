@@ -16,7 +16,7 @@ def _class_counter(data_dict):
 @pytest.mark.corpus
 def test_speech_commands():
     env = dotenv_values()
-    corpus = SpeechCommandsV1(env["GSC1"])
+    corpus = SpeechCommandsV1(env["GSC1"], env["GSC1_TEST"])
     all_data = corpus.all_data
     classes = set([value["class_name"] for key, value in all_data.items()])
     assert len(classes) == 12, f"{classes}"

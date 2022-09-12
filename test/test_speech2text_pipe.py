@@ -1,6 +1,7 @@
 import logging
 import os
 import tempfile
+from collections import OrderedDict
 
 import pytest
 from dotenv import dotenv_values
@@ -15,6 +16,8 @@ def test_speech2text_pipe():
     config = dotenv_values()
 
     train_data, valid_data, test_data = LibriSpeech(config["LibriSpeech"]).data_split
+    train_data = OrderedDict(train_data)
+
     dataset = AugmentedDynamicItemDataset(train_data)
     dataset_char = Speech2TextPipe(generate_tokenizer=True, vocab_type="character")(
         dataset
