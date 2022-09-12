@@ -40,11 +40,11 @@ jobs:
     - name: Upgrade pip and wheel
       run: pip3 install --upgrade pip wheel
 
-    - name: Install PyTorch & Torchaudio
-      run: pip3 install torchaudio==${{ matrix.torchaudio-version }}
-
     - name: Install S3PRL
       run: pip3 install -e ".[dev]"
+
+    - name: Install specific PyTorch & Torchaudio
+      run: pip3 install torchaudio==${{ matrix.torchaudio-version }}
 
     - name: Check coding style by ci/format.py
       run: |
