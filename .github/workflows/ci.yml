@@ -1,4 +1,4 @@
-name: build
+name: CI
 
 on:
   # Trigger the workflow on push to main or any pull request
@@ -60,4 +60,5 @@ jobs:
 
     - name: Run tests
       run: |
-        pytest
+        pytest -n 2
+
