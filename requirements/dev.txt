@@ -1,5 +1,6 @@
 python-dotenv
 pytest
+pytest-xdist
 tox
 pre-commit
 flake8 ==3.9.2
