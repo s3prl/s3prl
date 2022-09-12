@@ -8,7 +8,7 @@ from typing import Any, Dict, List
 from joblib import Parallel, delayed
 
 from s3prl import Container, Output, cache
-from s3prl.util import registry, pseudo_data 
+from s3prl.util import registry
 
 from .base import Corpus
 
@@ -224,7 +224,8 @@ class LibriSpeech(Corpus):
         logger.info(
             ", ".join(splits)
             + f"downloaded. Located at {os.path.abspath(target_dir)}/Librispeech/"
-        )      
+        )
+
 
 @registry.put()
 def librispeech_for_speech2text(
@@ -241,27 +242,3 @@ def librispeech_for_speech2text(
         valid_data=valid_data,
         test_data=test_data,
     )
-
-def get_pseudodata(
-    size: int = 100, extension: str = 'flac'
-) -> Container:
-    import random
-    import string
-
-    secs = [random.randint(2,15) for i in range(size)]
-    transcripts = [
-        "".join(random.choice(string.ascii_letters.upper() + ' '*10) for i in range(50))
-        for j in range(size)
-    ]
-
-    with pseudo_audio(secs, ext=extension) as (filepaths, num_samples):
-        data = Container(
-            {
-                str(i): {
-                  "wav_path": filepath,
-                  "label": transcripts[i]
-                }
-                for i, filepath in enumerate(filepaths)
-            }
-        )
-        return data
