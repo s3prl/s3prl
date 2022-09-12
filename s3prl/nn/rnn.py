@@ -207,7 +207,7 @@ class RNNEncoder(AbsFrameModel):
 
         logits = self.linear(xs)
 
-        return logits, x_len
+        return logits, xs_len
 
     @property
     def input_size(self):

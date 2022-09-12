@@ -1,4 +1,5 @@
 import torch
+from collections import OrderedDict
 
 from s3prl.dataset.base import AugmentedDynamicItemDataset
 from s3prl.dataset.chunking import UnfoldChunkByFrame, UnfoldChunkBySec
@@ -13,6 +14,7 @@ def test_chunk_pipe():
             i: dict(wav_path=file, start_sec=0, end_sec=num_sample / 16000)
             for i, (file, num_sample) in enumerate(zip(audio_files, num_samples))
         }
+        data = OrderedDict(data)
         dataset = UnfoldChunkByFrame(
             min_chunk_frames=25, step_frames=25, feat_frame_shift=320
         )(data)
@@ -25,6 +27,7 @@ def test_chunk_pipe():
             i: dict(wav_path=file, start_sec=0, end_sec=num_sample / 16000)
             for i, (file, num_sample) in enumerate(zip(audio_files, num_samples))
         }
+        data = OrderedDict(data)
         dataset = UnfoldChunkBySec(min_chunk_secs=2.5, step_secs=2.5)(data)
         assert (
             dataset.data[list(dataset.data.keys())[0]]["end_sec"]
@@ -57,6 +60,7 @@ def test_multiclass_pipe():
                 },
             ),
         }
+        data = OrderedDict(data)
         dataset = BuildMultiClassTagging(feat_frame_shift=160)(data)
         assert len(dataset) == 2
         assert dataset[0]["multiclass_tag"].shape == (round(5.3 * 16000 / 160), 2)

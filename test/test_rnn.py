@@ -35,9 +35,8 @@ def test_rnn(helpers):
         xs = torch.randn(32, 50, module.input_size)
         xs_len = torch.arange(32) + (50 - 32) + 1
 
-        out, out_len = module(xs, xs_len).slice(2)
+        out, out_len = module(xs, xs_len)
         assert out.shape[1] == 25
         assert out.shape[2] == module.output_size
         assert out_len.max() == 25
 
-        helpers.validate_module(module, xs, xs_len)

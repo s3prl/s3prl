@@ -90,6 +90,36 @@ class AugmentedDynamicItemDataset(DynamicItemDataset):
         mapping.update(keys)
         self.set_output_keys(mapping)
 
+    def keys(self) -> List[str]:
+        """
+        List all the :code:`static_item` and :code:`dynamic_item` in the dataset.
+        :code:`static_item` resides directly in the memory and are given by the dataset
+        initialization dictionary. :code:`dynamic_item` are content computed
+        on-the-fly basing on :code:`static_item`.
+        """
+        available_keys: List[str] = list(self.pipeline.key_to_node.keys())
+        for dynamic_item in self.pipeline.dynamic_items:
+            provides = dynamic_item.provides
+            assert isinstance(provides, (list, tuple))
+            available_keys += provides
+        available_keys = [
+            key
+            for key in available_keys
+            if not key.startswith("_") and key not in self._tools
+        ]
+        return available_keys
+
+    def __getitem__(self, index):
+        """
+        This remain all the usage of the original SpeechBrain DynamicItemDataset.__getitem__,
+        except that by default it uses :obj:`keys` as the default :code:`output_keys`
+        """
+        if len(self.pipeline.output_mapping) == 0:
+            with self.output_keys_as(self.keys()):
+                return super().__getitem__(index)
+        else:
+            return super().__getitem__(index)
+
 
 class DataPipe:
     def __call__(
