@@ -8,7 +8,7 @@ on:
   pull_request:
 
 jobs:
-  build:
+  build-and-test:
 
     strategy:
       max-parallel: 4
