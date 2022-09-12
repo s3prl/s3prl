@@ -27,4 +27,4 @@ catalyst
 sentencepiece
 huggingface_hub >=0.2.1
 mutagen
-speechbrain
+speechbrain==0.5.11
