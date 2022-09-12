@@ -2,11 +2,6 @@ import logging
 import re
 from pathlib import Path
 
-from s3prl import Container
-from s3prl.util import registry
-
-from .base import Corpus
-
 logger = logging.getLogger(__name__)
 
 
@@ -98,23 +93,3 @@ class Quesst14:
         logger.info(
             f"Quesst14 dataset downloaded. Located at {os.path.abspath(tgt_dir)}/quesst14Database/"
         )
-
-
-@registry.put()
-def quesst14_for_qbe(dataset_root: str):
-    corpus = Quesst14(dataset_root)
-
-    def path_to_dict(path: str):
-        return dict(
-            wav_path=path,
-        )
-
-    return Container(
-        all_data={
-            Path(path).stem: path_to_dict(path)
-            for path in (corpus.valid_queries + corpus.test_queries + corpus.docs)
-        },
-        valid_keys=[Path(path).stem for path in corpus.valid_queries],
-        test_keys=[Path(path).stem for path in corpus.test_queries],
-        doc_keys=[Path(path).stem for path in corpus.docs],
-    )

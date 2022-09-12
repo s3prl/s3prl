@@ -5,7 +5,7 @@ import tempfile
 import pytest
 from dotenv import dotenv_values
 
-from s3prl.dataio.corpus.librispeech import librispeech_for_speech2text
+from s3prl.dataio.corpus.librispeech import LibriSpeech
 from s3prl.dataset.base import AugmentedDynamicItemDataset
 from s3prl.dataset.speech2text_pipe import Speech2TextPipe
 
@@ -13,10 +13,8 @@ from s3prl.dataset.speech2text_pipe import Speech2TextPipe
 @pytest.mark.corpus
 def test_speech2text_pipe():
     config = dotenv_values()
-    train_data, valid_data, test_data, corpus_stats = librispeech_for_speech2text(
-        config["LibriSpeech"]
-    ).split(3)
 
+    train_data, valid_data, test_data = LibriSpeech(config["LibriSpeech"]).data_split
     dataset = AugmentedDynamicItemDataset(train_data)
     dataset_char = Speech2TextPipe(generate_tokenizer=True, vocab_type="character")(
         dataset

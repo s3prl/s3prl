@@ -150,23 +150,3 @@ class LibriLight(Corpus):
                     "gender": spkr2gender[spkr_list[wav_id]],
                 }
         return data_dict
-
-
-def librilight_for_speech2text(
-    librilight_root: str,
-    librispeech_root: str,
-    n_jobs: int = 4,
-    train_split: str = "10min-fold0",
-    valid_split: List[str] = ["dev-clean"],
-    test_split: List[str] = ["test-clean"],
-):
-    from .librispeech import LibriSpeech
-
-    train_corpus = LibriLight(librilight_root, train_split=train_split)
-    eval_corpus = LibriSpeech(librispeech_root, n_jobs, [], valid_split, test_split)
-    _, valid_data, test_data = eval_corpus.data_split
-    return dict(
-        train_data=train_corpus.all_data,
-        valid_data=valid_data,
-        test_data=test_data,
-    )
