@@ -909,6 +909,12 @@ class Problem:
                     flatten_config[k] = v
             config = flatten_config
 
+        def assert_no_missing(config: dict):
+            omegaconf.OmegaConf.to_container(
+                omegaconf.OmegaConf.create(config), throw_on_missing=True
+            )
+
+        assert_no_missing(config)
         return config
 
     @staticmethod
