@@ -18,9 +18,12 @@ def get_length(dataset):
 def test_sorted_slice_sampler():
     batch_size = 16
     max_length = 16000 * 5
-    data = OrderedDict({
-        index: {"length": random.randint(16000 * 3, 16000 * 8)} for index in range(1000)
-    })
+    data = OrderedDict(
+        {
+            index: {"length": random.randint(16000 * 3, 16000 * 8)}
+            for index in range(1000)
+        }
+    )
 
     dataset = AugmentedDynamicItemDataset(data)
     sampler = SortedSliceSampler(
@@ -51,9 +54,12 @@ def test_sorted_slice_sampler():
 def test_sorted_bucketing_sampler():
     batch_size = 16
     max_length = 16000 * 5
-    data = OrderedDict({
-        index: {"length": random.randint(16000 * 3, 16000 * 8)} for index in range(1000)
-    })
+    data = OrderedDict(
+        {
+            index: {"length": random.randint(16000 * 3, 16000 * 8)}
+            for index in range(1000)
+        }
+    )
 
     dataset = AugmentedDynamicItemDataset(data)
     sampler = SortedBucketingSampler(

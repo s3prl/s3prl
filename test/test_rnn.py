@@ -39,4 +39,3 @@ def test_rnn(helpers):
         assert out.shape[1] == 25
         assert out.shape[2] == module.output_size
         assert out_len.max() == 25
-

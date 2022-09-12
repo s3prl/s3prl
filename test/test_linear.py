@@ -8,4 +8,3 @@ def test_FrameLevel(helpers):
     x = torch.randn(32, 10, 3)
     x_len = (torch.ones(32) * 3).long()
     h, hl = module(x, x_len)
-

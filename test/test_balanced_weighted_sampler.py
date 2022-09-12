@@ -6,12 +6,14 @@ from s3prl.dataio.sampler import BalancedWeightedSampler
 
 def test_balanced_weighted_sampler():
     dataset = AugmentedDynamicItemDataset(
-        OrderedDict({
-            0: dict(label="a"),
-            1: dict(label="a"),
-            2: dict(label="b"),
-            3: dict(label="a"),
-        })
+        OrderedDict(
+            {
+                0: dict(label="a"),
+                1: dict(label="a"),
+                2: dict(label="b"),
+                3: dict(label="a"),
+            }
+        )
     )
     batch_size = 5
     prev_diff_ratio = 1.0

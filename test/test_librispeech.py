@@ -21,7 +21,10 @@ def test_librispeech_dataset():
     dataset_root = config["LibriSpeech"]
     dataset = LibriSpeech(
         dataset_root,
-        train_split=["train-clean-100", "train-clean-360"],  # FIXME (Leo): I temporary do not have space for train-other-500 ...
+        train_split=[
+            "train-clean-100",
+            "train-clean-360",
+        ],  # FIXME (Leo): I temporary do not have space for train-other-500 ...
         valid_split=["dev-clean", "dev-other"],
         test_split=["test-clean", "test-other"],
     )
