@@ -1,18 +1,17 @@
 import pytest
 import yaml
+import tempfile
 from dotenv import dotenv_values
 from torch.utils.data import Subset
 from tqdm import tqdm
 
+from s3prl.problem import SuperbER
 from s3prl.downstream.emotion.expert import DownstreamExpert
 
 
 @pytest.mark.corpus
 @pytest.mark.parametrize("fold_id", [0, 1, 2, 3, 4])
 def test_er_dataset(fold_id):
-    from s3prl import Workspace
-    from s3prl.base import fileio
-    from s3prl.problem import SuperbER
 
     IEMOCAP = dotenv_values()["IEMOCAP"]
     with open("./s3prl/downstream/emotion/config.yaml") as file:
@@ -21,39 +20,50 @@ def test_er_dataset(fold_id):
         config["datarc"]["meta_data"] = "./s3prl/downstream/emotion/meta_data"
         config["datarc"]["test_fold"] = f"fold{fold_id + 1}"
 
-    workspace = Workspace()
-    expert = DownstreamExpert(320, config, str(workspace))
+    with tempfile.TemporaryDirectory() as tempdir:
+        expert = DownstreamExpert(320, config, tempdir)
 
-    train_dataset_v3 = expert.get_dataloader("train").dataset
-    valid_dataset_v3 = expert.get_dataloader("dev").dataset
-    test_dataset_v3 = expert.get_dataloader("test").dataset
+        train_dataset_v3 = expert.get_dataloader("train").dataset
+        valid_dataset_v3 = expert.get_dataloader("dev").dataset
+        test_dataset_v3 = expert.get_dataloader("test").dataset
 
-    train_paths = []
-    for wav, label, name in train_dataset_v3:
-        train_paths.append(name)
-    train_paths.sort()
-
-    valid_paths = []
-    for wav, label, name in valid_dataset_v3:
-        valid_paths.append(name)
-    valid_paths.sort()
-
-    test_paths = []
-    for wav, label, name in test_dataset_v3:
-        test_paths.append(name)
-    test_paths.sort()
-
-    fileio.save(workspace / "train", train_paths, "txt")
-    fileio.save(workspace / "valid", valid_paths, "txt")
-    fileio.save(workspace / "test", test_paths, "txt")
-
-    cfg = SuperbER.setup.default_cfg
-    train_data, valid_data, test_data = cfg.corpus(
-        dataset_root=IEMOCAP, test_fold=fold_id
-    ).slice(3)
-    train_dataset_v4 = cfg.train_datapipe()(train_data)
-    valid_dataset_v4 = cfg.valid_datapipe()(valid_data, **train_dataset_v4.all_tools())
-    test_dataset_v4 = cfg.test_datapipe()(test_data, **train_dataset_v4.all_tools())
+    with tempfile.TemporaryDirectory() as tempdir:
+        default_config = SuperbER().default_config()
+        train_csv, valid_csv, test_csvs = SuperbER().prepare_data(
+            {"iemocap": IEMOCAP, "test_fold": fold_id}, tempdir, tempdir
+        )
+        encoder_path = SuperbER().build_encoder(
+            default_config["build_encoder"],
+            tempdir,
+            tempdir,
+            train_csv,
+            valid_csv,
+            test_csvs,
+        )
+        train_dataset_v4 = SuperbER().build_dataset(
+            default_config["build_dataset"],
+            tempdir,
+            tempdir,
+            "train",
+            train_csv,
+            encoder_path,
+        )
+        valid_dataset_v4 = SuperbER().build_dataset(
+            default_config["build_dataset"],
+            tempdir,
+            tempdir,
+            "valid",
+            valid_csv,
+            encoder_path,
+        )
+        test_dataset_v4 = SuperbER().build_dataset(
+            default_config["build_dataset"],
+            tempdir,
+            tempdir,
+            "test",
+            test_csvs[0],
+            encoder_path,
+        )
 
     def compare_dataset(v3, v4):
         data_v3 = {}
