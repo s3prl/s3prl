@@ -13,11 +13,18 @@ jobs:
     strategy:
       max-parallel: 4
       matrix:
-        platform: [ubuntu-18.04]
-        python-version: [3.8, 3.9]
-        torchaudio-version: [0.10.2, 0.9.1, 0.8.1]
+        os: [ubuntu-18.04]
+        python-version: [3.8]
+        torchaudio-version: [0.8.1, 0.9.1, 0.10.2, 0.11.0, 0.12.1]
+        include:
+          - os: ubuntu-20.04
+            python-version: 3.7
+            torchaudio-version: 0.11.0
+          - os: ubuntu-20.04
+            python-version: 3.9
+            torchaudio-version: 0.8.1
 
-    runs-on: ${{ matrix.platform }}
+    runs-on: ${{ matrix.os }}
 
     steps:
     - uses: actions/checkout@v2
@@ -30,20 +37,14 @@ jobs:
     - name: Install Linux dependencies
       run: sudo apt-get install -y libsndfile1-dev sox
 
-    - name: Upgrade pip
-      run: pip3 install --upgrade pip
-
-    - name: Install wheel and setuptools
-      run: pip3 install --upgrade wheel setuptools
+    - name: Upgrade pip and wheel
+      run: pip3 install --upgrade pip wheel
 
     - name: Install PyTorch & Torchaudio
       run: pip3 install torchaudio==${{ matrix.torchaudio-version }}
 
     - name: Install S3PRL
-      run: pip3 install --editable ".[dev]"
-
-    - name: Install setuptools v59.5.0
-      run: pip3 install setuptools==59.5.0
+      run: pip3 install -e ".[dev]"
 
     - name: Check coding style by ci/format.py
       run: |
