@@ -54,6 +54,7 @@ def test_superb_asr():
             asr = TestASR()
             config = asr.default_config()
             config["target_dir"] = tempdir
+            config["device"] = "cpu"
             config["train"]["total_steps"] = 4
             config["train"]["log_step"] = 1
             config["train"]["eval_step"] = 2
