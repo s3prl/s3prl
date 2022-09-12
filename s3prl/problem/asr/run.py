@@ -340,7 +340,6 @@ class ASR(Problem):
         )
         return dataset, batch_sampler
 
-    @classmethod
-    def build_task(cls, build_task: dict, model, tokenizer):
+    def build_task(self, build_task: dict, model, tokenizer):
         task = Speech2TextCTCTask(model, tokenizer, **build_task)
         return task
