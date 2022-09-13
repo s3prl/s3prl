@@ -1,3 +1,10 @@
+"""
+Basic G2P
+
+Authors:
+  * Heng-Jui Chang 2022
+"""
+
 import logging
 from collections import defaultdict
 from typing import Dict, List, Tuple

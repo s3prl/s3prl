@@ -1,3 +1,11 @@
+"""
+The setting fo Superb SD
+
+Authors:
+  * Jiatong Shi 2021
+  * Shu-wen Yang 2022
+"""
+
 from dataclasses import dataclass
 from pathlib import Path
 

@@ -1,3 +1,10 @@
+"""
+Wrap any batch sampler for distributed training
+
+Authors:
+  * Shu-wen Yang 2022
+"""
+
 import logging
 from copy import deepcopy
 from typing import Iterator, Optional, TypeVar

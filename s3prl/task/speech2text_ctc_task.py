@@ -1,3 +1,10 @@
+"""
+Speech2Text with CTC loss
+
+Authors
+  * Heng-Jui Chang 2022
+"""
+
 import logging
 from typing import List, Union
 

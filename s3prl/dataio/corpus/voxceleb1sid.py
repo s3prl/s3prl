@@ -1,3 +1,10 @@
+"""
+Parse VoxCeleb1 corpus for classification
+
+Authors:
+  * Shu-wen Yang 2022
+"""
+
 import logging
 import os
 from collections import defaultdict

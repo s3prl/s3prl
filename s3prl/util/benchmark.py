@@ -1,3 +1,10 @@
+"""
+Benchmark the timing a block of code
+
+Authors
+  * Shu-wen Yang 2022
+"""
+
 import logging
 from collections import defaultdict
 from contextlib import ContextDecorator

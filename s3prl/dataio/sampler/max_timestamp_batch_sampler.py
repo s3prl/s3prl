@@ -1,3 +1,10 @@
+"""
+Limit the maximum timestamps in a batch to realize dynamic batching.
+
+Authors:
+  * Shu-wen Yang 2022
+"""
+
 import torch
 from joblib import Parallel, delayed
 from tqdm import tqdm

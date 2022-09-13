@@ -1,3 +1,10 @@
+"""
+Simple categorical encoder
+
+Authors:
+  Shu-wen Yang 2022
+"""
+
 from typing import List
 
 

@@ -1,3 +1,10 @@
+"""
+Parse the LibriLight corpus
+
+Authors:
+  * Heng-Jui Chang 2022
+"""
+
 import logging
 import os
 import re

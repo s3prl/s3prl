@@ -1,3 +1,10 @@
+"""
+Create vocabulary (train tokenizer)
+
+Authors:
+  * Heng-Jui Chang 2022
+"""
+
 import logging
 import os
 import tempfile

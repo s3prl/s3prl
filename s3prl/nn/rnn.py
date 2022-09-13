@@ -1,3 +1,11 @@
+"""
+RNN models used in Superb Benchmark
+
+Authors:
+  * Heng-Jui Chang 2022
+  * Shu-wen Yang 2022
+"""
+
 from typing import List, Tuple
 
 import torch

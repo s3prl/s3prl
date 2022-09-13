@@ -1,3 +1,10 @@
+"""
+Parse the IEMOCAP corpus
+
+Authors:
+  * Shu-wen Yang 2022
+"""
+
 import logging
 import re
 from copy import deepcopy

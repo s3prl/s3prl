@@ -1,3 +1,10 @@
+"""
+Fix random seeds
+
+Authors
+  * Heng-Jui Chang 2022
+"""
+
 import random
 
 import numpy as np

@@ -1,3 +1,10 @@
+"""
+Parse VoxCeleb1 corpus for verification
+
+Authors:
+  * Haibin Wu 2022
+"""
+
 import logging
 from pathlib import Path
 

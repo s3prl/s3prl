@@ -1,3 +1,10 @@
+"""
+Speaker verification models
+
+Authors:
+  * Haibin Wu 2022
+"""
+
 import torch
 import torch.nn as nn
 import torch.nn.functional as F

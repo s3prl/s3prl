@@ -1,3 +1,11 @@
+"""
+Utilities for file format conversion for Speaker Diarization
+
+Authors:
+  * Jiatong Shi 2021
+  * Shu-wen Yang 2022
+"""
+
 import logging
 import os
 import re

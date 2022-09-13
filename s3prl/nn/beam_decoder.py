@@ -1,3 +1,10 @@
+"""
+The beam search decoder of flashlight
+
+Authors:
+  * Heng-Jui Chang 2022
+"""
+
 import itertools as it
 import math
 from typing import Iterable, List

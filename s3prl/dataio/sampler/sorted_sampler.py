@@ -1,3 +1,12 @@
+"""
+The most commonly used batch sampler in S3PRL legacy codebase,
+which sorts the lengths of all the data points and group the instances
+with the similar lengths together.
+
+Authors:
+  Shu-wen Yang 2022
+"""
+
 import torch
 from tqdm import tqdm
 

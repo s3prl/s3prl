@@ -1,3 +1,11 @@
+"""
+The setting of Superb PR
+
+Authors
+  * Heng-Jui Chang 2022
+  * Shu-wen Yang 2022
+"""
+
 import pickle
 from collections import OrderedDict
 from dataclasses import dataclass

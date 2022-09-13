@@ -1,7 +1,13 @@
-"""Modified from tensorflow_datasets.features.text.*
-
-Reference: https://www.tensorflow.org/datasets/api_docs/python/tfds/features/text_lib
 """
+Load tokenizer to encode & decode
+
+Modified from tensorflow_datasets.features.text.*
+Reference: https://www.tensorflow.org/datasets/api_docs/python/tfds/features/text_lib
+
+Authors:
+  * Heng-Jui Chang 2022
+"""
+
 import abc
 from typing import List
 

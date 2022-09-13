@@ -1,3 +1,10 @@
+"""
+S3PRL Upstream Collection and some utilities
+
+Authors:
+  * Shu-wen Yang 2022
+"""
+
 from typing import List, Union
 
 import torch

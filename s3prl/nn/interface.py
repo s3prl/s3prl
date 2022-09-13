@@ -1,3 +1,10 @@
+"""
+Model interfaces
+
+Authors:
+  * Shu-wen Yang 2022
+"""
+
 from typing import List, Tuple
 
 import torch

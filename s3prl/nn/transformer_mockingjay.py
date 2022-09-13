@@ -1,3 +1,10 @@
+"""
+Mockingjay, TERA, Audio-ALBERT's model architecture
+
+Authors:
+  * Andy T. Liu 2022
+"""
+
 import copy
 import math
 

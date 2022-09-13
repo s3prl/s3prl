@@ -1,3 +1,10 @@
+"""
+Parse the Fluent Speech Command corpus
+
+Authors:
+  * Shu-wen Yang 2022
+"""
+
 import logging
 import os
 from collections import OrderedDict

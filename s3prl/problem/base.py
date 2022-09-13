@@ -1,3 +1,10 @@
+"""
+The shared backbone of common ML train/test procedure for all problems
+
+Authors:
+  * Shu-wen Yang 2022
+"""
+
 from __future__ import annotations
 
 import argparse

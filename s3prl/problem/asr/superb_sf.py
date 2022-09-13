@@ -1,3 +1,12 @@
+"""
+The setting of Superb SF
+
+Authors
+  * Yung-Sung Chuang 2021
+  * Heng-Jui Chang 2022
+  * Shu-wen Yang 2022
+"""
+
 from dataclasses import dataclass
 from pathlib import Path
 from typing import List

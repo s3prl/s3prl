@@ -1,3 +1,10 @@
+"""
+The backbone run procedure of all ASR tasks
+
+Authors
+  * Shu-wen Yang 2022
+"""
+
 import logging
 import pickle
 import shutil
@@ -10,7 +17,9 @@ from s3prl.task.speech2text_ctc_task import Speech2TextCTCTask
 
 logger = logging.getLogger(__name__)
 
-__all__ = ["ASR"]
+__all__ = [
+    "ASR"
+]
 
 
 class ASR(Problem):

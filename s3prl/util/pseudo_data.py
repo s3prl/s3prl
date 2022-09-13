@@ -1,3 +1,10 @@
+"""
+Create pseudo data
+
+Authors
+  * Shu-wen Yang 2022
+"""
+
 import shutil
 import random
 import tempfile

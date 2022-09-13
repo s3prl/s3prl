@@ -1,3 +1,13 @@
+"""
+The setting of Superb ASV
+
+Authors
+  * Po-Han Chi 2021
+  * Shu-wen Yang 2021
+  * Haibin Wu 2022
+  * Shu-wen Yang 2022
+"""
+
 import pickle
 from collections import OrderedDict
 from dataclasses import dataclass

@@ -1,3 +1,10 @@
+"""
+Parse the Audio SNIPS corpus
+
+Authors:
+  * Heng-Jui Chang 2022
+"""
+
 import logging
 from collections import OrderedDict
 from pathlib import Path

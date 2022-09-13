@@ -1,3 +1,10 @@
+"""
+The backbone run procedure of ASV tasks
+
+Authors
+  * Shu-wen Yang 2022
+"""
+
 import logging
 import os
 import pickle
@@ -13,7 +20,9 @@ from s3prl.task.speaker_verification_task import SpeakerVerification
 
 logger = logging.getLogger(__name__)
 
-__all__ = ["ASV"]
+__all__ = [
+    "ASV"
+]
 
 
 class ASV(Problem):

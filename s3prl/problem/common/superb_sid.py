@@ -1,3 +1,11 @@
+"""
+The setting of Superb SID
+
+Authors
+  * Po-Han Chi 2021
+  * Shu-wen Yang 2022
+"""
+
 import logging
 import math
 import pickle

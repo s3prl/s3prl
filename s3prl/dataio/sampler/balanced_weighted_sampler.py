@@ -1,3 +1,10 @@
+"""
+For datasets with highly unbalanced class
+
+Authors:
+  * Shu-wen Yang 2022
+"""
+
 from collections import Counter
 from typing import Iterator, TypeVar
 

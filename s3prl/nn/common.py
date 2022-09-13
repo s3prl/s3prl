@@ -1,3 +1,10 @@
+"""
+Common probing models
+
+Authors:
+  * Shu-wen Yang 2022
+"""
+
 from typing import List
 
 import torch.nn as nn

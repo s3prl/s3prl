@@ -1,3 +1,12 @@
+"""
+The setting of Superb IC
+
+Authors
+  * Wei-Cheng Tseng 2021
+  * Shu-wen Yang 2021
+  * Shu-wen Yang 2022
+"""
+
 import logging
 import pickle
 from pathlib import Path

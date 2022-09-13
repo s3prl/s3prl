@@ -1,3 +1,11 @@
+"""
+The most commonly used batch sampler, recover the default batch sampler used
+in torch DataLoader
+
+Authors:
+  * Shu-wen Yang 2022
+"""
+
 from torch.utils.data import BatchSampler, RandomSampler, SequentialSampler
 
 __all__ = [

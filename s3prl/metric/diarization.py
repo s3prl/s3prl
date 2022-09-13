@@ -1,3 +1,10 @@
+"""
+Metrics for diarization
+
+Authors:
+  * Jiatong Shi 2021
+"""
+
 from itertools import permutations
 
 import numpy as np

@@ -1,5 +1,5 @@
 """
-Commonly used evaluation metrics
+Evaluation metrics
 """
 
 from .common import accuracy, ter, wer, per, cer, compute_eer, compute_minDCF

@@ -1,3 +1,11 @@
+"""
+Speaker Verification with Softmax-based loss
+
+Authors
+  * Po-Han Chi 2021
+  * Haibin Wu 2022
+"""
+
 import logging
 from typing import Dict, List, Tuple
 

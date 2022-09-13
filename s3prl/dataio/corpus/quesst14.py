@@ -1,3 +1,10 @@
+"""
+Parse the QUESST14 corpus
+
+Authors:
+  * Shu-wen Yang 2022
+"""
+
 import logging
 import re
 from pathlib import Path

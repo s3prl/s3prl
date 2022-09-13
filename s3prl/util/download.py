@@ -1,3 +1,10 @@
+"""
+Thread-safe file downloading and cacheing
+
+Authors
+  * Shu-wen Yang 2022
+"""
+
 import os
 import sys
 import time

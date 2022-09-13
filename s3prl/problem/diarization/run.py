@@ -1,3 +1,10 @@
+"""
+The backbone run procedure for Speaker Diarization
+
+Authors:
+  * Shu-wen Yang 2022
+"""
+
 import logging
 import shutil
 from dataclasses import dataclass

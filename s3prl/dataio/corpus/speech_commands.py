@@ -1,3 +1,10 @@
+"""
+Parse the Google Speech Commands V1 corpus
+
+Authors:
+  * Shu-wen Yang 2022
+"""
+
 import hashlib
 import logging
 import re

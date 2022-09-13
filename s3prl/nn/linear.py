@@ -1,3 +1,10 @@
+"""
+Common linear models
+
+Authors:
+  * Shu-wen Yang 2022
+"""
+
 from .common import FrameLevel, UtteranceLevel
 
 __all__ = [

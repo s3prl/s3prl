@@ -1,3 +1,10 @@
+"""
+Group the data points with the same key into the same batch
+
+Authors:
+  * Shu-wen Yang 2022
+"""
+
 from collections import defaultdict
 
 __all__ = [

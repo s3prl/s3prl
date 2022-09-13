@@ -1,3 +1,12 @@
+"""
+The setting of Superb ER
+
+Authors
+  * Tzu-Hsien Huang 2021
+  * Shu-wen Yang 2021
+  * Shu-wen Yang 2022
+"""
+
 import json
 import logging
 import math

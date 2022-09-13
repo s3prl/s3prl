@@ -1,9 +1,15 @@
-# -*- coding: utf-8 -*- #
-"""*********************************************************************************************"""
+"""
+Specaug modules
+
+Authors:
+  * Xuankai Chang 2021
+  * ShampooWang, cornliu 2021
+  * Shu-wen Yang 2022
+"""
+
 #   FileName     [ dataset.py ]
 #   Author       [ S3PRL, Xuankai Chang ]
 #   Copyright    [ Copyleft(c), Speech Lab, NTU, Taiwan ]
-"""*********************************************************************************************"""
 # Adaptive_SpecAugment Author: ShampooWang, cornliu
 
 import torch

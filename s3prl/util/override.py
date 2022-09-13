@@ -1,3 +1,10 @@
+"""
+Parse command-line arguments into override dictionary
+
+Authors
+  * Shu-wen Yang 2022
+"""
+
 import logging
 
 logger = logging.getLogger(__name__)

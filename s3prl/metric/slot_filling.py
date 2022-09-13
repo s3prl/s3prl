@@ -1,3 +1,11 @@
+"""
+Metrics for the slot filling SLU task
+
+Authors:
+  * Yung-Sung Chuang 2021
+  * Heng-Jui Chang 2022
+"""
+
 import re
 from typing import Dict, List, Tuple
 

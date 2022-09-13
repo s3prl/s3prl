@@ -1,3 +1,11 @@
+"""
+Diarization Permutation Invarant Task
+
+Authors
+  * Jiatong Shi 2022
+  * Shu-wen Yang 2022
+"""
+
 from pathlib import Path
 from typing import List
 

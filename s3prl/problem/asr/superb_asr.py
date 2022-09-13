@@ -1,3 +1,11 @@
+"""
+The setting of Superb ASR
+
+Authors
+  * Heng-Jui Chang 2022
+  * Shu-wen Yang 2022
+"""
+
 import logging
 import pickle
 from collections import OrderedDict
