@@ -7,6 +7,12 @@ import torch.nn.functional as F
 from s3prl import hub
 from s3prl.util.pseudo_data import get_pseudo_wavs
 
+__all__ = [
+    "S3PRLUpstream",
+    "Featurizer",
+    "UpstreamDownstreamModel",
+]
+
 
 class S3PRLUpstream(nn.Module):
     """

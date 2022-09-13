@@ -9,6 +9,10 @@ from .base import Corpus
 
 logger = logging.getLogger(__name__)
 
+__all__ = [
+    "FluentSpeechCommands",
+]
+
 
 class FluentSpeechCommands(Corpus):
     """

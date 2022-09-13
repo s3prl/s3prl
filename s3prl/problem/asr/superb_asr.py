@@ -21,6 +21,12 @@ from .run import ASR
 
 logger = logging.getLogger(__name__)
 
+__all__ = [
+    "prepare_librispeech",
+    "prepare_common_tokenizer",
+    "SuperbASR",
+]
+
 
 def prepare_librispeech(
     target_dir,

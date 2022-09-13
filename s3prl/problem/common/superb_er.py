@@ -19,6 +19,11 @@ from .superb_sid import SuperbSID
 
 logger = logging.getLogger(__name__)
 
+__all__ = [
+    "iemocap_for_superb",
+    "SuperbER",
+]
+
 
 def iemocap_for_superb(
     target_dir: str,

@@ -3,6 +3,10 @@ from itertools import permutations
 import numpy as np
 import torch
 
+__all__ = [
+    "pit_loss",
+]
+
 
 # compute mask to remove the padding positions
 def create_length_mask(length, max_len, num_output, device):

@@ -6,6 +6,8 @@ from torch.utils.data import WeightedRandomSampler
 
 T_co = TypeVar("T_co", covariant=True)
 
+__all__ = ["BalancedWeightedSampler"]
+
 
 class BalancedWeightedSampler:
     def __init__(

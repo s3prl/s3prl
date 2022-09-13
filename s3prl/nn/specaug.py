@@ -11,6 +11,12 @@ import torch
 DEFAULT_TIME_WARP_MODE = "bicubic"
 
 
+__all__ = [
+    "ModelWithSpecaug",
+    "SpecAug",
+]
+
+
 class ModelWithSpecaug(torch.nn.Module):
     """ """
 

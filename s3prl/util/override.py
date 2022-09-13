@@ -2,6 +2,9 @@ import logging
 
 logger = logging.getLogger(__name__)
 
+__all__ = [
+    "parse_overrides",
+]
 
 def parse_override(string):
     """

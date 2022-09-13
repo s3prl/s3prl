@@ -18,6 +18,10 @@ WAV_DIR_PATH = "sentences/wav"
 
 logger = logging.getLogger(__name__)
 
+__all__ = [
+    "IEMOCAP",
+]
+
 
 class IEMOCAP(Corpus):
     """

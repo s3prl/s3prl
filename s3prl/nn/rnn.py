@@ -6,6 +6,12 @@ from torch.nn.utils.rnn import pack_padded_sequence, pad_packed_sequence
 
 from s3prl.nn.interface import AbsFrameModel
 
+__all__ = [
+    "RNNEncoder",
+    "SuperbDiarizationModel"
+]
+
+
 
 def downsample(
     x: torch.Tensor, x_len: torch.LongTensor, sample_rate: int, sample_style: str

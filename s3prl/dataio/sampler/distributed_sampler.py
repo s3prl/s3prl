@@ -8,6 +8,9 @@ from torch.utils.data import BatchSampler
 T_co = TypeVar("T_co", covariant=True)
 logger = logging.getLogger(__name__)
 
+__all__ = [
+    "DistributedBatchSamplerWrapper",
+]
 
 class DistributedBatchSamplerWrapper:
     def __init__(

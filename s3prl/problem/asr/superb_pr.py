@@ -13,6 +13,10 @@ from s3prl.dataio.sampler import FixedBatchSizeBatchSampler, SortedSliceSampler
 
 from .superb_asr import SuperbASR
 
+__all__ = [
+    "SuperbPR",
+]
+
 
 class SuperbPR(SuperbASR):
     def default_config(self) -> dict:

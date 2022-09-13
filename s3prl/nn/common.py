@@ -4,6 +4,11 @@ import torch.nn as nn
 
 from s3prl.nn.pooling import MeanPooling
 
+__all__ = [
+    "FrameLevel",
+    "UtteranceLevel",
+]
+
 
 class FrameLevel(nn.Module):
     def __init__(

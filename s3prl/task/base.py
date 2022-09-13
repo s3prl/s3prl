@@ -4,6 +4,8 @@ from typing import List
 
 import torch
 
+__all__ = ["Task"]
+
 
 class Task(torch.nn.Module):
     def __init__(self) -> None:

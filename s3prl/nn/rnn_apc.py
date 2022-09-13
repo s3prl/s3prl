@@ -7,6 +7,10 @@ from torch.nn.utils.rnn import pack_padded_sequence, pad_packed_sequence
 from s3prl import Output
 from s3prl.nn.vq_apc import VQLayer
 
+__all__ = [
+    "ApcModel",
+]
+
 
 class ApcModel(nn.Module):
     def __init__(self, input_size, hidden_size, num_layers, dropout, residual, vq=None):

@@ -14,6 +14,11 @@ from .superb_asr import SuperbASR
 VOCAB_URL = "https://huggingface.co/datasets/s3prl/SNIPS/raw/main/character.txt"
 SLOTS_URL = "https://huggingface.co/datasets/s3prl/SNIPS/raw/main/slots.txt"
 
+__all__ = [
+    "audio_snips_for_slot_filling",
+    "SuperbSF",
+]
+
 
 def audio_snips_for_slot_filling(
     target_dir: str,

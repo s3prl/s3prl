@@ -13,6 +13,8 @@ from .util import csv_to_kaldi_dir, kaldi_dir_to_rttm, make_rttm_and_score
 
 logger = logging.getLogger(__name__)
 
+__all__ = ["Diarization"]
+
 
 class Diarization(Problem):
     def run(

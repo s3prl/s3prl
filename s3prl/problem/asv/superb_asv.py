@@ -23,6 +23,11 @@ EFFECTS = [
     ["silence", "1", "0.1", "0.1%", "-1", "0.1", "0.1%"],
 ]
 
+__all__ = [
+    "prepare_voxceleb1_for_sv",
+    "SuperbASV",
+]
+
 
 def prepare_voxceleb1_for_sv(
     target_dir: str,

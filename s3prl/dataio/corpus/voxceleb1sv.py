@@ -10,6 +10,10 @@ from .base import Corpus
 SPLIT_FILE_URL = "https://www.robots.ox.ac.uk/~vgg/data/voxceleb/meta/iden_split.txt"
 TRIAL_FILE_URL = "https://openslr.magicdatatech.com/resources/49/voxceleb1_test_v2.txt"
 
+__all__ = [
+    "VoxCeleb1SV",
+]
+
 
 class VoxCeleb1SV(Corpus):
     def __init__(

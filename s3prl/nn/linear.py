@@ -1,5 +1,10 @@
 from .common import FrameLevel, UtteranceLevel
 
+__all__ = [
+    "FrameLevelLinear",
+    "MeanPoolingLinear",
+]
+
 
 class FrameLevelLinear(FrameLevel):
     def __init__(

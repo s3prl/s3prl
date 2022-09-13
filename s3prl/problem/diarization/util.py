@@ -15,6 +15,12 @@ logger = logging.getLogger(__name__)
 
 RTTM_FORMAT = "SPEAKER {:s} 1 {:7.2f} {:7.2f} <NA> <NA> {:s} <NA>"
 
+__all__ = [
+    "kaldi_dir_to_rttm",
+    "csv_to_kaldi_dir",
+    "kaldi_dir_to_csv",
+]
+
 
 def kaldi_dir_to_rttm(data_dir: str, rttm_path: str):
     data_dir: Path = Path(data_dir)

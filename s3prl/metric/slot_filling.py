@@ -3,6 +3,14 @@ from typing import Dict, List, Tuple
 
 from .common import cer, wer
 
+__all__ = [
+    "slot_type_f1",
+    "slot_value_cer",
+    "slot_value_wer",
+    "slot_edit_f1",
+    ""
+]
+
 
 def clean(ref: str) -> str:
     ref = re.sub(r"B\-(\S+) ", "", ref)

@@ -21,6 +21,11 @@ from . import Task
 
 logger = logging.getLogger(__name__)
 
+__all__ = [
+    "Speech2TextCTCExample",
+    "Speech2TextCTCTask",
+]
+
 
 class Speech2TextCTCExample(torch.nn.Module):
     def __init__(self, input_size=3, output_size=4):

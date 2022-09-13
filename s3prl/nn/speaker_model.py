@@ -12,6 +12,14 @@ from .pooling import (
 XVECTOR_TDNNS_LENGTH_REDUCTION = 14
 
 
+__all__ = [
+    "TDNN",
+    "XVectorBackbone",
+    "SpeakerEmbeddingExtractor",
+    "SuperbXvector",
+]
+
+
 class TDNN(nn.Module):
     def __init__(
         self,

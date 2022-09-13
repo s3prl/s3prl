@@ -21,6 +21,9 @@ LIBRI_SPLITS = [
     "test-other",
 ]
 
+__all__ = [
+    "LibriSpeech",
+]
 
 def read_text(file: Path) -> str:
     src_file = "-".join(str(file).split("-")[:-1]) + ".trans.txt"

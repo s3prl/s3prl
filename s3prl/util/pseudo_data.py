@@ -10,6 +10,11 @@ from torch.nn.utils.rnn import pad_sequence
 
 SAMPLE_RATE = 16000
 
+__all__ = [
+    "pseudo_audio",
+    "get_pseudo_wavs",
+]
+
 
 class pseudo_audio:
     def __init__(self, secs: int, sample_rate: int = SAMPLE_RATE):

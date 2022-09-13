@@ -11,6 +11,8 @@ from .base import Task
 
 TOLERANT_FRAME_DIFF = 2
 
+__all__ = ["DiarizationPIT"]
+
 
 class DiarizationPIT(Task):
     def __init__(

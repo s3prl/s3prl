@@ -10,6 +10,10 @@ from s3prl.dataio.sampler import FixedBatchSizeBatchSampler, GroupSameItemSample
 from .run import Diarization
 from .util import kaldi_dir_to_csv
 
+__all__ = [
+    "SuperbSD",
+]
+
 
 class SuperbSD(Diarization):
     def default_config(self):

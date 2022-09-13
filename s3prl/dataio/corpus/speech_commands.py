@@ -24,6 +24,10 @@ CLASSES = [
     "_silence_",
 ]
 
+__all__ = [
+    "SpeechCommandsV1",
+]
+
 
 class SpeechCommandsV1(Corpus):
     """

@@ -10,6 +10,8 @@ import torch
 logger = logging.getLogger(__name__)
 _history = defaultdict(list)
 
+__all__ = ["benchmark"]
+
 
 class benchmark(ContextDecorator):
     def __init__(self, name: str, freq: int = 20) -> None:

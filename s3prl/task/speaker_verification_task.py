@@ -14,6 +14,9 @@ from . import Task
 logger = logging.getLogger(__name__)
 
 
+__all__ = ["SpeakerClassifier", "SpeakerVerification"]
+
+
 class SpeakerClassifier(torch.nn.Module):
     """
     Attributes:

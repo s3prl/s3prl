@@ -22,6 +22,12 @@ logger = logging.getLogger(__name__)
 EFFECTS = [["channels", "1"], ["rate", "16000"], ["gain", "-3.0"]]
 
 
+__all__ = [
+    "voxceleb1_for_sid",
+    "SuperbSID",
+]
+
+
 def voxceleb1_for_sid(
     target_dir: str,
     cache_dir: str,

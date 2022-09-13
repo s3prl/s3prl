@@ -3,6 +3,15 @@ import torch.nn as nn
 import torch.nn.functional as F
 
 
+__all__ = [
+    "MeanPooling",
+    "TemporalAveragePooling",
+    "TemporalStatisticsPooling",
+    "SelfAttentivePooling",
+    "AttentiveStatisticsPooling",
+]
+
+
 class MeanPooling(nn.Module):
     def __init__(self):
         super().__init__()

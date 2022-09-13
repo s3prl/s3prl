@@ -3,6 +3,10 @@ from itertools import permutations
 import numpy as np
 import torch
 
+__all__ = [
+    "calc_diarization_error",
+]
+
 
 def calc_diarization_error(pred, label, length):
     (batch_size, max_len, num_output) = label.size()

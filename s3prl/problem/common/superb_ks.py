@@ -22,6 +22,12 @@ logger = logging.getLogger(__name__)
 EFFECTS = [["channels", "1"], ["rate", "16000"], ["gain", "-3.0"]]
 
 
+__all__ = [
+    "gsc1_for_classification",
+    "SuperbKS",
+]
+
+
 def gsc1_for_classification(
     target_dir: str,
     cache_dir: str,

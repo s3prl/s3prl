@@ -5,6 +5,10 @@ from torch.nn.functional import gumbel_softmax
 
 EPS = 1e-10
 
+__all__ = [
+    "VQLayer",
+]
+
 
 class VQLayer(nn.Module):
     def __init__(self, input_size, codebook_size, code_dim, gumbel_temperature):

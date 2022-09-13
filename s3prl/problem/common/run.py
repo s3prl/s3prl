@@ -11,6 +11,8 @@ from s3prl.task.utterance_classification_task import UtteranceClassificationTask
 
 logger = logging.getLogger(__name__)
 
+__all__ = ["Common"]
+
 
 class Common(Problem):
     def run(

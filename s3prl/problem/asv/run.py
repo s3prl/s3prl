@@ -13,6 +13,8 @@ from s3prl.task.speaker_verification_task import SpeakerVerification
 
 logger = logging.getLogger(__name__)
 
+__all__ = ["ASV"]
+
 
 class ASV(Problem):
     def run(

@@ -115,6 +115,6 @@ html_static_path = ["_static"]
 # def setup(app):
 #     app.connect("autodoc-skip-member", skip)
 
+autosummary_imported_members = True
 autosummary_ignore_module_all = False
 autodoc_member_order = "bysource"
-add_module_names = False

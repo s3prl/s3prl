@@ -7,6 +7,14 @@ from torch import nn
 from s3prl import Output
 
 
+__all__ = [
+    "TransformerConfig",
+    "TransformerLayer",
+    "TransformerEncoder",
+    "TransformerModel",
+]
+
+
 class TransformerConfig(object):
     """Configuration class to store the configuration of a `TransformerModel`."""
 

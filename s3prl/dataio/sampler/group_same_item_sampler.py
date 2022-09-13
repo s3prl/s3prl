@@ -1,5 +1,9 @@
 from collections import defaultdict
 
+__all__ = [
+    "GroupSameItemSampler",
+]
+
 
 class GroupSameItemSampler:
     def __init__(

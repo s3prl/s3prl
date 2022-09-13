@@ -6,6 +6,17 @@ from scipy.optimize import brentq
 from sklearn.metrics import accuracy_score, roc_curve
 
 
+__all__ = [
+    "accuracy",
+    "ter",
+    "wer",
+    "per",
+    "cer",
+    "compute_eer",
+    "compute_minDCF",
+]
+
+
 def accuracy(xs, ys, item_same_fn=None):
     if isinstance(xs, (tuple, list)):
         assert isinstance(ys, (tuple, list))

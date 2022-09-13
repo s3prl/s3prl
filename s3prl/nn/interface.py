@@ -3,6 +3,13 @@ from typing import List, Tuple
 import torch
 import torch.nn as nn
 
+__all__ = [
+    "AbsUpstream",
+    "AbsFeaturizer",
+    "AbsFrameModel",
+    "AbsUtteranceModel",
+]
+
 
 class AbsUpstream(nn.Module):
     @property

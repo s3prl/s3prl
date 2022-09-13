@@ -23,6 +23,12 @@ from .run import Common
 logger = logging.getLogger(__name__)
 
 
+__all__ = [
+    "fsc_for_multi_classification",
+    "SuperbIC",
+]
+
+
 def fsc_for_multi_classification(
     target_dir: str,
     cache_dir: str,

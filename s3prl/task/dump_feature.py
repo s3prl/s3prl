@@ -6,6 +6,9 @@ import torch.nn as nn
 from .base import Task
 
 
+__all__ = ["DumpFeature"]
+
+
 class DumpFeature(Task):
     def __init__(self, model: nn.Module, dump_feat_dir: str = "feat") -> None:
         super().__init__()

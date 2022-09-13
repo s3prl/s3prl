@@ -12,6 +12,11 @@ from . import Task
 
 logger = logging.getLogger(__name__)
 
+__all__ = [
+    "UtteranceClassifierExample",
+    "UtteranceClassificationTask",
+]
+
 
 class UtteranceClassifierExample(torch.nn.Module):
     """

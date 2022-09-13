@@ -7,6 +7,10 @@ from tqdm import trange
 
 from .base import Corpus
 
+__all__ = [
+    "SNIPS",
+]
+
 
 class SNIPS(Corpus):
     def __init__(

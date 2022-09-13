@@ -15,6 +15,10 @@ logger = logging.getLogger(__name__)
 SPLIT_FILE_URL = "https://www.robots.ox.ac.uk/~vgg/data/voxceleb/meta/iden_split.txt"
 CACHE_ROOT = Path.home() / ".cache" / "s3prl"
 
+__all__ = [
+    "VoxCeleb1SID",
+]
+
 
 class VoxCeleb1SID(Corpus):
     def __init__(
