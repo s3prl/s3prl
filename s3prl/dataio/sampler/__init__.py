@@ -1,3 +1,7 @@
+"""
+Control how torch DataLoader group instances into a batch
+"""
+
 from .balanced_weighted_sampler import BalancedWeightedSampler
 from .distributed_sampler import DistributedBatchSamplerWrapper
 from .fixed_batch_size_batch_sampler import FixedBatchSizeBatchSampler

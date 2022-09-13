@@ -1,3 +1,7 @@
+"""
+Parse the commonly used corpus into standardized dictionary structure
+"""
+
 from .fluent_speech_commands import FluentSpeechCommands
 from .iemocap import IEMOCAP
 from .librispeech import LibriSpeech

@@ -1,3 +1,7 @@
+"""
+Pre-defined python recipes with customizable methods
+"""
+
 from .asr.superb_asr import SuperbASR
 from .asr.superb_pr import SuperbPR
 from .asr.superb_sf import SuperbSF

@@ -1,3 +1,7 @@
+"""
+Define how a model is trained & evaluated for each step in the train/valid/test loop
+"""
+
 from .base import Task
 from .diarization import DiarizationPIT
 from .dump_feature import DumpFeature
