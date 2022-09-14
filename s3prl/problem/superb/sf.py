@@ -1,10 +1,8 @@
-from pydoc import classname
-
 from s3prl.corpus.snips import snips_for_speech2text
 from s3prl.dataset.speech2text_pipe import Speech2TextPipe
 from s3prl.nn import RNNEncoder
 from s3prl.nn.specaug import ModelWithSpecaug
-from s3prl.sampler import FixedBatchSizeBatchSampler
+from s3prl.sampler import FixedBatchSizeBatchSampler, SortedSliceSampler
 from s3prl.task.speech2text_ctc_task import Speech2TextCTCTask
 from s3prl.util.configuration import default_cfg
 from s3prl.utility.download import _urls_to_filepaths
@@ -30,9 +28,9 @@ class SuperbSF(SuperbProblem):
                 slots_file=_urls_to_filepaths(SLOTS_URL),
             ),
             train_sampler=dict(
-                CLS=FixedBatchSizeBatchSampler,
+                CLS=SortedSliceSampler,
                 batch_size=32,
-                shuffle=True,
+                max_length=300000,
             ),
             valid_datapipe=dict(
                 CLS=Speech2TextPipe,

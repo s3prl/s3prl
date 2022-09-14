@@ -7,6 +7,7 @@ Authors:
 
 import hashlib
 import logging
+import os
 import re
 from collections import OrderedDict
 from pathlib import Path

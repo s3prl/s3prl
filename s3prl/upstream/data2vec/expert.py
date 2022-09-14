@@ -1,5 +1,6 @@
 import torch
 import torch.nn.functional as F
+from packaging import version
 from torch.nn.utils.rnn import pad_sequence
 
 from ..interfaces import UpstreamBase

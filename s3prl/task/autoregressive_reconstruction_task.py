@@ -6,8 +6,8 @@ from typing import List
 import torch
 
 from s3prl import Logs, Output
-from s3prl.nn.identity import Identity as HeadExample
-from s3prl.nn.rnn_apc import ApcModel as BodyExample
+from s3prl.nn.rnn_apc import RnnApc as UpstreamExample
+from s3prl.nn.predictor_identity import PredictorIdentity as PredictorExample
 
 from . import Task
 
@@ -17,67 +17,71 @@ logger = logging.getLogger(__name__)
 class AutoregressiveReconstructionTask(Task):
     """
     Attributes:
-        body (torch.nn.Module): The upstream encoder (transformers, rnn, etc) that outputs `hidden_states`
-        head (torch.nn.Module): The pre-training head that takes `hidden_states` as input and maps to the task target
+        upstream (torch.nn.Module): The upstream encoder (transformers, rnn, etc) that outputs `hidden_states`
+        predictor (torch.nn.Module): The pre-training predictor that takes `hidden_states` as input and maps to the task target
         loss (torch.nn Loss Functions): The reconstruction loss (torch.nn.L1Loss, torch.nn.MSELoss, etc)
     """
 
     def __init__(
-        self, body: BodyExample, head: HeadExample, loss: torch.nn.L1Loss, **kwargs
+        self,
+        upstream: UpstreamExample,
+        predictor: PredictorExample,
+        loss: torch.nn.L1Loss,
+        **kwargs,
     ):
         """
         The input feature does not necessary have to be the same as the target feature.
 
         Args:
-            body (Encoder)
-            head (Predictor)
+            upstream (Encoder)
+            predictor (Predictor)
             loss (reconstruction loss)
-                feat_A -> body -> head -> feat_B
+                feat_A -> upstream -> predictor -> feat_B
                 loss(feat_A, feat_B)
         """
 
         super().__init__()
-        self.body = body
-        self.head = head
-        self.loss = loss
+        self.upstream = upstream
+        self.predictor = predictor
+        self.loss = loss()
 
-    def forward(
+    def predict(
         self,
-        source_feat: torch.Tensor,
-        target_feat: torch.Tensor,
-        feat_len: int,
+        x: torch.Tensor,
+        label: torch.Tensor,
+        x_len: list,
     ):
         """
         Args:
-            source_feat (torch.Tensor): (batch_size, timestamps, input_size)
-            target_feat (torch.Tensor): (batch_size, timestamps, output_size)
-            feat_len (int): length of the original feature sequence minus `n_future`
+            x (torch.Tensor): source_feat - (batch_size, timestamps, input_size)
+            label (torch.Tensor): target_feat - (batch_size, timestamps, output_size)
+            x_len (torch.Tensor): (batch_size) list of the original feature sequence length minus the value of `n_future`
 
         Return:
             hidden_states (torch.Tensor): (batch_size, timestamps, hidden_size)
             loss (torch.Tensor): scalar.
             prediction (torch.Tensor): (batch_size, timestamps, output_size)
         """
-        body_output: torch.Tensor = self.body(source_feat, feat_len.tolist())
-        prediction: torch.Tensor = self.head(body_output).prediction
+        upstream_output: torch.Tensor = self.upstream(x, x_len.tolist())
+        prediction: torch.Tensor = self.predictor(upstream_output).prediction
 
-        reconstruction_loss = self.loss(prediction, target_feat)
+        reconstruction_loss = self.loss(prediction, label)
 
         return Output(
             loss=reconstruction_loss,
-            hidden_states=body_output.hidden_states,
+            hidden_states=upstream_output.hidden_states,
             prediction=prediction,
         )
 
     def _general_forward(
         self,
-        x: torch.Tensor,  # source_feat
-        label: torch.Tensor,  # target_feat
-        x_len: int,  # feat_len
+        x: torch.Tensor,
+        label: torch.Tensor,
+        x_len: int,
         unique_name: List[str],
     ):
 
-        loss, hidden_states, prediction = self(x, label, x_len).slice(3)
+        loss, hidden_states, prediction = self.predict(x, label, x_len).slice(3)
 
         logs = Logs()
         logs.add_hidden_state("hidden_states", hidden_states)
@@ -107,9 +111,9 @@ class AutoregressiveReconstructionTask(Task):
 
     def train_step(
         self,
-        x: torch.Tensor,  # source_feat
-        label: torch.Tensor,  # target_feat
-        x_len: int,  # feat_len
+        x: torch.Tensor,
+        label: torch.Tensor,
+        x_len: int,
         unique_name: List[str],
         **kwargs,
     ):
@@ -151,9 +155,9 @@ class AutoregressiveReconstructionTask(Task):
 
     def valid_step(
         self,
-        x: torch.Tensor,  # source_feat
-        label: torch.Tensor,  # target_feat
-        x_len: int,  # feat_len
+        x: torch.Tensor,
+        label: torch.Tensor,
+        x_len: int,
         unique_name: List[str],
         **kwargs,
     ):
@@ -161,9 +165,9 @@ class AutoregressiveReconstructionTask(Task):
 
     def test_step(
         self,
-        x: torch.Tensor,  # source_feat
-        label: torch.Tensor,  # target_feat
-        x_len: int,  # feat_len
+        x: torch.Tensor,
+        label: torch.Tensor,
+        x_len: int,
         unique_name: List[str],
         **kwargs,
     ):

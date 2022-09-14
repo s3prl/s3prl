@@ -8,6 +8,12 @@ class NormWavDecibel(DataPipe):
     target_level: int = -25
     wav_name: str = "wav"
     norm_wav_name: str = "wav"
+    """
+    Args:
+        target_level (int): normalize the wav decibel level to the target value
+        wav_name (str): handle for the `takes` (input)
+        norm_wav_name (str): handle for the `provides` (output)
+    """
 
     def normalize_wav_decibel(self, wav):
         wav = wav.squeeze()  # (seq_len, 1) -> (seq_len,)

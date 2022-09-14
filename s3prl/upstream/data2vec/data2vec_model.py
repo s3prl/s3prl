@@ -20,7 +20,6 @@ from omegaconf import II
 from s3prl.upstream.wav2vec2.wav2vec2_model import (
     Wav2Vec2Config,
     ConvFeatureExtractionModel,
-    Wav2Vec2Config,
     TransformerEncoder,
     GradMultiply,
     LayerNorm,

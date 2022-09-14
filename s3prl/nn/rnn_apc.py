@@ -5,23 +5,34 @@ import torch.nn as nn
 from torch.nn.utils.rnn import pack_padded_sequence, pad_packed_sequence
 
 from s3prl import Output
-from s3prl.nn.vq_apc import VQLayer
+from s3prl.nn.vq_apc import VqApcLayer
 
 __all__ = [
     "ApcModel",
 ]
 
 
-class ApcModel(nn.Module):
+class RnnApc(nn.Module):
+    """
+    The RNN model.
+    Currently supporting upstreams models of APC, VQ-APC.
+    """
+
     def __init__(self, input_size, hidden_size, num_layers, dropout, residual, vq=None):
         """
-        input_size: an int indicating the input feature size, e.g., 80 for Mel.
-        hidden_size: an int indicating the RNN hidden size.
-        num_layers: an int indicating the number of RNN layers.
-        dropout: a float indicating the RNN dropout rate.
-        residual: a bool indicating whether to apply residual connections.
+        Args:
+            input_size (int):
+                An int indicating the input feature size, e.g., 80 for Mel.
+            hidden_size (int):
+                An int indicating the RNN hidden size.
+            num_layers (int):
+                An int indicating the number of RNN layers.
+            dropout (float):
+                A float indicating the RNN dropout rate.
+            residual (bool):
+                A bool indicating whether to apply residual connections.
         """
-        super(ApcModel, self).__init__()
+        super(RnnApc, self).__init__()
 
         assert num_layers > 0
         self.hidden_size = hidden_size
@@ -51,7 +62,9 @@ class ApcModel(nn.Module):
             assert sum(self.vq_code_dims) == hidden_size
             for cs, cd in zip(codebook_size, self.vq_code_dims):
                 self.vq_layers.append(
-                    VQLayer(input_size=cd, code_dim=cd, codebook_size=cs, **vq_config)
+                    VqApcLayer(
+                        input_size=cd, code_dim=cd, codebook_size=cs, **vq_config
+                    )
                 )
             self.vq_layers = nn.ModuleList(self.vq_layers)
 
@@ -89,14 +102,24 @@ class ApcModel(nn.Module):
 
     def forward(self, frames_BxLxM, seq_lengths_B, testing=False):
         """
-        Input:
-            frames_BxLxM: a 3d-tensor representing the input features.
-            seq_lengths_B: sequence length of frames_BxLxM.
-            testing: a bool indicating training or testing phase.
+        Args:
+            frames_BxLxM (torch.LongTensor):
+                A 3d-tensor representing the input features.
+            seq_lengths_B (list):
+                A list containing the sequence lengths of `frames_BxLxM`.
+            testing (bool):
+                A bool indicating training or testing phase.
+                Default: False
         Return:
-            predicted_BxLxM: the predicted output; used for training.
-            hiddens_NxBxLxH: the RNN hidden representations across all layers.
+            Output (s3prl.Output):
+                An Output module that contains `hidden_states` and `prediction`
+
+                hidden_states (hiddens_NxBxLxH):
+                    The RNN hidden representations across all layers.
+                prediction (predicted_BxLxM):
+                    The predicted output; used for training.
         """
+
         max_seq_len = frames_BxLxM.size(1)
 
         # N is the number of RNN layers.
@@ -134,9 +157,9 @@ class ApcModel(nn.Module):
                 q_feat = []
                 offet = 0
                 for vq_layer, cd in zip(self.vq_layers, self.vq_code_dims):
-                    _, q_f = vq_layer(
+                    q_f = vq_layer(
                         rnn_outputs_BxLxH[:, :, offet : offet + cd], testing
-                    )
+                    ).output
                     q_feat.append(q_f)
                     offet += cd
                 rnn_outputs_BxLxH = torch.cat(q_feat, dim=-1)

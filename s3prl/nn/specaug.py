@@ -252,7 +252,7 @@ class MaskAlongAxis(torch.nn.Module):
         # mask_length: (B, num_mask, 1)
         mask_length = torch.randint(
             self.mask_width_range[0],
-            T,
+            T + 1,
             (B, num_mask),
             device=spec.device,
         ).unsqueeze(2)
