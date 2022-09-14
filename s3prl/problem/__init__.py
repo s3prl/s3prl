@@ -12,8 +12,6 @@ from .common.superb_ks import SuperbKS
 from .common.superb_sid import SuperbSID
 from .diarization.superb_sd import SuperbSD
 
-# from .qbe.superb_qbe import SuperbQBE
-
 __all__ = [
     "SuperbASR",
     "SuperbPR",

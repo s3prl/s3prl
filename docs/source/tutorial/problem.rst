@@ -1,5 +1,5 @@
-Use Problem module to run pythonic & customizable recipes
-=========================================================
+Use Problem module to run customizable recipes
+==============================================
 
 The problem module provides pythonic and customizable recipes
 
