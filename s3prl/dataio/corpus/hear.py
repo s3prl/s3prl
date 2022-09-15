@@ -3,7 +3,6 @@ import torchaudio
 from pathlib import Path
 from collections import OrderedDict
 
-from s3prl import Container
 from s3prl.dataio.encoder.category import CategoryEncoder
 
 

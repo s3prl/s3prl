@@ -1,9 +1,11 @@
+import pytest
 from dotenv import dotenv_values
-from s3prl import Container
-from s3prl.corpus.hear import dcase_2016_task2
+
+from s3prl.dataio.corpus.hear import dcase_2016_task2
 from s3prl.dataset.hear_timestamp import HearTimestampDatapipe
 
 
+@pytest.mark.corpus
 def test_dcase_2016_task2():
     DCASE_ROOT = dotenv_values()["DCASE2016_TASK2"]
     train_data, valid_data, test_data = dcase_2016_task2(DCASE_ROOT).slice(3)
