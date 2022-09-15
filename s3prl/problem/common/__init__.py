@@ -13,6 +13,9 @@ from .hear_gunshot import HearGunshot
 from .hear_libricount import HearLibriCount
 from .hear_nsynth5hr import HearNsynth5hr
 from .hear_stroke import HearStroke
+from .hear_tonic import HearTonic
+from .hear_vocal import HearVocal
+from .hear_vox_lingual import HearVoxLingual
 
 __all__ = [
     "SuperbER",
@@ -30,4 +33,7 @@ __all__ = [
     "HearLibriCount",
     "HearNsynth5hr",
     "HearStroke",
+    "HearTonic",
+    "HearVocal",
+    "HearVoxLingual",
 ]
