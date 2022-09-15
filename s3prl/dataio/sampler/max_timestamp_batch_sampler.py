@@ -25,14 +25,11 @@ class MaxTimestampBatchSampler:
         max_timestamp: int,
         shuffle: bool = False,
         seed: int = 12345678,
-        get_timestamps_func: callable = None,
+        get_length_func: callable = None,
         reduce_func: callable = None,
-        n_jobs: int = 4,
     ) -> None:
-        get_timestamps_func = (
-            get_timestamps_func or self._get_timestamps_dynamic_item_dataset
-        )
-        timestamps = get_timestamps_func(dataset, n_jobs)
+        get_length_func = get_length_func or self.get_length
+        timestamps = get_length_func(dataset)
 
         self.timestamps = timestamps
         self.max_timestamp = max_timestamp
@@ -42,21 +39,23 @@ class MaxTimestampBatchSampler:
         self.reduce_func = reduce_func or self._default_reduce_func
 
     @staticmethod
-    def _default_reduce_func(timestamps):
-        return max(timestamps) * len(timestamps)
+    def get_length(dataset):
+        import torchaudio
+
+        torchaudio.set_audio_backend("sox_io")
+
+        lengths = []
+        with dataset.output_keys_as(["wav_path"]):
+            for data_index, item in enumerate(
+                tqdm(dataset, desc="Read wav_path audio length")
+            ):
+                info = torchaudio.info(item["wav_path"])
+                lengths.append(info.num_frames)
+        return lengths
 
     @staticmethod
-    def _get_timestamps_dynamic_item_dataset(dataset, n_jobs: int = 4):
-        with dataset.output_keys_as(["wav_metadata"]):
-
-            def get_timestamp(item):
-                return item["wav_metadata"]["num_frames"]
-
-            timestamps = Parallel(n_jobs=n_jobs)(
-                delayed(get_timestamp)(item)
-                for item in tqdm(dataset, desc="loading metadata")
-            )
-        return timestamps
+    def _default_reduce_func(timestamps):
+        return max(timestamps) * len(timestamps)
 
     def set_epoch(self, epoch: int):
         self.epoch = epoch
