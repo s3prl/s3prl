@@ -5,6 +5,7 @@ from .superb_sid import SuperbSID
 from .hear_fsd import HearFSD
 from .hear_esc50 import HearESC50
 from .hear_beijing_opera import HearBeijingOpera
+from .hear_cremad import HearCremaD
 
 __all__ = [
     "SuperbER",
@@ -14,4 +15,5 @@ __all__ = [
     "HearFSD",
     "HearESC50",
     "HearBeijingOpera",
+    "HearCremaD",
 ]
