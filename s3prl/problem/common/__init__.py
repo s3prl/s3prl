@@ -8,6 +8,7 @@ from .hear_beijing_opera import HearBeijingOpera
 from .hear_cremad import HearCremaD
 from .hear_gsc5hr import HearGSC5hr
 from .hear_gtzan_music_speech import HearGtzanMusicSpeech
+from .hear_gtzan import HearGtzan
 
 __all__ = [
     "SuperbER",
@@ -20,4 +21,5 @@ __all__ = [
     "HearCremaD",
     "HearGSC5hr",
     "HearGtzanMusicSpeech",
+    "HearGtzan",
 ]
