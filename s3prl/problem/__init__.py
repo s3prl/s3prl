@@ -18,6 +18,7 @@ from .common.hear_cremad import HearCremaD
 from .common.hear_gsc5hr import HearGSC5hr
 from .common.hear_gtzan_music_speech import HearGtzanMusicSpeech
 from .common.hear_gtzan import HearGtzan
+from .common.hear_gunshot import HearGunshot
 
 __all__ = [
     "SuperbASR",
@@ -36,4 +37,5 @@ __all__ = [
     "HearGSC5hr",
     "HearGtzanMusicSpeech",
     "HearGtzan",
+    "HearGunshot",
 ]
