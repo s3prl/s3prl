@@ -1,10 +1,8 @@
 import torch
-from typing import List, Dict, Any
+from typing import List
 
-from s3prl import Logs, Output
-from s3prl.nn.upstream import SAMPLE_RATE
 from s3prl.task.base import Task
-from s3prl.encoder.category import CategoryEncoder
+from s3prl.dataio.encoder.category import CategoryEncoder
 from s3prl.metric.hear import (
     available_scores,
     validate_score_return_type,
@@ -33,7 +31,6 @@ class HearScenePredictionTask(Task):
         category: CategoryEncoder,
         prediction_type: str,
         scores: List[str],
-        **kwds,
     ):
         super().__init__()
         self.model = model
@@ -62,18 +59,22 @@ class HearScenePredictionTask(Task):
         prediction = self.activation(logits)
         return prediction, logits
 
-    def forward(self, split, x, x_len, y, labels, **kwds):
+    def forward(
+        self, _mode: str, x, x_len, y, labels, unique_name: str, _dump_dir: str = None
+    ):
         y_pr, y_hat = self.predict(x, x_len)
         loss = self.logit_loss(y_hat.float(), y.float())
 
-        return Output(
-            loss=loss,
-            label=y,  # (batch_size, num_class)
-            logit=y_hat,  # (batch_size, num_class)
-            prediction=y_pr,  # (batch_size, num_class)
+        cacheable = dict(
+            loss=loss.detach().cpu().item(),
+            label=y.detach().cpu().unbind(dim=0),  # (batch_size, num_class)
+            logit=y_hat.detach().cpu().unbind(dim=0),  # (batch_size, num_class)
+            prediction=y_pr.detach().cpu().unbind(dim=0),  # (batch_size, num_class)
         )
 
-    def log_scores(self, score_args, logs: Logs):
+        return loss, cacheable
+
+    def log_scores(self, score_args):
         """Logs the metric score value for each score defined for the model"""
         assert hasattr(self, "scores"), "Scores for the model should be defined"
         end_scores = {}
@@ -95,37 +96,34 @@ class HearScenePredictionTask(Task):
                     "the score function should either be a "
                     "tuple(tuple) or float."
                 )
-
-        for score_name in end_scores:
-            logs.add_scalar(score_name, end_scores[score_name])
-
-        return logs
+        return end_scores
 
     def reduction(
-        self, split: str, batch_results: List, on_epoch_end: bool = None, **kwds
+        self,
+        _mode: str,
+        cached_results: List[dict],
+        _dump_dir: str,
     ):
-        target, prediction, prediction_logit = [], [], []
-        for batch in batch_results:
-            target.append(batch["label"])
-            prediction.append(batch["prediction"])
-            prediction_logit.append(batch["logit"])
+        result = self.parse_cached_results(cached_results)
 
-        target = torch.cat(target, dim=0)
-        prediction = torch.cat(prediction, dim=0)
-        prediction_logit = torch.cat(prediction_logit, dim=0)
+        target = torch.stack(result["label"], dim=0)
+        prediction_logit = torch.stack(result["logit"], dim=0)
+        prediction = torch.stack(result["prediction"], dim=0)
 
-        logs = Logs()
-        logs.add_scalar(f"loss", self.logit_loss(prediction_logit, target))
+        loss = self.logit_loss(prediction_logit, target)
 
-        if split in ["valid", "test"]:
-            logs = self.log_scores(
-                score_args=(
-                    prediction.detach().cpu().numpy(),
-                    target.detach().cpu().numpy(),
-                ),
-                logs=logs,
+        logs = dict(
+            loss=loss.detach().cpu().item(),
+        )
+
+        if _mode in ["valid", "test"]:
+            logs.update(
+                self.log_scores(
+                    score_args=(
+                        prediction.detach().cpu().numpy(),
+                        target.detach().cpu().numpy(),
+                    ),
+                )
             )
 
-        return Output(
-            logs=logs,
-        )
+        return logs

@@ -88,8 +88,6 @@ class HearScenePipe(SequentialDataPipe):
         output_keys: dict = None,
         audio_sample_rate: int = 16000,
         audio_channel_reduction: str = "first",
-        sox_effects: list = None,
-        **kwds,
     ):
         output_keys = output_keys or dict(
             x="wav",
@@ -103,7 +101,6 @@ class HearScenePipe(SequentialDataPipe):
             LoadAudio(
                 audio_sample_rate=audio_sample_rate,
                 audio_channel_reduction=audio_channel_reduction,
-                sox_effects=sox_effects,
             ),
             EncodeMultiLabel(),
             SetOutputKeys(output_keys=output_keys),

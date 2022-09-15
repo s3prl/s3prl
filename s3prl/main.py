@@ -1,4 +1,5 @@
 import sys
+import traceback
 from s3prl import problem
 
 
@@ -11,6 +12,7 @@ def main():
             for name in dir(problem)
             if not name.startswith("_") and isinstance(getattr(problem, name), type)
         ]
+        print(traceback.format_exc())
         print(
             "Usage:\n"
             "1. s3prl-main [PROBLEM] -h\n"
