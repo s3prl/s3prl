@@ -170,6 +170,7 @@ class HearFSD(SuperbSID):
         mode: str,
         data_csv: str,
         encoder_path: str,
+        frame_shift: int,
     ):
         df = pd.read_csv(data_csv)
         data = OrderedDict()

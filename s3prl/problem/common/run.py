@@ -185,6 +185,19 @@ class Common(Problem):
 
         self._stage_check(stage_id, stop, check_fn)
 
+        with open(encoder_path, "rb") as f:
+            encoder = pickle.load(f)
+
+        model_output_size = len(encoder)
+        model = self.build_model(
+            build_model,
+            model_output_size,
+            build_upstream,
+            build_featurizer,
+            build_downstream,
+        )
+        frame_shift = model.downsample_rate
+
         stage_id = 2
         train_dir = target_dir / "train"
         if start <= stage_id:
@@ -195,6 +208,7 @@ class Common(Problem):
                 "train",
                 train_csv,
                 encoder_path,
+                frame_shift,
                 build_dataset,
                 build_batch_sampler,
             )
@@ -204,6 +218,7 @@ class Common(Problem):
                 "valid",
                 valid_csv,
                 encoder_path,
+                frame_shift,
                 build_dataset,
                 build_batch_sampler,
             )
@@ -274,6 +289,7 @@ class Common(Problem):
                     "test",
                     test_csv,
                     encoder_path,
+                    frame_shift,
                     build_dataset,
                     build_batch_sampler,
                 )
@@ -303,6 +319,7 @@ class Common(Problem):
         mode: str,
         data_csv: str,
         encoder_path: str,
+        frame_shift: int,
         build_dataset: dict,
         build_batch_sampler: dict,
     ):
@@ -314,6 +331,7 @@ class Common(Problem):
             mode,
             data_csv,
             encoder_path,
+            frame_shift,
         )
         logger.info(f"Build {mode} batch sampler")
         batch_sampler = self.build_batch_sampler(

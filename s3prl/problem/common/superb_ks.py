@@ -279,6 +279,7 @@ class SuperbKS(Common):
         mode: str,
         data_csv: str,
         encoder_path: str,
+        frame_shift: int,
     ):
         """
         Build the dataset for train/valid/test.
