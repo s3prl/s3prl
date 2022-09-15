@@ -170,5 +170,5 @@ def wav2vec2_conformer_rope(refresh=False, legacy=False, **kwargs):
 def wav2vec2_vox(refresh=False, legacy=False, **kwargs):
     kwargs[
         "ckpt"
-    ] = "https://dl.fbaipublicfiles.com/voxpopuli/models/wav2vec2_large_100k.pt"    
+    ] = "https://dl.fbaipublicfiles.com/voxpopuli/models/wav2vec2_large_100k.pt"
     return wav2vec2_custom(refresh=refresh, legacy=True, **kwargs)

@@ -18,7 +18,7 @@ __all__ = [
     "TransformerConfig",
     "TransformerLayer",
     "TransformerEncoder",
-    "TransformerModel",
+    "TransformerMockingjay",
 ]
 
 

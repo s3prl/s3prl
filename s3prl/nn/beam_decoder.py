@@ -33,9 +33,8 @@ LM_URL_2 = (
 )
 
 
-__all__ = [
-    "BeamDecoder"
-]
+__all__ = ["BeamDecoder"]
+
 
 class BeamDecoder(object):
     def __init__(

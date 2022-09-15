@@ -61,9 +61,7 @@ The methods affected by the following config are: {:s}
 {:s}
 """
 
-__all__ = [
-    "Problem"
-]
+__all__ = ["Problem"]
 
 
 class _DistributedDataParallel(torch.nn.parallel.DistributedDataParallel):

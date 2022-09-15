@@ -13,6 +13,7 @@ __all__ = [
     "MaxTimestampBatchSampler",
 ]
 
+
 class MaxTimestampBatchSampler:
     """
     The reduced timestamps for a batch should not exceed the max_timestamp.

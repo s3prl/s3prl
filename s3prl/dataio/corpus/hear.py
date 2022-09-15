@@ -43,7 +43,7 @@ def dcase_2016_task2(dataset_root: str):
     valid_data = meta_to_data(valid_meta, "valid")
     test_data = meta_to_data(test_meta, "test")
 
-    return Container(
+    return dict(
         train_data=train_data,
         valid_data=valid_data,
         test_data=test_data,
@@ -109,7 +109,7 @@ def maestro(dataset_root: str, test_fold: int = 0):
     )
     category = CategoryEncoder(all_classes)
 
-    return Container(
+    return dict(
         train_data=train_data,
         valid_data=valid_data,
         test_data=test_data,
@@ -155,7 +155,7 @@ def hear_scene_trainvaltest(dataset_root: str):
     )
     category = CategoryEncoder(all_labels)
 
-    return Container(
+    return dict(
         train_data=train_data,
         valid_data=valid_data,
         test_data=test_data,
@@ -210,7 +210,7 @@ def hear_scene_kfolds(dataset_root: str, test_fold: int = 0, num_folds: int = 5)
     )
     category = CategoryEncoder(all_labels)
 
-    return Container(
+    return dict(
         train_data=train_data,
         valid_data=valid_data,
         test_data=test_data,

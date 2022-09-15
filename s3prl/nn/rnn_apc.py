@@ -8,7 +8,7 @@ from s3prl import Output
 from s3prl.nn.vq_apc import VqApcLayer
 
 __all__ = [
-    "ApcModel",
+    "RnnApc",
 ]
 
 

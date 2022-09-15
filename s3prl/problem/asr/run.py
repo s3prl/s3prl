@@ -17,9 +17,7 @@ from s3prl.task.speech2text_ctc_task import Speech2TextCTCTask
 
 logger = logging.getLogger(__name__)
 
-__all__ = [
-    "ASR"
-]
+__all__ = ["ASR"]
 
 
 class ASR(Problem):
