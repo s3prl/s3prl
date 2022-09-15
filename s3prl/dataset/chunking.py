@@ -92,7 +92,6 @@ class UnfoldChunkByFrame(DataPipe):
 
 @dataclass
 class UnfoldChunkBySec(DataPipe):
-    sample_rate: int = 16000
     use_last_samples: bool = True
     min_chunk_secs: float = 2.5
     max_chunk_secs: float = 2.5

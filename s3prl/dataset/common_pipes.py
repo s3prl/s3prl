@@ -2,7 +2,7 @@ import logging
 import os
 import random
 from dataclasses import dataclass
-from typing import Callable
+from typing import Callable, List
 
 import torch
 import torchaudio
@@ -124,7 +124,9 @@ class EncodeCategory(DataPipe):
                 labels = [item[self.label_name] for item in dataset]
             category = self.prepare_category(labels)
             dataset.add_tool(self.category_encoder_name, category)
-            dataset.add_tool("output_size", len(category))
+
+        category = dataset.get_tool(self.category_encoder_name)
+        dataset.add_tool("output_size", len(category))
 
         dataset.add_dynamic_item(
             self.encode_label,
@@ -157,6 +159,53 @@ class EncodeMultipleCategory(EncodeCategory):
             dataset.add_tool(self.category_encoder_name, categories)
             dataset.add_tool("output_size", sum([len(c) for c in categories]))
 
+        dataset.add_dynamic_item(
+            self.encode_label,
+            takes=[self.category_encoder_name, self.label_name],
+            provides=self.encoded_target_name,
+        )
+        return dataset
+
+
+@dataclass
+class EncodeMultiLabel(DataPipe):
+    label_name: str = "labels"
+    category_encoder_name: str = "category"
+    encoded_target_name: str = "binary_labels"
+
+    @staticmethod
+    def label_to_binary_vector(label: List, num_labels: int) -> torch.Tensor:
+        # Lame special case for multilabel with no labels
+        if len(label) == 0:
+            # BCEWithLogitsLoss wants float not long targets
+            binary_labels = torch.zeros((num_labels,), dtype=torch.float)
+        else:
+            binary_labels = torch.zeros((num_labels,)).scatter(
+                0, torch.tensor(label), 1.0
+            )
+
+        # Validate the binary vector we just created
+        assert set(torch.where(binary_labels == 1.0)[0].numpy()) == set(label)
+        return binary_labels
+
+    def encode_label(self, category, labels):
+        labels = [category.encode(label) for label in labels]
+        binary_labels = self.label_to_binary_vector(labels, len(category))
+        return binary_labels
+
+    def forward(self, dataset: AugmentedDynamicItemDataset):
+        if not dataset.has_tool(self.category_encoder_name):
+            with dataset.output_keys_as([self.label_name]):
+                all_labels = []
+                for item in dataset:
+                    all_labels.extend(item[self.label_name])
+                all_labels.sort()
+                all_labels = set(all_labels)
+                category = CategoryEncoder(all_labels)
+                dataset.add_tool(self.category_encoder_name, category)
+
+        category = dataset.get_tool(self.category_encoder_name)
+        dataset.add_tool("output_size", len(category))
         dataset.add_dynamic_item(
             self.encode_label,
             takes=[self.category_encoder_name, self.label_name],

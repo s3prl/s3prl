@@ -1,3 +1,4 @@
+import logging
 from dataclasses import dataclass
 
 import numpy as np
@@ -5,6 +6,8 @@ import numpy as np
 from s3prl.dataio.encoder.category import CategoryEncoder
 
 from .base import AugmentedDynamicItemDataset, DataPipe
+
+logger = logging.getLogger(__name__)
 
 
 @dataclass
@@ -69,15 +72,21 @@ class BuildMultiClassTagging(DataPipe):
     def forward(
         self, dataset: AugmentedDynamicItemDataset
     ) -> AugmentedDynamicItemDataset:
-        with dataset.output_keys_as([self.segments_name]):
-            all_classes = set()
-            for item in dataset:
-                segments = item[self.segments_name]
-                for class_name in segments.keys():
-                    all_classes.add(class_name)
-            all_classes = sorted(all_classes)
 
-        dataset.add_tool(self.all_category_name, CategoryEncoder(all_classes))
+        if not dataset.has_tool(self.all_category_name):
+            logger.warning(
+                f"The input dataset does not contain {self.all_category_name}. Generate it on-the-fly. "
+            )
+            with dataset.output_keys_as([self.segments_name]):
+                all_classes = set()
+                for item in dataset:
+                    segments = item[self.segments_name]
+                    for class_name in segments.keys():
+                        all_classes.add(class_name)
+                all_classes = sorted(all_classes)
+
+            dataset.add_tool(self.all_category_name, CategoryEncoder(all_classes))
+
         dataset.add_dynamic_item(
             self.build_label,
             takes=[
