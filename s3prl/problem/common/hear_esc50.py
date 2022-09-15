@@ -49,7 +49,7 @@ def hear_scene_kfolds(
             labels = meta[k]
             data["id"].append(k)
             data["wav_path"].append(wav_path)
-            data["labels"].append(",".join([label.strip() for label in labels]))
+            data["labels"].append(",".join([str(label).strip() for label in labels]))
 
         df = pd.DataFrame(data=data)
         fold_datas.append(df)

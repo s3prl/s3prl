@@ -43,7 +43,7 @@ def hear_scene_trainvaltest(
         for k in list(meta.keys()):
             data["id"].append(k)
             data["wav_path"].append(wav_root / split / k)
-            data["labels"].append(",".join([label.strip() for label in meta[k]]))
+            data["labels"].append(",".join([str(label).strip() for label in meta[k]]))
         return pd.DataFrame(data=data)
 
     split_to_df("train").to_csv(train_csv, index=False)
@@ -152,7 +152,7 @@ class HearFSD(SuperbSID):
         all_csv = pd.concat([train_csv, valid_csv, *test_csvs])
         all_labels = []
         for rowid, row in all_csv.iterrows():
-            labels = row["labels"].split(",")
+            labels = str(row["labels"]).split(",")
             labels = [l.strip() for l in labels]
             all_labels.extend(labels)
 
@@ -176,7 +176,7 @@ class HearFSD(SuperbSID):
         for rowid, row in df.iterrows():
             data[row["id"]] = dict(
                 wav_path=row["wav_path"],
-                labels=[label.strip() for label in row["labels"].split(",")],
+                labels=[label.strip() for label in str(row["labels"]).split(",")],
             )
 
         with open(encoder_path, "rb") as f:
