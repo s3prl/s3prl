@@ -17,6 +17,11 @@ def hear_scene_kfolds(
     num_folds: int,
     get_path_only: bool = False,
 ):
+    assert test_fold < num_folds, (
+        "test_fold id must be smaller than num_folds. "
+        f"get test_fold={test_fold} and num_folds={num_folds}"
+    )
+
     target_dir = Path(target_dir)
     train_csv = target_dir / "train.csv"
     valid_csv = target_dir / "valid.csv"
