@@ -15,6 +15,7 @@ from .common.hear_fsd import HearFSD
 from .common.hear_esc50 import HearESC50
 from .common.hear_beijing_opera import HearBeijingOpera
 from .common.hear_cremad import HearCremaD
+from .common.hear_gsc5hr import HearGSC5hr
 
 __all__ = [
     "SuperbASR",
@@ -30,4 +31,5 @@ __all__ = [
     "HearESC50",
     "HearBeijingOpera",
     "HearCremaD",
+    "HearGSC5hr",
 ]
