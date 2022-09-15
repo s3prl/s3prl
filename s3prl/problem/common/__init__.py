@@ -11,6 +11,7 @@ from .hear_gtzan_music_speech import HearGtzanMusicSpeech
 from .hear_gtzan import HearGtzan
 from .hear_gunshot import HearGunshot
 from .hear_libricount import HearLibriCount
+from .hear_nsynth5hr import HearNsynth5hr
 
 __all__ = [
     "SuperbER",
@@ -26,4 +27,5 @@ __all__ = [
     "HearGtzan",
     "HearGunshot",
     "HearLibriCount",
+    "HearNsynth5hr",
 ]
