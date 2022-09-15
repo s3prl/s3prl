@@ -12,6 +12,7 @@ from .common.superb_ks import SuperbKS
 from .common.superb_sid import SuperbSID
 from .diarization.superb_sd import SuperbSD
 from .common.hear_fsd import HearFSD
+from .common.hear_esc50 import HearESC50
 
 __all__ = [
     "SuperbASR",
@@ -24,4 +25,5 @@ __all__ = [
     "SuperbSID",
     "SuperbSD",
     "HearFSD",
+    "HearESC50",
 ]
