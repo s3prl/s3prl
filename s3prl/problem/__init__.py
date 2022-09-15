@@ -21,6 +21,7 @@ from .common.hear_gtzan import HearGtzan
 from .common.hear_gunshot import HearGunshot
 from .common.hear_libricount import HearLibriCount
 from .common.hear_nsynth5hr import HearNsynth5hr
+from .common.hear_stroke import HearStroke
 
 __all__ = [
     "SuperbASR",
@@ -42,4 +43,5 @@ __all__ = [
     "HearGunshot",
     "HearLibriCount",
     "HearNsynth5hr",
+    "HearStroke",
 ]
