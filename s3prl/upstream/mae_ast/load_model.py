@@ -12,11 +12,9 @@ from dataclasses import dataclass, field
 from typing import Dict, List, Optional, Tuple
 
 import numpy as np
-from fairseq.data import Dictionary
-from fairseq.dataclass import ChoiceEnum, FairseqDataclass
-from fairseq.tasks import register_task
-from fairseq.tasks.fairseq_task import FairseqTask
 from omegaconf import MISSING
+
+from ..wav2vec2.wav2vec2_model import ChoiceEnum
 
 logger = logging.getLogger(__name__)
 
@@ -26,7 +24,7 @@ MASK_TYPE_CHOICES = ChoiceEnum(
 
 
 @dataclass
-class MAE_AST_Pretraining_Config(FairseqDataclass):
+class MAE_AST_Pretraining_Config:
     data: str = field(default=MISSING, metadata={"help": "path to data directory"})
 
     sample_rate: int = field(
@@ -109,8 +107,7 @@ class MAE_AST_Pretraining_Config(FairseqDataclass):
     )
 
 
-@register_task("mae_ast_pretraining", dataclass=MAE_AST_Pretraining_Config)
-class MAE_AST_Pretraining_Task(FairseqTask):
+class MAE_AST_Pretraining_Task:
     cfg: MAE_AST_Pretraining_Config
 
     def __init__(
@@ -125,15 +122,15 @@ class MAE_AST_Pretraining_Task(FairseqTask):
         self.cfg = cfg
 
     @property
-    def source_dictionary(self) -> Optional[Dictionary]:
+    def source_dictionary(self):
         return None
 
     @property
-    def target_dictionary(self) -> Optional[Dictionary]:
+    def target_dictionary(self):
         return None
 
     @property
-    def dictionaries(self) -> List[Dictionary]:
+    def dictionaries(self):
         return None
 
     @classmethod

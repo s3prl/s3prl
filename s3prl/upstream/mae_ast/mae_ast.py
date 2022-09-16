@@ -3,6 +3,7 @@
 # This source code is licensed under the MIT license found in the
 # LICENSE file in the root directory of this source tree.
 
+import math
 import logging
 import random
 from dataclasses import dataclass, field
@@ -11,13 +12,20 @@ from typing import Dict, Optional, Tuple
 import numpy as np
 import torch
 import torch.nn as nn
-from fairseq import utils
-from fairseq.data.data_utils import compute_mask_indices
-from fairseq.dataclass import ChoiceEnum, FairseqDataclass
-from fairseq.models import BaseFairseqModel, register_model
-from fairseq.modules import GradMultiply, LayerNorm
+import torch.nn.functional as F
 
 from .load_model import MAE_AST_Pretraining_Task
+from ..roberta.roberta_model import init_bert_params
+from ..wav2vec2.wav2vec2_model import (
+    get_activation_fn,
+    compute_mask_indices,
+    ChoiceEnum,
+    GradMultiply,
+    LayerNorm,
+    MultiheadAttention,
+    SamePad,
+    index_put,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -25,7 +33,7 @@ MASKING_DISTRIBUTION_CHOICES = ChoiceEnum(["static", "uniform", "normal", "poiss
 
 
 @dataclass
-class MAE_AST_Config(FairseqDataclass):
+class MAE_AST_Config:
     # Patching settings (frame vs patch based model)
     ast_kernel_size_chan: int = field(
         default=16,
@@ -65,7 +73,7 @@ class MAE_AST_Config(FairseqDataclass):
     encoder_attention_heads: int = field(
         default=12, metadata={"help": "num encoder attention heads"}
     )
-    activation_fn: ChoiceEnum(utils.get_available_activation_fns()) = field(
+    activation_fn: str = field(
         default="gelu", metadata={"help": "activation function to use"}
     )
 
@@ -191,8 +199,7 @@ class MAE_AST_Config(FairseqDataclass):
     )
 
 
-@register_model("mae_ast", dataclass=MAE_AST_Config)
-class MAE_AST(BaseFairseqModel):
+class MAE_AST(nn.Module):
     def __init__(
         self,
         cfg: MAE_AST_Config,
@@ -576,23 +583,6 @@ class MAE_AST(BaseFairseqModel):
         self.final_proj_classification = None
 
 
-import math
-from dataclasses import dataclass, field
-from typing import Tuple
-
-import numpy as np
-import torch
-import torch.nn as nn
-import torch.nn.functional as F
-from fairseq import utils
-from fairseq.data.data_utils import compute_mask_indices
-from fairseq.dataclass import ChoiceEnum, FairseqDataclass
-from fairseq.models import BaseFairseqModel, register_model
-from fairseq.modules import GradMultiply, LayerNorm, MultiheadAttention, SamePad
-from fairseq.modules.transformer_sentence_encoder import init_bert_params
-from fairseq.utils import index_put
-
-
 class ConvPosEmbed(nn.Module):
     def __init__(self, args, decoder=False):
         super().__init__()
@@ -733,7 +723,7 @@ class TransformerSentenceEncoderLayer(nn.Module):
         self.activation_dropout = activation_dropout
 
         # Initialize blocks
-        self.activation_fn = utils.get_activation_fn(activation_fn)
+        self.activation_fn = get_activation_fn(activation_fn)
         self.self_attn = MultiheadAttention(
             self.embedding_dim,
             num_attention_heads,

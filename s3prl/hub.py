@@ -28,6 +28,7 @@ from s3prl.upstream.wav2vec2.hubconf import *
 from s3prl.upstream.wavlm.hubconf import *
 
 from s3prl.upstream.vggish.hubconf import *
+from s3prl.upstream.mae_ast.hubconf import *
 
 from s3prl.downstream.timit_phone.hubconf import timit_posteriorgram
 
