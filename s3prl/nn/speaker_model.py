@@ -28,6 +28,26 @@ __all__ = [
 
 
 class TDNN(nn.Module):
+    """
+    TDNN as defined by https://www.danielpovey.com/files/2015_interspeech_multisplice.pdf
+    Affine transformation not applied globally to all frames but smaller windows with local context
+    batch_norm: True to include batch normalisation after the non linearity
+
+    Context size and dilation determine the frames selected
+    (although context size is not really defined in the traditional sense)
+    For example:
+        context size 5 and dilation 1 is equivalent to [-2,-1,0,1,2]
+        context size 3 and dilation 2 is equivalent to [-2, 0, 2]
+        context size 1 and dilation 1 is equivalent to [0]
+
+    Args:
+        input_size (int): The input feature size
+        output_size (int): The output feature size
+        context_size (int): See example
+        dilation (int): See example
+        dropout_p (float): (default, 0.0) The dropout rate
+        batch_norm (bool): (default, False) Use batch norm for TDNN layers
+    """
     def __init__(
         self,
         input_size: int,
@@ -35,27 +55,13 @@ class TDNN(nn.Module):
         context_size: int,
         dilation: int,
         dropout_p: float = 0.0,
-        stride: int = 1,
         batch_norm: bool = True,
     ):
-        """
-        TDNN as defined by https://www.danielpovey.com/files/2015_interspeech_multisplice.pdf
-        Affine transformation not applied globally to all frames but smaller windows with local context
-        batch_norm: True to include batch normalisation after the non linearity
-
-        Context size and dilation determine the frames selected
-        (although context size is not really defined in the traditional sense)
-        For example:
-            context size 5 and dilation 1 is equivalent to [-2,-1,0,1,2]
-            context size 3 and dilation 2 is equivalent to [-2, 0, 2]
-            context size 1 and dilation 1 is equivalent to [0]
-        """
         super().__init__()
         self._indim = input_size
         self._outdim = output_size
         self.context_size = context_size
         self.dilation = dilation
-        self.stride = stride
         self.dropout_p = dropout_p
         self.batch_norm = batch_norm
 
@@ -74,12 +80,12 @@ class TDNN(nn.Module):
     def output_size(self):
         return self._outdim
 
-    def forward(self, x):
+    def forward(self, x: torch.Tensor):
         """
-        input:
-            x: with size (batch, seq_len, input_size)
-        output:
-            x: with size (batch, seq_len, output_size)
+        Args:
+            x (torch.Tensor): with size (batch, seq_len, input_size)
+        Returns:
+            x (torch.Tensor): with size (batch, seq_len, output_size)
         """
 
         _, _, d = x.shape
@@ -112,6 +118,16 @@ class TDNN(nn.Module):
 
 
 class XVectorBackbone(nn.Module):
+    """
+    The TDNN layers the same as in https://danielpovey.com/files/2018_odyssey_xvector_lid.pdf
+    This model only include the blocks before the pooling layer
+
+    Args:
+        input_size (int): The input feature size, usually is the output size of upstream models
+        output_size (int): (default, 1500) The size of the speaker embedding
+        dropout_p (float): (default, 0.0) The dropout rate
+        batch_norm (bool): (default, False) Use batch norm for TDNN layers
+    """
     def __init__(
         self,
         input_size: int,
@@ -120,10 +136,6 @@ class XVectorBackbone(nn.Module):
         batch_norm: False = True,
     ):
         super().__init__()
-        """
-        The TDNN layers the same as in https://danielpovey.com/files/2018_odyssey_xvector_lid.pdf
-        This model only include the blocks before the pooling layer
-        """
         self._indim = input_size
         self._outdim = output_size
 
@@ -178,12 +190,12 @@ class XVectorBackbone(nn.Module):
     def output_size(self):
         return self._outdim
 
-    def forward(self, x):
+    def forward(self, x: torch.Tensor):
         """
-        input:
-            x: size (batch, seq_len, input_size)
-        output:
-            x: size (batch, seq_len, output_size)
+        Args:
+            x (torch.Tensor): size (batch, seq_len, input_size)
+        Returns:
+            x (torch.Tensor): size (batch, seq_len, output_size)
         """
 
         x = self.module(x)
@@ -191,6 +203,15 @@ class XVectorBackbone(nn.Module):
 
 
 class SpeakerEmbeddingExtractor(nn.Module):
+    """
+    The speaker embedding extractor module
+
+    Args:
+        input_size (int): The input feature size, usually is the output size of upstream models
+        output_size (int): (default, 1500) The size of the speaker embedding
+        backbone (str): (default, XVector) Use which kind of speaker model
+        pooling_type (str): (default, TAP) Use which kind of pooling method
+    """
     def __init__(
         self,
         input_size: int,
@@ -249,12 +270,13 @@ class SpeakerEmbeddingExtractor(nn.Module):
     def output_size(self):
         return self._outdim
 
-    def forward(self, x, xlen=None):
+    def forward(self, x: torch.Tensor, xlen: torch.LongTensor=None):
         """
-        input:
-            x: size (batch, seq_len, input_size)
-        output:
-            x: size (batch, output_size)
+        Args:
+            x (torch.Tensor): size (batch, seq_len, input_size)
+            xlen (torch.LongTensor): size (batch, )
+        Returns:
+            x (torch.Tensor): size (batch, output_size)
         """
 
         x = self.backbone(x)
@@ -343,7 +365,14 @@ class SuperbXvector(nn.Module):
     def output_size(self):
         return self._output_size
 
-    def forward(self, x, x_len):
+    def forward(self, x: torch.Tensor, x_len: torch.LongTensor):
+        """
+        Args:
+            x (torch.Tensor): size (batch, seq_len, input_size)
+            x_len (torch.LongTensor): size (batch, )
+        Returns:
+            x (torch.Tensor): size (batch, output_size)
+        """
         x = self.projector(x)
 
         x = self.tdnns(x)

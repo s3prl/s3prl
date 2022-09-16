@@ -17,6 +17,13 @@ __all__ = [
 
 
 class softmax(nn.Module):
+    """
+    Softmax
+
+    Args:
+        input_size (int): The input feature size
+        output_size (int): The output feature size
+    """
     def __init__(self, input_size: int, output_size: int):
         super().__init__()
         self._indim = input_size
@@ -33,13 +40,13 @@ class softmax(nn.Module):
     def output_size(self):
         return self._outdim
 
-    def forward(self, x, label):
+    def forward(self, x: torch.Tensor, label: torch.LongTensor):
         """
         Args:
             x (torch.Tensor): (batch_size, input_size)
             label (torch.LongTensor): (batch_size, )
 
-        Return:
+        Returns:
             loss (torch.float)
             logit (torch.Tensor): (batch_size, )
         """
@@ -55,6 +62,15 @@ class softmax(nn.Module):
 
 
 class amsoftmax(nn.Module):
+    """
+    AMSoftmax
+
+    Args:
+        input_size (int): The input feature size
+        output_size (int): The output feature size
+        margin (float): Hyperparameter denotes the margin to the decision boundry
+        scale (float): Hyperparameter that scales the cosine value
+    """
     def __init__(
         self, input_size: int, output_size: int, margin: float = 0.2, scale: float = 30
     ):
@@ -78,13 +94,13 @@ class amsoftmax(nn.Module):
     def output_size(self):
         return self._outdim
 
-    def forward(self, x, label):
+    def forward(self, x: torch.Tensor, label: torch.LongTensor):
         """
         Args:
             x (torch.Tensor): (batch_size, input_size)
             label (torch.LongTensor): (batch_size, )
 
-        Return:
+        Returns:
             loss (torch.float)
             logit (torch.Tensor): (batch_size, )
         """
