@@ -2,7 +2,6 @@ import logging
 
 import torch
 import torch.nn.functional as F
-from lighthubert import LightHuBERT, LightHuBERTConfig
 from torch.nn.utils.rnn import pad_sequence
 
 from .lighthubert import LightHuBERT, LightHuBERTConfig
@@ -44,20 +43,10 @@ class UpstreamExpert(torch.nn.Module):
             subnet = self.model.supernet.subnet
         self.model.set_sample_config(subnet)
 
+        self.model.encoder.layerdrop = 0.0
+
         params = self.model.calc_sampled_param_num()
         logger.info(f"LightHubert subnet (Params {params / 1e6:.0f}M) | {subnet}")
-
-    @property
-    def layer_drop(self):
-        return self.model.encoder.layerdrop
-
-    def set_layer_drop(self, layerdrop: float = None):
-        if isinstance(layerdrop, float):
-            self.model.encoder.layerdrop = layerdrop
-        elif layerdrop is None:
-            self.model.encoder.layerdrop = self._init_layerdrop
-        else:
-            raise ValueError("layerdrop can only be float or None")
 
     def get_downsample_rates(self, key: str) -> int:
         return 320
