@@ -5,13 +5,14 @@ Authors
   * Shu-wen Yang 2022
 """
 
+import yaml
 import logging
 import pickle
 import shutil
 from pathlib import Path
 
 import torch
-import yaml
+import pandas as pd
 
 from s3prl.problem.base import Problem
 from s3prl.task.utterance_classification_task import UtteranceClassificationTask
@@ -236,6 +237,7 @@ class Common(Problem):
             build_task_all_args_except_model = dict(
                 build_task=build_task,
                 encoder=encoder,
+                valid_df=pd.read_csv(valid_csv),
             )
 
             self.train(
@@ -294,7 +296,9 @@ class Common(Problem):
                     build_batch_sampler,
                 )
 
-                _, valid_best_task = self.load_model_and_task(test_ckpt_dir)
+                _, valid_best_task = self.load_model_and_task(
+                    test_ckpt_dir, task_overrides={"test_df": pd.read_csv(test_csv)}
+                )
                 logs = self.evaluate(
                     evaluate,
                     "test",
@@ -344,7 +348,14 @@ class Common(Problem):
         )
         return dataset, batch_sampler
 
-    def build_task(self, build_task: dict, model: torch.nn.Module, encoder):
+    def build_task(
+        self,
+        build_task: dict,
+        model: torch.nn.Module,
+        encoder,
+        valid_df: pd.DataFrame = None,
+        test_df: pd.DataFrame = None,
+    ):
         """
         Build the task, which defines the logics for every train/valid/test forward step for the :code:`model`,
         and the logics for how to reduce all the batch results from multiple train/valid/test steps into metrics

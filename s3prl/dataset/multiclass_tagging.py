@@ -75,7 +75,7 @@ class BuildMultiClassTagging(DataPipe):
 
         if not dataset.has_tool(self.all_category_name):
             logger.warning(
-                f"The input dataset does not contain {self.all_category_name}. Generate it on-the-fly. "
+                f"The input dataset does not contain '{self.all_category_name}'. Generate it on-the-fly. "
             )
             with dataset.output_keys_as([self.segments_name]):
                 all_classes = set()

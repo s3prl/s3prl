@@ -6,14 +6,12 @@ from tqdm import tqdm
 import more_itertools
 from pathlib import Path
 from collections import defaultdict
-from typing import List, Dict, Any, Tuple, DefaultDict, Union, Optional
+from typing import List, Dict, Any, Tuple, Union, Optional
 from scipy.ndimage import median_filter
 from sklearn.model_selection import ParameterGrid
 
-from s3prl import Logs, Output
-from s3prl.nn.upstream import SAMPLE_RATE
 from s3prl.task.base import Task
-from s3prl.encoder.category import CategoryEncoder
+from s3prl.dataio.encoder.category import CategoryEncoder
 from s3prl.metric.hear import (
     available_scores,
     validate_score_return_type,
@@ -207,15 +205,14 @@ class HearEventPredictionTask(Task):
         category: CategoryEncoder,
         prediction_type: str,
         scores: List[str],
-        valid_target_events: Dict[str, List[Dict[str, Any]]],
-        test_target_events: Dict[str, List[Dict[str, Any]]],
         postprocessing_grid: Dict[str, List[float]],
-        **kwds,
+        valid_target_events: Dict[str, List[Dict[str, Any]]] = None,
+        test_target_events: Dict[str, List[Dict[str, Any]]] = None,
     ):
         super().__init__()
         self.model = model
-        assert isinstance(self.model.feat_frame_shift, int)
-        self.feat_frame_shift = self.model.feat_frame_shift
+        assert isinstance(self.model.downsample_rate, int)
+        self.feat_frame_shift = self.model.downsample_rate
 
         self.label_to_idx = {
             str(category.decode(idx)): idx for idx in range(len(category))
@@ -244,6 +241,14 @@ class HearEventPredictionTask(Task):
         self.postprocessing_grid = postprocessing_grid
         self.best_postprocessing = None
 
+    def get_state(self):
+        return {
+            "best_postprocessing": self.best_postprocessing,
+        }
+
+    def set_state(self, state: dict):
+        self.best_postprocessing = state["best_postprocessing"]
+
     def predict(self, x, x_len):
         logits, _ = self.model(x, x_len)
         prediction = self.activation(logits)
@@ -270,7 +275,9 @@ class HearEventPredictionTask(Task):
             )  # (batch_size, seq_len, feature_dim), where seq_len == labels.size(-1)
         return inputs
 
-    def train_step(self, x, x_len, y, y_len, **kwds):
+    def train_step(
+        self, x, x_len, y, y_len, record_id, chunk_id, _dump_dir: str = None
+    ):
         y_hat, y_hat_len = self.model(x, x_len)
         y_hat = self._match_length(y_hat, y)
 
@@ -281,43 +288,39 @@ class HearEventPredictionTask(Task):
             y_hat.reshape(-1, hidden_size).float(), y.reshape(-1, hidden_size).float()
         )
 
-        logs = Logs()
-        logs.add_scalar("loss", loss)
+        cacheable = {
+            "loss": loss.detach().cpu().item(),
+        }
 
-        return Output(
-            loss=loss,
-            logs=logs,
-        )
+        return loss, cacheable
 
-    def train_reduction(self, batch_results: list, on_epoch_end: bool = None, **kwds):
+    def train_reduction(self, batch_results: list, _dump_dir: str = None):
         loss = []
         for batch in batch_results:
             loss.append(batch["loss"])
         loss = torch.FloatTensor(loss).mean().item()
 
-        logs = Logs()
-        logs.add_scalar("loss", loss)
-        return Output(
-            logs=logs,
-        )
+        return {
+            "loss": loss.detach().cpu().item(),
+        }
 
-    def _step(
+    def _eval_step(
         self,
         x,
         x_len,
         y,
         y_len,
-        unique_name: List[str],
-        order_in_rec: List[int],
-        **kwds,
+        record_id: List[str],
+        chunk_id: List[int],
+        _dump_dir: str = None,
     ):
         y_pr, y_hat, y_pr_len = self.predict(x, x_len)
         y_pr = self._match_length(y_pr, y)
         y_hat = self._match_length(y_hat, y)
 
-        assert len(set(unique_name)) == 1
-        order_in_rec = order_in_rec.detach().cpu().tolist()
-        assert sorted(order_in_rec) == order_in_rec
+        assert len(set(record_id)) == 1
+        chunk_id = chunk_id.detach().cpu().tolist()
+        assert sorted(chunk_id) == chunk_id
 
         y_pr_trim, y_hat_trim, y_trim = [], [], []
         for _p, _h, _y, length in zip(y_pr, y_hat, y, y_len):
@@ -328,20 +331,20 @@ class HearEventPredictionTask(Task):
         y_hat_trim = torch.cat(y_hat_trim, dim=0)
         y_trim = torch.cat(y_trim, dim=0)
 
-        return Output(
+        return 0, dict(
             label=y_trim,  # (seqlen, num_class)
             logit=y_hat_trim,  # (seqlen, num_class)
             prediction=y_pr_trim,  # (seqlen, num_class)
-            unique_name=unique_name[0],  # List[str]
+            record_id=record_id[0],  # List[str]
         )
 
     def valid_step(self, *args, **kwds):
-        return self._step(*args, **kwds)
+        return self._eval_step(*args, **kwds)
 
     def test_step(self, *args, **kwds):
-        return self._step(*args, **kwds)
+        return self._eval_step(*args, **kwds)
 
-    def log_scores(self, score_args, logs: Logs):
+    def log_scores(self, score_args):
         """Logs the metric score value for each score defined for the model"""
         assert hasattr(self, "scores"), "Scores for the model should be defined"
         end_scores = {}
@@ -363,23 +366,17 @@ class HearEventPredictionTask(Task):
                     "the score function should either be a "
                     "tuple(tuple) or float."
                 )
+        return end_scores
 
-        for score_name in end_scores:
-            logs.add_scalar(score_name, end_scores[score_name])
+    def valid_reduction(self, cached_results: list, _dump_dir: str = None):
+        return self.eval_reduction("valid", cached_results, _dump_dir)
 
-        return logs
+    def test_reduction(self, cached_results: list, _dump_dir: str = None):
+        return self.eval_reduction("test", cached_results, _dump_dir)
 
-    def valid_reduction(self, batch_results: list, on_epoch_end: bool = None, **kwds):
-        return self.eval_reduction("valid", batch_results, on_epoch_end)
-
-    def test_reduction(self, batch_results: list, on_epoch_end: bool = None, **kwds):
-        return self.eval_reduction("test", batch_results, on_epoch_end)
-
-    def eval_reduction(
-        self, name: str, batch_results: list, on_epoch_end: bool = None, **kwds
-    ):
+    def eval_reduction(self, _mode: str, cached_results: list, _dump_dir: str = None):
         target, prediction, prediction_logit, filename, timestamp = [], [], [], [], []
-        for batch in batch_results:
+        for batch in cached_results:
             length = batch["label"].size(0)
             assert batch["prediction"].size(0) == length
             assert batch["logit"].size(0) == length
@@ -387,7 +384,7 @@ class HearEventPredictionTask(Task):
             target.append(batch["label"])
             prediction.append(batch["prediction"])
             prediction_logit.append(batch["logit"])
-            filename += [batch["unique_name"]] * length
+            filename += [batch["record_id"]] * length
 
             ts = (
                 torch.arange(1, length + 1).float() * self.feat_frame_shift
@@ -399,12 +396,14 @@ class HearEventPredictionTask(Task):
         prediction = torch.cat(prediction, dim=0)
         prediction_logit = torch.cat(prediction_logit, dim=0)
         timestamp = torch.FloatTensor(timestamp)
+
         loss = self.logit_loss(prediction_logit.float(), target.float())
 
-        logs = Logs()
-        logs.add_scalar("loss", loss)
+        logs = {
+            "loss": loss.detach().cpu().item()
+        }
 
-        if name in ["valid", "test"]:
+        if _mode in ["valid", "test"]:
             # events in miniseconds
             predicted_events_by_postprocessing = get_events_for_all_files(
                 prediction,
@@ -412,7 +411,7 @@ class HearEventPredictionTask(Task):
                 timestamp,
                 self.idx_to_label,
                 self.postprocessing_grid,
-                self.best_postprocessing if name == "test" else None,
+                self.best_postprocessing if _mode == "test" else None,
             )
 
             score_and_postprocessing = []
@@ -420,7 +419,7 @@ class HearEventPredictionTask(Task):
                 predicted_events = predicted_events_by_postprocessing[postprocessing]
                 primary_score_fn = self.scores[0]
                 primary_score_ret = primary_score_fn(
-                    predicted_events, self.target_events[name]
+                    predicted_events, self.target_events[_mode]
                 )
                 if isinstance(primary_score_ret, tuple):
                     primary_score = primary_score_ret[0][1]
@@ -437,7 +436,7 @@ class HearEventPredictionTask(Task):
                 score_and_postprocessing.append((primary_score, postprocessing))
             score_and_postprocessing.sort(reverse=True)
 
-            if name in ["valid", "test"]:
+            if _mode in ["valid", "test"]:
                 self.best_postprocessing = score_and_postprocessing[0][1]
                 logger.info(f"Best postprocessing: {self.best_postprocessing}")
 
@@ -445,20 +444,19 @@ class HearEventPredictionTask(Task):
                 self.best_postprocessing
             ]
 
-            if name == "test":
+            if _mode == "test":
                 self.test_predictions = {
                     "target": target.detach().cpu(),
                     "prediction": prediction.detach().cpu(),
                     "prediction_logit": prediction_logit.detach().cpu(),
-                    "target_events": self.target_events[name],
+                    "target_events": self.target_events[_mode],
                     "predicted_events": predicted_events,
                     "timestamp": timestamp,
                 }
 
-            self.log_scores(
-                score_args=(predicted_events, self.target_events[name]), logs=logs
+            score_logs = self.log_scores(
+                score_args=(predicted_events, self.target_events[_mode])
             )
+            logs.update(score_logs)
 
-        return Output(
-            logs=logs,
-        )
+        return logs

@@ -17,7 +17,6 @@ class HearFullyConnectedPrediction(torch.nn.Module):
         initialization=torch.nn.init.xavier_uniform_,
         hidden_norm=torch.nn.BatchNorm1d,
         pooling: str = None,
-        **kwds,
     ):
         super().__init__()
         self._input_size = input_size

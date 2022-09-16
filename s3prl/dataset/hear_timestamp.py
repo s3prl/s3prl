@@ -9,7 +9,6 @@ class HearTimestampDatapipe(SequentialDataPipe):
         self,
         sample_rate: int = 16000,
         feat_frame_shift: int = 160,
-        **kwds,
     ):
         super().__init__(
             UnfoldChunkBySec(
@@ -25,11 +24,13 @@ class HearTimestampDatapipe(SequentialDataPipe):
                 all_category_name="category",
             ),
             SetOutputKeys(
-                x="wav",
-                x_len="wav_len",
-                y="multiclass_tag",
-                y_len="tag_len",
-                unique_name="unchunked_id",
-                order_in_rec="chunk_index",
+                dict(
+                    x="wav",
+                    x_len="wav_len",
+                    y="multiclass_tag",
+                    y_len="tag_len",
+                    record_id="unchunked_id",
+                    chunk_id="chunk_index",
+                )
             ),
         )

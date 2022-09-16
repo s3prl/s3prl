@@ -20,7 +20,10 @@ class GroupSameItemSampler:
     ) -> None:
         self.indices = defaultdict(list)
         for idx in range(len(dataset)):
-            info = dataset.get_info(idx)
+            if hasattr(dataset, "get_info"):
+                info = dataset.get_info(idx)
+            else:
+                info = dataset[idx]
             self.indices[info[item]].append(idx)
 
         self.epoch = 0

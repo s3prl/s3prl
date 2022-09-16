@@ -194,6 +194,19 @@ class EncodeMultiLabel(DataPipe):
         return binary_labels
 
     def forward(self, dataset: AugmentedDynamicItemDataset):
+        if not dataset.has_tool(self.category_encoder_name):
+            with dataset.output_keys_as([self.label_name]):
+                all_labels = []
+                for item in dataset:
+                    all_labels.extend(item[self.label_name])
+                all_labels.sort()
+                all_labels = set(all_labels)
+                category = CategoryEncoder(all_labels)
+                dataset.add_tool(self.category_encoder_name, category)
+
+        category = dataset.get_tool(self.category_encoder_name)
+        dataset.add_tool("output_size", len(category))
+
         dataset.add_dynamic_item(
             self.encode_label,
             takes=[self.category_encoder_name, self.label_name],

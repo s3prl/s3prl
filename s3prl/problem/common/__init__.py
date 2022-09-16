@@ -16,6 +16,8 @@ from .hear_stroke import HearStroke
 from .hear_tonic import HearTonic
 from .hear_vocal import HearVocal
 from .hear_vox_lingual import HearVoxLingual
+from .hear_dcase_2016_task2 import HearDcase2016Task2
+from .hear_maestro import HearMaestro
 
 __all__ = [
     "SuperbER",
@@ -36,4 +38,6 @@ __all__ = [
     "HearTonic",
     "HearVocal",
     "HearVoxLingual",
+    "HearDcase2016Task2",
+    "HearMaestro",
 ]

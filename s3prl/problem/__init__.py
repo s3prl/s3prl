@@ -25,6 +25,8 @@ from .common.hear_stroke import HearStroke
 from .common.hear_tonic import HearTonic
 from .common.hear_vocal import HearVocal
 from .common.hear_vox_lingual import HearVoxLingual
+from .common.hear_dcase_2016_task2 import HearDcase2016Task2
+from .common.hear_maestro import HearMaestro
 
 __all__ = [
     "SuperbASR",
@@ -50,4 +52,6 @@ __all__ = [
     "HearTonic",
     "HearVocal",
     "HearVoxLingual",
+    "HearDcase2016Task2",
+    "HearMaestro",
 ]
