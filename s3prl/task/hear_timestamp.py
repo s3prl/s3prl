@@ -1,3 +1,6 @@
+# Copyright Hear Benchmark Team
+# Copyright Shu-wen Yang
+
 import torch
 import logging
 import numpy as np
@@ -12,10 +15,7 @@ from sklearn.model_selection import ParameterGrid
 
 from s3prl.task.base import Task
 from s3prl.dataio.encoder.category import CategoryEncoder
-from s3prl.metric.hear import (
-    available_scores,
-    validate_score_return_type,
-)
+from ._hear_score import available_scores, validate_score_return_type
 
 logger = logging.getLogger(__name__)
 

@@ -1,6 +1,5 @@
-"""
-Common utils for scoring.
-"""
+# Copyright Hear Benchmark Team
+
 from functools import partial
 from typing import Any, Callable, Dict, List, Optional, Tuple, Union
 from collections import ChainMap
