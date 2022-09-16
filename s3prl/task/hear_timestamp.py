@@ -399,9 +399,7 @@ class HearEventPredictionTask(Task):
 
         loss = self.logit_loss(prediction_logit.float(), target.float())
 
-        logs = {
-            "loss": loss.detach().cpu().item()
-        }
+        logs = {"loss": loss.detach().cpu().item()}
 
         if _mode in ["valid", "test"]:
             # events in miniseconds
