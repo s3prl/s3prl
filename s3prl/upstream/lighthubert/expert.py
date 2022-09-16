@@ -1,40 +1,51 @@
+import logging
+
 import torch
 import torch.nn.functional as F
 from lighthubert import LightHuBERT, LightHuBERTConfig
 from torch.nn.utils.rnn import pad_sequence
 
-from ..interfaces import UpstreamBase
+from .lighthubert import LightHuBERT, LightHuBERTConfig
+
+logger = logging.getLogger(__name__)
 
 
-class UpstreamExpert(UpstreamBase):
-    def __init__(self, ckpt, **kwargs):
-        super().__init__(**kwargs)
+class UpstreamExpert(torch.nn.Module):
+    def __init__(self, ckpt, **kwds):
+        super().__init__()
 
         checkpoint = torch.load(ckpt)
+        assert checkpoint["cfg"]["model"]["_name"] in [
+            "hubert_pruner",
+            "student_hubert",
+        ]
         self.cfg = LightHuBERTConfig(checkpoint["cfg"]["model"])
-        self.cfg.supernet_type = "small"
+
+        if checkpoint["cfg"]["model"]["_name"] == "hubert_pruner":
+            if (
+                checkpoint["cfg"]["model"]["pruner_supernet"]
+                .lower()
+                .endswith("small.yaml")
+            ):
+                self.cfg.supernet_type = "small"
+            elif (
+                checkpoint["cfg"]["model"]["pruner_supernet"]
+                .lower()
+                .endswith("base.yaml")
+            ):
+                self.cfg.supernet_type = "base"
+
         self.model = LightHuBERT(self.cfg)
         self.model.load_state_dict(checkpoint["model"], strict=False)
 
-        # subnet = self.model.supernet.sample_subnet()
-        # self.model.set_sample_config(subnet)
+        if checkpoint["cfg"]["model"]["_name"] == "student_hubert":
+            subnet = self.model.supernet.max_subnet
+        else:
+            subnet = self.model.supernet.subnet
+        self.model.set_sample_config(subnet)
 
-        if len(self.hooks) == 0:
-            module_name = "self.model.encoder.layers"
-            for module_id in range(len(eval(module_name))):
-                self.add_hook(
-                    f"{module_name}[{module_id}]",
-                    lambda input, output: input[0].transpose(0, 1),
-                )
-            self.add_hook("self.model.encoder", lambda input, output: output[0])
-
-            def postprocess(xs):
-                names, hiddens = zip(*xs)
-                unpad_len = min([hidden.size(1) for hidden in hiddens])
-                hiddens = [hidden[:, :unpad_len, :] for hidden in hiddens]
-                return list(zip(names, hiddens))
-
-            self.hook_postprocess = postprocess
+        params = self.model.calc_sampled_param_num()
+        logger.info(f"LightHubert subnet (Params {params / 1e6:.0f}M) | {subnet}")
 
     @property
     def layer_drop(self):
@@ -52,19 +63,21 @@ class UpstreamExpert(UpstreamBase):
         return 320
 
     def forward(self, wavs):
+        wavs = [F.layer_norm(wav, wav.shape) for wav in wavs]
+
         device = wavs[0].device
         wav_lengths = torch.LongTensor([len(wav) for wav in wavs]).to(device)
         wav_padding_mask = ~torch.lt(
             torch.arange(max(wav_lengths)).unsqueeze(0).to(device),
             wav_lengths.unsqueeze(1),
         )
-        padded_wav = pad_sequence(wavs, batch_first=True)
 
-        features, feat_padding_mask = self.model.extract_features(
-            padded_wav,
+        hs = self.model.extract_features(
+            pad_sequence(wavs, batch_first=True),
             padding_mask=wav_padding_mask,
-            mask=False,
-        )
+            ret_hs=True,
+        )[0]
 
-        # This forward function only does the model forward
-        # The return dict is then handled by UpstreamBase's hooks
+        return {
+            "hidden_states": hs,
+        }
