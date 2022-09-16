@@ -109,6 +109,13 @@ class AugmentedDynamicItemDataset(DynamicItemDataset):
         ]
         return available_keys
 
+    def set_info(self, info):
+        self._info = info
+
+    def get_info(self, index):
+        with self.output_keys_as(self._info):
+            return self.__getitem__(index)
+
     def __getitem__(self, index):
         """
         This remain all the usage of the original SpeechBrain DynamicItemDataset.__getitem__,

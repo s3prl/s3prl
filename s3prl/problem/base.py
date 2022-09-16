@@ -20,7 +20,7 @@ from dataclasses import dataclass
 from datetime import datetime
 from pathlib import Path
 from time import time
-from typing import Dict, List
+from typing import Dict, List, Union
 
 import omegaconf
 import torch
@@ -61,9 +61,7 @@ The methods affected by the following config are: {:s}
 {:s}
 """
 
-__all__ = [
-    "Problem"
-]
+__all__ = ["Problem"]
 
 
 class _DistributedDataParallel(torch.nn.parallel.DistributedDataParallel):
@@ -899,8 +897,11 @@ class Problem:
 
     @staticmethod
     def _get_current_arguments(
-        exclude_self_and_cls: bool = True, flatten_dict: List[str] = None
+        exclude_self_and_cls: bool = True, flatten_dict: Union[str, List[str]] = None
     ) -> dict:
+        if isinstance(flatten_dict, str):
+            flatten_dict = [flatten_dict]
+
         frame = inspect.currentframe().f_back
         args, _, _, values = inspect.getargvalues(frame)
         config = {key: values[key] for key in args}

@@ -173,6 +173,13 @@ def test_one_model(upstream_name: str):
     _test_model(upstream_name)
 
 
+def test_forward_backward(upstream_name: str):
+    if upstream_name is None:
+        return
+
+    _test_model(upstream_name)
+
+
 @pytest.mark.parametrize("layer_selections", [None, [0, 4, 9]])
 @pytest.mark.parametrize("normalize", [False, True])
 def test_featurizer(layer_selections, normalize):

@@ -127,7 +127,9 @@ class SuperbProblem(Problem, Trainer):
         )
 
         logger.info("Preparing corpus")
-        train_data, valid_data, test_data, corpus_stats = cfg.corpus().split(3)
+        train_data, valid_data, test_data, corpus_stats = Container(cfg.corpus()).split(
+            3
+        )
         stats.add(corpus_stats)
 
         logger.info("Preparing train data")

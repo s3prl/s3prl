@@ -5,13 +5,14 @@ Authors
   * Shu-wen Yang 2022
 """
 
+import yaml
 import logging
 import pickle
 import shutil
 from pathlib import Path
 
 import torch
-import yaml
+import pandas as pd
 
 from s3prl.problem.base import Problem
 from s3prl.task.utterance_classification_task import UtteranceClassificationTask
@@ -185,6 +186,19 @@ class Common(Problem):
 
         self._stage_check(stage_id, stop, check_fn)
 
+        with open(encoder_path, "rb") as f:
+            encoder = pickle.load(f)
+
+        model_output_size = len(encoder)
+        model = self.build_model(
+            build_model,
+            model_output_size,
+            build_upstream,
+            build_featurizer,
+            build_downstream,
+        )
+        frame_shift = model.downsample_rate
+
         stage_id = 2
         train_dir = target_dir / "train"
         if start <= stage_id:
@@ -195,6 +209,7 @@ class Common(Problem):
                 "train",
                 train_csv,
                 encoder_path,
+                frame_shift,
                 build_dataset,
                 build_batch_sampler,
             )
@@ -204,6 +219,7 @@ class Common(Problem):
                 "valid",
                 valid_csv,
                 encoder_path,
+                frame_shift,
                 build_dataset,
                 build_batch_sampler,
             )
@@ -221,6 +237,7 @@ class Common(Problem):
             build_task_all_args_except_model = dict(
                 build_task=build_task,
                 encoder=encoder,
+                valid_df=pd.read_csv(valid_csv),
             )
 
             self.train(
@@ -274,11 +291,14 @@ class Common(Problem):
                     "test",
                     test_csv,
                     encoder_path,
+                    frame_shift,
                     build_dataset,
                     build_batch_sampler,
                 )
 
-                _, valid_best_task = self.load_model_and_task(test_ckpt_dir)
+                _, valid_best_task = self.load_model_and_task(
+                    test_ckpt_dir, task_overrides={"test_df": pd.read_csv(test_csv)}
+                )
                 logs = self.evaluate(
                     evaluate,
                     "test",
@@ -303,6 +323,7 @@ class Common(Problem):
         mode: str,
         data_csv: str,
         encoder_path: str,
+        frame_shift: int,
         build_dataset: dict,
         build_batch_sampler: dict,
     ):
@@ -314,6 +335,7 @@ class Common(Problem):
             mode,
             data_csv,
             encoder_path,
+            frame_shift,
         )
         logger.info(f"Build {mode} batch sampler")
         batch_sampler = self.build_batch_sampler(
@@ -326,7 +348,14 @@ class Common(Problem):
         )
         return dataset, batch_sampler
 
-    def build_task(self, build_task: dict, model: torch.nn.Module, encoder):
+    def build_task(
+        self,
+        build_task: dict,
+        model: torch.nn.Module,
+        encoder,
+        valid_df: pd.DataFrame = None,
+        test_df: pd.DataFrame = None,
+    ):
         """
         Build the task, which defines the logics for every train/valid/test forward step for the :code:`model`,
         and the logics for how to reduce all the batch results from multiple train/valid/test steps into metrics

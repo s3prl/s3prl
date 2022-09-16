@@ -156,7 +156,7 @@ class VGGish(VGG):
                 self.pproc.load_state_dict(ckpt["pca"])
 
     def forward(self, x):
-        x = VGG.forward(self, x)
+        x = super().forward(x)
         if self.postprocess:
             x = self._postprocess(x)
         return x

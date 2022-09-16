@@ -8,9 +8,7 @@ Authors:
 
 from torch.utils.data import BatchSampler, RandomSampler, SequentialSampler
 
-__all__ = [
-    "FixedBatchSizeBatchSampler"
-]
+__all__ = ["FixedBatchSizeBatchSampler"]
 
 
 class FixedBatchSizeBatchSampler:

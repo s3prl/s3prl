@@ -16,7 +16,7 @@ from s3prl import Output
 EPS = 1e-10
 
 __all__ = [
-    "VQLayer",
+    "VqApcLayer",
 ]
 
 

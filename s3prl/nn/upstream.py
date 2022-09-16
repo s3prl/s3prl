@@ -128,11 +128,11 @@ class S3PRLUpstream(nn.Module):
         xs_max_len = xs.size(1)
 
         if xs_max_len > target_max_len:
-            assert round(xs_max_len / target_max_len) == 1
+            assert xs_max_len // target_max_len == 1
             xs = xs[:, :target_max_len, :]
 
         elif xs_max_len < target_max_len:
-            assert round(target_max_len / xs_max_len) == 1
+            assert target_max_len // xs_max_len == 1
             xs = torch.cat(
                 (xs, xs[:, -1:, :].repeat(1, target_max_len - xs_max_len, 1)), dim=1
             )
