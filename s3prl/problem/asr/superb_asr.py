@@ -17,6 +17,7 @@ import pandas as pd
 from omegaconf import MISSING
 from torch.utils.data import Dataset
 
+from s3prl.util.download import urls_to_filepaths
 from s3prl.dataio.corpus.librispeech import LibriSpeech
 from s3prl.dataset.speech2text_pipe import Speech2TextPipe
 from s3prl.dataio.encoder.tokenizer import load_tokenizer
@@ -98,7 +99,7 @@ def prepare_common_tokenizer(
     Args:
         tokenizer_name (str): Save the tokenizer filepath with this filename
         vocab_file (str): When the tokenizer was already prepared, and just want
-            to load and return the tokenizer here
+            to load and return the tokenizer here. Path or URL
         vocab_type (str): character / phoneme / word / subword
         vocab_args (dict):
             when :code:`vocab_type` is character / phoneme / word, supports arguments in
@@ -107,7 +108,7 @@ def prepare_common_tokenizer(
             whe :code:`vocab_type` is subword, supports arguments in
                 :obj:`s3prl.dataio.encoder.vocabulary.generate_subword_vocab`
         slots_file (str): If presented, the pre-defined slots will be used to encode the
-            special tokens
+            special tokens. Path or URL
 
     Return:
         str
@@ -120,6 +121,12 @@ def prepare_common_tokenizer(
 
     if get_path_only:
         return tokenizer_path
+
+    if vocab_file is not None and vocab_file.startswith("http"):
+        vocab_file = urls_to_filepaths(vocab_file)
+
+    if slots_file is not None and slots_file.startswith("http"):
+        slots_file = urls_to_filepaths(slots_file)
 
     if vocab_file is not None:
         tokenizer = load_tokenizer(

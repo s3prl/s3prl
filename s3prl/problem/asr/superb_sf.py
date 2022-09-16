@@ -96,8 +96,8 @@ class SuperbSF(SuperbASR):
             build_tokenizer=dict(
                 tokenizer_name=None,
                 vocab_type="character",
-                vocab_file=_urls_to_filepaths(VOCAB_URL),
-                slots_file=_urls_to_filepaths(SLOTS_URL),
+                vocab_file=VOCAB_URL,
+                slots_file=SLOTS_URL,
             ),
             build_dataset=dict(),
             build_batch_sampler=dict(
