@@ -1,7 +1,8 @@
 Use Problem module to run customizable recipes
-==============================================
+=======================================================
 
-The problem module provides pythonic and customizable recipes
+The :obj:`s3prl.problem` module provides customizable recipes in pure python (almost).
+See :obj:`s3prl.problem` for all the recipes ready to be ran.
 
 
 Usage 1. Import and run on Colab
@@ -44,13 +45,17 @@ Then, run the command below:
     >>> python3 asr.py --target_dir result/asr_exp --prepare_data.dataset_root /corpus/LibriSpeech/
 
 
-Usage 3. Run & configure with the unified :obj:`s3prl.main`
+Usage 3. Run & configure with the unified :obj:`s3prl-main`
 -----------------------------------------------------------
 
 However, this means that for every problem you still need to create a file.
 Hence, we provide an easy helper supporting all the problems in :obj:`s3prl.problem`:
 
     >>> python3 -m s3prl.main SuperbASR --target_dir result/asr_exp --prepare_data.dataset_root /corpus/LibriSpeech/
+
+or use our CLI entry: :code:`s3prl-main`
+
+    >>> s3prl-main SuperbASR --target_dir result/asr_exp --prepare_data.dataset_root /corpus/LibriSpeech/
 
 Customization
 -------------
