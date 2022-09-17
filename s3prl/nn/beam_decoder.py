@@ -176,7 +176,7 @@ class BeamDecoder(object):
             emissions (torch.Tensor): Emission probabilities (in log scale).
 
         Returns:
-            List[List[Container]]: Decoded hypotheses.
+            List[List[dict]]: Decoded hypotheses.
         """
 
         emissions = emissions.float().contiguous().cpu()

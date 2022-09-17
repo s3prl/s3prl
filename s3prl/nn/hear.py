@@ -1,3 +1,12 @@
+"""
+The probing model following Hear Benchmark
+
+Authors:
+  * Hear Team 2021
+  * Leo 2022
+"""
+
+
 from typing import List
 
 import torch

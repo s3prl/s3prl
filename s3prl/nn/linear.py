@@ -2,7 +2,7 @@
 Common linear models
 
 Authors:
-  * Shu-wen Yang 2022
+  * Leo 2022
 """
 
 from .common import FrameLevel, UtteranceLevel
@@ -14,6 +14,9 @@ __all__ = [
 
 
 class FrameLevelLinear(FrameLevel):
+    """
+    The frame-level linear probing model used in SUPERB Benchmark
+    """
     def __init__(
         self,
         input_size: int,
@@ -24,6 +27,9 @@ class FrameLevelLinear(FrameLevel):
 
 
 class MeanPoolingLinear(UtteranceLevel):
+    """
+    The utterance-level linear probing model used in SUPERB Benchmark
+    """
     def __init__(
         self,
         input_size: int,
