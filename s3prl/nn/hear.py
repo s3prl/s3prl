@@ -45,12 +45,13 @@ class HearFullyConnectedPrediction(torch.nn.Module):
         initialization = getattr(torch.nn.init, initialization)
         hidden_norm = getattr(torch.nn, hidden_norm)
 
+        curdim = input_size
         if pooling_type is not None:
             pooling_cls = getattr(pooling, pooling_type)
             self.pooling = pooling_cls(input_size, **(pooling_conf or {}))
+            curdim = self.pooling.output_size
 
         hidden_modules: List[torch.nn.Module] = []
-        curdim = self.pooling.output_size
         last_activation = "linear"
         if hidden_layers:
             for i in range(hidden_layers):
