@@ -5,20 +5,12 @@ Authors:
   * Heng-Jui Chang 2022
 """
 
+import logging
 import itertools as it
 import math
 from typing import Iterable, List
 
 import torch
-from flashlight.lib.text.decoder import (
-    CriterionType,
-    KenLM,
-    LexiconDecoder,
-    LexiconDecoderOptions,
-    SmearingMode,
-    Trie,
-)
-from flashlight.lib.text.dictionary import Dictionary, create_word_dict, load_words
 
 from s3prl.util.download import _urls_to_filepaths
 
@@ -32,11 +24,28 @@ LM_URL_2 = (
     "https://huggingface.co/datasets/s3prl/flashlight/resolve/main/lm/4-gram.arpa.gz"
 )
 
+logger = logging.getLogger(__name__)
 
 __all__ = ["BeamDecoder"]
 
 
 class BeamDecoder(object):
+    """Beam decoder powered by flashlight.
+
+    Args:
+        token (str, optional): Path to dictionary file. Defaults to "".
+        lexicon (str, optional): Path to lexicon file. Defaults to "".
+        lm (str, optional): Path to KenLM file. Defaults to "".
+        nbest (int, optional): Returns nbest hypotheses. Defaults to 1.
+        beam (int, optional): Beam size. Defaults to 5.
+        beam_size_token (int, optional): Token beam size. Defaults to -1.
+        beam_threshold (float, optional): Beam search log prob threshold. Defaults to 25.0.
+        lm_weight (float, optional): language model weight. Defaults to 2.0.
+        word_score (float, optional): score for words appearance in the transcription. Defaults to -1.0.
+        unk_score (float, optional): score for unknown word appearance in the transcription. Defaults to -math.inf.
+        sil_score (float, optional): score for silence appearance in the transcription. Defaults to 0.0.
+    """
+
     def __init__(
         self,
         token: str = "",
@@ -51,21 +60,24 @@ class BeamDecoder(object):
         unk_score: float = -math.inf,
         sil_score: float = 0.0,
     ):
-        """Beam decoder powered by flashlight.
+        try:
+            from flashlight.lib.text.decoder import (
+                CriterionType,
+                KenLM,
+                LexiconDecoder,
+                LexiconDecoderOptions,
+                SmearingMode,
+                Trie,
+            )
+            from flashlight.lib.text.dictionary import (
+                Dictionary,
+                create_word_dict,
+                load_words,
+            )
 
-        Args:
-            token (str, optional): Path to dictionary file. Defaults to "".
-            lexicon (str, optional): Path to lexicon file. Defaults to "".
-            lm (str, optional): Path to KenLM file. Defaults to "".
-            nbest (int, optional): Returns nbest hypotheses. Defaults to 1.
-            beam (int, optional): Beam size. Defaults to 5.
-            beam_size_token (int, optional): Token beam size. Defaults to -1.
-            beam_threshold (float, optional): Beam search log prob threshold. Defaults to 25.0.
-            lm_weight (float, optional): language model weight. Defaults to 2.0.
-            word_score (float, optional): score for words appearance in the transcription. Defaults to -1.0.
-            unk_score (float, optional): score for unknown word appearance in the transcription. Defaults to -math.inf.
-            sil_score (float, optional): score for silence appearance in the transcription. Defaults to 0.0.
-        """
+        except ImportError:
+            logger.error(f"Please install flashlight to enable {__class__.__name__}")
+            raise
 
         if token == "":
             token = _urls_to_filepaths(TOKEN_URL)
