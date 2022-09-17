@@ -1,3 +1,7 @@
+"""
+The most common and simple train/valid/test recipes
+"""
+
 from .superb_er import SuperbER
 from .superb_ic import SuperbIC
 from .superb_ks import SuperbKS
