@@ -18,11 +18,7 @@ __all__ = [
 
 class softmax(nn.Module):
     """
-    Softmax
-
-    Args:
-        input_size (int): The input feature size
-        output_size (int): The output feature size
+    The standard softmax loss in an unified interface for all speaker-related softmax losses
     """
     def __init__(self, input_size: int, output_size: int):
         super().__init__()

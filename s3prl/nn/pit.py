@@ -37,6 +37,22 @@ def pit_loss_single_permute(output, label, length):
 
 
 def pit_loss(output, label, length):
+    """
+    The Permutation Invariant Training loss
+
+    Args:
+        output (torch.FloatTensor): prediction in (batch_size, seq_len, num_class)
+        label (torch.FloatTensor): label in the same shape as :code:`output`
+        length (torch.LongTensor): the valid length of each instance. :code:`output` and :code:`label`
+            share the same valid length
+
+    Returns:
+        tuple:
+
+        1. loss (torch.FloatTensor)
+        2. min_idx (int): the id with the minimum loss
+        3. all the permutation
+    """
     num_output = label.size(2)
     device = label.device
     permute_list = [np.array(p) for p in permutations(range(num_output))]

@@ -3,7 +3,7 @@ RNN models used in Superb Benchmark
 
 Authors:
   * Heng-Jui Chang 2022
-  * Shu-wen Yang 2022
+  * Leo 2022
 """
 
 from typing import List, Tuple
@@ -14,7 +14,7 @@ from torch.nn.utils.rnn import pack_padded_sequence, pad_packed_sequence
 
 from s3prl.nn.interface import AbsFrameModel
 
-__all__ = ["RNNEncoder", "SuperbDiarizationModel"]
+__all__ = ["RNNEncoder", "SuperbDiarizationModel", "RNNLayer"]
 
 
 def downsample(
@@ -81,6 +81,7 @@ class RNNLayer(nn.Module):
             sample_style (str, optional): Downsampling style (**drop** or **concat**). Defaults to "drop".
         """
         super().__init__()
+        self._insize = input_size
 
         self.out_size = (
             hidden_size
@@ -115,6 +116,17 @@ class RNNLayer(nn.Module):
             self.pj_layer = nn.Linear(self.out_size, self.out_size)
 
     def forward(self, xs: torch.Tensor, xs_len: torch.LongTensor):
+        """
+        Args:
+            xs (torch.FloatTensor): (batch_size, seq_len, input_size)
+            xs_len (torch.LongTensor): (batch_size, )
+
+        Returns:
+            tuple:
+
+            1. ys (torch.FloatTensor): (batch_size, seq_len, output_size)
+            2. ys_len (torch.LongTensor): (batch_size, )
+        """
         if not self.training:
             self.layer.flatten_parameters()
 
@@ -144,11 +156,11 @@ class RNNLayer(nn.Module):
         return output, xs_len
 
     @property
-    def input_size(self):
-        return self.arguments.input_size
+    def input_size(self) -> int:
+        return self._insize
 
     @property
-    def output_size(self):
+    def output_size(self) -> int:
         return self.out_size
 
 
@@ -209,6 +221,18 @@ class RNNEncoder(AbsFrameModel):
         self.linear = nn.Linear(prev_size, output_size)
 
     def forward(self, x: torch.Tensor, x_len: torch.LongTensor):
+        """
+        Args:
+            xs (torch.FloatTensor): (batch_size, seq_len, input_size)
+            xs_len (torch.LongTensor): (batch_size, )
+
+        Returns:
+            tuple:
+
+            1. ys (torch.FloatTensor): (batch_size, seq_len, output_size)
+            2. ys_len (torch.LongTensor): (batch_size, )
+        """
+
         xs, xs_len = x, x_len
         xs = self.proj(xs)
 
@@ -220,16 +244,27 @@ class RNNEncoder(AbsFrameModel):
         return logits, xs_len
 
     @property
-    def input_size(self):
+    def input_size(self) -> int:
         return self._input_size
 
     @property
-    def output_size(self):
+    def output_size(self) -> int:
         return self._output_size
 
 
 class SuperbDiarizationModel(AbsFrameModel):
-    def __init__(self, input_size, output_size, rnn_layers, hidden_size):
+    """
+    The exact RNN model used in SUPERB Benchmark for Speaker Diarization
+
+    Args:
+        input_size (int): input_size
+        output_size (int): output_size
+        rnn_layers (int): number of rnn layers
+        hidden_size (int): the hidden size across all rnn layers
+    """
+    def __init__(
+        self, input_size: int, output_size: int, rnn_layers: int, hidden_size: int
+    ):
         super().__init__()
         self._input_size = input_size
         self._output_size = output_size
@@ -244,14 +279,26 @@ class SuperbDiarizationModel(AbsFrameModel):
             self.linear = nn.Linear(input_size, output_size)
 
     @property
-    def input_size(self):
+    def input_size(self) -> int:
         return self._input_size
 
     @property
-    def output_size(self):
+    def output_size(self) -> int:
         return self._output_size
 
-    def forward(self, features, features_len):
+    def forward(self, xs, xs_len):
+        """
+        Args:
+            xs (torch.FloatTensor): (batch_size, seq_len, input_size)
+            xs_len (torch.LongTensor): (batch_size, )
+
+        Returns:
+            tuple:
+
+            1. ys (torch.FloatTensor): (batch_size, seq_len, output_size)
+            2. ys_len (torch.LongTensor): (batch_size, )
+        """
+        features, features_len = xs, xs_len
         features = features.float()
         if self.use_rnn:
             hidden, _ = self.rnn(features)

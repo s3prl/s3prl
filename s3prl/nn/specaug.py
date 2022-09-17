@@ -4,7 +4,7 @@ Specaug modules
 Authors:
   * Xuankai Chang 2021
   * ShampooWang, cornliu 2021
-  * Shu-wen Yang 2022
+  * Leo 2022
 """
 
 #   FileName     [ dataset.py ]
@@ -24,7 +24,13 @@ __all__ = [
 
 
 class ModelWithSpecaug(torch.nn.Module):
-    """ """
+    """
+    Insert a Specaug module in front of the input model
+
+    Args:
+        model (torch.nn.Module)
+        specaug_conf (dict): the arguments for :obj:`SpecAug`
+    """
 
     def __init__(self, model: torch.nn.Module, **specaug_conf) -> None:
         super().__init__()
@@ -32,41 +38,49 @@ class ModelWithSpecaug(torch.nn.Module):
         self.specaug = SpecAug(**specaug_conf)
 
     @property
-    def input_size(self):
+    def input_size(self) -> int:
         return self.model.input_size
 
     @property
-    def output_size(self):
+    def output_size(self) -> int:
         return self.model.output_size
 
-    def forward(self, x, x_len, **kwds):
+    def forward(self, x, x_len, **others):
+        """
+        The input :code:`x` will be augmented with Specaug and feed into the following :code:`model`
+
+        Args:
+            x (torch.FloatTensor): (batch_size, seq_len, input_size)
+            x_len (torch.LongTensor): (batch_size)
+
+        Returns:
+            The exact returns as that of the :code:`model` during initialization
+        """
         if self.training:
             x, x_len = self.specaug(x, x_len)
-        return self.model(x, x_len, **kwds)
+        return self.model(x, x_len, **others)
 
 
 class SpecAug(torch.nn.Module):
-    """SpecAug"""
-
     def __init__(
         self,
-        apply_time_warp=True,
-        time_warp_window=5,
-        time_warp_mode="bicubic",
-        apply_freq_mask=True,
-        freq_mask_width_range=(0, 20),
-        num_freq_mask=2,
-        apply_time_mask=True,
-        time_mask_width_range=(0, 100),
-        num_time_mask=2,
-        adaptive_number_ratio=0.04,
-        adaptive_size_ratio=0.04,
-        max_n_time_masks=20,
-        adaptive=False,
+        apply_time_warp: bool = True,
+        time_warp_window: int = 5,
+        time_warp_mode: str = "bicubic",
+        apply_freq_mask: bool = True,
+        freq_mask_width_range: tuple = (0, 20),
+        num_freq_mask: int = 2,
+        apply_time_mask: bool = True,
+        time_mask_width_range: tuple = (0, 100),
+        num_time_mask: int = 2,
+        adaptive_number_ratio: float = 0.04,
+        adaptive_size_ratio: float = 0.04,
+        max_n_time_masks: int = 20,
+        adaptive: bool = False,
     ):
         assert any([apply_time_warp, apply_freq_mask, apply_time_mask])
 
-        super(SpecAug, self).__init__()
+        super().__init__()
         self.apply_time_warp = apply_time_warp
         self.apply_freq_mask = apply_freq_mask
         self.apply_time_mask = apply_time_mask
@@ -108,7 +122,17 @@ class SpecAug(torch.nn.Module):
         return x, x_lengths
 
     def forward(self, x, x_len):
-        """Forward SpecAug."""
+        """
+        Args:
+            x (torch.FloatTensor): (batch_size, seq_len, input_size)
+            x_len (torch.LongTensor): (batch_size, )
+
+        Returns:
+            tuple:
+
+            1. y (torch.FloatTensor): (batch_size, seq_len, output_size)
+            2. y_len (torch.LongTensor): (batch_size, )
+        """
         assert len(x.shape) == 3
         x, _ = self.apply_specaug(x, x_len)
         for batch_id in range(len(x)):

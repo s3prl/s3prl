@@ -73,19 +73,20 @@ class TDNN(nn.Module):
             self.drop = nn.Dropout(p=dropout_p)
 
     @property
-    def input_size(self):
+    def input_size(self) -> int:
         return self._indim
 
     @property
-    def output_size(self):
+    def output_size(self) -> int:
         return self._outdim
 
     def forward(self, x: torch.Tensor):
         """
         Args:
-            x (torch.Tensor): with size (batch, seq_len, input_size)
+            x (torch.FloatTensor): (batch, seq_len, input_size)
+
         Returns:
-            x (torch.Tensor): with size (batch, seq_len, output_size)
+            torch.FloatTensor: (batch, seq_len, output_size)
         """
 
         _, _, d = x.shape
@@ -183,21 +184,22 @@ class XVectorBackbone(nn.Module):
         )
 
     @property
-    def input_size(self):
+    def input_size(self) -> int:
         return self._indim
 
     @property
-    def output_size(self):
+    def output_size(self) -> int:
         return self._outdim
 
     def forward(self, x: torch.Tensor):
         """
         Args:
-            x (torch.Tensor): size (batch, seq_len, input_size)
-        Returns:
-            x (torch.Tensor): size (batch, seq_len, output_size)
-        """
+            x (torch.FloatTensor): (batch, seq_len, input_size)
 
+        output:
+            torch.FloatTensor: (batch, seq_len, output_size)
+        """
+        # FIXME: This module should take x_len and output y_len
         x = self.module(x)
         return x
 
@@ -217,7 +219,7 @@ class SpeakerEmbeddingExtractor(nn.Module):
         input_size: int,
         output_size: int = 1500,
         backbone: str = "XVector",
-        pooling_type: str = "TAP",
+        pooling_type: str = "TemporalAveragePooling",
     ):
         super().__init__()
         self._indim = input_size
@@ -232,42 +234,29 @@ class SpeakerEmbeddingExtractor(nn.Module):
         else:
             raise ValueError("{} backbone type is not defined".format(backbone))
 
-        pooling_type = pooling_type
         if pooling_type == "TemporalAveragePooling" or pooling_type == "TAP":
-            self.pooling = TemporalAveragePooling(
-                input_size=self.backbone.output_size,
-                output_size=self.backbone.output_size,
-            )
+            self.pooling = TemporalAveragePooling(self.backbone.output_size)
 
         elif pooling_type == "TemporalStatisticsPooling" or pooling_type == "TSP":
-            self.pooling = TemporalStatisticsPooling(
-                input_size=self.backbone.output_size,
-                output_size=2 * self.backbone.output_size,
-            )
-            self._outdim = 2 * self.backbone.output_size
+            self.pooling = TemporalStatisticsPooling(self.backbone.output_size)
 
         elif pooling_type == "SelfAttentivePooling" or pooling_type == "SAP":
-            self.pooling = SelfAttentivePooling(
-                input_size=self.backbone.output_size,
-                output_size=self.backbone.output_size,
-            )
+            self.pooling = SelfAttentivePooling(self.backbone.output_size)
 
         elif pooling_type == "AttentiveStatisticsPooling" or pooling_type == "ASP":
-            self.pooling = AttentiveStatisticsPooling(
-                input_size=self.backbone.output_size,
-                output_size=2 * self.backbone.output_size,
-            )
-            self._outdim = 2 * self.backbone.output_size
+            self.pooling = AttentiveStatisticsPooling(self.backbone.output_size)
 
         else:
             raise ValueError("{} pooling type is not defined".format(pooling_type))
 
+        self._outdim = self.pooling.output_size
+
     @property
-    def input_size(self):
+    def input_size(self) -> int:
         return self._indim
 
     @property
-    def output_size(self):
+    def output_size(self) -> int:
         return self._outdim
 
     def forward(self, x: torch.Tensor, xlen: torch.LongTensor=None):
@@ -322,7 +311,7 @@ class _UtteranceExtractor(nn.Module):
 
 class SuperbXvector(nn.Module):
     """
-    This has some small differences compared to the original Xvector
+    The Xvector used in the SUPERB Benchmark with the exact default arguments
 
     Args:
         input_size (int): The input feature size, usually is the output size of upstream models
@@ -358,21 +347,25 @@ class SuperbXvector(nn.Module):
         self.affine = _UtteranceExtractor(latest_size, output_size)
 
     @property
-    def input_size(self):
+    def input_size(self) -> int:
         return self._input_size
 
     @property
-    def output_size(self):
+    def output_size(self) -> int:
         return self._output_size
 
-    def forward(self, x: torch.Tensor, x_len: torch.LongTensor):
+    def forward(self, x, x_len):
         """
         Args:
-            x (torch.Tensor): size (batch, seq_len, input_size)
-            x_len (torch.LongTensor): size (batch, )
+            x (torch.FloatTensor): (batch_size, seq_len, input_size)
+            x_len (torch.LongTensor): (batch_size, )
+
         Returns:
-            x (torch.Tensor): size (batch, output_size)
+            torch.FloatTensor:
+
+            (batch_size, output_size)
         """
+
         x = self.projector(x)
 
         x = self.tdnns(x)
