@@ -2,6 +2,7 @@
 Common pooling methods
 
 Authors:
+  * Leo 2022
   * Haibin Wu 2022
 """
 
@@ -21,81 +22,37 @@ __all__ = [
 
 class MeanPooling(nn.Module):
     """
-    MeanPooling
-    
-    Args:
-        input_size (int): The input feature size.
-        output_size (int): The output feature size.
+    Computes Temporal Average Pooling (MeanPooling over time) Module
     """
 
-    def __init__(self):
+    def __init__(self, input_size: int):
         super().__init__()
+        self._in_size = input_size
 
     @property
-    def input_size(self):
-        raise ValueError
+    def input_size(self) -> int:
+        return self._in_size
 
     @property
-    def output_size(self):
-        raise ValueError
-
-    def forward(self, xs: torch.Tensor, xs_len: torch.LongTensor=None):
-        """
-        Computes Mean Pooling Module
-
-        Args:
-            xs (torch.Tensor): Input tensor (batch, frames, channels).
-            xs_len (torch.LongTensor): with the lengths for each sample (batch, ).
-        Returns:
-            torch.Tensor: Output tensor (batch, channels)
-        """
-        pooled_list = []
-        for x, x_len in zip(xs, xs_len):
-            pooled = torch.mean(x[:x_len], dim=0)
-            pooled_list.append(pooled)
-        return torch.stack(pooled_list)
-
-
-class TemporalAveragePooling(nn.Module):
-    """
-    TemporalAveragePooling
-    Paper: Multi-Task Learning with High-Order Statistics for X-vector based Text-Independent Speaker Verification
-    Link: https://arxiv.org/pdf/1903.12058.pdf
-
-    Args:
-        input_size (int): The input feature size.
-        output_size (int): The output feature size.
-    """
-
-    def __init__(self, input_size: int, output_size: int):
-        super().__init__()
-        self._indim = input_size
-        self._outdim = output_size
-
-    @property
-    def input_size(self):
-        return self._indim
-
-    @property
-    def output_size(self):
-        return self._outdim
+    def output_size(self) -> int:
+        return self._in_size
 
     def forward(self, xs: torch.Tensor, xs_len: torch.LongTensor):
         """
-        Computes Temporal Average Pooling Module
-
         Args:
-            xs (torch.Tensor): Input tensor (batch, frames, channels).
-            xs_len (torch.LongTensor): with the lengths for each sample (batch, ).
+            xs (torch.Tensor): Input tensor (#batch, frames, input_size).
+            xs_len (torch.LongTensor): with the lengths for each sample
         Returns:
-            torch.Tensor: Output tensor (batch, channels)
+            torch.Tensor: Output tensor (#batch, input_size)
         """
         pooled_list = []
         for x, x_len in zip(xs, xs_len):
             pooled = torch.mean(x[:x_len], dim=0)
             pooled_list.append(pooled)
-
         return torch.stack(pooled_list)
+
+
+TemporalAveragePooling = MeanPooling
 
 
 class TemporalStatisticsPooling(nn.Module):
@@ -103,32 +60,30 @@ class TemporalStatisticsPooling(nn.Module):
     TemporalStatisticsPooling
     Paper: X-vectors: Robust DNN Embeddings for Speaker Recognition
     Link： http://www.danielpovey.com/files/2018_icassp_xvectors.pdf
-
-    Args:
-        input_size (int): The input feature size.
-        output_size (int): The output feature size.
     """
-    def __init__(self, input_size: int, **unused):
+
+    def __init__(self, input_size: int):
         super().__init__()
         self._input_size = input_size
 
     @property
-    def input_size(self):
+    def input_size(self) -> int:
         return self._input_size
 
     @property
-    def output_size(self):
+    def output_size(self) -> int:
         return self._input_size * 2
 
-    def forward(self, xs: torch.Tensor, xs_len: torch.LongTensor=None):
+    def forward(self, xs, xs_len):
         """
         Computes Temporal Statistics Pooling Module
 
         Args:
-            xs (torch.Tensor): Input tensor (batch, frames, channels).
-            xs_len (torch.LongTensor): with the lengths for each sample (batch, ).
+            xs (torch.Tensor): Input tensor (#batch, frames, input_size).
+            xs_len (torch.LongTensor): with the lengths for each sample
+
         Returns:
-            torch.Tensor: Output tensor (batch, channels)
+            torch.Tensor: Output tensor (#batch, output_size)
         """
         pooled_list = []
         for x, x_len in zip(xs, xs_len):
@@ -144,36 +99,32 @@ class SelfAttentivePooling(nn.Module):
     SelfAttentivePooling
     Paper: Self-Attentive Speaker Embeddings for Text-Independent Speaker Verification
     Link： https://danielpovey.com/files/2018_interspeech_xvector_attention.pdf
-
-    Args:
-        input_size (int): The input feature size.
-        output_size (int): The output feature size.
     """
-    def __init__(self, input_size: int, output_size: int):
+
+    def __init__(self, input_size: int):
         super().__init__()
         self._indim = input_size
-        self._outdim = output_size
-
         self.sap_linear = nn.Linear(input_size, input_size)
         self.attention = nn.Parameter(torch.FloatTensor(input_size, 1))
 
     @property
-    def input_size(self):
+    def input_size(self) -> int:
         return self._indim
 
     @property
-    def output_size(self):
-        return self._outdim
+    def output_size(self) -> int:
+        return self._indim
 
-    def forward(self, xs: torch.Tensor, xs_len: torch.LongTensor=None):
+    def forward(self, xs, xs_len):
         """
         Computes Self-Attentive Pooling Module
 
         Args:
-            xs (torch.Tensor): Input tensor (batch, frames, channels).
-            xs_len (torch.LongTensor): with the lengths for each sample (batch, ).
+            xs (torch.Tensor): Input tensor (#batch, frames, input_size).
+            xs_len (torch.LongTensor): with the lengths for each sample
+
         Returns:
-            torch.Tensor: Output tensor (batch, channels)
+            torch.Tensor: Output tensor (#batch, input_size)
         """
         pooled_list = []
         for x, x_len in zip(xs, xs_len):
@@ -191,36 +142,32 @@ class AttentiveStatisticsPooling(nn.Module):
     AttentiveStatisticsPooling
     Paper: Attentive Statistics Pooling for Deep Speaker Embedding
     Link: https://arxiv.org/pdf/1803.10963.pdf
-
-    Args:
-        input_size (int): The input feature size.
-        output_size (int): The output feature size.
     """
-    def __init__(self, input_size: int, output_size: int):
+
+    def __init__(self, input_size: int):
         super().__init__()
         self._indim = input_size
-        self._outdim = output_size
-
         self.sap_linear = nn.Linear(input_size, input_size)
         self.attention = nn.Parameter(torch.FloatTensor(input_size, 1))
 
     @property
-    def input_size(self):
+    def input_size(self) -> int:
         return self._indim
 
     @property
-    def output_size(self):
-        return self._outdim
+    def output_size(self) -> int:
+        return self._indim * 2
 
-    def forward(self, xs: torch.Tensor, xs_len: torch.LongTensor=None):
+    def forward(self, xs, xs_len):
         """
         Computes Attentive Statistics Pooling Module
 
         Args:
-            xs (torch.Tensor): Input tensor (batch, frames, channels).
-            xs_len (torch.LongTensor): with the lengths for each sample (batch, ).
+            xs (torch.Tensor): Input tensor (#batch, frames, input_size).
+            xs_len (torch.LongTensor): with the lengths for each sample
+
         Returns:
-            torch.Tensor: Output tensor (batch, channels)
+            torch.Tensor: Output tensor (#batch, input_size)
         """
         pooled_list = []
         for x, x_len in zip(xs, xs_len):
