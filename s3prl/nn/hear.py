@@ -2,10 +2,15 @@ from typing import List
 
 import torch
 
-from s3prl.nn.pooling import MeanPooling, TemporalStatisticsPooling
+import s3prl.nn.pooling as pooling
 
 
 class HearFullyConnectedPrediction(torch.nn.Module):
+    """
+    The specific prediction head used in the Hear Benchmark.
+    Modified from: https://github.com/hearbenchmark/hear-eval-kit/blob/855964977238e89dfc76394aa11c37010edb6f20/heareval/predictions/task_predictions.py#L142
+    """
+
     def __init__(
         self,
         input_size: int,
@@ -14,25 +19,23 @@ class HearFullyConnectedPrediction(torch.nn.Module):
         hidden_layers: int = 2,
         norm_after_activation: bool = False,
         dropout: float = 0.1,
-        initialization=torch.nn.init.xavier_uniform_,
-        hidden_norm=torch.nn.BatchNorm1d,
-        pooling: str = None,
+        initialization: str = "xavier_uniform_",
+        hidden_norm: str = "BatchNorm1d",
+        pooling_type: str = None,
+        pooling_conf: dict = None,
     ):
         super().__init__()
         self._input_size = input_size
         self._output_size = output_size
+        initialization = getattr(torch.nn.init, initialization)
+        hidden_norm = getattr(torch.nn, hidden_norm)
 
-        if pooling == "mean":
-            self.pooling = MeanPooling()
-        elif pooling == "statistics":
-            self.pooling = TemporalStatisticsPooling()
-        elif isinstance(pooling, str):
-            raise ValueError(f"Unsupported pooling type {pooling}")
+        if pooling_type is not None:
+            pooling_cls = getattr(pooling, pooling_type)
+            self.pooling = pooling_cls(input_size, **(pooling_conf or {}))
 
         hidden_modules: List[torch.nn.Module] = []
-        curdim = input_size
-        # Honestly, we don't really know what activation preceded
-        # us for the final embedding.
+        curdim = self.pooling.output_size
         last_activation = "linear"
         if hidden_layers:
             for i in range(hidden_layers):

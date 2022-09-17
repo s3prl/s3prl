@@ -39,7 +39,7 @@ class HearVoxLingual(HearESC50):
             ),
             build_downstream=dict(
                 hidden_layers=2,
-                pooling="mean",
+                pooling_type="MeanPooling",
             ),
             build_model=dict(
                 upstream_trainable=False,
