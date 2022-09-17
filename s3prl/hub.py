@@ -1,8 +1,6 @@
 from s3prl.upstream.apc.hubconf import *
 from s3prl.upstream.audio_albert.hubconf import *
 from s3prl.upstream.baseline.hubconf import *
-
-# from s3prl.upstream.byol_a.hubconf import *  # FIXME: (Leo)
 from s3prl.upstream.cpc.hubconf import *
 from s3prl.upstream.data2vec.hubconf import *
 from s3prl.upstream.decoar.hubconf import *
@@ -25,9 +23,12 @@ from s3prl.upstream.vq_wav2vec.hubconf import *
 from s3prl.upstream.wav2vec.hubconf import *
 from s3prl.upstream.wav2vec2.hubconf import *
 from s3prl.upstream.wavlm.hubconf import *
-
+from s3prl.upstream.byol_a.hubconf import *
 from s3prl.upstream.vggish.hubconf import *
 from s3prl.upstream.mae_ast.hubconf import *
+from s3prl.upstream.ast.hubconf import *
+from s3prl.upstream.ssast.hubconf import *
+from s3prl.upstream.byol_s.hubconf import *
 
 from s3prl.downstream.timit_phone.hubconf import timit_posteriorgram
 

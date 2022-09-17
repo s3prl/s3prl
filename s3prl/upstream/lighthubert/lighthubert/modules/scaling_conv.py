@@ -11,32 +11,40 @@ import torch.nn as nn
 class SConv1d(nn.Conv1d):
     """SCon1d (Scaling Conv1d): support variable in channels and out channels.
 
-        Notes
-        -----
-            WeightNorm has `weight_v` and `weight_g`, where
-                weight = weight_g / ||weight_v|| * weight_v
-            weight is obtained before forward.
+    Notes
+    -----
+        WeightNorm has `weight_v` and `weight_g`, where
+            weight = weight_g / ||weight_v|| * weight_v
+        weight is obtained before forward.
 
     """
+
     def __init__(
-        self, 
-        in_channels: int, 
-        out_channels: int, 
-        kernel_size: int, 
-        stride: int=1, 
-        padding: int=0, 
-        dilation: int=1, 
-        groups: int=1, 
-        bias: bool=True, 
-        padding_mode: str='zeros'
+        self,
+        in_channels: int,
+        out_channels: int,
+        kernel_size: int,
+        stride: int = 1,
+        padding: int = 0,
+        dilation: int = 1,
+        groups: int = 1,
+        bias: bool = True,
+        padding_mode: str = "zeros",
     ):
         """Add dynamic hyper-parameters"""
         super(SConv1d, self).__init__(
-            in_channels, out_channels, kernel_size, stride, 
-            padding, dilation, groups, bias, padding_mode
+            in_channels,
+            out_channels,
+            kernel_size,
+            stride,
+            padding,
+            dilation,
+            groups,
+            bias,
+            padding_mode,
         )
         self.staticize()
-    
+
     def staticize(self):
         self.sample_in_channels = None
         self.sample_out_channels = None
@@ -94,15 +102,15 @@ class SConv1d(nn.Conv1d):
         self.set_sample_config(in_channels, out_channels)
         isbias = self.bias is not None
         m = nn.Conv1d(
-            in_channels, 
-            out_channels, 
+            in_channels,
+            out_channels,
             self.kernel_size,
-            self.stride, 
-            self.padding, 
-            self.dilation, 
-            self.groups, 
+            self.stride,
+            self.padding,
+            self.dilation,
+            self.groups,
             isbias,
-            self.padding_mode
+            self.padding_mode,
         )
         m = m.to(self.weight.device)
         m = m.to(self.weight.dtype)
@@ -116,15 +124,15 @@ class SConv1d(nn.Conv1d):
     def build_from(cls, m: nn.Conv1d):
         isbias = m.bias is not None
         _m = cls(
-            m.in_channels, 
-            m.out_channels, 
+            m.in_channels,
+            m.out_channels,
             m.kernel_size,
-            m.stride, 
-            m.padding, 
-            m.dilation, 
-            m.groups, 
+            m.stride,
+            m.padding,
+            m.dilation,
+            m.groups,
             isbias,
-            m.padding_mode
+            m.padding_mode,
         )
         _m = _m.to(m.weight.device)
         _m = _m.to(m.weight.dtype)
@@ -133,12 +141,13 @@ class SConv1d(nn.Conv1d):
             _m.bias.data.copy_(m.bias)
         return _m
 
+
 if __name__ == "__main__":
     print(SConv1d.__base__)
     m = SConv1d(4, 4, 2, padding=2, groups=2)
     z = m.clone_model(2, 2)
     x = SConv1d.build_from(z)
-    x.set_sample_config(2,2)
+    x.set_sample_config(2, 2)
     print(m, z, x)
     inp = torch.rand((1, 2, 3))
     m.set_sample_config(2, 2)

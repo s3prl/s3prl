@@ -9,8 +9,7 @@
 from typing import List, Tuple
 
 import torch.nn as nn
-from .fairseq_modules import (Fp32GroupNorm, Fp32LayerNorm,
-                                                 TransposeLast)
+from .fairseq_modules import Fp32GroupNorm, Fp32LayerNorm, TransposeLast
 
 
 class ConvFeatureExtractionModel(nn.Module):

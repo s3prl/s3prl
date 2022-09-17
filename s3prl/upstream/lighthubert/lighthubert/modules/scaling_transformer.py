@@ -13,8 +13,7 @@ import numpy as np
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
-from ..functional.fairseq_utils import (get_activation_fn, index_put,
-                                                  pad_to_multiple)
+from ..functional.fairseq_utils import get_activation_fn, index_put, pad_to_multiple
 from .fairseq_modules import SamePad, TransposeLast
 from .scaling_conv import SConv1d
 from .scaling_layernorm import SLayerNorm
@@ -39,6 +38,7 @@ class STransformerSentenceEncoderLayer(nn.Module):
         layer_norm_first=args.layer_norm_first,
     )
     """
+
     def __init__(
         self,
         embedding_dim: float = 768,
@@ -64,7 +64,7 @@ class STransformerSentenceEncoderLayer(nn.Module):
             num_attention_heads,
             dropout=attention_dropout,
             self_attention=True,
-        ) # lighthubert component
+        )  # lighthubert component
 
         self.dropout1 = nn.Dropout(dropout)
         self.dropout2 = nn.Dropout(self.activation_dropout)
@@ -73,12 +73,24 @@ class STransformerSentenceEncoderLayer(nn.Module):
         self.layer_norm_first = layer_norm_first
 
         # layer norm associated with the self attention layer
-        self.self_attn_layer_norm = SLayerNorm(self.embedding_dim) # lighthubert component
-        self.fc1 = SLinear(self.embedding_dim, ffn_embedding_dim,in_splits=1, out_splits=ffn_embedding_dim // self.embedding_dim) # lighthubert component
-        self.fc2 = SLinear(ffn_embedding_dim, self.embedding_dim, in_splits=ffn_embedding_dim // self.embedding_dim, out_splits=1) # lighthubert component
+        self.self_attn_layer_norm = SLayerNorm(
+            self.embedding_dim
+        )  # lighthubert component
+        self.fc1 = SLinear(
+            self.embedding_dim,
+            ffn_embedding_dim,
+            in_splits=1,
+            out_splits=ffn_embedding_dim // self.embedding_dim,
+        )  # lighthubert component
+        self.fc2 = SLinear(
+            ffn_embedding_dim,
+            self.embedding_dim,
+            in_splits=ffn_embedding_dim // self.embedding_dim,
+            out_splits=1,
+        )  # lighthubert component
 
         # layer norm associated with the position wise feed-forward NN
-        self.final_layer_norm = SLayerNorm(self.embedding_dim) # lighthubert component
+        self.final_layer_norm = SLayerNorm(self.embedding_dim)  # lighthubert component
 
         # scaling module
         self.sample_atten_dim = None
@@ -87,14 +99,14 @@ class STransformerSentenceEncoderLayer(nn.Module):
         self.sample_heads_num = None
         self.sample_attn_swz = "global"
         # replace self_attn, self_attn_layer_norm, fc1, fc2, final_layer_norm
-    
+
     def forward(
         self,
         x: torch.Tensor,
         self_attn_mask: torch.Tensor = None,
         self_attn_padding_mask: torch.Tensor = None,
         need_weights: bool = False,
-        att_args = None,
+        att_args=None,
     ):
         """
         LayerNorm is applied either before or after the self-attention/ffn
@@ -153,14 +165,16 @@ class STransformerSentenceEncoderLayer(nn.Module):
         return x, (attn, layer_result)
 
     def set_sample_config(
-        self, 
+        self,
         sample_atten_dim: int,
-        sample_embed_dim: int, 
-        sample_ffn_embed: int, 
-        sample_heads_num: int, 
-        sample_sliding_attn_window = "global"
+        sample_embed_dim: int,
+        sample_ffn_embed: int,
+        sample_heads_num: int,
+        sample_sliding_attn_window="global",
     ):
-        assert sample_atten_dim == sample_heads_num * 64, f"{sample_atten_dim}-{sample_heads_num}"
+        assert (
+            sample_atten_dim == sample_heads_num * 64
+        ), f"{sample_atten_dim}-{sample_heads_num}"
         self.sample_atten_dim = sample_atten_dim
         self.sample_embed_dim = sample_embed_dim
         self.sample_ffn_embed = sample_ffn_embed
@@ -170,20 +184,20 @@ class STransformerSentenceEncoderLayer(nn.Module):
 
     def _sample_parameters(self):
         self.self_attn.set_sample_config(
-            self.sample_atten_dim, 
-            self.sample_heads_num, 
-            self.sample_embed_dim, 
-            self.sample_attn_swz
+            self.sample_atten_dim,
+            self.sample_heads_num,
+            self.sample_embed_dim,
+            self.sample_attn_swz,
         )
         self.self_attn_layer_norm.set_sample_config(self.sample_embed_dim)
         self.fc1.set_sample_config(
-            self.sample_embed_dim, 
-            self.sample_ffn_embed, 
+            self.sample_embed_dim,
+            self.sample_ffn_embed,
             1,
-            self.sample_ffn_embed / self.sample_embed_dim
+            self.sample_ffn_embed / self.sample_embed_dim,
         )
         self.fc2.set_sample_config(
-            self.sample_ffn_embed, 
+            self.sample_ffn_embed,
             self.sample_embed_dim,
             self.sample_ffn_embed / self.sample_embed_dim,
             1,
@@ -193,10 +207,10 @@ class STransformerSentenceEncoderLayer(nn.Module):
     @property
     def sample_modules(self):
         return {
-            "self_attn": SMHA, 
-            "self_attn_layer_norm": SLayerNorm, 
-            "fc1": SLinear, 
-            "fc2": SLinear, 
+            "self_attn": SMHA,
+            "self_attn_layer_norm": SLayerNorm,
+            "fc1": SLinear,
+            "fc2": SLinear,
             "final_layer_norm": SLayerNorm,
         }
 
@@ -266,16 +280,17 @@ def init_sbert_params(module):
 
 
 class STransformerEncoder(nn.Module):
-    """TransformerEncoder: variable layers number, input dim (or outout), 
+    """TransformerEncoder: variable layers number, input dim (or outout),
     heads numbers, and ffn embedding dim.
 
-    Note that `input dim (or outout)` now is fixed to be subject 
+    Note that `input dim (or outout)` now is fixed to be subject
     to hidden representations of teacher model.
 
     Dynamic: self.layers, self.pos_conv.0, self.layer_norm
 
     wav2vec2:TransformerEncoder(args)
     """
+
     def build_sencoder_layer(self, args):
         assert args.layer_type == "transformer", args.layer_type
         if args.layer_type == "transformer":
@@ -349,14 +364,14 @@ class STransformerEncoder(nn.Module):
         assert args.encoder_layers in [12], f"encoder layers: {args.encoder_layers}"
         # layer block: 1-4, 5-8, 9-12
         self.depth_maps = {
-                6: [1, 1, 0, 0, 1, 1, 0, 0, 1, 1, 0, 0],
-                7: [1, 1, 1, 0, 1, 1, 0, 0, 1, 1, 0, 0],
-                8: [1, 1, 1, 0, 1, 1, 1, 0, 1, 1, 0, 0],
-                9: [1, 1, 1, 0, 1, 1, 1, 0, 1, 1, 1, 0],
+            6: [1, 1, 0, 0, 1, 1, 0, 0, 1, 1, 0, 0],
+            7: [1, 1, 1, 0, 1, 1, 0, 0, 1, 1, 0, 0],
+            8: [1, 1, 1, 0, 1, 1, 1, 0, 1, 1, 0, 0],
+            9: [1, 1, 1, 0, 1, 1, 1, 0, 1, 1, 1, 0],
             10: [1, 1, 1, 1, 1, 1, 1, 0, 1, 1, 1, 0],
             11: [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0],
             12: [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
-        } # 1: keep layer, 0: drop layer
+        }  # 1: keep layer, 0: drop layer
         self.sample_layer_num = args.encoder_layers
         self.sample_atten_dim = None
         self.sample_embed_dim = None
@@ -373,10 +388,10 @@ class STransformerEncoder(nn.Module):
         return x, layer_results
 
     def extract_features(
-        self, 
-        x, 
-        padding_mask=None, 
-        tgt_layer=None, 
+        self,
+        x,
+        padding_mask=None,
+        tgt_layer=None,
         min_layer=0,
     ):
         """Refactor it to enable varible layers number"""
@@ -411,7 +426,9 @@ class STransformerEncoder(nn.Module):
         r = None
         for i, layer in enumerate(self.layers):
             dropout_probability = np.random.random()
-            if layerdrop_index[i] == 1 and (not self.training or dropout_probability > self.layerdrop):
+            if layerdrop_index[i] == 1 and (
+                not self.training or dropout_probability > self.layerdrop
+            ):
                 x, (z, lr) = layer(
                     x, self_attn_padding_mask=padding_mask, need_weights=False
                 )
@@ -437,6 +454,7 @@ class STransformerEncoder(nn.Module):
                     b[:-pad_length] if b is not None else b,
                     c[:-pad_length],
                 )
+
             layer_results = [undo_pad(*u) for u in layer_results]
 
         return x, layer_results
@@ -446,13 +464,13 @@ class STransformerEncoder(nn.Module):
         return self.args.max_positions
 
     def set_sample_config(
-        self, 
+        self,
         sample_layer_num: int,
         sample_atten_dim: List[int],
-        sample_embed_dim: int, 
-        sample_ffn_embed: List[int], 
-        sample_heads_num: List[int], 
-        sample_attn_swz: List
+        sample_embed_dim: int,
+        sample_ffn_embed: List[int],
+        sample_heads_num: List[int],
+        sample_attn_swz: List,
     ):
         self.sample_layer_num = sample_layer_num
         self.sample_atten_dim = sample_atten_dim
@@ -466,7 +484,11 @@ class STransformerEncoder(nn.Module):
         if getattr(self.args, "pos_conv_depth", 1) > 1:
             pos_conv_depth = getattr(self.args, "pos_conv_depth", 1)
             prune_encoder_pos_conv = getattr(self.args, "prune_encoder_pos_conv", True)
-            sample_input_size = self.sample_embed_dim if prune_encoder_pos_conv else self.args.encoder_embed_dim
+            sample_input_size = (
+                self.sample_embed_dim
+                if prune_encoder_pos_conv
+                else self.args.encoder_embed_dim
+            )
             for i, mi in enumerate(self.pos_conv):
                 if i == 0:
                     mi[0].set_sample_config(self.sample_embed_dim, sample_input_size)
@@ -486,13 +508,13 @@ class STransformerEncoder(nn.Module):
         for i, layer in enumerate(self.layers):
             if layerdrop_index[i] == 1:
                 # enable layer-drop training
-                layer_i = sum(layerdrop_index[:i+1]) - 1
+                layer_i = sum(layerdrop_index[: i + 1]) - 1
                 layer.set_sample_config(
                     self.sample_atten_dim[layer_i],
-                    self.sample_embed_dim, 
-                    self.sample_ffn_embed[layer_i], 
+                    self.sample_embed_dim,
+                    self.sample_ffn_embed[layer_i],
                     self.sample_heads_num[layer_i],
-                    self.sample_attn_swz[layer_i]
+                    self.sample_attn_swz[layer_i],
                 )
         self.layer_norm.set_sample_config(self.sample_embed_dim)
 
@@ -500,8 +522,9 @@ class STransformerEncoder(nn.Module):
         total_params = 0
         layerdrop_index = self.depth_maps[self.sample_layer_num]
         total_params += sum(
-            layer.calc_sampled_param_num() 
-            for i, layer in enumerate(self.layers) if layerdrop_index[i] == 1
+            layer.calc_sampled_param_num()
+            for i, layer in enumerate(self.layers)
+            if layerdrop_index[i] == 1
         )
         if getattr(self.args, "pos_conv_depth", 1) > 1:
             for mi in self.pos_conv:
@@ -519,13 +542,25 @@ class STransformerEncoder(nn.Module):
         # pos_conv
         if getattr(self.args, "pos_conv_depth", 1) > 1:
             for mi in self.pos_conv:
-                total_flops += self.sample_embed_dim * sequence_length * (
-                    self.sample_embed_dim / mi[0].groups * mi[0].kernel_size + int(mi[0].bias is not None)
-                ) # conv
-                total_flops += self.sample_embed_dim * sequence_length # layernorm
+                total_flops += (
+                    self.sample_embed_dim
+                    * sequence_length
+                    * (
+                        self.sample_embed_dim / mi[0].groups * mi[0].kernel_size
+                        + int(mi[0].bias is not None)
+                    )
+                )  # conv
+                total_flops += self.sample_embed_dim * sequence_length  # layernorm
         else:
-            total_flops += self.sample_embed_dim * sequence_length * (
-                self.sample_embed_dim / self.pos_conv[0].groups * self.pos_conv[0].kernel_size + int(self.pos_conv[0].bias is not None)
+            total_flops += (
+                self.sample_embed_dim
+                * sequence_length
+                * (
+                    self.sample_embed_dim
+                    / self.pos_conv[0].groups
+                    * self.pos_conv[0].kernel_size
+                    + int(self.pos_conv[0].bias is not None)
+                )
             )
         # layer_norm
         total_flops += self.sample_embed_dim * sequence_length

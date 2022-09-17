@@ -142,7 +142,7 @@ setup(
     # installed, specify them here.
     package_data={  # Optional
         "s3prl": ["version.txt"],
-        "s3prl.upstream": ["*/*.yaml"]
+        "s3prl.upstream": ["*/*.yaml", "*/*/*.yaml"]
     },
     # Although 'package_data' is the preferred approach, in some case you may
     # need to place data files outside of your packages. See:

@@ -11,6 +11,7 @@
 # IMPORTATION #
 ###############
 import math
+from pathlib import Path
 
 # -------------#
 import torch
@@ -41,7 +42,7 @@ class UpstreamExpert(nn.Module):
                 model_config,
             )
         else:
-            model_config = "./upstream/byol_a/config.yaml"
+            model_config = Path(__file__).parent / "config.yaml"
         config = load_yaml_config(model_config)
 
         # Preprocessor and normalizer.
@@ -71,7 +72,9 @@ class UpstreamExpert(nn.Module):
 
     # Interface
     def get_downsample_rates(self, key: str) -> int:
-        return 15344.655344655344  # computed by: len(wavs[0]) / len(features[0]) * self.max_input_length
+        return round(
+            15344.655344655344
+        )  # computed by: len(wavs[0]) / len(features[0]) * self.max_input_length
 
     # forward in chunks
     def forward_in_chunks(self, features):

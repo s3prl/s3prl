@@ -163,8 +163,8 @@ def compute_mask_indices(
 
 
 class LightHuBERTSupernetConfig(object):
-    """LightHuBERT search space providing supernet, search space, a subnet.
-    """
+    """LightHuBERT search space providing supernet, search space, a subnet."""
+
     def __init__(self, supernet_type="base"):
         assert supernet_type.lower() in ["base", "small"]
         self.supernet_type = supernet_type.lower()
@@ -177,13 +177,13 @@ class LightHuBERTSupernetConfig(object):
 
         self.search_space_size = self.search_space["embed_dim"].__len__() * (
             sum(
-                len(self.search_space["ffn_ratio"]) ** di * \
-                    len(self.search_space["heads_num"]) ** di * \
-                    prod(
-                        self.search_space["slide_wsz"][:di]
-                        if "slide_wsz" in self.search_space
-                        else [["global"] for _ in range(di)]
-                    )
+                len(self.search_space["ffn_ratio"]) ** di
+                * len(self.search_space["heads_num"]) ** di
+                * prod(
+                    self.search_space["slide_wsz"][:di]
+                    if "slide_wsz" in self.search_space
+                    else [["global"] for _ in range(di)]
+                )
                 for di in self.search_space["layer_num"]
             )
         )
@@ -227,7 +227,7 @@ class LightHuBERTSupernetConfig(object):
                 "ffn_embed": [2560 for _ in range(12)],
                 "heads_num": [10 for _ in range(12)],
                 "layer_num": 12,
-                "slide_wsz": ["global" for _ in range(12)]
+                "slide_wsz": ["global" for _ in range(12)],
             }
         elif self.supernet_type == "small":
             return {
@@ -237,7 +237,7 @@ class LightHuBERTSupernetConfig(object):
                 "ffn_embed": [1536 for _ in range(12)],
                 "heads_num": [6 for _ in range(12)],
                 "layer_num": 12,
-                "slide_wsz": ["global" for _ in range(12)]
+                "slide_wsz": ["global" for _ in range(12)],
             }
 
     @property
@@ -246,8 +246,7 @@ class LightHuBERTSupernetConfig(object):
 
     @property
     def num_subnets(self) -> int:
-        """Count the number of subnets in the supernet.
-        """
+        """Count the number of subnets in the supernet."""
         return self.search_space_size
 
     @property
@@ -258,19 +257,20 @@ class LightHuBERTSupernetConfig(object):
     def max_subnet(self) -> dict:
         layer_num = max(self.search_space["layer_num"])
         embed_dim = max(self.search_space["embed_dim"])
-        ffn_embed = [int(max(self.search_space["ffn_ratio"]) * embed_dim)
-                     for _ in range(layer_num)]
-        heads_num = [max(self.search_space["heads_num"]) 
-                     for _ in range(layer_num)]
+        ffn_embed = [
+            int(max(self.search_space["ffn_ratio"]) * embed_dim)
+            for _ in range(layer_num)
+        ]
+        heads_num = [max(self.search_space["heads_num"]) for _ in range(layer_num)]
         atten_dim = [heads_num[i] * 64 for i in range(layer_num)]
         slide_wsz = ["global" for _ in range(layer_num)]
         return {
-            "atten_dim": atten_dim, # List[int]
-            "embed_dim": embed_dim, # int
-            "ffn_embed": ffn_embed, # List[int]
-            "heads_num": heads_num, # List[int]
-            "layer_num": layer_num, # int
-            "slide_wsz": slide_wsz, # List[int] or List[str]
+            "atten_dim": atten_dim,  # List[int]
+            "embed_dim": embed_dim,  # int
+            "ffn_embed": ffn_embed,  # List[int]
+            "heads_num": heads_num,  # List[int]
+            "layer_num": layer_num,  # int
+            "slide_wsz": slide_wsz,  # List[int] or List[str]
         }
 
     @property
@@ -279,19 +279,20 @@ class LightHuBERTSupernetConfig(object):
         assert self.search_space is not None
         layer_num = min(self.search_space["layer_num"])
         embed_dim = min(self.search_space["embed_dim"])
-        ffn_embed = [int(min(self.search_space["ffn_ratio"]) * embed_dim)
-                     for _ in range(layer_num)]
-        heads_num = [min(self.search_space["heads_num"]) 
-                     for _ in range(layer_num)]
+        ffn_embed = [
+            int(min(self.search_space["ffn_ratio"]) * embed_dim)
+            for _ in range(layer_num)
+        ]
+        heads_num = [min(self.search_space["heads_num"]) for _ in range(layer_num)]
         atten_dim = [heads_num[i] * 64 for i in range(layer_num)]
         slide_wsz = ["global" for _ in range(layer_num)]
         return {
-            "atten_dim": atten_dim, # List[int]
-            "embed_dim": embed_dim, # int
-            "ffn_embed": ffn_embed, # List[int]
-            "heads_num": heads_num, # List[int]
-            "layer_num": layer_num, # int
-            "slide_wsz": slide_wsz, # List[int] or List[str]
+            "atten_dim": atten_dim,  # List[int]
+            "embed_dim": embed_dim,  # int
+            "ffn_embed": ffn_embed,  # List[int]
+            "heads_num": heads_num,  # List[int]
+            "layer_num": layer_num,  # int
+            "slide_wsz": slide_wsz,  # List[int] or List[str]
         }
 
     def sample_subnet(self) -> dict:
@@ -311,85 +312,114 @@ class LightHuBERTSupernetConfig(object):
         assert self.search_space is not None
         layer_num = random.choice(self.search_space["layer_num"])
         embed_dim = random.choice(self.search_space["embed_dim"])
-        ffn_embed = [int(random.choice(self.search_space["ffn_ratio"]) * embed_dim)
-                     for _ in range(layer_num)]
-        heads_num = [random.choice(self.search_space["heads_num"]) 
-                     for _ in range(layer_num)]
+        ffn_embed = [
+            int(random.choice(self.search_space["ffn_ratio"]) * embed_dim)
+            for _ in range(layer_num)
+        ]
+        heads_num = [
+            random.choice(self.search_space["heads_num"]) for _ in range(layer_num)
+        ]
         atten_dim = [heads_num[i] * 64 for i in range(layer_num)]
         if "slide_wsz" in self.search_space:
-            slide_wsz = [random.choice(self.search_space["slide_wsz"][i])
-                        for i in range(layer_num)]
-            slide_wsz = [int(swsz) if swsz != "global" else str(swsz) for swsz in slide_wsz]
+            slide_wsz = [
+                random.choice(self.search_space["slide_wsz"][i])
+                for i in range(layer_num)
+            ]
+            slide_wsz = [
+                int(swsz) if swsz != "global" else str(swsz) for swsz in slide_wsz
+            ]
         else:
             slide_wsz = ["global" for _ in range(layer_num)]
         return {
-            "atten_dim": atten_dim, # List[int]
-            "embed_dim": embed_dim, # int
-            "ffn_embed": ffn_embed, # List[int]
-            "heads_num": heads_num, # List[int]
-            "layer_num": layer_num, # int
-            "slide_wsz": slide_wsz, # List[int] or List[str]
+            "atten_dim": atten_dim,  # List[int]
+            "embed_dim": embed_dim,  # int
+            "ffn_embed": ffn_embed,  # List[int]
+            "heads_num": heads_num,  # List[int]
+            "layer_num": layer_num,  # int
+            "slide_wsz": slide_wsz,  # List[int] or List[str]
         }
 
 
 class LightHuBERTConfig:
     def __init__(self, cfg=None):
-        self.supernet_type: str = "base" # 'base' or 'small' supernet
+        self.supernet_type: str = "base"  # 'base' or 'small' supernet
 
-        self.prune_encoder_pos_conv: bool = True # if true, prune multi-layer position convolution totally, otherwise, prune last layer to encoder
+        self.prune_encoder_pos_conv: bool = True  # if true, prune multi-layer position convolution totally, otherwise, prune last layer to encoder
 
         # Configuration for Student
-        self.teacher_embed_dim: int = 768 # embedding size of teacher's outputs
-        self.layer_pred_num: str = "0,0,0,0,0,0,0,0,0,0,0,1" # specify the predicted number of each layer, e.g., '2,2,2,2,2,2'
+        self.teacher_embed_dim: int = 768  # embedding size of teacher's outputs
+        self.layer_pred_num: str = "0,0,0,0,0,0,0,0,0,0,0,1"  # specify the predicted number of each layer, e.g., '2,2,2,2,2,2'
 
         # add pos_conv_depth to hubert as wav2vec2 and enable data2vec architecture
-        self.pos_conv_depth: int = 1 # depth of positional encoder network
+        self.pos_conv_depth: int = 1  # depth of positional encoder network
 
         # hubert config
         self.label_rate: int = 50
-        self.extractor_mode: str = "layer_norm" # mode for feature extractor. default has a single group norm with d groups in the first conv block, whereas layer_norm has layer norms in every block (meant to use with normalize=True)
-        self.encoder_layers: int = 12 # num encoder layers in the transformer
-        self.encoder_embed_dim: int = 768 # encoder embedding dimension
-        self.encoder_ffn_embed_dim: int = 3072 # encoder embedding dimension for FFN
-        self.encoder_attention_heads: int = 12 # num encoder attention heads
-        self.activation_fn: str = "gelu" # activation function to use
-        self.layer_type: str = "transformer" # layer type in encoder
+        self.extractor_mode: str = "layer_norm"  # mode for feature extractor. default has a single group norm with d groups in the first conv block, whereas layer_norm has layer norms in every block (meant to use with normalize=True)
+        self.encoder_layers: int = 12  # num encoder layers in the transformer
+        self.encoder_embed_dim: int = 768  # encoder embedding dimension
+        self.encoder_ffn_embed_dim: int = 3072  # encoder embedding dimension for FFN
+        self.encoder_attention_heads: int = 12  # num encoder attention heads
+        self.activation_fn: str = "gelu"  # activation function to use
+        self.layer_type: str = "transformer"  # layer type in encoder
 
         # dropouts
-        self.dropout: float = 0.1 # dropout probability for the transformer
-        self.attention_dropout: float = 0.1 # dropout probability for attention weights
-        self.activation_dropout: float = 0.0 # dropout probability after activation in FFN
-        self.encoder_layerdrop: float = 0.0 # probability of dropping a tarnsformer layer
-        self.dropout_input: float = 0.0 # dropout to apply to the input (after feat extr)
-        self.dropout_features: float = 0.0 # dropout to apply to the features (after feat extr)
+        self.dropout: float = 0.1  # dropout probability for the transformer
+        self.attention_dropout: float = 0.1  # dropout probability for attention weights
+        self.activation_dropout: float = (
+            0.0  # dropout probability after activation in FFN
+        )
+        self.encoder_layerdrop: float = (
+            0.0  # probability of dropping a tarnsformer layer
+        )
+        self.dropout_input: float = (
+            0.0  # dropout to apply to the input (after feat extr)
+        )
+        self.dropout_features: float = (
+            0.0  # dropout to apply to the features (after feat extr)
+        )
 
-        self.layer_norm_first: bool = False # apply layernorm first in the transformer
-        self.conv_feature_layers: str = "[(512,10,5)] + [(512,3,2)] * 4 + [(512,2,2)] * 2" # string describing convolutional feature extraction layers in form of a python list that contains [(dim, kernel_size, stride), ...]
-        self.conv_bias: bool = False # include bias in conv encoder
-        self.feature_grad_mult: float = 1.0 # multiply feature extractor var grads by this
+        self.layer_norm_first: bool = False  # apply layernorm first in the transformer
+        self.conv_feature_layers: str = "[(512,10,5)] + [(512,3,2)] * 4 + [(512,2,2)] * 2"  # string describing convolutional feature extraction layers in form of a python list that contains [(dim, kernel_size, stride), ...]
+        self.conv_bias: bool = False  # include bias in conv encoder
+        self.feature_grad_mult: float = (
+            1.0  # multiply feature extractor var grads by this
+        )
 
         # masking
-        self.mask_length: int = 10 # mask length"
-        self.mask_prob: float = 0.65 # probability of replacing a token with mask
-        self.mask_selection: str = "static" # how to choose mask length
-        self.mask_other: float = 0 # secondary mask argument (used for more complex distributions), see help in compute_mask_indicesh
-        self.no_mask_overlap: bool = False # whether to allow masks to overlap
-        self.mask_min_space: int = 1 # min space between spans (if no overlap is enabled)
+        self.mask_length: int = 10  # mask length"
+        self.mask_prob: float = 0.65  # probability of replacing a token with mask
+        self.mask_selection: str = "static"  # how to choose mask length
+        self.mask_other: float = 0  # secondary mask argument (used for more complex distributions), see help in compute_mask_indicesh
+        self.no_mask_overlap: bool = False  # whether to allow masks to overlap
+        self.mask_min_space: int = (
+            1  # min space between spans (if no overlap is enabled)
+        )
 
         # channel masking
-        self.mask_channel_length: int = 10 # length of the mask for features (channels)
-        self.mask_channel_prob: float = 0.0 # probability of replacing a feature with 0
-        self.mask_channel_selection: str = "static" # how to choose mask length for channel masking
-        self.mask_channel_other: float = 0 # secondary mask argument (used for more complex distributions), see help in compute_mask_indicesh
-        self.no_mask_channel_overlap: bool = False # whether to allow channel masks to overlap
-        self.mask_channel_min_space: int = 1 # min space between spans (if no overlap is enabled)
+        self.mask_channel_length: int = 10  # length of the mask for features (channels)
+        self.mask_channel_prob: float = 0.0  # probability of replacing a feature with 0
+        self.mask_channel_selection: str = (
+            "static"  # how to choose mask length for channel masking
+        )
+        self.mask_channel_other: float = 0  # secondary mask argument (used for more complex distributions), see help in compute_mask_indicesh
+        self.no_mask_channel_overlap: bool = (
+            False  # whether to allow channel masks to overlap
+        )
+        self.mask_channel_min_space: int = (
+            1  # min space between spans (if no overlap is enabled)
+        )
 
         # positional embeddings
-        self.conv_pos: int = 128 # number of filters for convolutional positional embeddings
-        self.conv_pos_groups: int = 16 # number of groups for convolutional positional embedding
+        self.conv_pos: int = (
+            128  # number of filters for convolutional positional embeddings
+        )
+        self.conv_pos_groups: int = (
+            16  # number of groups for convolutional positional embedding
+        )
 
         # FP16 optimization
-        self.required_seq_len_multiple: int = 2 # pad the input to encoder such that the sequence length is divisible by multiple
+        self.required_seq_len_multiple: int = 2  # pad the input to encoder such that the sequence length is divisible by multiple
 
         if cfg is not None:
             self.update(cfg)
@@ -420,7 +450,7 @@ class LightHuBERT(nn.Module):
             SLinear(self.embed, cfg.encoder_embed_dim)
             if self.embed != cfg.encoder_embed_dim
             else None
-        ) # lighthubert component
+        )  # lighthubert component
 
         self.mask_prob = cfg.mask_prob
         self.mask_selection = cfg.mask_selection
@@ -445,7 +475,7 @@ class LightHuBERT(nn.Module):
             torch.FloatTensor(cfg.encoder_embed_dim).uniform_()
         )
 
-        self.encoder = STransformerEncoder(cfg) # lighthubert component
+        self.encoder = STransformerEncoder(cfg)  # lighthubert component
         self.layer_norm = nn.LayerNorm(self.embed)
 
         # student config
@@ -474,7 +504,7 @@ class LightHuBERT(nn.Module):
         self.sample_heads_num = cfg.encoder_attention_heads
         self.sample_atten_dim = cfg.encoder_embed_dim
         self.sample_slide_wsz = None
-        
+
         def subnet_params(subnet):
             self.set_sample_config(subnet)
             return self.calc_sampled_param_num()
@@ -484,23 +514,29 @@ class LightHuBERT(nn.Module):
         self.dynamize(False)
 
         # search space
-        logger.info(f"search space ({self.supernet.num_subnets:,} subnets): {self.supernet.search_space}")
+        logger.info(
+            f"search space ({self.supernet.num_subnets:,} subnets): {self.supernet.search_space}"
+        )
         # min subnet
         total_params = subnet_params(self.supernet.min_subnet)
-        logger.info(f"min subnet ({total_params/1e6:.0f} Params): {self.supernet.min_subnet}")
+        logger.info(
+            f"min subnet ({total_params/1e6:.0f} Params): {self.supernet.min_subnet}"
+        )
         # max subnet
         total_params = subnet_params(self.supernet.max_subnet)
-        logger.info(f"max subnet ({total_params/1e6:.0f} Params): {self.supernet.max_subnet}")
+        logger.info(
+            f"max subnet ({total_params/1e6:.0f} Params): {self.supernet.max_subnet}"
+        )
 
-    def _switch_slide_attention(self, slide_mode = "stride"):
+    def _switch_slide_attention(self, slide_mode="stride"):
         """Set sliding attention manner to either stride or mask."""
         assert slide_mode in ["stride", "mask"]
         for n, m in self.named_modules():
             if isinstance(m, SMHA):
                 assert hasattr(m, "set_slide_mode")
                 m.set_slide_mode(slide_mode)
-    
-    def dynamize(self, mode: bool=True, log_subnet: bool=True):
+
+    def dynamize(self, mode: bool = True, log_subnet: bool = True):
         """To determine whether to sample a subnet during forward.
         If not training, self.dynamize(False)
         Else: self.dynamize()
@@ -516,23 +552,23 @@ class LightHuBERT(nn.Module):
         if not self.dynamic:
             subnet = self.supernet.subnet
             self.set_sample_config(subnet)
-            if hasattr(self, "handle"): 
+            if hasattr(self, "handle"):
                 self.handle.remove()
             return
-        
+
         # sample a subnet before forward
         def set_subnet(module, input):
             if not getattr(module, "dynamic", False):
-                return 
+                return
             assert hasattr(module, "set_sample_config")
             subnet = module.supernet.sample_subnet()
             module.set_sample_config(subnet)
             if getattr(module, "verbose", False):
                 total_params = module.calc_sampled_param_num() / 1e6
                 logger.info(f"dynamic subnet ({total_params:.2f}M Params): {subnet}")
-        
+
         self.handle = self.register_forward_pre_hook(set_subnet)
-    
+
     def set_sample_config(self, config: dict):
         """
         config: {
@@ -551,7 +587,7 @@ class LightHuBERT(nn.Module):
         self.sample_heads_num = config["heads_num"]
         self.sample_slide_wsz = config["slide_wsz"]
         self._sample_parameters()
-    
+
     def _sample_parameters(self):
         self.post_extract_proj.set_sample_config(
             self.embed,
@@ -560,24 +596,23 @@ class LightHuBERT(nn.Module):
         self.encoder.set_sample_config(
             self.sample_layer_num,
             self.sample_atten_dim,
-            self.sample_embed_dim, 
-            self.sample_ffn_embed, 
+            self.sample_embed_dim,
+            self.sample_ffn_embed,
             self.sample_heads_num,
             self.sample_slide_wsz,
         )
         if self.layer_pred_heads is not None:
             for _, lrhi in self.layer_pred_heads.items():
-                lrhi.set_sample_config(
-                    self.sample_embed_dim, 
-                    self.teacher_embed_dim
-                )
+                lrhi.set_sample_config(self.sample_embed_dim, self.teacher_embed_dim)
 
     def calc_sampled_param_num(self):
         total_params = 0
         for n, p in self.named_parameters():
-            if not n.startswith("post_extract_proj") and \
-                not n.startswith("encoder") and \
-                not n.startswith("layer_pred_heads"):
+            if (
+                not n.startswith("post_extract_proj")
+                and not n.startswith("encoder")
+                and not n.startswith("layer_pred_heads")
+            ):
                 total_params += p.numel()
         total_params += self.post_extract_proj.calc_sampled_param_num()
         total_params += self.encoder.calc_sampled_param_num()
@@ -588,8 +623,7 @@ class LightHuBERT(nn.Module):
         return total_params
 
     def apply_mask(self, x, padding_mask, target_list, mask_indices=None):
-        """Refactor mask method to enable to mask with the given masking indices.
-        """
+        """Refactor mask method to enable to mask with the given masking indices."""
         B, T, C = x.shape
         if self.mask_prob > 0:
             if mask_indices is None:
@@ -662,7 +696,7 @@ class LightHuBERT(nn.Module):
         output_layer: Optional[int] = None,
         mask_indices=None,
     ) -> Dict[str, torch.Tensor]:
-        """Refactor extract feature method to enable to output 
+        """Refactor extract feature method to enable to output
         1. hidden representations
         2. mask indices corresponding to masked language modeling
         """
@@ -686,7 +720,9 @@ class LightHuBERT(nn.Module):
         unmasked_features = self.dropout_features(unmasked_features)
 
         if mask:
-            x, mask_indices = self.apply_mask(features, padding_mask, target_list, mask_indices=mask_indices)
+            x, mask_indices = self.apply_mask(
+                features, padding_mask, target_list, mask_indices=mask_indices
+            )
         else:
             x = features
             mask_indices = None
@@ -702,12 +738,18 @@ class LightHuBERT(nn.Module):
             layer=None,
         )
 
-        layer_head_list = [None,] * self.encoder_layers
+        layer_head_list = [
+            None,
+        ] * self.encoder_layers
         if self.layer_pred_heads is not None:
-            if len(self.layer_pred_heads) == 1 and f"{self.encoder_layers - 1}" in self.layer_pred_heads:
+            if (
+                len(self.layer_pred_heads) == 1
+                and f"{self.encoder_layers - 1}" in self.layer_pred_heads
+            ):
                 # enable layerdrop in training while only consider the last hidden state
-                _layer_results = [(None, None, None) for _ in range(self.encoder_layers - 1)] + \
-                    [(x.transpose(0, 1), None, None)]
+                _layer_results = [
+                    (None, None, None) for _ in range(self.encoder_layers - 1)
+                ] + [(x.transpose(0, 1), None, None)]
             else:
                 if len(layer_results) == self.encoder_layers:
                     _layer_results = layer_results
@@ -720,14 +762,27 @@ class LightHuBERT(nn.Module):
                     layer_pred_head.set_sample_config(
                         layer_hs.size(-1), layer_pred_head.out_features
                     )
-                    layer_output = layer_pred_head(layer_hs).transpose(0, 1).contiguous()
-                    layer_head_list[layer_i] = torch.split(layer_output, self.teacher_embed_dim, dim=-1)
+                    layer_output = (
+                        layer_pred_head(layer_hs).transpose(0, 1).contiguous()
+                    )
+                    layer_head_list[layer_i] = torch.split(
+                        layer_output, self.teacher_embed_dim, dim=-1
+                    )
 
-        hidden_states = [features] + [hs.transpose(0, 1).contiguous() for hs, attn, ls in layer_results] 
-        attn_matrices = [attn for hs, attn, ls in layer_results] # List[(heads_num, batch_size, tgt_len, src_len)]
+        hidden_states = [features] + [
+            hs.transpose(0, 1).contiguous() for hs, attn, ls in layer_results
+        ]
+        attn_matrices = [
+            attn for hs, attn, ls in layer_results
+        ]  # List[(heads_num, batch_size, tgt_len, src_len)]
 
         if features_only:
-            return {"x": x, "padding_mask": padding_mask, "hidden_states": hidden_states, "layer_heads": layer_head_list}
+            return {
+                "x": x,
+                "padding_mask": padding_mask,
+                "hidden_states": hidden_states,
+                "layer_heads": layer_head_list,
+            }
 
         result = {
             "padding_mask": padding_mask,
@@ -750,8 +805,7 @@ class LightHuBERT(nn.Module):
         cat_heads: bool = False,
         output_layer: Optional[int] = None,
     ) -> Tuple[torch.Tensor, torch.Tensor]:
-        """Refactor extract feature method to enable to output hidden representations.
-        """
+        """Refactor extract feature method to enable to output hidden representations."""
         res = self.forward(
             source,
             padding_mask=padding_mask,
@@ -762,7 +816,11 @@ class LightHuBERT(nn.Module):
         if ret_hs:
             feature = res["hidden_states"]
             if cat_heads:
-                layer_heads_list = [layer_heads for layer_heads in res["layer_heads"] if layer_heads is not None]
+                layer_heads_list = [
+                    layer_heads
+                    for layer_heads in res["layer_heads"]
+                    if layer_heads is not None
+                ]
                 for layer_heads in layer_heads_list:
                     feature += layer_heads
         elif ret_conv:
@@ -790,4 +848,6 @@ class LightHuBERT(nn.Module):
     def remove_pretraining_modules(self):
         """Meantime remove predicting heads"""
         self.layer_pred_heads = None
-        self.layer_pred_num = [0,] * self.encoder_layers
+        self.layer_pred_num = [
+            0,
+        ] * self.encoder_layers

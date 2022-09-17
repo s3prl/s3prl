@@ -36,6 +36,10 @@ class S3PRLUpstream(nn.Module):
             If false, only downlaod checkpoint if not yet downloaded before.
             If true, force to re-download the checkpoint.
 
+        **extra_args:
+            The extra arguments for each specific upstream, the available options are
+            shown in each upstream section
+
     .. note::
 
         When using **S3PRLUpstream** with :code:`refresh=True` and multiprocessing (e.g. DDP),
@@ -78,9 +82,17 @@ class S3PRLUpstream(nn.Module):
         """
         return hub.options(only_registered_ckpt)
 
-    def __init__(self, name: str, path_or_url: str = None, refresh: bool = False):
+    def __init__(
+        self,
+        name: str,
+        path_or_url: str = None,
+        refresh: bool = False,
+        **extra_args,
+    ):
         super().__init__()
-        self.upstream = getattr(hub, name)(ckpt=path_or_url, refresh=refresh)
+        self.upstream = getattr(hub, name)(
+            ckpt=path_or_url, refresh=refresh, **extra_args
+        )
 
         self.upstream.eval()
         with torch.no_grad():
@@ -128,11 +140,11 @@ class S3PRLUpstream(nn.Module):
         xs_max_len = xs.size(1)
 
         if xs_max_len > target_max_len:
-            assert xs_max_len // target_max_len == 1
+            assert xs_max_len // target_max_len == 1, f"{xs_max_len}, {target_max_len}"
             xs = xs[:, :target_max_len, :]
 
         elif xs_max_len < target_max_len:
-            assert target_max_len // xs_max_len == 1
+            assert target_max_len // xs_max_len == 1, f"{target_max_len}, {xs_max_len}"
             xs = torch.cat(
                 (xs, xs[:, -1:, :].repeat(1, target_max_len - xs_max_len, 1)), dim=1
             )
@@ -160,7 +172,9 @@ class S3PRLUpstream(nn.Module):
 
         hidden_states = self.upstream(wavs_list)["hidden_states"]
         assert isinstance(hidden_states, (list, tuple))
-        assert len(hidden_states) == self.num_layers
+        assert (
+            len(hidden_states) == self.num_layers
+        ), f"{len(hidden_states)}, {self.num_layers}"
 
         max_wav_len = int(max(wavs_len))
         all_hs = []

@@ -17,14 +17,16 @@ class SLayerNorm(nn.LayerNorm):
     __base__: torch.nn.LayerNorm
     """
 
-    def __init__(self, normalized_shape: int, eps: float = 1e-5, elementwise_affine: bool = True) -> None:
+    def __init__(
+        self, normalized_shape: int, eps: float = 1e-5, elementwise_affine: bool = True
+    ) -> None:
         super(SLayerNorm, self).__init__(normalized_shape, eps, elementwise_affine)
         self.staticize()
 
     def staticize(self):
         self.sample_normalized_shape = self.normalized_shape[0]
         self.samples = {
-            "weight": self.weight, 
+            "weight": self.weight,
             "bias": self.bias,
         }
 
@@ -34,8 +36,8 @@ class SLayerNorm(nn.LayerNorm):
 
     def _sample_parameters(self):
         if self.elementwise_affine:
-            self.samples["weight"] = self.weight[:self.sample_normalized_shape]
-            self.samples["bias"] = self.bias[:self.sample_normalized_shape]
+            self.samples["weight"] = self.weight[: self.sample_normalized_shape]
+            self.samples["bias"] = self.bias[: self.sample_normalized_shape]
         else:
             self.samples["weight"] = None
             self.samples["bias"] = None
@@ -60,22 +62,25 @@ class SLayerNorm(nn.LayerNorm):
         if isinstance(self.sample_normalized_shape, numbers.Integral):
             # mypy error: incompatible types in assignment
             sample_normalized_shape = (self.sample_normalized_shape,)  # type: ignore[assignment]
-        else: 
+        else:
             sample_normalized_shape = self.sample_normalized_shape
-        return tuple(sample_normalized_shape)  # type: ignore[arg-type] 
+        return tuple(sample_normalized_shape)  # type: ignore[arg-type]
 
     def forward(self, input: Tensor) -> Tensor:
         self._sample_parameters()
         return F.layer_norm(
-            input, self.normalized_shapes, self.weights, self.biases, self.eps)
+            input, self.normalized_shapes, self.weights, self.biases, self.eps
+        )
 
     def extra_repr(self) -> str:
-        return f'{self.normalized_shape}, eps={self.eps}, ' \
-               f'elementwise_affine={self.elementwise_affine}'
+        return (
+            f"{self.normalized_shape}, eps={self.eps}, "
+            f"elementwise_affine={self.elementwise_affine}"
+        )
 
     def clone_model(self, normalized_shape: int):
         self.set_sample_config(normalized_shape)
-        
+
         m = nn.LayerNorm(normalized_shape, self.eps, self.elementwise_affine)
         if m.elementwise_affine:
             m = m.to(self.weight.device)
@@ -100,16 +105,16 @@ class SLayerNorm(nn.LayerNorm):
 
 if __name__ == "__main__":
     m = SLayerNorm(3)
-    print(m) 
+    print(m)
     print(m.weight.data, m.bias.data)
     m.set_sample_config(2)
     z = m.clone_model(2)
     x = SLayerNorm.build_from(z)
-    print(m) 
+    print(m)
     print(m.weight.data, m.bias.data)
-    print(z) 
+    print(z)
     print(z.weight.data, z.bias.data)
-    print(x) 
+    print(x)
     print(x.weight.data, x.bias.data)
     inp = torch.rand((1, 2))
     print(torch.allclose(m(inp), z(inp)))

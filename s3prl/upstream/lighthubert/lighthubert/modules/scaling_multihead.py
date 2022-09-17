@@ -12,7 +12,9 @@ from typing import Dict, Optional, Tuple
 import torch
 import torch.nn as nn
 from ..functional.sliding_attn import (
-    global_attention_forward, slide_window_attention_forward)
+    global_attention_forward,
+    slide_window_attention_forward,
+)
 from .fairseq_modules import quant_noise
 from .scaling_linear import SLinear
 from torch import Tensor
@@ -23,7 +25,7 @@ class SMHA(nn.Module):
     where in_embed_dim = out_embed_dim, qkv_embed_dim = 64 * num_heads
 
     wav2vec2:MultiheadAttention(
-        embed_dim, 
+        embed_dim,
         num_heads,
         dropout=...,
         self_attention=True,
@@ -46,10 +48,10 @@ class SMHA(nn.Module):
         add_zero_attn=False,
         self_attention=False,
         encoder_decoder_attention=False,
-        q_noise=0.0, # if 0, no quant_noise
+        q_noise=0.0,  # if 0, no quant_noise
         qn_block_size=8,
-        sliding_attn_window = "global",
-        slide_mode = "stride",
+        sliding_attn_window="global",
+        slide_mode="stride",
     ):
         super().__init__()
         self.embed_dim = embed_dim
@@ -75,17 +77,17 @@ class SMHA(nn.Module):
 
         self.k_proj = quant_noise(
             SLinear(self.kdim, embed_dim, bias=bias), q_noise, qn_block_size
-        ) # lighthubert component
+        )  # lighthubert component
         self.v_proj = quant_noise(
             SLinear(self.vdim, embed_dim, bias=bias), q_noise, qn_block_size
-        ) # lighthubert component
+        )  # lighthubert component
         self.q_proj = quant_noise(
             SLinear(embed_dim, embed_dim, bias=bias), q_noise, qn_block_size
-        ) # lighthubert component
+        )  # lighthubert component
 
         self.out_proj = quant_noise(
             SLinear(embed_dim, embed_dim, bias=bias), q_noise, qn_block_size
-        ) # lighthubert component
+        )  # lighthubert component
 
         if add_bias_kv:
             self.bias_k = nn.Parameter(torch.Tensor(1, 1, embed_dim))
@@ -136,11 +138,11 @@ class SMHA(nn.Module):
         self.slide_mode = slide_mode
 
     def set_sample_config(
-        self, 
-        sample_qkv_embed_dim: int, 
-        sample_num_heads: int, 
+        self,
+        sample_qkv_embed_dim: int,
+        sample_num_heads: int,
         sample_in_embed_dim: int,
-        sample_attn_swz = "global",
+        sample_attn_swz="global",
     ):
         if sample_qkv_embed_dim is None:
             sample_qkv_embed_dim = self.embed_dim
@@ -158,7 +160,7 @@ class SMHA(nn.Module):
         self.sample_in_embed_dim = sample_in_embed_dim
         self.sample_attn_swz = sample_attn_swz
         self._sample_parameters()
-    
+
     def _sample_parameters(self):
         self.k_proj.set_sample_config(
             self.sample_in_embed_dim, self.sample_qkv_embed_dim
@@ -172,7 +174,7 @@ class SMHA(nn.Module):
         self.out_proj.set_sample_config(
             self.sample_qkv_embed_dim, self.sample_in_embed_dim
         )
-    
+
     def forward(
         self,
         query,
@@ -195,12 +197,12 @@ class SMHA(nn.Module):
                 be ignored by the attention. This is an binary mask. When the value is True,
                 the corresponding value on the attention layer will be filled with -inf.
                 binary ByteTensor of shape `(batch, seq_len)` where padding elements are indicated by ``1``.
-            attn_mask: 2D or 3D mask that prevents attention to certain positions. 
-                A 2D mask will be broadcasted for all the batches while a 3D mask 
+            attn_mask: 2D or 3D mask that prevents attention to certain positions.
+                A 2D mask will be broadcasted for all the batches while a 3D mask
                 allows to specify a different mask for the entries of each batch.
-                When the value is 1, the corresponding value on the attention 
-                layer will be added with -1e4 (float16) or -1e8 (float32) or -1e2 (float8). 
-                `attn_mask[tgt_i, src_j] = 1` means that when calculating the embedding for `tgt_i`, 
+                When the value is 1, the corresponding value on the attention
+                layer will be added with -1e4 (float16) or -1e8 (float32) or -1e2 (float8).
+                `attn_mask[tgt_i, src_j] = 1` means that when calculating the embedding for `tgt_i`,
                 we exclude (mask out) `src_j`. This is useful for strided self-attention.
         """
         if need_head_weights:
@@ -209,9 +211,13 @@ class SMHA(nn.Module):
         tgt_len, bsz, embed_dim = query.size()
         src_len = tgt_len
         if self.sample_in_embed_dim is None:
-            assert embed_dim == self.embed_dim, f"query dim {embed_dim} != {self.embed_dim}"
+            assert (
+                embed_dim == self.embed_dim
+            ), f"query dim {embed_dim} != {self.embed_dim}"
         else:
-            assert embed_dim == self.sample_in_embed_dim, f"query dim {embed_dim} != {self.sample_in_embed_dim}"
+            assert (
+                embed_dim == self.sample_in_embed_dim
+            ), f"query dim {embed_dim} != {self.sample_in_embed_dim}"
         if key is not None:
             src_len, key_bsz, _ = key.size()
             if not torch.jit.is_scripting():
@@ -246,8 +252,8 @@ class SMHA(nn.Module):
 
         if self.bias_k is not None:
             assert self.bias_v is not None
-            k = torch.cat([k, self.bias_k[:,:,:k.size(-1)].repeat(1, bsz, 1)])
-            v = torch.cat([v, self.bias_v[:,:,:v.size(-1)].repeat(1, bsz, 1)])
+            k = torch.cat([k, self.bias_k[:, :, : k.size(-1)].repeat(1, bsz, 1)])
+            v = torch.cat([v, self.bias_v[:, :, : v.size(-1)].repeat(1, bsz, 1)])
             if attn_mask is not None:
                 attn_mask = torch.cat(
                     [attn_mask, attn_mask.new_zeros(attn_mask.size(0), 1)], dim=1
@@ -261,7 +267,9 @@ class SMHA(nn.Module):
                     dim=1,
                 )
 
-        sample_num_heads = self.num_heads if self.sample_num_heads is None else self.sample_num_heads
+        sample_num_heads = (
+            self.num_heads if self.sample_num_heads is None else self.sample_num_heads
+        )
         q = (
             q.contiguous()
             .view(tgt_len, bsz * sample_num_heads, self.head_dim)
@@ -314,19 +322,29 @@ class SMHA(nn.Module):
 
         if self.sample_attn_swz == "global":
             attn, unnormalized_attn_weights = global_attention_forward(
-                q, k, v, 
-                attn_mask=attn_mask, key_padding_mask=key_padding_mask,
-                num_heads=sample_num_heads, dropout_p=self.dropout_module.p,
+                q,
+                k,
+                v,
+                attn_mask=attn_mask,
+                key_padding_mask=key_padding_mask,
+                num_heads=sample_num_heads,
+                dropout_p=self.dropout_module.p,
                 training=self.training,
             )
         else:
             attn, unnormalized_attn_weights = slide_window_attention_forward(
-                q, k, v, self.sample_attn_swz,
-                attn_mask=attn_mask, key_padding_mask=key_padding_mask,
-                num_heads=sample_num_heads, dropout_p=self.dropout_module.p,
-                training=self.training, mode=self.slide_mode,
+                q,
+                k,
+                v,
+                self.sample_attn_swz,
+                attn_mask=attn_mask,
+                key_padding_mask=key_padding_mask,
+                num_heads=sample_num_heads,
+                dropout_p=self.dropout_module.p,
+                training=self.training,
+                mode=self.slide_mode,
             )
-        
+
         assert list(attn.size()) == [bsz * sample_num_heads, tgt_len, self.head_dim]
 
         attn_embed_dim = embed_dim
@@ -345,7 +363,7 @@ class SMHA(nn.Module):
             if self.slide_mode == "stride" and not self.sample_attn_swz == "global":
                 wsz = self.sample_attn_swz + 1
             attn_weights = unnormalized_attn_weights.view(
-                bsz, sample_num_heads, tgt_len, wsz 
+                bsz, sample_num_heads, tgt_len, wsz
             )
         return attn, attn_weights
 
@@ -356,7 +374,7 @@ class SMHA(nn.Module):
         total_params += self.q_proj.calc_sampled_param_num()
         total_params += self.out_proj.calc_sampled_param_num()
         return total_params
-    
+
     def get_complexity(self, sequence_length):
         total_flops = 0
         total_flops += self.k_proj.get_complexity(sequence_length)

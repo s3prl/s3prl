@@ -66,6 +66,7 @@ def deprecation_warning(message, stacklevel=3):
 
 def get_activation_fn(activation: str) -> Callable:
     """Returns the activation function corresponding to `activation`"""
+
     def gelu_accurate(x):
         if not hasattr(gelu_accurate, "_a"):
             gelu_accurate._a = math.sqrt(2 / math.pi)
