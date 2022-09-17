@@ -921,10 +921,10 @@ data2vec
 .. code-block:: bash
 
     @article{baevski2022data2vec,
-    title={Data2vec: A general framework for self-supervised learning in speech, vision and language},
-    author={Baevski, Alexei and Hsu, Wei-Ning and Xu, Qiantong and Babu, Arun and Gu, Jiatao and Auli, Michael},
-    journal={arXiv preprint arXiv:2202.03555},
-    year={2022}
+        title={Data2vec: A general framework for self-supervised learning in speech, vision and language},
+        author={Baevski, Alexei and Hsu, Wei-Ning and Xu, Qiantong and Babu, Arun and Gu, Jiatao and Auli, Michael},
+        journal={arXiv preprint arXiv:2202.03555},
+        year={2022}
     }
 
 
@@ -946,3 +946,161 @@ data2vec_large_ll60k
 
 - Model Architecture: 24 layers Transformer blocks
 - Unlabled Speech: LibriLight 60k hours
+
+
+AST
+--------------------------------------------------
+`AST: Audio Spectrogram Transformer <https://arxiv.org/abs/2104.01778>`_
+
+.. code-block:: bash
+
+    @article{gong2021ast,
+        title={Ast: Audio spectrogram transformer},
+        author={Gong, Yuan and Chung, Yu-An and Glass, James},
+        journal={arXiv preprint arXiv:2104.01778},
+        year={2021}
+    }
+
+
+ast
+~~~~~~~~~~~~~~~~~~
+
+- Labeled Data: AudioSet
+
+
+SSAST
+--------------------------------------------------
+`SSAST: Self-Supervised Audio Spectrogram Transformer <https://arxiv.org/abs/2110.09784>`_
+
+.. code-block:: bash
+
+    @inproceedings{gong2022ssast,
+        title={Ssast: Self-supervised audio spectrogram transformer},
+        author={Gong, Yuan and Lai, Cheng-I and Chung, Yu-An and Glass, James},
+        booktitle={Proceedings of the AAAI Conference on Artificial Intelligence},
+        volume={36},
+        number={10},
+        pages={10699--10709},
+        year={2022}
+    }
+
+
+ssast_frame_base
+~~~~~~~~~~~~~~~~~~
+
+- Unlabled Data: LibriSpeech & AudioSet
+
+
+MAE-AST
+--------------------------------------------------
+`MAE-AST: Masked Autoencoding Audio Spectrogram Transformer <https://arxiv.org/abs/2203.16691>`_
+
+.. code-block:: bash
+
+    @article{baade2022mae,
+        title={MAE-AST: Masked Autoencoding Audio Spectrogram Transformer},
+        author={Baade, Alan and Peng, Puyuan and Harwath, David},
+        journal={arXiv preprint arXiv:2203.16691},
+        year={2022}
+    }
+
+
+mae_ast_frame
+~~~~~~~~~~~~~~~~~~
+
+- Unlabled Data: LibriSpeech & AudioSet
+
+
+mae_ast_patch
+~~~~~~~~~~~~~~~~~~
+
+- Unlabled Data: LibriSpeech & AudioSet
+
+
+
+Byol-A
+--------------------------------------------------
+`BYOL for Audio: Self-Supervised Learning for General-Purpose Audio Representation <https://arxiv.org/abs/2103.06695>`_
+
+.. code-block:: bash
+
+    @inproceedings{niizumi2021byol,
+        title={BYOL for audio: Self-supervised learning for general-purpose audio representation},
+        author={Niizumi, Daisuke and Takeuchi, Daiki and Ohishi, Yasunori and Harada, Noboru and Kashino, Kunio},
+        booktitle={2021 International Joint Conference on Neural Networks (IJCNN)},
+        pages={1--8},
+        year={2021},
+        organization={IEEE}
+    }
+
+
+byol_a_2048
+~~~~~~~~~~~~~~~~~~
+
+- Unlabled Data: AudioSet
+
+
+byol_a_1024
+~~~~~~~~~~~~~~~~~~
+
+- Unlabled Data: AudioSet
+
+
+byol_a_512
+~~~~~~~~~~~~~~~~~~
+
+- Unlabled Data: AudioSet
+
+
+Byol-S
+--------------------------------------------------
+`BYOL-S: Learning Self-supervised Speech Representations by Bootstrapping <https://arxiv.org/abs/2206.12038>`_
+
+.. code-block:: bash
+
+    @article{elbanna2022byol,
+        title={Byol-s: Learning self-supervised speech representations by bootstrapping},
+        author={Elbanna, Gasser and Scheidwasser-Clow, Neil and Kegler, Mikolaj and Beckmann, Pierre and Hajal, Karl El and Cernak, Milos},
+        journal={arXiv preprint arXiv:2206.12038},
+        year={2022}
+    }
+
+
+byol_s_default
+~~~~~~~~~~~~~~~~~~
+
+- Unlabled Data: AudioSet (Speech subset)
+
+
+byol_s_cvt
+~~~~~~~~~~~~~~~~~~
+
+- Unlabled Data: AudioSet (Speech subset)
+
+
+byol_s_resnetish34
+~~~~~~~~~~~~~~~~~~
+
+- Unlabled Data: AudioSet (Speech subset)
+
+
+VGGish
+--------------------------------------------------
+`CNN Architectures for Large-Scale Audio Classification <https://arxiv.org/abs/1609.09430>`_
+
+.. code-block:: bash
+
+    @inproceedings{hershey2017cnn,
+        title={CNN architectures for large-scale audio classification},
+        author={Hershey, Shawn and Chaudhuri, Sourish and Ellis, Daniel PW and Gemmeke, Jort F and Jansen, Aren and Moore, R Channing and Plakal, Manoj and Platt, Devin and Saurous, Rif A and Seybold, Bryan and others},
+        booktitle={2017 ieee international conference on acoustics, speech and signal processing (icassp)},
+        pages={131--135},
+        year={2017},
+        organization={IEEE}
+    }
+
+
+vggish
+~~~~~~~~~~~~~~~~~~
+
+- Labaled Data: AudioSet
