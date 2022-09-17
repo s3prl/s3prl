@@ -1,0 +1,38 @@
+iemocap
+=======
+
+**(s3prl.dataio.corpus.iemocap)**
+
+.. automodule:: s3prl.dataio.corpus.iemocap
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+IEMOCAP
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. autoclass:: IEMOCAP
+   :member-order: bysource
+   :members:
+   :undoc-members:
+   :inherited-members: torch.nn.Module,nn.Module,Module
+   :show-inheritance:
+
+
+
+
+
+
+
+
+

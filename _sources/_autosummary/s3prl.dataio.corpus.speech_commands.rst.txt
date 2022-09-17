@@ -1,0 +1,38 @@
+speech\_commands
+================
+
+**(s3prl.dataio.corpus.speech_commands)**
+
+.. automodule:: s3prl.dataio.corpus.speech_commands
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+SpeechCommandsV1
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. autoclass:: SpeechCommandsV1
+   :member-order: bysource
+   :members:
+   :undoc-members:
+   :inherited-members: torch.nn.Module,nn.Module,Module
+   :show-inheritance:
+
+
+
+
+
+
+
+
+

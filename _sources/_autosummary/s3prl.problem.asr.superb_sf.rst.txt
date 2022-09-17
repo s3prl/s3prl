@@ -1,0 +1,45 @@
+superb\_sf
+==========
+
+**(s3prl.problem.asr.superb_sf)**
+
+.. automodule:: s3prl.problem.asr.superb_sf
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+SuperbSF
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. autoclass:: SuperbSF
+   :member-order: bysource
+   :members:
+   :undoc-members:
+   :inherited-members: torch.nn.Module,nn.Module,Module
+   :show-inheritance:
+
+
+
+
+
+
+
+audio_snips_for_slot_filling
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. autofunction:: audio_snips_for_slot_filling
+
+
+
+
+

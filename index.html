@@ -5,10 +5,10 @@
     <meta name="color-scheme" content="light dark"><meta name="generator" content="Docutils 0.19: https://docutils.sourceforge.io/" />
 <link rel="index" title="Index" href="genindex.html" /><link rel="search" title="Search" href="search.html" /><link rel="next" title="Install S3PRL" href="tutorial/installation.html" />
 
-    <meta name="generator" content="sphinx-5.1.1, furo 2022.06.21"/>
-        <title>S3PRL 0.4.1 documentation</title>
+    <meta name="generator" content="sphinx-5.1.1, furo 2022.09.15"/>
+        <title>S3PRL 0.4.2 documentation</title>
       <link rel="stylesheet" type="text/css" href="_static/pygments.css" />
-    <link rel="stylesheet" type="text/css" href="_static/styles/furo.css?digest=40978830699223671f4072448e654b5958f38b89" />
+    <link rel="stylesheet" type="text/css" href="_static/styles/furo.css?digest=9ec31e2665bf879c1d47d93a8ec4893870ee1e45" />
     <link rel="stylesheet" type="text/css" href="_static/styles/furo-extensions.css?digest=30d1aed668e5c3a91c3e3bf6a60b675221979f0e" />
     <link rel="stylesheet" type="text/css" href="_static/css/custom.css" />
     
@@ -124,7 +124,7 @@
       </label>
     </div>
     <div class="header-center">
-      <a href="#"><div class="brand">S3PRL 0.4.1
+      <a href="#"><div class="brand">S3PRL 0.4.2
  documentation</div></a>
     </div>
     <div class="header-right">
@@ -148,7 +148,7 @@
       <div class="sidebar-sticky"><a class="sidebar-brand" href="#">
   
   
-  <span class="sidebar-brand-text">S3PRL 0.4.1
+  <span class="sidebar-brand-text">S3PRL 0.4.2
  documentation</span>
   
 </a><form class="sidebar-search-container" method="get" action="search.html" role="search">
@@ -161,6 +161,7 @@
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="tutorial/installation.html">Install S3PRL</a></li>
 <li class="toctree-l1"><a class="reference internal" href="tutorial/upstream_collection.html">S3PRL Upstream Collection</a></li>
+<li class="toctree-l1"><a class="reference internal" href="tutorial/problem.html">Use Problem module to run customizable recipes</a></li>
 </ul>
 <p class="caption" role="heading"><span class="caption-text">How to Contribute</span></p>
 <ul>
@@ -170,7 +171,121 @@
 <p class="caption" role="heading"><span class="caption-text">API Documentation</span></p>
 <ul>
 <li class="toctree-l1 has-children"><a class="reference internal" href="_autosummary/s3prl.nn.html">nn</a><input class="toctree-checkbox" id="toctree-checkbox-1" name="toctree-checkbox-1" role="switch" type="checkbox"/><label for="toctree-checkbox-1"><div class="visually-hidden">Toggle child pages in navigation</div><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul>
+<li class="toctree-l2"><a class="reference internal" href="_autosummary/s3prl.nn.beam_decoder.html">beam_decoder</a></li>
+<li class="toctree-l2"><a class="reference internal" href="_autosummary/s3prl.nn.common.html">common</a></li>
+<li class="toctree-l2"><a class="reference internal" href="_autosummary/s3prl.nn.hear.html">hear</a></li>
+<li class="toctree-l2"><a class="reference internal" href="_autosummary/s3prl.nn.interface.html">interface</a></li>
+<li class="toctree-l2"><a class="reference internal" href="_autosummary/s3prl.nn.linear.html">linear</a></li>
+<li class="toctree-l2"><a class="reference internal" href="_autosummary/s3prl.nn.pit.html">pit</a></li>
+<li class="toctree-l2"><a class="reference internal" href="_autosummary/s3prl.nn.pooling.html">pooling</a></li>
+<li class="toctree-l2"><a class="reference internal" href="_autosummary/s3prl.nn.rnn.html">rnn</a></li>
+<li class="toctree-l2"><a class="reference internal" href="_autosummary/s3prl.nn.speaker_loss.html">speaker_loss</a></li>
+<li class="toctree-l2"><a class="reference internal" href="_autosummary/s3prl.nn.speaker_model.html">speaker_model</a></li>
+<li class="toctree-l2"><a class="reference internal" href="_autosummary/s3prl.nn.specaug.html">specaug</a></li>
 <li class="toctree-l2"><a class="reference internal" href="_autosummary/s3prl.nn.upstream.html">upstream</a></li>
+</ul>
+</li>
+<li class="toctree-l1 has-children"><a class="reference internal" href="_autosummary/s3prl.problem.html">problem</a><input class="toctree-checkbox" id="toctree-checkbox-2" name="toctree-checkbox-2" role="switch" type="checkbox"/><label for="toctree-checkbox-2"><div class="visually-hidden">Toggle child pages in navigation</div><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul>
+<li class="toctree-l2 has-children"><a class="reference internal" href="_autosummary/s3prl.problem.asr.html">asr</a><input class="toctree-checkbox" id="toctree-checkbox-3" name="toctree-checkbox-3" role="switch" type="checkbox"/><label for="toctree-checkbox-3"><div class="visually-hidden">Toggle child pages in navigation</div><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul>
+<li class="toctree-l3"><a class="reference internal" href="_autosummary/s3prl.problem.asr.run.html">run</a></li>
+<li class="toctree-l3"><a class="reference internal" href="_autosummary/s3prl.problem.asr.superb_asr.html">superb_asr</a></li>
+<li class="toctree-l3"><a class="reference internal" href="_autosummary/s3prl.problem.asr.superb_pr.html">superb_pr</a></li>
+<li class="toctree-l3"><a class="reference internal" href="_autosummary/s3prl.problem.asr.superb_sf.html">superb_sf</a></li>
+</ul>
+</li>
+<li class="toctree-l2 has-children"><a class="reference internal" href="_autosummary/s3prl.problem.asv.html">asv</a><input class="toctree-checkbox" id="toctree-checkbox-4" name="toctree-checkbox-4" role="switch" type="checkbox"/><label for="toctree-checkbox-4"><div class="visually-hidden">Toggle child pages in navigation</div><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul>
+<li class="toctree-l3"><a class="reference internal" href="_autosummary/s3prl.problem.asv.run.html">run</a></li>
+<li class="toctree-l3"><a class="reference internal" href="_autosummary/s3prl.problem.asv.superb_asv.html">superb_asv</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="_autosummary/s3prl.problem.base.html">base</a></li>
+<li class="toctree-l2 has-children"><a class="reference internal" href="_autosummary/s3prl.problem.common.html">common</a><input class="toctree-checkbox" id="toctree-checkbox-5" name="toctree-checkbox-5" role="switch" type="checkbox"/><label for="toctree-checkbox-5"><div class="visually-hidden">Toggle child pages in navigation</div><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul>
+<li class="toctree-l3"><a class="reference internal" href="_autosummary/s3prl.problem.common.hear_beijing_opera.html">hear_beijing_opera</a></li>
+<li class="toctree-l3"><a class="reference internal" href="_autosummary/s3prl.problem.common.hear_cremad.html">hear_cremad</a></li>
+<li class="toctree-l3"><a class="reference internal" href="_autosummary/s3prl.problem.common.hear_dcase_2016_task2.html">hear_dcase_2016_task2</a></li>
+<li class="toctree-l3"><a class="reference internal" href="_autosummary/s3prl.problem.common.hear_esc50.html">hear_esc50</a></li>
+<li class="toctree-l3"><a class="reference internal" href="_autosummary/s3prl.problem.common.hear_fsd.html">hear_fsd</a></li>
+<li class="toctree-l3"><a class="reference internal" href="_autosummary/s3prl.problem.common.hear_gsc5hr.html">hear_gsc5hr</a></li>
+<li class="toctree-l3"><a class="reference internal" href="_autosummary/s3prl.problem.common.hear_gtzan.html">hear_gtzan</a></li>
+<li class="toctree-l3"><a class="reference internal" href="_autosummary/s3prl.problem.common.hear_gtzan_music_speech.html">hear_gtzan_music_speech</a></li>
+<li class="toctree-l3"><a class="reference internal" href="_autosummary/s3prl.problem.common.hear_gunshot.html">hear_gunshot</a></li>
+<li class="toctree-l3"><a class="reference internal" href="_autosummary/s3prl.problem.common.hear_libricount.html">hear_libricount</a></li>
+<li class="toctree-l3"><a class="reference internal" href="_autosummary/s3prl.problem.common.hear_maestro.html">hear_maestro</a></li>
+<li class="toctree-l3"><a class="reference internal" href="_autosummary/s3prl.problem.common.hear_nsynth5hr.html">hear_nsynth5hr</a></li>
+<li class="toctree-l3"><a class="reference internal" href="_autosummary/s3prl.problem.common.hear_stroke.html">hear_stroke</a></li>
+<li class="toctree-l3"><a class="reference internal" href="_autosummary/s3prl.problem.common.hear_tonic.html">hear_tonic</a></li>
+<li class="toctree-l3"><a class="reference internal" href="_autosummary/s3prl.problem.common.hear_vocal.html">hear_vocal</a></li>
+<li class="toctree-l3"><a class="reference internal" href="_autosummary/s3prl.problem.common.hear_vox_lingual.html">hear_vox_lingual</a></li>
+<li class="toctree-l3"><a class="reference internal" href="_autosummary/s3prl.problem.common.run.html">run</a></li>
+<li class="toctree-l3"><a class="reference internal" href="_autosummary/s3prl.problem.common.superb_er.html">superb_er</a></li>
+<li class="toctree-l3"><a class="reference internal" href="_autosummary/s3prl.problem.common.superb_ic.html">superb_ic</a></li>
+<li class="toctree-l3"><a class="reference internal" href="_autosummary/s3prl.problem.common.superb_ks.html">superb_ks</a></li>
+<li class="toctree-l3"><a class="reference internal" href="_autosummary/s3prl.problem.common.superb_sid.html">superb_sid</a></li>
+</ul>
+</li>
+<li class="toctree-l2 has-children"><a class="reference internal" href="_autosummary/s3prl.problem.diarization.html">diarization</a><input class="toctree-checkbox" id="toctree-checkbox-6" name="toctree-checkbox-6" role="switch" type="checkbox"/><label for="toctree-checkbox-6"><div class="visually-hidden">Toggle child pages in navigation</div><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul>
+<li class="toctree-l3"><a class="reference internal" href="_autosummary/s3prl.problem.diarization.run.html">run</a></li>
+<li class="toctree-l3"><a class="reference internal" href="_autosummary/s3prl.problem.diarization.superb_sd.html">superb_sd</a></li>
+<li class="toctree-l3"><a class="reference internal" href="_autosummary/s3prl.problem.diarization.util.html">util</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l1 has-children"><a class="reference internal" href="_autosummary/s3prl.task.html">task</a><input class="toctree-checkbox" id="toctree-checkbox-7" name="toctree-checkbox-7" role="switch" type="checkbox"/><label for="toctree-checkbox-7"><div class="visually-hidden">Toggle child pages in navigation</div><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul>
+<li class="toctree-l2"><a class="reference internal" href="_autosummary/s3prl.task.base.html">base</a></li>
+<li class="toctree-l2"><a class="reference internal" href="_autosummary/s3prl.task.diarization.html">diarization</a></li>
+<li class="toctree-l2"><a class="reference internal" href="_autosummary/s3prl.task.dump_feature.html">dump_feature</a></li>
+<li class="toctree-l2"><a class="reference internal" href="_autosummary/s3prl.task.event_prediction.html">event_prediction</a></li>
+<li class="toctree-l2"><a class="reference internal" href="_autosummary/s3prl.task.scene_prediction.html">scene_prediction</a></li>
+<li class="toctree-l2"><a class="reference internal" href="_autosummary/s3prl.task.speaker_verification_task.html">speaker_verification_task</a></li>
+<li class="toctree-l2"><a class="reference internal" href="_autosummary/s3prl.task.speech2text_ctc_task.html">speech2text_ctc_task</a></li>
+<li class="toctree-l2"><a class="reference internal" href="_autosummary/s3prl.task.utterance_classification_task.html">utterance_classification_task</a></li>
+</ul>
+</li>
+<li class="toctree-l1 has-children"><a class="reference internal" href="_autosummary/s3prl.dataio.html">dataio</a><input class="toctree-checkbox" id="toctree-checkbox-8" name="toctree-checkbox-8" role="switch" type="checkbox"/><label for="toctree-checkbox-8"><div class="visually-hidden">Toggle child pages in navigation</div><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul>
+<li class="toctree-l2 has-children"><a class="reference internal" href="_autosummary/s3prl.dataio.corpus.html">corpus</a><input class="toctree-checkbox" id="toctree-checkbox-9" name="toctree-checkbox-9" role="switch" type="checkbox"/><label for="toctree-checkbox-9"><div class="visually-hidden">Toggle child pages in navigation</div><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul>
+<li class="toctree-l3"><a class="reference internal" href="_autosummary/s3prl.dataio.corpus.base.html">base</a></li>
+<li class="toctree-l3"><a class="reference internal" href="_autosummary/s3prl.dataio.corpus.fluent_speech_commands.html">fluent_speech_commands</a></li>
+<li class="toctree-l3"><a class="reference internal" href="_autosummary/s3prl.dataio.corpus.iemocap.html">iemocap</a></li>
+<li class="toctree-l3"><a class="reference internal" href="_autosummary/s3prl.dataio.corpus.librilight.html">librilight</a></li>
+<li class="toctree-l3"><a class="reference internal" href="_autosummary/s3prl.dataio.corpus.librispeech.html">librispeech</a></li>
+<li class="toctree-l3"><a class="reference internal" href="_autosummary/s3prl.dataio.corpus.quesst14.html">quesst14</a></li>
+<li class="toctree-l3"><a class="reference internal" href="_autosummary/s3prl.dataio.corpus.snips.html">snips</a></li>
+<li class="toctree-l3"><a class="reference internal" href="_autosummary/s3prl.dataio.corpus.speech_commands.html">speech_commands</a></li>
+<li class="toctree-l3"><a class="reference internal" href="_autosummary/s3prl.dataio.corpus.voxceleb1sid.html">voxceleb1sid</a></li>
+<li class="toctree-l3"><a class="reference internal" href="_autosummary/s3prl.dataio.corpus.voxceleb1sv.html">voxceleb1sv</a></li>
+</ul>
+</li>
+<li class="toctree-l2 has-children"><a class="reference internal" href="_autosummary/s3prl.dataio.encoder.html">encoder</a><input class="toctree-checkbox" id="toctree-checkbox-10" name="toctree-checkbox-10" role="switch" type="checkbox"/><label for="toctree-checkbox-10"><div class="visually-hidden">Toggle child pages in navigation</div><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul>
+<li class="toctree-l3"><a class="reference internal" href="_autosummary/s3prl.dataio.encoder.category.html">category</a></li>
+<li class="toctree-l3"><a class="reference internal" href="_autosummary/s3prl.dataio.encoder.g2p.html">g2p</a></li>
+<li class="toctree-l3"><a class="reference internal" href="_autosummary/s3prl.dataio.encoder.tokenizer.html">tokenizer</a></li>
+<li class="toctree-l3"><a class="reference internal" href="_autosummary/s3prl.dataio.encoder.vocabulary.html">vocabulary</a></li>
+</ul>
+</li>
+<li class="toctree-l2 has-children"><a class="reference internal" href="_autosummary/s3prl.dataio.sampler.html">sampler</a><input class="toctree-checkbox" id="toctree-checkbox-11" name="toctree-checkbox-11" role="switch" type="checkbox"/><label for="toctree-checkbox-11"><div class="visually-hidden">Toggle child pages in navigation</div><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul>
+<li class="toctree-l3"><a class="reference internal" href="_autosummary/s3prl.dataio.sampler.balanced_weighted_sampler.html">balanced_weighted_sampler</a></li>
+<li class="toctree-l3"><a class="reference internal" href="_autosummary/s3prl.dataio.sampler.distributed_sampler.html">distributed_sampler</a></li>
+<li class="toctree-l3"><a class="reference internal" href="_autosummary/s3prl.dataio.sampler.fixed_batch_size_batch_sampler.html">fixed_batch_size_batch_sampler</a></li>
+<li class="toctree-l3"><a class="reference internal" href="_autosummary/s3prl.dataio.sampler.group_same_item_sampler.html">group_same_item_sampler</a></li>
+<li class="toctree-l3"><a class="reference internal" href="_autosummary/s3prl.dataio.sampler.max_timestamp_batch_sampler.html">max_timestamp_batch_sampler</a></li>
+<li class="toctree-l3"><a class="reference internal" href="_autosummary/s3prl.dataio.sampler.sorted_sampler.html">sorted_sampler</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l1 has-children"><a class="reference internal" href="_autosummary/s3prl.metric.html">metric</a><input class="toctree-checkbox" id="toctree-checkbox-12" name="toctree-checkbox-12" role="switch" type="checkbox"/><label for="toctree-checkbox-12"><div class="visually-hidden">Toggle child pages in navigation</div><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul>
+<li class="toctree-l2"><a class="reference internal" href="_autosummary/s3prl.metric.common.html">common</a></li>
+<li class="toctree-l2"><a class="reference internal" href="_autosummary/s3prl.metric.diarization.html">diarization</a></li>
+<li class="toctree-l2"><a class="reference internal" href="_autosummary/s3prl.metric.slot_filling.html">slot_filling</a></li>
+</ul>
+</li>
+<li class="toctree-l1 has-children"><a class="reference internal" href="_autosummary/s3prl.util.html">util</a><input class="toctree-checkbox" id="toctree-checkbox-13" name="toctree-checkbox-13" role="switch" type="checkbox"/><label for="toctree-checkbox-13"><div class="visually-hidden">Toggle child pages in navigation</div><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul>
+<li class="toctree-l2"><a class="reference internal" href="_autosummary/s3prl.util.benchmark.html">benchmark</a></li>
+<li class="toctree-l2"><a class="reference internal" href="_autosummary/s3prl.util.download.html">download</a></li>
+<li class="toctree-l2"><a class="reference internal" href="_autosummary/s3prl.util.override.html">override</a></li>
+<li class="toctree-l2"><a class="reference internal" href="_autosummary/s3prl.util.pseudo_data.html">pseudo_data</a></li>
+<li class="toctree-l2"><a class="reference internal" href="_autosummary/s3prl.util.seed.html">seed</a></li>
 </ul>
 </li>
 </ul>
@@ -273,6 +388,19 @@ It supports the following three major features:</p>
 <li class="toctree-l2"><a class="reference internal" href="tutorial/upstream_collection.html#unispeech-sat">Unispeech-SAT</a></li>
 <li class="toctree-l2"><a class="reference internal" href="tutorial/upstream_collection.html#wavlm">WavLM</a></li>
 <li class="toctree-l2"><a class="reference internal" href="tutorial/upstream_collection.html#data2vec">data2vec</a></li>
+<li class="toctree-l2"><a class="reference internal" href="tutorial/upstream_collection.html#ast">AST</a></li>
+<li class="toctree-l2"><a class="reference internal" href="tutorial/upstream_collection.html#ssast">SSAST</a></li>
+<li class="toctree-l2"><a class="reference internal" href="tutorial/upstream_collection.html#mae-ast">MAE-AST</a></li>
+<li class="toctree-l2"><a class="reference internal" href="tutorial/upstream_collection.html#byol-a">Byol-A</a></li>
+<li class="toctree-l2"><a class="reference internal" href="tutorial/upstream_collection.html#byol-s">Byol-S</a></li>
+<li class="toctree-l2"><a class="reference internal" href="tutorial/upstream_collection.html#vggish">VGGish</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="tutorial/problem.html">Use Problem module to run customizable recipes</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="tutorial/problem.html#usage-1-import-and-run-on-colab">Usage 1. Import and run on Colab</a></li>
+<li class="toctree-l2"><a class="reference internal" href="tutorial/problem.html#usage-2-run-configure-from-cli">Usage 2. Run &amp; configure from CLI</a></li>
+<li class="toctree-l2"><a class="reference internal" href="tutorial/problem.html#usage-3-run-configure-with-the-unified-s3prl-main">Usage 3. Run &amp; configure with the unified <code class="xref py py-obj docutils literal notranslate"><span class="pre">s3prl-main</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="tutorial/problem.html#customization">Customization</a></li>
 </ul>
 </li>
 </ul>
@@ -302,7 +430,22 @@ It supports the following three major features:</p>
 <table class="autosummary longtable docutils align-default">
 <tbody>
 <tr class="row-odd"><td><p><a class="reference internal" href="_autosummary/s3prl.nn.html#module-s3prl.nn" title="s3prl.nn"><code class="xref py py-obj docutils literal notranslate"><span class="pre">s3prl.nn</span></code></a></p></td>
-<td><p></p></td>
+<td><p>Common model and loss in pure torch.nn.Module with torch dependency only</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="_autosummary/s3prl.problem.html#module-s3prl.problem" title="s3prl.problem"><code class="xref py py-obj docutils literal notranslate"><span class="pre">s3prl.problem</span></code></a></p></td>
+<td><p>Pre-defined python recipes with customizable methods</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="_autosummary/s3prl.task.html#module-s3prl.task" title="s3prl.task"><code class="xref py py-obj docutils literal notranslate"><span class="pre">s3prl.task</span></code></a></p></td>
+<td><p>Define how a model is trained &amp; evaluated for each step in the train/valid/test loop</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="_autosummary/s3prl.dataio.html#module-s3prl.dataio" title="s3prl.dataio"><code class="xref py py-obj docutils literal notranslate"><span class="pre">s3prl.dataio</span></code></a></p></td>
+<td><p>This package handles data-related sub-tasks</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="_autosummary/s3prl.metric.html#module-s3prl.metric" title="s3prl.metric"><code class="xref py py-obj docutils literal notranslate"><span class="pre">s3prl.metric</span></code></a></p></td>
+<td><p>Evaluation metrics</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="_autosummary/s3prl.util.html#module-s3prl.util" title="s3prl.util"><code class="xref py py-obj docutils literal notranslate"><span class="pre">s3prl.util</span></code></a></p></td>
+<td><p>Handy tools</p></td>
 </tr>
 </tbody>
 </table>
@@ -330,7 +473,7 @@ It supports the following three major features:</p>
                 </div>
                 <div class="title">Install S3PRL</div>
               </div>
-              <svg><use href="#svg-arrow-right"></use></svg>
+              <svg class="furo-related-icon"><use href="#svg-arrow-right"></use></svg>
             </a>
           
         </div>
@@ -359,7 +502,7 @@ It supports the following three major features:</p>
       <div class="toc-sticky toc-scroll">
         <div class="toc-title-container">
           <span class="toc-title">
-            Contents
+            On this page
           </span>
         </div>
         <div class="toc-tree-container">

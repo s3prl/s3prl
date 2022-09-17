@@ -1,0 +1,45 @@
+pseudo\_data
+============
+
+**(s3prl.util.pseudo_data)**
+
+.. automodule:: s3prl.util.pseudo_data
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+pseudo_audio
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. autoclass:: pseudo_audio
+   :member-order: bysource
+   :members:
+   :undoc-members:
+   :inherited-members: torch.nn.Module,nn.Module,Module
+   :show-inheritance:
+
+
+
+
+
+
+
+get_pseudo_wavs
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. autofunction:: get_pseudo_wavs
+
+
+
+
+

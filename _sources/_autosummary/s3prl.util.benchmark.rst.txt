@@ -1,0 +1,38 @@
+benchmark
+=========
+
+**(s3prl.util.benchmark)**
+
+.. automodule:: s3prl.util.benchmark
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+benchmark
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. autoclass:: benchmark
+   :member-order: bysource
+   :members:
+   :undoc-members:
+   :inherited-members: torch.nn.Module,nn.Module,Module
+   :show-inheritance:
+
+
+
+
+
+
+
+
+

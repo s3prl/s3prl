@@ -1,0 +1,38 @@
+beam\_decoder
+=============
+
+**(s3prl.nn.beam_decoder)**
+
+.. automodule:: s3prl.nn.beam_decoder
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+BeamDecoder
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. autoclass:: BeamDecoder
+   :member-order: bysource
+   :members:
+   :undoc-members:
+   :inherited-members: torch.nn.Module,nn.Module,Module
+   :show-inheritance:
+
+
+
+
+
+
+
+
+

@@ -1,0 +1,38 @@
+voxceleb1sid
+============
+
+**(s3prl.dataio.corpus.voxceleb1sid)**
+
+.. automodule:: s3prl.dataio.corpus.voxceleb1sid
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+VoxCeleb1SID
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. autoclass:: VoxCeleb1SID
+   :member-order: bysource
+   :members:
+   :undoc-members:
+   :inherited-members: torch.nn.Module,nn.Module,Module
+   :show-inheritance:
+
+
+
+
+
+
+
+
+

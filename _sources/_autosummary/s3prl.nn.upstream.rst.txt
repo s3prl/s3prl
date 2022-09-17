@@ -18,27 +18,39 @@ upstream
 
 
 
+S3PRLUpstream
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-
-
+.. autoclass:: S3PRLUpstream
+   :member-order: bysource
+   :members:
+   :undoc-members:
+   :inherited-members: torch.nn.Module,nn.Module,Module
+   :show-inheritance:
 
 Featurizer
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 .. autoclass:: Featurizer
+   :member-order: bysource
    :members:
    :undoc-members:
+   :inherited-members: torch.nn.Module,nn.Module,Module
    :show-inheritance:
-   :member-order: bysource
 
-S3PRLUpstream
+UpstreamDownstreamModel
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-.. autoclass:: S3PRLUpstream
+.. autoclass:: UpstreamDownstreamModel
+   :member-order: bysource
    :members:
    :undoc-members:
+   :inherited-members: torch.nn.Module,nn.Module,Module
    :show-inheritance:
-   :member-order: bysource
+
+
+
+
 
 
 

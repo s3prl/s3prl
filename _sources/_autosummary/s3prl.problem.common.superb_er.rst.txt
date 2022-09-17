@@ -1,0 +1,45 @@
+superb\_er
+==========
+
+**(s3prl.problem.common.superb_er)**
+
+.. automodule:: s3prl.problem.common.superb_er
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+SuperbER
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. autoclass:: SuperbER
+   :member-order: bysource
+   :members:
+   :undoc-members:
+   :inherited-members: torch.nn.Module,nn.Module,Module
+   :show-inheritance:
+
+
+
+
+
+
+
+iemocap_for_superb
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. autofunction:: iemocap_for_superb
+
+
+
+
+

@@ -1,0 +1,48 @@
+utterance\_classification\_task
+===============================
+
+**(s3prl.task.utterance_classification_task)**
+
+.. automodule:: s3prl.task.utterance_classification_task
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+UtteranceClassifierExample
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. autoclass:: UtteranceClassifierExample
+   :member-order: bysource
+   :members:
+   :undoc-members:
+   :inherited-members: torch.nn.Module,nn.Module,Module
+   :show-inheritance:
+
+UtteranceClassificationTask
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. autoclass:: UtteranceClassificationTask
+   :member-order: bysource
+   :members:
+   :undoc-members:
+   :inherited-members: torch.nn.Module,nn.Module,Module
+   :show-inheritance:
+
+
+
+
+
+
+
+
+

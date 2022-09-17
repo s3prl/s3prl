@@ -1,0 +1,38 @@
+superb\_pr
+==========
+
+**(s3prl.problem.asr.superb_pr)**
+
+.. automodule:: s3prl.problem.asr.superb_pr
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+SuperbPR
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. autoclass:: SuperbPR
+   :member-order: bysource
+   :members:
+   :undoc-members:
+   :inherited-members: torch.nn.Module,nn.Module,Module
+   :show-inheritance:
+
+
+
+
+
+
+
+
+

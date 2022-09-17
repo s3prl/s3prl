@@ -1,0 +1,38 @@
+scene\_prediction
+=================
+
+**(s3prl.task.scene_prediction)**
+
+.. automodule:: s3prl.task.scene_prediction
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+ScenePredictionTask
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. autoclass:: ScenePredictionTask
+   :member-order: bysource
+   :members:
+   :undoc-members:
+   :inherited-members: torch.nn.Module,nn.Module,Module
+   :show-inheritance:
+
+
+
+
+
+
+
+
+

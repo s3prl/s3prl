@@ -1,0 +1,45 @@
+superb\_ks
+==========
+
+**(s3prl.problem.common.superb_ks)**
+
+.. automodule:: s3prl.problem.common.superb_ks
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+SuperbKS
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. autoclass:: SuperbKS
+   :member-order: bysource
+   :members:
+   :undoc-members:
+   :inherited-members: torch.nn.Module,nn.Module,Module
+   :show-inheritance:
+
+
+
+
+
+
+
+gsc1_for_classification
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. autofunction:: gsc1_for_classification
+
+
+
+
+

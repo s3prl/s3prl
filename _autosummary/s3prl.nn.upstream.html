@@ -3,12 +3,12 @@
   <head><meta charset="utf-8"/>
     <meta name="viewport" content="width=device-width,initial-scale=1"/>
     <meta name="color-scheme" content="light dark"><meta name="generator" content="Docutils 0.19: https://docutils.sourceforge.io/" />
-<link rel="index" title="Index" href="../genindex.html" /><link rel="search" title="Search" href="../search.html" /><link rel="prev" title="nn" href="s3prl.nn.html" />
+<link rel="index" title="Index" href="../genindex.html" /><link rel="search" title="Search" href="../search.html" /><link rel="next" title="problem" href="s3prl.problem.html" /><link rel="prev" title="specaug" href="s3prl.nn.specaug.html" />
 
-    <meta name="generator" content="sphinx-5.1.1, furo 2022.06.21"/>
-        <title>upstream - S3PRL 0.4.1 documentation</title>
+    <meta name="generator" content="sphinx-5.1.1, furo 2022.09.15"/>
+        <title>upstream - S3PRL 0.4.2 documentation</title>
       <link rel="stylesheet" type="text/css" href="../_static/pygments.css" />
-    <link rel="stylesheet" type="text/css" href="../_static/styles/furo.css?digest=40978830699223671f4072448e654b5958f38b89" />
+    <link rel="stylesheet" type="text/css" href="../_static/styles/furo.css?digest=9ec31e2665bf879c1d47d93a8ec4893870ee1e45" />
     <link rel="stylesheet" type="text/css" href="../_static/styles/furo-extensions.css?digest=30d1aed668e5c3a91c3e3bf6a60b675221979f0e" />
     <link rel="stylesheet" type="text/css" href="../_static/css/custom.css" />
     
@@ -124,7 +124,7 @@
       </label>
     </div>
     <div class="header-center">
-      <a href="../index.html"><div class="brand">S3PRL 0.4.1
+      <a href="../index.html"><div class="brand">S3PRL 0.4.2
  documentation</div></a>
     </div>
     <div class="header-right">
@@ -148,7 +148,7 @@
       <div class="sidebar-sticky"><a class="sidebar-brand" href="../index.html">
   
   
-  <span class="sidebar-brand-text">S3PRL 0.4.1
+  <span class="sidebar-brand-text">S3PRL 0.4.2
  documentation</span>
   
 </a><form class="sidebar-search-container" method="get" action="../search.html" role="search">
@@ -161,6 +161,7 @@
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="../tutorial/installation.html">Install S3PRL</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../tutorial/upstream_collection.html">S3PRL Upstream Collection</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../tutorial/problem.html">Use Problem module to run customizable recipes</a></li>
 </ul>
 <p class="caption" role="heading"><span class="caption-text">How to Contribute</span></p>
 <ul>
@@ -170,7 +171,121 @@
 <p class="caption" role="heading"><span class="caption-text">API Documentation</span></p>
 <ul class="current">
 <li class="toctree-l1 current has-children"><a class="reference internal" href="s3prl.nn.html">nn</a><input checked="" class="toctree-checkbox" id="toctree-checkbox-1" name="toctree-checkbox-1" role="switch" type="checkbox"/><label for="toctree-checkbox-1"><div class="visually-hidden">Toggle child pages in navigation</div><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="s3prl.nn.beam_decoder.html">beam_decoder</a></li>
+<li class="toctree-l2"><a class="reference internal" href="s3prl.nn.common.html">common</a></li>
+<li class="toctree-l2"><a class="reference internal" href="s3prl.nn.hear.html">hear</a></li>
+<li class="toctree-l2"><a class="reference internal" href="s3prl.nn.interface.html">interface</a></li>
+<li class="toctree-l2"><a class="reference internal" href="s3prl.nn.linear.html">linear</a></li>
+<li class="toctree-l2"><a class="reference internal" href="s3prl.nn.pit.html">pit</a></li>
+<li class="toctree-l2"><a class="reference internal" href="s3prl.nn.pooling.html">pooling</a></li>
+<li class="toctree-l2"><a class="reference internal" href="s3prl.nn.rnn.html">rnn</a></li>
+<li class="toctree-l2"><a class="reference internal" href="s3prl.nn.speaker_loss.html">speaker_loss</a></li>
+<li class="toctree-l2"><a class="reference internal" href="s3prl.nn.speaker_model.html">speaker_model</a></li>
+<li class="toctree-l2"><a class="reference internal" href="s3prl.nn.specaug.html">specaug</a></li>
 <li class="toctree-l2 current current-page"><a class="current reference internal" href="#">upstream</a></li>
+</ul>
+</li>
+<li class="toctree-l1 has-children"><a class="reference internal" href="s3prl.problem.html">problem</a><input class="toctree-checkbox" id="toctree-checkbox-2" name="toctree-checkbox-2" role="switch" type="checkbox"/><label for="toctree-checkbox-2"><div class="visually-hidden">Toggle child pages in navigation</div><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul>
+<li class="toctree-l2 has-children"><a class="reference internal" href="s3prl.problem.asr.html">asr</a><input class="toctree-checkbox" id="toctree-checkbox-3" name="toctree-checkbox-3" role="switch" type="checkbox"/><label for="toctree-checkbox-3"><div class="visually-hidden">Toggle child pages in navigation</div><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul>
+<li class="toctree-l3"><a class="reference internal" href="s3prl.problem.asr.run.html">run</a></li>
+<li class="toctree-l3"><a class="reference internal" href="s3prl.problem.asr.superb_asr.html">superb_asr</a></li>
+<li class="toctree-l3"><a class="reference internal" href="s3prl.problem.asr.superb_pr.html">superb_pr</a></li>
+<li class="toctree-l3"><a class="reference internal" href="s3prl.problem.asr.superb_sf.html">superb_sf</a></li>
+</ul>
+</li>
+<li class="toctree-l2 has-children"><a class="reference internal" href="s3prl.problem.asv.html">asv</a><input class="toctree-checkbox" id="toctree-checkbox-4" name="toctree-checkbox-4" role="switch" type="checkbox"/><label for="toctree-checkbox-4"><div class="visually-hidden">Toggle child pages in navigation</div><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul>
+<li class="toctree-l3"><a class="reference internal" href="s3prl.problem.asv.run.html">run</a></li>
+<li class="toctree-l3"><a class="reference internal" href="s3prl.problem.asv.superb_asv.html">superb_asv</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="s3prl.problem.base.html">base</a></li>
+<li class="toctree-l2 has-children"><a class="reference internal" href="s3prl.problem.common.html">common</a><input class="toctree-checkbox" id="toctree-checkbox-5" name="toctree-checkbox-5" role="switch" type="checkbox"/><label for="toctree-checkbox-5"><div class="visually-hidden">Toggle child pages in navigation</div><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul>
+<li class="toctree-l3"><a class="reference internal" href="s3prl.problem.common.hear_beijing_opera.html">hear_beijing_opera</a></li>
+<li class="toctree-l3"><a class="reference internal" href="s3prl.problem.common.hear_cremad.html">hear_cremad</a></li>
+<li class="toctree-l3"><a class="reference internal" href="s3prl.problem.common.hear_dcase_2016_task2.html">hear_dcase_2016_task2</a></li>
+<li class="toctree-l3"><a class="reference internal" href="s3prl.problem.common.hear_esc50.html">hear_esc50</a></li>
+<li class="toctree-l3"><a class="reference internal" href="s3prl.problem.common.hear_fsd.html">hear_fsd</a></li>
+<li class="toctree-l3"><a class="reference internal" href="s3prl.problem.common.hear_gsc5hr.html">hear_gsc5hr</a></li>
+<li class="toctree-l3"><a class="reference internal" href="s3prl.problem.common.hear_gtzan.html">hear_gtzan</a></li>
+<li class="toctree-l3"><a class="reference internal" href="s3prl.problem.common.hear_gtzan_music_speech.html">hear_gtzan_music_speech</a></li>
+<li class="toctree-l3"><a class="reference internal" href="s3prl.problem.common.hear_gunshot.html">hear_gunshot</a></li>
+<li class="toctree-l3"><a class="reference internal" href="s3prl.problem.common.hear_libricount.html">hear_libricount</a></li>
+<li class="toctree-l3"><a class="reference internal" href="s3prl.problem.common.hear_maestro.html">hear_maestro</a></li>
+<li class="toctree-l3"><a class="reference internal" href="s3prl.problem.common.hear_nsynth5hr.html">hear_nsynth5hr</a></li>
+<li class="toctree-l3"><a class="reference internal" href="s3prl.problem.common.hear_stroke.html">hear_stroke</a></li>
+<li class="toctree-l3"><a class="reference internal" href="s3prl.problem.common.hear_tonic.html">hear_tonic</a></li>
+<li class="toctree-l3"><a class="reference internal" href="s3prl.problem.common.hear_vocal.html">hear_vocal</a></li>
+<li class="toctree-l3"><a class="reference internal" href="s3prl.problem.common.hear_vox_lingual.html">hear_vox_lingual</a></li>
+<li class="toctree-l3"><a class="reference internal" href="s3prl.problem.common.run.html">run</a></li>
+<li class="toctree-l3"><a class="reference internal" href="s3prl.problem.common.superb_er.html">superb_er</a></li>
+<li class="toctree-l3"><a class="reference internal" href="s3prl.problem.common.superb_ic.html">superb_ic</a></li>
+<li class="toctree-l3"><a class="reference internal" href="s3prl.problem.common.superb_ks.html">superb_ks</a></li>
+<li class="toctree-l3"><a class="reference internal" href="s3prl.problem.common.superb_sid.html">superb_sid</a></li>
+</ul>
+</li>
+<li class="toctree-l2 has-children"><a class="reference internal" href="s3prl.problem.diarization.html">diarization</a><input class="toctree-checkbox" id="toctree-checkbox-6" name="toctree-checkbox-6" role="switch" type="checkbox"/><label for="toctree-checkbox-6"><div class="visually-hidden">Toggle child pages in navigation</div><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul>
+<li class="toctree-l3"><a class="reference internal" href="s3prl.problem.diarization.run.html">run</a></li>
+<li class="toctree-l3"><a class="reference internal" href="s3prl.problem.diarization.superb_sd.html">superb_sd</a></li>
+<li class="toctree-l3"><a class="reference internal" href="s3prl.problem.diarization.util.html">util</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l1 has-children"><a class="reference internal" href="s3prl.task.html">task</a><input class="toctree-checkbox" id="toctree-checkbox-7" name="toctree-checkbox-7" role="switch" type="checkbox"/><label for="toctree-checkbox-7"><div class="visually-hidden">Toggle child pages in navigation</div><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul>
+<li class="toctree-l2"><a class="reference internal" href="s3prl.task.base.html">base</a></li>
+<li class="toctree-l2"><a class="reference internal" href="s3prl.task.diarization.html">diarization</a></li>
+<li class="toctree-l2"><a class="reference internal" href="s3prl.task.dump_feature.html">dump_feature</a></li>
+<li class="toctree-l2"><a class="reference internal" href="s3prl.task.event_prediction.html">event_prediction</a></li>
+<li class="toctree-l2"><a class="reference internal" href="s3prl.task.scene_prediction.html">scene_prediction</a></li>
+<li class="toctree-l2"><a class="reference internal" href="s3prl.task.speaker_verification_task.html">speaker_verification_task</a></li>
+<li class="toctree-l2"><a class="reference internal" href="s3prl.task.speech2text_ctc_task.html">speech2text_ctc_task</a></li>
+<li class="toctree-l2"><a class="reference internal" href="s3prl.task.utterance_classification_task.html">utterance_classification_task</a></li>
+</ul>
+</li>
+<li class="toctree-l1 has-children"><a class="reference internal" href="s3prl.dataio.html">dataio</a><input class="toctree-checkbox" id="toctree-checkbox-8" name="toctree-checkbox-8" role="switch" type="checkbox"/><label for="toctree-checkbox-8"><div class="visually-hidden">Toggle child pages in navigation</div><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul>
+<li class="toctree-l2 has-children"><a class="reference internal" href="s3prl.dataio.corpus.html">corpus</a><input class="toctree-checkbox" id="toctree-checkbox-9" name="toctree-checkbox-9" role="switch" type="checkbox"/><label for="toctree-checkbox-9"><div class="visually-hidden">Toggle child pages in navigation</div><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul>
+<li class="toctree-l3"><a class="reference internal" href="s3prl.dataio.corpus.base.html">base</a></li>
+<li class="toctree-l3"><a class="reference internal" href="s3prl.dataio.corpus.fluent_speech_commands.html">fluent_speech_commands</a></li>
+<li class="toctree-l3"><a class="reference internal" href="s3prl.dataio.corpus.iemocap.html">iemocap</a></li>
+<li class="toctree-l3"><a class="reference internal" href="s3prl.dataio.corpus.librilight.html">librilight</a></li>
+<li class="toctree-l3"><a class="reference internal" href="s3prl.dataio.corpus.librispeech.html">librispeech</a></li>
+<li class="toctree-l3"><a class="reference internal" href="s3prl.dataio.corpus.quesst14.html">quesst14</a></li>
+<li class="toctree-l3"><a class="reference internal" href="s3prl.dataio.corpus.snips.html">snips</a></li>
+<li class="toctree-l3"><a class="reference internal" href="s3prl.dataio.corpus.speech_commands.html">speech_commands</a></li>
+<li class="toctree-l3"><a class="reference internal" href="s3prl.dataio.corpus.voxceleb1sid.html">voxceleb1sid</a></li>
+<li class="toctree-l3"><a class="reference internal" href="s3prl.dataio.corpus.voxceleb1sv.html">voxceleb1sv</a></li>
+</ul>
+</li>
+<li class="toctree-l2 has-children"><a class="reference internal" href="s3prl.dataio.encoder.html">encoder</a><input class="toctree-checkbox" id="toctree-checkbox-10" name="toctree-checkbox-10" role="switch" type="checkbox"/><label for="toctree-checkbox-10"><div class="visually-hidden">Toggle child pages in navigation</div><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul>
+<li class="toctree-l3"><a class="reference internal" href="s3prl.dataio.encoder.category.html">category</a></li>
+<li class="toctree-l3"><a class="reference internal" href="s3prl.dataio.encoder.g2p.html">g2p</a></li>
+<li class="toctree-l3"><a class="reference internal" href="s3prl.dataio.encoder.tokenizer.html">tokenizer</a></li>
+<li class="toctree-l3"><a class="reference internal" href="s3prl.dataio.encoder.vocabulary.html">vocabulary</a></li>
+</ul>
+</li>
+<li class="toctree-l2 has-children"><a class="reference internal" href="s3prl.dataio.sampler.html">sampler</a><input class="toctree-checkbox" id="toctree-checkbox-11" name="toctree-checkbox-11" role="switch" type="checkbox"/><label for="toctree-checkbox-11"><div class="visually-hidden">Toggle child pages in navigation</div><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul>
+<li class="toctree-l3"><a class="reference internal" href="s3prl.dataio.sampler.balanced_weighted_sampler.html">balanced_weighted_sampler</a></li>
+<li class="toctree-l3"><a class="reference internal" href="s3prl.dataio.sampler.distributed_sampler.html">distributed_sampler</a></li>
+<li class="toctree-l3"><a class="reference internal" href="s3prl.dataio.sampler.fixed_batch_size_batch_sampler.html">fixed_batch_size_batch_sampler</a></li>
+<li class="toctree-l3"><a class="reference internal" href="s3prl.dataio.sampler.group_same_item_sampler.html">group_same_item_sampler</a></li>
+<li class="toctree-l3"><a class="reference internal" href="s3prl.dataio.sampler.max_timestamp_batch_sampler.html">max_timestamp_batch_sampler</a></li>
+<li class="toctree-l3"><a class="reference internal" href="s3prl.dataio.sampler.sorted_sampler.html">sorted_sampler</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l1 has-children"><a class="reference internal" href="s3prl.metric.html">metric</a><input class="toctree-checkbox" id="toctree-checkbox-12" name="toctree-checkbox-12" role="switch" type="checkbox"/><label for="toctree-checkbox-12"><div class="visually-hidden">Toggle child pages in navigation</div><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul>
+<li class="toctree-l2"><a class="reference internal" href="s3prl.metric.common.html">common</a></li>
+<li class="toctree-l2"><a class="reference internal" href="s3prl.metric.diarization.html">diarization</a></li>
+<li class="toctree-l2"><a class="reference internal" href="s3prl.metric.slot_filling.html">slot_filling</a></li>
+</ul>
+</li>
+<li class="toctree-l1 has-children"><a class="reference internal" href="s3prl.util.html">util</a><input class="toctree-checkbox" id="toctree-checkbox-13" name="toctree-checkbox-13" role="switch" type="checkbox"/><label for="toctree-checkbox-13"><div class="visually-hidden">Toggle child pages in navigation</div><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul>
+<li class="toctree-l2"><a class="reference internal" href="s3prl.util.benchmark.html">benchmark</a></li>
+<li class="toctree-l2"><a class="reference internal" href="s3prl.util.download.html">download</a></li>
+<li class="toctree-l2"><a class="reference internal" href="s3prl.util.override.html">override</a></li>
+<li class="toctree-l2"><a class="reference internal" href="s3prl.util.pseudo_data.html">pseudo_data</a></li>
+<li class="toctree-l2"><a class="reference internal" href="s3prl.util.seed.html">seed</a></li>
 </ul>
 </li>
 </ul>
@@ -209,11 +324,143 @@
           <section id="upstream">
 <h1>upstream<a class="headerlink" href="#upstream" title="Permalink to this heading">#</a></h1>
 <p><strong>(s3prl.nn.upstream)</strong></p>
-<span class="target" id="module-s3prl.nn.upstream"></span><section id="featurizer">
+<span class="target" id="module-s3prl.nn.upstream"></span><p>S3PRL Upstream Collection and some utilities</p>
+<dl class="simple">
+<dt>Authors:</dt><dd><ul class="simple">
+<li><p>Shu-wen Yang 2022</p></li>
+</ul>
+</dd>
+</dl>
+<section id="s3prlupstream">
+<h2>S3PRLUpstream<a class="headerlink" href="#s3prlupstream" title="Permalink to this heading">#</a></h2>
+<dl class="py class">
+<dt class="sig sig-object py" id="s3prl.nn.upstream.S3PRLUpstream">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">s3prl.nn.upstream.</span></span><span class="sig-name descname"><span class="pre">S3PRLUpstream</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">name</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">path_or_url</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">refresh</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">extra_args</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/s3prl/nn/upstream.html#S3PRLUpstream"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="reference external" href="https://github.com/s3prl/s3prl/blob/v0.4.2 /s3prl/nn/upstream.py#L24-L191"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#s3prl.nn.upstream.S3PRLUpstream" title="Permalink to this definition">#</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">Module</span></code></p>
+<p>This is an easy interface for using all the models in S3PRL.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>name</strong> (<em>str</em>) – can be “apc”, “hubert”, “wav2vec2”. See <a class="reference internal" href="#s3prl.nn.upstream.S3PRLUpstream.available_names" title="s3prl.nn.upstream.S3PRLUpstream.available_names"><code class="xref py py-obj docutils literal notranslate"><span class="pre">available_names</span></code></a> for all the supported names</p></li>
+<li><p><strong>path_or_url</strong> (<em>str</em>) – The source of the checkpoint. Might be a local path or a URL</p></li>
+<li><p><strong>refresh</strong> (<em>bool</em>) – (default, False)
+If false, only downlaod checkpoint if not yet downloaded before.
+If true, force to re-download the checkpoint.</p></li>
+<li><p><strong>**extra_args</strong> – The extra arguments for each specific upstream, the available options are
+shown in each upstream section</p></li>
+</ul>
+</dd>
+</dl>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>When using <strong>S3PRLUpstream</strong> with <code class="code docutils literal notranslate"><span class="pre">refresh=True</span></code> and multiprocessing (e.g. DDP),
+the checkpoint will only be downloaded once, and the other processes will simply
+re-use the newly downloaded checkpoint, instead of re-downloading on every processes,
+which can be very time/bandwidth consuming.</p>
+</div>
+<p>Example:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">torch</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">s3prl.nn</span> <span class="kn">import</span> <span class="n">S3PRLUpstream</span>
+<span class="gp">...</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">model</span> <span class="o">=</span> <span class="n">S3PRLUpstream</span><span class="p">(</span><span class="s2">&quot;hubert&quot;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">model</span><span class="o">.</span><span class="n">eval</span><span class="p">()</span>
+<span class="gp">...</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">with</span> <span class="n">torch</span><span class="o">.</span><span class="n">no_grad</span><span class="p">():</span>
+<span class="gp">... </span>    <span class="n">wavs</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">randn</span><span class="p">(</span><span class="mi">2</span><span class="p">,</span> <span class="mi">16000</span> <span class="o">*</span> <span class="mi">2</span><span class="p">)</span>
+<span class="gp">... </span>    <span class="n">wavs_len</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">LongTensor</span><span class="p">([</span><span class="mi">16000</span> <span class="o">*</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">16000</span> <span class="o">*</span> <span class="mi">2</span><span class="p">])</span>
+<span class="gp">... </span>    <span class="n">all_hs</span><span class="p">,</span> <span class="n">all_hs_len</span> <span class="o">=</span> <span class="n">model</span><span class="p">(</span><span class="n">wavs</span><span class="p">,</span> <span class="n">wavs_len</span><span class="p">)</span>
+<span class="gp">...</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">for</span> <span class="n">hs</span><span class="p">,</span> <span class="n">hs_len</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">all_hs</span><span class="p">,</span> <span class="n">all_hs_len</span><span class="p">):</span>
+<span class="gp">... </span>    <span class="k">assert</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">hs</span><span class="p">,</span> <span class="n">torch</span><span class="o">.</span><span class="n">FloatTensor</span><span class="p">)</span>
+<span class="gp">... </span>    <span class="k">assert</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">hs_len</span><span class="p">,</span> <span class="n">torch</span><span class="o">.</span><span class="n">LongTensor</span><span class="p">)</span>
+<span class="gp">...</span>
+<span class="gp">... </span>    <span class="n">batch_size</span><span class="p">,</span> <span class="n">max_seq_len</span><span class="p">,</span> <span class="n">hidden_size</span> <span class="o">=</span> <span class="n">hs</span><span class="o">.</span><span class="n">shape</span>
+<span class="gp">... </span>    <span class="k">assert</span> <span class="n">hs_len</span><span class="o">.</span><span class="n">dim</span><span class="p">()</span> <span class="o">==</span> <span class="mi">1</span>
+</pre></div>
+</div>
+<dl class="py method">
+<dt class="sig sig-object py" id="s3prl.nn.upstream.S3PRLUpstream.available_names">
+<em class="property"><span class="pre">classmethod</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">available_names</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">only_registered_ckpt</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">List</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span></span></span><a class="reference internal" href="../_modules/s3prl/nn/upstream.html#S3PRLUpstream.available_names"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="reference external" href="https://github.com/s3prl/s3prl/blob/v0.4.2 /s3prl/nn/upstream.py#L71-L83"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#s3prl.nn.upstream.S3PRLUpstream.available_names" title="Permalink to this definition">#</a></dt>
+<dd><p>All the available names supported by this S3PRLUpstream</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>only_registered_ckpt</strong> (<em>bool</em>) – ignore entry names which require to give <cite>path_or_url</cite>.
+That is, the entry names without the registered checkpoint sources.
+These names end with <code class="code docutils literal notranslate"><span class="pre">_local</span></code> (for local path), <code class="code docutils literal notranslate"><span class="pre">_url</span></code>
+(for URL) or <code class="code docutils literal notranslate"><span class="pre">_custom</span></code> (auto-determine path or URL)</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="s3prl.nn.upstream.S3PRLUpstream.num_layers">
+<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">num_layers</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">int</span></em><a class="reference external" href="https://github.com/s3prl/s3prl/blob/v0.4.2 /s3prl/nn/upstream.py"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#s3prl.nn.upstream.S3PRLUpstream.num_layers" title="Permalink to this definition">#</a></dt>
+<dd><p>Number of hidden sizes. All the upstream have a deterministic
+number of layers. That is, layer drop is turned off by default.</p>
+</dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="s3prl.nn.upstream.S3PRLUpstream.downsample_rates">
+<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">downsample_rates</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">List</span><span class="p"><span class="pre">[</span></span><span class="pre">int</span><span class="p"><span class="pre">]</span></span></em><a class="reference external" href="https://github.com/s3prl/s3prl/blob/v0.4.2 /s3prl/nn/upstream.py"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#s3prl.nn.upstream.S3PRLUpstream.downsample_rates" title="Permalink to this definition">#</a></dt>
+<dd><p>Downsampling rate from 16000 Hz audio of each layer.
+Usually, all layers have the same downsampling rate,
+but might not be the case for some advanced upstreams.</p>
+</dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="s3prl.nn.upstream.S3PRLUpstream.hidden_sizes">
+<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">hidden_sizes</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">List</span><span class="p"><span class="pre">[</span></span><span class="pre">int</span><span class="p"><span class="pre">]</span></span></em><a class="reference external" href="https://github.com/s3prl/s3prl/blob/v0.4.2 /s3prl/nn/upstream.py"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#s3prl.nn.upstream.S3PRLUpstream.hidden_sizes" title="Permalink to this definition">#</a></dt>
+<dd><p>The hidden size of each layer</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="s3prl.nn.upstream.S3PRLUpstream.forward">
+<span class="sig-name descname"><span class="pre">forward</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">wavs</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">FloatTensor</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">wavs_len</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">LongTensor</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/s3prl/nn/upstream.html#S3PRLUpstream.forward"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="reference external" href="https://github.com/s3prl/s3prl/blob/v0.4.2 /s3prl/nn/upstream.py#L154-L191"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#s3prl.nn.upstream.S3PRLUpstream.forward" title="Permalink to this definition">#</a></dt>
+<dd><dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>wavs</strong> (<em>torch.FloatTensor</em>) – (batch_size, seqlen) or (batch_size, seqlen, 1)</p></li>
+<li><p><strong>wavs_len</strong> (<em>torch.LongTensor</em>) – (batch_size, )</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p><p>List[torch.FloatTensor], List[torch.LongTensor]</p>
+<ol class="arabic simple">
+<li><p>all the layers of hidden states: List[ (batch_size, max_seq_len, hidden_size) ]</p></li>
+<li><p>the valid length for each hidden states: List[ (batch_size, ) ]</p></li>
+</ol>
+</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="s3prl.nn.upstream.S3PRLUpstream.dump_patches">
+<span class="sig-name descname"><span class="pre">dump_patches</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">bool</span></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">False</span></em><a class="reference external" href="https://github.com/s3prl/s3prl/blob/v0.4.2 /s3prl/nn/upstream.py"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#s3prl.nn.upstream.S3PRLUpstream.dump_patches" title="Permalink to this definition">#</a></dt>
+<dd><p>This allows better BC support for <code class="xref py py-meth docutils literal notranslate"><span class="pre">load_state_dict()</span></code>. In
+<code class="xref py py-meth docutils literal notranslate"><span class="pre">state_dict()</span></code>, the version number will be saved as in the attribute
+<cite>_metadata</cite> of the returned state dict, and thus pickled. <cite>_metadata</cite> is a
+dictionary with keys that follow the naming convention of state dict. See
+<code class="docutils literal notranslate"><span class="pre">_load_from_state_dict</span></code> on how to use this information in loading.</p>
+<p>If new parameters/buffers are added/removed from a module, this number shall
+be bumped, and the module’s <cite>_load_from_state_dict</cite> method can compare the
+version number and do appropriate changes if the state dict is from before
+the change.</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="s3prl.nn.upstream.S3PRLUpstream.training">
+<span class="sig-name descname"><span class="pre">training</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">bool</span></em><a class="reference external" href="https://github.com/s3prl/s3prl/blob/v0.4.2 /s3prl/nn/upstream.py"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#s3prl.nn.upstream.S3PRLUpstream.training" title="Permalink to this definition">#</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+</section>
+<section id="featurizer">
 <h2>Featurizer<a class="headerlink" href="#featurizer" title="Permalink to this heading">#</a></h2>
 <dl class="py class">
 <dt class="sig sig-object py" id="s3prl.nn.upstream.Featurizer">
-<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">Featurizer</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">upstream</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="#s3prl.nn.upstream.S3PRLUpstream" title="s3prl.nn.upstream.S3PRLUpstream"><span class="pre">S3PRLUpstream</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">layer_selections</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">List</span><span class="p"><span class="pre">[</span></span><span class="pre">int</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">normalize</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/s3prl/nn/upstream.html#Featurizer"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="reference external" href="https://github.com/s3prl/s3prl/blob/v0.4.1 /s3prl/nn/upstream.py#L170-L285"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#s3prl.nn.upstream.Featurizer" title="Permalink to this definition">#</a></dt>
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">s3prl.nn.upstream.</span></span><span class="sig-name descname"><span class="pre">Featurizer</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">upstream</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="#s3prl.nn.upstream.S3PRLUpstream" title="s3prl.nn.upstream.S3PRLUpstream"><span class="pre">S3PRLUpstream</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">layer_selections</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">List</span><span class="p"><span class="pre">[</span></span><span class="pre">int</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">normalize</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/s3prl/nn/upstream.html#Featurizer"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="reference external" href="https://github.com/s3prl/s3prl/blob/v0.4.2 /s3prl/nn/upstream.py#L194-L309"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#s3prl.nn.upstream.Featurizer" title="Permalink to this definition">#</a></dt>
 <dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">Module</span></code></p>
 <p>Featurizer take the <a class="reference internal" href="#s3prl.nn.upstream.S3PRLUpstream" title="s3prl.nn.upstream.S3PRLUpstream"><code class="xref py py-obj docutils literal notranslate"><span class="pre">S3PRLUpstream</span></code></a>’s multiple layer of hidden_states and
 reduce (standardize) them into a single hidden_states, to connect with downstream NNs.</p>
@@ -256,24 +503,19 @@ fidelity of each upstream’s extracted representation.</p></li>
 </div>
 <dl class="py property">
 <dt class="sig sig-object py" id="s3prl.nn.upstream.Featurizer.output_size">
-<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">output_size</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">int</span></em><a class="reference external" href="https://github.com/s3prl/s3prl/blob/v0.4.1 /s3prl/nn/upstream.py"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#s3prl.nn.upstream.Featurizer.output_size" title="Permalink to this definition">#</a></dt>
+<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">output_size</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">int</span></em><a class="reference external" href="https://github.com/s3prl/s3prl/blob/v0.4.2 /s3prl/nn/upstream.py"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#s3prl.nn.upstream.Featurizer.output_size" title="Permalink to this definition">#</a></dt>
 <dd><p>The hidden size of the final weighted-sum output</p>
 </dd></dl>
 
 <dl class="py property">
 <dt class="sig sig-object py" id="s3prl.nn.upstream.Featurizer.downsample_rate">
-<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">downsample_rate</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">int</span></em><a class="reference external" href="https://github.com/s3prl/s3prl/blob/v0.4.1 /s3prl/nn/upstream.py"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#s3prl.nn.upstream.Featurizer.downsample_rate" title="Permalink to this definition">#</a></dt>
+<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">downsample_rate</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">int</span></em><a class="reference external" href="https://github.com/s3prl/s3prl/blob/v0.4.2 /s3prl/nn/upstream.py"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#s3prl.nn.upstream.Featurizer.downsample_rate" title="Permalink to this definition">#</a></dt>
 <dd><p>The downsample rate (from 16k Hz waveform) of the final weighted-sum output</p>
 </dd></dl>
 
-<dl class="py attribute">
-<dt class="sig sig-object py" id="s3prl.nn.upstream.Featurizer.training">
-<span class="sig-name descname"><span class="pre">training</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">bool</span></em><a class="reference external" href="https://github.com/s3prl/s3prl/blob/v0.4.1 /s3prl/nn/upstream.py"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#s3prl.nn.upstream.Featurizer.training" title="Permalink to this definition">#</a></dt>
-<dd></dd></dl>
-
 <dl class="py method">
 <dt class="sig sig-object py" id="s3prl.nn.upstream.Featurizer.forward">
-<span class="sig-name descname"><span class="pre">forward</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">all_hs</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">List</span><span class="p"><span class="pre">[</span></span><span class="pre">FloatTensor</span><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">all_lens</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">List</span><span class="p"><span class="pre">[</span></span><span class="pre">LongTensor</span><span class="p"><span class="pre">]</span></span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/s3prl/nn/upstream.html#Featurizer.forward"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="reference external" href="https://github.com/s3prl/s3prl/blob/v0.4.1 /s3prl/nn/upstream.py#L265-L285"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#s3prl.nn.upstream.Featurizer.forward" title="Permalink to this definition">#</a></dt>
+<span class="sig-name descname"><span class="pre">forward</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">all_hs</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">List</span><span class="p"><span class="pre">[</span></span><span class="pre">FloatTensor</span><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">all_lens</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">List</span><span class="p"><span class="pre">[</span></span><span class="pre">LongTensor</span><span class="p"><span class="pre">]</span></span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/s3prl/nn/upstream.html#Featurizer.forward"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="reference external" href="https://github.com/s3prl/s3prl/blob/v0.4.2 /s3prl/nn/upstream.py#L289-L309"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#s3prl.nn.upstream.Featurizer.forward" title="Permalink to this definition">#</a></dt>
 <dd><dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
@@ -292,114 +534,81 @@ fidelity of each upstream’s extracted representation.</p></li>
 </dl>
 </dd></dl>
 
-</dd></dl>
-
-</section>
-<section id="s3prlupstream">
-<h2>S3PRLUpstream<a class="headerlink" href="#s3prlupstream" title="Permalink to this heading">#</a></h2>
-<dl class="py class">
-<dt class="sig sig-object py" id="s3prl.nn.upstream.S3PRLUpstream">
-<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">S3PRLUpstream</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">name</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">path_or_url</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">refresh</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/s3prl/nn/upstream.html#S3PRLUpstream"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="reference external" href="https://github.com/s3prl/s3prl/blob/v0.4.1 /s3prl/nn/upstream.py#L17-L167"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#s3prl.nn.upstream.S3PRLUpstream" title="Permalink to this definition">#</a></dt>
-<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">Module</span></code></p>
-<p>This is an easy interface for using all the models in S3PRL.</p>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters<span class="colon">:</span></dt>
-<dd class="field-odd"><ul class="simple">
-<li><p><strong>name</strong> (<em>str</em>) – can be “apc”, “hubert”, “wav2vec2”. See <a class="reference internal" href="#s3prl.nn.upstream.S3PRLUpstream.available_names" title="s3prl.nn.upstream.S3PRLUpstream.available_names"><code class="xref py py-obj docutils literal notranslate"><span class="pre">available_names</span></code></a> for all the supported names</p></li>
-<li><p><strong>path_or_url</strong> (<em>str</em>) – The source of the checkpoint. Might be a local path or a URL</p></li>
-<li><p><strong>refresh</strong> (<em>bool</em>) – (default, False)
-If false, only downlaod checkpoint if not yet downloaded before.
-If true, force to re-download the checkpoint.</p></li>
-</ul>
-</dd>
-</dl>
-<div class="admonition note">
-<p class="admonition-title">Note</p>
-<p>When using <strong>S3PRLUpstream</strong> with <code class="code docutils literal notranslate"><span class="pre">refresh=True</span></code> and multiprocessing (e.g. DDP),
-the checkpoint will only be downloaded once, and the other processes will simply
-re-use the newly downloaded checkpoint, instead of re-downloading on every processes,
-which can be very time/bandwidth consuming.</p>
-</div>
-<p>Example:</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">torch</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">s3prl.nn</span> <span class="kn">import</span> <span class="n">S3PRLUpstream</span>
-<span class="gp">...</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">model</span> <span class="o">=</span> <span class="n">S3PRLUpstream</span><span class="p">(</span><span class="s2">&quot;hubert&quot;</span><span class="p">)</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">model</span><span class="o">.</span><span class="n">eval</span><span class="p">()</span>
-<span class="gp">...</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="k">with</span> <span class="n">torch</span><span class="o">.</span><span class="n">no_grad</span><span class="p">():</span>
-<span class="gp">... </span>    <span class="n">wavs</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">randn</span><span class="p">(</span><span class="mi">2</span><span class="p">,</span> <span class="mi">16000</span> <span class="o">*</span> <span class="mi">2</span><span class="p">)</span>
-<span class="gp">... </span>    <span class="n">wavs_len</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">LongTensor</span><span class="p">([</span><span class="mi">16000</span> <span class="o">*</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">16000</span> <span class="o">*</span> <span class="mi">2</span><span class="p">])</span>
-<span class="gp">... </span>    <span class="n">all_hs</span><span class="p">,</span> <span class="n">all_hs_len</span> <span class="o">=</span> <span class="n">model</span><span class="p">(</span><span class="n">wavs</span><span class="p">,</span> <span class="n">wavs_len</span><span class="p">)</span>
-<span class="gp">...</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="k">for</span> <span class="n">hs</span><span class="p">,</span> <span class="n">hs_len</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">all_hs</span><span class="p">,</span> <span class="n">all_hs_len</span><span class="p">):</span>
-<span class="gp">... </span>    <span class="k">assert</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">hs</span><span class="p">,</span> <span class="n">torch</span><span class="o">.</span><span class="n">FloatTensor</span><span class="p">)</span>
-<span class="gp">... </span>    <span class="k">assert</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">hs_len</span><span class="p">,</span> <span class="n">torch</span><span class="o">.</span><span class="n">LongTensor</span><span class="p">)</span>
-<span class="gp">...</span>
-<span class="gp">... </span>    <span class="n">batch_size</span><span class="p">,</span> <span class="n">max_seq_len</span><span class="p">,</span> <span class="n">hidden_size</span> <span class="o">=</span> <span class="n">hs</span><span class="o">.</span><span class="n">shape</span>
-<span class="gp">... </span>    <span class="k">assert</span> <span class="n">hs_len</span><span class="o">.</span><span class="n">dim</span><span class="p">()</span> <span class="o">==</span> <span class="mi">1</span>
-</pre></div>
-</div>
-<dl class="py method">
-<dt class="sig sig-object py" id="s3prl.nn.upstream.S3PRLUpstream.available_names">
-<em class="property"><span class="pre">classmethod</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">available_names</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">only_registered_ckpt</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">List</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span></span></span><a class="reference internal" href="../_modules/s3prl/nn/upstream.html#S3PRLUpstream.available_names"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="reference external" href="https://github.com/s3prl/s3prl/blob/v0.4.1 /s3prl/nn/upstream.py#L60-L72"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#s3prl.nn.upstream.S3PRLUpstream.available_names" title="Permalink to this definition">#</a></dt>
-<dd><p>All the available names supported by this S3PRLUpstream</p>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters<span class="colon">:</span></dt>
-<dd class="field-odd"><p><strong>only_registered_ckpt</strong> (<em>bool</em>) – ignore entry names which require to give <cite>path_or_url</cite>.
-That is, the entry names without the registered checkpoint sources.
-These names end with <code class="code docutils literal notranslate"><span class="pre">_local</span></code> (for local path), <code class="code docutils literal notranslate"><span class="pre">_url</span></code>
-(for URL) or <code class="code docutils literal notranslate"><span class="pre">_custom</span></code> (auto-determine path or URL)</p>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="py property">
-<dt class="sig sig-object py" id="s3prl.nn.upstream.S3PRLUpstream.num_layers">
-<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">num_layers</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">int</span></em><a class="reference external" href="https://github.com/s3prl/s3prl/blob/v0.4.1 /s3prl/nn/upstream.py"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#s3prl.nn.upstream.S3PRLUpstream.num_layers" title="Permalink to this definition">#</a></dt>
-<dd><p>Number of hidden sizes. All the upstream have a deterministic
-number of layers. That is, layer drop is turned off by default.</p>
-</dd></dl>
-
-<dl class="py property">
-<dt class="sig sig-object py" id="s3prl.nn.upstream.S3PRLUpstream.downsample_rates">
-<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">downsample_rates</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">List</span><span class="p"><span class="pre">[</span></span><span class="pre">int</span><span class="p"><span class="pre">]</span></span></em><a class="reference external" href="https://github.com/s3prl/s3prl/blob/v0.4.1 /s3prl/nn/upstream.py"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#s3prl.nn.upstream.S3PRLUpstream.downsample_rates" title="Permalink to this definition">#</a></dt>
-<dd><p>Downsampling rate from 16000 Hz audio of each layer.
-Usually, all layers have the same downsampling rate,
-but might not be the case for some advanced upstreams.</p>
-</dd></dl>
-
-<dl class="py property">
-<dt class="sig sig-object py" id="s3prl.nn.upstream.S3PRLUpstream.hidden_sizes">
-<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">hidden_sizes</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">List</span><span class="p"><span class="pre">[</span></span><span class="pre">int</span><span class="p"><span class="pre">]</span></span></em><a class="reference external" href="https://github.com/s3prl/s3prl/blob/v0.4.1 /s3prl/nn/upstream.py"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#s3prl.nn.upstream.S3PRLUpstream.hidden_sizes" title="Permalink to this definition">#</a></dt>
-<dd><p>The hidden size of each layer</p>
-</dd></dl>
-
-<dl class="py method">
-<dt class="sig sig-object py" id="s3prl.nn.upstream.S3PRLUpstream.forward">
-<span class="sig-name descname"><span class="pre">forward</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">wavs</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">FloatTensor</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">wavs_len</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">LongTensor</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/s3prl/nn/upstream.html#S3PRLUpstream.forward"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="reference external" href="https://github.com/s3prl/s3prl/blob/v0.4.1 /s3prl/nn/upstream.py#L135-L167"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#s3prl.nn.upstream.S3PRLUpstream.forward" title="Permalink to this definition">#</a></dt>
-<dd><dl class="field-list simple">
-<dt class="field-odd">Parameters<span class="colon">:</span></dt>
-<dd class="field-odd"><ul class="simple">
-<li><p><strong>wavs</strong> (<em>torch.FloatTensor</em>) – (batch_size, seqlen)</p></li>
-<li><p><strong>wavs_len</strong> (<em>torch.LongTensor</em>) – (batch_size, )</p></li>
-</ul>
-</dd>
-<dt class="field-even">Returns<span class="colon">:</span></dt>
-<dd class="field-even"><p><p>List[torch.FloatTensor], List[torch.LongTensor]</p>
-<ol class="arabic simple">
-<li><p>all the layers of hidden states: List[ (batch_size, max_seq_len, hidden_size) ]</p></li>
-<li><p>the valid length for each hidden states: List[ (batch_size, ) ]</p></li>
-</ol>
-</p>
-</dd>
-</dl>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="s3prl.nn.upstream.Featurizer.dump_patches">
+<span class="sig-name descname"><span class="pre">dump_patches</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">bool</span></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">False</span></em><a class="reference external" href="https://github.com/s3prl/s3prl/blob/v0.4.2 /s3prl/nn/upstream.py"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#s3prl.nn.upstream.Featurizer.dump_patches" title="Permalink to this definition">#</a></dt>
+<dd><p>This allows better BC support for <code class="xref py py-meth docutils literal notranslate"><span class="pre">load_state_dict()</span></code>. In
+<code class="xref py py-meth docutils literal notranslate"><span class="pre">state_dict()</span></code>, the version number will be saved as in the attribute
+<cite>_metadata</cite> of the returned state dict, and thus pickled. <cite>_metadata</cite> is a
+dictionary with keys that follow the naming convention of state dict. See
+<code class="docutils literal notranslate"><span class="pre">_load_from_state_dict</span></code> on how to use this information in loading.</p>
+<p>If new parameters/buffers are added/removed from a module, this number shall
+be bumped, and the module’s <cite>_load_from_state_dict</cite> method can compare the
+version number and do appropriate changes if the state dict is from before
+the change.</p>
 </dd></dl>
 
 <dl class="py attribute">
-<dt class="sig sig-object py" id="s3prl.nn.upstream.S3PRLUpstream.training">
-<span class="sig-name descname"><span class="pre">training</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">bool</span></em><a class="reference external" href="https://github.com/s3prl/s3prl/blob/v0.4.1 /s3prl/nn/upstream.py"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#s3prl.nn.upstream.S3PRLUpstream.training" title="Permalink to this definition">#</a></dt>
+<dt class="sig sig-object py" id="s3prl.nn.upstream.Featurizer.training">
+<span class="sig-name descname"><span class="pre">training</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">bool</span></em><a class="reference external" href="https://github.com/s3prl/s3prl/blob/v0.4.2 /s3prl/nn/upstream.py"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#s3prl.nn.upstream.Featurizer.training" title="Permalink to this definition">#</a></dt>
 <dd></dd></dl>
+
+</dd></dl>
+
+</section>
+<section id="upstreamdownstreammodel">
+<h2>UpstreamDownstreamModel<a class="headerlink" href="#upstreamdownstreammodel" title="Permalink to this heading">#</a></h2>
+<dl class="py class">
+<dt class="sig sig-object py" id="s3prl.nn.upstream.UpstreamDownstreamModel">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">s3prl.nn.upstream.</span></span><span class="sig-name descname"><span class="pre">UpstreamDownstreamModel</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">upstream</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="#s3prl.nn.upstream.S3PRLUpstream" title="s3prl.nn.upstream.S3PRLUpstream"><span class="pre">S3PRLUpstream</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">featurizer</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="#s3prl.nn.upstream.Featurizer" title="s3prl.nn.upstream.Featurizer"><span class="pre">Featurizer</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">downstream</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">upstream_trainable</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/s3prl/nn/upstream.html#UpstreamDownstreamModel"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="reference external" href="https://github.com/s3prl/s3prl/blob/v0.4.2 /s3prl/nn/upstream.py#L312-L345"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#s3prl.nn.upstream.UpstreamDownstreamModel" title="Permalink to this definition">#</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">Module</span></code></p>
+<dl class="py property">
+<dt class="sig sig-object py" id="s3prl.nn.upstream.UpstreamDownstreamModel.input_size">
+<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">input_size</span></span><a class="reference external" href="https://github.com/s3prl/s3prl/blob/v0.4.2 /s3prl/nn/upstream.py"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#s3prl.nn.upstream.UpstreamDownstreamModel.input_size" title="Permalink to this definition">#</a></dt>
+<dd></dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="s3prl.nn.upstream.UpstreamDownstreamModel.downsample_rate">
+<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">downsample_rate</span></span><a class="reference external" href="https://github.com/s3prl/s3prl/blob/v0.4.2 /s3prl/nn/upstream.py"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#s3prl.nn.upstream.UpstreamDownstreamModel.downsample_rate" title="Permalink to this definition">#</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="s3prl.nn.upstream.UpstreamDownstreamModel.dump_patches">
+<span class="sig-name descname"><span class="pre">dump_patches</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">bool</span></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">False</span></em><a class="reference external" href="https://github.com/s3prl/s3prl/blob/v0.4.2 /s3prl/nn/upstream.py"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#s3prl.nn.upstream.UpstreamDownstreamModel.dump_patches" title="Permalink to this definition">#</a></dt>
+<dd><p>This allows better BC support for <code class="xref py py-meth docutils literal notranslate"><span class="pre">load_state_dict()</span></code>. In
+<code class="xref py py-meth docutils literal notranslate"><span class="pre">state_dict()</span></code>, the version number will be saved as in the attribute
+<cite>_metadata</cite> of the returned state dict, and thus pickled. <cite>_metadata</cite> is a
+dictionary with keys that follow the naming convention of state dict. See
+<code class="docutils literal notranslate"><span class="pre">_load_from_state_dict</span></code> on how to use this information in loading.</p>
+<p>If new parameters/buffers are added/removed from a module, this number shall
+be bumped, and the module’s <cite>_load_from_state_dict</cite> method can compare the
+version number and do appropriate changes if the state dict is from before
+the change.</p>
+</dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="s3prl.nn.upstream.UpstreamDownstreamModel.output_size">
+<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">output_size</span></span><a class="reference external" href="https://github.com/s3prl/s3prl/blob/v0.4.2 /s3prl/nn/upstream.py"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#s3prl.nn.upstream.UpstreamDownstreamModel.output_size" title="Permalink to this definition">#</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="s3prl.nn.upstream.UpstreamDownstreamModel.training">
+<span class="sig-name descname"><span class="pre">training</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">bool</span></em><a class="reference external" href="https://github.com/s3prl/s3prl/blob/v0.4.2 /s3prl/nn/upstream.py"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#s3prl.nn.upstream.UpstreamDownstreamModel.training" title="Permalink to this definition">#</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="s3prl.nn.upstream.UpstreamDownstreamModel.forward">
+<span class="sig-name descname"><span class="pre">forward</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">wav</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">wav_len</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/s3prl/nn/upstream.html#UpstreamDownstreamModel.forward"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="reference external" href="https://github.com/s3prl/s3prl/blob/v0.4.2 /s3prl/nn/upstream.py#L338-L345"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#s3prl.nn.upstream.UpstreamDownstreamModel.forward" title="Permalink to this definition">#</a></dt>
+<dd><p>Defines the computation performed at every call.</p>
+<p>Should be overridden by all subclasses.</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>Although the recipe for forward pass needs to be defined within
+this function, one should call the <code class="xref py py-class docutils literal notranslate"><span class="pre">Module</span></code> instance afterwards
+instead of this since the former takes care of running the
+registered hooks while the latter silently ignores them.</p>
+</div>
+</dd></dl>
 
 </dd></dl>
 
@@ -411,15 +620,23 @@ but might not be the case for some advanced upstreams.</p>
       <footer>
         
         <div class="related-pages">
-          
-          <a class="prev-page" href="s3prl.nn.html">
-              <svg><use href="#svg-arrow-right"></use></svg>
+          <a class="next-page" href="s3prl.problem.html">
+              <div class="page-info">
+                <div class="context">
+                  <span>Next</span>
+                </div>
+                <div class="title">problem</div>
+              </div>
+              <svg class="furo-related-icon"><use href="#svg-arrow-right"></use></svg>
+            </a>
+          <a class="prev-page" href="s3prl.nn.specaug.html">
+              <svg class="furo-related-icon"><use href="#svg-arrow-right"></use></svg>
               <div class="page-info">
                 <div class="context">
                   <span>Previous</span>
                 </div>
                 
-                <div class="title">nn</div>
+                <div class="title">specaug</div>
                 
               </div>
             </a>
@@ -449,15 +666,16 @@ but might not be the case for some advanced upstreams.</p>
       <div class="toc-sticky toc-scroll">
         <div class="toc-title-container">
           <span class="toc-title">
-            Contents
+            On this page
           </span>
         </div>
         <div class="toc-tree-container">
           <div class="toc-tree">
             <ul>
 <li><a class="reference internal" href="#">upstream</a><ul>
-<li><a class="reference internal" href="#featurizer">Featurizer</a></li>
 <li><a class="reference internal" href="#s3prlupstream">S3PRLUpstream</a></li>
+<li><a class="reference internal" href="#featurizer">Featurizer</a></li>
+<li><a class="reference internal" href="#upstreamdownstreammodel">UpstreamDownstreamModel</a></li>
 </ul>
 </li>
 </ul>

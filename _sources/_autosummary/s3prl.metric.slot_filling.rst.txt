@@ -1,0 +1,48 @@
+slot\_filling
+=============
+
+**(s3prl.metric.slot_filling)**
+
+.. automodule:: s3prl.metric.slot_filling
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+slot_type_f1
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. autofunction:: slot_type_f1
+
+slot_value_cer
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. autofunction:: slot_value_cer
+
+slot_value_wer
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. autofunction:: slot_value_wer
+
+slot_edit_f1
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. autofunction:: slot_edit_f1
+
+
+
+
+

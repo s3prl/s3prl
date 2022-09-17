@@ -1,0 +1,38 @@
+base
+====
+
+**(s3prl.task.base)**
+
+.. automodule:: s3prl.task.base
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Task
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. autoclass:: Task
+   :member-order: bysource
+   :members:
+   :undoc-members:
+   :inherited-members: torch.nn.Module,nn.Module,Module
+   :show-inheritance:
+
+
+
+
+
+
+
+
+

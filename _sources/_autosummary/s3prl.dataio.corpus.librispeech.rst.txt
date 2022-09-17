@@ -1,0 +1,38 @@
+librispeech
+===========
+
+**(s3prl.dataio.corpus.librispeech)**
+
+.. automodule:: s3prl.dataio.corpus.librispeech
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+LibriSpeech
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. autoclass:: LibriSpeech
+   :member-order: bysource
+   :members:
+   :undoc-members:
+   :inherited-members: torch.nn.Module,nn.Module,Module
+   :show-inheritance:
+
+
+
+
+
+
+
+
+
