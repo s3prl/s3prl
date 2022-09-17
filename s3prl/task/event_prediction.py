@@ -21,6 +21,8 @@ logger = logging.getLogger(__name__)
 
 SAMPLE_RATE = 16000
 
+__all__ = ["EventPredictionTask"]
+
 
 def create_events_from_prediction(
     prediction_dict: Dict[float, torch.Tensor],
@@ -198,7 +200,7 @@ class OneHotToCrossEntropyLoss(torch.nn.Module):
         return self.loss(y_hat, y)
 
 
-class HearEventPredictionTask(Task):
+class EventPredictionTask(Task):
     def __init__(
         self,
         model: torch.nn.Module,

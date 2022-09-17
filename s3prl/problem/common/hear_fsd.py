@@ -6,7 +6,7 @@ import pandas as pd
 import json
 from pathlib import Path
 from s3prl.nn.hear import HearFullyConnectedPrediction
-from s3prl.task.hear_scene import HearScenePredictionTask
+from s3prl.task.scene_prediction import ScenePredictionTask
 from s3prl.dataio.encoder import CategoryEncoder
 from s3prl.dataio.sampler import FixedBatchSizeBatchSampler
 from s3prl.dataset.utterance_classification_pipe import HearScenePipe
@@ -216,4 +216,4 @@ class HearFSD(SuperbSID):
         )
 
     def build_task(self, build_task: dict, model: torch.nn.Module, encoder):
-        return HearScenePredictionTask(model, encoder, **build_task)
+        return ScenePredictionTask(model, encoder, **build_task)

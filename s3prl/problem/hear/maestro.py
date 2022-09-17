@@ -5,7 +5,7 @@ from s3prl import Container, Workspace
 from s3prl.corpus.hear import maestro
 from s3prl.util.configuration import default_cfg, field
 from s3prl.nn.hear import HearFullyConnectedPrediction
-from s3prl.task.hear_timestamp import HearEventPredictionTask
+from s3prl.task.event_prediction import EventPredictionTask
 
 from .timestamp import HearTimestamp
 

@@ -11,7 +11,7 @@ import torchaudio
 from pathlib import Path
 from omegaconf import MISSING
 
-from s3prl.task.hear_timestamp import HearEventPredictionTask
+from s3prl.task.event_prediction import EventPredictionTask
 from s3prl.dataset.hear_timestamp import HearTimestampDatapipe
 from s3prl.dataio.sampler import GroupSameItemSampler, FixedBatchSizeBatchSampler
 
@@ -239,7 +239,7 @@ class HearDcase2016Task2(HearFSD):
         valid_events = None if valid_df is None else df_to_events(valid_df)
         test_events = None if test_df is None else df_to_events(test_df)
 
-        return HearEventPredictionTask(
+        return EventPredictionTask(
             model,
             encoder,
             valid_target_events=valid_events,

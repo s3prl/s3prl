@@ -1,7 +1,7 @@
 from s3prl.corpus.hear import dcase_2016_task2
 from s3prl.util.configuration import default_cfg, field
 from s3prl.nn.hear import HearFullyConnectedPrediction
-from s3prl.task.hear_timestamp import HearEventPredictionTask
+from s3prl.task.event_prediction import EventPredictionTask
 
 from .timestamp import HearTimestamp
 

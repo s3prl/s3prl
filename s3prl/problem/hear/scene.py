@@ -11,7 +11,7 @@ from s3prl.dataset.utterance_classification_pipe import HearScenePipe
 from s3prl.sampler import FixedBatchSizeBatchSampler
 from s3prl.task.utterance_classification_task import UtteranceClassificationTask
 from s3prl.nn.hear import HearFullyConnectedPrediction
-from s3prl.task.hear_scene import HearScenePredictionTask
+from s3prl.task.scene_prediction import ScenePredictionTask
 
 logger = logging.getLogger(__name__)
 

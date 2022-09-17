@@ -9,6 +9,8 @@ from s3prl.dataio.encoder.category import CategoryEncoder
 
 from ._hear_score import available_scores, validate_score_return_type
 
+__all__ = ["ScenePredictionTask"]
+
 
 class OneHotToCrossEntropyLoss(torch.nn.Module):
     def __init__(self):
@@ -21,11 +23,7 @@ class OneHotToCrossEntropyLoss(torch.nn.Module):
         return self.loss(y_hat, y)
 
 
-class HearScenePredictionTask(Task):
-    """
-    Prediction model with simple scoring over entire audio scenes.
-    """
-
+class ScenePredictionTask(Task):
     def __init__(
         self,
         model: torch.nn.Module,
