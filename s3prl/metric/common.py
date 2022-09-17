@@ -105,9 +105,16 @@ def cer(hyps: List[str], refs: List[str]) -> float:
     return ter(hyps, refs)
 
 
-def compute_eer(labels, scores):
-    """
-    sklearn style compute eer
+def compute_eer(labels: List[int], scores: List[float]):
+    """Compute equal error rate.
+
+    Args:
+        scores (List[float]): List of hypotheses.
+        labels (List[int]): List of references.
+
+    Returns:
+        eer (float): Equal error rate.
+        treshold (float): The treshold to accept a target trial.
     """
     fpr, tpr, thresholds = roc_curve(labels, scores, pos_label=1)
     eer = brentq(lambda x: 1.0 - x - interp1d(fpr, tpr)(x), 0.0, 1.0)
@@ -115,11 +122,27 @@ def compute_eer(labels, scores):
     return eer, threshold
 
 
-def compute_minDCF(labels, scores, p_target=0.01, c_miss=1, c_fa=1):
-    """
-    MinDCF
+def compute_minDCF(
+        labels: List[int], 
+        scores: List[float], 
+        p_target: float=0.01, 
+        c_miss: int=1, 
+        c_fa: int=1
+    ):
+    """Compute MinDCF.
     Computes the minimum of the detection cost function.  The comments refer to
     equations in Section 3 of the NIST 2016 Speaker Recognition Evaluation Plan.
+
+    Args:
+        scores (List[float]): List of hypotheses.
+        labels (List[int]): List of references.
+        p (float): The prior probability of positive class.
+        c_miss (int): The cost of miss.
+        c_fa (int): The cost of false alarm.
+
+    Returns:
+        min_dcf (float): The calculated min_dcf.
+        min_c_det_threshold (float): The treshold to calculate min_dcf.
     """
     fpr, tpr, thresholds = roc_curve(labels, scores, pos_label=1)
     fnr = 1.0 - tpr
