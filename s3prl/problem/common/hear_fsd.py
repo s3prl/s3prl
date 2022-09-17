@@ -215,5 +215,12 @@ class HearFSD(SuperbSID):
             downstream_input_size, downstream_output_size, **build_downstream
         )
 
-    def build_task(self, build_task: dict, model: torch.nn.Module, encoder):
+    def build_task(
+        self,
+        build_task: dict,
+        model: torch.nn.Module,
+        encoder,
+        valid_df: pd.DataFrame = None,
+        test_df: pd.DataFrame = None,
+    ):
         return ScenePredictionTask(model, encoder, **build_task)
