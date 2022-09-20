@@ -49,6 +49,10 @@ class DistributedBatchSamplerWrapper:
         self.allow_uneven = allow_uneven
 
     def __iter__(self) -> Iterator[T_co]:
+        logger.info(
+            f"Building distributed batch sampler for rank={self.rank}, world_size={self.num_replicas}"
+        )
+
         all_rank_batch_indices = list(iter(self.batch_sampler))
         if len(all_rank_batch_indices) % self.num_replicas == 0:
             target_batch_indices = all_rank_batch_indices

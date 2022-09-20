@@ -2,7 +2,7 @@
 For datasets with highly unbalanced class
 
 Authors:
-  * Shu-wen Yang 2022
+  * Leo 2022
 """
 
 from collections import Counter
@@ -17,6 +17,10 @@ __all__ = ["BalancedWeightedSampler"]
 
 
 class BalancedWeightedSampler:
+    """
+    This batch sampler is always randomized, hence cannot be used for testing
+    """
+
     def __init__(
         self,
         dataset,
@@ -64,6 +68,9 @@ class BalancedWeightedSampler:
             if len(batch) == self.batch_size:
                 yield batch
                 batch = []
+
+        if len(batch) > 0:
+            yield batch
 
     def __len__(self):
         return len(list(iter(self)))

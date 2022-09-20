@@ -3,7 +3,7 @@ The setting of Superb KS
 
 Authors
   * Yist Y. Lin 2021
-  * Shu-wen Yang 2022
+  * Leo 2022
 """
 
 import logging
@@ -134,7 +134,6 @@ class SuperbKS(Common):
             build_batch_sampler=dict(
                 train=dict(
                     batch_size=32,
-                    shuffle=True,
                 ),
                 valid=dict(
                     batch_size=32,

@@ -10,6 +10,7 @@ Authors:
 
 import abc
 import re
+import tempfile
 from typing import List
 
 # Replacing the 2 tokens right before english starts as <eos> & <unk>
@@ -158,15 +159,28 @@ class CharacterSlotTokenizer(Tokenizer):
             (i + len(self._vocab_list)): self.slots[i] for i in range(len(self.slots))
         }
 
-    def encode(self, s: str) -> List[int]:
+    def encode(self, sent: str, iobs: str) -> List[int]:
         # Always strip trailing space, \r and \n
-        sent, iobs = s.strip("\r\n ").split("\t")
+        sent = sent.strip("\r\n ")
+        iobs = iobs.strip("\r\n ")
         sent = sent.replace("楽園追放", "EXPELLED")
         sent = sent.replace("官方杂志", "")
         sent = sent.translate(translator)
         sent = re.sub(" +", " ", sent).strip(" ")
-        sent = sent.split(" ")[1:-1]
-        iobs = iobs.split(" ")[1:-1]
+        sent = sent.split(" ")
+        iobs = iobs.split(" ")
+        assert len(sent) == len(
+            iobs
+        ), f"transcription and iobs should have same number of words (split by space)"
+
+        if sent[0] == "BOS":
+            sent = sent[1:]
+            iobs = iobs[1:]
+
+        if sent[-1] == "EOS":
+            sent = sent[:-1]
+            iobs = iobs[:-1]
+
         tokens = []
         for i, (wrd, iob) in enumerate(zip(sent, iobs)):
             if wrd in "?!.,;-–…":
@@ -183,8 +197,7 @@ class CharacterSlotTokenizer(Tokenizer):
             else:
                 if len(tokens) > 0 and tokens[-1] != self.space_idx:
                     tokens.append(self.space_idx)
-        if len(tokens) == 0 or tokens[-1] != self.eos_idx:
-            tokens.append(self.eos_idx)
+        assert tokens[-1] == self.eos_idx
         return tokens
 
     def decode(self, idxs: List[int], ignore_repeat: bool = False) -> str:
@@ -207,7 +220,7 @@ class CharacterSlotTokenizer(Tokenizer):
             vocab_list = [line.strip("\r\n") for line in f]
         org_slots = open(slots_file).read().split("\n")
         slots = []
-        for slot in org_slots[1:]:
+        for slot in [slot for slot in org_slots if slot != "O"]:
             slots.append("B-" + slot)
             slots.append("E-" + slot)
         return cls(vocab_list, slots)
@@ -250,7 +263,9 @@ class SubwordTokenizer(Tokenizer):
         self.spm = spm
 
     def encode(self, s: str) -> List[int]:
-        return self.spm.encode_as_ids(s)
+        tokens = self.spm.encode_as_ids(s)
+        assert tokens[-1] == self.eos_idx
+        return tokens
 
     def decode(self, idxs: List[int], ignore_repeat: bool = False) -> str:
         crop_idx = []
@@ -271,8 +286,12 @@ class SubwordTokenizer(Tokenizer):
 
         spm = splib.SentencePieceProcessor()
         spm.load(filepath)
-        spm.set_encode_extra_options(":eos")
+        spm.set_encode_extra_options("eos")
         return cls(spm)
+
+    def __setstate__(self, state):
+        self.__dict__.update(state)
+        self.spm.set_encode_extra_options("eos")
 
     @property
     def vocab_size(self) -> int:
@@ -302,10 +321,28 @@ class SubwordSlotTokenizer(Tokenizer):
             (i + len(self.spm)): self.slots[i] for i in range(len(self.slots))
         }
 
-    def encode(self, s: str) -> List[int]:
-        sent, iobs = s.strip().split("\t")
-        sent = sent.split(" ")[1:-1]
-        iobs = iobs.split(" ")[1:-1]
+    def encode(self, sent: str, iobs: str) -> List[int]:
+        # Always strip trailing space, \r and \n
+        sent = sent.strip("\r\n ")
+        iobs = iobs.strip("\r\n ")
+        sent = sent.replace("楽園追放", "EXPELLED")
+        sent = sent.replace("官方杂志", "")
+        sent = sent.translate(translator)
+        sent = re.sub(" +", " ", sent).strip(" ")
+        sent = sent.split(" ")
+        iobs = iobs.split(" ")
+        assert len(sent) == len(
+            iobs
+        ), f"transcription and iobs should have same number of words (split by space)"
+
+        if sent[0] == "BOS":
+            sent = sent[1:]
+            iobs = iobs[1:]
+
+        if sent[-1] == "EOS":
+            sent = sent[:-1]
+            iobs = iobs[:-1]
+
         tokens = []
         for i, (wrd, iob) in enumerate(zip(sent, iobs)):
             if wrd in "?!.,;-":
@@ -314,11 +351,10 @@ class SubwordSlotTokenizer(Tokenizer):
                 wrd = "AND"
             if iob != "O" and (i == 0 or iobs[i - 1] != iob):
                 tokens.append(self.slot2id["B-" + iob])
-            tokens += self.spm.encode_as_ids(wrd)[:-1]
+            tokens += self.spm.encode_as_ids(wrd)
             if iob != "O" and (i == len(sent) - 1 or iobs[i + 1] != iob):
                 tokens.append(self.slot2id["E-" + iob])
-        if tokens[-1] != 1:
-            tokens.append(1)
+        assert tokens[-1] == self.eos_idx
         return tokens
 
     def decode(self, idxs: List[int], ignore_repeat: bool = False) -> str:
@@ -335,11 +371,16 @@ class SubwordSlotTokenizer(Tokenizer):
 
         sent, ret = [], []
         for i, x in enumerate(crop_idx):
-            if x >= len(self.spm):
-                ret.append(self.spm.decode_ids(sent) + [self.id2slot[x]])
-            else:
+            if x >= len(self.spm):  # x is slot token
+                slot = self.id2slot[x]
+                ret.append(slot)
+                if len(sent) > 0:
+                    decoded = self.spm.decode_ids(sent)
+                    ret.insert(-1, decoded)
+                    sent = []
+            else:  # x is a regular token interpretable by spm
                 sent.append(x)
-        return ret
+        return " ".join(ret)
 
     @classmethod
     def load_from_file(cls, filepath: str, slots_file: str):
@@ -350,10 +391,14 @@ class SubwordSlotTokenizer(Tokenizer):
         spm.set_encode_extra_options(":eos")
         org_slots = open(slots_file).read().split("\n")
         slots = []
-        for slot in org_slots[1:]:
+        for slot in [slot for slot in org_slots if slot != "O"]:
             slots.append("B-" + slot)
             slots.append("E-" + slot)
         return cls(spm, slots)
+
+    def __setstate__(self, state):
+        self.__dict__.update(state)
+        self.spm.set_encode_extra_options("eos")
 
     @property
     def vocab_size(self) -> int:
@@ -477,25 +522,34 @@ def load_tokenizer(
     Returns:
         Tokenizer: Text tokenizer.
     """
-    if slots_file is not None and not mode.endswith("slot"):
-        mode = f"{mode}-slot"
+    assert (
+        int(vocab_file is not None) + int(vocab_list is not None) <= 1
+    ), "For 'vocab_file' and 'vocab_list', at most one argument can be presented"
 
-    if mode == "character":
-        return CharacterTokenizer.load_from_file(vocab_file, vocab_list)
-    elif mode == "character-slot":
-        return CharacterSlotTokenizer.load_from_file(vocab_file, slots_file)
-    elif mode == "subword":
-        return SubwordTokenizer.load_from_file(vocab_file)
-    elif mode == "subword-slot":
-        return SubwordSlotTokenizer.load_from_file(vocab_file, slots_file)
-    elif mode == "word":
-        return WordTokenizer.load_from_file(vocab_file, vocab_list)
-    elif mode == "phoneme":
-        return PhonemeTokenizer.load_from_file(vocab_file, vocab_list)
-    elif mode.startswith("bert-"):
-        return BertTokenizer.load_from_file(mode)
-    else:
-        raise NotImplementedError("`{}` is not yet supported.".format(mode))
+    with tempfile.NamedTemporaryFile("w") as f:
+        if vocab_list is not None:
+            f.writelines([f"{vocab}\n" for vocab in vocab_list])
+            vocab_file = f.name
+
+        if slots_file is not None and not mode.endswith("slot"):
+            mode = f"{mode}-slot"
+
+        if mode == "character":
+            return CharacterTokenizer.load_from_file(vocab_file)
+        elif mode == "character-slot":
+            return CharacterSlotTokenizer.load_from_file(vocab_file, slots_file)
+        elif mode == "subword":
+            return SubwordTokenizer.load_from_file(vocab_file)
+        elif mode == "subword-slot":
+            return SubwordSlotTokenizer.load_from_file(vocab_file, slots_file)
+        elif mode == "word":
+            return WordTokenizer.load_from_file(vocab_file)
+        elif mode == "phoneme":
+            return PhonemeTokenizer.load_from_file(vocab_file)
+        elif mode.startswith("bert-"):
+            return BertTokenizer.load_from_file(mode)
+        else:
+            raise NotImplementedError("`{}` is not yet supported.".format(mode))
 
 
 def default_phoneme_tokenizer() -> PhonemeTokenizer:
