@@ -13,17 +13,28 @@ jobs:
     strategy:
       max-parallel: 4
       matrix:
-        extra: [none, all]
+        mode: [upstream, all_others]
         os: [ubuntu-18.04]
         python-version: [3.8]
         torchaudio-version: [0.8.1, 0.9.1, 0.10.2, 0.11.0, 0.12.1]
         include:
           - os: ubuntu-20.04
+            mode: upstream
             python-version: 3.7
             torchaudio-version: 0.11.0
           - os: ubuntu-20.04
+            mode: upstream
             python-version: 3.9
             torchaudio-version: 0.8.1
+          - os: ubuntu-20.04
+            mode: all_others
+            python-version: 3.7
+            torchaudio-version: 0.11.0
+          - os: ubuntu-20.04
+            mode: all_others
+            python-version: 3.9
+            torchaudio-version: 0.8.1
+
 
     runs-on: ${{ matrix.os }}
 
@@ -46,11 +57,11 @@ jobs:
       run: pip3 install --upgrade pip wheel
 
     - name: Install S3PRL basic
-      if: ${{ matrix.extra == 'none' }}
+      if: ${{ matrix.mode == 'upstream' }}
       run: pip3 install -e "./"
 
     - name: Install S3PRL all
-      if: ${{ matrix.extra == 'all' }}
+      if: ${{ matrix.mode == 'all_others' }}
       run: pip3 install -e ".[all]"
 
     - name: Install specific PyTorch & Torchaudio
@@ -68,11 +79,11 @@ jobs:
     #   uses: lhotari/action-upterm@v1
 
     - name: Run tests for common upstream
-      if: ${{ matrix.extra == 'none' }}
+      if: ${{ matrix.mode == 'upstream' }}
       run: |
         pytest test/test_upstream.py --runupstream -n 2
 
     - name: Run tests for all s3prl functions except upstream
-      if: ${{ matrix.extra == 'all' }}
+      if: ${{ matrix.mode == 'all_others' }}
       run: |
         pytest --runslow -n 2

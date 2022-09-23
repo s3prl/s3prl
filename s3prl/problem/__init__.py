@@ -2,10 +2,6 @@
 Pre-defined python recipes with customizable methods
 """
 
-# HACK: SummaryWriter must be imported at the begining or else it will lead to core dumped
-# This is a known issue: https://github.com/pytorch/pytorch/issues/30651
-from torch.utils.tensorboard.writer import SummaryWriter
-
 from .asr.superb_asr import SuperbASR
 from .asr.superb_pr import SuperbPR
 from .asr.superb_sf import SuperbSF
