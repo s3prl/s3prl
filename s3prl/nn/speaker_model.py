@@ -48,6 +48,7 @@ class TDNN(nn.Module):
         dropout_p (float): (default, 0.0) The dropout rate
         batch_norm (bool): (default, False) Use batch norm for TDNN layers
     """
+
     def __init__(
         self,
         input_size: int,
@@ -129,6 +130,7 @@ class XVectorBackbone(nn.Module):
         dropout_p (float): (default, 0.0) The dropout rate
         batch_norm (bool): (default, False) Use batch norm for TDNN layers
     """
+
     def __init__(
         self,
         input_size: int,
@@ -214,6 +216,7 @@ class SpeakerEmbeddingExtractor(nn.Module):
         backbone (str): (default, XVector) Use which kind of speaker model
         pooling_type (str): (default, TAP) Use which kind of pooling method
     """
+
     def __init__(
         self,
         input_size: int,
@@ -259,7 +262,7 @@ class SpeakerEmbeddingExtractor(nn.Module):
     def output_size(self) -> int:
         return self._outdim
 
-    def forward(self, x: torch.Tensor, xlen: torch.LongTensor=None):
+    def forward(self, x: torch.Tensor, xlen: torch.LongTensor = None):
         """
         Args:
             x (torch.Tensor): size (batch, seq_len, input_size)

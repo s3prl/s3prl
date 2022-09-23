@@ -262,6 +262,7 @@ class SuperbDiarizationModel(AbsFrameModel):
         rnn_layers (int): number of rnn layers
         hidden_size (int): the hidden size across all rnn layers
     """
+
     def __init__(
         self, input_size: int, output_size: int, rnn_layers: int, hidden_size: int
     ):

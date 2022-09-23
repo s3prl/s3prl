@@ -26,7 +26,7 @@ TIMESTAMP_HOP_SIZE = 50
 BATCH_SIZE = 512
 
 
-def get_model(model_name: str = "", cfg = {}) -> torch.nn.Module:
+def get_model(model_name: str = "", cfg={}) -> torch.nn.Module:
     """Define the model object.
 
     Parameters
