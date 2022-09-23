@@ -75,4 +75,4 @@ jobs:
     - name: Run tests for all s3prl functions except upstream
       if: ${{ matrix.mode == 'all_others' }}
       run: |
-        tox -e all_others-audio${{ matrix.torchaudio-version }} -- -n 2
+        tox -e all_others-deps_all-audio${{ matrix.torchaudio-version }} -- -n 2
