@@ -171,7 +171,7 @@ Test cases ensure that all upstreams are working and are same with pre-extracted
         "hubert",
     ],
 )
-def test_common_models(name):
+def test_common_upstream(name):
     _prepare_sample_hidden_states()
     _compare_with_extracted(name)
     _test_forward_backward(
@@ -185,12 +185,15 @@ def test_common_models(name):
 
 @pytest.mark.upstream
 @pytest.mark.slow
-def test_all_model_with_extracted():
+def test_upstream_with_extracted(upstream_names: str = None):
     _prepare_sample_hidden_states()
 
-    options = S3PRLUpstream.available_names(only_registered_ckpt=True)
-    options = _filter_options(options)
-    options = sorted(options)
+    if upstream_names is not None:
+        options = upstream_names.split(",")
+    else:
+        options = S3PRLUpstream.available_names(only_registered_ckpt=True)
+        options = _filter_options(options)
+        options = sorted(options)
 
     tracebacks = []
     for name in options:
@@ -212,11 +215,14 @@ def test_all_model_with_extracted():
 
 @pytest.mark.upstream
 @pytest.mark.slow
-def test_all_model_forward_backward():
-    options = S3PRLUpstream.available_names(only_registered_ckpt=True)
-    options = _filter_options(options)
-    options = sorted(options)
-    options = reversed(options)
+def test_upstream_forward_backward(upstream_names: str = None):
+    if upstream_names is not None:
+        options = upstream_names.split(",")
+    else:
+        options = S3PRLUpstream.available_names(only_registered_ckpt=True)
+        options = _filter_options(options)
+        options = sorted(options)
+        options = reversed(options)
 
     tracebacks = []
     for name in options:
@@ -234,19 +240,6 @@ def test_all_model_forward_backward():
             logger.error(f"Error in {name}:\n{tb}")
         logger.error(f"All failed models:\n{[name for name, _ in tracebacks]}")
         assert False
-
-
-def test_one_model(upstream_name: str):
-    """
-    usage: pytest --upstream_name [NAME]
-    if this option is not given, this test case is always passed
-    """
-    if upstream_name is None:
-        return
-
-    _prepare_sample_hidden_states()
-    _compare_with_extracted(upstream_name)
-    _test_forward_backward(upstream_name)
 
 
 @pytest.mark.upstream
