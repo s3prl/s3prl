@@ -5,7 +5,7 @@
     <meta name="color-scheme" content="light dark"><link rel="index" title="Index" href="../../../genindex.html" /><link rel="search" title="Search" href="../../../search.html" />
 
     <meta name="generator" content="sphinx-5.1.1, furo 2022.09.15"/>
-        <title>s3prl.metric.common - S3PRL 0.4.2 documentation</title>
+        <title>s3prl.metric.common - S3PRL 0.4.3 documentation</title>
       <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css" />
     <link rel="stylesheet" type="text/css" href="../../../_static/styles/furo.css?digest=9ec31e2665bf879c1d47d93a8ec4893870ee1e45" />
     <link rel="stylesheet" type="text/css" href="../../../_static/styles/furo-extensions.css?digest=30d1aed668e5c3a91c3e3bf6a60b675221979f0e" />
@@ -123,7 +123,7 @@
       </label>
     </div>
     <div class="header-center">
-      <a href="../../../index.html"><div class="brand">S3PRL 0.4.2
+      <a href="../../../index.html"><div class="brand">S3PRL 0.4.3
  documentation</div></a>
     </div>
     <div class="header-right">
@@ -147,7 +147,7 @@
       <div class="sidebar-sticky"><a class="sidebar-brand" href="../../../index.html">
   
   
-  <span class="sidebar-brand-text">S3PRL 0.4.2
+  <span class="sidebar-brand-text">S3PRL 0.4.3
  documentation</span>
   
 </a><form class="sidebar-search-container" method="get" action="../../../search.html" role="search">
@@ -446,12 +446,12 @@
 
 
 <div class="viewcode-block" id="compute_minDCF"><a class="viewcode-back" href="../../../_autosummary/s3prl.metric.common.html#s3prl.metric.compute_minDCF">[docs]</a><span class="k">def</span> <span class="nf">compute_minDCF</span><span class="p">(</span>
-        <span class="n">labels</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="nb">int</span><span class="p">],</span> 
-        <span class="n">scores</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="nb">float</span><span class="p">],</span> 
-        <span class="n">p_target</span><span class="p">:</span> <span class="nb">float</span><span class="o">=</span><span class="mf">0.01</span><span class="p">,</span> 
-        <span class="n">c_miss</span><span class="p">:</span> <span class="nb">int</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> 
-        <span class="n">c_fa</span><span class="p">:</span> <span class="nb">int</span><span class="o">=</span><span class="mi">1</span>
-    <span class="p">):</span>
+    <span class="n">labels</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="nb">int</span><span class="p">],</span>
+    <span class="n">scores</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="nb">float</span><span class="p">],</span>
+    <span class="n">p_target</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">0.01</span><span class="p">,</span>
+    <span class="n">c_miss</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">1</span><span class="p">,</span>
+    <span class="n">c_fa</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">1</span><span class="p">,</span>
+<span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;Compute MinDCF.</span>
 <span class="sd">    Computes the minimum of the detection cost function.  The comments refer to</span>
 <span class="sd">    equations in Section 3 of the NIST 2016 Speaker Recognition Evaluation Plan.</span>
