@@ -1,16 +1,17 @@
-import pytest
-import shutil
 import logging
+import shutil
 import tempfile
 import traceback
 from pathlib import Path
 from subprocess import check_call
 
+import pytest
 import torch
 from filelock import FileLock
-from s3prl.nn import S3PRLUpstream, Featurizer
-from s3prl.util.pseudo_data import get_pseudo_wavs
+
+from s3prl.nn import Featurizer, S3PRLUpstream
 from s3prl.util.download import _urls_to_filepaths
+from s3prl.util.pseudo_data import get_pseudo_wavs
 
 logger = logging.getLogger(__name__)
 
@@ -18,6 +19,8 @@ TEST_MORE_ITER = 2
 TRAIN_MORE_ITER = 5
 SAMPLE_RATE = 16000
 ATOL = 0.01
+MAX_LENGTH_DIFF = 3
+EXTRA_SHORT_SEC = 0.001
 EXTRACTED_GT_DIR = Path(__file__).parent.parent / "sample_hidden_states"
 
 # Expect the following directory structure:
@@ -56,8 +59,12 @@ def _prepare_sample_hidden_states():
         pass
 
 
-def _extract_feat(model: S3PRLUpstream, seed: int = 0):
-    wavs, wavs_len = get_pseudo_wavs(seed=seed, padded=True)
+def _extract_feat(
+    model: S3PRLUpstream,
+    seed: int = 0,
+    **pseudo_wavs_args,
+):
+    wavs, wavs_len = get_pseudo_wavs(seed=seed, padded=True, **pseudo_wavs_args)
     all_hs, all_lens = model(wavs, wavs_len)
     return all_hs
 
@@ -65,6 +72,8 @@ def _extract_feat(model: S3PRLUpstream, seed: int = 0):
 def _all_hidden_states_same(hs1, hs2):
     for h1, h2 in zip(hs1, hs2):
         if h1.size(1) != h2.size(1):
+            length_diff = abs(h1.size(1) - h2.size(1))
+            assert length_diff <= MAX_LENGTH_DIFF, f"{length_diff} > {MAX_LENGTH_DIFF}"
             min_seqlen = min(h1.size(1), h2.size(1))
             h1 = h1[:, :min_seqlen, :]
             h2 = h2[:, :min_seqlen, :]
@@ -111,13 +120,13 @@ def _compare_with_extracted(name: str):
         ), "should have deterministic num_layer in train mode"
 
 
-def _test_forward_backward(name: str):
+def _test_forward_backward(name: str, **pseudo_wavs_args):
     """
     Test the upstream with the name: 'name' can successfully forward and backward
     """
     with torch.autograd.set_detect_anomaly(True):
         model = S3PRLUpstream(name)
-        hs = _extract_feat(model)
+        hs = _extract_feat(model, **pseudo_wavs_args)
         h_sum = 0
         for h in hs:
             h_sum = h_sum + h.sum()
@@ -162,20 +171,29 @@ Test cases ensure that all upstreams are working and are same with pre-extracted
         "hubert",
     ],
 )
-def test_common_models(name):
+def test_common_upstream(name):
     _prepare_sample_hidden_states()
     _compare_with_extracted(name)
-    _test_forward_backward(name)
+    _test_forward_backward(
+        name, min_secs=EXTRA_SHORT_SEC, max_secs=EXTRA_SHORT_SEC, n=1
+    )
+    _test_forward_backward(
+        name, min_secs=EXTRA_SHORT_SEC, max_secs=EXTRA_SHORT_SEC, n=2
+    )
+    _test_forward_backward(name, min_secs=EXTRA_SHORT_SEC, max_secs=1, n=3)
 
 
 @pytest.mark.upstream
 @pytest.mark.slow
-def test_all_model_with_extracted():
+def test_upstream_with_extracted(upstream_names: str = None):
     _prepare_sample_hidden_states()
 
-    options = S3PRLUpstream.available_names(only_registered_ckpt=True)
-    options = _filter_options(options)
-    options = sorted(options)
+    if upstream_names is not None:
+        options = upstream_names.split(",")
+    else:
+        options = S3PRLUpstream.available_names(only_registered_ckpt=True)
+        options = _filter_options(options)
+        options = sorted(options)
 
     tracebacks = []
     for name in options:
@@ -197,11 +215,14 @@ def test_all_model_with_extracted():
 
 @pytest.mark.upstream
 @pytest.mark.slow
-def test_all_model_forward_backward():
-    options = S3PRLUpstream.available_names(only_registered_ckpt=True)
-    options = _filter_options(options)
-    options = sorted(options)
-    options = reversed(options)
+def test_upstream_forward_backward(upstream_names: str = None):
+    if upstream_names is not None:
+        options = upstream_names.split(",")
+    else:
+        options = S3PRLUpstream.available_names(only_registered_ckpt=True)
+        options = _filter_options(options)
+        options = sorted(options)
+        options = reversed(options)
 
     tracebacks = []
     for name in options:
@@ -219,19 +240,6 @@ def test_all_model_forward_backward():
             logger.error(f"Error in {name}:\n{tb}")
         logger.error(f"All failed models:\n{[name for name, _ in tracebacks]}")
         assert False
-
-
-def test_one_model(upstream_name: str):
-    """
-    usage: pytest --upstream_name [NAME]
-    if this option is not given, this test case is always passed
-    """
-    if upstream_name is None:
-        return
-
-    _prepare_sample_hidden_states()
-    _compare_with_extracted(upstream_name)
-    _test_forward_backward(upstream_name)
 
 
 @pytest.mark.upstream

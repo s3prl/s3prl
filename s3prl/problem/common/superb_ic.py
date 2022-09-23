@@ -17,12 +17,12 @@ from omegaconf import MISSING
 from torch.utils.data import Dataset
 
 from s3prl.dataio.corpus.fluent_speech_commands import FluentSpeechCommands
+from s3prl.dataio.encoder.category import CategoryEncoders
+from s3prl.dataio.sampler import FixedBatchSizeBatchSampler
 from s3prl.dataset.utterance_classification_pipe import (
     UtteranceMultipleCategoryClassificationPipe,
 )
-from s3prl.dataio.encoder.category import CategoryEncoders
 from s3prl.nn.linear import MeanPoolingLinear
-from s3prl.dataio.sampler import FixedBatchSizeBatchSampler
 from s3prl.task.utterance_classification_task import (
     UtteranceMultiClassClassificationTask,
 )

@@ -1,20 +1,22 @@
 # Copyright Hear Benchmark Team
 # Copyright Shu-wen Yang
 
-import torch
 import logging
+from collections import defaultdict
+from pathlib import Path
+from typing import Any, Dict, List, Optional, Tuple, Union
+
+import more_itertools
 import numpy as np
 import pandas as pd
-from tqdm import tqdm
-import more_itertools
-from pathlib import Path
-from collections import defaultdict
-from typing import List, Dict, Any, Tuple, Union, Optional
+import torch
 from scipy.ndimage import median_filter
 from sklearn.model_selection import ParameterGrid
+from tqdm import tqdm
 
-from s3prl.task.base import Task
 from s3prl.dataio.encoder.category import CategoryEncoder
+from s3prl.task.base import Task
+
 from ._hear_score import available_scores, validate_score_return_type
 
 logger = logging.getLogger(__name__)

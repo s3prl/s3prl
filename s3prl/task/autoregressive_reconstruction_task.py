@@ -6,8 +6,8 @@ from typing import List
 import torch
 
 from s3prl import Logs, Output
-from s3prl.nn.rnn_apc import RnnApc as UpstreamExample
 from s3prl.nn.predictor_identity import PredictorIdentity as PredictorExample
+from s3prl.nn.rnn_apc import RnnApc as UpstreamExample
 
 from . import Task
 

@@ -17,11 +17,11 @@ from omegaconf import MISSING
 from torch.utils.data import Dataset
 
 from s3prl.dataio.corpus.voxceleb1sid import VoxCeleb1SID
+from s3prl.dataio.encoder.category import CategoryEncoder
+from s3prl.dataio.sampler import FixedBatchSizeBatchSampler
 from s3prl.dataset.common_pipes import RandomCrop
 from s3prl.dataset.utterance_classification_pipe import UtteranceClassificationPipe
-from s3prl.dataio.encoder.category import CategoryEncoder
 from s3prl.nn.linear import MeanPoolingLinear
-from s3prl.dataio.sampler import FixedBatchSizeBatchSampler
 
 from .run import Common
 

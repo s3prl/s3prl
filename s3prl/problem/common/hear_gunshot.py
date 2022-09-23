@@ -2,7 +2,6 @@ from omegaconf import MISSING
 
 from .hear_esc50 import HearESC50
 
-
 GUNSHOT_NUM_FOLDS = 7
 
 

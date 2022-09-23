@@ -1,9 +1,9 @@
 import torch.nn as nn
 
 from s3prl.upstream.wav2vec2.wav2vec2_model import (
-    Wav2Vec2Config,
     TransformerEncoder,
     TransformerSentenceEncoderLayer,
+    Wav2Vec2Config,
 )
 
 args = {

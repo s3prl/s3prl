@@ -17,14 +17,14 @@ import pandas as pd
 from omegaconf import MISSING
 from torch.utils.data import Dataset
 
-from s3prl.util.download import urls_to_filepaths
 from s3prl.dataio.corpus.librispeech import LibriSpeech
-from s3prl.dataset.speech2text_pipe import Speech2TextPipe
 from s3prl.dataio.encoder.tokenizer import load_tokenizer
 from s3prl.dataio.encoder.vocabulary import generate_vocab
+from s3prl.dataio.sampler import FixedBatchSizeBatchSampler, SortedBucketingSampler
+from s3prl.dataset.speech2text_pipe import Speech2TextPipe
 from s3prl.nn.rnn import RNNEncoder
 from s3prl.nn.specaug import ModelWithSpecaug
-from s3prl.dataio.sampler import FixedBatchSizeBatchSampler, SortedBucketingSampler
+from s3prl.util.download import urls_to_filepaths
 
 from .run import ASR
 

@@ -46,10 +46,6 @@ jobs:
       with:
         python-version: ${{ matrix.python-version }}
 
-    - name: Check coding style by ci/format.py
-      run: |
-        ./ci/format.py --check
-
     - name: Install Linux dependencies
       run: sudo apt-get install -y libsndfile1-dev sox git git-lfs
 
@@ -68,7 +64,11 @@ jobs:
       run: pip3 install torchaudio==${{ matrix.torchaudio-version }}
 
     - name: Install dependencies for tests
-      run: pip3 install pytest pytest-xdist python-dotenv
+      run: pip3 install -r requirements/dev.txt
+
+    - name: Check coding style by ci/format.py
+      run: |
+        ./ci/format.py --check
 
     # This can be very helpful for debugging
     # The action can create a SSH server for you to connect. After you

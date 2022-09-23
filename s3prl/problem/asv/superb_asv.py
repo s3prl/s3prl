@@ -17,10 +17,10 @@ import pandas as pd
 from omegaconf import MISSING
 
 from s3prl.dataio.corpus.voxceleb1sv import VoxCeleb1SV
-from s3prl.dataset.common_pipes import LoadAudio, RandomCrop
 from s3prl.dataio.encoder.category import CategoryEncoder
-from s3prl.nn.speaker_model import SuperbXvector
 from s3prl.dataio.sampler import FixedBatchSizeBatchSampler
+from s3prl.dataset.common_pipes import LoadAudio, RandomCrop
+from s3prl.nn.speaker_model import SuperbXvector
 from s3prl.util.download import _download
 
 from .run import ASV

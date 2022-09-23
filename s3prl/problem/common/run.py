@@ -5,14 +5,14 @@ Authors
   * Shu-wen Yang 2022
 """
 
-import yaml
 import logging
 import pickle
 import shutil
 from pathlib import Path
 
-import torch
 import pandas as pd
+import torch
+import yaml
 
 from s3prl.problem.base import Problem
 from s3prl.task.utterance_classification_task import UtteranceClassificationTask

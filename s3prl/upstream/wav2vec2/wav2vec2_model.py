@@ -6,12 +6,12 @@
 # S3PRL has no contribution to this file
 # The file was copied from fairseq to remove the dependency on the entire fairseq package
 
+import logging
 import math
 import uuid
-import logging
-from enum import Enum, EnumMeta
 from dataclasses import dataclass, field
-from typing import List, Tuple, Optional, Callable, Dict
+from enum import Enum, EnumMeta
+from typing import Callable, Dict, List, Optional, Tuple
 
 import numpy as np
 import torch

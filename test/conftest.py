@@ -1,5 +1,6 @@
-import pytest
 import logging
+
+import pytest
 
 logger = logging.getLogger(__name__)
 
@@ -21,15 +22,15 @@ def pytest_addoption(parser):
     parser.addoption(
         "--fairseq", action="store_true", help="run tests with fairseq dependencies"
     )
-    parser.addoption("--upstream_name", action="store")
+    parser.addoption("--upstream_names", action="store")
 
 
 def pytest_generate_tests(metafunc):
     # This is called for every test. Only get/set command line arguments
     # if the argument is specified in the list of test "fixturenames".
-    option_value = metafunc.config.option.upstream_name
-    if "upstream_name" in metafunc.fixturenames:
-        metafunc.parametrize("upstream_name", [option_value])
+    option_value = metafunc.config.option.upstream_names
+    if "upstream_names" in metafunc.fixturenames:
+        metafunc.parametrize("upstream_names", [option_value])
 
 
 def pytest_configure(config):

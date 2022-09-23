@@ -6,22 +6,22 @@
 # S3PRL has no contribution to this file
 # The file was copied from fairseq to remove the dependency on the entire fairseq package
 
-import sys
-import math
 import logging
-
-from dataclasses import field, dataclass
+import math
+import sys
+from dataclasses import dataclass, field
 from typing import Optional, Tuple
 
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
+
 from ..wav2vec2.wav2vec2_model import (
     ChoiceEnum,
-    GumbelVectorQuantizer,
     Fp32GroupNorm,
-    TransposeLast,
     Fp32LayerNorm,
+    GumbelVectorQuantizer,
+    TransposeLast,
 )
 
 logger = logging.getLogger(__name__)

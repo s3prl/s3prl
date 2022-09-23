@@ -1,11 +1,12 @@
 import csv
 import json
-import torchaudio
-import pandas as pd
-from pathlib import Path
-from copy import deepcopy
-from omegaconf import MISSING
 from collections import defaultdict
+from copy import deepcopy
+from pathlib import Path
+
+import pandas as pd
+import torchaudio
+from omegaconf import MISSING
 
 from .hear_dcase_2016_task2 import HearDcase2016Task2
 

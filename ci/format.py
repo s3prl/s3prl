@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
 
 import argparse
-import os
 from pathlib import Path
+from subprocess import CalledProcessError, check_output
 
 
 def load_valid_paths():
@@ -22,6 +22,14 @@ def get_third_party():
                     continue
                 package_list.append(line.split(" ")[0])
     return package_list
+
+
+def run_command(command: str):
+    try:
+        check_output(command.split(" "))
+    except CalledProcessError as e:
+        print(e.output.decode("utf-8"))
+        raise
 
 
 def main():
@@ -44,29 +52,29 @@ def main():
 
     print("Run flake8")
     # stop the build if there are Python syntax errors or undefined names
-    os.system(
+    run_command(
         f"flake8 {args.files} --count --select=E9,F63,F7,F82 --show-source --statistics"
     )
     # exit-zero treats all errors as warnings. The GitHub editor is 127 chars wide
-    os.system(
+    run_command(
         f"flake8 {args.files} --count --exit-zero --max-complexity=10 --max-line-length=127 --statistics"
     )
 
     print("Run black")
     if args.check:
-        os.system(f"black --check {args.files}")
+        run_command(f"black --check {args.files}")
     else:
-        os.system(f"black {args.files}")
+        run_command(f"black {args.files}")
 
     print("Run isort")
     third_party = get_third_party()
     third_party = ",".join(third_party)
     if args.check:
-        os.system(
+        run_command(
             f"isort --profile black --thirdparty {third_party} --check {args.files}"
         )
     else:
-        os.system(f"isort --profile black --thirdparty {third_party} {args.files}")
+        run_command(f"isort --profile black --thirdparty {third_party} {args.files}")
 
     if args.check:
         print("Successfully passed the format check!")

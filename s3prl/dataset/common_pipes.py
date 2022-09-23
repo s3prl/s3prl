@@ -15,6 +15,7 @@ from s3prl.dataio.encoder.tokenizer import (
     load_tokenizer,
 )
 from s3prl.dataio.encoder.vocabulary import generate_vocab
+
 from .base import AugmentedDynamicItemDataset, DataPipe
 
 logger = logging.getLogger(__name__)

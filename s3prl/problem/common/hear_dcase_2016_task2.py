@@ -1,19 +1,19 @@
 import json
-import pickle
 import logging
-import pandas as pd
+import pickle
+from collections import OrderedDict, defaultdict
 from copy import deepcopy
 from dataclasses import dataclass
-from collections import defaultdict, OrderedDict
+from pathlib import Path
 
+import pandas as pd
 import torch
 import torchaudio
-from pathlib import Path
 from omegaconf import MISSING
 
-from s3prl.task.event_prediction import EventPredictionTask
+from s3prl.dataio.sampler import FixedBatchSizeBatchSampler, GroupSameItemSampler
 from s3prl.dataset.hear_timestamp import HearTimestampDatapipe
-from s3prl.dataio.sampler import GroupSameItemSampler, FixedBatchSizeBatchSampler
+from s3prl.task.event_prediction import EventPredictionTask
 
 from .hear_fsd import HearFSD
 

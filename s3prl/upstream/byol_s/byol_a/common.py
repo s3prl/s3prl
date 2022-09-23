@@ -3,10 +3,10 @@ import datetime
 import logging
 import os
 import random
-import yaml
 from argparse import Namespace
-
 from pathlib import Path
+
+import yaml
 
 try:
     import pickle5 as pickle

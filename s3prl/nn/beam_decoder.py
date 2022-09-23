@@ -5,8 +5,8 @@ Authors:
   * Heng-Jui Chang 2022
 """
 
-import logging
 import itertools as it
+import logging
 import math
 from typing import Iterable, List
 
