@@ -15,7 +15,7 @@ Please note that if you did not explicitly discuss with Andy and Leo (the reposi
 
 ## Environment compatibilities [![CI](https://github.com/s3prl/s3prl/actions/workflows/ci.yml/badge.svg)](https://github.com/s3prl/s3prl/actions/workflows/ci.yml)
 
-We support the following environments. The test cases are ran with both **[tox](./tox.ini)** (local) and **[github action](.github/workflows/ci.yml)**:
+We support the following environments. The test cases are ran with **[tox](./tox.ini)** locally and on **[github action](.github/workflows/ci.yml)**:
 
 | Env | versions |
 | --- | --- |

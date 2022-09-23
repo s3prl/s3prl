@@ -52,17 +52,6 @@ jobs:
     - name: Upgrade pip and wheel
       run: pip3 install --upgrade pip wheel
 
-    - name: Install S3PRL basic
-      if: ${{ matrix.mode == 'upstream' }}
-      run: pip3 install -e "./"
-
-    - name: Install S3PRL all
-      if: ${{ matrix.mode == 'all_others' }}
-      run: pip3 install -e ".[all]"
-
-    - name: Install specific PyTorch & Torchaudio
-      run: pip3 install torchaudio==${{ matrix.torchaudio-version }}
-
     - name: Install dependencies for tests
       run: pip3 install -r requirements/dev.txt
 
@@ -78,12 +67,12 @@ jobs:
     # - name: Setup upterm session
     #   uses: lhotari/action-upterm@v1
 
-    - name: Run tests for common upstream
+    - name: Run tox for common upstream
       if: ${{ matrix.mode == 'upstream' }}
       run: |
-        pytest test/test_upstream.py --runupstream -n 2
+        tox -e common_upstream-audio${{ matrix.torchaudio-version }} -- -n 2
 
     - name: Run tests for all s3prl functions except upstream
       if: ${{ matrix.mode == 'all_others' }}
       run: |
-        pytest --runslow -n 2
+        tox -e all_others-audio${{ matrix.torchaudio-version }} -- -n 2
