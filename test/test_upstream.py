@@ -7,6 +7,7 @@ from pathlib import Path
 from subprocess import check_call
 
 import torch
+from filelock import FileLock
 from s3prl.nn import S3PRLUpstream, Featurizer
 from s3prl.util.pseudo_data import get_pseudo_wavs
 from s3prl.util.download import _urls_to_filepaths
@@ -29,23 +30,30 @@ EXTRACTED_GT_DIR = Path(__file__).parent.parent / "sample_hidden_states"
 
 
 def _prepare_sample_hidden_states():
-    if not EXTRACTED_GT_DIR.is_dir():
-        with tempfile.TemporaryDirectory() as tempdir:
-            tempdir = Path(tempdir)
-            tempdir.mkdir(exist_ok=True, parents=True)
+    lock_file = Path(".sample_hidden_states.lock")
+    with FileLock(str(lock_file)):
+        if not EXTRACTED_GT_DIR.is_dir():
+            with tempfile.TemporaryDirectory() as tempdir:
+                tempdir = Path(tempdir)
+                tempdir.mkdir(exist_ok=True, parents=True)
 
-            logger.info("Downloading extracted sample hidden states...")
-            check_call("git lfs install".split(), cwd=tempdir)
-            check_call(
-                "git clone https://huggingface.co/datasets/s3prl/sample_hidden_states".split(),
-                cwd=tempdir,
-            )
-            shutil.move(
-                str(tempdir / "sample_hidden_states"), str(EXTRACTED_GT_DIR.parent)
-            )
-    else:
-        logger.info(f"{EXTRACTED_GT_DIR} exists. Perform git pull...")
-        check_call("git pull".split(), cwd=EXTRACTED_GT_DIR)
+                logger.info("Downloading extracted sample hidden states...")
+                check_call("git lfs install".split(), cwd=tempdir)
+                check_call(
+                    "git clone https://huggingface.co/datasets/s3prl/sample_hidden_states".split(),
+                    cwd=tempdir,
+                )
+                shutil.move(
+                    str(tempdir / "sample_hidden_states"), str(EXTRACTED_GT_DIR.parent)
+                )
+        else:
+            logger.info(f"{EXTRACTED_GT_DIR} exists. Perform git pull...")
+            check_call("git pull".split(), cwd=EXTRACTED_GT_DIR)
+
+    try:
+        lock_file.unlink()
+    except FileNotFoundError:
+        pass
 
 
 def _extract_feat(model: S3PRLUpstream, seed: int = 0):
