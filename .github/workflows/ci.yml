@@ -11,30 +11,17 @@ jobs:
   build-and-test:
 
     strategy:
-      max-parallel: 4
       matrix:
-        mode: [upstream, all_others]
         os: [ubuntu-18.04]
         python-version: [3.8]
         torchaudio-version: [0.8.1, 0.9.1, 0.10.2, 0.11.0, 0.12.1]
         include:
           - os: ubuntu-20.04
-            mode: upstream
             python-version: 3.7
             torchaudio-version: 0.11.0
           - os: ubuntu-20.04
-            mode: upstream
             python-version: 3.9
             torchaudio-version: 0.8.1
-          - os: ubuntu-20.04
-            mode: all_others
-            python-version: 3.7
-            torchaudio-version: 0.11.0
-          - os: ubuntu-20.04
-            mode: all_others
-            python-version: 3.9
-            torchaudio-version: 0.8.1
-
 
     runs-on: ${{ matrix.os }}
 
@@ -68,11 +55,12 @@ jobs:
     #   uses: lhotari/action-upterm@v1
 
     - name: Run tox for common upstream
-      if: ${{ matrix.mode == 'upstream' }}
       run: |
         tox -e common_upstream-audio${{ matrix.torchaudio-version }} -- -n 2
 
-    - name: Run tests for all s3prl functions except upstream
-      if: ${{ matrix.mode == 'all_others' }}
+    # Not all upstreams will be tested on CI since this will take too much time
+    # To test all upstreams, run tox locally with '-e all_upstream'
+
+    - name: Run tox for all other functionalities
       run: |
         tox -e all_others-deps_all-audio${{ matrix.torchaudio-version }} -- -n 2
