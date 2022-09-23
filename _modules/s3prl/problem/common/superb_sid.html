@@ -340,11 +340,11 @@
 <span class="kn">from</span> <span class="nn">torch.utils.data</span> <span class="kn">import</span> <span class="n">Dataset</span>
 
 <span class="kn">from</span> <span class="nn">s3prl.dataio.corpus.voxceleb1sid</span> <span class="kn">import</span> <span class="n">VoxCeleb1SID</span>
+<span class="kn">from</span> <span class="nn">s3prl.dataio.encoder.category</span> <span class="kn">import</span> <span class="n">CategoryEncoder</span>
+<span class="kn">from</span> <span class="nn">s3prl.dataio.sampler</span> <span class="kn">import</span> <span class="n">FixedBatchSizeBatchSampler</span>
 <span class="kn">from</span> <span class="nn">s3prl.dataset.common_pipes</span> <span class="kn">import</span> <span class="n">RandomCrop</span>
 <span class="kn">from</span> <span class="nn">s3prl.dataset.utterance_classification_pipe</span> <span class="kn">import</span> <span class="n">UtteranceClassificationPipe</span>
-<span class="kn">from</span> <span class="nn">s3prl.dataio.encoder.category</span> <span class="kn">import</span> <span class="n">CategoryEncoder</span>
 <span class="kn">from</span> <span class="nn">s3prl.nn.linear</span> <span class="kn">import</span> <span class="n">MeanPoolingLinear</span>
-<span class="kn">from</span> <span class="nn">s3prl.dataio.sampler</span> <span class="kn">import</span> <span class="n">FixedBatchSizeBatchSampler</span>
 
 <span class="kn">from</span> <span class="nn">.run</span> <span class="kn">import</span> <span class="n">Common</span>
 

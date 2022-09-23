@@ -322,21 +322,21 @@
         <article role="main">
           <h1>Source code for s3prl.problem.common.hear_dcase_2016_task2</h1><div class="highlight"><pre>
 <span></span><span class="kn">import</span> <span class="nn">json</span>
-<span class="kn">import</span> <span class="nn">pickle</span>
 <span class="kn">import</span> <span class="nn">logging</span>
-<span class="kn">import</span> <span class="nn">pandas</span> <span class="k">as</span> <span class="nn">pd</span>
+<span class="kn">import</span> <span class="nn">pickle</span>
+<span class="kn">from</span> <span class="nn">collections</span> <span class="kn">import</span> <span class="n">OrderedDict</span><span class="p">,</span> <span class="n">defaultdict</span>
 <span class="kn">from</span> <span class="nn">copy</span> <span class="kn">import</span> <span class="n">deepcopy</span>
 <span class="kn">from</span> <span class="nn">dataclasses</span> <span class="kn">import</span> <span class="n">dataclass</span>
-<span class="kn">from</span> <span class="nn">collections</span> <span class="kn">import</span> <span class="n">defaultdict</span><span class="p">,</span> <span class="n">OrderedDict</span>
+<span class="kn">from</span> <span class="nn">pathlib</span> <span class="kn">import</span> <span class="n">Path</span>
 
+<span class="kn">import</span> <span class="nn">pandas</span> <span class="k">as</span> <span class="nn">pd</span>
 <span class="kn">import</span> <span class="nn">torch</span>
 <span class="kn">import</span> <span class="nn">torchaudio</span>
-<span class="kn">from</span> <span class="nn">pathlib</span> <span class="kn">import</span> <span class="n">Path</span>
 <span class="kn">from</span> <span class="nn">omegaconf</span> <span class="kn">import</span> <span class="n">MISSING</span>
 
-<span class="kn">from</span> <span class="nn">s3prl.task.event_prediction</span> <span class="kn">import</span> <span class="n">EventPredictionTask</span>
+<span class="kn">from</span> <span class="nn">s3prl.dataio.sampler</span> <span class="kn">import</span> <span class="n">FixedBatchSizeBatchSampler</span><span class="p">,</span> <span class="n">GroupSameItemSampler</span>
 <span class="kn">from</span> <span class="nn">s3prl.dataset.hear_timestamp</span> <span class="kn">import</span> <span class="n">HearTimestampDatapipe</span>
-<span class="kn">from</span> <span class="nn">s3prl.dataio.sampler</span> <span class="kn">import</span> <span class="n">GroupSameItemSampler</span><span class="p">,</span> <span class="n">FixedBatchSizeBatchSampler</span>
+<span class="kn">from</span> <span class="nn">s3prl.task.event_prediction</span> <span class="kn">import</span> <span class="n">EventPredictionTask</span>
 
 <span class="kn">from</span> <span class="nn">.hear_fsd</span> <span class="kn">import</span> <span class="n">HearFSD</span>
 

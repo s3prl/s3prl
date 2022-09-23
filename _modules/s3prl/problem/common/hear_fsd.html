@@ -321,20 +321,21 @@
         </div>
         <article role="main">
           <h1>Source code for s3prl.problem.common.hear_fsd</h1><div class="highlight"><pre>
-<span></span><span class="kn">import</span> <span class="nn">torch</span>
-<span class="kn">from</span> <span class="nn">dataclasses</span> <span class="kn">import</span> <span class="n">dataclass</span>
+<span></span><span class="kn">import</span> <span class="nn">json</span>
 <span class="kn">import</span> <span class="nn">pickle</span>
 <span class="kn">from</span> <span class="nn">collections</span> <span class="kn">import</span> <span class="n">OrderedDict</span><span class="p">,</span> <span class="n">defaultdict</span>
-<span class="kn">import</span> <span class="nn">pandas</span> <span class="k">as</span> <span class="nn">pd</span>
-<span class="kn">import</span> <span class="nn">json</span>
+<span class="kn">from</span> <span class="nn">dataclasses</span> <span class="kn">import</span> <span class="n">dataclass</span>
 <span class="kn">from</span> <span class="nn">pathlib</span> <span class="kn">import</span> <span class="n">Path</span>
-<span class="kn">from</span> <span class="nn">s3prl.nn.hear</span> <span class="kn">import</span> <span class="n">HearFullyConnectedPrediction</span>
-<span class="kn">from</span> <span class="nn">s3prl.task.scene_prediction</span> <span class="kn">import</span> <span class="n">ScenePredictionTask</span>
+
+<span class="kn">import</span> <span class="nn">pandas</span> <span class="k">as</span> <span class="nn">pd</span>
+<span class="kn">import</span> <span class="nn">torch</span>
+<span class="kn">from</span> <span class="nn">omegaconf</span> <span class="kn">import</span> <span class="n">MISSING</span>
+
 <span class="kn">from</span> <span class="nn">s3prl.dataio.encoder</span> <span class="kn">import</span> <span class="n">CategoryEncoder</span>
 <span class="kn">from</span> <span class="nn">s3prl.dataio.sampler</span> <span class="kn">import</span> <span class="n">FixedBatchSizeBatchSampler</span>
 <span class="kn">from</span> <span class="nn">s3prl.dataset.utterance_classification_pipe</span> <span class="kn">import</span> <span class="n">HearScenePipe</span>
-
-<span class="kn">from</span> <span class="nn">omegaconf</span> <span class="kn">import</span> <span class="n">MISSING</span>
+<span class="kn">from</span> <span class="nn">s3prl.nn.hear</span> <span class="kn">import</span> <span class="n">HearFullyConnectedPrediction</span>
+<span class="kn">from</span> <span class="nn">s3prl.task.scene_prediction</span> <span class="kn">import</span> <span class="n">ScenePredictionTask</span>
 
 <span class="kn">from</span> <span class="nn">.superb_sid</span> <span class="kn">import</span> <span class="n">SuperbSID</span>
 

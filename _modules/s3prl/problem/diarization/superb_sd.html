@@ -334,9 +334,9 @@
 
 <span class="kn">from</span> <span class="nn">omegaconf</span> <span class="kn">import</span> <span class="n">MISSING</span>
 
+<span class="kn">from</span> <span class="nn">s3prl.dataio.sampler</span> <span class="kn">import</span> <span class="n">FixedBatchSizeBatchSampler</span><span class="p">,</span> <span class="n">GroupSameItemSampler</span>
 <span class="kn">from</span> <span class="nn">s3prl.dataset.diarization</span> <span class="kn">import</span> <span class="n">DiarizationDataset</span>
 <span class="kn">from</span> <span class="nn">s3prl.nn.rnn</span> <span class="kn">import</span> <span class="n">SuperbDiarizationModel</span>
-<span class="kn">from</span> <span class="nn">s3prl.dataio.sampler</span> <span class="kn">import</span> <span class="n">FixedBatchSizeBatchSampler</span><span class="p">,</span> <span class="n">GroupSameItemSampler</span>
 
 <span class="kn">from</span> <span class="nn">.run</span> <span class="kn">import</span> <span class="n">Diarization</span>
 <span class="kn">from</span> <span class="nn">.util</span> <span class="kn">import</span> <span class="n">kaldi_dir_to_csv</span>

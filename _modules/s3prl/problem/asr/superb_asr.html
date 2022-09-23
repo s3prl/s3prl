@@ -340,14 +340,14 @@
 <span class="kn">from</span> <span class="nn">omegaconf</span> <span class="kn">import</span> <span class="n">MISSING</span>
 <span class="kn">from</span> <span class="nn">torch.utils.data</span> <span class="kn">import</span> <span class="n">Dataset</span>
 
-<span class="kn">from</span> <span class="nn">s3prl.util.download</span> <span class="kn">import</span> <span class="n">urls_to_filepaths</span>
 <span class="kn">from</span> <span class="nn">s3prl.dataio.corpus.librispeech</span> <span class="kn">import</span> <span class="n">LibriSpeech</span>
-<span class="kn">from</span> <span class="nn">s3prl.dataset.speech2text_pipe</span> <span class="kn">import</span> <span class="n">Speech2TextPipe</span>
 <span class="kn">from</span> <span class="nn">s3prl.dataio.encoder.tokenizer</span> <span class="kn">import</span> <span class="n">load_tokenizer</span>
 <span class="kn">from</span> <span class="nn">s3prl.dataio.encoder.vocabulary</span> <span class="kn">import</span> <span class="n">generate_vocab</span>
+<span class="kn">from</span> <span class="nn">s3prl.dataio.sampler</span> <span class="kn">import</span> <span class="n">FixedBatchSizeBatchSampler</span><span class="p">,</span> <span class="n">SortedBucketingSampler</span>
+<span class="kn">from</span> <span class="nn">s3prl.dataset.speech2text_pipe</span> <span class="kn">import</span> <span class="n">Speech2TextPipe</span>
 <span class="kn">from</span> <span class="nn">s3prl.nn.rnn</span> <span class="kn">import</span> <span class="n">RNNEncoder</span>
 <span class="kn">from</span> <span class="nn">s3prl.nn.specaug</span> <span class="kn">import</span> <span class="n">ModelWithSpecaug</span>
-<span class="kn">from</span> <span class="nn">s3prl.dataio.sampler</span> <span class="kn">import</span> <span class="n">FixedBatchSizeBatchSampler</span><span class="p">,</span> <span class="n">SortedBucketingSampler</span>
+<span class="kn">from</span> <span class="nn">s3prl.util.download</span> <span class="kn">import</span> <span class="n">urls_to_filepaths</span>
 
 <span class="kn">from</span> <span class="nn">.run</span> <span class="kn">import</span> <span class="n">ASR</span>
 
