@@ -5,6 +5,7 @@ logger = logging.getLogger(__name__)
 
 
 def pytest_addoption(parser):
+    parser.addoption("--runupstream", action="store_true", help="run upstream tests")
     parser.addoption("--runslow", action="store_true", help="run slow tests")
     parser.addoption(
         "--runcorpus", action="store_true", help="run tests with corpus path dependency"
@@ -32,6 +33,7 @@ def pytest_generate_tests(metafunc):
 
 
 def pytest_configure(config):
+    config.addinivalue_line("markers", "upstream: mark test as a upstream test case")
     config.addinivalue_line("markers", "slow: mark test as slow to run")
     config.addinivalue_line(
         "markers", "corpus: mark test as required corpus path dependency"
@@ -44,6 +46,12 @@ def pytest_configure(config):
 
 
 def pytest_collection_modifyitems(config, items):
+    if not config.getoption("--runupstream"):
+        skip_upstream = pytest.mark.skip(reason="need --runupstream option to run")
+        for item in items:
+            if "upstream" in item.keywords:
+                item.add_marker(skip_upstream)
+
     if not config.getoption("--runslow"):
         skip_slow = pytest.mark.skip(reason="need --runslow option to run")
         for item in items:

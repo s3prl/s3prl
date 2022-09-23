@@ -13,6 +13,7 @@ jobs:
     strategy:
       max-parallel: 4
       matrix:
+        extra: [none, all]
         os: [ubuntu-18.04]
         python-version: [3.8]
         torchaudio-version: [0.8.1, 0.9.1, 0.10.2, 0.11.0, 0.12.1]
@@ -34,21 +35,29 @@ jobs:
       with:
         python-version: ${{ matrix.python-version }}
 
+    - name: Check coding style by ci/format.py
+      run: |
+        ./ci/format.py --check
+
     - name: Install Linux dependencies
       run: sudo apt-get install -y libsndfile1-dev sox
 
     - name: Upgrade pip and wheel
       run: pip3 install --upgrade pip wheel
 
-    - name: Install S3PRL
-      run: pip3 install -e ".[dev]"
+    - name: Install S3PRL basic
+      if: ${{ matrix.extra == 'none' }}
+      run: pip3 install -e "./"
+
+    - name: Install S3PRL all
+      if: ${{ matrix.extra == 'all' }}
+      run: pip3 install -e ".[all]"
 
     - name: Install specific PyTorch & Torchaudio
       run: pip3 install torchaudio==${{ matrix.torchaudio-version }}
 
-    - name: Check coding style by ci/format.py
-      run: |
-        ./ci/format.py --check
+    - name: Install dependencies for tests
+      run: pip3 install pytest pytest-xdist python-dotenv
 
     # This can be very helpful for debugging
     # The action can create a SSH server for you to connect. After you
@@ -58,7 +67,12 @@ jobs:
     # - name: Setup upterm session
     #   uses: lhotari/action-upterm@v1
 
-    - name: Run tests
+    - name: Run tests for common upstream
+      if: ${{ matrix.extra == 'none' }}
       run: |
-        pytest -n 2
+        pytest test/test_upstream.py --runupstream -n 2
 
+    - name: Run tests for all s3prl functions except upstream
+      if: ${{ matrix.extra == 'all' }}
+      run: |
+        pytest --runslow -n 2
