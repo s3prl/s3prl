@@ -1,8 +1,8 @@
 <p align="center">
-    <img src="./file/S3PRL-logo.png" width="900"/>
+    <img src="https://raw.githubusercontent.com/s3prl/s3prl/main/file/S3PRL-logo.png" width="900"/>
     <br>
     <br>
-    <a href="./LICENSE.txt"><img alt="Apache License 2.0" src="./file/license.svg" /></a>
+    <a href="./LICENSE.txt"><img alt="Apache License 2.0" src="https://raw.githubusercontent.com/s3prl/s3prl/main/file/license.svg" /></a>
     <a href="https://creativecommons.org/licenses/by-nc/4.0/"><img alt="CC_BY_NC License" src="https://img.shields.io/badge/License-CC%20BY--NC%204.0-lightgrey.svg" /></a>
     <a href="https://github.com/s3prl/s3prl/actions/workflows/ci.yml"><img alt="CI" src="https://github.com/s3prl/s3prl/actions/workflows/ci.yml/badge.svg?branch=main&event=push"></a>
     <a href="#development-pattern-for-contributors"><img alt="Codecov" src="https://img.shields.io/badge/contributions-welcome-brightgreen.svg"></a>
@@ -63,7 +63,7 @@ The toolkit has **three major usages**:
 Below is an **intuitive illustration** on how this toolkit may help you:
 \
 \
-<img src="./file/S3PRL-interface.png" width="900"/>
+<img src="https://raw.githubusercontent.com/s3prl/s3prl/main/file/S3PRL-interface.png" width="900"/>
 \
 \
 Feel free to use or modify our toolkit in your research. Here is a [list of papers using our toolkit](#used-by). Any question, bug report or improvement suggestion is welcome through [opening up a new issue](https://github.com/s3prl/s3prl/issues). 
