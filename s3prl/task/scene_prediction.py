@@ -1,11 +1,12 @@
 # Copyright Hear Benchmark Team
 # Copyright Shu-wen Yang
 
-import torch
 from typing import List
 
-from s3prl.task.base import Task
+import torch
+
 from s3prl.dataio.encoder.category import CategoryEncoder
+from s3prl.task.base import Task
 
 from ._hear_score import available_scores, validate_score_return_type
 

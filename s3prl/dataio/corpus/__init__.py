@@ -4,8 +4,8 @@ Parse the commonly used corpus into standardized dictionary structure
 
 from .fluent_speech_commands import FluentSpeechCommands
 from .iemocap import IEMOCAP
-from .librispeech import LibriSpeech
 from .librilight import LibriLight
+from .librispeech import LibriSpeech
 from .quesst14 import Quesst14
 from .snips import SNIPS
 from .speech_commands import SpeechCommandsV1

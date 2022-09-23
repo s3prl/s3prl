@@ -1,5 +1,6 @@
-import torch
 from collections import OrderedDict
+
+import torch
 
 from s3prl.dataset.base import AugmentedDynamicItemDataset
 from s3prl.dataset.chunking import UnfoldChunkByFrame, UnfoldChunkBySec

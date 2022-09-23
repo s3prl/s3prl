@@ -1,10 +1,10 @@
 from .base import SequentialDataPipe
 from .common_pipes import (
     EncodeCategory,
+    EncodeMultiLabel,
     EncodeMultipleCategory,
     LoadAudio,
     SetOutputKeys,
-    EncodeMultiLabel,
 )
 
 

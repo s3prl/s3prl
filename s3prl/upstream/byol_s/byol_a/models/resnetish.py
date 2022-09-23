@@ -13,12 +13,12 @@ Original paper:
 }
 """
 
+from typing import Any, Callable, List, Optional, Type, Union
+
 import torch
 import torch.nn as nn
-
 from torch import Tensor
 from torch.nn.utils import weight_norm
-from typing import Type, Any, Callable, Union, List, Optional
 
 
 def conv3x3(

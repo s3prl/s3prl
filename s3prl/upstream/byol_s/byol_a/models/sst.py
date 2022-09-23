@@ -1,7 +1,6 @@
 """Largely inspired by https://github.com/lucidrains/vit-pytorch/blob/main/vit_pytorch/vit.py"""
 import torch
 import torch.nn as nn
-
 from einops import repeat
 from einops.layers.torch import Rearrange
 

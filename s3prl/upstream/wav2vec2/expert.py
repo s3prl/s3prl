@@ -5,6 +5,7 @@ import torch.nn.functional as F
 from torch.nn.utils.rnn import pad_sequence
 
 from s3prl.utility.helper import zero_mean_unit_var_norm
+
 from ..interfaces import UpstreamBase
 from .convert import load_converted_model
 
@@ -115,9 +116,10 @@ class LegacyUpstreamExpert(UpstreamBase):
         Sanitize the config in the checkpoint as there are some irrelevant fields
         in the released checkpoint which can cause the model loading to fail
         """
+        import dataclasses
+
         import fairseq
         import omegaconf
-        import dataclasses
         from fairseq.tasks.audio_pretraining import AudioPretrainingConfig
 
         ckpt_state = torch.load(ckpt_path, map_location="cpu")

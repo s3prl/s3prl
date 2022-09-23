@@ -1,6 +1,8 @@
 import tempfile
-import pandas as pd
 from pathlib import Path
+
+import pandas as pd
+
 from s3prl.problem import SuperbASR
 from s3prl.util.pseudo_data import pseudo_audio
 

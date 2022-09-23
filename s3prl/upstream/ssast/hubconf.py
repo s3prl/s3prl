@@ -6,7 +6,9 @@
 # @File    : hubconf.py
 
 from s3prl.util.download import _urls_to_filepaths
+
 from .expert import UpstreamExpert as _UpstreamExpert
+
 
 # Frame-based SSAST
 # 1s for speech commands, 6s for IEMOCAP, 10s for SID

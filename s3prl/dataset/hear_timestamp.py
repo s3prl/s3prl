@@ -1,7 +1,7 @@
-from s3prl.dataset.common_pipes import LoadAudio, SetOutputKeys
 from s3prl.dataset.base import DataPipe, SequentialDataPipe
-from s3prl.dataset.multiclass_tagging import BuildMultiClassTagging
 from s3prl.dataset.chunking import UnfoldChunkBySec
+from s3prl.dataset.common_pipes import LoadAudio, SetOutputKeys
+from s3prl.dataset.multiclass_tagging import BuildMultiClassTagging
 
 
 class HearTimestampDatapipe(SequentialDataPipe):

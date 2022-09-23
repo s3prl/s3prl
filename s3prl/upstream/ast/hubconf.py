@@ -1,5 +1,6 @@
-from .expert import UpstreamExpert
 from s3prl.util.download import urls_to_filepaths
+
+from .expert import UpstreamExpert
 
 
 def ast(segment_secs: float = 10.24, refresh: bool = False, **kwds):

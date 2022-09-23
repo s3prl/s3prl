@@ -8,19 +8,17 @@
 
 import logging
 import random
+from typing import Dict, List, Optional, Tuple
 
 import numpy as np
-
 import torch
 import torch.nn as nn
 
-from typing import Dict, List, Optional, Tuple
+from .modules.fairseq_modules import GradMultiply
 from .modules.scaling_linear import SLinear
 from .modules.scaling_multihead import SMHA
 from .modules.scaling_transformer import STransformerEncoder
-from .modules.fairseq_modules import GradMultiply
 from .modules.w2v2_modules import ConvFeatureExtractionModel
-
 
 logger = logging.getLogger(__name__)
 

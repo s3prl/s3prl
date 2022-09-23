@@ -1,16 +1,17 @@
-import pytest
-import shutil
 import logging
+import shutil
 import tempfile
 import traceback
 from pathlib import Path
 from subprocess import check_call
 
+import pytest
 import torch
 from filelock import FileLock
-from s3prl.nn import S3PRLUpstream, Featurizer
-from s3prl.util.pseudo_data import get_pseudo_wavs
+
+from s3prl.nn import Featurizer, S3PRLUpstream
 from s3prl.util.download import _urls_to_filepaths
+from s3prl.util.pseudo_data import get_pseudo_wavs
 
 logger = logging.getLogger(__name__)
 

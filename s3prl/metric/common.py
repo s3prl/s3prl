@@ -14,7 +14,6 @@ from scipy.interpolate import interp1d
 from scipy.optimize import brentq
 from sklearn.metrics import accuracy_score, roc_curve
 
-
 __all__ = [
     "accuracy",
     "ter",
