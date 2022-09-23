@@ -1,3 +1,4 @@
+import os
 import logging
 import shutil
 import tempfile
@@ -33,25 +34,32 @@ EXTRACTED_GT_DIR = Path(__file__).parent.parent / "sample_hidden_states"
 
 
 def _prepare_sample_hidden_states():
-    lock_file = Path(".sample_hidden_states.lock")
+    lock_file = Path(__file__).parent.parent / "sample_hidden_states.lock"
     with FileLock(str(lock_file)):
+
+        # NOTE: home variable is necessary for git lfs to work
+        env = dict(os.environ)
+        if not "HOME" in env:
+            env["HOME"] = Path.home()
+
         if not EXTRACTED_GT_DIR.is_dir():
             with tempfile.TemporaryDirectory() as tempdir:
                 tempdir = Path(tempdir)
                 tempdir.mkdir(exist_ok=True, parents=True)
 
                 logger.info("Downloading extracted sample hidden states...")
-                check_call("git lfs install".split(), cwd=tempdir)
+                check_call("git lfs install".split(), cwd=tempdir, env=env)
                 check_call(
                     "git clone https://huggingface.co/datasets/s3prl/sample_hidden_states".split(),
                     cwd=tempdir,
+                    env=env,
                 )
                 shutil.move(
                     str(tempdir / "sample_hidden_states"), str(EXTRACTED_GT_DIR.parent)
                 )
         else:
             logger.info(f"{EXTRACTED_GT_DIR} exists. Perform git pull...")
-            check_call("git pull".split(), cwd=EXTRACTED_GT_DIR)
+            check_call("git pull".split(), cwd=EXTRACTED_GT_DIR, env=env)
 
     try:
         lock_file.unlink()
