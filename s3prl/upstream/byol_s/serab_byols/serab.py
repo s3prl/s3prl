@@ -1,11 +1,10 @@
 """
-HEAR Competition submission script following the 
+HEAR Competition submission script following the
 https://neuralaudio.ai/hear2021-holistic-evaluation-of-audio-representations.html#common-api
 guidelines
 """
 
 from typing import List, Tuple
-from easydict import EasyDict
 import torch
 from torch import Tensor
 from torchaudio.transforms import MelSpectrogram
@@ -27,7 +26,7 @@ TIMESTAMP_HOP_SIZE = 50
 BATCH_SIZE = 512
 
 
-def get_model(model_name: str = "", cfg: EasyDict = {}) -> torch.nn.Module:
+def get_model(model_name: str = "", cfg={}) -> torch.nn.Module:
     """Define the model object.
 
     Parameters

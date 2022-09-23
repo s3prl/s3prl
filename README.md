@@ -11,7 +11,17 @@
 
 ## Notice for pull requests
 
-Please note that if you did not explicitly discuss with Andy and Leo (the owners of the repository) about your planning development, by default it will not be merged into S3PRL and is better to be maintained in your own repository. Please see our [pull request policy](.github/PULL_REQUEST_TEMPLATE.md). Thanks for your understanding!
+Please note that if you did not explicitly discuss with Andy and Leo (the repository owners) about your planning development, by default it will not be merged into S3PRL and should be maintained in your own repository. Please see our [pull request policy](.github/PULL_REQUEST_TEMPLATE.md). Thanks for your understanding.
+
+## Environment compatibilities
+
+We support the following environments. The test cases are ran with both **[tox](./tox.ini)** (local) and **[github action](.github/workflows/ci.yml)**:
+
+| Env | versions |
+| --- | --- |
+| os  | Ubuntu-18.04, Ubuntu-20.04
+| python | 3.7, 3.8, 3.9
+| pytorch | 1.8.1, 1.9.1, 1.10.2, 1.11.0, 1.12.1
 
 ## What's New
 
