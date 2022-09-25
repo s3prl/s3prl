@@ -5,7 +5,7 @@
     <meta name="color-scheme" content="light dark"><meta name="generator" content="Docutils 0.19: https://docutils.sourceforge.io/" />
 <link rel="index" title="Index" href="../genindex.html" /><link rel="search" title="Search" href="../search.html" /><link rel="next" title="distributed_sampler" href="s3prl.dataio.sampler.distributed_sampler.html" /><link rel="prev" title="sampler" href="s3prl.dataio.sampler.html" />
 
-    <meta name="generator" content="sphinx-5.1.1, furo 2022.09.15"/>
+    <meta name="generator" content="sphinx-5.2.0.post0, furo 2022.09.15"/>
         <title>balanced_weighted_sampler - S3PRL 0.4.4 documentation</title>
       <link rel="stylesheet" type="text/css" href="../_static/pygments.css" />
     <link rel="stylesheet" type="text/css" href="../_static/styles/furo.css?digest=9ec31e2665bf879c1d47d93a8ec4893870ee1e45" />
@@ -324,27 +324,28 @@
           <section id="balanced-weighted-sampler">
 <h1>balanced_weighted_sampler<a class="headerlink" href="#balanced-weighted-sampler" title="Permalink to this heading">#</a></h1>
 <p><strong>(s3prl.dataio.sampler.balanced_weighted_sampler)</strong></p>
-<span class="target" id="module-s3prl.dataio.sampler.balanced_weighted_sampler"></span><p>For datasets with highly unbalanced class</p>
+<p>For datasets with highly unbalanced class</p>
 <dl class="simple">
 <dt>Authors:</dt><dd><ul class="simple">
-<li><p>Shu-wen Yang 2022</p></li>
+<li><p>Leo 2022</p></li>
 </ul>
 </dd>
 </dl>
-<section id="balancedweightedsampler">
+<span class="target" id="module-s3prl.dataio.sampler.balanced_weighted_sampler"></span><section id="balancedweightedsampler">
 <h2>BalancedWeightedSampler<a class="headerlink" href="#balancedweightedsampler" title="Permalink to this heading">#</a></h2>
 <dl class="py class">
 <dt class="sig sig-object py" id="s3prl.dataio.sampler.balanced_weighted_sampler.BalancedWeightedSampler">
-<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">s3prl.dataio.sampler.balanced_weighted_sampler.</span></span><span class="sig-name descname"><span class="pre">BalancedWeightedSampler</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">dataset</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">batch_size</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">get_weights</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">callable</span><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">duplicate</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">seed</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">12345678</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/s3prl/dataio/sampler/balanced_weighted_sampler.html#BalancedWeightedSampler"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="reference external" href="https://github.com/s3prl/s3prl/blob/v0.4.4 /s3prl/dataio/sampler/balanced_weighted_sampler.py#L19-L69"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#s3prl.dataio.sampler.balanced_weighted_sampler.BalancedWeightedSampler" title="Permalink to this definition">#</a></dt>
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">s3prl.dataio.sampler.balanced_weighted_sampler.</span></span><span class="sig-name descname"><span class="pre">BalancedWeightedSampler</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">dataset</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">batch_size</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">get_weights</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">callable</span><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">duplicate</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">seed</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">12345678</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/s3prl/dataio/sampler/balanced_weighted_sampler.html#BalancedWeightedSampler"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="reference external" href="https://github.com/s3prl/s3prl/blob/v0.4.4 /s3prl/dataio/sampler/balanced_weighted_sampler.py#L19-L76"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#s3prl.dataio.sampler.balanced_weighted_sampler.BalancedWeightedSampler" title="Permalink to this definition">#</a></dt>
 <dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<p>This batch sampler is always randomized, hence cannot be used for testing</p>
 <dl class="py method">
 <dt class="sig sig-object py" id="s3prl.dataio.sampler.balanced_weighted_sampler.BalancedWeightedSampler.get_weights">
-<em class="property"><span class="pre">static</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">get_weights</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">dataset</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/s3prl/dataio/sampler/balanced_weighted_sampler.html#BalancedWeightedSampler.get_weights"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="reference external" href="https://github.com/s3prl/s3prl/blob/v0.4.4 /s3prl/dataio/sampler/balanced_weighted_sampler.py#L36-L47"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#s3prl.dataio.sampler.balanced_weighted_sampler.BalancedWeightedSampler.get_weights" title="Permalink to this definition">#</a></dt>
+<em class="property"><span class="pre">static</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">get_weights</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">dataset</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/s3prl/dataio/sampler/balanced_weighted_sampler.html#BalancedWeightedSampler.get_weights"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="reference external" href="https://github.com/s3prl/s3prl/blob/v0.4.4 /s3prl/dataio/sampler/balanced_weighted_sampler.py#L40-L51"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#s3prl.dataio.sampler.balanced_weighted_sampler.BalancedWeightedSampler.get_weights" title="Permalink to this definition">#</a></dt>
 <dd></dd></dl>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="s3prl.dataio.sampler.balanced_weighted_sampler.BalancedWeightedSampler.set_epoch">
-<span class="sig-name descname"><span class="pre">set_epoch</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">epoch</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/s3prl/dataio/sampler/balanced_weighted_sampler.html#BalancedWeightedSampler.set_epoch"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="reference external" href="https://github.com/s3prl/s3prl/blob/v0.4.4 /s3prl/dataio/sampler/balanced_weighted_sampler.py#L49-L50"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#s3prl.dataio.sampler.balanced_weighted_sampler.BalancedWeightedSampler.set_epoch" title="Permalink to this definition">#</a></dt>
+<span class="sig-name descname"><span class="pre">set_epoch</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">epoch</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/s3prl/dataio/sampler/balanced_weighted_sampler.html#BalancedWeightedSampler.set_epoch"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="reference external" href="https://github.com/s3prl/s3prl/blob/v0.4.4 /s3prl/dataio/sampler/balanced_weighted_sampler.py#L53-L54"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#s3prl.dataio.sampler.balanced_weighted_sampler.BalancedWeightedSampler.set_epoch" title="Permalink to this definition">#</a></dt>
 <dd></dd></dl>
 
 </dd></dl>
@@ -410,7 +411,14 @@
           <div class="toc-tree">
             <ul>
 <li><a class="reference internal" href="#">balanced_weighted_sampler</a><ul>
-<li><a class="reference internal" href="#balancedweightedsampler">BalancedWeightedSampler</a></li>
+<li><a class="reference internal" href="#balancedweightedsampler">BalancedWeightedSampler</a><ul>
+<li><a class="reference internal" href="#s3prl.dataio.sampler.balanced_weighted_sampler.BalancedWeightedSampler"><code class="docutils literal notranslate"><span class="pre">BalancedWeightedSampler</span></code></a><ul>
+<li><a class="reference internal" href="#s3prl.dataio.sampler.balanced_weighted_sampler.BalancedWeightedSampler.get_weights"><code class="docutils literal notranslate"><span class="pre">BalancedWeightedSampler.get_weights()</span></code></a></li>
+<li><a class="reference internal" href="#s3prl.dataio.sampler.balanced_weighted_sampler.BalancedWeightedSampler.set_epoch"><code class="docutils literal notranslate"><span class="pre">BalancedWeightedSampler.set_epoch()</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
 </ul>
 </li>
 </ul>
@@ -427,6 +435,7 @@
     <script src="../_static/underscore.js"></script>
     <script src="../_static/_sphinx_javascript_frameworks_compat.js"></script>
     <script src="../_static/doctools.js"></script>
+    <script src="../_static/sphinx_highlight.js"></script>
     <script src="../_static/scripts/furo.js"></script>
     <script src="../_static/js/custom.js"></script>
     </body>

@@ -4,7 +4,7 @@
     <meta name="viewport" content="width=device-width,initial-scale=1"/>
     <meta name="color-scheme" content="light dark"><link rel="index" title="Index" href="../../../../genindex.html" /><link rel="search" title="Search" href="../../../../search.html" />
 
-    <meta name="generator" content="sphinx-5.1.1, furo 2022.09.15"/>
+    <meta name="generator" content="sphinx-5.2.0.post0, furo 2022.09.15"/>
         <title>s3prl.dataio.corpus.snips - S3PRL 0.4.4 documentation</title>
       <link rel="stylesheet" type="text/css" href="../../../../_static/pygments.css" />
     <link rel="stylesheet" type="text/css" href="../../../../_static/styles/furo.css?digest=9ec31e2665bf879c1d47d93a8ec4893870ee1e45" />
@@ -454,7 +454,22 @@
             <span class="p">{</span>
                 <span class="n">name</span><span class="p">:</span> <span class="p">{</span>
                     <span class="s2">&quot;wav_path&quot;</span><span class="p">:</span> <span class="n">data_dict</span><span class="p">[</span><span class="n">split</span><span class="p">][</span><span class="s2">&quot;wav_list&quot;</span><span class="p">][</span><span class="n">i</span><span class="p">],</span>
-                    <span class="s2">&quot;transcription&quot;</span><span class="p">:</span> <span class="n">data_dict</span><span class="p">[</span><span class="n">split</span><span class="p">][</span><span class="s2">&quot;text_list&quot;</span><span class="p">][</span><span class="n">i</span><span class="p">],</span>
+                    <span class="s2">&quot;transcription&quot;</span><span class="p">:</span> <span class="s2">&quot; &quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span>
+                        <span class="n">data_dict</span><span class="p">[</span><span class="n">split</span><span class="p">][</span><span class="s2">&quot;text_list&quot;</span><span class="p">][</span><span class="n">i</span><span class="p">]</span>
+                        <span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">&quot;</span><span class="se">\t</span><span class="s2">&quot;</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span>
+                        <span class="o">.</span><span class="n">strip</span><span class="p">()</span>
+                        <span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">&quot; &quot;</span><span class="p">)[</span><span class="mi">1</span><span class="p">:</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
+                    <span class="p">),</span>
+                    <span class="s2">&quot;iob&quot;</span><span class="p">:</span> <span class="s2">&quot; &quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span>
+                        <span class="n">data_dict</span><span class="p">[</span><span class="n">split</span><span class="p">][</span><span class="s2">&quot;text_list&quot;</span><span class="p">][</span><span class="n">i</span><span class="p">]</span>
+                        <span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">&quot;</span><span class="se">\t</span><span class="s2">&quot;</span><span class="p">)[</span><span class="mi">1</span><span class="p">]</span>
+                        <span class="o">.</span><span class="n">strip</span><span class="p">()</span>
+                        <span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">&quot; &quot;</span><span class="p">)[</span><span class="mi">1</span><span class="p">:</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
+                    <span class="p">),</span>
+                    <span class="s2">&quot;intent&quot;</span><span class="p">:</span> <span class="n">data_dict</span><span class="p">[</span><span class="n">split</span><span class="p">][</span><span class="s2">&quot;text_list&quot;</span><span class="p">][</span><span class="n">i</span><span class="p">]</span>
+                    <span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">&quot;</span><span class="se">\t</span><span class="s2">&quot;</span><span class="p">)[</span><span class="mi">1</span><span class="p">]</span>
+                    <span class="o">.</span><span class="n">strip</span><span class="p">()</span>
+                    <span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">&quot; &quot;</span><span class="p">)[</span><span class="o">-</span><span class="mi">1</span><span class="p">],</span>
                     <span class="s2">&quot;speaker&quot;</span><span class="p">:</span> <span class="n">data_dict</span><span class="p">[</span><span class="n">split</span><span class="p">][</span><span class="s2">&quot;spkr_list&quot;</span><span class="p">][</span><span class="n">i</span><span class="p">],</span>
                     <span class="s2">&quot;corpus_split&quot;</span><span class="p">:</span> <span class="n">split</span><span class="p">,</span>
                 <span class="p">}</span>
@@ -502,6 +517,7 @@
     <script src="../../../../_static/underscore.js"></script>
     <script src="../../../../_static/_sphinx_javascript_frameworks_compat.js"></script>
     <script src="../../../../_static/doctools.js"></script>
+    <script src="../../../../_static/sphinx_highlight.js"></script>
     <script src="../../../../_static/scripts/furo.js"></script>
     <script src="../../../../_static/js/custom.js"></script>
     </body>

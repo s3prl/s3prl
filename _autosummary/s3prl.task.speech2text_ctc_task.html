@@ -5,7 +5,7 @@
     <meta name="color-scheme" content="light dark"><meta name="generator" content="Docutils 0.19: https://docutils.sourceforge.io/" />
 <link rel="index" title="Index" href="../genindex.html" /><link rel="search" title="Search" href="../search.html" /><link rel="next" title="utterance_classification_task" href="s3prl.task.utterance_classification_task.html" /><link rel="prev" title="speaker_verification_task" href="s3prl.task.speaker_verification_task.html" />
 
-    <meta name="generator" content="sphinx-5.1.1, furo 2022.09.15"/>
+    <meta name="generator" content="sphinx-5.2.0.post0, furo 2022.09.15"/>
         <title>speech2text_ctc_task - S3PRL 0.4.4 documentation</title>
       <link rel="stylesheet" type="text/css" href="../_static/pygments.css" />
     <link rel="stylesheet" type="text/css" href="../_static/styles/furo.css?digest=9ec31e2665bf879c1d47d93a8ec4893870ee1e45" />
@@ -324,14 +324,14 @@
           <section id="speech2text-ctc-task">
 <h1>speech2text_ctc_task<a class="headerlink" href="#speech2text-ctc-task" title="Permalink to this heading">#</a></h1>
 <p><strong>(s3prl.task.speech2text_ctc_task)</strong></p>
-<span class="target" id="module-s3prl.task.speech2text_ctc_task"></span><p>Speech2Text with CTC loss</p>
+<p>Speech2Text with CTC loss</p>
 <dl class="simple">
 <dt>Authors</dt><dd><ul class="simple">
 <li><p>Heng-Jui Chang 2022</p></li>
 </ul>
 </dd>
 </dl>
-<section id="speech2textctcexample">
+<span class="target" id="module-s3prl.task.speech2text_ctc_task"></span><section id="speech2textctcexample">
 <h2>Speech2TextCTCExample<a class="headerlink" href="#speech2textctcexample" title="Permalink to this heading">#</a></h2>
 <dl class="py class">
 <dt class="sig sig-object py" id="s3prl.task.speech2text_ctc_task.Speech2TextCTCExample">
@@ -393,7 +393,7 @@ the change.</p>
 <h2>Speech2TextCTCTask<a class="headerlink" href="#speech2textctctask" title="Permalink to this heading">#</a></h2>
 <dl class="py class">
 <dt class="sig sig-object py" id="s3prl.task.speech2text_ctc_task.Speech2TextCTCTask">
-<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">s3prl.task.speech2text_ctc_task.</span></span><span class="sig-name descname"><span class="pre">Speech2TextCTCTask</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">model</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Module</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">tokenizer</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="s3prl.dataio.encoder.tokenizer.html#s3prl.dataio.encoder.tokenizer.Tokenizer" title="s3prl.dataio.encoder.tokenizer.Tokenizer"><span class="pre">Tokenizer</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">decoder</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">Union</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="s3prl.nn.beam_decoder.html#s3prl.nn.beam_decoder.BeamDecoder" title="s3prl.nn.beam_decoder.BeamDecoder"><span class="pre">BeamDecoder</span></a><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">dict</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">log_metrics</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">List</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">['cer',</span> <span class="pre">'wer']</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/s3prl/task/speech2text_ctc_task.html#Speech2TextCTCTask"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="reference external" href="https://github.com/s3prl/s3prl/blob/v0.4.4 /s3prl/task/speech2text_ctc_task.py#L66-L228"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#s3prl.task.speech2text_ctc_task.Speech2TextCTCTask" title="Permalink to this definition">#</a></dt>
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">s3prl.task.speech2text_ctc_task.</span></span><span class="sig-name descname"><span class="pre">Speech2TextCTCTask</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">model</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Module</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">tokenizer</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="s3prl.dataio.encoder.tokenizer.html#s3prl.dataio.encoder.tokenizer.Tokenizer" title="s3prl.dataio.encoder.tokenizer.Tokenizer"><span class="pre">Tokenizer</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">decoder</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">Union</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="s3prl.nn.beam_decoder.html#s3prl.nn.beam_decoder.BeamDecoder" title="s3prl.nn.beam_decoder.BeamDecoder"><span class="pre">BeamDecoder</span></a><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">dict</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">log_metrics</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">List</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">['cer',</span> <span class="pre">'wer']</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/s3prl/task/speech2text_ctc_task.html#Speech2TextCTCTask"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="reference external" href="https://github.com/s3prl/s3prl/blob/v0.4.4 /s3prl/task/speech2text_ctc_task.py#L66-L223"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#s3prl.task.speech2text_ctc_task.Speech2TextCTCTask" title="Permalink to this definition">#</a></dt>
 <dd><p>Bases: <a class="reference internal" href="s3prl.task.base.html#s3prl.task.base.Task" title="s3prl.task.base.Task"><code class="xref py py-class docutils literal notranslate"><span class="pre">Task</span></code></a></p>
 <dl class="py method">
 <dt class="sig sig-object py" id="s3prl.task.speech2text_ctc_task.Speech2TextCTCTask.predict">
@@ -439,7 +439,7 @@ valid_length (torch.LongTensor): (batch_size, )</p>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="s3prl.task.speech2text_ctc_task.Speech2TextCTCTask.reduction">
-<span class="sig-name descname"><span class="pre">reduction</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">_mode</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cached_results</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">List</span><span class="p"><span class="pre">[</span></span><span class="pre">dict</span><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">_dump_dir</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/s3prl/task/speech2text_ctc_task.html#Speech2TextCTCTask.reduction"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="reference external" href="https://github.com/s3prl/s3prl/blob/v0.4.4 /s3prl/task/speech2text_ctc_task.py#L188-L228"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#s3prl.task.speech2text_ctc_task.Speech2TextCTCTask.reduction" title="Permalink to this definition">#</a></dt>
+<span class="sig-name descname"><span class="pre">reduction</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">_mode</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cached_results</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">List</span><span class="p"><span class="pre">[</span></span><span class="pre">dict</span><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">_dump_dir</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/s3prl/task/speech2text_ctc_task.html#Speech2TextCTCTask.reduction"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="reference external" href="https://github.com/s3prl/s3prl/blob/v0.4.4 /s3prl/task/speech2text_ctc_task.py#L188-L223"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#s3prl.task.speech2text_ctc_task.Speech2TextCTCTask.reduction" title="Permalink to this definition">#</a></dt>
 <dd></dd></dl>
 
 <dl class="py attribute">
@@ -569,8 +569,37 @@ the change.</p>
           <div class="toc-tree">
             <ul>
 <li><a class="reference internal" href="#">speech2text_ctc_task</a><ul>
-<li><a class="reference internal" href="#speech2textctcexample">Speech2TextCTCExample</a></li>
-<li><a class="reference internal" href="#speech2textctctask">Speech2TextCTCTask</a></li>
+<li><a class="reference internal" href="#speech2textctcexample">Speech2TextCTCExample</a><ul>
+<li><a class="reference internal" href="#s3prl.task.speech2text_ctc_task.Speech2TextCTCExample"><code class="docutils literal notranslate"><span class="pre">Speech2TextCTCExample</span></code></a><ul>
+<li><a class="reference internal" href="#s3prl.task.speech2text_ctc_task.Speech2TextCTCExample.input_size"><code class="docutils literal notranslate"><span class="pre">Speech2TextCTCExample.input_size</span></code></a></li>
+<li><a class="reference internal" href="#s3prl.task.speech2text_ctc_task.Speech2TextCTCExample.output_size"><code class="docutils literal notranslate"><span class="pre">Speech2TextCTCExample.output_size</span></code></a></li>
+<li><a class="reference internal" href="#s3prl.task.speech2text_ctc_task.Speech2TextCTCExample.forward"><code class="docutils literal notranslate"><span class="pre">Speech2TextCTCExample.forward()</span></code></a></li>
+<li><a class="reference internal" href="#s3prl.task.speech2text_ctc_task.Speech2TextCTCExample.dump_patches"><code class="docutils literal notranslate"><span class="pre">Speech2TextCTCExample.dump_patches</span></code></a></li>
+<li><a class="reference internal" href="#s3prl.task.speech2text_ctc_task.Speech2TextCTCExample.training"><code class="docutils literal notranslate"><span class="pre">Speech2TextCTCExample.training</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li><a class="reference internal" href="#speech2textctctask">Speech2TextCTCTask</a><ul>
+<li><a class="reference internal" href="#s3prl.task.speech2text_ctc_task.Speech2TextCTCTask"><code class="docutils literal notranslate"><span class="pre">Speech2TextCTCTask</span></code></a><ul>
+<li><a class="reference internal" href="#s3prl.task.speech2text_ctc_task.Speech2TextCTCTask.predict"><code class="docutils literal notranslate"><span class="pre">Speech2TextCTCTask.predict()</span></code></a></li>
+<li><a class="reference internal" href="#s3prl.task.speech2text_ctc_task.Speech2TextCTCTask.forward"><code class="docutils literal notranslate"><span class="pre">Speech2TextCTCTask.forward()</span></code></a></li>
+<li><a class="reference internal" href="#s3prl.task.speech2text_ctc_task.Speech2TextCTCTask.reduction"><code class="docutils literal notranslate"><span class="pre">Speech2TextCTCTask.reduction()</span></code></a></li>
+<li><a class="reference internal" href="#s3prl.task.speech2text_ctc_task.Speech2TextCTCTask.dump_patches"><code class="docutils literal notranslate"><span class="pre">Speech2TextCTCTask.dump_patches</span></code></a></li>
+<li><a class="reference internal" href="#s3prl.task.speech2text_ctc_task.Speech2TextCTCTask.get_state"><code class="docutils literal notranslate"><span class="pre">Speech2TextCTCTask.get_state()</span></code></a></li>
+<li><a class="reference internal" href="#s3prl.task.speech2text_ctc_task.Speech2TextCTCTask.parse_cached_results"><code class="docutils literal notranslate"><span class="pre">Speech2TextCTCTask.parse_cached_results()</span></code></a></li>
+<li><a class="reference internal" href="#s3prl.task.speech2text_ctc_task.Speech2TextCTCTask.set_state"><code class="docutils literal notranslate"><span class="pre">Speech2TextCTCTask.set_state()</span></code></a></li>
+<li><a class="reference internal" href="#s3prl.task.speech2text_ctc_task.Speech2TextCTCTask.test_reduction"><code class="docutils literal notranslate"><span class="pre">Speech2TextCTCTask.test_reduction()</span></code></a></li>
+<li><a class="reference internal" href="#s3prl.task.speech2text_ctc_task.Speech2TextCTCTask.test_step"><code class="docutils literal notranslate"><span class="pre">Speech2TextCTCTask.test_step()</span></code></a></li>
+<li><a class="reference internal" href="#s3prl.task.speech2text_ctc_task.Speech2TextCTCTask.train_reduction"><code class="docutils literal notranslate"><span class="pre">Speech2TextCTCTask.train_reduction()</span></code></a></li>
+<li><a class="reference internal" href="#s3prl.task.speech2text_ctc_task.Speech2TextCTCTask.train_step"><code class="docutils literal notranslate"><span class="pre">Speech2TextCTCTask.train_step()</span></code></a></li>
+<li><a class="reference internal" href="#s3prl.task.speech2text_ctc_task.Speech2TextCTCTask.valid_reduction"><code class="docutils literal notranslate"><span class="pre">Speech2TextCTCTask.valid_reduction()</span></code></a></li>
+<li><a class="reference internal" href="#s3prl.task.speech2text_ctc_task.Speech2TextCTCTask.valid_step"><code class="docutils literal notranslate"><span class="pre">Speech2TextCTCTask.valid_step()</span></code></a></li>
+<li><a class="reference internal" href="#s3prl.task.speech2text_ctc_task.Speech2TextCTCTask.training"><code class="docutils literal notranslate"><span class="pre">Speech2TextCTCTask.training</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
 </ul>
 </li>
 </ul>
@@ -587,6 +616,7 @@ the change.</p>
     <script src="../_static/underscore.js"></script>
     <script src="../_static/_sphinx_javascript_frameworks_compat.js"></script>
     <script src="../_static/doctools.js"></script>
+    <script src="../_static/sphinx_highlight.js"></script>
     <script src="../_static/scripts/furo.js"></script>
     <script src="../_static/js/custom.js"></script>
     </body>

@@ -4,7 +4,7 @@
     <meta name="viewport" content="width=device-width,initial-scale=1"/>
     <meta name="color-scheme" content="light dark"><link rel="index" title="Index" href="../../../../genindex.html" /><link rel="search" title="Search" href="../../../../search.html" />
 
-    <meta name="generator" content="sphinx-5.1.1, furo 2022.09.15"/>
+    <meta name="generator" content="sphinx-5.2.0.post0, furo 2022.09.15"/>
         <title>s3prl.problem.asr.superb_asr - S3PRL 0.4.4 documentation</title>
       <link rel="stylesheet" type="text/css" href="../../../../_static/pygments.css" />
     <link rel="stylesheet" type="text/css" href="../../../../_static/styles/furo.css?digest=9ec31e2665bf879c1d47d93a8ec4893870ee1e45" />
@@ -326,7 +326,7 @@
 
 <span class="sd">Authors</span>
 <span class="sd">  * Heng-Jui Chang 2022</span>
-<span class="sd">  * Shu-wen Yang 2022</span>
+<span class="sd">  * Leo 2022</span>
 <span class="sd">&quot;&quot;&quot;</span>
 
 <span class="kn">import</span> <span class="nn">logging</span>
@@ -445,11 +445,15 @@
     <span class="k">if</span> <span class="n">get_path_only</span><span class="p">:</span>
         <span class="k">return</span> <span class="n">tokenizer_path</span>
 
-    <span class="k">if</span> <span class="n">vocab_file</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">vocab_file</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s2">&quot;http&quot;</span><span class="p">):</span>
-        <span class="n">vocab_file</span> <span class="o">=</span> <span class="n">urls_to_filepaths</span><span class="p">(</span><span class="n">vocab_file</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">vocab_file</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">vocab_file</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">vocab_file</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">vocab_file</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s2">&quot;http&quot;</span><span class="p">):</span>
+            <span class="n">vocab_file</span> <span class="o">=</span> <span class="n">urls_to_filepaths</span><span class="p">(</span><span class="n">vocab_file</span><span class="p">)</span>
 
-    <span class="k">if</span> <span class="n">slots_file</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">slots_file</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s2">&quot;http&quot;</span><span class="p">):</span>
-        <span class="n">slots_file</span> <span class="o">=</span> <span class="n">urls_to_filepaths</span><span class="p">(</span><span class="n">slots_file</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">slots_file</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">slots_file</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">slots_file</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">slots_file</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s2">&quot;http&quot;</span><span class="p">):</span>
+            <span class="n">slots_file</span> <span class="o">=</span> <span class="n">urls_to_filepaths</span><span class="p">(</span><span class="n">slots_file</span><span class="p">)</span>
 
     <span class="k">if</span> <span class="n">vocab_file</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
         <span class="n">tokenizer</span> <span class="o">=</span> <span class="n">load_tokenizer</span><span class="p">(</span>
@@ -460,6 +464,9 @@
     <span class="k">else</span><span class="p">:</span>
         <span class="n">vocab_args</span> <span class="o">=</span> <span class="n">vocab_args</span> <span class="ow">or</span> <span class="p">{}</span>
         <span class="k">assert</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">vocab_args</span><span class="p">,</span> <span class="nb">dict</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">vocab_type</span> <span class="o">==</span> <span class="s2">&quot;subword&quot;</span> <span class="ow">and</span> <span class="ow">not</span> <span class="s2">&quot;output_file&quot;</span> <span class="ow">in</span> <span class="n">vocab_args</span><span class="p">:</span>
+            <span class="n">vocab_args</span><span class="p">[</span><span class="s2">&quot;output_file&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">Path</span><span class="p">(</span><span class="n">target_dir</span><span class="p">)</span> <span class="o">/</span> <span class="s2">&quot;tokenizer.spm&quot;</span>
 
         <span class="n">vocab_result</span> <span class="o">=</span> <span class="n">generate_vocab</span><span class="p">(</span>
             <span class="n">vocab_type</span><span class="p">,</span> <span class="n">text_file</span><span class="o">=</span><span class="nb">str</span><span class="p">(</span><span class="n">tokenizer_data_path</span><span class="p">),</span> <span class="o">**</span><span class="n">vocab_args</span>
@@ -495,10 +502,7 @@
             <span class="p">),</span>
             <span class="n">prepare_tokenizer_data</span><span class="o">=</span><span class="nb">dict</span><span class="p">(),</span>
             <span class="n">build_tokenizer</span><span class="o">=</span><span class="nb">dict</span><span class="p">(</span>
-                <span class="n">tokenizer_name</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
                 <span class="n">vocab_type</span><span class="o">=</span><span class="s2">&quot;character&quot;</span><span class="p">,</span>
-                <span class="n">vocab_args</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
-                <span class="n">slots_file</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
             <span class="p">),</span>
             <span class="n">build_dataset</span><span class="o">=</span><span class="nb">dict</span><span class="p">(),</span>
             <span class="n">build_batch_sampler</span><span class="o">=</span><span class="nb">dict</span><span class="p">(</span>
@@ -622,6 +626,8 @@
         <span class="n">target_dir</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
         <span class="n">cache_dir</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
         <span class="n">train_csv</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+        <span class="n">valid_csv</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+        <span class="n">test_csvs</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">],</span>
         <span class="n">get_path_only</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
     <span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
@@ -873,6 +879,7 @@
     <script src="../../../../_static/underscore.js"></script>
     <script src="../../../../_static/_sphinx_javascript_frameworks_compat.js"></script>
     <script src="../../../../_static/doctools.js"></script>
+    <script src="../../../../_static/sphinx_highlight.js"></script>
     <script src="../../../../_static/scripts/furo.js"></script>
     <script src="../../../../_static/js/custom.js"></script>
     </body>

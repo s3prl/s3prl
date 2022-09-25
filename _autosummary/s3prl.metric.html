@@ -5,7 +5,7 @@
     <meta name="color-scheme" content="light dark"><meta name="generator" content="Docutils 0.19: https://docutils.sourceforge.io/" />
 <link rel="index" title="Index" href="../genindex.html" /><link rel="search" title="Search" href="../search.html" /><link rel="next" title="common" href="s3prl.metric.common.html" /><link rel="prev" title="sorted_sampler" href="s3prl.dataio.sampler.sorted_sampler.html" />
 
-    <meta name="generator" content="sphinx-5.1.1, furo 2022.09.15"/>
+    <meta name="generator" content="sphinx-5.2.0.post0, furo 2022.09.15"/>
         <title>metric - S3PRL 0.4.4 documentation</title>
       <link rel="stylesheet" type="text/css" href="../_static/pygments.css" />
     <link rel="stylesheet" type="text/css" href="../_static/styles/furo.css?digest=9ec31e2665bf879c1d47d93a8ec4893870ee1e45" />
@@ -324,8 +324,8 @@
           <section id="metric">
 <h1>metric<a class="headerlink" href="#metric" title="Permalink to this heading">#</a></h1>
 <p><strong>(s3prl.metric)</strong></p>
-<span class="target" id="module-s3prl.metric"></span><p>Evaluation metrics</p>
-<div class="table-wrapper autosummary longtable docutils container">
+<p>Evaluation metrics</p>
+<span class="target" id="module-s3prl.metric"></span><div class="table-wrapper autosummary longtable docutils container">
 <table class="autosummary longtable docutils align-default">
 <tbody>
 <tr class="row-odd"><td><p><a class="reference internal" href="s3prl.metric.common.html#module-s3prl.metric.common" title="s3prl.metric.common"><code class="xref py py-obj docutils literal notranslate"><span class="pre">s3prl.metric.common</span></code></a></p></td>
@@ -593,18 +593,54 @@ min_c_det_threshold (float): The treshold to calculate min_dcf.</p>
           <div class="toc-tree">
             <ul>
 <li><a class="reference internal" href="#">metric</a><ul>
-<li><a class="reference internal" href="#accuracy">accuracy</a></li>
-<li><a class="reference internal" href="#ter">ter</a></li>
-<li><a class="reference internal" href="#wer">wer</a></li>
-<li><a class="reference internal" href="#per">per</a></li>
-<li><a class="reference internal" href="#cer">cer</a></li>
-<li><a class="reference internal" href="#compute-eer">compute_eer</a></li>
-<li><a class="reference internal" href="#compute-mindcf">compute_minDCF</a></li>
-<li><a class="reference internal" href="#calc-diarization-error">calc_diarization_error</a></li>
-<li><a class="reference internal" href="#slot-edit-f1">slot_edit_f1</a></li>
-<li><a class="reference internal" href="#slot-value-cer">slot_value_cer</a></li>
-<li><a class="reference internal" href="#slot-value-wer">slot_value_wer</a></li>
-<li><a class="reference internal" href="#slot-type-f1">slot_type_f1</a></li>
+<li><a class="reference internal" href="#accuracy">accuracy</a><ul>
+<li><a class="reference internal" href="#s3prl.metric.accuracy"><code class="docutils literal notranslate"><span class="pre">accuracy()</span></code></a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#ter">ter</a><ul>
+<li><a class="reference internal" href="#s3prl.metric.ter"><code class="docutils literal notranslate"><span class="pre">ter()</span></code></a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#wer">wer</a><ul>
+<li><a class="reference internal" href="#s3prl.metric.wer"><code class="docutils literal notranslate"><span class="pre">wer()</span></code></a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#per">per</a><ul>
+<li><a class="reference internal" href="#s3prl.metric.per"><code class="docutils literal notranslate"><span class="pre">per()</span></code></a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#cer">cer</a><ul>
+<li><a class="reference internal" href="#s3prl.metric.cer"><code class="docutils literal notranslate"><span class="pre">cer()</span></code></a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#compute-eer">compute_eer</a><ul>
+<li><a class="reference internal" href="#s3prl.metric.compute_eer"><code class="docutils literal notranslate"><span class="pre">compute_eer()</span></code></a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#compute-mindcf">compute_minDCF</a><ul>
+<li><a class="reference internal" href="#s3prl.metric.compute_minDCF"><code class="docutils literal notranslate"><span class="pre">compute_minDCF()</span></code></a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#calc-diarization-error">calc_diarization_error</a><ul>
+<li><a class="reference internal" href="#s3prl.metric.calc_diarization_error"><code class="docutils literal notranslate"><span class="pre">calc_diarization_error()</span></code></a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#slot-edit-f1">slot_edit_f1</a><ul>
+<li><a class="reference internal" href="#s3prl.metric.slot_edit_f1"><code class="docutils literal notranslate"><span class="pre">slot_edit_f1()</span></code></a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#slot-value-cer">slot_value_cer</a><ul>
+<li><a class="reference internal" href="#s3prl.metric.slot_value_cer"><code class="docutils literal notranslate"><span class="pre">slot_value_cer()</span></code></a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#slot-value-wer">slot_value_wer</a><ul>
+<li><a class="reference internal" href="#s3prl.metric.slot_value_wer"><code class="docutils literal notranslate"><span class="pre">slot_value_wer()</span></code></a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#slot-type-f1">slot_type_f1</a><ul>
+<li><a class="reference internal" href="#s3prl.metric.slot_type_f1"><code class="docutils literal notranslate"><span class="pre">slot_type_f1()</span></code></a></li>
+</ul>
+</li>
 </ul>
 </li>
 </ul>
@@ -621,6 +657,7 @@ min_c_det_threshold (float): The treshold to calculate min_dcf.</p>
     <script src="../_static/underscore.js"></script>
     <script src="../_static/_sphinx_javascript_frameworks_compat.js"></script>
     <script src="../_static/doctools.js"></script>
+    <script src="../_static/sphinx_highlight.js"></script>
     <script src="../_static/scripts/furo.js"></script>
     <script src="../_static/js/custom.js"></script>
     </body>

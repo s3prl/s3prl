@@ -4,7 +4,7 @@
     <meta name="viewport" content="width=device-width,initial-scale=1"/>
     <meta name="color-scheme" content="light dark"><link rel="index" title="Index" href="../../../../genindex.html" /><link rel="search" title="Search" href="../../../../search.html" />
 
-    <meta name="generator" content="sphinx-5.1.1, furo 2022.09.15"/>
+    <meta name="generator" content="sphinx-5.2.0.post0, furo 2022.09.15"/>
         <title>s3prl.problem.asr.run - S3PRL 0.4.4 documentation</title>
       <link rel="stylesheet" type="text/css" href="../../../../_static/pygments.css" />
     <link rel="stylesheet" type="text/css" href="../../../../_static/styles/furo.css?digest=9ec31e2665bf879c1d47d93a8ec4893870ee1e45" />
@@ -325,7 +325,7 @@
 <span class="sd">The backbone run procedure of all ASR tasks</span>
 
 <span class="sd">Authors</span>
-<span class="sd">  * Shu-wen Yang 2022</span>
+<span class="sd">  * Leo 2022</span>
 <span class="sd">&quot;&quot;&quot;</span>
 
 <span class="kn">import</span> <span class="nn">logging</span>
@@ -490,6 +490,8 @@
                 <span class="n">target_dir</span><span class="p">,</span>
                 <span class="n">cache_dir</span><span class="p">,</span>
                 <span class="n">train_csv</span><span class="p">,</span>
+                <span class="n">valid_csv</span><span class="p">,</span>
+                <span class="n">test_csvs</span><span class="p">,</span>
                 <span class="n">get_path_only</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
             <span class="p">)</span>
 
@@ -498,11 +500,13 @@
             <span class="n">target_dir</span><span class="p">,</span>
             <span class="n">cache_dir</span><span class="p">,</span>
             <span class="n">train_csv</span><span class="p">,</span>
+            <span class="n">valid_csv</span><span class="p">,</span>
+            <span class="n">test_csvs</span><span class="p">,</span>
             <span class="n">get_path_only</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
         <span class="p">)</span>
 
         <span class="k">def</span> <span class="nf">check_fn</span><span class="p">():</span>
-            <span class="k">assert</span> <span class="n">Path</span><span class="p">(</span><span class="n">tokenizer_data_path</span><span class="p">)</span><span class="o">.</span><span class="n">is_file</span><span class="p">()</span>
+            <span class="k">assert</span> <span class="n">Path</span><span class="p">(</span><span class="n">tokenizer_data_path</span><span class="p">)</span><span class="o">.</span><span class="n">exists</span><span class="p">()</span>
 
         <span class="bp">self</span><span class="o">.</span><span class="n">_stage_check</span><span class="p">(</span><span class="n">stage_id</span><span class="p">,</span> <span class="n">stop</span><span class="p">,</span> <span class="n">check_fn</span><span class="p">)</span>
 
@@ -714,6 +718,7 @@
     <script src="../../../../_static/underscore.js"></script>
     <script src="../../../../_static/_sphinx_javascript_frameworks_compat.js"></script>
     <script src="../../../../_static/doctools.js"></script>
+    <script src="../../../../_static/sphinx_highlight.js"></script>
     <script src="../../../../_static/scripts/furo.js"></script>
     <script src="../../../../_static/js/custom.js"></script>
     </body>

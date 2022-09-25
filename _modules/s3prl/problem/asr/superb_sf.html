@@ -4,7 +4,7 @@
     <meta name="viewport" content="width=device-width,initial-scale=1"/>
     <meta name="color-scheme" content="light dark"><link rel="index" title="Index" href="../../../../genindex.html" /><link rel="search" title="Search" href="../../../../search.html" />
 
-    <meta name="generator" content="sphinx-5.1.1, furo 2022.09.15"/>
+    <meta name="generator" content="sphinx-5.2.0.post0, furo 2022.09.15"/>
         <title>s3prl.problem.asr.superb_sf - S3PRL 0.4.4 documentation</title>
       <link rel="stylesheet" type="text/css" href="../../../../_static/pygments.css" />
     <link rel="stylesheet" type="text/css" href="../../../../_static/styles/furo.css?digest=9ec31e2665bf879c1d47d93a8ec4893870ee1e45" />
@@ -327,24 +327,30 @@
 <span class="sd">Authors</span>
 <span class="sd">  * Yung-Sung Chuang 2021</span>
 <span class="sd">  * Heng-Jui Chang 2022</span>
-<span class="sd">  * Shu-wen Yang 2022</span>
+<span class="sd">  * Leo 2022</span>
 <span class="sd">&quot;&quot;&quot;</span>
 
+<span class="kn">import</span> <span class="nn">pickle</span>
+<span class="kn">import</span> <span class="nn">re</span>
 <span class="kn">from</span> <span class="nn">dataclasses</span> <span class="kn">import</span> <span class="n">dataclass</span>
 <span class="kn">from</span> <span class="nn">pathlib</span> <span class="kn">import</span> <span class="n">Path</span>
 <span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">List</span>
 
 <span class="kn">import</span> <span class="nn">pandas</span> <span class="k">as</span> <span class="nn">pd</span>
+<span class="kn">import</span> <span class="nn">torch</span>
+<span class="kn">import</span> <span class="nn">torchaudio</span>
+<span class="kn">from</span> <span class="nn">joblib</span> <span class="kn">import</span> <span class="n">Parallel</span><span class="p">,</span> <span class="n">delayed</span>
 <span class="kn">from</span> <span class="nn">omegaconf</span> <span class="kn">import</span> <span class="n">MISSING</span>
+<span class="kn">from</span> <span class="nn">torch.utils.data</span> <span class="kn">import</span> <span class="n">Dataset</span>
+<span class="kn">from</span> <span class="nn">tqdm</span> <span class="kn">import</span> <span class="n">tqdm</span>
 
 <span class="kn">from</span> <span class="nn">s3prl.dataio.corpus.snips</span> <span class="kn">import</span> <span class="n">SNIPS</span>
-<span class="kn">from</span> <span class="nn">s3prl.dataio.sampler</span> <span class="kn">import</span> <span class="n">FixedBatchSizeBatchSampler</span>
-<span class="kn">from</span> <span class="nn">s3prl.util.download</span> <span class="kn">import</span> <span class="n">_urls_to_filepaths</span>
+<span class="kn">from</span> <span class="nn">s3prl.dataio.sampler</span> <span class="kn">import</span> <span class="n">FixedBatchSizeBatchSampler</span><span class="p">,</span> <span class="n">SortedSliceSampler</span>
 
-<span class="kn">from</span> <span class="nn">.superb_asr</span> <span class="kn">import</span> <span class="n">SuperbASR</span>
+<span class="kn">from</span> <span class="nn">.superb_asr</span> <span class="kn">import</span> <span class="n">SuperbASR</span><span class="p">,</span> <span class="n">prepare_common_tokenizer</span>
 
-<span class="n">VOCAB_URL</span> <span class="o">=</span> <span class="s2">&quot;https://huggingface.co/datasets/s3prl/SNIPS/raw/main/character.txt&quot;</span>
-<span class="n">SLOTS_URL</span> <span class="o">=</span> <span class="s2">&quot;https://huggingface.co/datasets/s3prl/SNIPS/raw/main/slots.txt&quot;</span>
+<span class="c1"># Mapping for character-slot tokenizer (SNIPS)</span>
+<span class="n">translator</span> <span class="o">=</span> <span class="nb">str</span><span class="o">.</span><span class="n">maketrans</span><span class="p">(</span><span class="s1">&#39;ÁÃÄÅÆÇÈÉÊËÍÏÐÒÓÔÖØÚÛĘŃŌŞŪ&quot;&#39;</span><span class="p">,</span> <span class="s2">&quot;AAAAACEEEEIIDOOOOOUUENOSU &quot;</span><span class="p">)</span>
 
 <span class="n">__all__</span> <span class="o">=</span> <span class="p">[</span>
     <span class="s2">&quot;audio_snips_for_slot_filling&quot;</span><span class="p">,</span>
@@ -380,7 +386,14 @@
         <span class="k">for</span> <span class="n">field</span> <span class="ow">in</span> <span class="n">fields</span><span class="p">:</span>
             <span class="n">data</span><span class="p">[</span><span class="n">field</span><span class="p">]</span> <span class="o">=</span> <span class="p">[]</span>
             <span class="k">for</span> <span class="n">key</span> <span class="ow">in</span> <span class="n">keys</span><span class="p">:</span>
-                <span class="n">data</span><span class="p">[</span><span class="n">field</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">data_dict</span><span class="p">[</span><span class="n">key</span><span class="p">][</span><span class="n">field</span><span class="p">])</span>
+                <span class="n">value</span> <span class="o">=</span> <span class="n">data_dict</span><span class="p">[</span><span class="n">key</span><span class="p">][</span><span class="n">field</span><span class="p">]</span>
+                <span class="k">if</span> <span class="n">field</span> <span class="o">==</span> <span class="s2">&quot;transcription&quot;</span><span class="p">:</span>
+                    <span class="n">value</span> <span class="o">=</span> <span class="n">value</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s2">&quot;楽園追放&quot;</span><span class="p">,</span> <span class="s2">&quot;EXPELLED&quot;</span><span class="p">)</span>
+                    <span class="n">value</span> <span class="o">=</span> <span class="n">value</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s2">&quot;官方杂志&quot;</span><span class="p">,</span> <span class="s2">&quot;&quot;</span><span class="p">)</span>
+                    <span class="n">value</span> <span class="o">=</span> <span class="n">value</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s2">&quot;–&quot;</span><span class="p">,</span> <span class="s2">&quot;-&quot;</span><span class="p">)</span>
+                    <span class="n">value</span> <span class="o">=</span> <span class="n">value</span><span class="o">.</span><span class="n">translate</span><span class="p">(</span><span class="n">translator</span><span class="p">)</span>
+                    <span class="n">value</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">sub</span><span class="p">(</span><span class="s2">&quot; +&quot;</span><span class="p">,</span> <span class="s2">&quot; &quot;</span><span class="p">,</span> <span class="n">value</span><span class="p">)</span><span class="o">.</span><span class="n">strip</span><span class="p">(</span><span class="s2">&quot; &quot;</span><span class="p">)</span>
+                <span class="n">data</span><span class="p">[</span><span class="n">field</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">value</span><span class="p">)</span>
         <span class="n">data</span><span class="p">[</span><span class="s2">&quot;id&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">keys</span>
         <span class="n">df</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">(</span><span class="n">data</span><span class="p">)</span>
         <span class="n">df</span><span class="o">.</span><span class="n">to_csv</span><span class="p">(</span><span class="n">csv_path</span><span class="p">,</span> <span class="n">index</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
@@ -417,16 +430,13 @@
             <span class="p">),</span>
             <span class="n">prepare_tokenizer_data</span><span class="o">=</span><span class="nb">dict</span><span class="p">(),</span>
             <span class="n">build_tokenizer</span><span class="o">=</span><span class="nb">dict</span><span class="p">(</span>
-                <span class="n">tokenizer_name</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
                 <span class="n">vocab_type</span><span class="o">=</span><span class="s2">&quot;character&quot;</span><span class="p">,</span>
-                <span class="n">vocab_file</span><span class="o">=</span><span class="n">VOCAB_URL</span><span class="p">,</span>
-                <span class="n">slots_file</span><span class="o">=</span><span class="n">SLOTS_URL</span><span class="p">,</span>
             <span class="p">),</span>
             <span class="n">build_dataset</span><span class="o">=</span><span class="nb">dict</span><span class="p">(),</span>
             <span class="n">build_batch_sampler</span><span class="o">=</span><span class="nb">dict</span><span class="p">(</span>
                 <span class="n">train</span><span class="o">=</span><span class="nb">dict</span><span class="p">(</span>
-                    <span class="n">batch_size</span><span class="o">=</span><span class="mi">32</span><span class="p">,</span>
-                    <span class="n">shuffle</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+                    <span class="n">batch_size</span><span class="o">=</span><span class="mi">16</span><span class="p">,</span>
+                    <span class="n">max_length</span><span class="o">=</span><span class="mi">300000</span><span class="p">,</span>
                 <span class="p">),</span>
                 <span class="n">valid</span><span class="o">=</span><span class="nb">dict</span><span class="p">(</span>
                     <span class="n">batch_size</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span>
@@ -534,12 +544,127 @@
 <span class="sd">            ====================  ====================</span>
 <span class="sd">            id                    (str) - the unique id for this data point</span>
 <span class="sd">            wav_path              (str) - the absolute path of the waveform file</span>
-<span class="sd">            transcription         (str) - a text string</span>
+<span class="sd">            transcription         (str) - a text string where words are separted by a space.</span>
+<span class="sd">                                    Eg. &quot;I want to fly from Taipei to New York&quot;</span>
+<span class="sd">            iob                   (str) - iob tags, use &quot;O&quot; if no tag, every word should have a tag, separted by a space.</span>
+<span class="sd">                                    Eg. &quot;O O O O O from_location O to_location to_location&quot;</span>
 <span class="sd">            ====================  ====================</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="n">audio_snips_for_slot_filling</span><span class="p">(</span>
             <span class="o">**</span><span class="bp">self</span><span class="o">.</span><span class="n">_get_current_arguments</span><span class="p">(</span><span class="n">flatten_dict</span><span class="o">=</span><span class="s2">&quot;prepare_data&quot;</span><span class="p">)</span>
         <span class="p">)</span></div>
+
+<div class="viewcode-block" id="SuperbSF.prepare_tokenizer_data"><a class="viewcode-back" href="../../../../_autosummary/s3prl.problem.asr.superb_sf.html#s3prl.problem.SuperbSF.prepare_tokenizer_data">[docs]</a>    <span class="k">def</span> <span class="nf">prepare_tokenizer_data</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="n">prepare_tokenizer_data</span><span class="p">:</span> <span class="nb">dict</span><span class="p">,</span>
+        <span class="n">target_dir</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+        <span class="n">cache_dir</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+        <span class="n">train_csv</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+        <span class="n">valid_csv</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+        <span class="n">test_csvs</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+        <span class="n">get_path_only</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
+    <span class="p">):</span>
+        <span class="n">data_dir</span> <span class="o">=</span> <span class="n">target_dir</span> <span class="o">/</span> <span class="s2">&quot;tokenizer_data&quot;</span>
+        <span class="k">if</span> <span class="n">get_path_only</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">data_dir</span>
+
+        <span class="n">train_df</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">read_csv</span><span class="p">(</span><span class="n">train_csv</span><span class="p">)</span>
+        <span class="n">valid_df</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">read_csv</span><span class="p">(</span><span class="n">valid_csv</span><span class="p">)</span>
+        <span class="n">test_dfs</span> <span class="o">=</span> <span class="p">[</span><span class="n">pd</span><span class="o">.</span><span class="n">read_csv</span><span class="p">(</span><span class="n">test_csv</span><span class="p">)</span> <span class="k">for</span> <span class="n">test_csv</span> <span class="ow">in</span> <span class="n">test_csvs</span><span class="p">]</span>
+        <span class="n">iob_lines</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">concat</span><span class="p">([</span><span class="n">train_df</span><span class="p">,</span> <span class="n">valid_df</span><span class="p">,</span> <span class="o">*</span><span class="n">test_dfs</span><span class="p">],</span> <span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">)[</span><span class="s2">&quot;iob&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">tolist</span><span class="p">()</span>
+        <span class="n">iobs</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">for</span> <span class="n">line</span> <span class="ow">in</span> <span class="n">iob_lines</span><span class="p">:</span>
+            <span class="n">iobs</span><span class="o">.</span><span class="n">extend</span><span class="p">(</span><span class="n">line</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">&quot; &quot;</span><span class="p">))</span>
+        <span class="n">iobs</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="nb">sorted</span><span class="p">(</span><span class="nb">set</span><span class="p">(</span><span class="n">iobs</span><span class="p">)))</span>
+
+        <span class="n">Path</span><span class="p">(</span><span class="n">data_dir</span><span class="p">)</span><span class="o">.</span><span class="n">mkdir</span><span class="p">(</span><span class="n">parents</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">exist_ok</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+
+        <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">data_dir</span> <span class="o">/</span> <span class="s2">&quot;slot.txt&quot;</span><span class="p">,</span> <span class="s2">&quot;w&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
+            <span class="n">f</span><span class="o">.</span><span class="n">writelines</span><span class="p">([</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">iob</span><span class="si">}</span><span class="se">\n</span><span class="s2">&quot;</span> <span class="k">for</span> <span class="n">iob</span> <span class="ow">in</span> <span class="n">iobs</span><span class="p">])</span>
+
+        <span class="n">train_df</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">read_csv</span><span class="p">(</span><span class="n">train_csv</span><span class="p">)</span>
+        <span class="n">texts</span> <span class="o">=</span> <span class="n">train_df</span><span class="p">[</span><span class="s2">&quot;transcription&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">tolist</span><span class="p">()</span>
+
+        <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">data_dir</span> <span class="o">/</span> <span class="s2">&quot;text.txt&quot;</span><span class="p">,</span> <span class="s2">&quot;w&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
+            <span class="n">f</span><span class="o">.</span><span class="n">writelines</span><span class="p">([</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">t</span><span class="si">}</span><span class="se">\n</span><span class="s2">&quot;</span> <span class="k">for</span> <span class="n">t</span> <span class="ow">in</span> <span class="n">texts</span><span class="p">])</span>
+
+        <span class="k">return</span> <span class="n">data_dir</span></div>
+
+<div class="viewcode-block" id="SuperbSF.build_tokenizer"><a class="viewcode-back" href="../../../../_autosummary/s3prl.problem.asr.superb_sf.html#s3prl.problem.SuperbSF.build_tokenizer">[docs]</a>    <span class="k">def</span> <span class="nf">build_tokenizer</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="n">build_tokenizer</span><span class="p">:</span> <span class="nb">dict</span><span class="p">,</span>
+        <span class="n">target_dir</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+        <span class="n">cache_dir</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+        <span class="n">tokenizer_data_path</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+        <span class="n">get_path_only</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
+    <span class="p">):</span>
+        <span class="k">return</span> <span class="n">prepare_common_tokenizer</span><span class="p">(</span>
+            <span class="n">target_dir</span><span class="p">,</span>
+            <span class="n">cache_dir</span><span class="p">,</span>
+            <span class="n">Path</span><span class="p">(</span><span class="n">tokenizer_data_path</span><span class="p">)</span> <span class="o">/</span> <span class="s2">&quot;text.txt&quot;</span><span class="p">,</span>
+            <span class="n">get_path_only</span><span class="p">,</span>
+            <span class="kc">None</span><span class="p">,</span>
+            <span class="kc">None</span><span class="p">,</span>
+            <span class="n">slots_file</span><span class="o">=</span><span class="n">Path</span><span class="p">(</span><span class="n">tokenizer_data_path</span><span class="p">)</span> <span class="o">/</span> <span class="s2">&quot;slot.txt&quot;</span><span class="p">,</span>
+            <span class="o">**</span><span class="n">build_tokenizer</span><span class="p">,</span>
+        <span class="p">)</span></div>
+
+<div class="viewcode-block" id="SuperbSF.build_dataset"><a class="viewcode-back" href="../../../../_autosummary/s3prl.problem.asr.superb_sf.html#s3prl.problem.SuperbSF.build_dataset">[docs]</a>    <span class="k">def</span> <span class="nf">build_dataset</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="n">build_dataset</span><span class="p">:</span> <span class="nb">dict</span><span class="p">,</span>
+        <span class="n">target_dir</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+        <span class="n">cache_dir</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+        <span class="n">mode</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+        <span class="n">data_csv</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+        <span class="n">tokenizer_path</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+    <span class="p">):</span>
+        <span class="k">class</span> <span class="nc">SlotFillingDataset</span><span class="p">(</span><span class="n">Dataset</span><span class="p">):</span>
+            <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">data_csv</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">tokenizer</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">()</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">df</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">read_csv</span><span class="p">(</span><span class="n">data_csv</span><span class="p">)</span>
+
+                <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">tokenizer_path</span><span class="p">,</span> <span class="s2">&quot;rb&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
+                    <span class="n">tokenizer</span> <span class="o">=</span> <span class="n">pickle</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="n">f</span><span class="p">)</span>
+
+                <span class="bp">self</span><span class="o">.</span><span class="n">tokenizer</span> <span class="o">=</span> <span class="n">tokenizer</span>
+
+            <span class="k">def</span> <span class="fm">__len__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+                <span class="k">return</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">df</span><span class="p">)</span>
+
+            <span class="k">def</span> <span class="nf">get_info</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">index</span><span class="p">):</span>
+                <span class="n">row</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">df</span><span class="o">.</span><span class="n">iloc</span><span class="p">[</span><span class="n">index</span><span class="p">]</span>
+                <span class="n">text</span> <span class="o">=</span> <span class="n">row</span><span class="p">[</span><span class="s2">&quot;transcription&quot;</span><span class="p">]</span>
+                <span class="n">iob</span> <span class="o">=</span> <span class="n">row</span><span class="p">[</span><span class="s2">&quot;iob&quot;</span><span class="p">]</span>
+
+                <span class="n">unique_name</span> <span class="o">=</span> <span class="n">row</span><span class="p">[</span><span class="s2">&quot;id&quot;</span><span class="p">]</span>
+                <span class="n">wav_path</span> <span class="o">=</span> <span class="n">row</span><span class="p">[</span><span class="s2">&quot;wav_path&quot;</span><span class="p">]</span>
+                <span class="n">class_id</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">tokenizer</span><span class="o">.</span><span class="n">encode</span><span class="p">(</span><span class="n">text</span><span class="p">,</span> <span class="n">iob</span><span class="p">)</span>
+                <span class="n">label</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">tokenizer</span><span class="o">.</span><span class="n">decode</span><span class="p">(</span><span class="n">class_id</span><span class="p">)</span>
+
+                <span class="k">return</span> <span class="p">{</span>
+                    <span class="s2">&quot;wav_path&quot;</span><span class="p">:</span> <span class="n">wav_path</span><span class="p">,</span>
+                    <span class="s2">&quot;class_ids&quot;</span><span class="p">:</span> <span class="n">class_id</span><span class="p">,</span>
+                    <span class="s2">&quot;labels&quot;</span><span class="p">:</span> <span class="n">label</span><span class="p">,</span>
+                    <span class="s2">&quot;unique_name&quot;</span><span class="p">:</span> <span class="n">unique_name</span><span class="p">,</span>
+                    <span class="s2">&quot;raw_text&quot;</span><span class="p">:</span> <span class="n">text</span><span class="p">,</span>
+                    <span class="s2">&quot;raw_iob&quot;</span><span class="p">:</span> <span class="n">iob</span><span class="p">,</span>
+                <span class="p">}</span>
+
+            <span class="k">def</span> <span class="fm">__getitem__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">index</span><span class="p">):</span>
+                <span class="n">info</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_info</span><span class="p">(</span><span class="n">index</span><span class="p">)</span>
+                <span class="n">wav_path</span> <span class="o">=</span> <span class="n">info</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s2">&quot;wav_path&quot;</span><span class="p">)</span>
+                <span class="n">wav</span><span class="p">,</span> <span class="n">sr</span> <span class="o">=</span> <span class="n">torchaudio</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="n">wav_path</span><span class="p">)</span>
+
+                <span class="k">return</span> <span class="p">{</span>
+                    <span class="s2">&quot;x&quot;</span><span class="p">:</span> <span class="n">wav</span><span class="o">.</span><span class="n">view</span><span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">),</span>
+                    <span class="s2">&quot;x_len&quot;</span><span class="p">:</span> <span class="nb">len</span><span class="p">(</span><span class="n">wav</span><span class="o">.</span><span class="n">view</span><span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">)),</span>
+                    <span class="s2">&quot;class_ids&quot;</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">LongTensor</span><span class="p">(</span><span class="n">info</span><span class="p">[</span><span class="s2">&quot;class_ids&quot;</span><span class="p">]),</span>
+                    <span class="s2">&quot;labels&quot;</span><span class="p">:</span> <span class="n">info</span><span class="p">[</span><span class="s2">&quot;labels&quot;</span><span class="p">],</span>
+                    <span class="s2">&quot;unique_name&quot;</span><span class="p">:</span> <span class="n">info</span><span class="p">[</span><span class="s2">&quot;unique_name&quot;</span><span class="p">],</span>
+                <span class="p">}</span>
+
+        <span class="n">dataset</span> <span class="o">=</span> <span class="n">SlotFillingDataset</span><span class="p">(</span><span class="n">data_csv</span><span class="p">,</span> <span class="n">tokenizer_path</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">dataset</span></div>
 
 <div class="viewcode-block" id="SuperbSF.build_batch_sampler"><a class="viewcode-back" href="../../../../_autosummary/s3prl.problem.asr.superb_sf.html#s3prl.problem.SuperbSF.build_batch_sampler">[docs]</a>    <span class="k">def</span> <span class="nf">build_batch_sampler</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span>
@@ -559,7 +684,7 @@
 <span class="sd">                ====================  ====================</span>
 <span class="sd">                key                   description</span>
 <span class="sd">                ====================  ====================</span>
-<span class="sd">                train                 (dict) - arguments for :obj:`FixedBatchSizeBatchSampler`</span>
+<span class="sd">                train                 (dict) - arguments for :obj:`SortedSliceSampler`</span>
 <span class="sd">                valid                 (dict) - arguments for :obj:`FixedBatchSizeBatchSampler`</span>
 <span class="sd">                test                  (dict) - arguments for :obj:`FixedBatchSizeBatchSampler`</span>
 <span class="sd">                ====================  ====================</span>
@@ -584,8 +709,24 @@
 
         <span class="n">conf</span> <span class="o">=</span> <span class="n">Config</span><span class="p">(</span><span class="o">**</span><span class="n">build_batch_sampler</span><span class="p">)</span>
 
+        <span class="k">def</span> <span class="nf">get_length</span><span class="p">(</span><span class="n">dataset</span><span class="p">):</span>
+            <span class="k">def</span> <span class="nf">_read_length</span><span class="p">(</span><span class="n">path</span><span class="p">):</span>
+                <span class="n">torchaudio</span><span class="o">.</span><span class="n">set_audio_backend</span><span class="p">(</span><span class="s2">&quot;sox_io&quot;</span><span class="p">)</span>
+                <span class="n">info</span> <span class="o">=</span> <span class="n">torchaudio</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">path</span><span class="p">))</span>
+                <span class="k">return</span> <span class="n">info</span><span class="o">.</span><span class="n">num_frames</span> <span class="o">/</span> <span class="n">info</span><span class="o">.</span><span class="n">sample_rate</span>
+
+            <span class="n">wav_paths</span> <span class="o">=</span> <span class="p">[</span><span class="n">dataset</span><span class="o">.</span><span class="n">get_info</span><span class="p">(</span><span class="n">i</span><span class="p">)[</span><span class="s2">&quot;wav_path&quot;</span><span class="p">]</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">dataset</span><span class="p">))]</span>
+            <span class="n">lengths</span> <span class="o">=</span> <span class="n">Parallel</span><span class="p">(</span><span class="n">n_jobs</span><span class="o">=</span><span class="mi">6</span><span class="p">)(</span>
+                <span class="n">delayed</span><span class="p">(</span><span class="n">_read_length</span><span class="p">)(</span><span class="n">path</span><span class="p">)</span>
+                <span class="k">for</span> <span class="n">path</span> <span class="ow">in</span> <span class="n">tqdm</span><span class="p">(</span><span class="n">wav_paths</span><span class="p">,</span> <span class="n">desc</span><span class="o">=</span><span class="s2">&quot;get wav length&quot;</span><span class="p">)</span>
+            <span class="p">)</span>
+            <span class="k">return</span> <span class="n">lengths</span>
+
         <span class="k">if</span> <span class="n">mode</span> <span class="o">==</span> <span class="s2">&quot;train&quot;</span><span class="p">:</span>
-            <span class="k">return</span> <span class="n">FixedBatchSizeBatchSampler</span><span class="p">(</span><span class="n">dataset</span><span class="p">,</span> <span class="o">**</span><span class="p">(</span><span class="n">conf</span><span class="o">.</span><span class="n">train</span> <span class="ow">or</span> <span class="p">{}))</span>
+            <span class="n">sampler</span> <span class="o">=</span> <span class="n">SortedSliceSampler</span><span class="p">(</span>
+                <span class="n">dataset</span><span class="p">,</span> <span class="n">get_length_func</span><span class="o">=</span><span class="n">get_length</span><span class="p">,</span> <span class="o">**</span><span class="p">(</span><span class="n">conf</span><span class="o">.</span><span class="n">train</span> <span class="ow">or</span> <span class="p">{})</span>
+            <span class="p">)</span>
+            <span class="k">return</span> <span class="n">sampler</span>
         <span class="k">elif</span> <span class="n">mode</span> <span class="o">==</span> <span class="s2">&quot;valid&quot;</span><span class="p">:</span>
             <span class="k">return</span> <span class="n">FixedBatchSizeBatchSampler</span><span class="p">(</span><span class="n">dataset</span><span class="p">,</span> <span class="o">**</span><span class="p">(</span><span class="n">conf</span><span class="o">.</span><span class="n">valid</span> <span class="ow">or</span> <span class="p">{}))</span>
         <span class="k">elif</span> <span class="n">mode</span> <span class="o">==</span> <span class="s2">&quot;test&quot;</span><span class="p">:</span>
@@ -631,6 +772,7 @@
     <script src="../../../../_static/underscore.js"></script>
     <script src="../../../../_static/_sphinx_javascript_frameworks_compat.js"></script>
     <script src="../../../../_static/doctools.js"></script>
+    <script src="../../../../_static/sphinx_highlight.js"></script>
     <script src="../../../../_static/scripts/furo.js"></script>
     <script src="../../../../_static/js/custom.js"></script>
     </body>

@@ -5,7 +5,7 @@
     <meta name="color-scheme" content="light dark"><meta name="generator" content="Docutils 0.19: https://docutils.sourceforge.io/" />
 <link rel="index" title="Index" href="../genindex.html" /><link rel="search" title="Search" href="../search.html" /><link rel="next" title="sorted_sampler" href="s3prl.dataio.sampler.sorted_sampler.html" /><link rel="prev" title="group_same_item_sampler" href="s3prl.dataio.sampler.group_same_item_sampler.html" />
 
-    <meta name="generator" content="sphinx-5.1.1, furo 2022.09.15"/>
+    <meta name="generator" content="sphinx-5.2.0.post0, furo 2022.09.15"/>
         <title>max_timestamp_batch_sampler - S3PRL 0.4.4 documentation</title>
       <link rel="stylesheet" type="text/css" href="../_static/pygments.css" />
     <link rel="stylesheet" type="text/css" href="../_static/styles/furo.css?digest=9ec31e2665bf879c1d47d93a8ec4893870ee1e45" />
@@ -324,14 +324,14 @@
           <section id="max-timestamp-batch-sampler">
 <h1>max_timestamp_batch_sampler<a class="headerlink" href="#max-timestamp-batch-sampler" title="Permalink to this heading">#</a></h1>
 <p><strong>(s3prl.dataio.sampler.max_timestamp_batch_sampler)</strong></p>
-<span class="target" id="module-s3prl.dataio.sampler.max_timestamp_batch_sampler"></span><p>Limit the maximum timestamps in a batch to realize dynamic batching.</p>
+<p>Limit the maximum timestamps in a batch to realize dynamic batching.</p>
 <dl class="simple">
 <dt>Authors:</dt><dd><ul class="simple">
 <li><p>Shu-wen Yang 2022</p></li>
 </ul>
 </dd>
 </dl>
-<section id="maxtimestampbatchsampler">
+<span class="target" id="module-s3prl.dataio.sampler.max_timestamp_batch_sampler"></span><section id="maxtimestampbatchsampler">
 <h2>MaxTimestampBatchSampler<a class="headerlink" href="#maxtimestampbatchsampler" title="Permalink to this heading">#</a></h2>
 <dl class="py class">
 <dt class="sig sig-object py" id="s3prl.dataio.sampler.max_timestamp_batch_sampler.MaxTimestampBatchSampler">
@@ -412,7 +412,14 @@ If shuffled, each indices are first shuffled before aggregated into batches</p>
           <div class="toc-tree">
             <ul>
 <li><a class="reference internal" href="#">max_timestamp_batch_sampler</a><ul>
-<li><a class="reference internal" href="#maxtimestampbatchsampler">MaxTimestampBatchSampler</a></li>
+<li><a class="reference internal" href="#maxtimestampbatchsampler">MaxTimestampBatchSampler</a><ul>
+<li><a class="reference internal" href="#s3prl.dataio.sampler.max_timestamp_batch_sampler.MaxTimestampBatchSampler"><code class="docutils literal notranslate"><span class="pre">MaxTimestampBatchSampler</span></code></a><ul>
+<li><a class="reference internal" href="#s3prl.dataio.sampler.max_timestamp_batch_sampler.MaxTimestampBatchSampler.get_length"><code class="docutils literal notranslate"><span class="pre">MaxTimestampBatchSampler.get_length()</span></code></a></li>
+<li><a class="reference internal" href="#s3prl.dataio.sampler.max_timestamp_batch_sampler.MaxTimestampBatchSampler.set_epoch"><code class="docutils literal notranslate"><span class="pre">MaxTimestampBatchSampler.set_epoch()</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
 </ul>
 </li>
 </ul>
@@ -429,6 +436,7 @@ If shuffled, each indices are first shuffled before aggregated into batches</p>
     <script src="../_static/underscore.js"></script>
     <script src="../_static/_sphinx_javascript_frameworks_compat.js"></script>
     <script src="../_static/doctools.js"></script>
+    <script src="../_static/sphinx_highlight.js"></script>
     <script src="../_static/scripts/furo.js"></script>
     <script src="../_static/js/custom.js"></script>
     </body>

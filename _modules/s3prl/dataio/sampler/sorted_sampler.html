@@ -4,7 +4,7 @@
     <meta name="viewport" content="width=device-width,initial-scale=1"/>
     <meta name="color-scheme" content="light dark"><link rel="index" title="Index" href="../../../../genindex.html" /><link rel="search" title="Search" href="../../../../search.html" />
 
-    <meta name="generator" content="sphinx-5.1.1, furo 2022.09.15"/>
+    <meta name="generator" content="sphinx-5.2.0.post0, furo 2022.09.15"/>
         <title>s3prl.dataio.sampler.sorted_sampler - S3PRL 0.4.4 documentation</title>
       <link rel="stylesheet" type="text/css" href="../../../../_static/pygments.css" />
     <link rel="stylesheet" type="text/css" href="../../../../_static/styles/furo.css?digest=9ec31e2665bf879c1d47d93a8ec4893870ee1e45" />
@@ -368,7 +368,7 @@
 
         <span class="n">get_length_func</span> <span class="o">=</span> <span class="n">get_length_func</span> <span class="ow">or</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_length</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">id2length</span> <span class="o">=</span> <span class="n">get_length_func</span><span class="p">(</span><span class="n">dataset</span><span class="p">)</span>
-        <span class="n">sorted_ids</span> <span class="o">=</span> <span class="p">[(</span><span class="n">idx</span><span class="p">,</span> <span class="n">length</span><span class="p">)</span> <span class="k">for</span> <span class="n">idx</span><span class="p">,</span> <span class="n">length</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">id2length</span><span class="o">.</span><span class="n">items</span><span class="p">()]</span>
+        <span class="n">sorted_ids</span> <span class="o">=</span> <span class="p">[(</span><span class="n">idx</span><span class="p">,</span> <span class="n">length</span><span class="p">)</span> <span class="k">for</span> <span class="n">idx</span><span class="p">,</span> <span class="n">length</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">id2length</span><span class="p">)]</span>
         <span class="n">sorted_ids</span> <span class="o">=</span> <span class="nb">sorted</span><span class="p">(</span><span class="n">sorted_ids</span><span class="p">,</span> <span class="n">key</span><span class="o">=</span><span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="n">x</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="n">reverse</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">sorted_ids</span> <span class="o">=</span> <span class="p">[</span><span class="n">data_id</span> <span class="k">for</span> <span class="n">data_id</span><span class="p">,</span> <span class="n">length</span> <span class="ow">in</span> <span class="n">sorted_ids</span><span class="p">]</span>
 
@@ -378,14 +378,14 @@
 
         <span class="n">torchaudio</span><span class="o">.</span><span class="n">set_audio_backend</span><span class="p">(</span><span class="s2">&quot;sox_io&quot;</span><span class="p">)</span>
 
-        <span class="n">lengths</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="n">lengths</span> <span class="o">=</span> <span class="p">[]</span>
         <span class="k">with</span> <span class="n">dataset</span><span class="o">.</span><span class="n">output_keys_as</span><span class="p">([</span><span class="s2">&quot;wav_path&quot;</span><span class="p">]):</span>
             <span class="k">for</span> <span class="n">data_index</span><span class="p">,</span> <span class="n">item</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span>
                 <span class="n">tqdm</span><span class="p">(</span><span class="n">dataset</span><span class="p">,</span> <span class="n">desc</span><span class="o">=</span><span class="s2">&quot;Read wav_path audio length&quot;</span><span class="p">)</span>
             <span class="p">):</span>
                 <span class="n">info</span> <span class="o">=</span> <span class="n">torchaudio</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="n">item</span><span class="p">[</span><span class="s2">&quot;wav_path&quot;</span><span class="p">])</span>
                 <span class="n">length</span> <span class="o">=</span> <span class="n">info</span><span class="o">.</span><span class="n">num_frames</span>
-                <span class="n">lengths</span><span class="p">[</span><span class="n">data_index</span><span class="p">]</span> <span class="o">=</span> <span class="n">length</span>
+                <span class="n">lengths</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">length</span><span class="p">)</span>
         <span class="k">return</span> <span class="n">lengths</span></div>
 
 <div class="viewcode-block" id="SortedSliceSampler.set_epoch"><a class="viewcode-back" href="../../../../_autosummary/s3prl.dataio.sampler.sorted_sampler.html#s3prl.dataio.sampler.SortedSliceSampler.set_epoch">[docs]</a>    <span class="k">def</span> <span class="nf">set_epoch</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">epoch</span><span class="p">:</span> <span class="nb">int</span><span class="p">):</span>
@@ -448,7 +448,7 @@
 
         <span class="n">get_length_func</span> <span class="o">=</span> <span class="n">get_length_func</span> <span class="ow">or</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_length</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">id2length</span> <span class="o">=</span> <span class="n">get_length_func</span><span class="p">(</span><span class="n">dataset</span><span class="p">)</span>
-        <span class="n">sorted_ids</span> <span class="o">=</span> <span class="p">[(</span><span class="n">idx</span><span class="p">,</span> <span class="n">length</span><span class="p">)</span> <span class="k">for</span> <span class="n">idx</span><span class="p">,</span> <span class="n">length</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">id2length</span><span class="o">.</span><span class="n">items</span><span class="p">()]</span>
+        <span class="n">sorted_ids</span> <span class="o">=</span> <span class="p">[(</span><span class="n">idx</span><span class="p">,</span> <span class="n">length</span><span class="p">)</span> <span class="k">for</span> <span class="n">idx</span><span class="p">,</span> <span class="n">length</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">id2length</span><span class="p">)]</span>
 
         <span class="c1"># sorted_ids should be from long -&gt; short utts</span>
         <span class="n">sorted_ids</span> <span class="o">=</span> <span class="nb">sorted</span><span class="p">(</span><span class="n">sorted_ids</span><span class="p">,</span> <span class="n">key</span><span class="o">=</span><span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="n">x</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="n">reverse</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
@@ -460,14 +460,14 @@
 
         <span class="n">torchaudio</span><span class="o">.</span><span class="n">set_audio_backend</span><span class="p">(</span><span class="s2">&quot;sox_io&quot;</span><span class="p">)</span>
 
-        <span class="n">lengths</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="n">lengths</span> <span class="o">=</span> <span class="p">[]</span>
         <span class="k">with</span> <span class="n">dataset</span><span class="o">.</span><span class="n">output_keys_as</span><span class="p">([</span><span class="s2">&quot;wav_path&quot;</span><span class="p">]):</span>
             <span class="k">for</span> <span class="n">data_index</span><span class="p">,</span> <span class="n">item</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span>
                 <span class="n">tqdm</span><span class="p">(</span><span class="n">dataset</span><span class="p">,</span> <span class="n">desc</span><span class="o">=</span><span class="s2">&quot;Read wav_path audio length&quot;</span><span class="p">)</span>
             <span class="p">):</span>
                 <span class="n">info</span> <span class="o">=</span> <span class="n">torchaudio</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="n">item</span><span class="p">[</span><span class="s2">&quot;wav_path&quot;</span><span class="p">])</span>
                 <span class="n">length</span> <span class="o">=</span> <span class="n">info</span><span class="o">.</span><span class="n">num_frames</span>
-                <span class="n">lengths</span><span class="p">[</span><span class="n">data_index</span><span class="p">]</span> <span class="o">=</span> <span class="n">length</span>
+                <span class="n">lengths</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">length</span><span class="p">)</span>
         <span class="k">return</span> <span class="n">lengths</span></div>
 
 <div class="viewcode-block" id="SortedBucketingSampler.set_epoch"><a class="viewcode-back" href="../../../../_autosummary/s3prl.dataio.sampler.sorted_sampler.html#s3prl.dataio.sampler.SortedBucketingSampler.set_epoch">[docs]</a>    <span class="k">def</span> <span class="nf">set_epoch</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">epoch</span><span class="p">:</span> <span class="nb">int</span><span class="p">):</span>
@@ -542,6 +542,7 @@
     <script src="../../../../_static/underscore.js"></script>
     <script src="../../../../_static/_sphinx_javascript_frameworks_compat.js"></script>
     <script src="../../../../_static/doctools.js"></script>
+    <script src="../../../../_static/sphinx_highlight.js"></script>
     <script src="../../../../_static/scripts/furo.js"></script>
     <script src="../../../../_static/js/custom.js"></script>
     </body>

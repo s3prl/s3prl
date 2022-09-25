@@ -5,7 +5,7 @@
     <meta name="color-scheme" content="light dark"><meta name="generator" content="Docutils 0.19: https://docutils.sourceforge.io/" />
 <link rel="index" title="Index" href="../genindex.html" /><link rel="search" title="Search" href="../search.html" /><link rel="next" title="hear" href="s3prl.nn.hear.html" /><link rel="prev" title="beam_decoder" href="s3prl.nn.beam_decoder.html" />
 
-    <meta name="generator" content="sphinx-5.1.1, furo 2022.09.15"/>
+    <meta name="generator" content="sphinx-5.2.0.post0, furo 2022.09.15"/>
         <title>common - S3PRL 0.4.4 documentation</title>
       <link rel="stylesheet" type="text/css" href="../_static/pygments.css" />
     <link rel="stylesheet" type="text/css" href="../_static/styles/furo.css?digest=9ec31e2665bf879c1d47d93a8ec4893870ee1e45" />
@@ -324,14 +324,14 @@
           <section id="common">
 <h1>common<a class="headerlink" href="#common" title="Permalink to this heading">#</a></h1>
 <p><strong>(s3prl.nn.common)</strong></p>
-<span class="target" id="module-s3prl.nn.common"></span><p>Common probing models</p>
+<p>Common probing models</p>
 <dl class="simple">
 <dt>Authors:</dt><dd><ul class="simple">
 <li><p>Leo 2022</p></li>
 </ul>
 </dd>
 </dl>
-<section id="framelevel">
+<span class="target" id="module-s3prl.nn.common"></span><section id="framelevel">
 <h2>FrameLevel<a class="headerlink" href="#framelevel" title="Permalink to this heading">#</a></h2>
 <dl class="py class">
 <dt class="sig sig-object py" id="s3prl.nn.common.FrameLevel">
@@ -540,8 +540,28 @@ the change.</p>
           <div class="toc-tree">
             <ul>
 <li><a class="reference internal" href="#">common</a><ul>
-<li><a class="reference internal" href="#framelevel">FrameLevel</a></li>
-<li><a class="reference internal" href="#utterancelevel">UtteranceLevel</a></li>
+<li><a class="reference internal" href="#framelevel">FrameLevel</a><ul>
+<li><a class="reference internal" href="#s3prl.nn.common.FrameLevel"><code class="docutils literal notranslate"><span class="pre">FrameLevel</span></code></a><ul>
+<li><a class="reference internal" href="#s3prl.nn.common.FrameLevel.input_size"><code class="docutils literal notranslate"><span class="pre">FrameLevel.input_size</span></code></a></li>
+<li><a class="reference internal" href="#s3prl.nn.common.FrameLevel.output_size"><code class="docutils literal notranslate"><span class="pre">FrameLevel.output_size</span></code></a></li>
+<li><a class="reference internal" href="#s3prl.nn.common.FrameLevel.forward"><code class="docutils literal notranslate"><span class="pre">FrameLevel.forward()</span></code></a></li>
+<li><a class="reference internal" href="#s3prl.nn.common.FrameLevel.dump_patches"><code class="docutils literal notranslate"><span class="pre">FrameLevel.dump_patches</span></code></a></li>
+<li><a class="reference internal" href="#s3prl.nn.common.FrameLevel.training"><code class="docutils literal notranslate"><span class="pre">FrameLevel.training</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li><a class="reference internal" href="#utterancelevel">UtteranceLevel</a><ul>
+<li><a class="reference internal" href="#s3prl.nn.common.UtteranceLevel"><code class="docutils literal notranslate"><span class="pre">UtteranceLevel</span></code></a><ul>
+<li><a class="reference internal" href="#s3prl.nn.common.UtteranceLevel.input_size"><code class="docutils literal notranslate"><span class="pre">UtteranceLevel.input_size</span></code></a></li>
+<li><a class="reference internal" href="#s3prl.nn.common.UtteranceLevel.output_size"><code class="docutils literal notranslate"><span class="pre">UtteranceLevel.output_size</span></code></a></li>
+<li><a class="reference internal" href="#s3prl.nn.common.UtteranceLevel.forward"><code class="docutils literal notranslate"><span class="pre">UtteranceLevel.forward()</span></code></a></li>
+<li><a class="reference internal" href="#s3prl.nn.common.UtteranceLevel.dump_patches"><code class="docutils literal notranslate"><span class="pre">UtteranceLevel.dump_patches</span></code></a></li>
+<li><a class="reference internal" href="#s3prl.nn.common.UtteranceLevel.training"><code class="docutils literal notranslate"><span class="pre">UtteranceLevel.training</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
 </ul>
 </li>
 </ul>
@@ -558,6 +578,7 @@ the change.</p>
     <script src="../_static/underscore.js"></script>
     <script src="../_static/_sphinx_javascript_frameworks_compat.js"></script>
     <script src="../_static/doctools.js"></script>
+    <script src="../_static/sphinx_highlight.js"></script>
     <script src="../_static/scripts/furo.js"></script>
     <script src="../_static/js/custom.js"></script>
     </body>
