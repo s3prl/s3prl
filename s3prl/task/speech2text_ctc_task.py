@@ -34,7 +34,14 @@ __all__ = [
 ]
 
 
-class Speech2TextCTCExample(torch.nn.Module):
+class Speech2TextCTCExample(nn.Module):
+    """An example speech-to-text task with CTC objective
+
+    Args:
+        input_size (int, optional): Input size. Defaults to 3.
+        output_size (int, optional): Output size. Defaults to 4.
+    """
+
     def __init__(self, input_size=3, output_size=4):
         super().__init__()
         self._input_size = input_size
@@ -64,6 +71,17 @@ class Speech2TextCTCExample(torch.nn.Module):
 
 
 class Speech2TextCTCTask(Task):
+    """Speech-to-text task with CTC objective
+
+    Args:
+        model (Speech2TextCTCExample)
+        tokenizer (Tokenizer): Text tokenizer.
+        decoder (Union[BeamDecoder, dict], optional):
+            Beam decoder or decoder's config. Defaults to None.
+        log_metrics (List[str], optional):
+            Metrics to be logged. Defaults to ["cer", "wer"].
+    """
+
     def __init__(
         self,
         model: torch.nn.Module,
@@ -71,17 +89,6 @@ class Speech2TextCTCTask(Task):
         decoder: Union[BeamDecoder, dict] = None,
         log_metrics: List[str] = ["cer", "wer"],
     ) -> None:
-        """Speech-to-text task with CTC objective
-
-        Args:
-            model (Speech2TextCTCExample)
-            tokenizer (Tokenizer): Text tokenizer.
-            decoder (Union[BeamDecoder, dict], optional):
-                Beam decoder or decoder's config. Defaults to None.
-            log_metrics (List[str], optional):
-                Metrics to be logged. Defaults to ["cer", "wer"].
-        """
-
         super().__init__()
         self.model = model
 
