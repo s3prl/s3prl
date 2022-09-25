@@ -24,7 +24,7 @@ jobs:
             torchaudio-version: 0.8.1
           - os: ubuntu-20.04
             python-version: 3.10
-            torchaudio-version: 0.8.1
+            torchaudio-version: 0.11.0
 
     runs-on: ${{ matrix.os }}
 
