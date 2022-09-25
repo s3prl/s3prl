@@ -23,7 +23,7 @@ jobs:
             python-version: 3.9
             torchaudio-version: 0.8.1
           - os: ubuntu-20.04
-            python-version: 3.10
+            python-version: "3.10"  # if not quoted, will be interpreted as 3.1
             torchaudio-version: 0.11.0
 
     runs-on: ${{ matrix.os }}
