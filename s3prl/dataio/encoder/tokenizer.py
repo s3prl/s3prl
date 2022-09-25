@@ -45,7 +45,7 @@ class Tokenizer:
         super().__init__()
 
     @abc.abstractmethod
-    def encode(self, s: str) -> List[int]:
+    def encode(self, text: str, iob: str = None) -> List[int]:
         raise NotImplementedError
 
     @abc.abstractmethod
@@ -542,6 +542,7 @@ def load_tokenizer(
     with tempfile.NamedTemporaryFile("w") as f:
         if vocab_list is not None:
             f.writelines([f"{vocab}\n" for vocab in vocab_list])
+            f.flush()
             vocab_file = f.name
 
         if slots_file is not None and not mode.endswith("slot"):

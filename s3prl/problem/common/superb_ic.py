@@ -10,7 +10,6 @@ Authors
 import logging
 import pickle
 from pathlib import Path
-from typing import OrderedDict
 
 import pandas as pd
 import torch
@@ -18,11 +17,9 @@ from omegaconf import MISSING
 from torch.utils.data import Dataset
 
 from s3prl.dataio.corpus.fluent_speech_commands import FluentSpeechCommands
+from s3prl.dataio.dataset import EncodeCategories, LoadAudio
 from s3prl.dataio.encoder.category import CategoryEncoders
 from s3prl.dataio.sampler import FixedBatchSizeBatchSampler
-from s3prl.dataset.utterance_classification_pipe import (
-    UtteranceMultipleCategoryClassificationPipe,
-)
 from s3prl.nn.linear import MeanPoolingLinear
 from s3prl.task.utterance_classification_task import (
     UtteranceMultiClassClassificationTask,
@@ -68,9 +65,7 @@ def fsc_for_multi_classification(
         return {
             key: dict(
                 wav_path=value["path"],
-                label_0=value["action"],
-                label_1=value["object"],
-                label_2=value["location"],
+                labels=f"{value['action']} ; {value['object']} ; {value['location']}",
             )
             for key, value in data_points.items()
         }
@@ -199,10 +194,7 @@ class SuperbIC(Common):
             ====================  ====================
             id                    (str) - the unique id for this data point
             wav_path              (str) - the absolute path of the waveform file
-            label_0               (str) - a string label of the waveform
-            label_1               (str) - a string label of the waveform
-            label_2               (str) - a string label of the waveform
-            ...
+            labels                (str) - the string labels of the waveform, separated by a ';'
             ====================  ====================
 
             The number of the label columns can be arbitrary.
@@ -251,13 +243,12 @@ class SuperbIC(Common):
         test_csvs = [pd.read_csv(path) for path in test_csv_paths]
         all_csv = pd.concat([train_csv, valid_csv, *test_csvs])
 
-        label_columns = [c for c in all_csv.columns if c.startswith("label")]
-        labels = []
-        for rowid, row in all_csv.iterrows():
-            labels.append([row[c] for c in label_columns])
-
+        multilabels = [
+            [label.strip() for label in multilabel.split(";")]
+            for multilabel in all_csv["labels"].tolist()
+        ]
         encoder = CategoryEncoders(
-            [list(sorted(set((label)))) for label in zip(*labels)]
+            [single_category_labels for single_category_labels in zip(*multilabels)]
         )
         with open(encoder_path, "wb") as f:
             pickle.dump(encoder, f)
@@ -304,24 +295,37 @@ class SuperbIC(Common):
             ====================  ====================
         """
         csv = pd.read_csv(data_csv)
-        label_columns = [c for c in csv.columns if c.startswith("label")]
-        data_points = OrderedDict()
-        for rowid, row in csv.iterrows():
-            labels = [row[c] for c in label_columns]
-            data_points[row["id"]] = {
-                "wav_path": row["wav_path"],
-                "labels": labels,
-            }
+        ids = csv["id"].tolist()
+
+        audio_loader = LoadAudio(csv["wav_path"].tolist())
 
         with open(encoder_path, "rb") as f:
             encoder = pickle.load(f)
 
-        dataset = UtteranceMultipleCategoryClassificationPipe(
-            train_category_encoder=False
-        )(
-            data_points,
-            tools={"categories": encoder},
+        label_encoder = EncodeCategories(
+            [
+                [label.strip() for label in multilabel.split(";")]
+                for multilabel in csv["labels"].tolist()
+            ],
+            encoder,
         )
+
+        class Dataset:
+            def __len__(self):
+                return len(audio_loader)
+
+            def __getitem__(self, index: int):
+                audio = audio_loader[index]
+                label = label_encoder[index]
+                return {
+                    "x": audio["wav"],
+                    "x_len": audio["wav_len"],
+                    "class_ids": label["class_ids"],
+                    "labels": label["labels"],
+                    "unique_name": ids[index],
+                }
+
+        dataset = Dataset()
         return dataset
 
     def build_batch_sampler(

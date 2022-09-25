@@ -2,7 +2,7 @@
 Thread-safe file downloading and cacheing
 
 Authors
-  * Shu-wen Yang 2022
+  * Leo 2022
 """
 
 import hashlib

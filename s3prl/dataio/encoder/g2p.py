@@ -51,9 +51,11 @@ class G2P:
 
     Args:
         file_list (List[str], optional): List of lexicon files. Defaults to None.
+        allow_unk (bool): If false, raise Error when a word can not be recognized by this basic G2P
     """
 
-    def __init__(self, file_list: List[str] = None):
+    def __init__(self, file_list: List[str] = None, allow_unk: bool = False):
+        self.allow_unk = allow_unk
 
         if file_list is None:
             file_list = _urls_to_filepaths(*DEFAULT_LEXICON_URL)
@@ -69,9 +71,11 @@ class G2P:
             str: Phonemized sentence
         """
 
-        word_list = text.split(" ")
+        word_list = text.strip().upper().split(" ")
         phonemes = []
         for word in word_list:
+            if not self.allow_unk:
+                assert word in self.word2phone
             phonemes += self.word2phone.get(word, ["<UNK>"])
 
         return " ".join(phonemes)

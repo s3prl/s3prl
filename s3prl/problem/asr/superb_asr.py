@@ -8,7 +8,6 @@ Authors
 
 import logging
 import pickle
-from collections import OrderedDict
 from dataclasses import dataclass
 from pathlib import Path
 from typing import List
@@ -18,10 +17,10 @@ from omegaconf import MISSING
 from torch.utils.data import Dataset
 
 from s3prl.dataio.corpus.librispeech import LibriSpeech
+from s3prl.dataio.dataset import EncodeText, LoadAudio, get_info
 from s3prl.dataio.encoder.tokenizer import load_tokenizer
 from s3prl.dataio.encoder.vocabulary import generate_vocab
 from s3prl.dataio.sampler import FixedBatchSizeBatchSampler, SortedBucketingSampler
-from s3prl.dataset.speech2text_pipe import Speech2TextPipe
 from s3prl.nn.rnn import RNNEncoder
 from s3prl.nn.specaug import ModelWithSpecaug
 from s3prl.util.download import urls_to_filepaths
@@ -414,21 +413,32 @@ class SuperbASR(ASR):
             unique_name           (str) - the unique id for this datapoint
             ====================  ====================
         """
-        data_points = OrderedDict()
         csv = pd.read_csv(data_csv)
-        for _, row in csv.iterrows():
-            data_points[row["id"]] = {
-                "wav_path": row["wav_path"],
-                "transcription": row["transcription"],
-            }
+
+        audio_loader = LoadAudio(csv["wav_path"].tolist())
 
         with open(tokenizer_path, "rb") as f:
             tokenizer = pickle.load(f)
 
-        dataset = Speech2TextPipe(generate_tokenizer=False)(
-            data_points,
-            tools={"tokenizer": tokenizer},
-        )
+        text_encoder = EncodeText(csv["transcription"].tolist(), tokenizer)
+        ids = csv["id"].tolist()
+
+        class Speech2TextDataset:
+            def __len__(self):
+                return len(audio_loader)
+
+            def __getitem__(self, index: int):
+                audio = audio_loader[index]
+                text = text_encoder[index]
+                return {
+                    "x": audio["wav"],
+                    "x_len": audio["wav_len"],
+                    "class_ids": text["class_ids"],
+                    "labels": text["labels"],
+                    "unique_name": ids[index],
+                }
+
+        dataset = Speech2TextDataset()
         return dataset
 
     def build_batch_sampler(
@@ -475,7 +485,10 @@ class SuperbASR(ASR):
         conf = Config(**build_batch_sampler)
 
         if mode == "train":
-            sampler = SortedBucketingSampler(dataset, **(conf.train or {}))
+            wav_lens = get_info(
+                dataset, "x_len", cache_dir=Path(target_dir) / "train_stats"
+            )
+            sampler = SortedBucketingSampler(wav_lens, **(conf.train or {}))
         elif mode == "valid":
             sampler = FixedBatchSizeBatchSampler(dataset, **(conf.valid or {}))
         elif mode == "test":

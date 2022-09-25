@@ -17,7 +17,8 @@ import sys
 import numpy as np
 import pandas as pd
 import soundfile as sf
-from torch.utils.data.dataset import Dataset
+
+from . import Dataset
 
 
 def _count_frames(data_len, size, step):
@@ -98,24 +99,24 @@ class DiarizationDataset(Dataset):
     def __len__(self):
         return len(self.chunk_indices)
 
-    def get_info(self, i):
+    def getinfo(self, i):
         rec, chunk_id, st, ed = self.chunk_indices[i]
-        return dict(
-            record_id=rec,
-            chunk_id=chunk_id,
-        )
+        return {
+            "record_id": rec,
+            "chunk_id": chunk_id,
+        }
 
     def __getitem__(self, i):
         rec, chunk_id, st, ed = self.chunk_indices[i]
         X, T = self._get_labeled_speech(rec, st, ed, self.n_speakers)
-        return dict(
-            x=X,
-            x_len=len(X),
-            label=T,
-            label_len=len(T),
-            record_id=rec,
-            chunk_id=chunk_id,
-        )
+        return {
+            "x": X,
+            "x_len": len(X),
+            "label": T,
+            "label_len": len(T),
+            "record_id": rec,
+            "chunk_id": chunk_id,
+        }
 
     def _get_labeled_speech(
         self, rec, start, end, n_speakers=None, use_speaker_id=False

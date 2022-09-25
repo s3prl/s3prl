@@ -246,10 +246,16 @@ class ASV(Problem):
         if test_ckpt_dir is not None:
             test_ckpt_dirs.append(test_ckpt_dir)
         if test_ckpt_steps is None:
-            train_ckpts = [train_dir / name for name in os.listdir(train_dir) if name.startswith("step_")]
+            train_ckpts = [
+                train_dir / name
+                for name in os.listdir(train_dir)
+                if name.startswith("step_")
+            ]
             test_ckpt_dirs.extend(train_ckpts)
         else:
-            test_ckpt_dirs.extend([train_dir / f"step_{step}" for step in test_ckpt_steps])
+            test_ckpt_dirs.extend(
+                [train_dir / f"step_{step}" for step in test_ckpt_steps]
+            )
 
         def check_fn():
             for ckpt_dir in test_ckpt_dirs:
