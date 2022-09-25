@@ -106,18 +106,7 @@ class SuperbASV(ASV):
         return dict(
             target_dir=MISSING,
             cache_dir=None,
-            test_ckpt_steps=[
-                20000,
-                40000,
-                60000,
-                80000,
-                100000,
-                120000,
-                140000,
-                160000,
-                180000,
-                200000,
-            ],
+            test_ckpt_steps=None,  # eval all saved checkpoints
             prepare_data=dict(
                 dataset_root=MISSING,
             ),

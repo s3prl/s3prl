@@ -473,8 +473,7 @@ def test_superb_asv():
             config["train"]["total_steps"] = 4
             config["train"]["log_step"] = 1
             config["train"]["eval_step"] = math.inf
-            config["train"]["save_step"] = 2
-            config["test_ckpt_steps"] = [2, 4]
+            config["train"]["save_step"] = 1
             problem.run(**config)
 
 
