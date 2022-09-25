@@ -351,10 +351,11 @@ class SubwordSlotTokenizer(Tokenizer):
                 wrd = "AND"
             if iob != "O" and (i == 0 or iobs[i - 1] != iob):
                 tokens.append(self.slot2id["B-" + iob])
-            tokens += self.spm.encode_as_ids(wrd)
+            tokens += self.spm.encode_as_ids(wrd)[:-1]  # drop eos
             if iob != "O" and (i == len(sent) - 1 or iobs[i + 1] != iob):
                 tokens.append(self.slot2id["E-" + iob])
-        assert tokens[-1] == self.eos_idx
+        assert tokens[-1] != self.eos_idx
+        tokens.append(self.eos_idx)
         return tokens
 
     def decode(self, idxs: List[int], ignore_repeat: bool = False) -> str:
