@@ -331,13 +331,13 @@ class Phonemize(DataPipe):
 
     def forward(self, dataset: AugmentedDynamicItemDataset):
         if not dataset.has_tool(self.g2p_name):
-            logger.warn(
+            logger.warning(
                 f"Cannot find {self.g2p_name} in dataset, use default G2P instead."
             )
             dataset.add_tool(self.g2p_name, G2P())
 
         if not dataset.has_tool(self.tokenizer_name):
-            logger.warn(
+            logger.warning(
                 f"Cannot find {self.tokenizer_name} in dataset, use default tokenizer instead."
             )
             dataset.add_tool(self.tokenizer_name, default_phoneme_tokenizer())

@@ -31,10 +31,12 @@ class pseudo_audio:
         for n, sec in enumerate(secs):
             wav = torch.randn(1, sample_rate * sec)
             torchaudio.save(
-                str(self.tempdir / f"{n}.wav"), wav, sample_rate=sample_rate
+                str(self.tempdir / f"audio_{n}.wav"), wav, sample_rate=sample_rate
             )
             self.num_samples.append(wav.size(-1))
-        self.filepaths = [str(self.tempdir / f"{i}.wav") for i in range(len(secs))]
+        self.filepaths = [
+            str(self.tempdir / f"audio_{i}.wav") for i in range(len(secs))
+        ]
 
     def __enter__(self):
         return self.filepaths, self.num_samples

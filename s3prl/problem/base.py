@@ -582,6 +582,9 @@ class Problem:
                 save_names = []
 
                 if global_step % conf.eval_step == 0:
+                    assert (
+                        valid_dataset is not None and valid_batch_sampler is not None
+                    ), f"valid dataset is not supported, please set train.eval_step to infinite"
                     logs: dict = self.evaluate(
                         evaluate,
                         "valid",

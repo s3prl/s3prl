@@ -196,11 +196,6 @@ class Speech2TextCTCTask(Task):
         if results["hypotheses"][0] is not None:
             beam_hyps = [" ".join(hyp[0].words) for hyp in results["hypotheses"]]
 
-        if self.tokenizer.token_type in {"character-slot", "subword-slot"}:
-            labels = [
-                self.tokenizer.decode(self.tokenizer.encode(label)) for label in labels
-            ]
-
         logs = {}
         logs["loss"] = float(np.mean(losses))
 

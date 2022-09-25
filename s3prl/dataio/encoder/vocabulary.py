@@ -73,8 +73,8 @@ def generate_basic_vocab(
 def generate_subword_vocab(
     text_list: List[str] = None,
     text_file: str = None,
-    output_file: str = "",
-    vocab_size: int = 8000,
+    output_file: str = None,
+    vocab_size: int = 1000,
     character_coverage: float = 1.0,
 ) -> str:
     """Generates subword vocabularies based on `sentencepiece`.
@@ -100,7 +100,8 @@ def generate_subword_vocab(
             "`sentencepiece` cannot be imported, please run `pip install sentencepiece` first"
         )
 
-    assert len(output_file) > 0, output_file
+    assert output_file is not None
+    output_file = str(output_file)
     assert vocab_size > 0, vocab_size
 
     cmd = (
@@ -153,7 +154,7 @@ def generate_vocab(
     text_list: List[str] = None,
     text_file: str = None,
     read_lines: int = 10000000,
-    **kwargs,
+    **vocab_args,
 ) -> Union[List[str], str]:
     """Generates vocabularies given text data.
 
@@ -162,6 +163,9 @@ def generate_vocab(
         text_list (List[str], optional): List of text data. Defaults to None.
         text_file (str, optional): Path to text data. Defaults to None.
         read_lines (int, optional): Maximum lines to read from `text_file`. Defaults to 10000000.
+        vocab_args:
+            if :code:`mode != subword`, arguments for :obj:`generate_basic_vocab`
+            if :code:`mode == subword`, arguments for :obj:`generate_subword_vocab`
 
     Returns:
         Union[List[str], str]: A list of vocabularies or a path to `.vocab` file.
@@ -175,12 +179,12 @@ def generate_vocab(
             ]
 
     if mode == "character":
-        return generate_basic_vocab("character", text_list, **kwargs)
+        return generate_basic_vocab("character", text_list, **vocab_args)
     if mode in {"word", "phoneme"}:
-        return generate_basic_vocab("word", text_list, **kwargs)
+        return generate_basic_vocab("word", text_list, **vocab_args)
     if mode == "subword":
         return generate_subword_vocab(
-            text_list=text_list, text_file=text_file, **kwargs
+            text_list=text_list, text_file=text_file, **vocab_args
         )
     else:
         raise ValueError(f"Unsupported mode (vocabulary type): {mode}")
