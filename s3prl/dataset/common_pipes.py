@@ -323,8 +323,8 @@ class Phonemize(DataPipe):
     g2p_name: str = "g2p"
     tokenizer_name: str = "tokenizer"
 
-    def grapheme2phoneme(self, g2p: Callable, text: str) -> str:
-        return g2p(text)
+    def grapheme2phoneme(self, g2p: G2P, text: str) -> str:
+        return g2p.encode(text)
 
     def encode_text(self, tokenizer: Tokenizer, text: str) -> torch.LongTensor:
         return torch.LongTensor(tokenizer.encode(text))

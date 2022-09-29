@@ -13,6 +13,8 @@ from typing import List, Union
 
 logger = logging.getLogger(__name__)
 
+__all__ = ["generate_basic_vocab", "generate_subword_vocab", "generate_vocab"]
+
 
 def generate_basic_vocab(
     mode: str,
