@@ -86,6 +86,17 @@ def _parse_spk_to_gender(speaker_file: Path) -> dict:
 
 
 class LibriSpeech(Corpus):
+    """LibriSpeech Corpus
+    Link: https://www.openslr.org/12
+
+    Args:
+        dataset_root (str): Path to LibriSpeech corpus directory.
+        n_jobs (int, optional): Number of jobs. Defaults to 4.
+        train_split (List[str], optional): Training splits. Defaults to ["train-clean-100"].
+        valid_split (List[str], optional): Validation splits. Defaults to ["dev-clean"].
+        test_split (List[str], optional): Testing splits. Defaults to ["test-clean"].
+    """
+
     def __init__(
         self,
         dataset_root: str,

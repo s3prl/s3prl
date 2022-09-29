@@ -569,7 +569,7 @@ def default_phoneme_tokenizer() -> PhonemeTokenizer:
     """Returns a default LibriSpeech phoneme tokenizer.
 
     Returns:
-        PhonemeTokenizer: Vocabs are 71 phonemes
+        PhonemeTokenizer: Vocabs include 71 phonemes
     """
 
     return PhonemeTokenizer.load_from_file(vocab_list=PHONEME_VOCAB)
