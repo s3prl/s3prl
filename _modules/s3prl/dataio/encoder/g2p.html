@@ -4,7 +4,7 @@
     <meta name="viewport" content="width=device-width,initial-scale=1"/>
     <meta name="color-scheme" content="light dark"><link rel="index" title="Index" href="../../../../genindex.html" /><link rel="search" title="Search" href="../../../../search.html" />
 
-    <meta name="generator" content="sphinx-5.2.0.post0, furo 2022.09.15"/>
+    <meta name="generator" content="sphinx-5.2.2, furo 2022.09.15"/>
         <title>s3prl.dataio.encoder.g2p - S3PRL 0.4.4 documentation</title>
       <link rel="stylesheet" type="text/css" href="../../../../_static/pygments.css" />
     <link rel="stylesheet" type="text/css" href="../../../../_static/styles/furo.css?digest=9ec31e2665bf879c1d47d93a8ec4893870ee1e45" />
@@ -339,14 +339,16 @@
     <span class="s2">&quot;https://huggingface.co/datasets/s3prl/g2p/raw/main/lexicon/librispeech-lexicon-allothers-g2p.txt&quot;</span><span class="p">,</span>
 <span class="p">]</span>
 
+<span class="n">__all__</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;G2P&quot;</span><span class="p">]</span>
 
-<div class="viewcode-block" id="parse_lexicon"><a class="viewcode-back" href="../../../../_autosummary/s3prl.dataio.encoder.g2p.html#s3prl.dataio.encoder.parse_lexicon">[docs]</a><span class="k">def</span> <span class="nf">parse_lexicon</span><span class="p">(</span><span class="n">line</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Tuple</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">]]:</span>
+
+<span class="k">def</span> <span class="nf">parse_lexicon</span><span class="p">(</span><span class="n">line</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Tuple</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">]]:</span>
     <span class="n">line</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s2">&quot;</span><span class="se">\t</span><span class="s2">&quot;</span><span class="p">,</span> <span class="s2">&quot; &quot;</span><span class="p">)</span>
     <span class="n">word</span><span class="p">,</span> <span class="o">*</span><span class="n">phonemes</span> <span class="o">=</span> <span class="n">line</span><span class="o">.</span><span class="n">split</span><span class="p">()</span>
-    <span class="k">return</span> <span class="n">word</span><span class="p">,</span> <span class="n">phonemes</span></div>
+    <span class="k">return</span> <span class="n">word</span><span class="p">,</span> <span class="n">phonemes</span>
 
 
-<div class="viewcode-block" id="read_lexicon_files"><a class="viewcode-back" href="../../../../_autosummary/s3prl.dataio.encoder.g2p.html#s3prl.dataio.encoder.read_lexicon_files">[docs]</a><span class="k">def</span> <span class="nf">read_lexicon_files</span><span class="p">(</span><span class="n">file_list</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">]]:</span>
+<span class="k">def</span> <span class="nf">read_lexicon_files</span><span class="p">(</span><span class="n">file_list</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">]]:</span>
     <span class="n">w2p_dict</span> <span class="o">=</span> <span class="n">defaultdict</span><span class="p">(</span><span class="nb">list</span><span class="p">)</span>
     <span class="k">for</span> <span class="n">file</span> <span class="ow">in</span> <span class="n">file_list</span><span class="p">:</span>
         <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">file</span><span class="p">,</span> <span class="s2">&quot;r&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">fp</span><span class="p">:</span>
@@ -364,22 +366,23 @@
         <span class="n">w2p</span><span class="p">[</span><span class="n">word</span><span class="p">]</span> <span class="o">=</span> <span class="n">phonemes_all</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
     <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Taking the first phoneme sequences for a deterministic behavior.&quot;</span><span class="p">)</span>
 
-    <span class="k">return</span> <span class="n">w2p</span></div>
+    <span class="k">return</span> <span class="n">w2p</span>
 
 
 <div class="viewcode-block" id="G2P"><a class="viewcode-back" href="../../../../_autosummary/s3prl.dataio.encoder.g2p.html#s3prl.dataio.encoder.G2P">[docs]</a><span class="k">class</span> <span class="nc">G2P</span><span class="p">:</span>
-    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">file_list</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;Grapheme-to-phoneme</span>
+    <span class="sd">&quot;&quot;&quot;Grapheme-to-phoneme</span>
 
-<span class="sd">        Args:</span>
-<span class="sd">            file_list (List[str], optional): List of lexicon files. Defaults to None.</span>
-<span class="sd">        &quot;&quot;&quot;</span>
+<span class="sd">    Args:</span>
+<span class="sd">        file_list (List[str], optional): List of lexicon files. Defaults to None.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">file_list</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">):</span>
 
         <span class="k">if</span> <span class="n">file_list</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
             <span class="n">file_list</span> <span class="o">=</span> <span class="n">_urls_to_filepaths</span><span class="p">(</span><span class="o">*</span><span class="n">DEFAULT_LEXICON_URL</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">word2phone</span> <span class="o">=</span> <span class="n">read_lexicon_files</span><span class="p">(</span><span class="n">file_list</span><span class="p">)</span>
 
-    <span class="k">def</span> <span class="fm">__call__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">text</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+<div class="viewcode-block" id="G2P.encode"><a class="viewcode-back" href="../../../../_autosummary/s3prl.dataio.encoder.g2p.html#s3prl.dataio.encoder.G2P.encode">[docs]</a>    <span class="k">def</span> <span class="nf">encode</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">text</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
         <span class="sd">&quot;&quot;&quot;Converts grapheme-based sentences to phonemes</span>
 
 <span class="sd">        Args:</span>
@@ -394,7 +397,7 @@
         <span class="k">for</span> <span class="n">word</span> <span class="ow">in</span> <span class="n">word_list</span><span class="p">:</span>
             <span class="n">phonemes</span> <span class="o">+=</span> <span class="bp">self</span><span class="o">.</span><span class="n">word2phone</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">word</span><span class="p">,</span> <span class="p">[</span><span class="s2">&quot;&lt;UNK&gt;&quot;</span><span class="p">])</span>
 
-        <span class="k">return</span> <span class="s2">&quot; &quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">phonemes</span><span class="p">)</span></div>
+        <span class="k">return</span> <span class="s2">&quot; &quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">phonemes</span><span class="p">)</span></div></div>
 </pre></div>
         </article>
       </div>

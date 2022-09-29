@@ -4,7 +4,7 @@
     <meta name="viewport" content="width=device-width,initial-scale=1"/>
     <meta name="color-scheme" content="light dark"><link rel="index" title="Index" href="../genindex.html" /><link rel="search" title="Search" href="../search.html" />
 
-    <meta name="generator" content="sphinx-5.2.0.post0, furo 2022.09.15"/>
+    <meta name="generator" content="sphinx-5.2.2, furo 2022.09.15"/>
         <title>collections - S3PRL 0.4.4 documentation</title>
       <link rel="stylesheet" type="text/css" href="../_static/pygments.css" />
     <link rel="stylesheet" type="text/css" href="../_static/styles/furo.css?digest=9ec31e2665bf879c1d47d93a8ec4893870ee1e45" />
@@ -401,7 +401,7 @@
 <span class="k">class</span> <span class="nc">_Link</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
     <span class="vm">__slots__</span> <span class="o">=</span> <span class="s1">&#39;prev&#39;</span><span class="p">,</span> <span class="s1">&#39;next&#39;</span><span class="p">,</span> <span class="s1">&#39;key&#39;</span><span class="p">,</span> <span class="s1">&#39;__weakref__&#39;</span>
 
-<div class="viewcode-block" id="OrderedDict"><a class="viewcode-back" href="../_autosummary/s3prl.problem.common.hear_fsd.html#s3prl.dataio.encoder.vocabulary.OrderedDict">[docs]</a><span class="k">class</span> <span class="nc">OrderedDict</span><span class="p">(</span><span class="nb">dict</span><span class="p">):</span>
+<div class="viewcode-block" id="OrderedDict"><a class="viewcode-back" href="../_autosummary/s3prl.problem.common.hear_fsd.html#s3prl.problem.common.hear_dcase_2016_task2.OrderedDict">[docs]</a><span class="k">class</span> <span class="nc">OrderedDict</span><span class="p">(</span><span class="nb">dict</span><span class="p">):</span>
     <span class="s1">&#39;Dictionary that remembers insertion order&#39;</span>
     <span class="c1"># An inherited dict maps keys to values.</span>
     <span class="c1"># The inherited dict provides __getitem__, __len__, __contains__, and get.</span>
@@ -809,7 +809,7 @@
 <span class="k">except</span> <span class="ne">ImportError</span><span class="p">:</span>
     <span class="k">pass</span>
 
-<div class="viewcode-block" id="Counter"><a class="viewcode-back" href="../_autosummary/s3prl.dataio.encoder.vocabulary.html#s3prl.dataio.encoder.vocabulary.Counter">[docs]</a><span class="k">class</span> <span class="nc">Counter</span><span class="p">(</span><span class="nb">dict</span><span class="p">):</span>
+<span class="k">class</span> <span class="nc">Counter</span><span class="p">(</span><span class="nb">dict</span><span class="p">):</span>
     <span class="sd">&#39;&#39;&#39;Dict subclass for counting hashable items.  Sometimes called a bag</span>
 <span class="sd">    or multiset.  Elements are stored as dictionary keys and their counts</span>
 <span class="sd">    are stored as dictionary values.</span>
@@ -879,7 +879,7 @@
         <span class="c1"># Needed so that self[missing_item] does not raise KeyError</span>
         <span class="k">return</span> <span class="mi">0</span>
 
-<div class="viewcode-block" id="Counter.most_common"><a class="viewcode-back" href="../_autosummary/s3prl.dataio.encoder.vocabulary.html#s3prl.dataio.encoder.vocabulary.Counter.most_common">[docs]</a>    <span class="k">def</span> <span class="nf">most_common</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">n</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">most_common</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">n</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
         <span class="sd">&#39;&#39;&#39;List the n most common elements and their counts from the most</span>
 <span class="sd">        common to the least.  If n is None, then list all element counts.</span>
 
@@ -890,9 +890,9 @@
         <span class="c1"># Emulate Bag.sortedByCount from Smalltalk</span>
         <span class="k">if</span> <span class="n">n</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
             <span class="k">return</span> <span class="nb">sorted</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">items</span><span class="p">(),</span> <span class="n">key</span><span class="o">=</span><span class="n">_itemgetter</span><span class="p">(</span><span class="mi">1</span><span class="p">),</span> <span class="n">reverse</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
-        <span class="k">return</span> <span class="n">_heapq</span><span class="o">.</span><span class="n">nlargest</span><span class="p">(</span><span class="n">n</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">items</span><span class="p">(),</span> <span class="n">key</span><span class="o">=</span><span class="n">_itemgetter</span><span class="p">(</span><span class="mi">1</span><span class="p">))</span></div>
+        <span class="k">return</span> <span class="n">_heapq</span><span class="o">.</span><span class="n">nlargest</span><span class="p">(</span><span class="n">n</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">items</span><span class="p">(),</span> <span class="n">key</span><span class="o">=</span><span class="n">_itemgetter</span><span class="p">(</span><span class="mi">1</span><span class="p">))</span>
 
-<div class="viewcode-block" id="Counter.elements"><a class="viewcode-back" href="../_autosummary/s3prl.dataio.encoder.vocabulary.html#s3prl.dataio.encoder.vocabulary.Counter.elements">[docs]</a>    <span class="k">def</span> <span class="nf">elements</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">elements</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&#39;&#39;&#39;Iterator over elements repeating each as many times as its count.</span>
 
 <span class="sd">        &gt;&gt;&gt; c = Counter(&#39;ABCABC&#39;)</span>
@@ -912,11 +912,11 @@
 
 <span class="sd">        &#39;&#39;&#39;</span>
         <span class="c1"># Emulate Bag.do from Smalltalk and Multiset.begin from C++.</span>
-        <span class="k">return</span> <span class="n">_chain</span><span class="o">.</span><span class="n">from_iterable</span><span class="p">(</span><span class="n">_starmap</span><span class="p">(</span><span class="n">_repeat</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">items</span><span class="p">()))</span></div>
+        <span class="k">return</span> <span class="n">_chain</span><span class="o">.</span><span class="n">from_iterable</span><span class="p">(</span><span class="n">_starmap</span><span class="p">(</span><span class="n">_repeat</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">items</span><span class="p">()))</span>
 
     <span class="c1"># Override dict methods where necessary</span>
 
-<div class="viewcode-block" id="Counter.fromkeys"><a class="viewcode-back" href="../_autosummary/s3prl.dataio.encoder.vocabulary.html#s3prl.dataio.encoder.vocabulary.Counter.fromkeys">[docs]</a>    <span class="nd">@classmethod</span>
+    <span class="nd">@classmethod</span>
     <span class="k">def</span> <span class="nf">fromkeys</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">iterable</span><span class="p">,</span> <span class="n">v</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
         <span class="c1"># There is no equivalent method for counters because the semantics</span>
         <span class="c1"># would be ambiguous in cases such as Counter.fromkeys(&#39;aaabbc&#39;, v=2).</span>
@@ -926,9 +926,9 @@
         <span class="c1"># more exotic cases, create a dictionary first using a dictionary</span>
         <span class="c1"># comprehension or dict.fromkeys().</span>
         <span class="k">raise</span> <span class="ne">NotImplementedError</span><span class="p">(</span>
-            <span class="s1">&#39;Counter.fromkeys() is undefined.  Use Counter(iterable) instead.&#39;</span><span class="p">)</span></div>
+            <span class="s1">&#39;Counter.fromkeys() is undefined.  Use Counter(iterable) instead.&#39;</span><span class="p">)</span>
 
-<div class="viewcode-block" id="Counter.update"><a class="viewcode-back" href="../_autosummary/s3prl.dataio.encoder.vocabulary.html#s3prl.dataio.encoder.vocabulary.Counter.update">[docs]</a>    <span class="k">def</span> <span class="nf">update</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">iterable</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="o">/</span><span class="p">,</span> <span class="o">**</span><span class="n">kwds</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">update</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">iterable</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="o">/</span><span class="p">,</span> <span class="o">**</span><span class="n">kwds</span><span class="p">):</span>
         <span class="sd">&#39;&#39;&#39;Like dict.update() but add counts instead of replacing them.</span>
 
 <span class="sd">        Source can be an iterable, a dictionary, or another Counter instance.</span>
@@ -959,9 +959,9 @@
             <span class="k">else</span><span class="p">:</span>
                 <span class="n">_count_elements</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">iterable</span><span class="p">)</span>
         <span class="k">if</span> <span class="n">kwds</span><span class="p">:</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">kwds</span><span class="p">)</span></div>
+            <span class="bp">self</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">kwds</span><span class="p">)</span>
 
-<div class="viewcode-block" id="Counter.subtract"><a class="viewcode-back" href="../_autosummary/s3prl.dataio.encoder.vocabulary.html#s3prl.dataio.encoder.vocabulary.Counter.subtract">[docs]</a>    <span class="k">def</span> <span class="nf">subtract</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">iterable</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="o">/</span><span class="p">,</span> <span class="o">**</span><span class="n">kwds</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">subtract</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">iterable</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="o">/</span><span class="p">,</span> <span class="o">**</span><span class="n">kwds</span><span class="p">):</span>
         <span class="sd">&#39;&#39;&#39;Like dict.update() but subtracts counts instead of replacing them.</span>
 <span class="sd">        Counts can be reduced below zero.  Both the inputs and outputs are</span>
 <span class="sd">        allowed to contain zero and negative counts.</span>
@@ -986,11 +986,11 @@
                 <span class="k">for</span> <span class="n">elem</span> <span class="ow">in</span> <span class="n">iterable</span><span class="p">:</span>
                     <span class="bp">self</span><span class="p">[</span><span class="n">elem</span><span class="p">]</span> <span class="o">=</span> <span class="n">self_get</span><span class="p">(</span><span class="n">elem</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span> <span class="o">-</span> <span class="mi">1</span>
         <span class="k">if</span> <span class="n">kwds</span><span class="p">:</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">subtract</span><span class="p">(</span><span class="n">kwds</span><span class="p">)</span></div>
+            <span class="bp">self</span><span class="o">.</span><span class="n">subtract</span><span class="p">(</span><span class="n">kwds</span><span class="p">)</span>
 
-<div class="viewcode-block" id="Counter.copy"><a class="viewcode-back" href="../_autosummary/s3prl.dataio.encoder.vocabulary.html#s3prl.dataio.encoder.vocabulary.Counter.copy">[docs]</a>    <span class="k">def</span> <span class="nf">copy</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">copy</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="s1">&#39;Return a shallow copy.&#39;</span>
-        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="vm">__class__</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span></div>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="vm">__class__</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span>
 
     <span class="k">def</span> <span class="nf">__reduce__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="vm">__class__</span><span class="p">,</span> <span class="p">(</span><span class="nb">dict</span><span class="p">(</span><span class="bp">self</span><span class="p">),)</span>
@@ -1181,7 +1181,7 @@
             <span class="n">other_count</span> <span class="o">=</span> <span class="n">other</span><span class="p">[</span><span class="n">elem</span><span class="p">]</span>
             <span class="k">if</span> <span class="n">other_count</span> <span class="o">&lt;</span> <span class="n">count</span><span class="p">:</span>
                 <span class="bp">self</span><span class="p">[</span><span class="n">elem</span><span class="p">]</span> <span class="o">=</span> <span class="n">other_count</span>
-        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_keep_positive</span><span class="p">()</span></div>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_keep_positive</span><span class="p">()</span>
 
 
 <span class="c1">########################################################################</span>

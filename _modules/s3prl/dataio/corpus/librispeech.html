@@ -4,7 +4,7 @@
     <meta name="viewport" content="width=device-width,initial-scale=1"/>
     <meta name="color-scheme" content="light dark"><link rel="index" title="Index" href="../../../../genindex.html" /><link rel="search" title="Search" href="../../../../search.html" />
 
-    <meta name="generator" content="sphinx-5.2.0.post0, furo 2022.09.15"/>
+    <meta name="generator" content="sphinx-5.2.2, furo 2022.09.15"/>
         <title>s3prl.dataio.corpus.librispeech - S3PRL 0.4.4 documentation</title>
       <link rel="stylesheet" type="text/css" href="../../../../_static/pygments.css" />
     <link rel="stylesheet" type="text/css" href="../../../../_static/styles/furo.css?digest=9ec31e2665bf879c1d47d93a8ec4893870ee1e45" />
@@ -409,6 +409,17 @@
 
 
 <div class="viewcode-block" id="LibriSpeech"><a class="viewcode-back" href="../../../../_autosummary/s3prl.dataio.corpus.librispeech.html#s3prl.dataio.corpus.LibriSpeech">[docs]</a><span class="k">class</span> <span class="nc">LibriSpeech</span><span class="p">(</span><span class="n">Corpus</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;LibriSpeech Corpus</span>
+<span class="sd">    Link: https://www.openslr.org/12</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        dataset_root (str): Path to LibriSpeech corpus directory.</span>
+<span class="sd">        n_jobs (int, optional): Number of jobs. Defaults to 4.</span>
+<span class="sd">        train_split (List[str], optional): Training splits. Defaults to [&quot;train-clean-100&quot;].</span>
+<span class="sd">        valid_split (List[str], optional): Validation splits. Defaults to [&quot;dev-clean&quot;].</span>
+<span class="sd">        test_split (List[str], optional): Testing splits. Defaults to [&quot;test-clean&quot;].</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
     <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span>
         <span class="n">dataset_root</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
@@ -439,6 +450,21 @@
 
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">all_data</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Return all the data points in a dict of the format</span>
+
+<span class="sd">        .. code-block:: yaml</span>
+
+<span class="sd">            data_id1:</span>
+<span class="sd">                wav_path: (str) The waveform path</span>
+<span class="sd">                transcription: (str) The transcription</span>
+<span class="sd">                speaker: (str) The speaker name</span>
+<span class="sd">                gender: (str) The speaker&#39;s gender</span>
+<span class="sd">                corpus_split: (str) The split of corpus this sample belongs to</span>
+
+<span class="sd">            data_id2:</span>
+<span class="sd">                ...</span>
+<span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_data</span>
 
     <span class="nd">@property</span>

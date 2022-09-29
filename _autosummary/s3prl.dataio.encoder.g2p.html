@@ -5,7 +5,7 @@
     <meta name="color-scheme" content="light dark"><meta name="generator" content="Docutils 0.19: https://docutils.sourceforge.io/" />
 <link rel="index" title="Index" href="../genindex.html" /><link rel="search" title="Search" href="../search.html" /><link rel="next" title="tokenizer" href="s3prl.dataio.encoder.tokenizer.html" /><link rel="prev" title="category" href="s3prl.dataio.encoder.category.html" />
 
-    <meta name="generator" content="sphinx-5.2.0.post0, furo 2022.09.15"/>
+    <meta name="generator" content="sphinx-5.2.2, furo 2022.09.15"/>
         <title>g2p - S3PRL 0.4.4 documentation</title>
       <link rel="stylesheet" type="text/css" href="../_static/pygments.css" />
     <link rel="stylesheet" type="text/css" href="../_static/styles/furo.css?digest=9ec31e2665bf879c1d47d93a8ec4893870ee1e45" />
@@ -324,123 +324,43 @@
           <section id="g2p">
 <h1>g2p<a class="headerlink" href="#g2p" title="Permalink to this heading">#</a></h1>
 <p><strong>(s3prl.dataio.encoder.g2p)</strong></p>
-<p>Basic G2P</p>
+<span class="target" id="module-s3prl.dataio.encoder.g2p"></span><p>Basic G2P</p>
 <dl class="simple">
 <dt>Authors:</dt><dd><ul class="simple">
 <li><p>Heng-Jui Chang 2022</p></li>
 </ul>
 </dd>
 </dl>
-<span class="target" id="module-s3prl.dataio.encoder.g2p"></span><section id="id1">
+<section id="id1">
 <h2>G2P<a class="headerlink" href="#id1" title="Permalink to this heading">#</a></h2>
 <dl class="py class">
 <dt class="sig sig-object py" id="s3prl.dataio.encoder.g2p.G2P">
-<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">s3prl.dataio.encoder.g2p.</span></span><span class="sig-name descname"><span class="pre">G2P</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">file_list</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">List</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/s3prl/dataio/encoder/g2p.html#G2P"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="reference external" href="https://github.com/s3prl/s3prl/blob/v0.4.4 /s3prl/dataio/encoder/g2p.py#L47-L74"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#s3prl.dataio.encoder.g2p.G2P" title="Permalink to this definition">#</a></dt>
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">s3prl.dataio.encoder.g2p.</span></span><span class="sig-name descname"><span class="pre">G2P</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">file_list</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">List</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/s3prl/dataio/encoder/g2p.html#G2P"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="reference external" href="https://github.com/s3prl/s3prl/blob/v0.4.4 /s3prl/dataio/encoder/g2p.py#L49-L77"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#s3prl.dataio.encoder.g2p.G2P" title="Permalink to this definition">#</a></dt>
 <dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<p>Grapheme-to-phoneme</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>file_list</strong> (<em>List</em><em>[</em><em>str</em><em>]</em><em>, </em><em>optional</em>) – List of lexicon files. Defaults to None.</p>
+</dd>
+</dl>
+<dl class="py method">
+<dt class="sig sig-object py" id="s3prl.dataio.encoder.g2p.G2P.encode">
+<span class="sig-name descname"><span class="pre">encode</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">text</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">str</span></span></span><a class="reference internal" href="../_modules/s3prl/dataio/encoder/g2p.html#G2P.encode"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="reference external" href="https://github.com/s3prl/s3prl/blob/v0.4.4 /s3prl/dataio/encoder/g2p.py#L62-L77"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#s3prl.dataio.encoder.g2p.G2P.encode" title="Permalink to this definition">#</a></dt>
+<dd><p>Converts grapheme-based sentences to phonemes</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>text</strong> (<em>str</em>) – Sentence</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Phonemized sentence</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>str</p>
+</dd>
+</dl>
 </dd></dl>
 
-</section>
-<section id="defaultdict">
-<h2>defaultdict<a class="headerlink" href="#defaultdict" title="Permalink to this heading">#</a></h2>
-<dl class="py class">
-<dt class="sig sig-object py" id="s3prl.dataio.encoder.g2p.defaultdict">
-<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">s3prl.dataio.encoder.g2p.</span></span><span class="sig-name descname"><span class="pre">defaultdict</span></span><a class="reference external" href="https://github.com/s3prl/s3prl/blob/v0.4.4 /s3prl/dataio/encoder/g2p.py"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#s3prl.dataio.encoder.g2p.defaultdict" title="Permalink to this definition">#</a></dt>
-<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">dict</span></code></p>
-<p>defaultdict(default_factory[, …]) –&gt; dict with default factory</p>
-<p>The default factory is called without arguments to produce
-a new value when a key is not present, in __getitem__ only.
-A defaultdict compares equal to a dict with the same items.
-All remaining arguments are treated the same as if they were
-passed to the dict constructor, including keyword arguments.</p>
-<dl class="py method">
-<dt class="sig sig-object py" id="s3prl.dataio.encoder.g2p.defaultdict.clear">
-<span class="sig-name descname"><span class="pre">clear</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None.</span>&#160; <span class="pre">Remove</span> <span class="pre">all</span> <span class="pre">items</span> <span class="pre">from</span> <span class="pre">D.</span></span></span><a class="reference external" href="https://github.com/s3prl/s3prl/blob/v0.4.4 /s3prl/dataio/encoder/g2p.py"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#s3prl.dataio.encoder.g2p.defaultdict.clear" title="Permalink to this definition">#</a></dt>
-<dd></dd></dl>
-
-<dl class="py method">
-<dt class="sig sig-object py" id="s3prl.dataio.encoder.g2p.defaultdict.copy">
-<span class="sig-name descname"><span class="pre">copy</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">a</span> <span class="pre">shallow</span> <span class="pre">copy</span> <span class="pre">of</span> <span class="pre">D.</span></span></span><a class="reference external" href="https://github.com/s3prl/s3prl/blob/v0.4.4 /s3prl/dataio/encoder/g2p.py"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#s3prl.dataio.encoder.g2p.defaultdict.copy" title="Permalink to this definition">#</a></dt>
-<dd></dd></dl>
-
-<dl class="py attribute">
-<dt class="sig sig-object py" id="s3prl.dataio.encoder.g2p.defaultdict.default_factory">
-<span class="sig-name descname"><span class="pre">default_factory</span></span><a class="reference external" href="https://github.com/s3prl/s3prl/blob/v0.4.4 /s3prl/dataio/encoder/g2p.py"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#s3prl.dataio.encoder.g2p.defaultdict.default_factory" title="Permalink to this definition">#</a></dt>
-<dd><p>Factory for default value called by __missing__().</p>
 </dd></dl>
-
-<dl class="py method">
-<dt class="sig sig-object py" id="s3prl.dataio.encoder.g2p.defaultdict.fromkeys">
-<span class="sig-name descname"><span class="pre">fromkeys</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">value</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">/</span></span></em><span class="sig-paren">)</span><a class="reference external" href="https://github.com/s3prl/s3prl/blob/v0.4.4 /s3prl/dataio/encoder/g2p.py"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#s3prl.dataio.encoder.g2p.defaultdict.fromkeys" title="Permalink to this definition">#</a></dt>
-<dd><p>Create a new dictionary with keys from iterable and values set to value.</p>
-</dd></dl>
-
-<dl class="py method">
-<dt class="sig sig-object py" id="s3prl.dataio.encoder.g2p.defaultdict.get">
-<span class="sig-name descname"><span class="pre">get</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">key</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">default</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">/</span></span></em><span class="sig-paren">)</span><a class="reference external" href="https://github.com/s3prl/s3prl/blob/v0.4.4 /s3prl/dataio/encoder/g2p.py"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#s3prl.dataio.encoder.g2p.defaultdict.get" title="Permalink to this definition">#</a></dt>
-<dd><p>Return the value for key if key is in the dictionary, else default.</p>
-</dd></dl>
-
-<dl class="py method">
-<dt class="sig sig-object py" id="s3prl.dataio.encoder.g2p.defaultdict.items">
-<span class="sig-name descname"><span class="pre">items</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">a</span> <span class="pre">set-like</span> <span class="pre">object</span> <span class="pre">providing</span> <span class="pre">a</span> <span class="pre">view</span> <span class="pre">on</span> <span class="pre">D's</span> <span class="pre">items</span></span></span><a class="reference external" href="https://github.com/s3prl/s3prl/blob/v0.4.4 /s3prl/dataio/encoder/g2p.py"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#s3prl.dataio.encoder.g2p.defaultdict.items" title="Permalink to this definition">#</a></dt>
-<dd></dd></dl>
-
-<dl class="py method">
-<dt class="sig sig-object py" id="s3prl.dataio.encoder.g2p.defaultdict.keys">
-<span class="sig-name descname"><span class="pre">keys</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">a</span> <span class="pre">set-like</span> <span class="pre">object</span> <span class="pre">providing</span> <span class="pre">a</span> <span class="pre">view</span> <span class="pre">on</span> <span class="pre">D's</span> <span class="pre">keys</span></span></span><a class="reference external" href="https://github.com/s3prl/s3prl/blob/v0.4.4 /s3prl/dataio/encoder/g2p.py"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#s3prl.dataio.encoder.g2p.defaultdict.keys" title="Permalink to this definition">#</a></dt>
-<dd></dd></dl>
-
-<dl class="py method">
-<dt class="sig sig-object py" id="s3prl.dataio.encoder.g2p.defaultdict.pop">
-<span class="sig-name descname"><span class="pre">pop</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">k</span></span></em><span class="optional">[</span>, <em class="sig-param"><span class="n"><span class="pre">d</span></span></em><span class="optional">]</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">v,</span> <span class="pre">remove</span> <span class="pre">specified</span> <span class="pre">key</span> <span class="pre">and</span> <span class="pre">return</span> <span class="pre">the</span> <span class="pre">corresponding</span> <span class="pre">value.</span></span></span><a class="reference external" href="https://github.com/s3prl/s3prl/blob/v0.4.4 /s3prl/dataio/encoder/g2p.py"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#s3prl.dataio.encoder.g2p.defaultdict.pop" title="Permalink to this definition">#</a></dt>
-<dd><p>If key is not found, d is returned if given, otherwise KeyError is raised</p>
-</dd></dl>
-
-<dl class="py method">
-<dt class="sig sig-object py" id="s3prl.dataio.encoder.g2p.defaultdict.popitem">
-<span class="sig-name descname"><span class="pre">popitem</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference external" href="https://github.com/s3prl/s3prl/blob/v0.4.4 /s3prl/dataio/encoder/g2p.py"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#s3prl.dataio.encoder.g2p.defaultdict.popitem" title="Permalink to this definition">#</a></dt>
-<dd><p>Remove and return a (key, value) pair as a 2-tuple.</p>
-<p>Pairs are returned in LIFO (last-in, first-out) order.
-Raises KeyError if the dict is empty.</p>
-</dd></dl>
-
-<dl class="py method">
-<dt class="sig sig-object py" id="s3prl.dataio.encoder.g2p.defaultdict.setdefault">
-<span class="sig-name descname"><span class="pre">setdefault</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">key</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">default</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">/</span></span></em><span class="sig-paren">)</span><a class="reference external" href="https://github.com/s3prl/s3prl/blob/v0.4.4 /s3prl/dataio/encoder/g2p.py"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#s3prl.dataio.encoder.g2p.defaultdict.setdefault" title="Permalink to this definition">#</a></dt>
-<dd><p>Insert key with a value of default if key is not in the dictionary.</p>
-<p>Return the value for key if key is in the dictionary, else default.</p>
-</dd></dl>
-
-<dl class="py method">
-<dt class="sig sig-object py" id="s3prl.dataio.encoder.g2p.defaultdict.update">
-<span class="sig-name descname"><span class="pre">update</span></span><span class="sig-paren">(</span><span class="optional">[</span><em class="sig-param"><span class="n"><span class="pre">E</span></span></em>, <span class="optional">]</span><em class="sig-param"><span class="n"><span class="pre">**F</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None.</span>&#160; <span class="pre">Update</span> <span class="pre">D</span> <span class="pre">from</span> <span class="pre">dict/iterable</span> <span class="pre">E</span> <span class="pre">and</span> <span class="pre">F.</span></span></span><a class="reference external" href="https://github.com/s3prl/s3prl/blob/v0.4.4 /s3prl/dataio/encoder/g2p.py"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#s3prl.dataio.encoder.g2p.defaultdict.update" title="Permalink to this definition">#</a></dt>
-<dd><p>If E is present and has a .keys() method, then does:  for k in E: D[k] = E[k]
-If E is present and lacks a .keys() method, then does:  for k, v in E: D[k] = v
-In either case, this is followed by: for k in F:  D[k] = F[k]</p>
-</dd></dl>
-
-<dl class="py method">
-<dt class="sig sig-object py" id="s3prl.dataio.encoder.g2p.defaultdict.values">
-<span class="sig-name descname"><span class="pre">values</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">an</span> <span class="pre">object</span> <span class="pre">providing</span> <span class="pre">a</span> <span class="pre">view</span> <span class="pre">on</span> <span class="pre">D's</span> <span class="pre">values</span></span></span><a class="reference external" href="https://github.com/s3prl/s3prl/blob/v0.4.4 /s3prl/dataio/encoder/g2p.py"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#s3prl.dataio.encoder.g2p.defaultdict.values" title="Permalink to this definition">#</a></dt>
-<dd></dd></dl>
-
-</dd></dl>
-
-</section>
-<section id="parse-lexicon">
-<h2>parse_lexicon<a class="headerlink" href="#parse-lexicon" title="Permalink to this heading">#</a></h2>
-<dl class="py function">
-<dt class="sig sig-object py" id="s3prl.dataio.encoder.g2p.parse_lexicon">
-<span class="sig-prename descclassname"><span class="pre">s3prl.dataio.encoder.g2p.</span></span><span class="sig-name descname"><span class="pre">parse_lexicon</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">line</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">Tuple</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">List</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span></span><a class="reference internal" href="../_modules/s3prl/dataio/encoder/g2p.html#parse_lexicon"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="reference external" href="https://github.com/s3prl/s3prl/blob/v0.4.4 /s3prl/dataio/encoder/g2p.py#L20-L23"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#s3prl.dataio.encoder.g2p.parse_lexicon" title="Permalink to this definition">#</a></dt>
-<dd></dd></dl>
-
-</section>
-<section id="read-lexicon-files">
-<h2>read_lexicon_files<a class="headerlink" href="#read-lexicon-files" title="Permalink to this heading">#</a></h2>
-<dl class="py function">
-<dt class="sig sig-object py" id="s3prl.dataio.encoder.g2p.read_lexicon_files">
-<span class="sig-prename descclassname"><span class="pre">s3prl.dataio.encoder.g2p.</span></span><span class="sig-name descname"><span class="pre">read_lexicon_files</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">file_list</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">List</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">Dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">List</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span></span><a class="reference internal" href="../_modules/s3prl/dataio/encoder/g2p.html#read_lexicon_files"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="reference external" href="https://github.com/s3prl/s3prl/blob/v0.4.4 /s3prl/dataio/encoder/g2p.py#L26-L44"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#s3prl.dataio.encoder.g2p.read_lexicon_files" title="Permalink to this definition">#</a></dt>
-<dd></dd></dl>
 
 </section>
 </section>
@@ -504,33 +424,10 @@ In either case, this is followed by: for k in F:  D[k] = F[k]</p>
             <ul>
 <li><a class="reference internal" href="#">g2p</a><ul>
 <li><a class="reference internal" href="#id1">G2P</a><ul>
-<li><a class="reference internal" href="#s3prl.dataio.encoder.g2p.G2P"><code class="docutils literal notranslate"><span class="pre">G2P</span></code></a></li>
+<li><a class="reference internal" href="#s3prl.dataio.encoder.g2p.G2P"><code class="docutils literal notranslate"><span class="pre">G2P</span></code></a><ul>
+<li><a class="reference internal" href="#s3prl.dataio.encoder.g2p.G2P.encode"><code class="docutils literal notranslate"><span class="pre">G2P.encode()</span></code></a></li>
 </ul>
 </li>
-<li><a class="reference internal" href="#defaultdict">defaultdict</a><ul>
-<li><a class="reference internal" href="#s3prl.dataio.encoder.g2p.defaultdict"><code class="docutils literal notranslate"><span class="pre">defaultdict</span></code></a><ul>
-<li><a class="reference internal" href="#s3prl.dataio.encoder.g2p.defaultdict.clear"><code class="docutils literal notranslate"><span class="pre">defaultdict.clear()</span></code></a></li>
-<li><a class="reference internal" href="#s3prl.dataio.encoder.g2p.defaultdict.copy"><code class="docutils literal notranslate"><span class="pre">defaultdict.copy()</span></code></a></li>
-<li><a class="reference internal" href="#s3prl.dataio.encoder.g2p.defaultdict.default_factory"><code class="docutils literal notranslate"><span class="pre">defaultdict.default_factory</span></code></a></li>
-<li><a class="reference internal" href="#s3prl.dataio.encoder.g2p.defaultdict.fromkeys"><code class="docutils literal notranslate"><span class="pre">defaultdict.fromkeys()</span></code></a></li>
-<li><a class="reference internal" href="#s3prl.dataio.encoder.g2p.defaultdict.get"><code class="docutils literal notranslate"><span class="pre">defaultdict.get()</span></code></a></li>
-<li><a class="reference internal" href="#s3prl.dataio.encoder.g2p.defaultdict.items"><code class="docutils literal notranslate"><span class="pre">defaultdict.items()</span></code></a></li>
-<li><a class="reference internal" href="#s3prl.dataio.encoder.g2p.defaultdict.keys"><code class="docutils literal notranslate"><span class="pre">defaultdict.keys()</span></code></a></li>
-<li><a class="reference internal" href="#s3prl.dataio.encoder.g2p.defaultdict.pop"><code class="docutils literal notranslate"><span class="pre">defaultdict.pop()</span></code></a></li>
-<li><a class="reference internal" href="#s3prl.dataio.encoder.g2p.defaultdict.popitem"><code class="docutils literal notranslate"><span class="pre">defaultdict.popitem()</span></code></a></li>
-<li><a class="reference internal" href="#s3prl.dataio.encoder.g2p.defaultdict.setdefault"><code class="docutils literal notranslate"><span class="pre">defaultdict.setdefault()</span></code></a></li>
-<li><a class="reference internal" href="#s3prl.dataio.encoder.g2p.defaultdict.update"><code class="docutils literal notranslate"><span class="pre">defaultdict.update()</span></code></a></li>
-<li><a class="reference internal" href="#s3prl.dataio.encoder.g2p.defaultdict.values"><code class="docutils literal notranslate"><span class="pre">defaultdict.values()</span></code></a></li>
-</ul>
-</li>
-</ul>
-</li>
-<li><a class="reference internal" href="#parse-lexicon">parse_lexicon</a><ul>
-<li><a class="reference internal" href="#s3prl.dataio.encoder.g2p.parse_lexicon"><code class="docutils literal notranslate"><span class="pre">parse_lexicon()</span></code></a></li>
-</ul>
-</li>
-<li><a class="reference internal" href="#read-lexicon-files">read_lexicon_files</a><ul>
-<li><a class="reference internal" href="#s3prl.dataio.encoder.g2p.read_lexicon_files"><code class="docutils literal notranslate"><span class="pre">read_lexicon_files()</span></code></a></li>
 </ul>
 </li>
 </ul>

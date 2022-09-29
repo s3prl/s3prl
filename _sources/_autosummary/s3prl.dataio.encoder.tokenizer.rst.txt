@@ -18,10 +18,10 @@ tokenizer
 
 
 
-BertTokenizer
+CharacterTokenizer
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-.. autoclass:: BertTokenizer
+.. autoclass:: CharacterTokenizer
    :member-order: bysource
    :members:
    :undoc-members:
@@ -38,20 +38,10 @@ CharacterSlotTokenizer
    :inherited-members: torch.nn.Module,nn.Module,Module
    :show-inheritance:
 
-CharacterTokenizer
+SubwordTokenizer
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-.. autoclass:: CharacterTokenizer
-   :member-order: bysource
-   :members:
-   :undoc-members:
-   :inherited-members: torch.nn.Module,nn.Module,Module
-   :show-inheritance:
-
-PhonemeTokenizer
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-.. autoclass:: PhonemeTokenizer
+.. autoclass:: SubwordTokenizer
    :member-order: bysource
    :members:
    :undoc-members:
@@ -68,26 +58,6 @@ SubwordSlotTokenizer
    :inherited-members: torch.nn.Module,nn.Module,Module
    :show-inheritance:
 
-SubwordTokenizer
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-.. autoclass:: SubwordTokenizer
-   :member-order: bysource
-   :members:
-   :undoc-members:
-   :inherited-members: torch.nn.Module,nn.Module,Module
-   :show-inheritance:
-
-Tokenizer
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-.. autoclass:: Tokenizer
-   :member-order: bysource
-   :members:
-   :undoc-members:
-   :inherited-members: torch.nn.Module,nn.Module,Module
-   :show-inheritance:
-
 WordTokenizer
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
@@ -98,21 +68,31 @@ WordTokenizer
    :inherited-members: torch.nn.Module,nn.Module,Module
    :show-inheritance:
 
-
-
-
-
-
-
-default_phoneme_tokenizer
+PhonemeTokenizer
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-.. autofunction:: default_phoneme_tokenizer
+.. autoclass:: PhonemeTokenizer
+   :member-order: bysource
+   :members:
+   :undoc-members:
+   :inherited-members: torch.nn.Module,nn.Module,Module
+   :show-inheritance:
+
+
+
+
+
+
 
 load_tokenizer
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 .. autofunction:: load_tokenizer
+
+default_phoneme_tokenizer
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. autofunction:: default_phoneme_tokenizer
 
 
 

@@ -4,7 +4,7 @@
     <meta name="viewport" content="width=device-width,initial-scale=1"/>
     <meta name="color-scheme" content="light dark"><link rel="index" title="Index" href="../../../genindex.html" /><link rel="search" title="Search" href="../../../search.html" />
 
-    <meta name="generator" content="sphinx-5.2.0.post0, furo 2022.09.15"/>
+    <meta name="generator" content="sphinx-5.2.2, furo 2022.09.15"/>
         <title>s3prl.nn.rnn - S3PRL 0.4.4 documentation</title>
       <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css" />
     <link rel="stylesheet" type="text/css" href="../../../_static/styles/furo.css?digest=9ec31e2665bf879c1d47d93a8ec4893870ee1e45" />
@@ -378,6 +378,20 @@
 
 
 <div class="viewcode-block" id="RNNLayer"><a class="viewcode-back" href="../../../_autosummary/s3prl.nn.rnn.html#s3prl.nn.RNNLayer">[docs]</a><span class="k">class</span> <span class="nc">RNNLayer</span><span class="p">(</span><span class="n">nn</span><span class="o">.</span><span class="n">Module</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;RNN Layer</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        input_size (int): Input size.</span>
+<span class="sd">        hidden_size (int): Hidden size.</span>
+<span class="sd">        module (str): RNN module (RNN, GRU, LSTM)</span>
+<span class="sd">        dropout (float, optional): Dropout rate. Defaults to 0.0.</span>
+<span class="sd">        bidirectional (bool, optional): Bidirectional. Defaults to False.</span>
+<span class="sd">        proj (bool, optional): Projection layer. Defaults to False.</span>
+<span class="sd">        layer_norm (bool, optional): Layer normalization. Defaults to False.</span>
+<span class="sd">        sample_rate (int, optional): Downsampling rate. Defaults to 1.</span>
+<span class="sd">        sample_style (str, optional): Downsampling style (**drop** or **concat**). Defaults to &quot;drop&quot;.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
     <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span>
         <span class="n">input_size</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
@@ -390,19 +404,7 @@
         <span class="n">sample_rate</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">1</span><span class="p">,</span>
         <span class="n">sample_style</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;drop&quot;</span><span class="p">,</span>
     <span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;RNN Layer</span>
 
-<span class="sd">        Args:</span>
-<span class="sd">            input_size (int): Input size.</span>
-<span class="sd">            hidden_size (int): Hidden size.</span>
-<span class="sd">            module (str): RNN module (RNN, GRU, LSTM)</span>
-<span class="sd">            dropout (float, optional): Dropout rate. Defaults to 0.0.</span>
-<span class="sd">            bidirectional (bool, optional): Bidirectional. Defaults to False.</span>
-<span class="sd">            proj (bool, optional): Projection layer. Defaults to False.</span>
-<span class="sd">            layer_norm (bool, optional): Layer normalization. Defaults to False.</span>
-<span class="sd">            sample_rate (int, optional): Downsampling rate. Defaults to 1.</span>
-<span class="sd">            sample_style (str, optional): Downsampling style (**drop** or **concat**). Defaults to &quot;drop&quot;.</span>
-<span class="sd">        &quot;&quot;&quot;</span>
         <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">()</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_insize</span> <span class="o">=</span> <span class="n">input_size</span>
 
@@ -488,6 +490,21 @@
 
 
 <div class="viewcode-block" id="RNNEncoder"><a class="viewcode-back" href="../../../_autosummary/s3prl.nn.rnn.html#s3prl.nn.RNNEncoder">[docs]</a><span class="k">class</span> <span class="nc">RNNEncoder</span><span class="p">(</span><span class="n">AbsFrameModel</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;RNN Encoder for sequence to sequence modeling, e.g., ASR.</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        input_size (int): Input size.</span>
+<span class="sd">        output_size (int): Output size.</span>
+<span class="sd">        module (str, optional): RNN module type. Defaults to &quot;LSTM&quot;.</span>
+<span class="sd">        hidden_size (List[int], optional): Hidden sizes for each layer. Defaults to [1024].</span>
+<span class="sd">        dropout (List[float], optional): Dropout rates for each layer. Defaults to [0.0].</span>
+<span class="sd">        layer_norm (List[bool], optional): Whether to use layer norm for each layer. Defaults to [False].</span>
+<span class="sd">        proj (List[bool], optional): Whether to use projection for each layer. Defaults to [True].</span>
+<span class="sd">        sample_rate (List[int], optional): Downsample rates for each layer. Defaults to [1].</span>
+<span class="sd">        sample_style (str, optional): Downsample style (&quot;drop&quot; or &quot;concat&quot;). Defaults to &quot;drop&quot;.</span>
+<span class="sd">        bidirectional (bool, optional): Whether RNN layers are bidirectional. Defaults to False.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
     <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span>
         <span class="n">input_size</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
@@ -502,20 +519,6 @@
         <span class="n">sample_style</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;drop&quot;</span><span class="p">,</span>
         <span class="n">bidirectional</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
     <span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;RNN Encoder for sequence to sequence modeling, e.g., ASR.</span>
-
-<span class="sd">        Args:</span>
-<span class="sd">            input_size (int): Input size.</span>
-<span class="sd">            output_size (int): Output size.</span>
-<span class="sd">            module (str, optional): RNN module type. Defaults to &quot;LSTM&quot;.</span>
-<span class="sd">            hidden_size (List[int], optional): Hidden sizes for each layer. Defaults to [1024].</span>
-<span class="sd">            dropout (List[float], optional): Dropout rates for each layer. Defaults to [0.0].</span>
-<span class="sd">            layer_norm (List[bool], optional): Whether to use layer norm for each layer. Defaults to [False].</span>
-<span class="sd">            proj (List[bool], optional): Whether to use projection for each layer. Defaults to [True].</span>
-<span class="sd">            sample_rate (List[int], optional): Downsample rates for each layer. Defaults to [1].</span>
-<span class="sd">            sample_style (str, optional): Downsample style (&quot;drop&quot; or &quot;concat&quot;). Defaults to &quot;drop&quot;.</span>
-<span class="sd">            bidirectional (bool, optional): Whether RNN layers are bidirectional. Defaults to False.</span>
-<span class="sd">        &quot;&quot;&quot;</span>
         <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">()</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_input_size</span> <span class="o">=</span> <span class="n">input_size</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_output_size</span> <span class="o">=</span> <span class="n">output_size</span>

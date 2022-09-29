@@ -4,7 +4,7 @@
     <meta name="viewport" content="width=device-width,initial-scale=1"/>
     <meta name="color-scheme" content="light dark"><link rel="index" title="Index" href="../../../genindex.html" /><link rel="search" title="Search" href="../../../search.html" />
 
-    <meta name="generator" content="sphinx-5.2.0.post0, furo 2022.09.15"/>
+    <meta name="generator" content="sphinx-5.2.2, furo 2022.09.15"/>
         <title>s3prl.task.speech2text_ctc_task - S3PRL 0.4.4 documentation</title>
       <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css" />
     <link rel="stylesheet" type="text/css" href="../../../_static/styles/furo.css?digest=9ec31e2665bf879c1d47d93a8ec4893870ee1e45" />
@@ -357,7 +357,14 @@
 <span class="p">]</span>
 
 
-<div class="viewcode-block" id="Speech2TextCTCExample"><a class="viewcode-back" href="../../../_autosummary/s3prl.task.speech2text_ctc_task.html#s3prl.task.Speech2TextCTCExample">[docs]</a><span class="k">class</span> <span class="nc">Speech2TextCTCExample</span><span class="p">(</span><span class="n">torch</span><span class="o">.</span><span class="n">nn</span><span class="o">.</span><span class="n">Module</span><span class="p">):</span>
+<div class="viewcode-block" id="Speech2TextCTCExample"><a class="viewcode-back" href="../../../_autosummary/s3prl.task.speech2text_ctc_task.html#s3prl.task.Speech2TextCTCExample">[docs]</a><span class="k">class</span> <span class="nc">Speech2TextCTCExample</span><span class="p">(</span><span class="n">nn</span><span class="o">.</span><span class="n">Module</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;An example speech-to-text task with CTC objective</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        input_size (int, optional): Input size. Defaults to 3.</span>
+<span class="sd">        output_size (int, optional): Output size. Defaults to 4.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
     <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">input_size</span><span class="o">=</span><span class="mi">3</span><span class="p">,</span> <span class="n">output_size</span><span class="o">=</span><span class="mi">4</span><span class="p">):</span>
         <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">()</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_input_size</span> <span class="o">=</span> <span class="n">input_size</span>
@@ -387,6 +394,17 @@
 
 
 <div class="viewcode-block" id="Speech2TextCTCTask"><a class="viewcode-back" href="../../../_autosummary/s3prl.task.speech2text_ctc_task.html#s3prl.task.Speech2TextCTCTask">[docs]</a><span class="k">class</span> <span class="nc">Speech2TextCTCTask</span><span class="p">(</span><span class="n">Task</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Speech-to-text task with CTC objective</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        model (Speech2TextCTCExample)</span>
+<span class="sd">        tokenizer (Tokenizer): Text tokenizer.</span>
+<span class="sd">        decoder (Union[BeamDecoder, dict], optional):</span>
+<span class="sd">            Beam decoder or decoder&#39;s config. Defaults to None.</span>
+<span class="sd">        log_metrics (List[str], optional):</span>
+<span class="sd">            Metrics to be logged. Defaults to [&quot;cer&quot;, &quot;wer&quot;].</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
     <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span>
         <span class="n">model</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">nn</span><span class="o">.</span><span class="n">Module</span><span class="p">,</span>
@@ -394,17 +412,6 @@
         <span class="n">decoder</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="n">BeamDecoder</span><span class="p">,</span> <span class="nb">dict</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
         <span class="n">log_metrics</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;cer&quot;</span><span class="p">,</span> <span class="s2">&quot;wer&quot;</span><span class="p">],</span>
     <span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
-        <span class="sd">&quot;&quot;&quot;Speech-to-text task with CTC objective</span>
-
-<span class="sd">        Args:</span>
-<span class="sd">            model (Speech2TextCTCExample)</span>
-<span class="sd">            tokenizer (Tokenizer): Text tokenizer.</span>
-<span class="sd">            decoder (Union[BeamDecoder, dict], optional):</span>
-<span class="sd">                Beam decoder or decoder&#39;s config. Defaults to None.</span>
-<span class="sd">            log_metrics (List[str], optional):</span>
-<span class="sd">                Metrics to be logged. Defaults to [&quot;cer&quot;, &quot;wer&quot;].</span>
-<span class="sd">        &quot;&quot;&quot;</span>
-
         <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">()</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">model</span> <span class="o">=</span> <span class="n">model</span>
 
