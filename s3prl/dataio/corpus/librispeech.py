@@ -127,6 +127,21 @@ class LibriSpeech(Corpus):
 
     @property
     def all_data(self):
+        """
+        Return all the data points in a dict of the format
+
+        .. code-block:: yaml
+
+            data_id1:
+                wav_path: (str) The waveform path
+                transcription: (str) The transcription
+                speaker: (str) The speaker name
+                gender: (str) The speaker's gender
+                corpus_split: (str) The split of corpus this sample belongs to
+
+            data_id2:
+                ...
+        """
         return self._data
 
     @property
