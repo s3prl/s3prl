@@ -39,7 +39,7 @@ class S3PRLUpstream(nn.Module):
             If false, only downlaod checkpoint if not yet downloaded before.
             If true, force to re-download the checkpoint.
 
-        **extra_args:
+        extra_conf (dict):
             The extra arguments for each specific upstream, the available options are
             shown in each upstream section
 
@@ -90,12 +90,14 @@ class S3PRLUpstream(nn.Module):
         name: str,
         path_or_url: str = None,
         refresh: bool = False,
-        **extra_args,
+        normalize: bool = False,
+        extra_conf: dict = None,
     ):
         super().__init__()
         self.upstream = getattr(hub, name)(
-            ckpt=path_or_url, refresh=refresh, **extra_args
+            ckpt=path_or_url, refresh=refresh, **(extra_conf or {})
         )
+        self.normalize = normalize
 
         self.upstream.eval()
         with torch.no_grad():
@@ -198,6 +200,9 @@ class S3PRLUpstream(nn.Module):
 
             h_len = torch.div(original_wavs_len, stride, rounding_mode="floor") + 1
             h = h[:, : max(h_len), :]
+            if self.normalize:
+                h = F.layer_norm(h, h.shape[-1:])
+
             all_hs.append(h)
             all_lens.append(h_len)
 

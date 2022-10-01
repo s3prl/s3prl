@@ -18,7 +18,7 @@ logger = logging.getLogger(__name__)
 
 
 class UpstreamExpert(UpstreamBase):
-    def __init__(self, ckpt, **kwargs):
+    def __init__(self, ckpt, feature_selection: str = None, **kwargs):
         super().__init__(**kwargs)
         model, task_cfg = load_converted_model(ckpt)
         self.model = model
@@ -32,7 +32,13 @@ class UpstreamExpert(UpstreamBase):
         self.apply_padding_mask = True
         self.numpy_wav_normalize = False
 
-        if len(self.hooks) == 0:
+        assert feature_selection is None or feature_selection in [
+            "fairseq_layers",
+            "fairseq_layers_before_residual",
+        ]
+        self.feature_selection = feature_selection
+
+        if feature_selection is None:
             module_name = "self.model.encoder.layers"
             for module_id in range(len(eval(module_name))):
                 self.add_hook(
@@ -72,8 +78,23 @@ class UpstreamExpert(UpstreamBase):
             padded_wav, wav_padding_mask if self.apply_padding_mask else None
         )
 
-        # This forward function only does the model forward
-        # The return dict is then handled by UpstreamBase's hooks
+        if self.feature_selection is not None:
+            if self.feature_selection == "fairseq_layers":
+                return {
+                    "hidden_states": [
+                        h[0].transpose(0, 1) for h in results["layer_results"]
+                    ],
+                }
+            elif self.feature_selection == "fairseq_layers_before_residual":
+                return {
+                    "hidden_states": [
+                        h[2].transpose(0, 1) for h in results["layer_results"]
+                    ],
+                }
+        else:
+            pass
+            # This forward function only does the model forward
+            # The return dict is then handled by UpstreamBase's hooks
 
 
 class LegacyUpstreamExpert(UpstreamBase):
