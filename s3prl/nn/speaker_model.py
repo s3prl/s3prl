@@ -8,6 +8,7 @@ Authors:
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
+import math
 
 from .pooling import (
     AttentiveStatisticsPooling,
@@ -17,11 +18,13 @@ from .pooling import (
 )
 
 XVECTOR_TDNNS_LENGTH_REDUCTION = 14
+ECAPA_TDNNS_LENGTH_REDUCTION = 0
 
 
 __all__ = [
     "TDNN",
     "XVectorBackbone",
+    "ECAPA_TDNN",
     "SpeakerEmbeddingExtractor",
     "SuperbXvector",
 ]
@@ -29,15 +32,17 @@ __all__ = [
 
 class TDNN(nn.Module):
     """
-    TDNN as defined by https://www.danielpovey.com/files/2015_interspeech_multisplice.pdf
-    Affine transformation not applied globally to all frames but smaller windows with local context
-    batch_norm: True to include batch normalisation after the non linearity
+    TDNN as defined by https://www.danielpovey.com/files/2015_interspeech_multisplice.pdf.
 
     Context size and dilation determine the frames selected
-    (although context size is not really defined in the traditional sense)
+    (although context size is not really defined in the traditional sense).
+
     For example:
+
         context size 5 and dilation 1 is equivalent to [-2,-1,0,1,2]
+
         context size 3 and dilation 2 is equivalent to [-2, 0, 2]
+
         context size 1 and dilation 1 is equivalent to [0]
 
     Args:
@@ -121,8 +126,7 @@ class TDNN(nn.Module):
 
 class XVectorBackbone(nn.Module):
     """
-    The TDNN layers the same as in https://danielpovey.com/files/2018_odyssey_xvector_lid.pdf
-    This model only include the blocks before the pooling layer
+    The TDNN layers the same as in https://danielpovey.com/files/2018_odyssey_xvector_lid.pdf.
 
     Args:
         input_size (int): The input feature size, usually is the output size of upstream models
@@ -201,14 +205,152 @@ class XVectorBackbone(nn.Module):
         output:
             torch.FloatTensor: (batch, seq_len, output_size)
         """
-        # FIXME: This module should take x_len and output y_len
         x = self.module(x)
+        return x
+
+
+"""
+ECAPA-TDNN
+"""
+
+
+class _SEModule(nn.Module):
+    def __init__(self, channels, bottleneck=128):
+        super().__init__()
+        self.se = nn.Sequential(
+            nn.AdaptiveAvgPool1d(1),
+            nn.Conv1d(channels, bottleneck, kernel_size=1, padding=0),
+            nn.ReLU(),
+            nn.Conv1d(bottleneck, channels, kernel_size=1, padding=0),
+            nn.Sigmoid(),
+        )
+
+    def forward(self, input):
+        x = self.se(input)
+        return input * x
+
+
+class _Bottle2neck(nn.Module):
+    def __init__(self, inplanes, planes, kernel_size=None, dilation=None, scale=8):
+        super().__init__()
+        width = int(math.floor(planes / scale))
+        self.conv1 = nn.Conv1d(inplanes, width * scale, kernel_size=1)
+        self.bn1 = nn.BatchNorm1d(width * scale)
+        self.nums = scale - 1
+        convs = []
+        bns = []
+        num_pad = math.floor(kernel_size / 2) * dilation
+        for i in range(self.nums):
+            convs.append(
+                nn.Conv1d(
+                    width,
+                    width,
+                    kernel_size=kernel_size,
+                    dilation=dilation,
+                    padding=num_pad,
+                )
+            )
+            bns.append(nn.BatchNorm1d(width))
+        self.convs = nn.ModuleList(convs)
+        self.bns = nn.ModuleList(bns)
+        self.conv3 = nn.Conv1d(width * scale, planes, kernel_size=1)
+        self.bn3 = nn.BatchNorm1d(planes)
+        self.relu = nn.ReLU()
+        self.width = width
+        self.se = _SEModule(planes)
+
+    def forward(self, x):
+        residual = x
+        out = self.conv1(x)
+        out = self.relu(out)
+        out = self.bn1(out)
+
+        spx = torch.split(out, self.width, 1)
+        for i in range(self.nums):
+            if i == 0:
+                sp = spx[i]
+            else:
+                sp = sp + spx[i]
+            sp = self.convs[i](sp)
+            sp = self.relu(sp)
+            sp = self.bns[i](sp)
+            if i == 0:
+                out = sp
+            else:
+                out = torch.cat((out, sp), 1)
+        out = torch.cat((out, spx[self.nums]), 1)
+
+        out = self.conv3(out)
+        out = self.relu(out)
+        out = self.bn3(out)
+
+        out = self.se(out)
+        out += residual
+        return out
+
+
+class ECAPA_TDNN(nn.Module):
+    """
+    ECAPA-TDNN model as in https://arxiv.org/abs/2005.07143.
+
+    Reference code: https://github.com/TaoRuijie/ECAPA-TDNN.
+
+    Args:
+        input_size (int): The input feature size, usually is the output size of upstream models
+        output_size (int): (default, 1536) The size of the speaker embedding
+        C (int): (default, 1024) The channel dimension
+    """
+
+    def __init__(
+        self, input_size: int = 80, output_size: int = 1536, C: int = 1024, **kwargs
+    ):
+        super().__init__()
+        self._indim = input_size
+        self._outdim = output_size
+
+        self.conv1 = nn.Conv1d(input_size, C, kernel_size=5, stride=1, padding=2)
+        self.relu = nn.ReLU()
+        self.bn1 = nn.BatchNorm1d(C)
+        self.layer1 = _Bottle2neck(C, C, kernel_size=3, dilation=2, scale=8)
+        self.layer2 = _Bottle2neck(C, C, kernel_size=3, dilation=3, scale=8)
+        self.layer3 = _Bottle2neck(C, C, kernel_size=3, dilation=4, scale=8)
+        self.layer4 = nn.Conv1d(3 * C, output_size, kernel_size=1)
+
+    @property
+    def input_size(self):
+        return self._indim
+
+    @property
+    def output_size(self):
+        return self._outdim
+
+    def forward(self, x: torch.FloatTensor):
+        """
+        Args:
+            x (torch.FloatTensor): size (batch, seq_len, input_size)
+
+        Returns:
+            x (torch.FloatTensor): size (batch, seq_len, output_size)
+        """
+
+        x = self.conv1(x.transpose(1, 2).contiguous())
+        x = self.relu(x)
+        x = self.bn1(x)
+
+        x1 = self.layer1(x)
+        x2 = self.layer2(x + x1)
+        x3 = self.layer3(x + x1 + x2)
+
+        x = self.layer4(torch.cat((x1, x2, x3), dim=1))
+        x = self.relu(x)
+        x = x.transpose(1, 2).contiguous()
+
         return x
 
 
 class SpeakerEmbeddingExtractor(nn.Module):
     """
-    The speaker embedding extractor module
+    The speaker embedding extractor module.
 
     Args:
         input_size (int): The input feature size, usually is the output size of upstream models
@@ -228,12 +370,16 @@ class SpeakerEmbeddingExtractor(nn.Module):
         self._indim = input_size
         self._outdim = output_size
 
-        # TODO: add other backbone model; Pay attention to self.offset
         if backbone == "XVector":
             self.backbone = XVectorBackbone(
                 input_size=input_size, output_size=output_size
             )
             self.offset = XVECTOR_TDNNS_LENGTH_REDUCTION
+
+        elif backbone == "ECAPA-TDNN":
+            self.backbone = ECAPA_TDNN(input_size=input_size, output_size=output_size)
+            self.offset = ECAPA_TDNNS_LENGTH_REDUCTION
+
         else:
             raise ValueError("{} backbone type is not defined".format(backbone))
 
@@ -267,6 +413,7 @@ class SpeakerEmbeddingExtractor(nn.Module):
         Args:
             x (torch.Tensor): size (batch, seq_len, input_size)
             xlen (torch.LongTensor): size (batch, )
+
         Returns:
             x (torch.Tensor): size (batch, output_size)
         """
@@ -276,7 +423,7 @@ class SpeakerEmbeddingExtractor(nn.Module):
         if xlen is not None:
             xlen = torch.LongTensor([max(item - self.offset, 0) for item in xlen])
         else:
-            xlen = torch.LongTensor([x.shape(1)] * x.shape(0))
+            xlen = torch.LongTensor([x.shape[1]] * x.shape[0])
 
         x = self.pooling(x, xlen)
 
@@ -314,7 +461,7 @@ class _UtteranceExtractor(nn.Module):
 
 class SuperbXvector(nn.Module):
     """
-    The Xvector used in the SUPERB Benchmark with the exact default arguments
+    The Xvector used in the SUPERB Benchmark with the exact default arguments.
 
     Args:
         input_size (int): The input feature size, usually is the output size of upstream models
@@ -364,9 +511,7 @@ class SuperbXvector(nn.Module):
             x_len (torch.LongTensor): (batch_size, )
 
         Returns:
-            torch.FloatTensor:
-
-            (batch_size, output_size)
+            torch.FloatTensor: (batch_size, output_size)
         """
 
         x = self.projector(x)
