@@ -2,7 +2,7 @@
 Commonly used metrics
 
 Authors
-  * Shu-wen Yang 2022
+  * Leo 2022
   * Heng-Jui Chang 2022
   * Haibin Wu 2022
 """

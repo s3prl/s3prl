@@ -1,8 +1,7 @@
 # Copyright Hear Benchmark Team
-# Copyright Shu-wen Yang
+# Copyright Shu-wen Yang (refactor from https://github.com/hearbenchmark/hear-eval-kit)
 
 import logging
-from collections import defaultdict
 from pathlib import Path
 from typing import Any, Dict, List, Optional, Tuple, Union
 
