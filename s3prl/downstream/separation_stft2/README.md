@@ -1,4 +1,4 @@
-This is the second version of the source separation benchmark. We made the following changes to improve the training speed and system performance.
+This is the second version of the source separation benchmark. It uses the same Libri2Mix dataset as separation_stft. We made the following changes to improve the training speed and system performance.
 
 1. Adjust the learning rate from 1e-4 to 1e-3.
 2. Adjust n_fft and window_size of STFT from 512 to 1024. For separation task, it seems a larger window size gives better performance.

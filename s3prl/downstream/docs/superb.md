@@ -623,7 +623,7 @@ We have two versions for the source separation task. The first version (separati
 
 #### Prepare data
 
-Simulate Libri2Mix data for source separation. For source separation, we only need 16kHz and min condition. Usually for source separation, people are using 8kHz min condition. Due to the constrait of upstream models we use 16kHz instead.
+Simulate Libri2Mix data for source separation. For source separation, we only need 16kHz and min condition.
 
 ```bash
 # Download the script and simulate Libri2Mix dataset
@@ -655,7 +655,7 @@ cd $YOUR_S3PRL_ROOT/s3prl/
 
 #### Training
 
-Train with STFT magnitude as the upstream. The default stride is 20ms, and you can adjust that in `upstream/log_stft/stft_mag.yaml`. Replace separation_stft with separation_stft2 if you are using the second version
+Train with STFT magnitude as the upstream. The default stride is 20ms, and you can adjust that in `upstream/log_stft/stft_mag.yaml`. Replace separation_stft with separation_stft2 if you are using the second version.
 
 ```bash
 python3 run_downstream.py -m train \
@@ -691,7 +691,7 @@ We have two versions for the speech enhancement task. The first version (enhance
 
 #### Prepare data
 
-1. We use Voicebank-DEMAND dataset for speech enhancement. We follow the data preparation in SpeechBrain:
+1. We use Voicebank-DEMAND dataset for speech enhancement. We follow the data preparation steps in SpeechBrain:
 
     ```bash
     # Download the Voicebank-DEMAND dataset and convert it to 16kHz
@@ -750,7 +750,7 @@ python3 run_downstream.py -m train \
 python3 run_downstream.py -m evaluate \
        -e result/downstream/ExpName/best-states-dev.ckpt \
 ```
-The model is expected to output pesq, stoi, covl and si-sdri on the test set.
+The model is expected to output PESQ, STOI, and SI-SDRi on the test set.
 
 ## VC: Voice conversion
 
