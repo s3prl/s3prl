@@ -330,13 +330,13 @@ class DownstreamExpert(nn.Module):
         if mode == 'train':
             avg_loss = np.mean(records["loss"])
             logger.add_scalar(
-                f"separation_stft/{mode}-loss", avg_loss, global_step=global_step
+                f"separation_stft2/{mode}-loss", avg_loss, global_step=global_step
             )
             return []
         else:
             avg_loss = np.mean(records["loss"])
             logger.add_scalar(
-                f"separation_stft/{mode}-loss", avg_loss, global_step=global_step
+                f"separation_stft2/{mode}-loss", avg_loss, global_step=global_step
             )
             with (Path(self.expdir) / f"{mode}_metrics.txt").open("w") as output:
                 for metric in COMPUTE_METRICS:
@@ -346,7 +346,7 @@ class DownstreamExpert(nn.Module):
                         print(metric, avg_metric, file=output)
 
                     logger.add_scalar(
-                        f'separation_stft/{mode}-'+metric,
+                        f'separation_stft2/{mode}-'+metric,
                         avg_metric,
                         global_step=global_step
                     )

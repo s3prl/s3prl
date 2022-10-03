@@ -28,8 +28,8 @@ class SeparationDataset(Dataset):
         self,
         data_dir,
         rate=16000,
-        src=['mix_clean'],
-        tgt=['s1', 's2'],
+        src=['noisy'],
+        tgt=['clean'],
         n_fft=512,
         hop_length=320,
         win_length=512,
@@ -47,9 +47,6 @@ class SeparationDataset(Dataset):
 
             src and tgt (list(str)):
                 the input and desired output.
-                LibriMix offeres different options for the users. For
-                clean source separation, src=['mix_clean'] and tgt=['s1', 's2'].
-                Please see https://github.com/JorisCos/LibriMix for details
 
             n_fft (int):
                 length of the windowed signal after padding with zeros.
@@ -83,8 +80,7 @@ class SeparationDataset(Dataset):
 
         assert len(self.src) == 1 and len(self.tgt) == 1
 
-        # mix_clean (utterances only) mix_both (utterances + noise) mix_single (1 utterance + noise)
-        cond_list = ["s1", "s2", "noise", "mix_clean", "mix_both", "mix_single", "noisy", "clean"]
+        cond_list = ["noisy", "clean"]
 
         # create the mapping from utterances to the audio paths
         # reco2path[utt][cond] is the path for utterance utt with condition cond
