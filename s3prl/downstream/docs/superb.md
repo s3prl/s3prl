@@ -619,17 +619,21 @@ done
 
 ## SS: Source Separation
 
+We have two versions for the source separation task. The first version (separation_stft) is the same as the SUPERB-SG paper. In the second version (separation_stft2), we further improve the system performance and training speed. Please refer to [README](../separation_stft2/README.md) about the detailed changes of the second version.
+
 #### Prepare data
 
-Simulate Libri2Mix data for source separation. For source separation, we only need 16kHz and min condition. (Usually for source separation, people are using 8kHz min condition, but due to the constrait of pre-trained models we are using 16kHz)
+Simulate Libri2Mix data for source separation. For source separation, we only need 16kHz and min condition.
 
 ```bash
-# download the script and simulate Libri2Mix dataset
+# Download the script and simulate Libri2Mix dataset
 git clone https://github.com/s3prl/LibriMix.git
 cd LibriMix 
 ./generate_librimix_ss.sh storage_dir
 
-# prepare train, dev and test data in Kaldi format
+# Prepare train, dev and test data in Kaldi format.
+# Replace separation_stft with separation_stft2 if
+# you are using the second version
 python downstream/separation_stft/scripts/LibriMix/data_prepare.py \
 --part train-100 storage_dir/Libri2Mix downstream/separation_stft/datasets/Libri2Mix
 
@@ -639,7 +643,9 @@ python downstream/separation_stft/scripts/LibriMix/data_prepare.py \
 python downstream/separation_stft/scripts/LibriMix/data_prepare.py \
 --part test storage_dir/Libri2Mix downstream/separation_stft/datasets/Libri2Mix
 
-# subsample dev set from 3000 utts to 1000 utts (for faster validation)
+# Subsample dev set from 3000 utts to 1000 utts (for faster validation)
+# This step is not necessary for the second version since the training
+# and validation speed is much faster
 python downstream/separation_stft/scripts/LibriMix/subsample.py \
 downstream/separation_stft/datasets/Libri2Mix/wav16k/min/dev \
 downstream/separation_stft/datasets/Libri2Mix/wav16k/min/dev_1000
@@ -649,7 +655,7 @@ cd $YOUR_S3PRL_ROOT/s3prl/
 
 #### Training
 
-Train with STFT magnitude as the upstream. The default stride is 20ms, and you can adjust that in `upstream/log_stft/stft_mag.yaml`
+Train with STFT magnitude as the upstream. The default stride is 20ms, and you can adjust that in `upstream/log_stft/stft_mag.yaml`. Replace separation_stft with separation_stft2 if you are using the second version.
 
 ```bash
 python3 run_downstream.py -m train \
@@ -677,13 +683,15 @@ python3 run_downstream.py -m evaluate \
         -e result/downstream/ExpName/best-states-dev.ckpt \
 ```
 
-The model is expected to output si-sdri on the test set.
+The model is expected to output SI-SDRi on the test set.
 
 ## SE: Speech Enhancement
 
+We have two versions for the speech enhancement task. The first version (enhancement_stft) is the same as the SUPERB-SG paper. In the second version (enhancement_stft2), we largely improve the system performance and training speed. Please refer to [README](../enhancement_stft2/README.md) about the detailed changes of the second version.
+
 #### Prepare data
 
-1. We use Voicebank-DEMAND dataset for speech enhancement. We follow the data preparation in SpeechBrain:
+1. We use Voicebank-DEMAND dataset for speech enhancement. We follow the data preparation steps in SpeechBrain:
 
     ```bash
     # Download the Voicebank-DEMAND dataset and convert it to 16kHz
@@ -711,7 +719,8 @@ The model is expected to output si-sdri on the test set.
     └── trainset_28spk_txt/
     ```
 
-3. Prepare kaldi-style scp files
+3. Prepare kaldi-style scp files. Replace enhancement_stft with enhancement_stft2
+   if you are using the second version.
 
     ```bash
     # prepare train, dev and test data in Kaldi format
@@ -741,7 +750,7 @@ python3 run_downstream.py -m train \
 python3 run_downstream.py -m evaluate \
        -e result/downstream/ExpName/best-states-dev.ckpt \
 ```
-The model is expected to output pesq, stoi, covl and si-sdri on the test set.
+The model is expected to output PESQ, STOI, and SI-SDRi on the test set.
 
 ## VC: Voice conversion
 
