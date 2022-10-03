@@ -16,11 +16,6 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 
-from einops import rearrange, repeat
-from einops.layers.torch import Rearrange
-
-# Helper methods
-
 
 def group_dict_by_key(cond, d):
     return_val = [dict(), dict()]
@@ -139,6 +134,9 @@ class Attention(nn.Module):
         self.to_out = nn.Sequential(nn.Conv2d(inner_dim, dim, 1), nn.Dropout(dropout))
 
     def forward(self, x):
+        from einops import rearrange, repeat
+        from einops.layers.torch import Rearrange
+
         shape = x.shape
         b, n, _, y, h = *shape, self.heads
         q, k, v = (self.to_q(x), *self.to_kv(x).chunk(2, dim=1))

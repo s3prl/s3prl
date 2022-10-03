@@ -2,17 +2,17 @@ import logging
 import random
 from collections import OrderedDict
 
-from s3prl.dataset.base import AugmentedDynamicItemDataset
 from s3prl.dataio.sampler import SortedBucketingSampler, SortedSliceSampler
+from s3prl.dataset.base import AugmentedDynamicItemDataset
 
 logger = logging.getLogger(__name__)
 
 
 def get_length(dataset):
-    id2length = {}
+    lengths = []
     for index, item in enumerate(dataset):
-        id2length[index] = item["length"]
-    return id2length
+        lengths.append(item["length"])
+    return lengths
 
 
 def test_sorted_slice_sampler():

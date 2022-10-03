@@ -3,9 +3,9 @@ The setting of Superb ASV
 
 Authors
   * Po-Han Chi 2021
-  * Shu-wen Yang 2021
+  * Leo 2021
   * Haibin Wu 2022
-  * Shu-wen Yang 2022
+  * Leo 2022
 """
 
 import pickle
@@ -17,10 +17,10 @@ import pandas as pd
 from omegaconf import MISSING
 
 from s3prl.dataio.corpus.voxceleb1sv import VoxCeleb1SV
-from s3prl.dataset.common_pipes import LoadAudio, RandomCrop
 from s3prl.dataio.encoder.category import CategoryEncoder
-from s3prl.nn.speaker_model import SuperbXvector
 from s3prl.dataio.sampler import FixedBatchSizeBatchSampler
+from s3prl.dataset.common_pipes import EncodeCategory, LoadAudio, RandomCrop
+from s3prl.nn.speaker_model import SuperbXvector
 from s3prl.util.download import _download
 
 from .run import ASV
@@ -303,7 +303,7 @@ class SuperbASV(ASV):
         Returns:
             torch Dataset
 
-            For all train/test mode, the dataset should return each item as a dictionary
+            For train mode, the dataset should return each item as a dictionary
             containing the following keys:
 
             ====================  ====================
@@ -311,9 +311,19 @@ class SuperbASV(ASV):
             ====================  ====================
             x                     (torch.FloatTensor) - the waveform in (seq_len, 1)
             x_len                 (int) - the waveform length :code:`seq_len`
-            label                 (str) - the class name
+            class_id              (str) - the label class id encoded by :code:`encoder_path`
             unique_name           (str) - the unique id for this datapoint
             ====================  ====================
+
+            For test mode:
+
+            ====================  ====================
+            key                   description
+            ====================  ====================
+            x                     (torch.FloatTensor) - the waveform in (seq_len, 1)
+            x_len                 (int) - the waveform length :code:`seq_len`
+            unique_name           (str) - the unique id for this datapoint
+
         """
         assert mode in [
             "train",
@@ -328,7 +338,42 @@ class SuperbASV(ASV):
                     wav_path=row["wav_path"],
                     label=row["spk"],
                 )
+
+            # TODO: should try to remove this dependency
+            from speechbrain.dataio.dataset import DynamicItemDataset
+
+            with open(encoder_path, "rb") as f:
+                encoder = pickle.load(f)
+
+            output_keys = dict(
+                x="wav",
+                x_len="wav_len",
+                class_id="class_id",
+                unique_name="id",
+            )
+
+            dataset: DynamicItemDataset = LoadAudio(
+                audio_sample_rate=SAMPLE_RATE, sox_effects=EFFECTS
+            )(data)
+            dataset = EncodeCategory()(dataset, tools={"category": encoder})
+            dataset.set_output_keys(output_keys)
+
+            @dataclass
+            class Config:
+                max_secs: float = None
+
             config = build_dataset.get("train", {})
+            config = Config(**config)
+
+            if config.max_secs is not None:
+                assert isinstance(config.max_secs, float)
+                dataset = RandomCrop(sample_rate=SAMPLE_RATE, max_secs=config.max_secs)(
+                    dataset
+                )
+                output_keys["x"] = "wav_crop"
+                output_keys["x_len"] = "wav_crop_len"
+
+            dataset.set_output_keys(output_keys)
 
         elif mode == "test":
             csv = pd.read_csv(data_csv)
@@ -341,40 +386,18 @@ class SuperbASV(ASV):
             for idx, path in data_list:
                 data[idx] = dict(
                     wav_path=path,
-                    label=None,
                 )
-            config = build_dataset.get("test", {})
 
-        output_keys = dict(
-            x="wav",
-            x_len="wav_len",
-            label="label",
-            unique_name="id",
-        )
-
-        # TODO: should try to remove this dependency
-        from speechbrain.dataio.dataset import DynamicItemDataset
-
-        dataset: DynamicItemDataset = LoadAudio(
-            audio_sample_rate=SAMPLE_RATE, sox_effects=EFFECTS
-        )(data)
-        dataset.set_output_keys(output_keys)
-
-        @dataclass
-        class Config:
-            max_secs: float = None
-
-        config = Config(**config)
-
-        if config.max_secs is not None:
-            assert isinstance(config.max_secs, float)
-            dataset = RandomCrop(sample_rate=SAMPLE_RATE, max_secs=config.max_secs)(
-                dataset
+            output_keys = dict(
+                x="wav",
+                x_len="wav_len",
+                unique_name="id",
             )
-            output_keys["x"] = "wav_crop"
-            output_keys["x_len"] = "wav_crop_len"
+            dataset: DynamicItemDataset = LoadAudio(
+                audio_sample_rate=SAMPLE_RATE, sox_effects=EFFECTS
+            )(data)
+            dataset.set_output_keys(output_keys)
 
-        dataset.set_output_keys(output_keys)
         return dataset
 
     def build_batch_sampler(

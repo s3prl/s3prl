@@ -25,13 +25,13 @@ from typing import Dict, List, Union
 import omegaconf
 import torch
 import yaml
-from torch.utils.tensorboard.writer import SummaryWriter
 from torch.utils.data import DataLoader
+from torch.utils.tensorboard.writer import SummaryWriter
 from tqdm import tqdm
 
+from s3prl.dataio.sampler import DistributedBatchSamplerWrapper
 from s3prl.dataset.base import default_collate_fn
 from s3prl.nn.upstream import Featurizer, S3PRLUpstream, UpstreamDownstreamModel
-from s3prl.dataio.sampler import DistributedBatchSamplerWrapper
 from s3prl.task import Task
 from s3prl.util.override import parse_overrides
 from s3prl.util.seed import fix_random_seeds
@@ -582,6 +582,9 @@ class Problem:
                 save_names = []
 
                 if global_step % conf.eval_step == 0:
+                    assert (
+                        valid_dataset is not None and valid_batch_sampler is not None
+                    ), f"valid dataset is not supported, please set train.eval_step to infinite"
                     logs: dict = self.evaluate(
                         evaluate,
                         "valid",

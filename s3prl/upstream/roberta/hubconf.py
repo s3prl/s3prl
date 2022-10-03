@@ -9,7 +9,6 @@ from s3prl.util.download import _urls_to_filepaths
 from ..interfaces import Featurizer as _Featurizer
 from .expert import LegacyUpstreamExpert as _LegacyUpstreamExpert
 from .expert import UpstreamExpert as _UpstreamExpert
-from .expert import LegacyUpstreamExpert as _LegacyUpstreamExpert
 
 
 class _vq_wav2vec_codeids_wrapper(torch.nn.Module):

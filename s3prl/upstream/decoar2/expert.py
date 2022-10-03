@@ -1,10 +1,9 @@
+from collections import OrderedDict
+
 import torch
 import torch.nn as nn
 from torch.nn.utils.rnn import pad_sequence
 
-from .decoar2 import Decoar2
-from .audio import create_transform
-from collections import OrderedDict
 from ..interfaces import UpstreamBase
 from .audio import create_transform
 from .decoar2 import Decoar2

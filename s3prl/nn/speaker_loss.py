@@ -9,7 +9,6 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 
-
 __all__ = [
     "softmax",
     "amsoftmax",
@@ -20,6 +19,7 @@ class softmax(nn.Module):
     """
     The standard softmax loss in an unified interface for all speaker-related softmax losses
     """
+
     def __init__(self, input_size: int, output_size: int):
         super().__init__()
         self._indim = input_size
@@ -67,6 +67,7 @@ class amsoftmax(nn.Module):
         margin (float): Hyperparameter denotes the margin to the decision boundry
         scale (float): Hyperparameter that scales the cosine value
     """
+
     def __init__(
         self, input_size: int, output_size: int, margin: float = 0.2, scale: float = 30
     ):

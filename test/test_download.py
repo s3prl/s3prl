@@ -1,9 +1,10 @@
-import os
 import logging
-from pathlib import Path
+import os
 from multiprocessing import Process
+from pathlib import Path
 
 import torch
+
 from s3prl.util.download import _urls_to_filepaths
 
 logger = logging.getLogger(__name__)

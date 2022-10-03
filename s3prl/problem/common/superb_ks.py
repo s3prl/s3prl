@@ -3,7 +3,7 @@ The setting of Superb KS
 
 Authors
   * Yist Y. Lin 2021
-  * Shu-wen Yang 2022
+  * Leo 2022
 """
 
 import logging
@@ -18,10 +18,10 @@ from omegaconf import MISSING
 from torch.utils.data import Dataset
 
 from s3prl.dataio.corpus.speech_commands import SpeechCommandsV1
-from s3prl.dataset.utterance_classification_pipe import UtteranceClassificationPipe
 from s3prl.dataio.encoder.category import CategoryEncoder
-from s3prl.nn.linear import MeanPoolingLinear
 from s3prl.dataio.sampler import BalancedWeightedSampler, FixedBatchSizeBatchSampler
+from s3prl.dataset.utterance_classification_pipe import UtteranceClassificationPipe
+from s3prl.nn.linear import MeanPoolingLinear
 
 from .run import Common
 
@@ -134,7 +134,6 @@ class SuperbKS(Common):
             build_batch_sampler=dict(
                 train=dict(
                     batch_size=32,
-                    shuffle=True,
                 ),
                 valid=dict(
                     batch_size=32,

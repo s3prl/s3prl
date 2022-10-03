@@ -45,7 +45,7 @@ class SortedSliceSampler:
 
         get_length_func = get_length_func or self.get_length
         self.id2length = get_length_func(dataset)
-        sorted_ids = [(idx, length) for idx, length in self.id2length.items()]
+        sorted_ids = [(idx, length) for idx, length in enumerate(self.id2length)]
         sorted_ids = sorted(sorted_ids, key=lambda x: x[1], reverse=True)
         self.sorted_ids = [data_id for data_id, length in sorted_ids]
 
@@ -55,14 +55,14 @@ class SortedSliceSampler:
 
         torchaudio.set_audio_backend("sox_io")
 
-        lengths = {}
+        lengths = []
         with dataset.output_keys_as(["wav_path"]):
             for data_index, item in enumerate(
                 tqdm(dataset, desc="Read wav_path audio length")
             ):
                 info = torchaudio.info(item["wav_path"])
                 length = info.num_frames
-                lengths[data_index] = length
+                lengths.append(length)
         return lengths
 
     def set_epoch(self, epoch: int):
@@ -125,7 +125,7 @@ class SortedBucketingSampler:
 
         get_length_func = get_length_func or self.get_length
         self.id2length = get_length_func(dataset)
-        sorted_ids = [(idx, length) for idx, length in self.id2length.items()]
+        sorted_ids = [(idx, length) for idx, length in enumerate(self.id2length)]
 
         # sorted_ids should be from long -> short utts
         sorted_ids = sorted(sorted_ids, key=lambda x: x[1], reverse=True)
@@ -137,14 +137,14 @@ class SortedBucketingSampler:
 
         torchaudio.set_audio_backend("sox_io")
 
-        lengths = {}
+        lengths = []
         with dataset.output_keys_as(["wav_path"]):
             for data_index, item in enumerate(
                 tqdm(dataset, desc="Read wav_path audio length")
             ):
                 info = torchaudio.info(item["wav_path"])
                 length = info.num_frames
-                lengths[data_index] = length
+                lengths.append(length)
         return lengths
 
     def set_epoch(self, epoch: int):

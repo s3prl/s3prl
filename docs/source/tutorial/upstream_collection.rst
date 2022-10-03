@@ -42,6 +42,12 @@ Here is an example on how to get a hubert model and its representation using the
     Like, the HuBERT method has "hubert" and "hubert_large_ll60k" different names for different
     checkpoint variants.
 
+.. tip::
+
+    Some SSL pre-trained models' entries can be further configured by a :code:`extra_conf` dictionary.
+    See :obj:`s3prl.nn.S3PRLUpstream`. You can find the valid :code:`extra_conf` options in each SSL
+    model category. If not documented, by default it does not support any :code:`extra_conf`.
+
 The following includes the model and checkpoint information for each :code:`name`, including the releasing date,
 paper, citation, model architecture, pre-training data, criterion, and their source code. The format follows:
 
@@ -642,6 +648,21 @@ wav2vec 2.0
         pages={12449--12460},
         year={2020}
     }
+
+All the entries below support the following :code:`extra_conf`:
+
+====================  ====================
+column                description
+====================  ====================
+feature_selection     (str) - if 'fairseq_layers' or 'fairseq_layers_before_residual',
+                        extract the representation following official fairseq API.
+                        for 'fairseq_layers', it is the output of each transformer
+                        encoder layer; for 'fairseq_layers_before_residual', it is
+                        the output of the feedforward layer (before adding with the
+                        main residual) of each transformer encoder layer. by default
+                        this option is None, which follows the default place to extract
+                        in S3PRL.
+====================  ====================
 
 
 wav2vec2

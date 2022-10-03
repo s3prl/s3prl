@@ -1,13 +1,12 @@
 import pytest
-
 import torch
 
 from s3prl.nn.common import UtteranceLevel
 from s3prl.nn.pooling import (
-    MeanPooling,
-    TemporalStatisticsPooling,
     AttentiveStatisticsPooling,
+    MeanPooling,
     SelfAttentivePooling,
+    TemporalStatisticsPooling,
 )
 
 

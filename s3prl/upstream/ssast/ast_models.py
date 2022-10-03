@@ -7,12 +7,12 @@
 
 # the unified ast models for all pretraining/fine-tuning tasks.
 
+import numpy as np
+import timm
 import torch
 import torch.nn as nn
-from timm.models.layers import trunc_normal_
-import timm
-import numpy as np
-from timm.models.layers import to_2tuple
+from timm.models.layers import to_2tuple, trunc_normal_
+
 
 # override the timm package to relax the input shape constraint.
 class PatchEmbed(nn.Module):

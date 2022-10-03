@@ -11,13 +11,14 @@ from typing import Dict, Optional, Tuple
 
 import torch
 import torch.nn as nn
+from torch import Tensor
+
 from ..functional.sliding_attn import (
     global_attention_forward,
     slide_window_attention_forward,
 )
 from .fairseq_modules import quant_noise
 from .scaling_linear import SLinear
-from torch import Tensor
 
 
 class SMHA(nn.Module):

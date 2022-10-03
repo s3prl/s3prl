@@ -1,17 +1,17 @@
 import logging
 from collections import defaultdict
 
-from s3prl import Container, field, Workspace
+from s3prl import Container, Workspace, field
+from s3prl.dataset.utterance_classification_pipe import HearScenePipe
 from s3prl.nn import S3PRLUpstreamDriver, UpstreamDownstreamModel
+from s3prl.nn.hear import HearFullyConnectedPrediction
 from s3prl.problem.base import Problem
 from s3prl.problem.trainer import Trainer
+from s3prl.sampler import FixedBatchSizeBatchSampler
+from s3prl.task.scene_prediction import ScenePredictionTask
+from s3prl.task.utterance_classification_task import UtteranceClassificationTask
 from s3prl.util.configuration import default_cfg
 from s3prl.util.seed import fix_random_seeds
-from s3prl.dataset.utterance_classification_pipe import HearScenePipe
-from s3prl.sampler import FixedBatchSizeBatchSampler
-from s3prl.task.utterance_classification_task import UtteranceClassificationTask
-from s3prl.nn.hear import HearFullyConnectedPrediction
-from s3prl.task.scene_prediction import ScenePredictionTask
 
 logger = logging.getLogger(__name__)
 
@@ -110,7 +110,7 @@ class HearScene(Problem, Trainer):
         ),
         task=dict(
             CLS=field(
-                HearScenePredictionTask,
+                ScenePredictionTask,
                 "\nThe task class defining what to do for each train/valid/test step in the train/valid/test dataloader loop"
                 "\nYou can add the **kwargs right below this CLS key",
                 str,

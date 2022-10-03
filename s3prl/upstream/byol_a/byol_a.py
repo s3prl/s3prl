@@ -13,12 +13,12 @@ import logging
 # IMPORTATION #
 ###############
 import re
+from argparse import Namespace
 from pathlib import Path
 
 # -------------#
 import torch
 import yaml
-from easydict import EasyDict
 from torch import nn
 
 
@@ -28,8 +28,7 @@ def load_yaml_config(path_to_config):
     assert path_to_config.is_file()
     with open(path_to_config) as f:
         yaml_contents = yaml.safe_load(f)
-    cfg = EasyDict(yaml_contents)
-    return cfg
+    return Namespace(**yaml_contents)
 
 
 class PrecomputedNorm(nn.Module):
