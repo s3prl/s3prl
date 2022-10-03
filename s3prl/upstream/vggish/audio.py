@@ -22,7 +22,6 @@
 
 
 import numpy as np
-import resampy
 import torch
 
 from . import vggish_params
@@ -44,6 +43,8 @@ def waveform_to_examples(data, sample_rate=16000, return_tensor=True):
         spectrogram, covering num_frames frames of audio and num_bands mel frequency
         bands, where the frame length is vggish_params.STFT_HOP_LENGTH_SECONDS.
     """
+    import resampy
+
     # Convert to mono.
     if len(data.shape) > 1:
         data = np.mean(data, axis=1)

@@ -86,6 +86,17 @@ def _parse_spk_to_gender(speaker_file: Path) -> dict:
 
 
 class LibriSpeech(Corpus):
+    """LibriSpeech Corpus
+    Link: https://www.openslr.org/12
+
+    Args:
+        dataset_root (str): Path to LibriSpeech corpus directory.
+        n_jobs (int, optional): Number of jobs. Defaults to 4.
+        train_split (List[str], optional): Training splits. Defaults to ["train-clean-100"].
+        valid_split (List[str], optional): Validation splits. Defaults to ["dev-clean"].
+        test_split (List[str], optional): Testing splits. Defaults to ["test-clean"].
+    """
+
     def __init__(
         self,
         dataset_root: str,
@@ -116,6 +127,21 @@ class LibriSpeech(Corpus):
 
     @property
     def all_data(self):
+        """
+        Return all the data points in a dict of the format
+
+        .. code-block:: yaml
+
+            data_id1:
+                wav_path: (str) The waveform path
+                transcription: (str) The transcription
+                speaker: (str) The speaker name
+                gender: (str) The speaker's gender
+                corpus_split: (str) The split of corpus this sample belongs to
+
+            data_id2:
+                ...
+        """
         return self._data
 
     @property

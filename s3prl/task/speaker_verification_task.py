@@ -7,7 +7,7 @@ Authors
 """
 
 import logging
-from typing import Dict, List, Tuple
+from typing import List, Tuple
 
 import torch
 import torch.nn.functional as F
@@ -128,17 +128,17 @@ class SpeakerVerification(Task):
         self,
         x: torch.Tensor,
         x_len: torch.LongTensor,
-        label: torch.LongTensor,
+        class_id: torch.LongTensor,
         unique_name: List[str],
         _dump_dir: str = None,
     ):
         spk_embeddings = self.predict(x, x_len)
-        loss, logits = self.loss(spk_embeddings, label)
+        loss, logits = self.loss(spk_embeddings, class_id)
         prediction = [index for index in logits.argmax(dim=-1).detach().cpu().tolist()]
 
         cacheable = dict(
             loss=loss.detach().cpu().item(),
-            label=label,
+            class_id=class_id.detach().cpu().tolist(),
             prediction=prediction,
             unique_name=unique_name,
         )
@@ -147,8 +147,8 @@ class SpeakerVerification(Task):
 
     def train_reduction(self, cached_results: list, _dump_dir: str = None):
         results = self.parse_cached_results(cached_results)
-        acc = accuracy(results["prediction"], results["label"])
-        loss = (sum(results["loss"]) / len(results["loss"])).item()
+        acc = accuracy(results["prediction"], results["class_id"])
+        loss = torch.FloatTensor(results["loss"]).mean().item()
 
         return dict(
             loss=loss,
@@ -159,7 +159,6 @@ class SpeakerVerification(Task):
         self,
         x: torch.Tensor,
         x_len: torch.LongTensor,
-        label: torch.LongStorage,
         unique_name: List[str],
         _dump_dir: str,
     ):

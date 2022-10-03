@@ -14,7 +14,6 @@ from scipy.interpolate import interp1d
 from scipy.optimize import brentq
 from sklearn.metrics import accuracy_score, roc_curve
 
-
 __all__ = [
     "accuracy",
     "ter",
@@ -123,12 +122,12 @@ def compute_eer(labels: List[int], scores: List[float]):
 
 
 def compute_minDCF(
-        labels: List[int], 
-        scores: List[float], 
-        p_target: float=0.01, 
-        c_miss: int=1, 
-        c_fa: int=1
-    ):
+    labels: List[int],
+    scores: List[float],
+    p_target: float = 0.01,
+    c_miss: int = 1,
+    c_fa: int = 1,
+):
     """Compute MinDCF.
     Computes the minimum of the detection cost function.  The comments refer to
     equations in Section 3 of the NIST 2016 Speaker Recognition Evaluation Plan.

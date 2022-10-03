@@ -1,12 +1,13 @@
 """
 Utility functions for hear-kit
 """
-import numpy as np
-from tqdm import tqdm
 from typing import Tuple
+
+import numpy as np
 import torch
 import torch.nn.functional as F
 from torch import Tensor
+from tqdm import tqdm
 
 
 def compute_scene_stats(audios, to_melspec):

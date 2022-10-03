@@ -1,9 +1,10 @@
-import re
 import os
-import torch
-from pathlib import Path
+import re
 from collections import Counter
 from multiprocessing import Pool
+from pathlib import Path
+
+import torch
 
 SPACE_NORMALIZER = re.compile(r"\s+")
 

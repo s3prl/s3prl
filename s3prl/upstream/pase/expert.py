@@ -1,4 +1,5 @@
 import logging
+
 from torch.nn.utils.rnn import pad_sequence
 
 from ..interfaces import UpstreamBase

@@ -104,6 +104,7 @@ class AbsFrameModel(nn.Module):
     """
     The frame-level model interface.
     """
+
     @property
     def input_size(self) -> int:
         raise NotImplementedError
@@ -122,6 +123,7 @@ class AbsUtteranceModel(nn.Module):
     """
     The utterance-level model interface, which pools the temporal dimension.
     """
+
     @property
     def input_size(self) -> int:
         raise NotImplementedError

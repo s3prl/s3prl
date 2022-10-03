@@ -5,8 +5,9 @@
 # @Email   : yuangong@mit.edu
 # @File    : expert.py
 
-import torch
 import logging
+
+import torch
 
 from s3prl.upstream.interfaces import SAMPLE_RATE
 
@@ -25,6 +26,7 @@ class UpstreamExpert(torch.nn.Module):
 
         try:
             import timm
+
             from .ast_models import ASTModel
         except:
             print(

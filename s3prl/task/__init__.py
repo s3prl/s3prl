@@ -12,7 +12,6 @@ from .utterance_classification_task import (
     UtteranceMultiClassClassificationTask,
 )
 
-
 __all__ = [
     "Task",
     "DiarizationPIT",

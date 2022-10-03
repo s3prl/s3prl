@@ -3,9 +3,9 @@ from collections import defaultdict
 
 from s3prl import Container, Workspace
 from s3prl.corpus.hear import maestro
-from s3prl.util.configuration import default_cfg, field
 from s3prl.nn.hear import HearFullyConnectedPrediction
 from s3prl.task.event_prediction import EventPredictionTask
+from s3prl.util.configuration import default_cfg, field
 
 from .timestamp import HearTimestamp
 
@@ -39,7 +39,7 @@ class Maestro(HearTimestamp):
             ),
             task=dict(
                 CLS=field(
-                    HearEventPredictionTask,
+                    EventPredictionTask,
                     "\nThe task class defining what to do for each train/valid/test step in the train/valid/test dataloader loop"
                     "\nYou can add the **kwargs right below this CLS key",
                     str,

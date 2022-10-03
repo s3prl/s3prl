@@ -5,12 +5,14 @@
 # @Email   : yuangong@mit.edu
 # @File    : ast_models.py
 
+import os
+
+import timm
 import torch
 import torch.nn as nn
-from torch.cuda.amp import autocast
-import os
-import timm
 from timm.models.layers import to_2tuple, trunc_normal_
+from torch.cuda.amp import autocast
+
 
 # override the timm package to relax the input shape constraint.
 class PatchEmbed(nn.Module):

@@ -2,10 +2,10 @@
 S3PRL Upstream Collection and some utilities
 
 Authors:
-  * Shu-wen Yang 2022
+  * Leo 2022
 """
 
-from typing import List, Union
+from typing import List
 
 import torch
 import torch.nn as nn
@@ -19,6 +19,9 @@ __all__ = [
     "Featurizer",
     "UpstreamDownstreamModel",
 ]
+
+MIN_SECOND = 0.05
+SAMPLE_RATE = 16000
 
 
 class S3PRLUpstream(nn.Module):
@@ -36,7 +39,7 @@ class S3PRLUpstream(nn.Module):
             If false, only downlaod checkpoint if not yet downloaded before.
             If true, force to re-download the checkpoint.
 
-        **extra_args:
+        extra_conf (dict):
             The extra arguments for each specific upstream, the available options are
             shown in each upstream section
 
@@ -87,12 +90,14 @@ class S3PRLUpstream(nn.Module):
         name: str,
         path_or_url: str = None,
         refresh: bool = False,
-        **extra_args,
+        normalize: bool = False,
+        extra_conf: dict = None,
     ):
         super().__init__()
         self.upstream = getattr(hub, name)(
-            ckpt=path_or_url, refresh=refresh, **extra_args
+            ckpt=path_or_url, refresh=refresh, **(extra_conf or {})
         )
+        self.normalize = normalize
 
         self.upstream.eval()
         with torch.no_grad():
@@ -166,6 +171,15 @@ class S3PRLUpstream(nn.Module):
         if wavs.dim() == 3:
             wavs = wavs.squeeze(-1)
 
+        original_wavs_len = wavs_len
+        if max(original_wavs_len) < MIN_SECOND * SAMPLE_RATE:
+            padded_samples = int(MIN_SECOND * SAMPLE_RATE) - max(original_wavs_len)
+            wavs = torch.cat(
+                (wavs, wavs.new_zeros(wavs.size(0), padded_samples)),
+                dim=1,
+            )
+            wavs_len = wavs_len + padded_samples
+
         wavs_list = []
         for wav, wav_len in zip(wavs, wavs_len):
             wavs_list.append(wav[:wav_len])
@@ -183,9 +197,13 @@ class S3PRLUpstream(nn.Module):
             expected_max_h_len = max_wav_len // stride + 1
             h = self._match_length(h, expected_max_h_len)
             assert h.size(1) == expected_max_h_len
-            all_hs.append(h)
 
-            h_len = torch.div(wavs_len, stride, rounding_mode="floor") + 1
+            h_len = torch.div(original_wavs_len, stride, rounding_mode="floor") + 1
+            h = h[:, : max(h_len), :]
+            if self.normalize:
+                h = F.layer_norm(h, h.shape[-1:])
+
+            all_hs.append(h)
             all_lens.append(h_len)
 
         return all_hs, all_lens

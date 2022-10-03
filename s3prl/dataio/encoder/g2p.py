@@ -16,6 +16,8 @@ DEFAULT_LEXICON_URL = [
     "https://huggingface.co/datasets/s3prl/g2p/raw/main/lexicon/librispeech-lexicon-allothers-g2p.txt",
 ]
 
+__all__ = ["G2P"]
+
 
 def parse_lexicon(line: str) -> Tuple[str, List[str]]:
     line.replace("\t", " ")
@@ -45,18 +47,19 @@ def read_lexicon_files(file_list: List[str]) -> Dict[str, List[str]]:
 
 
 class G2P:
-    def __init__(self, file_list: List[str] = None):
-        """Grapheme-to-phoneme
+    """Grapheme-to-phoneme
 
-        Args:
-            file_list (List[str], optional): List of lexicon files. Defaults to None.
-        """
+    Args:
+        file_list (List[str], optional): List of lexicon files. Defaults to None.
+    """
+
+    def __init__(self, file_list: List[str] = None):
 
         if file_list is None:
             file_list = _urls_to_filepaths(*DEFAULT_LEXICON_URL)
         self.word2phone = read_lexicon_files(file_list)
 
-    def __call__(self, text: str) -> str:
+    def encode(self, text: str) -> str:
         """Converts grapheme-based sentences to phonemes
 
         Args:

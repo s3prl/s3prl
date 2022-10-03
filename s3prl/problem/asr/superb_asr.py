@@ -3,7 +3,7 @@ The setting of Superb ASR
 
 Authors
   * Heng-Jui Chang 2022
-  * Shu-wen Yang 2022
+  * Leo 2022
 """
 
 import logging
@@ -17,14 +17,14 @@ import pandas as pd
 from omegaconf import MISSING
 from torch.utils.data import Dataset
 
-from s3prl.util.download import urls_to_filepaths
 from s3prl.dataio.corpus.librispeech import LibriSpeech
-from s3prl.dataset.speech2text_pipe import Speech2TextPipe
 from s3prl.dataio.encoder.tokenizer import load_tokenizer
 from s3prl.dataio.encoder.vocabulary import generate_vocab
+from s3prl.dataio.sampler import FixedBatchSizeBatchSampler, SortedBucketingSampler
+from s3prl.dataset.speech2text_pipe import Speech2TextPipe
 from s3prl.nn.rnn import RNNEncoder
 from s3prl.nn.specaug import ModelWithSpecaug
-from s3prl.dataio.sampler import FixedBatchSizeBatchSampler, SortedBucketingSampler
+from s3prl.util.download import urls_to_filepaths
 
 from .run import ASR
 
@@ -122,11 +122,15 @@ def prepare_common_tokenizer(
     if get_path_only:
         return tokenizer_path
 
-    if vocab_file is not None and vocab_file.startswith("http"):
-        vocab_file = urls_to_filepaths(vocab_file)
+    if vocab_file is not None:
+        vocab_file = str(vocab_file)
+        if vocab_file.startswith("http"):
+            vocab_file = urls_to_filepaths(vocab_file)
 
-    if slots_file is not None and slots_file.startswith("http"):
-        slots_file = urls_to_filepaths(slots_file)
+    if slots_file is not None:
+        slots_file = str(slots_file)
+        if slots_file.startswith("http"):
+            slots_file = urls_to_filepaths(slots_file)
 
     if vocab_file is not None:
         tokenizer = load_tokenizer(
@@ -137,6 +141,9 @@ def prepare_common_tokenizer(
     else:
         vocab_args = vocab_args or {}
         assert isinstance(vocab_args, dict)
+
+        if vocab_type == "subword" and not "output_file" in vocab_args:
+            vocab_args["output_file"] = Path(target_dir) / "tokenizer.spm"
 
         vocab_result = generate_vocab(
             vocab_type, text_file=str(tokenizer_data_path), **vocab_args
@@ -172,10 +179,7 @@ class SuperbASR(ASR):
             ),
             prepare_tokenizer_data=dict(),
             build_tokenizer=dict(
-                tokenizer_name=None,
                 vocab_type="character",
-                vocab_args=None,
-                slots_file=None,
             ),
             build_dataset=dict(),
             build_batch_sampler=dict(
@@ -299,6 +303,8 @@ class SuperbASR(ASR):
         target_dir: str,
         cache_dir: str,
         train_csv: str,
+        valid_csv: str,
+        test_csvs: List[str],
         get_path_only: bool = False,
     ):
         """

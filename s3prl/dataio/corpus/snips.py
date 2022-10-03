@@ -131,7 +131,22 @@ class SNIPS(Corpus):
             {
                 name: {
                     "wav_path": data_dict[split]["wav_list"][i],
-                    "transcription": data_dict[split]["text_list"][i],
+                    "transcription": " ".join(
+                        data_dict[split]["text_list"][i]
+                        .split("\t")[0]
+                        .strip()
+                        .split(" ")[1:-1]
+                    ),
+                    "iob": " ".join(
+                        data_dict[split]["text_list"][i]
+                        .split("\t")[1]
+                        .strip()
+                        .split(" ")[1:-1]
+                    ),
+                    "intent": data_dict[split]["text_list"][i]
+                    .split("\t")[1]
+                    .strip()
+                    .split(" ")[-1],
                     "speaker": data_dict[split]["spkr_list"][i],
                     "corpus_split": split,
                 }

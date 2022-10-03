@@ -1,9 +1,7 @@
 import pytest
 from dotenv import dotenv_values
 
-from s3prl.dataio.corpus.fluent_speech_commands import (
-    FluentSpeechCommands,
-)
+from s3prl.dataio.corpus.fluent_speech_commands import FluentSpeechCommands
 
 
 @pytest.mark.corpus

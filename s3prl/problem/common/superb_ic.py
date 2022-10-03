@@ -3,8 +3,8 @@ The setting of Superb IC
 
 Authors
   * Wei-Cheng Tseng 2021
-  * Shu-wen Yang 2021
-  * Shu-wen Yang 2022
+  * Leo 2021
+  * Leo 2022
 """
 
 import logging
@@ -13,16 +13,17 @@ from pathlib import Path
 from typing import OrderedDict
 
 import pandas as pd
+import torch
 from omegaconf import MISSING
 from torch.utils.data import Dataset
 
 from s3prl.dataio.corpus.fluent_speech_commands import FluentSpeechCommands
+from s3prl.dataio.encoder.category import CategoryEncoders
+from s3prl.dataio.sampler import FixedBatchSizeBatchSampler
 from s3prl.dataset.utterance_classification_pipe import (
     UtteranceMultipleCategoryClassificationPipe,
 )
-from s3prl.dataio.encoder.category import CategoryEncoders
 from s3prl.nn.linear import MeanPoolingLinear
-from s3prl.dataio.sampler import FixedBatchSizeBatchSampler
 from s3prl.task.utterance_classification_task import (
     UtteranceMultiClassClassificationTask,
 )
@@ -156,7 +157,7 @@ class SuperbIC(Common):
                 eval_step=2000,
                 save_step=500,
                 gradient_clipping=1.0,
-                gradient_accumulate_steps=1,
+                gradient_accumulate=1,
                 valid_metric="accuracy",
                 valid_higher_better=True,
                 auto_resume=True,
@@ -397,7 +398,14 @@ class SuperbIC(Common):
         )
         return model
 
-    def build_task(self, build_task: dict, model, encoder):
+    def build_task(
+        self,
+        build_task: dict,
+        model: torch.nn.Module,
+        encoder,
+        valid_df: pd.DataFrame = None,
+        test_df: pd.DataFrame = None,
+    ):
         """
         Build the task, which defines the logics for every train/valid/test forward step for the :code:`model`,
         and the logics for how to reduce all the batch results from multiple train/valid/test steps into metrics
@@ -408,6 +416,8 @@ class SuperbIC(Common):
             build_task (dict): same in :obj:`default_config`, no argument supported for now
             model (torch.nn.Module): the model built by :obj:`build_model`
             encoder: the encoder built by :obj:`build_encoder`
+            valid_df (pd.DataFrame): metadata of the valid set
+            test_df (pd.DataFrame): metadata of the test set
 
         Returns:
             Task

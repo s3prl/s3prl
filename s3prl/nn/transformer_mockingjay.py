@@ -13,7 +13,6 @@ from torch import nn
 
 from s3prl import Output
 
-
 __all__ = [
     "TransformerConfig",
     "TransformerLayer",

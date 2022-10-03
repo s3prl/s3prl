@@ -1,7 +1,7 @@
 from collections import Counter, OrderedDict
 
-from s3prl.dataset.base import AugmentedDynamicItemDataset
 from s3prl.dataio.sampler import BalancedWeightedSampler
+from s3prl.dataset.base import AugmentedDynamicItemDataset
 
 
 def test_balanced_weighted_sampler():

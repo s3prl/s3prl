@@ -8,4 +8,4 @@
 #   Copyright    [ Copyleft(c), Speech Lab, NTU, Taiwan ]
 """*********************************************************************************************"""
 
-from ..wav2vec.expert import UpstreamExpert, LegacyUpstreamExpert
+from ..wav2vec.expert import LegacyUpstreamExpert, UpstreamExpert

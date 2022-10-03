@@ -14,10 +14,10 @@ from pathlib import Path
 import pandas as pd
 from omegaconf import MISSING
 
-from s3prl.dataset.speech2phoneme_pipe import Speech2PhonemePipe
 from s3prl.dataio.encoder.tokenizer import default_phoneme_tokenizer
-from s3prl.nn.linear import FrameLevelLinear
 from s3prl.dataio.sampler import FixedBatchSizeBatchSampler, SortedSliceSampler
+from s3prl.dataset.speech2phoneme_pipe import Speech2PhonemePipe
+from s3prl.nn.linear import FrameLevelLinear
 
 from .superb_asr import SuperbASR
 

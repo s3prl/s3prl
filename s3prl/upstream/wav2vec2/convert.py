@@ -1,8 +1,9 @@
-import torch
 from pathlib import Path
 
+import torch
+
 import s3prl
-from s3prl.upstream.utils import merge_with_parent, load_fairseq_ckpt
+from s3prl.upstream.utils import load_fairseq_ckpt, merge_with_parent
 from s3prl.upstream.wav2vec2.wav2vec2_model import (
     AudioPretrainingConfig,
     Wav2Vec2Config,

@@ -1,17 +1,18 @@
-import torch
-from dataclasses import dataclass
+import json
 import pickle
 from collections import OrderedDict, defaultdict
-import pandas as pd
-import json
+from dataclasses import dataclass
 from pathlib import Path
-from s3prl.nn.hear import HearFullyConnectedPrediction
-from s3prl.task.scene_prediction import ScenePredictionTask
+
+import pandas as pd
+import torch
+from omegaconf import MISSING
+
 from s3prl.dataio.encoder import CategoryEncoder
 from s3prl.dataio.sampler import FixedBatchSizeBatchSampler
 from s3prl.dataset.utterance_classification_pipe import HearScenePipe
-
-from omegaconf import MISSING
+from s3prl.nn.hear import HearFullyConnectedPrediction
+from s3prl.task.scene_prediction import ScenePredictionTask
 
 from .superb_sid import SuperbSID
 

@@ -1,12 +1,13 @@
+import tempfile
+
 import pytest
 import yaml
-import tempfile
 from dotenv import dotenv_values
 from torch.utils.data import Subset
 from tqdm import tqdm
 
-from s3prl.problem import SuperbER
 from s3prl.downstream.emotion.expert import DownstreamExpert
+from s3prl.problem import SuperbER
 
 
 @pytest.mark.corpus

@@ -3,8 +3,8 @@ from torch.nn import L1Loss
 
 from s3prl.corpus.librispeech import librispeech_for_pretrain
 from s3prl.dataset.pretrain_tera_pipe import PretrainTeraPipe
-from s3prl.nn.transformer_mockingjay import TransformerMockingjay
 from s3prl.nn.predictor_mockingjay import PredictorMockingjay
+from s3prl.nn.transformer_mockingjay import TransformerMockingjay
 from s3prl.sampler import FixedBatchSizeBatchSampler, MaxTimestampBatchSampler
 from s3prl.task import Task
 from s3prl.task.feat_reconstruction_task import FeatReconstructionTask
