@@ -42,6 +42,9 @@ jobs:
     - name: Upgrade pip and wheel
       run: pip3 install --upgrade pip wheel
 
+    - name: Install specific setuptools
+      run: pip3 install setuptools==59.5.0
+
     - name: Install dependencies for tests
       run: pip3 install -r requirements/dev.txt
 
