@@ -4,11 +4,12 @@ which sorts the lengths of all the data points and group the instances
 with the similar lengths together.
 
 Authors:
-  Shu-wen Yang 2022
+  Leo 2022
 """
 
+from typing import List
+
 import torch
-from tqdm import tqdm
 
 __all__ = [
     "SortedSliceSampler",
@@ -21,7 +22,7 @@ class SortedSliceSampler:
     This sampler should only be used for training hence is always in random shuffle mode
 
     Args:
-        dataset (DynamicItemDataset)
+        lengths (List[int])
         batch_size (int): the default batch size
         max_length (int): if a batch contains at least on utt longer than max_length, half the batch
         get_length_func (callable): get the length of each item in the dataset, if None, a default function will be used
@@ -30,40 +31,22 @@ class SortedSliceSampler:
 
     def __init__(
         self,
-        dataset,
+        lengths: List[int],
         batch_size: int,
         max_length: int = 300000,
-        get_length_func: callable = None,
         seed: int = 12345678,
         in_batch_shuffle: bool = False,
     ) -> None:
+        self.lengths = lengths
         self.epoch = 0
         self.seed = seed
         self.batch_size = batch_size
         self.max_length = max_length
         self.in_batch_shuffle = in_batch_shuffle
 
-        get_length_func = get_length_func or self.get_length
-        self.id2length = get_length_func(dataset)
-        sorted_ids = [(idx, length) for idx, length in enumerate(self.id2length)]
+        sorted_ids = [(idx, length) for idx, length in enumerate(lengths)]
         sorted_ids = sorted(sorted_ids, key=lambda x: x[1], reverse=True)
         self.sorted_ids = [data_id for data_id, length in sorted_ids]
-
-    @staticmethod
-    def get_length(dataset):
-        import torchaudio
-
-        torchaudio.set_audio_backend("sox_io")
-
-        lengths = []
-        with dataset.output_keys_as(["wav_path"]):
-            for data_index, item in enumerate(
-                tqdm(dataset, desc="Read wav_path audio length")
-            ):
-                info = torchaudio.info(item["wav_path"])
-                length = info.num_frames
-                lengths.append(length)
-        return lengths
 
     def set_epoch(self, epoch: int):
         self.epoch = epoch
@@ -72,10 +55,10 @@ class SortedSliceSampler:
         generator = torch.Generator()
         generator.manual_seed(self.epoch + self.seed)
 
-        indices = torch.randperm(len(self.id2length), generator=generator).tolist()
+        indices = torch.randperm(len(self.lengths), generator=generator).tolist()
 
         for indice in indices:
-            length = self.id2length[indice]
+            length = self.lengths[indice]
             if length > self.max_length:
                 batch_size = self.batch_size // 2
             else:
@@ -98,7 +81,7 @@ class SortedSliceSampler:
 class SortedBucketingSampler:
     """
     Args:
-        dataset (DynamicItemDataset)
+        lengths (List[int])
         batch_size (int): the default batch size
         max_length (int): if a batch contains at least on utt longer than max_length, half the batch
         get_length_func (callable): get the length of each item in the dataset, if None, a default function will be used
@@ -108,10 +91,9 @@ class SortedBucketingSampler:
 
     def __init__(
         self,
-        dataset,
+        lengths: List[int],
         batch_size: int,
         max_length: int = 300000,
-        get_length_func: callable = None,
         shuffle: bool = False,
         in_batch_shuffle: bool = False,
         seed: int = 12345678,
@@ -122,30 +104,11 @@ class SortedBucketingSampler:
         self.max_length = max_length
         self.shuffle = shuffle
         self.in_batch_shuffle = in_batch_shuffle
+        self.lengths = lengths
 
-        get_length_func = get_length_func or self.get_length
-        self.id2length = get_length_func(dataset)
-        sorted_ids = [(idx, length) for idx, length in enumerate(self.id2length)]
-
-        # sorted_ids should be from long -> short utts
+        sorted_ids = [(idx, length) for idx, length in enumerate(self.lengths)]
         sorted_ids = sorted(sorted_ids, key=lambda x: x[1], reverse=True)
         self.sorted_ids = [data_id for data_id, length in sorted_ids]
-
-    @staticmethod
-    def get_length(dataset):
-        import torchaudio
-
-        torchaudio.set_audio_backend("sox_io")
-
-        lengths = []
-        with dataset.output_keys_as(["wav_path"]):
-            for data_index, item in enumerate(
-                tqdm(dataset, desc="Read wav_path audio length")
-            ):
-                info = torchaudio.info(item["wav_path"])
-                length = info.num_frames
-                lengths.append(length)
-        return lengths
 
     def set_epoch(self, epoch: int):
         self.epoch = epoch
@@ -158,7 +121,7 @@ class SortedBucketingSampler:
         position = 0
         while position < len(self.sorted_ids):
             indice = self.sorted_ids[position]
-            length = self.id2length[indice]
+            length = self.lengths[indice]
             if length > self.max_length:
                 batch_size = self.batch_size // 2
             else:

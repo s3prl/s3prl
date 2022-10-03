@@ -2,7 +2,7 @@
 Benchmark the timing a block of code
 
 Authors
-  * Shu-wen Yang 2022
+  * Leo 2022
 """
 
 import logging

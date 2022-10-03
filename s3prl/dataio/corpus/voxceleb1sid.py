@@ -2,7 +2,8 @@
 Parse VoxCeleb1 corpus for classification
 
 Authors:
-  * Shu-wen Yang 2022
+  * Leo 2022
+  * Cheng Liang 2022
 """
 
 import logging

@@ -2,20 +2,16 @@
 Parse the IEMOCAP corpus
 
 Authors:
-  * Shu-wen Yang 2022
+  * Leo 2022
+  * Cheng Liang 2022
 """
 
 import logging
 import re
 from copy import deepcopy
 from pathlib import Path
-from typing import List
 
-import torch
 from librosa.util import find_files
-from torch.utils.data import random_split
-
-from s3prl.util.download import _urls_to_filepaths
 
 from .base import Corpus
 

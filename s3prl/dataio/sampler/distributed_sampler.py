@@ -2,7 +2,7 @@
 Wrap any batch sampler for distributed training
 
 Authors:
-  * Shu-wen Yang 2022
+  * Leo 2022
 """
 
 import logging

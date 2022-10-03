@@ -213,6 +213,8 @@ def test_superb_pr():
                     cache_dir: str,
                     get_path_only: bool = False,
                 ):
+                    from s3prl.dataio.encoder.g2p import G2P
+
                     all_wav_paths = wav_paths
                     all_text = [
                         "hello how are you today",
@@ -221,6 +223,9 @@ def test_superb_pr():
                         "I think is good",
                         "maybe okay",
                     ]
+
+                    g2p = G2P()
+                    all_text = [g2p.encode(text.strip()) for text in all_text]
 
                     ids = list(range(len(all_wav_paths)))
                     df = pd.DataFrame(
@@ -271,14 +276,16 @@ def test_superb_ic():
                     get_path_only: bool = False,
                 ):
                     ids = [Path(path).stem for path in wav_paths]
-                    label1 = ["a", "b", "a", "c", "d"]
-                    label2 = ["1", "2", "3", "4", "5"]
+                    labels1 = ["a", "b", "a", "c", "d"]
+                    labels2 = ["1", "2", "3", "4", "5"]
                     df = pd.DataFrame(
                         data={
                             "id": ids,
                             "wav_path": wav_paths,
-                            "label1": label1,
-                            "label2": label2,
+                            "labels": [
+                                f"{label1} ; {label2}"
+                                for label1, label2 in zip(labels1, labels2)
+                            ],
                         }
                     )
                     train_csv = target_dir / "train.csv"
@@ -473,8 +480,7 @@ def test_superb_asv():
             config["train"]["total_steps"] = 4
             config["train"]["log_step"] = 1
             config["train"]["eval_step"] = math.inf
-            config["train"]["save_step"] = 2
-            config["test_ckpt_steps"] = [2, 4]
+            config["train"]["save_step"] = 1
             problem.run(**config)
 
 

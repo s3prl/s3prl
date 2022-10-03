@@ -1,5 +1,5 @@
 # Copyright Hear Benchmark Team
-# Copyright Shu-wen Yang
+# Copyright Shu-wen Yang (refactor from https://github.com/hearbenchmark/hear-eval-kit)
 
 from typing import List
 

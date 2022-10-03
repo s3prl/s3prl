@@ -3,24 +3,21 @@ The setting of Superb SID
 
 Authors
   * Po-Han Chi 2021
-  * Shu-wen Yang 2022
+  * Leo 2022
 """
 
 import logging
 import math
 import pickle
 from pathlib import Path
-from typing import OrderedDict
 
 import pandas as pd
 from omegaconf import MISSING
-from torch.utils.data import Dataset
 
 from s3prl.dataio.corpus.voxceleb1sid import VoxCeleb1SID
+from s3prl.dataio.dataset import EncodeCategory, LoadAudio
 from s3prl.dataio.encoder.category import CategoryEncoder
 from s3prl.dataio.sampler import FixedBatchSizeBatchSampler
-from s3prl.dataset.common_pipes import RandomCrop
-from s3prl.dataset.utterance_classification_pipe import UtteranceClassificationPipe
 from s3prl.nn.linear import MeanPoolingLinear
 
 from .run import Common
@@ -289,51 +286,51 @@ class SuperbSID(Common):
             ====================  ====================
         """
 
-        def _superb_sid_dataset(max_secs: float):
-            data_points = OrderedDict()
+        def _utt_classification_dataset(max_secs: float = None):
             csv = pd.read_csv(data_csv)
-            for _, row in csv.iterrows():
-                if "start_sec" in row and "end_sec" in row:
-                    start_sec = row["start_sec"]
-                    end_sec = row["end_sec"]
 
-                    if math.isnan(start_sec):
-                        start_sec = None
+            start_secs = None
+            if "start_sec" in csv.columns:
+                start_secs = csv["start_sec"].tolist()
+                start_secs = [None if math.isnan(sec) else sec for sec in start_secs]
 
-                    if math.isnan(end_sec):
-                        end_sec = None
+            end_secs = None
+            if "end_sec" in csv.columns:
+                end_secs = csv["end_sec"].tolist()
+                end_secs = [None if math.isnan(sec) else sec for sec in end_secs]
 
-                else:
-                    start_sec = None
-                    end_sec = None
-
-                data_points[row["id"]] = {
-                    "wav_path": row["wav_path"],
-                    "label": row["label"],
-                    "start_sec": start_sec,
-                    "end_sec": end_sec,
-                }
+            audio_loader = LoadAudio(
+                csv["wav_path"].tolist(),
+                start_secs,
+                end_secs,
+                max_secs=max_secs,
+                sox_effects=EFFECTS,
+            )
 
             with open(encoder_path, "rb") as f:
                 encoder = pickle.load(f)
 
-            dataset = UtteranceClassificationPipe(
-                train_category_encoder=False, sox_effects=EFFECTS
-            )(
-                data_points,
-                tools={"category": encoder},
-            )
-            dataset = RandomCrop(max_secs=max_secs)(dataset)
-            dataset.update_output_keys(
-                dict(
-                    x="wav_crop",
-                    x_len="wav_crop_len",
-                )
-            )
+            label_encoder = EncodeCategory(csv["label"].tolist(), encoder)
+            ids = csv["id"].tolist()
 
-            return dataset
+            class Dataset:
+                def __len__(self):
+                    return len(ids)
 
-        return _superb_sid_dataset(**build_dataset)
+                def __getitem__(self, index: int):
+                    audio = audio_loader[index]
+                    label = label_encoder[index]
+                    return {
+                        "x": audio["wav"],
+                        "x_len": audio["wav_len"],
+                        "label": label["label"],
+                        "class_id": label["class_id"],
+                        "unique_name": ids[index],
+                    }
+
+            return Dataset()
+
+        return _utt_classification_dataset(**build_dataset)
 
     def build_batch_sampler(
         self,
@@ -342,7 +339,7 @@ class SuperbSID(Common):
         cache_dir: str,
         mode: str,
         data_csv: str,
-        dataset: Dataset,
+        dataset,
     ):
         """
         Return the batch sampler for torch DataLoader.

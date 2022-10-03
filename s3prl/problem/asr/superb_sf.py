@@ -14,14 +14,10 @@ from pathlib import Path
 from typing import List
 
 import pandas as pd
-import torch
-import torchaudio
-from joblib import Parallel, delayed
 from omegaconf import MISSING
-from torch.utils.data import Dataset
-from tqdm import tqdm
 
 from s3prl.dataio.corpus.snips import SNIPS
+from s3prl.dataio.dataset import EncodeText, LoadAudio, get_info
 from s3prl.dataio.sampler import FixedBatchSizeBatchSampler, SortedSliceSampler
 
 from .superb_asr import SuperbASR, prepare_common_tokenizer
@@ -295,52 +291,34 @@ class SuperbSF(SuperbASR):
         data_csv: str,
         tokenizer_path: str,
     ):
-        class SlotFillingDataset(Dataset):
-            def __init__(self, data_csv: str, tokenizer) -> None:
-                super().__init__()
-                self.df = pd.read_csv(data_csv)
+        csv = pd.read_csv(data_csv)
 
-                with open(tokenizer_path, "rb") as f:
-                    tokenizer = pickle.load(f)
+        audio_loader = LoadAudio(csv["wav_path"].tolist())
 
-                self.tokenizer = tokenizer
+        with open(tokenizer_path, "rb") as f:
+            tokenizer = pickle.load(f)
 
+        text_encoder = EncodeText(
+            csv["transcription"].tolist(), tokenizer, iob=csv["iob"].tolist()
+        )
+        ids = csv["id"].tolist()
+
+        class SlotFillingDataset:
             def __len__(self):
-                return len(self.df)
+                return len(audio_loader)
 
-            def get_info(self, index):
-                row = self.df.iloc[index]
-                text = row["transcription"]
-                iob = row["iob"]
-
-                unique_name = row["id"]
-                wav_path = row["wav_path"]
-                class_id = self.tokenizer.encode(text, iob)
-                label = self.tokenizer.decode(class_id)
-
+            def __getitem__(self, index: int):
+                audio = audio_loader[index]
+                text = text_encoder[index]
                 return {
-                    "wav_path": wav_path,
-                    "class_ids": class_id,
-                    "labels": label,
-                    "unique_name": unique_name,
-                    "raw_text": text,
-                    "raw_iob": iob,
+                    "x": audio["wav"],
+                    "x_len": audio["wav_len"],
+                    "class_ids": text["class_ids"],
+                    "labels": text["labels"],
+                    "unique_name": ids[index],
                 }
 
-            def __getitem__(self, index):
-                info = self.get_info(index)
-                wav_path = info.pop("wav_path")
-                wav, sr = torchaudio.load(wav_path)
-
-                return {
-                    "x": wav.view(-1),
-                    "x_len": len(wav.view(-1)),
-                    "class_ids": torch.LongTensor(info["class_ids"]),
-                    "labels": info["labels"],
-                    "unique_name": info["unique_name"],
-                }
-
-        dataset = SlotFillingDataset(data_csv, tokenizer_path)
+        dataset = SlotFillingDataset()
         return dataset
 
     def build_batch_sampler(
@@ -386,23 +364,11 @@ class SuperbSF(SuperbASR):
 
         conf = Config(**build_batch_sampler)
 
-        def get_length(dataset):
-            def _read_length(path):
-                torchaudio.set_audio_backend("sox_io")
-                info = torchaudio.info(str(path))
-                return info.num_frames / info.sample_rate
-
-            wav_paths = [dataset.get_info(i)["wav_path"] for i in range(len(dataset))]
-            lengths = Parallel(n_jobs=6)(
-                delayed(_read_length)(path)
-                for path in tqdm(wav_paths, desc="get wav length")
-            )
-            return lengths
-
         if mode == "train":
-            sampler = SortedSliceSampler(
-                dataset, get_length_func=get_length, **(conf.train or {})
+            wav_lens = get_info(
+                dataset, "x_len", cache_dir=Path(target_dir) / "train_stats"
             )
+            sampler = SortedSliceSampler(wav_lens, **(conf.train or {}))
             return sampler
         elif mode == "valid":
             return FixedBatchSizeBatchSampler(dataset, **(conf.valid or {}))

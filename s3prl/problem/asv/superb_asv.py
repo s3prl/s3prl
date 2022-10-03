@@ -9,7 +9,6 @@ Authors
 """
 
 import pickle
-from collections import OrderedDict
 from dataclasses import dataclass
 from pathlib import Path
 
@@ -17,11 +16,11 @@ import pandas as pd
 from omegaconf import MISSING
 
 from s3prl.dataio.corpus.voxceleb1sv import VoxCeleb1SV
+from s3prl.dataio.dataset import EncodeCategory, LoadAudio
 from s3prl.dataio.encoder.category import CategoryEncoder
 from s3prl.dataio.sampler import FixedBatchSizeBatchSampler
-from s3prl.dataset.common_pipes import EncodeCategory, LoadAudio, RandomCrop
 from s3prl.nn.speaker_model import SuperbXvector
-from s3prl.util.download import _download
+from s3prl.util.download import download
 
 from .run import ASV
 
@@ -66,7 +65,7 @@ def prepare_voxceleb1_for_sv(
     all_data = {**train_data, **valid_data}
 
     ignored_utts_path = Path(cache_dir) / "voxceleb1_too_short_utts"
-    _download(
+    download(
         ignored_utts_path,
         "https://huggingface.co/datasets/s3prl/voxceleb1_too_short_utts/raw/main/utt",
         True,
@@ -106,18 +105,7 @@ class SuperbASV(ASV):
         return dict(
             target_dir=MISSING,
             cache_dir=None,
-            test_ckpt_steps=[
-                20000,
-                40000,
-                60000,
-                80000,
-                100000,
-                120000,
-                140000,
-                160000,
-                180000,
-                200000,
-            ],
+            test_ckpt_steps=None,  # eval all saved checkpoints
             prepare_data=dict(
                 dataset_root=MISSING,
             ),
@@ -331,32 +319,6 @@ class SuperbASV(ASV):
         ], "Only support train & test mode (no validation)"
 
         if mode == "train":
-            csv = pd.read_csv(data_csv)
-            data = OrderedDict()
-            for rowid, row in csv.iterrows():
-                data[row["id"]] = dict(
-                    wav_path=row["wav_path"],
-                    label=row["spk"],
-                )
-
-            # TODO: should try to remove this dependency
-            from speechbrain.dataio.dataset import DynamicItemDataset
-
-            with open(encoder_path, "rb") as f:
-                encoder = pickle.load(f)
-
-            output_keys = dict(
-                x="wav",
-                x_len="wav_len",
-                class_id="class_id",
-                unique_name="id",
-            )
-
-            dataset: DynamicItemDataset = LoadAudio(
-                audio_sample_rate=SAMPLE_RATE, sox_effects=EFFECTS
-            )(data)
-            dataset = EncodeCategory()(dataset, tools={"category": encoder})
-            dataset.set_output_keys(output_keys)
 
             @dataclass
             class Config:
@@ -365,15 +327,34 @@ class SuperbASV(ASV):
             config = build_dataset.get("train", {})
             config = Config(**config)
 
-            if config.max_secs is not None:
-                assert isinstance(config.max_secs, float)
-                dataset = RandomCrop(sample_rate=SAMPLE_RATE, max_secs=config.max_secs)(
-                    dataset
-                )
-                output_keys["x"] = "wav_crop"
-                output_keys["x_len"] = "wav_crop_len"
+            csv = pd.read_csv(data_csv)
+            wav_paths = csv["wav_path"].tolist()
+            audio_loader = LoadAudio(
+                wav_paths, sox_effects=EFFECTS, max_secs=config.max_secs
+            )
 
-            dataset.set_output_keys(output_keys)
+            labels = csv["spk"].tolist()
+            with open(encoder_path, "rb") as f:
+                encoder = pickle.load(f)
+
+            label_encoder = EncodeCategory(labels, encoder)
+            ids = csv["id"].tolist()
+
+            class SVTrainDataset:
+                def __len__(self):
+                    return len(audio_loader)
+
+                def __getitem__(self, index: int):
+                    audio = audio_loader[index]
+                    label = label_encoder[index]
+                    return {
+                        "x": audio["wav"],
+                        "x_len": audio["wav_len"],
+                        "class_id": label["class_id"],
+                        "unique_name": ids[index],
+                    }
+
+            dataset = SVTrainDataset()
 
         elif mode == "test":
             csv = pd.read_csv(data_csv)
@@ -382,21 +363,23 @@ class SuperbASV(ASV):
                 [csv["wav_path1"], csv["wav_path2"]], ignore_index=True
             ).tolist()
             data_list = sorted(set([(idx, path) for idx, path in zip(ids, wav_paths)]))
-            data = OrderedDict()
-            for idx, path in data_list:
-                data[idx] = dict(
-                    wav_path=path,
-                )
+            ids, wav_paths = zip(*data_list)
 
-            output_keys = dict(
-                x="wav",
-                x_len="wav_len",
-                unique_name="id",
-            )
-            dataset: DynamicItemDataset = LoadAudio(
-                audio_sample_rate=SAMPLE_RATE, sox_effects=EFFECTS
-            )(data)
-            dataset.set_output_keys(output_keys)
+            audio_loader = LoadAudio(wav_paths)
+
+            class SVTestDataset:
+                def __len__(self):
+                    return len(audio_loader)
+
+                def __getitem__(self, index: int):
+                    audio = audio_loader[index]
+                    return {
+                        "x": audio["wav"],
+                        "x_len": audio["wav_len"],
+                        "unique_name": ids[index],
+                    }
+
+            dataset = SVTestDataset()
 
         return dataset
 

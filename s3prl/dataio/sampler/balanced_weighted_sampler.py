@@ -6,7 +6,7 @@ Authors:
 """
 
 from collections import Counter
-from typing import Iterator, TypeVar
+from typing import Iterator, List, TypeVar
 
 import torch
 from torch.utils.data import WeightedRandomSampler
@@ -23,9 +23,8 @@ class BalancedWeightedSampler:
 
     def __init__(
         self,
-        dataset,
+        labels: List[str],
         batch_size: int,
-        get_weights: callable = None,
         duplicate: int = 1,
         seed: int = 12345678,
     ) -> None:
@@ -34,21 +33,15 @@ class BalancedWeightedSampler:
         self.batch_size = batch_size
         self.duplicate = duplicate
 
-        get_weights = get_weights or self.get_weights
-        self.weights = get_weights(dataset)
-
-    @staticmethod
-    def get_weights(dataset):
         class2weight = Counter()
-        weights = []
-        with dataset.output_keys_as(["label"]):
-            for data_index, item in enumerate(dataset):
-                label = item["label"]
-                class2weight.update([label])
+        for label in labels:
+            class2weight.update([label])
 
-            for item in dataset:
-                weights.append(len(dataset) / class2weight[item["label"]])
-        return weights
+        weights = []
+        for label in labels:
+            weights.append(len(labels) / class2weight[label])
+
+        self.weights = weights
 
     def set_epoch(self, epoch: int):
         self.epoch = epoch

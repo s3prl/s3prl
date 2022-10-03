@@ -2,7 +2,8 @@
 The backbone run procedure of ASV tasks
 
 Authors
-  * Shu-wen Yang 2022
+  * Haibin Wu 2022
+  * Leo 2022
 """
 
 import logging
@@ -244,8 +245,17 @@ class ASV(Problem):
         test_ckpt_dirs = []
         if test_ckpt_dir is not None:
             test_ckpt_dirs.append(test_ckpt_dir)
-        for step in test_ckpt_steps:
-            test_ckpt_dirs.append(Path(train_dir) / f"step_{step}")
+        if test_ckpt_steps is None:
+            train_ckpts = [
+                train_dir / name
+                for name in os.listdir(train_dir)
+                if name.startswith("step_")
+            ]
+            test_ckpt_dirs.extend(train_ckpts)
+        else:
+            test_ckpt_dirs.extend(
+                [train_dir / f"step_{step}" for step in test_ckpt_steps]
+            )
 
         def check_fn():
             for ckpt_dir in test_ckpt_dirs:
