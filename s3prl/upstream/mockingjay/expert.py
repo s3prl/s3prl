@@ -7,11 +7,11 @@
 """*********************************************************************************************"""
 
 
-from typing import List, Tuple
 from collections import OrderedDict
+from typing import List, Tuple
 
-import yaml
 import torch
+import yaml
 from torch import Tensor
 
 from ..interfaces import UpstreamBase
@@ -58,7 +58,9 @@ class UpstreamExpert(UpstreamBase):
         return 160
 
     def forward(self, wavs):
-        last_hidden_state, hidden_states = self.transformer(wavs)  # (batch_size, extracted_seqlen, feature_dim)
+        last_hidden_state, hidden_states = self.transformer(
+            wavs
+        )  # (batch_size, extracted_seqlen, feature_dim)
         return {
             "last_hidden_state": last_hidden_state,
             "hidden_states": hidden_states.unbind(dim=0),

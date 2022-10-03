@@ -10,10 +10,11 @@
 import math
 import warnings
 from typing import Dict, Optional, Tuple
+
 import torch
+import torch.nn.functional as F
 from torch import Tensor, nn
 from torch.nn import Parameter
-import torch.nn.functional as F
 
 
 class TransposeLast(nn.Module):
@@ -84,8 +85,7 @@ class SamePad(nn.Module):
 
 
 class Swish(nn.Module):
-    """Swish function
-    """
+    """Swish function"""
 
     def __init__(self):
         """Construct an MultiHeadedAttention object."""
@@ -122,9 +122,14 @@ class GLU_Linear(nn.Module):
         x = self.linear(x)
 
         if self.glu_type == "bilinear":
-            x = (x[:, :, 0:self.output_dim] * x[:, :, self.output_dim:self.output_dim * 2])
+            x = (
+                x[:, :, 0 : self.output_dim]
+                * x[:, :, self.output_dim : self.output_dim * 2]
+            )
         else:
-            x = (x[:, :, 0:self.output_dim] * self.glu_act(x[:, :, self.output_dim:self.output_dim * 2]))
+            x = x[:, :, 0 : self.output_dim] * self.glu_act(
+                x[:, :, self.output_dim : self.output_dim * 2]
+            )
 
         return x
 
@@ -149,9 +154,7 @@ def get_activation_fn(activation: str):
     elif activation == "gelu":
         return gelu
     elif activation == "gelu_fast":
-        warnings.warn(
-            "--activation-fn=gelu_fast has been renamed to gelu_accurate"
-        )
+        warnings.warn("--activation-fn=gelu_fast has been renamed to gelu_accurate")
         return gelu_accurate
     elif activation == "gelu_accurate":
         return gelu_accurate
@@ -182,9 +185,7 @@ def init_bert_params(module):
     def normal_(data):
         # with FSDP, module params will be on CUDA, so we cast them back to CPU
         # so that the RNG is consistent with and without FSDP
-        data.copy_(
-            data.cpu().normal_(mean=0.0, std=0.02).to(data.device)
-        )
+        data.copy_(data.cpu().normal_(mean=0.0, std=0.02).to(data.device))
 
     if isinstance(module, nn.Linear):
         normal_(module.weight.data)
@@ -307,24 +308,24 @@ class MultiheadAttention(nn.Module):
     """
 
     def __init__(
-            self,
-            embed_dim,
-            num_heads,
-            kdim=None,
-            vdim=None,
-            dropout=0.0,
-            bias=True,
-            add_bias_kv=False,
-            add_zero_attn=False,
-            self_attention=False,
-            encoder_decoder_attention=False,
-            q_noise=0.0,
-            qn_block_size=8,
-            has_relative_attention_bias=False,
-            num_buckets=32,
-            max_distance=128,
-            gru_rel_pos=False,
-            rescale_init=False,
+        self,
+        embed_dim,
+        num_heads,
+        kdim=None,
+        vdim=None,
+        dropout=0.0,
+        bias=True,
+        add_bias_kv=False,
+        add_zero_attn=False,
+        self_attention=False,
+        encoder_decoder_attention=False,
+        q_noise=0.0,
+        qn_block_size=8,
+        has_relative_attention_bias=False,
+        num_buckets=32,
+        max_distance=128,
+        gru_rel_pos=False,
+        rescale_init=False,
     ):
         super().__init__()
         self.embed_dim = embed_dim
@@ -345,9 +346,9 @@ class MultiheadAttention(nn.Module):
         self.q_head_dim = self.head_dim
         self.k_head_dim = self.head_dim
         assert (
-                self.head_dim * num_heads == self.embed_dim
+            self.head_dim * num_heads == self.embed_dim
         ), "embed_dim must be divisible by num_heads"
-        self.scaling = self.head_dim ** -0.5
+        self.scaling = self.head_dim**-0.5
 
         self.self_attention = self_attention
         self.encoder_decoder_attention = encoder_decoder_attention
@@ -424,21 +425,26 @@ class MultiheadAttention(nn.Module):
             relative_buckets += (relative_positions > 0).to(torch.long) * num_buckets
             relative_positions = torch.abs(relative_positions)
         else:
-            relative_positions = -torch.min(relative_positions, torch.zeros_like(relative_positions))
+            relative_positions = -torch.min(
+                relative_positions, torch.zeros_like(relative_positions)
+            )
 
         max_exact = num_buckets // 2
         is_small = relative_positions < max_exact
 
         relative_postion_if_large = max_exact + (
-                torch.log(relative_positions.float() / max_exact)
-                / math.log(max_distance / max_exact)
-                * (num_buckets - max_exact)
+            torch.log(relative_positions.float() / max_exact)
+            / math.log(max_distance / max_exact)
+            * (num_buckets - max_exact)
         ).to(torch.long)
         relative_postion_if_large = torch.min(
-            relative_postion_if_large, torch.full_like(relative_postion_if_large, num_buckets - 1)
+            relative_postion_if_large,
+            torch.full_like(relative_postion_if_large, num_buckets - 1),
         )
 
-        relative_buckets += torch.where(is_small, relative_positions, relative_postion_if_large)
+        relative_buckets += torch.where(
+            is_small, relative_positions, relative_postion_if_large
+        )
         return relative_buckets
 
     def compute_bias(self, query_length, key_length):
@@ -446,27 +452,28 @@ class MultiheadAttention(nn.Module):
         memory_position = torch.arange(key_length, dtype=torch.long)[None, :]
         relative_position = memory_position - context_position
         relative_position_bucket = self._relative_positions_bucket(
-            relative_position,
-            bidirectional=True
+            relative_position, bidirectional=True
         )
-        relative_position_bucket = relative_position_bucket.to(self.relative_attention_bias.weight.device)
+        relative_position_bucket = relative_position_bucket.to(
+            self.relative_attention_bias.weight.device
+        )
         values = self.relative_attention_bias(relative_position_bucket)
         values = values.permute([2, 0, 1])
         return values
 
     def forward(
-            self,
-            query,
-            key: Optional[Tensor],
-            value: Optional[Tensor],
-            key_padding_mask: Optional[Tensor] = None,
-            incremental_state: Optional[Dict[str, Dict[str, Optional[Tensor]]]] = None,
-            need_weights: bool = True,
-            static_kv: bool = False,
-            attn_mask: Optional[Tensor] = None,
-            before_softmax: bool = False,
-            need_head_weights: bool = False,
-            position_bias: Optional[Tensor] = None
+        self,
+        query,
+        key: Optional[Tensor],
+        value: Optional[Tensor],
+        key_padding_mask: Optional[Tensor] = None,
+        incremental_state: Optional[Dict[str, Dict[str, Optional[Tensor]]]] = None,
+        need_weights: bool = True,
+        static_kv: bool = False,
+        attn_mask: Optional[Tensor] = None,
+        before_softmax: bool = False,
+        need_head_weights: bool = False,
+        position_bias: Optional[Tensor] = None,
     ) -> Tuple[Tensor, Optional[Tensor], Optional[Tensor]]:
         """Input shape: Time x Batch x Channel
 
@@ -503,16 +510,20 @@ class MultiheadAttention(nn.Module):
 
         if self.has_relative_attention_bias and position_bias is None:
             position_bias = self.compute_bias(tgt_len, src_len)
-            position_bias = position_bias.unsqueeze(0).repeat(bsz, 1, 1, 1).view(bsz * self.num_heads, tgt_len, src_len)
+            position_bias = (
+                position_bias.unsqueeze(0)
+                .repeat(bsz, 1, 1, 1)
+                .view(bsz * self.num_heads, tgt_len, src_len)
+            )
 
         if (
-                not is_tpu  # don't use PyTorch version on TPUs
-                and incremental_state is None
-                and not static_kv
-                # A workaround for quantization to work. Otherwise JIT compilation
-                # treats bias in linear module as method.
-                and not torch.jit.is_scripting()
-                and self.q_head_dim == self.head_dim
+            not is_tpu  # don't use PyTorch version on TPUs
+            and incremental_state is None
+            and not static_kv
+            # A workaround for quantization to work. Otherwise JIT compilation
+            # treats bias in linear module as method.
+            and not torch.jit.is_scripting()
+            and self.q_head_dim == self.head_dim
         ):
             assert key is not None and value is not None
             assert attn_mask is None
@@ -527,10 +538,15 @@ class MultiheadAttention(nn.Module):
                     query_layer = query_layer.permute(0, 2, 1, 3)
                     _B, _H, _L, __ = query_layer.size()
 
-                    gate_a, gate_b = torch.sigmoid(self.grep_linear(query_layer).view(
-                        _B, _H, _L, 2, 4).sum(-1, keepdim=False)).chunk(2, dim=-1)
+                    gate_a, gate_b = torch.sigmoid(
+                        self.grep_linear(query_layer)
+                        .view(_B, _H, _L, 2, 4)
+                        .sum(-1, keepdim=False)
+                    ).chunk(2, dim=-1)
                     gate_a_1 = gate_a * (gate_b * self.grep_a - 1.0) + 2.0
-                    attn_mask_rel_pos = gate_a_1.view(bsz * self.num_heads, -1, 1) * position_bias
+                    attn_mask_rel_pos = (
+                        gate_a_1.view(bsz * self.num_heads, -1, 1) * position_bias
+                    )
 
                 attn_mask_rel_pos = attn_mask_rel_pos.view((-1, tgt_len, tgt_len))
             k_proj_bias = self.k_proj.bias
@@ -614,20 +630,20 @@ class MultiheadAttention(nn.Module):
 
         q = (
             q.contiguous()
-                .view(tgt_len, bsz * self.num_heads, self.q_head_dim)
-                .transpose(0, 1)
+            .view(tgt_len, bsz * self.num_heads, self.q_head_dim)
+            .transpose(0, 1)
         )
         if k is not None:
             k = (
                 k.contiguous()
-                    .view(-1, bsz * self.num_heads, self.k_head_dim)
-                    .transpose(0, 1)
+                .view(-1, bsz * self.num_heads, self.k_head_dim)
+                .transpose(0, 1)
             )
         if v is not None:
             v = (
                 v.contiguous()
-                    .view(-1, bsz * self.num_heads, self.head_dim)
-                    .transpose(0, 1)
+                .view(-1, bsz * self.num_heads, self.head_dim)
+                .transpose(0, 1)
             )
 
         if saved_state is not None:
@@ -731,18 +747,21 @@ class MultiheadAttention(nn.Module):
             if self.gru_rel_pos == 1:
                 query_layer = q.view(bsz, self.num_heads, tgt_len, self.q_head_dim)
                 _B, _H, _L, __ = query_layer.size()
-                gate_a, gate_b = torch.sigmoid(self.grep_linear(query_layer).view(
-                    _B, _H, _L, 2, 4).sum(-1, keepdim=False)).chunk(2, dim=-1)
+                gate_a, gate_b = torch.sigmoid(
+                    self.grep_linear(query_layer)
+                    .view(_B, _H, _L, 2, 4)
+                    .sum(-1, keepdim=False)
+                ).chunk(2, dim=-1)
                 gate_a_1 = gate_a * (gate_b * self.grep_a - 1.0) + 2.0
-                position_bias = gate_a_1.view(bsz * self.num_heads, -1, 1) * position_bias
+                position_bias = (
+                    gate_a_1.view(bsz * self.num_heads, -1, 1) * position_bias
+                )
 
             position_bias = position_bias.view(attn_weights.size())
 
             attn_weights = attn_weights + position_bias
 
-        attn_weights_float = F.softmax(
-            attn_weights, dim=-1
-        )
+        attn_weights_float = F.softmax(attn_weights, dim=-1)
         attn_weights = attn_weights_float.type_as(attn_weights)
         attn_probs = self.dropout_module(attn_weights)
 
@@ -764,11 +783,11 @@ class MultiheadAttention(nn.Module):
 
     @staticmethod
     def _append_prev_key_padding_mask(
-            key_padding_mask: Optional[Tensor],
-            prev_key_padding_mask: Optional[Tensor],
-            batch_size: int,
-            src_len: int,
-            static_kv: bool,
+        key_padding_mask: Optional[Tensor],
+        prev_key_padding_mask: Optional[Tensor],
+        batch_size: int,
+        src_len: int,
+        static_kv: bool,
     ) -> Optional[Tensor]:
         # saved key padding masks have shape (bsz, seq_len)
         if prev_key_padding_mask is not None and static_kv:
@@ -807,7 +826,7 @@ class MultiheadAttention(nn.Module):
         return new_key_padding_mask
 
     def _get_input_buffer(
-            self, incremental_state: Optional[Dict[str, Dict[str, Optional[Tensor]]]]
+        self, incremental_state: Optional[Dict[str, Dict[str, Optional[Tensor]]]]
     ) -> Dict[str, Optional[Tensor]]:
         result = self.get_incremental_state(incremental_state, "attn_state")
         if result is not None:
@@ -817,9 +836,9 @@ class MultiheadAttention(nn.Module):
             return empty_result
 
     def _set_input_buffer(
-            self,
-            incremental_state: Dict[str, Dict[str, Optional[Tensor]]],
-            buffer: Dict[str, Optional[Tensor]],
+        self,
+        incremental_state: Dict[str, Dict[str, Optional[Tensor]]],
+        buffer: Dict[str, Optional[Tensor]],
     ):
         return self.set_incremental_state(incremental_state, "attn_state", buffer)
 

@@ -23,6 +23,7 @@ args = {
     "layer_norm_first": False,
 }
 
+
 class Decoar2(nn.Module):
     def __init__(self):
         """

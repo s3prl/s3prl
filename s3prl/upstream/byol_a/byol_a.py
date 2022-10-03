@@ -7,16 +7,18 @@
 """*********************************************************************************************"""
 
 
+import logging
+
 ###############
 # IMPORTATION #
 ###############
 import re
-import yaml
-import logging
 from pathlib import Path
-from easydict import EasyDict
-#-------------#
+
+# -------------#
 import torch
+import yaml
+from easydict import EasyDict
 from torch import nn
 
 
@@ -43,34 +45,40 @@ class PrecomputedNorm(nn.Module):
         self.mean, self.std = stats
 
     def forward(self, X: torch.Tensor) -> torch.Tensor:
-        return ((X - self.mean) / self.std)
+        return (X - self.mean) / self.std
 
     def __repr__(self):
-        format_string = self.__class__.__name__ + f'(mean={self.mean}, std={self.std}, axis={self.axis})'
+        format_string = (
+            self.__class__.__name__
+            + f"(mean={self.mean}, std={self.std}, axis={self.axis})"
+        )
         return format_string
 
 
-class NetworkCommonMixIn():
+class NetworkCommonMixIn:
     """Common mixin for network definition."""
 
     def load_weight(self, weight_file, device):
         """Utility to load a weight file to a device."""
 
         state_dict = torch.load(weight_file, map_location=device)
-        if 'state_dict' in state_dict:
-            state_dict = state_dict['state_dict']
+        if "state_dict" in state_dict:
+            state_dict = state_dict["state_dict"]
         # Remove unneeded prefixes from the keys of parameters.
         weights = {}
         for k in state_dict:
-            m = re.search(r'(^fc\.|\.fc\.|^features\.|\.features\.)', k)
-            if m is None: continue
-            new_k = k[m.start():]
-            new_k = new_k[1:] if new_k[0] == '.' else new_k
+            m = re.search(r"(^fc\.|\.fc\.|^features\.|\.features\.)", k)
+            if m is None:
+                continue
+            new_k = k[m.start() :]
+            new_k = new_k[1:] if new_k[0] == "." else new_k
             weights[new_k] = state_dict[k]
         # Load weights and set model to eval().
         self.load_state_dict(weights)
         self.eval()
-        logging.info(f'Using audio embbeding network pretrained weight: {Path(weight_file).name}')
+        logging.info(
+            f"Using audio embbeding network pretrained weight: {Path(weight_file).name}"
+        )
         return self
 
     def set_trainable(self, trainable=False):
@@ -89,17 +97,14 @@ class AudioNTT2020Task6(nn.Module, NetworkCommonMixIn):
             nn.BatchNorm2d(64),
             nn.ReLU(),
             nn.MaxPool2d(2, stride=2),
-
             nn.Conv2d(64, 64, 3, stride=1, padding=1),
             nn.BatchNorm2d(64),
             nn.ReLU(),
             nn.MaxPool2d(2, stride=2),
-
             nn.Conv2d(64, 64, 3, stride=1, padding=1),
             nn.BatchNorm2d(64),
             nn.ReLU(),
             nn.MaxPool2d(2, stride=2),
-            
         )
         self.fc = nn.Sequential(
             nn.Linear(64 * (n_mels // (2**3)), d),
@@ -111,10 +116,10 @@ class AudioNTT2020Task6(nn.Module, NetworkCommonMixIn):
         self.d = d
 
     def forward(self, x):
-        x = self.features(x)       # (batch, ch, mel, time)       
-        x = x.permute(0, 3, 2, 1) # (batch, time, mel, ch)
+        x = self.features(x)  # (batch, ch, mel, time)
+        x = x.permute(0, 3, 2, 1)  # (batch, time, mel, ch)
         B, T, D, C = x.shape
-        x = x.reshape((B, T, C*D)) # (batch, time, mel*ch)
+        x = x.reshape((B, T, C * D))  # (batch, time, mel*ch)
         x = self.fc(x)
         return x
 

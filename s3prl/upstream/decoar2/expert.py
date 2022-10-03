@@ -6,16 +6,12 @@ from .decoar2 import Decoar2
 from .audio import create_transform
 from collections import OrderedDict
 from ..interfaces import UpstreamBase
+from .audio import create_transform
+from .decoar2 import Decoar2
 
-############
-# CONSTANT #
-############
 EXAMPLE_FEAT_SEQLEN = 1000
 
 
-###################
-# UPSTREAM EXPERT #
-###################
 class UpstreamExpert(UpstreamBase):
     """
     The APC wrapper
@@ -43,6 +39,28 @@ class UpstreamExpert(UpstreamBase):
                     lambda input, output: input[0].transpose(0, 1),
                 )
             self.add_hook("self.model.encoder", lambda input, output: output[0])
+
+            def postprocess(xs):
+                names, hiddens = zip(*xs)
+                unpad_len = min([hidden.size(1) for hidden in hiddens])
+                hiddens = [hidden[:, :unpad_len, :] for hidden in hiddens]
+                return list(zip(names, hiddens))
+
+            self.hook_postprocess = postprocess
+
+        self._init_layerdrop = self.model.encoder.layerdrop
+
+    @property
+    def layer_drop(self):
+        return self.model.encoder.layerdrop
+
+    def set_layer_drop(self, layerdrop: float = None):
+        if isinstance(layerdrop, float):
+            self.model.encoder.layerdrop = layerdrop
+        elif layerdrop is None:
+            self.model.encoder.layerdrop = self._init_layerdrop
+        else:
+            raise ValueError("layerdrop can only be float or None")
 
     def get_downsample_rates(self, key: str) -> int:
         return 320

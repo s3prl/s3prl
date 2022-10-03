@@ -17,9 +17,8 @@ import torch
 import torch.nn.functional as F
 from torch.nn.utils.rnn import pad_sequence
 
-from .WavLM import WavLM, WavLMConfig
 from ..interfaces import UpstreamBase
-
+from .WavLM import WavLM, WavLMConfig
 
 ############
 # CONSTANT #
@@ -36,9 +35,9 @@ class UpstreamExpert(UpstreamBase):
         super().__init__(**kwargs)
 
         checkpoint = torch.load(ckpt)
-        self.cfg = WavLMConfig(checkpoint['cfg'])
+        self.cfg = WavLMConfig(checkpoint["cfg"])
         self.model = WavLM(self.cfg)
-        self.model.load_state_dict(checkpoint['model'])
+        self.model.load_state_dict(checkpoint["model"])
 
         self.model.feature_grad_mult = 0.0
         self.model.encoder.layerdrop = 0.0
@@ -51,6 +50,20 @@ class UpstreamExpert(UpstreamBase):
                     lambda input, output: input[0].transpose(0, 1),
                 )
             self.add_hook("self.model.encoder", lambda input, output: output[0])
+
+        self._init_layerdrop = self.model.encoder.layerdrop
+
+    @property
+    def layer_drop(self):
+        return self.model.encoder.layerdrop
+
+    def set_layer_drop(self, layerdrop: float = None):
+        if isinstance(layerdrop, float):
+            self.model.encoder.layerdrop = layerdrop
+        elif layerdrop is None:
+            self.model.encoder.layerdrop = self._init_layerdrop
+        else:
+            raise ValueError("layerdrop can only be float or None")
 
     def get_downsample_rates(self, key: str) -> int:
         return 320

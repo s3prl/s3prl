@@ -1,0 +1,23 @@
+default_language_version:
+  python: python3
+
+repos:
+  - repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v2.5.0
+    hooks:
+      - id: trailing-whitespace
+        types: [python]
+      - id: end-of-file-fixer
+        types: [python]
+      - id: mixed-line-ending
+        types: [python]
+        args: [--fix=no]
+      - id: check-added-large-files
+        args: [--maxkb=1024]
+  - repo: local
+    hooks:
+      - id: format
+        name: format
+        entry: ./ci/format.py
+        language: python
+        types: [python]

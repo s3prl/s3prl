@@ -12,14 +12,14 @@ from dataclasses import dataclass, field
 from typing import Optional
 
 import torch
+import torch.distributed as dist
 import torch.nn as nn
 import torch.nn.functional as F
-import torch.distributed as dist
+from omegaconf import II
 
 from s3prl.upstream.wav2vec2.wav2vec2_model import (
     Wav2Vec2Config,
     ConvFeatureExtractionModel,
-    Wav2Vec2Config,
     TransformerEncoder,
     GradMultiply,
     LayerNorm,

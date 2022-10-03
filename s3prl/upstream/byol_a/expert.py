@@ -11,14 +11,18 @@
 # IMPORTATION #
 ###############
 import math
-#-------------#
+from pathlib import Path
+
+# -------------#
 import torch
 import torch.nn as nn
-from torch.nn.utils.rnn import pad_sequence
-#-------------#
+
+# -------------#
 import torchaudio
-#-------------#
-from .byol_a import load_yaml_config, PrecomputedNorm, AudioNTT2020
+from torch.nn.utils.rnn import pad_sequence
+
+# -------------#
+from .byol_a import AudioNTT2020, PrecomputedNorm, load_yaml_config
 
 
 ###################
@@ -33,9 +37,12 @@ class UpstreamExpert(nn.Module):
         super(UpstreamExpert, self).__init__()
 
         if model_config is not None:
-            print('[UpstreamExpert] - Using upstream expert config file from:', model_config) 
+            print(
+                "[UpstreamExpert] - Using upstream expert config file from:",
+                model_config,
+            )
         else:
-            model_config = './upstream/byol_a/config.yaml'
+            model_config = Path(__file__).parent / "config.yaml"
         config = load_yaml_config(model_config)
 
         # Preprocessor and normalizer.
@@ -48,12 +55,12 @@ class UpstreamExpert(nn.Module):
             f_min=config.f_min,
             f_max=config.f_max,
         )
-        stats = [-5.4919195,  5.0389895] # provided by authors
+        stats = [-5.4919195, 5.0389895]  # provided by authors
         self.normalizer = PrecomputedNorm(stats)
 
         # Load pretrained weights.
         self.model = AudioNTT2020(d=config.feature_d)
-        self.model.load_weight(ckpt, device='cpu')
+        self.model.load_weight(ckpt, device="cpu")
 
         # attributes
         self.output_dim = config.feature_d
@@ -65,19 +72,24 @@ class UpstreamExpert(nn.Module):
 
     # Interface
     def get_downsample_rates(self, key: str) -> int:
-        return 15344.655344655344 # computed by: len(wavs[0]) / len(features[0]) * self.max_input_length
+        return round(
+            15344.655344655344
+        )  # computed by: len(wavs[0]) / len(features[0]) * self.max_input_length
 
     # forward in chunks
     def forward_in_chunks(self, features):
         outputs = []
         for i in range(0, features.size(1), self.max_input_length):
-            subseq = features[:, i:i+self.max_input_length, :]
-            if subseq.size(1) < self.max_input_length: break # break if the chunk is too small for the model to forward
-            feats = self.model(subseq.permute(0, 2, 1).unsqueeze(1)) # features: (B, 1, F, T)
-            outputs.append(feats.unsqueeze(1)) # (B, 1, D)
-        outputs = torch.cat(outputs, dim=1) # (B, T, D)
+            subseq = features[:, i : i + self.max_input_length, :]
+            if subseq.size(1) < self.max_input_length:
+                break  # break if the chunk is too small for the model to forward
+            feats = self.model(
+                subseq.permute(0, 2, 1).unsqueeze(1)
+            )  # features: (B, 1, F, T)
+            outputs.append(feats.unsqueeze(1))  # (B, 1, D)
+        outputs = torch.cat(outputs, dim=1)  # (B, T, D)
         return outputs
-    
+
     # Interface
     def forward(self, wavs):
         """
@@ -93,7 +105,12 @@ class UpstreamExpert(nn.Module):
                 each feat is in torch.FloatTensor and already
                 put in the device assigned by command-line args
         """
-        features = [self.normalizer((self.to_melspec(wav) + torch.finfo(torch.float).eps).log()).permute(1, 0) for wav in wavs] # features: (B, T, F)
+        features = [
+            self.normalizer(
+                (self.to_melspec(wav) + torch.finfo(torch.float).eps).log()
+            ).permute(1, 0)
+            for wav in wavs
+        ]  # features: (B, T, F)
         features = pad_sequence(features, batch_first=True)
 
         # forward the sequence in chunks then concat

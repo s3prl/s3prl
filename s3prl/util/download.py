@@ -1,3 +1,10 @@
+"""
+Thread-safe file downloading and cacheing
+
+Authors
+  * Shu-wen Yang 2022
+"""
+
 import os
 import sys
 import time
@@ -15,6 +22,13 @@ logger = logging.getLogger(__name__)
 
 
 _download_dir = Path.home() / ".cache" / "s3prl" / "download"
+
+__all__ = [
+    "get_dir",
+    "set_dir",
+    "download",
+    "urls_to_filepaths",
+]
 
 
 def get_dir():
@@ -136,4 +150,5 @@ def _urls_to_filepaths(*args, refresh=False, download: bool = True):
     return paths if len(paths) > 1 else paths[0]
 
 
+download = _download
 urls_to_filepaths = _urls_to_filepaths

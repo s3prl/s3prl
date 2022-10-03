@@ -11,6 +11,7 @@
    :toctree:
    :template: custom-module-template.rst
    :recursive:
+
 {% for item in modules %}
    {{ item }}
 {%- endfor %}
@@ -31,19 +32,6 @@
 {% endif %}
 {% endblock %}
 
-{% block functions %}
-{% if functions %}
-{% for item in functions %}
-
-{{ item }}
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-.. autofunction:: {{ item }}
-
-{%- endfor %}
-{% endif %}
-{% endblock %}
-
 {% block classes %}
 {% if classes %}
 {% for item in classes %}
@@ -52,10 +40,24 @@
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 .. autoclass:: {{ item }}
+   :member-order: bysource
    :members:
    :undoc-members:
+   :inherited-members: torch.nn.Module,nn.Module,Module
    :show-inheritance:
-   :member-order: bysource
+
+{%- endfor %}
+{% endif %}
+{% endblock %}
+
+{% block functions %}
+{% if functions %}
+{% for item in functions %}
+
+{{ item }}
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. autofunction:: {{ item }}
 
 {%- endfor %}
 {% endif %}

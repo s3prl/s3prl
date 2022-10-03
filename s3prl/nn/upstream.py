@@ -1,5 +1,11 @@
-import logging
-from typing import List
+"""
+S3PRL Upstream Collection and some utilities
+
+Authors:
+  * Shu-wen Yang 2022
+"""
+
+from typing import List, Union
 
 import torch
 import torch.nn as nn
@@ -8,10 +14,11 @@ import torch.nn.functional as F
 from s3prl import hub
 from s3prl.util.pseudo_data import get_pseudo_wavs
 
-logger = logging.getLogger(__name__)
-
-CHECK_ITERATION = 10
-TOLERABLE_SEQLEN_DIFF = 3
+__all__ = [
+    "S3PRLUpstream",
+    "Featurizer",
+    "UpstreamDownstreamModel",
+]
 
 
 class S3PRLUpstream(nn.Module):
@@ -28,6 +35,10 @@ class S3PRLUpstream(nn.Module):
         refresh (bool): (default, False)
             If false, only downlaod checkpoint if not yet downloaded before.
             If true, force to re-download the checkpoint.
+
+        **extra_args:
+            The extra arguments for each specific upstream, the available options are
+            shown in each upstream section
 
     .. note::
 
@@ -71,9 +82,17 @@ class S3PRLUpstream(nn.Module):
         """
         return hub.options(only_registered_ckpt)
 
-    def __init__(self, name: str, path_or_url: str = None, refresh: bool = False):
+    def __init__(
+        self,
+        name: str,
+        path_or_url: str = None,
+        refresh: bool = False,
+        **extra_args,
+    ):
         super().__init__()
-        self.upstream = getattr(hub, name)(ckpt=path_or_url, refresh=refresh)
+        self.upstream = getattr(hub, name)(
+            ckpt=path_or_url, refresh=refresh, **extra_args
+        )
 
         self.upstream.eval()
         with torch.no_grad():
@@ -121,11 +140,11 @@ class S3PRLUpstream(nn.Module):
         xs_max_len = xs.size(1)
 
         if xs_max_len > target_max_len:
-            assert round(xs_max_len / target_max_len) == 1
+            assert xs_max_len // target_max_len == 1, f"{xs_max_len}, {target_max_len}"
             xs = xs[:, :target_max_len, :]
 
         elif xs_max_len < target_max_len:
-            assert round(target_max_len / xs_max_len) == 1
+            assert target_max_len // xs_max_len == 1, f"{target_max_len}, {xs_max_len}"
             xs = torch.cat(
                 (xs, xs[:, -1:, :].repeat(1, target_max_len - xs_max_len, 1)), dim=1
             )
@@ -135,7 +154,7 @@ class S3PRLUpstream(nn.Module):
     def forward(self, wavs: torch.FloatTensor, wavs_len: torch.LongTensor):
         """
         Args:
-            wavs (torch.FloatTensor): (batch_size, seqlen)
+            wavs (torch.FloatTensor): (batch_size, seqlen) or (batch_size, seqlen, 1)
             wavs_len (torch.LongTensor): (batch_size, )
 
         Return:
@@ -144,13 +163,18 @@ class S3PRLUpstream(nn.Module):
             1. all the layers of hidden states: List[ (batch_size, max_seq_len, hidden_size) ]
             2. the valid length for each hidden states: List[ (batch_size, ) ]
         """
+        if wavs.dim() == 3:
+            wavs = wavs.squeeze(-1)
+
         wavs_list = []
         for wav, wav_len in zip(wavs, wavs_len):
             wavs_list.append(wav[:wav_len])
 
         hidden_states = self.upstream(wavs_list)["hidden_states"]
         assert isinstance(hidden_states, (list, tuple))
-        assert len(hidden_states) == self.num_layers
+        assert (
+            len(hidden_states) == self.num_layers
+        ), f"{len(hidden_states)}, {self.num_layers}"
 
         max_wav_len = int(max(wavs_len))
         all_hs = []
@@ -283,3 +307,39 @@ class Featurizer(nn.Module):
         all_lens = [l for idx, l in enumerate(all_lens) if idx in self.layer_selections]
         hs, hs_len = self._weighted_sum(all_hs, all_lens)
         return hs, hs_len
+
+
+class UpstreamDownstreamModel(nn.Module):
+    def __init__(
+        self,
+        upstream: S3PRLUpstream,
+        featurizer: Featurizer,
+        downstream,
+        upstream_trainable: bool = False,
+    ):
+        super().__init__()
+        self.upstream = upstream
+        self.featurizer = featurizer
+        self.downstream = downstream
+        self.upstream_trainable = upstream_trainable
+
+    @property
+    def input_size(self):
+        return 1
+
+    @property
+    def downsample_rate(self):
+        return self.featurizer.downsample_rate
+
+    @property
+    def output_size(self):
+        return self.downstream.output_size
+
+    def forward(self, wav, wav_len, *args, **kwargs):
+        with torch.set_grad_enabled(self.upstream_trainable):
+            if not self.upstream_trainable:
+                self.upstream.eval()
+            hs, hs_len = self.upstream(wav, wav_len)
+
+        h, h_len = self.featurizer(hs, hs_len)
+        return self.downstream(h, h_len, *args, **kwargs)

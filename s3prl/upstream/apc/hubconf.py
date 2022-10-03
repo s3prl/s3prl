@@ -50,8 +50,8 @@ def apc_360hr(refresh=False, *args, **kwargs):
 
 def apc_960hr(refresh=False, *args, **kwargs):
     """
-        The apc standard model on 960hr
-            refresh (bool): whether to download ckpt/config again if existed
+    The apc standard model on 960hr
+        refresh (bool): whether to download ckpt/config again if existed
     """
     kwargs["ckpt"] = "https://www.dropbox.com/s/mmfx3opdr4lz25n/apc_960hr.ckpt?dl=1"
     return apc_url(refresh=refresh, *args, **kwargs)

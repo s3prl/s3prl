@@ -173,6 +173,21 @@ def test_one_model(upstream_name: str):
     _test_model(upstream_name)
 
 
+@pytest.mark.parametrize("name", ["lighthubert", "vggish", "mae_ast_frame"])
+def test_forward_backward(name: str):
+    _test_model(name)
+
+
+@pytest.mark.extra_dependency
+def test_ssast():
+    _test_model("ssast_frame_base")
+
+
+@pytest.mark.extra_dependency
+def test_ast():
+    _test_model("ast")
+
+
 @pytest.mark.parametrize("layer_selections", [None, [0, 4, 9]])
 @pytest.mark.parametrize("normalize", [False, True])
 def test_featurizer(layer_selections, normalize):

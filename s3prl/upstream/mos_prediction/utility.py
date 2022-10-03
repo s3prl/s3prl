@@ -1,5 +1,6 @@
 import torch
 
+
 def unfold_segments(tensor, tgt_duration, sample_rate=16000):
     seg_lengths = int(tgt_duration * sample_rate)
     src_lengths = len(tensor)

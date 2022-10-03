@@ -1,0 +1,13 @@
+s3prl/nn
+s3prl/util
+s3prl/task
+s3prl/metric
+s3prl/dataio
+s3prl/problem
+s3prl/dataset
+s3prl/upstream
+s3prl/hub.py
+s3prl/__init__.py
+example
+test
+ci

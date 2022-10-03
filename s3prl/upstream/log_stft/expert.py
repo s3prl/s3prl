@@ -6,18 +6,20 @@
 """*********************************************************************************************"""
 
 
+import math
+
 ###############
 # IMPORTATION #
 ###############
 import os
-import math
-import yaml
-import torch
 import random
+
 #-------------#
 import torch
 import torch.nn as nn
+import yaml
 from torch.nn.utils.rnn import pad_sequence
+
 #-------------#
 
 device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
