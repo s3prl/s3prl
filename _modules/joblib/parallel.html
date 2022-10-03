@@ -1,0 +1,1491 @@
+<!doctype html>
+<html class="no-js" lang="en">
+  <head><meta charset="utf-8"/>
+    <meta name="viewport" content="width=device-width,initial-scale=1"/>
+    <meta name="color-scheme" content="light dark"><link rel="index" title="Index" href="../../genindex.html" /><link rel="search" title="Search" href="../../search.html" />
+
+    <meta name="generator" content="sphinx-5.2.3, furo 2022.09.29"/>
+        <title>joblib.parallel - S3PRL 0.4.5 documentation</title>
+      <link rel="stylesheet" type="text/css" href="../../_static/pygments.css" />
+    <link rel="stylesheet" type="text/css" href="../../_static/styles/furo.css?digest=d81277517bee4d6b0349d71bb2661d4890b5617c" />
+    <link rel="stylesheet" type="text/css" href="../../_static/styles/furo-extensions.css?digest=30d1aed668e5c3a91c3e3bf6a60b675221979f0e" />
+    <link rel="stylesheet" type="text/css" href="../../_static/css/custom.css" />
+    
+    
+
+
+<style>
+  body {
+    --color-code-background: #f8f8f8;
+  --color-code-foreground: black;
+  
+  }
+  @media not print {
+    body[data-theme="dark"] {
+      --color-code-background: #202020;
+  --color-code-foreground: #d0d0d0;
+  
+    }
+    @media (prefers-color-scheme: dark) {
+      body:not([data-theme="light"]) {
+        --color-code-background: #202020;
+  --color-code-foreground: #d0d0d0;
+  
+      }
+    }
+  }
+</style></head>
+  <body>
+    
+    <script>
+      document.body.dataset.theme = localStorage.getItem("theme") || "auto";
+    </script>
+    
+
+<svg xmlns="http://www.w3.org/2000/svg" style="display: none;">
+  <symbol id="svg-toc" viewBox="0 0 24 24">
+    <title>Contents</title>
+    <svg stroke="currentColor" fill="currentColor" stroke-width="0" viewBox="0 0 1024 1024">
+      <path d="M408 442h480c4.4 0 8-3.6 8-8v-56c0-4.4-3.6-8-8-8H408c-4.4 0-8 3.6-8 8v56c0 4.4 3.6 8 8 8zm-8 204c0 4.4 3.6 8 8 8h480c4.4 0 8-3.6 8-8v-56c0-4.4-3.6-8-8-8H408c-4.4 0-8 3.6-8 8v56zm504-486H120c-4.4 0-8 3.6-8 8v56c0 4.4 3.6 8 8 8h784c4.4 0 8-3.6 8-8v-56c0-4.4-3.6-8-8-8zm0 632H120c-4.4 0-8 3.6-8 8v56c0 4.4 3.6 8 8 8h784c4.4 0 8-3.6 8-8v-56c0-4.4-3.6-8-8-8zM115.4 518.9L271.7 642c5.8 4.6 14.4.5 14.4-6.9V388.9c0-7.4-8.5-11.5-14.4-6.9L115.4 505.1a8.74 8.74 0 0 0 0 13.8z"/>
+    </svg>
+  </symbol>
+  <symbol id="svg-menu" viewBox="0 0 24 24">
+    <title>Menu</title>
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather-menu">
+      <line x1="3" y1="12" x2="21" y2="12"></line>
+      <line x1="3" y1="6" x2="21" y2="6"></line>
+      <line x1="3" y1="18" x2="21" y2="18"></line>
+    </svg>
+  </symbol>
+  <symbol id="svg-arrow-right" viewBox="0 0 24 24">
+    <title>Expand</title>
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather-chevron-right">
+      <polyline points="9 18 15 12 9 6"></polyline>
+    </svg>
+  </symbol>
+  <symbol id="svg-sun" viewBox="0 0 24 24">
+    <title>Light mode</title>
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="feather-sun">
+      <circle cx="12" cy="12" r="5"></circle>
+      <line x1="12" y1="1" x2="12" y2="3"></line>
+      <line x1="12" y1="21" x2="12" y2="23"></line>
+      <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
+      <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
+      <line x1="1" y1="12" x2="3" y2="12"></line>
+      <line x1="21" y1="12" x2="23" y2="12"></line>
+      <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
+      <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
+    </svg>
+  </symbol>
+  <symbol id="svg-moon" viewBox="0 0 24 24">
+    <title>Dark mode</title>
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="icon-tabler-moon">
+      <path stroke="none" d="M0 0h24v24H0z" fill="none" />
+      <path d="M12 3c.132 0 .263 0 .393 0a7.5 7.5 0 0 0 7.92 12.446a9 9 0 1 1 -8.313 -12.454z" />
+    </svg>
+  </symbol>
+  <symbol id="svg-sun-half" viewBox="0 0 24 24">
+    <title>Auto light/dark mode</title>
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="icon-tabler-shadow">
+      <path stroke="none" d="M0 0h24v24H0z" fill="none"/>
+      <circle cx="12" cy="12" r="9" />
+      <path d="M13 12h5" />
+      <path d="M13 15h4" />
+      <path d="M13 18h1" />
+      <path d="M13 9h4" />
+      <path d="M13 6h1" />
+    </svg>
+  </symbol>
+</svg>
+
+<input type="checkbox" class="sidebar-toggle" name="__navigation" id="__navigation">
+<input type="checkbox" class="sidebar-toggle" name="__toc" id="__toc">
+<label class="overlay sidebar-overlay" for="__navigation">
+  <div class="visually-hidden">Hide navigation sidebar</div>
+</label>
+<label class="overlay toc-overlay" for="__toc">
+  <div class="visually-hidden">Hide table of contents sidebar</div>
+</label>
+
+
+
+<div class="page">
+  <header class="mobile-header">
+    <div class="header-left">
+      <label class="nav-overlay-icon" for="__navigation">
+        <div class="visually-hidden">Toggle site navigation sidebar</div>
+        <i class="icon"><svg><use href="#svg-menu"></use></svg></i>
+      </label>
+    </div>
+    <div class="header-center">
+      <a href="../../index.html"><div class="brand">S3PRL 0.4.5
+ documentation</div></a>
+    </div>
+    <div class="header-right">
+      <div class="theme-toggle-container theme-toggle-header">
+        <button class="theme-toggle">
+          <div class="visually-hidden">Toggle Light / Dark / Auto color theme</div>
+          <svg class="theme-icon-when-auto"><use href="#svg-sun-half"></use></svg>
+          <svg class="theme-icon-when-dark"><use href="#svg-moon"></use></svg>
+          <svg class="theme-icon-when-light"><use href="#svg-sun"></use></svg>
+        </button>
+      </div>
+      <label class="toc-overlay-icon toc-header-icon no-toc" for="__toc">
+        <div class="visually-hidden">Toggle table of contents sidebar</div>
+        <i class="icon"><svg><use href="#svg-toc"></use></svg></i>
+      </label>
+    </div>
+  </header>
+  <aside class="sidebar-drawer">
+    <div class="sidebar-container">
+      
+      <div class="sidebar-sticky"><a class="sidebar-brand" href="../../index.html">
+  
+  
+  <span class="sidebar-brand-text">S3PRL 0.4.5
+ documentation</span>
+  
+</a><form class="sidebar-search-container" method="get" action="../../search.html" role="search">
+  <input class="sidebar-search" placeholder=Search name="q" aria-label="Search">
+  <input type="hidden" name="check_keywords" value="yes">
+  <input type="hidden" name="area" value="default">
+</form>
+<div id="searchbox"></div><div class="sidebar-scroll"><div class="sidebar-tree">
+  <p class="caption" role="heading"><span class="caption-text">Getting started</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../tutorial/installation.html">Install S3PRL</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../tutorial/upstream_collection.html">S3PRL Upstream Collection</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../tutorial/problem.html">Use Problem module to run customizable recipes</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">How to Contribute</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../contribute/public.html">Contribute to S3PRL</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../contribute/private.html">Internal S3PRL Development</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">API Documentation</span></p>
+<ul>
+<li class="toctree-l1 has-children"><a class="reference internal" href="../../_autosummary/s3prl.nn.html">nn</a><input class="toctree-checkbox" id="toctree-checkbox-1" name="toctree-checkbox-1" role="switch" type="checkbox"/><label for="toctree-checkbox-1"><div class="visually-hidden">Toggle child pages in navigation</div><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul>
+<li class="toctree-l2"><a class="reference internal" href="../../_autosummary/s3prl.nn.beam_decoder.html">beam_decoder</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../_autosummary/s3prl.nn.common.html">common</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../_autosummary/s3prl.nn.hear.html">hear</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../_autosummary/s3prl.nn.interface.html">interface</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../_autosummary/s3prl.nn.linear.html">linear</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../_autosummary/s3prl.nn.pit.html">pit</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../_autosummary/s3prl.nn.pooling.html">pooling</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../_autosummary/s3prl.nn.rnn.html">rnn</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../_autosummary/s3prl.nn.speaker_loss.html">speaker_loss</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../_autosummary/s3prl.nn.speaker_model.html">speaker_model</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../_autosummary/s3prl.nn.specaug.html">specaug</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../_autosummary/s3prl.nn.upstream.html">upstream</a></li>
+</ul>
+</li>
+<li class="toctree-l1 has-children"><a class="reference internal" href="../../_autosummary/s3prl.problem.html">problem</a><input class="toctree-checkbox" id="toctree-checkbox-2" name="toctree-checkbox-2" role="switch" type="checkbox"/><label for="toctree-checkbox-2"><div class="visually-hidden">Toggle child pages in navigation</div><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul>
+<li class="toctree-l2 has-children"><a class="reference internal" href="../../_autosummary/s3prl.problem.asr.html">asr</a><input class="toctree-checkbox" id="toctree-checkbox-3" name="toctree-checkbox-3" role="switch" type="checkbox"/><label for="toctree-checkbox-3"><div class="visually-hidden">Toggle child pages in navigation</div><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul>
+<li class="toctree-l3"><a class="reference internal" href="../../_autosummary/s3prl.problem.asr.run.html">run</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../_autosummary/s3prl.problem.asr.superb_asr.html">superb_asr</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../_autosummary/s3prl.problem.asr.superb_pr.html">superb_pr</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../_autosummary/s3prl.problem.asr.superb_sf.html">superb_sf</a></li>
+</ul>
+</li>
+<li class="toctree-l2 has-children"><a class="reference internal" href="../../_autosummary/s3prl.problem.asv.html">asv</a><input class="toctree-checkbox" id="toctree-checkbox-4" name="toctree-checkbox-4" role="switch" type="checkbox"/><label for="toctree-checkbox-4"><div class="visually-hidden">Toggle child pages in navigation</div><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul>
+<li class="toctree-l3"><a class="reference internal" href="../../_autosummary/s3prl.problem.asv.run.html">run</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../_autosummary/s3prl.problem.asv.superb_asv.html">superb_asv</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="../../_autosummary/s3prl.problem.base.html">base</a></li>
+<li class="toctree-l2 has-children"><a class="reference internal" href="../../_autosummary/s3prl.problem.common.html">common</a><input class="toctree-checkbox" id="toctree-checkbox-5" name="toctree-checkbox-5" role="switch" type="checkbox"/><label for="toctree-checkbox-5"><div class="visually-hidden">Toggle child pages in navigation</div><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul>
+<li class="toctree-l3"><a class="reference internal" href="../../_autosummary/s3prl.problem.common.hear_beijing_opera.html">hear_beijing_opera</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../_autosummary/s3prl.problem.common.hear_cremad.html">hear_cremad</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../_autosummary/s3prl.problem.common.hear_dcase_2016_task2.html">hear_dcase_2016_task2</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../_autosummary/s3prl.problem.common.hear_esc50.html">hear_esc50</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../_autosummary/s3prl.problem.common.hear_fsd.html">hear_fsd</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../_autosummary/s3prl.problem.common.hear_gsc5hr.html">hear_gsc5hr</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../_autosummary/s3prl.problem.common.hear_gtzan.html">hear_gtzan</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../_autosummary/s3prl.problem.common.hear_gtzan_music_speech.html">hear_gtzan_music_speech</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../_autosummary/s3prl.problem.common.hear_gunshot.html">hear_gunshot</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../_autosummary/s3prl.problem.common.hear_libricount.html">hear_libricount</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../_autosummary/s3prl.problem.common.hear_maestro.html">hear_maestro</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../_autosummary/s3prl.problem.common.hear_nsynth5hr.html">hear_nsynth5hr</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../_autosummary/s3prl.problem.common.hear_stroke.html">hear_stroke</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../_autosummary/s3prl.problem.common.hear_tonic.html">hear_tonic</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../_autosummary/s3prl.problem.common.hear_vocal.html">hear_vocal</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../_autosummary/s3prl.problem.common.hear_vox_lingual.html">hear_vox_lingual</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../_autosummary/s3prl.problem.common.run.html">run</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../_autosummary/s3prl.problem.common.superb_er.html">superb_er</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../_autosummary/s3prl.problem.common.superb_ic.html">superb_ic</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../_autosummary/s3prl.problem.common.superb_ks.html">superb_ks</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../_autosummary/s3prl.problem.common.superb_sid.html">superb_sid</a></li>
+</ul>
+</li>
+<li class="toctree-l2 has-children"><a class="reference internal" href="../../_autosummary/s3prl.problem.diarization.html">diarization</a><input class="toctree-checkbox" id="toctree-checkbox-6" name="toctree-checkbox-6" role="switch" type="checkbox"/><label for="toctree-checkbox-6"><div class="visually-hidden">Toggle child pages in navigation</div><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul>
+<li class="toctree-l3"><a class="reference internal" href="../../_autosummary/s3prl.problem.diarization.run.html">run</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../_autosummary/s3prl.problem.diarization.superb_sd.html">superb_sd</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../_autosummary/s3prl.problem.diarization.util.html">util</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l1 has-children"><a class="reference internal" href="../../_autosummary/s3prl.task.html">task</a><input class="toctree-checkbox" id="toctree-checkbox-7" name="toctree-checkbox-7" role="switch" type="checkbox"/><label for="toctree-checkbox-7"><div class="visually-hidden">Toggle child pages in navigation</div><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul>
+<li class="toctree-l2"><a class="reference internal" href="../../_autosummary/s3prl.task.base.html">base</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../_autosummary/s3prl.task.diarization.html">diarization</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../_autosummary/s3prl.task.dump_feature.html">dump_feature</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../_autosummary/s3prl.task.event_prediction.html">event_prediction</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../_autosummary/s3prl.task.scene_prediction.html">scene_prediction</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../_autosummary/s3prl.task.speaker_verification_task.html">speaker_verification_task</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../_autosummary/s3prl.task.speech2text_ctc_task.html">speech2text_ctc_task</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../_autosummary/s3prl.task.utterance_classification_task.html">utterance_classification_task</a></li>
+</ul>
+</li>
+<li class="toctree-l1 has-children"><a class="reference internal" href="../../_autosummary/s3prl.dataio.html">dataio</a><input class="toctree-checkbox" id="toctree-checkbox-8" name="toctree-checkbox-8" role="switch" type="checkbox"/><label for="toctree-checkbox-8"><div class="visually-hidden">Toggle child pages in navigation</div><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul>
+<li class="toctree-l2 has-children"><a class="reference internal" href="../../_autosummary/s3prl.dataio.corpus.html">corpus</a><input class="toctree-checkbox" id="toctree-checkbox-9" name="toctree-checkbox-9" role="switch" type="checkbox"/><label for="toctree-checkbox-9"><div class="visually-hidden">Toggle child pages in navigation</div><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul>
+<li class="toctree-l3"><a class="reference internal" href="../../_autosummary/s3prl.dataio.corpus.base.html">base</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../_autosummary/s3prl.dataio.corpus.fluent_speech_commands.html">fluent_speech_commands</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../_autosummary/s3prl.dataio.corpus.iemocap.html">iemocap</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../_autosummary/s3prl.dataio.corpus.librilight.html">librilight</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../_autosummary/s3prl.dataio.corpus.librispeech.html">librispeech</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../_autosummary/s3prl.dataio.corpus.quesst14.html">quesst14</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../_autosummary/s3prl.dataio.corpus.snips.html">snips</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../_autosummary/s3prl.dataio.corpus.speech_commands.html">speech_commands</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../_autosummary/s3prl.dataio.corpus.voxceleb1sid.html">voxceleb1sid</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../_autosummary/s3prl.dataio.corpus.voxceleb1sv.html">voxceleb1sv</a></li>
+</ul>
+</li>
+<li class="toctree-l2 has-children"><a class="reference internal" href="../../_autosummary/s3prl.dataio.dataset.html">dataset</a><input class="toctree-checkbox" id="toctree-checkbox-10" name="toctree-checkbox-10" role="switch" type="checkbox"/><label for="toctree-checkbox-10"><div class="visually-hidden">Toggle child pages in navigation</div><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul>
+<li class="toctree-l3"><a class="reference internal" href="../../_autosummary/s3prl.dataio.dataset.base.html">base</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../_autosummary/s3prl.dataio.dataset.diarization.html">diarization</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../_autosummary/s3prl.dataio.dataset.encode.html">encode</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../_autosummary/s3prl.dataio.dataset.load_audio.html">load_audio</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../_autosummary/s3prl.dataio.dataset.util.html">util</a></li>
+</ul>
+</li>
+<li class="toctree-l2 has-children"><a class="reference internal" href="../../_autosummary/s3prl.dataio.encoder.html">encoder</a><input class="toctree-checkbox" id="toctree-checkbox-11" name="toctree-checkbox-11" role="switch" type="checkbox"/><label for="toctree-checkbox-11"><div class="visually-hidden">Toggle child pages in navigation</div><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul>
+<li class="toctree-l3"><a class="reference internal" href="../../_autosummary/s3prl.dataio.encoder.category.html">category</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../_autosummary/s3prl.dataio.encoder.g2p.html">g2p</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../_autosummary/s3prl.dataio.encoder.tokenizer.html">tokenizer</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../_autosummary/s3prl.dataio.encoder.vocabulary.html">vocabulary</a></li>
+</ul>
+</li>
+<li class="toctree-l2 has-children"><a class="reference internal" href="../../_autosummary/s3prl.dataio.sampler.html">sampler</a><input class="toctree-checkbox" id="toctree-checkbox-12" name="toctree-checkbox-12" role="switch" type="checkbox"/><label for="toctree-checkbox-12"><div class="visually-hidden">Toggle child pages in navigation</div><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul>
+<li class="toctree-l3"><a class="reference internal" href="../../_autosummary/s3prl.dataio.sampler.balanced_weighted_sampler.html">balanced_weighted_sampler</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../_autosummary/s3prl.dataio.sampler.distributed_sampler.html">distributed_sampler</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../_autosummary/s3prl.dataio.sampler.fixed_batch_size_batch_sampler.html">fixed_batch_size_batch_sampler</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../_autosummary/s3prl.dataio.sampler.group_same_item_sampler.html">group_same_item_sampler</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../_autosummary/s3prl.dataio.sampler.max_timestamp_batch_sampler.html">max_timestamp_batch_sampler</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../_autosummary/s3prl.dataio.sampler.sorted_sampler.html">sorted_sampler</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l1 has-children"><a class="reference internal" href="../../_autosummary/s3prl.metric.html">metric</a><input class="toctree-checkbox" id="toctree-checkbox-13" name="toctree-checkbox-13" role="switch" type="checkbox"/><label for="toctree-checkbox-13"><div class="visually-hidden">Toggle child pages in navigation</div><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul>
+<li class="toctree-l2"><a class="reference internal" href="../../_autosummary/s3prl.metric.common.html">common</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../_autosummary/s3prl.metric.diarization.html">diarization</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../_autosummary/s3prl.metric.slot_filling.html">slot_filling</a></li>
+</ul>
+</li>
+<li class="toctree-l1 has-children"><a class="reference internal" href="../../_autosummary/s3prl.util.html">util</a><input class="toctree-checkbox" id="toctree-checkbox-14" name="toctree-checkbox-14" role="switch" type="checkbox"/><label for="toctree-checkbox-14"><div class="visually-hidden">Toggle child pages in navigation</div><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul>
+<li class="toctree-l2"><a class="reference internal" href="../../_autosummary/s3prl.util.benchmark.html">benchmark</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../_autosummary/s3prl.util.download.html">download</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../_autosummary/s3prl.util.override.html">override</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../_autosummary/s3prl.util.pseudo_data.html">pseudo_data</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../_autosummary/s3prl.util.seed.html">seed</a></li>
+</ul>
+</li>
+</ul>
+
+</div>
+</div>
+
+      </div>
+      
+    </div>
+  </aside>
+  <div class="main">
+    <div class="content">
+      <div class="article-container">
+        <a href="#" class="back-to-top muted-link">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
+            <path d="M13 20h-2V8l-5.5 5.5-1.42-1.42L12 4.16l7.92 7.92-1.42 1.42L13 8v12z"></path>
+          </svg>
+          <span>Back to top</span>
+        </a>
+        <div class="content-icon-container">
+          <div class="theme-toggle-container theme-toggle-content">
+            <button class="theme-toggle">
+              <div class="visually-hidden">Toggle Light / Dark / Auto color theme</div>
+              <svg class="theme-icon-when-auto"><use href="#svg-sun-half"></use></svg>
+              <svg class="theme-icon-when-dark"><use href="#svg-moon"></use></svg>
+              <svg class="theme-icon-when-light"><use href="#svg-sun"></use></svg>
+            </button>
+          </div>
+          <label class="toc-overlay-icon toc-content-icon no-toc" for="__toc">
+            <div class="visually-hidden">Toggle table of contents sidebar</div>
+            <i class="icon"><svg><use href="#svg-toc"></use></svg></i>
+          </label>
+        </div>
+        <article role="main">
+          <h1>Source code for joblib.parallel</h1><div class="highlight"><pre>
+<span></span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">Helpers for embarrassingly parallel code.</span>
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="c1"># Author: Gael Varoquaux &lt; gael dot varoquaux at normalesup dot org &gt;</span>
+<span class="c1"># Copyright: 2010, Gael Varoquaux</span>
+<span class="c1"># License: BSD 3 clause</span>
+
+<span class="kn">from</span> <span class="nn">__future__</span> <span class="kn">import</span> <span class="n">division</span>
+
+<span class="kn">import</span> <span class="nn">os</span>
+<span class="kn">import</span> <span class="nn">sys</span>
+<span class="kn">from</span> <span class="nn">math</span> <span class="kn">import</span> <span class="n">sqrt</span>
+<span class="kn">import</span> <span class="nn">functools</span>
+<span class="kn">import</span> <span class="nn">time</span>
+<span class="kn">import</span> <span class="nn">threading</span>
+<span class="kn">import</span> <span class="nn">itertools</span>
+<span class="kn">from</span> <span class="nn">uuid</span> <span class="kn">import</span> <span class="n">uuid4</span>
+<span class="kn">from</span> <span class="nn">numbers</span> <span class="kn">import</span> <span class="n">Integral</span>
+<span class="kn">import</span> <span class="nn">warnings</span>
+<span class="kn">import</span> <span class="nn">queue</span>
+
+<span class="kn">from</span> <span class="nn">._multiprocessing_helpers</span> <span class="kn">import</span> <span class="n">mp</span>
+
+<span class="kn">from</span> <span class="nn">.logger</span> <span class="kn">import</span> <span class="n">Logger</span><span class="p">,</span> <span class="n">short_format_time</span>
+<span class="kn">from</span> <span class="nn">.disk</span> <span class="kn">import</span> <span class="n">memstr_to_bytes</span>
+<span class="kn">from</span> <span class="nn">._parallel_backends</span> <span class="kn">import</span> <span class="p">(</span><span class="n">FallbackToBackend</span><span class="p">,</span> <span class="n">MultiprocessingBackend</span><span class="p">,</span>
+                                 <span class="n">ThreadingBackend</span><span class="p">,</span> <span class="n">SequentialBackend</span><span class="p">,</span>
+                                 <span class="n">LokyBackend</span><span class="p">)</span>
+<span class="kn">from</span> <span class="nn">.externals.cloudpickle</span> <span class="kn">import</span> <span class="n">dumps</span><span class="p">,</span> <span class="n">loads</span>
+<span class="kn">from</span> <span class="nn">._utils</span> <span class="kn">import</span> <span class="n">eval_expr</span>
+
+<span class="c1"># Make sure that those two classes are part of the public joblib.parallel API</span>
+<span class="c1"># so that 3rd party backend implementers can import them from here.</span>
+<span class="kn">from</span> <span class="nn">._parallel_backends</span> <span class="kn">import</span> <span class="n">AutoBatchingMixin</span>  <span class="c1"># noqa</span>
+<span class="kn">from</span> <span class="nn">._parallel_backends</span> <span class="kn">import</span> <span class="n">ParallelBackendBase</span>  <span class="c1"># noqa</span>
+
+
+<span class="n">BACKENDS</span> <span class="o">=</span> <span class="p">{</span>
+    <span class="s1">&#39;threading&#39;</span><span class="p">:</span> <span class="n">ThreadingBackend</span><span class="p">,</span>
+    <span class="s1">&#39;sequential&#39;</span><span class="p">:</span> <span class="n">SequentialBackend</span><span class="p">,</span>
+<span class="p">}</span>
+<span class="c1"># name of the backend used by default by Parallel outside of any context</span>
+<span class="c1"># managed by ``parallel_backend``.</span>
+
+<span class="c1"># threading is the only backend that is always everywhere</span>
+<span class="n">DEFAULT_BACKEND</span> <span class="o">=</span> <span class="s1">&#39;threading&#39;</span>
+
+<span class="n">DEFAULT_N_JOBS</span> <span class="o">=</span> <span class="mi">1</span>
+
+<span class="n">MAYBE_AVAILABLE_BACKENDS</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;multiprocessing&#39;</span><span class="p">,</span> <span class="s1">&#39;loky&#39;</span><span class="p">}</span>
+
+<span class="c1"># if multiprocessing is available, so is loky, we set it as the default</span>
+<span class="c1"># backend</span>
+<span class="k">if</span> <span class="n">mp</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+    <span class="n">BACKENDS</span><span class="p">[</span><span class="s1">&#39;multiprocessing&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">MultiprocessingBackend</span>
+    <span class="kn">from</span> <span class="nn">.externals</span> <span class="kn">import</span> <span class="n">loky</span>
+    <span class="n">BACKENDS</span><span class="p">[</span><span class="s1">&#39;loky&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">LokyBackend</span>
+    <span class="n">DEFAULT_BACKEND</span> <span class="o">=</span> <span class="s1">&#39;loky&#39;</span>
+
+
+<span class="n">DEFAULT_THREAD_BACKEND</span> <span class="o">=</span> <span class="s1">&#39;threading&#39;</span>
+
+<span class="c1"># Thread local value that can be overridden by the ``parallel_backend`` context</span>
+<span class="c1"># manager</span>
+<span class="n">_backend</span> <span class="o">=</span> <span class="n">threading</span><span class="o">.</span><span class="n">local</span><span class="p">()</span>
+
+<span class="n">VALID_BACKEND_HINTS</span> <span class="o">=</span> <span class="p">(</span><span class="s1">&#39;processes&#39;</span><span class="p">,</span> <span class="s1">&#39;threads&#39;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+<span class="n">VALID_BACKEND_CONSTRAINTS</span> <span class="o">=</span> <span class="p">(</span><span class="s1">&#39;sharedmem&#39;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+
+
+<span class="k">def</span> <span class="nf">_register_dask</span><span class="p">():</span>
+    <span class="sd">&quot;&quot;&quot; Register Dask Backend if called with parallel_backend(&quot;dask&quot;) &quot;&quot;&quot;</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="kn">from</span> <span class="nn">._dask</span> <span class="kn">import</span> <span class="n">DaskDistributedBackend</span>
+        <span class="n">register_parallel_backend</span><span class="p">(</span><span class="s1">&#39;dask&#39;</span><span class="p">,</span> <span class="n">DaskDistributedBackend</span><span class="p">)</span>
+    <span class="k">except</span> <span class="ne">ImportError</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+        <span class="n">msg</span> <span class="o">=</span> <span class="p">(</span><span class="s2">&quot;To use the dask.distributed backend you must install both &quot;</span>
+               <span class="s2">&quot;the `dask` and distributed modules.</span><span class="se">\n\n</span><span class="s2">&quot;</span>
+               <span class="s2">&quot;See https://dask.pydata.org/en/latest/install.html for more &quot;</span>
+               <span class="s2">&quot;information.&quot;</span><span class="p">)</span>
+        <span class="k">raise</span> <span class="ne">ImportError</span><span class="p">(</span><span class="n">msg</span><span class="p">)</span> <span class="kn">from</span> <span class="nn">e</span>
+
+
+<span class="n">EXTERNAL_BACKENDS</span> <span class="o">=</span> <span class="p">{</span>
+    <span class="s1">&#39;dask&#39;</span><span class="p">:</span> <span class="n">_register_dask</span><span class="p">,</span>
+<span class="p">}</span>
+
+
+<span class="k">def</span> <span class="nf">get_active_backend</span><span class="p">(</span><span class="n">prefer</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">require</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="mi">0</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Return the active default backend&quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="n">prefer</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">VALID_BACKEND_HINTS</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;prefer=</span><span class="si">%r</span><span class="s2"> is not a valid backend hint, &quot;</span>
+                         <span class="s2">&quot;expected one of </span><span class="si">%r</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">prefer</span><span class="p">,</span> <span class="n">VALID_BACKEND_HINTS</span><span class="p">))</span>
+    <span class="k">if</span> <span class="n">require</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">VALID_BACKEND_CONSTRAINTS</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;require=</span><span class="si">%r</span><span class="s2"> is not a valid backend constraint, &quot;</span>
+                         <span class="s2">&quot;expected one of </span><span class="si">%r</span><span class="s2">&quot;</span>
+                         <span class="o">%</span> <span class="p">(</span><span class="n">require</span><span class="p">,</span> <span class="n">VALID_BACKEND_CONSTRAINTS</span><span class="p">))</span>
+
+    <span class="k">if</span> <span class="n">prefer</span> <span class="o">==</span> <span class="s1">&#39;processes&#39;</span> <span class="ow">and</span> <span class="n">require</span> <span class="o">==</span> <span class="s1">&#39;sharedmem&#39;</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;prefer == &#39;processes&#39; and require == &#39;sharedmem&#39;&quot;</span>
+                         <span class="s2">&quot; are inconsistent settings&quot;</span><span class="p">)</span>
+    <span class="n">backend_and_jobs</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">_backend</span><span class="p">,</span> <span class="s1">&#39;backend_and_jobs&#39;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">backend_and_jobs</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="c1"># Try to use the backend set by the user with the context manager.</span>
+        <span class="n">backend</span><span class="p">,</span> <span class="n">n_jobs</span> <span class="o">=</span> <span class="n">backend_and_jobs</span>
+        <span class="n">nesting_level</span> <span class="o">=</span> <span class="n">backend</span><span class="o">.</span><span class="n">nesting_level</span>
+        <span class="n">supports_sharedmem</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">backend</span><span class="p">,</span> <span class="s1">&#39;supports_sharedmem&#39;</span><span class="p">,</span> <span class="kc">False</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">require</span> <span class="o">==</span> <span class="s1">&#39;sharedmem&#39;</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">supports_sharedmem</span><span class="p">:</span>
+            <span class="c1"># This backend does not match the shared memory constraint:</span>
+            <span class="c1"># fallback to the default thead-based backend.</span>
+            <span class="n">sharedmem_backend</span> <span class="o">=</span> <span class="n">BACKENDS</span><span class="p">[</span><span class="n">DEFAULT_THREAD_BACKEND</span><span class="p">](</span>
+                <span class="n">nesting_level</span><span class="o">=</span><span class="n">nesting_level</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">verbose</span> <span class="o">&gt;=</span> <span class="mi">10</span><span class="p">:</span>
+                <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Using </span><span class="si">%s</span><span class="s2"> as joblib.Parallel backend instead of </span><span class="si">%s</span><span class="s2"> &quot;</span>
+                      <span class="s2">&quot;as the latter does not provide shared memory semantics.&quot;</span>
+                      <span class="o">%</span> <span class="p">(</span><span class="n">sharedmem_backend</span><span class="o">.</span><span class="vm">__class__</span><span class="o">.</span><span class="vm">__name__</span><span class="p">,</span>
+                         <span class="n">backend</span><span class="o">.</span><span class="vm">__class__</span><span class="o">.</span><span class="vm">__name__</span><span class="p">))</span>
+            <span class="k">return</span> <span class="n">sharedmem_backend</span><span class="p">,</span> <span class="n">DEFAULT_N_JOBS</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">backend_and_jobs</span>
+
+    <span class="c1"># We are outside of the scope of any parallel_backend context manager,</span>
+    <span class="c1"># create the default backend instance now.</span>
+    <span class="n">backend</span> <span class="o">=</span> <span class="n">BACKENDS</span><span class="p">[</span><span class="n">DEFAULT_BACKEND</span><span class="p">](</span><span class="n">nesting_level</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+    <span class="n">supports_sharedmem</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">backend</span><span class="p">,</span> <span class="s1">&#39;supports_sharedmem&#39;</span><span class="p">,</span> <span class="kc">False</span><span class="p">)</span>
+    <span class="n">uses_threads</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">backend</span><span class="p">,</span> <span class="s1">&#39;uses_threads&#39;</span><span class="p">,</span> <span class="kc">False</span><span class="p">)</span>
+    <span class="k">if</span> <span class="p">((</span><span class="n">require</span> <span class="o">==</span> <span class="s1">&#39;sharedmem&#39;</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">supports_sharedmem</span><span class="p">)</span> <span class="ow">or</span>
+            <span class="p">(</span><span class="n">prefer</span> <span class="o">==</span> <span class="s1">&#39;threads&#39;</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">uses_threads</span><span class="p">)):</span>
+        <span class="c1"># Make sure the selected default backend match the soft hints and</span>
+        <span class="c1"># hard constraints:</span>
+        <span class="n">backend</span> <span class="o">=</span> <span class="n">BACKENDS</span><span class="p">[</span><span class="n">DEFAULT_THREAD_BACKEND</span><span class="p">](</span><span class="n">nesting_level</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">backend</span><span class="p">,</span> <span class="n">DEFAULT_N_JOBS</span>
+
+
+<span class="k">class</span> <span class="nc">parallel_backend</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Change the default backend used by Parallel inside a with block.</span>
+
+<span class="sd">    If ``backend`` is a string it must match a previously registered</span>
+<span class="sd">    implementation using the :func:`~register_parallel_backend` function.</span>
+
+<span class="sd">    By default the following backends are available:</span>
+
+<span class="sd">    - &#39;loky&#39;: single-host, process-based parallelism (used by default),</span>
+<span class="sd">    - &#39;threading&#39;: single-host, thread-based parallelism,</span>
+<span class="sd">    - &#39;multiprocessing&#39;: legacy single-host, process-based parallelism.</span>
+
+<span class="sd">    &#39;loky&#39; is recommended to run functions that manipulate Python objects.</span>
+<span class="sd">    &#39;threading&#39; is a low-overhead alternative that is most efficient for</span>
+<span class="sd">    functions that release the Global Interpreter Lock: e.g. I/O-bound code or</span>
+<span class="sd">    CPU-bound code in a few calls to native code that explicitly releases the</span>
+<span class="sd">    GIL. Note that on some rare systems (such as pyiodine),</span>
+<span class="sd">    multiprocessing and loky may not be available, in which case joblib</span>
+<span class="sd">    defaults to threading.</span>
+
+<span class="sd">    In addition, if the `dask` and `distributed` Python packages are installed,</span>
+<span class="sd">    it is possible to use the &#39;dask&#39; backend for better scheduling of nested</span>
+<span class="sd">    parallel calls without over-subscription and potentially distribute</span>
+<span class="sd">    parallel calls over a networked cluster of several hosts.</span>
+
+<span class="sd">    It is also possible to use the distributed &#39;ray&#39; backend for distributing</span>
+<span class="sd">    the workload to a cluster of nodes. To use the &#39;ray&#39; joblib backend add</span>
+<span class="sd">    the following lines::</span>
+
+<span class="sd">     &gt;&gt;&gt; from ray.util.joblib import register_ray  # doctest: +SKIP</span>
+<span class="sd">     &gt;&gt;&gt; register_ray()  # doctest: +SKIP</span>
+<span class="sd">     &gt;&gt;&gt; with parallel_backend(&quot;ray&quot;):  # doctest: +SKIP</span>
+<span class="sd">     ...     print(Parallel()(delayed(neg)(i + 1) for i in range(5)))</span>
+<span class="sd">     [-1, -2, -3, -4, -5]</span>
+
+<span class="sd">    Alternatively the backend can be passed directly as an instance.</span>
+
+<span class="sd">    By default all available workers will be used (``n_jobs=-1``) unless the</span>
+<span class="sd">    caller passes an explicit value for the ``n_jobs`` parameter.</span>
+
+<span class="sd">    This is an alternative to passing a ``backend=&#39;backend_name&#39;`` argument to</span>
+<span class="sd">    the :class:`~Parallel` class constructor. It is particularly useful when</span>
+<span class="sd">    calling into library code that uses joblib internally but does not expose</span>
+<span class="sd">    the backend argument in its own API.</span>
+
+<span class="sd">    &gt;&gt;&gt; from operator import neg</span>
+<span class="sd">    &gt;&gt;&gt; with parallel_backend(&#39;threading&#39;):</span>
+<span class="sd">    ...     print(Parallel()(delayed(neg)(i + 1) for i in range(5)))</span>
+<span class="sd">    ...</span>
+<span class="sd">    [-1, -2, -3, -4, -5]</span>
+
+<span class="sd">    Warning: this function is experimental and subject to change in a future</span>
+<span class="sd">    version of joblib.</span>
+
+<span class="sd">    Joblib also tries to limit the oversubscription by limiting the number of</span>
+<span class="sd">    threads usable in some third-party library threadpools like OpenBLAS, MKL</span>
+<span class="sd">    or OpenMP. The default limit in each worker is set to</span>
+<span class="sd">    ``max(cpu_count() // effective_n_jobs, 1)`` but this limit can be</span>
+<span class="sd">    overwritten with the ``inner_max_num_threads`` argument which will be used</span>
+<span class="sd">    to set this limit in the child processes.</span>
+
+<span class="sd">    .. versionadded:: 0.10</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">backend</span><span class="p">,</span> <span class="n">n_jobs</span><span class="o">=-</span><span class="mi">1</span><span class="p">,</span> <span class="n">inner_max_num_threads</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+                 <span class="o">**</span><span class="n">backend_params</span><span class="p">):</span>
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">backend</span><span class="p">,</span> <span class="nb">str</span><span class="p">):</span>
+            <span class="k">if</span> <span class="n">backend</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">BACKENDS</span><span class="p">:</span>
+                <span class="k">if</span> <span class="n">backend</span> <span class="ow">in</span> <span class="n">EXTERNAL_BACKENDS</span><span class="p">:</span>
+                    <span class="n">register</span> <span class="o">=</span> <span class="n">EXTERNAL_BACKENDS</span><span class="p">[</span><span class="n">backend</span><span class="p">]</span>
+                    <span class="n">register</span><span class="p">()</span>
+                <span class="k">elif</span> <span class="n">backend</span> <span class="ow">in</span> <span class="n">MAYBE_AVAILABLE_BACKENDS</span><span class="p">:</span>
+                    <span class="n">warnings</span><span class="o">.</span><span class="n">warn</span><span class="p">(</span>
+                        <span class="sa">f</span><span class="s2">&quot;joblib backend &#39;</span><span class="si">{</span><span class="n">backend</span><span class="si">}</span><span class="s2">&#39; is not available on &quot;</span>
+                        <span class="sa">f</span><span class="s2">&quot;your system, falling back to </span><span class="si">{</span><span class="n">DEFAULT_BACKEND</span><span class="si">}</span><span class="s2">.&quot;</span><span class="p">,</span>
+                        <span class="ne">UserWarning</span><span class="p">,</span>
+                        <span class="n">stacklevel</span><span class="o">=</span><span class="mi">2</span><span class="p">)</span>
+                    <span class="n">BACKENDS</span><span class="p">[</span><span class="n">backend</span><span class="p">]</span> <span class="o">=</span> <span class="n">BACKENDS</span><span class="p">[</span><span class="n">DEFAULT_BACKEND</span><span class="p">]</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Invalid backend: </span><span class="si">%s</span><span class="s2">, expected one of </span><span class="si">%r</span><span class="s2">&quot;</span>
+                                     <span class="o">%</span> <span class="p">(</span><span class="n">backend</span><span class="p">,</span> <span class="nb">sorted</span><span class="p">(</span><span class="n">BACKENDS</span><span class="o">.</span><span class="n">keys</span><span class="p">())))</span>
+
+            <span class="n">backend</span> <span class="o">=</span> <span class="n">BACKENDS</span><span class="p">[</span><span class="n">backend</span><span class="p">](</span><span class="o">**</span><span class="n">backend_params</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">inner_max_num_threads</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">msg</span> <span class="o">=</span> <span class="p">(</span><span class="s2">&quot;</span><span class="si">{}</span><span class="s2"> does not accept setting the inner_max_num_threads &quot;</span>
+                   <span class="s2">&quot;argument.&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">backend</span><span class="o">.</span><span class="vm">__class__</span><span class="o">.</span><span class="vm">__name__</span><span class="p">))</span>
+            <span class="k">assert</span> <span class="n">backend</span><span class="o">.</span><span class="n">supports_inner_max_num_threads</span><span class="p">,</span> <span class="n">msg</span>
+            <span class="n">backend</span><span class="o">.</span><span class="n">inner_max_num_threads</span> <span class="o">=</span> <span class="n">inner_max_num_threads</span>
+
+        <span class="c1"># If the nesting_level of the backend is not set previously, use the</span>
+        <span class="c1"># nesting level from the previous active_backend to set it</span>
+        <span class="n">current_backend_and_jobs</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">_backend</span><span class="p">,</span> <span class="s1">&#39;backend_and_jobs&#39;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">backend</span><span class="o">.</span><span class="n">nesting_level</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">current_backend_and_jobs</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="n">nesting_level</span> <span class="o">=</span> <span class="mi">0</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">nesting_level</span> <span class="o">=</span> <span class="n">current_backend_and_jobs</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">nesting_level</span>
+
+            <span class="n">backend</span><span class="o">.</span><span class="n">nesting_level</span> <span class="o">=</span> <span class="n">nesting_level</span>
+
+        <span class="c1"># Save the backends info and set the active backend</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">old_backend_and_jobs</span> <span class="o">=</span> <span class="n">current_backend_and_jobs</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">new_backend_and_jobs</span> <span class="o">=</span> <span class="p">(</span><span class="n">backend</span><span class="p">,</span> <span class="n">n_jobs</span><span class="p">)</span>
+
+        <span class="n">_backend</span><span class="o">.</span><span class="n">backend_and_jobs</span> <span class="o">=</span> <span class="p">(</span><span class="n">backend</span><span class="p">,</span> <span class="n">n_jobs</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="fm">__enter__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">new_backend_and_jobs</span>
+
+    <span class="k">def</span> <span class="fm">__exit__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="nb">type</span><span class="p">,</span> <span class="n">value</span><span class="p">,</span> <span class="n">traceback</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">unregister</span><span class="p">()</span>
+
+    <span class="k">def</span> <span class="nf">unregister</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">old_backend_and_jobs</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">if</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">_backend</span><span class="p">,</span> <span class="s1">&#39;backend_and_jobs&#39;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="k">del</span> <span class="n">_backend</span><span class="o">.</span><span class="n">backend_and_jobs</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">_backend</span><span class="o">.</span><span class="n">backend_and_jobs</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">old_backend_and_jobs</span>
+
+
+<span class="c1"># Under Linux or OS X the default start method of multiprocessing</span>
+<span class="c1"># can cause third party libraries to crash. Under Python 3.4+ it is possible</span>
+<span class="c1"># to set an environment variable to switch the default start method from</span>
+<span class="c1"># &#39;fork&#39; to &#39;forkserver&#39; or &#39;spawn&#39; to avoid this issue albeit at the cost</span>
+<span class="c1"># of causing semantic changes and some additional pool instantiation overhead.</span>
+<span class="n">DEFAULT_MP_CONTEXT</span> <span class="o">=</span> <span class="kc">None</span>
+<span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">mp</span><span class="p">,</span> <span class="s1">&#39;get_context&#39;</span><span class="p">):</span>
+    <span class="n">method</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">environ</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;JOBLIB_START_METHOD&#39;</span><span class="p">,</span> <span class="s1">&#39;&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span> <span class="ow">or</span> <span class="kc">None</span>
+    <span class="k">if</span> <span class="n">method</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">DEFAULT_MP_CONTEXT</span> <span class="o">=</span> <span class="n">mp</span><span class="o">.</span><span class="n">get_context</span><span class="p">(</span><span class="n">method</span><span class="o">=</span><span class="n">method</span><span class="p">)</span>
+
+
+<span class="k">class</span> <span class="nc">BatchedCalls</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Wrap a sequence of (func, args, kwargs) tuples as a single callable&quot;&quot;&quot;</span>
+
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">iterator_slice</span><span class="p">,</span> <span class="n">backend_and_jobs</span><span class="p">,</span> <span class="n">reducer_callback</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+                 <span class="n">pickle_cache</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">items</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">iterator_slice</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_size</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">items</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_reducer_callback</span> <span class="o">=</span> <span class="n">reducer_callback</span>
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">backend_and_jobs</span><span class="p">,</span> <span class="nb">tuple</span><span class="p">):</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_backend</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_n_jobs</span> <span class="o">=</span> <span class="n">backend_and_jobs</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="c1"># this is for backward compatibility purposes. Before 0.12.6,</span>
+            <span class="c1"># nested backends were returned without n_jobs indications.</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_backend</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_n_jobs</span> <span class="o">=</span> <span class="n">backend_and_jobs</span><span class="p">,</span> <span class="kc">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_pickle_cache</span> <span class="o">=</span> <span class="n">pickle_cache</span> <span class="k">if</span> <span class="n">pickle_cache</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="k">else</span> <span class="p">{}</span>
+
+    <span class="k">def</span> <span class="fm">__call__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="c1"># Set the default nested backend to self._backend but do not set the</span>
+        <span class="c1"># change the default number of processes to -1</span>
+        <span class="k">with</span> <span class="n">parallel_backend</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_backend</span><span class="p">,</span> <span class="n">n_jobs</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_n_jobs</span><span class="p">):</span>
+            <span class="k">return</span> <span class="p">[</span><span class="n">func</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+                    <span class="k">for</span> <span class="n">func</span><span class="p">,</span> <span class="n">args</span><span class="p">,</span> <span class="n">kwargs</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">items</span><span class="p">]</span>
+
+    <span class="k">def</span> <span class="nf">__reduce__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_reducer_callback</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_reducer_callback</span><span class="p">()</span>
+        <span class="c1"># no need pickle the callback.</span>
+        <span class="k">return</span> <span class="p">(</span>
+            <span class="n">BatchedCalls</span><span class="p">,</span>
+            <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">items</span><span class="p">,</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_backend</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_n_jobs</span><span class="p">),</span> <span class="kc">None</span><span class="p">,</span>
+             <span class="bp">self</span><span class="o">.</span><span class="n">_pickle_cache</span><span class="p">)</span>
+        <span class="p">)</span>
+
+    <span class="k">def</span> <span class="fm">__len__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_size</span>
+
+
+<span class="c1">###############################################################################</span>
+<span class="c1"># CPU count that works also when multiprocessing has been disabled via</span>
+<span class="c1"># the JOBLIB_MULTIPROCESSING environment variable</span>
+<span class="k">def</span> <span class="nf">cpu_count</span><span class="p">(</span><span class="n">only_physical_cores</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Return the number of CPUs.</span>
+
+<span class="sd">    This delegates to loky.cpu_count that takes into account additional</span>
+<span class="sd">    constraints such as Linux CFS scheduler quotas (typically set by container</span>
+<span class="sd">    runtimes such as docker) and CPU affinity (for instance using the taskset</span>
+<span class="sd">    command on Linux).</span>
+
+<span class="sd">    If only_physical_cores is True, do not take hyperthreading / SMT logical</span>
+<span class="sd">    cores into account.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="n">mp</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">return</span> <span class="mi">1</span>
+
+    <span class="k">return</span> <span class="n">loky</span><span class="o">.</span><span class="n">cpu_count</span><span class="p">(</span><span class="n">only_physical_cores</span><span class="o">=</span><span class="n">only_physical_cores</span><span class="p">)</span>
+
+
+<span class="c1">###############################################################################</span>
+<span class="c1"># For verbosity</span>
+
+<span class="k">def</span> <span class="nf">_verbosity_filter</span><span class="p">(</span><span class="n">index</span><span class="p">,</span> <span class="n">verbose</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot; Returns False for indices increasingly apart, the distance</span>
+<span class="sd">        depending on the value of verbose.</span>
+
+<span class="sd">        We use a lag increasing as the square of index</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">verbose</span><span class="p">:</span>
+        <span class="k">return</span> <span class="kc">True</span>
+    <span class="k">elif</span> <span class="n">verbose</span> <span class="o">&gt;</span> <span class="mi">10</span><span class="p">:</span>
+        <span class="k">return</span> <span class="kc">False</span>
+    <span class="k">if</span> <span class="n">index</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+        <span class="k">return</span> <span class="kc">False</span>
+    <span class="n">verbose</span> <span class="o">=</span> <span class="mf">.5</span> <span class="o">*</span> <span class="p">(</span><span class="mi">11</span> <span class="o">-</span> <span class="n">verbose</span><span class="p">)</span> <span class="o">**</span> <span class="mi">2</span>
+    <span class="n">scale</span> <span class="o">=</span> <span class="n">sqrt</span><span class="p">(</span><span class="n">index</span> <span class="o">/</span> <span class="n">verbose</span><span class="p">)</span>
+    <span class="n">next_scale</span> <span class="o">=</span> <span class="n">sqrt</span><span class="p">((</span><span class="n">index</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)</span> <span class="o">/</span> <span class="n">verbose</span><span class="p">)</span>
+    <span class="k">return</span> <span class="p">(</span><span class="nb">int</span><span class="p">(</span><span class="n">next_scale</span><span class="p">)</span> <span class="o">==</span> <span class="nb">int</span><span class="p">(</span><span class="n">scale</span><span class="p">))</span>
+
+
+<span class="c1">###############################################################################</span>
+<div class="viewcode-block" id="delayed"><a class="viewcode-back" href="../../_autosummary/s3prl.dataio.dataset.util.html#s3prl.dataio.dataset.util.delayed">[docs]</a><span class="k">def</span> <span class="nf">delayed</span><span class="p">(</span><span class="n">function</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Decorator used to capture the arguments of a function.&quot;&quot;&quot;</span>
+
+    <span class="k">def</span> <span class="nf">delayed_function</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="k">return</span> <span class="n">function</span><span class="p">,</span> <span class="n">args</span><span class="p">,</span> <span class="n">kwargs</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="n">delayed_function</span> <span class="o">=</span> <span class="n">functools</span><span class="o">.</span><span class="n">wraps</span><span class="p">(</span><span class="n">function</span><span class="p">)(</span><span class="n">delayed_function</span><span class="p">)</span>
+    <span class="k">except</span> <span class="ne">AttributeError</span><span class="p">:</span>
+        <span class="s2">&quot; functools.wraps fails on some callable objects &quot;</span>
+    <span class="k">return</span> <span class="n">delayed_function</span></div>
+
+
+<span class="c1">###############################################################################</span>
+<span class="k">class</span> <span class="nc">BatchCompletionCallBack</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Callback used by joblib.Parallel&#39;s multiprocessing backend.</span>
+
+<span class="sd">    This callable is executed by the parent process whenever a worker process</span>
+<span class="sd">    has returned the results of a batch of tasks.</span>
+
+<span class="sd">    It is used for progress reporting, to update estimate of the batch</span>
+<span class="sd">    processing duration and to schedule the next batch of tasks to be</span>
+<span class="sd">    processed.</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">dispatch_timestamp</span><span class="p">,</span> <span class="n">batch_size</span><span class="p">,</span> <span class="n">parallel</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">dispatch_timestamp</span> <span class="o">=</span> <span class="n">dispatch_timestamp</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">batch_size</span> <span class="o">=</span> <span class="n">batch_size</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">parallel</span> <span class="o">=</span> <span class="n">parallel</span>
+
+    <span class="k">def</span> <span class="fm">__call__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">out</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">parallel</span><span class="o">.</span><span class="n">n_completed_tasks</span> <span class="o">+=</span> <span class="bp">self</span><span class="o">.</span><span class="n">batch_size</span>
+        <span class="n">this_batch_duration</span> <span class="o">=</span> <span class="n">time</span><span class="o">.</span><span class="n">time</span><span class="p">()</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">dispatch_timestamp</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">parallel</span><span class="o">.</span><span class="n">_backend</span><span class="o">.</span><span class="n">batch_completed</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">batch_size</span><span class="p">,</span>
+                                               <span class="n">this_batch_duration</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">parallel</span><span class="o">.</span><span class="n">print_progress</span><span class="p">()</span>
+        <span class="k">with</span> <span class="bp">self</span><span class="o">.</span><span class="n">parallel</span><span class="o">.</span><span class="n">_lock</span><span class="p">:</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">parallel</span><span class="o">.</span><span class="n">_original_iterator</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">parallel</span><span class="o">.</span><span class="n">dispatch_next</span><span class="p">()</span>
+
+
+<span class="c1">###############################################################################</span>
+<span class="k">def</span> <span class="nf">register_parallel_backend</span><span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="n">factory</span><span class="p">,</span> <span class="n">make_default</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Register a new Parallel backend factory.</span>
+
+<span class="sd">    The new backend can then be selected by passing its name as the backend</span>
+<span class="sd">    argument to the :class:`~Parallel` class. Moreover, the default backend can</span>
+<span class="sd">    be overwritten globally by setting make_default=True.</span>
+
+<span class="sd">    The factory can be any callable that takes no argument and return an</span>
+<span class="sd">    instance of ``ParallelBackendBase``.</span>
+
+<span class="sd">    Warning: this function is experimental and subject to change in a future</span>
+<span class="sd">    version of joblib.</span>
+
+<span class="sd">    .. versionadded:: 0.10</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">BACKENDS</span><span class="p">[</span><span class="n">name</span><span class="p">]</span> <span class="o">=</span> <span class="n">factory</span>
+    <span class="k">if</span> <span class="n">make_default</span><span class="p">:</span>
+        <span class="k">global</span> <span class="n">DEFAULT_BACKEND</span>
+        <span class="n">DEFAULT_BACKEND</span> <span class="o">=</span> <span class="n">name</span>
+
+
+<span class="k">def</span> <span class="nf">effective_n_jobs</span><span class="p">(</span><span class="n">n_jobs</span><span class="o">=-</span><span class="mi">1</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Determine the number of jobs that can actually run in parallel</span>
+
+<span class="sd">    n_jobs is the number of workers requested by the callers. Passing n_jobs=-1</span>
+<span class="sd">    means requesting all available workers for instance matching the number of</span>
+<span class="sd">    CPU cores on the worker host(s).</span>
+
+<span class="sd">    This method should return a guesstimate of the number of workers that can</span>
+<span class="sd">    actually perform work concurrently with the currently enabled default</span>
+<span class="sd">    backend. The primary use case is to make it possible for the caller to know</span>
+<span class="sd">    in how many chunks to slice the work.</span>
+
+<span class="sd">    In general working on larger data chunks is more efficient (less scheduling</span>
+<span class="sd">    overhead and better use of CPU cache prefetching heuristics) as long as all</span>
+<span class="sd">    the workers have enough work to do.</span>
+
+<span class="sd">    Warning: this function is experimental and subject to change in a future</span>
+<span class="sd">    version of joblib.</span>
+
+<span class="sd">    .. versionadded:: 0.10</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">backend</span><span class="p">,</span> <span class="n">backend_n_jobs</span> <span class="o">=</span> <span class="n">get_active_backend</span><span class="p">()</span>
+    <span class="k">if</span> <span class="n">n_jobs</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">n_jobs</span> <span class="o">=</span> <span class="n">backend_n_jobs</span>
+    <span class="k">return</span> <span class="n">backend</span><span class="o">.</span><span class="n">effective_n_jobs</span><span class="p">(</span><span class="n">n_jobs</span><span class="o">=</span><span class="n">n_jobs</span><span class="p">)</span>
+
+
+<span class="c1">###############################################################################</span>
+<div class="viewcode-block" id="Parallel"><a class="viewcode-back" href="../../_autosummary/s3prl.dataio.dataset.util.html#s3prl.dataio.dataset.util.Parallel">[docs]</a><span class="k">class</span> <span class="nc">Parallel</span><span class="p">(</span><span class="n">Logger</span><span class="p">):</span>
+    <span class="sd">&#39;&#39;&#39; Helper class for readable parallel mapping.</span>
+
+<span class="sd">        Read more in the :ref:`User Guide &lt;parallel&gt;`.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        -----------</span>
+<span class="sd">        n_jobs: int, default: None</span>
+<span class="sd">            The maximum number of concurrently running jobs, such as the number</span>
+<span class="sd">            of Python worker processes when backend=&quot;multiprocessing&quot;</span>
+<span class="sd">            or the size of the thread-pool when backend=&quot;threading&quot;.</span>
+<span class="sd">            If -1 all CPUs are used. If 1 is given, no parallel computing code</span>
+<span class="sd">            is used at all, which is useful for debugging. For n_jobs below -1,</span>
+<span class="sd">            (n_cpus + 1 + n_jobs) are used. Thus for n_jobs = -2, all</span>
+<span class="sd">            CPUs but one are used.</span>
+<span class="sd">            None is a marker for &#39;unset&#39; that will be interpreted as n_jobs=1</span>
+<span class="sd">            (sequential execution) unless the call is performed under a</span>
+<span class="sd">            :func:`~parallel_backend` context manager that sets another value</span>
+<span class="sd">            for n_jobs.</span>
+<span class="sd">        backend: str, ParallelBackendBase instance or None, default: &#39;loky&#39;</span>
+<span class="sd">            Specify the parallelization backend implementation.</span>
+<span class="sd">            Supported backends are:</span>
+
+<span class="sd">            - &quot;loky&quot; used by default, can induce some</span>
+<span class="sd">              communication and memory overhead when exchanging input and</span>
+<span class="sd">              output data with the worker Python processes. On some rare</span>
+<span class="sd">              systems (such as Pyiodide), the loky backend may not be</span>
+<span class="sd">              available.</span>
+<span class="sd">            - &quot;multiprocessing&quot; previous process-based backend based on</span>
+<span class="sd">              `multiprocessing.Pool`. Less robust than `loky`.</span>
+<span class="sd">            - &quot;threading&quot; is a very low-overhead backend but it suffers</span>
+<span class="sd">              from the Python Global Interpreter Lock if the called function</span>
+<span class="sd">              relies a lot on Python objects. &quot;threading&quot; is mostly useful</span>
+<span class="sd">              when the execution bottleneck is a compiled extension that</span>
+<span class="sd">              explicitly releases the GIL (for instance a Cython loop wrapped</span>
+<span class="sd">              in a &quot;with nogil&quot; block or an expensive call to a library such</span>
+<span class="sd">              as NumPy).</span>
+<span class="sd">            - finally, you can register backends by calling</span>
+<span class="sd">              :func:`~register_parallel_backend`. This will allow you to</span>
+<span class="sd">              implement a backend of your liking.</span>
+
+<span class="sd">            It is not recommended to hard-code the backend name in a call to</span>
+<span class="sd">            :class:`~Parallel` in a library. Instead it is recommended to set</span>
+<span class="sd">            soft hints (prefer) or hard constraints (require) so as to make it</span>
+<span class="sd">            possible for library users to change the backend from the outside</span>
+<span class="sd">            using the :func:`~parallel_backend` context manager.</span>
+<span class="sd">        prefer: str in {&#39;processes&#39;, &#39;threads&#39;} or None, default: None</span>
+<span class="sd">            Soft hint to choose the default backend if no specific backend</span>
+<span class="sd">            was selected with the :func:`~parallel_backend` context manager.</span>
+<span class="sd">            The default process-based backend is &#39;loky&#39; and the default</span>
+<span class="sd">            thread-based backend is &#39;threading&#39;. Ignored if the ``backend``</span>
+<span class="sd">            parameter is specified.</span>
+<span class="sd">        require: &#39;sharedmem&#39; or None, default None</span>
+<span class="sd">            Hard constraint to select the backend. If set to &#39;sharedmem&#39;,</span>
+<span class="sd">            the selected backend will be single-host and thread-based even</span>
+<span class="sd">            if the user asked for a non-thread based backend with</span>
+<span class="sd">            parallel_backend.</span>
+<span class="sd">        verbose: int, optional</span>
+<span class="sd">            The verbosity level: if non zero, progress messages are</span>
+<span class="sd">            printed. Above 50, the output is sent to stdout.</span>
+<span class="sd">            The frequency of the messages increases with the verbosity level.</span>
+<span class="sd">            If it more than 10, all iterations are reported.</span>
+<span class="sd">        timeout: float, optional</span>
+<span class="sd">            Timeout limit for each task to complete.  If any task takes longer</span>
+<span class="sd">            a TimeOutError will be raised. Only applied when n_jobs != 1</span>
+<span class="sd">        pre_dispatch: {&#39;all&#39;, integer, or expression, as in &#39;3*n_jobs&#39;}</span>
+<span class="sd">            The number of batches (of tasks) to be pre-dispatched.</span>
+<span class="sd">            Default is &#39;2*n_jobs&#39;. When batch_size=&quot;auto&quot; this is reasonable</span>
+<span class="sd">            default and the workers should never starve. Note that only basic</span>
+<span class="sd">            arithmetics are allowed here and no modules can be used in this</span>
+<span class="sd">            expression.</span>
+<span class="sd">        batch_size: int or &#39;auto&#39;, default: &#39;auto&#39;</span>
+<span class="sd">            The number of atomic tasks to dispatch at once to each</span>
+<span class="sd">            worker. When individual evaluations are very fast, dispatching</span>
+<span class="sd">            calls to workers can be slower than sequential computation because</span>
+<span class="sd">            of the overhead. Batching fast computations together can mitigate</span>
+<span class="sd">            this.</span>
+<span class="sd">            The ``&#39;auto&#39;`` strategy keeps track of the time it takes for a batch</span>
+<span class="sd">            to complete, and dynamically adjusts the batch size to keep the time</span>
+<span class="sd">            on the order of half a second, using a heuristic. The initial batch</span>
+<span class="sd">            size is 1.</span>
+<span class="sd">            ``batch_size=&quot;auto&quot;`` with ``backend=&quot;threading&quot;`` will dispatch</span>
+<span class="sd">            batches of a single task at a time as the threading backend has</span>
+<span class="sd">            very little overhead and using larger batch size has not proved to</span>
+<span class="sd">            bring any gain in that case.</span>
+<span class="sd">        temp_folder: str, optional</span>
+<span class="sd">            Folder to be used by the pool for memmapping large arrays</span>
+<span class="sd">            for sharing memory with worker processes. If None, this will try in</span>
+<span class="sd">            order:</span>
+
+<span class="sd">            - a folder pointed by the JOBLIB_TEMP_FOLDER environment</span>
+<span class="sd">              variable,</span>
+<span class="sd">            - /dev/shm if the folder exists and is writable: this is a</span>
+<span class="sd">              RAM disk filesystem available by default on modern Linux</span>
+<span class="sd">              distributions,</span>
+<span class="sd">            - the default system temporary folder that can be</span>
+<span class="sd">              overridden with TMP, TMPDIR or TEMP environment</span>
+<span class="sd">              variables, typically /tmp under Unix operating systems.</span>
+
+<span class="sd">            Only active when backend=&quot;loky&quot; or &quot;multiprocessing&quot;.</span>
+<span class="sd">        max_nbytes int, str, or None, optional, 1M by default</span>
+<span class="sd">            Threshold on the size of arrays passed to the workers that</span>
+<span class="sd">            triggers automated memory mapping in temp_folder. Can be an int</span>
+<span class="sd">            in Bytes, or a human-readable string, e.g., &#39;1M&#39; for 1 megabyte.</span>
+<span class="sd">            Use None to disable memmapping of large arrays.</span>
+<span class="sd">            Only active when backend=&quot;loky&quot; or &quot;multiprocessing&quot;.</span>
+<span class="sd">        mmap_mode: {None, &#39;r+&#39;, &#39;r&#39;, &#39;w+&#39;, &#39;c&#39;}, default: &#39;r&#39;</span>
+<span class="sd">            Memmapping mode for numpy arrays passed to workers. None will</span>
+<span class="sd">            disable memmapping, other modes defined in the numpy.memmap doc:</span>
+<span class="sd">            https://numpy.org/doc/stable/reference/generated/numpy.memmap.html</span>
+<span class="sd">            Also, see &#39;max_nbytes&#39; parameter documentation for more details.</span>
+
+<span class="sd">        Notes</span>
+<span class="sd">        -----</span>
+
+<span class="sd">        This object uses workers to compute in parallel the application of a</span>
+<span class="sd">        function to many different arguments. The main functionality it brings</span>
+<span class="sd">        in addition to using the raw multiprocessing or concurrent.futures API</span>
+<span class="sd">        are (see examples for details):</span>
+
+<span class="sd">        * More readable code, in particular since it avoids</span>
+<span class="sd">          constructing list of arguments.</span>
+
+<span class="sd">        * Easier debugging:</span>
+<span class="sd">            - informative tracebacks even when the error happens on</span>
+<span class="sd">              the client side</span>
+<span class="sd">            - using &#39;n_jobs=1&#39; enables to turn off parallel computing</span>
+<span class="sd">              for debugging without changing the codepath</span>
+<span class="sd">            - early capture of pickling errors</span>
+
+<span class="sd">        * An optional progress meter.</span>
+
+<span class="sd">        * Interruption of multiprocesses jobs with &#39;Ctrl-C&#39;</span>
+
+<span class="sd">        * Flexible pickling control for the communication to and from</span>
+<span class="sd">          the worker processes.</span>
+
+<span class="sd">        * Ability to use shared memory efficiently with worker</span>
+<span class="sd">          processes for large numpy-based datastructures.</span>
+
+<span class="sd">        Examples</span>
+<span class="sd">        --------</span>
+
+<span class="sd">        A simple example:</span>
+
+<span class="sd">        &gt;&gt;&gt; from math import sqrt</span>
+<span class="sd">        &gt;&gt;&gt; from joblib import Parallel, delayed</span>
+<span class="sd">        &gt;&gt;&gt; Parallel(n_jobs=1)(delayed(sqrt)(i**2) for i in range(10))</span>
+<span class="sd">        [0.0, 1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 7.0, 8.0, 9.0]</span>
+
+<span class="sd">        Reshaping the output when the function has several return</span>
+<span class="sd">        values:</span>
+
+<span class="sd">        &gt;&gt;&gt; from math import modf</span>
+<span class="sd">        &gt;&gt;&gt; from joblib import Parallel, delayed</span>
+<span class="sd">        &gt;&gt;&gt; r = Parallel(n_jobs=1)(delayed(modf)(i/2.) for i in range(10))</span>
+<span class="sd">        &gt;&gt;&gt; res, i = zip(*r)</span>
+<span class="sd">        &gt;&gt;&gt; res</span>
+<span class="sd">        (0.0, 0.5, 0.0, 0.5, 0.0, 0.5, 0.0, 0.5, 0.0, 0.5)</span>
+<span class="sd">        &gt;&gt;&gt; i</span>
+<span class="sd">        (0.0, 0.0, 1.0, 1.0, 2.0, 2.0, 3.0, 3.0, 4.0, 4.0)</span>
+
+<span class="sd">        The progress meter: the higher the value of `verbose`, the more</span>
+<span class="sd">        messages:</span>
+
+<span class="sd">        &gt;&gt;&gt; from time import sleep</span>
+<span class="sd">        &gt;&gt;&gt; from joblib import Parallel, delayed</span>
+<span class="sd">        &gt;&gt;&gt; r = Parallel(n_jobs=2, verbose=10)(delayed(sleep)(.2) for _ in range(10)) #doctest: +SKIP</span>
+<span class="sd">        [Parallel(n_jobs=2)]: Done   1 tasks      | elapsed:    0.6s</span>
+<span class="sd">        [Parallel(n_jobs=2)]: Done   4 tasks      | elapsed:    0.8s</span>
+<span class="sd">        [Parallel(n_jobs=2)]: Done  10 out of  10 | elapsed:    1.4s finished</span>
+
+<span class="sd">        Traceback example, note how the line of the error is indicated</span>
+<span class="sd">        as well as the values of the parameter passed to the function that</span>
+<span class="sd">        triggered the exception, even though the traceback happens in the</span>
+<span class="sd">        child process:</span>
+
+<span class="sd">        &gt;&gt;&gt; from heapq import nlargest</span>
+<span class="sd">        &gt;&gt;&gt; from joblib import Parallel, delayed</span>
+<span class="sd">        &gt;&gt;&gt; Parallel(n_jobs=2)(delayed(nlargest)(2, n) for n in (range(4), &#39;abcde&#39;, 3)) #doctest: +SKIP</span>
+<span class="sd">        #...</span>
+<span class="sd">        ---------------------------------------------------------------------------</span>
+<span class="sd">        Sub-process traceback:</span>
+<span class="sd">        ---------------------------------------------------------------------------</span>
+<span class="sd">        TypeError                                          Mon Nov 12 11:37:46 2012</span>
+<span class="sd">        PID: 12934                                    Python 2.7.3: /usr/bin/python</span>
+<span class="sd">        ...........................................................................</span>
+<span class="sd">        /usr/lib/python2.7/heapq.pyc in nlargest(n=2, iterable=3, key=None)</span>
+<span class="sd">            419         if n &gt;= size:</span>
+<span class="sd">            420             return sorted(iterable, key=key, reverse=True)[:n]</span>
+<span class="sd">            421</span>
+<span class="sd">            422     # When key is none, use simpler decoration</span>
+<span class="sd">            423     if key is None:</span>
+<span class="sd">        --&gt; 424         it = izip(iterable, count(0,-1))                    # decorate</span>
+<span class="sd">            425         result = _nlargest(n, it)</span>
+<span class="sd">            426         return map(itemgetter(0), result)                   # undecorate</span>
+<span class="sd">            427</span>
+<span class="sd">            428     # General case, slowest method</span>
+<span class="sd">         TypeError: izip argument #1 must support iteration</span>
+<span class="sd">        ___________________________________________________________________________</span>
+
+
+<span class="sd">        Using pre_dispatch in a producer/consumer situation, where the</span>
+<span class="sd">        data is generated on the fly. Note how the producer is first</span>
+<span class="sd">        called 3 times before the parallel loop is initiated, and then</span>
+<span class="sd">        called to generate new data on the fly:</span>
+
+<span class="sd">        &gt;&gt;&gt; from math import sqrt</span>
+<span class="sd">        &gt;&gt;&gt; from joblib import Parallel, delayed</span>
+<span class="sd">        &gt;&gt;&gt; def producer():</span>
+<span class="sd">        ...     for i in range(6):</span>
+<span class="sd">        ...         print(&#39;Produced %s&#39; % i)</span>
+<span class="sd">        ...         yield i</span>
+<span class="sd">        &gt;&gt;&gt; out = Parallel(n_jobs=2, verbose=100, pre_dispatch=&#39;1.5*n_jobs&#39;)(</span>
+<span class="sd">        ...                delayed(sqrt)(i) for i in producer()) #doctest: +SKIP</span>
+<span class="sd">        Produced 0</span>
+<span class="sd">        Produced 1</span>
+<span class="sd">        Produced 2</span>
+<span class="sd">        [Parallel(n_jobs=2)]: Done 1 jobs     | elapsed:  0.0s</span>
+<span class="sd">        Produced 3</span>
+<span class="sd">        [Parallel(n_jobs=2)]: Done 2 jobs     | elapsed:  0.0s</span>
+<span class="sd">        Produced 4</span>
+<span class="sd">        [Parallel(n_jobs=2)]: Done 3 jobs     | elapsed:  0.0s</span>
+<span class="sd">        Produced 5</span>
+<span class="sd">        [Parallel(n_jobs=2)]: Done 4 jobs     | elapsed:  0.0s</span>
+<span class="sd">        [Parallel(n_jobs=2)]: Done 6 out of 6 | elapsed:  0.0s remaining: 0.0s</span>
+<span class="sd">        [Parallel(n_jobs=2)]: Done 6 out of 6 | elapsed:  0.0s finished</span>
+
+<span class="sd">    &#39;&#39;&#39;</span>
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">n_jobs</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">backend</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">timeout</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+                 <span class="n">pre_dispatch</span><span class="o">=</span><span class="s1">&#39;2 * n_jobs&#39;</span><span class="p">,</span> <span class="n">batch_size</span><span class="o">=</span><span class="s1">&#39;auto&#39;</span><span class="p">,</span>
+                 <span class="n">temp_folder</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">max_nbytes</span><span class="o">=</span><span class="s1">&#39;1M&#39;</span><span class="p">,</span> <span class="n">mmap_mode</span><span class="o">=</span><span class="s1">&#39;r&#39;</span><span class="p">,</span>
+                 <span class="n">prefer</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">require</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+        <span class="n">active_backend</span><span class="p">,</span> <span class="n">context_n_jobs</span> <span class="o">=</span> <span class="n">get_active_backend</span><span class="p">(</span>
+            <span class="n">prefer</span><span class="o">=</span><span class="n">prefer</span><span class="p">,</span> <span class="n">require</span><span class="o">=</span><span class="n">require</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="n">verbose</span><span class="p">)</span>
+        <span class="n">nesting_level</span> <span class="o">=</span> <span class="n">active_backend</span><span class="o">.</span><span class="n">nesting_level</span>
+        <span class="k">if</span> <span class="n">backend</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">n_jobs</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="c1"># If we are under a parallel_backend context manager, look up</span>
+            <span class="c1"># the default number of jobs and use that instead:</span>
+            <span class="n">n_jobs</span> <span class="o">=</span> <span class="n">context_n_jobs</span>
+        <span class="k">if</span> <span class="n">n_jobs</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="c1"># No specific context override and no specific value request:</span>
+            <span class="c1"># default to 1.</span>
+            <span class="n">n_jobs</span> <span class="o">=</span> <span class="mi">1</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">n_jobs</span> <span class="o">=</span> <span class="n">n_jobs</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">verbose</span> <span class="o">=</span> <span class="n">verbose</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">timeout</span> <span class="o">=</span> <span class="n">timeout</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">pre_dispatch</span> <span class="o">=</span> <span class="n">pre_dispatch</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_ready_batches</span> <span class="o">=</span> <span class="n">queue</span><span class="o">.</span><span class="n">Queue</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_id</span> <span class="o">=</span> <span class="n">uuid4</span><span class="p">()</span><span class="o">.</span><span class="n">hex</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_reducer_callback</span> <span class="o">=</span> <span class="kc">None</span>
+
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">max_nbytes</span><span class="p">,</span> <span class="nb">str</span><span class="p">):</span>
+            <span class="n">max_nbytes</span> <span class="o">=</span> <span class="n">memstr_to_bytes</span><span class="p">(</span><span class="n">max_nbytes</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">_backend_args</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span>
+            <span class="n">max_nbytes</span><span class="o">=</span><span class="n">max_nbytes</span><span class="p">,</span>
+            <span class="n">mmap_mode</span><span class="o">=</span><span class="n">mmap_mode</span><span class="p">,</span>
+            <span class="n">temp_folder</span><span class="o">=</span><span class="n">temp_folder</span><span class="p">,</span>
+            <span class="n">prefer</span><span class="o">=</span><span class="n">prefer</span><span class="p">,</span>
+            <span class="n">require</span><span class="o">=</span><span class="n">require</span><span class="p">,</span>
+            <span class="n">verbose</span><span class="o">=</span><span class="nb">max</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">verbose</span> <span class="o">-</span> <span class="mi">50</span><span class="p">),</span>
+        <span class="p">)</span>
+        <span class="k">if</span> <span class="n">DEFAULT_MP_CONTEXT</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_backend_args</span><span class="p">[</span><span class="s1">&#39;context&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">DEFAULT_MP_CONTEXT</span>
+        <span class="k">elif</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">mp</span><span class="p">,</span> <span class="s2">&quot;get_context&quot;</span><span class="p">):</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_backend_args</span><span class="p">[</span><span class="s1">&#39;context&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">mp</span><span class="o">.</span><span class="n">get_context</span><span class="p">()</span>
+
+        <span class="k">if</span> <span class="n">backend</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">backend</span> <span class="o">=</span> <span class="n">active_backend</span>
+
+        <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">backend</span><span class="p">,</span> <span class="n">ParallelBackendBase</span><span class="p">):</span>
+            <span class="c1"># Use provided backend as is, with the current nesting_level if it</span>
+            <span class="c1"># is not set yet.</span>
+            <span class="k">if</span> <span class="n">backend</span><span class="o">.</span><span class="n">nesting_level</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="n">backend</span><span class="o">.</span><span class="n">nesting_level</span> <span class="o">=</span> <span class="n">nesting_level</span>
+
+        <span class="k">elif</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">backend</span><span class="p">,</span> <span class="s1">&#39;Pool&#39;</span><span class="p">)</span> <span class="ow">and</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">backend</span><span class="p">,</span> <span class="s1">&#39;Lock&#39;</span><span class="p">):</span>
+            <span class="c1"># Make it possible to pass a custom multiprocessing context as</span>
+            <span class="c1"># backend to change the start method to forkserver or spawn or</span>
+            <span class="c1"># preload modules on the forkserver helper process.</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_backend_args</span><span class="p">[</span><span class="s1">&#39;context&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">backend</span>
+            <span class="n">backend</span> <span class="o">=</span> <span class="n">MultiprocessingBackend</span><span class="p">(</span><span class="n">nesting_level</span><span class="o">=</span><span class="n">nesting_level</span><span class="p">)</span>
+
+        <span class="k">elif</span> <span class="n">backend</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">BACKENDS</span> <span class="ow">and</span> <span class="n">backend</span> <span class="ow">in</span> <span class="n">MAYBE_AVAILABLE_BACKENDS</span><span class="p">:</span>
+            <span class="n">warnings</span><span class="o">.</span><span class="n">warn</span><span class="p">(</span>
+                <span class="sa">f</span><span class="s2">&quot;joblib backend &#39;</span><span class="si">{</span><span class="n">backend</span><span class="si">}</span><span class="s2">&#39; is not available on &quot;</span>
+                <span class="sa">f</span><span class="s2">&quot;your system, falling back to </span><span class="si">{</span><span class="n">DEFAULT_BACKEND</span><span class="si">}</span><span class="s2">.&quot;</span><span class="p">,</span>
+                <span class="ne">UserWarning</span><span class="p">,</span>
+                <span class="n">stacklevel</span><span class="o">=</span><span class="mi">2</span><span class="p">)</span>
+            <span class="n">BACKENDS</span><span class="p">[</span><span class="n">backend</span><span class="p">]</span> <span class="o">=</span> <span class="n">BACKENDS</span><span class="p">[</span><span class="n">DEFAULT_BACKEND</span><span class="p">]</span>
+            <span class="n">backend</span> <span class="o">=</span> <span class="n">BACKENDS</span><span class="p">[</span><span class="n">DEFAULT_BACKEND</span><span class="p">](</span><span class="n">nesting_level</span><span class="o">=</span><span class="n">nesting_level</span><span class="p">)</span>
+
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">try</span><span class="p">:</span>
+                <span class="n">backend_factory</span> <span class="o">=</span> <span class="n">BACKENDS</span><span class="p">[</span><span class="n">backend</span><span class="p">]</span>
+            <span class="k">except</span> <span class="ne">KeyError</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Invalid backend: </span><span class="si">%s</span><span class="s2">, expected one of </span><span class="si">%r</span><span class="s2">&quot;</span>
+                                 <span class="o">%</span> <span class="p">(</span><span class="n">backend</span><span class="p">,</span> <span class="nb">sorted</span><span class="p">(</span><span class="n">BACKENDS</span><span class="o">.</span><span class="n">keys</span><span class="p">())))</span> <span class="kn">from</span> <span class="nn">e</span>
+            <span class="n">backend</span> <span class="o">=</span> <span class="n">backend_factory</span><span class="p">(</span><span class="n">nesting_level</span><span class="o">=</span><span class="n">nesting_level</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="p">(</span><span class="n">require</span> <span class="o">==</span> <span class="s1">&#39;sharedmem&#39;</span> <span class="ow">and</span>
+                <span class="ow">not</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">backend</span><span class="p">,</span> <span class="s1">&#39;supports_sharedmem&#39;</span><span class="p">,</span> <span class="kc">False</span><span class="p">)):</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Backend </span><span class="si">%s</span><span class="s2"> does not support shared memory&quot;</span>
+                             <span class="o">%</span> <span class="n">backend</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="p">(</span><span class="n">batch_size</span> <span class="o">==</span> <span class="s1">&#39;auto&#39;</span> <span class="ow">or</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">batch_size</span><span class="p">,</span> <span class="n">Integral</span><span class="p">)</span> <span class="ow">and</span>
+                <span class="n">batch_size</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">):</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">batch_size</span> <span class="o">=</span> <span class="n">batch_size</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+                <span class="s2">&quot;batch_size must be &#39;auto&#39; or a positive integer, got: </span><span class="si">%r</span><span class="s2">&quot;</span>
+                <span class="o">%</span> <span class="n">batch_size</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">_backend</span> <span class="o">=</span> <span class="n">backend</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_output</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_jobs</span> <span class="o">=</span> <span class="nb">list</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_managed_backend</span> <span class="o">=</span> <span class="kc">False</span>
+
+        <span class="c1"># This lock is used coordinate the main thread of this process with</span>
+        <span class="c1"># the async callback thread of our the pool.</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_lock</span> <span class="o">=</span> <span class="n">threading</span><span class="o">.</span><span class="n">RLock</span><span class="p">()</span>
+
+    <span class="k">def</span> <span class="fm">__enter__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_managed_backend</span> <span class="o">=</span> <span class="kc">True</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_initialize_backend</span><span class="p">()</span>
+        <span class="k">return</span> <span class="bp">self</span>
+
+    <span class="k">def</span> <span class="fm">__exit__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">exc_type</span><span class="p">,</span> <span class="n">exc_value</span><span class="p">,</span> <span class="n">traceback</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_terminate_backend</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_managed_backend</span> <span class="o">=</span> <span class="kc">False</span>
+
+    <span class="k">def</span> <span class="nf">_initialize_backend</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Build a process or thread pool and return the number of workers&quot;&quot;&quot;</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">n_jobs</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_backend</span><span class="o">.</span><span class="n">configure</span><span class="p">(</span><span class="n">n_jobs</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">n_jobs</span><span class="p">,</span> <span class="n">parallel</span><span class="o">=</span><span class="bp">self</span><span class="p">,</span>
+                                             <span class="o">**</span><span class="bp">self</span><span class="o">.</span><span class="n">_backend_args</span><span class="p">)</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">timeout</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">_backend</span><span class="o">.</span><span class="n">supports_timeout</span><span class="p">:</span>
+                <span class="n">warnings</span><span class="o">.</span><span class="n">warn</span><span class="p">(</span>
+                    <span class="s1">&#39;The backend class </span><span class="si">{!r}</span><span class="s1"> does not support timeout. &#39;</span>
+                    <span class="s2">&quot;You have set &#39;timeout=</span><span class="si">{}</span><span class="s2">&#39; in Parallel but &quot;</span>
+                    <span class="s2">&quot;the &#39;timeout&#39; parameter will not be used.&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span>
+                        <span class="bp">self</span><span class="o">.</span><span class="n">_backend</span><span class="o">.</span><span class="vm">__class__</span><span class="o">.</span><span class="vm">__name__</span><span class="p">,</span>
+                        <span class="bp">self</span><span class="o">.</span><span class="n">timeout</span><span class="p">))</span>
+
+        <span class="k">except</span> <span class="n">FallbackToBackend</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+            <span class="c1"># Recursively initialize the backend in case of requested fallback.</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_backend</span> <span class="o">=</span> <span class="n">e</span><span class="o">.</span><span class="n">backend</span>
+            <span class="n">n_jobs</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_initialize_backend</span><span class="p">()</span>
+
+        <span class="k">return</span> <span class="n">n_jobs</span>
+
+    <span class="k">def</span> <span class="nf">_effective_n_jobs</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_backend</span><span class="p">:</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_backend</span><span class="o">.</span><span class="n">effective_n_jobs</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">n_jobs</span><span class="p">)</span>
+        <span class="k">return</span> <span class="mi">1</span>
+
+    <span class="k">def</span> <span class="nf">_terminate_backend</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_backend</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_backend</span><span class="o">.</span><span class="n">terminate</span><span class="p">()</span>
+
+    <span class="k">def</span> <span class="nf">_dispatch</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">batch</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Queue the batch for computing, with or without multiprocessing</span>
+
+<span class="sd">        WARNING: this method is not thread-safe: it should be only called</span>
+<span class="sd">        indirectly via dispatch_one_batch.</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="c1"># If job.get() catches an exception, it closes the queue:</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_aborting</span><span class="p">:</span>
+            <span class="k">return</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">n_dispatched_tasks</span> <span class="o">+=</span> <span class="nb">len</span><span class="p">(</span><span class="n">batch</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">n_dispatched_batches</span> <span class="o">+=</span> <span class="mi">1</span>
+
+        <span class="n">dispatch_timestamp</span> <span class="o">=</span> <span class="n">time</span><span class="o">.</span><span class="n">time</span><span class="p">()</span>
+        <span class="n">cb</span> <span class="o">=</span> <span class="n">BatchCompletionCallBack</span><span class="p">(</span><span class="n">dispatch_timestamp</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">batch</span><span class="p">),</span> <span class="bp">self</span><span class="p">)</span>
+        <span class="k">with</span> <span class="bp">self</span><span class="o">.</span><span class="n">_lock</span><span class="p">:</span>
+            <span class="n">job_idx</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_jobs</span><span class="p">)</span>
+            <span class="n">job</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_backend</span><span class="o">.</span><span class="n">apply_async</span><span class="p">(</span><span class="n">batch</span><span class="p">,</span> <span class="n">callback</span><span class="o">=</span><span class="n">cb</span><span class="p">)</span>
+            <span class="c1"># A job can complete so quickly than its callback is</span>
+            <span class="c1"># called before we get here, causing self._jobs to</span>
+            <span class="c1"># grow. To ensure correct results ordering, .insert is</span>
+            <span class="c1"># used (rather than .append) in the following line</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_jobs</span><span class="o">.</span><span class="n">insert</span><span class="p">(</span><span class="n">job_idx</span><span class="p">,</span> <span class="n">job</span><span class="p">)</span>
+
+<div class="viewcode-block" id="Parallel.dispatch_next"><a class="viewcode-back" href="../../_autosummary/s3prl.dataio.dataset.util.html#s3prl.dataio.dataset.util.Parallel.dispatch_next">[docs]</a>    <span class="k">def</span> <span class="nf">dispatch_next</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Dispatch more data for parallel processing</span>
+
+<span class="sd">        This method is meant to be called concurrently by the multiprocessing</span>
+<span class="sd">        callback. We rely on the thread-safety of dispatch_one_batch to protect</span>
+<span class="sd">        against concurrent consumption of the unprotected iterator.</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">dispatch_one_batch</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_original_iterator</span><span class="p">):</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_iterating</span> <span class="o">=</span> <span class="kc">False</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_original_iterator</span> <span class="o">=</span> <span class="kc">None</span></div>
+
+<div class="viewcode-block" id="Parallel.dispatch_one_batch"><a class="viewcode-back" href="../../_autosummary/s3prl.dataio.dataset.util.html#s3prl.dataio.dataset.util.Parallel.dispatch_one_batch">[docs]</a>    <span class="k">def</span> <span class="nf">dispatch_one_batch</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">iterator</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Prefetch the tasks for the next batch and dispatch them.</span>
+
+<span class="sd">        The effective size of the batch is computed here.</span>
+<span class="sd">        If there are no more jobs to dispatch, return False, else return True.</span>
+
+<span class="sd">        The iterator consumption and dispatching is protected by the same</span>
+<span class="sd">        lock so calling this function should be thread safe.</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">batch_size</span> <span class="o">==</span> <span class="s1">&#39;auto&#39;</span><span class="p">:</span>
+            <span class="n">batch_size</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_backend</span><span class="o">.</span><span class="n">compute_batch_size</span><span class="p">()</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="c1"># Fixed batch size strategy</span>
+            <span class="n">batch_size</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">batch_size</span>
+
+        <span class="k">with</span> <span class="bp">self</span><span class="o">.</span><span class="n">_lock</span><span class="p">:</span>
+            <span class="c1"># to ensure an even distribution of the workolad between workers,</span>
+            <span class="c1"># we look ahead in the original iterators more than batch_size</span>
+            <span class="c1"># tasks - However, we keep consuming only one batch at each</span>
+            <span class="c1"># dispatch_one_batch call. The extra tasks are stored in a local</span>
+            <span class="c1"># queue, _ready_batches, that is looked-up prior to re-consuming</span>
+            <span class="c1"># tasks from the origal iterator.</span>
+            <span class="k">try</span><span class="p">:</span>
+                <span class="n">tasks</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_ready_batches</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">block</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+            <span class="k">except</span> <span class="n">queue</span><span class="o">.</span><span class="n">Empty</span><span class="p">:</span>
+                <span class="c1"># slice the iterator n_jobs * batchsize items at a time. If the</span>
+                <span class="c1"># slice returns less than that, then the current batchsize puts</span>
+                <span class="c1"># too much weight on a subset of workers, while other may end</span>
+                <span class="c1"># up starving. So in this case, re-scale the batch size</span>
+                <span class="c1"># accordingly to distribute evenly the last items between all</span>
+                <span class="c1"># workers.</span>
+                <span class="n">n_jobs</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_cached_effective_n_jobs</span>
+                <span class="n">big_batch_size</span> <span class="o">=</span> <span class="n">batch_size</span> <span class="o">*</span> <span class="n">n_jobs</span>
+
+                <span class="n">islice</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">itertools</span><span class="o">.</span><span class="n">islice</span><span class="p">(</span><span class="n">iterator</span><span class="p">,</span> <span class="n">big_batch_size</span><span class="p">))</span>
+                <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">islice</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+                    <span class="k">return</span> <span class="kc">False</span>
+                <span class="k">elif</span> <span class="p">(</span><span class="n">iterator</span> <span class="ow">is</span> <span class="bp">self</span><span class="o">.</span><span class="n">_original_iterator</span>
+                      <span class="ow">and</span> <span class="nb">len</span><span class="p">(</span><span class="n">islice</span><span class="p">)</span> <span class="o">&lt;</span> <span class="n">big_batch_size</span><span class="p">):</span>
+                    <span class="c1"># We reached the end of the original iterator (unless</span>
+                    <span class="c1"># iterator is the ``pre_dispatch``-long initial slice of</span>
+                    <span class="c1"># the original iterator) -- decrease the batch size to</span>
+                    <span class="c1"># account for potential variance in the batches running</span>
+                    <span class="c1"># time.</span>
+                    <span class="n">final_batch_size</span> <span class="o">=</span> <span class="nb">max</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">islice</span><span class="p">)</span> <span class="o">//</span> <span class="p">(</span><span class="mi">10</span> <span class="o">*</span> <span class="n">n_jobs</span><span class="p">))</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="n">final_batch_size</span> <span class="o">=</span> <span class="nb">max</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">islice</span><span class="p">)</span> <span class="o">//</span> <span class="n">n_jobs</span><span class="p">)</span>
+
+                <span class="c1"># enqueue n_jobs batches in a local queue</span>
+                <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">islice</span><span class="p">),</span> <span class="n">final_batch_size</span><span class="p">):</span>
+                    <span class="n">tasks</span> <span class="o">=</span> <span class="n">BatchedCalls</span><span class="p">(</span><span class="n">islice</span><span class="p">[</span><span class="n">i</span><span class="p">:</span><span class="n">i</span> <span class="o">+</span> <span class="n">final_batch_size</span><span class="p">],</span>
+                                         <span class="bp">self</span><span class="o">.</span><span class="n">_backend</span><span class="o">.</span><span class="n">get_nested_backend</span><span class="p">(),</span>
+                                         <span class="bp">self</span><span class="o">.</span><span class="n">_reducer_callback</span><span class="p">,</span>
+                                         <span class="bp">self</span><span class="o">.</span><span class="n">_pickle_cache</span><span class="p">)</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">_ready_batches</span><span class="o">.</span><span class="n">put</span><span class="p">(</span><span class="n">tasks</span><span class="p">)</span>
+
+                <span class="c1"># finally, get one task.</span>
+                <span class="n">tasks</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_ready_batches</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">block</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+            <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">tasks</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+                <span class="c1"># No more tasks available in the iterator: tell caller to stop.</span>
+                <span class="k">return</span> <span class="kc">False</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">_dispatch</span><span class="p">(</span><span class="n">tasks</span><span class="p">)</span>
+                <span class="k">return</span> <span class="kc">True</span></div>
+
+    <span class="k">def</span> <span class="nf">_print</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">msg</span><span class="p">,</span> <span class="n">msg_args</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Display the message on stout or stderr depending on verbosity&quot;&quot;&quot;</span>
+        <span class="c1"># XXX: Not using the logger framework: need to</span>
+        <span class="c1"># learn to use logger better.</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">verbose</span><span class="p">:</span>
+            <span class="k">return</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">verbose</span> <span class="o">&lt;</span> <span class="mi">50</span><span class="p">:</span>
+            <span class="n">writer</span> <span class="o">=</span> <span class="n">sys</span><span class="o">.</span><span class="n">stderr</span><span class="o">.</span><span class="n">write</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">writer</span> <span class="o">=</span> <span class="n">sys</span><span class="o">.</span><span class="n">stdout</span><span class="o">.</span><span class="n">write</span>
+        <span class="n">msg</span> <span class="o">=</span> <span class="n">msg</span> <span class="o">%</span> <span class="n">msg_args</span>
+        <span class="n">writer</span><span class="p">(</span><span class="s1">&#39;[</span><span class="si">%s</span><span class="s1">]: </span><span class="si">%s</span><span class="se">\n</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">msg</span><span class="p">))</span>
+
+<div class="viewcode-block" id="Parallel.print_progress"><a class="viewcode-back" href="../../_autosummary/s3prl.dataio.dataset.util.html#s3prl.dataio.dataset.util.Parallel.print_progress">[docs]</a>    <span class="k">def</span> <span class="nf">print_progress</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Display the process of the parallel execution only a fraction</span>
+<span class="sd">           of time, controlled by self.verbose.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">verbose</span><span class="p">:</span>
+            <span class="k">return</span>
+        <span class="n">elapsed_time</span> <span class="o">=</span> <span class="n">time</span><span class="o">.</span><span class="n">time</span><span class="p">()</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">_start_time</span>
+
+        <span class="c1"># Original job iterator becomes None once it has been fully</span>
+        <span class="c1"># consumed : at this point we know the total number of jobs and we are</span>
+        <span class="c1"># able to display an estimation of the remaining time based on already</span>
+        <span class="c1"># completed jobs. Otherwise, we simply display the number of completed</span>
+        <span class="c1"># tasks.</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_original_iterator</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">_verbosity_filter</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">n_dispatched_batches</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">verbose</span><span class="p">):</span>
+                <span class="k">return</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_print</span><span class="p">(</span><span class="s1">&#39;Done </span><span class="si">%3i</span><span class="s1"> tasks      | elapsed: </span><span class="si">%s</span><span class="s1">&#39;</span><span class="p">,</span>
+                        <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">n_completed_tasks</span><span class="p">,</span>
+                         <span class="n">short_format_time</span><span class="p">(</span><span class="n">elapsed_time</span><span class="p">),</span> <span class="p">))</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">index</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">n_completed_tasks</span>
+            <span class="c1"># We are finished dispatching</span>
+            <span class="n">total_tasks</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">n_dispatched_tasks</span>
+            <span class="c1"># We always display the first loop</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="n">index</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+                <span class="c1"># Display depending on the number of remaining items</span>
+                <span class="c1"># A message as soon as we finish dispatching, cursor is 0</span>
+                <span class="n">cursor</span> <span class="o">=</span> <span class="p">(</span><span class="n">total_tasks</span> <span class="o">-</span> <span class="n">index</span> <span class="o">+</span> <span class="mi">1</span> <span class="o">-</span>
+                          <span class="bp">self</span><span class="o">.</span><span class="n">_pre_dispatch_amount</span><span class="p">)</span>
+                <span class="n">frequency</span> <span class="o">=</span> <span class="p">(</span><span class="n">total_tasks</span> <span class="o">//</span> <span class="bp">self</span><span class="o">.</span><span class="n">verbose</span><span class="p">)</span> <span class="o">+</span> <span class="mi">1</span>
+                <span class="n">is_last_item</span> <span class="o">=</span> <span class="p">(</span><span class="n">index</span> <span class="o">+</span> <span class="mi">1</span> <span class="o">==</span> <span class="n">total_tasks</span><span class="p">)</span>
+                <span class="k">if</span> <span class="p">(</span><span class="n">is_last_item</span> <span class="ow">or</span> <span class="n">cursor</span> <span class="o">%</span> <span class="n">frequency</span><span class="p">):</span>
+                    <span class="k">return</span>
+            <span class="n">remaining_time</span> <span class="o">=</span> <span class="p">(</span><span class="n">elapsed_time</span> <span class="o">/</span> <span class="n">index</span><span class="p">)</span> <span class="o">*</span> \
+                             <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">n_dispatched_tasks</span> <span class="o">-</span> <span class="n">index</span> <span class="o">*</span> <span class="mf">1.0</span><span class="p">)</span>
+            <span class="c1"># only display status if remaining time is greater or equal to 0</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_print</span><span class="p">(</span><span class="s1">&#39;Done </span><span class="si">%3i</span><span class="s1"> out of </span><span class="si">%3i</span><span class="s1"> | elapsed: </span><span class="si">%s</span><span class="s1"> remaining: </span><span class="si">%s</span><span class="s1">&#39;</span><span class="p">,</span>
+                        <span class="p">(</span><span class="n">index</span><span class="p">,</span>
+                         <span class="n">total_tasks</span><span class="p">,</span>
+                         <span class="n">short_format_time</span><span class="p">(</span><span class="n">elapsed_time</span><span class="p">),</span>
+                         <span class="n">short_format_time</span><span class="p">(</span><span class="n">remaining_time</span><span class="p">),</span>
+                         <span class="p">))</span></div>
+
+<div class="viewcode-block" id="Parallel.retrieve"><a class="viewcode-back" href="../../_autosummary/s3prl.dataio.dataset.util.html#s3prl.dataio.dataset.util.Parallel.retrieve">[docs]</a>    <span class="k">def</span> <span class="nf">retrieve</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_output</span> <span class="o">=</span> <span class="nb">list</span><span class="p">()</span>
+        <span class="k">while</span> <span class="bp">self</span><span class="o">.</span><span class="n">_iterating</span> <span class="ow">or</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_jobs</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_jobs</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+                <span class="c1"># Wait for an async callback to dispatch new jobs</span>
+                <span class="n">time</span><span class="o">.</span><span class="n">sleep</span><span class="p">(</span><span class="mf">0.01</span><span class="p">)</span>
+                <span class="k">continue</span>
+            <span class="c1"># We need to be careful: the job list can be filling up as</span>
+            <span class="c1"># we empty it and Python list are not thread-safe by default hence</span>
+            <span class="c1"># the use of the lock</span>
+            <span class="k">with</span> <span class="bp">self</span><span class="o">.</span><span class="n">_lock</span><span class="p">:</span>
+                <span class="n">job</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_jobs</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
+
+            <span class="k">try</span><span class="p">:</span>
+                <span class="k">if</span> <span class="nb">getattr</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_backend</span><span class="p">,</span> <span class="s1">&#39;supports_timeout&#39;</span><span class="p">,</span> <span class="kc">False</span><span class="p">):</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">_output</span><span class="o">.</span><span class="n">extend</span><span class="p">(</span><span class="n">job</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">timeout</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">timeout</span><span class="p">))</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">_output</span><span class="o">.</span><span class="n">extend</span><span class="p">(</span><span class="n">job</span><span class="o">.</span><span class="n">get</span><span class="p">())</span>
+
+            <span class="k">except</span> <span class="ne">BaseException</span> <span class="k">as</span> <span class="n">exception</span><span class="p">:</span>
+                <span class="c1"># Note: we catch any BaseException instead of just Exception</span>
+                <span class="c1"># instances to also include KeyboardInterrupt.</span>
+
+                <span class="c1"># Stop dispatching any new job in the async callback thread</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">_aborting</span> <span class="o">=</span> <span class="kc">True</span>
+
+                <span class="c1"># If the backend allows it, cancel or kill remaining running</span>
+                <span class="c1"># tasks without waiting for the results as we will raise</span>
+                <span class="c1"># the exception we got back to the caller instead of returning</span>
+                <span class="c1"># any result.</span>
+                <span class="n">backend</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_backend</span>
+                <span class="k">if</span> <span class="p">(</span><span class="n">backend</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span>
+                        <span class="nb">hasattr</span><span class="p">(</span><span class="n">backend</span><span class="p">,</span> <span class="s1">&#39;abort_everything&#39;</span><span class="p">)):</span>
+                    <span class="c1"># If the backend is managed externally we need to make sure</span>
+                    <span class="c1"># to leave it in a working state to allow for future jobs</span>
+                    <span class="c1"># scheduling.</span>
+                    <span class="n">ensure_ready</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_managed_backend</span>
+                    <span class="n">backend</span><span class="o">.</span><span class="n">abort_everything</span><span class="p">(</span><span class="n">ensure_ready</span><span class="o">=</span><span class="n">ensure_ready</span><span class="p">)</span>
+                <span class="k">raise</span></div>
+
+    <span class="k">def</span> <span class="fm">__call__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">iterable</span><span class="p">):</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_jobs</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s1">&#39;This Parallel instance is already running&#39;</span><span class="p">)</span>
+        <span class="c1"># A flag used to abort the dispatching of jobs in case an</span>
+        <span class="c1"># exception is found</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_aborting</span> <span class="o">=</span> <span class="kc">False</span>
+
+        <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">_managed_backend</span><span class="p">:</span>
+            <span class="n">n_jobs</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_initialize_backend</span><span class="p">()</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">n_jobs</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_effective_n_jobs</span><span class="p">()</span>
+
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_backend</span><span class="p">,</span> <span class="n">LokyBackend</span><span class="p">):</span>
+            <span class="c1"># For the loky backend, we add a callback executed when reducing</span>
+            <span class="c1"># BatchCalls, that makes the loky executor use a temporary folder</span>
+            <span class="c1"># specific to this Parallel object when pickling temporary memmaps.</span>
+            <span class="c1"># This callback is necessary to ensure that several Parallel</span>
+            <span class="c1"># objects using the same resuable executor don&#39;t use the same</span>
+            <span class="c1"># temporary resources.</span>
+
+            <span class="k">def</span> <span class="nf">_batched_calls_reducer_callback</span><span class="p">():</span>
+                <span class="c1"># Relevant implementation detail: the following lines, called</span>
+                <span class="c1"># when reducing BatchedCalls, are called in a thread-safe</span>
+                <span class="c1"># situation, meaning that the context of the temporary folder</span>
+                <span class="c1"># manager will not be changed in between the callback execution</span>
+                <span class="c1"># and the end of the BatchedCalls pickling. The reason is that</span>
+                <span class="c1"># pickling (the only place where set_current_context is used)</span>
+                <span class="c1"># is done from a single thread (the queue_feeder_thread).</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">_backend</span><span class="o">.</span><span class="n">_workers</span><span class="o">.</span><span class="n">_temp_folder_manager</span><span class="o">.</span><span class="n">set_current_context</span><span class="p">(</span>  <span class="c1"># noqa</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">_id</span>
+                <span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_reducer_callback</span> <span class="o">=</span> <span class="n">_batched_calls_reducer_callback</span>
+
+        <span class="c1"># self._effective_n_jobs should be called in the Parallel.__call__</span>
+        <span class="c1"># thread only -- store its value in an attribute for further queries.</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_cached_effective_n_jobs</span> <span class="o">=</span> <span class="n">n_jobs</span>
+
+        <span class="n">backend_name</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_backend</span><span class="o">.</span><span class="vm">__class__</span><span class="o">.</span><span class="vm">__name__</span>
+        <span class="k">if</span> <span class="n">n_jobs</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">RuntimeError</span><span class="p">(</span><span class="s2">&quot;</span><span class="si">%s</span><span class="s2"> has no active worker.&quot;</span> <span class="o">%</span> <span class="n">backend_name</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">_print</span><span class="p">(</span><span class="s2">&quot;Using backend </span><span class="si">%s</span><span class="s2"> with </span><span class="si">%d</span><span class="s2"> concurrent workers.&quot;</span><span class="p">,</span>
+                    <span class="p">(</span><span class="n">backend_name</span><span class="p">,</span> <span class="n">n_jobs</span><span class="p">))</span>
+        <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_backend</span><span class="p">,</span> <span class="s1">&#39;start_call&#39;</span><span class="p">):</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_backend</span><span class="o">.</span><span class="n">start_call</span><span class="p">()</span>
+        <span class="n">iterator</span> <span class="o">=</span> <span class="nb">iter</span><span class="p">(</span><span class="n">iterable</span><span class="p">)</span>
+        <span class="n">pre_dispatch</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">pre_dispatch</span>
+
+        <span class="k">if</span> <span class="n">pre_dispatch</span> <span class="o">==</span> <span class="s1">&#39;all&#39;</span> <span class="ow">or</span> <span class="n">n_jobs</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+            <span class="c1"># prevent further dispatch via multiprocessing callback thread</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_original_iterator</span> <span class="o">=</span> <span class="kc">None</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_pre_dispatch_amount</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_original_iterator</span> <span class="o">=</span> <span class="n">iterator</span>
+            <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">pre_dispatch</span><span class="p">,</span> <span class="s1">&#39;endswith&#39;</span><span class="p">):</span>
+                <span class="n">pre_dispatch</span> <span class="o">=</span> <span class="n">eval_expr</span><span class="p">(</span>
+                    <span class="n">pre_dispatch</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s2">&quot;n_jobs&quot;</span><span class="p">,</span> <span class="nb">str</span><span class="p">(</span><span class="n">n_jobs</span><span class="p">))</span>
+                <span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_pre_dispatch_amount</span> <span class="o">=</span> <span class="n">pre_dispatch</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">pre_dispatch</span><span class="p">)</span>
+
+            <span class="c1"># The main thread will consume the first pre_dispatch items and</span>
+            <span class="c1"># the remaining items will later be lazily dispatched by async</span>
+            <span class="c1"># callbacks upon task completions.</span>
+
+            <span class="c1"># TODO: this iterator should be batch_size * n_jobs</span>
+            <span class="n">iterator</span> <span class="o">=</span> <span class="n">itertools</span><span class="o">.</span><span class="n">islice</span><span class="p">(</span><span class="n">iterator</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_pre_dispatch_amount</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">_start_time</span> <span class="o">=</span> <span class="n">time</span><span class="o">.</span><span class="n">time</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">n_dispatched_batches</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">n_dispatched_tasks</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">n_completed_tasks</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="c1"># Use a caching dict for callables that are pickled with cloudpickle to</span>
+        <span class="c1"># improve performances. This cache is used only in the case of</span>
+        <span class="c1"># functions that are defined in the __main__ module, functions that are</span>
+        <span class="c1"># defined locally (inside another function) and lambda expressions.</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_pickle_cache</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">()</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="c1"># Only set self._iterating to True if at least a batch</span>
+            <span class="c1"># was dispatched. In particular this covers the edge</span>
+            <span class="c1"># case of Parallel used with an exhausted iterator. If</span>
+            <span class="c1"># self._original_iterator is None, then this means either</span>
+            <span class="c1"># that pre_dispatch == &quot;all&quot;, n_jobs == 1 or that the first batch</span>
+            <span class="c1"># was very quick and its callback already dispatched all the</span>
+            <span class="c1"># remaining jobs.</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_iterating</span> <span class="o">=</span> <span class="kc">False</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">dispatch_one_batch</span><span class="p">(</span><span class="n">iterator</span><span class="p">):</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">_iterating</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_original_iterator</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span>
+
+            <span class="k">while</span> <span class="bp">self</span><span class="o">.</span><span class="n">dispatch_one_batch</span><span class="p">(</span><span class="n">iterator</span><span class="p">):</span>
+                <span class="k">pass</span>
+
+            <span class="k">if</span> <span class="n">pre_dispatch</span> <span class="o">==</span> <span class="s2">&quot;all&quot;</span> <span class="ow">or</span> <span class="n">n_jobs</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+                <span class="c1"># The iterable was consumed all at once by the above for loop.</span>
+                <span class="c1"># No need to wait for async callbacks to trigger to</span>
+                <span class="c1"># consumption.</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">_iterating</span> <span class="o">=</span> <span class="kc">False</span>
+
+            <span class="k">with</span> <span class="bp">self</span><span class="o">.</span><span class="n">_backend</span><span class="o">.</span><span class="n">retrieval_context</span><span class="p">():</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">retrieve</span><span class="p">()</span>
+            <span class="c1"># Make sure that we get a last message telling us we are done</span>
+            <span class="n">elapsed_time</span> <span class="o">=</span> <span class="n">time</span><span class="o">.</span><span class="n">time</span><span class="p">()</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">_start_time</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_print</span><span class="p">(</span><span class="s1">&#39;Done </span><span class="si">%3i</span><span class="s1"> out of </span><span class="si">%3i</span><span class="s1"> | elapsed: </span><span class="si">%s</span><span class="s1"> finished&#39;</span><span class="p">,</span>
+                        <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_output</span><span class="p">),</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_output</span><span class="p">),</span>
+                         <span class="n">short_format_time</span><span class="p">(</span><span class="n">elapsed_time</span><span class="p">)))</span>
+        <span class="k">finally</span><span class="p">:</span>
+            <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_backend</span><span class="p">,</span> <span class="s1">&#39;stop_call&#39;</span><span class="p">):</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">_backend</span><span class="o">.</span><span class="n">stop_call</span><span class="p">()</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">_managed_backend</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">_terminate_backend</span><span class="p">()</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_jobs</span> <span class="o">=</span> <span class="nb">list</span><span class="p">()</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_pickle_cache</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="n">output</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_output</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_output</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="k">return</span> <span class="n">output</span>
+
+    <span class="k">def</span> <span class="fm">__repr__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="s1">&#39;</span><span class="si">%s</span><span class="s1">(n_jobs=</span><span class="si">%s</span><span class="s1">)&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="vm">__class__</span><span class="o">.</span><span class="vm">__name__</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">n_jobs</span><span class="p">)</span></div>
+</pre></div>
+        </article>
+      </div>
+      <footer>
+        
+        <div class="related-pages">
+          
+          
+        </div>
+        <div class="bottom-of-page">
+          <div class="left-details">
+            <div class="copyright">
+                Copyright &#169; 2022, S3PRL Team
+            </div>
+            Made with <a href="https://www.sphinx-doc.org/">Sphinx</a> and <a class="muted-link" href="https://pradyunsg.me">@pradyunsg</a>'s
+            
+            <a href="https://github.com/pradyunsg/furo">Furo</a>
+            
+          </div>
+          <div class="right-details">
+            <div class="icons">
+              
+            </div>
+          </div>
+        </div>
+        
+      </footer>
+    </div>
+    <aside class="toc-drawer no-toc">
+      
+      
+      
+    </aside>
+  </div>
+</div><script data-url_root="../../" id="documentation_options" src="../../_static/documentation_options.js"></script>
+    <script src="../../_static/jquery.js"></script>
+    <script src="../../_static/underscore.js"></script>
+    <script src="../../_static/_sphinx_javascript_frameworks_compat.js"></script>
+    <script src="../../_static/doctools.js"></script>
+    <script src="../../_static/sphinx_highlight.js"></script>
+    <script src="../../_static/scripts/furo.js"></script>
+    <script src="../../_static/js/custom.js"></script>
+    </body>
+</html>

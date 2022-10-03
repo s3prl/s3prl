@@ -1,0 +1,1709 @@
+<!doctype html>
+<html class="no-js" lang="en">
+  <head><meta charset="utf-8"/>
+    <meta name="viewport" content="width=device-width,initial-scale=1"/>
+    <meta name="color-scheme" content="light dark"><meta name="generator" content="Docutils 0.19: https://docutils.sourceforge.io/" />
+<link rel="index" title="Index" href="../genindex.html" /><link rel="search" title="Search" href="../search.html" /><link rel="next" title="encoder" href="s3prl.dataio.encoder.html" /><link rel="prev" title="load_audio" href="s3prl.dataio.dataset.load_audio.html" />
+
+    <meta name="generator" content="sphinx-5.2.3, furo 2022.09.29"/>
+        <title>util - S3PRL 0.4.5 documentation</title>
+      <link rel="stylesheet" type="text/css" href="../_static/pygments.css" />
+    <link rel="stylesheet" type="text/css" href="../_static/styles/furo.css?digest=d81277517bee4d6b0349d71bb2661d4890b5617c" />
+    <link rel="stylesheet" type="text/css" href="../_static/styles/furo-extensions.css?digest=30d1aed668e5c3a91c3e3bf6a60b675221979f0e" />
+    <link rel="stylesheet" type="text/css" href="../_static/css/custom.css" />
+    
+    
+
+
+<style>
+  body {
+    --color-code-background: #f8f8f8;
+  --color-code-foreground: black;
+  
+  }
+  @media not print {
+    body[data-theme="dark"] {
+      --color-code-background: #202020;
+  --color-code-foreground: #d0d0d0;
+  
+    }
+    @media (prefers-color-scheme: dark) {
+      body:not([data-theme="light"]) {
+        --color-code-background: #202020;
+  --color-code-foreground: #d0d0d0;
+  
+      }
+    }
+  }
+</style></head>
+  <body>
+    
+    <script>
+      document.body.dataset.theme = localStorage.getItem("theme") || "auto";
+    </script>
+    
+
+<svg xmlns="http://www.w3.org/2000/svg" style="display: none;">
+  <symbol id="svg-toc" viewBox="0 0 24 24">
+    <title>Contents</title>
+    <svg stroke="currentColor" fill="currentColor" stroke-width="0" viewBox="0 0 1024 1024">
+      <path d="M408 442h480c4.4 0 8-3.6 8-8v-56c0-4.4-3.6-8-8-8H408c-4.4 0-8 3.6-8 8v56c0 4.4 3.6 8 8 8zm-8 204c0 4.4 3.6 8 8 8h480c4.4 0 8-3.6 8-8v-56c0-4.4-3.6-8-8-8H408c-4.4 0-8 3.6-8 8v56zm504-486H120c-4.4 0-8 3.6-8 8v56c0 4.4 3.6 8 8 8h784c4.4 0 8-3.6 8-8v-56c0-4.4-3.6-8-8-8zm0 632H120c-4.4 0-8 3.6-8 8v56c0 4.4 3.6 8 8 8h784c4.4 0 8-3.6 8-8v-56c0-4.4-3.6-8-8-8zM115.4 518.9L271.7 642c5.8 4.6 14.4.5 14.4-6.9V388.9c0-7.4-8.5-11.5-14.4-6.9L115.4 505.1a8.74 8.74 0 0 0 0 13.8z"/>
+    </svg>
+  </symbol>
+  <symbol id="svg-menu" viewBox="0 0 24 24">
+    <title>Menu</title>
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather-menu">
+      <line x1="3" y1="12" x2="21" y2="12"></line>
+      <line x1="3" y1="6" x2="21" y2="6"></line>
+      <line x1="3" y1="18" x2="21" y2="18"></line>
+    </svg>
+  </symbol>
+  <symbol id="svg-arrow-right" viewBox="0 0 24 24">
+    <title>Expand</title>
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather-chevron-right">
+      <polyline points="9 18 15 12 9 6"></polyline>
+    </svg>
+  </symbol>
+  <symbol id="svg-sun" viewBox="0 0 24 24">
+    <title>Light mode</title>
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="feather-sun">
+      <circle cx="12" cy="12" r="5"></circle>
+      <line x1="12" y1="1" x2="12" y2="3"></line>
+      <line x1="12" y1="21" x2="12" y2="23"></line>
+      <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
+      <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
+      <line x1="1" y1="12" x2="3" y2="12"></line>
+      <line x1="21" y1="12" x2="23" y2="12"></line>
+      <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
+      <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
+    </svg>
+  </symbol>
+  <symbol id="svg-moon" viewBox="0 0 24 24">
+    <title>Dark mode</title>
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="icon-tabler-moon">
+      <path stroke="none" d="M0 0h24v24H0z" fill="none" />
+      <path d="M12 3c.132 0 .263 0 .393 0a7.5 7.5 0 0 0 7.92 12.446a9 9 0 1 1 -8.313 -12.454z" />
+    </svg>
+  </symbol>
+  <symbol id="svg-sun-half" viewBox="0 0 24 24">
+    <title>Auto light/dark mode</title>
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="icon-tabler-shadow">
+      <path stroke="none" d="M0 0h24v24H0z" fill="none"/>
+      <circle cx="12" cy="12" r="9" />
+      <path d="M13 12h5" />
+      <path d="M13 15h4" />
+      <path d="M13 18h1" />
+      <path d="M13 9h4" />
+      <path d="M13 6h1" />
+    </svg>
+  </symbol>
+</svg>
+
+<input type="checkbox" class="sidebar-toggle" name="__navigation" id="__navigation">
+<input type="checkbox" class="sidebar-toggle" name="__toc" id="__toc">
+<label class="overlay sidebar-overlay" for="__navigation">
+  <div class="visually-hidden">Hide navigation sidebar</div>
+</label>
+<label class="overlay toc-overlay" for="__toc">
+  <div class="visually-hidden">Hide table of contents sidebar</div>
+</label>
+
+
+
+<div class="page">
+  <header class="mobile-header">
+    <div class="header-left">
+      <label class="nav-overlay-icon" for="__navigation">
+        <div class="visually-hidden">Toggle site navigation sidebar</div>
+        <i class="icon"><svg><use href="#svg-menu"></use></svg></i>
+      </label>
+    </div>
+    <div class="header-center">
+      <a href="../index.html"><div class="brand">S3PRL 0.4.5
+ documentation</div></a>
+    </div>
+    <div class="header-right">
+      <div class="theme-toggle-container theme-toggle-header">
+        <button class="theme-toggle">
+          <div class="visually-hidden">Toggle Light / Dark / Auto color theme</div>
+          <svg class="theme-icon-when-auto"><use href="#svg-sun-half"></use></svg>
+          <svg class="theme-icon-when-dark"><use href="#svg-moon"></use></svg>
+          <svg class="theme-icon-when-light"><use href="#svg-sun"></use></svg>
+        </button>
+      </div>
+      <label class="toc-overlay-icon toc-header-icon" for="__toc">
+        <div class="visually-hidden">Toggle table of contents sidebar</div>
+        <i class="icon"><svg><use href="#svg-toc"></use></svg></i>
+      </label>
+    </div>
+  </header>
+  <aside class="sidebar-drawer">
+    <div class="sidebar-container">
+      
+      <div class="sidebar-sticky"><a class="sidebar-brand" href="../index.html">
+  
+  
+  <span class="sidebar-brand-text">S3PRL 0.4.5
+ documentation</span>
+  
+</a><form class="sidebar-search-container" method="get" action="../search.html" role="search">
+  <input class="sidebar-search" placeholder=Search name="q" aria-label="Search">
+  <input type="hidden" name="check_keywords" value="yes">
+  <input type="hidden" name="area" value="default">
+</form>
+<div id="searchbox"></div><div class="sidebar-scroll"><div class="sidebar-tree">
+  <p class="caption" role="heading"><span class="caption-text">Getting started</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../tutorial/installation.html">Install S3PRL</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../tutorial/upstream_collection.html">S3PRL Upstream Collection</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../tutorial/problem.html">Use Problem module to run customizable recipes</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">How to Contribute</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../contribute/public.html">Contribute to S3PRL</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../contribute/private.html">Internal S3PRL Development</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">API Documentation</span></p>
+<ul class="current">
+<li class="toctree-l1 has-children"><a class="reference internal" href="s3prl.nn.html">nn</a><input class="toctree-checkbox" id="toctree-checkbox-1" name="toctree-checkbox-1" role="switch" type="checkbox"/><label for="toctree-checkbox-1"><div class="visually-hidden">Toggle child pages in navigation</div><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul>
+<li class="toctree-l2"><a class="reference internal" href="s3prl.nn.beam_decoder.html">beam_decoder</a></li>
+<li class="toctree-l2"><a class="reference internal" href="s3prl.nn.common.html">common</a></li>
+<li class="toctree-l2"><a class="reference internal" href="s3prl.nn.hear.html">hear</a></li>
+<li class="toctree-l2"><a class="reference internal" href="s3prl.nn.interface.html">interface</a></li>
+<li class="toctree-l2"><a class="reference internal" href="s3prl.nn.linear.html">linear</a></li>
+<li class="toctree-l2"><a class="reference internal" href="s3prl.nn.pit.html">pit</a></li>
+<li class="toctree-l2"><a class="reference internal" href="s3prl.nn.pooling.html">pooling</a></li>
+<li class="toctree-l2"><a class="reference internal" href="s3prl.nn.rnn.html">rnn</a></li>
+<li class="toctree-l2"><a class="reference internal" href="s3prl.nn.speaker_loss.html">speaker_loss</a></li>
+<li class="toctree-l2"><a class="reference internal" href="s3prl.nn.speaker_model.html">speaker_model</a></li>
+<li class="toctree-l2"><a class="reference internal" href="s3prl.nn.specaug.html">specaug</a></li>
+<li class="toctree-l2"><a class="reference internal" href="s3prl.nn.upstream.html">upstream</a></li>
+</ul>
+</li>
+<li class="toctree-l1 has-children"><a class="reference internal" href="s3prl.problem.html">problem</a><input class="toctree-checkbox" id="toctree-checkbox-2" name="toctree-checkbox-2" role="switch" type="checkbox"/><label for="toctree-checkbox-2"><div class="visually-hidden">Toggle child pages in navigation</div><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul>
+<li class="toctree-l2 has-children"><a class="reference internal" href="s3prl.problem.asr.html">asr</a><input class="toctree-checkbox" id="toctree-checkbox-3" name="toctree-checkbox-3" role="switch" type="checkbox"/><label for="toctree-checkbox-3"><div class="visually-hidden">Toggle child pages in navigation</div><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul>
+<li class="toctree-l3"><a class="reference internal" href="s3prl.problem.asr.run.html">run</a></li>
+<li class="toctree-l3"><a class="reference internal" href="s3prl.problem.asr.superb_asr.html">superb_asr</a></li>
+<li class="toctree-l3"><a class="reference internal" href="s3prl.problem.asr.superb_pr.html">superb_pr</a></li>
+<li class="toctree-l3"><a class="reference internal" href="s3prl.problem.asr.superb_sf.html">superb_sf</a></li>
+</ul>
+</li>
+<li class="toctree-l2 has-children"><a class="reference internal" href="s3prl.problem.asv.html">asv</a><input class="toctree-checkbox" id="toctree-checkbox-4" name="toctree-checkbox-4" role="switch" type="checkbox"/><label for="toctree-checkbox-4"><div class="visually-hidden">Toggle child pages in navigation</div><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul>
+<li class="toctree-l3"><a class="reference internal" href="s3prl.problem.asv.run.html">run</a></li>
+<li class="toctree-l3"><a class="reference internal" href="s3prl.problem.asv.superb_asv.html">superb_asv</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="s3prl.problem.base.html">base</a></li>
+<li class="toctree-l2 has-children"><a class="reference internal" href="s3prl.problem.common.html">common</a><input class="toctree-checkbox" id="toctree-checkbox-5" name="toctree-checkbox-5" role="switch" type="checkbox"/><label for="toctree-checkbox-5"><div class="visually-hidden">Toggle child pages in navigation</div><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul>
+<li class="toctree-l3"><a class="reference internal" href="s3prl.problem.common.hear_beijing_opera.html">hear_beijing_opera</a></li>
+<li class="toctree-l3"><a class="reference internal" href="s3prl.problem.common.hear_cremad.html">hear_cremad</a></li>
+<li class="toctree-l3"><a class="reference internal" href="s3prl.problem.common.hear_dcase_2016_task2.html">hear_dcase_2016_task2</a></li>
+<li class="toctree-l3"><a class="reference internal" href="s3prl.problem.common.hear_esc50.html">hear_esc50</a></li>
+<li class="toctree-l3"><a class="reference internal" href="s3prl.problem.common.hear_fsd.html">hear_fsd</a></li>
+<li class="toctree-l3"><a class="reference internal" href="s3prl.problem.common.hear_gsc5hr.html">hear_gsc5hr</a></li>
+<li class="toctree-l3"><a class="reference internal" href="s3prl.problem.common.hear_gtzan.html">hear_gtzan</a></li>
+<li class="toctree-l3"><a class="reference internal" href="s3prl.problem.common.hear_gtzan_music_speech.html">hear_gtzan_music_speech</a></li>
+<li class="toctree-l3"><a class="reference internal" href="s3prl.problem.common.hear_gunshot.html">hear_gunshot</a></li>
+<li class="toctree-l3"><a class="reference internal" href="s3prl.problem.common.hear_libricount.html">hear_libricount</a></li>
+<li class="toctree-l3"><a class="reference internal" href="s3prl.problem.common.hear_maestro.html">hear_maestro</a></li>
+<li class="toctree-l3"><a class="reference internal" href="s3prl.problem.common.hear_nsynth5hr.html">hear_nsynth5hr</a></li>
+<li class="toctree-l3"><a class="reference internal" href="s3prl.problem.common.hear_stroke.html">hear_stroke</a></li>
+<li class="toctree-l3"><a class="reference internal" href="s3prl.problem.common.hear_tonic.html">hear_tonic</a></li>
+<li class="toctree-l3"><a class="reference internal" href="s3prl.problem.common.hear_vocal.html">hear_vocal</a></li>
+<li class="toctree-l3"><a class="reference internal" href="s3prl.problem.common.hear_vox_lingual.html">hear_vox_lingual</a></li>
+<li class="toctree-l3"><a class="reference internal" href="s3prl.problem.common.run.html">run</a></li>
+<li class="toctree-l3"><a class="reference internal" href="s3prl.problem.common.superb_er.html">superb_er</a></li>
+<li class="toctree-l3"><a class="reference internal" href="s3prl.problem.common.superb_ic.html">superb_ic</a></li>
+<li class="toctree-l3"><a class="reference internal" href="s3prl.problem.common.superb_ks.html">superb_ks</a></li>
+<li class="toctree-l3"><a class="reference internal" href="s3prl.problem.common.superb_sid.html">superb_sid</a></li>
+</ul>
+</li>
+<li class="toctree-l2 has-children"><a class="reference internal" href="s3prl.problem.diarization.html">diarization</a><input class="toctree-checkbox" id="toctree-checkbox-6" name="toctree-checkbox-6" role="switch" type="checkbox"/><label for="toctree-checkbox-6"><div class="visually-hidden">Toggle child pages in navigation</div><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul>
+<li class="toctree-l3"><a class="reference internal" href="s3prl.problem.diarization.run.html">run</a></li>
+<li class="toctree-l3"><a class="reference internal" href="s3prl.problem.diarization.superb_sd.html">superb_sd</a></li>
+<li class="toctree-l3"><a class="reference internal" href="s3prl.problem.diarization.util.html">util</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l1 has-children"><a class="reference internal" href="s3prl.task.html">task</a><input class="toctree-checkbox" id="toctree-checkbox-7" name="toctree-checkbox-7" role="switch" type="checkbox"/><label for="toctree-checkbox-7"><div class="visually-hidden">Toggle child pages in navigation</div><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul>
+<li class="toctree-l2"><a class="reference internal" href="s3prl.task.base.html">base</a></li>
+<li class="toctree-l2"><a class="reference internal" href="s3prl.task.diarization.html">diarization</a></li>
+<li class="toctree-l2"><a class="reference internal" href="s3prl.task.dump_feature.html">dump_feature</a></li>
+<li class="toctree-l2"><a class="reference internal" href="s3prl.task.event_prediction.html">event_prediction</a></li>
+<li class="toctree-l2"><a class="reference internal" href="s3prl.task.scene_prediction.html">scene_prediction</a></li>
+<li class="toctree-l2"><a class="reference internal" href="s3prl.task.speaker_verification_task.html">speaker_verification_task</a></li>
+<li class="toctree-l2"><a class="reference internal" href="s3prl.task.speech2text_ctc_task.html">speech2text_ctc_task</a></li>
+<li class="toctree-l2"><a class="reference internal" href="s3prl.task.utterance_classification_task.html">utterance_classification_task</a></li>
+</ul>
+</li>
+<li class="toctree-l1 current has-children"><a class="reference internal" href="s3prl.dataio.html">dataio</a><input checked="" class="toctree-checkbox" id="toctree-checkbox-8" name="toctree-checkbox-8" role="switch" type="checkbox"/><label for="toctree-checkbox-8"><div class="visually-hidden">Toggle child pages in navigation</div><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul class="current">
+<li class="toctree-l2 has-children"><a class="reference internal" href="s3prl.dataio.corpus.html">corpus</a><input class="toctree-checkbox" id="toctree-checkbox-9" name="toctree-checkbox-9" role="switch" type="checkbox"/><label for="toctree-checkbox-9"><div class="visually-hidden">Toggle child pages in navigation</div><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul>
+<li class="toctree-l3"><a class="reference internal" href="s3prl.dataio.corpus.base.html">base</a></li>
+<li class="toctree-l3"><a class="reference internal" href="s3prl.dataio.corpus.fluent_speech_commands.html">fluent_speech_commands</a></li>
+<li class="toctree-l3"><a class="reference internal" href="s3prl.dataio.corpus.iemocap.html">iemocap</a></li>
+<li class="toctree-l3"><a class="reference internal" href="s3prl.dataio.corpus.librilight.html">librilight</a></li>
+<li class="toctree-l3"><a class="reference internal" href="s3prl.dataio.corpus.librispeech.html">librispeech</a></li>
+<li class="toctree-l3"><a class="reference internal" href="s3prl.dataio.corpus.quesst14.html">quesst14</a></li>
+<li class="toctree-l3"><a class="reference internal" href="s3prl.dataio.corpus.snips.html">snips</a></li>
+<li class="toctree-l3"><a class="reference internal" href="s3prl.dataio.corpus.speech_commands.html">speech_commands</a></li>
+<li class="toctree-l3"><a class="reference internal" href="s3prl.dataio.corpus.voxceleb1sid.html">voxceleb1sid</a></li>
+<li class="toctree-l3"><a class="reference internal" href="s3prl.dataio.corpus.voxceleb1sv.html">voxceleb1sv</a></li>
+</ul>
+</li>
+<li class="toctree-l2 current has-children"><a class="reference internal" href="s3prl.dataio.dataset.html">dataset</a><input checked="" class="toctree-checkbox" id="toctree-checkbox-10" name="toctree-checkbox-10" role="switch" type="checkbox"/><label for="toctree-checkbox-10"><div class="visually-hidden">Toggle child pages in navigation</div><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul class="current">
+<li class="toctree-l3"><a class="reference internal" href="s3prl.dataio.dataset.base.html">base</a></li>
+<li class="toctree-l3"><a class="reference internal" href="s3prl.dataio.dataset.diarization.html">diarization</a></li>
+<li class="toctree-l3"><a class="reference internal" href="s3prl.dataio.dataset.encode.html">encode</a></li>
+<li class="toctree-l3"><a class="reference internal" href="s3prl.dataio.dataset.load_audio.html">load_audio</a></li>
+<li class="toctree-l3 current current-page"><a class="current reference internal" href="#">util</a></li>
+</ul>
+</li>
+<li class="toctree-l2 has-children"><a class="reference internal" href="s3prl.dataio.encoder.html">encoder</a><input class="toctree-checkbox" id="toctree-checkbox-11" name="toctree-checkbox-11" role="switch" type="checkbox"/><label for="toctree-checkbox-11"><div class="visually-hidden">Toggle child pages in navigation</div><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul>
+<li class="toctree-l3"><a class="reference internal" href="s3prl.dataio.encoder.category.html">category</a></li>
+<li class="toctree-l3"><a class="reference internal" href="s3prl.dataio.encoder.g2p.html">g2p</a></li>
+<li class="toctree-l3"><a class="reference internal" href="s3prl.dataio.encoder.tokenizer.html">tokenizer</a></li>
+<li class="toctree-l3"><a class="reference internal" href="s3prl.dataio.encoder.vocabulary.html">vocabulary</a></li>
+</ul>
+</li>
+<li class="toctree-l2 has-children"><a class="reference internal" href="s3prl.dataio.sampler.html">sampler</a><input class="toctree-checkbox" id="toctree-checkbox-12" name="toctree-checkbox-12" role="switch" type="checkbox"/><label for="toctree-checkbox-12"><div class="visually-hidden">Toggle child pages in navigation</div><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul>
+<li class="toctree-l3"><a class="reference internal" href="s3prl.dataio.sampler.balanced_weighted_sampler.html">balanced_weighted_sampler</a></li>
+<li class="toctree-l3"><a class="reference internal" href="s3prl.dataio.sampler.distributed_sampler.html">distributed_sampler</a></li>
+<li class="toctree-l3"><a class="reference internal" href="s3prl.dataio.sampler.fixed_batch_size_batch_sampler.html">fixed_batch_size_batch_sampler</a></li>
+<li class="toctree-l3"><a class="reference internal" href="s3prl.dataio.sampler.group_same_item_sampler.html">group_same_item_sampler</a></li>
+<li class="toctree-l3"><a class="reference internal" href="s3prl.dataio.sampler.max_timestamp_batch_sampler.html">max_timestamp_batch_sampler</a></li>
+<li class="toctree-l3"><a class="reference internal" href="s3prl.dataio.sampler.sorted_sampler.html">sorted_sampler</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l1 has-children"><a class="reference internal" href="s3prl.metric.html">metric</a><input class="toctree-checkbox" id="toctree-checkbox-13" name="toctree-checkbox-13" role="switch" type="checkbox"/><label for="toctree-checkbox-13"><div class="visually-hidden">Toggle child pages in navigation</div><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul>
+<li class="toctree-l2"><a class="reference internal" href="s3prl.metric.common.html">common</a></li>
+<li class="toctree-l2"><a class="reference internal" href="s3prl.metric.diarization.html">diarization</a></li>
+<li class="toctree-l2"><a class="reference internal" href="s3prl.metric.slot_filling.html">slot_filling</a></li>
+</ul>
+</li>
+<li class="toctree-l1 has-children"><a class="reference internal" href="s3prl.util.html">util</a><input class="toctree-checkbox" id="toctree-checkbox-14" name="toctree-checkbox-14" role="switch" type="checkbox"/><label for="toctree-checkbox-14"><div class="visually-hidden">Toggle child pages in navigation</div><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul>
+<li class="toctree-l2"><a class="reference internal" href="s3prl.util.benchmark.html">benchmark</a></li>
+<li class="toctree-l2"><a class="reference internal" href="s3prl.util.download.html">download</a></li>
+<li class="toctree-l2"><a class="reference internal" href="s3prl.util.override.html">override</a></li>
+<li class="toctree-l2"><a class="reference internal" href="s3prl.util.pseudo_data.html">pseudo_data</a></li>
+<li class="toctree-l2"><a class="reference internal" href="s3prl.util.seed.html">seed</a></li>
+</ul>
+</li>
+</ul>
+
+</div>
+</div>
+
+      </div>
+      
+    </div>
+  </aside>
+  <div class="main">
+    <div class="content">
+      <div class="article-container">
+        <a href="#" class="back-to-top muted-link">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
+            <path d="M13 20h-2V8l-5.5 5.5-1.42-1.42L12 4.16l7.92 7.92-1.42 1.42L13 8v12z"></path>
+          </svg>
+          <span>Back to top</span>
+        </a>
+        <div class="content-icon-container">
+          
+<div class="theme-toggle-container theme-toggle-content">
+            <button class="theme-toggle">
+              <div class="visually-hidden">Toggle Light / Dark / Auto color theme</div>
+              <svg class="theme-icon-when-auto"><use href="#svg-sun-half"></use></svg>
+              <svg class="theme-icon-when-dark"><use href="#svg-moon"></use></svg>
+              <svg class="theme-icon-when-light"><use href="#svg-sun"></use></svg>
+            </button>
+          </div>
+          <label class="toc-overlay-icon toc-content-icon" for="__toc">
+            <div class="visually-hidden">Toggle table of contents sidebar</div>
+            <i class="icon"><svg><use href="#svg-toc"></use></svg></i>
+          </label>
+        </div>
+        <article role="main">
+          <section id="util">
+<h1>util<a class="headerlink" href="#util" title="Permalink to this heading">#</a></h1>
+<p><strong>(s3prl.dataio.dataset.util)</strong></p>
+<span class="target" id="module-s3prl.dataio.dataset.util"></span><section id="parallel">
+<h2>Parallel<a class="headerlink" href="#parallel" title="Permalink to this heading">#</a></h2>
+<dl class="py class">
+<dt class="sig sig-object py" id="s3prl.dataio.dataset.util.Parallel">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">s3prl.dataio.dataset.util.</span></span><span class="sig-name descname"><span class="pre">Parallel</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">n_jobs</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">backend</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">verbose</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">timeout</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">pre_dispatch</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'2</span> <span class="pre">*</span> <span class="pre">n_jobs'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">batch_size</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'auto'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">temp_folder</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">max_nbytes</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'1M'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">mmap_mode</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'r'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">prefer</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">require</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/joblib/parallel.html#Parallel"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="reference external" href="https://github.com/s3prl/s3prl/blob/v0.4.5 ///home/runner/s3prl_env/lib/python3.8/site-packages/joblib/parallel.py#L440-L1116"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#s3prl.dataio.dataset.util.Parallel" title="Permalink to this definition">#</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">Logger</span></code></p>
+<p>Helper class for readable parallel mapping.</p>
+<p>Read more in the <span class="xref std std-ref">User Guide</span>.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>n_jobs</strong> (<em>int</em><em>, </em><em>default: None</em>) – The maximum number of concurrently running jobs, such as the number
+of Python worker processes when backend=”multiprocessing”
+or the size of the thread-pool when backend=”threading”.
+If -1 all CPUs are used. If 1 is given, no parallel computing code
+is used at all, which is useful for debugging. For n_jobs below -1,
+(n_cpus + 1 + n_jobs) are used. Thus for n_jobs = -2, all
+CPUs but one are used.
+None is a marker for ‘unset’ that will be interpreted as n_jobs=1
+(sequential execution) unless the call is performed under a
+<code class="xref py py-func docutils literal notranslate"><span class="pre">parallel_backend()</span></code> context manager that sets another value
+for n_jobs.</p></li>
+<li><p><strong>backend</strong> (<em>str</em><em>, </em><em>ParallelBackendBase instance</em><em> or </em><em>None</em><em>, </em><em>default: 'loky'</em>) – <p>Specify the parallelization backend implementation.
+Supported backends are:</p>
+<ul>
+<li><p>”loky” used by default, can induce some
+communication and memory overhead when exchanging input and
+output data with the worker Python processes. On some rare
+systems (such as Pyiodide), the loky backend may not be
+available.</p></li>
+<li><p>”multiprocessing” previous process-based backend based on
+<cite>multiprocessing.Pool</cite>. Less robust than <cite>loky</cite>.</p></li>
+<li><p>”threading” is a very low-overhead backend but it suffers
+from the Python Global Interpreter Lock if the called function
+relies a lot on Python objects. “threading” is mostly useful
+when the execution bottleneck is a compiled extension that
+explicitly releases the GIL (for instance a Cython loop wrapped
+in a “with nogil” block or an expensive call to a library such
+as NumPy).</p></li>
+<li><p>finally, you can register backends by calling
+<code class="xref py py-func docutils literal notranslate"><span class="pre">register_parallel_backend()</span></code>. This will allow you to
+implement a backend of your liking.</p></li>
+</ul>
+<p>It is not recommended to hard-code the backend name in a call to
+<a class="reference internal" href="#s3prl.dataio.dataset.util.Parallel" title="s3prl.dataio.dataset.util.Parallel"><code class="xref py py-class docutils literal notranslate"><span class="pre">Parallel</span></code></a> in a library. Instead it is recommended to set
+soft hints (prefer) or hard constraints (require) so as to make it
+possible for library users to change the backend from the outside
+using the <code class="xref py py-func docutils literal notranslate"><span class="pre">parallel_backend()</span></code> context manager.</p>
+</p></li>
+<li><p><strong>prefer</strong> (<em>str in {'processes'</em><em>, </em><em>'threads'}</em><em> or </em><em>None</em><em>, </em><em>default: None</em>) – Soft hint to choose the default backend if no specific backend
+was selected with the <code class="xref py py-func docutils literal notranslate"><span class="pre">parallel_backend()</span></code> context manager.
+The default process-based backend is ‘loky’ and the default
+thread-based backend is ‘threading’. Ignored if the <code class="docutils literal notranslate"><span class="pre">backend</span></code>
+parameter is specified.</p></li>
+<li><p><strong>require</strong> (<em>'sharedmem'</em><em> or </em><em>None</em><em>, </em><em>default None</em>) – Hard constraint to select the backend. If set to ‘sharedmem’,
+the selected backend will be single-host and thread-based even
+if the user asked for a non-thread based backend with
+parallel_backend.</p></li>
+<li><p><strong>verbose</strong> (<em>int</em><em>, </em><em>optional</em>) – The verbosity level: if non zero, progress messages are
+printed. Above 50, the output is sent to stdout.
+The frequency of the messages increases with the verbosity level.
+If it more than 10, all iterations are reported.</p></li>
+<li><p><strong>timeout</strong> (<em>float</em><em>, </em><em>optional</em>) – Timeout limit for each task to complete.  If any task takes longer
+a TimeOutError will be raised. Only applied when n_jobs != 1</p></li>
+<li><p><strong>pre_dispatch</strong> (<em>{'all'</em><em>, </em><em>integer</em><em>, or </em><em>expression</em><em>, </em><em>as in '3*n_jobs'}</em>) – The number of batches (of tasks) to be pre-dispatched.
+Default is ‘2*n_jobs’. When batch_size=”auto” this is reasonable
+default and the workers should never starve. Note that only basic
+arithmetics are allowed here and no modules can be used in this
+expression.</p></li>
+<li><p><strong>batch_size</strong> (<em>int</em><em> or </em><em>'auto'</em><em>, </em><em>default: 'auto'</em>) – The number of atomic tasks to dispatch at once to each
+worker. When individual evaluations are very fast, dispatching
+calls to workers can be slower than sequential computation because
+of the overhead. Batching fast computations together can mitigate
+this.
+The <code class="docutils literal notranslate"><span class="pre">'auto'</span></code> strategy keeps track of the time it takes for a batch
+to complete, and dynamically adjusts the batch size to keep the time
+on the order of half a second, using a heuristic. The initial batch
+size is 1.
+<code class="docutils literal notranslate"><span class="pre">batch_size=&quot;auto&quot;</span></code> with <code class="docutils literal notranslate"><span class="pre">backend=&quot;threading&quot;</span></code> will dispatch
+batches of a single task at a time as the threading backend has
+very little overhead and using larger batch size has not proved to
+bring any gain in that case.</p></li>
+<li><p><strong>temp_folder</strong> (<em>str</em><em>, </em><em>optional</em>) – <p>Folder to be used by the pool for memmapping large arrays
+for sharing memory with worker processes. If None, this will try in
+order:</p>
+<ul>
+<li><p>a folder pointed by the JOBLIB_TEMP_FOLDER environment
+variable,</p></li>
+<li><p>/dev/shm if the folder exists and is writable: this is a
+RAM disk filesystem available by default on modern Linux
+distributions,</p></li>
+<li><p>the default system temporary folder that can be
+overridden with TMP, TMPDIR or TEMP environment
+variables, typically /tmp under Unix operating systems.</p></li>
+</ul>
+<p>Only active when backend=”loky” or “multiprocessing”.</p>
+</p></li>
+<li><p><strong>int</strong> (<em>max_nbytes</em>) – Threshold on the size of arrays passed to the workers that
+triggers automated memory mapping in temp_folder. Can be an int
+in Bytes, or a human-readable string, e.g., ‘1M’ for 1 megabyte.
+Use None to disable memmapping of large arrays.
+Only active when backend=”loky” or “multiprocessing”.</p></li>
+<li><p><strong>str</strong> – Threshold on the size of arrays passed to the workers that
+triggers automated memory mapping in temp_folder. Can be an int
+in Bytes, or a human-readable string, e.g., ‘1M’ for 1 megabyte.
+Use None to disable memmapping of large arrays.
+Only active when backend=”loky” or “multiprocessing”.</p></li>
+<li><p><strong>None</strong> (<em>or</em>) – Threshold on the size of arrays passed to the workers that
+triggers automated memory mapping in temp_folder. Can be an int
+in Bytes, or a human-readable string, e.g., ‘1M’ for 1 megabyte.
+Use None to disable memmapping of large arrays.
+Only active when backend=”loky” or “multiprocessing”.</p></li>
+<li><p><strong>optional</strong> – Threshold on the size of arrays passed to the workers that
+triggers automated memory mapping in temp_folder. Can be an int
+in Bytes, or a human-readable string, e.g., ‘1M’ for 1 megabyte.
+Use None to disable memmapping of large arrays.
+Only active when backend=”loky” or “multiprocessing”.</p></li>
+<li><p><strong>default</strong> (<em>1M by</em>) – Threshold on the size of arrays passed to the workers that
+triggers automated memory mapping in temp_folder. Can be an int
+in Bytes, or a human-readable string, e.g., ‘1M’ for 1 megabyte.
+Use None to disable memmapping of large arrays.
+Only active when backend=”loky” or “multiprocessing”.</p></li>
+<li><p><strong>mmap_mode</strong> (<em>{None</em><em>, </em><em>'r+'</em><em>, </em><em>'r'</em><em>, </em><em>'w+'</em><em>, </em><em>'c'}</em><em>, </em><em>default: 'r'</em>) – Memmapping mode for numpy arrays passed to workers. None will
+disable memmapping, other modes defined in the numpy.memmap doc:
+<a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.memmap.html">https://numpy.org/doc/stable/reference/generated/numpy.memmap.html</a>
+Also, see ‘max_nbytes’ parameter documentation for more details.</p></li>
+</ul>
+</dd>
+</dl>
+<p class="rubric">Notes</p>
+<p>This object uses workers to compute in parallel the application of a
+function to many different arguments. The main functionality it brings
+in addition to using the raw multiprocessing or concurrent.futures API
+are (see examples for details):</p>
+<ul class="simple">
+<li><p>More readable code, in particular since it avoids
+constructing list of arguments.</p></li>
+<li><dl class="simple">
+<dt>Easier debugging:</dt><dd><ul>
+<li><p>informative tracebacks even when the error happens on
+the client side</p></li>
+<li><p>using ‘n_jobs=1’ enables to turn off parallel computing
+for debugging without changing the codepath</p></li>
+<li><p>early capture of pickling errors</p></li>
+</ul>
+</dd>
+</dl>
+</li>
+<li><p>An optional progress meter.</p></li>
+<li><p>Interruption of multiprocesses jobs with ‘Ctrl-C’</p></li>
+<li><p>Flexible pickling control for the communication to and from
+the worker processes.</p></li>
+<li><p>Ability to use shared memory efficiently with worker
+processes for large numpy-based datastructures.</p></li>
+</ul>
+<p class="rubric">Examples</p>
+<p>A simple example:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">math</span> <span class="kn">import</span> <span class="n">sqrt</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">joblib</span> <span class="kn">import</span> <span class="n">Parallel</span><span class="p">,</span> <span class="n">delayed</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">Parallel</span><span class="p">(</span><span class="n">n_jobs</span><span class="o">=</span><span class="mi">1</span><span class="p">)(</span><span class="n">delayed</span><span class="p">(</span><span class="n">sqrt</span><span class="p">)(</span><span class="n">i</span><span class="o">**</span><span class="mi">2</span><span class="p">)</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">10</span><span class="p">))</span>
+<span class="go">[0.0, 1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 7.0, 8.0, 9.0]</span>
+</pre></div>
+</div>
+<p>Reshaping the output when the function has several return
+values:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">math</span> <span class="kn">import</span> <span class="n">modf</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">joblib</span> <span class="kn">import</span> <span class="n">Parallel</span><span class="p">,</span> <span class="n">delayed</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">r</span> <span class="o">=</span> <span class="n">Parallel</span><span class="p">(</span><span class="n">n_jobs</span><span class="o">=</span><span class="mi">1</span><span class="p">)(</span><span class="n">delayed</span><span class="p">(</span><span class="n">modf</span><span class="p">)(</span><span class="n">i</span><span class="o">/</span><span class="mf">2.</span><span class="p">)</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">10</span><span class="p">))</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">res</span><span class="p">,</span> <span class="n">i</span> <span class="o">=</span> <span class="nb">zip</span><span class="p">(</span><span class="o">*</span><span class="n">r</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">res</span>
+<span class="go">(0.0, 0.5, 0.0, 0.5, 0.0, 0.5, 0.0, 0.5, 0.0, 0.5)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">i</span>
+<span class="go">(0.0, 0.0, 1.0, 1.0, 2.0, 2.0, 3.0, 3.0, 4.0, 4.0)</span>
+</pre></div>
+</div>
+<p>The progress meter: the higher the value of <cite>verbose</cite>, the more
+messages:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">time</span> <span class="kn">import</span> <span class="n">sleep</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">joblib</span> <span class="kn">import</span> <span class="n">Parallel</span><span class="p">,</span> <span class="n">delayed</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">r</span> <span class="o">=</span> <span class="n">Parallel</span><span class="p">(</span><span class="n">n_jobs</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="mi">10</span><span class="p">)(</span><span class="n">delayed</span><span class="p">(</span><span class="n">sleep</span><span class="p">)(</span><span class="mf">.2</span><span class="p">)</span> <span class="k">for</span> <span class="n">_</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">10</span><span class="p">))</span> 
+<span class="go">[Parallel(n_jobs=2)]: Done   1 tasks      | elapsed:    0.6s</span>
+<span class="go">[Parallel(n_jobs=2)]: Done   4 tasks      | elapsed:    0.8s</span>
+<span class="go">[Parallel(n_jobs=2)]: Done  10 out of  10 | elapsed:    1.4s finished</span>
+</pre></div>
+</div>
+<p>Traceback example, note how the line of the error is indicated
+as well as the values of the parameter passed to the function that
+triggered the exception, even though the traceback happens in the
+child process:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">heapq</span> <span class="kn">import</span> <span class="n">nlargest</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">joblib</span> <span class="kn">import</span> <span class="n">Parallel</span><span class="p">,</span> <span class="n">delayed</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">Parallel</span><span class="p">(</span><span class="n">n_jobs</span><span class="o">=</span><span class="mi">2</span><span class="p">)(</span><span class="n">delayed</span><span class="p">(</span><span class="n">nlargest</span><span class="p">)(</span><span class="mi">2</span><span class="p">,</span> <span class="n">n</span><span class="p">)</span> <span class="k">for</span> <span class="n">n</span> <span class="ow">in</span> <span class="p">(</span><span class="nb">range</span><span class="p">(</span><span class="mi">4</span><span class="p">),</span> <span class="s1">&#39;abcde&#39;</span><span class="p">,</span> <span class="mi">3</span><span class="p">))</span> 
+<span class="go">#...</span>
+<span class="go">---------------------------------------------------------------------------</span>
+<span class="go">Sub-process traceback:</span>
+<span class="go">---------------------------------------------------------------------------</span>
+<span class="go">TypeError                                          Mon Nov 12 11:37:46 2012</span>
+<span class="go">PID: 12934                                    Python 2.7.3: /usr/bin/python</span>
+<span class="go">...........................................................................</span>
+<span class="go">/usr/lib/python2.7/heapq.pyc in nlargest(n=2, iterable=3, key=None)</span>
+<span class="go">    419         if n &gt;= size:</span>
+<span class="go">    420             return sorted(iterable, key=key, reverse=True)[:n]</span>
+<span class="go">    421</span>
+<span class="go">    422     # When key is none, use simpler decoration</span>
+<span class="go">    423     if key is None:</span>
+<span class="go">--&gt; 424         it = izip(iterable, count(0,-1))                    # decorate</span>
+<span class="go">    425         result = _nlargest(n, it)</span>
+<span class="go">    426         return map(itemgetter(0), result)                   # undecorate</span>
+<span class="go">    427</span>
+<span class="go">    428     # General case, slowest method</span>
+<span class="go"> TypeError: izip argument #1 must support iteration</span>
+<span class="go">___________________________________________________________________________</span>
+</pre></div>
+</div>
+<p>Using pre_dispatch in a producer/consumer situation, where the
+data is generated on the fly. Note how the producer is first
+called 3 times before the parallel loop is initiated, and then
+called to generate new data on the fly:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">math</span> <span class="kn">import</span> <span class="n">sqrt</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">joblib</span> <span class="kn">import</span> <span class="n">Parallel</span><span class="p">,</span> <span class="n">delayed</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">def</span> <span class="nf">producer</span><span class="p">():</span>
+<span class="gp">... </span>    <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">6</span><span class="p">):</span>
+<span class="gp">... </span>        <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Produced </span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="n">i</span><span class="p">)</span>
+<span class="gp">... </span>        <span class="k">yield</span> <span class="n">i</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">out</span> <span class="o">=</span> <span class="n">Parallel</span><span class="p">(</span><span class="n">n_jobs</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="mi">100</span><span class="p">,</span> <span class="n">pre_dispatch</span><span class="o">=</span><span class="s1">&#39;1.5*n_jobs&#39;</span><span class="p">)(</span>
+<span class="gp">... </span>               <span class="n">delayed</span><span class="p">(</span><span class="n">sqrt</span><span class="p">)(</span><span class="n">i</span><span class="p">)</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">producer</span><span class="p">())</span> 
+<span class="go">Produced 0</span>
+<span class="go">Produced 1</span>
+<span class="go">Produced 2</span>
+<span class="go">[Parallel(n_jobs=2)]: Done 1 jobs     | elapsed:  0.0s</span>
+<span class="go">Produced 3</span>
+<span class="go">[Parallel(n_jobs=2)]: Done 2 jobs     | elapsed:  0.0s</span>
+<span class="go">Produced 4</span>
+<span class="go">[Parallel(n_jobs=2)]: Done 3 jobs     | elapsed:  0.0s</span>
+<span class="go">Produced 5</span>
+<span class="go">[Parallel(n_jobs=2)]: Done 4 jobs     | elapsed:  0.0s</span>
+<span class="go">[Parallel(n_jobs=2)]: Done 6 out of 6 | elapsed:  0.0s remaining: 0.0s</span>
+<span class="go">[Parallel(n_jobs=2)]: Done 6 out of 6 | elapsed:  0.0s finished</span>
+</pre></div>
+</div>
+<dl class="py method">
+<dt class="sig sig-object py" id="s3prl.dataio.dataset.util.Parallel.dispatch_next">
+<span class="sig-name descname"><span class="pre">dispatch_next</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/joblib/parallel.html#Parallel.dispatch_next"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="reference external" href="https://github.com/s3prl/s3prl/blob/v0.4.5 ///home/runner/s3prl_env/lib/python3.8/site-packages/joblib/parallel.py#L826-L836"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#s3prl.dataio.dataset.util.Parallel.dispatch_next" title="Permalink to this definition">#</a></dt>
+<dd><p>Dispatch more data for parallel processing</p>
+<p>This method is meant to be called concurrently by the multiprocessing
+callback. We rely on the thread-safety of dispatch_one_batch to protect
+against concurrent consumption of the unprotected iterator.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="s3prl.dataio.dataset.util.Parallel.dispatch_one_batch">
+<span class="sig-name descname"><span class="pre">dispatch_one_batch</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">iterator</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/joblib/parallel.html#Parallel.dispatch_one_batch"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="reference external" href="https://github.com/s3prl/s3prl/blob/v0.4.5 ///home/runner/s3prl_env/lib/python3.8/site-packages/joblib/parallel.py#L838-L902"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#s3prl.dataio.dataset.util.Parallel.dispatch_one_batch" title="Permalink to this definition">#</a></dt>
+<dd><p>Prefetch the tasks for the next batch and dispatch them.</p>
+<p>The effective size of the batch is computed here.
+If there are no more jobs to dispatch, return False, else return True.</p>
+<p>The iterator consumption and dispatching is protected by the same
+lock so calling this function should be thread safe.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="s3prl.dataio.dataset.util.Parallel.debug">
+<span class="sig-name descname"><span class="pre">debug</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">msg</span></span></em><span class="sig-paren">)</span><a class="reference external" href="https://github.com/s3prl/s3prl/blob/v0.4.5 ///home/runner/s3prl_env/lib/python3.8/site-packages/joblib/logger.py#L79-L81"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#s3prl.dataio.dataset.util.Parallel.debug" title="Permalink to this definition">#</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="s3prl.dataio.dataset.util.Parallel.format">
+<span class="sig-name descname"><span class="pre">format</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">obj</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">indent</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em><span class="sig-paren">)</span><a class="reference external" href="https://github.com/s3prl/s3prl/blob/v0.4.5 ///home/runner/s3prl_env/lib/python3.8/site-packages/joblib/logger.py#L83-L85"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#s3prl.dataio.dataset.util.Parallel.format" title="Permalink to this definition">#</a></dt>
+<dd><p>Return the formatted representation of the object.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="s3prl.dataio.dataset.util.Parallel.print_progress">
+<span class="sig-name descname"><span class="pre">print_progress</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/joblib/parallel.html#Parallel.print_progress"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="reference external" href="https://github.com/s3prl/s3prl/blob/v0.4.5 ///home/runner/s3prl_env/lib/python3.8/site-packages/joblib/parallel.py#L917-L958"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#s3prl.dataio.dataset.util.Parallel.print_progress" title="Permalink to this definition">#</a></dt>
+<dd><p>Display the process of the parallel execution only a fraction
+of time, controlled by self.verbose.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="s3prl.dataio.dataset.util.Parallel.warn">
+<span class="sig-name descname"><span class="pre">warn</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">msg</span></span></em><span class="sig-paren">)</span><a class="reference external" href="https://github.com/s3prl/s3prl/blob/v0.4.5 ///home/runner/s3prl_env/lib/python3.8/site-packages/joblib/logger.py#L76-L77"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#s3prl.dataio.dataset.util.Parallel.warn" title="Permalink to this definition">#</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="s3prl.dataio.dataset.util.Parallel.retrieve">
+<span class="sig-name descname"><span class="pre">retrieve</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/joblib/parallel.html#Parallel.retrieve"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="reference external" href="https://github.com/s3prl/s3prl/blob/v0.4.5 ///home/runner/s3prl_env/lib/python3.8/site-packages/joblib/parallel.py#L960-L998"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#s3prl.dataio.dataset.util.Parallel.retrieve" title="Permalink to this definition">#</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+</section>
+<section id="path">
+<h2>Path<a class="headerlink" href="#path" title="Permalink to this heading">#</a></h2>
+<dl class="py class">
+<dt class="sig sig-object py" id="s3prl.dataio.dataset.util.Path">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">s3prl.dataio.dataset.util.</span></span><span class="sig-name descname"><span class="pre">Path</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pathlib.html#Path"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="reference external" href="https://github.com/s3prl/s3prl/blob/v0.4.5 ///usr/lib/python3.8/pathlib.py#L1025-L1559"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#s3prl.dataio.dataset.util.Path" title="Permalink to this definition">#</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">PurePath</span></code></p>
+<p>PurePath subclass that can make system calls.</p>
+<p>Path represents a filesystem path but unlike PurePath, also offers
+methods to do system calls on path objects. Depending on your system,
+instantiating a Path will return either a PosixPath or a WindowsPath
+object. You can also instantiate a PosixPath or WindowsPath directly,
+but cannot instantiate a WindowsPath on a POSIX system or vice versa.</p>
+<dl class="py method">
+<dt class="sig sig-object py" id="s3prl.dataio.dataset.util.Path.cwd">
+<em class="property"><span class="pre">classmethod</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">cwd</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pathlib.html#Path.cwd"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="reference external" href="https://github.com/s3prl/s3prl/blob/v0.4.5 ///usr/lib/python3.8/pathlib.py#L1091-L1096"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#s3prl.dataio.dataset.util.Path.cwd" title="Permalink to this definition">#</a></dt>
+<dd><p>Return a new path pointing to the current working directory
+(as returned by os.getcwd()).</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="s3prl.dataio.dataset.util.Path.home">
+<em class="property"><span class="pre">classmethod</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">home</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pathlib.html#Path.home"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="reference external" href="https://github.com/s3prl/s3prl/blob/v0.4.5 ///usr/lib/python3.8/pathlib.py#L1098-L1103"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#s3prl.dataio.dataset.util.Path.home" title="Permalink to this definition">#</a></dt>
+<dd><p>Return a new path pointing to the user’s home directory (as
+returned by os.path.expanduser(‘~’)).</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="s3prl.dataio.dataset.util.Path.samefile">
+<span class="sig-name descname"><span class="pre">samefile</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">other_path</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pathlib.html#Path.samefile"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="reference external" href="https://github.com/s3prl/s3prl/blob/v0.4.5 ///usr/lib/python3.8/pathlib.py#L1105-L1114"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#s3prl.dataio.dataset.util.Path.samefile" title="Permalink to this definition">#</a></dt>
+<dd><p>Return whether other_path is the same or not as this file
+(as returned by os.path.samefile()).</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="s3prl.dataio.dataset.util.Path.iterdir">
+<span class="sig-name descname"><span class="pre">iterdir</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pathlib.html#Path.iterdir"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="reference external" href="https://github.com/s3prl/s3prl/blob/v0.4.5 ///usr/lib/python3.8/pathlib.py#L1116-L1128"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#s3prl.dataio.dataset.util.Path.iterdir" title="Permalink to this definition">#</a></dt>
+<dd><p>Iterate over the files in this directory.  Does not yield any
+result for the special paths ‘.’ and ‘..’.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="s3prl.dataio.dataset.util.Path.glob">
+<span class="sig-name descname"><span class="pre">glob</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">pattern</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pathlib.html#Path.glob"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="reference external" href="https://github.com/s3prl/s3prl/blob/v0.4.5 ///usr/lib/python3.8/pathlib.py#L1130-L1141"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#s3prl.dataio.dataset.util.Path.glob" title="Permalink to this definition">#</a></dt>
+<dd><p>Iterate over this subtree and yield all existing files (of any
+kind, including directories) matching the given relative pattern.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="s3prl.dataio.dataset.util.Path.rglob">
+<span class="sig-name descname"><span class="pre">rglob</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">pattern</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pathlib.html#Path.rglob"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="reference external" href="https://github.com/s3prl/s3prl/blob/v0.4.5 ///usr/lib/python3.8/pathlib.py#L1143-L1153"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#s3prl.dataio.dataset.util.Path.rglob" title="Permalink to this definition">#</a></dt>
+<dd><p>Recursively yield all existing files (of any kind, including
+directories) matching the given relative pattern, anywhere in
+this subtree.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="s3prl.dataio.dataset.util.Path.absolute">
+<span class="sig-name descname"><span class="pre">absolute</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pathlib.html#Path.absolute"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="reference external" href="https://github.com/s3prl/s3prl/blob/v0.4.5 ///usr/lib/python3.8/pathlib.py#L1155-L1171"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#s3prl.dataio.dataset.util.Path.absolute" title="Permalink to this definition">#</a></dt>
+<dd><p>Return an absolute version of this path.  This function works
+even if the path doesn’t point to anything.</p>
+<p>No normalization is done, i.e. all ‘.’ and ‘..’ will be kept along.
+Use resolve() to get the canonical path to a file.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="s3prl.dataio.dataset.util.Path.resolve">
+<span class="sig-name descname"><span class="pre">resolve</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">strict</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pathlib.html#Path.resolve"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="reference external" href="https://github.com/s3prl/s3prl/blob/v0.4.5 ///usr/lib/python3.8/pathlib.py#L1173-L1191"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#s3prl.dataio.dataset.util.Path.resolve" title="Permalink to this definition">#</a></dt>
+<dd><p>Make the path absolute, resolving all symlinks on the way and also
+normalizing it (for example turning slashes into backslashes under
+Windows).</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="s3prl.dataio.dataset.util.Path.stat">
+<span class="sig-name descname"><span class="pre">stat</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pathlib.html#Path.stat"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="reference external" href="https://github.com/s3prl/s3prl/blob/v0.4.5 ///usr/lib/python3.8/pathlib.py#L1193-L1198"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#s3prl.dataio.dataset.util.Path.stat" title="Permalink to this definition">#</a></dt>
+<dd><p>Return the result of the stat() system call on this path, like
+os.stat() does.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="s3prl.dataio.dataset.util.Path.owner">
+<span class="sig-name descname"><span class="pre">owner</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pathlib.html#Path.owner"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="reference external" href="https://github.com/s3prl/s3prl/blob/v0.4.5 ///usr/lib/python3.8/pathlib.py#L1200-L1205"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#s3prl.dataio.dataset.util.Path.owner" title="Permalink to this definition">#</a></dt>
+<dd><p>Return the login name of the file owner.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="s3prl.dataio.dataset.util.Path.group">
+<span class="sig-name descname"><span class="pre">group</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pathlib.html#Path.group"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="reference external" href="https://github.com/s3prl/s3prl/blob/v0.4.5 ///usr/lib/python3.8/pathlib.py#L1207-L1212"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#s3prl.dataio.dataset.util.Path.group" title="Permalink to this definition">#</a></dt>
+<dd><p>Return the group name of the file gid.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="s3prl.dataio.dataset.util.Path.open">
+<span class="sig-name descname"><span class="pre">open</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">mode</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'r'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">buffering</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">-1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">encoding</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">errors</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">newline</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pathlib.html#Path.open"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="reference external" href="https://github.com/s3prl/s3prl/blob/v0.4.5 ///usr/lib/python3.8/pathlib.py#L1214-L1223"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#s3prl.dataio.dataset.util.Path.open" title="Permalink to this definition">#</a></dt>
+<dd><p>Open the file pointed by this path and return a file object, as
+the built-in open() function does.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="s3prl.dataio.dataset.util.Path.read_bytes">
+<span class="sig-name descname"><span class="pre">read_bytes</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pathlib.html#Path.read_bytes"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="reference external" href="https://github.com/s3prl/s3prl/blob/v0.4.5 ///usr/lib/python3.8/pathlib.py#L1225-L1230"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#s3prl.dataio.dataset.util.Path.read_bytes" title="Permalink to this definition">#</a></dt>
+<dd><p>Open the file in bytes mode, read it, and close the file.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="s3prl.dataio.dataset.util.Path.read_text">
+<span class="sig-name descname"><span class="pre">read_text</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">encoding</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">errors</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pathlib.html#Path.read_text"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="reference external" href="https://github.com/s3prl/s3prl/blob/v0.4.5 ///usr/lib/python3.8/pathlib.py#L1232-L1237"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#s3prl.dataio.dataset.util.Path.read_text" title="Permalink to this definition">#</a></dt>
+<dd><p>Open the file in text mode, read it, and close the file.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="s3prl.dataio.dataset.util.Path.write_bytes">
+<span class="sig-name descname"><span class="pre">write_bytes</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">data</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pathlib.html#Path.write_bytes"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="reference external" href="https://github.com/s3prl/s3prl/blob/v0.4.5 ///usr/lib/python3.8/pathlib.py#L1239-L1246"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#s3prl.dataio.dataset.util.Path.write_bytes" title="Permalink to this definition">#</a></dt>
+<dd><p>Open the file in bytes mode, write to it, and close the file.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="s3prl.dataio.dataset.util.Path.write_text">
+<span class="sig-name descname"><span class="pre">write_text</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">data</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">encoding</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">errors</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pathlib.html#Path.write_text"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="reference external" href="https://github.com/s3prl/s3prl/blob/v0.4.5 ///usr/lib/python3.8/pathlib.py#L1248-L1256"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#s3prl.dataio.dataset.util.Path.write_text" title="Permalink to this definition">#</a></dt>
+<dd><p>Open the file in text mode, write to it, and close the file.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="s3prl.dataio.dataset.util.Path.touch">
+<span class="sig-name descname"><span class="pre">touch</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">mode</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">438</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">exist_ok</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pathlib.html#Path.touch"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="reference external" href="https://github.com/s3prl/s3prl/blob/v0.4.5 ///usr/lib/python3.8/pathlib.py#L1258-L1279"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#s3prl.dataio.dataset.util.Path.touch" title="Permalink to this definition">#</a></dt>
+<dd><p>Create this file with the given access mode, if it doesn’t exist.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="s3prl.dataio.dataset.util.Path.mkdir">
+<span class="sig-name descname"><span class="pre">mkdir</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">mode</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">511</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">parents</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">exist_ok</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pathlib.html#Path.mkdir"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="reference external" href="https://github.com/s3prl/s3prl/blob/v0.4.5 ///usr/lib/python3.8/pathlib.py#L1281-L1298"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#s3prl.dataio.dataset.util.Path.mkdir" title="Permalink to this definition">#</a></dt>
+<dd><p>Create a new directory at this given path.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="s3prl.dataio.dataset.util.Path.chmod">
+<span class="sig-name descname"><span class="pre">chmod</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">mode</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pathlib.html#Path.chmod"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="reference external" href="https://github.com/s3prl/s3prl/blob/v0.4.5 ///usr/lib/python3.8/pathlib.py#L1300-L1306"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#s3prl.dataio.dataset.util.Path.chmod" title="Permalink to this definition">#</a></dt>
+<dd><p>Change the permissions of the path, like os.chmod().</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="s3prl.dataio.dataset.util.Path.lchmod">
+<span class="sig-name descname"><span class="pre">lchmod</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">mode</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pathlib.html#Path.lchmod"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="reference external" href="https://github.com/s3prl/s3prl/blob/v0.4.5 ///usr/lib/python3.8/pathlib.py#L1308-L1315"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#s3prl.dataio.dataset.util.Path.lchmod" title="Permalink to this definition">#</a></dt>
+<dd><p>Like chmod(), except if the path points to a symlink, the symlink’s
+permissions are changed, rather than its target’s.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="s3prl.dataio.dataset.util.Path.unlink">
+<span class="sig-name descname"><span class="pre">unlink</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">missing_ok</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pathlib.html#Path.unlink"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="reference external" href="https://github.com/s3prl/s3prl/blob/v0.4.5 ///usr/lib/python3.8/pathlib.py#L1317-L1328"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#s3prl.dataio.dataset.util.Path.unlink" title="Permalink to this definition">#</a></dt>
+<dd><p>Remove this file or link.
+If the path is a directory, use rmdir() instead.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="s3prl.dataio.dataset.util.Path.rmdir">
+<span class="sig-name descname"><span class="pre">rmdir</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pathlib.html#Path.rmdir"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="reference external" href="https://github.com/s3prl/s3prl/blob/v0.4.5 ///usr/lib/python3.8/pathlib.py#L1330-L1336"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#s3prl.dataio.dataset.util.Path.rmdir" title="Permalink to this definition">#</a></dt>
+<dd><p>Remove this directory.  The directory must be empty.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="s3prl.dataio.dataset.util.Path.lstat">
+<span class="sig-name descname"><span class="pre">lstat</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pathlib.html#Path.lstat"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="reference external" href="https://github.com/s3prl/s3prl/blob/v0.4.5 ///usr/lib/python3.8/pathlib.py#L1338-L1345"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#s3prl.dataio.dataset.util.Path.lstat" title="Permalink to this definition">#</a></dt>
+<dd><p>Like stat(), except if the path points to a symlink, the symlink’s
+status information is returned, rather than its target’s.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="s3prl.dataio.dataset.util.Path.rename">
+<span class="sig-name descname"><span class="pre">rename</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">target</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pathlib.html#Path.rename"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="reference external" href="https://github.com/s3prl/s3prl/blob/v0.4.5 ///usr/lib/python3.8/pathlib.py#L1347-L1360"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#s3prl.dataio.dataset.util.Path.rename" title="Permalink to this definition">#</a></dt>
+<dd><p>Rename this path to the target path.</p>
+<p>The target path may be absolute or relative. Relative paths are
+interpreted relative to the current working directory, <em>not</em> the
+directory of the Path object.</p>
+<p>Returns the new Path instance pointing to the target path.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="s3prl.dataio.dataset.util.Path.replace">
+<span class="sig-name descname"><span class="pre">replace</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">target</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pathlib.html#Path.replace"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="reference external" href="https://github.com/s3prl/s3prl/blob/v0.4.5 ///usr/lib/python3.8/pathlib.py#L1362-L1375"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#s3prl.dataio.dataset.util.Path.replace" title="Permalink to this definition">#</a></dt>
+<dd><p>Rename this path to the target path, overwriting if that path exists.</p>
+<p>The target path may be absolute or relative. Relative paths are
+interpreted relative to the current working directory, <em>not</em> the
+directory of the Path object.</p>
+<p>Returns the new Path instance pointing to the target path.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="s3prl.dataio.dataset.util.Path.symlink_to">
+<span class="sig-name descname"><span class="pre">symlink_to</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">target</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">target_is_directory</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pathlib.html#Path.symlink_to"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="reference external" href="https://github.com/s3prl/s3prl/blob/v0.4.5 ///usr/lib/python3.8/pathlib.py#L1377-L1384"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#s3prl.dataio.dataset.util.Path.symlink_to" title="Permalink to this definition">#</a></dt>
+<dd><p>Make this path a symlink pointing to the target path.
+Note the order of arguments (link, target) is the reverse of os.symlink.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="s3prl.dataio.dataset.util.Path.link_to">
+<span class="sig-name descname"><span class="pre">link_to</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">target</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pathlib.html#Path.link_to"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="reference external" href="https://github.com/s3prl/s3prl/blob/v0.4.5 ///usr/lib/python3.8/pathlib.py#L1386-L1398"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#s3prl.dataio.dataset.util.Path.link_to" title="Permalink to this definition">#</a></dt>
+<dd><p>Make the target path a hard link pointing to this path.</p>
+<p>Note this function does not make this path a hard link to <em>target</em>,
+despite the implication of the function and argument names. The order
+of arguments (target, link) is the reverse of Path.symlink_to, but
+matches that of os.link.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="s3prl.dataio.dataset.util.Path.exists">
+<span class="sig-name descname"><span class="pre">exists</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pathlib.html#Path.exists"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="reference external" href="https://github.com/s3prl/s3prl/blob/v0.4.5 ///usr/lib/python3.8/pathlib.py#L1402-L1415"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#s3prl.dataio.dataset.util.Path.exists" title="Permalink to this definition">#</a></dt>
+<dd><p>Whether this path exists.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="s3prl.dataio.dataset.util.Path.is_dir">
+<span class="sig-name descname"><span class="pre">is_dir</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pathlib.html#Path.is_dir"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="reference external" href="https://github.com/s3prl/s3prl/blob/v0.4.5 ///usr/lib/python3.8/pathlib.py#L1417-L1431"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#s3prl.dataio.dataset.util.Path.is_dir" title="Permalink to this definition">#</a></dt>
+<dd><p>Whether this path is a directory.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="s3prl.dataio.dataset.util.Path.is_file">
+<span class="sig-name descname"><span class="pre">is_file</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pathlib.html#Path.is_file"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="reference external" href="https://github.com/s3prl/s3prl/blob/v0.4.5 ///usr/lib/python3.8/pathlib.py#L1433-L1448"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#s3prl.dataio.dataset.util.Path.is_file" title="Permalink to this definition">#</a></dt>
+<dd><p>Whether this path is a regular file (also True for symlinks pointing
+to regular files).</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="s3prl.dataio.dataset.util.Path.is_mount">
+<span class="sig-name descname"><span class="pre">is_mount</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pathlib.html#Path.is_mount"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="reference external" href="https://github.com/s3prl/s3prl/blob/v0.4.5 ///usr/lib/python3.8/pathlib.py#L1450-L1469"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#s3prl.dataio.dataset.util.Path.is_mount" title="Permalink to this definition">#</a></dt>
+<dd><p>Check if this path is a POSIX mount point</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="s3prl.dataio.dataset.util.Path.is_symlink">
+<span class="sig-name descname"><span class="pre">is_symlink</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pathlib.html#Path.is_symlink"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="reference external" href="https://github.com/s3prl/s3prl/blob/v0.4.5 ///usr/lib/python3.8/pathlib.py#L1471-L1484"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#s3prl.dataio.dataset.util.Path.is_symlink" title="Permalink to this definition">#</a></dt>
+<dd><p>Whether this path is a symbolic link.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="s3prl.dataio.dataset.util.Path.is_block_device">
+<span class="sig-name descname"><span class="pre">is_block_device</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pathlib.html#Path.is_block_device"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="reference external" href="https://github.com/s3prl/s3prl/blob/v0.4.5 ///usr/lib/python3.8/pathlib.py#L1486-L1500"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#s3prl.dataio.dataset.util.Path.is_block_device" title="Permalink to this definition">#</a></dt>
+<dd><p>Whether this path is a block device.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="s3prl.dataio.dataset.util.Path.is_char_device">
+<span class="sig-name descname"><span class="pre">is_char_device</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pathlib.html#Path.is_char_device"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="reference external" href="https://github.com/s3prl/s3prl/blob/v0.4.5 ///usr/lib/python3.8/pathlib.py#L1502-L1516"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#s3prl.dataio.dataset.util.Path.is_char_device" title="Permalink to this definition">#</a></dt>
+<dd><p>Whether this path is a character device.</p>
+</dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="s3prl.dataio.dataset.util.Path.anchor">
+<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">anchor</span></span><a class="reference external" href="https://github.com/s3prl/s3prl/blob/v0.4.5 /s3prl/dataio/dataset/util.py"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#s3prl.dataio.dataset.util.Path.anchor" title="Permalink to this definition">#</a></dt>
+<dd><p>The concatenation of the drive and root, or ‘’.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="s3prl.dataio.dataset.util.Path.as_posix">
+<span class="sig-name descname"><span class="pre">as_posix</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference external" href="https://github.com/s3prl/s3prl/blob/v0.4.5 ///usr/lib/python3.8/pathlib.py#L731-L735"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#s3prl.dataio.dataset.util.Path.as_posix" title="Permalink to this definition">#</a></dt>
+<dd><p>Return the string representation of the path with forward (/)
+slashes.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="s3prl.dataio.dataset.util.Path.as_uri">
+<span class="sig-name descname"><span class="pre">as_uri</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference external" href="https://github.com/s3prl/s3prl/blob/v0.4.5 ///usr/lib/python3.8/pathlib.py#L745-L749"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#s3prl.dataio.dataset.util.Path.as_uri" title="Permalink to this definition">#</a></dt>
+<dd><p>Return the path as a ‘file’ URI.</p>
+</dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="s3prl.dataio.dataset.util.Path.drive">
+<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">drive</span></span><a class="reference external" href="https://github.com/s3prl/s3prl/blob/v0.4.5 /s3prl/dataio/dataset/util.py"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#s3prl.dataio.dataset.util.Path.drive" title="Permalink to this definition">#</a></dt>
+<dd><p>The drive prefix (letter or UNC path), if any.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="s3prl.dataio.dataset.util.Path.is_absolute">
+<span class="sig-name descname"><span class="pre">is_absolute</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference external" href="https://github.com/s3prl/s3prl/blob/v0.4.5 ///usr/lib/python3.8/pathlib.py#L960-L965"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#s3prl.dataio.dataset.util.Path.is_absolute" title="Permalink to this definition">#</a></dt>
+<dd><p>True if the path is absolute (has both a root and, if applicable,
+a drive).</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="s3prl.dataio.dataset.util.Path.is_fifo">
+<span class="sig-name descname"><span class="pre">is_fifo</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pathlib.html#Path.is_fifo"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="reference external" href="https://github.com/s3prl/s3prl/blob/v0.4.5 ///usr/lib/python3.8/pathlib.py#L1518-L1532"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#s3prl.dataio.dataset.util.Path.is_fifo" title="Permalink to this definition">#</a></dt>
+<dd><p>Whether this path is a FIFO.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="s3prl.dataio.dataset.util.Path.is_reserved">
+<span class="sig-name descname"><span class="pre">is_reserved</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference external" href="https://github.com/s3prl/s3prl/blob/v0.4.5 ///usr/lib/python3.8/pathlib.py#L967-L970"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#s3prl.dataio.dataset.util.Path.is_reserved" title="Permalink to this definition">#</a></dt>
+<dd><p>Return True if the path contains one of the special names reserved
+by the system, if any.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="s3prl.dataio.dataset.util.Path.joinpath">
+<span class="sig-name descname"><span class="pre">joinpath</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em><span class="sig-paren">)</span><a class="reference external" href="https://github.com/s3prl/s3prl/blob/v0.4.5 ///usr/lib/python3.8/pathlib.py#L925-L931"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#s3prl.dataio.dataset.util.Path.joinpath" title="Permalink to this definition">#</a></dt>
+<dd><p>Combine this path with one or several arguments, and return a
+new path representing either a subpath (if all arguments are relative
+paths) or a totally different path (if one of the arguments is
+anchored).</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="s3prl.dataio.dataset.util.Path.match">
+<span class="sig-name descname"><span class="pre">match</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">path_pattern</span></span></em><span class="sig-paren">)</span><a class="reference external" href="https://github.com/s3prl/s3prl/blob/v0.4.5 ///usr/lib/python3.8/pathlib.py#L972-L995"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#s3prl.dataio.dataset.util.Path.match" title="Permalink to this definition">#</a></dt>
+<dd><p>Return True if this path matches the given pattern.</p>
+</dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="s3prl.dataio.dataset.util.Path.name">
+<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">name</span></span><a class="reference external" href="https://github.com/s3prl/s3prl/blob/v0.4.5 /s3prl/dataio/dataset/util.py"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#s3prl.dataio.dataset.util.Path.name" title="Permalink to this definition">#</a></dt>
+<dd><p>The final path component, if any.</p>
+</dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="s3prl.dataio.dataset.util.Path.parent">
+<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">parent</span></span><a class="reference external" href="https://github.com/s3prl/s3prl/blob/v0.4.5 /s3prl/dataio/dataset/util.py"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#s3prl.dataio.dataset.util.Path.parent" title="Permalink to this definition">#</a></dt>
+<dd><p>The logical parent of the path.</p>
+</dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="s3prl.dataio.dataset.util.Path.parents">
+<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">parents</span></span><a class="reference external" href="https://github.com/s3prl/s3prl/blob/v0.4.5 /s3prl/dataio/dataset/util.py"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#s3prl.dataio.dataset.util.Path.parents" title="Permalink to this definition">#</a></dt>
+<dd><p>A sequence of this path’s logical parents.</p>
+</dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="s3prl.dataio.dataset.util.Path.parts">
+<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">parts</span></span><a class="reference external" href="https://github.com/s3prl/s3prl/blob/v0.4.5 /s3prl/dataio/dataset/util.py"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#s3prl.dataio.dataset.util.Path.parts" title="Permalink to this definition">#</a></dt>
+<dd><p>An object providing sequence-like access to the
+components in the filesystem path.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="s3prl.dataio.dataset.util.Path.relative_to">
+<span class="sig-name descname"><span class="pre">relative_to</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">other</span></span></em><span class="sig-paren">)</span><a class="reference external" href="https://github.com/s3prl/s3prl/blob/v0.4.5 ///usr/lib/python3.8/pathlib.py#L881-L911"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#s3prl.dataio.dataset.util.Path.relative_to" title="Permalink to this definition">#</a></dt>
+<dd><p>Return the relative path to another path identified by the passed
+arguments.  If the operation is not possible (because this is not
+a subpath of the other path), raise ValueError.</p>
+</dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="s3prl.dataio.dataset.util.Path.root">
+<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">root</span></span><a class="reference external" href="https://github.com/s3prl/s3prl/blob/v0.4.5 /s3prl/dataio/dataset/util.py"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#s3prl.dataio.dataset.util.Path.root" title="Permalink to this definition">#</a></dt>
+<dd><p>The root of the path, if any.</p>
+</dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="s3prl.dataio.dataset.util.Path.stem">
+<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">stem</span></span><a class="reference external" href="https://github.com/s3prl/s3prl/blob/v0.4.5 /s3prl/dataio/dataset/util.py"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#s3prl.dataio.dataset.util.Path.stem" title="Permalink to this definition">#</a></dt>
+<dd><p>The final path component, minus its last suffix.</p>
+</dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="s3prl.dataio.dataset.util.Path.suffix">
+<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">suffix</span></span><a class="reference external" href="https://github.com/s3prl/s3prl/blob/v0.4.5 /s3prl/dataio/dataset/util.py"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#s3prl.dataio.dataset.util.Path.suffix" title="Permalink to this definition">#</a></dt>
+<dd><p>The final component’s last suffix, if any.</p>
+<p>This includes the leading period. For example: ‘.txt’</p>
+</dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="s3prl.dataio.dataset.util.Path.suffixes">
+<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">suffixes</span></span><a class="reference external" href="https://github.com/s3prl/s3prl/blob/v0.4.5 /s3prl/dataio/dataset/util.py"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#s3prl.dataio.dataset.util.Path.suffixes" title="Permalink to this definition">#</a></dt>
+<dd><p>A list of the final component’s suffixes, if any.</p>
+<p>These include the leading periods. For example: [‘.tar’, ‘.gz’]</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="s3prl.dataio.dataset.util.Path.with_name">
+<span class="sig-name descname"><span class="pre">with_name</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">name</span></span></em><span class="sig-paren">)</span><a class="reference external" href="https://github.com/s3prl/s3prl/blob/v0.4.5 ///usr/lib/python3.8/pathlib.py#L849-L858"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#s3prl.dataio.dataset.util.Path.with_name" title="Permalink to this definition">#</a></dt>
+<dd><p>Return a new path with the file name changed.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="s3prl.dataio.dataset.util.Path.with_suffix">
+<span class="sig-name descname"><span class="pre">with_suffix</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">suffix</span></span></em><span class="sig-paren">)</span><a class="reference external" href="https://github.com/s3prl/s3prl/blob/v0.4.5 ///usr/lib/python3.8/pathlib.py#L860-L879"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#s3prl.dataio.dataset.util.Path.with_suffix" title="Permalink to this definition">#</a></dt>
+<dd><p>Return a new path with the file suffix changed.  If the path
+has no suffix, add given suffix.  If the given suffix is an empty
+string, remove the suffix from the path.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="s3prl.dataio.dataset.util.Path.is_socket">
+<span class="sig-name descname"><span class="pre">is_socket</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pathlib.html#Path.is_socket"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="reference external" href="https://github.com/s3prl/s3prl/blob/v0.4.5 ///usr/lib/python3.8/pathlib.py#L1534-L1548"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#s3prl.dataio.dataset.util.Path.is_socket" title="Permalink to this definition">#</a></dt>
+<dd><p>Whether this path is a socket.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="s3prl.dataio.dataset.util.Path.expanduser">
+<span class="sig-name descname"><span class="pre">expanduser</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pathlib.html#Path.expanduser"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="reference external" href="https://github.com/s3prl/s3prl/blob/v0.4.5 ///usr/lib/python3.8/pathlib.py#L1550-L1559"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#s3prl.dataio.dataset.util.Path.expanduser" title="Permalink to this definition">#</a></dt>
+<dd><p>Return a new path with expanded ~ and ~user constructs
+(as returned by os.path.expanduser)</p>
+</dd></dl>
+
+</dd></dl>
+
+</section>
+<section id="defaultdict">
+<h2>defaultdict<a class="headerlink" href="#defaultdict" title="Permalink to this heading">#</a></h2>
+<dl class="py class">
+<dt class="sig sig-object py" id="s3prl.dataio.dataset.util.defaultdict">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">s3prl.dataio.dataset.util.</span></span><span class="sig-name descname"><span class="pre">defaultdict</span></span><a class="reference external" href="https://github.com/s3prl/s3prl/blob/v0.4.5 /s3prl/dataio/dataset/util.py"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#s3prl.dataio.dataset.util.defaultdict" title="Permalink to this definition">#</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">dict</span></code></p>
+<p>defaultdict(default_factory[, …]) –&gt; dict with default factory</p>
+<p>The default factory is called without arguments to produce
+a new value when a key is not present, in __getitem__ only.
+A defaultdict compares equal to a dict with the same items.
+All remaining arguments are treated the same as if they were
+passed to the dict constructor, including keyword arguments.</p>
+<dl class="py method">
+<dt class="sig sig-object py" id="s3prl.dataio.dataset.util.defaultdict.clear">
+<span class="sig-name descname"><span class="pre">clear</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None.</span>&#160; <span class="pre">Remove</span> <span class="pre">all</span> <span class="pre">items</span> <span class="pre">from</span> <span class="pre">D.</span></span></span><a class="reference external" href="https://github.com/s3prl/s3prl/blob/v0.4.5 /s3prl/dataio/dataset/util.py"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#s3prl.dataio.dataset.util.defaultdict.clear" title="Permalink to this definition">#</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="s3prl.dataio.dataset.util.defaultdict.copy">
+<span class="sig-name descname"><span class="pre">copy</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">a</span> <span class="pre">shallow</span> <span class="pre">copy</span> <span class="pre">of</span> <span class="pre">D.</span></span></span><a class="reference external" href="https://github.com/s3prl/s3prl/blob/v0.4.5 /s3prl/dataio/dataset/util.py"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#s3prl.dataio.dataset.util.defaultdict.copy" title="Permalink to this definition">#</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="s3prl.dataio.dataset.util.defaultdict.default_factory">
+<span class="sig-name descname"><span class="pre">default_factory</span></span><a class="reference external" href="https://github.com/s3prl/s3prl/blob/v0.4.5 /s3prl/dataio/dataset/util.py"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#s3prl.dataio.dataset.util.defaultdict.default_factory" title="Permalink to this definition">#</a></dt>
+<dd><p>Factory for default value called by __missing__().</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="s3prl.dataio.dataset.util.defaultdict.fromkeys">
+<span class="sig-name descname"><span class="pre">fromkeys</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">value</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">/</span></span></em><span class="sig-paren">)</span><a class="reference external" href="https://github.com/s3prl/s3prl/blob/v0.4.5 /s3prl/dataio/dataset/util.py"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#s3prl.dataio.dataset.util.defaultdict.fromkeys" title="Permalink to this definition">#</a></dt>
+<dd><p>Create a new dictionary with keys from iterable and values set to value.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="s3prl.dataio.dataset.util.defaultdict.get">
+<span class="sig-name descname"><span class="pre">get</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">key</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">default</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">/</span></span></em><span class="sig-paren">)</span><a class="reference external" href="https://github.com/s3prl/s3prl/blob/v0.4.5 /s3prl/dataio/dataset/util.py"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#s3prl.dataio.dataset.util.defaultdict.get" title="Permalink to this definition">#</a></dt>
+<dd><p>Return the value for key if key is in the dictionary, else default.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="s3prl.dataio.dataset.util.defaultdict.items">
+<span class="sig-name descname"><span class="pre">items</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">a</span> <span class="pre">set-like</span> <span class="pre">object</span> <span class="pre">providing</span> <span class="pre">a</span> <span class="pre">view</span> <span class="pre">on</span> <span class="pre">D's</span> <span class="pre">items</span></span></span><a class="reference external" href="https://github.com/s3prl/s3prl/blob/v0.4.5 /s3prl/dataio/dataset/util.py"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#s3prl.dataio.dataset.util.defaultdict.items" title="Permalink to this definition">#</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="s3prl.dataio.dataset.util.defaultdict.keys">
+<span class="sig-name descname"><span class="pre">keys</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">a</span> <span class="pre">set-like</span> <span class="pre">object</span> <span class="pre">providing</span> <span class="pre">a</span> <span class="pre">view</span> <span class="pre">on</span> <span class="pre">D's</span> <span class="pre">keys</span></span></span><a class="reference external" href="https://github.com/s3prl/s3prl/blob/v0.4.5 /s3prl/dataio/dataset/util.py"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#s3prl.dataio.dataset.util.defaultdict.keys" title="Permalink to this definition">#</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="s3prl.dataio.dataset.util.defaultdict.pop">
+<span class="sig-name descname"><span class="pre">pop</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">k</span></span></em><span class="optional">[</span>, <em class="sig-param"><span class="n"><span class="pre">d</span></span></em><span class="optional">]</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">v,</span> <span class="pre">remove</span> <span class="pre">specified</span> <span class="pre">key</span> <span class="pre">and</span> <span class="pre">return</span> <span class="pre">the</span> <span class="pre">corresponding</span> <span class="pre">value.</span></span></span><a class="reference external" href="https://github.com/s3prl/s3prl/blob/v0.4.5 /s3prl/dataio/dataset/util.py"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#s3prl.dataio.dataset.util.defaultdict.pop" title="Permalink to this definition">#</a></dt>
+<dd><p>If key is not found, d is returned if given, otherwise KeyError is raised</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="s3prl.dataio.dataset.util.defaultdict.popitem">
+<span class="sig-name descname"><span class="pre">popitem</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference external" href="https://github.com/s3prl/s3prl/blob/v0.4.5 /s3prl/dataio/dataset/util.py"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#s3prl.dataio.dataset.util.defaultdict.popitem" title="Permalink to this definition">#</a></dt>
+<dd><p>Remove and return a (key, value) pair as a 2-tuple.</p>
+<p>Pairs are returned in LIFO (last-in, first-out) order.
+Raises KeyError if the dict is empty.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="s3prl.dataio.dataset.util.defaultdict.setdefault">
+<span class="sig-name descname"><span class="pre">setdefault</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">key</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">default</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">/</span></span></em><span class="sig-paren">)</span><a class="reference external" href="https://github.com/s3prl/s3prl/blob/v0.4.5 /s3prl/dataio/dataset/util.py"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#s3prl.dataio.dataset.util.defaultdict.setdefault" title="Permalink to this definition">#</a></dt>
+<dd><p>Insert key with a value of default if key is not in the dictionary.</p>
+<p>Return the value for key if key is in the dictionary, else default.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="s3prl.dataio.dataset.util.defaultdict.update">
+<span class="sig-name descname"><span class="pre">update</span></span><span class="sig-paren">(</span><span class="optional">[</span><em class="sig-param"><span class="n"><span class="pre">E</span></span></em>, <span class="optional">]</span><em class="sig-param"><span class="n"><span class="pre">**F</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None.</span>&#160; <span class="pre">Update</span> <span class="pre">D</span> <span class="pre">from</span> <span class="pre">dict/iterable</span> <span class="pre">E</span> <span class="pre">and</span> <span class="pre">F.</span></span></span><a class="reference external" href="https://github.com/s3prl/s3prl/blob/v0.4.5 /s3prl/dataio/dataset/util.py"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#s3prl.dataio.dataset.util.defaultdict.update" title="Permalink to this definition">#</a></dt>
+<dd><p>If E is present and has a .keys() method, then does:  for k in E: D[k] = E[k]
+If E is present and lacks a .keys() method, then does:  for k, v in E: D[k] = v
+In either case, this is followed by: for k in F:  D[k] = F[k]</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="s3prl.dataio.dataset.util.defaultdict.values">
+<span class="sig-name descname"><span class="pre">values</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">an</span> <span class="pre">object</span> <span class="pre">providing</span> <span class="pre">a</span> <span class="pre">view</span> <span class="pre">on</span> <span class="pre">D's</span> <span class="pre">values</span></span></span><a class="reference external" href="https://github.com/s3prl/s3prl/blob/v0.4.5 /s3prl/dataio/dataset/util.py"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#s3prl.dataio.dataset.util.defaultdict.values" title="Permalink to this definition">#</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+</section>
+<section id="tqdm">
+<h2>tqdm<a class="headerlink" href="#tqdm" title="Permalink to this heading">#</a></h2>
+<dl class="py class">
+<dt class="sig sig-object py" id="s3prl.dataio.dataset.util.tqdm">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">s3prl.dataio.dataset.util.</span></span><span class="sig-name descname"><span class="pre">tqdm</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">_</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">__</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/tqdm/std.html#tqdm"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="reference external" href="https://github.com/s3prl/s3prl/blob/v0.4.5 ///home/runner/s3prl_env/lib/python3.8/site-packages/tqdm/std.py#L247-L1533"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#s3prl.dataio.dataset.util.tqdm" title="Permalink to this definition">#</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">Comparable</span></code></p>
+<p>Decorate an iterable object, returning an iterator which acts exactly
+like the original iterable, but prints a dynamically updating
+progressbar every time a value is requested.</p>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="s3prl.dataio.dataset.util.tqdm.monitor_interval">
+<span class="sig-name descname"><span class="pre">monitor_interval</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">10</span></em><a class="reference external" href="https://github.com/s3prl/s3prl/blob/v0.4.5 /s3prl/dataio/dataset/util.py"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#s3prl.dataio.dataset.util.tqdm.monitor_interval" title="Permalink to this definition">#</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="s3prl.dataio.dataset.util.tqdm.monitor">
+<span class="sig-name descname"><span class="pre">monitor</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">None</span></em><a class="reference external" href="https://github.com/s3prl/s3prl/blob/v0.4.5 /s3prl/dataio/dataset/util.py"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#s3prl.dataio.dataset.util.tqdm.monitor" title="Permalink to this definition">#</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="s3prl.dataio.dataset.util.tqdm.format_sizeof">
+<em class="property"><span class="pre">static</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">format_sizeof</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">num</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">suffix</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">''</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">divisor</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1000</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/tqdm/std.html#tqdm.format_sizeof"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="reference external" href="https://github.com/s3prl/s3prl/blob/v0.4.5 ///home/runner/s3prl_env/lib/python3.8/site-packages/tqdm/std.py#L258-L286"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#s3prl.dataio.dataset.util.tqdm.format_sizeof" title="Permalink to this definition">#</a></dt>
+<dd><p>Formats a number (greater than unity) with SI Order of Magnitude
+prefixes.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>num</strong> (<em>float</em>) – Number ( &gt;= 1) to format.</p></li>
+<li><p><strong>suffix</strong> (<em>str</em><em>, </em><em>optional</em>) – Post-postfix [default: ‘’].</p></li>
+<li><p><strong>divisor</strong> (<em>float</em><em>, </em><em>optional</em>) – Divisor between prefixes [default: 1000].</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p><strong>out</strong> – Number with Order of Magnitude SI unit postfix.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>str</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="s3prl.dataio.dataset.util.tqdm.format_interval">
+<em class="property"><span class="pre">static</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">format_interval</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">t</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/tqdm/std.html#tqdm.format_interval"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="reference external" href="https://github.com/s3prl/s3prl/blob/v0.4.5 ///home/runner/s3prl_env/lib/python3.8/site-packages/tqdm/std.py#L288-L308"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#s3prl.dataio.dataset.util.tqdm.format_interval" title="Permalink to this definition">#</a></dt>
+<dd><p>Formats a number of seconds as a clock time, [H:]MM:SS</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>t</strong> (<em>int</em>) – Number of seconds.</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p><strong>out</strong> – [H:]MM:SS</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>str</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="s3prl.dataio.dataset.util.tqdm.format_num">
+<em class="property"><span class="pre">static</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">format_num</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">n</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/tqdm/std.html#tqdm.format_num"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="reference external" href="https://github.com/s3prl/s3prl/blob/v0.4.5 ///home/runner/s3prl_env/lib/python3.8/site-packages/tqdm/std.py#L310-L327"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#s3prl.dataio.dataset.util.tqdm.format_num" title="Permalink to this definition">#</a></dt>
+<dd><p>Intelligent scientific notation (.3g).</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>n</strong> (<em>int</em><em> or </em><em>float</em><em> or </em><em>Numeric</em>) – A Number.</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p><strong>out</strong> – Formatted number.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>str</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="s3prl.dataio.dataset.util.tqdm.status_printer">
+<em class="property"><span class="pre">static</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">status_printer</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">file</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/tqdm/std.html#tqdm.status_printer"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="reference external" href="https://github.com/s3prl/s3prl/blob/v0.4.5 ///home/runner/s3prl_env/lib/python3.8/site-packages/tqdm/std.py#L329-L353"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#s3prl.dataio.dataset.util.tqdm.status_printer" title="Permalink to this definition">#</a></dt>
+<dd><p>Manage the printing and in-place updating of a line of characters.
+Note that if the string is longer than a line, then in-place
+updating may not work (it will print a new line at each refresh).</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="s3prl.dataio.dataset.util.tqdm.format_meter">
+<em class="property"><span class="pre">static</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">format_meter</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">n</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">total</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">elapsed</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ncols</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">prefix</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">''</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ascii</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">unit</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'it'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">unit_scale</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">rate</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">bar_format</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">postfix</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">unit_divisor</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1000</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">initial</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">colour</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">extra_kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/tqdm/std.html#tqdm.format_meter"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="reference external" href="https://github.com/s3prl/s3prl/blob/v0.4.5 ///home/runner/s3prl_env/lib/python3.8/site-packages/tqdm/std.py#L355-L558"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#s3prl.dataio.dataset.util.tqdm.format_meter" title="Permalink to this definition">#</a></dt>
+<dd><p>Return a string-based progress bar given some parameters</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>n</strong> (<em>int</em><em> or </em><em>float</em>) – Number of finished iterations.</p></li>
+<li><p><strong>total</strong> (<em>int</em><em> or </em><em>float</em>) – The expected total number of iterations. If meaningless (None),
+only basic progress statistics are displayed (no ETA).</p></li>
+<li><p><strong>elapsed</strong> (<em>float</em>) – Number of seconds passed since start.</p></li>
+<li><p><strong>ncols</strong> (<em>int</em><em>, </em><em>optional</em>) – The width of the entire output message. If specified,
+dynamically resizes <cite>{bar}</cite> to stay within this bound
+[default: None]. If <cite>0</cite>, will not print any bar (only stats).
+The fallback is <cite>{bar:10}</cite>.</p></li>
+<li><p><strong>prefix</strong> (<em>str</em><em>, </em><em>optional</em>) – Prefix message (included in total width) [default: ‘’].
+Use as {desc} in bar_format string.</p></li>
+<li><p><strong>ascii</strong> (<em>bool</em><em>, </em><em>optional</em><em> or </em><em>str</em><em>, </em><em>optional</em>) – If not set, use unicode (smooth blocks) to fill the meter
+[default: False]. The fallback is to use ASCII characters
+“ 123456789#”.</p></li>
+<li><p><strong>unit</strong> (<em>str</em><em>, </em><em>optional</em>) – The iteration unit [default: ‘it’].</p></li>
+<li><p><strong>unit_scale</strong> (<em>bool</em><em> or </em><em>int</em><em> or </em><em>float</em><em>, </em><em>optional</em>) – If 1 or True, the number of iterations will be printed with an
+appropriate SI metric prefix (k = 10^3, M = 10^6, etc.)
+[default: False]. If any other non-zero number, will scale
+<cite>total</cite> and <cite>n</cite>.</p></li>
+<li><p><strong>rate</strong> (<em>float</em><em>, </em><em>optional</em>) – Manual override for iteration rate.
+If [default: None], uses n/elapsed.</p></li>
+<li><p><strong>bar_format</strong> (<em>str</em><em>, </em><em>optional</em>) – <p>Specify a custom bar string formatting. May impact performance.
+[default: ‘{l_bar}{bar}{r_bar}’], where
+l_bar=’{desc}: {percentage:3.0f}%|’ and
+r_bar=’| {n_fmt}/{total_fmt} [{elapsed}&lt;{remaining}, ‘</p>
+<blockquote>
+<div><p>’{rate_fmt}{postfix}]’</p>
+</div></blockquote>
+<dl class="simple">
+<dt>Possible vars: l_bar, bar, r_bar, n, n_fmt, total, total_fmt,</dt><dd><p>percentage, elapsed, elapsed_s, ncols, nrows, desc, unit,
+rate, rate_fmt, rate_noinv, rate_noinv_fmt,
+rate_inv, rate_inv_fmt, postfix, unit_divisor,
+remaining, remaining_s, eta.</p>
+</dd>
+</dl>
+<p>Note that a trailing “: “ is automatically removed after {desc}
+if the latter is empty.</p>
+</p></li>
+<li><p><strong>postfix</strong> (<a href="#id1"><span class="problematic" id="id2">*</span></a>, optional) – Similar to <cite>prefix</cite>, but placed at the end
+(e.g. for additional stats).
+Note: postfix is usually a string (not a dict) for this method,
+and will if possible be set to postfix = ‘, ‘ + postfix.
+However other types are supported (#382).</p></li>
+<li><p><strong>unit_divisor</strong> (<em>float</em><em>, </em><em>optional</em>) – [default: 1000], ignored unless <cite>unit_scale</cite> is True.</p></li>
+<li><p><strong>initial</strong> (<em>int</em><em> or </em><em>float</em><em>, </em><em>optional</em>) – The initial counter value [default: 0].</p></li>
+<li><p><strong>colour</strong> (<em>str</em><em>, </em><em>optional</em>) – Bar colour (e.g. ‘green’, ‘#00ff00’).</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p><strong>out</strong></p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Formatted meter and stats, ready to display.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="s3prl.dataio.dataset.util.tqdm.write">
+<em class="property"><span class="pre">classmethod</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">write</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">s</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">file</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">end</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'\n'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">nolock</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/tqdm/std.html#tqdm.write"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="reference external" href="https://github.com/s3prl/s3prl/blob/v0.4.5 ///home/runner/s3prl_env/lib/python3.8/site-packages/tqdm/std.py#L613-L620"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#s3prl.dataio.dataset.util.tqdm.write" title="Permalink to this definition">#</a></dt>
+<dd><p>Print a message via tqdm (without overlap with bars).</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="s3prl.dataio.dataset.util.tqdm.external_write_mode">
+<em class="property"><span class="pre">classmethod</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">external_write_mode</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">file</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">nolock</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/tqdm/std.html#tqdm.external_write_mode"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="reference external" href="https://github.com/s3prl/s3prl/blob/v0.4.5 ///usr/lib/python3.8/contextlib.py#L622-L650"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#s3prl.dataio.dataset.util.tqdm.external_write_mode" title="Permalink to this definition">#</a></dt>
+<dd><p>Disable tqdm within context and refresh tqdm when exits.
+Useful when writing to standard output stream</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="s3prl.dataio.dataset.util.tqdm.set_lock">
+<em class="property"><span class="pre">classmethod</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">set_lock</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">lock</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/tqdm/std.html#tqdm.set_lock"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="reference external" href="https://github.com/s3prl/s3prl/blob/v0.4.5 ///home/runner/s3prl_env/lib/python3.8/site-packages/tqdm/std.py#L652-L655"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#s3prl.dataio.dataset.util.tqdm.set_lock" title="Permalink to this definition">#</a></dt>
+<dd><p>Set the global lock.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="s3prl.dataio.dataset.util.tqdm.get_lock">
+<em class="property"><span class="pre">classmethod</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">get_lock</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/tqdm/std.html#tqdm.get_lock"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="reference external" href="https://github.com/s3prl/s3prl/blob/v0.4.5 ///home/runner/s3prl_env/lib/python3.8/site-packages/tqdm/std.py#L657-L662"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#s3prl.dataio.dataset.util.tqdm.get_lock" title="Permalink to this definition">#</a></dt>
+<dd><p>Get the global lock. Construct it if it does not exist.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="s3prl.dataio.dataset.util.tqdm.pandas">
+<em class="property"><span class="pre">classmethod</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">pandas</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">tqdm_kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/tqdm/std.html#tqdm.pandas"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="reference external" href="https://github.com/s3prl/s3prl/blob/v0.4.5 ///home/runner/s3prl_env/lib/python3.8/site-packages/tqdm/std.py#L664-L844"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#s3prl.dataio.dataset.util.tqdm.pandas" title="Permalink to this definition">#</a></dt>
+<dd><dl class="simple">
+<dt>Registers the current <cite>tqdm</cite> class with</dt><dd><p>pandas.core.
+( frame.DataFrame
+| series.Series
+| groupby.(generic.)DataFrameGroupBy
+| groupby.(generic.)SeriesGroupBy
+).progress_apply</p>
+</dd>
+</dl>
+<p>A new instance will be created every time <cite>progress_apply</cite> is called,
+and each instance will automatically <cite>close()</cite> upon completion.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>tqdm_kwargs</strong> (<em>arguments for the tqdm instance</em>) – </p>
+</dd>
+</dl>
+<p class="rubric">Examples</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">pandas</span> <span class="k">as</span> <span class="nn">pd</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">tqdm</span> <span class="kn">import</span> <span class="n">tqdm</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">tqdm.gui</span> <span class="kn">import</span> <span class="n">tqdm</span> <span class="k">as</span> <span class="n">tqdm_gui</span>
+<span class="go">&gt;&gt;&gt;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">df</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">randint</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">100</span><span class="p">,</span> <span class="p">(</span><span class="mi">100000</span><span class="p">,</span> <span class="mi">6</span><span class="p">)))</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">tqdm</span><span class="o">.</span><span class="n">pandas</span><span class="p">(</span><span class="n">ncols</span><span class="o">=</span><span class="mi">50</span><span class="p">)</span>  <span class="c1"># can use tqdm_gui, optional kwargs, etc</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="c1"># Now you can use `progress_apply` instead of `apply`</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">df</span><span class="o">.</span><span class="n">groupby</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span><span class="o">.</span><span class="n">progress_apply</span><span class="p">(</span><span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="n">x</span><span class="o">**</span><span class="mi">2</span><span class="p">)</span>
+</pre></div>
+</div>
+<p class="rubric">References</p>
+<p>&lt;<a class="reference external" href="https://stackoverflow.com/questions/18603270/">https://stackoverflow.com/questions/18603270/</a>        progress-indicator-during-pandas-operations-python&gt;</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="s3prl.dataio.dataset.util.tqdm.update">
+<span class="sig-name descname"><span class="pre">update</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">n</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/tqdm/std.html#tqdm.update"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="reference external" href="https://github.com/s3prl/s3prl/blob/v0.4.5 ///home/runner/s3prl_env/lib/python3.8/site-packages/tqdm/std.py#L1212-L1277"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#s3prl.dataio.dataset.util.tqdm.update" title="Permalink to this definition">#</a></dt>
+<dd><p>Manually update the progress bar, useful for streams
+such as reading files.
+E.g.:
+&gt;&gt;&gt; t = tqdm(total=filesize) # Initialise
+&gt;&gt;&gt; for current_buffer in stream:
+…    …
+…    t.update(len(current_buffer))
+&gt;&gt;&gt; t.close()
+The last line is highly recommended, but possibly not necessary if
+<cite>t.update()</cite> will be called in such a way that <cite>filesize</cite> will be
+exactly reached and printed.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>n</strong> (<em>int</em><em> or </em><em>float</em><em>, </em><em>optional</em>) – Increment to add to the internal counter of iterations
+[default: 1]. If using float, consider specifying <cite>{n:.3f}</cite>
+or similar in <cite>bar_format</cite>, or specifying <cite>unit_scale</cite>.</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p><strong>out</strong> – True if a <cite>display()</cite> was triggered.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>bool or None</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="s3prl.dataio.dataset.util.tqdm.close">
+<span class="sig-name descname"><span class="pre">close</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/tqdm/std.html#tqdm.close"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="reference external" href="https://github.com/s3prl/s3prl/blob/v0.4.5 ///home/runner/s3prl_env/lib/python3.8/site-packages/tqdm/std.py#L1279-L1321"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#s3prl.dataio.dataset.util.tqdm.close" title="Permalink to this definition">#</a></dt>
+<dd><p>Cleanup and (if leave=False) close the progressbar.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="s3prl.dataio.dataset.util.tqdm.clear">
+<span class="sig-name descname"><span class="pre">clear</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">nolock</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/tqdm/std.html#tqdm.clear"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="reference external" href="https://github.com/s3prl/s3prl/blob/v0.4.5 ///home/runner/s3prl_env/lib/python3.8/site-packages/tqdm/std.py#L1323-L1337"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#s3prl.dataio.dataset.util.tqdm.clear" title="Permalink to this definition">#</a></dt>
+<dd><p>Clear current bar display.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="s3prl.dataio.dataset.util.tqdm.refresh">
+<span class="sig-name descname"><span class="pre">refresh</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">nolock</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">lock_args</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/tqdm/std.html#tqdm.refresh"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="reference external" href="https://github.com/s3prl/s3prl/blob/v0.4.5 ///home/runner/s3prl_env/lib/python3.8/site-packages/tqdm/std.py#L1339-L1364"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#s3prl.dataio.dataset.util.tqdm.refresh" title="Permalink to this definition">#</a></dt>
+<dd><p>Force refresh the display of this bar.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>nolock</strong> (<em>bool</em><em>, </em><em>optional</em>) – If <cite>True</cite>, does not lock.
+If [default: <cite>False</cite>]: calls <cite>acquire()</cite> on internal lock.</p></li>
+<li><p><strong>lock_args</strong> (<em>tuple</em><em>, </em><em>optional</em>) – Passed to internal lock’s <cite>acquire()</cite>.
+If specified, will only <cite>display()</cite> if <cite>acquire()</cite> returns <cite>True</cite>.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="s3prl.dataio.dataset.util.tqdm.unpause">
+<span class="sig-name descname"><span class="pre">unpause</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/tqdm/std.html#tqdm.unpause"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="reference external" href="https://github.com/s3prl/s3prl/blob/v0.4.5 ///home/runner/s3prl_env/lib/python3.8/site-packages/tqdm/std.py#L1366-L1372"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#s3prl.dataio.dataset.util.tqdm.unpause" title="Permalink to this definition">#</a></dt>
+<dd><p>Restart tqdm timer from last print time.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="s3prl.dataio.dataset.util.tqdm.reset">
+<span class="sig-name descname"><span class="pre">reset</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">total</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/tqdm/std.html#tqdm.reset"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="reference external" href="https://github.com/s3prl/s3prl/blob/v0.4.5 ///home/runner/s3prl_env/lib/python3.8/site-packages/tqdm/std.py#L1374-L1394"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#s3prl.dataio.dataset.util.tqdm.reset" title="Permalink to this definition">#</a></dt>
+<dd><p>Resets to 0 iterations for repeated use.</p>
+<p>Consider combining with <cite>leave=True</cite>.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>total</strong> (<em>int</em><em> or </em><em>float</em><em>, </em><em>optional. Total to use for the new bar.</em>) – </p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="s3prl.dataio.dataset.util.tqdm.set_description">
+<span class="sig-name descname"><span class="pre">set_description</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">desc</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">refresh</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/tqdm/std.html#tqdm.set_description"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="reference external" href="https://github.com/s3prl/s3prl/blob/v0.4.5 ///home/runner/s3prl_env/lib/python3.8/site-packages/tqdm/std.py#L1396-L1408"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#s3prl.dataio.dataset.util.tqdm.set_description" title="Permalink to this definition">#</a></dt>
+<dd><p>Set/modify description of the progress bar.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>desc</strong> (<em>str</em><em>, </em><em>optional</em>) – </p></li>
+<li><p><strong>refresh</strong> (<em>bool</em><em>, </em><em>optional</em>) – Forces refresh [default: True].</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="s3prl.dataio.dataset.util.tqdm.set_description_str">
+<span class="sig-name descname"><span class="pre">set_description_str</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">desc</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">refresh</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/tqdm/std.html#tqdm.set_description_str"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="reference external" href="https://github.com/s3prl/s3prl/blob/v0.4.5 ///home/runner/s3prl_env/lib/python3.8/site-packages/tqdm/std.py#L1410-L1414"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#s3prl.dataio.dataset.util.tqdm.set_description_str" title="Permalink to this definition">#</a></dt>
+<dd><p>Set/modify description without ‘: ‘ appended.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="s3prl.dataio.dataset.util.tqdm.set_postfix">
+<span class="sig-name descname"><span class="pre">set_postfix</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">ordered_dict</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">refresh</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/tqdm/std.html#tqdm.set_postfix"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="reference external" href="https://github.com/s3prl/s3prl/blob/v0.4.5 ///home/runner/s3prl_env/lib/python3.8/site-packages/tqdm/std.py#L1416-L1445"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#s3prl.dataio.dataset.util.tqdm.set_postfix" title="Permalink to this definition">#</a></dt>
+<dd><p>Set/modify postfix (additional stats)
+with automatic formatting based on datatype.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>ordered_dict</strong> (<em>dict</em><em> or </em><a class="reference internal" href="s3prl.problem.common.hear_dcase_2016_task2.html#s3prl.problem.common.hear_dcase_2016_task2.OrderedDict" title="s3prl.problem.common.hear_dcase_2016_task2.OrderedDict"><em>OrderedDict</em></a><em>, </em><em>optional</em>) – </p></li>
+<li><p><strong>refresh</strong> (<em>bool</em><em>, </em><em>optional</em>) – Forces refresh [default: True].</p></li>
+<li><p><strong>kwargs</strong> (<em>dict</em><em>, </em><em>optional</em>) – </p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="s3prl.dataio.dataset.util.tqdm.set_postfix_str">
+<span class="sig-name descname"><span class="pre">set_postfix_str</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">s</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">''</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">refresh</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/tqdm/std.html#tqdm.set_postfix_str"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="reference external" href="https://github.com/s3prl/s3prl/blob/v0.4.5 ///home/runner/s3prl_env/lib/python3.8/site-packages/tqdm/std.py#L1447-L1453"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#s3prl.dataio.dataset.util.tqdm.set_postfix_str" title="Permalink to this definition">#</a></dt>
+<dd><p>Postfix without dictionary expansion, similar to prefix handling.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="s3prl.dataio.dataset.util.tqdm.moveto">
+<span class="sig-name descname"><span class="pre">moveto</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">n</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/tqdm/std.html#tqdm.moveto"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="reference external" href="https://github.com/s3prl/s3prl/blob/v0.4.5 ///home/runner/s3prl_env/lib/python3.8/site-packages/tqdm/std.py#L1455-L1458"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#s3prl.dataio.dataset.util.tqdm.moveto" title="Permalink to this definition">#</a></dt>
+<dd></dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="s3prl.dataio.dataset.util.tqdm.format_dict">
+<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">format_dict</span></span><a class="reference external" href="https://github.com/s3prl/s3prl/blob/v0.4.5 /s3prl/dataio/dataset/util.py"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#s3prl.dataio.dataset.util.tqdm.format_dict" title="Permalink to this definition">#</a></dt>
+<dd><p>Public API for read-only member access.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="s3prl.dataio.dataset.util.tqdm.display">
+<span class="sig-name descname"><span class="pre">display</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">msg</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">pos</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/tqdm/std.html#tqdm.display"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="reference external" href="https://github.com/s3prl/s3prl/blob/v0.4.5 ///home/runner/s3prl_env/lib/python3.8/site-packages/tqdm/std.py#L1478-L1512"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#s3prl.dataio.dataset.util.tqdm.display" title="Permalink to this definition">#</a></dt>
+<dd><p>Use <cite>self.sp</cite> to display <cite>msg</cite> in the specified <cite>pos</cite>.</p>
+<p>Consider overloading this function when inheriting to use e.g.:
+<cite>self.some_frontend(**self.format_dict)</cite> instead of <cite>self.sp</cite>.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>msg</strong> (str, optional. What to display (default: <cite>repr(self)</cite>).) – </p></li>
+<li><p><strong>pos</strong> (int, optional. Position to <cite>moveto</cite>) – (default: <cite>abs(self.pos)</cite>).</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="s3prl.dataio.dataset.util.tqdm.wrapattr">
+<em class="property"><span class="pre">classmethod</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">wrapattr</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">stream</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">method</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">total</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">bytes</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">tqdm_kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/tqdm/std.html#tqdm.wrapattr"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="reference external" href="https://github.com/s3prl/s3prl/blob/v0.4.5 ///usr/lib/python3.8/contextlib.py#L1514-L1533"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#s3prl.dataio.dataset.util.tqdm.wrapattr" title="Permalink to this definition">#</a></dt>
+<dd><p>stream  : file-like object.
+method  : str, “read” or “write”. The result of <cite>read()</cite> and</p>
+<blockquote>
+<div><p>the first argument of <cite>write()</cite> should have a <cite>len()</cite>.</p>
+</div></blockquote>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="k">with</span> <span class="n">tqdm</span><span class="o">.</span><span class="n">wrapattr</span><span class="p">(</span><span class="n">file_obj</span><span class="p">,</span> <span class="s2">&quot;read&quot;</span><span class="p">,</span> <span class="n">total</span><span class="o">=</span><span class="n">file_obj</span><span class="o">.</span><span class="n">size</span><span class="p">)</span> <span class="k">as</span> <span class="n">fobj</span><span class="p">:</span>
+<span class="gp">... </span>    <span class="k">while</span> <span class="kc">True</span><span class="p">:</span>
+<span class="gp">... </span>        <span class="n">chunk</span> <span class="o">=</span> <span class="n">fobj</span><span class="o">.</span><span class="n">read</span><span class="p">(</span><span class="n">chunk_size</span><span class="p">)</span>
+<span class="gp">... </span>        <span class="k">if</span> <span class="ow">not</span> <span class="n">chunk</span><span class="p">:</span>
+<span class="gp">... </span>            <span class="k">break</span>
+</pre></div>
+</div>
+</dd></dl>
+
+</dd></dl>
+
+</section>
+<section id="delayed">
+<h2>delayed<a class="headerlink" href="#delayed" title="Permalink to this heading">#</a></h2>
+<dl class="py function">
+<dt class="sig sig-object py" id="s3prl.dataio.dataset.util.delayed">
+<span class="sig-prename descclassname"><span class="pre">s3prl.dataio.dataset.util.</span></span><span class="sig-name descname"><span class="pre">delayed</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">function</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/joblib/parallel.html#delayed"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="reference external" href="https://github.com/s3prl/s3prl/blob/v0.4.5 ///home/runner/s3prl_env/lib/python3.8/site-packages/joblib/parallel.py#L347-L356"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#s3prl.dataio.dataset.util.delayed" title="Permalink to this definition">#</a></dt>
+<dd><p>Decorator used to capture the arguments of a function.</p>
+</dd></dl>
+
+</section>
+<section id="get-info">
+<h2>get_info<a class="headerlink" href="#get-info" title="Permalink to this heading">#</a></h2>
+<dl class="py function">
+<dt class="sig sig-object py" id="s3prl.dataio.dataset.util.get_info">
+<span class="sig-prename descclassname"><span class="pre">s3prl.dataio.dataset.util.</span></span><span class="sig-name descname"><span class="pre">get_info</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">dataset</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">names</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">List</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">n_jobs</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">6</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cache_dir</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/s3prl/dataio/dataset/util.html#get_info"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="reference external" href="https://github.com/s3prl/s3prl/blob/v0.4.5 /s3prl/dataio/dataset/util.py#L13-L73"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#s3prl.dataio.dataset.util.get_info" title="Permalink to this definition">#</a></dt>
+<dd></dd></dl>
+
+</section>
+</section>
+
+        </article>
+      </div>
+      <footer>
+        
+        <div class="related-pages">
+          <a class="next-page" href="s3prl.dataio.encoder.html">
+              <div class="page-info">
+                <div class="context">
+                  <span>Next</span>
+                </div>
+                <div class="title">encoder</div>
+              </div>
+              <svg class="furo-related-icon"><use href="#svg-arrow-right"></use></svg>
+            </a>
+          <a class="prev-page" href="s3prl.dataio.dataset.load_audio.html">
+              <svg class="furo-related-icon"><use href="#svg-arrow-right"></use></svg>
+              <div class="page-info">
+                <div class="context">
+                  <span>Previous</span>
+                </div>
+                
+                <div class="title">load_audio</div>
+                
+              </div>
+            </a>
+        </div>
+        <div class="bottom-of-page">
+          <div class="left-details">
+            <div class="copyright">
+                Copyright &#169; 2022, S3PRL Team
+            </div>
+            Made with <a href="https://www.sphinx-doc.org/">Sphinx</a> and <a class="muted-link" href="https://pradyunsg.me">@pradyunsg</a>'s
+            
+            <a href="https://github.com/pradyunsg/furo">Furo</a>
+            
+          </div>
+          <div class="right-details">
+            <div class="icons">
+              
+            </div>
+          </div>
+        </div>
+        
+      </footer>
+    </div>
+    <aside class="toc-drawer">
+      
+      
+      <div class="toc-sticky toc-scroll">
+        <div class="toc-title-container">
+          <span class="toc-title">
+            On this page
+          </span>
+        </div>
+        <div class="toc-tree-container">
+          <div class="toc-tree">
+            <ul>
+<li><a class="reference internal" href="#">util</a><ul>
+<li><a class="reference internal" href="#parallel">Parallel</a><ul>
+<li><a class="reference internal" href="#s3prl.dataio.dataset.util.Parallel"><code class="docutils literal notranslate"><span class="pre">Parallel</span></code></a><ul>
+<li><a class="reference internal" href="#s3prl.dataio.dataset.util.Parallel.dispatch_next"><code class="docutils literal notranslate"><span class="pre">Parallel.dispatch_next()</span></code></a></li>
+<li><a class="reference internal" href="#s3prl.dataio.dataset.util.Parallel.dispatch_one_batch"><code class="docutils literal notranslate"><span class="pre">Parallel.dispatch_one_batch()</span></code></a></li>
+<li><a class="reference internal" href="#s3prl.dataio.dataset.util.Parallel.debug"><code class="docutils literal notranslate"><span class="pre">Parallel.debug()</span></code></a></li>
+<li><a class="reference internal" href="#s3prl.dataio.dataset.util.Parallel.format"><code class="docutils literal notranslate"><span class="pre">Parallel.format()</span></code></a></li>
+<li><a class="reference internal" href="#s3prl.dataio.dataset.util.Parallel.print_progress"><code class="docutils literal notranslate"><span class="pre">Parallel.print_progress()</span></code></a></li>
+<li><a class="reference internal" href="#s3prl.dataio.dataset.util.Parallel.warn"><code class="docutils literal notranslate"><span class="pre">Parallel.warn()</span></code></a></li>
+<li><a class="reference internal" href="#s3prl.dataio.dataset.util.Parallel.retrieve"><code class="docutils literal notranslate"><span class="pre">Parallel.retrieve()</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li><a class="reference internal" href="#path">Path</a><ul>
+<li><a class="reference internal" href="#s3prl.dataio.dataset.util.Path"><code class="docutils literal notranslate"><span class="pre">Path</span></code></a><ul>
+<li><a class="reference internal" href="#s3prl.dataio.dataset.util.Path.cwd"><code class="docutils literal notranslate"><span class="pre">Path.cwd()</span></code></a></li>
+<li><a class="reference internal" href="#s3prl.dataio.dataset.util.Path.home"><code class="docutils literal notranslate"><span class="pre">Path.home()</span></code></a></li>
+<li><a class="reference internal" href="#s3prl.dataio.dataset.util.Path.samefile"><code class="docutils literal notranslate"><span class="pre">Path.samefile()</span></code></a></li>
+<li><a class="reference internal" href="#s3prl.dataio.dataset.util.Path.iterdir"><code class="docutils literal notranslate"><span class="pre">Path.iterdir()</span></code></a></li>
+<li><a class="reference internal" href="#s3prl.dataio.dataset.util.Path.glob"><code class="docutils literal notranslate"><span class="pre">Path.glob()</span></code></a></li>
+<li><a class="reference internal" href="#s3prl.dataio.dataset.util.Path.rglob"><code class="docutils literal notranslate"><span class="pre">Path.rglob()</span></code></a></li>
+<li><a class="reference internal" href="#s3prl.dataio.dataset.util.Path.absolute"><code class="docutils literal notranslate"><span class="pre">Path.absolute()</span></code></a></li>
+<li><a class="reference internal" href="#s3prl.dataio.dataset.util.Path.resolve"><code class="docutils literal notranslate"><span class="pre">Path.resolve()</span></code></a></li>
+<li><a class="reference internal" href="#s3prl.dataio.dataset.util.Path.stat"><code class="docutils literal notranslate"><span class="pre">Path.stat()</span></code></a></li>
+<li><a class="reference internal" href="#s3prl.dataio.dataset.util.Path.owner"><code class="docutils literal notranslate"><span class="pre">Path.owner()</span></code></a></li>
+<li><a class="reference internal" href="#s3prl.dataio.dataset.util.Path.group"><code class="docutils literal notranslate"><span class="pre">Path.group()</span></code></a></li>
+<li><a class="reference internal" href="#s3prl.dataio.dataset.util.Path.open"><code class="docutils literal notranslate"><span class="pre">Path.open()</span></code></a></li>
+<li><a class="reference internal" href="#s3prl.dataio.dataset.util.Path.read_bytes"><code class="docutils literal notranslate"><span class="pre">Path.read_bytes()</span></code></a></li>
+<li><a class="reference internal" href="#s3prl.dataio.dataset.util.Path.read_text"><code class="docutils literal notranslate"><span class="pre">Path.read_text()</span></code></a></li>
+<li><a class="reference internal" href="#s3prl.dataio.dataset.util.Path.write_bytes"><code class="docutils literal notranslate"><span class="pre">Path.write_bytes()</span></code></a></li>
+<li><a class="reference internal" href="#s3prl.dataio.dataset.util.Path.write_text"><code class="docutils literal notranslate"><span class="pre">Path.write_text()</span></code></a></li>
+<li><a class="reference internal" href="#s3prl.dataio.dataset.util.Path.touch"><code class="docutils literal notranslate"><span class="pre">Path.touch()</span></code></a></li>
+<li><a class="reference internal" href="#s3prl.dataio.dataset.util.Path.mkdir"><code class="docutils literal notranslate"><span class="pre">Path.mkdir()</span></code></a></li>
+<li><a class="reference internal" href="#s3prl.dataio.dataset.util.Path.chmod"><code class="docutils literal notranslate"><span class="pre">Path.chmod()</span></code></a></li>
+<li><a class="reference internal" href="#s3prl.dataio.dataset.util.Path.lchmod"><code class="docutils literal notranslate"><span class="pre">Path.lchmod()</span></code></a></li>
+<li><a class="reference internal" href="#s3prl.dataio.dataset.util.Path.unlink"><code class="docutils literal notranslate"><span class="pre">Path.unlink()</span></code></a></li>
+<li><a class="reference internal" href="#s3prl.dataio.dataset.util.Path.rmdir"><code class="docutils literal notranslate"><span class="pre">Path.rmdir()</span></code></a></li>
+<li><a class="reference internal" href="#s3prl.dataio.dataset.util.Path.lstat"><code class="docutils literal notranslate"><span class="pre">Path.lstat()</span></code></a></li>
+<li><a class="reference internal" href="#s3prl.dataio.dataset.util.Path.rename"><code class="docutils literal notranslate"><span class="pre">Path.rename()</span></code></a></li>
+<li><a class="reference internal" href="#s3prl.dataio.dataset.util.Path.replace"><code class="docutils literal notranslate"><span class="pre">Path.replace()</span></code></a></li>
+<li><a class="reference internal" href="#s3prl.dataio.dataset.util.Path.symlink_to"><code class="docutils literal notranslate"><span class="pre">Path.symlink_to()</span></code></a></li>
+<li><a class="reference internal" href="#s3prl.dataio.dataset.util.Path.link_to"><code class="docutils literal notranslate"><span class="pre">Path.link_to()</span></code></a></li>
+<li><a class="reference internal" href="#s3prl.dataio.dataset.util.Path.exists"><code class="docutils literal notranslate"><span class="pre">Path.exists()</span></code></a></li>
+<li><a class="reference internal" href="#s3prl.dataio.dataset.util.Path.is_dir"><code class="docutils literal notranslate"><span class="pre">Path.is_dir()</span></code></a></li>
+<li><a class="reference internal" href="#s3prl.dataio.dataset.util.Path.is_file"><code class="docutils literal notranslate"><span class="pre">Path.is_file()</span></code></a></li>
+<li><a class="reference internal" href="#s3prl.dataio.dataset.util.Path.is_mount"><code class="docutils literal notranslate"><span class="pre">Path.is_mount()</span></code></a></li>
+<li><a class="reference internal" href="#s3prl.dataio.dataset.util.Path.is_symlink"><code class="docutils literal notranslate"><span class="pre">Path.is_symlink()</span></code></a></li>
+<li><a class="reference internal" href="#s3prl.dataio.dataset.util.Path.is_block_device"><code class="docutils literal notranslate"><span class="pre">Path.is_block_device()</span></code></a></li>
+<li><a class="reference internal" href="#s3prl.dataio.dataset.util.Path.is_char_device"><code class="docutils literal notranslate"><span class="pre">Path.is_char_device()</span></code></a></li>
+<li><a class="reference internal" href="#s3prl.dataio.dataset.util.Path.anchor"><code class="docutils literal notranslate"><span class="pre">Path.anchor</span></code></a></li>
+<li><a class="reference internal" href="#s3prl.dataio.dataset.util.Path.as_posix"><code class="docutils literal notranslate"><span class="pre">Path.as_posix()</span></code></a></li>
+<li><a class="reference internal" href="#s3prl.dataio.dataset.util.Path.as_uri"><code class="docutils literal notranslate"><span class="pre">Path.as_uri()</span></code></a></li>
+<li><a class="reference internal" href="#s3prl.dataio.dataset.util.Path.drive"><code class="docutils literal notranslate"><span class="pre">Path.drive</span></code></a></li>
+<li><a class="reference internal" href="#s3prl.dataio.dataset.util.Path.is_absolute"><code class="docutils literal notranslate"><span class="pre">Path.is_absolute()</span></code></a></li>
+<li><a class="reference internal" href="#s3prl.dataio.dataset.util.Path.is_fifo"><code class="docutils literal notranslate"><span class="pre">Path.is_fifo()</span></code></a></li>
+<li><a class="reference internal" href="#s3prl.dataio.dataset.util.Path.is_reserved"><code class="docutils literal notranslate"><span class="pre">Path.is_reserved()</span></code></a></li>
+<li><a class="reference internal" href="#s3prl.dataio.dataset.util.Path.joinpath"><code class="docutils literal notranslate"><span class="pre">Path.joinpath()</span></code></a></li>
+<li><a class="reference internal" href="#s3prl.dataio.dataset.util.Path.match"><code class="docutils literal notranslate"><span class="pre">Path.match()</span></code></a></li>
+<li><a class="reference internal" href="#s3prl.dataio.dataset.util.Path.name"><code class="docutils literal notranslate"><span class="pre">Path.name</span></code></a></li>
+<li><a class="reference internal" href="#s3prl.dataio.dataset.util.Path.parent"><code class="docutils literal notranslate"><span class="pre">Path.parent</span></code></a></li>
+<li><a class="reference internal" href="#s3prl.dataio.dataset.util.Path.parents"><code class="docutils literal notranslate"><span class="pre">Path.parents</span></code></a></li>
+<li><a class="reference internal" href="#s3prl.dataio.dataset.util.Path.parts"><code class="docutils literal notranslate"><span class="pre">Path.parts</span></code></a></li>
+<li><a class="reference internal" href="#s3prl.dataio.dataset.util.Path.relative_to"><code class="docutils literal notranslate"><span class="pre">Path.relative_to()</span></code></a></li>
+<li><a class="reference internal" href="#s3prl.dataio.dataset.util.Path.root"><code class="docutils literal notranslate"><span class="pre">Path.root</span></code></a></li>
+<li><a class="reference internal" href="#s3prl.dataio.dataset.util.Path.stem"><code class="docutils literal notranslate"><span class="pre">Path.stem</span></code></a></li>
+<li><a class="reference internal" href="#s3prl.dataio.dataset.util.Path.suffix"><code class="docutils literal notranslate"><span class="pre">Path.suffix</span></code></a></li>
+<li><a class="reference internal" href="#s3prl.dataio.dataset.util.Path.suffixes"><code class="docutils literal notranslate"><span class="pre">Path.suffixes</span></code></a></li>
+<li><a class="reference internal" href="#s3prl.dataio.dataset.util.Path.with_name"><code class="docutils literal notranslate"><span class="pre">Path.with_name()</span></code></a></li>
+<li><a class="reference internal" href="#s3prl.dataio.dataset.util.Path.with_suffix"><code class="docutils literal notranslate"><span class="pre">Path.with_suffix()</span></code></a></li>
+<li><a class="reference internal" href="#s3prl.dataio.dataset.util.Path.is_socket"><code class="docutils literal notranslate"><span class="pre">Path.is_socket()</span></code></a></li>
+<li><a class="reference internal" href="#s3prl.dataio.dataset.util.Path.expanduser"><code class="docutils literal notranslate"><span class="pre">Path.expanduser()</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li><a class="reference internal" href="#defaultdict">defaultdict</a><ul>
+<li><a class="reference internal" href="#s3prl.dataio.dataset.util.defaultdict"><code class="docutils literal notranslate"><span class="pre">defaultdict</span></code></a><ul>
+<li><a class="reference internal" href="#s3prl.dataio.dataset.util.defaultdict.clear"><code class="docutils literal notranslate"><span class="pre">defaultdict.clear()</span></code></a></li>
+<li><a class="reference internal" href="#s3prl.dataio.dataset.util.defaultdict.copy"><code class="docutils literal notranslate"><span class="pre">defaultdict.copy()</span></code></a></li>
+<li><a class="reference internal" href="#s3prl.dataio.dataset.util.defaultdict.default_factory"><code class="docutils literal notranslate"><span class="pre">defaultdict.default_factory</span></code></a></li>
+<li><a class="reference internal" href="#s3prl.dataio.dataset.util.defaultdict.fromkeys"><code class="docutils literal notranslate"><span class="pre">defaultdict.fromkeys()</span></code></a></li>
+<li><a class="reference internal" href="#s3prl.dataio.dataset.util.defaultdict.get"><code class="docutils literal notranslate"><span class="pre">defaultdict.get()</span></code></a></li>
+<li><a class="reference internal" href="#s3prl.dataio.dataset.util.defaultdict.items"><code class="docutils literal notranslate"><span class="pre">defaultdict.items()</span></code></a></li>
+<li><a class="reference internal" href="#s3prl.dataio.dataset.util.defaultdict.keys"><code class="docutils literal notranslate"><span class="pre">defaultdict.keys()</span></code></a></li>
+<li><a class="reference internal" href="#s3prl.dataio.dataset.util.defaultdict.pop"><code class="docutils literal notranslate"><span class="pre">defaultdict.pop()</span></code></a></li>
+<li><a class="reference internal" href="#s3prl.dataio.dataset.util.defaultdict.popitem"><code class="docutils literal notranslate"><span class="pre">defaultdict.popitem()</span></code></a></li>
+<li><a class="reference internal" href="#s3prl.dataio.dataset.util.defaultdict.setdefault"><code class="docutils literal notranslate"><span class="pre">defaultdict.setdefault()</span></code></a></li>
+<li><a class="reference internal" href="#s3prl.dataio.dataset.util.defaultdict.update"><code class="docutils literal notranslate"><span class="pre">defaultdict.update()</span></code></a></li>
+<li><a class="reference internal" href="#s3prl.dataio.dataset.util.defaultdict.values"><code class="docutils literal notranslate"><span class="pre">defaultdict.values()</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li><a class="reference internal" href="#tqdm">tqdm</a><ul>
+<li><a class="reference internal" href="#s3prl.dataio.dataset.util.tqdm"><code class="docutils literal notranslate"><span class="pre">tqdm</span></code></a><ul>
+<li><a class="reference internal" href="#s3prl.dataio.dataset.util.tqdm.monitor_interval"><code class="docutils literal notranslate"><span class="pre">tqdm.monitor_interval</span></code></a></li>
+<li><a class="reference internal" href="#s3prl.dataio.dataset.util.tqdm.monitor"><code class="docutils literal notranslate"><span class="pre">tqdm.monitor</span></code></a></li>
+<li><a class="reference internal" href="#s3prl.dataio.dataset.util.tqdm.format_sizeof"><code class="docutils literal notranslate"><span class="pre">tqdm.format_sizeof()</span></code></a></li>
+<li><a class="reference internal" href="#s3prl.dataio.dataset.util.tqdm.format_interval"><code class="docutils literal notranslate"><span class="pre">tqdm.format_interval()</span></code></a></li>
+<li><a class="reference internal" href="#s3prl.dataio.dataset.util.tqdm.format_num"><code class="docutils literal notranslate"><span class="pre">tqdm.format_num()</span></code></a></li>
+<li><a class="reference internal" href="#s3prl.dataio.dataset.util.tqdm.status_printer"><code class="docutils literal notranslate"><span class="pre">tqdm.status_printer()</span></code></a></li>
+<li><a class="reference internal" href="#s3prl.dataio.dataset.util.tqdm.format_meter"><code class="docutils literal notranslate"><span class="pre">tqdm.format_meter()</span></code></a></li>
+<li><a class="reference internal" href="#s3prl.dataio.dataset.util.tqdm.write"><code class="docutils literal notranslate"><span class="pre">tqdm.write()</span></code></a></li>
+<li><a class="reference internal" href="#s3prl.dataio.dataset.util.tqdm.external_write_mode"><code class="docutils literal notranslate"><span class="pre">tqdm.external_write_mode()</span></code></a></li>
+<li><a class="reference internal" href="#s3prl.dataio.dataset.util.tqdm.set_lock"><code class="docutils literal notranslate"><span class="pre">tqdm.set_lock()</span></code></a></li>
+<li><a class="reference internal" href="#s3prl.dataio.dataset.util.tqdm.get_lock"><code class="docutils literal notranslate"><span class="pre">tqdm.get_lock()</span></code></a></li>
+<li><a class="reference internal" href="#s3prl.dataio.dataset.util.tqdm.pandas"><code class="docutils literal notranslate"><span class="pre">tqdm.pandas()</span></code></a></li>
+<li><a class="reference internal" href="#s3prl.dataio.dataset.util.tqdm.update"><code class="docutils literal notranslate"><span class="pre">tqdm.update()</span></code></a></li>
+<li><a class="reference internal" href="#s3prl.dataio.dataset.util.tqdm.close"><code class="docutils literal notranslate"><span class="pre">tqdm.close()</span></code></a></li>
+<li><a class="reference internal" href="#s3prl.dataio.dataset.util.tqdm.clear"><code class="docutils literal notranslate"><span class="pre">tqdm.clear()</span></code></a></li>
+<li><a class="reference internal" href="#s3prl.dataio.dataset.util.tqdm.refresh"><code class="docutils literal notranslate"><span class="pre">tqdm.refresh()</span></code></a></li>
+<li><a class="reference internal" href="#s3prl.dataio.dataset.util.tqdm.unpause"><code class="docutils literal notranslate"><span class="pre">tqdm.unpause()</span></code></a></li>
+<li><a class="reference internal" href="#s3prl.dataio.dataset.util.tqdm.reset"><code class="docutils literal notranslate"><span class="pre">tqdm.reset()</span></code></a></li>
+<li><a class="reference internal" href="#s3prl.dataio.dataset.util.tqdm.set_description"><code class="docutils literal notranslate"><span class="pre">tqdm.set_description()</span></code></a></li>
+<li><a class="reference internal" href="#s3prl.dataio.dataset.util.tqdm.set_description_str"><code class="docutils literal notranslate"><span class="pre">tqdm.set_description_str()</span></code></a></li>
+<li><a class="reference internal" href="#s3prl.dataio.dataset.util.tqdm.set_postfix"><code class="docutils literal notranslate"><span class="pre">tqdm.set_postfix()</span></code></a></li>
+<li><a class="reference internal" href="#s3prl.dataio.dataset.util.tqdm.set_postfix_str"><code class="docutils literal notranslate"><span class="pre">tqdm.set_postfix_str()</span></code></a></li>
+<li><a class="reference internal" href="#s3prl.dataio.dataset.util.tqdm.moveto"><code class="docutils literal notranslate"><span class="pre">tqdm.moveto()</span></code></a></li>
+<li><a class="reference internal" href="#s3prl.dataio.dataset.util.tqdm.format_dict"><code class="docutils literal notranslate"><span class="pre">tqdm.format_dict</span></code></a></li>
+<li><a class="reference internal" href="#s3prl.dataio.dataset.util.tqdm.display"><code class="docutils literal notranslate"><span class="pre">tqdm.display()</span></code></a></li>
+<li><a class="reference internal" href="#s3prl.dataio.dataset.util.tqdm.wrapattr"><code class="docutils literal notranslate"><span class="pre">tqdm.wrapattr()</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li><a class="reference internal" href="#delayed">delayed</a><ul>
+<li><a class="reference internal" href="#s3prl.dataio.dataset.util.delayed"><code class="docutils literal notranslate"><span class="pre">delayed()</span></code></a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#get-info">get_info</a><ul>
+<li><a class="reference internal" href="#s3prl.dataio.dataset.util.get_info"><code class="docutils literal notranslate"><span class="pre">get_info()</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+
+          </div>
+        </div>
+      </div>
+      
+      
+    </aside>
+  </div>
+</div><script data-url_root="../" id="documentation_options" src="../_static/documentation_options.js"></script>
+    <script src="../_static/jquery.js"></script>
+    <script src="../_static/underscore.js"></script>
+    <script src="../_static/_sphinx_javascript_frameworks_compat.js"></script>
+    <script src="../_static/doctools.js"></script>
+    <script src="../_static/sphinx_highlight.js"></script>
+    <script src="../_static/scripts/furo.js"></script>
+    <script src="../_static/js/custom.js"></script>
+    </body>
+</html>
