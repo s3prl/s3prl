@@ -56,7 +56,7 @@ class SuperbPR(SuperbASR):
                 ),
             ),
             build_upstream=dict(
-                name="fbank",
+                name=MISSING,
             ),
             build_featurizer=dict(
                 layer_selections=None,
