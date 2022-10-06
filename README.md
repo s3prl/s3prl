@@ -11,7 +11,7 @@
 
 ## Notice for pull requests
 
-Please note that if you did not explicitly discuss with Andy and Leo (the repository owners) about your planning development, by default it will not be merged into S3PRL and should be maintained in your own repository. Please see our [pull request policy](.github/PULL_REQUEST_TEMPLATE.md). Thanks for your understanding.
+Please first discuss with us on the issue page about your feature request before implementing the actual pull request, so we can discuss about how to achieve the functionality. If we did not discuss about the detail, it is highly possible that we are not accepting the pull request due to the difficulty of maintenance.
 
 ## Environment compatibilities [![CI](https://github.com/s3prl/s3prl/actions/workflows/ci.yml/badge.svg?branch=main&event=push)](https://github.com/s3prl/s3prl/actions/workflows/ci.yml)
 
