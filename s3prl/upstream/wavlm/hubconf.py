@@ -62,10 +62,9 @@ def wavlm_base_plus(refresh=False, *args, **kwargs):
     The Base-Plus model
         refresh (bool): whether to download ckpt/config again if existed
     """
-    # Azure Storage
     kwargs[
         "ckpt"
-    ] = "https://msranlcmtteamdrive.blob.core.windows.net/share/wavlm/WavLM-Base+.pt?sv=2020-04-08&st=2021-11-05T00%3A34%3A47Z&se=2022-10-06T00%3A34%3A00Z&sr=b&sp=r&sig=Gkf1IByHaIn1t%2FVEd9D6WHjZ3zu%2Fk5eSdoj21UytKro%3D"
+    ] = "https://huggingface.co/s3prl/converted_ckpts/resolve/main/wavlm_base_plus.pt"
 
     # Google Drive
     # kwargs["ckpt"] = "https://drive.google.com/u/1/uc?id=1PlbT_9_B4F9BsD_ija84sUTVw7almNX8&export=download"
