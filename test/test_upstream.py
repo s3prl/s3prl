@@ -193,7 +193,7 @@ def test_common_upstream(name):
 
 @pytest.mark.upstream
 @pytest.mark.slow
-def test_upstream_with_extracted(upstream_names: str = None):
+def test_upstream_with_extracted(upstream_names: str):
     _prepare_sample_hidden_states()
 
     if upstream_names is not None:
@@ -223,7 +223,7 @@ def test_upstream_with_extracted(upstream_names: str = None):
 
 @pytest.mark.upstream
 @pytest.mark.slow
-def test_upstream_forward_backward(upstream_names: str = None):
+def test_upstream_forward_backward(upstream_names: str):
     if upstream_names is not None:
         options = upstream_names.split(",")
     else:
