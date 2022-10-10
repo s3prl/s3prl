@@ -9,6 +9,7 @@ Authors
 
 import pickle
 import re
+from collections import defaultdict
 from dataclasses import dataclass
 from pathlib import Path
 from typing import List
@@ -53,21 +54,40 @@ def audio_snips_for_slot_filling(
     train_data, valid_data, test_data = corpus.data_split
 
     def dict_to_csv(data_dict, csv_path):
-        keys = sorted(list(data_dict.keys()))
-        fields = sorted(data_dict[keys[0]].keys())
-        data = dict()
-        for field in fields:
-            data[field] = []
-            for key in keys:
-                value = data_dict[key][field]
-                if field == "transcription":
-                    value = value.replace("楽園追放", "EXPELLED")
-                    value = value.replace("官方杂志", "")
-                    value = value.replace("–", "-")
-                    value = value.translate(translator)
-                    value = re.sub(" +", " ", value).strip(" ")
-                data[field].append(value)
-        data["id"] = keys
+        data_ids = sorted(list(data_dict.keys()))
+        fields = sorted(data_dict[data_ids[0]].keys())
+        data = defaultdict(list)
+        for data_id in data_ids:
+            data_point = data_dict[data_id]
+
+            trans = data_point["transcription"]
+            trans = trans.replace("楽園追放", "EXPELLED")
+            trans = trans.replace("官方杂志", "")
+            trans = trans.replace("–", "-")
+            trans = trans.replace("&", " AND ")
+            trans = trans.translate(translator)
+            trans = re.sub(" +", " ", trans).strip(" ")
+
+            words = trans.split(" ")
+            iobs = data_point["iob"].split(" ")
+            assert len(words) == len(iobs)
+
+            filtered_words = []
+            filtered_iobs = []
+            for word, iob in zip(words, iobs):
+                if word in "?!.,;-–…":
+                    continue
+                filtered_words.append(word)
+                filtered_iobs.append(iob)
+
+            assert len(filtered_words) == len(filtered_iobs)
+            data_point["transcription"] = " ".join(filtered_words)
+            data_point["iob"] = " ".join(filtered_iobs)
+
+            for field in fields:
+                data[field].append(data_point[field])
+
+        data["id"] = data_ids
         df = pd.DataFrame(data)
         df.to_csv(csv_path, index=False)
 
