@@ -125,7 +125,29 @@ class SuperbKS(SuperbSID):
                 gsc1_test=MISSING,
             ),
             build_encoder=dict(),
-            build_dataset=dict(),
+            build_dataset=dict(
+                train=dict(
+                    sox_effects=[
+                        ["channels", "1"],
+                        ["rate", "16000"],
+                        ["gain", "-3.0"],
+                    ],
+                ),
+                valid=dict(
+                    sox_effects=[
+                        ["channels", "1"],
+                        ["rate", "16000"],
+                        ["gain", "-3.0"],
+                    ],
+                ),
+                test=dict(
+                    sox_effects=[
+                        ["channels", "1"],
+                        ["rate", "16000"],
+                        ["gain", "-3.0"],
+                    ],
+                ),
+            ),
             build_batch_sampler=dict(
                 train=dict(
                     batch_size=32,
@@ -138,13 +160,15 @@ class SuperbKS(SuperbSID):
                 ),
             ),
             build_upstream=dict(
-                name="fbank",
+                name=MISSING,
             ),
             build_featurizer=dict(
                 layer_selections=None,
                 normalize=False,
             ),
-            build_downstream=dict(hidden_size=256),
+            build_downstream=dict(
+                hidden_size=256,
+            ),
             build_model=dict(
                 upstream_trainable=False,
             ),
@@ -164,8 +188,8 @@ class SuperbKS(SuperbSID):
             train=dict(
                 total_steps=200000,
                 log_step=100,
-                eval_step=2000,
-                save_step=500,
+                eval_step=5000,
+                save_step=1000,
                 gradient_clipping=1.0,
                 gradient_accumulate=1,
                 valid_metric="accuracy",
