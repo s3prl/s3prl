@@ -84,6 +84,7 @@ def test_superb_asr(vocab_type):
                 "vocab_type": vocab_type,
                 "vocab_args": vocab_args,
             }
+            config["build_upstream"]["name"] = "fbank"
             problem.run(**config)
 
 
@@ -138,6 +139,7 @@ def test_superb_er():
             config["train"]["eval_step"] = 2
             config["train"]["save_step"] = 2
             config["eval_batch"] = 2
+            config["build_upstream"]["name"] = "fbank"
             problem.run(**config)
 
 
@@ -191,6 +193,7 @@ def test_superb_ks():
             config["train"]["eval_step"] = 2
             config["train"]["save_step"] = 2
             config["eval_batch"] = 2
+            config["build_upstream"]["name"] = "fbank"
             problem.run(**config)
 
 
@@ -254,6 +257,7 @@ def test_superb_pr():
             config["train"]["eval_step"] = 2
             config["train"]["save_step"] = 2
             config["eval_batch"] = 2
+            config["build_upstream"]["name"] = "fbank"
             problem.run(**config)
 
 
@@ -307,6 +311,7 @@ def test_superb_ic():
             config["train"]["eval_step"] = 2
             config["train"]["save_step"] = 2
             config["eval_batch"] = 2
+            config["build_upstream"]["name"] = "fbank"
             problem.run(**config)
 
 
@@ -360,6 +365,7 @@ def test_superb_sid():
             config["train"]["eval_step"] = 2
             config["train"]["save_step"] = 2
             config["eval_batch"] = 2
+            config["build_upstream"]["name"] = "fbank"
             problem.run(**config)
 
 
@@ -419,6 +425,7 @@ def test_superb_sd():
             config["train"]["eval_step"] = 2
             config["train"]["save_step"] = 2
             config["eval_batch"] = 2
+            config["build_upstream"]["name"] = "fbank"
             problem.run(**config)
 
 
@@ -481,6 +488,7 @@ def test_superb_asv():
             config["train"]["log_step"] = 1
             config["train"]["eval_step"] = math.inf
             config["train"]["save_step"] = 1
+            config["build_upstream"]["name"] = "fbank"
             problem.run(**config)
 
 
@@ -551,4 +559,5 @@ def test_superb_sf(vocab_type):
                 "vocab_type": vocab_type,
                 "vocab_args": vocab_args,
             }
+            config["build_upstream"]["name"] = "fbank"
             problem.run(**config)

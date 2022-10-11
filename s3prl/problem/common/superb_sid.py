@@ -311,7 +311,7 @@ class SuperbSID(Common):
             max_secs: float = None
             sox_effects: List[List[str]] = None
 
-        conf = SplitConfig(**vars(conf))
+        conf = SplitConfig(**conf)
 
         csv = pd.read_csv(data_csv)
 
