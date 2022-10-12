@@ -4,7 +4,7 @@
     <meta name="viewport" content="width=device-width,initial-scale=1"/>
     <meta name="color-scheme" content="light dark"><link rel="index" title="Index" href="../../../../genindex.html" /><link rel="search" title="Search" href="../../../../search.html" />
 
-    <meta name="generator" content="sphinx-5.2.3, furo 2022.09.29"/>
+    <meta name="generator" content="sphinx-5.1.1, furo 2022.09.29"/>
         <title>s3prl.problem.common.superb_sid - S3PRL 0.4.5 documentation</title>
       <link rel="stylesheet" type="text/css" href="../../../../_static/pygments.css" />
     <link rel="stylesheet" type="text/css" href="../../../../_static/styles/furo.css?digest=d81277517bee4d6b0349d71bb2661d4890b5617c" />
@@ -340,7 +340,9 @@
 <span class="kn">import</span> <span class="nn">logging</span>
 <span class="kn">import</span> <span class="nn">math</span>
 <span class="kn">import</span> <span class="nn">pickle</span>
+<span class="kn">from</span> <span class="nn">dataclasses</span> <span class="kn">import</span> <span class="n">dataclass</span>
 <span class="kn">from</span> <span class="nn">pathlib</span> <span class="kn">import</span> <span class="n">Path</span>
+<span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">List</span>
 
 <span class="kn">import</span> <span class="nn">pandas</span> <span class="k">as</span> <span class="nn">pd</span>
 <span class="kn">from</span> <span class="nn">omegaconf</span> <span class="kn">import</span> <span class="n">MISSING</span>
@@ -354,8 +356,6 @@
 <span class="kn">from</span> <span class="nn">.run</span> <span class="kn">import</span> <span class="n">Common</span>
 
 <span class="n">logger</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="vm">__name__</span><span class="p">)</span>
-
-<span class="n">EFFECTS</span> <span class="o">=</span> <span class="p">[[</span><span class="s2">&quot;channels&quot;</span><span class="p">,</span> <span class="s2">&quot;1&quot;</span><span class="p">],</span> <span class="p">[</span><span class="s2">&quot;rate&quot;</span><span class="p">,</span> <span class="s2">&quot;16000&quot;</span><span class="p">],</span> <span class="p">[</span><span class="s2">&quot;gain&quot;</span><span class="p">,</span> <span class="s2">&quot;-3.0&quot;</span><span class="p">]]</span>
 
 
 <span class="n">__all__</span> <span class="o">=</span> <span class="p">[</span>
@@ -427,7 +427,9 @@
             <span class="p">),</span>
             <span class="n">build_encoder</span><span class="o">=</span><span class="nb">dict</span><span class="p">(),</span>
             <span class="n">build_dataset</span><span class="o">=</span><span class="nb">dict</span><span class="p">(</span>
-                <span class="n">max_secs</span><span class="o">=</span><span class="mf">8.0</span><span class="p">,</span>
+                <span class="n">train</span><span class="o">=</span><span class="nb">dict</span><span class="p">(</span>
+                    <span class="n">max_secs</span><span class="o">=</span><span class="mf">8.0</span><span class="p">,</span>
+                <span class="p">),</span>
             <span class="p">),</span>
             <span class="n">build_batch_sampler</span><span class="o">=</span><span class="nb">dict</span><span class="p">(</span>
                 <span class="n">train</span><span class="o">=</span><span class="nb">dict</span><span class="p">(</span>
@@ -442,7 +444,7 @@
                 <span class="p">),</span>
             <span class="p">),</span>
             <span class="n">build_upstream</span><span class="o">=</span><span class="nb">dict</span><span class="p">(</span>
-                <span class="n">name</span><span class="o">=</span><span class="s2">&quot;fbank&quot;</span><span class="p">,</span>
+                <span class="n">name</span><span class="o">=</span><span class="n">MISSING</span><span class="p">,</span>
             <span class="p">),</span>
             <span class="n">build_featurizer</span><span class="o">=</span><span class="nb">dict</span><span class="p">(</span>
                 <span class="n">layer_selections</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
@@ -469,9 +471,9 @@
             <span class="n">save_task</span><span class="o">=</span><span class="nb">dict</span><span class="p">(),</span>
             <span class="n">train</span><span class="o">=</span><span class="nb">dict</span><span class="p">(</span>
                 <span class="n">total_steps</span><span class="o">=</span><span class="mi">200000</span><span class="p">,</span>
-                <span class="n">log_step</span><span class="o">=</span><span class="mi">100</span><span class="p">,</span>
-                <span class="n">eval_step</span><span class="o">=</span><span class="mi">2000</span><span class="p">,</span>
-                <span class="n">save_step</span><span class="o">=</span><span class="mi">500</span><span class="p">,</span>
+                <span class="n">log_step</span><span class="o">=</span><span class="mi">500</span><span class="p">,</span>
+                <span class="n">eval_step</span><span class="o">=</span><span class="mi">5000</span><span class="p">,</span>
+                <span class="n">save_step</span><span class="o">=</span><span class="mi">1000</span><span class="p">,</span>
                 <span class="n">gradient_clipping</span><span class="o">=</span><span class="mf">1.0</span><span class="p">,</span>
                 <span class="n">gradient_accumulate</span><span class="o">=</span><span class="mi">4</span><span class="p">,</span>
                 <span class="n">valid_metric</span><span class="o">=</span><span class="s2">&quot;accuracy&quot;</span><span class="p">,</span>
@@ -584,12 +586,14 @@
 <span class="sd">        Build the dataset for train/valid/test.</span>
 
 <span class="sd">        Args:</span>
-<span class="sd">            build_dataset (dict): same in :obj:`default_config`</span>
+<span class="sd">            build_dataset (dict): same in :obj:`default_config`. with :code:`train`, :code:`valid`, :code:`test` keys, each</span>
+<span class="sd">                is a dictionary with the following supported options:</span>
 
 <span class="sd">                ====================  ====================</span>
 <span class="sd">                key                   description</span>
 <span class="sd">                ====================  ====================</span>
 <span class="sd">                max_secs              (float) - If a waveform is longer than :code:`max_secs` seconds, randomly crop the waveform into :code:`max_secs` seconds</span>
+<span class="sd">                sox_effects           (List[List[str]]) - If not None, apply sox effects on the utterance</span>
 <span class="sd">                ====================  ====================</span>
 
 <span class="sd">            target_dir (str): Current experiment directory</span>
@@ -617,51 +621,72 @@
 <span class="sd">            ====================  ====================</span>
 <span class="sd">        &quot;&quot;&quot;</span>
 
-        <span class="k">def</span> <span class="nf">_utt_classification_dataset</span><span class="p">(</span><span class="n">max_secs</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="kc">None</span><span class="p">):</span>
-            <span class="n">csv</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">read_csv</span><span class="p">(</span><span class="n">data_csv</span><span class="p">)</span>
+        <span class="nd">@dataclass</span>
+        <span class="k">class</span> <span class="nc">Config</span><span class="p">:</span>
+            <span class="n">train</span><span class="p">:</span> <span class="nb">dict</span> <span class="o">=</span> <span class="kc">None</span>
+            <span class="n">valid</span><span class="p">:</span> <span class="nb">dict</span> <span class="o">=</span> <span class="kc">None</span>
+            <span class="n">test</span><span class="p">:</span> <span class="nb">dict</span> <span class="o">=</span> <span class="kc">None</span>
 
-            <span class="n">start_secs</span> <span class="o">=</span> <span class="kc">None</span>
-            <span class="k">if</span> <span class="s2">&quot;start_sec&quot;</span> <span class="ow">in</span> <span class="n">csv</span><span class="o">.</span><span class="n">columns</span><span class="p">:</span>
-                <span class="n">start_secs</span> <span class="o">=</span> <span class="n">csv</span><span class="p">[</span><span class="s2">&quot;start_sec&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">tolist</span><span class="p">()</span>
-                <span class="n">start_secs</span> <span class="o">=</span> <span class="p">[</span><span class="kc">None</span> <span class="k">if</span> <span class="n">math</span><span class="o">.</span><span class="n">isnan</span><span class="p">(</span><span class="n">sec</span><span class="p">)</span> <span class="k">else</span> <span class="n">sec</span> <span class="k">for</span> <span class="n">sec</span> <span class="ow">in</span> <span class="n">start_secs</span><span class="p">]</span>
+        <span class="n">conf</span> <span class="o">=</span> <span class="n">Config</span><span class="p">(</span><span class="o">**</span><span class="n">build_dataset</span><span class="p">)</span>
 
-            <span class="n">end_secs</span> <span class="o">=</span> <span class="kc">None</span>
-            <span class="k">if</span> <span class="s2">&quot;end_sec&quot;</span> <span class="ow">in</span> <span class="n">csv</span><span class="o">.</span><span class="n">columns</span><span class="p">:</span>
-                <span class="n">end_secs</span> <span class="o">=</span> <span class="n">csv</span><span class="p">[</span><span class="s2">&quot;end_sec&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">tolist</span><span class="p">()</span>
-                <span class="n">end_secs</span> <span class="o">=</span> <span class="p">[</span><span class="kc">None</span> <span class="k">if</span> <span class="n">math</span><span class="o">.</span><span class="n">isnan</span><span class="p">(</span><span class="n">sec</span><span class="p">)</span> <span class="k">else</span> <span class="n">sec</span> <span class="k">for</span> <span class="n">sec</span> <span class="ow">in</span> <span class="n">end_secs</span><span class="p">]</span>
+        <span class="k">assert</span> <span class="n">mode</span> <span class="ow">in</span> <span class="p">[</span><span class="s2">&quot;train&quot;</span><span class="p">,</span> <span class="s2">&quot;valid&quot;</span><span class="p">,</span> <span class="s2">&quot;test&quot;</span><span class="p">]</span>
+        <span class="k">if</span> <span class="n">mode</span> <span class="o">==</span> <span class="s2">&quot;train&quot;</span><span class="p">:</span>
+            <span class="n">conf</span> <span class="o">=</span> <span class="n">conf</span><span class="o">.</span><span class="n">train</span> <span class="ow">or</span> <span class="p">{}</span>
+        <span class="k">elif</span> <span class="n">mode</span> <span class="o">==</span> <span class="s2">&quot;valid&quot;</span><span class="p">:</span>
+            <span class="n">conf</span> <span class="o">=</span> <span class="n">conf</span><span class="o">.</span><span class="n">valid</span> <span class="ow">or</span> <span class="p">{}</span>
+        <span class="k">elif</span> <span class="n">mode</span> <span class="o">==</span> <span class="s2">&quot;test&quot;</span><span class="p">:</span>
+            <span class="n">conf</span> <span class="o">=</span> <span class="n">conf</span><span class="o">.</span><span class="n">test</span> <span class="ow">or</span> <span class="p">{}</span>
 
-            <span class="n">audio_loader</span> <span class="o">=</span> <span class="n">LoadAudio</span><span class="p">(</span>
-                <span class="n">csv</span><span class="p">[</span><span class="s2">&quot;wav_path&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">tolist</span><span class="p">(),</span>
-                <span class="n">start_secs</span><span class="p">,</span>
-                <span class="n">end_secs</span><span class="p">,</span>
-                <span class="n">max_secs</span><span class="o">=</span><span class="n">max_secs</span><span class="p">,</span>
-                <span class="n">sox_effects</span><span class="o">=</span><span class="n">EFFECTS</span><span class="p">,</span>
-            <span class="p">)</span>
+        <span class="nd">@dataclass</span>
+        <span class="k">class</span> <span class="nc">SplitConfig</span><span class="p">:</span>
+            <span class="n">max_secs</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="kc">None</span>
+            <span class="n">sox_effects</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">]]</span> <span class="o">=</span> <span class="kc">None</span>
 
-            <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">encoder_path</span><span class="p">,</span> <span class="s2">&quot;rb&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
-                <span class="n">encoder</span> <span class="o">=</span> <span class="n">pickle</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="n">f</span><span class="p">)</span>
+        <span class="n">conf</span> <span class="o">=</span> <span class="n">SplitConfig</span><span class="p">(</span><span class="o">**</span><span class="n">conf</span><span class="p">)</span>
 
-            <span class="n">label_encoder</span> <span class="o">=</span> <span class="n">EncodeCategory</span><span class="p">(</span><span class="n">csv</span><span class="p">[</span><span class="s2">&quot;label&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">tolist</span><span class="p">(),</span> <span class="n">encoder</span><span class="p">)</span>
-            <span class="n">ids</span> <span class="o">=</span> <span class="n">csv</span><span class="p">[</span><span class="s2">&quot;id&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">tolist</span><span class="p">()</span>
+        <span class="n">csv</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">read_csv</span><span class="p">(</span><span class="n">data_csv</span><span class="p">)</span>
 
-            <span class="k">class</span> <span class="nc">Dataset</span><span class="p">:</span>
-                <span class="k">def</span> <span class="fm">__len__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-                    <span class="k">return</span> <span class="nb">len</span><span class="p">(</span><span class="n">ids</span><span class="p">)</span>
+        <span class="n">start_secs</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="k">if</span> <span class="s2">&quot;start_sec&quot;</span> <span class="ow">in</span> <span class="n">csv</span><span class="o">.</span><span class="n">columns</span><span class="p">:</span>
+            <span class="n">start_secs</span> <span class="o">=</span> <span class="n">csv</span><span class="p">[</span><span class="s2">&quot;start_sec&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">tolist</span><span class="p">()</span>
+            <span class="n">start_secs</span> <span class="o">=</span> <span class="p">[</span><span class="kc">None</span> <span class="k">if</span> <span class="n">math</span><span class="o">.</span><span class="n">isnan</span><span class="p">(</span><span class="n">sec</span><span class="p">)</span> <span class="k">else</span> <span class="n">sec</span> <span class="k">for</span> <span class="n">sec</span> <span class="ow">in</span> <span class="n">start_secs</span><span class="p">]</span>
 
-                <span class="k">def</span> <span class="fm">__getitem__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">index</span><span class="p">:</span> <span class="nb">int</span><span class="p">):</span>
-                    <span class="n">audio</span> <span class="o">=</span> <span class="n">audio_loader</span><span class="p">[</span><span class="n">index</span><span class="p">]</span>
-                    <span class="n">label</span> <span class="o">=</span> <span class="n">label_encoder</span><span class="p">[</span><span class="n">index</span><span class="p">]</span>
-                    <span class="k">return</span> <span class="p">{</span>
-                        <span class="s2">&quot;x&quot;</span><span class="p">:</span> <span class="n">audio</span><span class="p">[</span><span class="s2">&quot;wav&quot;</span><span class="p">],</span>
-                        <span class="s2">&quot;x_len&quot;</span><span class="p">:</span> <span class="n">audio</span><span class="p">[</span><span class="s2">&quot;wav_len&quot;</span><span class="p">],</span>
-                        <span class="s2">&quot;label&quot;</span><span class="p">:</span> <span class="n">label</span><span class="p">[</span><span class="s2">&quot;label&quot;</span><span class="p">],</span>
-                        <span class="s2">&quot;class_id&quot;</span><span class="p">:</span> <span class="n">label</span><span class="p">[</span><span class="s2">&quot;class_id&quot;</span><span class="p">],</span>
-                        <span class="s2">&quot;unique_name&quot;</span><span class="p">:</span> <span class="n">ids</span><span class="p">[</span><span class="n">index</span><span class="p">],</span>
-                    <span class="p">}</span>
+        <span class="n">end_secs</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="k">if</span> <span class="s2">&quot;end_sec&quot;</span> <span class="ow">in</span> <span class="n">csv</span><span class="o">.</span><span class="n">columns</span><span class="p">:</span>
+            <span class="n">end_secs</span> <span class="o">=</span> <span class="n">csv</span><span class="p">[</span><span class="s2">&quot;end_sec&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">tolist</span><span class="p">()</span>
+            <span class="n">end_secs</span> <span class="o">=</span> <span class="p">[</span><span class="kc">None</span> <span class="k">if</span> <span class="n">math</span><span class="o">.</span><span class="n">isnan</span><span class="p">(</span><span class="n">sec</span><span class="p">)</span> <span class="k">else</span> <span class="n">sec</span> <span class="k">for</span> <span class="n">sec</span> <span class="ow">in</span> <span class="n">end_secs</span><span class="p">]</span>
 
-            <span class="k">return</span> <span class="n">Dataset</span><span class="p">()</span>
+        <span class="n">audio_loader</span> <span class="o">=</span> <span class="n">LoadAudio</span><span class="p">(</span>
+            <span class="n">csv</span><span class="p">[</span><span class="s2">&quot;wav_path&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">tolist</span><span class="p">(),</span>
+            <span class="n">start_secs</span><span class="p">,</span>
+            <span class="n">end_secs</span><span class="p">,</span>
+            <span class="n">max_secs</span><span class="o">=</span><span class="n">conf</span><span class="o">.</span><span class="n">max_secs</span><span class="p">,</span>
+            <span class="n">sox_effects</span><span class="o">=</span><span class="n">conf</span><span class="o">.</span><span class="n">sox_effects</span><span class="p">,</span>
+        <span class="p">)</span>
 
-        <span class="k">return</span> <span class="n">_utt_classification_dataset</span><span class="p">(</span><span class="o">**</span><span class="n">build_dataset</span><span class="p">)</span></div>
+        <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">encoder_path</span><span class="p">,</span> <span class="s2">&quot;rb&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
+            <span class="n">encoder</span> <span class="o">=</span> <span class="n">pickle</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="n">f</span><span class="p">)</span>
+
+        <span class="n">label_encoder</span> <span class="o">=</span> <span class="n">EncodeCategory</span><span class="p">(</span><span class="n">csv</span><span class="p">[</span><span class="s2">&quot;label&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">tolist</span><span class="p">(),</span> <span class="n">encoder</span><span class="p">)</span>
+        <span class="n">ids</span> <span class="o">=</span> <span class="n">csv</span><span class="p">[</span><span class="s2">&quot;id&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">tolist</span><span class="p">()</span>
+
+        <span class="k">class</span> <span class="nc">Dataset</span><span class="p">:</span>
+            <span class="k">def</span> <span class="fm">__len__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+                <span class="k">return</span> <span class="nb">len</span><span class="p">(</span><span class="n">ids</span><span class="p">)</span>
+
+            <span class="k">def</span> <span class="fm">__getitem__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">index</span><span class="p">:</span> <span class="nb">int</span><span class="p">):</span>
+                <span class="n">audio</span> <span class="o">=</span> <span class="n">audio_loader</span><span class="p">[</span><span class="n">index</span><span class="p">]</span>
+                <span class="n">label</span> <span class="o">=</span> <span class="n">label_encoder</span><span class="p">[</span><span class="n">index</span><span class="p">]</span>
+                <span class="k">return</span> <span class="p">{</span>
+                    <span class="s2">&quot;x&quot;</span><span class="p">:</span> <span class="n">audio</span><span class="p">[</span><span class="s2">&quot;wav&quot;</span><span class="p">],</span>
+                    <span class="s2">&quot;x_len&quot;</span><span class="p">:</span> <span class="n">audio</span><span class="p">[</span><span class="s2">&quot;wav_len&quot;</span><span class="p">],</span>
+                    <span class="s2">&quot;label&quot;</span><span class="p">:</span> <span class="n">label</span><span class="p">[</span><span class="s2">&quot;label&quot;</span><span class="p">],</span>
+                    <span class="s2">&quot;class_id&quot;</span><span class="p">:</span> <span class="n">label</span><span class="p">[</span><span class="s2">&quot;class_id&quot;</span><span class="p">],</span>
+                    <span class="s2">&quot;unique_name&quot;</span><span class="p">:</span> <span class="n">ids</span><span class="p">[</span><span class="n">index</span><span class="p">],</span>
+                <span class="p">}</span>
+
+        <span class="n">dataset</span> <span class="o">=</span> <span class="n">Dataset</span><span class="p">()</span>
+        <span class="k">return</span> <span class="n">dataset</span></div>
 
 <div class="viewcode-block" id="SuperbSID.build_batch_sampler"><a class="viewcode-back" href="../../../../_autosummary/s3prl.problem.common.superb_sid.html#s3prl.problem.SuperbSID.build_batch_sampler">[docs]</a>    <span class="k">def</span> <span class="nf">build_batch_sampler</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span>
@@ -779,7 +804,6 @@
     <script src="../../../../_static/underscore.js"></script>
     <script src="../../../../_static/_sphinx_javascript_frameworks_compat.js"></script>
     <script src="../../../../_static/doctools.js"></script>
-    <script src="../../../../_static/sphinx_highlight.js"></script>
     <script src="../../../../_static/scripts/furo.js"></script>
     <script src="../../../../_static/js/custom.js"></script>
     </body>

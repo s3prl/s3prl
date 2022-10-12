@@ -4,7 +4,7 @@
     <meta name="viewport" content="width=device-width,initial-scale=1"/>
     <meta name="color-scheme" content="light dark"><link rel="index" title="Index" href="../../../../genindex.html" /><link rel="search" title="Search" href="../../../../search.html" />
 
-    <meta name="generator" content="sphinx-5.2.3, furo 2022.09.29"/>
+    <meta name="generator" content="sphinx-5.1.1, furo 2022.09.29"/>
         <title>s3prl.problem.diarization.superb_sd - S3PRL 0.4.5 documentation</title>
       <link rel="stylesheet" type="text/css" href="../../../../_static/pygments.css" />
     <link rel="stylesheet" type="text/css" href="../../../../_static/styles/furo.css?digest=d81277517bee4d6b0349d71bb2661d4890b5617c" />
@@ -374,7 +374,7 @@
             <span class="p">),</span>
             <span class="n">build_batch_sampler</span><span class="o">=</span><span class="nb">dict</span><span class="p">(</span>
                 <span class="n">train</span><span class="o">=</span><span class="nb">dict</span><span class="p">(</span>
-                    <span class="n">batch_size</span><span class="o">=</span><span class="mi">32</span><span class="p">,</span>
+                    <span class="n">batch_size</span><span class="o">=</span><span class="mi">8</span><span class="p">,</span>
                     <span class="n">shuffle</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
                 <span class="p">),</span>
                 <span class="n">valid</span><span class="o">=</span><span class="nb">dict</span><span class="p">(</span>
@@ -412,12 +412,12 @@
             <span class="p">),</span>
             <span class="n">save_task</span><span class="o">=</span><span class="nb">dict</span><span class="p">(),</span>
             <span class="n">train</span><span class="o">=</span><span class="nb">dict</span><span class="p">(</span>
-                <span class="n">total_steps</span><span class="o">=</span><span class="mi">200000</span><span class="p">,</span>
-                <span class="n">log_step</span><span class="o">=</span><span class="mi">100</span><span class="p">,</span>
-                <span class="n">eval_step</span><span class="o">=</span><span class="mi">2000</span><span class="p">,</span>
+                <span class="n">total_steps</span><span class="o">=</span><span class="mi">30000</span><span class="p">,</span>
+                <span class="n">log_step</span><span class="o">=</span><span class="mi">500</span><span class="p">,</span>
+                <span class="n">eval_step</span><span class="o">=</span><span class="mi">500</span><span class="p">,</span>
                 <span class="n">save_step</span><span class="o">=</span><span class="mi">500</span><span class="p">,</span>
                 <span class="n">gradient_clipping</span><span class="o">=</span><span class="mf">1.0</span><span class="p">,</span>
-                <span class="n">gradient_accumulate</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span>
+                <span class="n">gradient_accumulate</span><span class="o">=</span><span class="mi">4</span><span class="p">,</span>
                 <span class="n">valid_metric</span><span class="o">=</span><span class="s2">&quot;der&quot;</span><span class="p">,</span>
                 <span class="n">valid_higher_better</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
                 <span class="n">auto_resume</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
@@ -670,7 +670,6 @@
     <script src="../../../../_static/underscore.js"></script>
     <script src="../../../../_static/_sphinx_javascript_frameworks_compat.js"></script>
     <script src="../../../../_static/doctools.js"></script>
-    <script src="../../../../_static/sphinx_highlight.js"></script>
     <script src="../../../../_static/scripts/furo.js"></script>
     <script src="../../../../_static/js/custom.js"></script>
     </body>

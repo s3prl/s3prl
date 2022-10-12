@@ -5,7 +5,7 @@
     <meta name="color-scheme" content="light dark"><meta name="generator" content="Docutils 0.19: https://docutils.sourceforge.io/" />
 <link rel="index" title="Index" href="../genindex.html" /><link rel="search" title="Search" href="../search.html" /><link rel="next" title="pit" href="s3prl.nn.pit.html" /><link rel="prev" title="interface" href="s3prl.nn.interface.html" />
 
-    <meta name="generator" content="sphinx-5.2.3, furo 2022.09.29"/>
+    <meta name="generator" content="sphinx-5.1.1, furo 2022.09.29"/>
         <title>linear - S3PRL 0.4.5 documentation</title>
       <link rel="stylesheet" type="text/css" href="../_static/pygments.css" />
     <link rel="stylesheet" type="text/css" href="../_static/styles/furo.css?digest=d81277517bee4d6b0349d71bb2661d4890b5617c" />
@@ -363,7 +363,7 @@ the change.</p>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="s3prl.nn.linear.FrameLevelLinear.forward">
-<span class="sig-name descname"><span class="pre">forward</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">x</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">x_len</span></span></em><span class="sig-paren">)</span><a class="reference external" href="https://github.com/s3prl/s3prl/blob/v0.4.5 /s3prl/nn/common.py#L73-L87"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#s3prl.nn.linear.FrameLevelLinear.forward" title="Permalink to this definition">#</a></dt>
+<span class="sig-name descname"><span class="pre">forward</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">x</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">x_len</span></span></em><span class="sig-paren">)</span><a class="reference external" href="https://github.com/s3prl/s3prl/blob/v0.4.5 /s3prl/nn/common.py#L71-L85"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#s3prl.nn.linear.FrameLevelLinear.forward" title="Permalink to this definition">#</a></dt>
 <dd><dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
@@ -423,7 +423,7 @@ the change.</p>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="s3prl.nn.linear.MeanPoolingLinear.forward">
-<span class="sig-name descname"><span class="pre">forward</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">x</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">x_len</span></span></em><span class="sig-paren">)</span><a class="reference external" href="https://github.com/s3prl/s3prl/blob/v0.4.5 /s3prl/nn/common.py#L148-L162"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#s3prl.nn.linear.MeanPoolingLinear.forward" title="Permalink to this definition">#</a></dt>
+<span class="sig-name descname"><span class="pre">forward</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">x</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">x_len</span></span></em><span class="sig-paren">)</span><a class="reference external" href="https://github.com/s3prl/s3prl/blob/v0.4.5 /s3prl/nn/common.py#L146-L160"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#s3prl.nn.linear.MeanPoolingLinear.forward" title="Permalink to this definition">#</a></dt>
 <dd><dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
@@ -517,28 +517,8 @@ the change.</p>
           <div class="toc-tree">
             <ul>
 <li><a class="reference internal" href="#">linear</a><ul>
-<li><a class="reference internal" href="#framelevellinear">FrameLevelLinear</a><ul>
-<li><a class="reference internal" href="#s3prl.nn.linear.FrameLevelLinear"><code class="docutils literal notranslate"><span class="pre">FrameLevelLinear</span></code></a><ul>
-<li><a class="reference internal" href="#s3prl.nn.linear.FrameLevelLinear.dump_patches"><code class="docutils literal notranslate"><span class="pre">FrameLevelLinear.dump_patches</span></code></a></li>
-<li><a class="reference internal" href="#s3prl.nn.linear.FrameLevelLinear.forward"><code class="docutils literal notranslate"><span class="pre">FrameLevelLinear.forward()</span></code></a></li>
-<li><a class="reference internal" href="#s3prl.nn.linear.FrameLevelLinear.input_size"><code class="docutils literal notranslate"><span class="pre">FrameLevelLinear.input_size</span></code></a></li>
-<li><a class="reference internal" href="#s3prl.nn.linear.FrameLevelLinear.output_size"><code class="docutils literal notranslate"><span class="pre">FrameLevelLinear.output_size</span></code></a></li>
-<li><a class="reference internal" href="#s3prl.nn.linear.FrameLevelLinear.training"><code class="docutils literal notranslate"><span class="pre">FrameLevelLinear.training</span></code></a></li>
-</ul>
-</li>
-</ul>
-</li>
-<li><a class="reference internal" href="#meanpoolinglinear">MeanPoolingLinear</a><ul>
-<li><a class="reference internal" href="#s3prl.nn.linear.MeanPoolingLinear"><code class="docutils literal notranslate"><span class="pre">MeanPoolingLinear</span></code></a><ul>
-<li><a class="reference internal" href="#s3prl.nn.linear.MeanPoolingLinear.dump_patches"><code class="docutils literal notranslate"><span class="pre">MeanPoolingLinear.dump_patches</span></code></a></li>
-<li><a class="reference internal" href="#s3prl.nn.linear.MeanPoolingLinear.forward"><code class="docutils literal notranslate"><span class="pre">MeanPoolingLinear.forward()</span></code></a></li>
-<li><a class="reference internal" href="#s3prl.nn.linear.MeanPoolingLinear.input_size"><code class="docutils literal notranslate"><span class="pre">MeanPoolingLinear.input_size</span></code></a></li>
-<li><a class="reference internal" href="#s3prl.nn.linear.MeanPoolingLinear.output_size"><code class="docutils literal notranslate"><span class="pre">MeanPoolingLinear.output_size</span></code></a></li>
-<li><a class="reference internal" href="#s3prl.nn.linear.MeanPoolingLinear.training"><code class="docutils literal notranslate"><span class="pre">MeanPoolingLinear.training</span></code></a></li>
-</ul>
-</li>
-</ul>
-</li>
+<li><a class="reference internal" href="#framelevellinear">FrameLevelLinear</a></li>
+<li><a class="reference internal" href="#meanpoolinglinear">MeanPoolingLinear</a></li>
 </ul>
 </li>
 </ul>
@@ -555,7 +535,6 @@ the change.</p>
     <script src="../_static/underscore.js"></script>
     <script src="../_static/_sphinx_javascript_frameworks_compat.js"></script>
     <script src="../_static/doctools.js"></script>
-    <script src="../_static/sphinx_highlight.js"></script>
     <script src="../_static/scripts/furo.js"></script>
     <script src="../_static/js/custom.js"></script>
     </body>

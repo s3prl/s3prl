@@ -5,7 +5,7 @@
     <meta name="color-scheme" content="light dark"><meta name="generator" content="Docutils 0.19: https://docutils.sourceforge.io/" />
 <link rel="index" title="Index" href="../genindex.html" /><link rel="search" title="Search" href="../search.html" /><link rel="next" title="load_audio" href="s3prl.dataio.dataset.load_audio.html" /><link rel="prev" title="diarization" href="s3prl.dataio.dataset.diarization.html" />
 
-    <meta name="generator" content="sphinx-5.2.3, furo 2022.09.29"/>
+    <meta name="generator" content="sphinx-5.1.1, furo 2022.09.29"/>
         <title>encode - S3PRL 0.4.5 documentation</title>
       <link rel="stylesheet" type="text/css" href="../_static/pygments.css" />
     <link rel="stylesheet" type="text/css" href="../_static/styles/furo.css?digest=d81277517bee4d6b0349d71bb2661d4890b5617c" />
@@ -431,16 +431,16 @@
 <h2>Tokenizer<a class="headerlink" href="#tokenizer" title="Permalink to this heading">#</a></h2>
 <dl class="py class">
 <dt class="sig sig-object py" id="s3prl.dataio.dataset.encode.Tokenizer">
-<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">s3prl.dataio.dataset.encode.</span></span><span class="sig-name descname"><span class="pre">Tokenizer</span></span><a class="reference internal" href="../_modules/s3prl/dataio/encoder/tokenizer.html#Tokenizer"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="reference external" href="https://github.com/s3prl/s3prl/blob/v0.4.5 /s3prl/dataio/encoder/tokenizer.py#L43-L83"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#s3prl.dataio.dataset.encode.Tokenizer" title="Permalink to this definition">#</a></dt>
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">s3prl.dataio.dataset.encode.</span></span><span class="sig-name descname"><span class="pre">Tokenizer</span></span><a class="reference internal" href="../_modules/s3prl/dataio/encoder/tokenizer.html#Tokenizer"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="reference external" href="https://github.com/s3prl/s3prl/blob/v0.4.5 /s3prl/dataio/encoder/tokenizer.py#L40-L80"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#s3prl.dataio.dataset.encode.Tokenizer" title="Permalink to this definition">#</a></dt>
 <dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
 <dl class="py method">
 <dt class="sig sig-object py" id="s3prl.dataio.dataset.encode.Tokenizer.encode">
-<em class="property"><span class="pre">abstract</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">encode</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">text</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">iob</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">List</span><span class="p"><span class="pre">[</span></span><span class="pre">int</span><span class="p"><span class="pre">]</span></span></span></span><a class="reference internal" href="../_modules/s3prl/dataio/encoder/tokenizer.html#Tokenizer.encode"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="reference external" href="https://github.com/s3prl/s3prl/blob/v0.4.5 /s3prl/dataio/encoder/tokenizer.py#L47-L49"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#s3prl.dataio.dataset.encode.Tokenizer.encode" title="Permalink to this definition">#</a></dt>
+<em class="property"><span class="pre">abstract</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">encode</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">text</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">iob</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">List</span><span class="p"><span class="pre">[</span></span><span class="pre">int</span><span class="p"><span class="pre">]</span></span></span></span><a class="reference internal" href="../_modules/s3prl/dataio/encoder/tokenizer.html#Tokenizer.encode"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="reference external" href="https://github.com/s3prl/s3prl/blob/v0.4.5 /s3prl/dataio/encoder/tokenizer.py#L44-L46"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#s3prl.dataio.dataset.encode.Tokenizer.encode" title="Permalink to this definition">#</a></dt>
 <dd></dd></dl>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="s3prl.dataio.dataset.encode.Tokenizer.decode">
-<em class="property"><span class="pre">abstract</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">decode</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">idxs</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">List</span><span class="p"><span class="pre">[</span></span><span class="pre">int</span><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ignore_repeat</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">str</span></span></span><a class="reference internal" href="../_modules/s3prl/dataio/encoder/tokenizer.html#Tokenizer.decode"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="reference external" href="https://github.com/s3prl/s3prl/blob/v0.4.5 /s3prl/dataio/encoder/tokenizer.py#L51-L53"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#s3prl.dataio.dataset.encode.Tokenizer.decode" title="Permalink to this definition">#</a></dt>
+<em class="property"><span class="pre">abstract</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">decode</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">idxs</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">List</span><span class="p"><span class="pre">[</span></span><span class="pre">int</span><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ignore_repeat</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">str</span></span></span><a class="reference internal" href="../_modules/s3prl/dataio/encoder/tokenizer.html#Tokenizer.decode"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="reference external" href="https://github.com/s3prl/s3prl/blob/v0.4.5 /s3prl/dataio/encoder/tokenizer.py#L48-L50"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#s3prl.dataio.dataset.encode.Tokenizer.decode" title="Permalink to this definition">#</a></dt>
 <dd></dd></dl>
 
 <dl class="py property">
@@ -455,7 +455,7 @@
 
 <dl class="py method">
 <dt class="sig sig-object py" id="s3prl.dataio.dataset.encode.Tokenizer.load_from_file">
-<em class="property"><span class="pre">abstract</span><span class="w"> </span><span class="pre">classmethod</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">load_from_file</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">vocab_file</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/s3prl/dataio/encoder/tokenizer.html#Tokenizer.load_from_file"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="reference external" href="https://github.com/s3prl/s3prl/blob/v0.4.5 /s3prl/dataio/encoder/tokenizer.py#L66-L68"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#s3prl.dataio.dataset.encode.Tokenizer.load_from_file" title="Permalink to this definition">#</a></dt>
+<em class="property"><span class="pre">abstract</span><span class="w"> </span><span class="pre">classmethod</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">load_from_file</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">vocab_file</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/s3prl/dataio/encoder/tokenizer.html#Tokenizer.load_from_file"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="reference external" href="https://github.com/s3prl/s3prl/blob/v0.4.5 /s3prl/dataio/encoder/tokenizer.py#L63-L65"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#s3prl.dataio.dataset.encode.Tokenizer.load_from_file" title="Permalink to this definition">#</a></dt>
 <dd></dd></dl>
 
 <dl class="py property">
@@ -536,64 +536,13 @@
           <div class="toc-tree">
             <ul>
 <li><a class="reference internal" href="#">encode</a><ul>
-<li><a class="reference internal" href="#categoryencoder">CategoryEncoder</a><ul>
-<li><a class="reference internal" href="#s3prl.dataio.dataset.encode.CategoryEncoder"><code class="docutils literal notranslate"><span class="pre">CategoryEncoder</span></code></a><ul>
-<li><a class="reference internal" href="#s3prl.dataio.dataset.encode.CategoryEncoder.encode"><code class="docutils literal notranslate"><span class="pre">CategoryEncoder.encode()</span></code></a></li>
-<li><a class="reference internal" href="#s3prl.dataio.dataset.encode.CategoryEncoder.decode"><code class="docutils literal notranslate"><span class="pre">CategoryEncoder.decode()</span></code></a></li>
-</ul>
-</li>
-</ul>
-</li>
-<li><a class="reference internal" href="#categoryencoders">CategoryEncoders</a><ul>
-<li><a class="reference internal" href="#s3prl.dataio.dataset.encode.CategoryEncoders"><code class="docutils literal notranslate"><span class="pre">CategoryEncoders</span></code></a><ul>
-<li><a class="reference internal" href="#s3prl.dataio.dataset.encode.CategoryEncoders.encode"><code class="docutils literal notranslate"><span class="pre">CategoryEncoders.encode()</span></code></a></li>
-<li><a class="reference internal" href="#s3prl.dataio.dataset.encode.CategoryEncoders.decode"><code class="docutils literal notranslate"><span class="pre">CategoryEncoders.decode()</span></code></a></li>
-</ul>
-</li>
-</ul>
-</li>
-<li><a class="reference internal" href="#dataset">Dataset</a><ul>
-<li><a class="reference internal" href="#s3prl.dataio.dataset.encode.Dataset"><code class="docutils literal notranslate"><span class="pre">Dataset</span></code></a><ul>
-<li><a class="reference internal" href="#s3prl.dataio.dataset.encode.Dataset.getinfo"><code class="docutils literal notranslate"><span class="pre">Dataset.getinfo()</span></code></a></li>
-</ul>
-</li>
-</ul>
-</li>
-<li><a class="reference internal" href="#encodecategories">EncodeCategories</a><ul>
-<li><a class="reference internal" href="#s3prl.dataio.dataset.encode.EncodeCategories"><code class="docutils literal notranslate"><span class="pre">EncodeCategories</span></code></a><ul>
-<li><a class="reference internal" href="#s3prl.dataio.dataset.encode.EncodeCategories.getinfo"><code class="docutils literal notranslate"><span class="pre">EncodeCategories.getinfo()</span></code></a></li>
-</ul>
-</li>
-</ul>
-</li>
-<li><a class="reference internal" href="#encodecategory">EncodeCategory</a><ul>
-<li><a class="reference internal" href="#s3prl.dataio.dataset.encode.EncodeCategory"><code class="docutils literal notranslate"><span class="pre">EncodeCategory</span></code></a><ul>
-<li><a class="reference internal" href="#s3prl.dataio.dataset.encode.EncodeCategory.getinfo"><code class="docutils literal notranslate"><span class="pre">EncodeCategory.getinfo()</span></code></a></li>
-</ul>
-</li>
-</ul>
-</li>
-<li><a class="reference internal" href="#encodetext">EncodeText</a><ul>
-<li><a class="reference internal" href="#s3prl.dataio.dataset.encode.EncodeText"><code class="docutils literal notranslate"><span class="pre">EncodeText</span></code></a><ul>
-<li><a class="reference internal" href="#s3prl.dataio.dataset.encode.EncodeText.getinfo"><code class="docutils literal notranslate"><span class="pre">EncodeText.getinfo()</span></code></a></li>
-</ul>
-</li>
-</ul>
-</li>
-<li><a class="reference internal" href="#tokenizer">Tokenizer</a><ul>
-<li><a class="reference internal" href="#s3prl.dataio.dataset.encode.Tokenizer"><code class="docutils literal notranslate"><span class="pre">Tokenizer</span></code></a><ul>
-<li><a class="reference internal" href="#s3prl.dataio.dataset.encode.Tokenizer.encode"><code class="docutils literal notranslate"><span class="pre">Tokenizer.encode()</span></code></a></li>
-<li><a class="reference internal" href="#s3prl.dataio.dataset.encode.Tokenizer.decode"><code class="docutils literal notranslate"><span class="pre">Tokenizer.decode()</span></code></a></li>
-<li><a class="reference internal" href="#s3prl.dataio.dataset.encode.Tokenizer.vocab_size"><code class="docutils literal notranslate"><span class="pre">Tokenizer.vocab_size</span></code></a></li>
-<li><a class="reference internal" href="#s3prl.dataio.dataset.encode.Tokenizer.token_type"><code class="docutils literal notranslate"><span class="pre">Tokenizer.token_type</span></code></a></li>
-<li><a class="reference internal" href="#s3prl.dataio.dataset.encode.Tokenizer.load_from_file"><code class="docutils literal notranslate"><span class="pre">Tokenizer.load_from_file()</span></code></a></li>
-<li><a class="reference internal" href="#s3prl.dataio.dataset.encode.Tokenizer.pad_idx"><code class="docutils literal notranslate"><span class="pre">Tokenizer.pad_idx</span></code></a></li>
-<li><a class="reference internal" href="#s3prl.dataio.dataset.encode.Tokenizer.eos_idx"><code class="docutils literal notranslate"><span class="pre">Tokenizer.eos_idx</span></code></a></li>
-<li><a class="reference internal" href="#s3prl.dataio.dataset.encode.Tokenizer.unk_idx"><code class="docutils literal notranslate"><span class="pre">Tokenizer.unk_idx</span></code></a></li>
-</ul>
-</li>
-</ul>
-</li>
+<li><a class="reference internal" href="#categoryencoder">CategoryEncoder</a></li>
+<li><a class="reference internal" href="#categoryencoders">CategoryEncoders</a></li>
+<li><a class="reference internal" href="#dataset">Dataset</a></li>
+<li><a class="reference internal" href="#encodecategories">EncodeCategories</a></li>
+<li><a class="reference internal" href="#encodecategory">EncodeCategory</a></li>
+<li><a class="reference internal" href="#encodetext">EncodeText</a></li>
+<li><a class="reference internal" href="#tokenizer">Tokenizer</a></li>
 </ul>
 </li>
 </ul>
@@ -610,7 +559,6 @@
     <script src="../_static/underscore.js"></script>
     <script src="../_static/_sphinx_javascript_frameworks_compat.js"></script>
     <script src="../_static/doctools.js"></script>
-    <script src="../_static/sphinx_highlight.js"></script>
     <script src="../_static/scripts/furo.js"></script>
     <script src="../_static/js/custom.js"></script>
     </body>

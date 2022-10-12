@@ -4,7 +4,7 @@
     <meta name="viewport" content="width=device-width,initial-scale=1"/>
     <meta name="color-scheme" content="light dark"><link rel="index" title="Index" href="../../../genindex.html" /><link rel="search" title="Search" href="../../../search.html" />
 
-    <meta name="generator" content="sphinx-5.2.3, furo 2022.09.29"/>
+    <meta name="generator" content="sphinx-5.1.1, furo 2022.09.29"/>
         <title>s3prl.nn.common - S3PRL 0.4.5 documentation</title>
       <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css" />
     <link rel="stylesheet" type="text/css" href="../../../_static/styles/furo.css?digest=d81277517bee4d6b0349d71bb2661d4890b5617c" />
@@ -377,9 +377,7 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">_outdim</span> <span class="o">=</span> <span class="n">output_size</span>
         <span class="n">hidden_sizes</span> <span class="o">=</span> <span class="n">hidden_sizes</span> <span class="ow">or</span> <span class="p">[</span><span class="mi">256</span><span class="p">]</span>
 
-        <span class="n">hidden_sizes</span> <span class="o">=</span> <span class="n">hidden_sizes</span>
         <span class="n">latest_size</span> <span class="o">=</span> <span class="n">input_size</span>
-
         <span class="n">hidden_layers</span> <span class="o">=</span> <span class="p">[]</span>
         <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">hidden_sizes</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
             <span class="k">for</span> <span class="n">size</span> <span class="ow">in</span> <span class="n">hidden_sizes</span><span class="p">:</span>
@@ -530,7 +528,6 @@
     <script src="../../../_static/underscore.js"></script>
     <script src="../../../_static/_sphinx_javascript_frameworks_compat.js"></script>
     <script src="../../../_static/doctools.js"></script>
-    <script src="../../../_static/sphinx_highlight.js"></script>
     <script src="../../../_static/scripts/furo.js"></script>
     <script src="../../../_static/js/custom.js"></script>
     </body>

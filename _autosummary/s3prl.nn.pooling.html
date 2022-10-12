@@ -5,7 +5,7 @@
     <meta name="color-scheme" content="light dark"><meta name="generator" content="Docutils 0.19: https://docutils.sourceforge.io/" />
 <link rel="index" title="Index" href="../genindex.html" /><link rel="search" title="Search" href="../search.html" /><link rel="next" title="rnn" href="s3prl.nn.rnn.html" /><link rel="prev" title="pit" href="s3prl.nn.pit.html" />
 
-    <meta name="generator" content="sphinx-5.2.3, furo 2022.09.29"/>
+    <meta name="generator" content="sphinx-5.1.1, furo 2022.09.29"/>
         <title>pooling - S3PRL 0.4.5 documentation</title>
       <link rel="stylesheet" type="text/css" href="../_static/pygments.css" />
     <link rel="stylesheet" type="text/css" href="../_static/styles/furo.css?digest=d81277517bee4d6b0349d71bb2661d4890b5617c" />
@@ -648,54 +648,11 @@ the change.</p>
           <div class="toc-tree">
             <ul>
 <li><a class="reference internal" href="#">pooling</a><ul>
-<li><a class="reference internal" href="#meanpooling">MeanPooling</a><ul>
-<li><a class="reference internal" href="#s3prl.nn.pooling.MeanPooling"><code class="docutils literal notranslate"><span class="pre">MeanPooling</span></code></a><ul>
-<li><a class="reference internal" href="#s3prl.nn.pooling.MeanPooling.input_size"><code class="docutils literal notranslate"><span class="pre">MeanPooling.input_size</span></code></a></li>
-<li><a class="reference internal" href="#s3prl.nn.pooling.MeanPooling.output_size"><code class="docutils literal notranslate"><span class="pre">MeanPooling.output_size</span></code></a></li>
-<li><a class="reference internal" href="#s3prl.nn.pooling.MeanPooling.forward"><code class="docutils literal notranslate"><span class="pre">MeanPooling.forward()</span></code></a></li>
-<li><a class="reference internal" href="#s3prl.nn.pooling.MeanPooling.dump_patches"><code class="docutils literal notranslate"><span class="pre">MeanPooling.dump_patches</span></code></a></li>
-<li><a class="reference internal" href="#s3prl.nn.pooling.MeanPooling.training"><code class="docutils literal notranslate"><span class="pre">MeanPooling.training</span></code></a></li>
-</ul>
-</li>
-</ul>
-</li>
-<li><a class="reference internal" href="#temporalaveragepooling">TemporalAveragePooling</a><ul>
-<li><a class="reference internal" href="#s3prl.nn.pooling.TemporalAveragePooling"><code class="docutils literal notranslate"><span class="pre">TemporalAveragePooling</span></code></a></li>
-</ul>
-</li>
-<li><a class="reference internal" href="#temporalstatisticspooling">TemporalStatisticsPooling</a><ul>
-<li><a class="reference internal" href="#s3prl.nn.pooling.TemporalStatisticsPooling"><code class="docutils literal notranslate"><span class="pre">TemporalStatisticsPooling</span></code></a><ul>
-<li><a class="reference internal" href="#s3prl.nn.pooling.TemporalStatisticsPooling.input_size"><code class="docutils literal notranslate"><span class="pre">TemporalStatisticsPooling.input_size</span></code></a></li>
-<li><a class="reference internal" href="#s3prl.nn.pooling.TemporalStatisticsPooling.output_size"><code class="docutils literal notranslate"><span class="pre">TemporalStatisticsPooling.output_size</span></code></a></li>
-<li><a class="reference internal" href="#s3prl.nn.pooling.TemporalStatisticsPooling.forward"><code class="docutils literal notranslate"><span class="pre">TemporalStatisticsPooling.forward()</span></code></a></li>
-<li><a class="reference internal" href="#s3prl.nn.pooling.TemporalStatisticsPooling.dump_patches"><code class="docutils literal notranslate"><span class="pre">TemporalStatisticsPooling.dump_patches</span></code></a></li>
-<li><a class="reference internal" href="#s3prl.nn.pooling.TemporalStatisticsPooling.training"><code class="docutils literal notranslate"><span class="pre">TemporalStatisticsPooling.training</span></code></a></li>
-</ul>
-</li>
-</ul>
-</li>
-<li><a class="reference internal" href="#selfattentivepooling">SelfAttentivePooling</a><ul>
-<li><a class="reference internal" href="#s3prl.nn.pooling.SelfAttentivePooling"><code class="docutils literal notranslate"><span class="pre">SelfAttentivePooling</span></code></a><ul>
-<li><a class="reference internal" href="#s3prl.nn.pooling.SelfAttentivePooling.input_size"><code class="docutils literal notranslate"><span class="pre">SelfAttentivePooling.input_size</span></code></a></li>
-<li><a class="reference internal" href="#s3prl.nn.pooling.SelfAttentivePooling.output_size"><code class="docutils literal notranslate"><span class="pre">SelfAttentivePooling.output_size</span></code></a></li>
-<li><a class="reference internal" href="#s3prl.nn.pooling.SelfAttentivePooling.forward"><code class="docutils literal notranslate"><span class="pre">SelfAttentivePooling.forward()</span></code></a></li>
-<li><a class="reference internal" href="#s3prl.nn.pooling.SelfAttentivePooling.dump_patches"><code class="docutils literal notranslate"><span class="pre">SelfAttentivePooling.dump_patches</span></code></a></li>
-<li><a class="reference internal" href="#s3prl.nn.pooling.SelfAttentivePooling.training"><code class="docutils literal notranslate"><span class="pre">SelfAttentivePooling.training</span></code></a></li>
-</ul>
-</li>
-</ul>
-</li>
-<li><a class="reference internal" href="#attentivestatisticspooling">AttentiveStatisticsPooling</a><ul>
-<li><a class="reference internal" href="#s3prl.nn.pooling.AttentiveStatisticsPooling"><code class="docutils literal notranslate"><span class="pre">AttentiveStatisticsPooling</span></code></a><ul>
-<li><a class="reference internal" href="#s3prl.nn.pooling.AttentiveStatisticsPooling.input_size"><code class="docutils literal notranslate"><span class="pre">AttentiveStatisticsPooling.input_size</span></code></a></li>
-<li><a class="reference internal" href="#s3prl.nn.pooling.AttentiveStatisticsPooling.output_size"><code class="docutils literal notranslate"><span class="pre">AttentiveStatisticsPooling.output_size</span></code></a></li>
-<li><a class="reference internal" href="#s3prl.nn.pooling.AttentiveStatisticsPooling.forward"><code class="docutils literal notranslate"><span class="pre">AttentiveStatisticsPooling.forward()</span></code></a></li>
-<li><a class="reference internal" href="#s3prl.nn.pooling.AttentiveStatisticsPooling.dump_patches"><code class="docutils literal notranslate"><span class="pre">AttentiveStatisticsPooling.dump_patches</span></code></a></li>
-<li><a class="reference internal" href="#s3prl.nn.pooling.AttentiveStatisticsPooling.training"><code class="docutils literal notranslate"><span class="pre">AttentiveStatisticsPooling.training</span></code></a></li>
-</ul>
-</li>
-</ul>
-</li>
+<li><a class="reference internal" href="#meanpooling">MeanPooling</a></li>
+<li><a class="reference internal" href="#temporalaveragepooling">TemporalAveragePooling</a></li>
+<li><a class="reference internal" href="#temporalstatisticspooling">TemporalStatisticsPooling</a></li>
+<li><a class="reference internal" href="#selfattentivepooling">SelfAttentivePooling</a></li>
+<li><a class="reference internal" href="#attentivestatisticspooling">AttentiveStatisticsPooling</a></li>
 </ul>
 </li>
 </ul>
@@ -712,7 +669,6 @@ the change.</p>
     <script src="../_static/underscore.js"></script>
     <script src="../_static/_sphinx_javascript_frameworks_compat.js"></script>
     <script src="../_static/doctools.js"></script>
-    <script src="../_static/sphinx_highlight.js"></script>
     <script src="../_static/scripts/furo.js"></script>
     <script src="../_static/js/custom.js"></script>
     </body>

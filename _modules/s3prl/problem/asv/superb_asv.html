@@ -4,7 +4,7 @@
     <meta name="viewport" content="width=device-width,initial-scale=1"/>
     <meta name="color-scheme" content="light dark"><link rel="index" title="Index" href="../../../../genindex.html" /><link rel="search" title="Search" href="../../../../search.html" />
 
-    <meta name="generator" content="sphinx-5.2.3, furo 2022.09.29"/>
+    <meta name="generator" content="sphinx-5.1.1, furo 2022.09.29"/>
         <title>s3prl.problem.asv.superb_asv - S3PRL 0.4.5 documentation</title>
       <link rel="stylesheet" type="text/css" href="../../../../_static/pygments.css" />
     <link rel="stylesheet" type="text/css" href="../../../../_static/styles/furo.css?digest=d81277517bee4d6b0349d71bb2661d4890b5617c" />
@@ -339,19 +339,20 @@
 <span class="sd">  * Leo 2022</span>
 <span class="sd">&quot;&quot;&quot;</span>
 
+<span class="kn">import</span> <span class="nn">logging</span>
 <span class="kn">import</span> <span class="nn">pickle</span>
 <span class="kn">from</span> <span class="nn">dataclasses</span> <span class="kn">import</span> <span class="n">dataclass</span>
 <span class="kn">from</span> <span class="nn">pathlib</span> <span class="kn">import</span> <span class="n">Path</span>
 
 <span class="kn">import</span> <span class="nn">pandas</span> <span class="k">as</span> <span class="nn">pd</span>
 <span class="kn">from</span> <span class="nn">omegaconf</span> <span class="kn">import</span> <span class="n">MISSING</span>
+<span class="kn">from</span> <span class="nn">torch.utils.data</span> <span class="kn">import</span> <span class="n">Subset</span>
 
 <span class="kn">from</span> <span class="nn">s3prl.dataio.corpus.voxceleb1sv</span> <span class="kn">import</span> <span class="n">VoxCeleb1SV</span>
-<span class="kn">from</span> <span class="nn">s3prl.dataio.dataset</span> <span class="kn">import</span> <span class="n">EncodeCategory</span><span class="p">,</span> <span class="n">LoadAudio</span>
+<span class="kn">from</span> <span class="nn">s3prl.dataio.dataset</span> <span class="kn">import</span> <span class="n">EncodeCategory</span><span class="p">,</span> <span class="n">LoadAudio</span><span class="p">,</span> <span class="n">get_info</span>
 <span class="kn">from</span> <span class="nn">s3prl.dataio.encoder.category</span> <span class="kn">import</span> <span class="n">CategoryEncoder</span>
 <span class="kn">from</span> <span class="nn">s3prl.dataio.sampler</span> <span class="kn">import</span> <span class="n">FixedBatchSizeBatchSampler</span>
 <span class="kn">from</span> <span class="nn">s3prl.nn.speaker_model</span> <span class="kn">import</span> <span class="n">SuperbXvector</span>
-<span class="kn">from</span> <span class="nn">s3prl.util.download</span> <span class="kn">import</span> <span class="n">download</span>
 
 <span class="kn">from</span> <span class="nn">.run</span> <span class="kn">import</span> <span class="n">ASV</span>
 
@@ -362,6 +363,8 @@
     <span class="p">[</span><span class="s2">&quot;gain&quot;</span><span class="p">,</span> <span class="s2">&quot;-3.0&quot;</span><span class="p">],</span>
     <span class="p">[</span><span class="s2">&quot;silence&quot;</span><span class="p">,</span> <span class="s2">&quot;1&quot;</span><span class="p">,</span> <span class="s2">&quot;0.1&quot;</span><span class="p">,</span> <span class="s2">&quot;0.1%&quot;</span><span class="p">,</span> <span class="s2">&quot;-1&quot;</span><span class="p">,</span> <span class="s2">&quot;0.1&quot;</span><span class="p">,</span> <span class="s2">&quot;0.1%&quot;</span><span class="p">],</span>
 <span class="p">]</span>
+
+<span class="n">logger</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="vm">__name__</span><span class="p">)</span>
 
 <span class="n">__all__</span> <span class="o">=</span> <span class="p">[</span>
     <span class="s2">&quot;prepare_voxceleb1_for_sv&quot;</span><span class="p">,</span>
@@ -394,19 +397,6 @@
     <span class="n">corpus</span> <span class="o">=</span> <span class="n">VoxCeleb1SV</span><span class="p">(</span><span class="n">dataset_root</span><span class="p">,</span> <span class="n">cache_dir</span><span class="p">,</span> <span class="n">force_download</span><span class="p">)</span>
     <span class="n">train_data</span><span class="p">,</span> <span class="n">valid_data</span><span class="p">,</span> <span class="n">test_data</span><span class="p">,</span> <span class="n">test_trials</span> <span class="o">=</span> <span class="n">corpus</span><span class="o">.</span><span class="n">all_data</span>
     <span class="n">all_data</span> <span class="o">=</span> <span class="p">{</span><span class="o">**</span><span class="n">train_data</span><span class="p">,</span> <span class="o">**</span><span class="n">valid_data</span><span class="p">}</span>
-
-    <span class="n">ignored_utts_path</span> <span class="o">=</span> <span class="n">Path</span><span class="p">(</span><span class="n">cache_dir</span><span class="p">)</span> <span class="o">/</span> <span class="s2">&quot;voxceleb1_too_short_utts&quot;</span>
-    <span class="n">download</span><span class="p">(</span>
-        <span class="n">ignored_utts_path</span><span class="p">,</span>
-        <span class="s2">&quot;https://huggingface.co/datasets/s3prl/voxceleb1_too_short_utts/raw/main/utt&quot;</span><span class="p">,</span>
-        <span class="kc">True</span><span class="p">,</span>
-    <span class="p">)</span>
-    <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">ignored_utts_path</span><span class="p">)</span> <span class="k">as</span> <span class="n">file</span><span class="p">:</span>
-        <span class="n">ignored_utts</span> <span class="o">=</span> <span class="p">[</span><span class="n">line</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span> <span class="k">for</span> <span class="n">line</span> <span class="ow">in</span> <span class="n">file</span><span class="o">.</span><span class="n">readlines</span><span class="p">()]</span>
-
-    <span class="k">for</span> <span class="n">utt</span> <span class="ow">in</span> <span class="n">ignored_utts</span><span class="p">:</span>
-        <span class="k">assert</span> <span class="n">utt</span> <span class="ow">in</span> <span class="n">all_data</span>
-        <span class="k">del</span> <span class="n">all_data</span><span class="p">[</span><span class="n">utt</span><span class="p">]</span>
 
     <span class="n">ids</span> <span class="o">=</span> <span class="nb">sorted</span><span class="p">(</span><span class="n">all_data</span><span class="o">.</span><span class="n">keys</span><span class="p">())</span>
     <span class="n">wav_paths</span> <span class="o">=</span> <span class="p">[</span><span class="n">all_data</span><span class="p">[</span><span class="n">idx</span><span class="p">][</span><span class="s2">&quot;wav_path&quot;</span><span class="p">]</span> <span class="k">for</span> <span class="n">idx</span> <span class="ow">in</span> <span class="n">ids</span><span class="p">]</span>
@@ -442,6 +432,7 @@
             <span class="p">),</span>
             <span class="n">build_dataset</span><span class="o">=</span><span class="nb">dict</span><span class="p">(</span>
                 <span class="n">train</span><span class="o">=</span><span class="nb">dict</span><span class="p">(</span>
+                    <span class="n">min_secs</span><span class="o">=</span><span class="mf">2.0</span><span class="p">,</span>
                     <span class="n">max_secs</span><span class="o">=</span><span class="mf">8.0</span><span class="p">,</span>
                 <span class="p">),</span>
             <span class="p">),</span>
@@ -466,7 +457,7 @@
             <span class="p">),</span>
             <span class="n">build_task</span><span class="o">=</span><span class="nb">dict</span><span class="p">(</span>
                 <span class="n">loss_type</span><span class="o">=</span><span class="s2">&quot;amsoftmax&quot;</span><span class="p">,</span>
-                <span class="n">loss_cfg</span><span class="o">=</span><span class="nb">dict</span><span class="p">(</span>
+                <span class="n">loss_conf</span><span class="o">=</span><span class="nb">dict</span><span class="p">(</span>
                     <span class="n">margin</span><span class="o">=</span><span class="mf">0.4</span><span class="p">,</span>
                     <span class="n">scale</span><span class="o">=</span><span class="mi">30</span><span class="p">,</span>
                 <span class="p">),</span>
@@ -492,7 +483,7 @@
                 <span class="n">valid_higher_better</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
                 <span class="n">auto_resume</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
                 <span class="n">resume_ckpt_dir</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
-                <span class="n">keep_num_ckpts</span><span class="o">=</span><span class="mi">10</span><span class="p">,</span>
+                <span class="n">keep_num_ckpts</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
             <span class="p">),</span>
         <span class="p">)</span></div>
 
@@ -601,15 +592,18 @@
 
 <span class="sd">        Args:</span>
 <span class="sd">            build_dataset (dict): same in :obj:`default_config`, have</span>
-<span class="sd">                :code:`train` and :code:`test` keys, each is a dictionary, for both dictionaries:</span>
+<span class="sd">                :code:`train` and :code:`test` keys, each is a dictionary, for :code:`train` dictionary:</span>
 
 <span class="sd">                ====================  ====================</span>
 <span class="sd">                key                   description</span>
 <span class="sd">                ====================  ====================</span>
+<span class="sd">                min_secs              (float) - Drop a waveform if it is not longer than :code:`min_secs`</span>
 <span class="sd">                max_secs              (float) - If a waveform is longer than :code:`max_secs` seconds, \</span>
 <span class="sd">                                        randomly crop the waveform into :code:`max_secs` seconds. \</span>
 <span class="sd">                                        Default: None, no cropping</span>
 <span class="sd">                ====================  ====================</span>
+
+<span class="sd">                for :code:`test` dictionary, no argument supported yet</span>
 
 <span class="sd">            target_dir (str): Current experiment directory</span>
 <span class="sd">            cache_dir (str): If the preprocessing takes too long time, you can save</span>
@@ -653,15 +647,16 @@
 
             <span class="nd">@dataclass</span>
             <span class="k">class</span> <span class="nc">Config</span><span class="p">:</span>
+                <span class="n">min_secs</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="kc">None</span>
                 <span class="n">max_secs</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="kc">None</span>
 
-            <span class="n">config</span> <span class="o">=</span> <span class="n">build_dataset</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;train&quot;</span><span class="p">,</span> <span class="p">{})</span>
-            <span class="n">config</span> <span class="o">=</span> <span class="n">Config</span><span class="p">(</span><span class="o">**</span><span class="n">config</span><span class="p">)</span>
+            <span class="n">conf</span> <span class="o">=</span> <span class="n">build_dataset</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;train&quot;</span><span class="p">,</span> <span class="p">{})</span>
+            <span class="n">conf</span> <span class="o">=</span> <span class="n">Config</span><span class="p">(</span><span class="o">**</span><span class="n">conf</span><span class="p">)</span>
 
             <span class="n">csv</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">read_csv</span><span class="p">(</span><span class="n">data_csv</span><span class="p">)</span>
             <span class="n">wav_paths</span> <span class="o">=</span> <span class="n">csv</span><span class="p">[</span><span class="s2">&quot;wav_path&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">tolist</span><span class="p">()</span>
             <span class="n">audio_loader</span> <span class="o">=</span> <span class="n">LoadAudio</span><span class="p">(</span>
-                <span class="n">wav_paths</span><span class="p">,</span> <span class="n">sox_effects</span><span class="o">=</span><span class="n">EFFECTS</span><span class="p">,</span> <span class="n">max_secs</span><span class="o">=</span><span class="n">config</span><span class="o">.</span><span class="n">max_secs</span>
+                <span class="n">wav_paths</span><span class="p">,</span> <span class="n">sox_effects</span><span class="o">=</span><span class="n">EFFECTS</span><span class="p">,</span> <span class="n">max_secs</span><span class="o">=</span><span class="n">conf</span><span class="o">.</span><span class="n">max_secs</span>
             <span class="p">)</span>
 
             <span class="n">labels</span> <span class="o">=</span> <span class="n">csv</span><span class="p">[</span><span class="s2">&quot;spk&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">tolist</span><span class="p">()</span>
@@ -686,6 +681,31 @@
                     <span class="p">}</span>
 
             <span class="n">dataset</span> <span class="o">=</span> <span class="n">SVTrainDataset</span><span class="p">()</span>
+
+            <span class="k">if</span> <span class="n">conf</span><span class="o">.</span><span class="n">min_secs</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="n">x_lens</span><span class="p">,</span> <span class="n">unique_names</span> <span class="o">=</span> <span class="n">get_info</span><span class="p">(</span>
+                    <span class="n">dataset</span><span class="p">,</span>
+                    <span class="s2">&quot;x_len&quot;</span><span class="p">,</span>
+                    <span class="s2">&quot;unique_name&quot;</span><span class="p">,</span>
+                    <span class="n">cache_dir</span><span class="o">=</span><span class="n">target_dir</span> <span class="o">/</span> <span class="s2">&quot;train_utt_len&quot;</span><span class="p">,</span>
+                <span class="p">)</span>
+
+                <span class="n">indices</span> <span class="o">=</span> <span class="p">[]</span>
+                <span class="n">removed_indices</span> <span class="o">=</span> <span class="p">[]</span>
+                <span class="k">for</span> <span class="n">idx</span><span class="p">,</span> <span class="p">(</span><span class="n">x_len</span><span class="p">,</span> <span class="n">unique_name</span><span class="p">)</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="nb">zip</span><span class="p">(</span><span class="n">x_lens</span><span class="p">,</span> <span class="n">unique_names</span><span class="p">)):</span>
+                    <span class="n">secs</span> <span class="o">=</span> <span class="n">x_len</span> <span class="o">/</span> <span class="n">SAMPLE_RATE</span>
+                    <span class="k">if</span> <span class="n">secs</span> <span class="o">&lt;=</span> <span class="n">conf</span><span class="o">.</span><span class="n">min_secs</span><span class="p">:</span>
+                        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span>
+                            <span class="sa">f</span><span class="s2">&quot;Remove utt </span><span class="si">{</span><span class="n">unique_name</span><span class="si">}</span><span class="s2"> since too short after sox effects: </span><span class="si">{</span><span class="n">secs</span><span class="si">}</span><span class="s2"> secs&quot;</span>
+                        <span class="p">)</span>
+                        <span class="n">removed_indices</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">idx</span><span class="p">)</span>
+                    <span class="k">else</span><span class="p">:</span>
+                        <span class="n">indices</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">idx</span><span class="p">)</span>
+
+                <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">removed_indices</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+                    <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Remove in total </span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">removed_indices</span><span class="p">)</span><span class="si">}</span><span class="s2"> utts&quot;</span><span class="p">)</span>
+
+                <span class="n">dataset</span> <span class="o">=</span> <span class="n">Subset</span><span class="p">(</span><span class="n">dataset</span><span class="p">,</span> <span class="n">indices</span><span class="p">)</span>
 
         <span class="k">elif</span> <span class="n">mode</span> <span class="o">==</span> <span class="s2">&quot;test&quot;</span><span class="p">:</span>
             <span class="n">csv</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">read_csv</span><span class="p">(</span><span class="n">data_csv</span><span class="p">)</span>
@@ -822,7 +842,6 @@
     <script src="../../../../_static/underscore.js"></script>
     <script src="../../../../_static/_sphinx_javascript_frameworks_compat.js"></script>
     <script src="../../../../_static/doctools.js"></script>
-    <script src="../../../../_static/sphinx_highlight.js"></script>
     <script src="../../../../_static/scripts/furo.js"></script>
     <script src="../../../../_static/js/custom.js"></script>
     </body>

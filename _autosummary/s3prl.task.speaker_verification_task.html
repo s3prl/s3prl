@@ -5,7 +5,7 @@
     <meta name="color-scheme" content="light dark"><meta name="generator" content="Docutils 0.19: https://docutils.sourceforge.io/" />
 <link rel="index" title="Index" href="../genindex.html" /><link rel="search" title="Search" href="../search.html" /><link rel="next" title="speech2text_ctc_task" href="s3prl.task.speech2text_ctc_task.html" /><link rel="prev" title="scene_prediction" href="s3prl.task.scene_prediction.html" />
 
-    <meta name="generator" content="sphinx-5.2.3, furo 2022.09.29"/>
+    <meta name="generator" content="sphinx-5.1.1, furo 2022.09.29"/>
         <title>speaker_verification_task - S3PRL 0.4.5 documentation</title>
       <link rel="stylesheet" type="text/css" href="../_static/pygments.css" />
     <link rel="stylesheet" type="text/css" href="../_static/styles/furo.css?digest=d81277517bee4d6b0349d71bb2661d4890b5617c" />
@@ -414,7 +414,7 @@ the change.</p>
 <h2>SpeakerVerification<a class="headerlink" href="#speakerverification" title="Permalink to this heading">#</a></h2>
 <dl class="py class">
 <dt class="sig sig-object py" id="s3prl.task.speaker_verification_task.SpeakerVerification">
-<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">s3prl.task.speaker_verification_task.</span></span><span class="sig-name descname"><span class="pre">SpeakerVerification</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">model</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="#s3prl.task.speaker_verification_task.SpeakerClassifier" title="s3prl.task.speaker_verification_task.SpeakerClassifier"><span class="pre">SpeakerClassifier</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">category</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="s3prl.dataio.encoder.category.html#s3prl.dataio.encoder.category.CategoryEncoder" title="s3prl.dataio.encoder.category.CategoryEncoder"><span class="pre">CategoryEncoder</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">test_trials</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">List</span><span class="p"><span class="pre">[</span></span><span class="pre">Tuple</span><span class="p"><span class="pre">[</span></span><span class="pre">int</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">str</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">loss_type</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">'amsoftmax'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">loss_cfg</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">dict</span><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/s3prl/task/speaker_verification_task.html#SpeakerVerification"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="reference external" href="https://github.com/s3prl/s3prl/blob/v0.4.5 /s3prl/task/speaker_verification_task.py#L62-L209"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#s3prl.task.speaker_verification_task.SpeakerVerification" title="Permalink to this definition">#</a></dt>
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">s3prl.task.speaker_verification_task.</span></span><span class="sig-name descname"><span class="pre">SpeakerVerification</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">model</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="#s3prl.task.speaker_verification_task.SpeakerClassifier" title="s3prl.task.speaker_verification_task.SpeakerClassifier"><span class="pre">SpeakerClassifier</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">category</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="s3prl.dataio.encoder.category.html#s3prl.dataio.encoder.category.CategoryEncoder" title="s3prl.dataio.encoder.category.CategoryEncoder"><span class="pre">CategoryEncoder</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">test_trials</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">List</span><span class="p"><span class="pre">[</span></span><span class="pre">Tuple</span><span class="p"><span class="pre">[</span></span><span class="pre">int</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">str</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">loss_type</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">'amsoftmax'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">loss_conf</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">dict</span><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/s3prl/task/speaker_verification_task.html#SpeakerVerification"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="reference external" href="https://github.com/s3prl/s3prl/blob/v0.4.5 /s3prl/task/speaker_verification_task.py#L62-L209"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#s3prl.task.speaker_verification_task.SpeakerVerification" title="Permalink to this definition">#</a></dt>
 <dd><p>Bases: <a class="reference internal" href="s3prl.task.base.html#s3prl.task.base.Task" title="s3prl.task.base.Task"><code class="xref py py-class docutils literal notranslate"><span class="pre">Task</span></code></a></p>
 <p>model.output_size should match len(categories)</p>
 <dl class="field-list simple">
@@ -425,7 +425,7 @@ the change.</p>
 use categories[key] to encode as numeric label</p></li>
 <li><p><strong>test_trials</strong> (<em>List</em><em>[</em><em>Tuple</em><em>[</em><em>int</em><em>, </em><em>str</em><em>, </em><em>str</em><em>]</em><em>]</em>) – each tuple in the list consists of (label, enroll_utt, test_utt)</p></li>
 <li><p><strong>loss_type</strong> (<em>str</em>) – softmax or amsoftmax</p></li>
-<li><p><strong>loss_cfg</strong> (<em>dict</em>) – <a href="#id2"><span class="problematic" id="id3">**</span></a>kwds for loss_type class</p></li>
+<li><p><strong>loss_conf</strong> (<em>dict</em>) – arguments for the loss_type class</p></li>
 </ul>
 </dd>
 </dl>
@@ -615,40 +615,8 @@ registered hooks while the latter silently ignores them.</p>
           <div class="toc-tree">
             <ul>
 <li><a class="reference internal" href="#">speaker_verification_task</a><ul>
-<li><a class="reference internal" href="#speakerclassifier">SpeakerClassifier</a><ul>
-<li><a class="reference internal" href="#s3prl.task.speaker_verification_task.SpeakerClassifier"><code class="docutils literal notranslate"><span class="pre">SpeakerClassifier</span></code></a><ul>
-<li><a class="reference internal" href="#s3prl.task.speaker_verification_task.SpeakerClassifier.input_size"><code class="docutils literal notranslate"><span class="pre">SpeakerClassifier.input_size</span></code></a></li>
-<li><a class="reference internal" href="#s3prl.task.speaker_verification_task.SpeakerClassifier.output_size"><code class="docutils literal notranslate"><span class="pre">SpeakerClassifier.output_size</span></code></a></li>
-<li><a class="reference internal" href="#id0"><code class="docutils literal notranslate"><span class="pre">SpeakerClassifier.input_size</span></code></a></li>
-<li><a class="reference internal" href="#id1"><code class="docutils literal notranslate"><span class="pre">SpeakerClassifier.output_size</span></code></a></li>
-<li><a class="reference internal" href="#s3prl.task.speaker_verification_task.SpeakerClassifier.forward"><code class="docutils literal notranslate"><span class="pre">SpeakerClassifier.forward()</span></code></a></li>
-<li><a class="reference internal" href="#s3prl.task.speaker_verification_task.SpeakerClassifier.dump_patches"><code class="docutils literal notranslate"><span class="pre">SpeakerClassifier.dump_patches</span></code></a></li>
-<li><a class="reference internal" href="#s3prl.task.speaker_verification_task.SpeakerClassifier.training"><code class="docutils literal notranslate"><span class="pre">SpeakerClassifier.training</span></code></a></li>
-</ul>
-</li>
-</ul>
-</li>
-<li><a class="reference internal" href="#speakerverification">SpeakerVerification</a><ul>
-<li><a class="reference internal" href="#s3prl.task.speaker_verification_task.SpeakerVerification"><code class="docutils literal notranslate"><span class="pre">SpeakerVerification</span></code></a><ul>
-<li><a class="reference internal" href="#s3prl.task.speaker_verification_task.SpeakerVerification.loss"><code class="docutils literal notranslate"><span class="pre">SpeakerVerification.loss</span></code></a></li>
-<li><a class="reference internal" href="#s3prl.task.speaker_verification_task.SpeakerVerification.get_state"><code class="docutils literal notranslate"><span class="pre">SpeakerVerification.get_state()</span></code></a></li>
-<li><a class="reference internal" href="#s3prl.task.speaker_verification_task.SpeakerVerification.set_state"><code class="docutils literal notranslate"><span class="pre">SpeakerVerification.set_state()</span></code></a></li>
-<li><a class="reference internal" href="#s3prl.task.speaker_verification_task.SpeakerVerification.predict"><code class="docutils literal notranslate"><span class="pre">SpeakerVerification.predict()</span></code></a></li>
-<li><a class="reference internal" href="#s3prl.task.speaker_verification_task.SpeakerVerification.train_step"><code class="docutils literal notranslate"><span class="pre">SpeakerVerification.train_step()</span></code></a></li>
-<li><a class="reference internal" href="#s3prl.task.speaker_verification_task.SpeakerVerification.train_reduction"><code class="docutils literal notranslate"><span class="pre">SpeakerVerification.train_reduction()</span></code></a></li>
-<li><a class="reference internal" href="#s3prl.task.speaker_verification_task.SpeakerVerification.test_step"><code class="docutils literal notranslate"><span class="pre">SpeakerVerification.test_step()</span></code></a></li>
-<li><a class="reference internal" href="#s3prl.task.speaker_verification_task.SpeakerVerification.test_reduction"><code class="docutils literal notranslate"><span class="pre">SpeakerVerification.test_reduction()</span></code></a></li>
-<li><a class="reference internal" href="#s3prl.task.speaker_verification_task.SpeakerVerification.dump_patches"><code class="docutils literal notranslate"><span class="pre">SpeakerVerification.dump_patches</span></code></a></li>
-<li><a class="reference internal" href="#s3prl.task.speaker_verification_task.SpeakerVerification.forward"><code class="docutils literal notranslate"><span class="pre">SpeakerVerification.forward()</span></code></a></li>
-<li><a class="reference internal" href="#s3prl.task.speaker_verification_task.SpeakerVerification.parse_cached_results"><code class="docutils literal notranslate"><span class="pre">SpeakerVerification.parse_cached_results()</span></code></a></li>
-<li><a class="reference internal" href="#s3prl.task.speaker_verification_task.SpeakerVerification.reduction"><code class="docutils literal notranslate"><span class="pre">SpeakerVerification.reduction()</span></code></a></li>
-<li><a class="reference internal" href="#s3prl.task.speaker_verification_task.SpeakerVerification.valid_reduction"><code class="docutils literal notranslate"><span class="pre">SpeakerVerification.valid_reduction()</span></code></a></li>
-<li><a class="reference internal" href="#s3prl.task.speaker_verification_task.SpeakerVerification.valid_step"><code class="docutils literal notranslate"><span class="pre">SpeakerVerification.valid_step()</span></code></a></li>
-<li><a class="reference internal" href="#s3prl.task.speaker_verification_task.SpeakerVerification.training"><code class="docutils literal notranslate"><span class="pre">SpeakerVerification.training</span></code></a></li>
-</ul>
-</li>
-</ul>
-</li>
+<li><a class="reference internal" href="#speakerclassifier">SpeakerClassifier</a></li>
+<li><a class="reference internal" href="#speakerverification">SpeakerVerification</a></li>
 </ul>
 </li>
 </ul>
@@ -665,7 +633,6 @@ registered hooks while the latter silently ignores them.</p>
     <script src="../_static/underscore.js"></script>
     <script src="../_static/_sphinx_javascript_frameworks_compat.js"></script>
     <script src="../_static/doctools.js"></script>
-    <script src="../_static/sphinx_highlight.js"></script>
     <script src="../_static/scripts/furo.js"></script>
     <script src="../_static/js/custom.js"></script>
     </body>
