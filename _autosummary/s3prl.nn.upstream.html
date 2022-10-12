@@ -5,7 +5,7 @@
     <meta name="color-scheme" content="light dark"><meta name="generator" content="Docutils 0.19: https://docutils.sourceforge.io/" />
 <link rel="index" title="Index" href="../genindex.html" /><link rel="search" title="Search" href="../search.html" /><link rel="next" title="problem" href="s3prl.problem.html" /><link rel="prev" title="specaug" href="s3prl.nn.specaug.html" />
 
-    <meta name="generator" content="sphinx-5.1.1, furo 2022.09.29"/>
+    <meta name="generator" content="sphinx-5.2.3, furo 2022.09.29"/>
         <title>upstream - S3PRL 0.4.5 documentation</title>
       <link rel="stylesheet" type="text/css" href="../_static/pygments.css" />
     <link rel="stylesheet" type="text/css" href="../_static/styles/furo.css?digest=d81277517bee4d6b0349d71bb2661d4890b5617c" />
@@ -682,9 +682,42 @@ registered hooks while the latter silently ignores them.</p>
           <div class="toc-tree">
             <ul>
 <li><a class="reference internal" href="#">upstream</a><ul>
-<li><a class="reference internal" href="#s3prlupstream">S3PRLUpstream</a></li>
-<li><a class="reference internal" href="#featurizer">Featurizer</a></li>
-<li><a class="reference internal" href="#upstreamdownstreammodel">UpstreamDownstreamModel</a></li>
+<li><a class="reference internal" href="#s3prlupstream">S3PRLUpstream</a><ul>
+<li><a class="reference internal" href="#s3prl.nn.upstream.S3PRLUpstream"><code class="docutils literal notranslate"><span class="pre">S3PRLUpstream</span></code></a><ul>
+<li><a class="reference internal" href="#s3prl.nn.upstream.S3PRLUpstream.available_names"><code class="docutils literal notranslate"><span class="pre">S3PRLUpstream.available_names()</span></code></a></li>
+<li><a class="reference internal" href="#s3prl.nn.upstream.S3PRLUpstream.num_layers"><code class="docutils literal notranslate"><span class="pre">S3PRLUpstream.num_layers</span></code></a></li>
+<li><a class="reference internal" href="#s3prl.nn.upstream.S3PRLUpstream.downsample_rates"><code class="docutils literal notranslate"><span class="pre">S3PRLUpstream.downsample_rates</span></code></a></li>
+<li><a class="reference internal" href="#s3prl.nn.upstream.S3PRLUpstream.hidden_sizes"><code class="docutils literal notranslate"><span class="pre">S3PRLUpstream.hidden_sizes</span></code></a></li>
+<li><a class="reference internal" href="#s3prl.nn.upstream.S3PRLUpstream.forward"><code class="docutils literal notranslate"><span class="pre">S3PRLUpstream.forward()</span></code></a></li>
+<li><a class="reference internal" href="#s3prl.nn.upstream.S3PRLUpstream.dump_patches"><code class="docutils literal notranslate"><span class="pre">S3PRLUpstream.dump_patches</span></code></a></li>
+<li><a class="reference internal" href="#s3prl.nn.upstream.S3PRLUpstream.training"><code class="docutils literal notranslate"><span class="pre">S3PRLUpstream.training</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li><a class="reference internal" href="#featurizer">Featurizer</a><ul>
+<li><a class="reference internal" href="#s3prl.nn.upstream.Featurizer"><code class="docutils literal notranslate"><span class="pre">Featurizer</span></code></a><ul>
+<li><a class="reference internal" href="#s3prl.nn.upstream.Featurizer.output_size"><code class="docutils literal notranslate"><span class="pre">Featurizer.output_size</span></code></a></li>
+<li><a class="reference internal" href="#s3prl.nn.upstream.Featurizer.downsample_rate"><code class="docutils literal notranslate"><span class="pre">Featurizer.downsample_rate</span></code></a></li>
+<li><a class="reference internal" href="#s3prl.nn.upstream.Featurizer.forward"><code class="docutils literal notranslate"><span class="pre">Featurizer.forward()</span></code></a></li>
+<li><a class="reference internal" href="#s3prl.nn.upstream.Featurizer.dump_patches"><code class="docutils literal notranslate"><span class="pre">Featurizer.dump_patches</span></code></a></li>
+<li><a class="reference internal" href="#s3prl.nn.upstream.Featurizer.training"><code class="docutils literal notranslate"><span class="pre">Featurizer.training</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li><a class="reference internal" href="#upstreamdownstreammodel">UpstreamDownstreamModel</a><ul>
+<li><a class="reference internal" href="#s3prl.nn.upstream.UpstreamDownstreamModel"><code class="docutils literal notranslate"><span class="pre">UpstreamDownstreamModel</span></code></a><ul>
+<li><a class="reference internal" href="#s3prl.nn.upstream.UpstreamDownstreamModel.input_size"><code class="docutils literal notranslate"><span class="pre">UpstreamDownstreamModel.input_size</span></code></a></li>
+<li><a class="reference internal" href="#s3prl.nn.upstream.UpstreamDownstreamModel.downsample_rate"><code class="docutils literal notranslate"><span class="pre">UpstreamDownstreamModel.downsample_rate</span></code></a></li>
+<li><a class="reference internal" href="#s3prl.nn.upstream.UpstreamDownstreamModel.dump_patches"><code class="docutils literal notranslate"><span class="pre">UpstreamDownstreamModel.dump_patches</span></code></a></li>
+<li><a class="reference internal" href="#s3prl.nn.upstream.UpstreamDownstreamModel.output_size"><code class="docutils literal notranslate"><span class="pre">UpstreamDownstreamModel.output_size</span></code></a></li>
+<li><a class="reference internal" href="#s3prl.nn.upstream.UpstreamDownstreamModel.training"><code class="docutils literal notranslate"><span class="pre">UpstreamDownstreamModel.training</span></code></a></li>
+<li><a class="reference internal" href="#s3prl.nn.upstream.UpstreamDownstreamModel.forward"><code class="docutils literal notranslate"><span class="pre">UpstreamDownstreamModel.forward()</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
 </ul>
 </li>
 </ul>
@@ -701,6 +734,7 @@ registered hooks while the latter silently ignores them.</p>
     <script src="../_static/underscore.js"></script>
     <script src="../_static/_sphinx_javascript_frameworks_compat.js"></script>
     <script src="../_static/doctools.js"></script>
+    <script src="../_static/sphinx_highlight.js"></script>
     <script src="../_static/scripts/furo.js"></script>
     <script src="../_static/js/custom.js"></script>
     </body>

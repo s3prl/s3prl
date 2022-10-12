@@ -5,7 +5,7 @@
     <meta name="color-scheme" content="light dark"><meta name="generator" content="Docutils 0.19: https://docutils.sourceforge.io/" />
 <link rel="index" title="Index" href="../genindex.html" /><link rel="search" title="Search" href="../search.html" /><link rel="next" title="common" href="s3prl.problem.common.html" /><link rel="prev" title="superb_asv" href="s3prl.problem.asv.superb_asv.html" />
 
-    <meta name="generator" content="sphinx-5.1.1, furo 2022.09.29"/>
+    <meta name="generator" content="sphinx-5.2.3, furo 2022.09.29"/>
         <title>base - S3PRL 0.4.5 documentation</title>
       <link rel="stylesheet" type="text/css" href="../_static/pygments.css" />
     <link rel="stylesheet" type="text/css" href="../_static/styles/furo.css?digest=d81277517bee4d6b0349d71bb2661d4890b5617c" />
@@ -773,7 +773,27 @@ saved under <code class="code docutils literal notranslate"><span class="pre">ck
           <div class="toc-tree">
             <ul>
 <li><a class="reference internal" href="#">base</a><ul>
-<li><a class="reference internal" href="#problem">Problem</a></li>
+<li><a class="reference internal" href="#problem">Problem</a><ul>
+<li><a class="reference internal" href="#s3prl.problem.base.Problem"><code class="docutils literal notranslate"><span class="pre">Problem</span></code></a><ul>
+<li><a class="reference internal" href="#s3prl.problem.base.Problem.get_class_from_name"><code class="docutils literal notranslate"><span class="pre">Problem.get_class_from_name()</span></code></a></li>
+<li><a class="reference internal" href="#s3prl.problem.base.Problem.build_collate_fn"><code class="docutils literal notranslate"><span class="pre">Problem.build_collate_fn()</span></code></a></li>
+<li><a class="reference internal" href="#s3prl.problem.base.Problem.build_upstream"><code class="docutils literal notranslate"><span class="pre">Problem.build_upstream()</span></code></a></li>
+<li><a class="reference internal" href="#s3prl.problem.base.Problem.build_featurizer"><code class="docutils literal notranslate"><span class="pre">Problem.build_featurizer()</span></code></a></li>
+<li><a class="reference internal" href="#s3prl.problem.base.Problem.build_model"><code class="docutils literal notranslate"><span class="pre">Problem.build_model()</span></code></a></li>
+<li><a class="reference internal" href="#s3prl.problem.base.Problem.build_optimizer"><code class="docutils literal notranslate"><span class="pre">Problem.build_optimizer()</span></code></a></li>
+<li><a class="reference internal" href="#s3prl.problem.base.Problem.build_scheduler"><code class="docutils literal notranslate"><span class="pre">Problem.build_scheduler()</span></code></a></li>
+<li><a class="reference internal" href="#s3prl.problem.base.Problem.train"><code class="docutils literal notranslate"><span class="pre">Problem.train()</span></code></a></li>
+<li><a class="reference internal" href="#s3prl.problem.base.Problem.evaluate"><code class="docutils literal notranslate"><span class="pre">Problem.evaluate()</span></code></a></li>
+<li><a class="reference internal" href="#s3prl.problem.base.Problem.save_model"><code class="docutils literal notranslate"><span class="pre">Problem.save_model()</span></code></a></li>
+<li><a class="reference internal" href="#s3prl.problem.base.Problem.load_model"><code class="docutils literal notranslate"><span class="pre">Problem.load_model()</span></code></a></li>
+<li><a class="reference internal" href="#s3prl.problem.base.Problem.save_task"><code class="docutils literal notranslate"><span class="pre">Problem.save_task()</span></code></a></li>
+<li><a class="reference internal" href="#s3prl.problem.base.Problem.load_task"><code class="docutils literal notranslate"><span class="pre">Problem.load_task()</span></code></a></li>
+<li><a class="reference internal" href="#s3prl.problem.base.Problem.load_model_and_task"><code class="docutils literal notranslate"><span class="pre">Problem.load_model_and_task()</span></code></a></li>
+<li><a class="reference internal" href="#s3prl.problem.base.Problem.main"><code class="docutils literal notranslate"><span class="pre">Problem.main()</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
 </ul>
 </li>
 </ul>
@@ -790,6 +810,7 @@ saved under <code class="code docutils literal notranslate"><span class="pre">ck
     <script src="../_static/underscore.js"></script>
     <script src="../_static/_sphinx_javascript_frameworks_compat.js"></script>
     <script src="../_static/doctools.js"></script>
+    <script src="../_static/sphinx_highlight.js"></script>
     <script src="../_static/scripts/furo.js"></script>
     <script src="../_static/js/custom.js"></script>
     </body>

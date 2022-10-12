@@ -5,7 +5,7 @@
     <meta name="color-scheme" content="light dark"><meta name="generator" content="Docutils 0.19: https://docutils.sourceforge.io/" />
 <link rel="index" title="Index" href="../genindex.html" /><link rel="search" title="Search" href="../search.html" /><link rel="next" title="scene_prediction" href="s3prl.task.scene_prediction.html" /><link rel="prev" title="dump_feature" href="s3prl.task.dump_feature.html" />
 
-    <meta name="generator" content="sphinx-5.1.1, furo 2022.09.29"/>
+    <meta name="generator" content="sphinx-5.2.3, furo 2022.09.29"/>
         <title>event_prediction - S3PRL 0.4.5 documentation</title>
       <link rel="stylesheet" type="text/css" href="../_static/pygments.css" />
     <link rel="stylesheet" type="text/css" href="../_static/styles/furo.css?digest=d81277517bee4d6b0349d71bb2661d4890b5617c" />
@@ -506,7 +506,29 @@ registered hooks while the latter silently ignores them.</p>
           <div class="toc-tree">
             <ul>
 <li><a class="reference internal" href="#">event_prediction</a><ul>
-<li><a class="reference internal" href="#eventpredictiontask">EventPredictionTask</a></li>
+<li><a class="reference internal" href="#eventpredictiontask">EventPredictionTask</a><ul>
+<li><a class="reference internal" href="#s3prl.task.event_prediction.EventPredictionTask"><code class="docutils literal notranslate"><span class="pre">EventPredictionTask</span></code></a><ul>
+<li><a class="reference internal" href="#s3prl.task.event_prediction.EventPredictionTask.activation"><code class="docutils literal notranslate"><span class="pre">EventPredictionTask.activation</span></code></a></li>
+<li><a class="reference internal" href="#s3prl.task.event_prediction.EventPredictionTask.get_state"><code class="docutils literal notranslate"><span class="pre">EventPredictionTask.get_state()</span></code></a></li>
+<li><a class="reference internal" href="#s3prl.task.event_prediction.EventPredictionTask.set_state"><code class="docutils literal notranslate"><span class="pre">EventPredictionTask.set_state()</span></code></a></li>
+<li><a class="reference internal" href="#s3prl.task.event_prediction.EventPredictionTask.predict"><code class="docutils literal notranslate"><span class="pre">EventPredictionTask.predict()</span></code></a></li>
+<li><a class="reference internal" href="#s3prl.task.event_prediction.EventPredictionTask.train_step"><code class="docutils literal notranslate"><span class="pre">EventPredictionTask.train_step()</span></code></a></li>
+<li><a class="reference internal" href="#s3prl.task.event_prediction.EventPredictionTask.train_reduction"><code class="docutils literal notranslate"><span class="pre">EventPredictionTask.train_reduction()</span></code></a></li>
+<li><a class="reference internal" href="#s3prl.task.event_prediction.EventPredictionTask.valid_step"><code class="docutils literal notranslate"><span class="pre">EventPredictionTask.valid_step()</span></code></a></li>
+<li><a class="reference internal" href="#s3prl.task.event_prediction.EventPredictionTask.test_step"><code class="docutils literal notranslate"><span class="pre">EventPredictionTask.test_step()</span></code></a></li>
+<li><a class="reference internal" href="#s3prl.task.event_prediction.EventPredictionTask.log_scores"><code class="docutils literal notranslate"><span class="pre">EventPredictionTask.log_scores()</span></code></a></li>
+<li><a class="reference internal" href="#s3prl.task.event_prediction.EventPredictionTask.valid_reduction"><code class="docutils literal notranslate"><span class="pre">EventPredictionTask.valid_reduction()</span></code></a></li>
+<li><a class="reference internal" href="#s3prl.task.event_prediction.EventPredictionTask.dump_patches"><code class="docutils literal notranslate"><span class="pre">EventPredictionTask.dump_patches</span></code></a></li>
+<li><a class="reference internal" href="#s3prl.task.event_prediction.EventPredictionTask.forward"><code class="docutils literal notranslate"><span class="pre">EventPredictionTask.forward()</span></code></a></li>
+<li><a class="reference internal" href="#s3prl.task.event_prediction.EventPredictionTask.parse_cached_results"><code class="docutils literal notranslate"><span class="pre">EventPredictionTask.parse_cached_results()</span></code></a></li>
+<li><a class="reference internal" href="#s3prl.task.event_prediction.EventPredictionTask.reduction"><code class="docutils literal notranslate"><span class="pre">EventPredictionTask.reduction()</span></code></a></li>
+<li><a class="reference internal" href="#s3prl.task.event_prediction.EventPredictionTask.test_reduction"><code class="docutils literal notranslate"><span class="pre">EventPredictionTask.test_reduction()</span></code></a></li>
+<li><a class="reference internal" href="#s3prl.task.event_prediction.EventPredictionTask.training"><code class="docutils literal notranslate"><span class="pre">EventPredictionTask.training</span></code></a></li>
+<li><a class="reference internal" href="#s3prl.task.event_prediction.EventPredictionTask.eval_reduction"><code class="docutils literal notranslate"><span class="pre">EventPredictionTask.eval_reduction()</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
 </ul>
 </li>
 </ul>
@@ -523,6 +545,7 @@ registered hooks while the latter silently ignores them.</p>
     <script src="../_static/underscore.js"></script>
     <script src="../_static/_sphinx_javascript_frameworks_compat.js"></script>
     <script src="../_static/doctools.js"></script>
+    <script src="../_static/sphinx_highlight.js"></script>
     <script src="../_static/scripts/furo.js"></script>
     <script src="../_static/js/custom.js"></script>
     </body>

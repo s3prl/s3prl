@@ -5,7 +5,7 @@
     <meta name="color-scheme" content="light dark"><meta name="generator" content="Docutils 0.19: https://docutils.sourceforge.io/" />
 <link rel="index" title="Index" href="../genindex.html" /><link rel="search" title="Search" href="../search.html" /><link rel="next" title="hear_gunshot" href="s3prl.problem.common.hear_gunshot.html" /><link rel="prev" title="hear_gtzan" href="s3prl.problem.common.hear_gtzan.html" />
 
-    <meta name="generator" content="sphinx-5.1.1, furo 2022.09.29"/>
+    <meta name="generator" content="sphinx-5.2.3, furo 2022.09.29"/>
         <title>hear_gtzan_music_speech - S3PRL 0.4.5 documentation</title>
       <link rel="stylesheet" type="text/css" href="../_static/pygments.css" />
     <link rel="stylesheet" type="text/css" href="../_static/styles/furo.css?digest=d81277517bee4d6b0349d71bb2661d4890b5617c" />
@@ -1885,8 +1885,64 @@ common case. Hence we skip the documentation for now.</p></li>
           <div class="toc-tree">
             <ul>
 <li><a class="reference internal" href="#">hear_gtzan_music_speech</a><ul>
-<li><a class="reference internal" href="#hearesc50">HearESC50</a></li>
-<li><a class="reference internal" href="#heargtzanmusicspeech">HearGtzanMusicSpeech</a></li>
+<li><a class="reference internal" href="#hearesc50">HearESC50</a><ul>
+<li><a class="reference internal" href="#s3prl.problem.common.hear_gtzan_music_speech.HearESC50"><code class="docutils literal notranslate"><span class="pre">HearESC50</span></code></a><ul>
+<li><a class="reference internal" href="#s3prl.problem.common.hear_gtzan_music_speech.HearESC50.default_config"><code class="docutils literal notranslate"><span class="pre">HearESC50.default_config()</span></code></a></li>
+<li><a class="reference internal" href="#s3prl.problem.common.hear_gtzan_music_speech.HearESC50.prepare_data"><code class="docutils literal notranslate"><span class="pre">HearESC50.prepare_data()</span></code></a></li>
+<li><a class="reference internal" href="#s3prl.problem.common.hear_gtzan_music_speech.HearESC50.build_batch_sampler"><code class="docutils literal notranslate"><span class="pre">HearESC50.build_batch_sampler()</span></code></a></li>
+<li><a class="reference internal" href="#s3prl.problem.common.hear_gtzan_music_speech.HearESC50.build_collate_fn"><code class="docutils literal notranslate"><span class="pre">HearESC50.build_collate_fn()</span></code></a></li>
+<li><a class="reference internal" href="#s3prl.problem.common.hear_gtzan_music_speech.HearESC50.build_dataset"><code class="docutils literal notranslate"><span class="pre">HearESC50.build_dataset()</span></code></a></li>
+<li><a class="reference internal" href="#s3prl.problem.common.hear_gtzan_music_speech.HearESC50.build_downstream"><code class="docutils literal notranslate"><span class="pre">HearESC50.build_downstream()</span></code></a></li>
+<li><a class="reference internal" href="#s3prl.problem.common.hear_gtzan_music_speech.HearESC50.build_encoder"><code class="docutils literal notranslate"><span class="pre">HearESC50.build_encoder()</span></code></a></li>
+<li><a class="reference internal" href="#s3prl.problem.common.hear_gtzan_music_speech.HearESC50.build_featurizer"><code class="docutils literal notranslate"><span class="pre">HearESC50.build_featurizer()</span></code></a></li>
+<li><a class="reference internal" href="#s3prl.problem.common.hear_gtzan_music_speech.HearESC50.build_model"><code class="docutils literal notranslate"><span class="pre">HearESC50.build_model()</span></code></a></li>
+<li><a class="reference internal" href="#s3prl.problem.common.hear_gtzan_music_speech.HearESC50.build_optimizer"><code class="docutils literal notranslate"><span class="pre">HearESC50.build_optimizer()</span></code></a></li>
+<li><a class="reference internal" href="#s3prl.problem.common.hear_gtzan_music_speech.HearESC50.build_scheduler"><code class="docutils literal notranslate"><span class="pre">HearESC50.build_scheduler()</span></code></a></li>
+<li><a class="reference internal" href="#s3prl.problem.common.hear_gtzan_music_speech.HearESC50.build_task"><code class="docutils literal notranslate"><span class="pre">HearESC50.build_task()</span></code></a></li>
+<li><a class="reference internal" href="#s3prl.problem.common.hear_gtzan_music_speech.HearESC50.build_upstream"><code class="docutils literal notranslate"><span class="pre">HearESC50.build_upstream()</span></code></a></li>
+<li><a class="reference internal" href="#s3prl.problem.common.hear_gtzan_music_speech.HearESC50.evaluate"><code class="docutils literal notranslate"><span class="pre">HearESC50.evaluate()</span></code></a></li>
+<li><a class="reference internal" href="#s3prl.problem.common.hear_gtzan_music_speech.HearESC50.get_class_from_name"><code class="docutils literal notranslate"><span class="pre">HearESC50.get_class_from_name()</span></code></a></li>
+<li><a class="reference internal" href="#s3prl.problem.common.hear_gtzan_music_speech.HearESC50.load_model"><code class="docutils literal notranslate"><span class="pre">HearESC50.load_model()</span></code></a></li>
+<li><a class="reference internal" href="#s3prl.problem.common.hear_gtzan_music_speech.HearESC50.load_model_and_task"><code class="docutils literal notranslate"><span class="pre">HearESC50.load_model_and_task()</span></code></a></li>
+<li><a class="reference internal" href="#s3prl.problem.common.hear_gtzan_music_speech.HearESC50.load_task"><code class="docutils literal notranslate"><span class="pre">HearESC50.load_task()</span></code></a></li>
+<li><a class="reference internal" href="#s3prl.problem.common.hear_gtzan_music_speech.HearESC50.main"><code class="docutils literal notranslate"><span class="pre">HearESC50.main()</span></code></a></li>
+<li><a class="reference internal" href="#s3prl.problem.common.hear_gtzan_music_speech.HearESC50.run"><code class="docutils literal notranslate"><span class="pre">HearESC50.run()</span></code></a></li>
+<li><a class="reference internal" href="#s3prl.problem.common.hear_gtzan_music_speech.HearESC50.save_model"><code class="docutils literal notranslate"><span class="pre">HearESC50.save_model()</span></code></a></li>
+<li><a class="reference internal" href="#s3prl.problem.common.hear_gtzan_music_speech.HearESC50.save_task"><code class="docutils literal notranslate"><span class="pre">HearESC50.save_task()</span></code></a></li>
+<li><a class="reference internal" href="#s3prl.problem.common.hear_gtzan_music_speech.HearESC50.train"><code class="docutils literal notranslate"><span class="pre">HearESC50.train()</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li><a class="reference internal" href="#heargtzanmusicspeech">HearGtzanMusicSpeech</a><ul>
+<li><a class="reference internal" href="#s3prl.problem.common.hear_gtzan_music_speech.HearGtzanMusicSpeech"><code class="docutils literal notranslate"><span class="pre">HearGtzanMusicSpeech</span></code></a><ul>
+<li><a class="reference internal" href="#s3prl.problem.common.hear_gtzan_music_speech.HearGtzanMusicSpeech.default_config"><code class="docutils literal notranslate"><span class="pre">HearGtzanMusicSpeech.default_config()</span></code></a></li>
+<li><a class="reference internal" href="#s3prl.problem.common.hear_gtzan_music_speech.HearGtzanMusicSpeech.build_batch_sampler"><code class="docutils literal notranslate"><span class="pre">HearGtzanMusicSpeech.build_batch_sampler()</span></code></a></li>
+<li><a class="reference internal" href="#s3prl.problem.common.hear_gtzan_music_speech.HearGtzanMusicSpeech.build_collate_fn"><code class="docutils literal notranslate"><span class="pre">HearGtzanMusicSpeech.build_collate_fn()</span></code></a></li>
+<li><a class="reference internal" href="#s3prl.problem.common.hear_gtzan_music_speech.HearGtzanMusicSpeech.build_dataset"><code class="docutils literal notranslate"><span class="pre">HearGtzanMusicSpeech.build_dataset()</span></code></a></li>
+<li><a class="reference internal" href="#s3prl.problem.common.hear_gtzan_music_speech.HearGtzanMusicSpeech.build_downstream"><code class="docutils literal notranslate"><span class="pre">HearGtzanMusicSpeech.build_downstream()</span></code></a></li>
+<li><a class="reference internal" href="#s3prl.problem.common.hear_gtzan_music_speech.HearGtzanMusicSpeech.build_encoder"><code class="docutils literal notranslate"><span class="pre">HearGtzanMusicSpeech.build_encoder()</span></code></a></li>
+<li><a class="reference internal" href="#s3prl.problem.common.hear_gtzan_music_speech.HearGtzanMusicSpeech.build_featurizer"><code class="docutils literal notranslate"><span class="pre">HearGtzanMusicSpeech.build_featurizer()</span></code></a></li>
+<li><a class="reference internal" href="#s3prl.problem.common.hear_gtzan_music_speech.HearGtzanMusicSpeech.build_model"><code class="docutils literal notranslate"><span class="pre">HearGtzanMusicSpeech.build_model()</span></code></a></li>
+<li><a class="reference internal" href="#s3prl.problem.common.hear_gtzan_music_speech.HearGtzanMusicSpeech.build_optimizer"><code class="docutils literal notranslate"><span class="pre">HearGtzanMusicSpeech.build_optimizer()</span></code></a></li>
+<li><a class="reference internal" href="#s3prl.problem.common.hear_gtzan_music_speech.HearGtzanMusicSpeech.build_scheduler"><code class="docutils literal notranslate"><span class="pre">HearGtzanMusicSpeech.build_scheduler()</span></code></a></li>
+<li><a class="reference internal" href="#s3prl.problem.common.hear_gtzan_music_speech.HearGtzanMusicSpeech.build_task"><code class="docutils literal notranslate"><span class="pre">HearGtzanMusicSpeech.build_task()</span></code></a></li>
+<li><a class="reference internal" href="#s3prl.problem.common.hear_gtzan_music_speech.HearGtzanMusicSpeech.build_upstream"><code class="docutils literal notranslate"><span class="pre">HearGtzanMusicSpeech.build_upstream()</span></code></a></li>
+<li><a class="reference internal" href="#s3prl.problem.common.hear_gtzan_music_speech.HearGtzanMusicSpeech.evaluate"><code class="docutils literal notranslate"><span class="pre">HearGtzanMusicSpeech.evaluate()</span></code></a></li>
+<li><a class="reference internal" href="#s3prl.problem.common.hear_gtzan_music_speech.HearGtzanMusicSpeech.get_class_from_name"><code class="docutils literal notranslate"><span class="pre">HearGtzanMusicSpeech.get_class_from_name()</span></code></a></li>
+<li><a class="reference internal" href="#s3prl.problem.common.hear_gtzan_music_speech.HearGtzanMusicSpeech.load_model"><code class="docutils literal notranslate"><span class="pre">HearGtzanMusicSpeech.load_model()</span></code></a></li>
+<li><a class="reference internal" href="#s3prl.problem.common.hear_gtzan_music_speech.HearGtzanMusicSpeech.load_model_and_task"><code class="docutils literal notranslate"><span class="pre">HearGtzanMusicSpeech.load_model_and_task()</span></code></a></li>
+<li><a class="reference internal" href="#s3prl.problem.common.hear_gtzan_music_speech.HearGtzanMusicSpeech.load_task"><code class="docutils literal notranslate"><span class="pre">HearGtzanMusicSpeech.load_task()</span></code></a></li>
+<li><a class="reference internal" href="#s3prl.problem.common.hear_gtzan_music_speech.HearGtzanMusicSpeech.main"><code class="docutils literal notranslate"><span class="pre">HearGtzanMusicSpeech.main()</span></code></a></li>
+<li><a class="reference internal" href="#s3prl.problem.common.hear_gtzan_music_speech.HearGtzanMusicSpeech.prepare_data"><code class="docutils literal notranslate"><span class="pre">HearGtzanMusicSpeech.prepare_data()</span></code></a></li>
+<li><a class="reference internal" href="#s3prl.problem.common.hear_gtzan_music_speech.HearGtzanMusicSpeech.run"><code class="docutils literal notranslate"><span class="pre">HearGtzanMusicSpeech.run()</span></code></a></li>
+<li><a class="reference internal" href="#s3prl.problem.common.hear_gtzan_music_speech.HearGtzanMusicSpeech.save_model"><code class="docutils literal notranslate"><span class="pre">HearGtzanMusicSpeech.save_model()</span></code></a></li>
+<li><a class="reference internal" href="#s3prl.problem.common.hear_gtzan_music_speech.HearGtzanMusicSpeech.save_task"><code class="docutils literal notranslate"><span class="pre">HearGtzanMusicSpeech.save_task()</span></code></a></li>
+<li><a class="reference internal" href="#s3prl.problem.common.hear_gtzan_music_speech.HearGtzanMusicSpeech.train"><code class="docutils literal notranslate"><span class="pre">HearGtzanMusicSpeech.train()</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
 </ul>
 </li>
 </ul>
@@ -1903,6 +1959,7 @@ common case. Hence we skip the documentation for now.</p></li>
     <script src="../_static/underscore.js"></script>
     <script src="../_static/_sphinx_javascript_frameworks_compat.js"></script>
     <script src="../_static/doctools.js"></script>
+    <script src="../_static/sphinx_highlight.js"></script>
     <script src="../_static/scripts/furo.js"></script>
     <script src="../_static/js/custom.js"></script>
     </body>

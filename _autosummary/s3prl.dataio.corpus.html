@@ -5,7 +5,7 @@
     <meta name="color-scheme" content="light dark"><meta name="generator" content="Docutils 0.19: https://docutils.sourceforge.io/" />
 <link rel="index" title="Index" href="../genindex.html" /><link rel="search" title="Search" href="../search.html" /><link rel="next" title="base" href="s3prl.dataio.corpus.base.html" /><link rel="prev" title="dataio" href="s3prl.dataio.html" />
 
-    <meta name="generator" content="sphinx-5.1.1, furo 2022.09.29"/>
+    <meta name="generator" content="sphinx-5.2.3, furo 2022.09.29"/>
         <title>corpus - S3PRL 0.4.5 documentation</title>
       <link rel="stylesheet" type="text/css" href="../_static/pygments.css" />
     <link rel="stylesheet" type="text/css" href="../_static/styles/furo.css?digest=d81277517bee4d6b0349d71bb2661d4890b5617c" />
@@ -911,15 +911,114 @@ class_name (str)</p>
           <div class="toc-tree">
             <ul>
 <li><a class="reference internal" href="#">corpus</a><ul>
-<li><a class="reference internal" href="#fluentspeechcommands">FluentSpeechCommands</a></li>
-<li><a class="reference internal" href="#iemocap">IEMOCAP</a></li>
-<li><a class="reference internal" href="#librispeech">LibriSpeech</a></li>
-<li><a class="reference internal" href="#librilight">LibriLight</a></li>
-<li><a class="reference internal" href="#quesst14">Quesst14</a></li>
-<li><a class="reference internal" href="#snips">SNIPS</a></li>
-<li><a class="reference internal" href="#speechcommandsv1">SpeechCommandsV1</a></li>
-<li><a class="reference internal" href="#voxceleb1sid">VoxCeleb1SID</a></li>
-<li><a class="reference internal" href="#voxceleb1sv">VoxCeleb1SV</a></li>
+<li><a class="reference internal" href="#fluentspeechcommands">FluentSpeechCommands</a><ul>
+<li><a class="reference internal" href="#s3prl.dataio.corpus.FluentSpeechCommands"><code class="docutils literal notranslate"><span class="pre">FluentSpeechCommands</span></code></a><ul>
+<li><a class="reference internal" href="#s3prl.dataio.corpus.FluentSpeechCommands.all_data"><code class="docutils literal notranslate"><span class="pre">FluentSpeechCommands.all_data</span></code></a></li>
+<li><a class="reference internal" href="#s3prl.dataio.corpus.FluentSpeechCommands.data_split"><code class="docutils literal notranslate"><span class="pre">FluentSpeechCommands.data_split</span></code></a></li>
+<li><a class="reference internal" href="#s3prl.dataio.corpus.FluentSpeechCommands.data_split_ids"><code class="docutils literal notranslate"><span class="pre">FluentSpeechCommands.data_split_ids</span></code></a></li>
+<li><a class="reference internal" href="#s3prl.dataio.corpus.FluentSpeechCommands.download_dataset"><code class="docutils literal notranslate"><span class="pre">FluentSpeechCommands.download_dataset()</span></code></a></li>
+<li><a class="reference internal" href="#s3prl.dataio.corpus.FluentSpeechCommands.dataframe_to_datapoints"><code class="docutils literal notranslate"><span class="pre">FluentSpeechCommands.dataframe_to_datapoints()</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li><a class="reference internal" href="#iemocap">IEMOCAP</a><ul>
+<li><a class="reference internal" href="#s3prl.dataio.corpus.IEMOCAP"><code class="docutils literal notranslate"><span class="pre">IEMOCAP</span></code></a><ul>
+<li><a class="reference internal" href="#s3prl.dataio.corpus.IEMOCAP.all_data"><code class="docutils literal notranslate"><span class="pre">IEMOCAP.all_data</span></code></a></li>
+<li><a class="reference internal" href="#s3prl.dataio.corpus.IEMOCAP.get_whole_session"><code class="docutils literal notranslate"><span class="pre">IEMOCAP.get_whole_session()</span></code></a></li>
+<li><a class="reference internal" href="#s3prl.dataio.corpus.IEMOCAP.get_session_with_act"><code class="docutils literal notranslate"><span class="pre">IEMOCAP.get_session_with_act()</span></code></a></li>
+<li><a class="reference internal" href="#s3prl.dataio.corpus.IEMOCAP.download_dataset"><code class="docutils literal notranslate"><span class="pre">IEMOCAP.download_dataset()</span></code></a></li>
+<li><a class="reference internal" href="#s3prl.dataio.corpus.IEMOCAP.data_split"><code class="docutils literal notranslate"><span class="pre">IEMOCAP.data_split</span></code></a></li>
+<li><a class="reference internal" href="#s3prl.dataio.corpus.IEMOCAP.data_split_ids"><code class="docutils literal notranslate"><span class="pre">IEMOCAP.data_split_ids</span></code></a></li>
+<li><a class="reference internal" href="#s3prl.dataio.corpus.IEMOCAP.dataframe_to_datapoints"><code class="docutils literal notranslate"><span class="pre">IEMOCAP.dataframe_to_datapoints()</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li><a class="reference internal" href="#librispeech">LibriSpeech</a><ul>
+<li><a class="reference internal" href="#s3prl.dataio.corpus.LibriSpeech"><code class="docutils literal notranslate"><span class="pre">LibriSpeech</span></code></a><ul>
+<li><a class="reference internal" href="#s3prl.dataio.corpus.LibriSpeech.get_corpus_splits"><code class="docutils literal notranslate"><span class="pre">LibriSpeech.get_corpus_splits()</span></code></a></li>
+<li><a class="reference internal" href="#s3prl.dataio.corpus.LibriSpeech.all_data"><code class="docutils literal notranslate"><span class="pre">LibriSpeech.all_data</span></code></a></li>
+<li><a class="reference internal" href="#s3prl.dataio.corpus.LibriSpeech.data_split_ids"><code class="docutils literal notranslate"><span class="pre">LibriSpeech.data_split_ids</span></code></a></li>
+<li><a class="reference internal" href="#s3prl.dataio.corpus.LibriSpeech.download_dataset"><code class="docutils literal notranslate"><span class="pre">LibriSpeech.download_dataset()</span></code></a></li>
+<li><a class="reference internal" href="#s3prl.dataio.corpus.LibriSpeech.data_split"><code class="docutils literal notranslate"><span class="pre">LibriSpeech.data_split</span></code></a></li>
+<li><a class="reference internal" href="#s3prl.dataio.corpus.LibriSpeech.dataframe_to_datapoints"><code class="docutils literal notranslate"><span class="pre">LibriSpeech.dataframe_to_datapoints()</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li><a class="reference internal" href="#librilight">LibriLight</a><ul>
+<li><a class="reference internal" href="#s3prl.dataio.corpus.LibriLight"><code class="docutils literal notranslate"><span class="pre">LibriLight</span></code></a><ul>
+<li><a class="reference internal" href="#s3prl.dataio.corpus.LibriLight.download_dataset"><code class="docutils literal notranslate"><span class="pre">LibriLight.download_dataset()</span></code></a></li>
+<li><a class="reference internal" href="#s3prl.dataio.corpus.LibriLight.all_data"><code class="docutils literal notranslate"><span class="pre">LibriLight.all_data</span></code></a></li>
+<li><a class="reference internal" href="#s3prl.dataio.corpus.LibriLight.data_split"><code class="docutils literal notranslate"><span class="pre">LibriLight.data_split</span></code></a></li>
+<li><a class="reference internal" href="#s3prl.dataio.corpus.LibriLight.data_split_ids"><code class="docutils literal notranslate"><span class="pre">LibriLight.data_split_ids</span></code></a></li>
+<li><a class="reference internal" href="#s3prl.dataio.corpus.LibriLight.dataframe_to_datapoints"><code class="docutils literal notranslate"><span class="pre">LibriLight.dataframe_to_datapoints()</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li><a class="reference internal" href="#quesst14">Quesst14</a><ul>
+<li><a class="reference internal" href="#s3prl.dataio.corpus.Quesst14"><code class="docutils literal notranslate"><span class="pre">Quesst14</span></code></a><ul>
+<li><a class="reference internal" href="#s3prl.dataio.corpus.Quesst14.valid_queries"><code class="docutils literal notranslate"><span class="pre">Quesst14.valid_queries</span></code></a></li>
+<li><a class="reference internal" href="#s3prl.dataio.corpus.Quesst14.test_queries"><code class="docutils literal notranslate"><span class="pre">Quesst14.test_queries</span></code></a></li>
+<li><a class="reference internal" href="#s3prl.dataio.corpus.Quesst14.docs"><code class="docutils literal notranslate"><span class="pre">Quesst14.docs</span></code></a></li>
+<li><a class="reference internal" href="#s3prl.dataio.corpus.Quesst14.download_dataset"><code class="docutils literal notranslate"><span class="pre">Quesst14.download_dataset()</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li><a class="reference internal" href="#snips">SNIPS</a><ul>
+<li><a class="reference internal" href="#s3prl.dataio.corpus.SNIPS"><code class="docutils literal notranslate"><span class="pre">SNIPS</span></code></a><ul>
+<li><a class="reference internal" href="#s3prl.dataio.corpus.SNIPS.all_data"><code class="docutils literal notranslate"><span class="pre">SNIPS.all_data</span></code></a></li>
+<li><a class="reference internal" href="#s3prl.dataio.corpus.SNIPS.data_split_ids"><code class="docutils literal notranslate"><span class="pre">SNIPS.data_split_ids</span></code></a></li>
+<li><a class="reference internal" href="#s3prl.dataio.corpus.SNIPS.data_split"><code class="docutils literal notranslate"><span class="pre">SNIPS.data_split</span></code></a></li>
+<li><a class="reference internal" href="#s3prl.dataio.corpus.SNIPS.dataframe_to_datapoints"><code class="docutils literal notranslate"><span class="pre">SNIPS.dataframe_to_datapoints()</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li><a class="reference internal" href="#speechcommandsv1">SpeechCommandsV1</a><ul>
+<li><a class="reference internal" href="#s3prl.dataio.corpus.SpeechCommandsV1"><code class="docutils literal notranslate"><span class="pre">SpeechCommandsV1</span></code></a><ul>
+<li><a class="reference internal" href="#s3prl.dataio.corpus.SpeechCommandsV1.split_dataset"><code class="docutils literal notranslate"><span class="pre">SpeechCommandsV1.split_dataset()</span></code></a></li>
+<li><a class="reference internal" href="#s3prl.dataio.corpus.SpeechCommandsV1.parse_train_valid_data_list"><code class="docutils literal notranslate"><span class="pre">SpeechCommandsV1.parse_train_valid_data_list()</span></code></a></li>
+<li><a class="reference internal" href="#s3prl.dataio.corpus.SpeechCommandsV1.parse_test_data_list"><code class="docutils literal notranslate"><span class="pre">SpeechCommandsV1.parse_test_data_list()</span></code></a></li>
+<li><a class="reference internal" href="#s3prl.dataio.corpus.SpeechCommandsV1.path_to_unique_name"><code class="docutils literal notranslate"><span class="pre">SpeechCommandsV1.path_to_unique_name()</span></code></a></li>
+<li><a class="reference internal" href="#s3prl.dataio.corpus.SpeechCommandsV1.list_to_dict"><code class="docutils literal notranslate"><span class="pre">SpeechCommandsV1.list_to_dict()</span></code></a></li>
+<li><a class="reference internal" href="#s3prl.dataio.corpus.SpeechCommandsV1.all_data"><code class="docutils literal notranslate"><span class="pre">SpeechCommandsV1.all_data</span></code></a></li>
+<li><a class="reference internal" href="#s3prl.dataio.corpus.SpeechCommandsV1.data_split_ids"><code class="docutils literal notranslate"><span class="pre">SpeechCommandsV1.data_split_ids</span></code></a></li>
+<li><a class="reference internal" href="#s3prl.dataio.corpus.SpeechCommandsV1.download_dataset"><code class="docutils literal notranslate"><span class="pre">SpeechCommandsV1.download_dataset()</span></code></a></li>
+<li><a class="reference internal" href="#s3prl.dataio.corpus.SpeechCommandsV1.data_split"><code class="docutils literal notranslate"><span class="pre">SpeechCommandsV1.data_split</span></code></a></li>
+<li><a class="reference internal" href="#s3prl.dataio.corpus.SpeechCommandsV1.dataframe_to_datapoints"><code class="docutils literal notranslate"><span class="pre">SpeechCommandsV1.dataframe_to_datapoints()</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li><a class="reference internal" href="#voxceleb1sid">VoxCeleb1SID</a><ul>
+<li><a class="reference internal" href="#s3prl.dataio.corpus.VoxCeleb1SID"><code class="docutils literal notranslate"><span class="pre">VoxCeleb1SID</span></code></a><ul>
+<li><a class="reference internal" href="#s3prl.dataio.corpus.VoxCeleb1SID.all_data"><code class="docutils literal notranslate"><span class="pre">VoxCeleb1SID.all_data</span></code></a></li>
+<li><a class="reference internal" href="#s3prl.dataio.corpus.VoxCeleb1SID.data_split_ids"><code class="docutils literal notranslate"><span class="pre">VoxCeleb1SID.data_split_ids</span></code></a></li>
+<li><a class="reference internal" href="#s3prl.dataio.corpus.VoxCeleb1SID.download_dataset"><code class="docutils literal notranslate"><span class="pre">VoxCeleb1SID.download_dataset()</span></code></a></li>
+<li><a class="reference internal" href="#s3prl.dataio.corpus.VoxCeleb1SID.data_split"><code class="docutils literal notranslate"><span class="pre">VoxCeleb1SID.data_split</span></code></a></li>
+<li><a class="reference internal" href="#s3prl.dataio.corpus.VoxCeleb1SID.dataframe_to_datapoints"><code class="docutils literal notranslate"><span class="pre">VoxCeleb1SID.dataframe_to_datapoints()</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li><a class="reference internal" href="#voxceleb1sv">VoxCeleb1SV</a><ul>
+<li><a class="reference internal" href="#s3prl.dataio.corpus.VoxCeleb1SV"><code class="docutils literal notranslate"><span class="pre">VoxCeleb1SV</span></code></a><ul>
+<li><a class="reference internal" href="#s3prl.dataio.corpus.VoxCeleb1SV.path2uid"><code class="docutils literal notranslate"><span class="pre">VoxCeleb1SV.path2uid()</span></code></a></li>
+<li><a class="reference internal" href="#s3prl.dataio.corpus.VoxCeleb1SV.path2data"><code class="docutils literal notranslate"><span class="pre">VoxCeleb1SV.path2data()</span></code></a></li>
+<li><a class="reference internal" href="#s3prl.dataio.corpus.VoxCeleb1SV.format_path"><code class="docutils literal notranslate"><span class="pre">VoxCeleb1SV.format_path()</span></code></a></li>
+<li><a class="reference internal" href="#s3prl.dataio.corpus.VoxCeleb1SV.format_test_trials"><code class="docutils literal notranslate"><span class="pre">VoxCeleb1SV.format_test_trials()</span></code></a></li>
+<li><a class="reference internal" href="#s3prl.dataio.corpus.VoxCeleb1SV.all_data"><code class="docutils literal notranslate"><span class="pre">VoxCeleb1SV.all_data</span></code></a></li>
+<li><a class="reference internal" href="#s3prl.dataio.corpus.VoxCeleb1SV.data_split_ids"><code class="docutils literal notranslate"><span class="pre">VoxCeleb1SV.data_split_ids</span></code></a></li>
+<li><a class="reference internal" href="#s3prl.dataio.corpus.VoxCeleb1SV.data_split"><code class="docutils literal notranslate"><span class="pre">VoxCeleb1SV.data_split</span></code></a></li>
+<li><a class="reference internal" href="#s3prl.dataio.corpus.VoxCeleb1SV.dataframe_to_datapoints"><code class="docutils literal notranslate"><span class="pre">VoxCeleb1SV.dataframe_to_datapoints()</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
 </ul>
 </li>
 </ul>
@@ -936,6 +1035,7 @@ class_name (str)</p>
     <script src="../_static/underscore.js"></script>
     <script src="../_static/_sphinx_javascript_frameworks_compat.js"></script>
     <script src="../_static/doctools.js"></script>
+    <script src="../_static/sphinx_highlight.js"></script>
     <script src="../_static/scripts/furo.js"></script>
     <script src="../_static/js/custom.js"></script>
     </body>

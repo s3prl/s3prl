@@ -5,7 +5,7 @@
     <meta name="color-scheme" content="light dark"><meta name="generator" content="Docutils 0.19: https://docutils.sourceforge.io/" />
 <link rel="index" title="Index" href="../genindex.html" /><link rel="search" title="Search" href="../search.html" /><link rel="next" title="vocabulary" href="s3prl.dataio.encoder.vocabulary.html" /><link rel="prev" title="g2p" href="s3prl.dataio.encoder.g2p.html" />
 
-    <meta name="generator" content="sphinx-5.1.1, furo 2022.09.29"/>
+    <meta name="generator" content="sphinx-5.2.3, furo 2022.09.29"/>
         <title>tokenizer - S3PRL 0.4.5 documentation</title>
       <link rel="stylesheet" type="text/css" href="../_static/pygments.css" />
     <link rel="stylesheet" type="text/css" href="../_static/styles/furo.css?digest=d81277517bee4d6b0349d71bb2661d4890b5617c" />
@@ -787,14 +787,106 @@ Reference: <a class="reference external" href="https://www.tensorflow.org/datase
           <div class="toc-tree">
             <ul>
 <li><a class="reference internal" href="#">tokenizer</a><ul>
-<li><a class="reference internal" href="#charactertokenizer">CharacterTokenizer</a></li>
-<li><a class="reference internal" href="#characterslottokenizer">CharacterSlotTokenizer</a></li>
-<li><a class="reference internal" href="#subwordtokenizer">SubwordTokenizer</a></li>
-<li><a class="reference internal" href="#subwordslottokenizer">SubwordSlotTokenizer</a></li>
-<li><a class="reference internal" href="#wordtokenizer">WordTokenizer</a></li>
-<li><a class="reference internal" href="#phonemetokenizer">PhonemeTokenizer</a></li>
-<li><a class="reference internal" href="#load-tokenizer">load_tokenizer</a></li>
-<li><a class="reference internal" href="#default-phoneme-tokenizer">default_phoneme_tokenizer</a></li>
+<li><a class="reference internal" href="#charactertokenizer">CharacterTokenizer</a><ul>
+<li><a class="reference internal" href="#s3prl.dataio.encoder.tokenizer.CharacterTokenizer"><code class="docutils literal notranslate"><span class="pre">CharacterTokenizer</span></code></a><ul>
+<li><a class="reference internal" href="#s3prl.dataio.encoder.tokenizer.CharacterTokenizer.encode"><code class="docutils literal notranslate"><span class="pre">CharacterTokenizer.encode()</span></code></a></li>
+<li><a class="reference internal" href="#s3prl.dataio.encoder.tokenizer.CharacterTokenizer.decode"><code class="docutils literal notranslate"><span class="pre">CharacterTokenizer.decode()</span></code></a></li>
+<li><a class="reference internal" href="#s3prl.dataio.encoder.tokenizer.CharacterTokenizer.load_from_file"><code class="docutils literal notranslate"><span class="pre">CharacterTokenizer.load_from_file()</span></code></a></li>
+<li><a class="reference internal" href="#s3prl.dataio.encoder.tokenizer.CharacterTokenizer.vocab_size"><code class="docutils literal notranslate"><span class="pre">CharacterTokenizer.vocab_size</span></code></a></li>
+<li><a class="reference internal" href="#s3prl.dataio.encoder.tokenizer.CharacterTokenizer.token_type"><code class="docutils literal notranslate"><span class="pre">CharacterTokenizer.token_type</span></code></a></li>
+<li><a class="reference internal" href="#s3prl.dataio.encoder.tokenizer.CharacterTokenizer.vocab_to_idx"><code class="docutils literal notranslate"><span class="pre">CharacterTokenizer.vocab_to_idx()</span></code></a></li>
+<li><a class="reference internal" href="#s3prl.dataio.encoder.tokenizer.CharacterTokenizer.idx_to_vocab"><code class="docutils literal notranslate"><span class="pre">CharacterTokenizer.idx_to_vocab()</span></code></a></li>
+<li><a class="reference internal" href="#s3prl.dataio.encoder.tokenizer.CharacterTokenizer.eos_idx"><code class="docutils literal notranslate"><span class="pre">CharacterTokenizer.eos_idx</span></code></a></li>
+<li><a class="reference internal" href="#s3prl.dataio.encoder.tokenizer.CharacterTokenizer.pad_idx"><code class="docutils literal notranslate"><span class="pre">CharacterTokenizer.pad_idx</span></code></a></li>
+<li><a class="reference internal" href="#s3prl.dataio.encoder.tokenizer.CharacterTokenizer.unk_idx"><code class="docutils literal notranslate"><span class="pre">CharacterTokenizer.unk_idx</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li><a class="reference internal" href="#characterslottokenizer">CharacterSlotTokenizer</a><ul>
+<li><a class="reference internal" href="#s3prl.dataio.encoder.tokenizer.CharacterSlotTokenizer"><code class="docutils literal notranslate"><span class="pre">CharacterSlotTokenizer</span></code></a><ul>
+<li><a class="reference internal" href="#s3prl.dataio.encoder.tokenizer.CharacterSlotTokenizer.encode"><code class="docutils literal notranslate"><span class="pre">CharacterSlotTokenizer.encode()</span></code></a></li>
+<li><a class="reference internal" href="#s3prl.dataio.encoder.tokenizer.CharacterSlotTokenizer.decode"><code class="docutils literal notranslate"><span class="pre">CharacterSlotTokenizer.decode()</span></code></a></li>
+<li><a class="reference internal" href="#s3prl.dataio.encoder.tokenizer.CharacterSlotTokenizer.load_from_file"><code class="docutils literal notranslate"><span class="pre">CharacterSlotTokenizer.load_from_file()</span></code></a></li>
+<li><a class="reference internal" href="#s3prl.dataio.encoder.tokenizer.CharacterSlotTokenizer.vocab_size"><code class="docutils literal notranslate"><span class="pre">CharacterSlotTokenizer.vocab_size</span></code></a></li>
+<li><a class="reference internal" href="#s3prl.dataio.encoder.tokenizer.CharacterSlotTokenizer.token_type"><code class="docutils literal notranslate"><span class="pre">CharacterSlotTokenizer.token_type</span></code></a></li>
+<li><a class="reference internal" href="#s3prl.dataio.encoder.tokenizer.CharacterSlotTokenizer.vocab_to_idx"><code class="docutils literal notranslate"><span class="pre">CharacterSlotTokenizer.vocab_to_idx()</span></code></a></li>
+<li><a class="reference internal" href="#s3prl.dataio.encoder.tokenizer.CharacterSlotTokenizer.idx_to_vocab"><code class="docutils literal notranslate"><span class="pre">CharacterSlotTokenizer.idx_to_vocab()</span></code></a></li>
+<li><a class="reference internal" href="#s3prl.dataio.encoder.tokenizer.CharacterSlotTokenizer.eos_idx"><code class="docutils literal notranslate"><span class="pre">CharacterSlotTokenizer.eos_idx</span></code></a></li>
+<li><a class="reference internal" href="#s3prl.dataio.encoder.tokenizer.CharacterSlotTokenizer.pad_idx"><code class="docutils literal notranslate"><span class="pre">CharacterSlotTokenizer.pad_idx</span></code></a></li>
+<li><a class="reference internal" href="#s3prl.dataio.encoder.tokenizer.CharacterSlotTokenizer.unk_idx"><code class="docutils literal notranslate"><span class="pre">CharacterSlotTokenizer.unk_idx</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li><a class="reference internal" href="#subwordtokenizer">SubwordTokenizer</a><ul>
+<li><a class="reference internal" href="#s3prl.dataio.encoder.tokenizer.SubwordTokenizer"><code class="docutils literal notranslate"><span class="pre">SubwordTokenizer</span></code></a><ul>
+<li><a class="reference internal" href="#s3prl.dataio.encoder.tokenizer.SubwordTokenizer.encode"><code class="docutils literal notranslate"><span class="pre">SubwordTokenizer.encode()</span></code></a></li>
+<li><a class="reference internal" href="#s3prl.dataio.encoder.tokenizer.SubwordTokenizer.decode"><code class="docutils literal notranslate"><span class="pre">SubwordTokenizer.decode()</span></code></a></li>
+<li><a class="reference internal" href="#s3prl.dataio.encoder.tokenizer.SubwordTokenizer.load_from_file"><code class="docutils literal notranslate"><span class="pre">SubwordTokenizer.load_from_file()</span></code></a></li>
+<li><a class="reference internal" href="#s3prl.dataio.encoder.tokenizer.SubwordTokenizer.vocab_size"><code class="docutils literal notranslate"><span class="pre">SubwordTokenizer.vocab_size</span></code></a></li>
+<li><a class="reference internal" href="#s3prl.dataio.encoder.tokenizer.SubwordTokenizer.token_type"><code class="docutils literal notranslate"><span class="pre">SubwordTokenizer.token_type</span></code></a></li>
+<li><a class="reference internal" href="#s3prl.dataio.encoder.tokenizer.SubwordTokenizer.eos_idx"><code class="docutils literal notranslate"><span class="pre">SubwordTokenizer.eos_idx</span></code></a></li>
+<li><a class="reference internal" href="#s3prl.dataio.encoder.tokenizer.SubwordTokenizer.pad_idx"><code class="docutils literal notranslate"><span class="pre">SubwordTokenizer.pad_idx</span></code></a></li>
+<li><a class="reference internal" href="#s3prl.dataio.encoder.tokenizer.SubwordTokenizer.unk_idx"><code class="docutils literal notranslate"><span class="pre">SubwordTokenizer.unk_idx</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li><a class="reference internal" href="#subwordslottokenizer">SubwordSlotTokenizer</a><ul>
+<li><a class="reference internal" href="#s3prl.dataio.encoder.tokenizer.SubwordSlotTokenizer"><code class="docutils literal notranslate"><span class="pre">SubwordSlotTokenizer</span></code></a><ul>
+<li><a class="reference internal" href="#s3prl.dataio.encoder.tokenizer.SubwordSlotTokenizer.encode"><code class="docutils literal notranslate"><span class="pre">SubwordSlotTokenizer.encode()</span></code></a></li>
+<li><a class="reference internal" href="#s3prl.dataio.encoder.tokenizer.SubwordSlotTokenizer.decode"><code class="docutils literal notranslate"><span class="pre">SubwordSlotTokenizer.decode()</span></code></a></li>
+<li><a class="reference internal" href="#s3prl.dataio.encoder.tokenizer.SubwordSlotTokenizer.load_from_file"><code class="docutils literal notranslate"><span class="pre">SubwordSlotTokenizer.load_from_file()</span></code></a></li>
+<li><a class="reference internal" href="#s3prl.dataio.encoder.tokenizer.SubwordSlotTokenizer.vocab_size"><code class="docutils literal notranslate"><span class="pre">SubwordSlotTokenizer.vocab_size</span></code></a></li>
+<li><a class="reference internal" href="#s3prl.dataio.encoder.tokenizer.SubwordSlotTokenizer.token_type"><code class="docutils literal notranslate"><span class="pre">SubwordSlotTokenizer.token_type</span></code></a></li>
+<li><a class="reference internal" href="#s3prl.dataio.encoder.tokenizer.SubwordSlotTokenizer.eos_idx"><code class="docutils literal notranslate"><span class="pre">SubwordSlotTokenizer.eos_idx</span></code></a></li>
+<li><a class="reference internal" href="#s3prl.dataio.encoder.tokenizer.SubwordSlotTokenizer.pad_idx"><code class="docutils literal notranslate"><span class="pre">SubwordSlotTokenizer.pad_idx</span></code></a></li>
+<li><a class="reference internal" href="#s3prl.dataio.encoder.tokenizer.SubwordSlotTokenizer.unk_idx"><code class="docutils literal notranslate"><span class="pre">SubwordSlotTokenizer.unk_idx</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li><a class="reference internal" href="#wordtokenizer">WordTokenizer</a><ul>
+<li><a class="reference internal" href="#s3prl.dataio.encoder.tokenizer.WordTokenizer"><code class="docutils literal notranslate"><span class="pre">WordTokenizer</span></code></a><ul>
+<li><a class="reference internal" href="#s3prl.dataio.encoder.tokenizer.WordTokenizer.encode"><code class="docutils literal notranslate"><span class="pre">WordTokenizer.encode()</span></code></a></li>
+<li><a class="reference internal" href="#s3prl.dataio.encoder.tokenizer.WordTokenizer.decode"><code class="docutils literal notranslate"><span class="pre">WordTokenizer.decode()</span></code></a></li>
+<li><a class="reference internal" href="#s3prl.dataio.encoder.tokenizer.WordTokenizer.token_type"><code class="docutils literal notranslate"><span class="pre">WordTokenizer.token_type</span></code></a></li>
+<li><a class="reference internal" href="#s3prl.dataio.encoder.tokenizer.WordTokenizer.eos_idx"><code class="docutils literal notranslate"><span class="pre">WordTokenizer.eos_idx</span></code></a></li>
+<li><a class="reference internal" href="#s3prl.dataio.encoder.tokenizer.WordTokenizer.idx_to_vocab"><code class="docutils literal notranslate"><span class="pre">WordTokenizer.idx_to_vocab()</span></code></a></li>
+<li><a class="reference internal" href="#s3prl.dataio.encoder.tokenizer.WordTokenizer.load_from_file"><code class="docutils literal notranslate"><span class="pre">WordTokenizer.load_from_file()</span></code></a></li>
+<li><a class="reference internal" href="#s3prl.dataio.encoder.tokenizer.WordTokenizer.pad_idx"><code class="docutils literal notranslate"><span class="pre">WordTokenizer.pad_idx</span></code></a></li>
+<li><a class="reference internal" href="#s3prl.dataio.encoder.tokenizer.WordTokenizer.unk_idx"><code class="docutils literal notranslate"><span class="pre">WordTokenizer.unk_idx</span></code></a></li>
+<li><a class="reference internal" href="#s3prl.dataio.encoder.tokenizer.WordTokenizer.vocab_size"><code class="docutils literal notranslate"><span class="pre">WordTokenizer.vocab_size</span></code></a></li>
+<li><a class="reference internal" href="#s3prl.dataio.encoder.tokenizer.WordTokenizer.vocab_to_idx"><code class="docutils literal notranslate"><span class="pre">WordTokenizer.vocab_to_idx()</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li><a class="reference internal" href="#phonemetokenizer">PhonemeTokenizer</a><ul>
+<li><a class="reference internal" href="#s3prl.dataio.encoder.tokenizer.PhonemeTokenizer"><code class="docutils literal notranslate"><span class="pre">PhonemeTokenizer</span></code></a><ul>
+<li><a class="reference internal" href="#s3prl.dataio.encoder.tokenizer.PhonemeTokenizer.token_type"><code class="docutils literal notranslate"><span class="pre">PhonemeTokenizer.token_type</span></code></a></li>
+<li><a class="reference internal" href="#s3prl.dataio.encoder.tokenizer.PhonemeTokenizer.decode"><code class="docutils literal notranslate"><span class="pre">PhonemeTokenizer.decode()</span></code></a></li>
+<li><a class="reference internal" href="#s3prl.dataio.encoder.tokenizer.PhonemeTokenizer.encode"><code class="docutils literal notranslate"><span class="pre">PhonemeTokenizer.encode()</span></code></a></li>
+<li><a class="reference internal" href="#s3prl.dataio.encoder.tokenizer.PhonemeTokenizer.eos_idx"><code class="docutils literal notranslate"><span class="pre">PhonemeTokenizer.eos_idx</span></code></a></li>
+<li><a class="reference internal" href="#s3prl.dataio.encoder.tokenizer.PhonemeTokenizer.idx_to_vocab"><code class="docutils literal notranslate"><span class="pre">PhonemeTokenizer.idx_to_vocab()</span></code></a></li>
+<li><a class="reference internal" href="#s3prl.dataio.encoder.tokenizer.PhonemeTokenizer.load_from_file"><code class="docutils literal notranslate"><span class="pre">PhonemeTokenizer.load_from_file()</span></code></a></li>
+<li><a class="reference internal" href="#s3prl.dataio.encoder.tokenizer.PhonemeTokenizer.pad_idx"><code class="docutils literal notranslate"><span class="pre">PhonemeTokenizer.pad_idx</span></code></a></li>
+<li><a class="reference internal" href="#s3prl.dataio.encoder.tokenizer.PhonemeTokenizer.unk_idx"><code class="docutils literal notranslate"><span class="pre">PhonemeTokenizer.unk_idx</span></code></a></li>
+<li><a class="reference internal" href="#s3prl.dataio.encoder.tokenizer.PhonemeTokenizer.vocab_size"><code class="docutils literal notranslate"><span class="pre">PhonemeTokenizer.vocab_size</span></code></a></li>
+<li><a class="reference internal" href="#s3prl.dataio.encoder.tokenizer.PhonemeTokenizer.vocab_to_idx"><code class="docutils literal notranslate"><span class="pre">PhonemeTokenizer.vocab_to_idx()</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li><a class="reference internal" href="#load-tokenizer">load_tokenizer</a><ul>
+<li><a class="reference internal" href="#s3prl.dataio.encoder.tokenizer.load_tokenizer"><code class="docutils literal notranslate"><span class="pre">load_tokenizer()</span></code></a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#default-phoneme-tokenizer">default_phoneme_tokenizer</a><ul>
+<li><a class="reference internal" href="#s3prl.dataio.encoder.tokenizer.default_phoneme_tokenizer"><code class="docutils literal notranslate"><span class="pre">default_phoneme_tokenizer()</span></code></a></li>
+</ul>
+</li>
 </ul>
 </li>
 </ul>
@@ -811,6 +903,7 @@ Reference: <a class="reference external" href="https://www.tensorflow.org/datase
     <script src="../_static/underscore.js"></script>
     <script src="../_static/_sphinx_javascript_frameworks_compat.js"></script>
     <script src="../_static/doctools.js"></script>
+    <script src="../_static/sphinx_highlight.js"></script>
     <script src="../_static/scripts/furo.js"></script>
     <script src="../_static/js/custom.js"></script>
     </body>

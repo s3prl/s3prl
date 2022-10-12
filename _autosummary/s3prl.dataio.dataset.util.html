@@ -5,7 +5,7 @@
     <meta name="color-scheme" content="light dark"><meta name="generator" content="Docutils 0.19: https://docutils.sourceforge.io/" />
 <link rel="index" title="Index" href="../genindex.html" /><link rel="search" title="Search" href="../search.html" /><link rel="next" title="encoder" href="s3prl.dataio.encoder.html" /><link rel="prev" title="load_audio" href="s3prl.dataio.dataset.load_audio.html" />
 
-    <meta name="generator" content="sphinx-5.1.1, furo 2022.09.29"/>
+    <meta name="generator" content="sphinx-5.2.3, furo 2022.09.29"/>
         <title>util - S3PRL 0.4.5 documentation</title>
       <link rel="stylesheet" type="text/css" href="../_static/pygments.css" />
     <link rel="stylesheet" type="text/css" href="../_static/styles/furo.css?digest=d81277517bee4d6b0349d71bb2661d4890b5617c" />
@@ -1553,12 +1553,139 @@ method  : str, “read” or “write”. The result of <cite>read()</cite> and<
           <div class="toc-tree">
             <ul>
 <li><a class="reference internal" href="#">util</a><ul>
-<li><a class="reference internal" href="#parallel">Parallel</a></li>
-<li><a class="reference internal" href="#path">Path</a></li>
-<li><a class="reference internal" href="#defaultdict">defaultdict</a></li>
-<li><a class="reference internal" href="#tqdm">tqdm</a></li>
-<li><a class="reference internal" href="#delayed">delayed</a></li>
-<li><a class="reference internal" href="#get-info">get_info</a></li>
+<li><a class="reference internal" href="#parallel">Parallel</a><ul>
+<li><a class="reference internal" href="#s3prl.dataio.dataset.util.Parallel"><code class="docutils literal notranslate"><span class="pre">Parallel</span></code></a><ul>
+<li><a class="reference internal" href="#s3prl.dataio.dataset.util.Parallel.dispatch_next"><code class="docutils literal notranslate"><span class="pre">Parallel.dispatch_next()</span></code></a></li>
+<li><a class="reference internal" href="#s3prl.dataio.dataset.util.Parallel.dispatch_one_batch"><code class="docutils literal notranslate"><span class="pre">Parallel.dispatch_one_batch()</span></code></a></li>
+<li><a class="reference internal" href="#s3prl.dataio.dataset.util.Parallel.debug"><code class="docutils literal notranslate"><span class="pre">Parallel.debug()</span></code></a></li>
+<li><a class="reference internal" href="#s3prl.dataio.dataset.util.Parallel.format"><code class="docutils literal notranslate"><span class="pre">Parallel.format()</span></code></a></li>
+<li><a class="reference internal" href="#s3prl.dataio.dataset.util.Parallel.print_progress"><code class="docutils literal notranslate"><span class="pre">Parallel.print_progress()</span></code></a></li>
+<li><a class="reference internal" href="#s3prl.dataio.dataset.util.Parallel.warn"><code class="docutils literal notranslate"><span class="pre">Parallel.warn()</span></code></a></li>
+<li><a class="reference internal" href="#s3prl.dataio.dataset.util.Parallel.retrieve"><code class="docutils literal notranslate"><span class="pre">Parallel.retrieve()</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li><a class="reference internal" href="#path">Path</a><ul>
+<li><a class="reference internal" href="#s3prl.dataio.dataset.util.Path"><code class="docutils literal notranslate"><span class="pre">Path</span></code></a><ul>
+<li><a class="reference internal" href="#s3prl.dataio.dataset.util.Path.cwd"><code class="docutils literal notranslate"><span class="pre">Path.cwd()</span></code></a></li>
+<li><a class="reference internal" href="#s3prl.dataio.dataset.util.Path.home"><code class="docutils literal notranslate"><span class="pre">Path.home()</span></code></a></li>
+<li><a class="reference internal" href="#s3prl.dataio.dataset.util.Path.samefile"><code class="docutils literal notranslate"><span class="pre">Path.samefile()</span></code></a></li>
+<li><a class="reference internal" href="#s3prl.dataio.dataset.util.Path.iterdir"><code class="docutils literal notranslate"><span class="pre">Path.iterdir()</span></code></a></li>
+<li><a class="reference internal" href="#s3prl.dataio.dataset.util.Path.glob"><code class="docutils literal notranslate"><span class="pre">Path.glob()</span></code></a></li>
+<li><a class="reference internal" href="#s3prl.dataio.dataset.util.Path.rglob"><code class="docutils literal notranslate"><span class="pre">Path.rglob()</span></code></a></li>
+<li><a class="reference internal" href="#s3prl.dataio.dataset.util.Path.absolute"><code class="docutils literal notranslate"><span class="pre">Path.absolute()</span></code></a></li>
+<li><a class="reference internal" href="#s3prl.dataio.dataset.util.Path.resolve"><code class="docutils literal notranslate"><span class="pre">Path.resolve()</span></code></a></li>
+<li><a class="reference internal" href="#s3prl.dataio.dataset.util.Path.stat"><code class="docutils literal notranslate"><span class="pre">Path.stat()</span></code></a></li>
+<li><a class="reference internal" href="#s3prl.dataio.dataset.util.Path.owner"><code class="docutils literal notranslate"><span class="pre">Path.owner()</span></code></a></li>
+<li><a class="reference internal" href="#s3prl.dataio.dataset.util.Path.group"><code class="docutils literal notranslate"><span class="pre">Path.group()</span></code></a></li>
+<li><a class="reference internal" href="#s3prl.dataio.dataset.util.Path.open"><code class="docutils literal notranslate"><span class="pre">Path.open()</span></code></a></li>
+<li><a class="reference internal" href="#s3prl.dataio.dataset.util.Path.read_bytes"><code class="docutils literal notranslate"><span class="pre">Path.read_bytes()</span></code></a></li>
+<li><a class="reference internal" href="#s3prl.dataio.dataset.util.Path.read_text"><code class="docutils literal notranslate"><span class="pre">Path.read_text()</span></code></a></li>
+<li><a class="reference internal" href="#s3prl.dataio.dataset.util.Path.write_bytes"><code class="docutils literal notranslate"><span class="pre">Path.write_bytes()</span></code></a></li>
+<li><a class="reference internal" href="#s3prl.dataio.dataset.util.Path.write_text"><code class="docutils literal notranslate"><span class="pre">Path.write_text()</span></code></a></li>
+<li><a class="reference internal" href="#s3prl.dataio.dataset.util.Path.touch"><code class="docutils literal notranslate"><span class="pre">Path.touch()</span></code></a></li>
+<li><a class="reference internal" href="#s3prl.dataio.dataset.util.Path.mkdir"><code class="docutils literal notranslate"><span class="pre">Path.mkdir()</span></code></a></li>
+<li><a class="reference internal" href="#s3prl.dataio.dataset.util.Path.chmod"><code class="docutils literal notranslate"><span class="pre">Path.chmod()</span></code></a></li>
+<li><a class="reference internal" href="#s3prl.dataio.dataset.util.Path.lchmod"><code class="docutils literal notranslate"><span class="pre">Path.lchmod()</span></code></a></li>
+<li><a class="reference internal" href="#s3prl.dataio.dataset.util.Path.unlink"><code class="docutils literal notranslate"><span class="pre">Path.unlink()</span></code></a></li>
+<li><a class="reference internal" href="#s3prl.dataio.dataset.util.Path.rmdir"><code class="docutils literal notranslate"><span class="pre">Path.rmdir()</span></code></a></li>
+<li><a class="reference internal" href="#s3prl.dataio.dataset.util.Path.lstat"><code class="docutils literal notranslate"><span class="pre">Path.lstat()</span></code></a></li>
+<li><a class="reference internal" href="#s3prl.dataio.dataset.util.Path.rename"><code class="docutils literal notranslate"><span class="pre">Path.rename()</span></code></a></li>
+<li><a class="reference internal" href="#s3prl.dataio.dataset.util.Path.replace"><code class="docutils literal notranslate"><span class="pre">Path.replace()</span></code></a></li>
+<li><a class="reference internal" href="#s3prl.dataio.dataset.util.Path.symlink_to"><code class="docutils literal notranslate"><span class="pre">Path.symlink_to()</span></code></a></li>
+<li><a class="reference internal" href="#s3prl.dataio.dataset.util.Path.link_to"><code class="docutils literal notranslate"><span class="pre">Path.link_to()</span></code></a></li>
+<li><a class="reference internal" href="#s3prl.dataio.dataset.util.Path.exists"><code class="docutils literal notranslate"><span class="pre">Path.exists()</span></code></a></li>
+<li><a class="reference internal" href="#s3prl.dataio.dataset.util.Path.is_dir"><code class="docutils literal notranslate"><span class="pre">Path.is_dir()</span></code></a></li>
+<li><a class="reference internal" href="#s3prl.dataio.dataset.util.Path.is_file"><code class="docutils literal notranslate"><span class="pre">Path.is_file()</span></code></a></li>
+<li><a class="reference internal" href="#s3prl.dataio.dataset.util.Path.is_mount"><code class="docutils literal notranslate"><span class="pre">Path.is_mount()</span></code></a></li>
+<li><a class="reference internal" href="#s3prl.dataio.dataset.util.Path.is_symlink"><code class="docutils literal notranslate"><span class="pre">Path.is_symlink()</span></code></a></li>
+<li><a class="reference internal" href="#s3prl.dataio.dataset.util.Path.is_block_device"><code class="docutils literal notranslate"><span class="pre">Path.is_block_device()</span></code></a></li>
+<li><a class="reference internal" href="#s3prl.dataio.dataset.util.Path.is_char_device"><code class="docutils literal notranslate"><span class="pre">Path.is_char_device()</span></code></a></li>
+<li><a class="reference internal" href="#s3prl.dataio.dataset.util.Path.anchor"><code class="docutils literal notranslate"><span class="pre">Path.anchor</span></code></a></li>
+<li><a class="reference internal" href="#s3prl.dataio.dataset.util.Path.as_posix"><code class="docutils literal notranslate"><span class="pre">Path.as_posix()</span></code></a></li>
+<li><a class="reference internal" href="#s3prl.dataio.dataset.util.Path.as_uri"><code class="docutils literal notranslate"><span class="pre">Path.as_uri()</span></code></a></li>
+<li><a class="reference internal" href="#s3prl.dataio.dataset.util.Path.drive"><code class="docutils literal notranslate"><span class="pre">Path.drive</span></code></a></li>
+<li><a class="reference internal" href="#s3prl.dataio.dataset.util.Path.is_absolute"><code class="docutils literal notranslate"><span class="pre">Path.is_absolute()</span></code></a></li>
+<li><a class="reference internal" href="#s3prl.dataio.dataset.util.Path.is_fifo"><code class="docutils literal notranslate"><span class="pre">Path.is_fifo()</span></code></a></li>
+<li><a class="reference internal" href="#s3prl.dataio.dataset.util.Path.is_reserved"><code class="docutils literal notranslate"><span class="pre">Path.is_reserved()</span></code></a></li>
+<li><a class="reference internal" href="#s3prl.dataio.dataset.util.Path.joinpath"><code class="docutils literal notranslate"><span class="pre">Path.joinpath()</span></code></a></li>
+<li><a class="reference internal" href="#s3prl.dataio.dataset.util.Path.match"><code class="docutils literal notranslate"><span class="pre">Path.match()</span></code></a></li>
+<li><a class="reference internal" href="#s3prl.dataio.dataset.util.Path.name"><code class="docutils literal notranslate"><span class="pre">Path.name</span></code></a></li>
+<li><a class="reference internal" href="#s3prl.dataio.dataset.util.Path.parent"><code class="docutils literal notranslate"><span class="pre">Path.parent</span></code></a></li>
+<li><a class="reference internal" href="#s3prl.dataio.dataset.util.Path.parents"><code class="docutils literal notranslate"><span class="pre">Path.parents</span></code></a></li>
+<li><a class="reference internal" href="#s3prl.dataio.dataset.util.Path.parts"><code class="docutils literal notranslate"><span class="pre">Path.parts</span></code></a></li>
+<li><a class="reference internal" href="#s3prl.dataio.dataset.util.Path.relative_to"><code class="docutils literal notranslate"><span class="pre">Path.relative_to()</span></code></a></li>
+<li><a class="reference internal" href="#s3prl.dataio.dataset.util.Path.root"><code class="docutils literal notranslate"><span class="pre">Path.root</span></code></a></li>
+<li><a class="reference internal" href="#s3prl.dataio.dataset.util.Path.stem"><code class="docutils literal notranslate"><span class="pre">Path.stem</span></code></a></li>
+<li><a class="reference internal" href="#s3prl.dataio.dataset.util.Path.suffix"><code class="docutils literal notranslate"><span class="pre">Path.suffix</span></code></a></li>
+<li><a class="reference internal" href="#s3prl.dataio.dataset.util.Path.suffixes"><code class="docutils literal notranslate"><span class="pre">Path.suffixes</span></code></a></li>
+<li><a class="reference internal" href="#s3prl.dataio.dataset.util.Path.with_name"><code class="docutils literal notranslate"><span class="pre">Path.with_name()</span></code></a></li>
+<li><a class="reference internal" href="#s3prl.dataio.dataset.util.Path.with_suffix"><code class="docutils literal notranslate"><span class="pre">Path.with_suffix()</span></code></a></li>
+<li><a class="reference internal" href="#s3prl.dataio.dataset.util.Path.is_socket"><code class="docutils literal notranslate"><span class="pre">Path.is_socket()</span></code></a></li>
+<li><a class="reference internal" href="#s3prl.dataio.dataset.util.Path.expanduser"><code class="docutils literal notranslate"><span class="pre">Path.expanduser()</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li><a class="reference internal" href="#defaultdict">defaultdict</a><ul>
+<li><a class="reference internal" href="#s3prl.dataio.dataset.util.defaultdict"><code class="docutils literal notranslate"><span class="pre">defaultdict</span></code></a><ul>
+<li><a class="reference internal" href="#s3prl.dataio.dataset.util.defaultdict.clear"><code class="docutils literal notranslate"><span class="pre">defaultdict.clear()</span></code></a></li>
+<li><a class="reference internal" href="#s3prl.dataio.dataset.util.defaultdict.copy"><code class="docutils literal notranslate"><span class="pre">defaultdict.copy()</span></code></a></li>
+<li><a class="reference internal" href="#s3prl.dataio.dataset.util.defaultdict.default_factory"><code class="docutils literal notranslate"><span class="pre">defaultdict.default_factory</span></code></a></li>
+<li><a class="reference internal" href="#s3prl.dataio.dataset.util.defaultdict.fromkeys"><code class="docutils literal notranslate"><span class="pre">defaultdict.fromkeys()</span></code></a></li>
+<li><a class="reference internal" href="#s3prl.dataio.dataset.util.defaultdict.get"><code class="docutils literal notranslate"><span class="pre">defaultdict.get()</span></code></a></li>
+<li><a class="reference internal" href="#s3prl.dataio.dataset.util.defaultdict.items"><code class="docutils literal notranslate"><span class="pre">defaultdict.items()</span></code></a></li>
+<li><a class="reference internal" href="#s3prl.dataio.dataset.util.defaultdict.keys"><code class="docutils literal notranslate"><span class="pre">defaultdict.keys()</span></code></a></li>
+<li><a class="reference internal" href="#s3prl.dataio.dataset.util.defaultdict.pop"><code class="docutils literal notranslate"><span class="pre">defaultdict.pop()</span></code></a></li>
+<li><a class="reference internal" href="#s3prl.dataio.dataset.util.defaultdict.popitem"><code class="docutils literal notranslate"><span class="pre">defaultdict.popitem()</span></code></a></li>
+<li><a class="reference internal" href="#s3prl.dataio.dataset.util.defaultdict.setdefault"><code class="docutils literal notranslate"><span class="pre">defaultdict.setdefault()</span></code></a></li>
+<li><a class="reference internal" href="#s3prl.dataio.dataset.util.defaultdict.update"><code class="docutils literal notranslate"><span class="pre">defaultdict.update()</span></code></a></li>
+<li><a class="reference internal" href="#s3prl.dataio.dataset.util.defaultdict.values"><code class="docutils literal notranslate"><span class="pre">defaultdict.values()</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li><a class="reference internal" href="#tqdm">tqdm</a><ul>
+<li><a class="reference internal" href="#s3prl.dataio.dataset.util.tqdm"><code class="docutils literal notranslate"><span class="pre">tqdm</span></code></a><ul>
+<li><a class="reference internal" href="#s3prl.dataio.dataset.util.tqdm.monitor_interval"><code class="docutils literal notranslate"><span class="pre">tqdm.monitor_interval</span></code></a></li>
+<li><a class="reference internal" href="#s3prl.dataio.dataset.util.tqdm.monitor"><code class="docutils literal notranslate"><span class="pre">tqdm.monitor</span></code></a></li>
+<li><a class="reference internal" href="#s3prl.dataio.dataset.util.tqdm.format_sizeof"><code class="docutils literal notranslate"><span class="pre">tqdm.format_sizeof()</span></code></a></li>
+<li><a class="reference internal" href="#s3prl.dataio.dataset.util.tqdm.format_interval"><code class="docutils literal notranslate"><span class="pre">tqdm.format_interval()</span></code></a></li>
+<li><a class="reference internal" href="#s3prl.dataio.dataset.util.tqdm.format_num"><code class="docutils literal notranslate"><span class="pre">tqdm.format_num()</span></code></a></li>
+<li><a class="reference internal" href="#s3prl.dataio.dataset.util.tqdm.status_printer"><code class="docutils literal notranslate"><span class="pre">tqdm.status_printer()</span></code></a></li>
+<li><a class="reference internal" href="#s3prl.dataio.dataset.util.tqdm.format_meter"><code class="docutils literal notranslate"><span class="pre">tqdm.format_meter()</span></code></a></li>
+<li><a class="reference internal" href="#s3prl.dataio.dataset.util.tqdm.write"><code class="docutils literal notranslate"><span class="pre">tqdm.write()</span></code></a></li>
+<li><a class="reference internal" href="#s3prl.dataio.dataset.util.tqdm.external_write_mode"><code class="docutils literal notranslate"><span class="pre">tqdm.external_write_mode()</span></code></a></li>
+<li><a class="reference internal" href="#s3prl.dataio.dataset.util.tqdm.set_lock"><code class="docutils literal notranslate"><span class="pre">tqdm.set_lock()</span></code></a></li>
+<li><a class="reference internal" href="#s3prl.dataio.dataset.util.tqdm.get_lock"><code class="docutils literal notranslate"><span class="pre">tqdm.get_lock()</span></code></a></li>
+<li><a class="reference internal" href="#s3prl.dataio.dataset.util.tqdm.pandas"><code class="docutils literal notranslate"><span class="pre">tqdm.pandas()</span></code></a></li>
+<li><a class="reference internal" href="#s3prl.dataio.dataset.util.tqdm.update"><code class="docutils literal notranslate"><span class="pre">tqdm.update()</span></code></a></li>
+<li><a class="reference internal" href="#s3prl.dataio.dataset.util.tqdm.close"><code class="docutils literal notranslate"><span class="pre">tqdm.close()</span></code></a></li>
+<li><a class="reference internal" href="#s3prl.dataio.dataset.util.tqdm.clear"><code class="docutils literal notranslate"><span class="pre">tqdm.clear()</span></code></a></li>
+<li><a class="reference internal" href="#s3prl.dataio.dataset.util.tqdm.refresh"><code class="docutils literal notranslate"><span class="pre">tqdm.refresh()</span></code></a></li>
+<li><a class="reference internal" href="#s3prl.dataio.dataset.util.tqdm.unpause"><code class="docutils literal notranslate"><span class="pre">tqdm.unpause()</span></code></a></li>
+<li><a class="reference internal" href="#s3prl.dataio.dataset.util.tqdm.reset"><code class="docutils literal notranslate"><span class="pre">tqdm.reset()</span></code></a></li>
+<li><a class="reference internal" href="#s3prl.dataio.dataset.util.tqdm.set_description"><code class="docutils literal notranslate"><span class="pre">tqdm.set_description()</span></code></a></li>
+<li><a class="reference internal" href="#s3prl.dataio.dataset.util.tqdm.set_description_str"><code class="docutils literal notranslate"><span class="pre">tqdm.set_description_str()</span></code></a></li>
+<li><a class="reference internal" href="#s3prl.dataio.dataset.util.tqdm.set_postfix"><code class="docutils literal notranslate"><span class="pre">tqdm.set_postfix()</span></code></a></li>
+<li><a class="reference internal" href="#s3prl.dataio.dataset.util.tqdm.set_postfix_str"><code class="docutils literal notranslate"><span class="pre">tqdm.set_postfix_str()</span></code></a></li>
+<li><a class="reference internal" href="#s3prl.dataio.dataset.util.tqdm.moveto"><code class="docutils literal notranslate"><span class="pre">tqdm.moveto()</span></code></a></li>
+<li><a class="reference internal" href="#s3prl.dataio.dataset.util.tqdm.format_dict"><code class="docutils literal notranslate"><span class="pre">tqdm.format_dict</span></code></a></li>
+<li><a class="reference internal" href="#s3prl.dataio.dataset.util.tqdm.display"><code class="docutils literal notranslate"><span class="pre">tqdm.display()</span></code></a></li>
+<li><a class="reference internal" href="#s3prl.dataio.dataset.util.tqdm.wrapattr"><code class="docutils literal notranslate"><span class="pre">tqdm.wrapattr()</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li><a class="reference internal" href="#delayed">delayed</a><ul>
+<li><a class="reference internal" href="#s3prl.dataio.dataset.util.delayed"><code class="docutils literal notranslate"><span class="pre">delayed()</span></code></a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#get-info">get_info</a><ul>
+<li><a class="reference internal" href="#s3prl.dataio.dataset.util.get_info"><code class="docutils literal notranslate"><span class="pre">get_info()</span></code></a></li>
+</ul>
+</li>
 </ul>
 </li>
 </ul>
@@ -1575,6 +1702,7 @@ method  : str, “read” or “write”. The result of <cite>read()</cite> and<
     <script src="../_static/underscore.js"></script>
     <script src="../_static/_sphinx_javascript_frameworks_compat.js"></script>
     <script src="../_static/doctools.js"></script>
+    <script src="../_static/sphinx_highlight.js"></script>
     <script src="../_static/scripts/furo.js"></script>
     <script src="../_static/js/custom.js"></script>
     </body>

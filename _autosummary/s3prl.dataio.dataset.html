@@ -5,7 +5,7 @@
     <meta name="color-scheme" content="light dark"><meta name="generator" content="Docutils 0.19: https://docutils.sourceforge.io/" />
 <link rel="index" title="Index" href="../genindex.html" /><link rel="search" title="Search" href="../search.html" /><link rel="next" title="base" href="s3prl.dataio.dataset.base.html" /><link rel="prev" title="voxceleb1sv" href="s3prl.dataio.corpus.voxceleb1sv.html" />
 
-    <meta name="generator" content="sphinx-5.1.1, furo 2022.09.29"/>
+    <meta name="generator" content="sphinx-5.2.3, furo 2022.09.29"/>
         <title>dataset - S3PRL 0.4.5 documentation</title>
       <link rel="stylesheet" type="text/css" href="../_static/pygments.css" />
     <link rel="stylesheet" type="text/css" href="../_static/styles/furo.css?digest=d81277517bee4d6b0349d71bb2661d4890b5617c" />
@@ -514,13 +514,52 @@
           <div class="toc-tree">
             <ul>
 <li><a class="reference internal" href="#">dataset</a><ul>
-<li><a class="reference internal" href="#id1">Dataset</a></li>
-<li><a class="reference internal" href="#diarizationdataset">DiarizationDataset</a></li>
-<li><a class="reference internal" href="#encodecategories">EncodeCategories</a></li>
-<li><a class="reference internal" href="#encodecategory">EncodeCategory</a></li>
-<li><a class="reference internal" href="#encodetext">EncodeText</a></li>
-<li><a class="reference internal" href="#loadaudio">LoadAudio</a></li>
-<li><a class="reference internal" href="#get-info">get_info</a></li>
+<li><a class="reference internal" href="#id1">Dataset</a><ul>
+<li><a class="reference internal" href="#s3prl.dataio.dataset.Dataset"><code class="docutils literal notranslate"><span class="pre">Dataset</span></code></a><ul>
+<li><a class="reference internal" href="#s3prl.dataio.dataset.Dataset.getinfo"><code class="docutils literal notranslate"><span class="pre">Dataset.getinfo()</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li><a class="reference internal" href="#diarizationdataset">DiarizationDataset</a><ul>
+<li><a class="reference internal" href="#s3prl.dataio.dataset.DiarizationDataset"><code class="docutils literal notranslate"><span class="pre">DiarizationDataset</span></code></a><ul>
+<li><a class="reference internal" href="#s3prl.dataio.dataset.DiarizationDataset.getinfo"><code class="docutils literal notranslate"><span class="pre">DiarizationDataset.getinfo()</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li><a class="reference internal" href="#encodecategories">EncodeCategories</a><ul>
+<li><a class="reference internal" href="#s3prl.dataio.dataset.EncodeCategories"><code class="docutils literal notranslate"><span class="pre">EncodeCategories</span></code></a><ul>
+<li><a class="reference internal" href="#s3prl.dataio.dataset.EncodeCategories.getinfo"><code class="docutils literal notranslate"><span class="pre">EncodeCategories.getinfo()</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li><a class="reference internal" href="#encodecategory">EncodeCategory</a><ul>
+<li><a class="reference internal" href="#s3prl.dataio.dataset.EncodeCategory"><code class="docutils literal notranslate"><span class="pre">EncodeCategory</span></code></a><ul>
+<li><a class="reference internal" href="#s3prl.dataio.dataset.EncodeCategory.getinfo"><code class="docutils literal notranslate"><span class="pre">EncodeCategory.getinfo()</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li><a class="reference internal" href="#encodetext">EncodeText</a><ul>
+<li><a class="reference internal" href="#s3prl.dataio.dataset.EncodeText"><code class="docutils literal notranslate"><span class="pre">EncodeText</span></code></a><ul>
+<li><a class="reference internal" href="#s3prl.dataio.dataset.EncodeText.getinfo"><code class="docutils literal notranslate"><span class="pre">EncodeText.getinfo()</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li><a class="reference internal" href="#loadaudio">LoadAudio</a><ul>
+<li><a class="reference internal" href="#s3prl.dataio.dataset.LoadAudio"><code class="docutils literal notranslate"><span class="pre">LoadAudio</span></code></a><ul>
+<li><a class="reference internal" href="#s3prl.dataio.dataset.LoadAudio.getinfo"><code class="docutils literal notranslate"><span class="pre">LoadAudio.getinfo()</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li><a class="reference internal" href="#get-info">get_info</a><ul>
+<li><a class="reference internal" href="#s3prl.dataio.dataset.get_info"><code class="docutils literal notranslate"><span class="pre">get_info()</span></code></a></li>
+</ul>
+</li>
 </ul>
 </li>
 </ul>
@@ -537,6 +576,7 @@
     <script src="../_static/underscore.js"></script>
     <script src="../_static/_sphinx_javascript_frameworks_compat.js"></script>
     <script src="../_static/doctools.js"></script>
+    <script src="../_static/sphinx_highlight.js"></script>
     <script src="../_static/scripts/furo.js"></script>
     <script src="../_static/js/custom.js"></script>
     </body>

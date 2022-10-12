@@ -5,7 +5,7 @@
     <meta name="color-scheme" content="light dark"><meta name="generator" content="Docutils 0.19: https://docutils.sourceforge.io/" />
 <link rel="index" title="Index" href="../genindex.html" /><link rel="search" title="Search" href="../search.html" /><link rel="next" title="superb_ic" href="s3prl.problem.common.superb_ic.html" /><link rel="prev" title="run" href="s3prl.problem.common.run.html" />
 
-    <meta name="generator" content="sphinx-5.1.1, furo 2022.09.29"/>
+    <meta name="generator" content="sphinx-5.2.3, furo 2022.09.29"/>
         <title>superb_er - S3PRL 0.4.5 documentation</title>
       <link rel="stylesheet" type="text/css" href="../_static/pygments.css" />
     <link rel="stylesheet" type="text/css" href="../_static/styles/furo.css?digest=d81277517bee4d6b0349d71bb2661d4890b5617c" />
@@ -1170,8 +1170,39 @@ the <code class="code docutils literal notranslate"><span class="pre">excited</s
           <div class="toc-tree">
             <ul>
 <li><a class="reference internal" href="#">superb_er</a><ul>
-<li><a class="reference internal" href="#superber">SuperbER</a></li>
-<li><a class="reference internal" href="#iemocap-for-superb">iemocap_for_superb</a></li>
+<li><a class="reference internal" href="#superber">SuperbER</a><ul>
+<li><a class="reference internal" href="#s3prl.problem.common.superb_er.SuperbER"><code class="docutils literal notranslate"><span class="pre">SuperbER</span></code></a><ul>
+<li><a class="reference internal" href="#s3prl.problem.common.superb_er.SuperbER.default_config"><code class="docutils literal notranslate"><span class="pre">SuperbER.default_config()</span></code></a></li>
+<li><a class="reference internal" href="#s3prl.problem.common.superb_er.SuperbER.prepare_data"><code class="docutils literal notranslate"><span class="pre">SuperbER.prepare_data()</span></code></a></li>
+<li><a class="reference internal" href="#s3prl.problem.common.superb_er.SuperbER.build_batch_sampler"><code class="docutils literal notranslate"><span class="pre">SuperbER.build_batch_sampler()</span></code></a></li>
+<li><a class="reference internal" href="#s3prl.problem.common.superb_er.SuperbER.build_collate_fn"><code class="docutils literal notranslate"><span class="pre">SuperbER.build_collate_fn()</span></code></a></li>
+<li><a class="reference internal" href="#s3prl.problem.common.superb_er.SuperbER.build_dataset"><code class="docutils literal notranslate"><span class="pre">SuperbER.build_dataset()</span></code></a></li>
+<li><a class="reference internal" href="#s3prl.problem.common.superb_er.SuperbER.build_downstream"><code class="docutils literal notranslate"><span class="pre">SuperbER.build_downstream()</span></code></a></li>
+<li><a class="reference internal" href="#s3prl.problem.common.superb_er.SuperbER.build_encoder"><code class="docutils literal notranslate"><span class="pre">SuperbER.build_encoder()</span></code></a></li>
+<li><a class="reference internal" href="#s3prl.problem.common.superb_er.SuperbER.build_featurizer"><code class="docutils literal notranslate"><span class="pre">SuperbER.build_featurizer()</span></code></a></li>
+<li><a class="reference internal" href="#s3prl.problem.common.superb_er.SuperbER.build_model"><code class="docutils literal notranslate"><span class="pre">SuperbER.build_model()</span></code></a></li>
+<li><a class="reference internal" href="#s3prl.problem.common.superb_er.SuperbER.build_optimizer"><code class="docutils literal notranslate"><span class="pre">SuperbER.build_optimizer()</span></code></a></li>
+<li><a class="reference internal" href="#s3prl.problem.common.superb_er.SuperbER.build_scheduler"><code class="docutils literal notranslate"><span class="pre">SuperbER.build_scheduler()</span></code></a></li>
+<li><a class="reference internal" href="#s3prl.problem.common.superb_er.SuperbER.build_task"><code class="docutils literal notranslate"><span class="pre">SuperbER.build_task()</span></code></a></li>
+<li><a class="reference internal" href="#s3prl.problem.common.superb_er.SuperbER.build_upstream"><code class="docutils literal notranslate"><span class="pre">SuperbER.build_upstream()</span></code></a></li>
+<li><a class="reference internal" href="#s3prl.problem.common.superb_er.SuperbER.evaluate"><code class="docutils literal notranslate"><span class="pre">SuperbER.evaluate()</span></code></a></li>
+<li><a class="reference internal" href="#s3prl.problem.common.superb_er.SuperbER.get_class_from_name"><code class="docutils literal notranslate"><span class="pre">SuperbER.get_class_from_name()</span></code></a></li>
+<li><a class="reference internal" href="#s3prl.problem.common.superb_er.SuperbER.load_model"><code class="docutils literal notranslate"><span class="pre">SuperbER.load_model()</span></code></a></li>
+<li><a class="reference internal" href="#s3prl.problem.common.superb_er.SuperbER.load_model_and_task"><code class="docutils literal notranslate"><span class="pre">SuperbER.load_model_and_task()</span></code></a></li>
+<li><a class="reference internal" href="#s3prl.problem.common.superb_er.SuperbER.load_task"><code class="docutils literal notranslate"><span class="pre">SuperbER.load_task()</span></code></a></li>
+<li><a class="reference internal" href="#s3prl.problem.common.superb_er.SuperbER.main"><code class="docutils literal notranslate"><span class="pre">SuperbER.main()</span></code></a></li>
+<li><a class="reference internal" href="#s3prl.problem.common.superb_er.SuperbER.run"><code class="docutils literal notranslate"><span class="pre">SuperbER.run()</span></code></a></li>
+<li><a class="reference internal" href="#s3prl.problem.common.superb_er.SuperbER.save_model"><code class="docutils literal notranslate"><span class="pre">SuperbER.save_model()</span></code></a></li>
+<li><a class="reference internal" href="#s3prl.problem.common.superb_er.SuperbER.save_task"><code class="docutils literal notranslate"><span class="pre">SuperbER.save_task()</span></code></a></li>
+<li><a class="reference internal" href="#s3prl.problem.common.superb_er.SuperbER.train"><code class="docutils literal notranslate"><span class="pre">SuperbER.train()</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li><a class="reference internal" href="#iemocap-for-superb">iemocap_for_superb</a><ul>
+<li><a class="reference internal" href="#s3prl.problem.common.superb_er.iemocap_for_superb"><code class="docutils literal notranslate"><span class="pre">iemocap_for_superb()</span></code></a></li>
+</ul>
+</li>
 </ul>
 </li>
 </ul>
@@ -1188,6 +1219,7 @@ the <code class="code docutils literal notranslate"><span class="pre">excited</s
     <script src="../_static/underscore.js"></script>
     <script src="../_static/_sphinx_javascript_frameworks_compat.js"></script>
     <script src="../_static/doctools.js"></script>
+    <script src="../_static/sphinx_highlight.js"></script>
     <script src="../_static/scripts/furo.js"></script>
     <script src="../_static/js/custom.js"></script>
     </body>
