@@ -43,7 +43,7 @@ class SuperbSD(Diarization):
             ),
             build_batch_sampler=dict(
                 train=dict(
-                    batch_size=32,
+                    batch_size=8,
                     shuffle=True,
                 ),
                 valid=dict(
@@ -81,12 +81,12 @@ class SuperbSD(Diarization):
             ),
             save_task=dict(),
             train=dict(
-                total_steps=200000,
-                log_step=100,
-                eval_step=2000,
+                total_steps=30000,
+                log_step=500,
+                eval_step=500,
                 save_step=500,
                 gradient_clipping=1.0,
-                gradient_accumulate=1,
+                gradient_accumulate=4,
                 valid_metric="der",
                 valid_higher_better=False,
                 auto_resume=True,

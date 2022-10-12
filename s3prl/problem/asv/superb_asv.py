@@ -8,19 +8,20 @@ Authors
   * Leo 2022
 """
 
+import logging
 import pickle
 from dataclasses import dataclass
 from pathlib import Path
 
 import pandas as pd
 from omegaconf import MISSING
+from torch.utils.data import Subset
 
 from s3prl.dataio.corpus.voxceleb1sv import VoxCeleb1SV
-from s3prl.dataio.dataset import EncodeCategory, LoadAudio
+from s3prl.dataio.dataset import EncodeCategory, LoadAudio, get_info
 from s3prl.dataio.encoder.category import CategoryEncoder
 from s3prl.dataio.sampler import FixedBatchSizeBatchSampler
 from s3prl.nn.speaker_model import SuperbXvector
-from s3prl.util.download import download
 
 from .run import ASV
 
@@ -31,6 +32,8 @@ EFFECTS = [
     ["gain", "-3.0"],
     ["silence", "1", "0.1", "0.1%", "-1", "0.1", "0.1%"],
 ]
+
+logger = logging.getLogger(__name__)
 
 __all__ = [
     "prepare_voxceleb1_for_sv",
@@ -63,19 +66,6 @@ def prepare_voxceleb1_for_sv(
     corpus = VoxCeleb1SV(dataset_root, cache_dir, force_download)
     train_data, valid_data, test_data, test_trials = corpus.all_data
     all_data = {**train_data, **valid_data}
-
-    ignored_utts_path = Path(cache_dir) / "voxceleb1_too_short_utts"
-    download(
-        ignored_utts_path,
-        "https://huggingface.co/datasets/s3prl/voxceleb1_too_short_utts/raw/main/utt",
-        True,
-    )
-    with open(ignored_utts_path) as file:
-        ignored_utts = [line.strip() for line in file.readlines()]
-
-    for utt in ignored_utts:
-        assert utt in all_data
-        del all_data[utt]
 
     ids = sorted(all_data.keys())
     wav_paths = [all_data[idx]["wav_path"] for idx in ids]
@@ -111,6 +101,7 @@ class SuperbASV(ASV):
             ),
             build_dataset=dict(
                 train=dict(
+                    min_secs=2.0,
                     max_secs=8.0,
                 ),
             ),
@@ -135,7 +126,7 @@ class SuperbASV(ASV):
             ),
             build_task=dict(
                 loss_type="amsoftmax",
-                loss_cfg=dict(
+                loss_conf=dict(
                     margin=0.4,
                     scale=30,
                 ),
@@ -161,7 +152,7 @@ class SuperbASV(ASV):
                 valid_higher_better=None,
                 auto_resume=True,
                 resume_ckpt_dir=None,
-                keep_num_ckpts=10,
+                keep_num_ckpts=None,
             ),
         )
 
@@ -270,15 +261,18 @@ class SuperbASV(ASV):
 
         Args:
             build_dataset (dict): same in :obj:`default_config`, have
-                :code:`train` and :code:`test` keys, each is a dictionary, for both dictionaries:
+                :code:`train` and :code:`test` keys, each is a dictionary, for :code:`train` dictionary:
 
                 ====================  ====================
                 key                   description
                 ====================  ====================
+                min_secs              (float) - Drop a waveform if it is not longer than :code:`min_secs`
                 max_secs              (float) - If a waveform is longer than :code:`max_secs` seconds, \
                                         randomly crop the waveform into :code:`max_secs` seconds. \
                                         Default: None, no cropping
                 ====================  ====================
+
+                for :code:`test` dictionary, no argument supported yet
 
             target_dir (str): Current experiment directory
             cache_dir (str): If the preprocessing takes too long time, you can save
@@ -322,15 +316,16 @@ class SuperbASV(ASV):
 
             @dataclass
             class Config:
+                min_secs: float = None
                 max_secs: float = None
 
-            config = build_dataset.get("train", {})
-            config = Config(**config)
+            conf = build_dataset.get("train", {})
+            conf = Config(**conf)
 
             csv = pd.read_csv(data_csv)
             wav_paths = csv["wav_path"].tolist()
             audio_loader = LoadAudio(
-                wav_paths, sox_effects=EFFECTS, max_secs=config.max_secs
+                wav_paths, sox_effects=EFFECTS, max_secs=conf.max_secs
             )
 
             labels = csv["spk"].tolist()
@@ -355,6 +350,31 @@ class SuperbASV(ASV):
                     }
 
             dataset = SVTrainDataset()
+
+            if conf.min_secs is not None:
+                x_lens, unique_names = get_info(
+                    dataset,
+                    "x_len",
+                    "unique_name",
+                    cache_dir=target_dir / "train_utt_len",
+                )
+
+                indices = []
+                removed_indices = []
+                for idx, (x_len, unique_name) in enumerate(zip(x_lens, unique_names)):
+                    secs = x_len / SAMPLE_RATE
+                    if secs <= conf.min_secs:
+                        logger.info(
+                            f"Remove utt {unique_name} since too short after sox effects: {secs} secs"
+                        )
+                        removed_indices.append(idx)
+                    else:
+                        indices.append(idx)
+
+                if len(removed_indices) > 0:
+                    logger.info(f"Remove in total {len(removed_indices)} utts")
+
+                dataset = Subset(dataset, indices)
 
         elif mode == "test":
             csv = pd.read_csv(data_csv)

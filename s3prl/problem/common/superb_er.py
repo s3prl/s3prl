@@ -172,7 +172,7 @@ class SuperbER(SuperbSID):
                 ),
             ),
             build_upstream=dict(
-                name="fbank",
+                name=MISSING,
             ),
             build_featurizer=dict(
                 layer_selections=None,
@@ -205,7 +205,7 @@ class SuperbER(SuperbSID):
                 gradient_clipping=1.0,
                 gradient_accumulate=8,
                 valid_metric="accuracy",
-                valid_higher_better=False,
+                valid_higher_better=True,
                 auto_resume=True,
                 resume_ckpt_dir=None,
             ),

@@ -6,6 +6,7 @@ Authors
 """
 
 import logging
+from pathlib import Path
 from typing import List, Union
 
 import numpy as np
@@ -186,7 +187,7 @@ class Speech2TextCTCTask(Task):
             loss=loss.detach().cpu().item(),
             prediction=prediction,
             label=labels.tolist(),
-            unique_name=unique_name,
+            unique_name=unique_name.tolist(),
             hypotheses=hyps,
         )
 
@@ -198,6 +199,16 @@ class Speech2TextCTCTask(Task):
         losses = results["loss"]
         predictions = results["prediction"]
         labels = results["label"]
+        unique_names = results["unique_name"]
+
+        if _dump_dir is not None:
+            with (Path(_dump_dir) / "ref").open("w") as f:
+                f.writelines(
+                    [f"{uid} {p}\n" for p, uid in zip(predictions, unique_names)]
+                )
+
+            with (Path(_dump_dir) / "hyp").open("w") as f:
+                f.writelines([f"{uid} {p}\n" for p, uid in zip(labels, unique_names)])
 
         beam_hyps = None
         if results["hypotheses"][0] is not None:

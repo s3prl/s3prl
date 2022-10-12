@@ -24,9 +24,6 @@ PHONEME_VOCAB = "SIL SPN AA0 AA1 AA2 AE0 AE1 AE2 AH0 AH1 AH2 AO0 AO1 AO2 AW0 AW1
     " "
 )
 
-# Mapping for character-slot tokenizer (SNIPS)
-translator = str.maketrans('ÁÃÄÅÆÇÈÉÊËÍÏÐÒÓÔÖØÚÛĘŃŌŞŪ"', "AAAAACEEEEIIDOOOOOUUENOSU ")
-
 
 __all__ = [
     "CharacterTokenizer",
@@ -175,9 +172,6 @@ class CharacterSlotTokenizer(Tokenizer):
         # Always strip trailing space, \r and \n
         sent = sent.strip("\r\n ")
         iobs = iobs.strip("\r\n ")
-        sent = sent.replace("楽園追放", "EXPELLED")
-        sent = sent.replace("官方杂志", "")
-        sent = sent.translate(translator)
         sent = re.sub(" +", " ", sent).strip(" ")
         sent = sent.split(" ")
         iobs = iobs.split(" ")
@@ -195,10 +189,6 @@ class CharacterSlotTokenizer(Tokenizer):
 
         tokens = []
         for i, (wrd, iob) in enumerate(zip(sent, iobs)):
-            if wrd in "?!.,;-–…":
-                continue
-            if wrd == "&":
-                wrd = "AND"
             if iob != "O" and (i == 0 or iobs[i - 1] != iob):
                 tokens.append(self.slot2id["B-" + iob])
             tokens += [self.vocab_to_idx(v) for v in wrd]
@@ -337,9 +327,6 @@ class SubwordSlotTokenizer(Tokenizer):
         # Always strip trailing space, \r and \n
         sent = sent.strip("\r\n ")
         iobs = iobs.strip("\r\n ")
-        sent = sent.replace("楽園追放", "EXPELLED")
-        sent = sent.replace("官方杂志", "")
-        sent = sent.translate(translator)
         sent = re.sub(" +", " ", sent).strip(" ")
         sent = sent.split(" ")
         iobs = iobs.split(" ")
@@ -357,13 +344,11 @@ class SubwordSlotTokenizer(Tokenizer):
 
         tokens = []
         for i, (wrd, iob) in enumerate(zip(sent, iobs)):
-            if wrd in "?!.,;-":
-                continue
-            if wrd == "&":
-                wrd = "AND"
             if iob != "O" and (i == 0 or iobs[i - 1] != iob):
                 tokens.append(self.slot2id["B-" + iob])
-            tokens += self.spm.encode_as_ids(wrd)[:-1]  # drop eos
+            encoded = self.spm.encode_as_ids(wrd)
+            assert encoded[-1] == self.eos_idx
+            tokens += encoded[:-1]  # drop eos
             if iob != "O" and (i == len(sent) - 1 or iobs[i + 1] != iob):
                 tokens.append(self.slot2id["E-" + iob])
         assert tokens[-1] != self.eos_idx

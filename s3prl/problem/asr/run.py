@@ -318,6 +318,7 @@ class ASR(Problem):
                     num_workers,
                 )
                 test_metrics = {name: float(value) for name, value in logs.items()}
+                logger.info(f"test results: {test_metrics}")
                 with (test_dir / f"result.yaml").open("w") as f:
                     yaml.safe_dump(test_metrics, f)
 

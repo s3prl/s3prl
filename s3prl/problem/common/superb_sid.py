@@ -9,7 +9,9 @@ Authors
 import logging
 import math
 import pickle
+from dataclasses import dataclass
 from pathlib import Path
+from typing import List
 
 import pandas as pd
 from omegaconf import MISSING
@@ -23,8 +25,6 @@ from s3prl.nn.linear import MeanPoolingLinear
 from .run import Common
 
 logger = logging.getLogger(__name__)
-
-EFFECTS = [["channels", "1"], ["rate", "16000"], ["gain", "-3.0"]]
 
 
 __all__ = [
@@ -96,7 +96,9 @@ class SuperbSID(Common):
             ),
             build_encoder=dict(),
             build_dataset=dict(
-                max_secs=8.0,
+                train=dict(
+                    max_secs=8.0,
+                ),
             ),
             build_batch_sampler=dict(
                 train=dict(
@@ -111,7 +113,7 @@ class SuperbSID(Common):
                 ),
             ),
             build_upstream=dict(
-                name="fbank",
+                name=MISSING,
             ),
             build_featurizer=dict(
                 layer_selections=None,
@@ -138,9 +140,9 @@ class SuperbSID(Common):
             save_task=dict(),
             train=dict(
                 total_steps=200000,
-                log_step=100,
-                eval_step=2000,
-                save_step=500,
+                log_step=500,
+                eval_step=5000,
+                save_step=1000,
                 gradient_clipping=1.0,
                 gradient_accumulate=4,
                 valid_metric="accuracy",
@@ -253,12 +255,14 @@ class SuperbSID(Common):
         Build the dataset for train/valid/test.
 
         Args:
-            build_dataset (dict): same in :obj:`default_config`
+            build_dataset (dict): same in :obj:`default_config`. with :code:`train`, :code:`valid`, :code:`test` keys, each
+                is a dictionary with the following supported options:
 
                 ====================  ====================
                 key                   description
                 ====================  ====================
                 max_secs              (float) - If a waveform is longer than :code:`max_secs` seconds, randomly crop the waveform into :code:`max_secs` seconds
+                sox_effects           (List[List[str]]) - If not None, apply sox effects on the utterance
                 ====================  ====================
 
             target_dir (str): Current experiment directory
@@ -286,51 +290,72 @@ class SuperbSID(Common):
             ====================  ====================
         """
 
-        def _utt_classification_dataset(max_secs: float = None):
-            csv = pd.read_csv(data_csv)
+        @dataclass
+        class Config:
+            train: dict = None
+            valid: dict = None
+            test: dict = None
 
-            start_secs = None
-            if "start_sec" in csv.columns:
-                start_secs = csv["start_sec"].tolist()
-                start_secs = [None if math.isnan(sec) else sec for sec in start_secs]
+        conf = Config(**build_dataset)
 
-            end_secs = None
-            if "end_sec" in csv.columns:
-                end_secs = csv["end_sec"].tolist()
-                end_secs = [None if math.isnan(sec) else sec for sec in end_secs]
+        assert mode in ["train", "valid", "test"]
+        if mode == "train":
+            conf = conf.train or {}
+        elif mode == "valid":
+            conf = conf.valid or {}
+        elif mode == "test":
+            conf = conf.test or {}
 
-            audio_loader = LoadAudio(
-                csv["wav_path"].tolist(),
-                start_secs,
-                end_secs,
-                max_secs=max_secs,
-                sox_effects=EFFECTS,
-            )
+        @dataclass
+        class SplitConfig:
+            max_secs: float = None
+            sox_effects: List[List[str]] = None
 
-            with open(encoder_path, "rb") as f:
-                encoder = pickle.load(f)
+        conf = SplitConfig(**conf)
 
-            label_encoder = EncodeCategory(csv["label"].tolist(), encoder)
-            ids = csv["id"].tolist()
+        csv = pd.read_csv(data_csv)
 
-            class Dataset:
-                def __len__(self):
-                    return len(ids)
+        start_secs = None
+        if "start_sec" in csv.columns:
+            start_secs = csv["start_sec"].tolist()
+            start_secs = [None if math.isnan(sec) else sec for sec in start_secs]
 
-                def __getitem__(self, index: int):
-                    audio = audio_loader[index]
-                    label = label_encoder[index]
-                    return {
-                        "x": audio["wav"],
-                        "x_len": audio["wav_len"],
-                        "label": label["label"],
-                        "class_id": label["class_id"],
-                        "unique_name": ids[index],
-                    }
+        end_secs = None
+        if "end_sec" in csv.columns:
+            end_secs = csv["end_sec"].tolist()
+            end_secs = [None if math.isnan(sec) else sec for sec in end_secs]
 
-            return Dataset()
+        audio_loader = LoadAudio(
+            csv["wav_path"].tolist(),
+            start_secs,
+            end_secs,
+            max_secs=conf.max_secs,
+            sox_effects=conf.sox_effects,
+        )
 
-        return _utt_classification_dataset(**build_dataset)
+        with open(encoder_path, "rb") as f:
+            encoder = pickle.load(f)
+
+        label_encoder = EncodeCategory(csv["label"].tolist(), encoder)
+        ids = csv["id"].tolist()
+
+        class Dataset:
+            def __len__(self):
+                return len(ids)
+
+            def __getitem__(self, index: int):
+                audio = audio_loader[index]
+                label = label_encoder[index]
+                return {
+                    "x": audio["wav"],
+                    "x_len": audio["wav_len"],
+                    "label": label["label"],
+                    "class_id": label["class_id"],
+                    "unique_name": ids[index],
+                }
+
+        dataset = Dataset()
+        return dataset
 
     def build_batch_sampler(
         self,
