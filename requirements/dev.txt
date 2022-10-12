@@ -6,6 +6,6 @@ pre-commit
 flake8 ==3.9.2
 black ==22.3.0
 isort ==5.10.1
-sphinx
+sphinx ==5.1.1  # follow https://github.com/sphinx-doc/sphinx/issues/6316
 furo
 importlib_metadata <5.0  # required by flake8
