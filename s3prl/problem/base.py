@@ -616,7 +616,10 @@ class Problem:
                         key for key in os.listdir(train_dir) if key.startswith("step_")
                     ]
                     ckpt_dirs.sort(key=lambda stem: int(stem.split("_")[-1]))
-                    if len(ckpt_dirs) >= conf.keep_num_ckpts:
+                    if (
+                        conf.keep_num_ckpts is not None
+                        and len(ckpt_dirs) >= conf.keep_num_ckpts
+                    ):
                         for ckpt_dir in ckpt_dirs[
                             : len(ckpt_dirs) - conf.keep_num_ckpts + 1
                         ]:
