@@ -126,7 +126,7 @@ class SuperbASV(ASV):
             ),
             build_task=dict(
                 loss_type="amsoftmax",
-                loss_cfg=dict(
+                loss_conf=dict(
                     margin=0.4,
                     scale=30,
                 ),

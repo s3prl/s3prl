@@ -72,7 +72,7 @@ class SpeakerVerification(Task):
         test_trials (List[Tuple[int, str, str]]):
             each tuple in the list consists of (label, enroll_utt, test_utt)
         loss_type (str): softmax or amsoftmax
-        loss_cfg (dict): **kwds for loss_type class
+        loss_conf (dict): arguments for the loss_type class
     """
 
     def __init__(
@@ -81,7 +81,7 @@ class SpeakerVerification(Task):
         category: CategoryEncoder,
         test_trials: List[Tuple[int, str, str]] = None,
         loss_type: str = "amsoftmax",
-        loss_cfg: dict = None,
+        loss_conf: dict = None,
     ):
         super().__init__()
         self.model = model
@@ -98,7 +98,7 @@ class SpeakerVerification(Task):
         self.loss: torch.nn.Module = loss_cls(
             input_size=self.model.output_size,
             output_size=len(self.category),
-            **loss_cfg,
+            **loss_conf,
         )
         assert self.loss.output_size == len(category)
 
