@@ -205,16 +205,12 @@ class UtteranceMultiClassClassificationTask(Task):
 
         cacheable = dict(
             loss=loss.detach().cpu(),
-            prediction=prediction,
-            label=labels,
+            prediction=prediction.tolist(),
+            label=labels.tolist(),
             unique_name=unique_name,
         )
 
         return loss, cacheable
-
-    @staticmethod
-    def numpy_object_array_all_close(x, y):
-        return not (x != y).sum() > 0
 
     def reduction(self, _mode: str, cached_results: List[dict], _dump_dir: str = None):
         results = self.parse_cached_results(cached_results)
@@ -222,9 +218,7 @@ class UtteranceMultiClassClassificationTask(Task):
         predictions = results["prediction"]
         labels = results["label"]
 
-        acc = accuracy(
-            predictions, labels, item_same_fn=self.numpy_object_array_all_close
-        )
+        acc = accuracy(predictions, labels)
         loss = (sum(losses) / len(losses)).item()
 
         return dict(
