@@ -800,9 +800,10 @@
 <span class="sd">        Returns:</span>
 <span class="sd">            :obj:`s3prl.nn.interface.AbsUtteranceModel`</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="k">return</span> <span class="n">SuperbXvector</span><span class="p">(</span>
-            <span class="n">downstream_input_size</span><span class="p">,</span> <span class="n">downstream_output_size</span><span class="p">,</span> <span class="o">**</span><span class="n">build_downstream</span>
-        <span class="p">)</span></div></div>
+        <span class="n">model</span> <span class="o">=</span> <span class="n">SuperbXvector</span><span class="p">(</span>
+            <span class="n">downstream_input_size</span><span class="p">,</span> <span class="o">**</span><span class="n">build_downstream</span>
+        <span class="p">)</span>
+        <span class="k">return</span> <span class="n">model</span></div></div>
 </pre></div>
         </article>
       </div>
