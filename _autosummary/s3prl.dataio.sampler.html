@@ -5,7 +5,7 @@
     <meta name="color-scheme" content="light dark"><meta name="generator" content="Docutils 0.19: https://docutils.sourceforge.io/" />
 <link rel="index" title="Index" href="../genindex.html" /><link rel="search" title="Search" href="../search.html" /><link rel="next" title="balanced_weighted_sampler" href="s3prl.dataio.sampler.balanced_weighted_sampler.html" /><link rel="prev" title="vocabulary" href="s3prl.dataio.encoder.vocabulary.html" />
 
-    <meta name="generator" content="sphinx-5.2.3, furo 2022.09.29"/>
+    <meta name="generator" content="sphinx-5.1.1, furo 2022.09.29"/>
         <title>sampler - S3PRL 0.4.5 documentation</title>
       <link rel="stylesheet" type="text/css" href="../_static/pygments.css" />
     <link rel="stylesheet" type="text/css" href="../_static/styles/furo.css?digest=d81277517bee4d6b0349d71bb2661d4890b5617c" />
@@ -550,55 +550,13 @@ If shuffled, each indices are first shuffled before aggregated into batches</p>
           <div class="toc-tree">
             <ul>
 <li><a class="reference internal" href="#">sampler</a><ul>
-<li><a class="reference internal" href="#balancedweightedsampler">BalancedWeightedSampler</a><ul>
-<li><a class="reference internal" href="#s3prl.dataio.sampler.BalancedWeightedSampler"><code class="docutils literal notranslate"><span class="pre">BalancedWeightedSampler</span></code></a><ul>
-<li><a class="reference internal" href="#s3prl.dataio.sampler.BalancedWeightedSampler.set_epoch"><code class="docutils literal notranslate"><span class="pre">BalancedWeightedSampler.set_epoch()</span></code></a></li>
-</ul>
-</li>
-</ul>
-</li>
-<li><a class="reference internal" href="#distributedbatchsamplerwrapper">DistributedBatchSamplerWrapper</a><ul>
-<li><a class="reference internal" href="#s3prl.dataio.sampler.DistributedBatchSamplerWrapper"><code class="docutils literal notranslate"><span class="pre">DistributedBatchSamplerWrapper</span></code></a><ul>
-<li><a class="reference internal" href="#s3prl.dataio.sampler.DistributedBatchSamplerWrapper.set_epoch"><code class="docutils literal notranslate"><span class="pre">DistributedBatchSamplerWrapper.set_epoch()</span></code></a></li>
-</ul>
-</li>
-</ul>
-</li>
-<li><a class="reference internal" href="#fixedbatchsizebatchsampler">FixedBatchSizeBatchSampler</a><ul>
-<li><a class="reference internal" href="#s3prl.dataio.sampler.FixedBatchSizeBatchSampler"><code class="docutils literal notranslate"><span class="pre">FixedBatchSizeBatchSampler</span></code></a><ul>
-<li><a class="reference internal" href="#s3prl.dataio.sampler.FixedBatchSizeBatchSampler.set_epoch"><code class="docutils literal notranslate"><span class="pre">FixedBatchSizeBatchSampler.set_epoch()</span></code></a></li>
-</ul>
-</li>
-</ul>
-</li>
-<li><a class="reference internal" href="#groupsameitemsampler">GroupSameItemSampler</a><ul>
-<li><a class="reference internal" href="#s3prl.dataio.sampler.GroupSameItemSampler"><code class="docutils literal notranslate"><span class="pre">GroupSameItemSampler</span></code></a><ul>
-<li><a class="reference internal" href="#s3prl.dataio.sampler.GroupSameItemSampler.set_epoch"><code class="docutils literal notranslate"><span class="pre">GroupSameItemSampler.set_epoch()</span></code></a></li>
-</ul>
-</li>
-</ul>
-</li>
-<li><a class="reference internal" href="#maxtimestampbatchsampler">MaxTimestampBatchSampler</a><ul>
-<li><a class="reference internal" href="#s3prl.dataio.sampler.MaxTimestampBatchSampler"><code class="docutils literal notranslate"><span class="pre">MaxTimestampBatchSampler</span></code></a><ul>
-<li><a class="reference internal" href="#s3prl.dataio.sampler.MaxTimestampBatchSampler.set_epoch"><code class="docutils literal notranslate"><span class="pre">MaxTimestampBatchSampler.set_epoch()</span></code></a></li>
-</ul>
-</li>
-</ul>
-</li>
-<li><a class="reference internal" href="#sortedbucketingsampler">SortedBucketingSampler</a><ul>
-<li><a class="reference internal" href="#s3prl.dataio.sampler.SortedBucketingSampler"><code class="docutils literal notranslate"><span class="pre">SortedBucketingSampler</span></code></a><ul>
-<li><a class="reference internal" href="#s3prl.dataio.sampler.SortedBucketingSampler.set_epoch"><code class="docutils literal notranslate"><span class="pre">SortedBucketingSampler.set_epoch()</span></code></a></li>
-</ul>
-</li>
-</ul>
-</li>
-<li><a class="reference internal" href="#sortedslicesampler">SortedSliceSampler</a><ul>
-<li><a class="reference internal" href="#s3prl.dataio.sampler.SortedSliceSampler"><code class="docutils literal notranslate"><span class="pre">SortedSliceSampler</span></code></a><ul>
-<li><a class="reference internal" href="#s3prl.dataio.sampler.SortedSliceSampler.set_epoch"><code class="docutils literal notranslate"><span class="pre">SortedSliceSampler.set_epoch()</span></code></a></li>
-</ul>
-</li>
-</ul>
-</li>
+<li><a class="reference internal" href="#balancedweightedsampler">BalancedWeightedSampler</a></li>
+<li><a class="reference internal" href="#distributedbatchsamplerwrapper">DistributedBatchSamplerWrapper</a></li>
+<li><a class="reference internal" href="#fixedbatchsizebatchsampler">FixedBatchSizeBatchSampler</a></li>
+<li><a class="reference internal" href="#groupsameitemsampler">GroupSameItemSampler</a></li>
+<li><a class="reference internal" href="#maxtimestampbatchsampler">MaxTimestampBatchSampler</a></li>
+<li><a class="reference internal" href="#sortedbucketingsampler">SortedBucketingSampler</a></li>
+<li><a class="reference internal" href="#sortedslicesampler">SortedSliceSampler</a></li>
 </ul>
 </li>
 </ul>
@@ -615,7 +573,6 @@ If shuffled, each indices are first shuffled before aggregated into batches</p>
     <script src="../_static/underscore.js"></script>
     <script src="../_static/_sphinx_javascript_frameworks_compat.js"></script>
     <script src="../_static/doctools.js"></script>
-    <script src="../_static/sphinx_highlight.js"></script>
     <script src="../_static/scripts/furo.js"></script>
     <script src="../_static/js/custom.js"></script>
     </body>

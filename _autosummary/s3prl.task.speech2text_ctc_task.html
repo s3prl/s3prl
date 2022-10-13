@@ -5,7 +5,7 @@
     <meta name="color-scheme" content="light dark"><meta name="generator" content="Docutils 0.19: https://docutils.sourceforge.io/" />
 <link rel="index" title="Index" href="../genindex.html" /><link rel="search" title="Search" href="../search.html" /><link rel="next" title="utterance_classification_task" href="s3prl.task.utterance_classification_task.html" /><link rel="prev" title="speaker_verification_task" href="s3prl.task.speaker_verification_task.html" />
 
-    <meta name="generator" content="sphinx-5.2.3, furo 2022.09.29"/>
+    <meta name="generator" content="sphinx-5.1.1, furo 2022.09.29"/>
         <title>speech2text_ctc_task - S3PRL 0.4.5 documentation</title>
       <link rel="stylesheet" type="text/css" href="../_static/pygments.css" />
     <link rel="stylesheet" type="text/css" href="../_static/styles/furo.css?digest=d81277517bee4d6b0349d71bb2661d4890b5617c" />
@@ -598,37 +598,8 @@ the change.</p>
           <div class="toc-tree">
             <ul>
 <li><a class="reference internal" href="#">speech2text_ctc_task</a><ul>
-<li><a class="reference internal" href="#speech2textctcexample">Speech2TextCTCExample</a><ul>
-<li><a class="reference internal" href="#s3prl.task.speech2text_ctc_task.Speech2TextCTCExample"><code class="docutils literal notranslate"><span class="pre">Speech2TextCTCExample</span></code></a><ul>
-<li><a class="reference internal" href="#s3prl.task.speech2text_ctc_task.Speech2TextCTCExample.input_size"><code class="docutils literal notranslate"><span class="pre">Speech2TextCTCExample.input_size</span></code></a></li>
-<li><a class="reference internal" href="#s3prl.task.speech2text_ctc_task.Speech2TextCTCExample.output_size"><code class="docutils literal notranslate"><span class="pre">Speech2TextCTCExample.output_size</span></code></a></li>
-<li><a class="reference internal" href="#s3prl.task.speech2text_ctc_task.Speech2TextCTCExample.forward"><code class="docutils literal notranslate"><span class="pre">Speech2TextCTCExample.forward()</span></code></a></li>
-<li><a class="reference internal" href="#s3prl.task.speech2text_ctc_task.Speech2TextCTCExample.dump_patches"><code class="docutils literal notranslate"><span class="pre">Speech2TextCTCExample.dump_patches</span></code></a></li>
-<li><a class="reference internal" href="#s3prl.task.speech2text_ctc_task.Speech2TextCTCExample.training"><code class="docutils literal notranslate"><span class="pre">Speech2TextCTCExample.training</span></code></a></li>
-</ul>
-</li>
-</ul>
-</li>
-<li><a class="reference internal" href="#speech2textctctask">Speech2TextCTCTask</a><ul>
-<li><a class="reference internal" href="#s3prl.task.speech2text_ctc_task.Speech2TextCTCTask"><code class="docutils literal notranslate"><span class="pre">Speech2TextCTCTask</span></code></a><ul>
-<li><a class="reference internal" href="#s3prl.task.speech2text_ctc_task.Speech2TextCTCTask.predict"><code class="docutils literal notranslate"><span class="pre">Speech2TextCTCTask.predict()</span></code></a></li>
-<li><a class="reference internal" href="#s3prl.task.speech2text_ctc_task.Speech2TextCTCTask.forward"><code class="docutils literal notranslate"><span class="pre">Speech2TextCTCTask.forward()</span></code></a></li>
-<li><a class="reference internal" href="#s3prl.task.speech2text_ctc_task.Speech2TextCTCTask.reduction"><code class="docutils literal notranslate"><span class="pre">Speech2TextCTCTask.reduction()</span></code></a></li>
-<li><a class="reference internal" href="#s3prl.task.speech2text_ctc_task.Speech2TextCTCTask.dump_patches"><code class="docutils literal notranslate"><span class="pre">Speech2TextCTCTask.dump_patches</span></code></a></li>
-<li><a class="reference internal" href="#s3prl.task.speech2text_ctc_task.Speech2TextCTCTask.get_state"><code class="docutils literal notranslate"><span class="pre">Speech2TextCTCTask.get_state()</span></code></a></li>
-<li><a class="reference internal" href="#s3prl.task.speech2text_ctc_task.Speech2TextCTCTask.parse_cached_results"><code class="docutils literal notranslate"><span class="pre">Speech2TextCTCTask.parse_cached_results()</span></code></a></li>
-<li><a class="reference internal" href="#s3prl.task.speech2text_ctc_task.Speech2TextCTCTask.set_state"><code class="docutils literal notranslate"><span class="pre">Speech2TextCTCTask.set_state()</span></code></a></li>
-<li><a class="reference internal" href="#s3prl.task.speech2text_ctc_task.Speech2TextCTCTask.test_reduction"><code class="docutils literal notranslate"><span class="pre">Speech2TextCTCTask.test_reduction()</span></code></a></li>
-<li><a class="reference internal" href="#s3prl.task.speech2text_ctc_task.Speech2TextCTCTask.test_step"><code class="docutils literal notranslate"><span class="pre">Speech2TextCTCTask.test_step()</span></code></a></li>
-<li><a class="reference internal" href="#s3prl.task.speech2text_ctc_task.Speech2TextCTCTask.train_reduction"><code class="docutils literal notranslate"><span class="pre">Speech2TextCTCTask.train_reduction()</span></code></a></li>
-<li><a class="reference internal" href="#s3prl.task.speech2text_ctc_task.Speech2TextCTCTask.train_step"><code class="docutils literal notranslate"><span class="pre">Speech2TextCTCTask.train_step()</span></code></a></li>
-<li><a class="reference internal" href="#s3prl.task.speech2text_ctc_task.Speech2TextCTCTask.valid_reduction"><code class="docutils literal notranslate"><span class="pre">Speech2TextCTCTask.valid_reduction()</span></code></a></li>
-<li><a class="reference internal" href="#s3prl.task.speech2text_ctc_task.Speech2TextCTCTask.valid_step"><code class="docutils literal notranslate"><span class="pre">Speech2TextCTCTask.valid_step()</span></code></a></li>
-<li><a class="reference internal" href="#s3prl.task.speech2text_ctc_task.Speech2TextCTCTask.training"><code class="docutils literal notranslate"><span class="pre">Speech2TextCTCTask.training</span></code></a></li>
-</ul>
-</li>
-</ul>
-</li>
+<li><a class="reference internal" href="#speech2textctcexample">Speech2TextCTCExample</a></li>
+<li><a class="reference internal" href="#speech2textctctask">Speech2TextCTCTask</a></li>
 </ul>
 </li>
 </ul>
@@ -645,7 +616,6 @@ the change.</p>
     <script src="../_static/underscore.js"></script>
     <script src="../_static/_sphinx_javascript_frameworks_compat.js"></script>
     <script src="../_static/doctools.js"></script>
-    <script src="../_static/sphinx_highlight.js"></script>
     <script src="../_static/scripts/furo.js"></script>
     <script src="../_static/js/custom.js"></script>
     </body>

@@ -5,7 +5,7 @@
     <meta name="color-scheme" content="light dark"><meta name="generator" content="Docutils 0.19: https://docutils.sourceforge.io/" />
 <link rel="index" title="Index" href="../genindex.html" /><link rel="search" title="Search" href="../search.html" /><link rel="next" title="beam_decoder" href="s3prl.nn.beam_decoder.html" /><link rel="prev" title="Internal S3PRL Development" href="../contribute/private.html" />
 
-    <meta name="generator" content="sphinx-5.2.3, furo 2022.09.29"/>
+    <meta name="generator" content="sphinx-5.1.1, furo 2022.09.29"/>
         <title>nn - S3PRL 0.4.5 documentation</title>
       <link rel="stylesheet" type="text/css" href="../_static/pygments.css" />
     <link rel="stylesheet" type="text/css" href="../_static/styles/furo.css?digest=d81277517bee4d6b0349d71bb2661d4890b5617c" />
@@ -1537,175 +1537,22 @@ the change.</p>
           <div class="toc-tree">
             <ul>
 <li><a class="reference internal" href="#">nn</a><ul>
-<li><a class="reference internal" href="#s3prlupstream">S3PRLUpstream</a><ul>
-<li><a class="reference internal" href="#s3prl.nn.S3PRLUpstream"><code class="docutils literal notranslate"><span class="pre">S3PRLUpstream</span></code></a><ul>
-<li><a class="reference internal" href="#s3prl.nn.S3PRLUpstream.available_names"><code class="docutils literal notranslate"><span class="pre">S3PRLUpstream.available_names()</span></code></a></li>
-<li><a class="reference internal" href="#s3prl.nn.S3PRLUpstream.num_layers"><code class="docutils literal notranslate"><span class="pre">S3PRLUpstream.num_layers</span></code></a></li>
-<li><a class="reference internal" href="#s3prl.nn.S3PRLUpstream.downsample_rates"><code class="docutils literal notranslate"><span class="pre">S3PRLUpstream.downsample_rates</span></code></a></li>
-<li><a class="reference internal" href="#s3prl.nn.S3PRLUpstream.hidden_sizes"><code class="docutils literal notranslate"><span class="pre">S3PRLUpstream.hidden_sizes</span></code></a></li>
-<li><a class="reference internal" href="#s3prl.nn.S3PRLUpstream.forward"><code class="docutils literal notranslate"><span class="pre">S3PRLUpstream.forward()</span></code></a></li>
-<li><a class="reference internal" href="#s3prl.nn.S3PRLUpstream.dump_patches"><code class="docutils literal notranslate"><span class="pre">S3PRLUpstream.dump_patches</span></code></a></li>
-<li><a class="reference internal" href="#s3prl.nn.S3PRLUpstream.training"><code class="docutils literal notranslate"><span class="pre">S3PRLUpstream.training</span></code></a></li>
-</ul>
-</li>
-</ul>
-</li>
-<li><a class="reference internal" href="#featurizer">Featurizer</a><ul>
-<li><a class="reference internal" href="#s3prl.nn.Featurizer"><code class="docutils literal notranslate"><span class="pre">Featurizer</span></code></a><ul>
-<li><a class="reference internal" href="#s3prl.nn.Featurizer.output_size"><code class="docutils literal notranslate"><span class="pre">Featurizer.output_size</span></code></a></li>
-<li><a class="reference internal" href="#s3prl.nn.Featurizer.downsample_rate"><code class="docutils literal notranslate"><span class="pre">Featurizer.downsample_rate</span></code></a></li>
-<li><a class="reference internal" href="#s3prl.nn.Featurizer.forward"><code class="docutils literal notranslate"><span class="pre">Featurizer.forward()</span></code></a></li>
-<li><a class="reference internal" href="#s3prl.nn.Featurizer.dump_patches"><code class="docutils literal notranslate"><span class="pre">Featurizer.dump_patches</span></code></a></li>
-<li><a class="reference internal" href="#s3prl.nn.Featurizer.training"><code class="docutils literal notranslate"><span class="pre">Featurizer.training</span></code></a></li>
-</ul>
-</li>
-</ul>
-</li>
-<li><a class="reference internal" href="#framelevel">FrameLevel</a><ul>
-<li><a class="reference internal" href="#s3prl.nn.FrameLevel"><code class="docutils literal notranslate"><span class="pre">FrameLevel</span></code></a><ul>
-<li><a class="reference internal" href="#s3prl.nn.FrameLevel.input_size"><code class="docutils literal notranslate"><span class="pre">FrameLevel.input_size</span></code></a></li>
-<li><a class="reference internal" href="#s3prl.nn.FrameLevel.output_size"><code class="docutils literal notranslate"><span class="pre">FrameLevel.output_size</span></code></a></li>
-<li><a class="reference internal" href="#s3prl.nn.FrameLevel.forward"><code class="docutils literal notranslate"><span class="pre">FrameLevel.forward()</span></code></a></li>
-<li><a class="reference internal" href="#s3prl.nn.FrameLevel.dump_patches"><code class="docutils literal notranslate"><span class="pre">FrameLevel.dump_patches</span></code></a></li>
-<li><a class="reference internal" href="#s3prl.nn.FrameLevel.training"><code class="docutils literal notranslate"><span class="pre">FrameLevel.training</span></code></a></li>
-</ul>
-</li>
-</ul>
-</li>
-<li><a class="reference internal" href="#utterancelevel">UtteranceLevel</a><ul>
-<li><a class="reference internal" href="#s3prl.nn.UtteranceLevel"><code class="docutils literal notranslate"><span class="pre">UtteranceLevel</span></code></a><ul>
-<li><a class="reference internal" href="#s3prl.nn.UtteranceLevel.input_size"><code class="docutils literal notranslate"><span class="pre">UtteranceLevel.input_size</span></code></a></li>
-<li><a class="reference internal" href="#s3prl.nn.UtteranceLevel.output_size"><code class="docutils literal notranslate"><span class="pre">UtteranceLevel.output_size</span></code></a></li>
-<li><a class="reference internal" href="#s3prl.nn.UtteranceLevel.forward"><code class="docutils literal notranslate"><span class="pre">UtteranceLevel.forward()</span></code></a></li>
-<li><a class="reference internal" href="#s3prl.nn.UtteranceLevel.dump_patches"><code class="docutils literal notranslate"><span class="pre">UtteranceLevel.dump_patches</span></code></a></li>
-<li><a class="reference internal" href="#s3prl.nn.UtteranceLevel.training"><code class="docutils literal notranslate"><span class="pre">UtteranceLevel.training</span></code></a></li>
-</ul>
-</li>
-</ul>
-</li>
-<li><a class="reference internal" href="#framelevellinear">FrameLevelLinear</a><ul>
-<li><a class="reference internal" href="#s3prl.nn.FrameLevelLinear"><code class="docutils literal notranslate"><span class="pre">FrameLevelLinear</span></code></a><ul>
-<li><a class="reference internal" href="#s3prl.nn.FrameLevelLinear.dump_patches"><code class="docutils literal notranslate"><span class="pre">FrameLevelLinear.dump_patches</span></code></a></li>
-<li><a class="reference internal" href="#s3prl.nn.FrameLevelLinear.forward"><code class="docutils literal notranslate"><span class="pre">FrameLevelLinear.forward()</span></code></a></li>
-<li><a class="reference internal" href="#s3prl.nn.FrameLevelLinear.input_size"><code class="docutils literal notranslate"><span class="pre">FrameLevelLinear.input_size</span></code></a></li>
-<li><a class="reference internal" href="#s3prl.nn.FrameLevelLinear.output_size"><code class="docutils literal notranslate"><span class="pre">FrameLevelLinear.output_size</span></code></a></li>
-<li><a class="reference internal" href="#s3prl.nn.FrameLevelLinear.training"><code class="docutils literal notranslate"><span class="pre">FrameLevelLinear.training</span></code></a></li>
-</ul>
-</li>
-</ul>
-</li>
-<li><a class="reference internal" href="#meanpoolinglinear">MeanPoolingLinear</a><ul>
-<li><a class="reference internal" href="#s3prl.nn.MeanPoolingLinear"><code class="docutils literal notranslate"><span class="pre">MeanPoolingLinear</span></code></a><ul>
-<li><a class="reference internal" href="#s3prl.nn.MeanPoolingLinear.dump_patches"><code class="docutils literal notranslate"><span class="pre">MeanPoolingLinear.dump_patches</span></code></a></li>
-<li><a class="reference internal" href="#s3prl.nn.MeanPoolingLinear.forward"><code class="docutils literal notranslate"><span class="pre">MeanPoolingLinear.forward()</span></code></a></li>
-<li><a class="reference internal" href="#s3prl.nn.MeanPoolingLinear.input_size"><code class="docutils literal notranslate"><span class="pre">MeanPoolingLinear.input_size</span></code></a></li>
-<li><a class="reference internal" href="#s3prl.nn.MeanPoolingLinear.output_size"><code class="docutils literal notranslate"><span class="pre">MeanPoolingLinear.output_size</span></code></a></li>
-<li><a class="reference internal" href="#s3prl.nn.MeanPoolingLinear.training"><code class="docutils literal notranslate"><span class="pre">MeanPoolingLinear.training</span></code></a></li>
-</ul>
-</li>
-</ul>
-</li>
-<li><a class="reference internal" href="#meanpooling">MeanPooling</a><ul>
-<li><a class="reference internal" href="#s3prl.nn.MeanPooling"><code class="docutils literal notranslate"><span class="pre">MeanPooling</span></code></a><ul>
-<li><a class="reference internal" href="#s3prl.nn.MeanPooling.input_size"><code class="docutils literal notranslate"><span class="pre">MeanPooling.input_size</span></code></a></li>
-<li><a class="reference internal" href="#s3prl.nn.MeanPooling.output_size"><code class="docutils literal notranslate"><span class="pre">MeanPooling.output_size</span></code></a></li>
-<li><a class="reference internal" href="#s3prl.nn.MeanPooling.forward"><code class="docutils literal notranslate"><span class="pre">MeanPooling.forward()</span></code></a></li>
-<li><a class="reference internal" href="#s3prl.nn.MeanPooling.dump_patches"><code class="docutils literal notranslate"><span class="pre">MeanPooling.dump_patches</span></code></a></li>
-<li><a class="reference internal" href="#s3prl.nn.MeanPooling.training"><code class="docutils literal notranslate"><span class="pre">MeanPooling.training</span></code></a></li>
-</ul>
-</li>
-</ul>
-</li>
-<li><a class="reference internal" href="#temporalaveragepooling">TemporalAveragePooling</a><ul>
-<li><a class="reference internal" href="#s3prl.nn.TemporalAveragePooling"><code class="docutils literal notranslate"><span class="pre">TemporalAveragePooling</span></code></a></li>
-</ul>
-</li>
-<li><a class="reference internal" href="#temporalstatisticspooling">TemporalStatisticsPooling</a><ul>
-<li><a class="reference internal" href="#s3prl.nn.TemporalStatisticsPooling"><code class="docutils literal notranslate"><span class="pre">TemporalStatisticsPooling</span></code></a><ul>
-<li><a class="reference internal" href="#s3prl.nn.TemporalStatisticsPooling.input_size"><code class="docutils literal notranslate"><span class="pre">TemporalStatisticsPooling.input_size</span></code></a></li>
-<li><a class="reference internal" href="#s3prl.nn.TemporalStatisticsPooling.output_size"><code class="docutils literal notranslate"><span class="pre">TemporalStatisticsPooling.output_size</span></code></a></li>
-<li><a class="reference internal" href="#s3prl.nn.TemporalStatisticsPooling.forward"><code class="docutils literal notranslate"><span class="pre">TemporalStatisticsPooling.forward()</span></code></a></li>
-<li><a class="reference internal" href="#s3prl.nn.TemporalStatisticsPooling.dump_patches"><code class="docutils literal notranslate"><span class="pre">TemporalStatisticsPooling.dump_patches</span></code></a></li>
-<li><a class="reference internal" href="#s3prl.nn.TemporalStatisticsPooling.training"><code class="docutils literal notranslate"><span class="pre">TemporalStatisticsPooling.training</span></code></a></li>
-</ul>
-</li>
-</ul>
-</li>
-<li><a class="reference internal" href="#rnnencoder">RNNEncoder</a><ul>
-<li><a class="reference internal" href="#s3prl.nn.RNNEncoder"><code class="docutils literal notranslate"><span class="pre">RNNEncoder</span></code></a><ul>
-<li><a class="reference internal" href="#s3prl.nn.RNNEncoder.forward"><code class="docutils literal notranslate"><span class="pre">RNNEncoder.forward()</span></code></a></li>
-<li><a class="reference internal" href="#s3prl.nn.RNNEncoder.input_size"><code class="docutils literal notranslate"><span class="pre">RNNEncoder.input_size</span></code></a></li>
-<li><a class="reference internal" href="#s3prl.nn.RNNEncoder.output_size"><code class="docutils literal notranslate"><span class="pre">RNNEncoder.output_size</span></code></a></li>
-<li><a class="reference internal" href="#s3prl.nn.RNNEncoder.dump_patches"><code class="docutils literal notranslate"><span class="pre">RNNEncoder.dump_patches</span></code></a></li>
-<li><a class="reference internal" href="#s3prl.nn.RNNEncoder.training"><code class="docutils literal notranslate"><span class="pre">RNNEncoder.training</span></code></a></li>
-</ul>
-</li>
-</ul>
-</li>
-<li><a class="reference internal" href="#superbdiarizationmodel">SuperbDiarizationModel</a><ul>
-<li><a class="reference internal" href="#s3prl.nn.SuperbDiarizationModel"><code class="docutils literal notranslate"><span class="pre">SuperbDiarizationModel</span></code></a><ul>
-<li><a class="reference internal" href="#s3prl.nn.SuperbDiarizationModel.input_size"><code class="docutils literal notranslate"><span class="pre">SuperbDiarizationModel.input_size</span></code></a></li>
-<li><a class="reference internal" href="#s3prl.nn.SuperbDiarizationModel.output_size"><code class="docutils literal notranslate"><span class="pre">SuperbDiarizationModel.output_size</span></code></a></li>
-<li><a class="reference internal" href="#s3prl.nn.SuperbDiarizationModel.dump_patches"><code class="docutils literal notranslate"><span class="pre">SuperbDiarizationModel.dump_patches</span></code></a></li>
-<li><a class="reference internal" href="#s3prl.nn.SuperbDiarizationModel.forward"><code class="docutils literal notranslate"><span class="pre">SuperbDiarizationModel.forward()</span></code></a></li>
-<li><a class="reference internal" href="#s3prl.nn.SuperbDiarizationModel.training"><code class="docutils literal notranslate"><span class="pre">SuperbDiarizationModel.training</span></code></a></li>
-</ul>
-</li>
-</ul>
-</li>
-<li><a class="reference internal" href="#amsoftmax">amsoftmax</a><ul>
-<li><a class="reference internal" href="#s3prl.nn.amsoftmax"><code class="docutils literal notranslate"><span class="pre">amsoftmax</span></code></a><ul>
-<li><a class="reference internal" href="#s3prl.nn.amsoftmax.input_size"><code class="docutils literal notranslate"><span class="pre">amsoftmax.input_size</span></code></a></li>
-<li><a class="reference internal" href="#s3prl.nn.amsoftmax.output_size"><code class="docutils literal notranslate"><span class="pre">amsoftmax.output_size</span></code></a></li>
-<li><a class="reference internal" href="#s3prl.nn.amsoftmax.forward"><code class="docutils literal notranslate"><span class="pre">amsoftmax.forward()</span></code></a></li>
-<li><a class="reference internal" href="#s3prl.nn.amsoftmax.dump_patches"><code class="docutils literal notranslate"><span class="pre">amsoftmax.dump_patches</span></code></a></li>
-<li><a class="reference internal" href="#s3prl.nn.amsoftmax.training"><code class="docutils literal notranslate"><span class="pre">amsoftmax.training</span></code></a></li>
-</ul>
-</li>
-</ul>
-</li>
-<li><a class="reference internal" href="#softmax">softmax</a><ul>
-<li><a class="reference internal" href="#s3prl.nn.softmax"><code class="docutils literal notranslate"><span class="pre">softmax</span></code></a><ul>
-<li><a class="reference internal" href="#s3prl.nn.softmax.input_size"><code class="docutils literal notranslate"><span class="pre">softmax.input_size</span></code></a></li>
-<li><a class="reference internal" href="#s3prl.nn.softmax.output_size"><code class="docutils literal notranslate"><span class="pre">softmax.output_size</span></code></a></li>
-<li><a class="reference internal" href="#s3prl.nn.softmax.forward"><code class="docutils literal notranslate"><span class="pre">softmax.forward()</span></code></a></li>
-<li><a class="reference internal" href="#s3prl.nn.softmax.dump_patches"><code class="docutils literal notranslate"><span class="pre">softmax.dump_patches</span></code></a></li>
-<li><a class="reference internal" href="#s3prl.nn.softmax.training"><code class="docutils literal notranslate"><span class="pre">softmax.training</span></code></a></li>
-</ul>
-</li>
-</ul>
-</li>
-<li><a class="reference internal" href="#superbxvector">SuperbXvector</a><ul>
-<li><a class="reference internal" href="#s3prl.nn.SuperbXvector"><code class="docutils literal notranslate"><span class="pre">SuperbXvector</span></code></a><ul>
-<li><a class="reference internal" href="#s3prl.nn.SuperbXvector.dump_patches"><code class="docutils literal notranslate"><span class="pre">SuperbXvector.dump_patches</span></code></a></li>
-<li><a class="reference internal" href="#s3prl.nn.SuperbXvector.training"><code class="docutils literal notranslate"><span class="pre">SuperbXvector.training</span></code></a></li>
-<li><a class="reference internal" href="#s3prl.nn.SuperbXvector.input_size"><code class="docutils literal notranslate"><span class="pre">SuperbXvector.input_size</span></code></a></li>
-<li><a class="reference internal" href="#s3prl.nn.SuperbXvector.output_size"><code class="docutils literal notranslate"><span class="pre">SuperbXvector.output_size</span></code></a></li>
-<li><a class="reference internal" href="#s3prl.nn.SuperbXvector.forward"><code class="docutils literal notranslate"><span class="pre">SuperbXvector.forward()</span></code></a></li>
-</ul>
-</li>
-</ul>
-</li>
-<li><a class="reference internal" href="#xvectorbackbone">XVectorBackbone</a><ul>
-<li><a class="reference internal" href="#s3prl.nn.XVectorBackbone"><code class="docutils literal notranslate"><span class="pre">XVectorBackbone</span></code></a><ul>
-<li><a class="reference internal" href="#s3prl.nn.XVectorBackbone.input_size"><code class="docutils literal notranslate"><span class="pre">XVectorBackbone.input_size</span></code></a></li>
-<li><a class="reference internal" href="#s3prl.nn.XVectorBackbone.output_size"><code class="docutils literal notranslate"><span class="pre">XVectorBackbone.output_size</span></code></a></li>
-<li><a class="reference internal" href="#s3prl.nn.XVectorBackbone.forward"><code class="docutils literal notranslate"><span class="pre">XVectorBackbone.forward()</span></code></a></li>
-<li><a class="reference internal" href="#s3prl.nn.XVectorBackbone.dump_patches"><code class="docutils literal notranslate"><span class="pre">XVectorBackbone.dump_patches</span></code></a></li>
-<li><a class="reference internal" href="#s3prl.nn.XVectorBackbone.training"><code class="docutils literal notranslate"><span class="pre">XVectorBackbone.training</span></code></a></li>
-</ul>
-</li>
-</ul>
-</li>
-<li><a class="reference internal" href="#beamdecoder">BeamDecoder</a><ul>
-<li><a class="reference internal" href="#s3prl.nn.BeamDecoder"><code class="docutils literal notranslate"><span class="pre">BeamDecoder</span></code></a><ul>
-<li><a class="reference internal" href="#s3prl.nn.BeamDecoder.get_tokens"><code class="docutils literal notranslate"><span class="pre">BeamDecoder.get_tokens()</span></code></a></li>
-<li><a class="reference internal" href="#s3prl.nn.BeamDecoder.get_timesteps"><code class="docutils literal notranslate"><span class="pre">BeamDecoder.get_timesteps()</span></code></a></li>
-<li><a class="reference internal" href="#s3prl.nn.BeamDecoder.decode"><code class="docutils literal notranslate"><span class="pre">BeamDecoder.decode()</span></code></a></li>
-</ul>
-</li>
-</ul>
-</li>
+<li><a class="reference internal" href="#s3prlupstream">S3PRLUpstream</a></li>
+<li><a class="reference internal" href="#featurizer">Featurizer</a></li>
+<li><a class="reference internal" href="#framelevel">FrameLevel</a></li>
+<li><a class="reference internal" href="#utterancelevel">UtteranceLevel</a></li>
+<li><a class="reference internal" href="#framelevellinear">FrameLevelLinear</a></li>
+<li><a class="reference internal" href="#meanpoolinglinear">MeanPoolingLinear</a></li>
+<li><a class="reference internal" href="#meanpooling">MeanPooling</a></li>
+<li><a class="reference internal" href="#temporalaveragepooling">TemporalAveragePooling</a></li>
+<li><a class="reference internal" href="#temporalstatisticspooling">TemporalStatisticsPooling</a></li>
+<li><a class="reference internal" href="#rnnencoder">RNNEncoder</a></li>
+<li><a class="reference internal" href="#superbdiarizationmodel">SuperbDiarizationModel</a></li>
+<li><a class="reference internal" href="#amsoftmax">amsoftmax</a></li>
+<li><a class="reference internal" href="#softmax">softmax</a></li>
+<li><a class="reference internal" href="#superbxvector">SuperbXvector</a></li>
+<li><a class="reference internal" href="#xvectorbackbone">XVectorBackbone</a></li>
+<li><a class="reference internal" href="#beamdecoder">BeamDecoder</a></li>
 </ul>
 </li>
 </ul>
@@ -1722,7 +1569,6 @@ the change.</p>
     <script src="../_static/underscore.js"></script>
     <script src="../_static/_sphinx_javascript_frameworks_compat.js"></script>
     <script src="../_static/doctools.js"></script>
-    <script src="../_static/sphinx_highlight.js"></script>
     <script src="../_static/scripts/furo.js"></script>
     <script src="../_static/js/custom.js"></script>
     </body>

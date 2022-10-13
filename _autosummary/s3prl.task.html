@@ -5,7 +5,7 @@
     <meta name="color-scheme" content="light dark"><meta name="generator" content="Docutils 0.19: https://docutils.sourceforge.io/" />
 <link rel="index" title="Index" href="../genindex.html" /><link rel="search" title="Search" href="../search.html" /><link rel="next" title="base" href="s3prl.task.base.html" /><link rel="prev" title="util" href="s3prl.problem.diarization.util.html" />
 
-    <meta name="generator" content="sphinx-5.2.3, furo 2022.09.29"/>
+    <meta name="generator" content="sphinx-5.1.1, furo 2022.09.29"/>
         <title>task - S3PRL 0.4.5 documentation</title>
       <link rel="stylesheet" type="text/css" href="../_static/pygments.css" />
     <link rel="stylesheet" type="text/css" href="../_static/styles/furo.css?digest=d81277517bee4d6b0349d71bb2661d4890b5617c" />
@@ -1241,148 +1241,13 @@ the change.</p>
           <div class="toc-tree">
             <ul>
 <li><a class="reference internal" href="#">task</a><ul>
-<li><a class="reference internal" href="#id1">Task</a><ul>
-<li><a class="reference internal" href="#s3prl.task.Task"><code class="docutils literal notranslate"><span class="pre">Task</span></code></a><ul>
-<li><a class="reference internal" href="#s3prl.task.Task.get_state"><code class="docutils literal notranslate"><span class="pre">Task.get_state()</span></code></a></li>
-<li><a class="reference internal" href="#s3prl.task.Task.set_state"><code class="docutils literal notranslate"><span class="pre">Task.set_state()</span></code></a></li>
-<li><a class="reference internal" href="#s3prl.task.Task.parse_cached_results"><code class="docutils literal notranslate"><span class="pre">Task.parse_cached_results()</span></code></a></li>
-<li><a class="reference internal" href="#s3prl.task.Task.predict"><code class="docutils literal notranslate"><span class="pre">Task.predict()</span></code></a></li>
-<li><a class="reference internal" href="#s3prl.task.Task.forward"><code class="docutils literal notranslate"><span class="pre">Task.forward()</span></code></a></li>
-<li><a class="reference internal" href="#s3prl.task.Task.reduction"><code class="docutils literal notranslate"><span class="pre">Task.reduction()</span></code></a></li>
-<li><a class="reference internal" href="#s3prl.task.Task.train_step"><code class="docutils literal notranslate"><span class="pre">Task.train_step()</span></code></a></li>
-<li><a class="reference internal" href="#s3prl.task.Task.valid_step"><code class="docutils literal notranslate"><span class="pre">Task.valid_step()</span></code></a></li>
-<li><a class="reference internal" href="#s3prl.task.Task.test_step"><code class="docutils literal notranslate"><span class="pre">Task.test_step()</span></code></a></li>
-<li><a class="reference internal" href="#s3prl.task.Task.train_reduction"><code class="docutils literal notranslate"><span class="pre">Task.train_reduction()</span></code></a></li>
-<li><a class="reference internal" href="#s3prl.task.Task.valid_reduction"><code class="docutils literal notranslate"><span class="pre">Task.valid_reduction()</span></code></a></li>
-<li><a class="reference internal" href="#s3prl.task.Task.test_reduction"><code class="docutils literal notranslate"><span class="pre">Task.test_reduction()</span></code></a></li>
-<li><a class="reference internal" href="#s3prl.task.Task.dump_patches"><code class="docutils literal notranslate"><span class="pre">Task.dump_patches</span></code></a></li>
-<li><a class="reference internal" href="#s3prl.task.Task.training"><code class="docutils literal notranslate"><span class="pre">Task.training</span></code></a></li>
-</ul>
-</li>
-</ul>
-</li>
-<li><a class="reference internal" href="#diarizationpit">DiarizationPIT</a><ul>
-<li><a class="reference internal" href="#s3prl.task.DiarizationPIT"><code class="docutils literal notranslate"><span class="pre">DiarizationPIT</span></code></a><ul>
-<li><a class="reference internal" href="#s3prl.task.DiarizationPIT.predict"><code class="docutils literal notranslate"><span class="pre">DiarizationPIT.predict()</span></code></a></li>
-<li><a class="reference internal" href="#s3prl.task.DiarizationPIT.forward"><code class="docutils literal notranslate"><span class="pre">DiarizationPIT.forward()</span></code></a></li>
-<li><a class="reference internal" href="#s3prl.task.DiarizationPIT.reduction"><code class="docutils literal notranslate"><span class="pre">DiarizationPIT.reduction()</span></code></a></li>
-<li><a class="reference internal" href="#s3prl.task.DiarizationPIT.dump_patches"><code class="docutils literal notranslate"><span class="pre">DiarizationPIT.dump_patches</span></code></a></li>
-<li><a class="reference internal" href="#s3prl.task.DiarizationPIT.get_state"><code class="docutils literal notranslate"><span class="pre">DiarizationPIT.get_state()</span></code></a></li>
-<li><a class="reference internal" href="#s3prl.task.DiarizationPIT.parse_cached_results"><code class="docutils literal notranslate"><span class="pre">DiarizationPIT.parse_cached_results()</span></code></a></li>
-<li><a class="reference internal" href="#s3prl.task.DiarizationPIT.set_state"><code class="docutils literal notranslate"><span class="pre">DiarizationPIT.set_state()</span></code></a></li>
-<li><a class="reference internal" href="#s3prl.task.DiarizationPIT.test_reduction"><code class="docutils literal notranslate"><span class="pre">DiarizationPIT.test_reduction()</span></code></a></li>
-<li><a class="reference internal" href="#s3prl.task.DiarizationPIT.test_step"><code class="docutils literal notranslate"><span class="pre">DiarizationPIT.test_step()</span></code></a></li>
-<li><a class="reference internal" href="#s3prl.task.DiarizationPIT.train_reduction"><code class="docutils literal notranslate"><span class="pre">DiarizationPIT.train_reduction()</span></code></a></li>
-<li><a class="reference internal" href="#s3prl.task.DiarizationPIT.train_step"><code class="docutils literal notranslate"><span class="pre">DiarizationPIT.train_step()</span></code></a></li>
-<li><a class="reference internal" href="#s3prl.task.DiarizationPIT.valid_reduction"><code class="docutils literal notranslate"><span class="pre">DiarizationPIT.valid_reduction()</span></code></a></li>
-<li><a class="reference internal" href="#s3prl.task.DiarizationPIT.valid_step"><code class="docutils literal notranslate"><span class="pre">DiarizationPIT.valid_step()</span></code></a></li>
-<li><a class="reference internal" href="#s3prl.task.DiarizationPIT.training"><code class="docutils literal notranslate"><span class="pre">DiarizationPIT.training</span></code></a></li>
-</ul>
-</li>
-</ul>
-</li>
-<li><a class="reference internal" href="#dumpfeature">DumpFeature</a><ul>
-<li><a class="reference internal" href="#s3prl.task.DumpFeature"><code class="docutils literal notranslate"><span class="pre">DumpFeature</span></code></a><ul>
-<li><a class="reference internal" href="#s3prl.task.DumpFeature.forward"><code class="docutils literal notranslate"><span class="pre">DumpFeature.forward()</span></code></a></li>
-<li><a class="reference internal" href="#s3prl.task.DumpFeature.reduction"><code class="docutils literal notranslate"><span class="pre">DumpFeature.reduction()</span></code></a></li>
-<li><a class="reference internal" href="#s3prl.task.DumpFeature.dump_patches"><code class="docutils literal notranslate"><span class="pre">DumpFeature.dump_patches</span></code></a></li>
-<li><a class="reference internal" href="#s3prl.task.DumpFeature.get_state"><code class="docutils literal notranslate"><span class="pre">DumpFeature.get_state()</span></code></a></li>
-<li><a class="reference internal" href="#s3prl.task.DumpFeature.parse_cached_results"><code class="docutils literal notranslate"><span class="pre">DumpFeature.parse_cached_results()</span></code></a></li>
-<li><a class="reference internal" href="#s3prl.task.DumpFeature.predict"><code class="docutils literal notranslate"><span class="pre">DumpFeature.predict()</span></code></a></li>
-<li><a class="reference internal" href="#s3prl.task.DumpFeature.set_state"><code class="docutils literal notranslate"><span class="pre">DumpFeature.set_state()</span></code></a></li>
-<li><a class="reference internal" href="#s3prl.task.DumpFeature.test_reduction"><code class="docutils literal notranslate"><span class="pre">DumpFeature.test_reduction()</span></code></a></li>
-<li><a class="reference internal" href="#s3prl.task.DumpFeature.test_step"><code class="docutils literal notranslate"><span class="pre">DumpFeature.test_step()</span></code></a></li>
-<li><a class="reference internal" href="#s3prl.task.DumpFeature.train_reduction"><code class="docutils literal notranslate"><span class="pre">DumpFeature.train_reduction()</span></code></a></li>
-<li><a class="reference internal" href="#s3prl.task.DumpFeature.train_step"><code class="docutils literal notranslate"><span class="pre">DumpFeature.train_step()</span></code></a></li>
-<li><a class="reference internal" href="#s3prl.task.DumpFeature.valid_reduction"><code class="docutils literal notranslate"><span class="pre">DumpFeature.valid_reduction()</span></code></a></li>
-<li><a class="reference internal" href="#s3prl.task.DumpFeature.valid_step"><code class="docutils literal notranslate"><span class="pre">DumpFeature.valid_step()</span></code></a></li>
-<li><a class="reference internal" href="#s3prl.task.DumpFeature.training"><code class="docutils literal notranslate"><span class="pre">DumpFeature.training</span></code></a></li>
-</ul>
-</li>
-</ul>
-</li>
-<li><a class="reference internal" href="#speakerverification">SpeakerVerification</a><ul>
-<li><a class="reference internal" href="#s3prl.task.SpeakerVerification"><code class="docutils literal notranslate"><span class="pre">SpeakerVerification</span></code></a><ul>
-<li><a class="reference internal" href="#s3prl.task.SpeakerVerification.get_state"><code class="docutils literal notranslate"><span class="pre">SpeakerVerification.get_state()</span></code></a></li>
-<li><a class="reference internal" href="#s3prl.task.SpeakerVerification.set_state"><code class="docutils literal notranslate"><span class="pre">SpeakerVerification.set_state()</span></code></a></li>
-<li><a class="reference internal" href="#s3prl.task.SpeakerVerification.predict"><code class="docutils literal notranslate"><span class="pre">SpeakerVerification.predict()</span></code></a></li>
-<li><a class="reference internal" href="#s3prl.task.SpeakerVerification.train_step"><code class="docutils literal notranslate"><span class="pre">SpeakerVerification.train_step()</span></code></a></li>
-<li><a class="reference internal" href="#s3prl.task.SpeakerVerification.train_reduction"><code class="docutils literal notranslate"><span class="pre">SpeakerVerification.train_reduction()</span></code></a></li>
-<li><a class="reference internal" href="#s3prl.task.SpeakerVerification.test_step"><code class="docutils literal notranslate"><span class="pre">SpeakerVerification.test_step()</span></code></a></li>
-<li><a class="reference internal" href="#s3prl.task.SpeakerVerification.test_reduction"><code class="docutils literal notranslate"><span class="pre">SpeakerVerification.test_reduction()</span></code></a></li>
-<li><a class="reference internal" href="#s3prl.task.SpeakerVerification.dump_patches"><code class="docutils literal notranslate"><span class="pre">SpeakerVerification.dump_patches</span></code></a></li>
-<li><a class="reference internal" href="#s3prl.task.SpeakerVerification.forward"><code class="docutils literal notranslate"><span class="pre">SpeakerVerification.forward()</span></code></a></li>
-<li><a class="reference internal" href="#s3prl.task.SpeakerVerification.parse_cached_results"><code class="docutils literal notranslate"><span class="pre">SpeakerVerification.parse_cached_results()</span></code></a></li>
-<li><a class="reference internal" href="#s3prl.task.SpeakerVerification.reduction"><code class="docutils literal notranslate"><span class="pre">SpeakerVerification.reduction()</span></code></a></li>
-<li><a class="reference internal" href="#s3prl.task.SpeakerVerification.valid_reduction"><code class="docutils literal notranslate"><span class="pre">SpeakerVerification.valid_reduction()</span></code></a></li>
-<li><a class="reference internal" href="#s3prl.task.SpeakerVerification.valid_step"><code class="docutils literal notranslate"><span class="pre">SpeakerVerification.valid_step()</span></code></a></li>
-<li><a class="reference internal" href="#s3prl.task.SpeakerVerification.training"><code class="docutils literal notranslate"><span class="pre">SpeakerVerification.training</span></code></a></li>
-</ul>
-</li>
-</ul>
-</li>
-<li><a class="reference internal" href="#speech2textctctask">Speech2TextCTCTask</a><ul>
-<li><a class="reference internal" href="#s3prl.task.Speech2TextCTCTask"><code class="docutils literal notranslate"><span class="pre">Speech2TextCTCTask</span></code></a><ul>
-<li><a class="reference internal" href="#s3prl.task.Speech2TextCTCTask.predict"><code class="docutils literal notranslate"><span class="pre">Speech2TextCTCTask.predict()</span></code></a></li>
-<li><a class="reference internal" href="#s3prl.task.Speech2TextCTCTask.forward"><code class="docutils literal notranslate"><span class="pre">Speech2TextCTCTask.forward()</span></code></a></li>
-<li><a class="reference internal" href="#s3prl.task.Speech2TextCTCTask.reduction"><code class="docutils literal notranslate"><span class="pre">Speech2TextCTCTask.reduction()</span></code></a></li>
-<li><a class="reference internal" href="#s3prl.task.Speech2TextCTCTask.dump_patches"><code class="docutils literal notranslate"><span class="pre">Speech2TextCTCTask.dump_patches</span></code></a></li>
-<li><a class="reference internal" href="#s3prl.task.Speech2TextCTCTask.get_state"><code class="docutils literal notranslate"><span class="pre">Speech2TextCTCTask.get_state()</span></code></a></li>
-<li><a class="reference internal" href="#s3prl.task.Speech2TextCTCTask.parse_cached_results"><code class="docutils literal notranslate"><span class="pre">Speech2TextCTCTask.parse_cached_results()</span></code></a></li>
-<li><a class="reference internal" href="#s3prl.task.Speech2TextCTCTask.set_state"><code class="docutils literal notranslate"><span class="pre">Speech2TextCTCTask.set_state()</span></code></a></li>
-<li><a class="reference internal" href="#s3prl.task.Speech2TextCTCTask.test_reduction"><code class="docutils literal notranslate"><span class="pre">Speech2TextCTCTask.test_reduction()</span></code></a></li>
-<li><a class="reference internal" href="#s3prl.task.Speech2TextCTCTask.test_step"><code class="docutils literal notranslate"><span class="pre">Speech2TextCTCTask.test_step()</span></code></a></li>
-<li><a class="reference internal" href="#s3prl.task.Speech2TextCTCTask.train_reduction"><code class="docutils literal notranslate"><span class="pre">Speech2TextCTCTask.train_reduction()</span></code></a></li>
-<li><a class="reference internal" href="#s3prl.task.Speech2TextCTCTask.train_step"><code class="docutils literal notranslate"><span class="pre">Speech2TextCTCTask.train_step()</span></code></a></li>
-<li><a class="reference internal" href="#s3prl.task.Speech2TextCTCTask.valid_reduction"><code class="docutils literal notranslate"><span class="pre">Speech2TextCTCTask.valid_reduction()</span></code></a></li>
-<li><a class="reference internal" href="#s3prl.task.Speech2TextCTCTask.valid_step"><code class="docutils literal notranslate"><span class="pre">Speech2TextCTCTask.valid_step()</span></code></a></li>
-<li><a class="reference internal" href="#s3prl.task.Speech2TextCTCTask.training"><code class="docutils literal notranslate"><span class="pre">Speech2TextCTCTask.training</span></code></a></li>
-</ul>
-</li>
-</ul>
-</li>
-<li><a class="reference internal" href="#utteranceclassificationtask">UtteranceClassificationTask</a><ul>
-<li><a class="reference internal" href="#s3prl.task.UtteranceClassificationTask"><code class="docutils literal notranslate"><span class="pre">UtteranceClassificationTask</span></code></a><ul>
-<li><a class="reference internal" href="#s3prl.task.UtteranceClassificationTask.input_size"><code class="docutils literal notranslate"><span class="pre">UtteranceClassificationTask.input_size</span></code></a></li>
-<li><a class="reference internal" href="#s3prl.task.UtteranceClassificationTask.output_size"><code class="docutils literal notranslate"><span class="pre">UtteranceClassificationTask.output_size</span></code></a></li>
-<li><a class="reference internal" href="#s3prl.task.UtteranceClassificationTask.predict"><code class="docutils literal notranslate"><span class="pre">UtteranceClassificationTask.predict()</span></code></a></li>
-<li><a class="reference internal" href="#s3prl.task.UtteranceClassificationTask.forward"><code class="docutils literal notranslate"><span class="pre">UtteranceClassificationTask.forward()</span></code></a></li>
-<li><a class="reference internal" href="#s3prl.task.UtteranceClassificationTask.reduction"><code class="docutils literal notranslate"><span class="pre">UtteranceClassificationTask.reduction()</span></code></a></li>
-<li><a class="reference internal" href="#s3prl.task.UtteranceClassificationTask.dump_patches"><code class="docutils literal notranslate"><span class="pre">UtteranceClassificationTask.dump_patches</span></code></a></li>
-<li><a class="reference internal" href="#s3prl.task.UtteranceClassificationTask.get_state"><code class="docutils literal notranslate"><span class="pre">UtteranceClassificationTask.get_state()</span></code></a></li>
-<li><a class="reference internal" href="#s3prl.task.UtteranceClassificationTask.parse_cached_results"><code class="docutils literal notranslate"><span class="pre">UtteranceClassificationTask.parse_cached_results()</span></code></a></li>
-<li><a class="reference internal" href="#s3prl.task.UtteranceClassificationTask.set_state"><code class="docutils literal notranslate"><span class="pre">UtteranceClassificationTask.set_state()</span></code></a></li>
-<li><a class="reference internal" href="#s3prl.task.UtteranceClassificationTask.test_reduction"><code class="docutils literal notranslate"><span class="pre">UtteranceClassificationTask.test_reduction()</span></code></a></li>
-<li><a class="reference internal" href="#s3prl.task.UtteranceClassificationTask.test_step"><code class="docutils literal notranslate"><span class="pre">UtteranceClassificationTask.test_step()</span></code></a></li>
-<li><a class="reference internal" href="#s3prl.task.UtteranceClassificationTask.train_reduction"><code class="docutils literal notranslate"><span class="pre">UtteranceClassificationTask.train_reduction()</span></code></a></li>
-<li><a class="reference internal" href="#s3prl.task.UtteranceClassificationTask.train_step"><code class="docutils literal notranslate"><span class="pre">UtteranceClassificationTask.train_step()</span></code></a></li>
-<li><a class="reference internal" href="#s3prl.task.UtteranceClassificationTask.valid_reduction"><code class="docutils literal notranslate"><span class="pre">UtteranceClassificationTask.valid_reduction()</span></code></a></li>
-<li><a class="reference internal" href="#s3prl.task.UtteranceClassificationTask.valid_step"><code class="docutils literal notranslate"><span class="pre">UtteranceClassificationTask.valid_step()</span></code></a></li>
-<li><a class="reference internal" href="#s3prl.task.UtteranceClassificationTask.training"><code class="docutils literal notranslate"><span class="pre">UtteranceClassificationTask.training</span></code></a></li>
-</ul>
-</li>
-</ul>
-</li>
-<li><a class="reference internal" href="#utterancemulticlassclassificationtask">UtteranceMultiClassClassificationTask</a><ul>
-<li><a class="reference internal" href="#s3prl.task.UtteranceMultiClassClassificationTask"><code class="docutils literal notranslate"><span class="pre">UtteranceMultiClassClassificationTask</span></code></a><ul>
-<li><a class="reference internal" href="#s3prl.task.UtteranceMultiClassClassificationTask.predict"><code class="docutils literal notranslate"><span class="pre">UtteranceMultiClassClassificationTask.predict()</span></code></a></li>
-<li><a class="reference internal" href="#s3prl.task.UtteranceMultiClassClassificationTask.forward"><code class="docutils literal notranslate"><span class="pre">UtteranceMultiClassClassificationTask.forward()</span></code></a></li>
-<li><a class="reference internal" href="#s3prl.task.UtteranceMultiClassClassificationTask.reduction"><code class="docutils literal notranslate"><span class="pre">UtteranceMultiClassClassificationTask.reduction()</span></code></a></li>
-<li><a class="reference internal" href="#s3prl.task.UtteranceMultiClassClassificationTask.dump_patches"><code class="docutils literal notranslate"><span class="pre">UtteranceMultiClassClassificationTask.dump_patches</span></code></a></li>
-<li><a class="reference internal" href="#s3prl.task.UtteranceMultiClassClassificationTask.get_state"><code class="docutils literal notranslate"><span class="pre">UtteranceMultiClassClassificationTask.get_state()</span></code></a></li>
-<li><a class="reference internal" href="#s3prl.task.UtteranceMultiClassClassificationTask.parse_cached_results"><code class="docutils literal notranslate"><span class="pre">UtteranceMultiClassClassificationTask.parse_cached_results()</span></code></a></li>
-<li><a class="reference internal" href="#s3prl.task.UtteranceMultiClassClassificationTask.set_state"><code class="docutils literal notranslate"><span class="pre">UtteranceMultiClassClassificationTask.set_state()</span></code></a></li>
-<li><a class="reference internal" href="#s3prl.task.UtteranceMultiClassClassificationTask.test_reduction"><code class="docutils literal notranslate"><span class="pre">UtteranceMultiClassClassificationTask.test_reduction()</span></code></a></li>
-<li><a class="reference internal" href="#s3prl.task.UtteranceMultiClassClassificationTask.test_step"><code class="docutils literal notranslate"><span class="pre">UtteranceMultiClassClassificationTask.test_step()</span></code></a></li>
-<li><a class="reference internal" href="#s3prl.task.UtteranceMultiClassClassificationTask.train_reduction"><code class="docutils literal notranslate"><span class="pre">UtteranceMultiClassClassificationTask.train_reduction()</span></code></a></li>
-<li><a class="reference internal" href="#s3prl.task.UtteranceMultiClassClassificationTask.train_step"><code class="docutils literal notranslate"><span class="pre">UtteranceMultiClassClassificationTask.train_step()</span></code></a></li>
-<li><a class="reference internal" href="#s3prl.task.UtteranceMultiClassClassificationTask.valid_reduction"><code class="docutils literal notranslate"><span class="pre">UtteranceMultiClassClassificationTask.valid_reduction()</span></code></a></li>
-<li><a class="reference internal" href="#s3prl.task.UtteranceMultiClassClassificationTask.valid_step"><code class="docutils literal notranslate"><span class="pre">UtteranceMultiClassClassificationTask.valid_step()</span></code></a></li>
-<li><a class="reference internal" href="#s3prl.task.UtteranceMultiClassClassificationTask.training"><code class="docutils literal notranslate"><span class="pre">UtteranceMultiClassClassificationTask.training</span></code></a></li>
-</ul>
-</li>
-</ul>
-</li>
+<li><a class="reference internal" href="#id1">Task</a></li>
+<li><a class="reference internal" href="#diarizationpit">DiarizationPIT</a></li>
+<li><a class="reference internal" href="#dumpfeature">DumpFeature</a></li>
+<li><a class="reference internal" href="#speakerverification">SpeakerVerification</a></li>
+<li><a class="reference internal" href="#speech2textctctask">Speech2TextCTCTask</a></li>
+<li><a class="reference internal" href="#utteranceclassificationtask">UtteranceClassificationTask</a></li>
+<li><a class="reference internal" href="#utterancemulticlassclassificationtask">UtteranceMultiClassClassificationTask</a></li>
 </ul>
 </li>
 </ul>
@@ -1399,7 +1264,6 @@ the change.</p>
     <script src="../_static/underscore.js"></script>
     <script src="../_static/_sphinx_javascript_frameworks_compat.js"></script>
     <script src="../_static/doctools.js"></script>
-    <script src="../_static/sphinx_highlight.js"></script>
     <script src="../_static/scripts/furo.js"></script>
     <script src="../_static/js/custom.js"></script>
     </body>

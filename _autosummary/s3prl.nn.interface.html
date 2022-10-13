@@ -5,7 +5,7 @@
     <meta name="color-scheme" content="light dark"><meta name="generator" content="Docutils 0.19: https://docutils.sourceforge.io/" />
 <link rel="index" title="Index" href="../genindex.html" /><link rel="search" title="Search" href="../search.html" /><link rel="next" title="linear" href="s3prl.nn.linear.html" /><link rel="prev" title="hear" href="s3prl.nn.hear.html" />
 
-    <meta name="generator" content="sphinx-5.2.3, furo 2022.09.29"/>
+    <meta name="generator" content="sphinx-5.1.1, furo 2022.09.29"/>
         <title>interface - S3PRL 0.4.5 documentation</title>
       <link rel="stylesheet" type="text/css" href="../_static/pygments.css" />
     <link rel="stylesheet" type="text/css" href="../_static/styles/furo.css?digest=d81277517bee4d6b0349d71bb2661d4890b5617c" />
@@ -643,51 +643,10 @@ the change.</p>
           <div class="toc-tree">
             <ul>
 <li><a class="reference internal" href="#">interface</a><ul>
-<li><a class="reference internal" href="#absupstream">AbsUpstream</a><ul>
-<li><a class="reference internal" href="#s3prl.nn.interface.AbsUpstream"><code class="docutils literal notranslate"><span class="pre">AbsUpstream</span></code></a><ul>
-<li><a class="reference internal" href="#s3prl.nn.interface.AbsUpstream.num_layer"><code class="docutils literal notranslate"><span class="pre">AbsUpstream.num_layer</span></code></a></li>
-<li><a class="reference internal" href="#s3prl.nn.interface.AbsUpstream.hidden_sizes"><code class="docutils literal notranslate"><span class="pre">AbsUpstream.hidden_sizes</span></code></a></li>
-<li><a class="reference internal" href="#s3prl.nn.interface.AbsUpstream.downsample_rates"><code class="docutils literal notranslate"><span class="pre">AbsUpstream.downsample_rates</span></code></a></li>
-<li><a class="reference internal" href="#s3prl.nn.interface.AbsUpstream.forward"><code class="docutils literal notranslate"><span class="pre">AbsUpstream.forward()</span></code></a></li>
-<li><a class="reference internal" href="#s3prl.nn.interface.AbsUpstream.dump_patches"><code class="docutils literal notranslate"><span class="pre">AbsUpstream.dump_patches</span></code></a></li>
-<li><a class="reference internal" href="#s3prl.nn.interface.AbsUpstream.training"><code class="docutils literal notranslate"><span class="pre">AbsUpstream.training</span></code></a></li>
-</ul>
-</li>
-</ul>
-</li>
-<li><a class="reference internal" href="#absfeaturizer">AbsFeaturizer</a><ul>
-<li><a class="reference internal" href="#s3prl.nn.interface.AbsFeaturizer"><code class="docutils literal notranslate"><span class="pre">AbsFeaturizer</span></code></a><ul>
-<li><a class="reference internal" href="#s3prl.nn.interface.AbsFeaturizer.output_size"><code class="docutils literal notranslate"><span class="pre">AbsFeaturizer.output_size</span></code></a></li>
-<li><a class="reference internal" href="#s3prl.nn.interface.AbsFeaturizer.downsample_rate"><code class="docutils literal notranslate"><span class="pre">AbsFeaturizer.downsample_rate</span></code></a></li>
-<li><a class="reference internal" href="#s3prl.nn.interface.AbsFeaturizer.forward"><code class="docutils literal notranslate"><span class="pre">AbsFeaturizer.forward()</span></code></a></li>
-<li><a class="reference internal" href="#s3prl.nn.interface.AbsFeaturizer.dump_patches"><code class="docutils literal notranslate"><span class="pre">AbsFeaturizer.dump_patches</span></code></a></li>
-<li><a class="reference internal" href="#s3prl.nn.interface.AbsFeaturizer.training"><code class="docutils literal notranslate"><span class="pre">AbsFeaturizer.training</span></code></a></li>
-</ul>
-</li>
-</ul>
-</li>
-<li><a class="reference internal" href="#absframemodel">AbsFrameModel</a><ul>
-<li><a class="reference internal" href="#s3prl.nn.interface.AbsFrameModel"><code class="docutils literal notranslate"><span class="pre">AbsFrameModel</span></code></a><ul>
-<li><a class="reference internal" href="#s3prl.nn.interface.AbsFrameModel.input_size"><code class="docutils literal notranslate"><span class="pre">AbsFrameModel.input_size</span></code></a></li>
-<li><a class="reference internal" href="#s3prl.nn.interface.AbsFrameModel.output_size"><code class="docutils literal notranslate"><span class="pre">AbsFrameModel.output_size</span></code></a></li>
-<li><a class="reference internal" href="#s3prl.nn.interface.AbsFrameModel.forward"><code class="docutils literal notranslate"><span class="pre">AbsFrameModel.forward()</span></code></a></li>
-<li><a class="reference internal" href="#s3prl.nn.interface.AbsFrameModel.dump_patches"><code class="docutils literal notranslate"><span class="pre">AbsFrameModel.dump_patches</span></code></a></li>
-<li><a class="reference internal" href="#s3prl.nn.interface.AbsFrameModel.training"><code class="docutils literal notranslate"><span class="pre">AbsFrameModel.training</span></code></a></li>
-</ul>
-</li>
-</ul>
-</li>
-<li><a class="reference internal" href="#absutterancemodel">AbsUtteranceModel</a><ul>
-<li><a class="reference internal" href="#s3prl.nn.interface.AbsUtteranceModel"><code class="docutils literal notranslate"><span class="pre">AbsUtteranceModel</span></code></a><ul>
-<li><a class="reference internal" href="#s3prl.nn.interface.AbsUtteranceModel.input_size"><code class="docutils literal notranslate"><span class="pre">AbsUtteranceModel.input_size</span></code></a></li>
-<li><a class="reference internal" href="#s3prl.nn.interface.AbsUtteranceModel.output_size"><code class="docutils literal notranslate"><span class="pre">AbsUtteranceModel.output_size</span></code></a></li>
-<li><a class="reference internal" href="#s3prl.nn.interface.AbsUtteranceModel.forward"><code class="docutils literal notranslate"><span class="pre">AbsUtteranceModel.forward()</span></code></a></li>
-<li><a class="reference internal" href="#s3prl.nn.interface.AbsUtteranceModel.dump_patches"><code class="docutils literal notranslate"><span class="pre">AbsUtteranceModel.dump_patches</span></code></a></li>
-<li><a class="reference internal" href="#s3prl.nn.interface.AbsUtteranceModel.training"><code class="docutils literal notranslate"><span class="pre">AbsUtteranceModel.training</span></code></a></li>
-</ul>
-</li>
-</ul>
-</li>
+<li><a class="reference internal" href="#absupstream">AbsUpstream</a></li>
+<li><a class="reference internal" href="#absfeaturizer">AbsFeaturizer</a></li>
+<li><a class="reference internal" href="#absframemodel">AbsFrameModel</a></li>
+<li><a class="reference internal" href="#absutterancemodel">AbsUtteranceModel</a></li>
 </ul>
 </li>
 </ul>
@@ -704,7 +663,6 @@ the change.</p>
     <script src="../_static/underscore.js"></script>
     <script src="../_static/_sphinx_javascript_frameworks_compat.js"></script>
     <script src="../_static/doctools.js"></script>
-    <script src="../_static/sphinx_highlight.js"></script>
     <script src="../_static/scripts/furo.js"></script>
     <script src="../_static/js/custom.js"></script>
     </body>
