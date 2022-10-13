@@ -469,7 +469,5 @@ class SuperbASV(ASV):
         Returns:
             :obj:`s3prl.nn.interface.AbsUtteranceModel`
         """
-        model = SuperbXvector(
-            downstream_input_size, **build_downstream
-        )
+        model = SuperbXvector(downstream_input_size, **build_downstream)
         return model
