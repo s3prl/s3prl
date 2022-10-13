@@ -128,7 +128,7 @@ class SuperbSF(SuperbASR):
             build_dataset=dict(),
             build_batch_sampler=dict(
                 train=dict(
-                    batch_size=16,
+                    batch_size=32,
                     max_length=300000,
                 ),
                 valid=dict(
