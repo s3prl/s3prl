@@ -4,6 +4,8 @@ from .hear_esc50 import HearESC50
 
 VOCAL_NUM_FOLDS = 3
 
+__all__ = ["HearVocal"]
+
 
 class HearVocal(HearESC50):
     def default_config(self) -> dict:

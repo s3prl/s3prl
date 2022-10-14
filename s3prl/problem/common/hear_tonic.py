@@ -4,6 +4,8 @@ from .hear_esc50 import HearESC50
 
 TONIC_NUM_FOLDS = 5
 
+__all__ = ["HearTonic"]
+
 
 class HearTonic(HearESC50):
     def default_config(self) -> dict:

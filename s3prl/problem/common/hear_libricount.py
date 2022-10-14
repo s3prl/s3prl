@@ -4,6 +4,8 @@ from .hear_esc50 import HearESC50
 
 LIBRICOUNT_NUM_FOLDS = 5
 
+__all__ = ["HearLibriCount"]
+
 
 class HearLibriCount(HearESC50):
     def default_config(self) -> dict:

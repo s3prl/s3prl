@@ -2,6 +2,8 @@ from omegaconf import MISSING
 
 from .hear_fsd import HearFSD
 
+__all__ = ["HearGSC5hr"]
+
 
 class HearGSC5hr(HearFSD):
     def default_config(self) -> dict:

@@ -4,6 +4,8 @@ from .hear_esc50 import HearESC50
 
 VOX_LINQUAL_NUM_FOLDS = 5
 
+__all__ = ["HearVoxLingual"]
+
 
 class HearVoxLingual(HearESC50):
     def default_config(self) -> dict:

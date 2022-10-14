@@ -4,6 +4,8 @@ from .hear_esc50 import HearESC50
 
 GTZAN_MUSIC_SPEECH_NUM_FOLDS = 5
 
+__all__ = ["HearGtzanMusicSpeech"]
+
 
 class HearGtzanMusicSpeech(HearESC50):
     def default_config(self) -> dict:

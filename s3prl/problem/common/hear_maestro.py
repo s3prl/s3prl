@@ -12,6 +12,8 @@ from .hear_dcase_2016_task2 import HearDcase2016Task2
 
 MAESTRO_NUM_FOLDS = 5
 
+__all__ = ["HearMaestro"]
+
 
 def prepare_maestro(
     target_dir: str,

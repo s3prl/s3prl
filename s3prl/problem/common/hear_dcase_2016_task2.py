@@ -20,6 +20,8 @@ from .hear_fsd import HearFSD
 
 logger = logging.getLogger(__name__)
 
+__all__ = ["HearDcase2016Task2"]
+
 
 def dcase_2016_task2(
     target_dir: str,
