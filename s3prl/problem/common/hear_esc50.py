@@ -102,7 +102,7 @@ class HearESC50(HearFSD):
                 ),
             ),
             build_upstream=dict(
-                name="fbank",
+                name=MISSING,
             ),
             build_featurizer=dict(
                 layer_selections=None,
@@ -122,7 +122,7 @@ class HearESC50(HearFSD):
             build_optimizer=dict(
                 name="Adam",
                 conf=dict(
-                    lr=1.0e-4,
+                    lr=1.0e-3,
                 ),
             ),
             build_scheduler=dict(

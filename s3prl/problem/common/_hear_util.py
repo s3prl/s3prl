@@ -25,6 +25,7 @@ def resample_hear_corpus(task_dir: str, target_sr: int = 16000, num_workers: int
     target_audio_dir: Path = task_dir / f"{target_sr}"
     if target_audio_dir.is_dir():
         logger.info(f"{target_audio_dir} already exist. Do not need to resample")
+        return
 
     default_audio_dir = task_dir / "48000"
     assert default_audio_dir.exists(), f"{default_audio_dir} not found"
