@@ -102,7 +102,7 @@ class ScenePredictionTask(Task):
         self,
         _mode: str,
         cached_results: List[dict],
-        _dump_dir: str,
+        _dump_dir: str = None,
     ):
         result = self.parse_cached_results(cached_results)
 

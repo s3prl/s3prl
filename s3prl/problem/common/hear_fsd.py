@@ -104,7 +104,7 @@ class HearFSD(SuperbSID):
             build_optimizer=dict(
                 name="Adam",
                 conf=dict(
-                    lr=1.0e-4,
+                    lr=1.0e-3,
                 ),
             ),
             build_scheduler=dict(
@@ -119,7 +119,7 @@ class HearFSD(SuperbSID):
                 eval_step=1000,
                 save_step=100,
                 gradient_clipping=1.0,
-                gradient_accumulate=4,
+                gradient_accumulate=1,
                 valid_metric="mAP",
                 valid_higher_better=True,
                 auto_resume=True,

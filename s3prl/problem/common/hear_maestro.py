@@ -1,4 +1,3 @@
-import csv
 import json
 from collections import defaultdict
 from copy import deepcopy
@@ -115,7 +114,7 @@ class HearMaestro(HearDcase2016Task2):
                 ),
             ),
             build_upstream=dict(
-                name="fbank",
+                name=MISSING,
             ),
             build_featurizer=dict(
                 layer_selections=None,
@@ -138,7 +137,7 @@ class HearMaestro(HearDcase2016Task2):
             build_optimizer=dict(
                 name="Adam",
                 conf=dict(
-                    lr=1.0e-4,
+                    lr=1.0e-3,
                 ),
             ),
             build_scheduler=dict(
