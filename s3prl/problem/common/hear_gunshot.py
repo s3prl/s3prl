@@ -4,6 +4,8 @@ from .hear_esc50 import HearESC50
 
 GUNSHOT_NUM_FOLDS = 7
 
+__all__ = ["HearGunshot"]
+
 
 class HearGunshot(HearESC50):
     def default_config(self) -> dict:

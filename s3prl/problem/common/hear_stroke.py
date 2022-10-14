@@ -4,6 +4,8 @@ from .hear_esc50 import HearESC50
 
 STROKE_NUM_FOLDS = 5
 
+__all__ = ["HearStroke"]
+
 
 class HearStroke(HearESC50):
     def default_config(self) -> dict:
@@ -55,7 +57,7 @@ class HearStroke(HearESC50):
                 ),
             ),
             build_scheduler=dict(
-                name="ExponentialLR", 
+                name="ExponentialLR",
                 gamma=0.9,
             ),
             save_model=dict(),

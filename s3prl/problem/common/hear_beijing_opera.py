@@ -4,6 +4,8 @@ from .hear_esc50 import HearESC50
 
 BEIJING_OPERA_NUM_FOLDS = 5
 
+__all__ = ["HearBeijingOpera"]
+
 
 class HearBeijingOpera(HearESC50):
     def default_config(self) -> dict:

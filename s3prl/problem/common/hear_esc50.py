@@ -10,6 +10,8 @@ from .hear_fsd import HearFSD
 
 ESC50_NUM_FOLDS = 5
 
+__all__ = ["HearESC50"]
+
 
 def hear_scene_kfolds(
     target_dir: str,
