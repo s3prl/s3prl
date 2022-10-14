@@ -15,6 +15,7 @@ from s3prl.dataio.sampler import FixedBatchSizeBatchSampler, GroupSameItemSample
 from s3prl.dataset.hear_timestamp import HearTimestampDatapipe
 from s3prl.task.event_prediction import EventPredictionTask
 
+from ._hear_util import resample_hear_corpus
 from .hear_fsd import HearFSD
 
 logger = logging.getLogger(__name__)
@@ -34,8 +35,10 @@ def dcase_2016_task2(
     if get_path_only:
         return train_csv, valid_csv, [test_csv]
 
+    resample_hear_corpus(dataset_root, target_sr=16000)
+
     dataset_root = Path(dataset_root)
-    wav_root = dataset_root / "16000"
+    wav_root: Path = dataset_root / "16000"
 
     def json_to_csv(json_path: str, csv_path: str, split: str):
         with open(json_path) as fp:
