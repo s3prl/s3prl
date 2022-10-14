@@ -14,7 +14,10 @@ from s3prl.dataset.utterance_classification_pipe import HearScenePipe
 from s3prl.nn.hear import HearFullyConnectedPrediction
 from s3prl.task.scene_prediction import ScenePredictionTask
 
+from ._hear_util import resample_hear_corpus
 from .superb_sid import SuperbSID
+
+__all__ = ["HearFSD"]
 
 
 def hear_scene_trainvaltest(
@@ -24,6 +27,9 @@ def hear_scene_trainvaltest(
     get_path_only: bool = False,
 ):
     target_dir = Path(target_dir)
+
+    resample_hear_corpus(dataset_root, target_sr=16000)
+
     dataset_root = Path(dataset_root)
     wav_root: Path = dataset_root / "16000"
 
@@ -78,7 +84,7 @@ class HearFSD(SuperbSID):
                 ),
             ),
             build_upstream=dict(
-                name="fbank",
+                name=MISSING,
             ),
             build_featurizer=dict(
                 layer_selections=None,

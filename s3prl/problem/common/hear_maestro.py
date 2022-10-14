@@ -8,6 +8,7 @@ import pandas as pd
 import torchaudio
 from omegaconf import MISSING
 
+from ._hear_util import resample_hear_corpus
 from .hear_dcase_2016_task2 import HearDcase2016Task2
 
 MAESTRO_NUM_FOLDS = 5
@@ -31,6 +32,9 @@ def prepare_maestro(
         f"MAESTRO only has {MAESTRO_NUM_FOLDS} folds but get 'test_fold' "
         f"arguments {test_fold}"
     )
+
+    resample_hear_corpus(dataset_root, target_sr=16000)
+
     dataset_root = Path(dataset_root)
     wav_root = dataset_root / "16000"
 
