@@ -1,6 +1,6 @@
 import json
 import pickle
-from collections import OrderedDict, defaultdict
+from collections import defaultdict
 from dataclasses import dataclass
 from pathlib import Path
 
@@ -8,9 +8,9 @@ import pandas as pd
 import torch
 from omegaconf import MISSING
 
+from s3prl.dataio.dataset import EncodeMultiLabel, LoadAudio
 from s3prl.dataio.encoder import CategoryEncoder
 from s3prl.dataio.sampler import FixedBatchSizeBatchSampler
-from s3prl.dataset.utterance_classification_pipe import HearScenePipe
 from s3prl.nn.hear import HearFullyConnectedPrediction
 from s3prl.task.scene_prediction import ScenePredictionTask
 
@@ -50,7 +50,7 @@ def hear_scene_trainvaltest(
         for k in list(meta.keys()):
             data["id"].append(k)
             data["wav_path"].append(wav_root / split / k)
-            data["labels"].append(",".join([str(label).strip() for label in meta[k]]))
+            data["labels"].append(" ; ".join([str(label).strip() for label in meta[k]]))
         return pd.DataFrame(data=data)
 
     split_to_df("train").to_csv(train_csv, index=False)
@@ -159,7 +159,7 @@ class HearFSD(SuperbSID):
         all_csv = pd.concat([train_csv, valid_csv, *test_csvs])
         all_labels = []
         for rowid, row in all_csv.iterrows():
-            labels = str(row["labels"]).split(",")
+            labels = str(row["labels"]).split(";")
             labels = [l.strip() for l in labels]
             all_labels.extend(labels)
 
@@ -180,17 +180,34 @@ class HearFSD(SuperbSID):
         frame_shift: int,
     ):
         df = pd.read_csv(data_csv)
-        data = OrderedDict()
-        for rowid, row in df.iterrows():
-            data[row["id"]] = dict(
-                wav_path=row["wav_path"],
-                labels=[label.strip() for label in str(row["labels"]).split(",")],
-            )
-
+        ids = df["id"].tolist()
+        wav_paths = df["wav_path"].tolist()
+        labels = [
+            [single_label.strip() for single_label in str(label_str).split(";")]
+            for label_str in df["labels"].tolist()
+        ]
         with open(encoder_path, "rb") as f:
             encoder = pickle.load(f)
 
-        dataset = HearScenePipe()(data, tools={"category": encoder})
+        audio_loader = LoadAudio(wav_paths)
+        label_encoder = EncodeMultiLabel(labels, encoder)
+
+        class Dataset:
+            def __len__(self):
+                return len(audio_loader)
+
+            def __getitem__(self, index: int):
+                audio = audio_loader[index]
+                label = label_encoder[index]
+                return {
+                    "x": audio["wav"],
+                    "x_len": audio["wav_len"],
+                    "y": label["binary_labels"],
+                    "labels": label["labels"],
+                    "unique_name": ids[index],
+                }
+
+        dataset = Dataset()
         return dataset
 
     def build_batch_sampler(
