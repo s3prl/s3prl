@@ -242,6 +242,7 @@
 </ul>
 </li>
 <li class="toctree-l1 has-children"><a class="reference internal" href="../_autosummary/s3prl.dataio.html">dataio</a><input class="toctree-checkbox" id="toctree-checkbox-8" name="toctree-checkbox-8" role="switch" type="checkbox"/><label for="toctree-checkbox-8"><div class="visually-hidden">Toggle child pages in navigation</div><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul>
+<li class="toctree-l2"><a class="reference internal" href="../_autosummary/s3prl.dataio.collate_fn.html">collate_fn</a></li>
 <li class="toctree-l2 has-children"><a class="reference internal" href="../_autosummary/s3prl.dataio.corpus.html">corpus</a><input class="toctree-checkbox" id="toctree-checkbox-9" name="toctree-checkbox-9" role="switch" type="checkbox"/><label for="toctree-checkbox-9"><div class="visually-hidden">Toggle child pages in navigation</div><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul>
 <li class="toctree-l3"><a class="reference internal" href="../_autosummary/s3prl.dataio.corpus.base.html">base</a></li>
 <li class="toctree-l3"><a class="reference internal" href="../_autosummary/s3prl.dataio.corpus.fluent_speech_commands.html">fluent_speech_commands</a></li>
@@ -259,6 +260,7 @@
 <li class="toctree-l3"><a class="reference internal" href="../_autosummary/s3prl.dataio.dataset.base.html">base</a></li>
 <li class="toctree-l3"><a class="reference internal" href="../_autosummary/s3prl.dataio.dataset.diarization.html">diarization</a></li>
 <li class="toctree-l3"><a class="reference internal" href="../_autosummary/s3prl.dataio.dataset.encode.html">encode</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../_autosummary/s3prl.dataio.dataset.frame_label.html">frame_label</a></li>
 <li class="toctree-l3"><a class="reference internal" href="../_autosummary/s3prl.dataio.dataset.load_audio.html">load_audio</a></li>
 <li class="toctree-l3"><a class="reference internal" href="../_autosummary/s3prl.dataio.dataset.util.html">util</a></li>
 </ul>
@@ -288,6 +290,7 @@
 </ul>
 </li>
 <li class="toctree-l1 has-children"><a class="reference internal" href="../_autosummary/s3prl.util.html">util</a><input class="toctree-checkbox" id="toctree-checkbox-14" name="toctree-checkbox-14" role="switch" type="checkbox"/><label for="toctree-checkbox-14"><div class="visually-hidden">Toggle child pages in navigation</div><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul>
+<li class="toctree-l2"><a class="reference internal" href="../_autosummary/s3prl.util.audio_info.html">audio_info</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../_autosummary/s3prl.util.benchmark.html">benchmark</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../_autosummary/s3prl.util.download.html">download</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../_autosummary/s3prl.util.override.html">override</a></li>
@@ -329,11 +332,7 @@
         </div>
         <article role="main">
           <h1>All modules for which code is available</h1>
-<ul><li><a href="collections.html">collections</a></li>
-<li><a href="copy.html">copy</a></li>
-<li><a href="dataclasses.html">dataclasses</a></li>
-<li><a href="joblib/parallel.html">joblib.parallel</a></li>
-<li><a href="pathlib.html">pathlib</a></li>
+<ul><li><a href="s3prl/dataio/collate_fn.html">s3prl.dataio.collate_fn</a></li>
 <li><a href="s3prl/dataio/corpus/base.html">s3prl.dataio.corpus.base</a></li>
 <li><a href="s3prl/dataio/corpus/fluent_speech_commands.html">s3prl.dataio.corpus.fluent_speech_commands</a></li>
 <li><a href="s3prl/dataio/corpus/iemocap.html">s3prl.dataio.corpus.iemocap</a></li>
@@ -347,6 +346,7 @@
 <li><a href="s3prl/dataio/dataset/base.html">s3prl.dataio.dataset.base</a></li>
 <li><a href="s3prl/dataio/dataset/diarization.html">s3prl.dataio.dataset.diarization</a></li>
 <li><a href="s3prl/dataio/dataset/encode.html">s3prl.dataio.dataset.encode</a></li>
+<li><a href="s3prl/dataio/dataset/frame_label.html">s3prl.dataio.dataset.frame_label</a></li>
 <li><a href="s3prl/dataio/dataset/load_audio.html">s3prl.dataio.dataset.load_audio</a></li>
 <li><a href="s3prl/dataio/dataset/util.html">s3prl.dataio.dataset.util</a></li>
 <li><a href="s3prl/dataio/encoder/category.html">s3prl.dataio.encoder.category</a></li>
@@ -359,8 +359,6 @@
 <li><a href="s3prl/dataio/sampler/group_same_item_sampler.html">s3prl.dataio.sampler.group_same_item_sampler</a></li>
 <li><a href="s3prl/dataio/sampler/max_timestamp_batch_sampler.html">s3prl.dataio.sampler.max_timestamp_batch_sampler</a></li>
 <li><a href="s3prl/dataio/sampler/sorted_sampler.html">s3prl.dataio.sampler.sorted_sampler</a></li>
-<li><a href="s3prl/dataset/hear_timestamp.html">s3prl.dataset.hear_timestamp</a></li>
-<li><a href="s3prl/dataset/utterance_classification_pipe.html">s3prl.dataset.utterance_classification_pipe</a></li>
 <li><a href="s3prl/metric/common.html">s3prl.metric.common</a></li>
 <li><a href="s3prl/metric/diarization.html">s3prl.metric.diarization</a></li>
 <li><a href="s3prl/metric/slot_filling.html">s3prl.metric.slot_filling</a></li>
@@ -415,12 +413,12 @@
 <li><a href="s3prl/task/speaker_verification_task.html">s3prl.task.speaker_verification_task</a></li>
 <li><a href="s3prl/task/speech2text_ctc_task.html">s3prl.task.speech2text_ctc_task</a></li>
 <li><a href="s3prl/task/utterance_classification_task.html">s3prl.task.utterance_classification_task</a></li>
+<li><a href="s3prl/util/audio_info.html">s3prl.util.audio_info</a></li>
 <li><a href="s3prl/util/benchmark.html">s3prl.util.benchmark</a></li>
 <li><a href="s3prl/util/download.html">s3prl.util.download</a></li>
 <li><a href="s3prl/util/override.html">s3prl.util.override</a></li>
 <li><a href="s3prl/util/pseudo_data.html">s3prl.util.pseudo_data</a></li>
 <li><a href="s3prl/util/seed.html">s3prl.util.seed</a></li>
-<li><a href="tqdm/std.html">tqdm.std</a></li>
 </ul>
         </article>
       </div>

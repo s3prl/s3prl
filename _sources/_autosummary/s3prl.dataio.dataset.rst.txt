@@ -17,6 +17,7 @@ dataset
    s3prl.dataio.dataset.base
    s3prl.dataio.dataset.diarization
    s3prl.dataio.dataset.encode
+   s3prl.dataio.dataset.frame_label
    s3prl.dataio.dataset.load_audio
    s3prl.dataio.dataset.util
 
@@ -71,10 +72,30 @@ EncodeCategory
    :inherited-members: torch.nn.Module,nn.Module,Module
    :show-inheritance:
 
+EncodeMultiLabel
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. autoclass:: EncodeMultiLabel
+   :member-order: bysource
+   :members:
+   :undoc-members:
+   :inherited-members: torch.nn.Module,nn.Module,Module
+   :show-inheritance:
+
 EncodeText
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 .. autoclass:: EncodeText
+   :member-order: bysource
+   :members:
+   :undoc-members:
+   :inherited-members: torch.nn.Module,nn.Module,Module
+   :show-inheritance:
+
+FrameLabelDataset
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. autoclass:: FrameLabelDataset
    :member-order: bysource
    :members:
    :undoc-members:

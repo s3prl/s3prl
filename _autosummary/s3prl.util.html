@@ -3,7 +3,7 @@
   <head><meta charset="utf-8"/>
     <meta name="viewport" content="width=device-width,initial-scale=1"/>
     <meta name="color-scheme" content="light dark"><meta name="generator" content="Docutils 0.19: https://docutils.sourceforge.io/" />
-<link rel="index" title="Index" href="../genindex.html" /><link rel="search" title="Search" href="../search.html" /><link rel="next" title="benchmark" href="s3prl.util.benchmark.html" /><link rel="prev" title="slot_filling" href="s3prl.metric.slot_filling.html" />
+<link rel="index" title="Index" href="../genindex.html" /><link rel="search" title="Search" href="../search.html" /><link rel="next" title="audio_info" href="s3prl.util.audio_info.html" /><link rel="prev" title="slot_filling" href="s3prl.metric.slot_filling.html" />
 
     <meta name="generator" content="sphinx-5.1.1, furo 2022.09.29"/>
         <title>util - S3PRL 0.4.6 documentation</title>
@@ -243,6 +243,7 @@
 </ul>
 </li>
 <li class="toctree-l1 has-children"><a class="reference internal" href="s3prl.dataio.html">dataio</a><input class="toctree-checkbox" id="toctree-checkbox-8" name="toctree-checkbox-8" role="switch" type="checkbox"/><label for="toctree-checkbox-8"><div class="visually-hidden">Toggle child pages in navigation</div><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul>
+<li class="toctree-l2"><a class="reference internal" href="s3prl.dataio.collate_fn.html">collate_fn</a></li>
 <li class="toctree-l2 has-children"><a class="reference internal" href="s3prl.dataio.corpus.html">corpus</a><input class="toctree-checkbox" id="toctree-checkbox-9" name="toctree-checkbox-9" role="switch" type="checkbox"/><label for="toctree-checkbox-9"><div class="visually-hidden">Toggle child pages in navigation</div><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul>
 <li class="toctree-l3"><a class="reference internal" href="s3prl.dataio.corpus.base.html">base</a></li>
 <li class="toctree-l3"><a class="reference internal" href="s3prl.dataio.corpus.fluent_speech_commands.html">fluent_speech_commands</a></li>
@@ -260,6 +261,7 @@
 <li class="toctree-l3"><a class="reference internal" href="s3prl.dataio.dataset.base.html">base</a></li>
 <li class="toctree-l3"><a class="reference internal" href="s3prl.dataio.dataset.diarization.html">diarization</a></li>
 <li class="toctree-l3"><a class="reference internal" href="s3prl.dataio.dataset.encode.html">encode</a></li>
+<li class="toctree-l3"><a class="reference internal" href="s3prl.dataio.dataset.frame_label.html">frame_label</a></li>
 <li class="toctree-l3"><a class="reference internal" href="s3prl.dataio.dataset.load_audio.html">load_audio</a></li>
 <li class="toctree-l3"><a class="reference internal" href="s3prl.dataio.dataset.util.html">util</a></li>
 </ul>
@@ -289,6 +291,7 @@
 </ul>
 </li>
 <li class="toctree-l1 current has-children current-page"><a class="current reference internal" href="#">util</a><input checked="" class="toctree-checkbox" id="toctree-checkbox-14" name="toctree-checkbox-14" role="switch" type="checkbox"/><label for="toctree-checkbox-14"><div class="visually-hidden">Toggle child pages in navigation</div><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul>
+<li class="toctree-l2"><a class="reference internal" href="s3prl.util.audio_info.html">audio_info</a></li>
 <li class="toctree-l2"><a class="reference internal" href="s3prl.util.benchmark.html">benchmark</a></li>
 <li class="toctree-l2"><a class="reference internal" href="s3prl.util.download.html">download</a></li>
 <li class="toctree-l2"><a class="reference internal" href="s3prl.util.override.html">override</a></li>
@@ -337,19 +340,22 @@
 <div class="table-wrapper autosummary longtable docutils container">
 <table class="autosummary longtable docutils align-default">
 <tbody>
-<tr class="row-odd"><td><p><a class="reference internal" href="s3prl.util.benchmark.html#module-s3prl.util.benchmark" title="s3prl.util.benchmark"><code class="xref py py-obj docutils literal notranslate"><span class="pre">s3prl.util.benchmark</span></code></a></p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="s3prl.util.audio_info.html#module-s3prl.util.audio_info" title="s3prl.util.audio_info"><code class="xref py py-obj docutils literal notranslate"><span class="pre">s3prl.util.audio_info</span></code></a></p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="s3prl.util.benchmark.html#module-s3prl.util.benchmark" title="s3prl.util.benchmark"><code class="xref py py-obj docutils literal notranslate"><span class="pre">s3prl.util.benchmark</span></code></a></p></td>
 <td><p>Benchmark the timing a block of code</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="s3prl.util.download.html#module-s3prl.util.download" title="s3prl.util.download"><code class="xref py py-obj docutils literal notranslate"><span class="pre">s3prl.util.download</span></code></a></p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="s3prl.util.download.html#module-s3prl.util.download" title="s3prl.util.download"><code class="xref py py-obj docutils literal notranslate"><span class="pre">s3prl.util.download</span></code></a></p></td>
 <td><p>Thread-safe file downloading and cacheing</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="s3prl.util.override.html#module-s3prl.util.override" title="s3prl.util.override"><code class="xref py py-obj docutils literal notranslate"><span class="pre">s3prl.util.override</span></code></a></p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="s3prl.util.override.html#module-s3prl.util.override" title="s3prl.util.override"><code class="xref py py-obj docutils literal notranslate"><span class="pre">s3prl.util.override</span></code></a></p></td>
 <td><p>Parse command-line arguments into override dictionary</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="s3prl.util.pseudo_data.html#module-s3prl.util.pseudo_data" title="s3prl.util.pseudo_data"><code class="xref py py-obj docutils literal notranslate"><span class="pre">s3prl.util.pseudo_data</span></code></a></p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="s3prl.util.pseudo_data.html#module-s3prl.util.pseudo_data" title="s3prl.util.pseudo_data"><code class="xref py py-obj docutils literal notranslate"><span class="pre">s3prl.util.pseudo_data</span></code></a></p></td>
 <td><p>Create pseudo data</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="s3prl.util.seed.html#module-s3prl.util.seed" title="s3prl.util.seed"><code class="xref py py-obj docutils literal notranslate"><span class="pre">s3prl.util.seed</span></code></a></p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="s3prl.util.seed.html#module-s3prl.util.seed" title="s3prl.util.seed"><code class="xref py py-obj docutils literal notranslate"><span class="pre">s3prl.util.seed</span></code></a></p></td>
 <td><p>Fix random seeds</p></td>
 </tr>
 </tbody>
@@ -362,12 +368,12 @@
       <footer>
         
         <div class="related-pages">
-          <a class="next-page" href="s3prl.util.benchmark.html">
+          <a class="next-page" href="s3prl.util.audio_info.html">
               <div class="page-info">
                 <div class="context">
                   <span>Next</span>
                 </div>
-                <div class="title">benchmark</div>
+                <div class="title">audio_info</div>
               </div>
               <svg class="furo-related-icon"><use href="#svg-arrow-right"></use></svg>
             </a>

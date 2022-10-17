@@ -242,6 +242,7 @@
 </ul>
 </li>
 <li class="toctree-l1 has-children"><a class="reference internal" href="../../../_autosummary/s3prl.dataio.html">dataio</a><input class="toctree-checkbox" id="toctree-checkbox-8" name="toctree-checkbox-8" role="switch" type="checkbox"/><label for="toctree-checkbox-8"><div class="visually-hidden">Toggle child pages in navigation</div><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul>
+<li class="toctree-l2"><a class="reference internal" href="../../../_autosummary/s3prl.dataio.collate_fn.html">collate_fn</a></li>
 <li class="toctree-l2 has-children"><a class="reference internal" href="../../../_autosummary/s3prl.dataio.corpus.html">corpus</a><input class="toctree-checkbox" id="toctree-checkbox-9" name="toctree-checkbox-9" role="switch" type="checkbox"/><label for="toctree-checkbox-9"><div class="visually-hidden">Toggle child pages in navigation</div><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul>
 <li class="toctree-l3"><a class="reference internal" href="../../../_autosummary/s3prl.dataio.corpus.base.html">base</a></li>
 <li class="toctree-l3"><a class="reference internal" href="../../../_autosummary/s3prl.dataio.corpus.fluent_speech_commands.html">fluent_speech_commands</a></li>
@@ -259,6 +260,7 @@
 <li class="toctree-l3"><a class="reference internal" href="../../../_autosummary/s3prl.dataio.dataset.base.html">base</a></li>
 <li class="toctree-l3"><a class="reference internal" href="../../../_autosummary/s3prl.dataio.dataset.diarization.html">diarization</a></li>
 <li class="toctree-l3"><a class="reference internal" href="../../../_autosummary/s3prl.dataio.dataset.encode.html">encode</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../../_autosummary/s3prl.dataio.dataset.frame_label.html">frame_label</a></li>
 <li class="toctree-l3"><a class="reference internal" href="../../../_autosummary/s3prl.dataio.dataset.load_audio.html">load_audio</a></li>
 <li class="toctree-l3"><a class="reference internal" href="../../../_autosummary/s3prl.dataio.dataset.util.html">util</a></li>
 </ul>
@@ -288,6 +290,7 @@
 </ul>
 </li>
 <li class="toctree-l1 has-children"><a class="reference internal" href="../../../_autosummary/s3prl.util.html">util</a><input class="toctree-checkbox" id="toctree-checkbox-14" name="toctree-checkbox-14" role="switch" type="checkbox"/><label for="toctree-checkbox-14"><div class="visually-hidden">Toggle child pages in navigation</div><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul>
+<li class="toctree-l2"><a class="reference internal" href="../../../_autosummary/s3prl.util.audio_info.html">audio_info</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../../../_autosummary/s3prl.util.benchmark.html">benchmark</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../../../_autosummary/s3prl.util.download.html">download</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../../../_autosummary/s3prl.util.override.html">override</a></li>
@@ -347,7 +350,7 @@
 <span class="n">__all__</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;HearFullyConnectedPrediction&quot;</span><span class="p">]</span>
 
 
-<div class="viewcode-block" id="HearFullyConnectedPrediction"><a class="viewcode-back" href="../../../_autosummary/s3prl.problem.common.hear_fsd.html#s3prl.nn.hear.HearFullyConnectedPrediction">[docs]</a><span class="k">class</span> <span class="nc">HearFullyConnectedPrediction</span><span class="p">(</span><span class="n">torch</span><span class="o">.</span><span class="n">nn</span><span class="o">.</span><span class="n">Module</span><span class="p">):</span>
+<div class="viewcode-block" id="HearFullyConnectedPrediction"><a class="viewcode-back" href="../../../_autosummary/s3prl.nn.hear.html#s3prl.nn.hear.HearFullyConnectedPrediction">[docs]</a><span class="k">class</span> <span class="nc">HearFullyConnectedPrediction</span><span class="p">(</span><span class="n">torch</span><span class="o">.</span><span class="n">nn</span><span class="o">.</span><span class="n">Module</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    The specific prediction head used in the Hear Benchmark.</span>
 <span class="sd">    Modified from: https://github.com/hearbenchmark/hear-eval-kit/blob/855964977238e89dfc76394aa11c37010edb6f20/heareval/predictions/task_predictions.py#L142</span>
@@ -427,7 +430,7 @@
     <span class="k">def</span> <span class="nf">output_size</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">int</span><span class="p">:</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_output_size</span>
 
-<div class="viewcode-block" id="HearFullyConnectedPrediction.forward"><a class="viewcode-back" href="../../../_autosummary/s3prl.problem.common.hear_fsd.html#s3prl.nn.hear.HearFullyConnectedPrediction.forward">[docs]</a>    <span class="k">def</span> <span class="nf">forward</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">,</span> <span class="n">x_len</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">:</span>
+<div class="viewcode-block" id="HearFullyConnectedPrediction.forward"><a class="viewcode-back" href="../../../_autosummary/s3prl.nn.hear.html#s3prl.nn.hear.HearFullyConnectedPrediction.forward">[docs]</a>    <span class="k">def</span> <span class="nf">forward</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">,</span> <span class="n">x_len</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">:</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Args:</span>
 <span class="sd">            x (torch.FloatTensor): (batch_size, seq_len, input_size)</span>

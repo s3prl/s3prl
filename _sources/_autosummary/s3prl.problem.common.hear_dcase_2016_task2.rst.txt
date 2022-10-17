@@ -18,36 +18,6 @@ hear\_dcase\_2016\_task2
 
 
 
-EventPredictionTask
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-.. autoclass:: EventPredictionTask
-   :member-order: bysource
-   :members:
-   :undoc-members:
-   :inherited-members: torch.nn.Module,nn.Module,Module
-   :show-inheritance:
-
-FixedBatchSizeBatchSampler
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-.. autoclass:: FixedBatchSizeBatchSampler
-   :member-order: bysource
-   :members:
-   :undoc-members:
-   :inherited-members: torch.nn.Module,nn.Module,Module
-   :show-inheritance:
-
-GroupSameItemSampler
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-.. autoclass:: GroupSameItemSampler
-   :member-order: bysource
-   :members:
-   :undoc-members:
-   :inherited-members: torch.nn.Module,nn.Module,Module
-   :show-inheritance:
-
 HearDcase2016Task2
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
@@ -58,76 +28,9 @@ HearDcase2016Task2
    :inherited-members: torch.nn.Module,nn.Module,Module
    :show-inheritance:
 
-HearFSD
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-.. autoclass:: HearFSD
-   :member-order: bysource
-   :members:
-   :undoc-members:
-   :inherited-members: torch.nn.Module,nn.Module,Module
-   :show-inheritance:
-
-HearTimestampDatapipe
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-.. autoclass:: HearTimestampDatapipe
-   :member-order: bysource
-   :members:
-   :undoc-members:
-   :inherited-members: torch.nn.Module,nn.Module,Module
-   :show-inheritance:
-
-OrderedDict
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-.. autoclass:: OrderedDict
-   :member-order: bysource
-   :members:
-   :undoc-members:
-   :inherited-members: torch.nn.Module,nn.Module,Module
-   :show-inheritance:
-
-Path
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-.. autoclass:: Path
-   :member-order: bysource
-   :members:
-   :undoc-members:
-   :inherited-members: torch.nn.Module,nn.Module,Module
-   :show-inheritance:
-
-defaultdict
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-.. autoclass:: defaultdict
-   :member-order: bysource
-   :members:
-   :undoc-members:
-   :inherited-members: torch.nn.Module,nn.Module,Module
-   :show-inheritance:
 
 
 
-
-
-
-
-dataclass
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-.. autofunction:: dataclass
-
-dcase_2016_task2
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-.. autofunction:: dcase_2016_task2
-
-deepcopy
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-.. autofunction:: deepcopy
 
 
 

@@ -1,0 +1,33 @@
+collate\_fn
+===========
+
+**(s3prl.dataio.collate_fn)**
+
+.. automodule:: s3prl.dataio.collate_fn
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+default_collate_fn
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. autofunction:: default_collate_fn
+
+
+
+
+

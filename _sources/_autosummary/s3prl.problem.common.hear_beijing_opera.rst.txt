@@ -28,16 +28,6 @@ HearBeijingOpera
    :inherited-members: torch.nn.Module,nn.Module,Module
    :show-inheritance:
 
-HearESC50
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-.. autoclass:: HearESC50
-   :member-order: bysource
-   :members:
-   :undoc-members:
-   :inherited-members: torch.nn.Module,nn.Module,Module
-   :show-inheritance:
-
 
 
 

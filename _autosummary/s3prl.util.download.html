@@ -243,6 +243,7 @@
 </ul>
 </li>
 <li class="toctree-l1 has-children"><a class="reference internal" href="s3prl.dataio.html">dataio</a><input class="toctree-checkbox" id="toctree-checkbox-8" name="toctree-checkbox-8" role="switch" type="checkbox"/><label for="toctree-checkbox-8"><div class="visually-hidden">Toggle child pages in navigation</div><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul>
+<li class="toctree-l2"><a class="reference internal" href="s3prl.dataio.collate_fn.html">collate_fn</a></li>
 <li class="toctree-l2 has-children"><a class="reference internal" href="s3prl.dataio.corpus.html">corpus</a><input class="toctree-checkbox" id="toctree-checkbox-9" name="toctree-checkbox-9" role="switch" type="checkbox"/><label for="toctree-checkbox-9"><div class="visually-hidden">Toggle child pages in navigation</div><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul>
 <li class="toctree-l3"><a class="reference internal" href="s3prl.dataio.corpus.base.html">base</a></li>
 <li class="toctree-l3"><a class="reference internal" href="s3prl.dataio.corpus.fluent_speech_commands.html">fluent_speech_commands</a></li>
@@ -260,6 +261,7 @@
 <li class="toctree-l3"><a class="reference internal" href="s3prl.dataio.dataset.base.html">base</a></li>
 <li class="toctree-l3"><a class="reference internal" href="s3prl.dataio.dataset.diarization.html">diarization</a></li>
 <li class="toctree-l3"><a class="reference internal" href="s3prl.dataio.dataset.encode.html">encode</a></li>
+<li class="toctree-l3"><a class="reference internal" href="s3prl.dataio.dataset.frame_label.html">frame_label</a></li>
 <li class="toctree-l3"><a class="reference internal" href="s3prl.dataio.dataset.load_audio.html">load_audio</a></li>
 <li class="toctree-l3"><a class="reference internal" href="s3prl.dataio.dataset.util.html">util</a></li>
 </ul>
@@ -289,6 +291,7 @@
 </ul>
 </li>
 <li class="toctree-l1 current has-children"><a class="reference internal" href="s3prl.util.html">util</a><input checked="" class="toctree-checkbox" id="toctree-checkbox-14" name="toctree-checkbox-14" role="switch" type="checkbox"/><label for="toctree-checkbox-14"><div class="visually-hidden">Toggle child pages in navigation</div><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="s3prl.util.audio_info.html">audio_info</a></li>
 <li class="toctree-l2"><a class="reference internal" href="s3prl.util.benchmark.html">benchmark</a></li>
 <li class="toctree-l2 current current-page"><a class="current reference internal" href="#">download</a></li>
 <li class="toctree-l2"><a class="reference internal" href="s3prl.util.override.html">override</a></li>
@@ -360,7 +363,7 @@
 <h2>download<a class="headerlink" href="#id1" title="Permalink to this heading">#</a></h2>
 <dl class="py function">
 <dt class="sig sig-object py" id="s3prl.util.download.download">
-<span class="sig-prename descclassname"><span class="pre">s3prl.util.download.</span></span><span class="sig-name descname"><span class="pre">download</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">filepath</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="s3prl.problem.common.hear_maestro.html#s3prl.problem.common.hear_maestro.Path" title="pathlib.Path"><span class="pre">Path</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">url</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">refresh</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">new_enough_secs</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">2.0</span></span></em><span class="sig-paren">)</span><a class="reference external" href="https://github.com/s3prl/s3prl/blob/v0.4.6 /s3prl/util/download.py#L103-L126"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#s3prl.util.download.download" title="Permalink to this definition">#</a></dt>
+<span class="sig-prename descclassname"><span class="pre">s3prl.util.download.</span></span><span class="sig-name descname"><span class="pre">download</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">filepath</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Path</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">url</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">refresh</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">new_enough_secs</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">2.0</span></span></em><span class="sig-paren">)</span><a class="reference external" href="https://github.com/s3prl/s3prl/blob/v0.4.6 /s3prl/util/download.py#L103-L126"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#s3prl.util.download.download" title="Permalink to this definition">#</a></dt>
 <dd><p>If refresh is True, check the latest modfieid time of the filepath.
 If the file is new enough (no older than <cite>new_enough_secs</cite>), than directly use it.
 If the file is older than <cite>new_enough_secs</cite>, than re-download the file.

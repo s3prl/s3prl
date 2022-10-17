@@ -18,26 +18,6 @@ hear\_fsd
 
 
 
-CategoryEncoder
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-.. autoclass:: CategoryEncoder
-   :member-order: bysource
-   :members:
-   :undoc-members:
-   :inherited-members: torch.nn.Module,nn.Module,Module
-   :show-inheritance:
-
-FixedBatchSizeBatchSampler
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-.. autoclass:: FixedBatchSizeBatchSampler
-   :member-order: bysource
-   :members:
-   :undoc-members:
-   :inherited-members: torch.nn.Module,nn.Module,Module
-   :show-inheritance:
-
 HearFSD
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
@@ -48,91 +28,9 @@ HearFSD
    :inherited-members: torch.nn.Module,nn.Module,Module
    :show-inheritance:
 
-HearFullyConnectedPrediction
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-.. autoclass:: HearFullyConnectedPrediction
-   :member-order: bysource
-   :members:
-   :undoc-members:
-   :inherited-members: torch.nn.Module,nn.Module,Module
-   :show-inheritance:
-
-HearScenePipe
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-.. autoclass:: HearScenePipe
-   :member-order: bysource
-   :members:
-   :undoc-members:
-   :inherited-members: torch.nn.Module,nn.Module,Module
-   :show-inheritance:
-
-OrderedDict
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-.. autoclass:: OrderedDict
-   :member-order: bysource
-   :members:
-   :undoc-members:
-   :inherited-members: torch.nn.Module,nn.Module,Module
-   :show-inheritance:
-
-Path
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-.. autoclass:: Path
-   :member-order: bysource
-   :members:
-   :undoc-members:
-   :inherited-members: torch.nn.Module,nn.Module,Module
-   :show-inheritance:
-
-ScenePredictionTask
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-.. autoclass:: ScenePredictionTask
-   :member-order: bysource
-   :members:
-   :undoc-members:
-   :inherited-members: torch.nn.Module,nn.Module,Module
-   :show-inheritance:
-
-SuperbSID
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-.. autoclass:: SuperbSID
-   :member-order: bysource
-   :members:
-   :undoc-members:
-   :inherited-members: torch.nn.Module,nn.Module,Module
-   :show-inheritance:
-
-defaultdict
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-.. autoclass:: defaultdict
-   :member-order: bysource
-   :members:
-   :undoc-members:
-   :inherited-members: torch.nn.Module,nn.Module,Module
-   :show-inheritance:
 
 
 
-
-
-
-
-dataclass
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-.. autofunction:: dataclass
-
-hear_scene_trainvaltest
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-.. autofunction:: hear_scene_trainvaltest
 
 
 

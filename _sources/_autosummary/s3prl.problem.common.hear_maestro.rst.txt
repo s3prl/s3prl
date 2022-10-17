@@ -18,16 +18,6 @@ hear\_maestro
 
 
 
-HearDcase2016Task2
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-.. autoclass:: HearDcase2016Task2
-   :member-order: bysource
-   :members:
-   :undoc-members:
-   :inherited-members: torch.nn.Module,nn.Module,Module
-   :show-inheritance:
-
 HearMaestro
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
@@ -38,41 +28,9 @@ HearMaestro
    :inherited-members: torch.nn.Module,nn.Module,Module
    :show-inheritance:
 
-Path
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-.. autoclass:: Path
-   :member-order: bysource
-   :members:
-   :undoc-members:
-   :inherited-members: torch.nn.Module,nn.Module,Module
-   :show-inheritance:
-
-defaultdict
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-.. autoclass:: defaultdict
-   :member-order: bysource
-   :members:
-   :undoc-members:
-   :inherited-members: torch.nn.Module,nn.Module,Module
-   :show-inheritance:
 
 
 
-
-
-
-
-deepcopy
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-.. autofunction:: deepcopy
-
-prepare_maestro
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-.. autofunction:: prepare_maestro
 
 
 

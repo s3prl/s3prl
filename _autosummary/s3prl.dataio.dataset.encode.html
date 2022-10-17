@@ -3,7 +3,7 @@
   <head><meta charset="utf-8"/>
     <meta name="viewport" content="width=device-width,initial-scale=1"/>
     <meta name="color-scheme" content="light dark"><meta name="generator" content="Docutils 0.19: https://docutils.sourceforge.io/" />
-<link rel="index" title="Index" href="../genindex.html" /><link rel="search" title="Search" href="../search.html" /><link rel="next" title="load_audio" href="s3prl.dataio.dataset.load_audio.html" /><link rel="prev" title="diarization" href="s3prl.dataio.dataset.diarization.html" />
+<link rel="index" title="Index" href="../genindex.html" /><link rel="search" title="Search" href="../search.html" /><link rel="next" title="frame_label" href="s3prl.dataio.dataset.frame_label.html" /><link rel="prev" title="diarization" href="s3prl.dataio.dataset.diarization.html" />
 
     <meta name="generator" content="sphinx-5.1.1, furo 2022.09.29"/>
         <title>encode - S3PRL 0.4.6 documentation</title>
@@ -243,6 +243,7 @@
 </ul>
 </li>
 <li class="toctree-l1 current has-children"><a class="reference internal" href="s3prl.dataio.html">dataio</a><input checked="" class="toctree-checkbox" id="toctree-checkbox-8" name="toctree-checkbox-8" role="switch" type="checkbox"/><label for="toctree-checkbox-8"><div class="visually-hidden">Toggle child pages in navigation</div><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="s3prl.dataio.collate_fn.html">collate_fn</a></li>
 <li class="toctree-l2 has-children"><a class="reference internal" href="s3prl.dataio.corpus.html">corpus</a><input class="toctree-checkbox" id="toctree-checkbox-9" name="toctree-checkbox-9" role="switch" type="checkbox"/><label for="toctree-checkbox-9"><div class="visually-hidden">Toggle child pages in navigation</div><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul>
 <li class="toctree-l3"><a class="reference internal" href="s3prl.dataio.corpus.base.html">base</a></li>
 <li class="toctree-l3"><a class="reference internal" href="s3prl.dataio.corpus.fluent_speech_commands.html">fluent_speech_commands</a></li>
@@ -260,6 +261,7 @@
 <li class="toctree-l3"><a class="reference internal" href="s3prl.dataio.dataset.base.html">base</a></li>
 <li class="toctree-l3"><a class="reference internal" href="s3prl.dataio.dataset.diarization.html">diarization</a></li>
 <li class="toctree-l3 current current-page"><a class="current reference internal" href="#">encode</a></li>
+<li class="toctree-l3"><a class="reference internal" href="s3prl.dataio.dataset.frame_label.html">frame_label</a></li>
 <li class="toctree-l3"><a class="reference internal" href="s3prl.dataio.dataset.load_audio.html">load_audio</a></li>
 <li class="toctree-l3"><a class="reference internal" href="s3prl.dataio.dataset.util.html">util</a></li>
 </ul>
@@ -289,6 +291,7 @@
 </ul>
 </li>
 <li class="toctree-l1 has-children"><a class="reference internal" href="s3prl.util.html">util</a><input class="toctree-checkbox" id="toctree-checkbox-14" name="toctree-checkbox-14" role="switch" type="checkbox"/><label for="toctree-checkbox-14"><div class="visually-hidden">Toggle child pages in navigation</div><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul>
+<li class="toctree-l2"><a class="reference internal" href="s3prl.util.audio_info.html">audio_info</a></li>
 <li class="toctree-l2"><a class="reference internal" href="s3prl.util.benchmark.html">benchmark</a></li>
 <li class="toctree-l2"><a class="reference internal" href="s3prl.util.download.html">download</a></li>
 <li class="toctree-l2"><a class="reference internal" href="s3prl.util.override.html">override</a></li>
@@ -333,77 +336,11 @@
           <section id="encode">
 <h1>encode<a class="headerlink" href="#encode" title="Permalink to this heading">#</a></h1>
 <p><strong>(s3prl.dataio.dataset.encode)</strong></p>
-<span class="target" id="module-s3prl.dataio.dataset.encode"></span><section id="categoryencoder">
-<h2>CategoryEncoder<a class="headerlink" href="#categoryencoder" title="Permalink to this heading">#</a></h2>
-<dl class="py class">
-<dt class="sig sig-object py" id="s3prl.dataio.dataset.encode.CategoryEncoder">
-<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">s3prl.dataio.dataset.encode.</span></span><span class="sig-name descname"><span class="pre">CategoryEncoder</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">category</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">List</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/s3prl/dataio/encoder/category.html#CategoryEncoder"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="reference external" href="https://github.com/s3prl/s3prl/blob/v0.4.6 /s3prl/dataio/encoder/category.py#L11-L22"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#s3prl.dataio.dataset.encode.CategoryEncoder" title="Permalink to this definition">#</a></dt>
-<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
-<dl class="py method">
-<dt class="sig sig-object py" id="s3prl.dataio.dataset.encode.CategoryEncoder.encode">
-<span class="sig-name descname"><span class="pre">encode</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">label</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">int</span></span></span><a class="reference internal" href="../_modules/s3prl/dataio/encoder/category.html#CategoryEncoder.encode"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="reference external" href="https://github.com/s3prl/s3prl/blob/v0.4.6 /s3prl/dataio/encoder/category.py#L18-L19"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#s3prl.dataio.dataset.encode.CategoryEncoder.encode" title="Permalink to this definition">#</a></dt>
-<dd></dd></dl>
-
-<dl class="py method">
-<dt class="sig sig-object py" id="s3prl.dataio.dataset.encode.CategoryEncoder.decode">
-<span class="sig-name descname"><span class="pre">decode</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">index</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">str</span></span></span><a class="reference internal" href="../_modules/s3prl/dataio/encoder/category.html#CategoryEncoder.decode"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="reference external" href="https://github.com/s3prl/s3prl/blob/v0.4.6 /s3prl/dataio/encoder/category.py#L21-L22"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#s3prl.dataio.dataset.encode.CategoryEncoder.decode" title="Permalink to this definition">#</a></dt>
-<dd></dd></dl>
-
-</dd></dl>
-
-</section>
-<section id="categoryencoders">
-<h2>CategoryEncoders<a class="headerlink" href="#categoryencoders" title="Permalink to this heading">#</a></h2>
-<dl class="py class">
-<dt class="sig sig-object py" id="s3prl.dataio.dataset.encode.CategoryEncoders">
-<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">s3prl.dataio.dataset.encode.</span></span><span class="sig-name descname"><span class="pre">CategoryEncoders</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">categories</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">List</span><span class="p"><span class="pre">[</span></span><span class="pre">List</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/s3prl/dataio/encoder/category.html#CategoryEncoders"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="reference external" href="https://github.com/s3prl/s3prl/blob/v0.4.6 /s3prl/dataio/encoder/category.py#L25-L45"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#s3prl.dataio.dataset.encode.CategoryEncoders" title="Permalink to this definition">#</a></dt>
-<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
-<dl class="py method">
-<dt class="sig sig-object py" id="s3prl.dataio.dataset.encode.CategoryEncoders.encode">
-<span class="sig-name descname"><span class="pre">encode</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">labels</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">List</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">List</span><span class="p"><span class="pre">[</span></span><span class="pre">int</span><span class="p"><span class="pre">]</span></span></span></span><a class="reference internal" href="../_modules/s3prl/dataio/encoder/category.html#CategoryEncoders.encode"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="reference external" href="https://github.com/s3prl/s3prl/blob/v0.4.6 /s3prl/dataio/encoder/category.py#L36-L40"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#s3prl.dataio.dataset.encode.CategoryEncoders.encode" title="Permalink to this definition">#</a></dt>
-<dd></dd></dl>
-
-<dl class="py method">
-<dt class="sig sig-object py" id="s3prl.dataio.dataset.encode.CategoryEncoders.decode">
-<span class="sig-name descname"><span class="pre">decode</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">indices</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">List</span><span class="p"><span class="pre">[</span></span><span class="pre">int</span><span class="p"><span class="pre">]</span></span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">List</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span></span></span><a class="reference internal" href="../_modules/s3prl/dataio/encoder/category.html#CategoryEncoders.decode"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="reference external" href="https://github.com/s3prl/s3prl/blob/v0.4.6 /s3prl/dataio/encoder/category.py#L42-L45"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#s3prl.dataio.dataset.encode.CategoryEncoders.decode" title="Permalink to this definition">#</a></dt>
-<dd></dd></dl>
-
-</dd></dl>
-
-</section>
-<section id="dataset">
-<h2>Dataset<a class="headerlink" href="#dataset" title="Permalink to this heading">#</a></h2>
-<dl class="py class">
-<dt class="sig sig-object py" id="s3prl.dataio.dataset.encode.Dataset">
-<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">s3prl.dataio.dataset.encode.</span></span><span class="sig-name descname"><span class="pre">Dataset</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwds</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/s3prl/dataio/dataset/base.html#Dataset"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="reference external" href="https://github.com/s3prl/s3prl/blob/v0.4.6 /s3prl/dataio/dataset/base.py#L4-L12"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#s3prl.dataio.dataset.encode.Dataset" title="Permalink to this definition">#</a></dt>
-<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">Dataset</span></code></p>
-<dl class="py method">
-<dt class="sig sig-object py" id="s3prl.dataio.dataset.encode.Dataset.getinfo">
-<span class="sig-name descname"><span class="pre">getinfo</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">index</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/s3prl/dataio/dataset/base.html#Dataset.getinfo"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="reference external" href="https://github.com/s3prl/s3prl/blob/v0.4.6 /s3prl/dataio/dataset/base.py#L11-L12"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#s3prl.dataio.dataset.encode.Dataset.getinfo" title="Permalink to this definition">#</a></dt>
-<dd></dd></dl>
-
-</dd></dl>
-
-</section>
-<section id="encodecategories">
-<h2>EncodeCategories<a class="headerlink" href="#encodecategories" title="Permalink to this heading">#</a></h2>
-<dl class="py class">
-<dt class="sig sig-object py" id="s3prl.dataio.dataset.encode.EncodeCategories">
-<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">s3prl.dataio.dataset.encode.</span></span><span class="sig-name descname"><span class="pre">EncodeCategories</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">labels</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">List</span><span class="p"><span class="pre">[</span></span><span class="pre">List</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">encoders</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="s3prl.dataio.encoder.category.html#s3prl.dataio.encoder.category.CategoryEncoders" title="s3prl.dataio.encoder.category.CategoryEncoders"><span class="pre">CategoryEncoders</span></a></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/s3prl/dataio/dataset/encode.html#EncodeCategories"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="reference external" href="https://github.com/s3prl/s3prl/blob/v0.4.6 /s3prl/dataio/dataset/encode.py#L28-L42"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#s3prl.dataio.dataset.encode.EncodeCategories" title="Permalink to this definition">#</a></dt>
-<dd><p>Bases: <a class="reference internal" href="s3prl.dataio.dataset.base.html#s3prl.dataio.dataset.base.Dataset" title="s3prl.dataio.dataset.base.Dataset"><code class="xref py py-class docutils literal notranslate"><span class="pre">Dataset</span></code></a></p>
-<dl class="py method">
-<dt class="sig sig-object py" id="s3prl.dataio.dataset.encode.EncodeCategories.getinfo">
-<span class="sig-name descname"><span class="pre">getinfo</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">index</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em><span class="sig-paren">)</span><a class="reference external" href="https://github.com/s3prl/s3prl/blob/v0.4.6 /s3prl/dataio/dataset/base.py#L11-L12"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#s3prl.dataio.dataset.encode.EncodeCategories.getinfo" title="Permalink to this definition">#</a></dt>
-<dd></dd></dl>
-
-</dd></dl>
-
-</section>
-<section id="encodecategory">
+<span class="target" id="module-s3prl.dataio.dataset.encode"></span><section id="encodecategory">
 <h2>EncodeCategory<a class="headerlink" href="#encodecategory" title="Permalink to this heading">#</a></h2>
 <dl class="py class">
 <dt class="sig sig-object py" id="s3prl.dataio.dataset.encode.EncodeCategory">
-<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">s3prl.dataio.dataset.encode.</span></span><span class="sig-name descname"><span class="pre">EncodeCategory</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">labels</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">List</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">encoder</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="s3prl.dataio.encoder.category.html#s3prl.dataio.encoder.category.CategoryEncoder" title="s3prl.dataio.encoder.category.CategoryEncoder"><span class="pre">CategoryEncoder</span></a></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/s3prl/dataio/dataset/encode.html#EncodeCategory"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="reference external" href="https://github.com/s3prl/s3prl/blob/v0.4.6 /s3prl/dataio/dataset/encode.py#L11-L25"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#s3prl.dataio.dataset.encode.EncodeCategory" title="Permalink to this definition">#</a></dt>
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">s3prl.dataio.dataset.encode.</span></span><span class="sig-name descname"><span class="pre">EncodeCategory</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">labels</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">List</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">encoder</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="s3prl.dataio.encoder.category.html#s3prl.dataio.encoder.category.CategoryEncoder" title="s3prl.dataio.encoder.category.CategoryEncoder"><span class="pre">CategoryEncoder</span></a></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/s3prl/dataio/dataset/encode.html#EncodeCategory"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="reference external" href="https://github.com/s3prl/s3prl/blob/v0.4.6 /s3prl/dataio/dataset/encode.py#L18-L32"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#s3prl.dataio.dataset.encode.EncodeCategory" title="Permalink to this definition">#</a></dt>
 <dd><p>Bases: <a class="reference internal" href="s3prl.dataio.dataset.base.html#s3prl.dataio.dataset.base.Dataset" title="s3prl.dataio.dataset.base.Dataset"><code class="xref py py-class docutils literal notranslate"><span class="pre">Dataset</span></code></a></p>
 <dl class="py method">
 <dt class="sig sig-object py" id="s3prl.dataio.dataset.encode.EncodeCategory.getinfo">
@@ -413,64 +350,48 @@
 </dd></dl>
 
 </section>
-<section id="encodetext">
-<h2>EncodeText<a class="headerlink" href="#encodetext" title="Permalink to this heading">#</a></h2>
+<section id="encodecategories">
+<h2>EncodeCategories<a class="headerlink" href="#encodecategories" title="Permalink to this heading">#</a></h2>
 <dl class="py class">
-<dt class="sig sig-object py" id="s3prl.dataio.dataset.encode.EncodeText">
-<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">s3prl.dataio.dataset.encode.</span></span><span class="sig-name descname"><span class="pre">EncodeText</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">text</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">List</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">tokenizer</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="s3prl.dataio.encoder.html#s3prl.dataio.encoder.Tokenizer" title="s3prl.dataio.encoder.tokenizer.Tokenizer"><span class="pre">Tokenizer</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">iob</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">List</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/s3prl/dataio/dataset/encode.html#EncodeText"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="reference external" href="https://github.com/s3prl/s3prl/blob/v0.4.6 /s3prl/dataio/dataset/encode.py#L45-L71"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#s3prl.dataio.dataset.encode.EncodeText" title="Permalink to this definition">#</a></dt>
+<dt class="sig sig-object py" id="s3prl.dataio.dataset.encode.EncodeCategories">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">s3prl.dataio.dataset.encode.</span></span><span class="sig-name descname"><span class="pre">EncodeCategories</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">labels</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">List</span><span class="p"><span class="pre">[</span></span><span class="pre">List</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">encoders</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="s3prl.dataio.encoder.category.html#s3prl.dataio.encoder.category.CategoryEncoders" title="s3prl.dataio.encoder.category.CategoryEncoders"><span class="pre">CategoryEncoders</span></a></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/s3prl/dataio/dataset/encode.html#EncodeCategories"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="reference external" href="https://github.com/s3prl/s3prl/blob/v0.4.6 /s3prl/dataio/dataset/encode.py#L35-L49"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#s3prl.dataio.dataset.encode.EncodeCategories" title="Permalink to this definition">#</a></dt>
 <dd><p>Bases: <a class="reference internal" href="s3prl.dataio.dataset.base.html#s3prl.dataio.dataset.base.Dataset" title="s3prl.dataio.dataset.base.Dataset"><code class="xref py py-class docutils literal notranslate"><span class="pre">Dataset</span></code></a></p>
 <dl class="py method">
-<dt class="sig sig-object py" id="s3prl.dataio.dataset.encode.EncodeText.getinfo">
-<span class="sig-name descname"><span class="pre">getinfo</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">index</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em><span class="sig-paren">)</span><a class="reference external" href="https://github.com/s3prl/s3prl/blob/v0.4.6 /s3prl/dataio/dataset/base.py#L11-L12"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#s3prl.dataio.dataset.encode.EncodeText.getinfo" title="Permalink to this definition">#</a></dt>
+<dt class="sig sig-object py" id="s3prl.dataio.dataset.encode.EncodeCategories.getinfo">
+<span class="sig-name descname"><span class="pre">getinfo</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">index</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em><span class="sig-paren">)</span><a class="reference external" href="https://github.com/s3prl/s3prl/blob/v0.4.6 /s3prl/dataio/dataset/base.py#L11-L12"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#s3prl.dataio.dataset.encode.EncodeCategories.getinfo" title="Permalink to this definition">#</a></dt>
 <dd></dd></dl>
 
 </dd></dl>
 
 </section>
-<section id="tokenizer">
-<h2>Tokenizer<a class="headerlink" href="#tokenizer" title="Permalink to this heading">#</a></h2>
+<section id="encodemultilabel">
+<h2>EncodeMultiLabel<a class="headerlink" href="#encodemultilabel" title="Permalink to this heading">#</a></h2>
 <dl class="py class">
-<dt class="sig sig-object py" id="s3prl.dataio.dataset.encode.Tokenizer">
-<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">s3prl.dataio.dataset.encode.</span></span><span class="sig-name descname"><span class="pre">Tokenizer</span></span><a class="reference internal" href="../_modules/s3prl/dataio/encoder/tokenizer.html#Tokenizer"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="reference external" href="https://github.com/s3prl/s3prl/blob/v0.4.6 /s3prl/dataio/encoder/tokenizer.py#L40-L80"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#s3prl.dataio.dataset.encode.Tokenizer" title="Permalink to this definition">#</a></dt>
-<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<dt class="sig sig-object py" id="s3prl.dataio.dataset.encode.EncodeMultiLabel">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">s3prl.dataio.dataset.encode.</span></span><span class="sig-name descname"><span class="pre">EncodeMultiLabel</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">labels</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">List</span><span class="p"><span class="pre">[</span></span><span class="pre">List</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">encoder</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="s3prl.dataio.encoder.category.html#s3prl.dataio.encoder.category.CategoryEncoder" title="s3prl.dataio.encoder.category.CategoryEncoder"><span class="pre">CategoryEncoder</span></a></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/s3prl/dataio/dataset/encode.html#EncodeMultiLabel"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="reference external" href="https://github.com/s3prl/s3prl/blob/v0.4.6 /s3prl/dataio/dataset/encode.py#L52-L81"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#s3prl.dataio.dataset.encode.EncodeMultiLabel" title="Permalink to this definition">#</a></dt>
+<dd><p>Bases: <a class="reference internal" href="s3prl.dataio.dataset.base.html#s3prl.dataio.dataset.base.Dataset" title="s3prl.dataio.dataset.base.Dataset"><code class="xref py py-class docutils literal notranslate"><span class="pre">Dataset</span></code></a></p>
 <dl class="py method">
-<dt class="sig sig-object py" id="s3prl.dataio.dataset.encode.Tokenizer.encode">
-<em class="property"><span class="pre">abstract</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">encode</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">text</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">iob</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">List</span><span class="p"><span class="pre">[</span></span><span class="pre">int</span><span class="p"><span class="pre">]</span></span></span></span><a class="reference internal" href="../_modules/s3prl/dataio/encoder/tokenizer.html#Tokenizer.encode"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="reference external" href="https://github.com/s3prl/s3prl/blob/v0.4.6 /s3prl/dataio/encoder/tokenizer.py#L44-L46"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#s3prl.dataio.dataset.encode.Tokenizer.encode" title="Permalink to this definition">#</a></dt>
-<dd></dd></dl>
-
-<dl class="py method">
-<dt class="sig sig-object py" id="s3prl.dataio.dataset.encode.Tokenizer.decode">
-<em class="property"><span class="pre">abstract</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">decode</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">idxs</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">List</span><span class="p"><span class="pre">[</span></span><span class="pre">int</span><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ignore_repeat</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">str</span></span></span><a class="reference internal" href="../_modules/s3prl/dataio/encoder/tokenizer.html#Tokenizer.decode"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="reference external" href="https://github.com/s3prl/s3prl/blob/v0.4.6 /s3prl/dataio/encoder/tokenizer.py#L48-L50"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#s3prl.dataio.dataset.encode.Tokenizer.decode" title="Permalink to this definition">#</a></dt>
-<dd></dd></dl>
-
-<dl class="py property">
-<dt class="sig sig-object py" id="s3prl.dataio.dataset.encode.Tokenizer.vocab_size">
-<em class="property"><span class="pre">abstract</span><span class="w"> </span><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">vocab_size</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">int</span></em><a class="reference external" href="https://github.com/s3prl/s3prl/blob/v0.4.6 /s3prl/dataio/dataset/encode.py"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#s3prl.dataio.dataset.encode.Tokenizer.vocab_size" title="Permalink to this definition">#</a></dt>
-<dd></dd></dl>
-
-<dl class="py property">
-<dt class="sig sig-object py" id="s3prl.dataio.dataset.encode.Tokenizer.token_type">
-<em class="property"><span class="pre">abstract</span><span class="w"> </span><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">token_type</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">str</span></em><a class="reference external" href="https://github.com/s3prl/s3prl/blob/v0.4.6 /s3prl/dataio/dataset/encode.py"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#s3prl.dataio.dataset.encode.Tokenizer.token_type" title="Permalink to this definition">#</a></dt>
+<dt class="sig sig-object py" id="s3prl.dataio.dataset.encode.EncodeMultiLabel.label_to_binary_vector">
+<em class="property"><span class="pre">static</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">label_to_binary_vector</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">label_ids</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">List</span><span class="p"><span class="pre">[</span></span><span class="pre">int</span><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">num_labels</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">Tensor</span></span></span><a class="reference internal" href="../_modules/s3prl/dataio/dataset/encode.html#EncodeMultiLabel.label_to_binary_vector"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="reference external" href="https://github.com/s3prl/s3prl/blob/v0.4.6 /s3prl/dataio/dataset/encode.py#L61-L71"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#s3prl.dataio.dataset.encode.EncodeMultiLabel.label_to_binary_vector" title="Permalink to this definition">#</a></dt>
 <dd></dd></dl>
 
 <dl class="py method">
-<dt class="sig sig-object py" id="s3prl.dataio.dataset.encode.Tokenizer.load_from_file">
-<em class="property"><span class="pre">abstract</span><span class="w"> </span><span class="pre">classmethod</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">load_from_file</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">vocab_file</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/s3prl/dataio/encoder/tokenizer.html#Tokenizer.load_from_file"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="reference external" href="https://github.com/s3prl/s3prl/blob/v0.4.6 /s3prl/dataio/encoder/tokenizer.py#L63-L65"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#s3prl.dataio.dataset.encode.Tokenizer.load_from_file" title="Permalink to this definition">#</a></dt>
+<dt class="sig sig-object py" id="s3prl.dataio.dataset.encode.EncodeMultiLabel.getinfo">
+<span class="sig-name descname"><span class="pre">getinfo</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">index</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em><span class="sig-paren">)</span><a class="reference external" href="https://github.com/s3prl/s3prl/blob/v0.4.6 /s3prl/dataio/dataset/base.py#L11-L12"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#s3prl.dataio.dataset.encode.EncodeMultiLabel.getinfo" title="Permalink to this definition">#</a></dt>
 <dd></dd></dl>
 
-<dl class="py property">
-<dt class="sig sig-object py" id="s3prl.dataio.dataset.encode.Tokenizer.pad_idx">
-<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">pad_idx</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">int</span></em><a class="reference external" href="https://github.com/s3prl/s3prl/blob/v0.4.6 /s3prl/dataio/dataset/encode.py"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#s3prl.dataio.dataset.encode.Tokenizer.pad_idx" title="Permalink to this definition">#</a></dt>
-<dd></dd></dl>
+</dd></dl>
 
-<dl class="py property">
-<dt class="sig sig-object py" id="s3prl.dataio.dataset.encode.Tokenizer.eos_idx">
-<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">eos_idx</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">int</span></em><a class="reference external" href="https://github.com/s3prl/s3prl/blob/v0.4.6 /s3prl/dataio/dataset/encode.py"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#s3prl.dataio.dataset.encode.Tokenizer.eos_idx" title="Permalink to this definition">#</a></dt>
-<dd></dd></dl>
-
-<dl class="py property">
-<dt class="sig sig-object py" id="s3prl.dataio.dataset.encode.Tokenizer.unk_idx">
-<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">unk_idx</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">int</span></em><a class="reference external" href="https://github.com/s3prl/s3prl/blob/v0.4.6 /s3prl/dataio/dataset/encode.py"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#s3prl.dataio.dataset.encode.Tokenizer.unk_idx" title="Permalink to this definition">#</a></dt>
+</section>
+<section id="encodetext">
+<h2>EncodeText<a class="headerlink" href="#encodetext" title="Permalink to this heading">#</a></h2>
+<dl class="py class">
+<dt class="sig sig-object py" id="s3prl.dataio.dataset.encode.EncodeText">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">s3prl.dataio.dataset.encode.</span></span><span class="sig-name descname"><span class="pre">EncodeText</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">text</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">List</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">tokenizer</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="s3prl.dataio.encoder.html#s3prl.dataio.encoder.Tokenizer" title="s3prl.dataio.encoder.tokenizer.Tokenizer"><span class="pre">Tokenizer</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">iob</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">List</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/s3prl/dataio/dataset/encode.html#EncodeText"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="reference external" href="https://github.com/s3prl/s3prl/blob/v0.4.6 /s3prl/dataio/dataset/encode.py#L84-L110"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#s3prl.dataio.dataset.encode.EncodeText" title="Permalink to this definition">#</a></dt>
+<dd><p>Bases: <a class="reference internal" href="s3prl.dataio.dataset.base.html#s3prl.dataio.dataset.base.Dataset" title="s3prl.dataio.dataset.base.Dataset"><code class="xref py py-class docutils literal notranslate"><span class="pre">Dataset</span></code></a></p>
+<dl class="py method">
+<dt class="sig sig-object py" id="s3prl.dataio.dataset.encode.EncodeText.getinfo">
+<span class="sig-name descname"><span class="pre">getinfo</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">index</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em><span class="sig-paren">)</span><a class="reference external" href="https://github.com/s3prl/s3prl/blob/v0.4.6 /s3prl/dataio/dataset/base.py#L11-L12"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#s3prl.dataio.dataset.encode.EncodeText.getinfo" title="Permalink to this definition">#</a></dt>
 <dd></dd></dl>
 
 </dd></dl>
@@ -483,12 +404,12 @@
       <footer>
         
         <div class="related-pages">
-          <a class="next-page" href="s3prl.dataio.dataset.load_audio.html">
+          <a class="next-page" href="s3prl.dataio.dataset.frame_label.html">
               <div class="page-info">
                 <div class="context">
                   <span>Next</span>
                 </div>
-                <div class="title">load_audio</div>
+                <div class="title">frame_label</div>
               </div>
               <svg class="furo-related-icon"><use href="#svg-arrow-right"></use></svg>
             </a>
@@ -536,13 +457,10 @@
           <div class="toc-tree">
             <ul>
 <li><a class="reference internal" href="#">encode</a><ul>
-<li><a class="reference internal" href="#categoryencoder">CategoryEncoder</a></li>
-<li><a class="reference internal" href="#categoryencoders">CategoryEncoders</a></li>
-<li><a class="reference internal" href="#dataset">Dataset</a></li>
-<li><a class="reference internal" href="#encodecategories">EncodeCategories</a></li>
 <li><a class="reference internal" href="#encodecategory">EncodeCategory</a></li>
+<li><a class="reference internal" href="#encodecategories">EncodeCategories</a></li>
+<li><a class="reference internal" href="#encodemultilabel">EncodeMultiLabel</a></li>
 <li><a class="reference internal" href="#encodetext">EncodeText</a></li>
-<li><a class="reference internal" href="#tokenizer">Tokenizer</a></li>
 </ul>
 </li>
 </ul>

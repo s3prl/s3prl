@@ -3,7 +3,7 @@
   <head><meta charset="utf-8"/>
     <meta name="viewport" content="width=device-width,initial-scale=1"/>
     <meta name="color-scheme" content="light dark"><meta name="generator" content="Docutils 0.19: https://docutils.sourceforge.io/" />
-<link rel="index" title="Index" href="../genindex.html" /><link rel="search" title="Search" href="../search.html" /><link rel="next" title="corpus" href="s3prl.dataio.corpus.html" /><link rel="prev" title="utterance_classification_task" href="s3prl.task.utterance_classification_task.html" />
+<link rel="index" title="Index" href="../genindex.html" /><link rel="search" title="Search" href="../search.html" /><link rel="next" title="collate_fn" href="s3prl.dataio.collate_fn.html" /><link rel="prev" title="utterance_classification_task" href="s3prl.task.utterance_classification_task.html" />
 
     <meta name="generator" content="sphinx-5.1.1, furo 2022.09.29"/>
         <title>dataio - S3PRL 0.4.6 documentation</title>
@@ -243,6 +243,7 @@
 </ul>
 </li>
 <li class="toctree-l1 current has-children current-page"><a class="current reference internal" href="#">dataio</a><input checked="" class="toctree-checkbox" id="toctree-checkbox-8" name="toctree-checkbox-8" role="switch" type="checkbox"/><label for="toctree-checkbox-8"><div class="visually-hidden">Toggle child pages in navigation</div><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul>
+<li class="toctree-l2"><a class="reference internal" href="s3prl.dataio.collate_fn.html">collate_fn</a></li>
 <li class="toctree-l2 has-children"><a class="reference internal" href="s3prl.dataio.corpus.html">corpus</a><input class="toctree-checkbox" id="toctree-checkbox-9" name="toctree-checkbox-9" role="switch" type="checkbox"/><label for="toctree-checkbox-9"><div class="visually-hidden">Toggle child pages in navigation</div><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul>
 <li class="toctree-l3"><a class="reference internal" href="s3prl.dataio.corpus.base.html">base</a></li>
 <li class="toctree-l3"><a class="reference internal" href="s3prl.dataio.corpus.fluent_speech_commands.html">fluent_speech_commands</a></li>
@@ -260,6 +261,7 @@
 <li class="toctree-l3"><a class="reference internal" href="s3prl.dataio.dataset.base.html">base</a></li>
 <li class="toctree-l3"><a class="reference internal" href="s3prl.dataio.dataset.diarization.html">diarization</a></li>
 <li class="toctree-l3"><a class="reference internal" href="s3prl.dataio.dataset.encode.html">encode</a></li>
+<li class="toctree-l3"><a class="reference internal" href="s3prl.dataio.dataset.frame_label.html">frame_label</a></li>
 <li class="toctree-l3"><a class="reference internal" href="s3prl.dataio.dataset.load_audio.html">load_audio</a></li>
 <li class="toctree-l3"><a class="reference internal" href="s3prl.dataio.dataset.util.html">util</a></li>
 </ul>
@@ -289,6 +291,7 @@
 </ul>
 </li>
 <li class="toctree-l1 has-children"><a class="reference internal" href="s3prl.util.html">util</a><input class="toctree-checkbox" id="toctree-checkbox-14" name="toctree-checkbox-14" role="switch" type="checkbox"/><label for="toctree-checkbox-14"><div class="visually-hidden">Toggle child pages in navigation</div><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul>
+<li class="toctree-l2"><a class="reference internal" href="s3prl.util.audio_info.html">audio_info</a></li>
 <li class="toctree-l2"><a class="reference internal" href="s3prl.util.benchmark.html">benchmark</a></li>
 <li class="toctree-l2"><a class="reference internal" href="s3prl.util.download.html">download</a></li>
 <li class="toctree-l2"><a class="reference internal" href="s3prl.util.override.html">override</a></li>
@@ -337,16 +340,19 @@
 <div class="table-wrapper autosummary longtable docutils container">
 <table class="autosummary longtable docutils align-default">
 <tbody>
-<tr class="row-odd"><td><p><a class="reference internal" href="s3prl.dataio.corpus.html#module-s3prl.dataio.corpus" title="s3prl.dataio.corpus"><code class="xref py py-obj docutils literal notranslate"><span class="pre">s3prl.dataio.corpus</span></code></a></p></td>
-<td><p>Parse the commonly used corpus into standardized dictionary structure</p></td>
-</tr>
-<tr class="row-even"><td><p><a class="reference internal" href="s3prl.dataio.dataset.html#module-s3prl.dataio.dataset" title="s3prl.dataio.dataset"><code class="xref py py-obj docutils literal notranslate"><span class="pre">s3prl.dataio.dataset</span></code></a></p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="s3prl.dataio.collate_fn.html#module-s3prl.dataio.collate_fn" title="s3prl.dataio.collate_fn"><code class="xref py py-obj docutils literal notranslate"><span class="pre">s3prl.dataio.collate_fn</span></code></a></p></td>
 <td><p></p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="s3prl.dataio.encoder.html#module-s3prl.dataio.encoder" title="s3prl.dataio.encoder"><code class="xref py py-obj docutils literal notranslate"><span class="pre">s3prl.dataio.encoder</span></code></a></p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="s3prl.dataio.corpus.html#module-s3prl.dataio.corpus" title="s3prl.dataio.corpus"><code class="xref py py-obj docutils literal notranslate"><span class="pre">s3prl.dataio.corpus</span></code></a></p></td>
+<td><p>Parse the commonly used corpus into standardized dictionary structure</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="s3prl.dataio.dataset.html#module-s3prl.dataio.dataset" title="s3prl.dataio.dataset"><code class="xref py py-obj docutils literal notranslate"><span class="pre">s3prl.dataio.dataset</span></code></a></p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="s3prl.dataio.encoder.html#module-s3prl.dataio.encoder" title="s3prl.dataio.encoder"><code class="xref py py-obj docutils literal notranslate"><span class="pre">s3prl.dataio.encoder</span></code></a></p></td>
 <td><p>Encode the raw data into numeric format, and then decode it</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="s3prl.dataio.sampler.html#module-s3prl.dataio.sampler" title="s3prl.dataio.sampler"><code class="xref py py-obj docutils literal notranslate"><span class="pre">s3prl.dataio.sampler</span></code></a></p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="s3prl.dataio.sampler.html#module-s3prl.dataio.sampler" title="s3prl.dataio.sampler"><code class="xref py py-obj docutils literal notranslate"><span class="pre">s3prl.dataio.sampler</span></code></a></p></td>
 <td><p>Control how torch DataLoader group instances into a batch</p></td>
 </tr>
 </tbody>
@@ -359,12 +365,12 @@
       <footer>
         
         <div class="related-pages">
-          <a class="next-page" href="s3prl.dataio.corpus.html">
+          <a class="next-page" href="s3prl.dataio.collate_fn.html">
               <div class="page-info">
                 <div class="context">
                   <span>Next</span>
                 </div>
-                <div class="title">corpus</div>
+                <div class="title">collate_fn</div>
               </div>
               <svg class="furo-related-icon"><use href="#svg-arrow-right"></use></svg>
             </a>

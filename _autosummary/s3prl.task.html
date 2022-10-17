@@ -243,6 +243,7 @@
 </ul>
 </li>
 <li class="toctree-l1 has-children"><a class="reference internal" href="s3prl.dataio.html">dataio</a><input class="toctree-checkbox" id="toctree-checkbox-8" name="toctree-checkbox-8" role="switch" type="checkbox"/><label for="toctree-checkbox-8"><div class="visually-hidden">Toggle child pages in navigation</div><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul>
+<li class="toctree-l2"><a class="reference internal" href="s3prl.dataio.collate_fn.html">collate_fn</a></li>
 <li class="toctree-l2 has-children"><a class="reference internal" href="s3prl.dataio.corpus.html">corpus</a><input class="toctree-checkbox" id="toctree-checkbox-9" name="toctree-checkbox-9" role="switch" type="checkbox"/><label for="toctree-checkbox-9"><div class="visually-hidden">Toggle child pages in navigation</div><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul>
 <li class="toctree-l3"><a class="reference internal" href="s3prl.dataio.corpus.base.html">base</a></li>
 <li class="toctree-l3"><a class="reference internal" href="s3prl.dataio.corpus.fluent_speech_commands.html">fluent_speech_commands</a></li>
@@ -260,6 +261,7 @@
 <li class="toctree-l3"><a class="reference internal" href="s3prl.dataio.dataset.base.html">base</a></li>
 <li class="toctree-l3"><a class="reference internal" href="s3prl.dataio.dataset.diarization.html">diarization</a></li>
 <li class="toctree-l3"><a class="reference internal" href="s3prl.dataio.dataset.encode.html">encode</a></li>
+<li class="toctree-l3"><a class="reference internal" href="s3prl.dataio.dataset.frame_label.html">frame_label</a></li>
 <li class="toctree-l3"><a class="reference internal" href="s3prl.dataio.dataset.load_audio.html">load_audio</a></li>
 <li class="toctree-l3"><a class="reference internal" href="s3prl.dataio.dataset.util.html">util</a></li>
 </ul>
@@ -289,6 +291,7 @@
 </ul>
 </li>
 <li class="toctree-l1 has-children"><a class="reference internal" href="s3prl.util.html">util</a><input class="toctree-checkbox" id="toctree-checkbox-14" name="toctree-checkbox-14" role="switch" type="checkbox"/><label for="toctree-checkbox-14"><div class="visually-hidden">Toggle child pages in navigation</div><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul>
+<li class="toctree-l2"><a class="reference internal" href="s3prl.util.audio_info.html">audio_info</a></li>
 <li class="toctree-l2"><a class="reference internal" href="s3prl.util.benchmark.html">benchmark</a></li>
 <li class="toctree-l2"><a class="reference internal" href="s3prl.util.download.html">download</a></li>
 <li class="toctree-l2"><a class="reference internal" href="s3prl.util.override.html">override</a></li>
@@ -442,16 +445,7 @@ registered hooks while the latter silently ignores them.</p>
 <dl class="py attribute">
 <dt class="sig sig-object py" id="s3prl.task.Task.dump_patches">
 <span class="sig-name descname"><span class="pre">dump_patches</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">bool</span></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">False</span></em><a class="reference external" href="https://github.com/s3prl/s3prl/blob/v0.4.6 /s3prl/task.py"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#s3prl.task.Task.dump_patches" title="Permalink to this definition">#</a></dt>
-<dd><p>This allows better BC support for <code class="xref py py-meth docutils literal notranslate"><span class="pre">load_state_dict()</span></code>. In
-<code class="xref py py-meth docutils literal notranslate"><span class="pre">state_dict()</span></code>, the version number will be saved as in the attribute
-<cite>_metadata</cite> of the returned state dict, and thus pickled. <cite>_metadata</cite> is a
-dictionary with keys that follow the naming convention of state dict. See
-<code class="docutils literal notranslate"><span class="pre">_load_from_state_dict</span></code> on how to use this information in loading.</p>
-<p>If new parameters/buffers are added/removed from a module, this number shall
-be bumped, and the module’s <cite>_load_from_state_dict</cite> method can compare the
-version number and do appropriate changes if the state dict is from before
-the change.</p>
-</dd></dl>
+<dd></dd></dl>
 
 <dl class="py attribute">
 <dt class="sig sig-object py" id="s3prl.task.Task.training">
@@ -494,16 +488,7 @@ registered hooks while the latter silently ignores them.</p>
 <dl class="py attribute">
 <dt class="sig sig-object py" id="s3prl.task.DiarizationPIT.dump_patches">
 <span class="sig-name descname"><span class="pre">dump_patches</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">bool</span></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">False</span></em><a class="reference external" href="https://github.com/s3prl/s3prl/blob/v0.4.6 /s3prl/task.py"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#s3prl.task.DiarizationPIT.dump_patches" title="Permalink to this definition">#</a></dt>
-<dd><p>This allows better BC support for <code class="xref py py-meth docutils literal notranslate"><span class="pre">load_state_dict()</span></code>. In
-<code class="xref py py-meth docutils literal notranslate"><span class="pre">state_dict()</span></code>, the version number will be saved as in the attribute
-<cite>_metadata</cite> of the returned state dict, and thus pickled. <cite>_metadata</cite> is a
-dictionary with keys that follow the naming convention of state dict. See
-<code class="docutils literal notranslate"><span class="pre">_load_from_state_dict</span></code> on how to use this information in loading.</p>
-<p>If new parameters/buffers are added/removed from a module, this number shall
-be bumped, and the module’s <cite>_load_from_state_dict</cite> method can compare the
-version number and do appropriate changes if the state dict is from before
-the change.</p>
-</dd></dl>
+<dd></dd></dl>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="s3prl.task.DiarizationPIT.get_state">
@@ -586,16 +571,7 @@ registered hooks while the latter silently ignores them.</p>
 <dl class="py attribute">
 <dt class="sig sig-object py" id="s3prl.task.DumpFeature.dump_patches">
 <span class="sig-name descname"><span class="pre">dump_patches</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">bool</span></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">False</span></em><a class="reference external" href="https://github.com/s3prl/s3prl/blob/v0.4.6 /s3prl/task.py"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#s3prl.task.DumpFeature.dump_patches" title="Permalink to this definition">#</a></dt>
-<dd><p>This allows better BC support for <code class="xref py py-meth docutils literal notranslate"><span class="pre">load_state_dict()</span></code>. In
-<code class="xref py py-meth docutils literal notranslate"><span class="pre">state_dict()</span></code>, the version number will be saved as in the attribute
-<cite>_metadata</cite> of the returned state dict, and thus pickled. <cite>_metadata</cite> is a
-dictionary with keys that follow the naming convention of state dict. See
-<code class="docutils literal notranslate"><span class="pre">_load_from_state_dict</span></code> on how to use this information in loading.</p>
-<p>If new parameters/buffers are added/removed from a module, this number shall
-be bumped, and the module’s <cite>_load_from_state_dict</cite> method can compare the
-version number and do appropriate changes if the state dict is from before
-the change.</p>
-</dd></dl>
+<dd></dd></dl>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="s3prl.task.DumpFeature.get_state">
@@ -742,16 +718,7 @@ output (torch.Tensor):</p>
 <dl class="py attribute">
 <dt class="sig sig-object py" id="s3prl.task.SpeakerVerification.dump_patches">
 <span class="sig-name descname"><span class="pre">dump_patches</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">bool</span></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">False</span></em><a class="reference external" href="https://github.com/s3prl/s3prl/blob/v0.4.6 /s3prl/task.py"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#s3prl.task.SpeakerVerification.dump_patches" title="Permalink to this definition">#</a></dt>
-<dd><p>This allows better BC support for <code class="xref py py-meth docutils literal notranslate"><span class="pre">load_state_dict()</span></code>. In
-<code class="xref py py-meth docutils literal notranslate"><span class="pre">state_dict()</span></code>, the version number will be saved as in the attribute
-<cite>_metadata</cite> of the returned state dict, and thus pickled. <cite>_metadata</cite> is a
-dictionary with keys that follow the naming convention of state dict. See
-<code class="docutils literal notranslate"><span class="pre">_load_from_state_dict</span></code> on how to use this information in loading.</p>
-<p>If new parameters/buffers are added/removed from a module, this number shall
-be bumped, and the module’s <cite>_load_from_state_dict</cite> method can compare the
-version number and do appropriate changes if the state dict is from before
-the change.</p>
-</dd></dl>
+<dd></dd></dl>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="s3prl.task.SpeakerVerification.forward">
@@ -806,7 +773,7 @@ registered hooks while the latter silently ignores them.</p>
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>model</strong> (<a class="reference internal" href="s3prl.task.speech2text_ctc_task.html#s3prl.task.speech2text_ctc_task.Speech2TextCTCExample" title="s3prl.task.speech2text_ctc_task.Speech2TextCTCExample"><em>Speech2TextCTCExample</em></a>) – </p></li>
-<li><p><strong>tokenizer</strong> (<a class="reference internal" href="s3prl.dataio.dataset.encode.html#s3prl.dataio.dataset.encode.Tokenizer" title="s3prl.dataio.dataset.encode.Tokenizer"><em>Tokenizer</em></a>) – Text tokenizer.</p></li>
+<li><p><strong>tokenizer</strong> (<a class="reference internal" href="s3prl.dataio.encoder.html#s3prl.dataio.encoder.Tokenizer" title="s3prl.dataio.encoder.Tokenizer"><em>Tokenizer</em></a>) – Text tokenizer.</p></li>
 <li><p><strong>decoder</strong> (<em>Union</em><em>[</em><a class="reference internal" href="s3prl.nn.html#s3prl.nn.BeamDecoder" title="s3prl.nn.BeamDecoder"><em>BeamDecoder</em></a><em>, </em><em>dict</em><em>]</em><em>, </em><em>optional</em>) – Beam decoder or decoder’s config. Defaults to None.</p></li>
 <li><p><strong>log_metrics</strong> (<em>List</em><em>[</em><em>str</em><em>]</em><em>, </em><em>optional</em>) – Metrics to be logged. Defaults to [“cer”, “wer”].</p></li>
 </ul>
@@ -862,16 +829,7 @@ valid_length (torch.LongTensor): (batch_size, )</p>
 <dl class="py attribute">
 <dt class="sig sig-object py" id="s3prl.task.Speech2TextCTCTask.dump_patches">
 <span class="sig-name descname"><span class="pre">dump_patches</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">bool</span></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">False</span></em><a class="reference external" href="https://github.com/s3prl/s3prl/blob/v0.4.6 /s3prl/task.py"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#s3prl.task.Speech2TextCTCTask.dump_patches" title="Permalink to this definition">#</a></dt>
-<dd><p>This allows better BC support for <code class="xref py py-meth docutils literal notranslate"><span class="pre">load_state_dict()</span></code>. In
-<code class="xref py py-meth docutils literal notranslate"><span class="pre">state_dict()</span></code>, the version number will be saved as in the attribute
-<cite>_metadata</cite> of the returned state dict, and thus pickled. <cite>_metadata</cite> is a
-dictionary with keys that follow the naming convention of state dict. See
-<code class="docutils literal notranslate"><span class="pre">_load_from_state_dict</span></code> on how to use this information in loading.</p>
-<p>If new parameters/buffers are added/removed from a module, this number shall
-be bumped, and the module’s <cite>_load_from_state_dict</cite> method can compare the
-version number and do appropriate changes if the state dict is from before
-the change.</p>
-</dd></dl>
+<dd></dd></dl>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="s3prl.task.Speech2TextCTCTask.get_state">
@@ -996,16 +954,7 @@ registered hooks while the latter silently ignores them.</p>
 <dl class="py attribute">
 <dt class="sig sig-object py" id="s3prl.task.UtteranceClassificationTask.dump_patches">
 <span class="sig-name descname"><span class="pre">dump_patches</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">bool</span></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">False</span></em><a class="reference external" href="https://github.com/s3prl/s3prl/blob/v0.4.6 /s3prl/task.py"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#s3prl.task.UtteranceClassificationTask.dump_patches" title="Permalink to this definition">#</a></dt>
-<dd><p>This allows better BC support for <code class="xref py py-meth docutils literal notranslate"><span class="pre">load_state_dict()</span></code>. In
-<code class="xref py py-meth docutils literal notranslate"><span class="pre">state_dict()</span></code>, the version number will be saved as in the attribute
-<cite>_metadata</cite> of the returned state dict, and thus pickled. <cite>_metadata</cite> is a
-dictionary with keys that follow the naming convention of state dict. See
-<code class="docutils literal notranslate"><span class="pre">_load_from_state_dict</span></code> on how to use this information in loading.</p>
-<p>If new parameters/buffers are added/removed from a module, this number shall
-be bumped, and the module’s <cite>_load_from_state_dict</cite> method can compare the
-version number and do appropriate changes if the state dict is from before
-the change.</p>
-</dd></dl>
+<dd></dd></dl>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="s3prl.task.UtteranceClassificationTask.get_state">
@@ -1117,16 +1066,7 @@ label: np.ndarray</p>
 <dl class="py attribute">
 <dt class="sig sig-object py" id="s3prl.task.UtteranceMultiClassClassificationTask.dump_patches">
 <span class="sig-name descname"><span class="pre">dump_patches</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">bool</span></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">False</span></em><a class="reference external" href="https://github.com/s3prl/s3prl/blob/v0.4.6 /s3prl/task.py"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#s3prl.task.UtteranceMultiClassClassificationTask.dump_patches" title="Permalink to this definition">#</a></dt>
-<dd><p>This allows better BC support for <code class="xref py py-meth docutils literal notranslate"><span class="pre">load_state_dict()</span></code>. In
-<code class="xref py py-meth docutils literal notranslate"><span class="pre">state_dict()</span></code>, the version number will be saved as in the attribute
-<cite>_metadata</cite> of the returned state dict, and thus pickled. <cite>_metadata</cite> is a
-dictionary with keys that follow the naming convention of state dict. See
-<code class="docutils literal notranslate"><span class="pre">_load_from_state_dict</span></code> on how to use this information in loading.</p>
-<p>If new parameters/buffers are added/removed from a module, this number shall
-be bumped, and the module’s <cite>_load_from_state_dict</cite> method can compare the
-version number and do appropriate changes if the state dict is from before
-the change.</p>
-</dd></dl>
+<dd></dd></dl>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="s3prl.task.UtteranceMultiClassClassificationTask.get_state">

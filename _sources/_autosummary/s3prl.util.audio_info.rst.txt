@@ -1,0 +1,43 @@
+audio\_info
+===========
+
+**(s3prl.util.audio_info)**
+
+.. automodule:: s3prl.util.audio_info
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+get_cache_dir
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. autofunction:: get_cache_dir
+
+set_cache_dir
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. autofunction:: set_cache_dir
+
+get_audio_info
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. autofunction:: get_audio_info
+
+
+
+
+

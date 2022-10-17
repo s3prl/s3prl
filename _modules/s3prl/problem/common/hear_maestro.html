@@ -242,6 +242,7 @@
 </ul>
 </li>
 <li class="toctree-l1 has-children"><a class="reference internal" href="../../../../_autosummary/s3prl.dataio.html">dataio</a><input class="toctree-checkbox" id="toctree-checkbox-8" name="toctree-checkbox-8" role="switch" type="checkbox"/><label for="toctree-checkbox-8"><div class="visually-hidden">Toggle child pages in navigation</div><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul>
+<li class="toctree-l2"><a class="reference internal" href="../../../../_autosummary/s3prl.dataio.collate_fn.html">collate_fn</a></li>
 <li class="toctree-l2 has-children"><a class="reference internal" href="../../../../_autosummary/s3prl.dataio.corpus.html">corpus</a><input class="toctree-checkbox" id="toctree-checkbox-9" name="toctree-checkbox-9" role="switch" type="checkbox"/><label for="toctree-checkbox-9"><div class="visually-hidden">Toggle child pages in navigation</div><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul>
 <li class="toctree-l3"><a class="reference internal" href="../../../../_autosummary/s3prl.dataio.corpus.base.html">base</a></li>
 <li class="toctree-l3"><a class="reference internal" href="../../../../_autosummary/s3prl.dataio.corpus.fluent_speech_commands.html">fluent_speech_commands</a></li>
@@ -259,6 +260,7 @@
 <li class="toctree-l3"><a class="reference internal" href="../../../../_autosummary/s3prl.dataio.dataset.base.html">base</a></li>
 <li class="toctree-l3"><a class="reference internal" href="../../../../_autosummary/s3prl.dataio.dataset.diarization.html">diarization</a></li>
 <li class="toctree-l3"><a class="reference internal" href="../../../../_autosummary/s3prl.dataio.dataset.encode.html">encode</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../../../_autosummary/s3prl.dataio.dataset.frame_label.html">frame_label</a></li>
 <li class="toctree-l3"><a class="reference internal" href="../../../../_autosummary/s3prl.dataio.dataset.load_audio.html">load_audio</a></li>
 <li class="toctree-l3"><a class="reference internal" href="../../../../_autosummary/s3prl.dataio.dataset.util.html">util</a></li>
 </ul>
@@ -288,6 +290,7 @@
 </ul>
 </li>
 <li class="toctree-l1 has-children"><a class="reference internal" href="../../../../_autosummary/s3prl.util.html">util</a><input class="toctree-checkbox" id="toctree-checkbox-14" name="toctree-checkbox-14" role="switch" type="checkbox"/><label for="toctree-checkbox-14"><div class="visually-hidden">Toggle child pages in navigation</div><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul>
+<li class="toctree-l2"><a class="reference internal" href="../../../../_autosummary/s3prl.util.audio_info.html">audio_info</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../../../../_autosummary/s3prl.util.benchmark.html">benchmark</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../../../../_autosummary/s3prl.util.download.html">download</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../../../../_autosummary/s3prl.util.override.html">override</a></li>
@@ -329,8 +332,7 @@
         </div>
         <article role="main">
           <h1>Source code for s3prl.problem.common.hear_maestro</h1><div class="highlight"><pre>
-<span></span><span class="kn">import</span> <span class="nn">csv</span>
-<span class="kn">import</span> <span class="nn">json</span>
+<span></span><span class="kn">import</span> <span class="nn">json</span>
 <span class="kn">from</span> <span class="nn">collections</span> <span class="kn">import</span> <span class="n">defaultdict</span>
 <span class="kn">from</span> <span class="nn">copy</span> <span class="kn">import</span> <span class="n">deepcopy</span>
 <span class="kn">from</span> <span class="nn">pathlib</span> <span class="kn">import</span> <span class="n">Path</span>
@@ -339,12 +341,15 @@
 <span class="kn">import</span> <span class="nn">torchaudio</span>
 <span class="kn">from</span> <span class="nn">omegaconf</span> <span class="kn">import</span> <span class="n">MISSING</span>
 
+<span class="kn">from</span> <span class="nn">._hear_util</span> <span class="kn">import</span> <span class="n">resample_hear_corpus</span>
 <span class="kn">from</span> <span class="nn">.hear_dcase_2016_task2</span> <span class="kn">import</span> <span class="n">HearDcase2016Task2</span>
 
 <span class="n">MAESTRO_NUM_FOLDS</span> <span class="o">=</span> <span class="mi">5</span>
 
+<span class="n">__all__</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;HearMaestro&quot;</span><span class="p">]</span>
 
-<div class="viewcode-block" id="prepare_maestro"><a class="viewcode-back" href="../../../../_autosummary/s3prl.problem.common.hear_maestro.html#s3prl.problem.prepare_maestro">[docs]</a><span class="k">def</span> <span class="nf">prepare_maestro</span><span class="p">(</span>
+
+<span class="k">def</span> <span class="nf">prepare_maestro</span><span class="p">(</span>
     <span class="n">target_dir</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
     <span class="n">cache_dir</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
     <span class="n">dataset_root</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
@@ -362,6 +367,9 @@
         <span class="sa">f</span><span class="s2">&quot;MAESTRO only has </span><span class="si">{</span><span class="n">MAESTRO_NUM_FOLDS</span><span class="si">}</span><span class="s2"> folds but get &#39;test_fold&#39; &quot;</span>
         <span class="sa">f</span><span class="s2">&quot;arguments </span><span class="si">{</span><span class="n">test_fold</span><span class="si">}</span><span class="s2">&quot;</span>
     <span class="p">)</span>
+
+    <span class="n">resample_hear_corpus</span><span class="p">(</span><span class="n">dataset_root</span><span class="p">,</span> <span class="n">target_sr</span><span class="o">=</span><span class="mi">16000</span><span class="p">)</span>
+
     <span class="n">dataset_root</span> <span class="o">=</span> <span class="n">Path</span><span class="p">(</span><span class="n">dataset_root</span><span class="p">)</span>
     <span class="n">wav_root</span> <span class="o">=</span> <span class="n">dataset_root</span> <span class="o">/</span> <span class="s2">&quot;16000&quot;</span>
 
@@ -414,7 +422,7 @@
     <span class="n">valid_data</span><span class="o">.</span><span class="n">to_csv</span><span class="p">(</span><span class="n">valid_csv</span><span class="p">,</span> <span class="n">index</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
     <span class="n">test_data</span><span class="o">.</span><span class="n">to_csv</span><span class="p">(</span><span class="n">test_csv</span><span class="p">,</span> <span class="n">index</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
 
-    <span class="k">return</span> <span class="n">train_csv</span><span class="p">,</span> <span class="n">valid_csv</span><span class="p">,</span> <span class="p">[</span><span class="n">test_csv</span><span class="p">]</span></div>
+    <span class="k">return</span> <span class="n">train_csv</span><span class="p">,</span> <span class="n">valid_csv</span><span class="p">,</span> <span class="p">[</span><span class="n">test_csv</span><span class="p">]</span>
 
 
 <div class="viewcode-block" id="HearMaestro"><a class="viewcode-back" href="../../../../_autosummary/s3prl.problem.common.hear_maestro.html#s3prl.problem.HearMaestro">[docs]</a><span class="k">class</span> <span class="nc">HearMaestro</span><span class="p">(</span><span class="n">HearDcase2016Task2</span><span class="p">):</span>
@@ -442,7 +450,7 @@
                 <span class="p">),</span>
             <span class="p">),</span>
             <span class="n">build_upstream</span><span class="o">=</span><span class="nb">dict</span><span class="p">(</span>
-                <span class="n">name</span><span class="o">=</span><span class="s2">&quot;fbank&quot;</span><span class="p">,</span>
+                <span class="n">name</span><span class="o">=</span><span class="n">MISSING</span><span class="p">,</span>
             <span class="p">),</span>
             <span class="n">build_featurizer</span><span class="o">=</span><span class="nb">dict</span><span class="p">(</span>
                 <span class="n">layer_selections</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
@@ -465,7 +473,7 @@
             <span class="n">build_optimizer</span><span class="o">=</span><span class="nb">dict</span><span class="p">(</span>
                 <span class="n">name</span><span class="o">=</span><span class="s2">&quot;Adam&quot;</span><span class="p">,</span>
                 <span class="n">conf</span><span class="o">=</span><span class="nb">dict</span><span class="p">(</span>
-                    <span class="n">lr</span><span class="o">=</span><span class="mf">1.0e-4</span><span class="p">,</span>
+                    <span class="n">lr</span><span class="o">=</span><span class="mf">1.0e-3</span><span class="p">,</span>
                 <span class="p">),</span>
             <span class="p">),</span>
             <span class="n">build_scheduler</span><span class="o">=</span><span class="nb">dict</span><span class="p">(</span>

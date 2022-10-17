@@ -242,6 +242,7 @@
 </ul>
 </li>
 <li class="toctree-l1 has-children"><a class="reference internal" href="../../../../_autosummary/s3prl.dataio.html">dataio</a><input class="toctree-checkbox" id="toctree-checkbox-8" name="toctree-checkbox-8" role="switch" type="checkbox"/><label for="toctree-checkbox-8"><div class="visually-hidden">Toggle child pages in navigation</div><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul>
+<li class="toctree-l2"><a class="reference internal" href="../../../../_autosummary/s3prl.dataio.collate_fn.html">collate_fn</a></li>
 <li class="toctree-l2 has-children"><a class="reference internal" href="../../../../_autosummary/s3prl.dataio.corpus.html">corpus</a><input class="toctree-checkbox" id="toctree-checkbox-9" name="toctree-checkbox-9" role="switch" type="checkbox"/><label for="toctree-checkbox-9"><div class="visually-hidden">Toggle child pages in navigation</div><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul>
 <li class="toctree-l3"><a class="reference internal" href="../../../../_autosummary/s3prl.dataio.corpus.base.html">base</a></li>
 <li class="toctree-l3"><a class="reference internal" href="../../../../_autosummary/s3prl.dataio.corpus.fluent_speech_commands.html">fluent_speech_commands</a></li>
@@ -259,6 +260,7 @@
 <li class="toctree-l3"><a class="reference internal" href="../../../../_autosummary/s3prl.dataio.dataset.base.html">base</a></li>
 <li class="toctree-l3"><a class="reference internal" href="../../../../_autosummary/s3prl.dataio.dataset.diarization.html">diarization</a></li>
 <li class="toctree-l3"><a class="reference internal" href="../../../../_autosummary/s3prl.dataio.dataset.encode.html">encode</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../../../_autosummary/s3prl.dataio.dataset.frame_label.html">frame_label</a></li>
 <li class="toctree-l3"><a class="reference internal" href="../../../../_autosummary/s3prl.dataio.dataset.load_audio.html">load_audio</a></li>
 <li class="toctree-l3"><a class="reference internal" href="../../../../_autosummary/s3prl.dataio.dataset.util.html">util</a></li>
 </ul>
@@ -288,6 +290,7 @@
 </ul>
 </li>
 <li class="toctree-l1 has-children"><a class="reference internal" href="../../../../_autosummary/s3prl.util.html">util</a><input class="toctree-checkbox" id="toctree-checkbox-14" name="toctree-checkbox-14" role="switch" type="checkbox"/><label for="toctree-checkbox-14"><div class="visually-hidden">Toggle child pages in navigation</div><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul>
+<li class="toctree-l2"><a class="reference internal" href="../../../../_autosummary/s3prl.util.audio_info.html">audio_info</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../../../../_autosummary/s3prl.util.benchmark.html">benchmark</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../../../../_autosummary/s3prl.util.download.html">download</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../../../../_autosummary/s3prl.util.override.html">override</a></li>
@@ -332,7 +335,7 @@
 <span></span><span class="kn">import</span> <span class="nn">json</span>
 <span class="kn">import</span> <span class="nn">logging</span>
 <span class="kn">import</span> <span class="nn">pickle</span>
-<span class="kn">from</span> <span class="nn">collections</span> <span class="kn">import</span> <span class="n">OrderedDict</span><span class="p">,</span> <span class="n">defaultdict</span>
+<span class="kn">from</span> <span class="nn">collections</span> <span class="kn">import</span> <span class="n">defaultdict</span>
 <span class="kn">from</span> <span class="nn">copy</span> <span class="kn">import</span> <span class="n">deepcopy</span>
 <span class="kn">from</span> <span class="nn">dataclasses</span> <span class="kn">import</span> <span class="n">dataclass</span>
 <span class="kn">from</span> <span class="nn">pathlib</span> <span class="kn">import</span> <span class="n">Path</span>
@@ -342,16 +345,21 @@
 <span class="kn">import</span> <span class="nn">torchaudio</span>
 <span class="kn">from</span> <span class="nn">omegaconf</span> <span class="kn">import</span> <span class="n">MISSING</span>
 
+<span class="kn">from</span> <span class="nn">s3prl.dataio.dataset</span> <span class="kn">import</span> <span class="n">FrameLabelDataset</span><span class="p">,</span> <span class="n">get_info</span>
 <span class="kn">from</span> <span class="nn">s3prl.dataio.sampler</span> <span class="kn">import</span> <span class="n">FixedBatchSizeBatchSampler</span><span class="p">,</span> <span class="n">GroupSameItemSampler</span>
-<span class="kn">from</span> <span class="nn">s3prl.dataset.hear_timestamp</span> <span class="kn">import</span> <span class="n">HearTimestampDatapipe</span>
 <span class="kn">from</span> <span class="nn">s3prl.task.event_prediction</span> <span class="kn">import</span> <span class="n">EventPredictionTask</span>
 
+<span class="kn">from</span> <span class="nn">._hear_util</span> <span class="kn">import</span> <span class="n">resample_hear_corpus</span>
 <span class="kn">from</span> <span class="nn">.hear_fsd</span> <span class="kn">import</span> <span class="n">HearFSD</span>
 
 <span class="n">logger</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="vm">__name__</span><span class="p">)</span>
 
+<span class="n">__all__</span> <span class="o">=</span> <span class="p">[</span>
+    <span class="s2">&quot;HearDcase2016Task2&quot;</span><span class="p">,</span>
+<span class="p">]</span>
 
-<div class="viewcode-block" id="dcase_2016_task2"><a class="viewcode-back" href="../../../../_autosummary/s3prl.problem.common.hear_dcase_2016_task2.html#s3prl.problem.dcase_2016_task2">[docs]</a><span class="k">def</span> <span class="nf">dcase_2016_task2</span><span class="p">(</span>
+
+<span class="k">def</span> <span class="nf">dcase_2016_task2</span><span class="p">(</span>
     <span class="n">target_dir</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
     <span class="n">cache_dir</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
     <span class="n">dataset_root</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
@@ -365,8 +373,10 @@
     <span class="k">if</span> <span class="n">get_path_only</span><span class="p">:</span>
         <span class="k">return</span> <span class="n">train_csv</span><span class="p">,</span> <span class="n">valid_csv</span><span class="p">,</span> <span class="p">[</span><span class="n">test_csv</span><span class="p">]</span>
 
+    <span class="n">resample_hear_corpus</span><span class="p">(</span><span class="n">dataset_root</span><span class="p">,</span> <span class="n">target_sr</span><span class="o">=</span><span class="mi">16000</span><span class="p">)</span>
+
     <span class="n">dataset_root</span> <span class="o">=</span> <span class="n">Path</span><span class="p">(</span><span class="n">dataset_root</span><span class="p">)</span>
-    <span class="n">wav_root</span> <span class="o">=</span> <span class="n">dataset_root</span> <span class="o">/</span> <span class="s2">&quot;16000&quot;</span>
+    <span class="n">wav_root</span><span class="p">:</span> <span class="n">Path</span> <span class="o">=</span> <span class="n">dataset_root</span> <span class="o">/</span> <span class="s2">&quot;16000&quot;</span>
 
     <span class="k">def</span> <span class="nf">json_to_csv</span><span class="p">(</span><span class="n">json_path</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">csv_path</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">split</span><span class="p">:</span> <span class="nb">str</span><span class="p">):</span>
         <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">json_path</span><span class="p">)</span> <span class="k">as</span> <span class="n">fp</span><span class="p">:</span>
@@ -400,11 +410,11 @@
     <span class="n">json_to_csv</span><span class="p">(</span><span class="n">dataset_root</span> <span class="o">/</span> <span class="s2">&quot;valid.json&quot;</span><span class="p">,</span> <span class="n">valid_csv</span><span class="p">,</span> <span class="s2">&quot;valid&quot;</span><span class="p">)</span>
     <span class="n">json_to_csv</span><span class="p">(</span><span class="n">dataset_root</span> <span class="o">/</span> <span class="s2">&quot;test.json&quot;</span><span class="p">,</span> <span class="n">test_csv</span><span class="p">,</span> <span class="s2">&quot;test&quot;</span><span class="p">)</span>
 
-    <span class="k">return</span> <span class="n">train_csv</span><span class="p">,</span> <span class="n">valid_csv</span><span class="p">,</span> <span class="p">[</span><span class="n">test_csv</span><span class="p">]</span></div>
+    <span class="k">return</span> <span class="n">train_csv</span><span class="p">,</span> <span class="n">valid_csv</span><span class="p">,</span> <span class="p">[</span><span class="n">test_csv</span><span class="p">]</span>
 
 
-<div class="viewcode-block" id="HearDcase2016Task2"><a class="viewcode-back" href="../../../../_autosummary/s3prl.problem.common.hear_maestro.html#s3prl.problem.HearDcase2016Task2">[docs]</a><span class="k">class</span> <span class="nc">HearDcase2016Task2</span><span class="p">(</span><span class="n">HearFSD</span><span class="p">):</span>
-<div class="viewcode-block" id="HearDcase2016Task2.default_config"><a class="viewcode-back" href="../../../../_autosummary/s3prl.problem.common.hear_maestro.html#s3prl.problem.HearDcase2016Task2.default_config">[docs]</a>    <span class="k">def</span> <span class="nf">default_config</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">:</span>
+<div class="viewcode-block" id="HearDcase2016Task2"><a class="viewcode-back" href="../../../../_autosummary/s3prl.problem.common.hear_dcase_2016_task2.html#s3prl.problem.HearDcase2016Task2">[docs]</a><span class="k">class</span> <span class="nc">HearDcase2016Task2</span><span class="p">(</span><span class="n">HearFSD</span><span class="p">):</span>
+<div class="viewcode-block" id="HearDcase2016Task2.default_config"><a class="viewcode-back" href="../../../../_autosummary/s3prl.problem.common.hear_dcase_2016_task2.html#s3prl.problem.HearDcase2016Task2.default_config">[docs]</a>    <span class="k">def</span> <span class="nf">default_config</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">:</span>
         <span class="k">return</span> <span class="nb">dict</span><span class="p">(</span>
             <span class="n">start</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span>
             <span class="n">stop</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
@@ -414,20 +424,28 @@
             <span class="n">prepare_data</span><span class="o">=</span><span class="nb">dict</span><span class="p">(</span>
                 <span class="n">dataset_root</span><span class="o">=</span><span class="n">MISSING</span><span class="p">,</span>
             <span class="p">),</span>
+            <span class="n">build_dataset</span><span class="o">=</span><span class="nb">dict</span><span class="p">(</span>
+                <span class="n">train</span><span class="o">=</span><span class="nb">dict</span><span class="p">(</span>
+                    <span class="n">chunk_secs</span><span class="o">=</span><span class="mf">4.0</span><span class="p">,</span>
+                    <span class="n">step_secs</span><span class="o">=</span><span class="mf">4.0</span><span class="p">,</span>
+                <span class="p">),</span>
+                <span class="n">valid</span><span class="o">=</span><span class="nb">dict</span><span class="p">(</span>
+                    <span class="n">chunk_secs</span><span class="o">=</span><span class="mf">4.0</span><span class="p">,</span>
+                    <span class="n">step_secs</span><span class="o">=</span><span class="mf">4.0</span><span class="p">,</span>
+                <span class="p">),</span>
+                <span class="n">test</span><span class="o">=</span><span class="nb">dict</span><span class="p">(</span>
+                    <span class="n">chunk_secs</span><span class="o">=</span><span class="mf">4.0</span><span class="p">,</span>
+                    <span class="n">step_secs</span><span class="o">=</span><span class="mf">4.0</span><span class="p">,</span>
+                <span class="p">),</span>
+            <span class="p">),</span>
             <span class="n">build_batch_sampler</span><span class="o">=</span><span class="nb">dict</span><span class="p">(</span>
                 <span class="n">train</span><span class="o">=</span><span class="nb">dict</span><span class="p">(</span>
                     <span class="n">batch_size</span><span class="o">=</span><span class="mi">5</span><span class="p">,</span>
                     <span class="n">shuffle</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
                 <span class="p">),</span>
-                <span class="n">valid</span><span class="o">=</span><span class="nb">dict</span><span class="p">(</span>
-                    <span class="n">item</span><span class="o">=</span><span class="s2">&quot;record_id&quot;</span><span class="p">,</span>
-                <span class="p">),</span>
-                <span class="n">test</span><span class="o">=</span><span class="nb">dict</span><span class="p">(</span>
-                    <span class="n">item</span><span class="o">=</span><span class="s2">&quot;record_id&quot;</span><span class="p">,</span>
-                <span class="p">),</span>
             <span class="p">),</span>
             <span class="n">build_upstream</span><span class="o">=</span><span class="nb">dict</span><span class="p">(</span>
-                <span class="n">name</span><span class="o">=</span><span class="s2">&quot;fbank&quot;</span><span class="p">,</span>
+                <span class="n">name</span><span class="o">=</span><span class="n">MISSING</span><span class="p">,</span>
             <span class="p">),</span>
             <span class="n">build_featurizer</span><span class="o">=</span><span class="nb">dict</span><span class="p">(</span>
                 <span class="n">layer_selections</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
@@ -450,7 +468,7 @@
             <span class="n">build_optimizer</span><span class="o">=</span><span class="nb">dict</span><span class="p">(</span>
                 <span class="n">name</span><span class="o">=</span><span class="s2">&quot;Adam&quot;</span><span class="p">,</span>
                 <span class="n">conf</span><span class="o">=</span><span class="nb">dict</span><span class="p">(</span>
-                    <span class="n">lr</span><span class="o">=</span><span class="mf">1.0e-4</span><span class="p">,</span>
+                    <span class="n">lr</span><span class="o">=</span><span class="mf">1.0e-3</span><span class="p">,</span>
                 <span class="p">),</span>
             <span class="p">),</span>
             <span class="n">build_scheduler</span><span class="o">=</span><span class="nb">dict</span><span class="p">(</span>
@@ -474,7 +492,7 @@
             <span class="n">evaluate</span><span class="o">=</span><span class="nb">dict</span><span class="p">(),</span>
         <span class="p">)</span></div>
 
-<div class="viewcode-block" id="HearDcase2016Task2.prepare_data"><a class="viewcode-back" href="../../../../_autosummary/s3prl.problem.common.hear_maestro.html#s3prl.problem.HearDcase2016Task2.prepare_data">[docs]</a>    <span class="k">def</span> <span class="nf">prepare_data</span><span class="p">(</span>
+<div class="viewcode-block" id="HearDcase2016Task2.prepare_data"><a class="viewcode-back" href="../../../../_autosummary/s3prl.problem.common.hear_dcase_2016_task2.html#s3prl.problem.HearDcase2016Task2.prepare_data">[docs]</a>    <span class="k">def</span> <span class="nf">prepare_data</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span>
         <span class="n">prepare_data</span><span class="p">:</span> <span class="nb">dict</span><span class="p">,</span>
         <span class="n">target_dir</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
@@ -485,7 +503,7 @@
             <span class="o">**</span><span class="bp">self</span><span class="o">.</span><span class="n">_get_current_arguments</span><span class="p">(</span><span class="n">flatten_dict</span><span class="o">=</span><span class="s2">&quot;prepare_data&quot;</span><span class="p">)</span>
         <span class="p">)</span></div>
 
-<div class="viewcode-block" id="HearDcase2016Task2.build_dataset"><a class="viewcode-back" href="../../../../_autosummary/s3prl.problem.common.hear_maestro.html#s3prl.problem.HearDcase2016Task2.build_dataset">[docs]</a>    <span class="k">def</span> <span class="nf">build_dataset</span><span class="p">(</span>
+<div class="viewcode-block" id="HearDcase2016Task2.build_dataset"><a class="viewcode-back" href="../../../../_autosummary/s3prl.problem.common.hear_dcase_2016_task2.html#s3prl.problem.HearDcase2016Task2.build_dataset">[docs]</a>    <span class="k">def</span> <span class="nf">build_dataset</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span>
         <span class="n">build_dataset</span><span class="p">:</span> <span class="nb">dict</span><span class="p">,</span>
         <span class="n">target_dir</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
@@ -495,31 +513,26 @@
         <span class="n">encoder_path</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
         <span class="n">frame_shift</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
     <span class="p">):</span>
+        <span class="nd">@dataclass</span>
+        <span class="k">class</span> <span class="nc">Config</span><span class="p">:</span>
+            <span class="n">train</span><span class="p">:</span> <span class="nb">dict</span> <span class="o">=</span> <span class="kc">None</span>
+            <span class="n">valid</span><span class="p">:</span> <span class="nb">dict</span> <span class="o">=</span> <span class="kc">None</span>
+            <span class="n">test</span><span class="p">:</span> <span class="nb">dict</span> <span class="o">=</span> <span class="kc">None</span>
+
+        <span class="n">conf</span> <span class="o">=</span> <span class="n">Config</span><span class="p">(</span><span class="o">**</span><span class="n">build_dataset</span><span class="p">)</span>
+        <span class="n">conf</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">conf</span><span class="p">,</span> <span class="n">mode</span><span class="p">)</span>
+        <span class="n">conf</span> <span class="o">=</span> <span class="n">conf</span> <span class="ow">or</span> <span class="p">{}</span>
+
         <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">encoder_path</span><span class="p">,</span> <span class="s2">&quot;rb&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
             <span class="n">encoder</span> <span class="o">=</span> <span class="n">pickle</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="n">f</span><span class="p">)</span>
 
-        <span class="n">data</span> <span class="o">=</span> <span class="n">OrderedDict</span><span class="p">()</span>
-        <span class="k">for</span> <span class="n">rowid</span><span class="p">,</span> <span class="n">row</span> <span class="ow">in</span> <span class="n">pd</span><span class="o">.</span><span class="n">read_csv</span><span class="p">(</span><span class="n">data_csv</span><span class="p">)</span><span class="o">.</span><span class="n">iterrows</span><span class="p">():</span>
-            <span class="k">if</span> <span class="n">row</span><span class="p">[</span><span class="s2">&quot;record_id&quot;</span><span class="p">]</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">data</span><span class="p">:</span>
-                <span class="n">data</span><span class="p">[</span><span class="n">row</span><span class="p">[</span><span class="s2">&quot;record_id&quot;</span><span class="p">]]</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span>
-                    <span class="n">wav_path</span><span class="o">=</span><span class="nb">str</span><span class="p">(</span><span class="n">row</span><span class="p">[</span><span class="s2">&quot;wav_path&quot;</span><span class="p">]),</span>
-                    <span class="n">start_sec</span><span class="o">=</span><span class="mf">0.0</span><span class="p">,</span>
-                    <span class="n">end_sec</span><span class="o">=</span><span class="n">row</span><span class="p">[</span><span class="s2">&quot;duration&quot;</span><span class="p">],</span>
-                    <span class="n">segments</span><span class="o">=</span><span class="n">defaultdict</span><span class="p">(</span><span class="nb">list</span><span class="p">),</span>
-                <span class="p">)</span>
-            <span class="n">data</span><span class="p">[</span><span class="n">row</span><span class="p">[</span><span class="s2">&quot;record_id&quot;</span><span class="p">]][</span><span class="s2">&quot;segments&quot;</span><span class="p">][</span><span class="nb">str</span><span class="p">(</span><span class="n">row</span><span class="p">[</span><span class="s2">&quot;labels&quot;</span><span class="p">])]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span>
-                <span class="p">(</span>
-                    <span class="n">row</span><span class="p">[</span><span class="s2">&quot;start_sec&quot;</span><span class="p">],</span>
-                    <span class="n">row</span><span class="p">[</span><span class="s2">&quot;end_sec&quot;</span><span class="p">],</span>
-                <span class="p">)</span>
-            <span class="p">)</span>
-        <span class="n">dataset</span> <span class="o">=</span> <span class="n">HearTimestampDatapipe</span><span class="p">(</span><span class="n">feat_frame_shift</span><span class="o">=</span><span class="n">frame_shift</span><span class="p">)(</span>
-            <span class="n">data</span><span class="p">,</span> <span class="n">tools</span><span class="o">=</span><span class="p">{</span><span class="s2">&quot;category&quot;</span><span class="p">:</span> <span class="n">encoder</span><span class="p">}</span>
-        <span class="p">)</span>
-        <span class="n">dataset</span><span class="o">.</span><span class="n">set_info</span><span class="p">({</span><span class="s2">&quot;record_id&quot;</span><span class="p">:</span> <span class="s2">&quot;unchunked_id&quot;</span><span class="p">})</span>
+        <span class="n">df</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">read_csv</span><span class="p">(</span><span class="n">data_csv</span><span class="p">)</span>
+        <span class="n">df</span><span class="p">[</span><span class="s2">&quot;label&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="p">[</span><span class="n">encoder</span><span class="o">.</span><span class="n">encode</span><span class="p">(</span><span class="n">label</span><span class="p">)</span> <span class="k">for</span> <span class="n">label</span> <span class="ow">in</span> <span class="n">df</span><span class="p">[</span><span class="s2">&quot;labels&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">tolist</span><span class="p">()]</span>
+
+        <span class="n">dataset</span> <span class="o">=</span> <span class="n">FrameLabelDataset</span><span class="p">(</span><span class="n">df</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">encoder</span><span class="p">),</span> <span class="n">frame_shift</span><span class="p">,</span> <span class="o">**</span><span class="n">conf</span><span class="p">)</span>
         <span class="k">return</span> <span class="n">dataset</span></div>
 
-<div class="viewcode-block" id="HearDcase2016Task2.build_batch_sampler"><a class="viewcode-back" href="../../../../_autosummary/s3prl.problem.common.hear_maestro.html#s3prl.problem.HearDcase2016Task2.build_batch_sampler">[docs]</a>    <span class="k">def</span> <span class="nf">build_batch_sampler</span><span class="p">(</span>
+<div class="viewcode-block" id="HearDcase2016Task2.build_batch_sampler"><a class="viewcode-back" href="../../../../_autosummary/s3prl.problem.common.hear_dcase_2016_task2.html#s3prl.problem.HearDcase2016Task2.build_batch_sampler">[docs]</a>    <span class="k">def</span> <span class="nf">build_batch_sampler</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span>
         <span class="n">build_batch_sampler</span><span class="p">:</span> <span class="nb">dict</span><span class="p">,</span>
         <span class="n">target_dir</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
@@ -538,13 +551,15 @@
         <span class="k">if</span> <span class="n">mode</span> <span class="o">==</span> <span class="s2">&quot;train&quot;</span><span class="p">:</span>
             <span class="k">return</span> <span class="n">FixedBatchSizeBatchSampler</span><span class="p">(</span><span class="n">dataset</span><span class="p">,</span> <span class="o">**</span><span class="p">(</span><span class="n">conf</span><span class="o">.</span><span class="n">train</span> <span class="ow">or</span> <span class="p">{}))</span>
         <span class="k">elif</span> <span class="n">mode</span> <span class="o">==</span> <span class="s2">&quot;valid&quot;</span><span class="p">:</span>
-            <span class="k">return</span> <span class="n">GroupSameItemSampler</span><span class="p">(</span><span class="n">dataset</span><span class="p">,</span> <span class="o">**</span><span class="p">(</span><span class="n">conf</span><span class="o">.</span><span class="n">valid</span> <span class="ow">or</span> <span class="p">{}))</span>
+            <span class="n">record_ids</span> <span class="o">=</span> <span class="n">get_info</span><span class="p">(</span><span class="n">dataset</span><span class="p">,</span> <span class="p">[</span><span class="s2">&quot;record_id&quot;</span><span class="p">],</span> <span class="n">target_dir</span> <span class="o">/</span> <span class="s2">&quot;valid_stats&quot;</span><span class="p">)</span>
+            <span class="k">return</span> <span class="n">GroupSameItemSampler</span><span class="p">(</span><span class="n">record_ids</span><span class="p">)</span>
         <span class="k">elif</span> <span class="n">mode</span> <span class="o">==</span> <span class="s2">&quot;test&quot;</span><span class="p">:</span>
-            <span class="k">return</span> <span class="n">GroupSameItemSampler</span><span class="p">(</span><span class="n">dataset</span><span class="p">,</span> <span class="o">**</span><span class="p">(</span><span class="n">conf</span><span class="o">.</span><span class="n">test</span> <span class="ow">or</span> <span class="p">{}))</span>
+            <span class="n">record_ids</span> <span class="o">=</span> <span class="n">get_info</span><span class="p">(</span><span class="n">dataset</span><span class="p">,</span> <span class="p">[</span><span class="s2">&quot;record_id&quot;</span><span class="p">],</span> <span class="n">target_dir</span> <span class="o">/</span> <span class="s2">&quot;test_stats&quot;</span><span class="p">)</span>
+            <span class="k">return</span> <span class="n">GroupSameItemSampler</span><span class="p">(</span><span class="n">record_ids</span><span class="p">)</span>
         <span class="k">else</span><span class="p">:</span>
             <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Unsupported mode: </span><span class="si">{</span><span class="n">mode</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span></div>
 
-<div class="viewcode-block" id="HearDcase2016Task2.build_task"><a class="viewcode-back" href="../../../../_autosummary/s3prl.problem.common.hear_maestro.html#s3prl.problem.HearDcase2016Task2.build_task">[docs]</a>    <span class="k">def</span> <span class="nf">build_task</span><span class="p">(</span>
+<div class="viewcode-block" id="HearDcase2016Task2.build_task"><a class="viewcode-back" href="../../../../_autosummary/s3prl.problem.common.hear_dcase_2016_task2.html#s3prl.problem.HearDcase2016Task2.build_task">[docs]</a>    <span class="k">def</span> <span class="nf">build_task</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span>
         <span class="n">build_task</span><span class="p">:</span> <span class="nb">dict</span><span class="p">,</span>
         <span class="n">model</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">nn</span><span class="o">.</span><span class="n">Module</span><span class="p">,</span>

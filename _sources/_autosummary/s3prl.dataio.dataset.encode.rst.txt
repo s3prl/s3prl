@@ -18,30 +18,10 @@ encode
 
 
 
-CategoryEncoder
+EncodeCategory
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-.. autoclass:: CategoryEncoder
-   :member-order: bysource
-   :members:
-   :undoc-members:
-   :inherited-members: torch.nn.Module,nn.Module,Module
-   :show-inheritance:
-
-CategoryEncoders
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-.. autoclass:: CategoryEncoders
-   :member-order: bysource
-   :members:
-   :undoc-members:
-   :inherited-members: torch.nn.Module,nn.Module,Module
-   :show-inheritance:
-
-Dataset
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-.. autoclass:: Dataset
+.. autoclass:: EncodeCategory
    :member-order: bysource
    :members:
    :undoc-members:
@@ -58,10 +38,10 @@ EncodeCategories
    :inherited-members: torch.nn.Module,nn.Module,Module
    :show-inheritance:
 
-EncodeCategory
+EncodeMultiLabel
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-.. autoclass:: EncodeCategory
+.. autoclass:: EncodeMultiLabel
    :member-order: bysource
    :members:
    :undoc-members:
@@ -72,16 +52,6 @@ EncodeText
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 .. autoclass:: EncodeText
-   :member-order: bysource
-   :members:
-   :undoc-members:
-   :inherited-members: torch.nn.Module,nn.Module,Module
-   :show-inheritance:
-
-Tokenizer
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-.. autoclass:: Tokenizer
    :member-order: bysource
    :members:
    :undoc-members:

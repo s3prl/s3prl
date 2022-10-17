@@ -5,7 +5,7 @@
     <meta name="color-scheme" content="light dark"><link rel="index" title="Index" href="../../../genindex.html" /><link rel="search" title="Search" href="../../../search.html" />
 
     <meta name="generator" content="sphinx-5.1.1, furo 2022.09.29"/>
-        <title>s3prl.dataset.utterance_classification_pipe - S3PRL 0.4.6 documentation</title>
+        <title>s3prl.util.audio_info - S3PRL 0.4.6 documentation</title>
       <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css" />
     <link rel="stylesheet" type="text/css" href="../../../_static/styles/furo.css?digest=d81277517bee4d6b0349d71bb2661d4890b5617c" />
     <link rel="stylesheet" type="text/css" href="../../../_static/styles/furo-extensions.css?digest=30d1aed668e5c3a91c3e3bf6a60b675221979f0e" />
@@ -242,6 +242,7 @@
 </ul>
 </li>
 <li class="toctree-l1 has-children"><a class="reference internal" href="../../../_autosummary/s3prl.dataio.html">dataio</a><input class="toctree-checkbox" id="toctree-checkbox-8" name="toctree-checkbox-8" role="switch" type="checkbox"/><label for="toctree-checkbox-8"><div class="visually-hidden">Toggle child pages in navigation</div><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul>
+<li class="toctree-l2"><a class="reference internal" href="../../../_autosummary/s3prl.dataio.collate_fn.html">collate_fn</a></li>
 <li class="toctree-l2 has-children"><a class="reference internal" href="../../../_autosummary/s3prl.dataio.corpus.html">corpus</a><input class="toctree-checkbox" id="toctree-checkbox-9" name="toctree-checkbox-9" role="switch" type="checkbox"/><label for="toctree-checkbox-9"><div class="visually-hidden">Toggle child pages in navigation</div><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul>
 <li class="toctree-l3"><a class="reference internal" href="../../../_autosummary/s3prl.dataio.corpus.base.html">base</a></li>
 <li class="toctree-l3"><a class="reference internal" href="../../../_autosummary/s3prl.dataio.corpus.fluent_speech_commands.html">fluent_speech_commands</a></li>
@@ -259,6 +260,7 @@
 <li class="toctree-l3"><a class="reference internal" href="../../../_autosummary/s3prl.dataio.dataset.base.html">base</a></li>
 <li class="toctree-l3"><a class="reference internal" href="../../../_autosummary/s3prl.dataio.dataset.diarization.html">diarization</a></li>
 <li class="toctree-l3"><a class="reference internal" href="../../../_autosummary/s3prl.dataio.dataset.encode.html">encode</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../../_autosummary/s3prl.dataio.dataset.frame_label.html">frame_label</a></li>
 <li class="toctree-l3"><a class="reference internal" href="../../../_autosummary/s3prl.dataio.dataset.load_audio.html">load_audio</a></li>
 <li class="toctree-l3"><a class="reference internal" href="../../../_autosummary/s3prl.dataio.dataset.util.html">util</a></li>
 </ul>
@@ -288,6 +290,7 @@
 </ul>
 </li>
 <li class="toctree-l1 has-children"><a class="reference internal" href="../../../_autosummary/s3prl.util.html">util</a><input class="toctree-checkbox" id="toctree-checkbox-14" name="toctree-checkbox-14" role="switch" type="checkbox"/><label for="toctree-checkbox-14"><div class="visually-hidden">Toggle child pages in navigation</div><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul>
+<li class="toctree-l2"><a class="reference internal" href="../../../_autosummary/s3prl.util.audio_info.html">audio_info</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../../../_autosummary/s3prl.util.benchmark.html">benchmark</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../../../_autosummary/s3prl.util.download.html">download</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../../../_autosummary/s3prl.util.override.html">override</a></li>
@@ -328,114 +331,72 @@
           </label>
         </div>
         <article role="main">
-          <h1>Source code for s3prl.dataset.utterance_classification_pipe</h1><div class="highlight"><pre>
-<span></span><span class="kn">from</span> <span class="nn">.base</span> <span class="kn">import</span> <span class="n">SequentialDataPipe</span>
-<span class="kn">from</span> <span class="nn">.common_pipes</span> <span class="kn">import</span> <span class="p">(</span>
-    <span class="n">EncodeCategory</span><span class="p">,</span>
-    <span class="n">EncodeMultiLabel</span><span class="p">,</span>
-    <span class="n">EncodeMultipleCategory</span><span class="p">,</span>
-    <span class="n">LoadAudio</span><span class="p">,</span>
-    <span class="n">SetOutputKeys</span><span class="p">,</span>
-<span class="p">)</span>
+          <h1>Source code for s3prl.util.audio_info</h1><div class="highlight"><pre>
+<span></span><span class="kn">import</span> <span class="nn">json</span>
+<span class="kn">from</span> <span class="nn">pathlib</span> <span class="kn">import</span> <span class="n">Path</span>
+<span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">List</span>
+
+<span class="kn">import</span> <span class="nn">torchaudio</span>
+<span class="kn">from</span> <span class="nn">joblib</span> <span class="kn">import</span> <span class="n">Parallel</span><span class="p">,</span> <span class="n">delayed</span>
+<span class="kn">from</span> <span class="nn">tqdm</span> <span class="kn">import</span> <span class="n">tqdm</span>
+
+<span class="n">_default_cache_dir</span> <span class="o">=</span> <span class="n">Path</span><span class="o">.</span><span class="n">home</span><span class="p">()</span> <span class="o">/</span> <span class="s2">&quot;.cache&quot;</span> <span class="o">/</span> <span class="s2">&quot;s3prl&quot;</span> <span class="o">/</span> <span class="s2">&quot;audio_info&quot;</span>
 
 
-<span class="k">class</span> <span class="nc">UtteranceClassificationPipe</span><span class="p">(</span><span class="n">SequentialDataPipe</span><span class="p">):</span>
+<span class="n">__all__</span> <span class="o">=</span> <span class="p">[</span>
+    <span class="s2">&quot;get_cache_dir&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;set_cache_dir&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;get_audio_info&quot;</span><span class="p">,</span>
+<span class="p">]</span>
+
+
+<div class="viewcode-block" id="get_cache_dir"><a class="viewcode-back" href="../../../_autosummary/s3prl.util.audio_info.html#s3prl.util.audio_info.get_cache_dir">[docs]</a><span class="k">def</span> <span class="nf">get_cache_dir</span><span class="p">():</span>
+    <span class="n">_default_cache_dir</span><span class="o">.</span><span class="n">mkdir</span><span class="p">(</span><span class="n">exist_ok</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">parents</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">_default_cache_dir</span></div>
+
+
+<div class="viewcode-block" id="set_cache_dir"><a class="viewcode-back" href="../../../_autosummary/s3prl.util.audio_info.html#s3prl.util.audio_info.set_cache_dir">[docs]</a><span class="k">def</span> <span class="nf">set_cache_dir</span><span class="p">(</span><span class="n">cache_dir</span><span class="p">:</span> <span class="nb">str</span><span class="p">):</span>
+    <span class="k">global</span> <span class="n">_default_cache_dir</span>
+    <span class="n">_default_cache_dir</span> <span class="o">=</span> <span class="n">Path</span><span class="p">(</span><span class="n">cache_dir</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="get_audio_info"><a class="viewcode-back" href="../../../_autosummary/s3prl.util.audio_info.html#s3prl.util.audio_info.get_audio_info">[docs]</a><span class="k">def</span> <span class="nf">get_audio_info</span><span class="p">(</span>
+    <span class="n">audio_paths</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">],</span>
+    <span class="n">audio_ids</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">],</span>
+    <span class="n">cache_dir</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="n">num_workers</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">6</span><span class="p">,</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="nb">dict</span><span class="p">]:</span>
     <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    each item in the input dataset should have:</span>
-<span class="sd">        wav_path: str</span>
-<span class="sd">        label: str</span>
+<span class="sd">    Use :code:`torchaudio.info` to retrieve the metadata from audio paths.</span>
+<span class="sd">    The retrieved metadata is cached in :code:`cache_dir`</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
-    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span>
-        <span class="bp">self</span><span class="p">,</span>
-        <span class="n">output_keys</span><span class="p">:</span> <span class="nb">dict</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
-        <span class="n">audio_sample_rate</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">16000</span><span class="p">,</span>
-        <span class="n">audio_channel_reduction</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;first&quot;</span><span class="p">,</span>
-        <span class="n">sox_effects</span><span class="p">:</span> <span class="nb">list</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
-        <span class="n">train_category_encoder</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
-    <span class="p">):</span>
-        <span class="n">output_keys</span> <span class="o">=</span> <span class="n">output_keys</span> <span class="ow">or</span> <span class="nb">dict</span><span class="p">(</span>
-            <span class="n">x</span><span class="o">=</span><span class="s2">&quot;wav&quot;</span><span class="p">,</span>
-            <span class="n">x_len</span><span class="o">=</span><span class="s2">&quot;wav_len&quot;</span><span class="p">,</span>
-            <span class="n">class_id</span><span class="o">=</span><span class="s2">&quot;class_id&quot;</span><span class="p">,</span>
-            <span class="n">label</span><span class="o">=</span><span class="s2">&quot;label&quot;</span><span class="p">,</span>
-            <span class="n">unique_name</span><span class="o">=</span><span class="s2">&quot;id&quot;</span><span class="p">,</span>
-        <span class="p">)</span>
+    <span class="n">cache_dir</span> <span class="o">=</span> <span class="n">cache_dir</span> <span class="ow">or</span> <span class="n">get_cache_dir</span><span class="p">()</span>
+    <span class="n">cache_dir</span><span class="p">:</span> <span class="n">Path</span> <span class="o">=</span> <span class="n">Path</span><span class="p">(</span><span class="n">cache_dir</span><span class="p">)</span>
 
-        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span>
-            <span class="n">LoadAudio</span><span class="p">(</span>
-                <span class="n">audio_sample_rate</span><span class="o">=</span><span class="n">audio_sample_rate</span><span class="p">,</span>
-                <span class="n">audio_channel_reduction</span><span class="o">=</span><span class="n">audio_channel_reduction</span><span class="p">,</span>
-                <span class="n">sox_effects</span><span class="o">=</span><span class="n">sox_effects</span><span class="p">,</span>
-            <span class="p">),</span>
-            <span class="n">EncodeCategory</span><span class="p">(</span><span class="n">train_category_encoder</span><span class="o">=</span><span class="n">train_category_encoder</span><span class="p">),</span>
-            <span class="n">SetOutputKeys</span><span class="p">(</span><span class="n">output_keys</span><span class="o">=</span><span class="n">output_keys</span><span class="p">),</span>
-        <span class="p">)</span>
+    <span class="k">def</span> <span class="nf">_get_info</span><span class="p">(</span><span class="n">audio_path</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">audio_id</span><span class="p">:</span> <span class="nb">str</span><span class="p">):</span>
+        <span class="n">cache_file</span> <span class="o">=</span> <span class="n">cache_dir</span> <span class="o">/</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">audio_id</span><span class="si">}</span><span class="s2">.json&quot;</span>
+        <span class="k">if</span> <span class="n">cache_file</span><span class="o">.</span><span class="n">is_file</span><span class="p">():</span>
+            <span class="k">with</span> <span class="n">cache_file</span><span class="o">.</span><span class="n">open</span><span class="p">()</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
+                <span class="n">info</span> <span class="o">=</span> <span class="n">json</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="n">f</span><span class="p">)</span>
+                <span class="k">return</span> <span class="n">info</span>
 
+        <span class="n">torchaudio</span><span class="o">.</span><span class="n">set_audio_backend</span><span class="p">(</span><span class="s2">&quot;sox_io&quot;</span><span class="p">)</span>
+        <span class="n">torchaudio_info</span> <span class="o">=</span> <span class="n">torchaudio</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="n">audio_path</span><span class="p">)</span>
+        <span class="n">info</span> <span class="o">=</span> <span class="p">{</span>
+            <span class="s2">&quot;sample_rate&quot;</span><span class="p">:</span> <span class="n">torchaudio_info</span><span class="o">.</span><span class="n">sample_rate</span><span class="p">,</span>
+            <span class="s2">&quot;num_frames&quot;</span><span class="p">:</span> <span class="n">torchaudio_info</span><span class="o">.</span><span class="n">num_frames</span><span class="p">,</span>
+            <span class="s2">&quot;num_channels&quot;</span><span class="p">:</span> <span class="n">torchaudio_info</span><span class="o">.</span><span class="n">num_channels</span><span class="p">,</span>
+            <span class="s2">&quot;bits_per_sample&quot;</span><span class="p">:</span> <span class="n">torchaudio_info</span><span class="o">.</span><span class="n">bits_per_sample</span><span class="p">,</span>
+            <span class="s2">&quot;encoding&quot;</span><span class="p">:</span> <span class="n">torchaudio_info</span><span class="o">.</span><span class="n">encoding</span><span class="p">,</span>
+        <span class="p">}</span>
+        <span class="k">return</span> <span class="n">info</span>
 
-<span class="k">class</span> <span class="nc">UtteranceMultipleCategoryClassificationPipe</span><span class="p">(</span><span class="n">SequentialDataPipe</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    each item in the input dataset should have:</span>
-<span class="sd">        wav_path: str</span>
-<span class="sd">        labels: List[str]</span>
-<span class="sd">    &quot;&quot;&quot;</span>
-
-    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span>
-        <span class="bp">self</span><span class="p">,</span>
-        <span class="n">output_keys</span><span class="p">:</span> <span class="nb">dict</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
-        <span class="n">audio_sample_rate</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">16000</span><span class="p">,</span>
-        <span class="n">audio_channel_reduction</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;first&quot;</span><span class="p">,</span>
-        <span class="n">sox_effects</span><span class="p">:</span> <span class="nb">list</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
-        <span class="n">train_category_encoder</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
-    <span class="p">):</span>
-        <span class="n">output_keys</span> <span class="o">=</span> <span class="n">output_keys</span> <span class="ow">or</span> <span class="nb">dict</span><span class="p">(</span>
-            <span class="n">x</span><span class="o">=</span><span class="s2">&quot;wav&quot;</span><span class="p">,</span>
-            <span class="n">x_len</span><span class="o">=</span><span class="s2">&quot;wav_len&quot;</span><span class="p">,</span>
-            <span class="n">class_ids</span><span class="o">=</span><span class="s2">&quot;class_ids&quot;</span><span class="p">,</span>
-            <span class="n">labels</span><span class="o">=</span><span class="s2">&quot;labels&quot;</span><span class="p">,</span>
-            <span class="n">unique_name</span><span class="o">=</span><span class="s2">&quot;id&quot;</span><span class="p">,</span>
-        <span class="p">)</span>
-
-        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span>
-            <span class="n">LoadAudio</span><span class="p">(</span>
-                <span class="n">audio_sample_rate</span><span class="o">=</span><span class="n">audio_sample_rate</span><span class="p">,</span>
-                <span class="n">audio_channel_reduction</span><span class="o">=</span><span class="n">audio_channel_reduction</span><span class="p">,</span>
-                <span class="n">sox_effects</span><span class="o">=</span><span class="n">sox_effects</span><span class="p">,</span>
-            <span class="p">),</span>
-            <span class="n">EncodeMultipleCategory</span><span class="p">(</span><span class="n">train_category_encoder</span><span class="o">=</span><span class="n">train_category_encoder</span><span class="p">),</span>
-            <span class="n">SetOutputKeys</span><span class="p">(</span><span class="n">output_keys</span><span class="o">=</span><span class="n">output_keys</span><span class="p">),</span>
-        <span class="p">)</span>
-
-
-<div class="viewcode-block" id="HearScenePipe"><a class="viewcode-back" href="../../../_autosummary/s3prl.problem.common.hear_fsd.html#s3prl.problem.common.hear_fsd.HearScenePipe">[docs]</a><span class="k">class</span> <span class="nc">HearScenePipe</span><span class="p">(</span><span class="n">SequentialDataPipe</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    each item in the input dataset should have:</span>
-<span class="sd">        wav_path: str</span>
-<span class="sd">        labels: List[str]</span>
-<span class="sd">    &quot;&quot;&quot;</span>
-
-    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span>
-        <span class="bp">self</span><span class="p">,</span>
-        <span class="n">output_keys</span><span class="p">:</span> <span class="nb">dict</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
-        <span class="n">audio_sample_rate</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">16000</span><span class="p">,</span>
-        <span class="n">audio_channel_reduction</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;first&quot;</span><span class="p">,</span>
-    <span class="p">):</span>
-        <span class="n">output_keys</span> <span class="o">=</span> <span class="n">output_keys</span> <span class="ow">or</span> <span class="nb">dict</span><span class="p">(</span>
-            <span class="n">x</span><span class="o">=</span><span class="s2">&quot;wav&quot;</span><span class="p">,</span>
-            <span class="n">x_len</span><span class="o">=</span><span class="s2">&quot;wav_len&quot;</span><span class="p">,</span>
-            <span class="n">y</span><span class="o">=</span><span class="s2">&quot;binary_labels&quot;</span><span class="p">,</span>
-            <span class="n">labels</span><span class="o">=</span><span class="s2">&quot;labels&quot;</span><span class="p">,</span>
-            <span class="n">unique_name</span><span class="o">=</span><span class="s2">&quot;id&quot;</span><span class="p">,</span>
-        <span class="p">)</span>
-
-        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span>
-            <span class="n">LoadAudio</span><span class="p">(</span>
-                <span class="n">audio_sample_rate</span><span class="o">=</span><span class="n">audio_sample_rate</span><span class="p">,</span>
-                <span class="n">audio_channel_reduction</span><span class="o">=</span><span class="n">audio_channel_reduction</span><span class="p">,</span>
-            <span class="p">),</span>
-            <span class="n">EncodeMultiLabel</span><span class="p">(),</span>
-            <span class="n">SetOutputKeys</span><span class="p">(</span><span class="n">output_keys</span><span class="o">=</span><span class="n">output_keys</span><span class="p">),</span>
-        <span class="p">)</span></div>
+    <span class="n">infos</span> <span class="o">=</span> <span class="n">Parallel</span><span class="p">(</span><span class="n">n_jobs</span><span class="o">=</span><span class="n">num_workers</span><span class="p">)(</span>
+        <span class="n">delayed</span><span class="p">(</span><span class="n">_get_info</span><span class="p">)(</span><span class="n">path</span><span class="p">,</span> <span class="n">idx</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">path</span><span class="p">,</span> <span class="n">idx</span> <span class="ow">in</span> <span class="n">tqdm</span><span class="p">(</span><span class="nb">zip</span><span class="p">(</span><span class="n">audio_paths</span><span class="p">,</span> <span class="n">audio_ids</span><span class="p">),</span> <span class="n">desc</span><span class="o">=</span><span class="s2">&quot;Get audio metadata&quot;</span><span class="p">)</span>
+    <span class="p">)</span>
+    <span class="k">return</span> <span class="n">infos</span></div>
 </pre></div>
         </article>
       </div>

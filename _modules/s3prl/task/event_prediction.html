@@ -242,6 +242,7 @@
 </ul>
 </li>
 <li class="toctree-l1 has-children"><a class="reference internal" href="../../../_autosummary/s3prl.dataio.html">dataio</a><input class="toctree-checkbox" id="toctree-checkbox-8" name="toctree-checkbox-8" role="switch" type="checkbox"/><label for="toctree-checkbox-8"><div class="visually-hidden">Toggle child pages in navigation</div><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul>
+<li class="toctree-l2"><a class="reference internal" href="../../../_autosummary/s3prl.dataio.collate_fn.html">collate_fn</a></li>
 <li class="toctree-l2 has-children"><a class="reference internal" href="../../../_autosummary/s3prl.dataio.corpus.html">corpus</a><input class="toctree-checkbox" id="toctree-checkbox-9" name="toctree-checkbox-9" role="switch" type="checkbox"/><label for="toctree-checkbox-9"><div class="visually-hidden">Toggle child pages in navigation</div><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul>
 <li class="toctree-l3"><a class="reference internal" href="../../../_autosummary/s3prl.dataio.corpus.base.html">base</a></li>
 <li class="toctree-l3"><a class="reference internal" href="../../../_autosummary/s3prl.dataio.corpus.fluent_speech_commands.html">fluent_speech_commands</a></li>
@@ -259,6 +260,7 @@
 <li class="toctree-l3"><a class="reference internal" href="../../../_autosummary/s3prl.dataio.dataset.base.html">base</a></li>
 <li class="toctree-l3"><a class="reference internal" href="../../../_autosummary/s3prl.dataio.dataset.diarization.html">diarization</a></li>
 <li class="toctree-l3"><a class="reference internal" href="../../../_autosummary/s3prl.dataio.dataset.encode.html">encode</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../../_autosummary/s3prl.dataio.dataset.frame_label.html">frame_label</a></li>
 <li class="toctree-l3"><a class="reference internal" href="../../../_autosummary/s3prl.dataio.dataset.load_audio.html">load_audio</a></li>
 <li class="toctree-l3"><a class="reference internal" href="../../../_autosummary/s3prl.dataio.dataset.util.html">util</a></li>
 </ul>
@@ -288,6 +290,7 @@
 </ul>
 </li>
 <li class="toctree-l1 has-children"><a class="reference internal" href="../../../_autosummary/s3prl.util.html">util</a><input class="toctree-checkbox" id="toctree-checkbox-14" name="toctree-checkbox-14" role="switch" type="checkbox"/><label for="toctree-checkbox-14"><div class="visually-hidden">Toggle child pages in navigation</div><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul>
+<li class="toctree-l2"><a class="reference internal" href="../../../_autosummary/s3prl.util.audio_info.html">audio_info</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../../../_autosummary/s3prl.util.benchmark.html">benchmark</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../../../_autosummary/s3prl.util.download.html">download</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../../../_autosummary/s3prl.util.override.html">override</a></li>
@@ -532,7 +535,7 @@
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">loss</span><span class="p">(</span><span class="n">y_hat</span><span class="p">,</span> <span class="n">y</span><span class="p">)</span>
 
 
-<div class="viewcode-block" id="EventPredictionTask"><a class="viewcode-back" href="../../../_autosummary/s3prl.task.event_prediction.html#s3prl.problem.common.hear_dcase_2016_task2.EventPredictionTask">[docs]</a><span class="k">class</span> <span class="nc">EventPredictionTask</span><span class="p">(</span><span class="n">Task</span><span class="p">):</span>
+<div class="viewcode-block" id="EventPredictionTask"><a class="viewcode-back" href="../../../_autosummary/s3prl.task.event_prediction.html#s3prl.task.event_prediction.EventPredictionTask">[docs]</a><span class="k">class</span> <span class="nc">EventPredictionTask</span><span class="p">(</span><span class="n">Task</span><span class="p">):</span>
     <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span>
         <span class="n">model</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">nn</span><span class="o">.</span><span class="n">Module</span><span class="p">,</span>
@@ -575,15 +578,15 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">postprocessing_grid</span> <span class="o">=</span> <span class="n">postprocessing_grid</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">best_postprocessing</span> <span class="o">=</span> <span class="kc">None</span>
 
-<div class="viewcode-block" id="EventPredictionTask.get_state"><a class="viewcode-back" href="../../../_autosummary/s3prl.task.event_prediction.html#s3prl.problem.common.hear_dcase_2016_task2.EventPredictionTask.get_state">[docs]</a>    <span class="k">def</span> <span class="nf">get_state</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<div class="viewcode-block" id="EventPredictionTask.get_state"><a class="viewcode-back" href="../../../_autosummary/s3prl.task.event_prediction.html#s3prl.task.event_prediction.EventPredictionTask.get_state">[docs]</a>    <span class="k">def</span> <span class="nf">get_state</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="k">return</span> <span class="p">{</span>
             <span class="s2">&quot;best_postprocessing&quot;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">best_postprocessing</span><span class="p">,</span>
         <span class="p">}</span></div>
 
-<div class="viewcode-block" id="EventPredictionTask.set_state"><a class="viewcode-back" href="../../../_autosummary/s3prl.task.event_prediction.html#s3prl.problem.common.hear_dcase_2016_task2.EventPredictionTask.set_state">[docs]</a>    <span class="k">def</span> <span class="nf">set_state</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">state</span><span class="p">:</span> <span class="nb">dict</span><span class="p">):</span>
+<div class="viewcode-block" id="EventPredictionTask.set_state"><a class="viewcode-back" href="../../../_autosummary/s3prl.task.event_prediction.html#s3prl.task.event_prediction.EventPredictionTask.set_state">[docs]</a>    <span class="k">def</span> <span class="nf">set_state</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">state</span><span class="p">:</span> <span class="nb">dict</span><span class="p">):</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">best_postprocessing</span> <span class="o">=</span> <span class="n">state</span><span class="p">[</span><span class="s2">&quot;best_postprocessing&quot;</span><span class="p">]</span></div>
 
-<div class="viewcode-block" id="EventPredictionTask.predict"><a class="viewcode-back" href="../../../_autosummary/s3prl.task.event_prediction.html#s3prl.problem.common.hear_dcase_2016_task2.EventPredictionTask.predict">[docs]</a>    <span class="k">def</span> <span class="nf">predict</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">,</span> <span class="n">x_len</span><span class="p">):</span>
+<div class="viewcode-block" id="EventPredictionTask.predict"><a class="viewcode-back" href="../../../_autosummary/s3prl.task.event_prediction.html#s3prl.task.event_prediction.EventPredictionTask.predict">[docs]</a>    <span class="k">def</span> <span class="nf">predict</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">,</span> <span class="n">x_len</span><span class="p">):</span>
         <span class="n">logits</span><span class="p">,</span> <span class="n">_</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">model</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">x_len</span><span class="p">)</span>
         <span class="n">prediction</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">activation</span><span class="p">(</span><span class="n">logits</span><span class="p">)</span>
         <span class="k">return</span> <span class="n">prediction</span><span class="p">,</span> <span class="n">logits</span><span class="p">,</span> <span class="n">x_len</span></div>
@@ -609,8 +612,17 @@
             <span class="p">)</span>  <span class="c1"># (batch_size, seq_len, feature_dim), where seq_len == labels.size(-1)</span>
         <span class="k">return</span> <span class="n">inputs</span>
 
-<div class="viewcode-block" id="EventPredictionTask.train_step"><a class="viewcode-back" href="../../../_autosummary/s3prl.task.event_prediction.html#s3prl.problem.common.hear_dcase_2016_task2.EventPredictionTask.train_step">[docs]</a>    <span class="k">def</span> <span class="nf">train_step</span><span class="p">(</span>
-        <span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">,</span> <span class="n">x_len</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">y_len</span><span class="p">,</span> <span class="n">record_id</span><span class="p">,</span> <span class="n">chunk_id</span><span class="p">,</span> <span class="n">_dump_dir</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="kc">None</span>
+<div class="viewcode-block" id="EventPredictionTask.train_step"><a class="viewcode-back" href="../../../_autosummary/s3prl.task.event_prediction.html#s3prl.task.event_prediction.EventPredictionTask.train_step">[docs]</a>    <span class="k">def</span> <span class="nf">train_step</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="n">x</span><span class="p">,</span>
+        <span class="n">x_len</span><span class="p">,</span>
+        <span class="n">y</span><span class="p">,</span>
+        <span class="n">y_len</span><span class="p">,</span>
+        <span class="n">labels</span><span class="p">,</span>
+        <span class="n">record_id</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">],</span>
+        <span class="n">chunk_id</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="nb">int</span><span class="p">],</span>
+        <span class="n">unique_name</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">],</span>
+        <span class="n">_dump_dir</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
     <span class="p">):</span>
         <span class="n">y_hat</span><span class="p">,</span> <span class="n">y_hat_len</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">model</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">x_len</span><span class="p">)</span>
         <span class="n">y_hat</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_match_length</span><span class="p">(</span><span class="n">y_hat</span><span class="p">,</span> <span class="n">y</span><span class="p">)</span>
@@ -628,14 +640,14 @@
 
         <span class="k">return</span> <span class="n">loss</span><span class="p">,</span> <span class="n">cacheable</span></div>
 
-<div class="viewcode-block" id="EventPredictionTask.train_reduction"><a class="viewcode-back" href="../../../_autosummary/s3prl.task.event_prediction.html#s3prl.problem.common.hear_dcase_2016_task2.EventPredictionTask.train_reduction">[docs]</a>    <span class="k">def</span> <span class="nf">train_reduction</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">batch_results</span><span class="p">:</span> <span class="nb">list</span><span class="p">,</span> <span class="n">_dump_dir</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="kc">None</span><span class="p">):</span>
+<div class="viewcode-block" id="EventPredictionTask.train_reduction"><a class="viewcode-back" href="../../../_autosummary/s3prl.task.event_prediction.html#s3prl.task.event_prediction.EventPredictionTask.train_reduction">[docs]</a>    <span class="k">def</span> <span class="nf">train_reduction</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">batch_results</span><span class="p">:</span> <span class="nb">list</span><span class="p">,</span> <span class="n">_dump_dir</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="kc">None</span><span class="p">):</span>
         <span class="n">loss</span> <span class="o">=</span> <span class="p">[]</span>
         <span class="k">for</span> <span class="n">batch</span> <span class="ow">in</span> <span class="n">batch_results</span><span class="p">:</span>
             <span class="n">loss</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">batch</span><span class="p">[</span><span class="s2">&quot;loss&quot;</span><span class="p">])</span>
         <span class="n">loss</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">FloatTensor</span><span class="p">(</span><span class="n">loss</span><span class="p">)</span><span class="o">.</span><span class="n">mean</span><span class="p">()</span><span class="o">.</span><span class="n">item</span><span class="p">()</span>
 
         <span class="k">return</span> <span class="p">{</span>
-            <span class="s2">&quot;loss&quot;</span><span class="p">:</span> <span class="n">loss</span><span class="o">.</span><span class="n">detach</span><span class="p">()</span><span class="o">.</span><span class="n">cpu</span><span class="p">()</span><span class="o">.</span><span class="n">item</span><span class="p">(),</span>
+            <span class="s2">&quot;loss&quot;</span><span class="p">:</span> <span class="n">loss</span><span class="p">,</span>
         <span class="p">}</span></div>
 
     <span class="k">def</span> <span class="nf">_eval_step</span><span class="p">(</span>
@@ -644,8 +656,10 @@
         <span class="n">x_len</span><span class="p">,</span>
         <span class="n">y</span><span class="p">,</span>
         <span class="n">y_len</span><span class="p">,</span>
+        <span class="n">labels</span><span class="p">,</span>
         <span class="n">record_id</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">],</span>
         <span class="n">chunk_id</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="nb">int</span><span class="p">],</span>
+        <span class="n">unique_name</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">],</span>
         <span class="n">_dump_dir</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
     <span class="p">):</span>
         <span class="n">y_pr</span><span class="p">,</span> <span class="n">y_hat</span><span class="p">,</span> <span class="n">y_pr_len</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">predict</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">x_len</span><span class="p">)</span>
@@ -672,13 +686,13 @@
             <span class="n">record_id</span><span class="o">=</span><span class="n">record_id</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span>  <span class="c1"># List[str]</span>
         <span class="p">)</span>
 
-<div class="viewcode-block" id="EventPredictionTask.valid_step"><a class="viewcode-back" href="../../../_autosummary/s3prl.task.event_prediction.html#s3prl.problem.common.hear_dcase_2016_task2.EventPredictionTask.valid_step">[docs]</a>    <span class="k">def</span> <span class="nf">valid_step</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwds</span><span class="p">):</span>
+<div class="viewcode-block" id="EventPredictionTask.valid_step"><a class="viewcode-back" href="../../../_autosummary/s3prl.task.event_prediction.html#s3prl.task.event_prediction.EventPredictionTask.valid_step">[docs]</a>    <span class="k">def</span> <span class="nf">valid_step</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwds</span><span class="p">):</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_eval_step</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwds</span><span class="p">)</span></div>
 
-<div class="viewcode-block" id="EventPredictionTask.test_step"><a class="viewcode-back" href="../../../_autosummary/s3prl.task.event_prediction.html#s3prl.problem.common.hear_dcase_2016_task2.EventPredictionTask.test_step">[docs]</a>    <span class="k">def</span> <span class="nf">test_step</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwds</span><span class="p">):</span>
+<div class="viewcode-block" id="EventPredictionTask.test_step"><a class="viewcode-back" href="../../../_autosummary/s3prl.task.event_prediction.html#s3prl.task.event_prediction.EventPredictionTask.test_step">[docs]</a>    <span class="k">def</span> <span class="nf">test_step</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwds</span><span class="p">):</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_eval_step</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwds</span><span class="p">)</span></div>
 
-<div class="viewcode-block" id="EventPredictionTask.log_scores"><a class="viewcode-back" href="../../../_autosummary/s3prl.task.event_prediction.html#s3prl.problem.common.hear_dcase_2016_task2.EventPredictionTask.log_scores">[docs]</a>    <span class="k">def</span> <span class="nf">log_scores</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">score_args</span><span class="p">):</span>
+<div class="viewcode-block" id="EventPredictionTask.log_scores"><a class="viewcode-back" href="../../../_autosummary/s3prl.task.event_prediction.html#s3prl.task.event_prediction.EventPredictionTask.log_scores">[docs]</a>    <span class="k">def</span> <span class="nf">log_scores</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">score_args</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Logs the metric score value for each score defined for the model&quot;&quot;&quot;</span>
         <span class="k">assert</span> <span class="nb">hasattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="s2">&quot;scores&quot;</span><span class="p">),</span> <span class="s2">&quot;Scores for the model should be defined&quot;</span>
         <span class="n">end_scores</span> <span class="o">=</span> <span class="p">{}</span>
@@ -702,13 +716,13 @@
                 <span class="p">)</span>
         <span class="k">return</span> <span class="n">end_scores</span></div>
 
-<div class="viewcode-block" id="EventPredictionTask.valid_reduction"><a class="viewcode-back" href="../../../_autosummary/s3prl.task.event_prediction.html#s3prl.problem.common.hear_dcase_2016_task2.EventPredictionTask.valid_reduction">[docs]</a>    <span class="k">def</span> <span class="nf">valid_reduction</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">cached_results</span><span class="p">:</span> <span class="nb">list</span><span class="p">,</span> <span class="n">_dump_dir</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="kc">None</span><span class="p">):</span>
+<div class="viewcode-block" id="EventPredictionTask.valid_reduction"><a class="viewcode-back" href="../../../_autosummary/s3prl.task.event_prediction.html#s3prl.task.event_prediction.EventPredictionTask.valid_reduction">[docs]</a>    <span class="k">def</span> <span class="nf">valid_reduction</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">cached_results</span><span class="p">:</span> <span class="nb">list</span><span class="p">,</span> <span class="n">_dump_dir</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="kc">None</span><span class="p">):</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">eval_reduction</span><span class="p">(</span><span class="s2">&quot;valid&quot;</span><span class="p">,</span> <span class="n">cached_results</span><span class="p">,</span> <span class="n">_dump_dir</span><span class="p">)</span></div>
 
-<div class="viewcode-block" id="EventPredictionTask.test_reduction"><a class="viewcode-back" href="../../../_autosummary/s3prl.task.event_prediction.html#s3prl.problem.common.hear_dcase_2016_task2.EventPredictionTask.test_reduction">[docs]</a>    <span class="k">def</span> <span class="nf">test_reduction</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">cached_results</span><span class="p">:</span> <span class="nb">list</span><span class="p">,</span> <span class="n">_dump_dir</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="kc">None</span><span class="p">):</span>
+<div class="viewcode-block" id="EventPredictionTask.test_reduction"><a class="viewcode-back" href="../../../_autosummary/s3prl.task.event_prediction.html#s3prl.task.event_prediction.EventPredictionTask.test_reduction">[docs]</a>    <span class="k">def</span> <span class="nf">test_reduction</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">cached_results</span><span class="p">:</span> <span class="nb">list</span><span class="p">,</span> <span class="n">_dump_dir</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="kc">None</span><span class="p">):</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">eval_reduction</span><span class="p">(</span><span class="s2">&quot;test&quot;</span><span class="p">,</span> <span class="n">cached_results</span><span class="p">,</span> <span class="n">_dump_dir</span><span class="p">)</span></div>
 
-<div class="viewcode-block" id="EventPredictionTask.eval_reduction"><a class="viewcode-back" href="../../../_autosummary/s3prl.task.event_prediction.html#s3prl.problem.common.hear_dcase_2016_task2.EventPredictionTask.eval_reduction">[docs]</a>    <span class="k">def</span> <span class="nf">eval_reduction</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">_mode</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">cached_results</span><span class="p">:</span> <span class="nb">list</span><span class="p">,</span> <span class="n">_dump_dir</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="kc">None</span><span class="p">):</span>
+<div class="viewcode-block" id="EventPredictionTask.eval_reduction"><a class="viewcode-back" href="../../../_autosummary/s3prl.task.event_prediction.html#s3prl.task.event_prediction.EventPredictionTask.eval_reduction">[docs]</a>    <span class="k">def</span> <span class="nf">eval_reduction</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">_mode</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">cached_results</span><span class="p">:</span> <span class="nb">list</span><span class="p">,</span> <span class="n">_dump_dir</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="kc">None</span><span class="p">):</span>
         <span class="n">target</span><span class="p">,</span> <span class="n">prediction</span><span class="p">,</span> <span class="n">prediction_logit</span><span class="p">,</span> <span class="n">filename</span><span class="p">,</span> <span class="n">timestamp</span> <span class="o">=</span> <span class="p">[],</span> <span class="p">[],</span> <span class="p">[],</span> <span class="p">[],</span> <span class="p">[]</span>
         <span class="k">for</span> <span class="n">batch</span> <span class="ow">in</span> <span class="n">cached_results</span><span class="p">:</span>
             <span class="n">length</span> <span class="o">=</span> <span class="n">batch</span><span class="p">[</span><span class="s2">&quot;label&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">size</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
