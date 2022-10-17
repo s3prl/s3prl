@@ -10,7 +10,12 @@ from tqdm import tqdm
 logger = logging.getLogger(__name__)
 
 
-def get_info(dataset, *names: List[str], n_jobs: int = 6, cache_dir: str = None):
+__all__ = [
+    "get_info",
+]
+
+
+def get_info(dataset, names: List[str], cache_dir: str = None, n_jobs: int = 6):
     logger.info(
         f"Getting info from dataset {dataset.__class__.__qualname__}: {' '.join(names)}"
     )

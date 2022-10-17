@@ -1,4 +1,5 @@
 import tempfile
+from pathlib import Path
 
 import pytest
 import yaml
@@ -14,11 +15,13 @@ from s3prl.problem import SuperbER
 @pytest.mark.parametrize("fold_id", [0, 1, 2, 3, 4])
 def test_er_dataset(fold_id):
 
+    v3_er_folder = Path(__file__).parent.parent / "s3prl" / "downstream" / "emotion"
+
     IEMOCAP = dotenv_values()["IEMOCAP"]
-    with open("./s3prl/downstream/emotion/config.yaml") as file:
+    with (v3_er_folder / "config.yaml").open() as file:
         config = yaml.load(file, Loader=yaml.FullLoader)["downstream_expert"]
         config["datarc"]["root"] = IEMOCAP
-        config["datarc"]["meta_data"] = "./s3prl/downstream/emotion/meta_data"
+        config["datarc"]["meta_data"] = v3_er_folder / "meta_data"
         config["datarc"]["test_fold"] = f"fold{fold_id + 1}"
 
     with tempfile.TemporaryDirectory() as tempdir:
@@ -48,6 +51,7 @@ def test_er_dataset(fold_id):
             "train",
             train_csv,
             encoder_path,
+            None,
         )
         valid_dataset_v4 = SuperbER().build_dataset(
             default_config["build_dataset"],
@@ -56,6 +60,7 @@ def test_er_dataset(fold_id):
             "valid",
             valid_csv,
             encoder_path,
+            None,
         )
         test_dataset_v4 = SuperbER().build_dataset(
             default_config["build_dataset"],
@@ -64,6 +69,7 @@ def test_er_dataset(fold_id):
             "test",
             test_csvs[0],
             encoder_path,
+            None,
         )
 
     def compare_dataset(v3, v4):

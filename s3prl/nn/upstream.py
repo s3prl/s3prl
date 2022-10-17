@@ -194,11 +194,11 @@ class S3PRLUpstream(nn.Module):
         all_hs = []
         all_lens = []
         for h, stride in zip(hidden_states, self.downsample_rates):
-            expected_max_h_len = max_wav_len // stride + 1
+            expected_max_h_len = len(range(0, max_wav_len, stride))
             h = self._match_length(h, expected_max_h_len)
             assert h.size(1) == expected_max_h_len
 
-            h_len = torch.div(original_wavs_len, stride, rounding_mode="floor") + 1
+            h_len = torch.div(original_wavs_len - 1, stride, rounding_mode="floor") + 1
             h = h[:, : max(h_len), :]
             if self.normalize:
                 h = F.layer_norm(h, h.shape[-1:])

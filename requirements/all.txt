@@ -27,7 +27,6 @@ catalyst
 sentencepiece
 huggingface_hub >=0.2.1
 mutagen
-speechbrain==0.5.11
 pydantic
 protobuf ~=3.19.0
 sed_eval

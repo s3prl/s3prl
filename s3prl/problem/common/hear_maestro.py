@@ -1,4 +1,3 @@
-import csv
 import json
 from collections import defaultdict
 from copy import deepcopy
@@ -8,9 +7,12 @@ import pandas as pd
 import torchaudio
 from omegaconf import MISSING
 
+from ._hear_util import resample_hear_corpus
 from .hear_dcase_2016_task2 import HearDcase2016Task2
 
 MAESTRO_NUM_FOLDS = 5
+
+__all__ = ["HearMaestro"]
 
 
 def prepare_maestro(
@@ -31,6 +33,9 @@ def prepare_maestro(
         f"MAESTRO only has {MAESTRO_NUM_FOLDS} folds but get 'test_fold' "
         f"arguments {test_fold}"
     )
+
+    resample_hear_corpus(dataset_root, target_sr=16000)
+
     dataset_root = Path(dataset_root)
     wav_root = dataset_root / "16000"
 
@@ -111,7 +116,7 @@ class HearMaestro(HearDcase2016Task2):
                 ),
             ),
             build_upstream=dict(
-                name="fbank",
+                name=MISSING,
             ),
             build_featurizer=dict(
                 layer_selections=None,
@@ -134,7 +139,7 @@ class HearMaestro(HearDcase2016Task2):
             build_optimizer=dict(
                 name="Adam",
                 conf=dict(
-                    lr=1.0e-4,
+                    lr=1.0e-3,
                 ),
             ),
             build_scheduler=dict(

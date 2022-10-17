@@ -29,8 +29,8 @@ from torch.utils.data import DataLoader
 from torch.utils.tensorboard.writer import SummaryWriter
 from tqdm import tqdm
 
+from s3prl.dataio.collate_fn import default_collate_fn
 from s3prl.dataio.sampler import DistributedBatchSamplerWrapper
-from s3prl.dataset.base import default_collate_fn
 from s3prl.nn.upstream import Featurizer, S3PRLUpstream, UpstreamDownstreamModel
 from s3prl.task import Task
 from s3prl.util.override import parse_overrides
