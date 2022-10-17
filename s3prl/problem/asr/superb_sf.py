@@ -23,8 +23,20 @@ from s3prl.dataio.sampler import FixedBatchSizeBatchSampler, SortedSliceSampler
 
 from .superb_asr import SuperbASR, prepare_common_tokenizer
 
-# Mapping for character-slot tokenizer (SNIPS)
 translator = str.maketrans('ÁÃÄÅÆÇÈÉÊËÍÏÐÒÓÔÖØÚÛĘŃŌŞŪ"', "AAAAACEEEEIIDOOOOOUUENOSU ")
+
+TRAIN_SPEAKERS = [
+    "Ivy",
+    "Joanna",
+    "Joey",
+    "Justin",
+    "Kendra",
+    "Kimberly",
+    "Matthew",
+    "Salli",
+]
+VALID_SPEAKERS = ["Aditi", "Amy", "Geraint", "Nicole"]
+TEST_SPEAKERS = ["Brian", "Emma", "Raveena", "Russell"]
 
 __all__ = [
     "audio_snips_for_slot_filling",
@@ -108,18 +120,9 @@ class SuperbSF(SuperbASR):
             remove_all_cache=False,
             prepare_data=dict(
                 dataset_root=MISSING,
-                train_speakers=[
-                    "Ivy",
-                    "Joanna",
-                    "Joey",
-                    "Justin",
-                    "Kendra",
-                    "Kimberly",
-                    "Matthew",
-                    "Salli",
-                ],
-                valid_speakers=["Aditi", "Amy", "Geraint", "Nicole"],
-                test_speakers=["Brian", "Emma", "Raveena", "Russell"],
+                train_speakers=TRAIN_SPEAKERS,
+                valid_speakers=VALID_SPEAKERS,
+                test_speakers=TEST_SPEAKERS,
             ),
             prepare_tokenizer_data=dict(),
             build_tokenizer=dict(
