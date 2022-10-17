@@ -4,8 +4,7 @@ from pathlib import Path
 import pytest
 from dotenv import dotenv_values
 
-from s3prl.dataio.corpus import LibriSpeech
-from s3prl.dataio.corpus import IEMOCAP
+from s3prl.dataio.corpus import IEMOCAP, FluentSpeechCommands, LibriSpeech
 
 logger = logging.getLogger(__name__)
 
@@ -83,4 +82,35 @@ def test_iemocap_with_torchaudio(session_id: int):
     info_s3prl = sorted(get_s3prl_metadata(data_s3prl))
     info_torchaudio = sorted(get_torchaudio_metadata(dataset))
 
+    assert info_s3prl == info_torchaudio
+
+
+@pytest.mark.corpus
+@pytest.mark.parametrize("split", ["train", "valid", "test"])
+def test_fluent_with_torchaudio(split: str):
+    config = dotenv_values()
+    dataset_root = Path(config["FluentSpeechCommands"])
+
+    corpus = FluentSpeechCommands(dataset_root)
+    train_data, valid_data, test_data = corpus.data_split
+    if split == "train":
+        s3prl_data = train_data
+    elif split == "valid":
+        s3prl_data = valid_data
+    elif split == "test":
+        s3prl_data = test_data
+
+    def get_s3prl_metadata(data: dict):
+        for k, v in data.items():
+            yield (k, v["action"], v["object"], v["location"])
+
+    dataset = datasets.FluentSpeechCommands(dataset_root.parent, split)
+
+    def get_torchaudio_metadata(dataset):
+        for i in range(len(dataset)):
+            info = dataset.get_metadata(i)
+            yield (info[2], info[5], info[6], info[7])
+
+    info_s3prl = sorted(get_s3prl_metadata(s3prl_data))
+    info_torchaudio = sorted(get_torchaudio_metadata(dataset))
     assert info_s3prl == info_torchaudio
