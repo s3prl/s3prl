@@ -145,7 +145,7 @@ class SuperbASV(ASV):
                 total_steps=200000,
                 log_step=500,
                 eval_step=1e20,
-                save_step=20000,
+                save_step=10000,
                 gradient_clipping=1.0e3,
                 gradient_accumulate=5,
                 valid_metric=None,
