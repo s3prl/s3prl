@@ -1,7 +1,7 @@
 import json
 import logging
 import pickle
-from collections import OrderedDict, defaultdict
+from collections import defaultdict
 from copy import deepcopy
 from dataclasses import dataclass
 from pathlib import Path
@@ -12,7 +12,7 @@ import torchaudio
 from omegaconf import MISSING
 
 from s3prl.dataio.sampler import FixedBatchSizeBatchSampler, GroupSameItemSampler
-from s3prl.dataset.hear_timestamp import HearTimestampDatapipe
+from s3prl.dataio.dataset import FrameLabelDataset, get_info
 from s3prl.task.event_prediction import EventPredictionTask
 
 from ._hear_util import resample_hear_corpus
@@ -20,7 +20,9 @@ from .hear_fsd import HearFSD
 
 logger = logging.getLogger(__name__)
 
-__all__ = ["HearDcase2016Task2"]
+__all__ = [
+    "HearDcase2016Task2",
+]
 
 
 def dcase_2016_task2(
@@ -88,16 +90,24 @@ class HearDcase2016Task2(HearFSD):
             prepare_data=dict(
                 dataset_root=MISSING,
             ),
+            build_dataset=dict(
+                train=dict(
+                    chunk_secs=4.0,
+                    step_secs=4.0,
+                ),
+                valid=dict(
+                    chunk_secs=4.0,
+                    step_secs=4.0,
+                ),
+                test=dict(
+                    chunk_secs=4.0,
+                    step_secs=4.0,
+                ),
+            ),
             build_batch_sampler=dict(
                 train=dict(
                     batch_size=5,
                     shuffle=True,
-                ),
-                valid=dict(
-                    item="record_id",
-                ),
-                test=dict(
-                    item="record_id",
                 ),
             ),
             build_upstream=dict(
@@ -169,28 +179,23 @@ class HearDcase2016Task2(HearFSD):
         encoder_path: str,
         frame_shift: int,
     ):
+        @dataclass
+        class Config:
+            train: dict = None
+            valid: dict = None
+            test: dict = None
+
+        conf = Config(**build_dataset)
+        conf = getattr(conf, mode)
+        conf = conf or {}
+
         with open(encoder_path, "rb") as f:
             encoder = pickle.load(f)
 
-        data = OrderedDict()
-        for rowid, row in pd.read_csv(data_csv).iterrows():
-            if row["record_id"] not in data:
-                data[row["record_id"]] = dict(
-                    wav_path=str(row["wav_path"]),
-                    start_sec=0.0,
-                    end_sec=row["duration"],
-                    segments=defaultdict(list),
-                )
-            data[row["record_id"]]["segments"][str(row["labels"])].append(
-                (
-                    row["start_sec"],
-                    row["end_sec"],
-                )
-            )
-        dataset = HearTimestampDatapipe(feat_frame_shift=frame_shift)(
-            data, tools={"category": encoder}
-        )
-        dataset.set_info({"record_id": "unchunked_id"})
+        df = pd.read_csv(data_csv)
+        df["label"] = [encoder.encode(label) for label in df["labels"].tolist()]
+
+        dataset = FrameLabelDataset(df, len(encoder), frame_shift, **conf)
         return dataset
 
     def build_batch_sampler(
@@ -212,9 +217,11 @@ class HearDcase2016Task2(HearFSD):
         if mode == "train":
             return FixedBatchSizeBatchSampler(dataset, **(conf.train or {}))
         elif mode == "valid":
-            return GroupSameItemSampler(dataset, **(conf.valid or {}))
+            record_ids = get_info(dataset, ["record_id"], target_dir / "valid_stats")
+            return GroupSameItemSampler(record_ids)
         elif mode == "test":
-            return GroupSameItemSampler(dataset, **(conf.test or {}))
+            record_ids = get_info(dataset, ["record_id"], target_dir / "test_stats")
+            return GroupSameItemSampler(record_ids)
         else:
             raise ValueError(f"Unsupported mode: {mode}")
 

@@ -354,9 +354,8 @@ class SuperbASV(ASV):
             if conf.min_secs is not None:
                 x_lens, unique_names = get_info(
                     dataset,
-                    "x_len",
-                    "unique_name",
-                    cache_dir=target_dir / "train_utt_len",
+                    ["x_len", "unique_name"],
+                    target_dir / "train_utt_len",
                 )
 
                 indices = []

@@ -279,7 +279,16 @@ class EventPredictionTask(Task):
         return inputs
 
     def train_step(
-        self, x, x_len, y, y_len, record_id, chunk_id, _dump_dir: str = None
+        self,
+        x,
+        x_len,
+        y,
+        y_len,
+        labels,
+        record_id: List[str],
+        chunk_id: List[int],
+        unique_name: List[str],
+        _dump_dir: str = None,
     ):
         y_hat, y_hat_len = self.model(x, x_len)
         y_hat = self._match_length(y_hat, y)
@@ -304,7 +313,7 @@ class EventPredictionTask(Task):
         loss = torch.FloatTensor(loss).mean().item()
 
         return {
-            "loss": loss.detach().cpu().item(),
+            "loss": loss,
         }
 
     def _eval_step(
@@ -313,8 +322,10 @@ class EventPredictionTask(Task):
         x_len,
         y,
         y_len,
+        labels,
         record_id: List[str],
         chunk_id: List[int],
+        unique_name: List[str],
         _dump_dir: str = None,
     ):
         y_pr, y_hat, y_pr_len = self.predict(x, x_len)

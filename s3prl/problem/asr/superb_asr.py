@@ -486,7 +486,7 @@ class SuperbASR(ASR):
 
         if mode == "train":
             wav_lens = get_info(
-                dataset, "x_len", cache_dir=Path(target_dir) / "train_stats"
+                dataset, ["x_len"], Path(target_dir) / "train_stats"
             )
             sampler = SortedBucketingSampler(wav_lens, **(conf.train or {}))
         elif mode == "valid":

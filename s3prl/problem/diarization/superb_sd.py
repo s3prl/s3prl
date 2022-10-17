@@ -272,7 +272,7 @@ class SuperbSD(Diarization):
         elif mode == "valid":
             return FixedBatchSizeBatchSampler(dataset, **(conf.valid or {}))
         elif mode == "test":
-            record_ids = get_info(dataset, "record_id")
+            record_ids = get_info(dataset, ["record_id"])
             return GroupSameItemSampler(record_ids)
         else:
             raise ValueError(f"Unsupported mode: {mode}")

@@ -24,6 +24,10 @@ __all__ = [
 
 
 class pseudo_audio:
+    """
+    This context manager returns filepaths (List[str]) and num_samples (List[int]) on entering
+    """
+
     def __init__(self, secs: List[float], sample_rate: int = SAMPLE_RATE):
         self.tempdir = Path(tempfile.TemporaryDirectory().name)
         self.tempdir.mkdir(parents=True, exist_ok=True)
