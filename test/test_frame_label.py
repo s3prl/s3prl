@@ -5,7 +5,7 @@ from s3prl.dataio.dataset.frame_label import (
 
 
 def test_chunking():
-    chunks = list(chunking(0.0, 8.5, 2.0, 1.0))
+    chunks = list(chunking(0.0, 8.5, 2.0, 1.0, False))
     assert len(chunks) == 7
 
     chunks = list(chunking(1.1, 8.5, 2.0, 1.0, True))
