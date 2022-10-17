@@ -5,6 +5,7 @@ import pytest
 from dotenv import dotenv_values
 
 from s3prl.dataio.corpus import LibriSpeech
+from s3prl.dataio.corpus import IEMOCAP
 
 logger = logging.getLogger(__name__)
 
@@ -50,3 +51,36 @@ def test_librispeech_with_torchaudio():
     assert_corpus_parsing(train_data, train_set)
     assert_corpus_parsing(valid_data, valid_set)
     assert_corpus_parsing(test_data, test_set)
+
+
+@pytest.mark.corpus
+@pytest.mark.parametrize("session_id", [1, 2, 3, 4, 5])
+def test_iemocap_with_torchaudio(session_id: int):
+    config = dotenv_values()
+    dataset_root = Path(config["IEMOCAP"])
+
+    corpus = IEMOCAP(dataset_root)
+    data_s3prl = corpus.get_whole_session(session_id)
+
+    def get_s3prl_metadata(data: dict):
+        for k, v in data.items():
+            emotion = v["emotion"]
+            if emotion in ["neu", "hap", "sad", "exc", "ang"]:
+                if emotion == "exc":
+                    emotion = "hap"
+                yield (k, emotion)
+
+    dataset = datasets.IEMOCAP(
+        dataset_root.parent,
+        sessions=[session_id],
+    )
+
+    def get_torchaudio_metadata(dataset):
+        for i in range(len(dataset)):
+            info = dataset.get_metadata(i)
+            yield (info[2], info[3])
+
+    info_s3prl = sorted(get_s3prl_metadata(data_s3prl))
+    info_torchaudio = sorted(get_torchaudio_metadata(dataset))
+
+    assert info_s3prl == info_torchaudio
