@@ -3,14 +3,13 @@ Authors:
     - Leo (2022)
 """
 
-from typing import List, Tuple, Any
+from typing import Any, List, Tuple
 
-import torch
 import pandas as pd
+import torch
 
 from .base import Dataset
 from .load_audio import LoadAudio
-
 
 __all__ = [
     "chunking",

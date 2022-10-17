@@ -1,11 +1,10 @@
 import json
-from typing import List
 from pathlib import Path
+from typing import List
 
 import torchaudio
-from tqdm import tqdm
 from joblib import Parallel, delayed
-
+from tqdm import tqdm
 
 _default_cache_dir = Path.home() / ".cache" / "s3prl" / "audio_info"
 

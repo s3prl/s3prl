@@ -11,8 +11,8 @@ import torch
 import torchaudio
 from omegaconf import MISSING
 
-from s3prl.dataio.sampler import FixedBatchSizeBatchSampler, GroupSameItemSampler
 from s3prl.dataio.dataset import FrameLabelDataset, get_info
+from s3prl.dataio.sampler import FixedBatchSizeBatchSampler, GroupSameItemSampler
 from s3prl.task.event_prediction import EventPredictionTask
 
 from ._hear_util import resample_hear_corpus

@@ -1,8 +1,6 @@
-from cProfile import label
-import chunk
 from s3prl.dataio.dataset.frame_label import (
-    chunking,
     chunk_labels_to_frame_tensor_label,
+    chunking,
 )
 
 

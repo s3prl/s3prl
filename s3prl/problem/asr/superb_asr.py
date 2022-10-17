@@ -485,9 +485,7 @@ class SuperbASR(ASR):
         conf = Config(**build_batch_sampler)
 
         if mode == "train":
-            wav_lens = get_info(
-                dataset, ["x_len"], Path(target_dir) / "train_stats"
-            )
+            wav_lens = get_info(dataset, ["x_len"], Path(target_dir) / "train_stats")
             sampler = SortedBucketingSampler(wav_lens, **(conf.train or {}))
         elif mode == "valid":
             sampler = FixedBatchSizeBatchSampler(dataset, **(conf.valid or {}))
