@@ -48,6 +48,7 @@ def test_er_dataset(fold_id):
             "train",
             train_csv,
             encoder_path,
+            None,
         )
         valid_dataset_v4 = SuperbER().build_dataset(
             default_config["build_dataset"],
@@ -56,6 +57,7 @@ def test_er_dataset(fold_id):
             "valid",
             valid_csv,
             encoder_path,
+            None,
         )
         test_dataset_v4 = SuperbER().build_dataset(
             default_config["build_dataset"],
@@ -64,6 +66,7 @@ def test_er_dataset(fold_id):
             "test",
             test_csvs[0],
             encoder_path,
+            None
         )
 
     def compare_dataset(v3, v4):
