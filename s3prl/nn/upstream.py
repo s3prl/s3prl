@@ -233,7 +233,7 @@ class Featurizer(nn.Module):
     Example::
 
         >>> import torch
-        >>> from s3prl.nn import S3PRLUpstream
+        >>> from s3prl.nn import S3PRLUpstream, Featurizer
         ...
         >>> model = S3PRLUpstream("hubert")
         >>> model.eval()
