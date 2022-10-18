@@ -32,7 +32,7 @@ class UpstreamExpert(torch.nn.Module):
             print(
                 "SSAST requires 'timm==0.4.5' to work. Please run 'pip install timm==0.4.5'"
             )
-            raise
+            exit(1)
 
         self.preprocessor = FeatureExtractor(
             target_length=target_length, apply_cmvn=False

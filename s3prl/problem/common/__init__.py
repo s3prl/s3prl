@@ -2,6 +2,7 @@
 The most common and simple train/valid/test recipes
 """
 
+from .example import CommonExample
 from .hear_beijing_opera import HearBeijingOpera
 from .hear_cremad import HearCremaD
 from .hear_dcase_2016_task2 import HearDcase2016Task2
@@ -44,4 +45,5 @@ __all__ = [
     "HearVoxLingual",
     "HearDcase2016Task2",
     "HearMaestro",
+    "CommonExample",
 ]
