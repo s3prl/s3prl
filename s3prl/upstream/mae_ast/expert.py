@@ -23,7 +23,7 @@ class UpstreamExpert(UpstreamBase):
     def __init__(self, ckpt, **kwargs):
         super().__init__(**kwargs)
 
-        checkpoint = torch.load(ckpt)
+        checkpoint = torch.load(ckpt, map_location="cpu")
 
         self.cfg = checkpoint["cfg"]["model"]
         self.task_cfg = checkpoint["cfg"]["task"]
@@ -31,7 +31,7 @@ class UpstreamExpert(UpstreamBase):
         self.model = MAE_AST(
             SimpleNamespace(**checkpoint["cfg"]["model"]),
             SimpleNamespace(**checkpoint["cfg"]["task"]),
-        )
+        ).cpu()
 
         self.model.load_state_dict(checkpoint["model"], strict=True)
 
