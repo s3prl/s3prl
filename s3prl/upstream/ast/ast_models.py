@@ -5,7 +5,7 @@
 # @Email   : yuangong@mit.edu
 # @File    : ast_models.py
 
-import os
+import logging
 
 import timm
 import torch
@@ -13,6 +13,7 @@ import torch.nn as nn
 from timm.models.layers import to_2tuple, trunc_normal_
 from torch.cuda.amp import autocast
 
+logger = logging.getLogger(__name__)
 
 # override the timm package to relax the input shape constraint.
 class PatchEmbed(nn.Module):
@@ -68,8 +69,8 @@ class ASTModel(nn.Module):
         ), "Please use timm == 0.4.5, the code might not be compatible with newer versions."
 
         if verbose == True:
-            print("---------------AST Model Summary---------------")
-            print(
+            logger.info("---------------AST Model Summary---------------")
+            logger.info(
                 "ImageNet pretraining: {:s}, AudioSet pretraining: {:s}".format(
                     str(imagenet_pretrain), str(audioset_pretrain)
                 )
@@ -112,10 +113,10 @@ class ASTModel(nn.Module):
             num_patches = f_dim * t_dim
             self.v.patch_embed.num_patches = num_patches
             if verbose == True:
-                print(
+                logger.info(
                     "frequncey stride={:d}, time stride={:d}".format(fstride, tstride)
                 )
-                print("number of patches={:d}".format(num_patches))
+                logger.info("number of patches={:d}".format(num_patches))
 
             # the linear projection layer
             new_proj = torch.nn.Conv2d(
@@ -231,10 +232,10 @@ class ASTModel(nn.Module):
             num_patches = f_dim * t_dim
             self.v.patch_embed.num_patches = num_patches
             if verbose == True:
-                print(
+                logger.info(
                     "frequncey stride={:d}, time stride={:d}".format(fstride, tstride)
                 )
-                print("number of patches={:d}".format(num_patches))
+                logger.info("number of patches={:d}".format(num_patches))
 
             new_pos_embed = (
                 self.v.pos_embed[:, 2:, :]
@@ -304,21 +305,3 @@ class ASTModel(nn.Module):
 
         x = self.mlp_head(x)
         return x
-
-
-if __name__ == "__main__":
-    input_tdim = 100
-    ast_mdl = ASTModel(input_tdim=input_tdim)
-    # input a batch of 10 spectrogram, each with 100 time frames and 128 frequency bins
-    test_input = torch.rand([10, input_tdim, 128])
-    test_output = ast_mdl(test_input)
-    # output should be in shape [10, 527], i.e., 10 samples, each with prediction of 527 classes.
-    print(test_output.shape)
-
-    input_tdim = 256
-    ast_mdl = ASTModel(input_tdim=input_tdim, label_dim=50, audioset_pretrain=True)
-    # input a batch of 10 spectrogram, each with 512 time frames and 128 frequency bins
-    test_input = torch.rand([10, input_tdim, 128])
-    test_output = ast_mdl(test_input)
-    # output should be in shape [10, 50], i.e., 10 samples, each with prediction of 50 classes.
-    print(test_output.shape)
