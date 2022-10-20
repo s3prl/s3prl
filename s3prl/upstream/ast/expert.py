@@ -49,7 +49,7 @@ class UpstreamExpert(torch.nn.Module):
             audioset_pretrain=True,
             model_size="base384",
             pretrained_ckpt=ckpt,
-        )
+        ).cpu()  # ensure the entire model is on cpu
 
     def get_downsample_rates(self, key: str = None) -> int:
         return int(self.stride_secs * SAMPLE_RATE)
