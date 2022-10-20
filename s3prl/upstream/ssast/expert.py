@@ -25,10 +25,10 @@ class UpstreamExpert(torch.nn.Module):
 
             from .ast_models import ASTModel
         except:
-            print(
+            logger.error(
                 "SSAST requires 'timm==0.4.5' to work. Please run 'pip install timm==0.4.5'"
             )
-            raise
+            exit(1)
 
         model_size = kwargs["model_size"]
         pretrain_path = kwargs["pretrain_path"]
@@ -67,6 +67,8 @@ class UpstreamExpert(torch.nn.Module):
                 load_pretrained_mdl_path=pretrain_path,
             )
             self.vertical_num_patches = (128 - 128) // 128 + 1  # 1
+
+        self.model = self.model.cpu()
 
     def get_downsample_rates(self, key: str = None) -> int:
         return 160
