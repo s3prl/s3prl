@@ -31,14 +31,6 @@ def mae_ast_url(ckpt, refresh=False, *args, **kwargs):
     return mae_ast_local(_urls_to_filepaths(ckpt, refresh=refresh), *args, **kwargs)
 
 
-def mae_ast(refresh=False, *args, **kwargs):
-    """
-    The default model
-        refresh (bool): whether to download ckpt/config again if existed
-    """
-    return mae_ast_frame(refresh=refresh, *args, **kwargs)
-
-
 def mae_ast_frame(refresh=False, *args, **kwargs):
     """
     The MAE-AST Frame model, 12-layered, random masking
