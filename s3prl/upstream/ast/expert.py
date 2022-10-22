@@ -5,6 +5,9 @@
 # @Email   : yuangong@mit.edu
 # @File    : expert.py
 
+# Author
+# - Leo
+
 import logging
 
 import torch
@@ -13,18 +16,26 @@ from ..ssast.audio import FeatureExtractor
 
 logger = logging.getLogger(__name__)
 
-STRIDE = 160
+FBANK_SAMPLE_STRIDE = 160
+PATCH_FBANK_STRIDE = 10
 SAMPLE_RATE = 16000
 
 
 class UpstreamExpert(torch.nn.Module):
     def __init__(
-        self, ckpt: str, window_secs: float = 10.24, stride_secs: float = 10.24
+        self,
+        ckpt: str,
+        window_secs: float = 10.24,
+        stride_secs: float = 10.24,
+        feature_selection: str = "cls",
     ):
         super().__init__()
+        assert feature_selection in ["cls", "hidden_states"]
+        self.feature_selection = feature_selection
+
         self.window_secs = window_secs
         self.stride_secs = stride_secs
-        target_length = int(window_secs * SAMPLE_RATE / STRIDE)
+        target_length = int(window_secs * SAMPLE_RATE / FBANK_SAMPLE_STRIDE)
 
         try:
             import timm
@@ -42,7 +53,7 @@ class UpstreamExpert(torch.nn.Module):
         self.model = ASTModel(
             label_dim=527,
             fstride=10,
-            tstride=10,
+            tstride=PATCH_FBANK_STRIDE,
             input_fdim=128,
             input_tdim=int(window_secs * 100),
             imagenet_pretrain=True,
@@ -52,7 +63,10 @@ class UpstreamExpert(torch.nn.Module):
         ).cpu()  # ensure the entire model is on cpu
 
     def get_downsample_rates(self, key: str = None) -> int:
-        return int(self.stride_secs * SAMPLE_RATE)
+        if self.feature_selection == "cls":
+            return int(self.stride_secs * SAMPLE_RATE)
+        elif self.feature_selection == "hidden_states":
+            return int(FBANK_SAMPLE_STRIDE * PATCH_FBANK_STRIDE)
 
     def forward(self, wavs):
         wavs_len = [len(wav) for wav in wavs]
@@ -80,11 +94,37 @@ class UpstreamExpert(torch.nn.Module):
         num_segment, batch_size, segment_seq_len, hidden_size = all_features.shape
 
         flatten_features = all_features.reshape(-1, segment_seq_len, hidden_size)
-        output = self.model(flatten_features)  # (num_segment * batch_size, hidden_size)
+        output, hidden_states = self.model(flatten_features)
+        # output: (num_segment * batch_size, num_class)
+        # hidden_states: List[(num_segment * batch_size, segment_seq_len, hidden_size)]
 
-        output = output.reshape(num_segment, batch_size, -1).transpose(0, 1).float()
-        # (batch_size, num_segment, output_sizeq)
+        if self.feature_selection == "cls":
+            output = output.reshape(num_segment, batch_size, -1).transpose(0, 1).float()
+            # (batch_size, num_segment, num_class)
+            hidden_states = [output]
+
+        elif self.feature_selection == "hidden_states":
+            reshaped_hidden_states = [
+                (
+                    h.reshape(num_segment, batch_size, -1, h.size(-1))
+                    .transpose(
+                        0, 1
+                    )  # (batch_size, num_segment, num_horizon_patch, num_vertical_patch * hidden_size)
+                    .flatten(
+                        1, 2
+                    )  # (batch_size, num_segment * num_horizon_patch, num_vertical_patch * hidden_size)
+                    .float()
+                )
+                for h in hidden_states
+            ]
+            hidden_states = reshaped_hidden_states
+
+        trimmed_hidden_states = []
+        for h in hidden_states:
+            max_h_len = len(range(0, max_wav_len, self.get_downsample_rates()))
+            h = h[:, :max_h_len, :]
+            trimmed_hidden_states.append(h)
 
         return {
-            "hidden_states": [output],
+            "hidden_states": trimmed_hidden_states,
         }

@@ -15,6 +15,8 @@ from torch.cuda.amp import autocast
 
 logger = logging.getLogger(__name__)
 
+NUM_VERTICAL_PATCH = 12
+
 # override the timm package to relax the input shape constraint.
 class PatchEmbed(nn.Module):
     def __init__(self, img_size=224, patch_size=16, in_chans=3, embed_dim=768):
@@ -298,10 +300,23 @@ class ASTModel(nn.Module):
         x = torch.cat((cls_tokens, dist_token, x), dim=1)
         x = x + self.v.pos_embed
         x = self.v.pos_drop(x)
+
+        hidden_states = []
         for blk in self.v.blocks:
             x = blk(x)
+            post_x = x[
+                :, 2:
+            ]  # (batch_size, num_vertical_patch * num_horizon_patch, hidden_size)
+            post_x = (
+                post_x.reshape(B, NUM_VERTICAL_PATCH, -1, x.size(-1))
+                .transpose(1, 2)
+                .flatten(2)
+            )
+            # (batch_size, num_horizon_patch, num_vertical_patch * hidden_size)
+            hidden_states.append(post_x)
+
         x = self.v.norm(x)
         x = (x[:, 0] + x[:, 1]) / 2
 
-        x = self.mlp_head(x)
-        return x
+        x = self.mlp_head(x)  # (batch_size, num_class)
+        return x, hidden_states
