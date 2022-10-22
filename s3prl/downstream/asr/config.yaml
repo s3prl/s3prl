@@ -64,8 +64,8 @@ downstream_expert:
       criterion: "ctc"
       beam: 5
       beam_threshold: 25
-      kenlm_model: '/path/to/KenLM'
-      lexicon: '/path/to/4-gram.arpa'
+      kenlm_model: '/path/to/4-gram.arpa'
+      lexicon: '/path/to/librispeech_lexicon.lst'
       lm_weight: 2
       word_score: -1
       unk_weight: -math.inf
