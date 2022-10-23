@@ -199,6 +199,7 @@
 </li>
 <li class="toctree-l2"><a class="reference internal" href="../../../_autosummary/s3prl.problem.base.html">base</a></li>
 <li class="toctree-l2 has-children"><a class="reference internal" href="../../../_autosummary/s3prl.problem.common.html">common</a><input class="toctree-checkbox" id="toctree-checkbox-5" name="toctree-checkbox-5" role="switch" type="checkbox"/><label for="toctree-checkbox-5"><div class="visually-hidden">Toggle child pages in navigation</div><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul>
+<li class="toctree-l3"><a class="reference internal" href="../../../_autosummary/s3prl.problem.common.example.html">example</a></li>
 <li class="toctree-l3"><a class="reference internal" href="../../../_autosummary/s3prl.problem.common.hear_beijing_opera.html">hear_beijing_opera</a></li>
 <li class="toctree-l3"><a class="reference internal" href="../../../_autosummary/s3prl.problem.common.hear_cremad.html">hear_cremad</a></li>
 <li class="toctree-l3"><a class="reference internal" href="../../../_autosummary/s3prl.problem.common.hear_dcase_2016_task2.html">hear_dcase_2016_task2</a></li>
@@ -358,6 +359,17 @@
 <span class="n">SAMPLE_RATE</span> <span class="o">=</span> <span class="mi">16000</span>
 
 
+<span class="k">def</span> <span class="nf">randomize_upstream</span><span class="p">(</span><span class="n">upstream</span><span class="p">:</span> <span class="n">nn</span><span class="o">.</span><span class="n">Module</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">init_weights</span><span class="p">(</span><span class="n">m</span><span class="p">:</span> <span class="n">nn</span><span class="o">.</span><span class="n">Module</span><span class="p">):</span>
+        <span class="k">for</span> <span class="n">p</span> <span class="ow">in</span> <span class="n">m</span><span class="o">.</span><span class="n">parameters</span><span class="p">():</span>
+            <span class="k">if</span> <span class="n">p</span><span class="o">.</span><span class="n">dim</span><span class="p">()</span> <span class="o">&lt;</span> <span class="mi">2</span><span class="p">:</span>
+                <span class="n">torch</span><span class="o">.</span><span class="n">nn</span><span class="o">.</span><span class="n">init</span><span class="o">.</span><span class="n">normal_</span><span class="p">(</span><span class="n">p</span><span class="p">,</span> <span class="n">mean</span><span class="o">=</span><span class="n">p</span><span class="o">.</span><span class="n">mean</span><span class="p">()</span><span class="o">.</span><span class="n">item</span><span class="p">(),</span> <span class="n">std</span><span class="o">=</span><span class="n">p</span><span class="o">.</span><span class="n">std</span><span class="p">()</span><span class="o">.</span><span class="n">item</span><span class="p">())</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">torch</span><span class="o">.</span><span class="n">nn</span><span class="o">.</span><span class="n">init</span><span class="o">.</span><span class="n">xavier_normal_</span><span class="p">(</span><span class="n">p</span><span class="p">)</span>
+
+    <span class="n">upstream</span><span class="o">.</span><span class="n">apply</span><span class="p">(</span><span class="n">init_weights</span><span class="p">)</span>
+
+
 <div class="viewcode-block" id="S3PRLUpstream"><a class="viewcode-back" href="../../../_autosummary/s3prl.nn.upstream.html#s3prl.nn.S3PRLUpstream">[docs]</a><span class="k">class</span> <span class="nc">S3PRLUpstream</span><span class="p">(</span><span class="n">nn</span><span class="o">.</span><span class="n">Module</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    This is an easy interface for using all the models in S3PRL.</span>
@@ -373,9 +385,12 @@
 <span class="sd">            If false, only downlaod checkpoint if not yet downloaded before.</span>
 <span class="sd">            If true, force to re-download the checkpoint.</span>
 
-<span class="sd">        extra_conf (dict):</span>
+<span class="sd">        extra_conf (dict): (default, None)</span>
 <span class="sd">            The extra arguments for each specific upstream, the available options are</span>
 <span class="sd">            shown in each upstream section</span>
+
+<span class="sd">        randomize (bool): (default, False)</span>
+<span class="sd">            If True, randomize the upstream model</span>
 
 <span class="sd">    .. note::</span>
 
@@ -426,11 +441,18 @@
         <span class="n">refresh</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
         <span class="n">normalize</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
         <span class="n">extra_conf</span><span class="p">:</span> <span class="nb">dict</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="n">randomize</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
     <span class="p">):</span>
         <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">()</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">upstream</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">hub</span><span class="p">,</span> <span class="n">name</span><span class="p">)(</span>
-            <span class="n">ckpt</span><span class="o">=</span><span class="n">path_or_url</span><span class="p">,</span> <span class="n">refresh</span><span class="o">=</span><span class="n">refresh</span><span class="p">,</span> <span class="o">**</span><span class="p">(</span><span class="n">extra_conf</span> <span class="ow">or</span> <span class="p">{})</span>
-        <span class="p">)</span>
+        <span class="n">upstream_conf</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;refresh&quot;</span><span class="p">:</span> <span class="n">refresh</span><span class="p">,</span> <span class="o">**</span><span class="p">(</span><span class="n">extra_conf</span> <span class="ow">or</span> <span class="p">{})}</span>
+        <span class="k">if</span> <span class="n">path_or_url</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">upstream_conf</span><span class="p">[</span><span class="s2">&quot;ckpt&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">path_or_url</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">upstream</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">hub</span><span class="p">,</span> <span class="n">name</span><span class="p">)(</span><span class="o">**</span><span class="n">upstream_conf</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">randomize</span><span class="p">:</span>
+            <span class="n">randomize_upstream</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">upstream</span><span class="p">)</span>
+
         <span class="bp">self</span><span class="o">.</span><span class="n">normalize</span> <span class="o">=</span> <span class="n">normalize</span>
 
         <span class="bp">self</span><span class="o">.</span><span class="n">upstream</span><span class="o">.</span><span class="n">eval</span><span class="p">()</span>

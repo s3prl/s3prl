@@ -14,6 +14,7 @@ common
    :recursive:
 
 
+   s3prl.problem.common.example
    s3prl.problem.common.hear_beijing_opera
    s3prl.problem.common.hear_cremad
    s3prl.problem.common.hear_dcase_2016_task2
@@ -241,6 +242,16 @@ HearMaestro
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 .. autoclass:: HearMaestro
+   :member-order: bysource
+   :members:
+   :undoc-members:
+   :inherited-members: torch.nn.Module,nn.Module,Module
+   :show-inheritance:
+
+CommonExample
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. autoclass:: CommonExample
    :member-order: bysource
    :members:
    :undoc-members:
