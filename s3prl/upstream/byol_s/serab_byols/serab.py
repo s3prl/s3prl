@@ -154,32 +154,18 @@ def get_timestamp_embeddings(
     )
     audio_batches, num_frames, _ = frames.shape
     frames = frames.flatten(end_dim=1)
+    # (batch_size * num_window, window_size)
 
     # Convert audio frames to Log Mel-spectrograms
     melspec_frames = (to_melspec(frames) + torch.finfo(torch.float).eps).log()
+    # (batch_size * num_window, fbank_size, num_frames)
+
     normalizer = PrecomputedNorm(compute_timestamp_stats(melspec_frames))
-    melspec_frames = normalizer(melspec_frames).unsqueeze(0)
-    melspec_frames = melspec_frames.permute(1, 0, 2, 3)
+    melspec_frames = normalizer(melspec_frames).unsqueeze(1)
+    # (batch_size * num_window, 1, fbank_size, num_frames)
 
-    # We're using a DataLoader to help with batching of frames
-    dataset = torch.utils.data.TensorDataset(melspec_frames)
-    loader = torch.utils.data.DataLoader(
-        dataset, batch_size=BATCH_SIZE, shuffle=False, drop_last=False
-    )
-
-    # Put the model into eval mode, and not computing gradients while in inference.
-    # Iterate over all batches and accumulate the embeddings for each frame.
-    # Disable parameter tuning
-    model.eval()
-    for param in model.parameters():
-        param.requires_grad = False
-    with torch.no_grad():
-        embeddings_list = [model(batch[0]) for batch in loader]
-
-    # Concatenate mini-batches back together and unflatten the frames
-    # to reconstruct the audio batches
-    embeddings = torch.cat(embeddings_list, dim=0)
-    embeddings = embeddings.unflatten(0, (audio_batches, num_frames))
+    embeddings = model(melspec_frames)
+    embeddings = embeddings.reshape(audio_batches, num_frames, -1)
 
     return embeddings, timestamps
 
