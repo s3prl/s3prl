@@ -24,6 +24,17 @@ MIN_SECOND = 0.05
 SAMPLE_RATE = 16000
 
 
+def randomize_upstream(upstream: nn.Module):
+    def init_weights(m: nn.Module):
+        for p in m.parameters():
+            if p.dim() < 2:
+                torch.nn.init.normal_(p, mean=p.mean().item(), std=p.std().item())
+            else:
+                torch.nn.init.xavier_normal_(p)
+
+    upstream.apply(init_weights)
+
+
 class S3PRLUpstream(nn.Module):
     """
     This is an easy interface for using all the models in S3PRL.
@@ -39,9 +50,12 @@ class S3PRLUpstream(nn.Module):
             If false, only downlaod checkpoint if not yet downloaded before.
             If true, force to re-download the checkpoint.
 
-        extra_conf (dict):
+        extra_conf (dict): (default, None)
             The extra arguments for each specific upstream, the available options are
             shown in each upstream section
+
+        randomize (bool): (default, False)
+            If True, randomize the upstream model
 
     .. note::
 
@@ -92,11 +106,18 @@ class S3PRLUpstream(nn.Module):
         refresh: bool = False,
         normalize: bool = False,
         extra_conf: dict = None,
+        randomize: bool = False,
     ):
         super().__init__()
-        self.upstream = getattr(hub, name)(
-            ckpt=path_or_url, refresh=refresh, **(extra_conf or {})
-        )
+        upstream_conf = {"refresh": refresh, **(extra_conf or {})}
+        if path_or_url is not None:
+            upstream_conf["ckpt"] = path_or_url
+
+        self.upstream = getattr(hub, name)(**upstream_conf)
+
+        if randomize:
+            randomize_upstream(self.upstream)
+
         self.normalize = normalize
 
         self.upstream.eval()

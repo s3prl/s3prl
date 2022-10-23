@@ -21,7 +21,7 @@ lr: 0.0003
 epochs: 100
 gpus: 1
 # Weight pathname for resuming training.
-resume: 
+resume:
 # Shape of loh-mel spectrogram [F, T].
 shape: [64, 96]
 # Folder to store trained weight files.

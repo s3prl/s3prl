@@ -6,6 +6,7 @@ from .asr.superb_asr import SuperbASR
 from .asr.superb_pr import SuperbPR
 from .asr.superb_sf import SuperbSF
 from .asv.superb_asv import SuperbASV
+from .common.example import CommonExample
 from .common.hear_beijing_opera import HearBeijingOpera
 from .common.hear_cremad import HearCremaD
 from .common.hear_dcase_2016_task2 import HearDcase2016Task2
@@ -54,4 +55,5 @@ __all__ = [
     "HearVoxLingual",
     "HearDcase2016Task2",
     "HearMaestro",
+    "CommonExample",
 ]

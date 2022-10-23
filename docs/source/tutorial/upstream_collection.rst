@@ -983,6 +983,20 @@ AST
     }
 
 
+All the entries below support the following :code:`extra_conf`:
+
+====================  ====================
+column                description
+====================  ====================
+window_secs           (float) - The segment waveform length to feed into the
+                      AST model. If the input waveform is longer than this
+                      length, do sliding windowing on the waveform and concat
+                      the results along the time axis.
+stride_secs           (float) - When doing sliding window on the waveform (see
+                      above), the stride seconds between windows.
+====================  ====================
+
+
 ast
 ~~~~~~~~~~~~~~~~~~
 
@@ -1006,10 +1020,28 @@ SSAST
     }
 
 
+All the entries below support the following :code:`extra_conf`:
+
+====================  ====================
+column                description
+====================  ====================
+window_secs           (float) - The segment waveform length to feed into the
+                      AST model. If the input waveform is longer than this
+                      length, do sliding windowing on the waveform and concat
+                      the results along the time axis.
+
+
 ssast_frame_base
 ~~~~~~~~~~~~~~~~~~
 
 - Unlabled Data: LibriSpeech & AudioSet
+- fbank patch size: 128 (freq) * 2 (time)
+
+ssast_patch_base
+~~~~~~~~~~~~~~~~~~~
+
+- Unlabled Data: LibriSpeech & AudioSet
+- fbank patch size: 16 (freq) * 16 (time)
 
 
 MAE-AST
@@ -1030,13 +1062,14 @@ mae_ast_frame
 ~~~~~~~~~~~~~~~~~~
 
 - Unlabled Data: LibriSpeech & AudioSet
+- fbank patch size: 128 (freq) * 2 (time)
 
 
 mae_ast_patch
 ~~~~~~~~~~~~~~~~~~
 
 - Unlabled Data: LibriSpeech & AudioSet
-
+- fbank patch size: 16 (freq) * 16 (time)
 
 
 Byol-A
@@ -1053,6 +1086,20 @@ Byol-A
         year={2021},
         organization={IEEE}
     }
+
+
+All the entries below support the following :code:`extra_conf`:
+
+====================  ====================
+column                description
+====================  ====================
+window_secs           (float) - The segment waveform length to feed into the
+                      AST model. If the input waveform is longer than this
+                      length, do sliding windowing on the waveform and concat
+                      the results along the time axis.
+stride_secs           (float) - When doing sliding window on the waveform (see
+                      above), the stride seconds between windows.
+====================  ====================
 
 
 byol_a_2048

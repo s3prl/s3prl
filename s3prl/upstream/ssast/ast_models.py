@@ -7,11 +7,15 @@
 
 # the unified ast models for all pretraining/fine-tuning tasks.
 
+import logging
+
 import numpy as np
 import timm
 import torch
 import torch.nn as nn
 from timm.models.layers import to_2tuple, trunc_normal_
+
+logger = logging.getLogger(__name__)
 
 
 # override the timm package to relax the input shape constraint.
@@ -68,6 +72,7 @@ class ASTModel(nn.Module):
         pretrain_stage=True,
         load_pretrained_mdl_path=None,
     ):
+        self.num_vertical_patch = (input_fdim - fshape) // fstride + 1
 
         super(ASTModel, self).__init__()
         assert (
@@ -165,22 +170,22 @@ class ASTModel(nn.Module):
             num_patches = self.p_f_dim * self.p_t_dim
             self.num_patches = num_patches
             self.v.patch_embed.num_patches = num_patches
-            print(
+            logger.info(
                 "pretraining patch split stride: frequency={:d}, time={:d}".format(
                     fstride, tstride
                 )
             )
-            print(
+            logger.info(
                 "pretraining patch shape: frequency={:d}, time={:d}".format(
                     fshape, tshape
                 )
             )
-            print(
+            logger.info(
                 "pretraining patch array dimension: frequency={:d}, time={:d}".format(
                     self.p_f_dim, self.p_t_dim
                 )
             )
-            print("pretraining number of patches={:d}".format(num_patches))
+            logger.info("pretraining number of patches={:d}".format(num_patches))
 
             # the linear patch projection layer, use 1 channel for spectrogram rather than the original 3 channels for RGB images.
             new_proj = torch.nn.Conv2d(
@@ -225,7 +230,9 @@ class ASTModel(nn.Module):
                     "The model loaded is not from a torch.nn.Dataparallel object. Wrap it with torch.nn.Dataparallel and try again."
                 )
 
-            print("now load a SSL pretrained models from " + load_pretrained_mdl_path)
+            logger.info(
+                "now load a SSL pretrained models from " + load_pretrained_mdl_path
+            )
             # during pretraining, fstride=fshape and tstride=tshape because no patch overlapping is used
             # here, input_fdim and input_tdim should be that used in pretraining, not that in the fine-tuning.
             # we need to know input_fdim and input_tdim to do positional embedding cut/interpolation.
@@ -261,12 +268,12 @@ class ASTModel(nn.Module):
             num_patches = f_dim * t_dim
             p_num_patches = p_f_dim * p_t_dim
             self.v.patch_embed.num_patches = num_patches
-            print(
+            logger.info(
                 "fine-tuning patch split stride: frequncey={:d}, time={:d}".format(
                     fstride, tstride
                 )
             )
-            print("fine-tuning number of patches={:d}".format(num_patches))
+            logger.info("fine-tuning number of patches={:d}".format(num_patches))
 
             # patch shape should be same for pretraining and fine-tuning
             if fshape != p_fshape or tshape != p_tshape:
@@ -374,7 +381,17 @@ class ASTModel(nn.Module):
         reps = []
         for blk_id, blk in enumerate(self.v.blocks):
             x = blk(x)
-            reps.append(x)
+
+            post_x = x[:, 2:, :]
+            post_x = (
+                post_x.reshape(B, self.num_vertical_patch, -1, x.size(-1))
+                .transpose(1, 2)
+                .flatten(2)
+            )
+            # (batch_size, num_horizon_patch, num_vertical_patch * hidden_size)
+
+            reps.append(post_x)
+
         x = self.v.norm(x)
 
         # reps=representation of each layer, x=final representation
