@@ -1088,6 +1088,20 @@ Byol-A
     }
 
 
+All the entries below support the following :code:`extra_conf`:
+
+====================  ====================
+column                description
+====================  ====================
+window_secs           (float) - The segment waveform length to feed into the
+                      AST model. If the input waveform is longer than this
+                      length, do sliding windowing on the waveform and concat
+                      the results along the time axis.
+stride_secs           (float) - When doing sliding window on the waveform (see
+                      above), the stride seconds between windows.
+====================  ====================
+
+
 byol_a_2048
 ~~~~~~~~~~~~~~~~~~
 

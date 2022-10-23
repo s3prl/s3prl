@@ -109,9 +109,11 @@ class S3PRLUpstream(nn.Module):
         randomize: bool = False,
     ):
         super().__init__()
-        self.upstream = getattr(hub, name)(
-            ckpt=path_or_url, refresh=refresh, **(extra_conf or {})
-        )
+        upstream_conf = {"refresh": refresh, **(extra_conf or {})}
+        if path_or_url is not None:
+            upstream_conf["ckpt"] = path_or_url
+
+        self.upstream = getattr(hub, name)(**upstream_conf)
 
         if randomize:
             randomize_upstream(self.upstream)
