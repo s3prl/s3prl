@@ -654,10 +654,11 @@ All the entries below support the following :code:`extra_conf`:
 ====================  ====================
 column                description
 ====================  ====================
-feature_selection     (str) - if 'fairseq_layers' or 'fairseq_layers_before_residual',
+feature_selection     (str) -
+                        if :code:`fairseq_layers` or :code:`fairseq_layers_before_residual`,
                         extract the representation following official fairseq API.
-                        for 'fairseq_layers', it is the output of each transformer
-                        encoder layer; for 'fairseq_layers_before_residual', it is
+                        for :code:`fairseq_layers`, it is the output of each transformer
+                        encoder layer; for :code:`fairseq_layers_before_residual`, it is
                         the output of the feedforward layer (before adding with the
                         main residual) of each transformer encoder layer. by default
                         this option is None, which follows the default place to extract
@@ -738,10 +739,10 @@ XLS-R
 .. code-block:: bash
 
     @article{babu2021xls,
-    title={XLS-R: Self-supervised cross-lingual speech representation learning at scale},
-    author={Babu, Arun and Wang, Changhan and Tjandra, Andros and Lakhotia, Kushal and Xu, Qiantong and Goyal, Naman and Singh, Kritika and von Platen, Patrick and Saraf, Yatharth and Pino, Juan and others},
-    journal={arXiv preprint arXiv:2111.09296},
-    year={2021}
+        title={XLS-R: Self-supervised cross-lingual speech representation learning at scale},
+        author={Babu, Arun and Wang, Changhan and Tjandra, Andros and Lakhotia, Kushal and Xu, Qiantong and Goyal, Naman and Singh, Kritika and von Platen, Patrick and Saraf, Yatharth and Pino, Juan and others},
+        journal={arXiv preprint arXiv:2111.09296},
+        year={2021}
     }
 
 
@@ -988,12 +989,14 @@ All the entries below support the following :code:`extra_conf`:
 ====================  ====================
 column                description
 ====================  ====================
-window_secs           (float) - The segment waveform length to feed into the
-                      AST model. If the input waveform is longer than this
-                      length, do sliding windowing on the waveform and concat
-                      the results along the time axis.
-stride_secs           (float) - When doing sliding window on the waveform (see
-                      above), the stride seconds between windows.
+window_secs           (float) -
+                        The segment waveform length to feed into the
+                        AST model. If the input waveform is longer than this
+                        length, do sliding windowing on the waveform and concat
+                        the results along the time axis.
+stride_secs           (float) -
+                        When doing sliding window on the waveform (see
+                        above), the stride seconds between windows.
 ====================  ====================
 
 
@@ -1025,10 +1028,12 @@ All the entries below support the following :code:`extra_conf`:
 ====================  ====================
 column                description
 ====================  ====================
-window_secs           (float) - The segment waveform length to feed into the
-                      AST model. If the input waveform is longer than this
-                      length, do sliding windowing on the waveform and concat
-                      the results along the time axis.
+window_secs           (float) -
+                        The segment waveform length to feed into the
+                        AST model. If the input waveform is longer than this
+                        length, do sliding windowing on the waveform and concat
+                        the results along the time axis.
+====================  ====================
 
 
 ssast_frame_base
@@ -1093,12 +1098,14 @@ All the entries below support the following :code:`extra_conf`:
 ====================  ====================
 column                description
 ====================  ====================
-window_secs           (float) - The segment waveform length to feed into the
-                      AST model. If the input waveform is longer than this
-                      length, do sliding windowing on the waveform and concat
-                      the results along the time axis.
-stride_secs           (float) - When doing sliding window on the waveform (see
-                      above), the stride seconds between windows.
+window_secs           (float) -
+                        The segment waveform length to feed into the
+                        AST model. If the input waveform is longer than this
+                        length, do sliding windowing on the waveform and concat
+                        the results along the time axis.
+stride_secs           (float) -
+                        When doing sliding window on the waveform (see
+                        above), the stride seconds between windows.
 ====================  ====================
 
 
