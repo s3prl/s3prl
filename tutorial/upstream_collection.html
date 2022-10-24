@@ -919,9 +919,10 @@ into a sequence of token ids, tokens are then fed into a RoBERTa model.</p>
 <tbody>
 <tr class="row-even"><td><p>feature_selection</p></td>
 <td><dl class="simple">
-<dt>(str) - if ‘fairseq_layers’ or ‘fairseq_layers_before_residual’,</dt><dd><p>extract the representation following official fairseq API.
-for ‘fairseq_layers’, it is the output of each transformer
-encoder layer; for ‘fairseq_layers_before_residual’, it is
+<dt>(str) -</dt><dd><p>if <code class="code docutils literal notranslate"><span class="pre">fairseq_layers</span></code> or <code class="code docutils literal notranslate"><span class="pre">fairseq_layers_before_residual</span></code>,
+extract the representation following official fairseq API.
+for <code class="code docutils literal notranslate"><span class="pre">fairseq_layers</span></code>, it is the output of each transformer
+encoder layer; for <code class="code docutils literal notranslate"><span class="pre">fairseq_layers_before_residual</span></code>, it is
 the output of the feedforward layer (before adding with the
 main residual) of each transformer encoder layer. by default
 this option is None, which follows the default place to extract
@@ -998,10 +999,10 @@ in S3PRL.</p>
 <h2>XLS-R<a class="headerlink" href="#xls-r" title="Permalink to this heading">#</a></h2>
 <p><a class="reference external" href="https://arxiv.org/abs/2111.09296">XLS-R: Self-supervised Cross-lingual Speech Representation Learning at Scale</a></p>
 <div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>@article<span class="o">{</span>babu2021xls,
-<span class="nv">title</span><span class="o">={</span>XLS-R: Self-supervised cross-lingual speech representation learning at scale<span class="o">}</span>,
-<span class="nv">author</span><span class="o">={</span>Babu, Arun and Wang, Changhan and Tjandra, Andros and Lakhotia, Kushal and Xu, Qiantong and Goyal, Naman and Singh, Kritika and von Platen, Patrick and Saraf, Yatharth and Pino, Juan and others<span class="o">}</span>,
-<span class="nv">journal</span><span class="o">={</span>arXiv preprint arXiv:2111.09296<span class="o">}</span>,
-<span class="nv">year</span><span class="o">={</span><span class="m">2021</span><span class="o">}</span>
+    <span class="nv">title</span><span class="o">={</span>XLS-R: Self-supervised cross-lingual speech representation learning at scale<span class="o">}</span>,
+    <span class="nv">author</span><span class="o">={</span>Babu, Arun and Wang, Changhan and Tjandra, Andros and Lakhotia, Kushal and Xu, Qiantong and Goyal, Naman and Singh, Kritika and von Platen, Patrick and Saraf, Yatharth and Pino, Juan and others<span class="o">}</span>,
+    <span class="nv">journal</span><span class="o">={</span>arXiv preprint arXiv:2111.09296<span class="o">}</span>,
+    <span class="nv">year</span><span class="o">={</span><span class="m">2021</span><span class="o">}</span>
 <span class="o">}</span>
 </pre></div>
 </div>
@@ -1228,14 +1229,22 @@ in S3PRL.</p>
 </thead>
 <tbody>
 <tr class="row-even"><td><p>window_secs</p></td>
-<td><p>(float) - The segment waveform length to feed into the
+<td><dl class="simple">
+<dt>(float) -</dt><dd><p>The segment waveform length to feed into the
 AST model. If the input waveform is longer than this
 length, do sliding windowing on the waveform and concat
-the results along the time axis.</p></td>
+the results along the time axis.</p>
+</dd>
+</dl>
+</td>
 </tr>
 <tr class="row-odd"><td><p>stride_secs</p></td>
-<td><p>(float) - When doing sliding window on the waveform (see
-above), the stride seconds between windows.</p></td>
+<td><dl class="simple">
+<dt>(float) -</dt><dd><p>When doing sliding window on the waveform (see
+above), the stride seconds between windows.</p>
+</dd>
+</dl>
+</td>
 </tr>
 </tbody>
 </table>
@@ -1262,18 +1271,179 @@ above), the stride seconds between windows.</p></td>
 </pre></div>
 </div>
 <p>All the entries below support the following <code class="code docutils literal notranslate"><span class="pre">extra_conf</span></code>:</p>
-<p>column                description
-====================  ====================
-window_secs           (float) - The segment waveform length to feed into the</p>
-<blockquote>
-<div><p>AST model. If the input waveform is longer than this
+<div class="table-wrapper docutils container">
+<table class="docutils align-default">
+<thead>
+<tr class="row-odd"><th class="head"><p>column</p></th>
+<th class="head"><p>description</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>window_secs</p></td>
+<td><dl class="simple">
+<dt>(float) -</dt><dd><p>The segment waveform length to feed into the
+AST model. If the input waveform is longer than this
 length, do sliding windowing on the waveform and concat
 the results along the time axis.</p>
-</div></blockquote>
-<dl class="simple">
-<dt>stride_secs           (float) - When doing sliding window on the waveform (see</dt><dd><p>above), the stride seconds between windows.</p>
 </dd>
 </dl>
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+<section id="ssast-frame-base">
+<h3>ssast_frame_base<a class="headerlink" href="#ssast-frame-base" title="Permalink to this heading">#</a></h3>
+<ul class="simple">
+<li><p>Unlabled Data: LibriSpeech &amp; AudioSet</p></li>
+<li><p>fbank patch size: 128 (freq) * 2 (time)</p></li>
+</ul>
+</section>
+<section id="ssast-patch-base">
+<h3>ssast_patch_base<a class="headerlink" href="#ssast-patch-base" title="Permalink to this heading">#</a></h3>
+<ul class="simple">
+<li><p>Unlabled Data: LibriSpeech &amp; AudioSet</p></li>
+<li><p>fbank patch size: 16 (freq) * 16 (time)</p></li>
+</ul>
+</section>
+</section>
+<section id="mae-ast">
+<h2>MAE-AST<a class="headerlink" href="#mae-ast" title="Permalink to this heading">#</a></h2>
+<p><a class="reference external" href="https://arxiv.org/abs/2203.16691">MAE-AST: Masked Autoencoding Audio Spectrogram Transformer</a></p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>@article<span class="o">{</span>baade2022mae,
+    <span class="nv">title</span><span class="o">={</span>MAE-AST: Masked Autoencoding Audio Spectrogram Transformer<span class="o">}</span>,
+    <span class="nv">author</span><span class="o">={</span>Baade, Alan and Peng, Puyuan and Harwath, David<span class="o">}</span>,
+    <span class="nv">journal</span><span class="o">={</span>arXiv preprint arXiv:2203.16691<span class="o">}</span>,
+    <span class="nv">year</span><span class="o">={</span><span class="m">2022</span><span class="o">}</span>
+<span class="o">}</span>
+</pre></div>
+</div>
+<section id="mae-ast-frame">
+<h3>mae_ast_frame<a class="headerlink" href="#mae-ast-frame" title="Permalink to this heading">#</a></h3>
+<ul class="simple">
+<li><p>Unlabled Data: LibriSpeech &amp; AudioSet</p></li>
+<li><p>fbank patch size: 128 (freq) * 2 (time)</p></li>
+</ul>
+</section>
+<section id="mae-ast-patch">
+<h3>mae_ast_patch<a class="headerlink" href="#mae-ast-patch" title="Permalink to this heading">#</a></h3>
+<ul class="simple">
+<li><p>Unlabled Data: LibriSpeech &amp; AudioSet</p></li>
+<li><p>fbank patch size: 16 (freq) * 16 (time)</p></li>
+</ul>
+</section>
+</section>
+<section id="byol-a">
+<h2>Byol-A<a class="headerlink" href="#byol-a" title="Permalink to this heading">#</a></h2>
+<p><a class="reference external" href="https://arxiv.org/abs/2103.06695">BYOL for Audio: Self-Supervised Learning for General-Purpose Audio Representation</a></p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>@inproceedings<span class="o">{</span>niizumi2021byol,
+    <span class="nv">title</span><span class="o">={</span>BYOL <span class="k">for</span> audio: Self-supervised learning <span class="k">for</span> general-purpose audio representation<span class="o">}</span>,
+    <span class="nv">author</span><span class="o">={</span>Niizumi, Daisuke and Takeuchi, Daiki and Ohishi, Yasunori and Harada, Noboru and Kashino, Kunio<span class="o">}</span>,
+    <span class="nv">booktitle</span><span class="o">={</span><span class="m">2021</span> International Joint Conference on Neural Networks <span class="o">(</span>IJCNN<span class="o">)}</span>,
+    <span class="nv">pages</span><span class="o">={</span><span class="m">1</span>--8<span class="o">}</span>,
+    <span class="nv">year</span><span class="o">={</span><span class="m">2021</span><span class="o">}</span>,
+    <span class="nv">organization</span><span class="o">={</span>IEEE<span class="o">}</span>
+<span class="o">}</span>
+</pre></div>
+</div>
+<p>All the entries below support the following <code class="code docutils literal notranslate"><span class="pre">extra_conf</span></code>:</p>
+<div class="table-wrapper docutils container">
+<table class="docutils align-default">
+<thead>
+<tr class="row-odd"><th class="head"><p>column</p></th>
+<th class="head"><p>description</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>window_secs</p></td>
+<td><dl class="simple">
+<dt>(float) -</dt><dd><p>The segment waveform length to feed into the
+AST model. If the input waveform is longer than this
+length, do sliding windowing on the waveform and concat
+the results along the time axis.</p>
+</dd>
+</dl>
+</td>
+</tr>
+<tr class="row-odd"><td><p>stride_secs</p></td>
+<td><dl class="simple">
+<dt>(float) -</dt><dd><p>When doing sliding window on the waveform (see
+above), the stride seconds between windows.</p>
+</dd>
+</dl>
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+<section id="byol-a-2048">
+<h3>byol_a_2048<a class="headerlink" href="#byol-a-2048" title="Permalink to this heading">#</a></h3>
+<ul class="simple">
+<li><p>Unlabled Data: AudioSet</p></li>
+</ul>
+</section>
+<section id="byol-a-1024">
+<h3>byol_a_1024<a class="headerlink" href="#byol-a-1024" title="Permalink to this heading">#</a></h3>
+<ul class="simple">
+<li><p>Unlabled Data: AudioSet</p></li>
+</ul>
+</section>
+<section id="byol-a-512">
+<h3>byol_a_512<a class="headerlink" href="#byol-a-512" title="Permalink to this heading">#</a></h3>
+<ul class="simple">
+<li><p>Unlabled Data: AudioSet</p></li>
+</ul>
+</section>
+</section>
+<section id="byol-s">
+<h2>Byol-S<a class="headerlink" href="#byol-s" title="Permalink to this heading">#</a></h2>
+<p><a class="reference external" href="https://arxiv.org/abs/2206.12038">BYOL-S: Learning Self-supervised Speech Representations by Bootstrapping</a></p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>@article<span class="o">{</span>elbanna2022byol,
+    <span class="nv">title</span><span class="o">={</span>Byol-s: Learning self-supervised speech representations by bootstrapping<span class="o">}</span>,
+    <span class="nv">author</span><span class="o">={</span>Elbanna, Gasser and Scheidwasser-Clow, Neil and Kegler, Mikolaj and Beckmann, Pierre and Hajal, Karl El and Cernak, Milos<span class="o">}</span>,
+    <span class="nv">journal</span><span class="o">={</span>arXiv preprint arXiv:2206.12038<span class="o">}</span>,
+    <span class="nv">year</span><span class="o">={</span><span class="m">2022</span><span class="o">}</span>
+<span class="o">}</span>
+</pre></div>
+</div>
+<section id="byol-s-default">
+<h3>byol_s_default<a class="headerlink" href="#byol-s-default" title="Permalink to this heading">#</a></h3>
+<ul class="simple">
+<li><p>Unlabled Data: AudioSet (Speech subset)</p></li>
+</ul>
+</section>
+<section id="byol-s-cvt">
+<h3>byol_s_cvt<a class="headerlink" href="#byol-s-cvt" title="Permalink to this heading">#</a></h3>
+<ul class="simple">
+<li><p>Unlabled Data: AudioSet (Speech subset)</p></li>
+</ul>
+</section>
+<section id="byol-s-resnetish34">
+<h3>byol_s_resnetish34<a class="headerlink" href="#byol-s-resnetish34" title="Permalink to this heading">#</a></h3>
+<ul class="simple">
+<li><p>Unlabled Data: AudioSet (Speech subset)</p></li>
+</ul>
+</section>
+</section>
+<section id="vggish">
+<h2>VGGish<a class="headerlink" href="#vggish" title="Permalink to this heading">#</a></h2>
+<p><a class="reference external" href="https://arxiv.org/abs/1609.09430">CNN Architectures for Large-Scale Audio Classification</a></p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>@inproceedings<span class="o">{</span>hershey2017cnn,
+    <span class="nv">title</span><span class="o">={</span>CNN architectures <span class="k">for</span> large-scale audio classification<span class="o">}</span>,
+    <span class="nv">author</span><span class="o">={</span>Hershey, Shawn and Chaudhuri, Sourish and Ellis, Daniel PW and Gemmeke, Jort F and Jansen, Aren and Moore, R Channing and Plakal, Manoj and Platt, Devin and Saurous, Rif A and Seybold, Bryan and others<span class="o">}</span>,
+    <span class="nv">booktitle</span><span class="o">={</span><span class="m">2017</span> ieee international conference on acoustics, speech and signal processing <span class="o">(</span>icassp<span class="o">)}</span>,
+    <span class="nv">pages</span><span class="o">={</span><span class="m">131</span>--135<span class="o">}</span>,
+    <span class="nv">year</span><span class="o">={</span><span class="m">2017</span><span class="o">}</span>,
+    <span class="nv">organization</span><span class="o">={</span>IEEE<span class="o">}</span>
+<span class="o">}</span>
+</pre></div>
+</div>
+<section id="id17">
+<h3>vggish<a class="headerlink" href="#id17" title="Permalink to this heading">#</a></h3>
+<ul class="simple">
+<li><p>Labaled Data: AudioSet</p></li>
+</ul>
+</section>
 </section>
 </section>
 
@@ -1359,6 +1529,10 @@ the results along the time axis.</p>
 <li><a class="reference internal" href="#data2vec">data2vec</a></li>
 <li><a class="reference internal" href="#ast">AST</a></li>
 <li><a class="reference internal" href="#ssast">SSAST</a></li>
+<li><a class="reference internal" href="#mae-ast">MAE-AST</a></li>
+<li><a class="reference internal" href="#byol-a">Byol-A</a></li>
+<li><a class="reference internal" href="#byol-s">Byol-S</a></li>
+<li><a class="reference internal" href="#vggish">VGGish</a></li>
 </ul>
 </li>
 </ul>
