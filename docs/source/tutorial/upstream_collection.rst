@@ -1179,3 +1179,22 @@ vggish
 ~~~~~~~~~~~~~~~~~~
 
 - Labaled Data: AudioSet
+
+
+PaSST
+--------------------------------------------------
+`Efficient Training of Audio Transformers with Patchout <https://arxiv.org/abs/2110.05069>`_
+
+.. code-block:: bash
+
+    @article{koutini2021efficient,
+        title={Efficient training of audio transformers with patchout},
+        author={Koutini, Khaled and Schl{\"u}ter, Jan and Eghbal-zadeh, Hamid and Widmer, Gerhard},
+        journal={arXiv preprint arXiv:2110.05069},
+        year={2021}
+    }
+
+passt_base
+~~~~~~~~~~~~~~~~~~
+
+- Labaled Data: AudioSet
