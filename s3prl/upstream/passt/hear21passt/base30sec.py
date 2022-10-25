@@ -5,15 +5,15 @@ from .models.preprocess import AugmentMelSTFT
 from .wrapper import PasstBasicWrapper
 
 
-def load_model(model_path="", mode="all", scene_hop=10000):
+def load_model(model_path="", mode="all", scene_hop=10000, **kwds):
     """
-    scene_hop: The hop size for the ovelaping windows 
+    scene_hop: The hop size for the ovelaping windows
     in case the scene audio lenght is larger than 30 seconds.
     Returns:
     model: wrapped PaSST model that can take up to 30 seconds
      of audio without averaging the embeddings.
     """
-    model = get_basic_model(mode=mode, scene_hop=scene_hop)
+    model = get_basic_model(mode=mode, scene_hop=scene_hop, **kwds)
     return model
 
 

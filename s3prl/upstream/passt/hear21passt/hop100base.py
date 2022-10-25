@@ -5,8 +5,8 @@ from .models.preprocess import AugmentMelSTFT
 from .wrapper import PasstBasicWrapper
 
 
-def load_model(model_path="", mode="all"):
-    model = get_basic_model(mode=mode)
+def load_model(model_path="", mode="all", **kwds):
+    model = get_basic_model(mode=mode, **kwds)
     return model
 
 

@@ -55,7 +55,7 @@ class PasstBasicWrapper(nn.Module):
         """
         n_sounds, n_samples = audio.shape
         if n_samples <= self.max_model_window:
-            embed = self(audio.to(self.device()).contiguous())
+            embed = self(audio.contiguous())
             return embed
         embeddings, timestamps = self.get_timestamp_embeddings(audio, window_size=self.max_model_window,
                                                                hop=self.scene_hop)
