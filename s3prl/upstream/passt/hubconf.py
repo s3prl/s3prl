@@ -45,5 +45,6 @@ def passt_hop160base2lvlmel(**kwds):
     return _UpstreamExpert("hop160base2lvlmel", **kwds)
 
 
-def passt_openmic2008(**kwds):
-    return _UpstreamExpert("openmic2008", **kwds)
+# FIXME: url seems corrupted
+# def passt_openmic2008(**kwds):
+#     return _UpstreamExpert("openmic2008", **kwds)
