@@ -20,6 +20,7 @@ from s3prl.upstream.mockingjay.hubconf import *
 from s3prl.upstream.mos_prediction.hubconf import *
 from s3prl.upstream.npc.hubconf import *
 from s3prl.upstream.pase.hubconf import *
+from s3prl.upstream.passt.hubconf import *
 from s3prl.upstream.roberta.hubconf import *
 from s3prl.upstream.ssast.hubconf import *
 from s3prl.upstream.tera.hubconf import *

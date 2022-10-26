@@ -1179,3 +1179,37 @@ vggish
 ~~~~~~~~~~~~~~~~~~
 
 - Labaled Data: AudioSet
+
+
+PaSST
+--------------------------------------------------
+`Efficient Training of Audio Transformers with Patchout <https://arxiv.org/abs/2110.05069>`_
+
+.. code-block:: bash
+
+    @article{koutini2021efficient,
+        title={Efficient training of audio transformers with patchout},
+        author={Koutini, Khaled and Schl{\"u}ter, Jan and Eghbal-zadeh, Hamid and Widmer, Gerhard},
+        journal={arXiv preprint arXiv:2110.05069},
+        year={2021}
+    }
+
+All the entries below support the following :code:`extra_conf`:
+
+====================  ====================
+column                description
+====================  ====================
+window_secs           (float) -
+                        The segment waveform length to feed into the
+                        model. If the input waveform is longer than this
+                        length, do sliding windowing on the waveform and concat
+                        the results along the time axis.
+stride_secs           (float) -
+                        When doing sliding window on the waveform (see
+                        above), the stride seconds between windows.
+====================  ====================
+
+passt_base
+~~~~~~~~~~~~~~~~~~
+
+- Labaled Data: AudioSet
