@@ -2,8 +2,8 @@ import importlib
 from typing import List
 
 import torch
-import torchaudio
 import torch.nn as nn
+import torchaudio
 from torch.nn.utils.rnn import pad_sequence
 
 SAMPLE_RATE = 16000

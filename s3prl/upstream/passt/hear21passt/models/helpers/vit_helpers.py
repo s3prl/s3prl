@@ -2,8 +2,8 @@
 Adapted from https://github.com/rwightman/pytorch-image-models/blob/master/timm/models/vision_transformer.py
 
 """
-import math
 import logging
+import math
 import warnings
 from copy import deepcopy
 

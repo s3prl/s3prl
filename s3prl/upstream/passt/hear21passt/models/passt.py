@@ -5,24 +5,24 @@ We tried to disentangle from the timm library version.
 Adapted from https://github.com/rwightman/pytorch-image-models/blob/master/timm/models/vision_transformer.py
 
 """
-import math
-import logging
-import warnings
-from functools import partial
 import collections
-from itertools import repeat
+import logging
+import math
+import warnings
 from collections import OrderedDict
 from copy import deepcopy
+from functools import partial
+from itertools import repeat
 
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
 
 from .helpers.vit_helpers import (
-    update_default_cfg_and_kwargs,
     DropPath,
-    trunc_normal_,
     build_model_with_cfg,
+    trunc_normal_,
+    update_default_cfg_and_kwargs,
 )
 
 _logger = logging.getLogger()
@@ -772,6 +772,9 @@ class PaSST(nn.Module):
         return x, features
 
 
+lecun_normal_ = None
+
+
 def _init_vit_weights(
     module: nn.Module, name: str = "", head_bias: float = 0.0, jax_impl: bool = False
 ):
@@ -1083,6 +1086,10 @@ def passt_u600_f128_p16_s16_ap_460(pretrained=False, **kwargs):
         **model_kwargs,
     )
     return model
+
+
+PatchEmbedAdaptiveMean = None
+PatchEmbedAdaptiveMeanKeepConv = None
 
 
 def fix_embedding_layer(model, embed="default"):

@@ -1,11 +1,21 @@
 import torch
-from torch import nn
 import torch.nn.functional as F
+from torch import nn
 
 
 class PasstBasicWrapper(nn.Module):
-    def __init__(self, mel: nn.Module, net: nn.Module, max_model_window=10000, timestamp_window=160, timestamp_hop=50,
-                 scene_hop=2500, scene_embedding_size=1295, timestamp_embedding_size=1295, mode="all"):
+    def __init__(
+        self,
+        mel: nn.Module,
+        net: nn.Module,
+        max_model_window=10000,
+        timestamp_window=160,
+        timestamp_hop=50,
+        scene_hop=2500,
+        scene_embedding_size=1295,
+        timestamp_embedding_size=1295,
+        mode="all",
+    ):
         """
         @param mel: spectrogram extractor
         @param net: network module
@@ -43,7 +53,9 @@ class PasstBasicWrapper(nn.Module):
         elif self.mode == "logits":
             embed = x
         else:
-            raise RuntimeError(f"mode='{self.mode}' is not recognized not in: all, embed_only, logits")
+            raise RuntimeError(
+                f"mode='{self.mode}' is not recognized not in: all, embed_only, logits"
+            )
         return embed
 
     def get_scene_embeddings(self, audio):
@@ -57,11 +69,14 @@ class PasstBasicWrapper(nn.Module):
         if n_samples <= self.max_model_window:
             embed = self(audio.contiguous())
             return embed
-        embeddings, timestamps = self.get_timestamp_embeddings(audio, window_size=self.max_model_window,
-                                                               hop=self.scene_hop)
+        embeddings, timestamps = self.get_timestamp_embeddings(
+            audio, window_size=self.max_model_window, hop=self.scene_hop
+        )
         return embeddings.mean(axis=1)
 
-    def get_timestamp_embeddings(self, audio: torch.Tensor, window_size=None, hop=None, pad=None):
+    def get_timestamp_embeddings(
+        self, audio: torch.Tensor, window_size=None, hop=None, pad=None
+    ):
         """
         audio: n_sounds x n_samples of mono audio in the range [-1, 1]. All sounds in a batch will be padded/trimmed to the same length.
         model: Loaded Model.
@@ -79,25 +94,33 @@ class PasstBasicWrapper(nn.Module):
         n_sounds, n_samples = audio.shape
         audio = audio.unsqueeze(1)  # n_sounds,1, (n_samples+pad*2)
         # print(audio.shape)
-        padded = F.pad(audio, (pad, pad), mode='reflect')
+        padded = F.pad(audio, (pad, pad), mode="reflect")
         # print(padded.shape)
         padded = padded.unsqueeze(1)  # n_sounds,1, (n_samples+pad*2)
         # print(padded.shape)
-        segments = F.unfold(padded, kernel_size=(1, window_size), stride=(1, hop)).transpose(-1, -2).transpose(0, 1)
+        segments = (
+            F.unfold(padded, kernel_size=(1, window_size), stride=(1, hop))
+            .transpose(-1, -2)
+            .transpose(0, 1)
+        )
         timestamps = []
         embeddings = []
         for i, segment in enumerate(segments):
             timestamps.append(i)
             emb = self(segment)
             embeddings.append(emb)
-        timestamps = torch.as_tensor(timestamps) * hop * 1000. / self.sample_rate
+        timestamps = torch.as_tensor(timestamps) * hop * 1000.0 / self.sample_rate
 
-        embeddings = torch.stack(embeddings).transpose(0, 1)  # now n_sounds, n_timestamps, timestamp_embedding_size
+        embeddings = torch.stack(embeddings).transpose(
+            0, 1
+        )  # now n_sounds, n_timestamps, timestamp_embedding_size
         timestamps = timestamps.unsqueeze(0).expand(n_sounds, -1)
 
         return embeddings, timestamps
 
-    def get_timestamp_mels(self, audio: torch.Tensor, window_size=None, hop=None, pad=None):
+    def get_timestamp_mels(
+        self, audio: torch.Tensor, window_size=None, hop=None, pad=None
+    ):
         """
         audio: n_sounds x n_samples of mono audio in the range [-1, 1]. All sounds in a batch will be padded/trimmed to the same length.
         model: Loaded Model.
@@ -115,19 +138,25 @@ class PasstBasicWrapper(nn.Module):
         n_sounds, n_samples = audio.shape
         audio = audio.unsqueeze(1)  # n_sounds,1, (n_samples+pad*2)
         # print(audio.shape)
-        padded = F.pad(audio, (pad, pad), mode='reflect')
+        padded = F.pad(audio, (pad, pad), mode="reflect")
         # print(padded.shape)
         padded = padded.unsqueeze(1)  # n_sounds,1, (n_samples+pad*2)
         # print(padded.shape)
-        segments = F.unfold(padded, kernel_size=(1, window_size), stride=(1, hop)).transpose(-1, -2).transpose(0, 1)
+        segments = (
+            F.unfold(padded, kernel_size=(1, window_size), stride=(1, hop))
+            .transpose(-1, -2)
+            .transpose(0, 1)
+        )
         timestamps = []
         embeddings = []
         for i, segment in enumerate(segments):
             timestamps.append(i)
             embeddings.append(self.mel(segment).reshape(n_sounds, 128 * 6))
-        timestamps = torch.as_tensor(timestamps) * hop * 1000. / self.sample_rate
+        timestamps = torch.as_tensor(timestamps) * hop * 1000.0 / self.sample_rate
 
-        embeddings = torch.stack(embeddings).transpose(0, 1)  # now n_sounds, n_timestamps, timestamp_embedding_size
+        embeddings = torch.stack(embeddings).transpose(
+            0, 1
+        )  # now n_sounds, n_timestamps, timestamp_embedding_size
         timestamps = timestamps.unsqueeze(0).expand(n_sounds, -1)
 
         return embeddings, timestamps

@@ -49,10 +49,21 @@ def get_basic_timestamp_embeddings(audio, model):
 
 
 def get_basic_model():
-    mel = AugmentMelSTFT(n_mels=128, sr=32000, win_length=800, hopsize=320, n_fft=1024, freqm=48,
-                         timem=192,
-                         htk=False, fmin=0.0, fmax=None, norm=1, fmin_aug_range=10,
-                         fmax_aug_range=2000)
+    mel = AugmentMelSTFT(
+        n_mels=128,
+        sr=32000,
+        win_length=800,
+        hopsize=320,
+        n_fft=1024,
+        freqm=48,
+        timem=192,
+        htk=False,
+        fmin=0.0,
+        fmax=None,
+        norm=1,
+        fmin_aug_range=10,
+        fmax_aug_range=2000,
+    )
 
     net = get_model_passt(arch="passt_s_swa_p16_128_ap476")
     model = PasstBasicWrapper(mel=mel, net=net)
@@ -60,10 +71,21 @@ def get_basic_model():
 
 
 def get_concat_2level_model():
-    mel = AugmentMelSTFT(n_mels=128, sr=32000, win_length=800, hopsize=320, n_fft=1024, freqm=48,
-                         timem=192,
-                         htk=False, fmin=0.0, fmax=None, norm=1, fmin_aug_range=10,
-                         fmax_aug_range=2000)
+    mel = AugmentMelSTFT(
+        n_mels=128,
+        sr=32000,
+        win_length=800,
+        hopsize=320,
+        n_fft=1024,
+        freqm=48,
+        timem=192,
+        htk=False,
+        fmin=0.0,
+        fmax=None,
+        norm=1,
+        fmin_aug_range=10,
+        fmax_aug_range=2000,
+    )
 
     net = get_model_passt(arch="passt_s_swa_p16_128_ap476")
     model = PasstBasicWrapper(mel=mel, net=net, timestamp_embedding_size=1295 * 2)
@@ -81,17 +103,30 @@ def get_2lvl_timestamp_embeddings(audio, model):
     model.eval()
     with torch.no_grad():
         embed1, t1 = model.get_timestamp_embeddings(audio)
-        embed2, t2 = model.get_timestamp_embeddings(audio, window_size=model.timestamp_window * 5)  # larger window
+        embed2, t2 = model.get_timestamp_embeddings(
+            audio, window_size=model.timestamp_window * 5
+        )  # larger window
         embed = torch.cat((embed1, embed2), dim=-1)
         # print(t1==t2)
         return embed, t1
 
 
 def get_concat_2levelmel_model():
-    mel = AugmentMelSTFT(n_mels=128, sr=32000, win_length=800, hopsize=320, n_fft=1024, freqm=48,
-                         timem=192,
-                         htk=False, fmin=0.0, fmax=None, norm=1, fmin_aug_range=10,
-                         fmax_aug_range=2000)
+    mel = AugmentMelSTFT(
+        n_mels=128,
+        sr=32000,
+        win_length=800,
+        hopsize=320,
+        n_fft=1024,
+        freqm=48,
+        timem=192,
+        htk=False,
+        fmin=0.0,
+        fmax=None,
+        norm=1,
+        fmin_aug_range=10,
+        fmax_aug_range=2000,
+    )
 
     net = get_model_passt(arch="passt_s_swa_p16_128_ap476")
     model = PasstBasicWrapper(mel=mel, net=net, timestamp_embedding_size=768 + 1295 * 2)
@@ -109,9 +144,11 @@ def get_2lvlmel_timestamp_embeddings(audio, model):
     model.eval()
     with torch.no_grad():
         embedmel, tmel = model.get_timestamp_mels(audio, window_size=1920)
-        #print(embedmel.shape)
+        # print(embedmel.shape)
         embed1, t1 = model.get_timestamp_embeddings(audio)
-        embed2, t2 = model.get_timestamp_embeddings(audio, window_size=model.timestamp_window * 4)  # larger window
+        embed2, t2 = model.get_timestamp_embeddings(
+            audio, window_size=model.timestamp_window * 4
+        )  # larger window
         embed = torch.cat((embed1, embed2, embedmel), dim=-1)
         # print(t1==t2)
         return embed, t1

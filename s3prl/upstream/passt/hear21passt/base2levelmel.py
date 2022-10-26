@@ -31,15 +31,27 @@ def get_timestamp_embeddings(audio, model):
     return get_2lvlmel_timestamp_embeddings(audio, model)
 
 
-
 def get_concat_2levelmel_model(**kwargs):
-    mel = AugmentMelSTFT(n_mels=128, sr=32000, win_length=800, hopsize=320, n_fft=1024, freqm=48,
-                         timem=192,
-                         htk=False, fmin=0.0, fmax=None, norm=1, fmin_aug_range=10,
-                         fmax_aug_range=2000)
+    mel = AugmentMelSTFT(
+        n_mels=128,
+        sr=32000,
+        win_length=800,
+        hopsize=320,
+        n_fft=1024,
+        freqm=48,
+        timem=192,
+        htk=False,
+        fmin=0.0,
+        fmax=None,
+        norm=1,
+        fmin_aug_range=10,
+        fmax_aug_range=2000,
+    )
 
     net = get_model_passt(arch="passt_s_swa_p16_128_ap476")
-    model = PasstBasicWrapper(mel=mel, net=net, timestamp_embedding_size=768 + 1295 * 2, **kwargs)
+    model = PasstBasicWrapper(
+        mel=mel, net=net, timestamp_embedding_size=768 + 1295 * 2, **kwargs
+    )
     return model
 
 
@@ -52,9 +64,11 @@ def get_2lvlmel_timestamp_embeddings(audio, model):
     timestamps: A float32 Tensor with shape (`n_sounds, n_timestamps). Centered timestamps in milliseconds corresponding to each embedding in the output.
     """
     embedmel, tmel = model.get_timestamp_mels(audio, window_size=1920)
-    #print(embedmel.shape)
+    # print(embedmel.shape)
     embed1, t1 = model.get_timestamp_embeddings(audio)
-    embed2, t2 = model.get_timestamp_embeddings(audio, window_size=model.timestamp_window * 4)  # larger window
+    embed2, t2 = model.get_timestamp_embeddings(
+        audio, window_size=model.timestamp_window * 4
+    )  # larger window
     embed = torch.cat((embed1, embed2, embedmel), dim=-1)
     # print(t1==t2)
     return embed, t1
