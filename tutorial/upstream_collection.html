@@ -1445,6 +1445,54 @@ above), the stride seconds between windows.</p>
 </ul>
 </section>
 </section>
+<section id="passt">
+<h2>PaSST<a class="headerlink" href="#passt" title="Permalink to this heading">#</a></h2>
+<p><a class="reference external" href="https://arxiv.org/abs/2110.05069">Efficient Training of Audio Transformers with Patchout</a></p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>@article<span class="o">{</span>koutini2021efficient,
+    <span class="nv">title</span><span class="o">={</span>Efficient training of audio transformers with patchout<span class="o">}</span>,
+    <span class="nv">author</span><span class="o">={</span>Koutini, Khaled and Schl<span class="o">{</span><span class="se">\&quot;</span>u<span class="o">}</span>ter, Jan and Eghbal-zadeh, Hamid and Widmer, Gerhard<span class="o">}</span>,
+    <span class="nv">journal</span><span class="o">={</span>arXiv preprint arXiv:2110.05069<span class="o">}</span>,
+    <span class="nv">year</span><span class="o">={</span><span class="m">2021</span><span class="o">}</span>
+<span class="o">}</span>
+</pre></div>
+</div>
+<p>All the entries below support the following <code class="code docutils literal notranslate"><span class="pre">extra_conf</span></code>:</p>
+<div class="table-wrapper docutils container">
+<table class="docutils align-default">
+<thead>
+<tr class="row-odd"><th class="head"><p>column</p></th>
+<th class="head"><p>description</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>window_secs</p></td>
+<td><dl class="simple">
+<dt>(float) -</dt><dd><p>The segment waveform length to feed into the
+model. If the input waveform is longer than this
+length, do sliding windowing on the waveform and concat
+the results along the time axis.</p>
+</dd>
+</dl>
+</td>
+</tr>
+<tr class="row-odd"><td><p>stride_secs</p></td>
+<td><dl class="simple">
+<dt>(float) -</dt><dd><p>When doing sliding window on the waveform (see
+above), the stride seconds between windows.</p>
+</dd>
+</dl>
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+<section id="passt-base">
+<h3>passt_base<a class="headerlink" href="#passt-base" title="Permalink to this heading">#</a></h3>
+<ul class="simple">
+<li><p>Labaled Data: AudioSet</p></li>
+</ul>
+</section>
+</section>
 </section>
 
         </article>
@@ -1533,6 +1581,7 @@ above), the stride seconds between windows.</p>
 <li><a class="reference internal" href="#byol-a">Byol-A</a></li>
 <li><a class="reference internal" href="#byol-s">Byol-S</a></li>
 <li><a class="reference internal" href="#vggish">VGGish</a></li>
+<li><a class="reference internal" href="#passt">PaSST</a></li>
 </ul>
 </li>
 </ul>
