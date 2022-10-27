@@ -598,16 +598,17 @@
                 <span class="n">rank</span><span class="o">=</span><span class="n">rank</span><span class="p">,</span>
             <span class="p">)</span>
 
-        <span class="k">def</span> <span class="nf">check_fn</span><span class="p">():</span>
-            <span class="k">assert</span> <span class="p">(</span><span class="n">train_dir</span> <span class="o">/</span> <span class="s2">&quot;valid_best&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">is_dir</span><span class="p">()</span>
+            <span class="k">def</span> <span class="nf">check_fn</span><span class="p">():</span>
+                <span class="k">assert</span> <span class="p">(</span><span class="n">train_dir</span> <span class="o">/</span> <span class="s2">&quot;valid_best&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">is_dir</span><span class="p">()</span>
 
-        <span class="bp">self</span><span class="o">.</span><span class="n">_stage_check</span><span class="p">(</span><span class="n">stage_id</span><span class="p">,</span> <span class="n">stop</span><span class="p">,</span> <span class="n">check_fn</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_stage_check</span><span class="p">(</span><span class="n">stage_id</span><span class="p">,</span> <span class="n">stop</span><span class="p">,</span> <span class="n">check_fn</span><span class="p">)</span>
 
         <span class="n">stage_id</span> <span class="o">=</span> <span class="mi">3</span>
         <span class="k">if</span> <span class="n">start</span> <span class="o">&lt;=</span> <span class="n">stage_id</span><span class="p">:</span>
             <span class="n">test_ckpt_dir</span><span class="p">:</span> <span class="n">Path</span> <span class="o">=</span> <span class="n">Path</span><span class="p">(</span>
                 <span class="n">test_ckpt_dir</span> <span class="ow">or</span> <span class="n">target_dir</span> <span class="o">/</span> <span class="s2">&quot;train&quot;</span> <span class="o">/</span> <span class="s2">&quot;valid_best&quot;</span>
             <span class="p">)</span>
+            <span class="k">assert</span> <span class="n">test_ckpt_dir</span><span class="o">.</span><span class="n">is_dir</span><span class="p">()</span>
             <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Stage </span><span class="si">{</span><span class="n">stage_id</span><span class="si">}</span><span class="s2">: Test model: </span><span class="si">{</span><span class="n">test_ckpt_dir</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
             <span class="k">for</span> <span class="n">test_idx</span><span class="p">,</span> <span class="n">test_csv</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">test_csvs</span><span class="p">):</span>
                 <span class="n">test_name</span> <span class="o">=</span> <span class="n">Path</span><span class="p">(</span><span class="n">test_csv</span><span class="p">)</span><span class="o">.</span><span class="n">stem</span>
