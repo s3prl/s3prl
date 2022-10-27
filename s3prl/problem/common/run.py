@@ -263,16 +263,17 @@ class Common(Problem):
                 rank=rank,
             )
 
-        def check_fn():
-            assert (train_dir / "valid_best").is_dir()
+            def check_fn():
+                assert (train_dir / "valid_best").is_dir()
 
-        self._stage_check(stage_id, stop, check_fn)
+            self._stage_check(stage_id, stop, check_fn)
 
         stage_id = 3
         if start <= stage_id:
             test_ckpt_dir: Path = Path(
                 test_ckpt_dir or target_dir / "train" / "valid_best"
             )
+            assert test_ckpt_dir.is_dir()
             logger.info(f"Stage {stage_id}: Test model: {test_ckpt_dir}")
             for test_idx, test_csv in enumerate(test_csvs):
                 test_name = Path(test_csv).stem
