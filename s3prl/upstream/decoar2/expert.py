@@ -1,8 +1,6 @@
-import logging
 from collections import OrderedDict
 
 import torch
-import torch.nn as nn
 from torch.nn.utils.rnn import pad_sequence
 
 from ..interfaces import UpstreamBase
@@ -11,12 +9,9 @@ from .decoar2 import Decoar2
 
 EXAMPLE_FEAT_SEQLEN = 1000
 
-log = logging.getLogger(__name__)
-
 
 class UpstreamExpert(UpstreamBase):
-
-    def __init__(self, ckpt, normalize=False, **kwargs):
+    def __init__(self, ckpt, **kwargs):
         super(UpstreamExpert, self).__init__()
         models = torch.load(ckpt)["model"]
         self.model = Decoar2()
@@ -32,35 +27,11 @@ class UpstreamExpert(UpstreamBase):
 
         if len(self.hooks) == 0:
             module_name = "self.model.encoder.layers"
-            for module_id in range(len(self.model.encoder.layers)):
-                layer_norm_first = self.model.encoder.layers[module_id].layer_norm_first
-
-                if module_id == 0:
-                    if layer_norm_first:
-                        if normalize:
-                            log.warning(
-                                "Extract the layer features right before each layer's "
-                                "self-attention module, but after the pre-layernorm. "
-                                "This is not the official way to extract layer-wise features, "
-                                "but the extracted features can have the same numerical scale "
-                                "after layernorm."
-                            )
-                        else:
-                            log.warning(
-                                "Use the official layer extraction in Fairseq. "
-                                "Each layer is not on the same numerical scale."
-                            )
-
-                if layer_norm_first and normalize:
-                    self.add_hook(
-                        f"{module_name}[{module_id}].self_attn_layer_norm",
-                        lambda input, output: output.transpose(0, 1),
-                    )
-                else:
-                    self.add_hook(
-                        f"{module_name}[{module_id}]",
-                        lambda input, output: input[0].transpose(0, 1),
-                    )
+            for module_id in range(len(eval(module_name))):
+                self.add_hook(
+                    f"{module_name}[{module_id}]",
+                    lambda input, output: input[0].transpose(0, 1),
+                )
             self.add_hook("self.model.encoder", lambda input, output: output[0])
 
             def postprocess(xs):

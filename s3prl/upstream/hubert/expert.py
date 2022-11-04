@@ -8,7 +8,6 @@
 """*********************************************************************************************"""
 
 import logging
-from pathlib import Path
 
 import torch
 import torch.nn.functional as F
@@ -24,7 +23,7 @@ logger = logging.getLogger(__name__)
 
 
 class UpstreamExpert(UpstreamBase):
-    def __init__(self, ckpt, normalize=False, **kwargs):
+    def __init__(self, ckpt, **kwargs):
         super().__init__(**kwargs)
         model, task_cfg = load_converted_model(ckpt)
         self.model = model
