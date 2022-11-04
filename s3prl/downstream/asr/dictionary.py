@@ -2,9 +2,7 @@ import os
 from collections import Counter
 from multiprocessing import get_context
 
-import torch
-
-from fairseq.data.dictionary import Dictionary as fairseq_Dictionary
+from .fairseq_dictionary import Dictionary as fairseq_Dictionary
 
 
 class Dictionary(fairseq_Dictionary):
@@ -32,7 +30,7 @@ class Dictionary(fairseq_Dictionary):
                 dict.add_symbol(w, c)
 
         if num_workers > 1:
-            pool = get_context('spawn').Pool(processes=num_workers)
+            pool = get_context("spawn").Pool(processes=num_workers)
             results = []
             for worker_id in range(num_workers):
                 results.append(
