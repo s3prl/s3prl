@@ -65,7 +65,7 @@ if __name__ == "__main__":
             elif args.task == "task2":
                 result = grep(log_file, "Mean")[0].split("Mean CER, WER, accept rate: ")[1].split(" ")
             scores.append(result)
-        
+
         # task 1: choose by MCD; task 2: choose by CER
         best = min(scores, key=lambda x: float(x[0]))
         bests.append(best)

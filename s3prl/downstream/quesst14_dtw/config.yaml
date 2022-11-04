@@ -1,6 +1,8 @@
 runner: {}
 
 downstream_expert:
+  two_stages: False
+
   # Leave it empty to max out performance
   max_workers:
 

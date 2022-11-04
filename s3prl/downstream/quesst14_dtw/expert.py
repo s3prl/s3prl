@@ -1,5 +1,7 @@
 """Downstream expert for Query-by-Example Spoken Term Detection on QUESST 2014."""
 
+import pickle
+import logging
 from collections import defaultdict
 from concurrent.futures import ProcessPoolExecutor, as_completed
 from functools import partial
@@ -15,7 +17,9 @@ from torch.utils.data import DataLoader
 from tqdm import tqdm
 
 from .dataset import QUESST14Dataset
+from .dtw_utils import dtw_and_dump_tree
 
+log = logging.getLogger(__name__)
 
 class DownstreamExpert(nn.Module):
     """
@@ -28,6 +32,7 @@ class DownstreamExpert(nn.Module):
     ):
         super(DownstreamExpert, self).__init__()
         self.upstream_dim = upstream_dim
+        self.two_stages = downstream_expert["two_stages"]
         self.max_workers = downstream_expert["max_workers"]
         self.feature_normalization = downstream_expert["feature_normalization"]
         self.silence_frame = downstream_expert["silence_frame"]
@@ -86,127 +91,25 @@ class DownstreamExpert(nn.Module):
         query_names = records["audio_names"][: self.test_dataset.n_queries]
         doc_names = records["audio_names"][self.test_dataset.n_queries :]
 
-        # Normalize upstream features
-        feature_mean, feature_std = 0.0, 1.0
-        if self.feature_normalization:
-            feats = torch.cat(records["features"])
-            feature_mean = feats.mean(0)
-            feature_std = torch.clamp(feats.std(0), 1e-9)
-        queries = [((query - feature_mean) / feature_std).numpy() for query in queries]
-        docs = [((doc - feature_mean) / feature_std).numpy() for doc in docs]
+        if self.two_stages:
+            log.info("Saving features for later DTW...")
+            def dump_variables(name: str, variable):
+                with open(self.expdir / f"{name}.pkl", "wb") as file:
+                    pickle.dump(variable, file)
 
-        # Define distance function for DTW
-        if self.dtwrc["dist_method"] == "cosine_exp":
-            dist_fn = cosine_exp
-        elif self.dtwrc["dist_method"] == "cosine_neg_log":
-            dist_fn = cosine_neg_log
+            dump_variables("queries", queries)
+            dump_variables("docs", docs)
+            dump_variables("query_names", query_names)
+            dump_variables("doc_names", doc_names)
         else:
-            dist_fn = partial(distance.cdist, metric=self.dtwrc["dist_method"])
-
-        # Define DTW configurations
-        dtwrc = {
-            "step_pattern": self.dtwrc["step_pattern"],
-            "keep_internals": False,
-            "distance_only": False if self.dtwrc["subsequence"] else True,
-            "open_begin": True if self.dtwrc["subsequence"] else False,
-            "open_end": True if self.dtwrc["subsequence"] else False,
-        }
-
-        # Calculate matching scores
-        results = defaultdict(list)
-        with ProcessPoolExecutor(max_workers=self.max_workers) as executor:
-            futures = []
-            for query, query_name in zip(queries, query_names):
-                if len(query) < 5:  # Do not consider too short queries
-                    results[query_name] = [(doc_name, 0) for doc_name in doc_names]
-                    continue
-                for doc, doc_name in zip(docs, doc_names):
-                    futures.append(
-                        executor.submit(
-                            match,
-                            query,
-                            doc,
-                            query_name,
-                            doc_name,
-                            dist_fn,
-                            self.dtwrc["minmax_norm"],
-                            dtwrc,
-                        )
-                    )
-            for future in tqdm(
-                as_completed(futures), total=len(futures), ncols=0, desc="DTW"
-            ):
-                query_name, doc_name, score = future.result()
-                results[query_name].append((doc_name, score))
-
-        # Normalize scores with regard to each query
-        for query_name, doc_scores in results.items():
-            names, scores = zip(*doc_scores)
-            scores = np.array(scores)
-            scores = (scores - scores.mean()) / np.clip(scores.std(), 1e-9, np.inf)
-            results[query_name] = list(zip(names, scores))
-
-        # Scores above 2 STDs are seen as detected (top 2.5% as YES)
-        score_thresh = 2.0
-
-        # Build XML tree
-        root = etree.Element(
-            "stdlist",
-            termlist_filename="benchmark.stdlist.xml",
-            indexing_time="1.00",
-            language="english",
-            index_size="1",
-            system_id="benchmark",
-        )
-        for query_name, doc_scores in results.items():
-            term_list = etree.SubElement(
-                root,
-                "detected_termlist",
-                termid=query_name,
-                term_search_time="1.0",
-                oov_term_count="1",
+            log.info("Running DTW...")
+            dtw_and_dump_tree(
+                queries,
+                query_names,
+                docs,
+                doc_names,
+                self.dtwrc,
+                self.expdir,
+                self.max_workers,
+                self.feature_normalization
             )
-            for doc_name, score in doc_scores:
-                etree.SubElement(
-                    term_list,
-                    "term",
-                    file=doc_name,
-                    channel="1",
-                    tbeg="0.000",
-                    dur="0.00",
-                    score=f"{score:.4f}",
-                    decision="YES" if score > score_thresh else "NO",
-                )
-
-        # Output XML
-        etree.ElementTree(root).write(
-            str(self.expdir / "benchmark.stdlist.xml"),
-            encoding="UTF-8",
-            pretty_print=True,
-        )
-
-
-def match(query, doc, query_name, doc_name, dist_fn, minmax_norm, dtwrc):
-    """Match between a query and a doc."""
-    dist = dist_fn(query, doc)
-
-    if minmax_norm:
-        dist_min = dist.min(1)[:, np.newaxis]
-        dist_max = dist.max(1)[:, np.newaxis]
-        dist = (dist - dist_min) / np.clip(dist_max - dist_min, 1e-9, np.inf)
-
-    dtw_result = dtw(x=dist, **dtwrc)
-    cost = dtw_result.normalizedDistance
-    return query_name, doc_name, -1 * cost
-
-
-def cosine_exp(query, doc):
-    dist = distance.cdist(query, doc, "cosine")
-    dist = np.exp(dist) - 1
-    return dist
-
-
-def cosine_neg_log(query, doc):
-    dist = distance.cdist(query, doc, "cosine")
-    dist = -1 * np.log(1 - dist)
-    return dist

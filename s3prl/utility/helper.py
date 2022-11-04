@@ -11,10 +11,9 @@
 # IMPORTATION #
 ###############
 import os
-import sys
-import math
 import torch
 import shutil
+import logging
 import builtins
 import numpy as np
 from time import time
@@ -24,6 +23,7 @@ from datetime import datetime
 from collections import defaultdict
 from torch.nn.parallel import DistributedDataParallel as DDP
 from torch.distributed import is_initialized, get_rank, get_world_size
+log = logging.getLogger(__name__)
 
 def is_leader_process():
     return not is_initialized() or get_rank() == 0
@@ -35,13 +35,18 @@ def count_used_parameters(model):
     # The model should be at least backward once
     return sum(p.numel() for p in model.parameters() if p.grad is not None)
 
-def get_time_tag():
-    return datetime.fromtimestamp(time()).strftime('%Y-%m-%d-%H-%M-%S')
+def get_unique_tag():
+    tag = datetime.fromtimestamp(time()).strftime('day_%Y_%m_%d_time_%H_%M_%S')
+    if is_initialized():
+        tag = f"{tag}_rank_{get_rank()}"
+    return tag
 
 def backup(src_path, tgt_dir):
     stem = Path(src_path).stem
     suffix = Path(src_path).suffix
-    shutil.copyfile(src_path, os.path.join(tgt_dir, f'{stem}_{get_time_tag()}{suffix}'))
+    tgt_path = os.path.join(tgt_dir, f'{stem}_{get_unique_tag()}{suffix}')
+    shutil.copyfile(src_path, tgt_path)
+    log.info(f"Copy file: {src_path} -> {tgt_path}")
 
 def get_model_state(model):
     if isinstance(model, DDP):
@@ -73,10 +78,16 @@ def override(string, args, config):
     Example usgae:
         -o "config.optimizer.lr=1.0e-3,,config.optimizer.name='AdamW',,config.runner.eval_dataloaders=['dev', 'test']"
     """
+    msgs = []
     options = string.split(',,')
     for option in options:
         option = option.strip()
-        key, value_str = option.split('=')
+        log.warning(f"Parsing override string: {option}")
+        fields = option.split("=", maxsplit=1)
+        if len(fields) != 2:
+            log.warning("Not a valid override string")
+            continue
+        key, value_str = fields
         key, value_str = key.strip(), value_str.strip()
         first_field, *remaining = key.split('.')
 
@@ -85,7 +96,7 @@ def override(string, args, config):
         except:
             value = value_str
 
-        print(f'[Override] - {key} = {value}', file=sys.stderr)
+        msgs.append(f"Override: {key} = {value}")
 
         if first_field == 'args':
             assert len(remaining) == 1
@@ -98,6 +109,7 @@ def override(string, args, config):
                 else:
                     target_config.setdefault(field_name, {})
                     target_config = target_config[field_name]
+    return msgs
 
 def zero_mean_unit_var_norm(input_values: List[np.ndarray]) -> List[np.ndarray]:
     """

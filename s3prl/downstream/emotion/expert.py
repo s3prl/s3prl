@@ -43,13 +43,18 @@ class DownstreamExpert(nn.Module):
         test_path = os.path.join(
             meta_data, self.fold.replace('fold', 'Session'), 'test_meta_data.json')
         print(f'[Expert] - Testing path: {test_path}')
-        
+
         dataset = IEMOCAPDataset(DATA_ROOT, train_path, self.datarc['pre_load'])
         trainlen = int((1 - self.datarc['valid_ratio']) * len(dataset))
         lengths = [trainlen, len(dataset) - trainlen]
-        
+
         torch.manual_seed(0)
         self.train_dataset, self.dev_dataset = random_split(dataset, lengths)
+        if 'few_shot' in self.datarc:
+            self.train_dataset = IEMOCAPDataset.from_subset(
+                self.train_dataset,
+                **self.datarc.get('few_shot', {}),
+            )
 
         self.test_dataset = IEMOCAPDataset(DATA_ROOT, test_path, self.datarc['pre_load'])
 

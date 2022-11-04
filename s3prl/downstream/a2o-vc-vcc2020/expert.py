@@ -279,7 +279,7 @@ class DownstreamExpert(nn.Module):
 
             save_names = []
             logger.add_scalar(
-                f'example/{split}-{loss}',
+                f'a2o-vc-vcc2020/{split}-loss',
                 loss,
                 global_step=global_step
             )

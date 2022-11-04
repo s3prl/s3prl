@@ -4,16 +4,23 @@ import random
 import argparse
 import numpy as np
 from s3prl import hub
+from s3prl.utility.helper import override
 
 SAMPLE_RATE = 16000
 BATCH_SIZE = 8
 
 parser = argparse.ArgumentParser()
 parser.add_argument("--upstream", "-u", required=True)
-parser.add_argument("--output", "-o", required=True)
+parser.add_argument("--pth", "-p", required=True)
+parser.add_argument("--override", "-o")
 parser.add_argument("--device", default="cuda")
+parser.add_argument("--layer", "-l", type=int, default=-1)
 parser.add_argument("--seed", type=int, default=0)
 args = parser.parse_args()
+
+config = {}
+if args.override is not None:
+    override(args.override, args, config)
 
 random.seed(args.seed)
 np.random.seed(args.seed)
@@ -28,9 +35,9 @@ wavs = [
     for _ in range(BATCH_SIZE)
 ]
 
-upstream = getattr(hub, args.upstream)().to(args.device)
+upstream = getattr(hub, args.upstream)(**config.get("upstream_expert", {})).to(args.device)
 upstream.eval()
 
 with torch.no_grad():
-    hidden = upstream(wavs)["last_hidden_state"].detach().cpu()
-    torch.save(hidden, args.output)
+    hidden = upstream(wavs)["hidden_states"][args.layer].detach().cpu()
+    torch.save(hidden, args.pth)

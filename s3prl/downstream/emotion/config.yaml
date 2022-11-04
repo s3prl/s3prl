@@ -3,9 +3,9 @@ runner:
   gradient_clipping: 1
   gradient_accumulate_steps: 8
 
-  log_step: 500
-  eval_step: 1000
-  save_step: 1000
+  log_step: 100
+  eval_step: 100
+  save_step: 100
   max_keep: 1
   eval_dataloaders:
     - dev
@@ -27,11 +27,14 @@ downstream_expert:
     root: /groups/public/benchmark/IEMOCAP
     meta_data: ./downstream/emotion/meta_data
     test_fold: fold1
-    pre_load: True
+    pre_load: False
     train_batch_size: 4
     eval_batch_size: 4
     num_workers: 6
     valid_ratio: 0.2
+    few_shot: {}
+      # n_shot: 5
+      # seed: 0
 
   modelrc:
     projector_dim: 256

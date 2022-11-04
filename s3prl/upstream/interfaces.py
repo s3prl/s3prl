@@ -1,13 +1,12 @@
-import sys
+import logging
 from typing import Callable, Dict, List, Tuple, Union
 
-import numpy as np
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
 from torch import Tensor
 
-from s3prl.utility.helper import show
+logger = logging.getLogger(__name__)
 
 SAMPLE_RATE = 16000
 TOLERABLE_SEQLEN_DIFF = 5
@@ -74,16 +73,14 @@ class UpstreamBase(nn.Module, metaclass=initHook):
     def _register_hook_handler(self, hook: Hook):
         module = eval(hook.module_path)
         if not isinstance(module, nn.Module):
-            show(
-                f"[UpstreamBase] - {hook.module_path} is not a valid nn.Module. Skip.",
-                file=sys.stderr,
+            logger.error(
+                f"{hook.module_path} is not a valid nn.Module. Skip.",
             )
             return
 
         if callable(hook.handler):
-            show(
-                f"[UpstreamBase] - Existing hook handler for {hook.unique_identifier} is found. Remove the existing one.",
-                file=sys.stderr,
+            logger.warning(
+                f"Existing hook handler for {hook.unique_identifier} is found. Remove the existing one.",
             )
             hook.handler.remove()
 
@@ -109,10 +106,9 @@ class UpstreamBase(nn.Module, metaclass=initHook):
                 or result.get("hidden_states") is not None
                 or result.get("last_hidden_state") is not None
             ):
-                show(
-                    "[UpstreamBase] - If there are registered hooks, '_hidden_states_info', 'hidden_states', and "
+                logger.error(
+                    "If there are registered hooks, '_hidden_states_info', 'hidden_states', and "
                     "'last_hidden_state' are reserved and should not be included in child class's return dict.",
-                    file=sys.stderr,
                 )
                 raise ValueError
 
@@ -151,53 +147,57 @@ class Featurizer(nn.Module):
 
         if feature_selection not in paired_features:
             if "hidden_states" in paired_features:
-                show(
-                    f"[{self.name}] - Warning: {feature_selection} is not a supported args.upstream_feature_selection."
-                    f' Using "hidden_states" as the default key.',
-                    file=sys.stderr,
+                logger.warning(
+                    f"{feature_selection} is not a supported args.upstream_feature_selection."
+                    f" Using \"hidden_states\" as the default key.",
                 )
                 feature_selection = "hidden_states"
             else:
-                show(
-                    f"[{self.name}] - Error: {feature_selection} is not a supported args.upstream_feature_selection."
-                    f' The default key "hidden_states" is also not supported.'
+                logger.error(
+                    f"{feature_selection} is not a supported args.upstream_feature_selection."
+                    f" The default key \"hidden_states\" is also not supported."
                     f" Please specify -s with the following options: {list(paired_wavs.keys())}",
-                    file=sys.stderr,
                 )
                 raise ValueError
+
         self.feature_selection = feature_selection
         self.layer_selection = layer_selection
+        if isinstance(layer_selection, int):
+            logger.info(f"Take the number {layer_selection} layer from the feature '{feature_selection}'.")
+        else:
+            logger.info(f"Take all the layers from the feature '{feature_selection}'")
+
         self.normalize = normalize
+        if normalize:
+            logger.info("Do layer normalization for features.")
 
         feature = self._select_feature(paired_features)
         if isinstance(feature, (list, tuple)):
             self.layer_num = len(feature)
-            show(
-                f"[{self.name}] - Take a list of {self.layer_num} features and weighted sum them.",
-                file=sys.stderr,
+            logger.info(
+                f"Take a list of {self.layer_num} features and weighted sum them.",
             )
             self.weights = nn.Parameter(torch.zeros(self.layer_num))
             feature = self._weighted_sum([f.cpu() for f in feature])
         else:
+            logger.info(
+                f"Take a single layer of feature. No weighted sum will be trained.",
+            )
             feature = feature.cpu()
 
         self.output_dim = feature.size(-1)
         if hasattr(upstream, "get_downsample_rates"):
             self.downsample_rate = upstream.get_downsample_rates(feature_selection)
-            show(
-                f"[{self.name}] - The selected feature {feature_selection}'s downsample rate is {self.downsample_rate}",
-                file=sys.stderr,
+            logger.info(
+                f"The selected feature '{feature_selection}' downsample rate is {self.downsample_rate}",
             )
         else:
-            self.downsample_rate = round(
-                max(len(wav) for wav in paired_wavs) / feature.size(1)
-            )
-            show(
-                f"[{self.name}] - Warning: The provided upstream does not give statis downsample rate"
-                ' by the "get_downsample_rates" interface (see upstream/example/expert.py).'
+            self.downsample_rate = round(max(len(wav) for wav in paired_wavs) / feature.size(1))
+            logger.warning(
+                f"The provided upstream does not give statis downsample rate"
+                " by the \"get_downsample_rates\" interface (see upstream/example/expert.py)."
                 " The downsample rate is calculated dynamically basing on the shape of the"
                 f" input waveforms v.s. the output features: {self.downsample_rate}",
-                file=sys.stderr,
             )
 
     def _select_feature(self, features):

@@ -10,8 +10,8 @@
 set -e
 set -x
 
-if [ "$#" -ne 2 ]; then
-  echo "Usage: $0 <expdir> <test_set>"
+if [ "$#" -lt 2 ]; then
+  echo "Usage: $0 <expdir> <test_set> (<dscore_dir>)"
   echo "e.g., ./downstream/diarization/score.sh result/downstream/test data/test"
   exit 1
 fi
@@ -20,7 +20,11 @@ scoring_dir="$1/scoring"
 infer_dir="${scoring_dir}/predictions"
 test_set="$2"
 # directory where you cloned dscore (https://github.com/ftshijt/dscore)
-dscore_dir=/groups/leo1994122701/dscore
+if [ -z $3 ]; then
+    dscore_dir=/home/leo/d/Benchmarking/dscore
+else
+    dscore_dir="$3"
+fi
 
 frame_shift_file=$1/frame_shift
 if [ -f $frame_shift_file ]; then

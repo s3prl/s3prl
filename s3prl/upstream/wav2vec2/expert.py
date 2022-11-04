@@ -5,6 +5,7 @@ import torch.nn.functional as F
 from torch.nn.utils.rnn import pad_sequence
 
 from s3prl.utility.helper import zero_mean_unit_var_norm
+log = logging.getLogger(__name__)
 
 from ..interfaces import UpstreamBase
 from .convert import load_converted_model
@@ -98,7 +99,7 @@ class UpstreamExpert(UpstreamBase):
 
 
 class LegacyUpstreamExpert(UpstreamBase):
-    def __init__(self, ckpt, **kwargs):
+    def __init__(self, ckpt, normalize: bool = False, **kwargs):
         logger.warning("Use the legacy expert for wav2vec 2.0 which depends on fairseq")
 
         super().__init__(**kwargs)
@@ -116,11 +117,35 @@ class LegacyUpstreamExpert(UpstreamBase):
 
         if len(self.hooks) == 0:
             module_name = "self.model.encoder.layers"
-            for module_id in range(len(eval(module_name))):
-                self.add_hook(
-                    f"{module_name}[{module_id}]",
-                    lambda input, output: input[0].transpose(0, 1),
-                )
+            for module_id in range(len(self.model.encoder.layers)):
+                layer_norm_first = self.model.encoder.layers[module_id].layer_norm_first
+
+                if module_id == 0:
+                    if layer_norm_first:
+                        if normalize:
+                            log.warning(
+                                "Extract the layer features right before each layer's "
+                                "self-attention module, but after the pre-layernorm. "
+                                "This is not the official way to extract layer-wise features, "
+                                "but the extracted features can have the same numerical scale "
+                                "after layernorm."
+                            )
+                        else:
+                            log.warning(
+                                "Use the official layer extraction in Fairseq. "
+                                "Each layer is not on the same numerical scale."
+                            )
+
+                if layer_norm_first and normalize:
+                    self.add_hook(
+                        f"{module_name}[{module_id}].self_attn_layer_norm",
+                        lambda input, output: output.transpose(0, 1),
+                    )
+                else:
+                    self.add_hook(
+                        f"{module_name}[{module_id}]",
+                        lambda input, output: input[0].transpose(0, 1),
+                    )
             self.add_hook("self.model.encoder", lambda input, output: output[0])
 
             def postprocess(xs):
