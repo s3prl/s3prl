@@ -81,7 +81,7 @@ def get_downstream_args():
     parser.add_argument('--hf_hub_org', help='The Hugging Face Hub organisation to push fine-tuned models to')
 
     # options
-    parser.add_argument('--verbose', type=int, default=1, help='logging level: 1 INFO, 2 DEBUG, others WARNING')
+    parser.add_argument('--verbose', default="INFO", help='logging level: INFO, DEBUG, WARNING, ERROR')
     parser.add_argument('--seed', default=1337, type=int)
     parser.add_argument('--device', default='cuda', help='model.to(device)')
     parser.add_argument('--cache_dir', help='The cache directory for pretrained model downloading')
@@ -166,8 +166,6 @@ def get_downstream_args():
 
 
 def main():
-    logging.basicConfig(level=logging.INFO)
-
     torch.multiprocessing.set_sharing_strategy('file_system')
     torchaudio.set_audio_backend('sox_io')
     hack_isinstance()
@@ -206,19 +204,13 @@ def main():
             original_world = ckpt['WorldSize']
             assert now_world == original_world, f'{now_world} != {original_world}'
 
-    # logging level
-    if args.verbose == 1:
-        level = logging.INFO
-    elif args.verbose == 2:
-        level = logging.DEBUG
-    else:
-        level = logging.WARNING
+    level = getattr(logging, args.verbose)
 
     # logging format
     root_log = logging.getLogger()
     root_log.setLevel(level)
-    rank_string = f"RANK {get_rank()} " if is_initialized() else ""
-    formatter = logging.Formatter(f"[%(levelname)s] {rank_string}%(asctime)s (%(module)s.%(funcName)s:%(lineno)d): %(message)s")
+    rank_string = f"RANK {get_rank()}" if is_initialized() else "RANK 0"
+    formatter = logging.Formatter(f"%(levelname)s | {rank_string} | %(asctime)s | %(module)s.%(funcName)s:%(lineno)d | %(message)s")
 
     # logging file
     log_file = Path(args.expdir) / f"log_{get_unique_tag()}"
@@ -232,9 +224,6 @@ def main():
     streamHandler.setFormatter(formatter)
     root_log.addHandler(streamHandler)
 
-    if level == logging.WARNING:
-        log.warning("Skip DEBUG/INFO messages in S3PRL")
-
     for message in messages:
         log.info(message)
 
@@ -242,12 +231,12 @@ def main():
     args_file = f"args_{get_unique_tag()}.yaml"
     log.info(f"The args can be found at: {args_file}")
     with (Path(args.expdir) / args_file).open("w") as file:
-        yaml.dump(vars(args), file)
+        yaml.safe_dump(vars(args), file)
 
     config_file = f"config_{get_unique_tag()}.yaml"
     log.info(f"The config can be found at: {config_file}")
     with (Path(args.expdir) / config_file).open("w") as file:
-        yaml.dump(config, file)
+        yaml.safe_dump(config, file)
 
     for file in backup_files:
         backup(file, args.expdir)
