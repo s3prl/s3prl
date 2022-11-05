@@ -38,6 +38,7 @@ def randomize_upstream(upstream: nn.Module):
 class S3PRLUpstream(nn.Module):
     """
     This is an easy interface for using all the models in S3PRL.
+    See :doc:`../tutorial/upstream_collection` for the example usage and all the supported models.
 
     Args:
         name (str):
