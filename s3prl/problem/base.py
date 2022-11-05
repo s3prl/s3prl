@@ -526,7 +526,7 @@ class Problem:
 
                     acceptable = False
                     for acc_err in ACCEPTABLE_ERRORS:
-                        if str(e) in acc_err:
+                        if acc_err in str(e):
                             acceptable = True
                             break
                     if not acceptable:

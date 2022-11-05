@@ -30,6 +30,10 @@ log = logging.getLogger(__name__)
 
 SAMPLE_RATE = 16000
 MAX_CONTINUAL_ERROR = 20
+ACCEPTABLE_ERRORS = [
+    "CUDA out of memory",
+    "Unable to find a valid cuDNN algorithm to run convolution",  # Usually caused by CUDA OOM
+]
 MODEL_CARD_MARKDOWN = """---
 datasets:
 - superb
@@ -105,7 +109,7 @@ class ModelEntry:
             return self.local_model(*args, **kwargs)
 
 
-class Runner():
+class Runner:
     """
     Used to handle high-level concepts of a ML experiment
     eg. training loop, evaluation loop, upstream propagation, optimization, logging, checkpoint saving
@@ -380,7 +384,12 @@ class Runner():
                     del loss
 
                 except RuntimeError as e:
-                    if 'CUDA out of memory' in str(e):
+                    acceptable = False
+                    for acc_err in ACCEPTABLE_ERRORS:
+                        if acc_err in str(e):
+                            acceptable = True
+
+                    if acceptable:
                         if is_initialized():
                             raise
                         with torch.cuda.device(self.args.device):
