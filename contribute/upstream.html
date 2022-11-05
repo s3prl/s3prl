@@ -3,10 +3,10 @@
   <head><meta charset="utf-8"/>
     <meta name="viewport" content="width=device-width,initial-scale=1"/>
     <meta name="color-scheme" content="light dark"><meta name="generator" content="Docutils 0.19: https://docutils.sourceforge.io/" />
-<link rel="index" title="Index" href="../genindex.html" /><link rel="search" title="Search" href="../search.html" /><link rel="next" title="S3PRL Upstream Collection" href="upstream_collection.html" /><link rel="prev" title="S3PRL" href="../index.html" />
+<link rel="index" title="Index" href="../genindex.html" /><link rel="search" title="Search" href="../search.html" /><link rel="next" title="nn" href="../_autosummary/s3prl.nn.html" /><link rel="prev" title="General Guideline" href="general.html" />
 
     <meta name="generator" content="sphinx-5.1.1, furo 2022.09.29"/>
-        <title>Install S3PRL - S3PRL 0.4.7 documentation</title>
+        <title>Adding New Upstream - S3PRL 0.4.7 documentation</title>
       <link rel="stylesheet" type="text/css" href="../_static/pygments.css" />
     <link rel="stylesheet" type="text/css" href="../_static/styles/furo.css?digest=d81277517bee4d6b0349d71bb2661d4890b5617c" />
     <link rel="stylesheet" type="text/css" href="../_static/styles/furo-extensions.css?digest=30d1aed668e5c3a91c3e3bf6a60b675221979f0e" />
@@ -158,15 +158,15 @@
 </form>
 <div id="searchbox"></div><div class="sidebar-scroll"><div class="sidebar-tree">
   <p class="caption" role="heading"><span class="caption-text">Getting started</span></p>
-<ul class="current">
-<li class="toctree-l1 current current-page"><a class="current reference internal" href="#">Install S3PRL</a></li>
-<li class="toctree-l1"><a class="reference internal" href="upstream_collection.html">S3PRL Upstream Collection</a></li>
-<li class="toctree-l1"><a class="reference internal" href="problem.html">Use Problem module to run customizable recipes</a></li>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../tutorial/installation.html">Install S3PRL</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../tutorial/upstream_collection.html">S3PRL Upstream Collection</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../tutorial/problem.html">Use Problem module to run customizable recipes</a></li>
 </ul>
 <p class="caption" role="heading"><span class="caption-text">How to Contribute</span></p>
-<ul>
-<li class="toctree-l1"><a class="reference internal" href="../contribute/general.html">General Guideline</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../contribute/upstream.html">Adding New Upstream</a></li>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="general.html">General Guideline</a></li>
+<li class="toctree-l1 current current-page"><a class="current reference internal" href="#">Adding New Upstream</a></li>
 </ul>
 <p class="caption" role="heading"><span class="caption-text">API Documentation</span></p>
 <ul>
@@ -334,48 +334,85 @@
           </label>
         </div>
         <article role="main">
-          <section id="install-s3prl">
-<h1>Install S3PRL<a class="headerlink" href="#install-s3prl" title="Permalink to this heading">#</a></h1>
-<section id="minimal-installation">
-<h2>Minimal installation<a class="headerlink" href="#minimal-installation" title="Permalink to this heading">#</a></h2>
-<p>This installation only enables the <strong>S3PRL Upstream collection</strong> function to
-keep the minimal dependency. To enable all the functions including downstream benchmarking,
-you need to follow <a class="reference internal" href="#full-installation">Full installation</a>.</p>
-<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>pip install s3prl
+          <section id="adding-new-upstream">
+<h1>Adding New Upstream<a class="headerlink" href="#adding-new-upstream" title="Permalink to this heading">#</a></h1>
+<section id="discuss">
+<h2>Discuss<a class="headerlink" href="#discuss" title="Permalink to this heading">#</a></h2>
+<p>Please make sure that you already go through <a class="reference internal" href="general.html"><span class="doc">General Guideline</span></a>.
+Again, we might not always want new contributions, hence please make sure we have consensus on the new feature request.
+The best and the most transparent way is to
+<a class="reference external" href="https://github.com/s3prl/s3prl/issues/new?assignees=&amp;labels=&amp;template=feature_request.md&amp;title=">submit your feature request</a>.</p>
+</section>
+<section id="copy-from-the-template">
+<h2>Copy from the template<a class="headerlink" href="#copy-from-the-template" title="Permalink to this heading">#</a></h2>
+<p>To add new upstream, you can start with an <a class="reference external" href="https://github.com/s3prl/s3prl/tree/main/s3prl/upstream/example">example</a>
+Suppose your new upstream called <code class="code docutils literal notranslate"><span class="pre">my_awesome_upstream</span></code>, the simplest way to start will be the following:</p>
+<ol class="arabic simple">
+<li></li>
+</ol>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="nb">cd</span> <span class="si">${</span><span class="nv">S3PRL_ROOT</span><span class="si">}</span>
+cp -r s3prl/upstream/example/ s3prl/upstream/my_awesome_upstream
 </pre></div>
+</div>
+<ol class="arabic simple" start="2">
+<li><p>In <code class="code docutils literal notranslate"><span class="pre">s3prl/upstream/my_awesome_upstream/hubconf.py</span></code>, change <code class="code docutils literal notranslate"><span class="pre">customized_upstream</span></code> to <code class="code docutils literal notranslate"><span class="pre">my_entry_1</span></code></p></li>
+<li><p>In <code class="code docutils literal notranslate"><span class="pre">s3prl/hub.py</span></code>, add <code class="code docutils literal notranslate"><span class="pre">from</span> <span class="pre">s3prl.upstream.my_awesome_upstream.hubconf</span> <span class="pre">import</span> <span class="pre">*</span></code></p></li>
+<li></li>
+</ol>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>python3 utility/extract_feat.py my_entry_1 sample_hidden_states
+<span class="c1"># this script extract hidden states from an upstream entry to the &quot;sample_hidden_states&quot; folder</span>
+</pre></div>
+</div>
+<p>This will extract the hidden states from this <code class="code docutils literal notranslate"><span class="pre">my_entry_1</span></code> entry.
+The default content in <code class="code docutils literal notranslate"><span class="pre">s3prl/upstream/example/</span></code> always works, so you can simply edit the files
+inside the new <code class="code docutils literal notranslate"><span class="pre">s3prl/upstream/my_awesome_upstream</span></code> folder to enable your new upstream.</p>
+</section>
+<section id="implement">
+<h2>Implement<a class="headerlink" href="#implement" title="Permalink to this heading">#</a></h2>
+<p>The folder is in the following structure:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>my_awesome_upstream
+<span class="p">|</span>
+ ---- expert.py
+<span class="p">|</span>
+ ---- hubconf.py
+</pre></div>
+</div>
+<p>In principle, <code class="code docutils literal notranslate"><span class="pre">hubconf.py</span></code> serves as the URL registry, where each callable function is an entry specifying
+the source of the checkpoint, while the <code class="code docutils literal notranslate"><span class="pre">expert.py</span></code> serves as the wrapper of your model definition to fit
+with our upstream API.</p>
+<p>During your implementation, please try to remove as many package dependencies as possible, since the upstream
+functionality is our core feature, and should have minimal dependencies to be maintainable.</p>
+</section>
+<section id="tests">
+<h2>Tests<a class="headerlink" href="#tests" title="Permalink to this heading">#</a></h2>
+<p>After you implementation, please make sure all your entries can pass <a class="reference external" href="https://github.com/s3prl/s3prl/blob/8eac602117003e2bb5cdb7a4d0e94cc9975fd4f2/test/test_upstream.py#L194-L250">the tests</a>
+The <code class="code docutils literal notranslate"><span class="pre">test_upstream_with_extracted</span></code> test case requires you to pre-extract the expected hidden states via:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>python3 utility/extract_feat.py my_awesome_upstream ./sample_hidden_states
+</pre></div>
+</div>
+<p>That is, the test case expects there will be a <code class="code docutils literal notranslate"><span class="pre">my_awesome_upstream.pt</span></code> in the <code class="code docutils literal notranslate"><span class="pre">sample_hidden_states</span></code> folder.</p>
+<p>All the existing sampled hidden states are hosted at a <a class="reference external" href="https://huggingface.co/datasets/s3prl/sample_hidden_states/tree/main">Huggingface Dataset Repo</a>,
+and we expect you to clone (by <code class="code docutils literal notranslate"><span class="pre">git</span> <span class="pre">lfs</span></code>) this <code class="code docutils literal notranslate"><span class="pre">sample_hidden_states</span></code> repo and add the sampled hidden states for your new entries.</p>
+<p>To make changes to this hidden states repo, please follow the steps <a class="reference external" href="https://huggingface.co/datasets/s3prl/sample_hidden_states/discussions">here</a>
+to create a pull request, so that our core maintainer can sync the hidden states extracted by you.</p>
+<p>In conclusion, to add new upstream one needs to make two pull requests:</p>
+<ul class="simple">
+<li><p>To <a class="reference external" href="https://github.com/s3prl/s3prl/pulls">https://github.com/s3prl/s3prl/pulls</a></p></li>
+<li><p>To <a class="reference external" href="https://huggingface.co/datasets/s3prl/sample_hidden_states/tree/main">https://huggingface.co/datasets/s3prl/sample_hidden_states/tree/main</a></p></li>
+</ul>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>In fact, due to the huge time cost, most of the upstreams in S3PRL will not be tested in Github Action CI (or else it will take several hours
+to download all the checkpoints for every PRs). However, our core maintainers will still clone the repository and run tox locally to make sure
+everything works fine, and there is a <a class="reference external" href="https://github.com/s3prl/s3prl/blob/8eac602117003e2bb5cdb7a4d0e94cc9975fd4f2/tox.ini#L11">tox environment</a>
+testing all the upstreams.</p>
 </div>
 </section>
-<section id="editable-installation">
-<h2>Editable installation<a class="headerlink" href="#editable-installation" title="Permalink to this heading">#</a></h2>
-<p>Installing a package in the editable mode means when you use a imported class/function,
-the source code of the class/function is right in your cloned repository.
-So, when you modify the code inside it, the newly imported class/function will reflect
-your modification.</p>
-<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>git clone https://github.com/s3prl/s3prl.git
-<span class="nb">cd</span> s3prl
-pip install -e .
-</pre></div>
-</div>
-</section>
-<section id="full-installation">
-<h2>Full installation<a class="headerlink" href="#full-installation" title="Permalink to this heading">#</a></h2>
-<p>Install all the dependencies to enable all the S3PRL functions. However, there are <strong>LOTS</strong>
-of dependencies.</p>
-<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>pip install s3prl<span class="o">[</span>all<span class="o">]</span>
-
-<span class="c1"># editable</span>
-pip install <span class="s2">&quot;.[all]&quot;</span>
-</pre></div>
-</div>
-</section>
-<section id="development-installation">
-<h2>Development installation<a class="headerlink" href="#development-installation" title="Permalink to this heading">#</a></h2>
-<p>Install dependencies of full installation and extra packages for development,
-including <strong>pytest</strong> for unit-testing and <strong>sphinx</strong> for documentation.</p>
-<p>Usually, you will use this installation variant only in editable mode</p>
-<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>pip install <span class="s2">&quot;.[dev]&quot;</span>
-</pre></div>
-</div>
+<section id="documentation">
+<h2>Documentation<a class="headerlink" href="#documentation" title="Permalink to this heading">#</a></h2>
+<p>After all the implementation, make sure your efforts are known by the users by adding documentation of your entries at
+the <a class="reference internal" href="../tutorial/upstream_collection.html"><span class="doc">S3PRL Upstream Collection</span></a> tutorial page. Also, you can add your name at the bottom of the tutorial
+page if you like.</p>
 </section>
 </section>
 
@@ -384,23 +421,23 @@ including <strong>pytest</strong> for unit-testing and <strong>sphinx</strong> f
       <footer>
         
         <div class="related-pages">
-          <a class="next-page" href="upstream_collection.html">
+          <a class="next-page" href="../_autosummary/s3prl.nn.html">
               <div class="page-info">
                 <div class="context">
                   <span>Next</span>
                 </div>
-                <div class="title">S3PRL Upstream Collection</div>
+                <div class="title">nn</div>
               </div>
               <svg class="furo-related-icon"><use href="#svg-arrow-right"></use></svg>
             </a>
-          <a class="prev-page" href="../index.html">
+          <a class="prev-page" href="general.html">
               <svg class="furo-related-icon"><use href="#svg-arrow-right"></use></svg>
               <div class="page-info">
                 <div class="context">
                   <span>Previous</span>
                 </div>
                 
-                <div class="title">Home</div>
+                <div class="title">General Guideline</div>
                 
               </div>
             </a>
@@ -436,11 +473,12 @@ including <strong>pytest</strong> for unit-testing and <strong>sphinx</strong> f
         <div class="toc-tree-container">
           <div class="toc-tree">
             <ul>
-<li><a class="reference internal" href="#">Install S3PRL</a><ul>
-<li><a class="reference internal" href="#minimal-installation">Minimal installation</a></li>
-<li><a class="reference internal" href="#editable-installation">Editable installation</a></li>
-<li><a class="reference internal" href="#full-installation">Full installation</a></li>
-<li><a class="reference internal" href="#development-installation">Development installation</a></li>
+<li><a class="reference internal" href="#">Adding New Upstream</a><ul>
+<li><a class="reference internal" href="#discuss">Discuss</a></li>
+<li><a class="reference internal" href="#copy-from-the-template">Copy from the template</a></li>
+<li><a class="reference internal" href="#implement">Implement</a></li>
+<li><a class="reference internal" href="#tests">Tests</a></li>
+<li><a class="reference internal" href="#documentation">Documentation</a></li>
 </ul>
 </li>
 </ul>
