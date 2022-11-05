@@ -205,7 +205,9 @@ start=$SECONDS
 
 upstream_dir=$exps_root/$task/$upstream
 if [ ! -z "$override" ]; then
-    upstream_dir=${upstream_dir}/${override//,,/__}
+    sanitized_override=${override//,,/__}
+    sanitized_override=${sanitized_override//=/--}
+    upstream_dir=${upstream_dir}/${sanitized_override}
 fi
 mkdir -p $upstream_dir
 summary=$upstream_dir/summary
