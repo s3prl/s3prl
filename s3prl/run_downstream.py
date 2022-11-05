@@ -114,7 +114,7 @@ def get_downstream_args():
         else:
             ckpt_pth = args.past_exp
         messages.append(f'Resume from {ckpt_pth}')
-        args.expdir = Path(ckpt_pth).parent
+        args.expdir = Path(ckpt_pth).parent.as_posix()
         args.expname = Path(args.expdir).parts[-1]
 
         # load checkpoint
