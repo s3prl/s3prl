@@ -104,6 +104,9 @@ def _download_url_to_file(url, dst, hash_prefix=None, progress=True):
 def _download_url_to_file_requests(url, dst, hash_prefix=None, progress=True):
     """
     Alternative download when urllib.Request fails.
+
+    Authors
+        * Cheng Liang 2022
     """
 
     req = requests.get(url, stream=True, headers={"User-Agent": "torch.hub"})
