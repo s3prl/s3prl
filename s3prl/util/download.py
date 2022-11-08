@@ -3,6 +3,7 @@ Thread-safe file downloading and cacheing
 
 Authors
   * Leo 2022
+  * Cheng Liang 2022
 """
 
 import hashlib
@@ -15,6 +16,7 @@ import time
 from pathlib import Path
 from urllib.request import Request, urlopen
 
+import requests
 from filelock import FileLock
 from tqdm import tqdm
 
@@ -100,6 +102,60 @@ def _download_url_to_file(url, dst, hash_prefix=None, progress=True):
             os.remove(f.name)
 
 
+def _download_url_to_file_requests(url, dst, hash_prefix=None, progress=True):
+    """
+    Alternative download when urllib.Request fails.
+    """
+
+    req = requests.get(url, stream=True, headers={"User-Agent": "torch.hub"})
+    file_size = int(req.headers["Content-Length"])
+
+    dst = os.path.expanduser(dst)
+    dst_dir = os.path.dirname(dst)
+    f = tempfile.NamedTemporaryFile(delete=False, dir=dst_dir)
+
+    try:
+        if hash_prefix is not None:
+            sha256 = hashlib.sha256()
+
+        tqdm.write(
+            f"urllib.Request method failed. Trying using another method...",
+            file=sys.stderr,
+        )
+        tqdm.write(f"Downloading: {url}", file=sys.stderr)
+        tqdm.write(f"Destination: {dst}", file=sys.stderr)
+        with tqdm(
+            total=file_size,
+            disable=not progress,
+            unit="B",
+            unit_scale=True,
+            unit_divisor=1024,
+        ) as pbar:
+            for chunk in req.iter_content(chunk_size=1024 * 1024 * 10):
+                if chunk:
+                    f.write(chunk)
+                    f.flush()
+                    os.fsync(f.fileno())
+                    if hash_prefix is not None:
+                        sha256.update(chunk)
+                    pbar.update(len(chunk))
+
+        f.close()
+        if hash_prefix is not None:
+            digest = sha256.hexdigest()
+            if digest[: len(hash_prefix)] != hash_prefix:
+                raise RuntimeError(
+                    'invalid hash value (expected "{}", got "{}")'.format(
+                        hash_prefix, digest
+                    )
+                )
+        shutil.move(f.name, dst)
+    finally:
+        f.close()
+        if os.path.exists(f.name):
+            os.remove(f.name)
+
+
 def _download(filepath: Path, url, refresh: bool, new_enough_secs: float = 2.0):
     """
     If refresh is True, check the latest modfieid time of the filepath.
@@ -117,7 +173,10 @@ def _download(filepath: Path, url, refresh: bool, new_enough_secs: float = 2.0):
         if not filepath.is_file() or (
             refresh and (time.time() - os.path.getmtime(filepath)) > new_enough_secs
         ):
-            _download_url_to_file(url, filepath)
+            try:
+                _download_url_to_file(url, filepath)
+            except:
+                _download_url_to_file_requests(url, filepath)
 
     logger.info(f"Using URL's local file: {filepath}")
     try:
