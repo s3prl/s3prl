@@ -8,7 +8,6 @@ Authors
 import hashlib
 import logging
 import os
-import requests
 import shutil
 import sys
 import tempfile
@@ -16,6 +15,7 @@ import time
 from pathlib import Path
 from urllib.request import Request, urlopen
 
+import requests
 from filelock import FileLock
 from tqdm import tqdm
 
@@ -100,13 +100,14 @@ def _download_url_to_file(url, dst, hash_prefix=None, progress=True):
         if os.path.exists(f.name):
             os.remove(f.name)
 
+
 def _download_url_to_file_requests(url, dst, hash_prefix=None, progress=True):
     """
     Alternative download when urllib.Request fails.
     """
 
     req = requests.get(url, stream=True, headers={"User-Agent": "torch.hub"})
-    file_size = int(req.headers['Content-Length'])
+    file_size = int(req.headers["Content-Length"])
 
     dst = os.path.expanduser(dst)
     dst_dir = os.path.dirname(dst)
@@ -116,7 +117,10 @@ def _download_url_to_file_requests(url, dst, hash_prefix=None, progress=True):
         if hash_prefix is not None:
             sha256 = hashlib.sha256()
 
-        tqdm.write(f"urllib.Request method failed. Trying using another method...", file=sys.stderr)
+        tqdm.write(
+            f"urllib.Request method failed. Trying using another method...",
+            file=sys.stderr,
+        )
         tqdm.write(f"Downloading: {url}", file=sys.stderr)
         tqdm.write(f"Destination: {dst}", file=sys.stderr)
         with tqdm(
@@ -126,7 +130,7 @@ def _download_url_to_file_requests(url, dst, hash_prefix=None, progress=True):
             unit_scale=True,
             unit_divisor=1024,
         ) as pbar:
-            for chunk in req.iter_content(chunk_size=1024*1024*10):
+            for chunk in req.iter_content(chunk_size=1024 * 1024 * 10):
                 if chunk:
                     f.write(chunk)
                     f.flush()
@@ -149,6 +153,7 @@ def _download_url_to_file_requests(url, dst, hash_prefix=None, progress=True):
         f.close()
         if os.path.exists(f.name):
             os.remove(f.name)
+
 
 def _download(filepath: Path, url, refresh: bool, new_enough_secs: float = 2.0):
     """
