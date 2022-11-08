@@ -8,6 +8,7 @@ Authors
 import hashlib
 import logging
 import os
+import requests
 import shutil
 import sys
 import tempfile
@@ -103,7 +104,6 @@ def _download_url_to_file_requests(url, dst, hash_prefix=None, progress=True):
     """
     Alternative download when urllib.Request fails.
     """
-    import requests
 
     req = requests.get(url, stream=True, headers={"User-Agent": "torch.hub"})
     file_size = int(req.headers['Content-Length'])
