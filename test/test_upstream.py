@@ -161,6 +161,12 @@ def _filter_options(options: list):
         and (
             not name == "xls_r_2b"
         )  # skip due to too large model, too long download time
+        and (
+            not name in ["ast", "ssast_patch_base", "ssast_frame_base"]
+        )  # FIXME: remove timm dependency
+        and (not name == "vggish")  # FIXME: remove resampy dependency
+        and (not name == "byol_s_cvt")  # FIXME: remove einops dependency
+        and (not "lighthubert" in name)  # FIXME: solve the random subnet issue
     ]
     return options
 
