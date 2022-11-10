@@ -34,26 +34,26 @@ optimizer:
 #   num_time_mask: 10
 
 downstream_expert:
-  corpus:                                 
+  corpus:
     name: 'libriphone'                   # Specify corpus
-    path: '/home/leo/d/datasets/LibriSpeech'          # Path to raw LibriSpeech dataset
+    csv_dir: 'data/superb_pr'          # Path to raw LibriSpeech dataset
     lexicon:
       # - downstream/ctc/lexicon/librispeech-lexicon.txt
       - downstream/ctc/lexicon/librispeech-lexicon-200k-g2p.txt
       - downstream/ctc/lexicon/librispeech-lexicon-allothers-g2p.txt
 
-    train: ['train-clean-100']                # Name of data splits to be used as training set
-    dev: ['dev-clean']                    # Name of data splits to be used as validation set
-    test: ['test-clean']
+    train: train.csv
+    dev: dev.csv
+    test: test.csv
 
-    bucketing: True                       # Enable/Disable bucketing 
+    bucketing: True                       # Enable/Disable bucketing
     batch_size: 16
     num_workers: 24
-  
+
   text:
     mode: 'word'                       # 'character'/'word'/'subword'
     vocab_file: 'downstream/ctc/vocab/phoneme.txt'
-  
+
   model:
     project_dim: 256
     zero_infinity: True
