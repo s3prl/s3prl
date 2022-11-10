@@ -345,7 +345,7 @@ class Runner:
                             save_states(global_step, epoch, [f"states-{global_step - 1}.ckpt"])
                         training_completed = True
                         break
-                    
+
                     if backward_steps == 0:
                         find_tensor = False
                         for item in [wavs, *others]:
@@ -467,7 +467,7 @@ class Runner:
 
                 if len(save_names) > 0:
                     save_states(global_step, epoch, save_names)
-                
+
                 if is_initialized(): torch.distributed.barrier()
 
         pbar.close()
@@ -490,13 +490,16 @@ class Runner:
 
         # prepare data
         dataloader = self.downstream.get_dataloader(split)
-        evaluate_ratio = float(self.config["runner"].get("evaluate_ratio", 1))
-        evaluate_steps = round(len(dataloader) * evaluate_ratio)
+        total_steps = len(dataloader)
+        eval_batch = self.config["runner"].get("eval_batch")
+        if eval_batch is not None:
+            assert isinstance(eval_batch, int)
+            total_steps = eval_batch
 
         batch_ids = []
         records = defaultdict(list)
-        for batch_id, (wavs, *others) in enumerate(tqdm(dataloader, dynamic_ncols=True, desc=split, total=evaluate_steps)):
-            if batch_id > evaluate_steps:
+        for batch_id, (wavs, *others) in enumerate(tqdm(dataloader, dynamic_ncols=True, desc=split, total=total_steps)):
+            if batch_id > total_steps:
                 break
 
             wavs = [torch.FloatTensor(wav).to(self.args.device) for wav in wavs]

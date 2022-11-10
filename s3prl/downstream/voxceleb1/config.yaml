@@ -25,8 +25,7 @@ optimizer:
 
 downstream_expert:
   datarc:
-    file_path: /path/to/VoxCeleb1
-    meta_data: ./downstream/voxceleb1/veri_test_class.txt
+    csv_dir: data/superb_sid
     num_workers: 12
     train_batch_size: 8
     eval_batch_size: 1
