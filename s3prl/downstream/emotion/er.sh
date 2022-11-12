@@ -91,13 +91,13 @@ function single_trial() {
     local override=$3
     local run_test=$4
 
-    for fold in fold1 fold2 fold3 fold4 fold5;
+    for fold_id in 0 1 2 3 4;
     do
-        local expdir=$folds_expdir/$fold
+        local expdir=$folds_expdir/fold_$fold_id
         local dev_result="$(get_eval_result_single_fold $expdir "dev")"
         if [ -z "$dev_result" ]; then
             python3 run_downstream.py -m train -a -u $upstream -d emotion -p $expdir \
-                -o $override,,config.downstream_expert.datarc.test_fold=$fold
+                -o $override,,config.downstream_expert.datarc.test_fold=$fold_id
             eval_best_dev $expdir "dev"
         else
             echo "Dev result is find:"

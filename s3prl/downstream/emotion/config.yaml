@@ -24,17 +24,13 @@ optimizer:
 
 downstream_expert:
   datarc:
-    root: /groups/public/benchmark/IEMOCAP
-    meta_data: ./downstream/emotion/meta_data
-    test_fold: fold1
+    csv_dir: data/superb_er
+      # expect fold_0/train.csv, fold_0/dev.csv, fold_0/test.csv in the directory
+    test_fold: 0  # can change to 0, 1, 2, 3, 4
     pre_load: False
     train_batch_size: 4
     eval_batch_size: 4
     num_workers: 6
-    valid_ratio: 0.2
-    few_shot: {}
-      # n_shot: 5
-      # seed: 0
 
   modelrc:
     projector_dim: 256

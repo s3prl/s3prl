@@ -1,7 +1,4 @@
-import os
-import math
-import torch
-import random
+import logging
 from pathlib import Path
 
 import torch
@@ -13,6 +10,8 @@ from torch.nn.utils.rnn import pad_sequence
 from ..model import *
 from .model import *
 from .dataset import IEMOCAPDataset, collate_fn
+
+log = logging.getLogger(__name__)
 
 
 class DownstreamExpert(nn.Module):
@@ -27,43 +26,26 @@ class DownstreamExpert(nn.Module):
         self.datarc = downstream_expert['datarc']
         self.modelrc = downstream_expert['modelrc']
 
-        DATA_ROOT = self.datarc['root']
-        meta_data = self.datarc["meta_data"]
+        fold_id = int(self.datarc["test_fold"])
+        self.fold = f"fold{fold_id + 1}"
 
-        self.fold = self.datarc.get('test_fold') or kwargs.get("downstream_variant")
-        if self.fold is None:
-            self.fold = "fold1"
+        log.info(
+            f"Using the testing fold: {fold_id}. "
+            "Ps. Use -o config.downstream_expert.datarc.test_fold={fold_id (int)} to change the testing fold in the config."
+        )
 
-        print(f"[Expert] - using the testing fold: \"{self.fold}\". Ps. Use -o config.downstream_expert.datarc.test_fold=fold2 to change test_fold in config.")
-
-        train_path = os.path.join(
-            meta_data, self.fold.replace('fold', 'Session'), 'train_meta_data.json')
-        print(f'[Expert] - Training path: {train_path}')
-
-        test_path = os.path.join(
-            meta_data, self.fold.replace('fold', 'Session'), 'test_meta_data.json')
-        print(f'[Expert] - Testing path: {test_path}')
-
-        dataset = IEMOCAPDataset(DATA_ROOT, train_path, self.datarc['pre_load'])
-        trainlen = int((1 - self.datarc['valid_ratio']) * len(dataset))
-        lengths = [trainlen, len(dataset) - trainlen]
-
-        torch.manual_seed(0)
-        self.train_dataset, self.dev_dataset = random_split(dataset, lengths)
-        if 'few_shot' in self.datarc:
-            self.train_dataset = IEMOCAPDataset.from_subset(
-                self.train_dataset,
-                **self.datarc.get('few_shot', {}),
-            )
-
-        self.test_dataset = IEMOCAPDataset(DATA_ROOT, test_path, self.datarc['pre_load'])
+        pre_load = self.datarc["pre_load"]
+        fold_dir = Path(self.datarc["csv_dir"]) / f"fold_{fold_id}"
+        self.train_dataset = IEMOCAPDataset("train", fold_dir, pre_load)
+        self.dev_dataset = IEMOCAPDataset("dev", fold_dir, pre_load)
+        self.test_dataset = IEMOCAPDataset("test", fold_dir, pre_load)
 
         model_cls = eval(self.modelrc['select'])
         model_conf = self.modelrc.get(self.modelrc['select'], {})
         self.projector = nn.Linear(upstream_dim, self.modelrc['projector_dim'])
         self.model = model_cls(
             input_dim = self.modelrc['projector_dim'],
-            output_dim = dataset.class_num,
+            output_dim = self.train_dataset.class_num,
             **model_conf,
         )
         self.objective = nn.CrossEntropyLoss()

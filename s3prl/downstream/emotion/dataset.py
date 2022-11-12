@@ -5,83 +5,60 @@
     Copyright    [ Copyleft(c), Speech Lab, NTU, Taiwan ]
 """
 
-import json
-import random
 import logging
 from pathlib import Path
-from copy import deepcopy
-from collections import defaultdict
-from os.path import join as path_join
 
 import torchaudio
-from torch.utils.data import Dataset, Subset
+import pandas as pd
+from torch.utils.data import Dataset
 from torchaudio.transforms import Resample
 
 SAMPLE_RATE = 16000
 log = logging.getLogger(__name__)
 
 class IEMOCAPDataset(Dataset):
-    def __init__(self, data_dir, meta_path, pre_load=True):
-        self.data_dir = data_dir
+    def __init__(self, split: str, csv_dir: str, pre_load=True):
         self.pre_load = pre_load
-        with open(meta_path, 'r') as f:
-            self.data = json.load(f)
-        self.class_dict = self.data['labels']
-        self.idx2emotion = {value: key for key, value in self.class_dict.items()}
-        self.class_num = len(self.class_dict)
-        self.meta_data = self.data['meta_data']
-        _, origin_sr = torchaudio.load(
-            path_join(self.data_dir, self.meta_data[0]['path']))
+
+        assert split in ["train", "dev", "test"]
+        df = pd.read_csv(Path(csv_dir) / f"{split}.csv")
+
+        self.wav_paths = df["wav_path"].tolist()
+        self.labels = df["label"].tolist()
+
+        classes = sorted(set(self.labels))
+        self.class_num = len(classes)
+        self.idx2emotion = {idx: label for idx, label in enumerate(classes)}
+        self.emotion2idx = {label: idx for idx, label in enumerate(classes)}
+
+        _, origin_sr = torchaudio.load(self.wav_paths[0])
         self.resampler = Resample(origin_sr, SAMPLE_RATE)
         if self.pre_load:
             self.wavs = self._load_all()
 
-    @classmethod
-    def from_subset(cls, subset: Subset, n_shot: int = None, seed=0):
-        random.seed(seed)
-        dataset = deepcopy(subset.dataset)
-        indices = deepcopy(subset.indices)
-        dataset.meta_data = [dataset.meta_data[idx] for idx in indices]
-
-        if isinstance(n_shot, int):
-            emotion2indices = defaultdict(list)
-            for metadata in dataset.meta_data:
-                emotion2indices[metadata['label']].append(metadata)
-            for key in list(emotion2indices.keys()):
-                emotion2indices[key] = random.sample(emotion2indices[key], k=n_shot)
-
-            dataset.meta_data = []
-            for meta_data_list in emotion2indices.values():
-                dataset.meta_data += meta_data_list
-
-        if dataset.pre_load:
-            dataset.wavs = dataset._load_all()
-
-        return dataset
-
     def _load_wav(self, path):
-        wav, _ = torchaudio.load(path_join(self.data_dir, path))
+        wav, _ = torchaudio.load(path)
         wav = self.resampler(wav).squeeze(0)
         return wav
 
     def _load_all(self):
         wavforms = []
-        for info in self.meta_data:
-            wav = self._load_wav(info['path'])
+        for wav_path in self.wav_paths:
+            wav = self._load_wav(wav_path)
             wavforms.append(wav)
         return wavforms
 
     def __getitem__(self, idx):
-        label = self.meta_data[idx]['label']
-        label = self.class_dict[label]
+        wav_path = self.wav_paths[idx]
+        label_id = self.emotion2idx[self.labels[idx]]
         if self.pre_load:
             wav = self.wavs[idx]
         else:
-            wav = self._load_wav(self.meta_data[idx]['path'])
-        return wav.numpy(), label, Path(self.meta_data[idx]['path']).stem
+            wav = self._load_wav(wav_path)
+        return wav.numpy(), label_id, Path(wav_path).stem
 
     def __len__(self):
-        return len(self.meta_data)
+        return len(self.wav_paths)
 
 def collate_fn(samples):
     return zip(*samples)
