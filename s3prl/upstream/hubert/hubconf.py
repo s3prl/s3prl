@@ -84,3 +84,8 @@ def hubert_base_robust_mgr(refresh=False, legacy=False, **kwargs):
             "ckpt"
         ] = "https://huggingface.co/s3prl/converted_ckpts/resolve/main/HuBERT_base_robust_mgr_best_loss_2.7821.pt"
     return hubert_custom(refresh=refresh, legacy=legacy, **kwargs)
+
+
+def mhubert_base_vp_en_es_fr_it3(refresh=False, **kwds):
+    kwds["ckpt"] = "https://huggingface.co/s3prl/converted_ckpts/resolve/main/mhubert_base_vp_en_es_fr_it3.pt"
+    return hubert_custom(refresh=refresh, **kwds)
