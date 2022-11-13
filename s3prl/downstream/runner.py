@@ -337,6 +337,7 @@ class Runner:
                         if continual_error >= MAX_CONTINUAL_ERROR:
                             log.error(f"Reach max continual error {MAX_CONTINUAL_ERROR} due OOM or NaN gradient. Please "
                                        "reduce the batch size / learning rate, or re-check the model's numerical stability")
+                            exit(1)
                         else:
                             log.info("The training successfully completes")
 
@@ -427,7 +428,7 @@ class Runner:
                 # This optimization successfully completes
                 continual_error = 0
                 pbar.update(1)
-                
+
                 if not is_leader_process():
                     batch_ids = []
                     records = defaultdict(list)
@@ -563,7 +564,7 @@ class Runner:
             organization = os.environ.get("HF_USERNAME")
         huggingface_token = HfFolder.get_token()
         log.info(f"Organisation to push fine-tuned model to: {organization}")
-        
+
         # Extract upstream repository metadata
         if self.args.hub == "huggingface":
             model_info = HfApi().model_info(self.args.upstream, token=huggingface_token)
