@@ -6,7 +6,7 @@ supported_tasks="PR, KS, IC, SID, ER, ASR, SF, ASV, SD, VC, SE"
 usage="The runfile for SUPERB Benchmark
 
 USAGE
-    $0 -u UPSTREAM -t TASK -p EXPS_ROOT [-h] [-o OVERRIDE] [-r EXPLORE_RATIO] [-l LR1] [-l LR2] ... [-s STAGE1] [-s STAGE2] ... [-e EARLY_STOP]
+    $0 -u UPSTREAM -t TASK -p EXPS_ROOT [-h] [-o OVERRIDE] -O [OVERRIDE] [-r EXPLORE_RATIO] [-l LR1] [-l LR2] ... [-s STAGE1] [-s STAGE2] ... [-e EARLY_STOP]
 
     This runfile handles the learning rate (lr) search in the benchmark when training the downstream models. Since different upstreams
     (SSL models) need different suitable lr. Without the careful search, the final ranking can have huge differences. However, a single
@@ -39,7 +39,7 @@ USAGE
     SUPERB documentation: https://github.com/s3prl/s3prl/blob/master/s3prl/downstream/docs/superb.md
 
     By default, weighted-sum on all the hidden states are trained along with the downstream model. You can benchmark an upstream's layer-wise
-    performance via -o (which can overrides any command-line argument and config file field of run_downstream.py) to select a specific layer.
+    performance via -o (which can override any command-line argument and config file field of run_downstream.py) to select a specific layer.
     The following command benchmarks the 3-rd layer of HuBERT Base on Keyword Spotting.
 
     ./downstream/superb.sh -u hubert -t KS -p result/superb/ -o args.upstream_layer_selection=3
@@ -61,6 +61,10 @@ USAGE
     Can be used to override any default fields in the args and the config file
     eg. args.upstream_layer_selection=3 to use the 3-rd layer as the representation to benchmark
         (Default use all layers and train the weighted-sum on them.)
+
+-O OVERRIDE_NOT_SHOWN (optional)
+    Default: empty
+    The override that won't appear as the folder name
 
 -r EXPLORE_RATIO (float, optional)
     Default: task-dependent
@@ -99,6 +103,9 @@ do
             ;;
         o)
             override=${OPTARG}
+            ;;
+        O)
+            override_not_shown=${OPTARG}
             ;;
         r)
             explore_ratio=${OPTARG}
@@ -209,6 +216,14 @@ if [ ! -z "$override" ]; then
     sanitized_override=${sanitized_override//=/--}
     upstream_dir=${upstream_dir}/${sanitized_override}
 fi
+if [ ! -z "$override_not_shown" ]; then
+    if [ ! -z "$override" ]; then
+        override="${override},,${override_not_shown}"
+    else;
+        override="${override_not_shown}"
+    fi
+fi
+
 mkdir -p $upstream_dir
 summary=$upstream_dir/summary
 [ -f $summary ] && rm $summary
