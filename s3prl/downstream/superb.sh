@@ -89,7 +89,7 @@ USAGE
 "
 
 # Parse options
-while getopts "u:t:p:o:r:l:s:e:h" flag
+while getopts "u:t:p:o:O:r:l:s:e:h" flag
 do
     case "${flag}" in
         u)
@@ -219,7 +219,7 @@ fi
 if [ ! -z "$override_not_shown" ]; then
     if [ ! -z "$override" ]; then
         override="${override},,${override_not_shown}"
-    else;
+    else
         override="${override_not_shown}"
     fi
 fi
