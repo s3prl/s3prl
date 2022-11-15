@@ -11,8 +11,6 @@ import math
 import torch
 from torch import nn
 
-from s3prl import Output
-
 __all__ = [
     "TransformerConfig",
     "TransformerLayer",
@@ -415,7 +413,7 @@ class TransformerInitModel(nn.Module):
 
     def __init__(self, config, output_attentions, *inputs, **kwargs):
         super(TransformerInitModel, self).__init__()
-        self.config = config
+        self.config = TransformerConfig(**config) if type(config) is dict else config
         self.output_attentions = output_attentions
 
     def init_Transformer_weights(self, module):
@@ -470,10 +468,10 @@ class TransformerMockingjay(TransformerInitModel):
         self.with_input_module = with_input_module
         if self.with_input_module:
             self.input_representations = TransformerInputRepresentations(
-                config, input_dim
+                self.config, input_dim
             )
         self.encoder = TransformerEncoder(
-            config,
+            self.config,
             output_attentions=output_attentions,
             keep_multihead_output=keep_multihead_output,
         )
@@ -526,19 +524,16 @@ class TransformerMockingjay(TransformerInitModel):
                 An optional torch.Tensor of shape [num_heads] or [num_layers, num_heads] with indices between 0 and 1.
                 It's a mask to be used to nullify some heads of the transformer. 1.0 => head is fully masked, 0.0 => head is not masked.
         Return:
-            Output (s3prl.Output):
-                An Output module that contains `hidden_states` and/or `output`.
-
-                hidden_states (encoded_layers):
-                    controled by the `output_all_encoded_layers` argument of `forward`:
-                    - If `output_all_encoded_layers==True`: outputs a list of the full sequences of encoded-hidden-states
-                        at the end of each attention block, each encoded-hidden-state is a torch.FloatTensor
-                        of size [batch_size, sequence_length, hidden_size], i.e [num_hidden_layers, batch_size, sequence_length, hidden_size]
-                    - If `output_all_encoded_layers==False`: outputs only the full sequence of hidden-states corresponding
-                        to the last attention block of shape [batch_size, sequence_length, hidden_size].
-                output (all_attentions):
-                    controled by the `output_attentions` argument of `__init__`:
-                    - If `output_attentions==True`, also output attentions weights computed by the model at each layer.
+            hidden_states (encoded_layers):
+                controled by the `output_all_encoded_layers` argument of `forward`:
+                - If `output_all_encoded_layers==True`: outputs a list of the full sequences of encoded-hidden-states
+                    at the end of each attention block, each encoded-hidden-state is a torch.FloatTensor
+                    of size [batch_size, sequence_length, hidden_size], i.e [num_hidden_layers, batch_size, sequence_length, hidden_size]
+                - If `output_all_encoded_layers==False`: outputs only the full sequence of hidden-states corresponding
+                    to the last attention block of shape [batch_size, sequence_length, hidden_size].
+            output (all_attentions):
+                controled by the `output_attentions` argument of `__init__`:
+                - If `output_attentions==True`, also output attentions weights computed by the model at each layer.
         """
         if attention_mask is None:
             attention_mask = torch.ones_like(spec_input)
@@ -598,5 +593,5 @@ class TransformerMockingjay(TransformerInitModel):
         if not output_all_encoded_layers:
             encoded_layers = encoded_layers[-1]
         if self.output_attentions:
-            return Output(output=all_attentions, hidden_states=encoded_layers)
-        return Output(hidden_states=encoded_layers)
+            return all_attentions, encoded_layers
+        return encoded_layers

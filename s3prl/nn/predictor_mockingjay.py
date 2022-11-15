@@ -1,6 +1,5 @@
 from torch import nn
 
-from s3prl import Output
 from s3prl.nn.transformer_mockingjay import (
     ACT2FN,
     TransformerConfig,
@@ -44,24 +43,23 @@ class PredictorMockingjay(nn.Module):
         )
         self.output = nn.Linear(config.hidden_size, self.output_size)
 
-    def forward(self, inputs, output_states=False):
+    def forward(self, hidden_states, output_states=False):
         """
         Args:
-            inputs (torch.LongTensor):
+            hidden_states (torch.LongTensor):
                 A torch.LongTensor of shape [batch_size, sequence_length, input_dim]
             output_states (bool):
                 A boolean which controls whether to return the `hidden_states` of the predictor.
                 Default: False
         Return:
-            Output (s3prl.Output):
-                An Output module that contains `prediction` and/or `hidden_states`.
+            prediction (torch.LongTensor)
+            hidden_states (torch.LongTensor): optional
         """
-        hidden_states = inputs.hidden_states
         hidden_states = self.dense(hidden_states)
         hidden_states = self.transform_act_fn(hidden_states)
         hidden_states = self.LayerNorm(hidden_states)
         prediction = self.output(hidden_states)
         if output_states:
-            return Output(hidden_states=hidden_states, prediction=prediction)
+            return hidden_states, prediction
         else:
-            return Output(prediction=prediction)
+            return prediction
