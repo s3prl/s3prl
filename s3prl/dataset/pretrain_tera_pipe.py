@@ -72,6 +72,7 @@ class PretrainTeraPipe(SequentialDataPipe):
         """
         output_keys = output_keys or dict(
             x="masked_feat",
+            x_len="wav_len",
             label="target_feat",
             label_mask="label_mask",
             position_encoding="pos_enc",
@@ -81,7 +82,6 @@ class PretrainTeraPipe(SequentialDataPipe):
 
         super().__init__(
             LoadAudio(
-                n_jobs=n_jobs,
                 audio_sample_rate=audio_sample_rate,
                 audio_channel_reduction=audio_channel_reduction,
             ),
