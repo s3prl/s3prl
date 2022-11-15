@@ -382,3 +382,28 @@ class UpstreamDownstreamModel(nn.Module):
 
         h, h_len = self.featurizer(hs, hs_len)
         return self.downstream(h, h_len, *args, **kwargs)
+
+
+class UpstreamPredictorModel(nn.Module):
+    def __init__(
+        self,
+        upstream,
+        predictor,
+        loss,
+    ):
+        super().__init__()
+        self.upstream = upstream
+        self.predictor = predictor
+        self.loss = loss
+
+    @property
+    def input_size(self):
+        return self.upstream.input_size
+
+    @property
+    def downsample_rate(self):
+        return 1
+
+    @property
+    def output_size(self):
+        return self.predictor.output_size
