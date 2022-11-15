@@ -1,5 +1,4 @@
 import logging
-from collections import OrderedDict
 from copy import deepcopy
 from functools import partial
 from typing import Any, List, Union
@@ -22,7 +21,7 @@ class AugmentedDynamicItemDataset(DynamicItemDataset):
         tools: dict = {},
     ):
         super().__init__(data, dynamic_items, output_keys)
-        assert isinstance(data, OrderedDict)
+        assert isinstance(data, dict)
         self._tools = {}
         for name, item in tools.items():
             self.add_tool(name, item)
