@@ -339,8 +339,14 @@ if [ "$stage2" = true ]; then
                     for file in $files;
                     do
                         src_file=$src_dir/$file
-                        echo "Copying $file"
-                        cp -r $src_file $tgt_dir/
+                        tgt_file=$tgt_dir/$file
+
+                        if [ -f $tgt_file ]; then
+                            echo "Found ${file} in the destination dirrectory ${tgt_dir}. Skip copying."
+                        else
+                            echo "Copying $file"
+                            cp -r $src_file $tgt_dir/
+                        fi
                     done
                 else
                     echo "Files not found for the pattern "$pattern" in $dir"
