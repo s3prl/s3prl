@@ -199,3 +199,14 @@ def wav2vec2_large_s2st_es_voxpopuli(refresh=False, legacy=False, **kwargs):
             "ckpt"
         ] = "https://huggingface.co/s3prl/converted_ckpts/resolve/main/wav2vec2-large-s2st-es-voxpopuli.pt"
     return wav2vec2_custom(refresh=refresh, legacy=legacy, **kwargs)
+
+
+def wav2vec2_base_ll60k(refresh=False, legacy=False, **kwargs):
+    kwargs[
+        "ckpt"
+    ] = "https://dl.fbaipublicfiles.com/fairseq/speech_to_speech/s2st_finetuning/w2v2/en/transformer_B.pt"
+    if not legacy:
+        kwargs[
+            "ckpt"
+        ] = "https://huggingface.co/s3prl/converted_ckpts/resolve/main/wav2vec2_base_ll60k.pt"
+    return wav2vec2_custom(refresh=refresh, legacy=legacy, **kwargs)
