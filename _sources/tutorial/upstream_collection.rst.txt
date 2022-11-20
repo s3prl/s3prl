@@ -706,6 +706,8 @@ The Large model trained on Libri-Light 60k hours + CommonVoice + Switchboard + F
 wav2vec2_conformer_relpos
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
+The results can be found in the Table 4 of `fairseq S2T: Fast Speech-to-Text Modeling with fairseq <https://arxiv.org/abs/2010.05171>`_.
+
 - Architecture: 24-layer Conformer encoders with relative positional encoding
 - Unlabeled Speech: LibriLight LL60k hours
 
@@ -713,8 +715,38 @@ wav2vec2_conformer_relpos
 wav2vec2_conformer_rope
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
+The results can be found in the Table 4 of `fairseq S2T: Fast Speech-to-Text Modeling with fairseq <https://arxiv.org/abs/2010.05171>`_.
+
 - Architecture: 24-layer Conformer encoders with ROPE positional encoding
 - Unlabeled Speech: LibriLight LL60k hours
+
+
+wav2vec2_base_s2st_es_voxpopuli
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+- The wav2vec2 model from `Enhanced Direct Speech-to-Speech Translation Using Self-supervised Pre-training and Data Augmentation <https://arxiv.org/abs/2204.02967>`_,
+- released in Fairseq with the link: `https://dl.fbaipublicfiles.com/fairseq/speech_to_speech/s2st_finetuning/w2v2/es/transformer_B.pt <https://dl.fbaipublicfiles.com/fairseq/speech_to_speech/s2st_finetuning/w2v2/es/transformer_B.pt>`_
+
+
+wav2vec2_base_s2st_en_librilight
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+- The wav2vec2 model from `Enhanced Direct Speech-to-Speech Translation Using Self-supervised Pre-training and Data Augmentation <https://arxiv.org/abs/2204.02967>`_,
+- released in Fairseq with the link: `https://dl.fbaipublicfiles.com/fairseq/speech_to_speech/s2st_finetuning/w2v2/en/transformer_B.pt <https://dl.fbaipublicfiles.com/fairseq/speech_to_speech/s2st_finetuning/w2v2/en/transformer_B.pt>`_
+
+
+wav2vec2_conformer_large_s2st_es_voxpopuli
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+- The wav2vec2 model from `Enhanced Direct Speech-to-Speech Translation Using Self-supervised Pre-training and Data Augmentation <https://arxiv.org/abs/2204.02967>`_,
+- released in Fairseq with the link: `https://dl.fbaipublicfiles.com/fairseq/speech_to_speech/s2st_finetuning/w2v2/es/conformer_L.pt <https://dl.fbaipublicfiles.com/fairseq/speech_to_speech/s2st_finetuning/w2v2/es/conformer_L.pt>`_
+
+
+wav2vec2_conformer_large_s2st_en_librilight
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+- The wav2vec2 model from `Enhanced Direct Speech-to-Speech Translation Using Self-supervised Pre-training and Data Augmentation <https://arxiv.org/abs/2204.02967>`_,
+- released in Fairseq with the link: `https://dl.fbaipublicfiles.com/fairseq/speech_to_speech/s2st_finetuning/w2v2/en/conformer_L.pt <https://dl.fbaipublicfiles.com/fairseq/speech_to_speech/s2st_finetuning/w2v2/en/conformer_L.pt>`_
 
 
 xlsr_53

@@ -6,7 +6,7 @@
 <link rel="index" title="Index" href="../genindex.html" /><link rel="search" title="Search" href="../search.html" /><link rel="next" title="Use Problem module to run customizable recipes" href="problem.html" /><link rel="prev" title="Install S3PRL" href="installation.html" />
 
     <meta name="generator" content="sphinx-5.1.1, furo 2022.09.29"/>
-        <title>S3PRL Upstream Collection - S3PRL 0.4.7 documentation</title>
+        <title>S3PRL Upstream Collection - S3PRL 0.4.8 documentation</title>
       <link rel="stylesheet" type="text/css" href="../_static/pygments.css" />
     <link rel="stylesheet" type="text/css" href="../_static/styles/furo.css?digest=d81277517bee4d6b0349d71bb2661d4890b5617c" />
     <link rel="stylesheet" type="text/css" href="../_static/styles/furo-extensions.css?digest=30d1aed668e5c3a91c3e3bf6a60b675221979f0e" />
@@ -124,7 +124,7 @@
       </label>
     </div>
     <div class="header-center">
-      <a href="../index.html"><div class="brand">S3PRL 0.4.7
+      <a href="../index.html"><div class="brand">S3PRL 0.4.8
  documentation</div></a>
     </div>
     <div class="header-right">
@@ -148,7 +148,7 @@
       <div class="sidebar-sticky"><a class="sidebar-brand" href="../index.html">
   
   
-  <span class="sidebar-brand-text">S3PRL 0.4.7
+  <span class="sidebar-brand-text">S3PRL 0.4.8
  documentation</span>
   
 </a><form class="sidebar-search-container" method="get" action="../search.html" role="search">
@@ -970,6 +970,7 @@ in S3PRL.</p>
 </section>
 <section id="wav2vec2-conformer-relpos">
 <h3>wav2vec2_conformer_relpos<a class="headerlink" href="#wav2vec2-conformer-relpos" title="Permalink to this heading">#</a></h3>
+<p>The results can be found in the Table 4 of <a class="reference external" href="https://arxiv.org/abs/2010.05171">fairseq S2T: Fast Speech-to-Text Modeling with fairseq</a>.</p>
 <ul class="simple">
 <li><p>Architecture: 24-layer Conformer encoders with relative positional encoding</p></li>
 <li><p>Unlabeled Speech: LibriLight LL60k hours</p></li>
@@ -977,9 +978,38 @@ in S3PRL.</p>
 </section>
 <section id="wav2vec2-conformer-rope">
 <h3>wav2vec2_conformer_rope<a class="headerlink" href="#wav2vec2-conformer-rope" title="Permalink to this heading">#</a></h3>
+<p>The results can be found in the Table 4 of <a class="reference external" href="https://arxiv.org/abs/2010.05171">fairseq S2T: Fast Speech-to-Text Modeling with fairseq</a>.</p>
 <ul class="simple">
 <li><p>Architecture: 24-layer Conformer encoders with ROPE positional encoding</p></li>
 <li><p>Unlabeled Speech: LibriLight LL60k hours</p></li>
+</ul>
+</section>
+<section id="wav2vec2-base-s2st-es-voxpopuli">
+<h3>wav2vec2_base_s2st_es_voxpopuli<a class="headerlink" href="#wav2vec2-base-s2st-es-voxpopuli" title="Permalink to this heading">#</a></h3>
+<ul class="simple">
+<li><p>The wav2vec2 model from <a class="reference external" href="https://arxiv.org/abs/2204.02967">Enhanced Direct Speech-to-Speech Translation Using Self-supervised Pre-training and Data Augmentation</a>,</p></li>
+<li><p>released in Fairseq with the link: <a class="reference external" href="https://dl.fbaipublicfiles.com/fairseq/speech_to_speech/s2st_finetuning/w2v2/es/transformer_B.pt">https://dl.fbaipublicfiles.com/fairseq/speech_to_speech/s2st_finetuning/w2v2/es/transformer_B.pt</a></p></li>
+</ul>
+</section>
+<section id="wav2vec2-base-s2st-en-librilight">
+<h3>wav2vec2_base_s2st_en_librilight<a class="headerlink" href="#wav2vec2-base-s2st-en-librilight" title="Permalink to this heading">#</a></h3>
+<ul class="simple">
+<li><p>The wav2vec2 model from <a class="reference external" href="https://arxiv.org/abs/2204.02967">Enhanced Direct Speech-to-Speech Translation Using Self-supervised Pre-training and Data Augmentation</a>,</p></li>
+<li><p>released in Fairseq with the link: <a class="reference external" href="https://dl.fbaipublicfiles.com/fairseq/speech_to_speech/s2st_finetuning/w2v2/en/transformer_B.pt">https://dl.fbaipublicfiles.com/fairseq/speech_to_speech/s2st_finetuning/w2v2/en/transformer_B.pt</a></p></li>
+</ul>
+</section>
+<section id="wav2vec2-conformer-large-s2st-es-voxpopuli">
+<h3>wav2vec2_conformer_large_s2st_es_voxpopuli<a class="headerlink" href="#wav2vec2-conformer-large-s2st-es-voxpopuli" title="Permalink to this heading">#</a></h3>
+<ul class="simple">
+<li><p>The wav2vec2 model from <a class="reference external" href="https://arxiv.org/abs/2204.02967">Enhanced Direct Speech-to-Speech Translation Using Self-supervised Pre-training and Data Augmentation</a>,</p></li>
+<li><p>released in Fairseq with the link: <a class="reference external" href="https://dl.fbaipublicfiles.com/fairseq/speech_to_speech/s2st_finetuning/w2v2/es/conformer_L.pt">https://dl.fbaipublicfiles.com/fairseq/speech_to_speech/s2st_finetuning/w2v2/es/conformer_L.pt</a></p></li>
+</ul>
+</section>
+<section id="wav2vec2-conformer-large-s2st-en-librilight">
+<h3>wav2vec2_conformer_large_s2st_en_librilight<a class="headerlink" href="#wav2vec2-conformer-large-s2st-en-librilight" title="Permalink to this heading">#</a></h3>
+<ul class="simple">
+<li><p>The wav2vec2 model from <a class="reference external" href="https://arxiv.org/abs/2204.02967">Enhanced Direct Speech-to-Speech Translation Using Self-supervised Pre-training and Data Augmentation</a>,</p></li>
+<li><p>released in Fairseq with the link: <a class="reference external" href="https://dl.fbaipublicfiles.com/fairseq/speech_to_speech/s2st_finetuning/w2v2/en/conformer_L.pt">https://dl.fbaipublicfiles.com/fairseq/speech_to_speech/s2st_finetuning/w2v2/en/conformer_L.pt</a></p></li>
 </ul>
 </section>
 <section id="xlsr-53">
@@ -1039,8 +1069,8 @@ in S3PRL.</p>
 <span class="o">}</span>
 </pre></div>
 </div>
-<section id="id11">
-<h3>hubert<a class="headerlink" href="#id11" title="Permalink to this heading">#</a></h3>
+<section id="id15">
+<h3>hubert<a class="headerlink" href="#id15" title="Permalink to this heading">#</a></h3>
 <p>This is alias of <a class="reference internal" href="#hubert-base">hubert_base</a></p>
 </section>
 <section id="hubert-base">
@@ -1069,8 +1099,8 @@ in S3PRL.</p>
 <span class="o">}</span>
 </pre></div>
 </div>
-<section id="id12">
-<h3>distilhubert<a class="headerlink" href="#id12" title="Permalink to this heading">#</a></h3>
+<section id="id16">
+<h3>distilhubert<a class="headerlink" href="#id16" title="Permalink to this heading">#</a></h3>
 <p>Alias of <a class="reference internal" href="#distilhubert-base">distilhubert_base</a></p>
 </section>
 <section id="distilhubert-base">
@@ -1113,8 +1143,8 @@ in S3PRL.</p>
 <span class="o">}</span>
 </pre></div>
 </div>
-<section id="id13">
-<h3>unispeech_sat<a class="headerlink" href="#id13" title="Permalink to this heading">#</a></h3>
+<section id="id17">
+<h3>unispeech_sat<a class="headerlink" href="#id17" title="Permalink to this heading">#</a></h3>
 <p>Alias of <a class="reference internal" href="#unispeech-sat-base">unispeech_sat_base</a></p>
 </section>
 <section id="unispeech-sat-base">
@@ -1152,8 +1182,8 @@ in S3PRL.</p>
 <span class="o">}</span>
 </pre></div>
 </div>
-<section id="id14">
-<h3>wavlm<a class="headerlink" href="#id14" title="Permalink to this heading">#</a></h3>
+<section id="id18">
+<h3>wavlm<a class="headerlink" href="#id18" title="Permalink to this heading">#</a></h3>
 <p>Alias of <a class="reference internal" href="#wavlm-base-plus">wavlm_base_plus</a></p>
 </section>
 <section id="wavlm-base">
@@ -1189,8 +1219,8 @@ in S3PRL.</p>
 <span class="o">}</span>
 </pre></div>
 </div>
-<section id="id15">
-<h3>data2vec<a class="headerlink" href="#id15" title="Permalink to this heading">#</a></h3>
+<section id="id19">
+<h3>data2vec<a class="headerlink" href="#id19" title="Permalink to this heading">#</a></h3>
 <p>Alias of <a class="reference internal" href="#data2vec-base-960">data2vec_base_960</a></p>
 </section>
 <section id="data2vec-base-960">
@@ -1249,8 +1279,8 @@ above), the stride seconds between windows.</p>
 </tbody>
 </table>
 </div>
-<section id="id16">
-<h3>ast<a class="headerlink" href="#id16" title="Permalink to this heading">#</a></h3>
+<section id="id20">
+<h3>ast<a class="headerlink" href="#id20" title="Permalink to this heading">#</a></h3>
 <ul class="simple">
 <li><p>Labeled Data: AudioSet</p></li>
 </ul>
@@ -1438,8 +1468,8 @@ above), the stride seconds between windows.</p>
 <span class="o">}</span>
 </pre></div>
 </div>
-<section id="id17">
-<h3>vggish<a class="headerlink" href="#id17" title="Permalink to this heading">#</a></h3>
+<section id="id21">
+<h3>vggish<a class="headerlink" href="#id21" title="Permalink to this heading">#</a></h3>
 <ul class="simple">
 <li><p>Labaled Data: AudioSet</p></li>
 </ul>
