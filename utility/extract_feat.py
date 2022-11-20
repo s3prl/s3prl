@@ -1,3 +1,4 @@
+import logging
 import argparse
 from pathlib import Path
 
@@ -6,10 +7,14 @@ import torch
 from s3prl.nn import S3PRLUpstream
 from s3prl.util.pseudo_data import get_pseudo_wavs
 
+logger = logging.getLogger(__name__)
+
 SAMPLE_RATE = 16000
 
 
 if __name__ == "__main__":
+    logging.basicConfig(level=logging.INFO)
+
     parser = argparse.ArgumentParser()
     parser.add_argument("name")
     parser.add_argument("output_dir", help="./sample_hidden_states")

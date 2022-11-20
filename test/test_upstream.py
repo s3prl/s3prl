@@ -167,7 +167,12 @@ def _filter_options(options: list):
         and (not name == "vggish")  # FIXME: remove resampy dependency
         and (not name == "byol_s_cvt")  # FIXME: remove einops dependency
         and (not "lighthubert" in name)  # FIXME: solve the random subnet issue
+        and (not name == "passt_hop160base2lvl")  # too huge memory usage
+        and (not name == "passt_hop160base2lvlmel")  # too huge memory usage
+        and (not name == "passt_hop100base2lvl")  # too huge memory usage
+        and (not name == "passt_hop100base2lvlmel")  # too huge memory usage
     ]
+    options = [option for option in options if "passt" in option]
     return options
 
 
