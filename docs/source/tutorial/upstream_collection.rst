@@ -831,6 +831,12 @@ hubert_large_ll60k
 - Unlabled Speech: LibriLight ll60k hours
 
 
+mhubert_base_vp_en_es_fr_it3
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+- The multilingual model from `Textless Speech-to-Speech Translation on Real Data <https://arxiv.org/abs/2112.08352>`_
+
+
 DistilHuBERT
 ----------------------
 `DistilHuBERT: Speech Representation Learning by Layer-wise Distillation of Hidden-unit BERT <https://arxiv.org/abs/2110.01900>`_
