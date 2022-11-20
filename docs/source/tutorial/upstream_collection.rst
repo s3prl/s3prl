@@ -721,6 +721,34 @@ The results can be found in the Table 4 of `fairseq S2T: Fast Speech-to-Text Mod
 - Unlabeled Speech: LibriLight LL60k hours
 
 
+wav2vec2_base_s2st_es_voxpopuli
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+- The wav2vec2 model from `Enhanced Direct Speech-to-Speech Translation Using Self-supervised Pre-training and Data Augmentation <https://arxiv.org/abs/2204.02967>`_,
+- released in Fairseq with the link: `https://dl.fbaipublicfiles.com/fairseq/speech_to_speech/s2st_finetuning/w2v2/es/transformer_B.pt <https://dl.fbaipublicfiles.com/fairseq/speech_to_speech/s2st_finetuning/w2v2/es/transformer_B.pt>`_
+
+
+wav2vec2_base_s2st_en_librilight
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+- The wav2vec2 model from `Enhanced Direct Speech-to-Speech Translation Using Self-supervised Pre-training and Data Augmentation <https://arxiv.org/abs/2204.02967>`_,
+- released in Fairseq with the link: `https://dl.fbaipublicfiles.com/fairseq/speech_to_speech/s2st_finetuning/w2v2/en/transformer_B.pt <https://dl.fbaipublicfiles.com/fairseq/speech_to_speech/s2st_finetuning/w2v2/en/transformer_B.pt>`_
+
+
+wav2vec2_conformer_large_s2st_es_voxpopuli
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+- The wav2vec2 model from `Enhanced Direct Speech-to-Speech Translation Using Self-supervised Pre-training and Data Augmentation <https://arxiv.org/abs/2204.02967>`_,
+- released in Fairseq with the link: `https://dl.fbaipublicfiles.com/fairseq/speech_to_speech/s2st_finetuning/w2v2/es/conformer_L.pt <https://dl.fbaipublicfiles.com/fairseq/speech_to_speech/s2st_finetuning/w2v2/es/conformer_L.pt>`_
+
+
+wav2vec2_conformer_large_s2st_en_librilight
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+- The wav2vec2 model from `Enhanced Direct Speech-to-Speech Translation Using Self-supervised Pre-training and Data Augmentation <https://arxiv.org/abs/2204.02967>`_,
+- released in Fairseq with the link: `https://dl.fbaipublicfiles.com/fairseq/speech_to_speech/s2st_finetuning/w2v2/en/conformer_L.pt <https://dl.fbaipublicfiles.com/fairseq/speech_to_speech/s2st_finetuning/w2v2/en/conformer_L.pt>`_
+
+
 xlsr_53
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
