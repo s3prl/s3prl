@@ -13,6 +13,7 @@ from s3prl.upstream.decoar_layers.hubconf import *
 from s3prl.upstream.distiller.hubconf import *
 from s3prl.upstream.example.hubconf import *
 from s3prl.upstream.hubert.hubconf import *
+from s3prl.upstream.hubert_hf.hubconf import *
 from s3prl.upstream.lighthubert.hubconf import *
 from s3prl.upstream.log_stft.hubconf import *
 from s3prl.upstream.mae_ast.hubconf import *
@@ -29,6 +30,7 @@ from s3prl.upstream.vggish.hubconf import *
 from s3prl.upstream.vq_apc.hubconf import *
 from s3prl.upstream.vq_wav2vec.hubconf import *
 from s3prl.upstream.wav2vec2.hubconf import *
+from s3prl.upstream.wav2vec2_hf.hubconf import *
 from s3prl.upstream.wav2vec.hubconf import *
 from s3prl.upstream.wavlm.hubconf import *
 
