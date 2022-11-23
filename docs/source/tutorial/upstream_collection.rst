@@ -687,7 +687,7 @@ fairseq               (bool) -
 ====================  ====================
 
 
-hf_wav2vec2
+hf_wav2vec2_custom
 ~~~~~~~~~~~~~~~~~~~~
 
 This entry expects you to provide the source of the checkpoint in the HuggingFace format
@@ -869,7 +869,7 @@ fairseq               (bool) -
 ====================  ====================
 
 
-hf_hubert
+hf_hubert_custom
 ~~~~~~~~~~~~~~~~~~~~
 
 This entry expects you to provide the source of the checkpoint in the HuggingFace format
