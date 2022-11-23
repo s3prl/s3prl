@@ -666,6 +666,41 @@ feature_selection     (str) -
 ====================  ====================
 
 
+wav2vec2_custom
+~~~~~~~~~~~~~~~~~~~~~
+
+This entry expects you to provide the source of the checkpoint, with the following arguments
+
+====================  ====================
+column                description
+====================  ====================
+ckpt                  (str) -
+                        The source of the checkpoint, can be a local path or a url.
+                        By default, this should be a checkpoint already converted by
+                        :code:`s3prl/upstream/wav2vec2/convert.py`, which help remove
+                        the fairseq dependency.
+
+fairseq               (bool) -
+                        If True, perform the on-the-fly checkpoint conversion, so that
+                        you can directly give the fairseq checkpoint to the :code:`ckpt`
+                        argument, either a fairseq URL or a fairseq checkpoint local path.
+====================  ====================
+
+
+hf_wav2vec2_custom
+~~~~~~~~~~~~~~~~~~~~
+
+This entry expects you to provide the source of the checkpoint in the HuggingFace format
+
+====================  ====================
+column                description
+====================  ====================
+ckpt                  (str) -
+                        The source of the checkpoint in the HuggingFace format.
+                        E.g. 'facebook/wav2vec2-large-960h'
+====================  ====================
+
+
 wav2vec2
 ~~~~~~~~~~~~~~~~
 
@@ -811,6 +846,41 @@ HuBERT
         year={2021},
         publisher={IEEE}
     }
+
+
+hubert_custom
+~~~~~~~~~~~~~~~~~~~~~
+
+This entry expects you to provide the source of the checkpoint, with the following arguments
+
+====================  ====================
+column                description
+====================  ====================
+ckpt                  (str) -
+                        The source of the checkpoint, can be a local path or a url.
+                        By default, this should be a checkpoint already converted by
+                        :code:`s3prl/upstream/hubert/convert.py`, which help remove
+                        the fairseq dependency.
+
+fairseq               (bool) -
+                        If True, perform the on-the-fly checkpoint conversion, so that
+                        you can directly give the fairseq checkpoint to the :code:`ckpt`
+                        argument, either a fairseq URL or a fairseq checkpoint local path.
+====================  ====================
+
+
+hf_hubert_custom
+~~~~~~~~~~~~~~~~~~~~
+
+This entry expects you to provide the source of the checkpoint in the HuggingFace format
+
+====================  ====================
+column                description
+====================  ====================
+ckpt                  (str) -
+                        The source of the checkpoint in the HuggingFace format.
+                        E.g. 'facebook/hubert-large-ll60k'
+====================  ====================
 
 
 hubert
