@@ -65,6 +65,14 @@ def wav2vec2_custom(
         return _UpstreamExpert(ckpt, **kwargs)
 
 
+def wav2vec2_local(*args, **kwargs):
+    return wav2vec2_custom(*args, **kwargs)
+
+
+def wav2vec2_url(*args, **kwargs):
+    return wav2vec2_custom(*args, **kwargs)
+
+
 def wav2vec2(refresh=False, *args, **kwargs):
     """
     The default model - Base
