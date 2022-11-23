@@ -16,9 +16,9 @@ from filelock import FileLock
 
 from s3prl.util.download import _urls_to_filepaths
 
+from .convert import load_and_convert_fairseq_ckpt
 from .expert import LegacyUpstreamExpert as _LegacyUpstreamExpert
 from .expert import UpstreamExpert as _UpstreamExpert
-from .convert import load_and_convert_fairseq_ckpt
 
 logger = logging.getLogger(__name__)
 

@@ -8,12 +8,13 @@
 """*********************************************************************************************"""
 
 
+import logging
 import os
 import time
-import logging
 from pathlib import Path
 
 from filelock import FileLock
+
 from s3prl.util.download import _urls_to_filepaths
 
 from .convert import load_and_convert_fairseq_ckpt
