@@ -1,5 +1,5 @@
 from .expert import UpstreamExpert as _UpstreamExpert
 
 
-def hubert_hf(ckpt, *args, **kwargs):
+def hf_hubert_custom(ckpt, *args, **kwargs):
     return _UpstreamExpert(ckpt, *args, **kwargs)

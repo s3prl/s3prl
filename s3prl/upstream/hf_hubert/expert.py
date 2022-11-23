@@ -12,7 +12,7 @@ logger = logging.getLogger(__name__)
 class UpstreamExpert(torch.nn.Module):
     def __init__(self, ckpt, **kwds):
         super().__init__()
-        self.processor = Wav2Vec2FeatureExtractor.from_pretrained(ckpt)
+        self.extracter = Wav2Vec2FeatureExtractor.from_pretrained(ckpt)
         self.model = HubertModel.from_pretrained(ckpt)
 
     def get_downsample_rates(self, key: str = None) -> int:
@@ -21,7 +21,7 @@ class UpstreamExpert(torch.nn.Module):
     def forward(self, wavs):
         device = wavs[0].device
         wavs = [wav.detach().cpu().numpy() for wav in wavs]
-        input_values = self.processor(
+        input_values = self.extracter(
             wavs,
             return_tensors="pt",
             padding=True,
