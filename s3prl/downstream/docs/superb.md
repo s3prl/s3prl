@@ -166,10 +166,9 @@ Installing all the dependencies right could be quite complicated. Note that the 
 ##### I. Prepare Decoding Environment
 
 1. Install [KenLM](https://github.com/kpu/kenlm)
-    - Please follow the official installation instructions of KenLM instead of the one documented in flashlight or wav2letter du to some known issues.
+    - Please follow the official installation instructions of KenLM.
 
-2. Install [flashlight python bindings](https://github.com/flashlight/flashlight/blob/master/bindings/python/README.md)
-    - Only the **python bindings** is required instead of the entire flashlight toolkit
+2. Install [Flashlight Text bindings](https://github.com/flashlight/text) and [Flashlight Sequence bindings](https://github.com/flashlight/sequence/).
 
 3. Download LibriSpeech official 4-gram LM
     - https://www.openslr.org/resources/11/4-gram.arpa.gz
