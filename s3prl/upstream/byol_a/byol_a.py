@@ -367,7 +367,9 @@ class RunningNorm(nn.Module):
             self.std = torch.clamp(self.ema_var.std(), torch.finfo().eps, torch.finfo().max)
         elif not self.reported:
             self.reported = True
-            print(f'*** Running Norm has finished updates over {self.max_update} times, using the following stats from now on. ***\n  mean={self.mean}, std={self.std}\n\n')
+            print(f'*** Running Norm has finished updates over {self.max_update} times, using the following stats from now on. ***\n  mean={float(self.mean.view(-1))}, std={float(self.std.view(-1))}\n')
+            print(f'*** Please use these statistics in your BYOL-A. EXIT... ***\n')
+            exit(-1)
         return ((image - self.mean) / self.std)
 
     def __repr__(self):

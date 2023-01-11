@@ -32,6 +32,8 @@ class UpstreamExpert(nn.Module):
         feature_d: int,
         window_secs: float = 1024 / 16000,
         stride_secs: float = 160 / 16000,
+        norm_mean: float = None,  # Has to be a float value to continue training.
+        norm_std: float = None,  # The same as above.
     ):
         super().__init__()
         config = load_yaml_config(model_config)
@@ -46,7 +48,14 @@ class UpstreamExpert(nn.Module):
 
         # Preprocessor and normalizer.
         self.to_logmelspec = LogMelSpectrogram()
-        self.normalizer = RunningNorm(epoch_samples=10_000, max_update_epochs=1, axis=[0, 1, 2]) # Use single scalar mean/std values.
+        if norm_mean is None or norm_std is None:
+            # ** CAUTION **
+            # ** Please note that thi is for calculating statistics using RunningNorm and will exit in the middle of training. **
+            # ** CAUTION **
+            self.normalizer = RunningNorm(epoch_samples=10_000, max_update_epochs=1, axis=[0, 1, 2]) # Use single scalar mean/std values.
+        else:
+            print(f'*** Using normalization statistics: mean={norm_mean}, std={norm_std} ***')
+            self.normalizer = lambda x: (x - norm_mean) / norm_std
 
         # Load pretrained weights.
         self.model = AudioNTT2020Task6X(d=config.feature_d, n_mels=config.n_mels)
