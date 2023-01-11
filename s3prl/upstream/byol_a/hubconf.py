@@ -20,6 +20,7 @@ def byol_a_2048(refresh=False, **kwds):
         "https://github.com/nttcslab/byol-a/raw/master/pretrained_weights/AudioNTT2020-BYOLA-64x96d2048.pth",
         refresh=refresh,
     )
+    del kwds['ckpt'], kwds['model_config']  # to prevent duplicates in the kwds.
     return _UpstreamExpert(ckpt, DEFAULT_CONFIG_PATH, 2048, **kwds)
 
 
@@ -28,6 +29,7 @@ def byol_a_1024(refresh=False, **kwds):
         "https://github.com/nttcslab/byol-a/raw/master/pretrained_weights/AudioNTT2020-BYOLA-64x96d1024.pth",
         refresh=refresh,
     )
+    del kwds['ckpt'], kwds['model_config']
     return _UpstreamExpert(ckpt, DEFAULT_CONFIG_PATH, 1024, **kwds)
 
 
@@ -36,4 +38,5 @@ def byol_a_512(refresh=False, **kwds):
         "https://github.com/nttcslab/byol-a/raw/master/pretrained_weights/AudioNTT2020-BYOLA-64x96d512.pth",
         refresh=refresh,
     )
+    del kwds['ckpt'], kwds['model_config']
     return _UpstreamExpert(ckpt, DEFAULT_CONFIG_PATH, 512, **kwds)
