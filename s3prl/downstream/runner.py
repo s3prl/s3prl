@@ -25,6 +25,9 @@ from s3prl.schedulers import get_scheduler
 from s3prl.upstream.interfaces import Featurizer
 from s3prl.utility.helper import is_leader_process, get_model_state, defaultdict
 from huggingface_hub import HfApi, HfFolder, Repository
+
+from .distortion import augment_noise
+
 log = logging.getLogger(__name__)
 
 SAMPLE_RATE = 16000
@@ -115,19 +118,6 @@ def read_lines_to_list(filepath: str):
     return lines
 
 
-def augment_noise(wav: torch.Tensor, noise: torch.Tensor, snr: int, randomizer: random.Random):
-    ##TODO: SNR implementation is NOT correct
-
-    if len(wav) > len(noise):
-        mutiplier = len(wav) // len(noise) + 1
-        noise = noise.view(1, -1).repeat(mutiplier, 1).view(-1)
-
-    start = randomizer.choice(list(range(0, len(noise) - len(wav))))
-    noisy_wav = wav + noise[start : start + len(wav)]
-
-    return noisy_wav
-
-
 class DistortedDataset(Dataset):
     def __init__(
         self,
@@ -203,6 +193,7 @@ def make_distorted_dataloader(
 
     noise_conf = distortion_conf.get("noise")
     if noise_conf is not None:
+        log.info(f"Augmenting noises to the dataloader")
         noise_paths = read_lines_to_list(noise_conf["audios"])
         snrs = noise_conf["snrs"]
 
@@ -435,7 +426,7 @@ class Runner:
                     raise
 
             distortion_conf = self.config.get("distortion")
-            if distortion_conf is not None:
+            if distortion_conf is not None and "train" in distortion_conf:
                 dataloader = make_distorted_dataloader(dataloader, distortion_conf["train"])
 
             log.info(f"Start training epoch {epoch}...")
@@ -606,6 +597,11 @@ class Runner:
         if eval_batch is not None:
             assert isinstance(eval_batch, int)
             total_steps = eval_batch
+
+        # augment distortion
+        distortion_conf = self.config.get("distortion")
+        if distortion_conf is not None and split in distortion_conf:
+            dataloader = make_distorted_dataloader(dataloader, distortion_conf[split])
 
         batch_ids = []
         records = defaultdict(list)
