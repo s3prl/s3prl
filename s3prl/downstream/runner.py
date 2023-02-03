@@ -4,19 +4,18 @@ import math
 import glob
 import uuid
 import shutil
-import random
 import logging
 import tempfile
 import importlib
+from typing import Any
 from pathlib import Path
-from typing import Any, List
 
 import torch
 import torchaudio
 from tqdm import tqdm
 from tensorboardX import SummaryWriter
+from torch.utils.data import DistributedSampler
 from torch.nn.parallel import DistributedDataParallel as DDP
-from torch.utils.data import DistributedSampler, Dataset, DataLoader
 from torch.distributed import is_initialized, get_rank, get_world_size
 
 from s3prl import hub
@@ -26,7 +25,7 @@ from s3prl.upstream.interfaces import Featurizer
 from s3prl.utility.helper import is_leader_process, get_model_state, defaultdict
 from huggingface_hub import HfApi, HfFolder, Repository
 
-from .distortion import augment_noise
+from .distortion import make_distorted_dataloader
 
 log = logging.getLogger(__name__)
 
@@ -109,101 +108,6 @@ class ModelEntry:
             return self.model(*args, **kwargs)
         else:
             return self.local_model(*args, **kwargs)
-
-
-def read_lines_to_list(filepath: str):
-    with open(filepath) as f:
-        lines = f.readlines()
-        lines = [line.strip() for line in lines]
-    return lines
-
-
-class DistortedDataset(Dataset):
-    def __init__(
-        self,
-        dataset: Dataset,
-        batch_sampler,
-        collate_fn,
-        noise_paths: List[str] = None,
-        snrs: List[float] = None,
-        seed: int = 0,
-        sample_rate: int = 16000
-    ) -> None:
-        super().__init__()
-        self.dataset = dataset
-        self.batch_sampler = batch_sampler
-        self.collate_fn = collate_fn
-        self.noise_paths = noise_paths
-        self.snrs = snrs
-        self.sample_rate = sample_rate
-
-        self.batch_indices = list(self.batch_sampler)
-        seed_randomizer = random.Random(seed)
-        self.seeds = list(range(len(self.batch_indices)))
-        seed_randomizer.shuffle(self.seeds)
-
-    def __len__(self):
-        return len(self.batch_indices)
-
-    def __getitem__(self, index: int):
-        randomizer = random.Random(self.seeds[index])        
-
-        indices = self.batch_indices[index]
-        data_points = [self.dataset[indice] for indice in indices]
-        all_wavs, *others = self.collate_fn(data_points)
-
-        distorted_wavs = []
-        for wav in all_wavs:
-            noise_path = randomizer.choice(self.noise_paths)
-            noise, noise_sr = torchaudio.load(noise_path)
-
-            if noise_sr != self.sample_rate:
-                resampler = torchaudio.transforms.Resample(noise_sr, self.sample_rate)
-                noise = resampler(noise)
-
-            noise = noise.view(-1)
-
-            snr = randomizer.choice(self.snrs)
-            noisy_wav = augment_noise(torch.FloatTensor(wav), noise, snr, randomizer)
-
-            distorted_wavs.append(noisy_wav.numpy())
-
-        return [distorted_wavs, *others]
-
-
-def make_distorted_dataloader(
-    dataloader: DataLoader,
-    distortion_conf: dict,
-    seed: int = 0
-):
-    dataset = dataloader.dataset
-    num_workers = dataloader.num_workers
-    prefetch_factor = dataloader.prefetch_factor
-    pin_memory = dataloader.pin_memory
-    timeout = dataloader.timeout
-    worker_init_fn = dataloader.worker_init_fn
-    multiprocessing_context = dataloader.multiprocessing_context
-    batch_sampler = dataloader.batch_sampler
-    collate_fn = dataloader.collate_fn
-    generator = dataloader.generator
-    persistent_workers = dataloader.persistent_workers
-
-    noise_paths = None
-    snrs = None
-
-    noise_conf = distortion_conf.get("noise")
-    if noise_conf is not None:
-        log.info(f"Augmenting noises to the dataloader")
-        noise_paths = read_lines_to_list(noise_conf["audios"])
-        snrs = noise_conf["snrs"]
-
-    distorted_dataset = DistortedDataset(dataset, batch_sampler, collate_fn, noise_paths, snrs, seed)
-    distorted_dataloader = DataLoader(
-        distorted_dataset, batch_size=1, num_workers=num_workers, persistent_workers=persistent_workers,
-        pin_memory=pin_memory, timeout=timeout, worker_init_fn=worker_init_fn, prefetch_factor=prefetch_factor,
-        multiprocessing_context=multiprocessing_context, generator=generator, collate_fn=lambda xs: xs[0],
-    )
-    return distorted_dataloader
 
 
 class Runner:
