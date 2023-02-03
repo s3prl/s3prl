@@ -1,6 +1,6 @@
 import random
 import logging
-from typing import List
+from typing import List, Tuple
 
 import torch
 import torchaudio
@@ -143,6 +143,7 @@ class DistortedDataset(Dataset):
         collate_fn,
         noise_paths: List[str] = None,
         snrs: List[float] = None,
+        reverberance: Tuple[float] = None,
         seed: int = 0,
         sample_rate: int = 16000,
     ) -> None:
@@ -151,20 +152,26 @@ class DistortedDataset(Dataset):
         self.batch_sampler = batch_sampler
         self.collate_fn = collate_fn
         self.noise_paths = noise_paths
+        self.reverberance = reverberance
         self.snrs = snrs
         self.sample_rate = sample_rate
 
         self.batch_indices = list(self.batch_sampler)
+
         seed_randomizer = random.Random(seed)
         self.seeds = list(range(len(self.batch_indices)))
         seed_randomizer.shuffle(self.seeds)
+
+        self.add_noise = (noise_paths is not None) and (snrs is not None)
+        self.add_reverb = reverberance is not None
 
     def __len__(self):
         return len(self.batch_indices)
 
     def __getitem__(self, index: int):
         torchaudio.set_audio_backend("sox_io")
-        randomizer = random.Random(self.seeds[index])
+        noise_randomizer = random.Random(self.seeds[index])
+        reverb_randomizer = random.Random(self.seeds[index])
 
         indices = self.batch_indices[index]
         data_points = [self.dataset[indice] for indice in indices]
@@ -172,19 +179,35 @@ class DistortedDataset(Dataset):
 
         distorted_wavs = []
         for wav in all_wavs:
-            noise_path = randomizer.choice(self.noise_paths)
-            noise, noise_sr = torchaudio.load(noise_path)
+            distorted_wav = torch.FloatTensor(wav).clone()
 
-            if noise_sr != self.sample_rate:
-                resampler = torchaudio.transforms.Resample(noise_sr, self.sample_rate)
-                noise = resampler(noise)
+            if self.add_noise:
+                noise_path = noise_randomizer.choice(self.noise_paths)
+                noise, noise_sr = torchaudio.load(noise_path)
 
-            noise = noise.view(-1)
+                if noise_sr != self.sample_rate:
+                    resampler = torchaudio.transforms.Resample(
+                        noise_sr, self.sample_rate
+                    )
+                    noise = resampler(noise)
 
-            snr = randomizer.choice(self.snrs)
-            noisy_wav = augment_noise(torch.FloatTensor(wav), noise, snr, randomizer)
+                noise = noise.view(-1)
 
-            distorted_wavs.append(noisy_wav.numpy())
+                snr = noise_randomizer.choice(self.snrs)
+                distorted_wav = augment_noise(
+                    distorted_wav, noise, snr, noise_randomizer
+                )
+
+            if self.add_reverb:
+                reverberance = reverb_randomizer.uniform(*self.reverberance)
+                distorted_wav, sr = torchaudio.sox_effects.apply_effects_tensor(
+                    distorted_wav.view(1, -1),
+                    self.sample_rate,
+                    [["reverb", f"{reverberance}"]],
+                )
+                distorted_wav = distorted_wav.view(-1)
+
+            distorted_wavs.append(distorted_wav.numpy())
 
         return [distorted_wavs, *others]
 
@@ -209,12 +232,17 @@ def make_distorted_dataloader(
 
     noise_conf = distortion_conf.get("noise")
     if noise_conf is not None:
-        logger.info(f"Augmenting noises to the dataloader")
+        logger.info(f"Addings noises to the dataloader")
         noise_paths = read_lines_to_list(noise_conf["audios"])
         snrs = noise_conf["snrs"]
 
+    reverb_conf = distortion_conf.get("reverb")
+    if reverb_conf is not None:
+        logger.info(f"Adding reverberation to the dataloader")
+        reverberance = reverb_conf["reverberance"]
+
     distorted_dataset = DistortedDataset(
-        dataset, batch_sampler, collate_fn, noise_paths, snrs, seed
+        dataset, batch_sampler, collate_fn, noise_paths, snrs, reverberance, seed
     )
     distorted_dataloader = DataLoader(
         distorted_dataset,

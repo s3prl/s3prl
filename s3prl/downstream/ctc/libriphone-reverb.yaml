@@ -36,13 +36,13 @@ optimizer:
 distortion:
   train:
     reverb:
-      reverberance: (30, 70)
+      reverberance: [0, 80]
   dev:
     reverb:
-      reverberance: (30, 70)
+      reverberance: [0, 80]
   test:
     reverb:
-      reverberance: (30, 70)
+      reverberance: [0, 80]
 
 downstream_expert:
   corpus:
