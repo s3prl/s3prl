@@ -124,6 +124,7 @@ def get_downstream_args():
         cannot_overwrite_args = [
             'mode', 'evaluate_split', 'override',
             'backend', 'local_rank', 'past_exp',
+            'device'
         ]
         args = update_args(args, ckpt['Args'], preserve_list=cannot_overwrite_args)
         os.makedirs(args.expdir, exist_ok=True)
