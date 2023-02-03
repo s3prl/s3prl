@@ -229,6 +229,7 @@ def make_distorted_dataloader(
 
     noise_paths = None
     snrs = None
+    reverberance = None
 
     noise_conf = distortion_conf.get("noise")
     if noise_conf is not None:
