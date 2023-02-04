@@ -203,8 +203,9 @@ class DistortedDataset(Dataset):
                 distorted_wav, sr = torchaudio.sox_effects.apply_effects_tensor(
                     distorted_wav.view(1, -1),
                     self.sample_rate,
-                    [["reverb", f"{reverberance}"]],
+                    [["reverb", f"{reverberance}"], ["channels", "1"]],
                 )
+                assert distorted_wav.size(0) == 1
                 distorted_wav = distorted_wav.view(-1)
 
             distorted_wavs.append(distorted_wav.numpy())
