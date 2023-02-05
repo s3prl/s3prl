@@ -22,6 +22,17 @@ optimizer:
 #   name: linear_schedule_with_warmup
 #   num_warmup_steps: 1400
 
+distortion:
+  train:
+    reverb:
+      reverberance: [0, 80]
+  dev:
+    reverb:
+      reverberance: [0, 80]
+  test:
+    reverb:
+      reverberance: [0, 80]
+
 downstream_expert:
   datarc:
     csv_dir: data/superb_er

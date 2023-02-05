@@ -22,6 +22,20 @@ optimizer:
 #   name: linear_schedule_with_warmup
 #   num_warmup_steps: 1400
 
+distortion:
+  train:
+    noise:
+      audios: ./wham_train.txt
+      snrs: [3, 6, 9]
+  dev:
+    noise:
+      audios: ./wham_valid.txt
+      snrs: [3, 6, 9]
+  test:
+    noise:
+      audios: ./wham_test.txt
+      snrs: [3, 6, 9]
+
 downstream_expert:
   datarc:
     csv_dir: data/superb_er
