@@ -1,0 +1,68 @@
+runner:
+  total_steps: 30000
+  gradient_clipping: 1
+  gradient_accumulate_steps: 8
+
+  log_step: 500
+  eval_step: 1000
+  save_step: 1000
+  max_keep: 1
+  eval_dataloaders:
+    - dev
+    - test
+
+optimizer:
+  name: TorchOptim
+  torch_optim_name: Adam
+  lr: 1.0e-4
+
+# comment the whole scheduler config block
+# to disable learning rate scheduling
+# scheduler:
+#   name: linear_schedule_with_warmup
+#   num_warmup_steps: 1400
+
+distortion:
+  train:
+    noise:
+      audios: ./wham_train.txt
+      snrs: [3, 6, 9]
+    reverb:
+      reverberance: [0, 80]
+  dev:
+    noise:
+      audios: ./wham_valid.txt
+      snrs: [3, 6, 9]
+    reverb:
+      reverberance: [0, 80]
+  test:
+    noise:
+      audios: ./wham_test.txt
+      snrs: [3, 6, 9]
+    reverb:
+      reverberance: [0, 80]
+
+downstream_expert:
+  datarc:
+    csv_dir: data/superb_er
+      # expect fold_0/train.csv, fold_0/dev.csv, fold_0/test.csv in the directory
+    test_fold: 0  # can change to 0, 1, 2, 3, 4
+    pre_load: True
+    train_batch_size: 4
+    eval_batch_size: 4
+    num_workers: 6
+
+  modelrc:
+    projector_dim: 256
+    select: UtteranceLevel
+
+    UtteranceLevel:
+      pooling: MeanPooling
+
+    DeepModel:
+      model_type: CNNSelfAttention
+      hidden_dim: 80
+      kernel_size: 5
+      padding: 2
+      pooling: 5
+      dropout: 0.4
