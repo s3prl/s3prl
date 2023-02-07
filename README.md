@@ -9,10 +9,6 @@
     <a href="https://github.com/s3prl/s3prl/issues"><img alt="Bitbucket open issues" src="https://img.shields.io/github/issues/s3prl/s3prl"></a>
 </p>
 
-## Emergent announcement
-
-The document website is down temporary and we are trying to fix it ASAP. Please use [http://140.112.21.12:8000/](http://140.112.21.12:8000/) as a temporary solution.
-
 ## Notice for pull requests
 
 Please first discuss with us on the issue page about your feature request before implementing the actual pull request, so we can discuss about how to achieve the functionality. If we did not discuss about the detail, it is highly possible that we are not accepting the pull request due to the difficulty of maintenance.
