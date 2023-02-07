@@ -1,0 +1,1209 @@
+<!doctype html>
+<html class="no-js" lang="en">
+  <head><meta charset="utf-8"/>
+    <meta name="viewport" content="width=device-width,initial-scale=1"/>
+    <meta name="color-scheme" content="light dark"><meta name="generator" content="Docutils 0.19: https://docutils.sourceforge.io/" />
+<link rel="index" title="Index" href="../genindex.html" /><link rel="search" title="Search" href="../search.html" /><link rel="next" title="base" href="s3prl.task.base.html" /><link rel="prev" title="util" href="s3prl.problem.diarization.util.html" />
+
+    <!-- Generated with Sphinx 5.1.1 and Furo 2022.12.07 -->
+        <title>task - S3PRL 0.4.10 documentation</title>
+      <link rel="stylesheet" type="text/css" href="../_static/pygments.css" />
+    <link rel="stylesheet" type="text/css" href="../_static/styles/furo.css?digest=91d0f0d1c444bdcb17a68e833c7a53903343c195" />
+    <link rel="stylesheet" type="text/css" href="../_static/styles/furo-extensions.css?digest=30d1aed668e5c3a91c3e3bf6a60b675221979f0e" />
+    <link rel="stylesheet" type="text/css" href="../_static/css/custom.css" />
+    
+    
+
+
+<style>
+  body {
+    --color-code-background: #f8f8f8;
+  --color-code-foreground: black;
+  
+  }
+  @media not print {
+    body[data-theme="dark"] {
+      --color-code-background: #202020;
+  --color-code-foreground: #d0d0d0;
+  
+    }
+    @media (prefers-color-scheme: dark) {
+      body:not([data-theme="light"]) {
+        --color-code-background: #202020;
+  --color-code-foreground: #d0d0d0;
+  
+      }
+    }
+  }
+</style></head>
+  <body>
+    
+    <script>
+      document.body.dataset.theme = localStorage.getItem("theme") || "auto";
+    </script>
+    
+
+<svg xmlns="http://www.w3.org/2000/svg" style="display: none;">
+  <symbol id="svg-toc" viewBox="0 0 24 24">
+    <title>Contents</title>
+    <svg stroke="currentColor" fill="currentColor" stroke-width="0" viewBox="0 0 1024 1024">
+      <path d="M408 442h480c4.4 0 8-3.6 8-8v-56c0-4.4-3.6-8-8-8H408c-4.4 0-8 3.6-8 8v56c0 4.4 3.6 8 8 8zm-8 204c0 4.4 3.6 8 8 8h480c4.4 0 8-3.6 8-8v-56c0-4.4-3.6-8-8-8H408c-4.4 0-8 3.6-8 8v56zm504-486H120c-4.4 0-8 3.6-8 8v56c0 4.4 3.6 8 8 8h784c4.4 0 8-3.6 8-8v-56c0-4.4-3.6-8-8-8zm0 632H120c-4.4 0-8 3.6-8 8v56c0 4.4 3.6 8 8 8h784c4.4 0 8-3.6 8-8v-56c0-4.4-3.6-8-8-8zM115.4 518.9L271.7 642c5.8 4.6 14.4.5 14.4-6.9V388.9c0-7.4-8.5-11.5-14.4-6.9L115.4 505.1a8.74 8.74 0 0 0 0 13.8z"/>
+    </svg>
+  </symbol>
+  <symbol id="svg-menu" viewBox="0 0 24 24">
+    <title>Menu</title>
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather-menu">
+      <line x1="3" y1="12" x2="21" y2="12"></line>
+      <line x1="3" y1="6" x2="21" y2="6"></line>
+      <line x1="3" y1="18" x2="21" y2="18"></line>
+    </svg>
+  </symbol>
+  <symbol id="svg-arrow-right" viewBox="0 0 24 24">
+    <title>Expand</title>
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather-chevron-right">
+      <polyline points="9 18 15 12 9 6"></polyline>
+    </svg>
+  </symbol>
+  <symbol id="svg-sun" viewBox="0 0 24 24">
+    <title>Light mode</title>
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="feather-sun">
+      <circle cx="12" cy="12" r="5"></circle>
+      <line x1="12" y1="1" x2="12" y2="3"></line>
+      <line x1="12" y1="21" x2="12" y2="23"></line>
+      <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
+      <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
+      <line x1="1" y1="12" x2="3" y2="12"></line>
+      <line x1="21" y1="12" x2="23" y2="12"></line>
+      <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
+      <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
+    </svg>
+  </symbol>
+  <symbol id="svg-moon" viewBox="0 0 24 24">
+    <title>Dark mode</title>
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="icon-tabler-moon">
+      <path stroke="none" d="M0 0h24v24H0z" fill="none" />
+      <path d="M12 3c.132 0 .263 0 .393 0a7.5 7.5 0 0 0 7.92 12.446a9 9 0 1 1 -8.313 -12.454z" />
+    </svg>
+  </symbol>
+  <symbol id="svg-sun-half" viewBox="0 0 24 24">
+    <title>Auto light/dark mode</title>
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="icon-tabler-shadow">
+      <path stroke="none" d="M0 0h24v24H0z" fill="none"/>
+      <circle cx="12" cy="12" r="9" />
+      <path d="M13 12h5" />
+      <path d="M13 15h4" />
+      <path d="M13 18h1" />
+      <path d="M13 9h4" />
+      <path d="M13 6h1" />
+    </svg>
+  </symbol>
+</svg>
+
+<input type="checkbox" class="sidebar-toggle" name="__navigation" id="__navigation">
+<input type="checkbox" class="sidebar-toggle" name="__toc" id="__toc">
+<label class="overlay sidebar-overlay" for="__navigation">
+  <div class="visually-hidden">Hide navigation sidebar</div>
+</label>
+<label class="overlay toc-overlay" for="__toc">
+  <div class="visually-hidden">Hide table of contents sidebar</div>
+</label>
+
+
+
+<div class="page">
+  <header class="mobile-header">
+    <div class="header-left">
+      <label class="nav-overlay-icon" for="__navigation">
+        <div class="visually-hidden">Toggle site navigation sidebar</div>
+        <i class="icon"><svg><use href="#svg-menu"></use></svg></i>
+      </label>
+    </div>
+    <div class="header-center">
+      <a href="../index.html"><div class="brand">S3PRL 0.4.10
+ documentation</div></a>
+    </div>
+    <div class="header-right">
+      <div class="theme-toggle-container theme-toggle-header">
+        <button class="theme-toggle">
+          <div class="visually-hidden">Toggle Light / Dark / Auto color theme</div>
+          <svg class="theme-icon-when-auto"><use href="#svg-sun-half"></use></svg>
+          <svg class="theme-icon-when-dark"><use href="#svg-moon"></use></svg>
+          <svg class="theme-icon-when-light"><use href="#svg-sun"></use></svg>
+        </button>
+      </div>
+      <label class="toc-overlay-icon toc-header-icon" for="__toc">
+        <div class="visually-hidden">Toggle table of contents sidebar</div>
+        <i class="icon"><svg><use href="#svg-toc"></use></svg></i>
+      </label>
+    </div>
+  </header>
+  <aside class="sidebar-drawer">
+    <div class="sidebar-container">
+      
+      <div class="sidebar-sticky"><a class="sidebar-brand" href="../index.html">
+  
+  
+  <span class="sidebar-brand-text">S3PRL 0.4.10
+ documentation</span>
+  
+</a><form class="sidebar-search-container" method="get" action="../search.html" role="search">
+  <input class="sidebar-search" placeholder="Search" name="q" aria-label="Search">
+  <input type="hidden" name="check_keywords" value="yes">
+  <input type="hidden" name="area" value="default">
+</form>
+<div id="searchbox"></div><div class="sidebar-scroll"><div class="sidebar-tree">
+  <p class="caption" role="heading"><span class="caption-text">Getting started</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../tutorial/installation.html">Install S3PRL</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../tutorial/upstream_collection.html">S3PRL Upstream Collection</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../tutorial/problem.html">Use Problem module to run customizable recipes</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">How to Contribute</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../contribute/general.html">General Guideline</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../contribute/upstream.html">Adding New Upstream</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">API Documentation</span></p>
+<ul class="current">
+<li class="toctree-l1 has-children"><a class="reference internal" href="s3prl.nn.html">nn</a><input class="toctree-checkbox" id="toctree-checkbox-1" name="toctree-checkbox-1" role="switch" type="checkbox"/><label for="toctree-checkbox-1"><div class="visually-hidden">Toggle child pages in navigation</div><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul>
+<li class="toctree-l2"><a class="reference internal" href="s3prl.nn.beam_decoder.html">beam_decoder</a></li>
+<li class="toctree-l2"><a class="reference internal" href="s3prl.nn.common.html">common</a></li>
+<li class="toctree-l2"><a class="reference internal" href="s3prl.nn.hear.html">hear</a></li>
+<li class="toctree-l2"><a class="reference internal" href="s3prl.nn.interface.html">interface</a></li>
+<li class="toctree-l2"><a class="reference internal" href="s3prl.nn.linear.html">linear</a></li>
+<li class="toctree-l2"><a class="reference internal" href="s3prl.nn.pit.html">pit</a></li>
+<li class="toctree-l2"><a class="reference internal" href="s3prl.nn.pooling.html">pooling</a></li>
+<li class="toctree-l2"><a class="reference internal" href="s3prl.nn.rnn.html">rnn</a></li>
+<li class="toctree-l2"><a class="reference internal" href="s3prl.nn.speaker_loss.html">speaker_loss</a></li>
+<li class="toctree-l2"><a class="reference internal" href="s3prl.nn.speaker_model.html">speaker_model</a></li>
+<li class="toctree-l2"><a class="reference internal" href="s3prl.nn.specaug.html">specaug</a></li>
+<li class="toctree-l2"><a class="reference internal" href="s3prl.nn.upstream.html">upstream</a></li>
+</ul>
+</li>
+<li class="toctree-l1 has-children"><a class="reference internal" href="s3prl.problem.html">problem</a><input class="toctree-checkbox" id="toctree-checkbox-2" name="toctree-checkbox-2" role="switch" type="checkbox"/><label for="toctree-checkbox-2"><div class="visually-hidden">Toggle child pages in navigation</div><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul>
+<li class="toctree-l2 has-children"><a class="reference internal" href="s3prl.problem.asr.html">asr</a><input class="toctree-checkbox" id="toctree-checkbox-3" name="toctree-checkbox-3" role="switch" type="checkbox"/><label for="toctree-checkbox-3"><div class="visually-hidden">Toggle child pages in navigation</div><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul>
+<li class="toctree-l3"><a class="reference internal" href="s3prl.problem.asr.run.html">run</a></li>
+<li class="toctree-l3"><a class="reference internal" href="s3prl.problem.asr.superb_asr.html">superb_asr</a></li>
+<li class="toctree-l3"><a class="reference internal" href="s3prl.problem.asr.superb_pr.html">superb_pr</a></li>
+<li class="toctree-l3"><a class="reference internal" href="s3prl.problem.asr.superb_sf.html">superb_sf</a></li>
+</ul>
+</li>
+<li class="toctree-l2 has-children"><a class="reference internal" href="s3prl.problem.asv.html">asv</a><input class="toctree-checkbox" id="toctree-checkbox-4" name="toctree-checkbox-4" role="switch" type="checkbox"/><label for="toctree-checkbox-4"><div class="visually-hidden">Toggle child pages in navigation</div><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul>
+<li class="toctree-l3"><a class="reference internal" href="s3prl.problem.asv.run.html">run</a></li>
+<li class="toctree-l3"><a class="reference internal" href="s3prl.problem.asv.superb_asv.html">superb_asv</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="s3prl.problem.base.html">base</a></li>
+<li class="toctree-l2 has-children"><a class="reference internal" href="s3prl.problem.common.html">common</a><input class="toctree-checkbox" id="toctree-checkbox-5" name="toctree-checkbox-5" role="switch" type="checkbox"/><label for="toctree-checkbox-5"><div class="visually-hidden">Toggle child pages in navigation</div><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul>
+<li class="toctree-l3"><a class="reference internal" href="s3prl.problem.common.example.html">example</a></li>
+<li class="toctree-l3"><a class="reference internal" href="s3prl.problem.common.hear_beijing_opera.html">hear_beijing_opera</a></li>
+<li class="toctree-l3"><a class="reference internal" href="s3prl.problem.common.hear_cremad.html">hear_cremad</a></li>
+<li class="toctree-l3"><a class="reference internal" href="s3prl.problem.common.hear_dcase_2016_task2.html">hear_dcase_2016_task2</a></li>
+<li class="toctree-l3"><a class="reference internal" href="s3prl.problem.common.hear_esc50.html">hear_esc50</a></li>
+<li class="toctree-l3"><a class="reference internal" href="s3prl.problem.common.hear_fsd.html">hear_fsd</a></li>
+<li class="toctree-l3"><a class="reference internal" href="s3prl.problem.common.hear_gsc5hr.html">hear_gsc5hr</a></li>
+<li class="toctree-l3"><a class="reference internal" href="s3prl.problem.common.hear_gtzan.html">hear_gtzan</a></li>
+<li class="toctree-l3"><a class="reference internal" href="s3prl.problem.common.hear_gtzan_music_speech.html">hear_gtzan_music_speech</a></li>
+<li class="toctree-l3"><a class="reference internal" href="s3prl.problem.common.hear_gunshot.html">hear_gunshot</a></li>
+<li class="toctree-l3"><a class="reference internal" href="s3prl.problem.common.hear_libricount.html">hear_libricount</a></li>
+<li class="toctree-l3"><a class="reference internal" href="s3prl.problem.common.hear_maestro.html">hear_maestro</a></li>
+<li class="toctree-l3"><a class="reference internal" href="s3prl.problem.common.hear_nsynth5hr.html">hear_nsynth5hr</a></li>
+<li class="toctree-l3"><a class="reference internal" href="s3prl.problem.common.hear_stroke.html">hear_stroke</a></li>
+<li class="toctree-l3"><a class="reference internal" href="s3prl.problem.common.hear_tonic.html">hear_tonic</a></li>
+<li class="toctree-l3"><a class="reference internal" href="s3prl.problem.common.hear_vocal.html">hear_vocal</a></li>
+<li class="toctree-l3"><a class="reference internal" href="s3prl.problem.common.hear_vox_lingual.html">hear_vox_lingual</a></li>
+<li class="toctree-l3"><a class="reference internal" href="s3prl.problem.common.run.html">run</a></li>
+<li class="toctree-l3"><a class="reference internal" href="s3prl.problem.common.superb_er.html">superb_er</a></li>
+<li class="toctree-l3"><a class="reference internal" href="s3prl.problem.common.superb_ic.html">superb_ic</a></li>
+<li class="toctree-l3"><a class="reference internal" href="s3prl.problem.common.superb_ks.html">superb_ks</a></li>
+<li class="toctree-l3"><a class="reference internal" href="s3prl.problem.common.superb_sid.html">superb_sid</a></li>
+</ul>
+</li>
+<li class="toctree-l2 has-children"><a class="reference internal" href="s3prl.problem.diarization.html">diarization</a><input class="toctree-checkbox" id="toctree-checkbox-6" name="toctree-checkbox-6" role="switch" type="checkbox"/><label for="toctree-checkbox-6"><div class="visually-hidden">Toggle child pages in navigation</div><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul>
+<li class="toctree-l3"><a class="reference internal" href="s3prl.problem.diarization.run.html">run</a></li>
+<li class="toctree-l3"><a class="reference internal" href="s3prl.problem.diarization.superb_sd.html">superb_sd</a></li>
+<li class="toctree-l3"><a class="reference internal" href="s3prl.problem.diarization.util.html">util</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l1 current has-children current-page"><a class="current reference internal" href="#">task</a><input checked="" class="toctree-checkbox" id="toctree-checkbox-7" name="toctree-checkbox-7" role="switch" type="checkbox"/><label for="toctree-checkbox-7"><div class="visually-hidden">Toggle child pages in navigation</div><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul>
+<li class="toctree-l2"><a class="reference internal" href="s3prl.task.base.html">base</a></li>
+<li class="toctree-l2"><a class="reference internal" href="s3prl.task.diarization.html">diarization</a></li>
+<li class="toctree-l2"><a class="reference internal" href="s3prl.task.dump_feature.html">dump_feature</a></li>
+<li class="toctree-l2"><a class="reference internal" href="s3prl.task.event_prediction.html">event_prediction</a></li>
+<li class="toctree-l2"><a class="reference internal" href="s3prl.task.scene_prediction.html">scene_prediction</a></li>
+<li class="toctree-l2"><a class="reference internal" href="s3prl.task.speaker_verification_task.html">speaker_verification_task</a></li>
+<li class="toctree-l2"><a class="reference internal" href="s3prl.task.speech2text_ctc_task.html">speech2text_ctc_task</a></li>
+<li class="toctree-l2"><a class="reference internal" href="s3prl.task.utterance_classification_task.html">utterance_classification_task</a></li>
+</ul>
+</li>
+<li class="toctree-l1 has-children"><a class="reference internal" href="s3prl.dataio.html">dataio</a><input class="toctree-checkbox" id="toctree-checkbox-8" name="toctree-checkbox-8" role="switch" type="checkbox"/><label for="toctree-checkbox-8"><div class="visually-hidden">Toggle child pages in navigation</div><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul>
+<li class="toctree-l2"><a class="reference internal" href="s3prl.dataio.collate_fn.html">collate_fn</a></li>
+<li class="toctree-l2 has-children"><a class="reference internal" href="s3prl.dataio.corpus.html">corpus</a><input class="toctree-checkbox" id="toctree-checkbox-9" name="toctree-checkbox-9" role="switch" type="checkbox"/><label for="toctree-checkbox-9"><div class="visually-hidden">Toggle child pages in navigation</div><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul>
+<li class="toctree-l3"><a class="reference internal" href="s3prl.dataio.corpus.base.html">base</a></li>
+<li class="toctree-l3"><a class="reference internal" href="s3prl.dataio.corpus.fluent_speech_commands.html">fluent_speech_commands</a></li>
+<li class="toctree-l3"><a class="reference internal" href="s3prl.dataio.corpus.iemocap.html">iemocap</a></li>
+<li class="toctree-l3"><a class="reference internal" href="s3prl.dataio.corpus.librilight.html">librilight</a></li>
+<li class="toctree-l3"><a class="reference internal" href="s3prl.dataio.corpus.librispeech.html">librispeech</a></li>
+<li class="toctree-l3"><a class="reference internal" href="s3prl.dataio.corpus.quesst14.html">quesst14</a></li>
+<li class="toctree-l3"><a class="reference internal" href="s3prl.dataio.corpus.snips.html">snips</a></li>
+<li class="toctree-l3"><a class="reference internal" href="s3prl.dataio.corpus.speech_commands.html">speech_commands</a></li>
+<li class="toctree-l3"><a class="reference internal" href="s3prl.dataio.corpus.voxceleb1sid.html">voxceleb1sid</a></li>
+<li class="toctree-l3"><a class="reference internal" href="s3prl.dataio.corpus.voxceleb1sv.html">voxceleb1sv</a></li>
+</ul>
+</li>
+<li class="toctree-l2 has-children"><a class="reference internal" href="s3prl.dataio.dataset.html">dataset</a><input class="toctree-checkbox" id="toctree-checkbox-10" name="toctree-checkbox-10" role="switch" type="checkbox"/><label for="toctree-checkbox-10"><div class="visually-hidden">Toggle child pages in navigation</div><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul>
+<li class="toctree-l3"><a class="reference internal" href="s3prl.dataio.dataset.base.html">base</a></li>
+<li class="toctree-l3"><a class="reference internal" href="s3prl.dataio.dataset.diarization.html">diarization</a></li>
+<li class="toctree-l3"><a class="reference internal" href="s3prl.dataio.dataset.encode.html">encode</a></li>
+<li class="toctree-l3"><a class="reference internal" href="s3prl.dataio.dataset.frame_label.html">frame_label</a></li>
+<li class="toctree-l3"><a class="reference internal" href="s3prl.dataio.dataset.load_audio.html">load_audio</a></li>
+<li class="toctree-l3"><a class="reference internal" href="s3prl.dataio.dataset.util.html">util</a></li>
+</ul>
+</li>
+<li class="toctree-l2 has-children"><a class="reference internal" href="s3prl.dataio.encoder.html">encoder</a><input class="toctree-checkbox" id="toctree-checkbox-11" name="toctree-checkbox-11" role="switch" type="checkbox"/><label for="toctree-checkbox-11"><div class="visually-hidden">Toggle child pages in navigation</div><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul>
+<li class="toctree-l3"><a class="reference internal" href="s3prl.dataio.encoder.category.html">category</a></li>
+<li class="toctree-l3"><a class="reference internal" href="s3prl.dataio.encoder.g2p.html">g2p</a></li>
+<li class="toctree-l3"><a class="reference internal" href="s3prl.dataio.encoder.tokenizer.html">tokenizer</a></li>
+<li class="toctree-l3"><a class="reference internal" href="s3prl.dataio.encoder.vocabulary.html">vocabulary</a></li>
+</ul>
+</li>
+<li class="toctree-l2 has-children"><a class="reference internal" href="s3prl.dataio.sampler.html">sampler</a><input class="toctree-checkbox" id="toctree-checkbox-12" name="toctree-checkbox-12" role="switch" type="checkbox"/><label for="toctree-checkbox-12"><div class="visually-hidden">Toggle child pages in navigation</div><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul>
+<li class="toctree-l3"><a class="reference internal" href="s3prl.dataio.sampler.balanced_weighted_sampler.html">balanced_weighted_sampler</a></li>
+<li class="toctree-l3"><a class="reference internal" href="s3prl.dataio.sampler.distributed_sampler.html">distributed_sampler</a></li>
+<li class="toctree-l3"><a class="reference internal" href="s3prl.dataio.sampler.fixed_batch_size_batch_sampler.html">fixed_batch_size_batch_sampler</a></li>
+<li class="toctree-l3"><a class="reference internal" href="s3prl.dataio.sampler.group_same_item_sampler.html">group_same_item_sampler</a></li>
+<li class="toctree-l3"><a class="reference internal" href="s3prl.dataio.sampler.max_timestamp_batch_sampler.html">max_timestamp_batch_sampler</a></li>
+<li class="toctree-l3"><a class="reference internal" href="s3prl.dataio.sampler.sorted_sampler.html">sorted_sampler</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l1 has-children"><a class="reference internal" href="s3prl.metric.html">metric</a><input class="toctree-checkbox" id="toctree-checkbox-13" name="toctree-checkbox-13" role="switch" type="checkbox"/><label for="toctree-checkbox-13"><div class="visually-hidden">Toggle child pages in navigation</div><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul>
+<li class="toctree-l2"><a class="reference internal" href="s3prl.metric.common.html">common</a></li>
+<li class="toctree-l2"><a class="reference internal" href="s3prl.metric.diarization.html">diarization</a></li>
+<li class="toctree-l2"><a class="reference internal" href="s3prl.metric.slot_filling.html">slot_filling</a></li>
+</ul>
+</li>
+<li class="toctree-l1 has-children"><a class="reference internal" href="s3prl.util.html">util</a><input class="toctree-checkbox" id="toctree-checkbox-14" name="toctree-checkbox-14" role="switch" type="checkbox"/><label for="toctree-checkbox-14"><div class="visually-hidden">Toggle child pages in navigation</div><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul>
+<li class="toctree-l2"><a class="reference internal" href="s3prl.util.audio_info.html">audio_info</a></li>
+<li class="toctree-l2"><a class="reference internal" href="s3prl.util.benchmark.html">benchmark</a></li>
+<li class="toctree-l2"><a class="reference internal" href="s3prl.util.download.html">download</a></li>
+<li class="toctree-l2"><a class="reference internal" href="s3prl.util.override.html">override</a></li>
+<li class="toctree-l2"><a class="reference internal" href="s3prl.util.pseudo_data.html">pseudo_data</a></li>
+<li class="toctree-l2"><a class="reference internal" href="s3prl.util.seed.html">seed</a></li>
+</ul>
+</li>
+</ul>
+
+</div>
+</div>
+
+      </div>
+      
+    </div>
+  </aside>
+  <div class="main">
+    <div class="content">
+      <div class="article-container">
+        <a href="#" class="back-to-top muted-link">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
+            <path d="M13 20h-2V8l-5.5 5.5-1.42-1.42L12 4.16l7.92 7.92-1.42 1.42L13 8v12z"></path>
+          </svg>
+          <span>Back to top</span>
+        </a>
+        <div class="content-icon-container">
+          
+<div class="theme-toggle-container theme-toggle-content">
+            <button class="theme-toggle">
+              <div class="visually-hidden">Toggle Light / Dark / Auto color theme</div>
+              <svg class="theme-icon-when-auto"><use href="#svg-sun-half"></use></svg>
+              <svg class="theme-icon-when-dark"><use href="#svg-moon"></use></svg>
+              <svg class="theme-icon-when-light"><use href="#svg-sun"></use></svg>
+            </button>
+          </div>
+          <label class="toc-overlay-icon toc-content-icon" for="__toc">
+            <div class="visually-hidden">Toggle table of contents sidebar</div>
+            <i class="icon"><svg><use href="#svg-toc"></use></svg></i>
+          </label>
+        </div>
+        <article role="main">
+          <section id="task">
+<h1>task<a class="headerlink" href="#task" title="Permalink to this heading">#</a></h1>
+<p><strong>(s3prl.task)</strong></p>
+<span class="target" id="module-s3prl.task"></span><p>Define how a model is trained &amp; evaluated for each step in the train/valid/test loop</p>
+<div class="table-wrapper autosummary longtable docutils container">
+<table class="autosummary longtable docutils align-default">
+<tbody>
+<tr class="row-odd"><td><p><a class="reference internal" href="s3prl.task.base.html#module-s3prl.task.base" title="s3prl.task.base"><code class="xref py py-obj docutils literal notranslate"><span class="pre">s3prl.task.base</span></code></a></p></td>
+<td><p>The abstract Task</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="s3prl.task.diarization.html#module-s3prl.task.diarization" title="s3prl.task.diarization"><code class="xref py py-obj docutils literal notranslate"><span class="pre">s3prl.task.diarization</span></code></a></p></td>
+<td><p>Diarization Permutation Invarant Task</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="s3prl.task.dump_feature.html#module-s3prl.task.dump_feature" title="s3prl.task.dump_feature"><code class="xref py py-obj docutils literal notranslate"><span class="pre">s3prl.task.dump_feature</span></code></a></p></td>
+<td><p>Dump feature Task</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="s3prl.task.event_prediction.html#module-s3prl.task.event_prediction" title="s3prl.task.event_prediction"><code class="xref py py-obj docutils literal notranslate"><span class="pre">s3prl.task.event_prediction</span></code></a></p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="s3prl.task.scene_prediction.html#module-s3prl.task.scene_prediction" title="s3prl.task.scene_prediction"><code class="xref py py-obj docutils literal notranslate"><span class="pre">s3prl.task.scene_prediction</span></code></a></p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="s3prl.task.speaker_verification_task.html#module-s3prl.task.speaker_verification_task" title="s3prl.task.speaker_verification_task"><code class="xref py py-obj docutils literal notranslate"><span class="pre">s3prl.task.speaker_verification_task</span></code></a></p></td>
+<td><p>Speaker Verification with Softmax-based loss</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="s3prl.task.speech2text_ctc_task.html#module-s3prl.task.speech2text_ctc_task" title="s3prl.task.speech2text_ctc_task"><code class="xref py py-obj docutils literal notranslate"><span class="pre">s3prl.task.speech2text_ctc_task</span></code></a></p></td>
+<td><p>Speech2Text with CTC loss</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="s3prl.task.utterance_classification_task.html#module-s3prl.task.utterance_classification_task" title="s3prl.task.utterance_classification_task"><code class="xref py py-obj docutils literal notranslate"><span class="pre">s3prl.task.utterance_classification_task</span></code></a></p></td>
+<td><p>Utterance Classification Tasks</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+<section id="id1">
+<h2>Task<a class="headerlink" href="#id1" title="Permalink to this heading">#</a></h2>
+<dl class="py class">
+<dt class="sig sig-object py" id="s3prl.task.Task">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">s3prl.task.</span></span><span class="sig-name descname"><span class="pre">Task</span></span><a class="reference internal" href="../_modules/s3prl/task/base.html#Task"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="reference external" href="https://github.com/s3prl/s3prl/blob/v0.4.10 /s3prl/task/base.py#L17-L72"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#s3prl.task.Task" title="Permalink to this definition">#</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">Module</span></code></p>
+<dl class="py method">
+<dt class="sig sig-object py" id="s3prl.task.Task.get_state">
+<span class="sig-name descname"><span class="pre">get_state</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/s3prl/task/base.html#Task.get_state"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="reference external" href="https://github.com/s3prl/s3prl/blob/v0.4.10 /s3prl/task/base.py#L21-L23"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#s3prl.task.Task.get_state" title="Permalink to this definition">#</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="s3prl.task.Task.set_state">
+<span class="sig-name descname"><span class="pre">set_state</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">state</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">dict</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/s3prl/task/base.html#Task.set_state"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="reference external" href="https://github.com/s3prl/s3prl/blob/v0.4.10 /s3prl/task/base.py#L25-L26"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#s3prl.task.Task.set_state" title="Permalink to this definition">#</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="s3prl.task.Task.parse_cached_results">
+<span class="sig-name descname"><span class="pre">parse_cached_results</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">cached_results</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">List</span><span class="p"><span class="pre">[</span></span><span class="pre">dict</span><span class="p"><span class="pre">]</span></span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/s3prl/task/base.html#Task.parse_cached_results"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="reference external" href="https://github.com/s3prl/s3prl/blob/v0.4.10 /s3prl/task/base.py#L28-L38"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#s3prl.task.Task.parse_cached_results" title="Permalink to this definition">#</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="s3prl.task.Task.predict">
+<em class="property"><span class="pre">abstract</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">predict</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/s3prl/task/base.html#Task.predict"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="reference external" href="https://github.com/s3prl/s3prl/blob/v0.4.10 /s3prl/task/base.py#L40-L42"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#s3prl.task.Task.predict" title="Permalink to this definition">#</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="s3prl.task.Task.forward">
+<span class="sig-name descname"><span class="pre">forward</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">mode</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/s3prl/task/base.html#Task.forward"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="reference external" href="https://github.com/s3prl/s3prl/blob/v0.4.10 /s3prl/task/base.py#L44-L45"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#s3prl.task.Task.forward" title="Permalink to this definition">#</a></dt>
+<dd><p>Defines the computation performed at every call.</p>
+<p>Should be overridden by all subclasses.</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>Although the recipe for forward pass needs to be defined within
+this function, one should call the <code class="xref py py-class docutils literal notranslate"><span class="pre">Module</span></code> instance afterwards
+instead of this since the former takes care of running the
+registered hooks while the latter silently ignores them.</p>
+</div>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="s3prl.task.Task.reduction">
+<span class="sig-name descname"><span class="pre">reduction</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">mode</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/s3prl/task/base.html#Task.reduction"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="reference external" href="https://github.com/s3prl/s3prl/blob/v0.4.10 /s3prl/task/base.py#L47-L48"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#s3prl.task.Task.reduction" title="Permalink to this definition">#</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="s3prl.task.Task.train_step">
+<em class="property"><span class="pre">abstract</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">train_step</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/s3prl/task/base.html#Task.train_step"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="reference external" href="https://github.com/s3prl/s3prl/blob/v0.4.10 /s3prl/task/base.py#L50-L52"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#s3prl.task.Task.train_step" title="Permalink to this definition">#</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="s3prl.task.Task.valid_step">
+<em class="property"><span class="pre">abstract</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">valid_step</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/s3prl/task/base.html#Task.valid_step"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="reference external" href="https://github.com/s3prl/s3prl/blob/v0.4.10 /s3prl/task/base.py#L54-L56"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#s3prl.task.Task.valid_step" title="Permalink to this definition">#</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="s3prl.task.Task.test_step">
+<em class="property"><span class="pre">abstract</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">test_step</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/s3prl/task/base.html#Task.test_step"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="reference external" href="https://github.com/s3prl/s3prl/blob/v0.4.10 /s3prl/task/base.py#L58-L60"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#s3prl.task.Task.test_step" title="Permalink to this definition">#</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="s3prl.task.Task.train_reduction">
+<em class="property"><span class="pre">abstract</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">train_reduction</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/s3prl/task/base.html#Task.train_reduction"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="reference external" href="https://github.com/s3prl/s3prl/blob/v0.4.10 /s3prl/task/base.py#L62-L64"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#s3prl.task.Task.train_reduction" title="Permalink to this definition">#</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="s3prl.task.Task.valid_reduction">
+<em class="property"><span class="pre">abstract</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">valid_reduction</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/s3prl/task/base.html#Task.valid_reduction"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="reference external" href="https://github.com/s3prl/s3prl/blob/v0.4.10 /s3prl/task/base.py#L66-L68"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#s3prl.task.Task.valid_reduction" title="Permalink to this definition">#</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="s3prl.task.Task.test_reduction">
+<em class="property"><span class="pre">abstract</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">test_reduction</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/s3prl/task/base.html#Task.test_reduction"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="reference external" href="https://github.com/s3prl/s3prl/blob/v0.4.10 /s3prl/task/base.py#L70-L72"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#s3prl.task.Task.test_reduction" title="Permalink to this definition">#</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="s3prl.task.Task.dump_patches">
+<span class="sig-name descname"><span class="pre">dump_patches</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">bool</span></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">False</span></em><a class="reference external" href="https://github.com/s3prl/s3prl/blob/v0.4.10 /s3prl/task.py"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#s3prl.task.Task.dump_patches" title="Permalink to this definition">#</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="s3prl.task.Task.training">
+<span class="sig-name descname"><span class="pre">training</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">bool</span></em><a class="reference external" href="https://github.com/s3prl/s3prl/blob/v0.4.10 /s3prl/task.py"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#s3prl.task.Task.training" title="Permalink to this definition">#</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+</section>
+<section id="diarizationpit">
+<h2>DiarizationPIT<a class="headerlink" href="#diarizationpit" title="Permalink to this heading">#</a></h2>
+<dl class="py class">
+<dt class="sig sig-object py" id="s3prl.task.DiarizationPIT">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">s3prl.task.</span></span><span class="sig-name descname"><span class="pre">DiarizationPIT</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">model</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Module</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/s3prl/task/diarization.html#DiarizationPIT"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="reference external" href="https://github.com/s3prl/s3prl/blob/v0.4.10 /s3prl/task/diarization.py#L25-L160"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#s3prl.task.DiarizationPIT" title="Permalink to this definition">#</a></dt>
+<dd><p>Bases: <a class="reference internal" href="s3prl.task.base.html#s3prl.task.base.Task" title="s3prl.task.base.Task"><code class="xref py py-class docutils literal notranslate"><span class="pre">Task</span></code></a></p>
+<dl class="py method">
+<dt class="sig sig-object py" id="s3prl.task.DiarizationPIT.predict">
+<span class="sig-name descname"><span class="pre">predict</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">x</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">x_len</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/s3prl/task/diarization.html#DiarizationPIT.predict"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="reference external" href="https://github.com/s3prl/s3prl/blob/v0.4.10 /s3prl/task/diarization.py#L73-L75"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#s3prl.task.DiarizationPIT.predict" title="Permalink to this definition">#</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="s3prl.task.DiarizationPIT.forward">
+<span class="sig-name descname"><span class="pre">forward</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">_mode</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">x</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">x_len</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">label</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">label_len</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">record_id</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">chunk_id</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">_dump_dir</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/s3prl/task/diarization.html#DiarizationPIT.forward"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="reference external" href="https://github.com/s3prl/s3prl/blob/v0.4.10 /s3prl/task/diarization.py#L77-L152"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#s3prl.task.DiarizationPIT.forward" title="Permalink to this definition">#</a></dt>
+<dd><p>Defines the computation performed at every call.</p>
+<p>Should be overridden by all subclasses.</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>Although the recipe for forward pass needs to be defined within
+this function, one should call the <code class="xref py py-class docutils literal notranslate"><span class="pre">Module</span></code> instance afterwards
+instead of this since the former takes care of running the
+registered hooks while the latter silently ignores them.</p>
+</div>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="s3prl.task.DiarizationPIT.reduction">
+<span class="sig-name descname"><span class="pre">reduction</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">_mode</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cached_results</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">List</span><span class="p"><span class="pre">[</span></span><span class="pre">dict</span><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">_dump_dir</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/s3prl/task/diarization.html#DiarizationPIT.reduction"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="reference external" href="https://github.com/s3prl/s3prl/blob/v0.4.10 /s3prl/task/diarization.py#L154-L160"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#s3prl.task.DiarizationPIT.reduction" title="Permalink to this definition">#</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="s3prl.task.DiarizationPIT.dump_patches">
+<span class="sig-name descname"><span class="pre">dump_patches</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">bool</span></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">False</span></em><a class="reference external" href="https://github.com/s3prl/s3prl/blob/v0.4.10 /s3prl/task.py"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#s3prl.task.DiarizationPIT.dump_patches" title="Permalink to this definition">#</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="s3prl.task.DiarizationPIT.get_state">
+<span class="sig-name descname"><span class="pre">get_state</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference external" href="https://github.com/s3prl/s3prl/blob/v0.4.10 /s3prl/task/base.py#L21-L23"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#s3prl.task.DiarizationPIT.get_state" title="Permalink to this definition">#</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="s3prl.task.DiarizationPIT.parse_cached_results">
+<span class="sig-name descname"><span class="pre">parse_cached_results</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">cached_results</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">List</span><span class="p"><span class="pre">[</span></span><span class="pre">dict</span><span class="p"><span class="pre">]</span></span></span></em><span class="sig-paren">)</span><a class="reference external" href="https://github.com/s3prl/s3prl/blob/v0.4.10 /s3prl/task/base.py#L28-L38"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#s3prl.task.DiarizationPIT.parse_cached_results" title="Permalink to this definition">#</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="s3prl.task.DiarizationPIT.set_state">
+<span class="sig-name descname"><span class="pre">set_state</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">state</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">dict</span></span></em><span class="sig-paren">)</span><a class="reference external" href="https://github.com/s3prl/s3prl/blob/v0.4.10 /s3prl/task/base.py#L25-L26"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#s3prl.task.DiarizationPIT.set_state" title="Permalink to this definition">#</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="s3prl.task.DiarizationPIT.test_reduction">
+<em class="property"><span class="pre">abstract</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">test_reduction</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference external" href="https://github.com/s3prl/s3prl/blob/v0.4.10 /s3prl/task/base.py#L70-L72"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#s3prl.task.DiarizationPIT.test_reduction" title="Permalink to this definition">#</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="s3prl.task.DiarizationPIT.test_step">
+<em class="property"><span class="pre">abstract</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">test_step</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference external" href="https://github.com/s3prl/s3prl/blob/v0.4.10 /s3prl/task/base.py#L58-L60"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#s3prl.task.DiarizationPIT.test_step" title="Permalink to this definition">#</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="s3prl.task.DiarizationPIT.train_reduction">
+<em class="property"><span class="pre">abstract</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">train_reduction</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference external" href="https://github.com/s3prl/s3prl/blob/v0.4.10 /s3prl/task/base.py#L62-L64"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#s3prl.task.DiarizationPIT.train_reduction" title="Permalink to this definition">#</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="s3prl.task.DiarizationPIT.train_step">
+<em class="property"><span class="pre">abstract</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">train_step</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference external" href="https://github.com/s3prl/s3prl/blob/v0.4.10 /s3prl/task/base.py#L50-L52"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#s3prl.task.DiarizationPIT.train_step" title="Permalink to this definition">#</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="s3prl.task.DiarizationPIT.valid_reduction">
+<em class="property"><span class="pre">abstract</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">valid_reduction</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference external" href="https://github.com/s3prl/s3prl/blob/v0.4.10 /s3prl/task/base.py#L66-L68"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#s3prl.task.DiarizationPIT.valid_reduction" title="Permalink to this definition">#</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="s3prl.task.DiarizationPIT.valid_step">
+<em class="property"><span class="pre">abstract</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">valid_step</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference external" href="https://github.com/s3prl/s3prl/blob/v0.4.10 /s3prl/task/base.py#L54-L56"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#s3prl.task.DiarizationPIT.valid_step" title="Permalink to this definition">#</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="s3prl.task.DiarizationPIT.training">
+<span class="sig-name descname"><span class="pre">training</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">bool</span></em><a class="reference external" href="https://github.com/s3prl/s3prl/blob/v0.4.10 /s3prl/task.py"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#s3prl.task.DiarizationPIT.training" title="Permalink to this definition">#</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+</section>
+<section id="dumpfeature">
+<h2>DumpFeature<a class="headerlink" href="#dumpfeature" title="Permalink to this heading">#</a></h2>
+<dl class="py class">
+<dt class="sig sig-object py" id="s3prl.task.DumpFeature">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">s3prl.task.</span></span><span class="sig-name descname"><span class="pre">DumpFeature</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">model</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Module</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dump_feat_dir</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">'feat'</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/s3prl/task/dump_feature.html#DumpFeature"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="reference external" href="https://github.com/s3prl/s3prl/blob/v0.4.10 /s3prl/task/dump_feature.py#L19-L43"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#s3prl.task.DumpFeature" title="Permalink to this definition">#</a></dt>
+<dd><p>Bases: <a class="reference internal" href="s3prl.task.base.html#s3prl.task.base.Task" title="s3prl.task.base.Task"><code class="xref py py-class docutils literal notranslate"><span class="pre">Task</span></code></a></p>
+<dl class="py method">
+<dt class="sig sig-object py" id="s3prl.task.DumpFeature.forward">
+<span class="sig-name descname"><span class="pre">forward</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">split</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">x</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">x_len</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">unique_name</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">_dump_dir</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/s3prl/task/dump_feature.html#DumpFeature.forward"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="reference external" href="https://github.com/s3prl/s3prl/blob/v0.4.10 ///home/runner/s3prl_env/lib/python3.8/site-packages/torch/autograd/grad_mode.py#L25-L40"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#s3prl.task.DumpFeature.forward" title="Permalink to this definition">#</a></dt>
+<dd><p>Defines the computation performed at every call.</p>
+<p>Should be overridden by all subclasses.</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>Although the recipe for forward pass needs to be defined within
+this function, one should call the <code class="xref py py-class docutils literal notranslate"><span class="pre">Module</span></code> instance afterwards
+instead of this since the former takes care of running the
+registered hooks while the latter silently ignores them.</p>
+</div>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="s3prl.task.DumpFeature.reduction">
+<span class="sig-name descname"><span class="pre">reduction</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">split</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">batch_results</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">list</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">_dump_dir</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/s3prl/task/dump_feature.html#DumpFeature.reduction"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="reference external" href="https://github.com/s3prl/s3prl/blob/v0.4.10 /s3prl/task/dump_feature.py#L42-L43"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#s3prl.task.DumpFeature.reduction" title="Permalink to this definition">#</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="s3prl.task.DumpFeature.dump_patches">
+<span class="sig-name descname"><span class="pre">dump_patches</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">bool</span></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">False</span></em><a class="reference external" href="https://github.com/s3prl/s3prl/blob/v0.4.10 /s3prl/task.py"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#s3prl.task.DumpFeature.dump_patches" title="Permalink to this definition">#</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="s3prl.task.DumpFeature.get_state">
+<span class="sig-name descname"><span class="pre">get_state</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference external" href="https://github.com/s3prl/s3prl/blob/v0.4.10 /s3prl/task/base.py#L21-L23"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#s3prl.task.DumpFeature.get_state" title="Permalink to this definition">#</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="s3prl.task.DumpFeature.parse_cached_results">
+<span class="sig-name descname"><span class="pre">parse_cached_results</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">cached_results</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">List</span><span class="p"><span class="pre">[</span></span><span class="pre">dict</span><span class="p"><span class="pre">]</span></span></span></em><span class="sig-paren">)</span><a class="reference external" href="https://github.com/s3prl/s3prl/blob/v0.4.10 /s3prl/task/base.py#L28-L38"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#s3prl.task.DumpFeature.parse_cached_results" title="Permalink to this definition">#</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="s3prl.task.DumpFeature.predict">
+<em class="property"><span class="pre">abstract</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">predict</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference external" href="https://github.com/s3prl/s3prl/blob/v0.4.10 /s3prl/task/base.py#L40-L42"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#s3prl.task.DumpFeature.predict" title="Permalink to this definition">#</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="s3prl.task.DumpFeature.set_state">
+<span class="sig-name descname"><span class="pre">set_state</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">state</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">dict</span></span></em><span class="sig-paren">)</span><a class="reference external" href="https://github.com/s3prl/s3prl/blob/v0.4.10 /s3prl/task/base.py#L25-L26"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#s3prl.task.DumpFeature.set_state" title="Permalink to this definition">#</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="s3prl.task.DumpFeature.test_reduction">
+<em class="property"><span class="pre">abstract</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">test_reduction</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference external" href="https://github.com/s3prl/s3prl/blob/v0.4.10 /s3prl/task/base.py#L70-L72"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#s3prl.task.DumpFeature.test_reduction" title="Permalink to this definition">#</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="s3prl.task.DumpFeature.test_step">
+<em class="property"><span class="pre">abstract</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">test_step</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference external" href="https://github.com/s3prl/s3prl/blob/v0.4.10 /s3prl/task/base.py#L58-L60"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#s3prl.task.DumpFeature.test_step" title="Permalink to this definition">#</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="s3prl.task.DumpFeature.train_reduction">
+<em class="property"><span class="pre">abstract</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">train_reduction</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference external" href="https://github.com/s3prl/s3prl/blob/v0.4.10 /s3prl/task/base.py#L62-L64"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#s3prl.task.DumpFeature.train_reduction" title="Permalink to this definition">#</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="s3prl.task.DumpFeature.train_step">
+<em class="property"><span class="pre">abstract</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">train_step</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference external" href="https://github.com/s3prl/s3prl/blob/v0.4.10 /s3prl/task/base.py#L50-L52"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#s3prl.task.DumpFeature.train_step" title="Permalink to this definition">#</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="s3prl.task.DumpFeature.valid_reduction">
+<em class="property"><span class="pre">abstract</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">valid_reduction</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference external" href="https://github.com/s3prl/s3prl/blob/v0.4.10 /s3prl/task/base.py#L66-L68"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#s3prl.task.DumpFeature.valid_reduction" title="Permalink to this definition">#</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="s3prl.task.DumpFeature.valid_step">
+<em class="property"><span class="pre">abstract</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">valid_step</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference external" href="https://github.com/s3prl/s3prl/blob/v0.4.10 /s3prl/task/base.py#L54-L56"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#s3prl.task.DumpFeature.valid_step" title="Permalink to this definition">#</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="s3prl.task.DumpFeature.training">
+<span class="sig-name descname"><span class="pre">training</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">bool</span></em><a class="reference external" href="https://github.com/s3prl/s3prl/blob/v0.4.10 /s3prl/task.py"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#s3prl.task.DumpFeature.training" title="Permalink to this definition">#</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+</section>
+<section id="speakerverification">
+<h2>SpeakerVerification<a class="headerlink" href="#speakerverification" title="Permalink to this heading">#</a></h2>
+<dl class="py class">
+<dt class="sig sig-object py" id="s3prl.task.SpeakerVerification">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">s3prl.task.</span></span><span class="sig-name descname"><span class="pre">SpeakerVerification</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">model</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="s3prl.task.speaker_verification_task.html#s3prl.task.speaker_verification_task.SpeakerClassifier" title="s3prl.task.speaker_verification_task.SpeakerClassifier"><span class="pre">SpeakerClassifier</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">category</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="s3prl.dataio.encoder.category.html#s3prl.dataio.encoder.category.CategoryEncoder" title="s3prl.dataio.encoder.category.CategoryEncoder"><span class="pre">CategoryEncoder</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">test_trials</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">List</span><span class="p"><span class="pre">[</span></span><span class="pre">Tuple</span><span class="p"><span class="pre">[</span></span><span class="pre">int</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">str</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">loss_type</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">'amsoftmax'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">loss_conf</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">dict</span><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/s3prl/task/speaker_verification_task.html#SpeakerVerification"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="reference external" href="https://github.com/s3prl/s3prl/blob/v0.4.10 /s3prl/task/speaker_verification_task.py#L62-L209"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#s3prl.task.SpeakerVerification" title="Permalink to this definition">#</a></dt>
+<dd><p>Bases: <a class="reference internal" href="s3prl.task.base.html#s3prl.task.base.Task" title="s3prl.task.base.Task"><code class="xref py py-class docutils literal notranslate"><span class="pre">Task</span></code></a></p>
+<p>model.output_size should match len(categories)</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>model</strong> (<a class="reference internal" href="s3prl.task.speaker_verification_task.html#s3prl.task.speaker_verification_task.SpeakerClassifier" title="s3prl.task.speaker_verification_task.SpeakerClassifier"><em>SpeakerClassifier</em></a>) – actual model or a callable config for the model</p></li>
+<li><p><strong>categories</strong> (<em>dict</em><em>[</em><em>str</em><em>]</em>) – each key in the Dictionary is the final prediction content in str.
+use categories[key] to encode as numeric label</p></li>
+<li><p><strong>test_trials</strong> (<em>List</em><em>[</em><em>Tuple</em><em>[</em><em>int</em><em>, </em><em>str</em><em>, </em><em>str</em><em>]</em><em>]</em>) – each tuple in the list consists of (label, enroll_utt, test_utt)</p></li>
+<li><p><strong>loss_type</strong> (<em>str</em>) – softmax or amsoftmax</p></li>
+<li><p><strong>loss_conf</strong> (<em>dict</em>) – arguments for the loss_type class</p></li>
+</ul>
+</dd>
+</dl>
+<dl class="py method">
+<dt class="sig sig-object py" id="s3prl.task.SpeakerVerification.get_state">
+<span class="sig-name descname"><span class="pre">get_state</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/s3prl/task/speaker_verification_task.html#SpeakerVerification.get_state"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="reference external" href="https://github.com/s3prl/s3prl/blob/v0.4.10 /s3prl/task/speaker_verification_task.py#L105-L108"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#s3prl.task.SpeakerVerification.get_state" title="Permalink to this definition">#</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="s3prl.task.SpeakerVerification.set_state">
+<span class="sig-name descname"><span class="pre">set_state</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">state</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">dict</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/s3prl/task/speaker_verification_task.html#SpeakerVerification.set_state"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="reference external" href="https://github.com/s3prl/s3prl/blob/v0.4.10 /s3prl/task/speaker_verification_task.py#L110-L111"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#s3prl.task.SpeakerVerification.set_state" title="Permalink to this definition">#</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="s3prl.task.SpeakerVerification.predict">
+<span class="sig-name descname"><span class="pre">predict</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">x</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Tensor</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">x_len</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">LongTensor</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/s3prl/task/speaker_verification_task.html#SpeakerVerification.predict"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="reference external" href="https://github.com/s3prl/s3prl/blob/v0.4.10 /s3prl/task/speaker_verification_task.py#L113-L125"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#s3prl.task.SpeakerVerification.predict" title="Permalink to this definition">#</a></dt>
+<dd><dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>x</strong> (<em>torch.Tensor</em>) – (batch_size, timestamps, input_size)</p></li>
+<li><p><strong>x_len</strong> (<em>torch.LongTensor</em>) – (batch_size, )</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p><p>torch.Tensor</p>
+<p>(batch_size, output_size)</p>
+</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="s3prl.task.SpeakerVerification.train_step">
+<span class="sig-name descname"><span class="pre">train_step</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">x</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Tensor</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">x_len</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">LongTensor</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">class_id</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">LongTensor</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">unique_name</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">List</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">_dump_dir</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/s3prl/task/speaker_verification_task.html#SpeakerVerification.train_step"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="reference external" href="https://github.com/s3prl/s3prl/blob/v0.4.10 /s3prl/task/speaker_verification_task.py#L127-L146"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#s3prl.task.SpeakerVerification.train_step" title="Permalink to this definition">#</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="s3prl.task.SpeakerVerification.train_reduction">
+<span class="sig-name descname"><span class="pre">train_reduction</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">cached_results</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">list</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">_dump_dir</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/s3prl/task/speaker_verification_task.html#SpeakerVerification.train_reduction"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="reference external" href="https://github.com/s3prl/s3prl/blob/v0.4.10 /s3prl/task/speaker_verification_task.py#L148-L156"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#s3prl.task.SpeakerVerification.train_reduction" title="Permalink to this definition">#</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="s3prl.task.SpeakerVerification.test_step">
+<span class="sig-name descname"><span class="pre">test_step</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">x</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Tensor</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">x_len</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">LongTensor</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">unique_name</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">List</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">_dump_dir</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/s3prl/task/speaker_verification_task.html#SpeakerVerification.test_step"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="reference external" href="https://github.com/s3prl/s3prl/blob/v0.4.10 /s3prl/task/speaker_verification_task.py#L158-L182"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#s3prl.task.SpeakerVerification.test_step" title="Permalink to this definition">#</a></dt>
+<dd><dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>x</strong> (<em>torch.Tensor</em>) – (batch_size, timestamps, input_size)</p></li>
+<li><p><strong>x_len</strong> – torch.LongTensor</p></li>
+<li><p><strong>unique_name</strong> (<em>List</em><em>[</em><em>str</em><em>]</em>) – </p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p><p>unique_name (List[str])
+output (torch.Tensor):</p>
+<blockquote>
+<div><p>speaker embeddings corresponding to unique_name</p>
+</div></blockquote>
+</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="s3prl.task.SpeakerVerification.test_reduction">
+<span class="sig-name descname"><span class="pre">test_reduction</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">cached_results</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">List</span><span class="p"><span class="pre">[</span></span><span class="pre">dict</span><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">_dump_dir</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/s3prl/task/speaker_verification_task.html#SpeakerVerification.test_reduction"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="reference external" href="https://github.com/s3prl/s3prl/blob/v0.4.10 /s3prl/task/speaker_verification_task.py#L184-L209"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#s3prl.task.SpeakerVerification.test_reduction" title="Permalink to this definition">#</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="s3prl.task.SpeakerVerification.dump_patches">
+<span class="sig-name descname"><span class="pre">dump_patches</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">bool</span></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">False</span></em><a class="reference external" href="https://github.com/s3prl/s3prl/blob/v0.4.10 /s3prl/task.py"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#s3prl.task.SpeakerVerification.dump_patches" title="Permalink to this definition">#</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="s3prl.task.SpeakerVerification.forward">
+<span class="sig-name descname"><span class="pre">forward</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">mode</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference external" href="https://github.com/s3prl/s3prl/blob/v0.4.10 /s3prl/task/base.py#L44-L45"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#s3prl.task.SpeakerVerification.forward" title="Permalink to this definition">#</a></dt>
+<dd><p>Defines the computation performed at every call.</p>
+<p>Should be overridden by all subclasses.</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>Although the recipe for forward pass needs to be defined within
+this function, one should call the <code class="xref py py-class docutils literal notranslate"><span class="pre">Module</span></code> instance afterwards
+instead of this since the former takes care of running the
+registered hooks while the latter silently ignores them.</p>
+</div>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="s3prl.task.SpeakerVerification.parse_cached_results">
+<span class="sig-name descname"><span class="pre">parse_cached_results</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">cached_results</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">List</span><span class="p"><span class="pre">[</span></span><span class="pre">dict</span><span class="p"><span class="pre">]</span></span></span></em><span class="sig-paren">)</span><a class="reference external" href="https://github.com/s3prl/s3prl/blob/v0.4.10 /s3prl/task/base.py#L28-L38"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#s3prl.task.SpeakerVerification.parse_cached_results" title="Permalink to this definition">#</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="s3prl.task.SpeakerVerification.reduction">
+<span class="sig-name descname"><span class="pre">reduction</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">mode</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference external" href="https://github.com/s3prl/s3prl/blob/v0.4.10 /s3prl/task/base.py#L47-L48"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#s3prl.task.SpeakerVerification.reduction" title="Permalink to this definition">#</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="s3prl.task.SpeakerVerification.valid_reduction">
+<em class="property"><span class="pre">abstract</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">valid_reduction</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference external" href="https://github.com/s3prl/s3prl/blob/v0.4.10 /s3prl/task/base.py#L66-L68"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#s3prl.task.SpeakerVerification.valid_reduction" title="Permalink to this definition">#</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="s3prl.task.SpeakerVerification.valid_step">
+<em class="property"><span class="pre">abstract</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">valid_step</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference external" href="https://github.com/s3prl/s3prl/blob/v0.4.10 /s3prl/task/base.py#L54-L56"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#s3prl.task.SpeakerVerification.valid_step" title="Permalink to this definition">#</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="s3prl.task.SpeakerVerification.training">
+<span class="sig-name descname"><span class="pre">training</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">bool</span></em><a class="reference external" href="https://github.com/s3prl/s3prl/blob/v0.4.10 /s3prl/task.py"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#s3prl.task.SpeakerVerification.training" title="Permalink to this definition">#</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+</section>
+<section id="speech2textctctask">
+<h2>Speech2TextCTCTask<a class="headerlink" href="#speech2textctctask" title="Permalink to this heading">#</a></h2>
+<dl class="py class">
+<dt class="sig sig-object py" id="s3prl.task.Speech2TextCTCTask">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">s3prl.task.</span></span><span class="sig-name descname"><span class="pre">Speech2TextCTCTask</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">model</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Module</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">tokenizer</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="s3prl.dataio.encoder.html#s3prl.dataio.encoder.Tokenizer" title="s3prl.dataio.encoder.tokenizer.Tokenizer"><span class="pre">Tokenizer</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">decoder</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">Union</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="s3prl.nn.beam_decoder.html#s3prl.nn.beam_decoder.BeamDecoder" title="s3prl.nn.beam_decoder.BeamDecoder"><span class="pre">BeamDecoder</span></a><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">dict</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">log_metrics</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">List</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">['cer',</span> <span class="pre">'wer']</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/s3prl/task/speech2text_ctc_task.html#Speech2TextCTCTask"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="reference external" href="https://github.com/s3prl/s3prl/blob/v0.4.10 /s3prl/task/speech2text_ctc_task.py#L74-L241"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#s3prl.task.Speech2TextCTCTask" title="Permalink to this definition">#</a></dt>
+<dd><p>Bases: <a class="reference internal" href="s3prl.task.base.html#s3prl.task.base.Task" title="s3prl.task.base.Task"><code class="xref py py-class docutils literal notranslate"><span class="pre">Task</span></code></a></p>
+<p>Speech-to-text task with CTC objective</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>model</strong> (<a class="reference internal" href="s3prl.task.speech2text_ctc_task.html#s3prl.task.speech2text_ctc_task.Speech2TextCTCExample" title="s3prl.task.speech2text_ctc_task.Speech2TextCTCExample"><em>Speech2TextCTCExample</em></a>) – </p></li>
+<li><p><strong>tokenizer</strong> (<a class="reference internal" href="s3prl.dataio.encoder.html#s3prl.dataio.encoder.Tokenizer" title="s3prl.dataio.encoder.Tokenizer"><em>Tokenizer</em></a>) – Text tokenizer.</p></li>
+<li><p><strong>decoder</strong> (<em>Union</em><em>[</em><a class="reference internal" href="s3prl.nn.html#s3prl.nn.BeamDecoder" title="s3prl.nn.BeamDecoder"><em>BeamDecoder</em></a><em>, </em><em>dict</em><em>]</em><em>, </em><em>optional</em>) – Beam decoder or decoder’s config. Defaults to None.</p></li>
+<li><p><strong>log_metrics</strong> (<em>List</em><em>[</em><em>str</em><em>]</em><em>, </em><em>optional</em>) – Metrics to be logged. Defaults to [“cer”, “wer”].</p></li>
+</ul>
+</dd>
+</dl>
+<dl class="py method">
+<dt class="sig sig-object py" id="s3prl.task.Speech2TextCTCTask.predict">
+<span class="sig-name descname"><span class="pre">predict</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">x</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Tensor</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">x_len</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">LongTensor</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/s3prl/task/speech2text_ctc_task.html#Speech2TextCTCTask.predict"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="reference external" href="https://github.com/s3prl/s3prl/blob/v0.4.10 /s3prl/task/speech2text_ctc_task.py#L112-L137"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#s3prl.task.Speech2TextCTCTask.predict" title="Permalink to this definition">#</a></dt>
+<dd><dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>x</strong> (<em>torch.Tensor</em>) – (batch_size, timestamps, input_size)</p></li>
+<li><p><strong>x_len</strong> (<em>torch.LongTensor</em>) – (batch_size, )</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>(batch_size, timestamps, output_size)
+prediction (list): prediction strings
+valid_length (torch.LongTensor): (batch_size, )</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>logits (torch.Tensor)</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="s3prl.task.Speech2TextCTCTask.forward">
+<span class="sig-name descname"><span class="pre">forward</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">_mode</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">x</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Tensor</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">x_len</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">LongTensor</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">labels</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">ndarray</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">class_ids</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">LongTensor</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">unique_name</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">ndarray</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">beam_decode</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">_dump_dir</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/s3prl/task/speech2text_ctc_task.html#Speech2TextCTCTask.forward"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="reference external" href="https://github.com/s3prl/s3prl/blob/v0.4.10 /s3prl/task/speech2text_ctc_task.py#L139-L194"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#s3prl.task.Speech2TextCTCTask.forward" title="Permalink to this definition">#</a></dt>
+<dd><p>Each forward step in the training loop</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>mode</strong> (<em>str</em>) – train / valid / test</p></li>
+<li><p><strong>x</strong> (<em>torch.Tensor</em>) – Input waveform or acoustic features.
+(batch_size, timestamps, input_size)</p></li>
+<li><p><strong>x_len</strong> (<em>torch.LongTensor</em>) – Lengths of inputs.
+(batch_size, )</p></li>
+<li><p><strong>labels</strong> (<em>np.ndarray</em>) – Ground truth transcriptions (str).
+(batch_size, )</p></li>
+<li><p><strong>class_ids</strong> (<em>torch.LongTensor</em>) – Tokenized ground truth transcriptions.</p></li>
+<li><p><strong>unique_name</strong> (<em>np.ndarray</em>) – Unique names for each sample.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="s3prl.task.Speech2TextCTCTask.reduction">
+<span class="sig-name descname"><span class="pre">reduction</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">_mode</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cached_results</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">List</span><span class="p"><span class="pre">[</span></span><span class="pre">dict</span><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">_dump_dir</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/s3prl/task/speech2text_ctc_task.html#Speech2TextCTCTask.reduction"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="reference external" href="https://github.com/s3prl/s3prl/blob/v0.4.10 /s3prl/task/speech2text_ctc_task.py#L196-L241"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#s3prl.task.Speech2TextCTCTask.reduction" title="Permalink to this definition">#</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="s3prl.task.Speech2TextCTCTask.dump_patches">
+<span class="sig-name descname"><span class="pre">dump_patches</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">bool</span></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">False</span></em><a class="reference external" href="https://github.com/s3prl/s3prl/blob/v0.4.10 /s3prl/task.py"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#s3prl.task.Speech2TextCTCTask.dump_patches" title="Permalink to this definition">#</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="s3prl.task.Speech2TextCTCTask.get_state">
+<span class="sig-name descname"><span class="pre">get_state</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference external" href="https://github.com/s3prl/s3prl/blob/v0.4.10 /s3prl/task/base.py#L21-L23"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#s3prl.task.Speech2TextCTCTask.get_state" title="Permalink to this definition">#</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="s3prl.task.Speech2TextCTCTask.parse_cached_results">
+<span class="sig-name descname"><span class="pre">parse_cached_results</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">cached_results</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">List</span><span class="p"><span class="pre">[</span></span><span class="pre">dict</span><span class="p"><span class="pre">]</span></span></span></em><span class="sig-paren">)</span><a class="reference external" href="https://github.com/s3prl/s3prl/blob/v0.4.10 /s3prl/task/base.py#L28-L38"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#s3prl.task.Speech2TextCTCTask.parse_cached_results" title="Permalink to this definition">#</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="s3prl.task.Speech2TextCTCTask.set_state">
+<span class="sig-name descname"><span class="pre">set_state</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">state</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">dict</span></span></em><span class="sig-paren">)</span><a class="reference external" href="https://github.com/s3prl/s3prl/blob/v0.4.10 /s3prl/task/base.py#L25-L26"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#s3prl.task.Speech2TextCTCTask.set_state" title="Permalink to this definition">#</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="s3prl.task.Speech2TextCTCTask.test_reduction">
+<em class="property"><span class="pre">abstract</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">test_reduction</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference external" href="https://github.com/s3prl/s3prl/blob/v0.4.10 /s3prl/task/base.py#L70-L72"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#s3prl.task.Speech2TextCTCTask.test_reduction" title="Permalink to this definition">#</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="s3prl.task.Speech2TextCTCTask.test_step">
+<em class="property"><span class="pre">abstract</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">test_step</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference external" href="https://github.com/s3prl/s3prl/blob/v0.4.10 /s3prl/task/base.py#L58-L60"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#s3prl.task.Speech2TextCTCTask.test_step" title="Permalink to this definition">#</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="s3prl.task.Speech2TextCTCTask.train_reduction">
+<em class="property"><span class="pre">abstract</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">train_reduction</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference external" href="https://github.com/s3prl/s3prl/blob/v0.4.10 /s3prl/task/base.py#L62-L64"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#s3prl.task.Speech2TextCTCTask.train_reduction" title="Permalink to this definition">#</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="s3prl.task.Speech2TextCTCTask.train_step">
+<em class="property"><span class="pre">abstract</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">train_step</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference external" href="https://github.com/s3prl/s3prl/blob/v0.4.10 /s3prl/task/base.py#L50-L52"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#s3prl.task.Speech2TextCTCTask.train_step" title="Permalink to this definition">#</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="s3prl.task.Speech2TextCTCTask.valid_reduction">
+<em class="property"><span class="pre">abstract</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">valid_reduction</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference external" href="https://github.com/s3prl/s3prl/blob/v0.4.10 /s3prl/task/base.py#L66-L68"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#s3prl.task.Speech2TextCTCTask.valid_reduction" title="Permalink to this definition">#</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="s3prl.task.Speech2TextCTCTask.valid_step">
+<em class="property"><span class="pre">abstract</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">valid_step</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference external" href="https://github.com/s3prl/s3prl/blob/v0.4.10 /s3prl/task/base.py#L54-L56"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#s3prl.task.Speech2TextCTCTask.valid_step" title="Permalink to this definition">#</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="s3prl.task.Speech2TextCTCTask.training">
+<span class="sig-name descname"><span class="pre">training</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">bool</span></em><a class="reference external" href="https://github.com/s3prl/s3prl/blob/v0.4.10 /s3prl/task.py"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#s3prl.task.Speech2TextCTCTask.training" title="Permalink to this definition">#</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+</section>
+<section id="utteranceclassificationtask">
+<h2>UtteranceClassificationTask<a class="headerlink" href="#utteranceclassificationtask" title="Permalink to this heading">#</a></h2>
+<dl class="py class">
+<dt class="sig sig-object py" id="s3prl.task.UtteranceClassificationTask">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">s3prl.task.</span></span><span class="sig-name descname"><span class="pre">UtteranceClassificationTask</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">model</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="s3prl.task.utterance_classification_task.html#s3prl.task.utterance_classification_task.UtteranceClassifierExample" title="s3prl.task.utterance_classification_task.UtteranceClassifierExample"><span class="pre">UtteranceClassifierExample</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">category</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="s3prl.dataio.encoder.category.html#s3prl.dataio.encoder.category.CategoryEncoder" title="s3prl.dataio.encoder.category.CategoryEncoder"><span class="pre">CategoryEncoder</span></a></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/s3prl/task/utterance_classification_task.html#UtteranceClassificationTask"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="reference external" href="https://github.com/s3prl/s3prl/blob/v0.4.10 /s3prl/task/utterance_classification_task.py#L62-L137"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#s3prl.task.UtteranceClassificationTask" title="Permalink to this definition">#</a></dt>
+<dd><p>Bases: <a class="reference internal" href="s3prl.task.base.html#s3prl.task.base.Task" title="s3prl.task.base.Task"><code class="xref py py-class docutils literal notranslate"><span class="pre">Task</span></code></a></p>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="s3prl.task.UtteranceClassificationTask.input_size">
+<span class="sig-name descname"><span class="pre">input_size</span></span><a class="reference external" href="https://github.com/s3prl/s3prl/blob/v0.4.10 /s3prl/task.py"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#s3prl.task.UtteranceClassificationTask.input_size" title="Permalink to this definition">#</a></dt>
+<dd><p>defined by model.input_size</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>int</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="s3prl.task.UtteranceClassificationTask.output_size">
+<span class="sig-name descname"><span class="pre">output_size</span></span><a class="reference external" href="https://github.com/s3prl/s3prl/blob/v0.4.10 /s3prl/task.py"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#s3prl.task.UtteranceClassificationTask.output_size" title="Permalink to this definition">#</a></dt>
+<dd><p>defined by len(categories)</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>int</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="s3prl.task.UtteranceClassificationTask.predict">
+<span class="sig-name descname"><span class="pre">predict</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">x</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Tensor</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">x_len</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">LongTensor</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/s3prl/task/utterance_classification_task.html#UtteranceClassificationTask.predict"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="reference external" href="https://github.com/s3prl/s3prl/blob/v0.4.10 /s3prl/task/utterance_classification_task.py#L86-L101"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#s3prl.task.UtteranceClassificationTask.predict" title="Permalink to this definition">#</a></dt>
+<dd><dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>x</strong> (<em>torch.Tensor</em>) – (batch_size, timestamps, input_size)</p></li>
+<li><p><strong>x_len</strong> (<em>torch.LongTensor</em>) – (batch_size, )</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>(batch_size, output_size)
+prediction (list): prediction strings</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>logits (torch.Tensor)</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="s3prl.task.UtteranceClassificationTask.forward">
+<span class="sig-name descname"><span class="pre">forward</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">_mode</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">x</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Tensor</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">x_len</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">LongTensor</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">class_id</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">LongTensor</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">label</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">List</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">unique_name</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">List</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">_dump_dir</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/s3prl/task/utterance_classification_task.html#UtteranceClassificationTask.forward"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="reference external" href="https://github.com/s3prl/s3prl/blob/v0.4.10 /s3prl/task/utterance_classification_task.py#L103-L123"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#s3prl.task.UtteranceClassificationTask.forward" title="Permalink to this definition">#</a></dt>
+<dd><p>Defines the computation performed at every call.</p>
+<p>Should be overridden by all subclasses.</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>Although the recipe for forward pass needs to be defined within
+this function, one should call the <code class="xref py py-class docutils literal notranslate"><span class="pre">Module</span></code> instance afterwards
+instead of this since the former takes care of running the
+registered hooks while the latter silently ignores them.</p>
+</div>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="s3prl.task.UtteranceClassificationTask.reduction">
+<span class="sig-name descname"><span class="pre">reduction</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">_mode</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cached_results</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">List</span><span class="p"><span class="pre">[</span></span><span class="pre">dict</span><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">_dump_dir</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/s3prl/task/utterance_classification_task.html#UtteranceClassificationTask.reduction"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="reference external" href="https://github.com/s3prl/s3prl/blob/v0.4.10 /s3prl/task/utterance_classification_task.py#L125-L137"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#s3prl.task.UtteranceClassificationTask.reduction" title="Permalink to this definition">#</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="s3prl.task.UtteranceClassificationTask.dump_patches">
+<span class="sig-name descname"><span class="pre">dump_patches</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">bool</span></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">False</span></em><a class="reference external" href="https://github.com/s3prl/s3prl/blob/v0.4.10 /s3prl/task.py"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#s3prl.task.UtteranceClassificationTask.dump_patches" title="Permalink to this definition">#</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="s3prl.task.UtteranceClassificationTask.get_state">
+<span class="sig-name descname"><span class="pre">get_state</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference external" href="https://github.com/s3prl/s3prl/blob/v0.4.10 /s3prl/task/base.py#L21-L23"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#s3prl.task.UtteranceClassificationTask.get_state" title="Permalink to this definition">#</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="s3prl.task.UtteranceClassificationTask.parse_cached_results">
+<span class="sig-name descname"><span class="pre">parse_cached_results</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">cached_results</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">List</span><span class="p"><span class="pre">[</span></span><span class="pre">dict</span><span class="p"><span class="pre">]</span></span></span></em><span class="sig-paren">)</span><a class="reference external" href="https://github.com/s3prl/s3prl/blob/v0.4.10 /s3prl/task/base.py#L28-L38"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#s3prl.task.UtteranceClassificationTask.parse_cached_results" title="Permalink to this definition">#</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="s3prl.task.UtteranceClassificationTask.set_state">
+<span class="sig-name descname"><span class="pre">set_state</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">state</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">dict</span></span></em><span class="sig-paren">)</span><a class="reference external" href="https://github.com/s3prl/s3prl/blob/v0.4.10 /s3prl/task/base.py#L25-L26"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#s3prl.task.UtteranceClassificationTask.set_state" title="Permalink to this definition">#</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="s3prl.task.UtteranceClassificationTask.test_reduction">
+<em class="property"><span class="pre">abstract</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">test_reduction</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference external" href="https://github.com/s3prl/s3prl/blob/v0.4.10 /s3prl/task/base.py#L70-L72"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#s3prl.task.UtteranceClassificationTask.test_reduction" title="Permalink to this definition">#</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="s3prl.task.UtteranceClassificationTask.test_step">
+<em class="property"><span class="pre">abstract</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">test_step</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference external" href="https://github.com/s3prl/s3prl/blob/v0.4.10 /s3prl/task/base.py#L58-L60"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#s3prl.task.UtteranceClassificationTask.test_step" title="Permalink to this definition">#</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="s3prl.task.UtteranceClassificationTask.train_reduction">
+<em class="property"><span class="pre">abstract</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">train_reduction</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference external" href="https://github.com/s3prl/s3prl/blob/v0.4.10 /s3prl/task/base.py#L62-L64"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#s3prl.task.UtteranceClassificationTask.train_reduction" title="Permalink to this definition">#</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="s3prl.task.UtteranceClassificationTask.train_step">
+<em class="property"><span class="pre">abstract</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">train_step</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference external" href="https://github.com/s3prl/s3prl/blob/v0.4.10 /s3prl/task/base.py#L50-L52"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#s3prl.task.UtteranceClassificationTask.train_step" title="Permalink to this definition">#</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="s3prl.task.UtteranceClassificationTask.valid_reduction">
+<em class="property"><span class="pre">abstract</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">valid_reduction</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference external" href="https://github.com/s3prl/s3prl/blob/v0.4.10 /s3prl/task/base.py#L66-L68"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#s3prl.task.UtteranceClassificationTask.valid_reduction" title="Permalink to this definition">#</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="s3prl.task.UtteranceClassificationTask.valid_step">
+<em class="property"><span class="pre">abstract</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">valid_step</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference external" href="https://github.com/s3prl/s3prl/blob/v0.4.10 /s3prl/task/base.py#L54-L56"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#s3prl.task.UtteranceClassificationTask.valid_step" title="Permalink to this definition">#</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="s3prl.task.UtteranceClassificationTask.training">
+<span class="sig-name descname"><span class="pre">training</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">bool</span></em><a class="reference external" href="https://github.com/s3prl/s3prl/blob/v0.4.10 /s3prl/task.py"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#s3prl.task.UtteranceClassificationTask.training" title="Permalink to this definition">#</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+</section>
+<section id="utterancemulticlassclassificationtask">
+<h2>UtteranceMultiClassClassificationTask<a class="headerlink" href="#utterancemulticlassclassificationtask" title="Permalink to this heading">#</a></h2>
+<dl class="py class">
+<dt class="sig sig-object py" id="s3prl.task.UtteranceMultiClassClassificationTask">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">s3prl.task.</span></span><span class="sig-name descname"><span class="pre">UtteranceMultiClassClassificationTask</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">model</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="s3prl.task.utterance_classification_task.html#s3prl.task.utterance_classification_task.UtteranceClassifierExample" title="s3prl.task.utterance_classification_task.UtteranceClassifierExample"><span class="pre">UtteranceClassifierExample</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">categories</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="s3prl.dataio.encoder.category.html#s3prl.dataio.encoder.category.CategoryEncoders" title="s3prl.dataio.encoder.category.CategoryEncoders"><span class="pre">CategoryEncoders</span></a></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/s3prl/task/utterance_classification_task.html#UtteranceMultiClassClassificationTask"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="reference external" href="https://github.com/s3prl/s3prl/blob/v0.4.10 /s3prl/task/utterance_classification_task.py#L140-L227"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#s3prl.task.UtteranceMultiClassClassificationTask" title="Permalink to this definition">#</a></dt>
+<dd><p>Bases: <a class="reference internal" href="s3prl.task.base.html#s3prl.task.base.Task" title="s3prl.task.base.Task"><code class="xref py py-class docutils literal notranslate"><span class="pre">Task</span></code></a></p>
+<dl class="py method">
+<dt class="sig sig-object py" id="s3prl.task.UtteranceMultiClassClassificationTask.predict">
+<span class="sig-name descname"><span class="pre">predict</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">x</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Tensor</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">x_len</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">LongTensor</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/s3prl/task/utterance_classification_task.html#UtteranceMultiClassClassificationTask.predict"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="reference external" href="https://github.com/s3prl/s3prl/blob/v0.4.10 /s3prl/task/utterance_classification_task.py#L147-L174"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#s3prl.task.UtteranceMultiClassClassificationTask.predict" title="Permalink to this definition">#</a></dt>
+<dd><dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>x</strong> (<em>torch.Tensor</em>) – (batch_size, timestamps, input_size)</p></li>
+<li><p><strong>x_len</strong> (<em>torch.LongTensor</em>) – (batch_size, )</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>List[(batch_size, sub_output_size)]
+prediction (np.array): (batch_size, num_category)</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>logit (torch.Tensor)</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="s3prl.task.UtteranceMultiClassClassificationTask.forward">
+<span class="sig-name descname"><span class="pre">forward</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">_mode</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">x</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Tensor</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">x_len</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">LongTensor</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">class_ids</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">LongTensor</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">labels</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">ndarray</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">unique_name</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">List</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">_dump_dir</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/s3prl/task/utterance_classification_task.html#UtteranceMultiClassClassificationTask.forward"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="reference external" href="https://github.com/s3prl/s3prl/blob/v0.4.10 /s3prl/task/utterance_classification_task.py#L176-L213"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#s3prl.task.UtteranceMultiClassClassificationTask.forward" title="Permalink to this definition">#</a></dt>
+<dd><dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>x</strong> – torch.Tensor, (batch_size, timestamps, input_size)</p></li>
+<li><p><strong>x_len</strong> – torch.LongTensor, (batch_size)</p></li>
+<li><p><strong>class_ids</strong> – torch.LongTensor, (batch_size, num_category)</p></li>
+<li><p><strong>labels</strong> – np.ndarray, (batch_size, num_category)</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>torch.Tensor
+prediction: np.ndarray
+label: np.ndarray</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>loss</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="s3prl.task.UtteranceMultiClassClassificationTask.reduction">
+<span class="sig-name descname"><span class="pre">reduction</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">_mode</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cached_results</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">List</span><span class="p"><span class="pre">[</span></span><span class="pre">dict</span><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">_dump_dir</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/s3prl/task/utterance_classification_task.html#UtteranceMultiClassClassificationTask.reduction"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="reference external" href="https://github.com/s3prl/s3prl/blob/v0.4.10 /s3prl/task/utterance_classification_task.py#L215-L227"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#s3prl.task.UtteranceMultiClassClassificationTask.reduction" title="Permalink to this definition">#</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="s3prl.task.UtteranceMultiClassClassificationTask.dump_patches">
+<span class="sig-name descname"><span class="pre">dump_patches</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">bool</span></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">False</span></em><a class="reference external" href="https://github.com/s3prl/s3prl/blob/v0.4.10 /s3prl/task.py"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#s3prl.task.UtteranceMultiClassClassificationTask.dump_patches" title="Permalink to this definition">#</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="s3prl.task.UtteranceMultiClassClassificationTask.get_state">
+<span class="sig-name descname"><span class="pre">get_state</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference external" href="https://github.com/s3prl/s3prl/blob/v0.4.10 /s3prl/task/base.py#L21-L23"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#s3prl.task.UtteranceMultiClassClassificationTask.get_state" title="Permalink to this definition">#</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="s3prl.task.UtteranceMultiClassClassificationTask.parse_cached_results">
+<span class="sig-name descname"><span class="pre">parse_cached_results</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">cached_results</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">List</span><span class="p"><span class="pre">[</span></span><span class="pre">dict</span><span class="p"><span class="pre">]</span></span></span></em><span class="sig-paren">)</span><a class="reference external" href="https://github.com/s3prl/s3prl/blob/v0.4.10 /s3prl/task/base.py#L28-L38"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#s3prl.task.UtteranceMultiClassClassificationTask.parse_cached_results" title="Permalink to this definition">#</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="s3prl.task.UtteranceMultiClassClassificationTask.set_state">
+<span class="sig-name descname"><span class="pre">set_state</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">state</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">dict</span></span></em><span class="sig-paren">)</span><a class="reference external" href="https://github.com/s3prl/s3prl/blob/v0.4.10 /s3prl/task/base.py#L25-L26"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#s3prl.task.UtteranceMultiClassClassificationTask.set_state" title="Permalink to this definition">#</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="s3prl.task.UtteranceMultiClassClassificationTask.test_reduction">
+<em class="property"><span class="pre">abstract</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">test_reduction</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference external" href="https://github.com/s3prl/s3prl/blob/v0.4.10 /s3prl/task/base.py#L70-L72"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#s3prl.task.UtteranceMultiClassClassificationTask.test_reduction" title="Permalink to this definition">#</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="s3prl.task.UtteranceMultiClassClassificationTask.test_step">
+<em class="property"><span class="pre">abstract</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">test_step</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference external" href="https://github.com/s3prl/s3prl/blob/v0.4.10 /s3prl/task/base.py#L58-L60"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#s3prl.task.UtteranceMultiClassClassificationTask.test_step" title="Permalink to this definition">#</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="s3prl.task.UtteranceMultiClassClassificationTask.train_reduction">
+<em class="property"><span class="pre">abstract</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">train_reduction</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference external" href="https://github.com/s3prl/s3prl/blob/v0.4.10 /s3prl/task/base.py#L62-L64"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#s3prl.task.UtteranceMultiClassClassificationTask.train_reduction" title="Permalink to this definition">#</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="s3prl.task.UtteranceMultiClassClassificationTask.train_step">
+<em class="property"><span class="pre">abstract</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">train_step</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference external" href="https://github.com/s3prl/s3prl/blob/v0.4.10 /s3prl/task/base.py#L50-L52"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#s3prl.task.UtteranceMultiClassClassificationTask.train_step" title="Permalink to this definition">#</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="s3prl.task.UtteranceMultiClassClassificationTask.valid_reduction">
+<em class="property"><span class="pre">abstract</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">valid_reduction</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference external" href="https://github.com/s3prl/s3prl/blob/v0.4.10 /s3prl/task/base.py#L66-L68"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#s3prl.task.UtteranceMultiClassClassificationTask.valid_reduction" title="Permalink to this definition">#</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="s3prl.task.UtteranceMultiClassClassificationTask.valid_step">
+<em class="property"><span class="pre">abstract</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">valid_step</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference external" href="https://github.com/s3prl/s3prl/blob/v0.4.10 /s3prl/task/base.py#L54-L56"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#s3prl.task.UtteranceMultiClassClassificationTask.valid_step" title="Permalink to this definition">#</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="s3prl.task.UtteranceMultiClassClassificationTask.training">
+<span class="sig-name descname"><span class="pre">training</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">bool</span></em><a class="reference external" href="https://github.com/s3prl/s3prl/blob/v0.4.10 /s3prl/task.py"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#s3prl.task.UtteranceMultiClassClassificationTask.training" title="Permalink to this definition">#</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+</section>
+</section>
+
+        </article>
+      </div>
+      <footer>
+        
+        <div class="related-pages">
+          <a class="next-page" href="s3prl.task.base.html">
+              <div class="page-info">
+                <div class="context">
+                  <span>Next</span>
+                </div>
+                <div class="title">base</div>
+              </div>
+              <svg class="furo-related-icon"><use href="#svg-arrow-right"></use></svg>
+            </a>
+          <a class="prev-page" href="s3prl.problem.diarization.util.html">
+              <svg class="furo-related-icon"><use href="#svg-arrow-right"></use></svg>
+              <div class="page-info">
+                <div class="context">
+                  <span>Previous</span>
+                </div>
+                
+                <div class="title">util</div>
+                
+              </div>
+            </a>
+        </div>
+        <div class="bottom-of-page">
+          <div class="left-details">
+            <div class="copyright">
+                Copyright &#169; 2022, S3PRL Team
+            </div>
+            Made with <a href="https://www.sphinx-doc.org/">Sphinx</a> and <a class="muted-link" href="https://pradyunsg.me">@pradyunsg</a>'s
+            
+            <a href="https://github.com/pradyunsg/furo">Furo</a>
+            
+          </div>
+          <div class="right-details">
+            
+          </div>
+        </div>
+        
+      </footer>
+    </div>
+    <aside class="toc-drawer">
+      
+      
+      <div class="toc-sticky toc-scroll">
+        <div class="toc-title-container">
+          <span class="toc-title">
+            On this page
+          </span>
+        </div>
+        <div class="toc-tree-container">
+          <div class="toc-tree">
+            <ul>
+<li><a class="reference internal" href="#">task</a><ul>
+<li><a class="reference internal" href="#id1">Task</a></li>
+<li><a class="reference internal" href="#diarizationpit">DiarizationPIT</a></li>
+<li><a class="reference internal" href="#dumpfeature">DumpFeature</a></li>
+<li><a class="reference internal" href="#speakerverification">SpeakerVerification</a></li>
+<li><a class="reference internal" href="#speech2textctctask">Speech2TextCTCTask</a></li>
+<li><a class="reference internal" href="#utteranceclassificationtask">UtteranceClassificationTask</a></li>
+<li><a class="reference internal" href="#utterancemulticlassclassificationtask">UtteranceMultiClassClassificationTask</a></li>
+</ul>
+</li>
+</ul>
+
+          </div>
+        </div>
+      </div>
+      
+      
+    </aside>
+  </div>
+</div><script data-url_root="../" id="documentation_options" src="../_static/documentation_options.js"></script>
+    <script src="../_static/jquery.js"></script>
+    <script src="../_static/underscore.js"></script>
+    <script src="../_static/_sphinx_javascript_frameworks_compat.js"></script>
+    <script src="../_static/doctools.js"></script>
+    <script src="../_static/scripts/furo.js"></script>
+    <script src="../_static/js/custom.js"></script>
+    </body>
+</html>

@@ -1,0 +1,38 @@
+hear\_gtzan\_music\_speech
+==========================
+
+**(s3prl.problem.common.hear_gtzan_music_speech)**
+
+.. automodule:: s3prl.problem.common.hear_gtzan_music_speech
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+HearGtzanMusicSpeech
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. autoclass:: HearGtzanMusicSpeech
+   :member-order: bysource
+   :members:
+   :undoc-members:
+   :inherited-members: torch.nn.Module,nn.Module,Module
+   :show-inheritance:
+
+
+
+
+
+
+
+
+

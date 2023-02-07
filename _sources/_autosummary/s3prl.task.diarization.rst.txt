@@ -1,0 +1,38 @@
+diarization
+===========
+
+**(s3prl.task.diarization)**
+
+.. automodule:: s3prl.task.diarization
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+DiarizationPIT
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. autoclass:: DiarizationPIT
+   :member-order: bysource
+   :members:
+   :undoc-members:
+   :inherited-members: torch.nn.Module,nn.Module,Module
+   :show-inheritance:
+
+
+
+
+
+
+
+
+

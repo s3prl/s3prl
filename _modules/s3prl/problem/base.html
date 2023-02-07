@@ -1,0 +1,1371 @@
+<!doctype html>
+<html class="no-js" lang="en">
+  <head><meta charset="utf-8"/>
+    <meta name="viewport" content="width=device-width,initial-scale=1"/>
+    <meta name="color-scheme" content="light dark"><link rel="index" title="Index" href="../../../genindex.html" /><link rel="search" title="Search" href="../../../search.html" />
+
+    <!-- Generated with Sphinx 5.1.1 and Furo 2022.12.07 -->
+        <title>s3prl.problem.base - S3PRL 0.4.10 documentation</title>
+      <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css" />
+    <link rel="stylesheet" type="text/css" href="../../../_static/styles/furo.css?digest=91d0f0d1c444bdcb17a68e833c7a53903343c195" />
+    <link rel="stylesheet" type="text/css" href="../../../_static/styles/furo-extensions.css?digest=30d1aed668e5c3a91c3e3bf6a60b675221979f0e" />
+    <link rel="stylesheet" type="text/css" href="../../../_static/css/custom.css" />
+    
+    
+
+
+<style>
+  body {
+    --color-code-background: #f8f8f8;
+  --color-code-foreground: black;
+  
+  }
+  @media not print {
+    body[data-theme="dark"] {
+      --color-code-background: #202020;
+  --color-code-foreground: #d0d0d0;
+  
+    }
+    @media (prefers-color-scheme: dark) {
+      body:not([data-theme="light"]) {
+        --color-code-background: #202020;
+  --color-code-foreground: #d0d0d0;
+  
+      }
+    }
+  }
+</style></head>
+  <body>
+    
+    <script>
+      document.body.dataset.theme = localStorage.getItem("theme") || "auto";
+    </script>
+    
+
+<svg xmlns="http://www.w3.org/2000/svg" style="display: none;">
+  <symbol id="svg-toc" viewBox="0 0 24 24">
+    <title>Contents</title>
+    <svg stroke="currentColor" fill="currentColor" stroke-width="0" viewBox="0 0 1024 1024">
+      <path d="M408 442h480c4.4 0 8-3.6 8-8v-56c0-4.4-3.6-8-8-8H408c-4.4 0-8 3.6-8 8v56c0 4.4 3.6 8 8 8zm-8 204c0 4.4 3.6 8 8 8h480c4.4 0 8-3.6 8-8v-56c0-4.4-3.6-8-8-8H408c-4.4 0-8 3.6-8 8v56zm504-486H120c-4.4 0-8 3.6-8 8v56c0 4.4 3.6 8 8 8h784c4.4 0 8-3.6 8-8v-56c0-4.4-3.6-8-8-8zm0 632H120c-4.4 0-8 3.6-8 8v56c0 4.4 3.6 8 8 8h784c4.4 0 8-3.6 8-8v-56c0-4.4-3.6-8-8-8zM115.4 518.9L271.7 642c5.8 4.6 14.4.5 14.4-6.9V388.9c0-7.4-8.5-11.5-14.4-6.9L115.4 505.1a8.74 8.74 0 0 0 0 13.8z"/>
+    </svg>
+  </symbol>
+  <symbol id="svg-menu" viewBox="0 0 24 24">
+    <title>Menu</title>
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather-menu">
+      <line x1="3" y1="12" x2="21" y2="12"></line>
+      <line x1="3" y1="6" x2="21" y2="6"></line>
+      <line x1="3" y1="18" x2="21" y2="18"></line>
+    </svg>
+  </symbol>
+  <symbol id="svg-arrow-right" viewBox="0 0 24 24">
+    <title>Expand</title>
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather-chevron-right">
+      <polyline points="9 18 15 12 9 6"></polyline>
+    </svg>
+  </symbol>
+  <symbol id="svg-sun" viewBox="0 0 24 24">
+    <title>Light mode</title>
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="feather-sun">
+      <circle cx="12" cy="12" r="5"></circle>
+      <line x1="12" y1="1" x2="12" y2="3"></line>
+      <line x1="12" y1="21" x2="12" y2="23"></line>
+      <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
+      <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
+      <line x1="1" y1="12" x2="3" y2="12"></line>
+      <line x1="21" y1="12" x2="23" y2="12"></line>
+      <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
+      <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
+    </svg>
+  </symbol>
+  <symbol id="svg-moon" viewBox="0 0 24 24">
+    <title>Dark mode</title>
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="icon-tabler-moon">
+      <path stroke="none" d="M0 0h24v24H0z" fill="none" />
+      <path d="M12 3c.132 0 .263 0 .393 0a7.5 7.5 0 0 0 7.92 12.446a9 9 0 1 1 -8.313 -12.454z" />
+    </svg>
+  </symbol>
+  <symbol id="svg-sun-half" viewBox="0 0 24 24">
+    <title>Auto light/dark mode</title>
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="icon-tabler-shadow">
+      <path stroke="none" d="M0 0h24v24H0z" fill="none"/>
+      <circle cx="12" cy="12" r="9" />
+      <path d="M13 12h5" />
+      <path d="M13 15h4" />
+      <path d="M13 18h1" />
+      <path d="M13 9h4" />
+      <path d="M13 6h1" />
+    </svg>
+  </symbol>
+</svg>
+
+<input type="checkbox" class="sidebar-toggle" name="__navigation" id="__navigation">
+<input type="checkbox" class="sidebar-toggle" name="__toc" id="__toc">
+<label class="overlay sidebar-overlay" for="__navigation">
+  <div class="visually-hidden">Hide navigation sidebar</div>
+</label>
+<label class="overlay toc-overlay" for="__toc">
+  <div class="visually-hidden">Hide table of contents sidebar</div>
+</label>
+
+
+
+<div class="page">
+  <header class="mobile-header">
+    <div class="header-left">
+      <label class="nav-overlay-icon" for="__navigation">
+        <div class="visually-hidden">Toggle site navigation sidebar</div>
+        <i class="icon"><svg><use href="#svg-menu"></use></svg></i>
+      </label>
+    </div>
+    <div class="header-center">
+      <a href="../../../index.html"><div class="brand">S3PRL 0.4.10
+ documentation</div></a>
+    </div>
+    <div class="header-right">
+      <div class="theme-toggle-container theme-toggle-header">
+        <button class="theme-toggle">
+          <div class="visually-hidden">Toggle Light / Dark / Auto color theme</div>
+          <svg class="theme-icon-when-auto"><use href="#svg-sun-half"></use></svg>
+          <svg class="theme-icon-when-dark"><use href="#svg-moon"></use></svg>
+          <svg class="theme-icon-when-light"><use href="#svg-sun"></use></svg>
+        </button>
+      </div>
+      <label class="toc-overlay-icon toc-header-icon no-toc" for="__toc">
+        <div class="visually-hidden">Toggle table of contents sidebar</div>
+        <i class="icon"><svg><use href="#svg-toc"></use></svg></i>
+      </label>
+    </div>
+  </header>
+  <aside class="sidebar-drawer">
+    <div class="sidebar-container">
+      
+      <div class="sidebar-sticky"><a class="sidebar-brand" href="../../../index.html">
+  
+  
+  <span class="sidebar-brand-text">S3PRL 0.4.10
+ documentation</span>
+  
+</a><form class="sidebar-search-container" method="get" action="../../../search.html" role="search">
+  <input class="sidebar-search" placeholder="Search" name="q" aria-label="Search">
+  <input type="hidden" name="check_keywords" value="yes">
+  <input type="hidden" name="area" value="default">
+</form>
+<div id="searchbox"></div><div class="sidebar-scroll"><div class="sidebar-tree">
+  <p class="caption" role="heading"><span class="caption-text">Getting started</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../tutorial/installation.html">Install S3PRL</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../tutorial/upstream_collection.html">S3PRL Upstream Collection</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../tutorial/problem.html">Use Problem module to run customizable recipes</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">How to Contribute</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../contribute/general.html">General Guideline</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../contribute/upstream.html">Adding New Upstream</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">API Documentation</span></p>
+<ul>
+<li class="toctree-l1 has-children"><a class="reference internal" href="../../../_autosummary/s3prl.nn.html">nn</a><input class="toctree-checkbox" id="toctree-checkbox-1" name="toctree-checkbox-1" role="switch" type="checkbox"/><label for="toctree-checkbox-1"><div class="visually-hidden">Toggle child pages in navigation</div><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul>
+<li class="toctree-l2"><a class="reference internal" href="../../../_autosummary/s3prl.nn.beam_decoder.html">beam_decoder</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../_autosummary/s3prl.nn.common.html">common</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../_autosummary/s3prl.nn.hear.html">hear</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../_autosummary/s3prl.nn.interface.html">interface</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../_autosummary/s3prl.nn.linear.html">linear</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../_autosummary/s3prl.nn.pit.html">pit</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../_autosummary/s3prl.nn.pooling.html">pooling</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../_autosummary/s3prl.nn.rnn.html">rnn</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../_autosummary/s3prl.nn.speaker_loss.html">speaker_loss</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../_autosummary/s3prl.nn.speaker_model.html">speaker_model</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../_autosummary/s3prl.nn.specaug.html">specaug</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../_autosummary/s3prl.nn.upstream.html">upstream</a></li>
+</ul>
+</li>
+<li class="toctree-l1 has-children"><a class="reference internal" href="../../../_autosummary/s3prl.problem.html">problem</a><input class="toctree-checkbox" id="toctree-checkbox-2" name="toctree-checkbox-2" role="switch" type="checkbox"/><label for="toctree-checkbox-2"><div class="visually-hidden">Toggle child pages in navigation</div><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul>
+<li class="toctree-l2 has-children"><a class="reference internal" href="../../../_autosummary/s3prl.problem.asr.html">asr</a><input class="toctree-checkbox" id="toctree-checkbox-3" name="toctree-checkbox-3" role="switch" type="checkbox"/><label for="toctree-checkbox-3"><div class="visually-hidden">Toggle child pages in navigation</div><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul>
+<li class="toctree-l3"><a class="reference internal" href="../../../_autosummary/s3prl.problem.asr.run.html">run</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../../_autosummary/s3prl.problem.asr.superb_asr.html">superb_asr</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../../_autosummary/s3prl.problem.asr.superb_pr.html">superb_pr</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../../_autosummary/s3prl.problem.asr.superb_sf.html">superb_sf</a></li>
+</ul>
+</li>
+<li class="toctree-l2 has-children"><a class="reference internal" href="../../../_autosummary/s3prl.problem.asv.html">asv</a><input class="toctree-checkbox" id="toctree-checkbox-4" name="toctree-checkbox-4" role="switch" type="checkbox"/><label for="toctree-checkbox-4"><div class="visually-hidden">Toggle child pages in navigation</div><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul>
+<li class="toctree-l3"><a class="reference internal" href="../../../_autosummary/s3prl.problem.asv.run.html">run</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../../_autosummary/s3prl.problem.asv.superb_asv.html">superb_asv</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="../../../_autosummary/s3prl.problem.base.html">base</a></li>
+<li class="toctree-l2 has-children"><a class="reference internal" href="../../../_autosummary/s3prl.problem.common.html">common</a><input class="toctree-checkbox" id="toctree-checkbox-5" name="toctree-checkbox-5" role="switch" type="checkbox"/><label for="toctree-checkbox-5"><div class="visually-hidden">Toggle child pages in navigation</div><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul>
+<li class="toctree-l3"><a class="reference internal" href="../../../_autosummary/s3prl.problem.common.example.html">example</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../../_autosummary/s3prl.problem.common.hear_beijing_opera.html">hear_beijing_opera</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../../_autosummary/s3prl.problem.common.hear_cremad.html">hear_cremad</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../../_autosummary/s3prl.problem.common.hear_dcase_2016_task2.html">hear_dcase_2016_task2</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../../_autosummary/s3prl.problem.common.hear_esc50.html">hear_esc50</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../../_autosummary/s3prl.problem.common.hear_fsd.html">hear_fsd</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../../_autosummary/s3prl.problem.common.hear_gsc5hr.html">hear_gsc5hr</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../../_autosummary/s3prl.problem.common.hear_gtzan.html">hear_gtzan</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../../_autosummary/s3prl.problem.common.hear_gtzan_music_speech.html">hear_gtzan_music_speech</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../../_autosummary/s3prl.problem.common.hear_gunshot.html">hear_gunshot</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../../_autosummary/s3prl.problem.common.hear_libricount.html">hear_libricount</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../../_autosummary/s3prl.problem.common.hear_maestro.html">hear_maestro</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../../_autosummary/s3prl.problem.common.hear_nsynth5hr.html">hear_nsynth5hr</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../../_autosummary/s3prl.problem.common.hear_stroke.html">hear_stroke</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../../_autosummary/s3prl.problem.common.hear_tonic.html">hear_tonic</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../../_autosummary/s3prl.problem.common.hear_vocal.html">hear_vocal</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../../_autosummary/s3prl.problem.common.hear_vox_lingual.html">hear_vox_lingual</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../../_autosummary/s3prl.problem.common.run.html">run</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../../_autosummary/s3prl.problem.common.superb_er.html">superb_er</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../../_autosummary/s3prl.problem.common.superb_ic.html">superb_ic</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../../_autosummary/s3prl.problem.common.superb_ks.html">superb_ks</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../../_autosummary/s3prl.problem.common.superb_sid.html">superb_sid</a></li>
+</ul>
+</li>
+<li class="toctree-l2 has-children"><a class="reference internal" href="../../../_autosummary/s3prl.problem.diarization.html">diarization</a><input class="toctree-checkbox" id="toctree-checkbox-6" name="toctree-checkbox-6" role="switch" type="checkbox"/><label for="toctree-checkbox-6"><div class="visually-hidden">Toggle child pages in navigation</div><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul>
+<li class="toctree-l3"><a class="reference internal" href="../../../_autosummary/s3prl.problem.diarization.run.html">run</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../../_autosummary/s3prl.problem.diarization.superb_sd.html">superb_sd</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../../_autosummary/s3prl.problem.diarization.util.html">util</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l1 has-children"><a class="reference internal" href="../../../_autosummary/s3prl.task.html">task</a><input class="toctree-checkbox" id="toctree-checkbox-7" name="toctree-checkbox-7" role="switch" type="checkbox"/><label for="toctree-checkbox-7"><div class="visually-hidden">Toggle child pages in navigation</div><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul>
+<li class="toctree-l2"><a class="reference internal" href="../../../_autosummary/s3prl.task.base.html">base</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../_autosummary/s3prl.task.diarization.html">diarization</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../_autosummary/s3prl.task.dump_feature.html">dump_feature</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../_autosummary/s3prl.task.event_prediction.html">event_prediction</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../_autosummary/s3prl.task.scene_prediction.html">scene_prediction</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../_autosummary/s3prl.task.speaker_verification_task.html">speaker_verification_task</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../_autosummary/s3prl.task.speech2text_ctc_task.html">speech2text_ctc_task</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../_autosummary/s3prl.task.utterance_classification_task.html">utterance_classification_task</a></li>
+</ul>
+</li>
+<li class="toctree-l1 has-children"><a class="reference internal" href="../../../_autosummary/s3prl.dataio.html">dataio</a><input class="toctree-checkbox" id="toctree-checkbox-8" name="toctree-checkbox-8" role="switch" type="checkbox"/><label for="toctree-checkbox-8"><div class="visually-hidden">Toggle child pages in navigation</div><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul>
+<li class="toctree-l2"><a class="reference internal" href="../../../_autosummary/s3prl.dataio.collate_fn.html">collate_fn</a></li>
+<li class="toctree-l2 has-children"><a class="reference internal" href="../../../_autosummary/s3prl.dataio.corpus.html">corpus</a><input class="toctree-checkbox" id="toctree-checkbox-9" name="toctree-checkbox-9" role="switch" type="checkbox"/><label for="toctree-checkbox-9"><div class="visually-hidden">Toggle child pages in navigation</div><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul>
+<li class="toctree-l3"><a class="reference internal" href="../../../_autosummary/s3prl.dataio.corpus.base.html">base</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../../_autosummary/s3prl.dataio.corpus.fluent_speech_commands.html">fluent_speech_commands</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../../_autosummary/s3prl.dataio.corpus.iemocap.html">iemocap</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../../_autosummary/s3prl.dataio.corpus.librilight.html">librilight</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../../_autosummary/s3prl.dataio.corpus.librispeech.html">librispeech</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../../_autosummary/s3prl.dataio.corpus.quesst14.html">quesst14</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../../_autosummary/s3prl.dataio.corpus.snips.html">snips</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../../_autosummary/s3prl.dataio.corpus.speech_commands.html">speech_commands</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../../_autosummary/s3prl.dataio.corpus.voxceleb1sid.html">voxceleb1sid</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../../_autosummary/s3prl.dataio.corpus.voxceleb1sv.html">voxceleb1sv</a></li>
+</ul>
+</li>
+<li class="toctree-l2 has-children"><a class="reference internal" href="../../../_autosummary/s3prl.dataio.dataset.html">dataset</a><input class="toctree-checkbox" id="toctree-checkbox-10" name="toctree-checkbox-10" role="switch" type="checkbox"/><label for="toctree-checkbox-10"><div class="visually-hidden">Toggle child pages in navigation</div><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul>
+<li class="toctree-l3"><a class="reference internal" href="../../../_autosummary/s3prl.dataio.dataset.base.html">base</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../../_autosummary/s3prl.dataio.dataset.diarization.html">diarization</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../../_autosummary/s3prl.dataio.dataset.encode.html">encode</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../../_autosummary/s3prl.dataio.dataset.frame_label.html">frame_label</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../../_autosummary/s3prl.dataio.dataset.load_audio.html">load_audio</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../../_autosummary/s3prl.dataio.dataset.util.html">util</a></li>
+</ul>
+</li>
+<li class="toctree-l2 has-children"><a class="reference internal" href="../../../_autosummary/s3prl.dataio.encoder.html">encoder</a><input class="toctree-checkbox" id="toctree-checkbox-11" name="toctree-checkbox-11" role="switch" type="checkbox"/><label for="toctree-checkbox-11"><div class="visually-hidden">Toggle child pages in navigation</div><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul>
+<li class="toctree-l3"><a class="reference internal" href="../../../_autosummary/s3prl.dataio.encoder.category.html">category</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../../_autosummary/s3prl.dataio.encoder.g2p.html">g2p</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../../_autosummary/s3prl.dataio.encoder.tokenizer.html">tokenizer</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../../_autosummary/s3prl.dataio.encoder.vocabulary.html">vocabulary</a></li>
+</ul>
+</li>
+<li class="toctree-l2 has-children"><a class="reference internal" href="../../../_autosummary/s3prl.dataio.sampler.html">sampler</a><input class="toctree-checkbox" id="toctree-checkbox-12" name="toctree-checkbox-12" role="switch" type="checkbox"/><label for="toctree-checkbox-12"><div class="visually-hidden">Toggle child pages in navigation</div><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul>
+<li class="toctree-l3"><a class="reference internal" href="../../../_autosummary/s3prl.dataio.sampler.balanced_weighted_sampler.html">balanced_weighted_sampler</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../../_autosummary/s3prl.dataio.sampler.distributed_sampler.html">distributed_sampler</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../../_autosummary/s3prl.dataio.sampler.fixed_batch_size_batch_sampler.html">fixed_batch_size_batch_sampler</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../../_autosummary/s3prl.dataio.sampler.group_same_item_sampler.html">group_same_item_sampler</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../../_autosummary/s3prl.dataio.sampler.max_timestamp_batch_sampler.html">max_timestamp_batch_sampler</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../../_autosummary/s3prl.dataio.sampler.sorted_sampler.html">sorted_sampler</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l1 has-children"><a class="reference internal" href="../../../_autosummary/s3prl.metric.html">metric</a><input class="toctree-checkbox" id="toctree-checkbox-13" name="toctree-checkbox-13" role="switch" type="checkbox"/><label for="toctree-checkbox-13"><div class="visually-hidden">Toggle child pages in navigation</div><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul>
+<li class="toctree-l2"><a class="reference internal" href="../../../_autosummary/s3prl.metric.common.html">common</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../_autosummary/s3prl.metric.diarization.html">diarization</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../_autosummary/s3prl.metric.slot_filling.html">slot_filling</a></li>
+</ul>
+</li>
+<li class="toctree-l1 has-children"><a class="reference internal" href="../../../_autosummary/s3prl.util.html">util</a><input class="toctree-checkbox" id="toctree-checkbox-14" name="toctree-checkbox-14" role="switch" type="checkbox"/><label for="toctree-checkbox-14"><div class="visually-hidden">Toggle child pages in navigation</div><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul>
+<li class="toctree-l2"><a class="reference internal" href="../../../_autosummary/s3prl.util.audio_info.html">audio_info</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../_autosummary/s3prl.util.benchmark.html">benchmark</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../_autosummary/s3prl.util.download.html">download</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../_autosummary/s3prl.util.override.html">override</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../_autosummary/s3prl.util.pseudo_data.html">pseudo_data</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../_autosummary/s3prl.util.seed.html">seed</a></li>
+</ul>
+</li>
+</ul>
+
+</div>
+</div>
+
+      </div>
+      
+    </div>
+  </aside>
+  <div class="main">
+    <div class="content">
+      <div class="article-container">
+        <a href="#" class="back-to-top muted-link">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
+            <path d="M13 20h-2V8l-5.5 5.5-1.42-1.42L12 4.16l7.92 7.92-1.42 1.42L13 8v12z"></path>
+          </svg>
+          <span>Back to top</span>
+        </a>
+        <div class="content-icon-container">
+          <div class="theme-toggle-container theme-toggle-content">
+            <button class="theme-toggle">
+              <div class="visually-hidden">Toggle Light / Dark / Auto color theme</div>
+              <svg class="theme-icon-when-auto"><use href="#svg-sun-half"></use></svg>
+              <svg class="theme-icon-when-dark"><use href="#svg-moon"></use></svg>
+              <svg class="theme-icon-when-light"><use href="#svg-sun"></use></svg>
+            </button>
+          </div>
+          <label class="toc-overlay-icon toc-content-icon no-toc" for="__toc">
+            <div class="visually-hidden">Toggle table of contents sidebar</div>
+            <i class="icon"><svg><use href="#svg-toc"></use></svg></i>
+          </label>
+        </div>
+        <article role="main">
+          <h1>Source code for s3prl.problem.base</h1><div class="highlight"><pre>
+<span></span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">The shared backbone of common ML train/test procedure for all problems</span>
+
+<span class="sd">Authors:</span>
+<span class="sd">  * Leo 2022</span>
+<span class="sd">&quot;&quot;&quot;</span>
+
+<span class="kn">from</span> <span class="nn">__future__</span> <span class="kn">import</span> <span class="n">annotations</span>
+
+<span class="kn">import</span> <span class="nn">argparse</span>
+<span class="kn">import</span> <span class="nn">inspect</span>
+<span class="kn">import</span> <span class="nn">logging</span>
+<span class="kn">import</span> <span class="nn">math</span>
+<span class="kn">import</span> <span class="nn">os</span>
+<span class="kn">import</span> <span class="nn">pickle</span>
+<span class="kn">import</span> <span class="nn">shutil</span>
+<span class="kn">import</span> <span class="nn">sys</span>
+<span class="kn">from</span> <span class="nn">copy</span> <span class="kn">import</span> <span class="n">deepcopy</span>
+<span class="kn">from</span> <span class="nn">dataclasses</span> <span class="kn">import</span> <span class="n">dataclass</span>
+<span class="kn">from</span> <span class="nn">datetime</span> <span class="kn">import</span> <span class="n">datetime</span>
+<span class="kn">from</span> <span class="nn">pathlib</span> <span class="kn">import</span> <span class="n">Path</span>
+<span class="kn">from</span> <span class="nn">time</span> <span class="kn">import</span> <span class="n">time</span>
+<span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">Dict</span><span class="p">,</span> <span class="n">List</span><span class="p">,</span> <span class="n">Union</span>
+
+<span class="kn">import</span> <span class="nn">omegaconf</span>
+<span class="kn">import</span> <span class="nn">torch</span>
+<span class="kn">import</span> <span class="nn">yaml</span>
+<span class="kn">from</span> <span class="nn">torch.utils.data</span> <span class="kn">import</span> <span class="n">DataLoader</span>
+<span class="kn">from</span> <span class="nn">torch.utils.tensorboard.writer</span> <span class="kn">import</span> <span class="n">SummaryWriter</span>
+<span class="kn">from</span> <span class="nn">tqdm</span> <span class="kn">import</span> <span class="n">tqdm</span>
+
+<span class="kn">from</span> <span class="nn">s3prl.dataio.collate_fn</span> <span class="kn">import</span> <span class="n">default_collate_fn</span>
+<span class="kn">from</span> <span class="nn">s3prl.dataio.sampler</span> <span class="kn">import</span> <span class="n">DistributedBatchSamplerWrapper</span>
+<span class="kn">from</span> <span class="nn">s3prl.nn.upstream</span> <span class="kn">import</span> <span class="n">Featurizer</span><span class="p">,</span> <span class="n">S3PRLUpstream</span><span class="p">,</span> <span class="n">UpstreamDownstreamModel</span>
+<span class="kn">from</span> <span class="nn">s3prl.task</span> <span class="kn">import</span> <span class="n">Task</span>
+<span class="kn">from</span> <span class="nn">s3prl.util.override</span> <span class="kn">import</span> <span class="n">parse_overrides</span>
+<span class="kn">from</span> <span class="nn">s3prl.util.seed</span> <span class="kn">import</span> <span class="n">fix_random_seeds</span>
+
+<span class="n">logger</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="vm">__name__</span><span class="p">)</span>
+
+<span class="n">LOGGING_FORMAT</span> <span class="o">=</span> <span class="s2">&quot;</span><span class="si">%(levelname)s</span><span class="s2"> | </span><span class="si">%(asctime)s</span><span class="s2"> | </span><span class="si">%(module)s</span><span class="s2">:</span><span class="si">%(lineno)d</span><span class="s2"> | </span><span class="si">%(message)s</span><span class="s2">&quot;</span>
+<span class="n">ACCEPTABLE_ERRORS</span> <span class="o">=</span> <span class="p">[</span>
+    <span class="s2">&quot;CUDA out of memory&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;Unable to find a valid cuDNN algorithm to run convolution&quot;</span><span class="p">,</span>  <span class="c1"># Usually caused by CUDA OOM</span>
+<span class="p">]</span>
+<span class="n">PRIMITIVE_TYPES</span> <span class="o">=</span> <span class="p">(</span><span class="nb">int</span><span class="p">,</span> <span class="nb">float</span><span class="p">,</span> <span class="nb">bool</span><span class="p">,</span> <span class="nb">str</span><span class="p">)</span>
+
+<span class="n">DEFAULT_CONFIG_FORMAT</span> <span class="o">=</span> <span class="s2">&quot;&quot;&quot;</span>
+<span class="s2">The default arguments for :obj:`run` in yaml.</span>
+<span class="s2">Note that for the fields with inner values, like :code:`build_model`,</span>
+<span class="s2">the outer field name corresponds to a method name, so you can find the method</span>
+<span class="s2">:obj:`build_model`. Furthermore, the values inside that field will be</span>
+<span class="s2">directly passed into the method. So by changing these inner values, you</span>
+<span class="s2">can directly affect the behavior of the corresponding method. See the method</span>
+<span class="s2">documentation for all the supported arguments and their meanings.</span>
+
+<span class="s2">The methods affected by the following config are: </span><span class="si">{:s}</span>
+
+<span class="s2">.. code-block:: yaml</span>
+
+<span class="si">{:s}</span>
+<span class="s2">&quot;&quot;&quot;</span>
+
+<span class="n">__all__</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;Problem&quot;</span><span class="p">]</span>
+
+
+<span class="k">class</span> <span class="nc">_DistributedDataParallel</span><span class="p">(</span><span class="n">torch</span><span class="o">.</span><span class="n">nn</span><span class="o">.</span><span class="n">parallel</span><span class="o">.</span><span class="n">DistributedDataParallel</span><span class="p">):</span>
+    <span class="k">def</span> <span class="fm">__getattr__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">):</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="k">return</span> <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__getattr__</span><span class="p">(</span><span class="n">name</span><span class="p">)</span>
+        <span class="k">except</span> <span class="ne">AttributeError</span><span class="p">:</span>
+            <span class="k">return</span> <span class="nb">getattr</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">module</span><span class="p">,</span> <span class="n">name</span><span class="p">)</span>
+
+
+<span class="k">def</span> <span class="nf">_force_cacheable</span><span class="p">(</span><span class="n">data</span><span class="p">:</span> <span class="nb">dict</span><span class="p">):</span>
+    <span class="n">output</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">()</span>
+    <span class="k">for</span> <span class="n">key</span><span class="p">,</span> <span class="n">value</span> <span class="ow">in</span> <span class="n">data</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">value</span><span class="p">,</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">):</span>
+            <span class="n">value</span> <span class="o">=</span> <span class="n">value</span><span class="o">.</span><span class="n">detach</span><span class="p">()</span><span class="o">.</span><span class="n">cpu</span><span class="p">()</span>
+        <span class="n">output</span><span class="p">[</span><span class="n">key</span><span class="p">]</span> <span class="o">=</span> <span class="n">value</span>
+    <span class="k">return</span> <span class="n">output</span>
+
+
+<span class="k">def</span> <span class="nf">_to_device</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="n">device</span><span class="p">:</span> <span class="nb">str</span><span class="p">):</span>
+    <span class="n">output</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">()</span>
+    <span class="k">for</span> <span class="n">key</span><span class="p">,</span> <span class="n">value</span> <span class="ow">in</span> <span class="n">data</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">value</span><span class="p">,</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">):</span>
+            <span class="n">value</span> <span class="o">=</span> <span class="n">value</span><span class="o">.</span><span class="n">to</span><span class="p">(</span><span class="n">device</span><span class="p">)</span>
+        <span class="n">output</span><span class="p">[</span><span class="n">key</span><span class="p">]</span> <span class="o">=</span> <span class="n">value</span>
+    <span class="k">return</span> <span class="n">output</span>
+
+
+<span class="k">def</span> <span class="nf">_doc_default_config</span><span class="p">(</span><span class="bp">cls</span><span class="p">:</span> <span class="n">Problem</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    This is used to layout the :code:`default_config` dictionary into yaml format</span>
+<span class="sd">    for :code:`default_config`&#39;s docstring.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">def</span> <span class="nf">_append_prefix_spaces</span><span class="p">(</span><span class="n">docstring</span><span class="p">:</span> <span class="nb">str</span><span class="p">):</span>
+        <span class="k">return</span> <span class="s2">&quot;</span><span class="se">\n</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">join</span><span class="p">([</span><span class="sa">f</span><span class="s2">&quot;  </span><span class="si">{</span><span class="n">line</span><span class="si">}</span><span class="s2">&quot;</span> <span class="k">for</span> <span class="n">line</span> <span class="ow">in</span> <span class="n">docstring</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">)])</span>
+
+    <span class="n">obj</span> <span class="o">=</span> <span class="bp">cls</span><span class="p">()</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="n">config</span> <span class="o">=</span> <span class="n">obj</span><span class="o">.</span><span class="n">default_config</span><span class="p">()</span>
+    <span class="k">except</span><span class="p">:</span>
+        <span class="k">return</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">methods</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">for</span> <span class="n">k</span><span class="p">,</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">config</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+            <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">k</span><span class="p">):</span>
+                <span class="n">methods</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="nb">getattr</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">k</span><span class="p">))</span>
+        <span class="n">method_links</span> <span class="o">=</span> <span class="s2">&quot; &quot;</span><span class="o">.</span><span class="n">join</span><span class="p">([</span><span class="sa">f</span><span class="s2">&quot;:obj:`</span><span class="si">{</span><span class="n">method</span><span class="o">.</span><span class="vm">__name__</span><span class="si">}</span><span class="s2">`&quot;</span> <span class="k">for</span> <span class="n">method</span> <span class="ow">in</span> <span class="n">methods</span><span class="p">])</span>
+
+        <span class="n">yaml_str</span> <span class="o">=</span> <span class="n">yaml</span><span class="o">.</span><span class="n">dump</span><span class="p">(</span><span class="n">config</span><span class="p">,</span> <span class="n">sort_keys</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">width</span><span class="o">=</span><span class="nb">float</span><span class="p">(</span><span class="s2">&quot;inf&quot;</span><span class="p">))</span>
+        <span class="n">yaml_str</span> <span class="o">=</span> <span class="n">_append_prefix_spaces</span><span class="p">(</span><span class="n">yaml_str</span><span class="p">)</span>
+        <span class="bp">cls</span><span class="o">.</span><span class="n">default_config</span><span class="o">.</span><span class="vm">__doc__</span> <span class="o">=</span> <span class="n">DEFAULT_CONFIG_FORMAT</span><span class="o">.</span><span class="n">format</span><span class="p">(</span>
+            <span class="n">method_links</span><span class="p">,</span> <span class="n">yaml_str</span>
+        <span class="p">)</span>
+
+
+<div class="viewcode-block" id="Problem"><a class="viewcode-back" href="../../../_autosummary/s3prl.problem.base.html#s3prl.problem.base.Problem">[docs]</a><span class="k">class</span> <span class="nc">Problem</span><span class="p">:</span>
+    <span class="n">_store</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Problem</span><span class="p">]</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">()</span>
+
+    <span class="k">def</span> <span class="nf">__init_subclass__</span><span class="p">(</span><span class="bp">cls</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="n">__init_subclass__</span><span class="p">()</span>
+        <span class="bp">cls</span><span class="o">.</span><span class="n">_store</span><span class="p">[</span><span class="bp">cls</span><span class="o">.</span><span class="vm">__name__</span><span class="p">]</span> <span class="o">=</span> <span class="bp">cls</span>
+        <span class="n">_doc_default_config</span><span class="p">(</span><span class="bp">cls</span><span class="p">)</span>
+
+<div class="viewcode-block" id="Problem.get_class_from_name"><a class="viewcode-back" href="../../../_autosummary/s3prl.problem.base.html#s3prl.problem.base.Problem.get_class_from_name">[docs]</a>    <span class="nd">@classmethod</span>
+    <span class="k">def</span> <span class="nf">get_class_from_name</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">name</span><span class="p">:</span> <span class="nb">str</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Args:</span>
+<span class="sd">            name (str): the :code:`__name__` of the problem class</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            Problem</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">assert</span> <span class="p">(</span>
+            <span class="n">name</span> <span class="ow">in</span> <span class="bp">cls</span><span class="o">.</span><span class="n">_store</span>
+        <span class="p">),</span> <span class="sa">f</span><span class="s2">&quot;The class &#39;</span><span class="si">{</span><span class="n">name</span><span class="si">}</span><span class="s2">&#39; is either not defined or not imported&quot;</span>
+        <span class="k">return</span> <span class="bp">cls</span><span class="o">.</span><span class="n">_store</span><span class="p">[</span><span class="n">name</span><span class="p">]</span></div>
+
+<div class="viewcode-block" id="Problem.build_collate_fn"><a class="viewcode-back" href="../../../_autosummary/s3prl.problem.base.html#s3prl.problem.base.Problem.build_collate_fn">[docs]</a>    <span class="k">def</span> <span class="nf">build_collate_fn</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">build_collate_fn</span><span class="p">:</span> <span class="nb">dict</span><span class="p">,</span> <span class="n">mode</span><span class="p">:</span> <span class="nb">str</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        By default returns :obj:`s3prl.dataset.base.default_collate_fn`</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            build_collate_fn (dict): same in :obj:`default_config`, no argument supported for now</span>
+<span class="sd">            mode (str): train, valid, or test</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            callable</span>
+
+<span class="sd">            the collate_fn for torch DataLoader in train/valid/test :code:`mode`</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="n">default_collate_fn</span></div>
+
+<div class="viewcode-block" id="Problem.build_upstream"><a class="viewcode-back" href="../../../_autosummary/s3prl.problem.base.html#s3prl.problem.base.Problem.build_upstream">[docs]</a>    <span class="k">def</span> <span class="nf">build_upstream</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">build_upstream</span><span class="p">:</span> <span class="nb">dict</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        By default build the upstream with :obj:`s3prl.nn.upstream.S3PRLUpstream`</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            build_upstream (dict): same in :obj:`default_config`,</span>
+<span class="sd">                arguments for :obj:`s3prl.nn.upstream.S3PRLUpstream`</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            :obj:`s3prl.nn.interface.AbsUpstream`</span>
+
+<span class="sd">            Return an upstream model, whose forward takes the waveform input and returns</span>
+<span class="sd">            multiple hidden states as features.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">upstream</span> <span class="o">=</span> <span class="n">S3PRLUpstream</span><span class="p">(</span><span class="o">**</span><span class="n">build_upstream</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">upstream</span></div>
+
+<div class="viewcode-block" id="Problem.build_featurizer"><a class="viewcode-back" href="../../../_autosummary/s3prl.problem.base.html#s3prl.problem.base.Problem.build_featurizer">[docs]</a>    <span class="k">def</span> <span class="nf">build_featurizer</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">build_featurizer</span><span class="p">:</span> <span class="nb">dict</span><span class="p">,</span> <span class="n">upstream</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        By default build the featurizer with :obj:`s3prl.nn.Featurizer`</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            build_featurizer (dict): same in :obj:`default_config`,</span>
+<span class="sd">                arguments for :obj:`s3prl.nn.Featurizer`</span>
+<span class="sd">            upstream (:obj:`AbsUpstream`): the upstream model built by :obj:`build_upstream`</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            :obj:`s3prl.nn.interface.AbsFeaturizer`</span>
+
+<span class="sd">            Return the featurizer model. The featurizer is used to reduce the multiple</span>
+<span class="sd">            hidden states returned from the upstream model (built by :obj:`build_upstream`)</span>
+<span class="sd">            into a single hidden state, so can be easliy fed into the downstream model</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">featurizer</span> <span class="o">=</span> <span class="n">Featurizer</span><span class="p">(</span><span class="n">upstream</span><span class="p">,</span> <span class="o">**</span><span class="n">build_featurizer</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">featurizer</span></div>
+
+<div class="viewcode-block" id="Problem.build_model"><a class="viewcode-back" href="../../../_autosummary/s3prl.problem.base.html#s3prl.problem.base.Problem.build_model">[docs]</a>    <span class="k">def</span> <span class="nf">build_model</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="n">build_model</span><span class="p">:</span> <span class="nb">dict</span><span class="p">,</span>
+        <span class="n">model_output_size</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
+        <span class="n">build_upstream</span><span class="p">:</span> <span class="nb">dict</span><span class="p">,</span>
+        <span class="n">build_featurizer</span><span class="p">:</span> <span class="nb">dict</span><span class="p">,</span>
+        <span class="n">build_downstream</span><span class="p">:</span> <span class="nb">dict</span><span class="p">,</span>
+    <span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        By default build model with :obj:`s3prl.nn.upstream.UpstreamDownstreamModel`</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            build_model (dict): same in :obj:`default_config`,</span>
+<span class="sd">                arguments for :obj:`s3prl.nn.upstream.UpstreamDownstreamModel`</span>
+<span class="sd">            model_output_size (int): the required model&#39;s output hidden size</span>
+<span class="sd">            build_upstream (dict): same in :obj:`default_config`, refer to :obj:`build_upstream`</span>
+<span class="sd">            build_featurizer (dict): same in :obj:`default_config`, refer to :obj:`build_featurizer`</span>
+<span class="sd">            build_downstream (dict): same in :obj:`default_config`, refer to :obj:`build_downstream`</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            torch.nn.Module</span>
+
+<span class="sd">            Return the entire model for the task, which takes the direct items from DataLoader as the input.</span>
+<span class="sd">            Usually, the components can be built by :obj:`build_upstream`, :obj:`build_featurizer`,</span>
+<span class="sd">            :obj:`build_downstream`, and are concated together to get the final model.</span>
+<span class="sd">            The upstream extracts multiple hidden states, the featuizer reduce them into a single hidden state,</span>
+<span class="sd">            and the downstream takes the hidden states as the feature for the downstream-specific model.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">upstream</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">build_upstream</span><span class="p">(</span><span class="n">build_upstream</span><span class="p">)</span>
+        <span class="n">featurizer</span><span class="p">:</span> <span class="n">Featurizer</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">build_featurizer</span><span class="p">(</span><span class="n">build_featurizer</span><span class="p">,</span> <span class="n">upstream</span><span class="p">)</span>
+        <span class="n">downstream</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">build_downstream</span><span class="p">(</span>
+            <span class="n">build_downstream</span><span class="p">,</span>
+            <span class="n">featurizer</span><span class="o">.</span><span class="n">output_size</span><span class="p">,</span>
+            <span class="n">model_output_size</span><span class="p">,</span>
+            <span class="n">featurizer</span><span class="o">.</span><span class="n">downsample_rate</span><span class="p">,</span>
+        <span class="p">)</span>
+        <span class="n">model</span> <span class="o">=</span> <span class="n">UpstreamDownstreamModel</span><span class="p">(</span><span class="n">upstream</span><span class="p">,</span> <span class="n">featurizer</span><span class="p">,</span> <span class="n">downstream</span><span class="p">,</span> <span class="o">**</span><span class="n">build_model</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">model</span></div>
+
+<div class="viewcode-block" id="Problem.build_optimizer"><a class="viewcode-back" href="../../../_autosummary/s3prl.problem.base.html#s3prl.problem.base.Problem.build_optimizer">[docs]</a>    <span class="k">def</span> <span class="nf">build_optimizer</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">build_optimizer</span><span class="p">:</span> <span class="nb">dict</span><span class="p">,</span> <span class="n">parameters</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Args:</span>
+<span class="sd">            build_optimizer (dict): same in :obj:`default_config`, refer to below</span>
+
+<span class="sd">                ====================  ====================</span>
+<span class="sd">                key                   description</span>
+<span class="sd">                ====================  ====================</span>
+<span class="sd">                name                  (str) - the optimizer class name in :obj:`torch.optim`</span>
+<span class="sd">                conf                  (dict) - the arguments for initializing the optimizer class. e.g. :code:`{&quot;lr&quot;: 1.0e-4}`</span>
+<span class="sd">                ====================  ====================</span>
+
+<span class="sd">            parameters (iterable): the standard params accepted by :obj:`torch.optim.Optimizer`.</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            :obj:`torch.optim.Optimizer`</span>
+
+<span class="sd">            An optimizer following standard torch usage</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="k">def</span> <span class="nf">_default_build_optimizer</span><span class="p">(</span><span class="n">name</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">conf</span><span class="p">:</span> <span class="nb">dict</span><span class="p">):</span>
+            <span class="n">opt_cls</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">torch</span><span class="o">.</span><span class="n">optim</span><span class="p">,</span> <span class="n">name</span><span class="p">)</span>
+            <span class="n">opt</span> <span class="o">=</span> <span class="n">opt_cls</span><span class="p">(</span><span class="n">parameters</span><span class="p">,</span> <span class="o">**</span><span class="n">conf</span><span class="p">)</span>
+            <span class="k">return</span> <span class="n">opt</span>
+
+        <span class="k">return</span> <span class="n">_default_build_optimizer</span><span class="p">(</span><span class="o">**</span><span class="n">build_optimizer</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="Problem.build_scheduler"><a class="viewcode-back" href="../../../_autosummary/s3prl.problem.base.html#s3prl.problem.base.Problem.build_scheduler">[docs]</a>    <span class="k">def</span> <span class="nf">build_scheduler</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">build_scheduler</span><span class="p">:</span> <span class="nb">dict</span><span class="p">,</span> <span class="n">optimizer</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Args:</span>
+<span class="sd">            build_scheduler (dict): same in :obj:`default_config`</span>
+
+<span class="sd">                ====================  ====================</span>
+<span class="sd">                key                   description</span>
+<span class="sd">                ====================  ====================</span>
+<span class="sd">                name                  (str) - the scheduler class name in :obj:`torch.optim.lr_scheduler`</span>
+<span class="sd">                conf                  (dict) - the arguments for initializing the scheduler class. e.g. :code:`{&quot;gamma&quot;: 0.01}` for :obj:`torch.optim.lr_scheduler.StepLR`</span>
+<span class="sd">                ====================  ====================</span>
+
+<span class="sd">            optimizer: the standard torch optimizer accepted by Scheduler in :obj:`torch.optim.lr_scheduler`.</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            torch scheduler</span>
+
+<span class="sd">            A scheduler following standard torch usage</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="k">def</span> <span class="nf">_default_build_scheduler</span><span class="p">(</span><span class="n">name</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">conf</span><span class="p">:</span> <span class="nb">dict</span><span class="p">):</span>
+            <span class="n">scheduler_cls</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">torch</span><span class="o">.</span><span class="n">optim</span><span class="o">.</span><span class="n">lr_scheduler</span><span class="p">,</span> <span class="n">name</span><span class="p">)</span>
+            <span class="n">scheduler</span> <span class="o">=</span> <span class="n">scheduler_cls</span><span class="p">(</span><span class="n">optimizer</span><span class="p">,</span> <span class="o">**</span><span class="n">conf</span><span class="p">)</span>
+            <span class="k">return</span> <span class="n">scheduler</span>
+
+        <span class="k">return</span> <span class="n">_default_build_scheduler</span><span class="p">(</span><span class="o">**</span><span class="n">build_scheduler</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="Problem.train"><a class="viewcode-back" href="../../../_autosummary/s3prl.problem.base.html#s3prl.problem.base.Problem.train">[docs]</a>    <span class="k">def</span> <span class="nf">train</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="n">train</span><span class="p">:</span> <span class="nb">dict</span><span class="p">,</span>
+        <span class="n">train_dir</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+        <span class="n">build_model_all_args</span><span class="p">:</span> <span class="nb">dict</span><span class="p">,</span>
+        <span class="n">build_task_all_args_except_model</span><span class="p">:</span> <span class="nb">dict</span><span class="p">,</span>
+        <span class="n">save_model</span><span class="p">:</span> <span class="nb">dict</span><span class="p">,</span>
+        <span class="n">save_task</span><span class="p">:</span> <span class="nb">dict</span><span class="p">,</span>
+        <span class="n">build_optimizer</span><span class="p">:</span> <span class="nb">dict</span><span class="p">,</span>
+        <span class="n">build_scheduler</span><span class="p">:</span> <span class="nb">dict</span><span class="p">,</span>
+        <span class="n">evaluate</span><span class="p">:</span> <span class="nb">dict</span><span class="p">,</span>
+        <span class="n">train_dataset</span><span class="p">,</span>
+        <span class="n">train_batch_sampler</span><span class="p">,</span>
+        <span class="n">train_collate_fn</span><span class="p">,</span>
+        <span class="n">valid_dataset</span><span class="p">,</span>
+        <span class="n">valid_batch_sampler</span><span class="p">,</span>
+        <span class="n">valid_collate_fn</span><span class="p">,</span>
+        <span class="n">num_workers</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
+        <span class="n">world_size</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
+        <span class="n">rank</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
+        <span class="n">eval_batch</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
+        <span class="n">device</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+        <span class="n">global_config</span><span class="p">:</span> <span class="nb">dict</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Args:</span>
+<span class="sd">            train (dict): same in :obj:`default_config`</span>
+
+<span class="sd">                ==========================  ====================</span>
+<span class="sd">                key                         description</span>
+<span class="sd">                ==========================  ====================</span>
+<span class="sd">                total_steps                 (int) - the total optimization steps</span>
+<span class="sd">                log_step                    (int) - logging frequency. log every :code:`log_step` step</span>
+<span class="sd">                eval_step                   (int) - evaluation frequency. Evaluate every :code:`eval_step` step. \</span>
+<span class="sd">                                                Note that you can control how many batch to evaluate to speed up the \</span>
+<span class="sd">                                                development by the :code:`eval_batch` argument in :obj:`run`</span>
+<span class="sd">                save_step                   (int) - save the checkpoint every :code:`save_step` step.</span>
+<span class="sd">                gradient_clipping           (float) - clip the gradient. important for RNNs.</span>
+<span class="sd">                gradient_accumulate         (int) - accumulate multiple steps&#39; gradient before updating network parameters \</span>
+<span class="sd">                                                to simulate large-batch optimization.</span>
+<span class="sd">                valid_metric                (str) - the metric to select the best valid checkpoint. Different Tasks have different \</span>
+<span class="sd">                                                supported valid_metrics. See :obj:`build_task` for the supported metrics.</span>
+<span class="sd">                valid_higher_better         (bool) - some metrics are higher better, while some are lower better \</span>
+<span class="sd">                                                this will affect how to save the best validation checkpoint.</span>
+<span class="sd">                auto_resume                 (bool) - if there are already the last checkpoint in :code:`target_dir` (see :obj:`run`), \</span>
+<span class="sd">                                                whether to resume from it or delete it and start a new training session.</span>
+<span class="sd">                resume_ckpt_dir             (str) - you can directly specify the checkpoint path to resume which is not necessary \</span>
+<span class="sd">                                                in :code:`target_dir` (see :obj:`run`).</span>
+<span class="sd">                seed                        (int) - fix the seed before the training start</span>
+<span class="sd">                keep_num_ckpts              (int) - to prevent saving too many checkpoints, only save the :code:`keep_num_ckpts` \</span>
+<span class="sd">                                                latest checkpoints and delete the old ones.</span>
+<span class="sd">                use_scheduler               (bool) - whether to use the scheduler</span>
+<span class="sd">                ==========================  ====================</span>
+
+<span class="sd">            **others:</span>
+<span class="sd">                only meaningful when you want to override this train method, which is not the</span>
+<span class="sd">                common case. Hence we skip the documentation for now.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="nd">@dataclass</span>
+        <span class="k">class</span> <span class="nc">TrainConfig</span><span class="p">:</span>
+            <span class="n">total_steps</span><span class="p">:</span> <span class="nb">int</span>
+            <span class="n">log_step</span><span class="p">:</span> <span class="nb">int</span>
+            <span class="n">eval_step</span><span class="p">:</span> <span class="nb">int</span>
+            <span class="n">save_step</span><span class="p">:</span> <span class="nb">int</span>
+            <span class="n">gradient_clipping</span><span class="p">:</span> <span class="nb">float</span>
+            <span class="n">gradient_accumulate</span><span class="p">:</span> <span class="nb">int</span>
+            <span class="n">valid_metric</span><span class="p">:</span> <span class="nb">str</span>
+            <span class="n">valid_higher_better</span><span class="p">:</span> <span class="nb">bool</span>
+            <span class="n">auto_resume</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span>
+            <span class="n">resume_ckpt_dir</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="kc">None</span>
+            <span class="n">seed</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">0</span>
+            <span class="n">keep_num_ckpts</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">2</span>
+            <span class="n">use_scheduler</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span>
+
+        <span class="n">conf</span> <span class="o">=</span> <span class="n">TrainConfig</span><span class="p">(</span><span class="o">**</span><span class="n">train</span><span class="p">)</span>
+
+        <span class="n">fix_random_seeds</span><span class="p">(</span><span class="n">conf</span><span class="o">.</span><span class="n">seed</span><span class="p">)</span>
+
+        <span class="n">train_dir</span><span class="p">:</span> <span class="n">Path</span> <span class="o">=</span> <span class="n">Path</span><span class="p">(</span><span class="n">train_dir</span><span class="p">)</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">conf</span><span class="o">.</span><span class="n">auto_resume</span> <span class="ow">and</span> <span class="n">train_dir</span><span class="o">.</span><span class="n">is_dir</span><span class="p">():</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span>
+                <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">train_dir</span><span class="si">}</span><span class="s2"> exists. Delete the directory since auto_resume=False&quot;</span>
+            <span class="p">)</span>
+            <span class="n">shutil</span><span class="o">.</span><span class="n">rmtree</span><span class="p">(</span><span class="n">train_dir</span><span class="p">)</span>
+        <span class="n">train_dir</span><span class="o">.</span><span class="n">mkdir</span><span class="p">(</span><span class="n">exist_ok</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">parents</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+
+        <span class="n">ckpt_dirs</span> <span class="o">=</span> <span class="p">[</span><span class="n">key</span> <span class="k">for</span> <span class="n">key</span> <span class="ow">in</span> <span class="n">os</span><span class="o">.</span><span class="n">listdir</span><span class="p">(</span><span class="n">train_dir</span><span class="p">)</span> <span class="k">if</span> <span class="n">key</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s2">&quot;step_&quot;</span><span class="p">)]</span>
+        <span class="n">ckpt_dirs</span><span class="o">.</span><span class="n">sort</span><span class="p">(</span><span class="n">key</span><span class="o">=</span><span class="k">lambda</span> <span class="n">name</span><span class="p">:</span> <span class="nb">int</span><span class="p">(</span><span class="n">name</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">&quot;_&quot;</span><span class="p">)[</span><span class="o">-</span><span class="mi">1</span><span class="p">]),</span> <span class="n">reverse</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+
+        <span class="n">resume</span> <span class="o">=</span> <span class="kc">False</span>
+        <span class="k">if</span> <span class="n">conf</span><span class="o">.</span><span class="n">auto_resume</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">conf</span><span class="o">.</span><span class="n">resume_ckpt_dir</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">Path</span><span class="p">(</span><span class="n">conf</span><span class="o">.</span><span class="n">resume_ckpt_dir</span><span class="p">)</span><span class="o">.</span><span class="n">is_dir</span><span class="p">():</span>
+                <span class="n">resume</span> <span class="o">=</span> <span class="kc">True</span>
+            <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">ckpt_dirs</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+                <span class="n">resume</span> <span class="o">=</span> <span class="kc">True</span>
+
+        <span class="k">if</span> <span class="n">resume</span><span class="p">:</span>
+            <span class="n">resume_ckpt_dir</span> <span class="o">=</span> <span class="n">Path</span><span class="p">(</span><span class="n">conf</span><span class="o">.</span><span class="n">resume_ckpt_dir</span> <span class="ow">or</span> <span class="n">train_dir</span> <span class="o">/</span> <span class="n">ckpt_dirs</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Loading checkpoints from </span><span class="si">{</span><span class="n">resume_ckpt_dir</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+            <span class="k">try</span><span class="p">:</span>
+                <span class="n">_</span><span class="p">,</span> <span class="n">task</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">load_model_and_task</span><span class="p">(</span><span class="n">resume_ckpt_dir</span><span class="p">)</span>
+            <span class="k">except</span><span class="p">:</span>
+                <span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span>
+                    <span class="sa">f</span><span class="s2">&quot;Fail to load the checkpoint </span><span class="si">{</span><span class="n">resume_ckpt_dir</span><span class="si">}</span><span class="s2">. &quot;</span>
+                    <span class="s2">&quot;You can set &#39;--train.auto_resume False&#39; to ignore the crashed checkpoint to avoid this behavior.&quot;</span>
+                <span class="p">)</span>
+                <span class="k">raise</span>
+
+            <span class="n">optimizer_state</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">load</span><span class="p">(</span>
+                <span class="n">resume_ckpt_dir</span> <span class="o">/</span> <span class="s2">&quot;optimizer.pt&quot;</span><span class="p">,</span> <span class="n">map_location</span><span class="o">=</span><span class="s2">&quot;cpu&quot;</span>
+            <span class="p">)</span>
+
+            <span class="k">if</span> <span class="n">conf</span><span class="o">.</span><span class="n">use_scheduler</span><span class="p">:</span>
+                <span class="n">scheduler_state</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">load</span><span class="p">(</span>
+                    <span class="n">resume_ckpt_dir</span> <span class="o">/</span> <span class="s2">&quot;scheduler.pt&quot;</span><span class="p">,</span> <span class="n">map_location</span><span class="o">=</span><span class="s2">&quot;cpu&quot;</span>
+                <span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">scheduler_state</span> <span class="o">=</span> <span class="kc">None</span>
+
+            <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">resume_ckpt_dir</span> <span class="o">/</span> <span class="s2">&quot;training_stats.yaml&quot;</span><span class="p">,</span> <span class="s2">&quot;r&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
+                <span class="n">training_stats</span> <span class="o">=</span> <span class="n">yaml</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="n">f</span><span class="p">,</span> <span class="n">Loader</span><span class="o">=</span><span class="n">yaml</span><span class="o">.</span><span class="n">FullLoader</span><span class="p">)</span>
+
+            <span class="n">global_step</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">training_stats</span><span class="p">[</span><span class="s2">&quot;global_step&quot;</span><span class="p">])</span>
+            <span class="n">epoch</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">training_stats</span><span class="p">[</span><span class="s2">&quot;epoch&quot;</span><span class="p">])</span>
+            <span class="n">valid_best_metrics</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="n">training_stats</span><span class="p">[</span><span class="s2">&quot;valid_best_metrics&quot;</span><span class="p">])</span>
+
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">model</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">build_model</span><span class="p">(</span><span class="o">**</span><span class="n">build_model_all_args</span><span class="p">)</span>
+            <span class="n">task</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">build_task</span><span class="p">(</span><span class="n">model</span><span class="o">=</span><span class="n">model</span><span class="p">,</span> <span class="o">**</span><span class="n">build_task_all_args_except_model</span><span class="p">)</span>
+            <span class="n">optimizer_state</span> <span class="o">=</span> <span class="kc">None</span>
+            <span class="n">scheduler_state</span> <span class="o">=</span> <span class="kc">None</span>
+            <span class="n">global_step</span> <span class="o">=</span> <span class="mi">0</span>
+            <span class="n">epoch</span> <span class="o">=</span> <span class="mi">0</span>
+            <span class="n">valid_best_metrics</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">()</span>
+
+        <span class="n">device</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">device</span><span class="p">(</span><span class="n">device</span><span class="p">)</span>
+        <span class="n">wrapped_task</span> <span class="o">=</span> <span class="n">task</span><span class="o">.</span><span class="n">to</span><span class="p">(</span><span class="n">device</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">world_size</span> <span class="o">&gt;</span> <span class="mi">1</span><span class="p">:</span>
+            <span class="n">torch</span><span class="o">.</span><span class="n">cuda</span><span class="o">.</span><span class="n">set_device</span><span class="p">(</span><span class="n">device</span><span class="o">.</span><span class="n">index</span><span class="p">)</span>
+            <span class="n">wrapped_task</span> <span class="o">=</span> <span class="n">_DistributedDataParallel</span><span class="p">(</span>
+                <span class="n">task</span><span class="p">,</span>
+                <span class="n">device_ids</span><span class="o">=</span><span class="p">[</span><span class="n">device</span><span class="o">.</span><span class="n">index</span><span class="p">],</span>
+                <span class="n">find_unused_parameters</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+                <span class="n">output_device</span><span class="o">=</span><span class="n">device</span><span class="o">.</span><span class="n">index</span><span class="p">,</span>
+            <span class="p">)</span>
+
+        <span class="n">optimizer</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">build_optimizer</span><span class="p">(</span><span class="n">build_optimizer</span><span class="p">,</span> <span class="n">task</span><span class="o">.</span><span class="n">parameters</span><span class="p">())</span>
+        <span class="k">if</span> <span class="n">optimizer_state</span><span class="p">:</span>
+            <span class="n">optimizer</span><span class="o">.</span><span class="n">load_state_dict</span><span class="p">(</span><span class="n">optimizer_state</span><span class="p">)</span>
+
+        <span class="n">scheduler</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="k">if</span> <span class="n">conf</span><span class="o">.</span><span class="n">use_scheduler</span><span class="p">:</span>
+            <span class="n">scheduler</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">build_scheduler</span><span class="p">(</span><span class="n">build_scheduler</span><span class="p">,</span> <span class="n">optimizer</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">scheduler_state</span><span class="p">:</span>
+                <span class="n">scheduler</span><span class="o">.</span><span class="n">load_state_dict</span><span class="p">(</span><span class="n">scheduler_state</span><span class="p">)</span>
+
+        <span class="n">train_batch_sampler</span> <span class="o">=</span> <span class="n">DistributedBatchSamplerWrapper</span><span class="p">(</span>
+            <span class="n">train_batch_sampler</span><span class="p">,</span>
+            <span class="n">num_replicas</span><span class="o">=</span><span class="n">world_size</span><span class="p">,</span>
+            <span class="n">rank</span><span class="o">=</span><span class="n">rank</span><span class="p">,</span>
+        <span class="p">)</span>
+        <span class="n">train_dataloader</span> <span class="o">=</span> <span class="n">DataLoader</span><span class="p">(</span>
+            <span class="n">train_dataset</span><span class="p">,</span>
+            <span class="n">batch_sampler</span><span class="o">=</span><span class="n">train_batch_sampler</span><span class="p">,</span>
+            <span class="n">num_workers</span><span class="o">=</span><span class="n">num_workers</span><span class="p">,</span>
+            <span class="n">collate_fn</span><span class="o">=</span><span class="n">train_collate_fn</span><span class="p">,</span>
+        <span class="p">)</span>
+
+        <span class="n">tqdm_file</span> <span class="o">=</span> <span class="n">sys</span><span class="o">.</span><span class="n">stderr</span> <span class="k">if</span> <span class="n">rank</span> <span class="o">==</span> <span class="mi">0</span> <span class="k">else</span> <span class="nb">open</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">devnull</span><span class="p">,</span> <span class="s2">&quot;w&quot;</span><span class="p">)</span>
+        <span class="n">pbar</span> <span class="o">=</span> <span class="n">tqdm</span><span class="p">(</span>
+            <span class="n">total</span><span class="o">=</span><span class="n">conf</span><span class="o">.</span><span class="n">total_steps</span><span class="p">,</span>
+            <span class="n">dynamic_ncols</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+            <span class="n">desc</span><span class="o">=</span><span class="s2">&quot;train&quot;</span><span class="p">,</span>
+            <span class="n">file</span><span class="o">=</span><span class="n">tqdm_file</span><span class="p">,</span>
+        <span class="p">)</span>
+        <span class="n">pbar</span><span class="o">.</span><span class="n">n</span> <span class="o">=</span> <span class="n">global_step</span>
+
+        <span class="k">if</span> <span class="n">rank</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="n">tf_dir</span> <span class="o">=</span> <span class="n">train_dir</span> <span class="o">/</span> <span class="s2">&quot;tb&quot;</span>
+            <span class="n">tf_logger</span> <span class="o">=</span> <span class="n">SummaryWriter</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">tf_dir</span><span class="p">))</span>
+
+        <span class="k">def</span> <span class="nf">_save_ckpts_to_dir</span><span class="p">(</span>
+            <span class="n">ckpts_dir</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+            <span class="n">task</span><span class="p">,</span>
+            <span class="n">optimizer</span><span class="p">,</span>
+            <span class="n">scheduler</span><span class="p">,</span>
+            <span class="n">build_model_all_args</span><span class="p">:</span> <span class="nb">dict</span><span class="p">,</span>
+            <span class="n">build_task_all_args_except_model</span><span class="p">:</span> <span class="nb">dict</span><span class="p">,</span>
+            <span class="n">save_model</span><span class="p">:</span> <span class="nb">dict</span><span class="p">,</span>
+            <span class="n">save_task</span><span class="p">:</span> <span class="nb">dict</span><span class="p">,</span>
+            <span class="n">training_stats</span><span class="p">:</span> <span class="nb">dict</span><span class="p">,</span>
+            <span class="n">global_config</span><span class="p">:</span> <span class="nb">dict</span><span class="p">,</span>
+        <span class="p">):</span>
+            <span class="n">ckpts_dir</span><span class="p">:</span> <span class="n">Path</span> <span class="o">=</span> <span class="n">Path</span><span class="p">(</span><span class="n">ckpts_dir</span><span class="p">)</span>
+            <span class="n">ckpts_dir</span><span class="o">.</span><span class="n">mkdir</span><span class="p">(</span><span class="n">exist_ok</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">parents</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+
+            <span class="n">model_ckpt_dir</span> <span class="o">=</span> <span class="n">ckpts_dir</span> <span class="o">/</span> <span class="s2">&quot;model&quot;</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">save_model</span><span class="p">(</span>
+                <span class="n">save_model</span><span class="p">,</span> <span class="n">model_ckpt_dir</span><span class="p">,</span> <span class="n">build_model_all_args</span><span class="p">,</span> <span class="n">task</span><span class="o">.</span><span class="n">model</span>
+            <span class="p">)</span>
+
+            <span class="n">task_ckpt_dir</span> <span class="o">=</span> <span class="n">ckpts_dir</span> <span class="o">/</span> <span class="s2">&quot;task&quot;</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">save_task</span><span class="p">(</span>
+                <span class="n">save_task</span><span class="p">,</span> <span class="n">task_ckpt_dir</span><span class="p">,</span> <span class="n">build_task_all_args_except_model</span><span class="p">,</span> <span class="n">task</span>
+            <span class="p">)</span>
+
+            <span class="n">torch</span><span class="o">.</span><span class="n">save</span><span class="p">(</span><span class="n">optimizer</span><span class="o">.</span><span class="n">state_dict</span><span class="p">(),</span> <span class="n">ckpts_dir</span> <span class="o">/</span> <span class="s2">&quot;optimizer.pt&quot;</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">scheduler</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="n">torch</span><span class="o">.</span><span class="n">save</span><span class="p">(</span><span class="n">scheduler</span><span class="o">.</span><span class="n">state_dict</span><span class="p">(),</span> <span class="n">ckpts_dir</span> <span class="o">/</span> <span class="s2">&quot;scheduler.pt&quot;</span><span class="p">)</span>
+
+            <span class="k">with</span> <span class="p">(</span><span class="n">ckpts_dir</span> <span class="o">/</span> <span class="s2">&quot;training_stats.yaml&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">open</span><span class="p">(</span><span class="s2">&quot;w&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
+                <span class="n">yaml</span><span class="o">.</span><span class="n">safe_dump</span><span class="p">(</span><span class="n">training_stats</span><span class="p">,</span> <span class="n">f</span><span class="p">)</span>
+
+            <span class="k">with</span> <span class="p">(</span><span class="n">ckpts_dir</span> <span class="o">/</span> <span class="s2">&quot;config.yaml&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">open</span><span class="p">(</span><span class="s2">&quot;w&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
+                <span class="n">yaml</span><span class="o">.</span><span class="n">safe_dump</span><span class="p">(</span><span class="n">global_config</span><span class="p">,</span> <span class="n">f</span><span class="p">)</span>
+
+        <span class="n">backward_steps</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="k">while</span> <span class="n">pbar</span><span class="o">.</span><span class="n">n</span> <span class="o">&lt;</span> <span class="n">pbar</span><span class="o">.</span><span class="n">total</span><span class="p">:</span>
+            <span class="n">train_batch_sampler</span><span class="o">.</span><span class="n">set_epoch</span><span class="p">(</span><span class="n">epoch</span><span class="p">),</span>
+            <span class="n">batch_results</span> <span class="o">=</span> <span class="p">[]</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Start epoch </span><span class="si">{</span><span class="n">epoch</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+            <span class="k">for</span> <span class="n">batch</span> <span class="ow">in</span> <span class="n">train_dataloader</span><span class="p">:</span>
+                <span class="c1"># try/except block for forward/backward</span>
+                <span class="k">try</span><span class="p">:</span>
+                    <span class="k">if</span> <span class="n">pbar</span><span class="o">.</span><span class="n">n</span> <span class="o">&gt;=</span> <span class="n">pbar</span><span class="o">.</span><span class="n">total</span><span class="p">:</span>
+                        <span class="k">break</span>
+                    <span class="n">global_step</span> <span class="o">=</span> <span class="n">pbar</span><span class="o">.</span><span class="n">n</span> <span class="o">+</span> <span class="mi">1</span>
+
+                    <span class="n">wrapped_task</span><span class="o">.</span><span class="n">train</span><span class="p">()</span>
+                    <span class="n">batch</span> <span class="o">=</span> <span class="n">_to_device</span><span class="p">(</span><span class="n">batch</span><span class="p">,</span> <span class="n">device</span><span class="p">)</span>
+                    <span class="n">loss</span><span class="p">,</span> <span class="n">cacheable</span> <span class="o">=</span> <span class="n">wrapped_task</span><span class="p">(</span><span class="s2">&quot;train&quot;</span><span class="p">,</span> <span class="o">**</span><span class="n">batch</span><span class="p">)</span>
+                    <span class="p">(</span><span class="n">loss</span> <span class="o">/</span> <span class="n">conf</span><span class="o">.</span><span class="n">gradient_accumulate</span><span class="p">)</span><span class="o">.</span><span class="n">backward</span><span class="p">()</span>
+                    <span class="n">batch_results</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">_force_cacheable</span><span class="p">(</span><span class="n">cacheable</span><span class="p">))</span>
+
+                <span class="k">except</span> <span class="ne">RuntimeError</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+                    <span class="k">if</span> <span class="n">world_size</span> <span class="o">&gt;</span> <span class="mi">1</span><span class="p">:</span>
+                        <span class="k">raise</span>
+
+                    <span class="n">acceptable</span> <span class="o">=</span> <span class="kc">False</span>
+                    <span class="k">for</span> <span class="n">acc_err</span> <span class="ow">in</span> <span class="n">ACCEPTABLE_ERRORS</span><span class="p">:</span>
+                        <span class="k">if</span> <span class="nb">str</span><span class="p">(</span><span class="n">e</span><span class="p">)</span> <span class="ow">in</span> <span class="n">acc_err</span><span class="p">:</span>
+                            <span class="n">acceptable</span> <span class="o">=</span> <span class="kc">True</span>
+                            <span class="k">break</span>
+                    <span class="k">if</span> <span class="ow">not</span> <span class="n">acceptable</span><span class="p">:</span>
+                        <span class="k">raise</span>
+
+                    <span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Step </span><span class="si">{</span><span class="n">global_step</span><span class="si">}</span><span class="s2">: </span><span class="si">{</span><span class="nb">str</span><span class="p">(</span><span class="n">e</span><span class="p">)</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+                    <span class="k">with</span> <span class="n">torch</span><span class="o">.</span><span class="n">cuda</span><span class="o">.</span><span class="n">device</span><span class="p">(</span><span class="n">device</span><span class="p">):</span>
+                        <span class="n">torch</span><span class="o">.</span><span class="n">cuda</span><span class="o">.</span><span class="n">empty_cache</span><span class="p">()</span>
+                    <span class="n">optimizer</span><span class="o">.</span><span class="n">zero_grad</span><span class="p">()</span>
+                    <span class="k">continue</span>
+
+                <span class="n">backward_steps</span> <span class="o">+=</span> <span class="mi">1</span>
+                <span class="k">if</span> <span class="n">backward_steps</span> <span class="o">%</span> <span class="n">conf</span><span class="o">.</span><span class="n">gradient_accumulate</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+                    <span class="k">continue</span>
+
+                <span class="n">grad_norm</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">nn</span><span class="o">.</span><span class="n">utils</span><span class="o">.</span><span class="n">clip_grad_norm_</span><span class="p">(</span>
+                    <span class="n">wrapped_task</span><span class="o">.</span><span class="n">parameters</span><span class="p">(),</span> <span class="n">conf</span><span class="o">.</span><span class="n">gradient_clipping</span>
+                <span class="p">)</span>
+
+                <span class="k">if</span> <span class="n">math</span><span class="o">.</span><span class="n">isnan</span><span class="p">(</span><span class="n">grad_norm</span><span class="p">):</span>
+                    <span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;[Runner] - grad norm is NaN at step </span><span class="si">{</span><span class="n">global_step</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="n">optimizer</span><span class="o">.</span><span class="n">step</span><span class="p">()</span>
+                <span class="n">optimizer</span><span class="o">.</span><span class="n">zero_grad</span><span class="p">()</span>
+
+                <span class="k">if</span> <span class="n">conf</span><span class="o">.</span><span class="n">use_scheduler</span><span class="p">:</span>
+                    <span class="n">scheduler</span><span class="o">.</span><span class="n">step</span><span class="p">()</span>
+
+                <span class="k">if</span> <span class="n">rank</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+                    <span class="n">batch_results</span> <span class="o">=</span> <span class="p">[]</span>
+                    <span class="n">pbar</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>
+                    <span class="k">continue</span>
+
+                <span class="k">def</span> <span class="nf">_log_results</span><span class="p">(</span>
+                    <span class="n">split_name</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+                    <span class="n">logs</span><span class="p">:</span> <span class="nb">dict</span><span class="p">,</span>
+                    <span class="n">tensorboard</span><span class="p">:</span> <span class="n">SummaryWriter</span><span class="p">,</span>
+                    <span class="n">global_step</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
+                <span class="p">):</span>
+                    <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">split_name</span><span class="si">}</span><span class="s2"> at step </span><span class="si">{</span><span class="n">global_step</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+                    <span class="k">for</span> <span class="n">name</span><span class="p">,</span> <span class="n">value</span> <span class="ow">in</span> <span class="n">logs</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+                        <span class="n">value</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">value</span><span class="p">)</span>
+                        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">name</span><span class="si">}</span><span class="s2">: </span><span class="si">{</span><span class="n">value</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+                        <span class="n">tensorboard</span><span class="o">.</span><span class="n">add_scalar</span><span class="p">(</span>
+                            <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">split_name</span><span class="si">}</span><span class="s2">-</span><span class="si">{</span><span class="n">name</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">,</span> <span class="n">value</span><span class="p">,</span> <span class="n">global_step</span><span class="o">=</span><span class="n">global_step</span>
+                        <span class="p">)</span>
+
+                <span class="k">if</span> <span class="n">global_step</span> <span class="o">%</span> <span class="n">conf</span><span class="o">.</span><span class="n">log_step</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+                    <span class="n">logs</span> <span class="o">=</span> <span class="n">wrapped_task</span><span class="o">.</span><span class="n">reduction</span><span class="p">(</span><span class="s2">&quot;train&quot;</span><span class="p">,</span> <span class="n">batch_results</span><span class="p">)</span>
+                    <span class="n">_log_results</span><span class="p">(</span><span class="s2">&quot;train&quot;</span><span class="p">,</span> <span class="n">logs</span><span class="p">,</span> <span class="n">tf_logger</span><span class="p">,</span> <span class="n">global_step</span><span class="p">)</span>
+                    <span class="n">batch_results</span> <span class="o">=</span> <span class="p">[]</span>
+
+                <span class="n">save_names</span> <span class="o">=</span> <span class="p">[]</span>
+
+                <span class="k">if</span> <span class="n">global_step</span> <span class="o">%</span> <span class="n">conf</span><span class="o">.</span><span class="n">eval_step</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+                    <span class="k">assert</span> <span class="p">(</span>
+                        <span class="n">valid_dataset</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">valid_batch_sampler</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span>
+                    <span class="p">),</span> <span class="sa">f</span><span class="s2">&quot;valid dataset is not supported, please set train.eval_step to infinite&quot;</span>
+                    <span class="n">logs</span><span class="p">:</span> <span class="nb">dict</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">evaluate</span><span class="p">(</span>
+                        <span class="n">evaluate</span><span class="p">,</span>
+                        <span class="s2">&quot;valid&quot;</span><span class="p">,</span>
+                        <span class="n">task</span><span class="p">,</span>
+                        <span class="n">valid_dataset</span><span class="p">,</span>
+                        <span class="n">valid_batch_sampler</span><span class="p">,</span>
+                        <span class="n">valid_collate_fn</span><span class="p">,</span>
+                        <span class="n">eval_batch</span><span class="p">,</span>
+                        <span class="n">train_dir</span><span class="p">,</span>
+                        <span class="n">device</span><span class="p">,</span>
+                        <span class="n">num_workers</span><span class="p">,</span>
+                    <span class="p">)</span>
+                    <span class="n">_log_results</span><span class="p">(</span><span class="s2">&quot;valid&quot;</span><span class="p">,</span> <span class="n">logs</span><span class="p">,</span> <span class="n">tf_logger</span><span class="p">,</span> <span class="n">global_step</span><span class="p">)</span>
+                    <span class="n">valid_metrics</span> <span class="o">=</span> <span class="p">{</span><span class="n">k</span><span class="p">:</span> <span class="nb">float</span><span class="p">(</span><span class="n">v</span><span class="p">)</span> <span class="k">for</span> <span class="n">k</span><span class="p">,</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">logs</span><span class="o">.</span><span class="n">items</span><span class="p">()}</span>
+                    <span class="n">new_metric</span> <span class="o">=</span> <span class="n">valid_metrics</span><span class="p">[</span><span class="n">conf</span><span class="o">.</span><span class="n">valid_metric</span><span class="p">]</span>
+                    <span class="n">best_metric</span> <span class="o">=</span> <span class="n">valid_best_metrics</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">conf</span><span class="o">.</span><span class="n">valid_metric</span><span class="p">)</span>
+                    <span class="k">if</span> <span class="n">best_metric</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+                        <span class="n">is_new_best</span> <span class="o">=</span> <span class="kc">True</span>
+                    <span class="k">elif</span> <span class="n">conf</span><span class="o">.</span><span class="n">valid_higher_better</span><span class="p">:</span>
+                        <span class="n">is_new_best</span> <span class="o">=</span> <span class="n">new_metric</span> <span class="o">&gt;</span> <span class="n">best_metric</span>
+                    <span class="k">else</span><span class="p">:</span>
+                        <span class="n">is_new_best</span> <span class="o">=</span> <span class="n">new_metric</span> <span class="o">&lt;</span> <span class="n">best_metric</span>
+                    <span class="k">if</span> <span class="n">is_new_best</span><span class="p">:</span>
+                        <span class="n">valid_best_metrics</span> <span class="o">=</span> <span class="n">deepcopy</span><span class="p">(</span><span class="n">valid_metrics</span><span class="p">)</span>
+                        <span class="n">save_names</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s2">&quot;valid_best&quot;</span><span class="p">)</span>
+
+                <span class="k">if</span> <span class="n">global_step</span> <span class="o">%</span> <span class="n">conf</span><span class="o">.</span><span class="n">save_step</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+                    <span class="n">ckpt_dirs</span> <span class="o">=</span> <span class="p">[</span>
+                        <span class="n">key</span> <span class="k">for</span> <span class="n">key</span> <span class="ow">in</span> <span class="n">os</span><span class="o">.</span><span class="n">listdir</span><span class="p">(</span><span class="n">train_dir</span><span class="p">)</span> <span class="k">if</span> <span class="n">key</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s2">&quot;step_&quot;</span><span class="p">)</span>
+                    <span class="p">]</span>
+                    <span class="n">ckpt_dirs</span><span class="o">.</span><span class="n">sort</span><span class="p">(</span><span class="n">key</span><span class="o">=</span><span class="k">lambda</span> <span class="n">stem</span><span class="p">:</span> <span class="nb">int</span><span class="p">(</span><span class="n">stem</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">&quot;_&quot;</span><span class="p">)[</span><span class="o">-</span><span class="mi">1</span><span class="p">]))</span>
+                    <span class="k">if</span> <span class="p">(</span>
+                        <span class="n">conf</span><span class="o">.</span><span class="n">keep_num_ckpts</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span>
+                        <span class="ow">and</span> <span class="nb">len</span><span class="p">(</span><span class="n">ckpt_dirs</span><span class="p">)</span> <span class="o">&gt;=</span> <span class="n">conf</span><span class="o">.</span><span class="n">keep_num_ckpts</span>
+                    <span class="p">):</span>
+                        <span class="k">for</span> <span class="n">ckpt_dir</span> <span class="ow">in</span> <span class="n">ckpt_dirs</span><span class="p">[</span>
+                            <span class="p">:</span> <span class="nb">len</span><span class="p">(</span><span class="n">ckpt_dirs</span><span class="p">)</span> <span class="o">-</span> <span class="n">conf</span><span class="o">.</span><span class="n">keep_num_ckpts</span> <span class="o">+</span> <span class="mi">1</span>
+                        <span class="p">]:</span>
+                            <span class="n">shutil</span><span class="o">.</span><span class="n">rmtree</span><span class="p">(</span><span class="n">train_dir</span> <span class="o">/</span> <span class="n">ckpt_dir</span><span class="p">)</span>
+
+                    <span class="n">save_names</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;step_</span><span class="si">{</span><span class="n">global_step</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+
+                <span class="k">for</span> <span class="n">name</span> <span class="ow">in</span> <span class="n">save_names</span><span class="p">:</span>
+                    <span class="n">training_stats</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span>
+                        <span class="n">global_step</span><span class="o">=</span><span class="n">global_step</span><span class="p">,</span>
+                        <span class="n">epoch</span><span class="o">=</span><span class="n">epoch</span><span class="p">,</span>
+                        <span class="n">valid_best_metrics</span><span class="o">=</span><span class="n">valid_best_metrics</span><span class="p">,</span>
+                    <span class="p">)</span>
+                    <span class="n">_save_ckpts_to_dir</span><span class="p">(</span>
+                        <span class="n">train_dir</span> <span class="o">/</span> <span class="n">name</span><span class="p">,</span>
+                        <span class="p">(</span>
+                            <span class="n">task</span><span class="o">.</span><span class="n">module</span>
+                            <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">task</span><span class="p">,</span> <span class="n">_DistributedDataParallel</span><span class="p">)</span>
+                            <span class="k">else</span> <span class="n">task</span>
+                        <span class="p">),</span>
+                        <span class="n">optimizer</span><span class="p">,</span>
+                        <span class="n">scheduler</span><span class="p">,</span>
+                        <span class="n">build_model_all_args</span><span class="p">,</span>
+                        <span class="n">build_task_all_args_except_model</span><span class="p">,</span>
+                        <span class="n">save_model</span><span class="p">,</span>
+                        <span class="n">save_task</span><span class="p">,</span>
+                        <span class="n">training_stats</span><span class="p">,</span>
+                        <span class="n">global_config</span><span class="p">,</span>
+                    <span class="p">)</span>
+
+                <span class="n">pbar</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>
+            <span class="n">epoch</span> <span class="o">+=</span> <span class="mi">1</span>
+
+        <span class="n">pbar</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+        <span class="k">if</span> <span class="n">rank</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="n">tf_logger</span><span class="o">.</span><span class="n">close</span><span class="p">()</span></div>
+
+<div class="viewcode-block" id="Problem.evaluate"><a class="viewcode-back" href="../../../_autosummary/s3prl.problem.base.html#s3prl.problem.base.Problem.evaluate">[docs]</a>    <span class="k">def</span> <span class="nf">evaluate</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="n">evaluate</span><span class="p">:</span> <span class="nb">dict</span><span class="p">,</span>
+        <span class="n">mode</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+        <span class="n">task</span><span class="p">,</span>
+        <span class="n">dataset</span><span class="p">,</span>
+        <span class="n">batch_sampler</span><span class="p">,</span>
+        <span class="n">collate_fn</span><span class="p">,</span>
+        <span class="n">eval_batch</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
+        <span class="n">dump_dir</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+        <span class="n">device</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+        <span class="n">num_workers</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
+    <span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        The evaluate routine used by :obj:`train` (during validation phase) and :obj:`run`</span>
+<span class="sd">        (during testing phase).</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            evaluate (dict): same in :obj:`default_config`, no argument supported for now</span>
+<span class="sd">            **others:</span>
+<span class="sd">                only meaningful when you want to override this train method, which is not the</span>
+<span class="sd">                common case. Hence we skip the documentation for now.</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">assert</span> <span class="n">mode</span> <span class="ow">in</span> <span class="p">[</span><span class="s2">&quot;valid&quot;</span><span class="p">,</span> <span class="s2">&quot;test&quot;</span><span class="p">]</span>
+
+        <span class="n">dataloader</span> <span class="o">=</span> <span class="n">DataLoader</span><span class="p">(</span>
+            <span class="n">dataset</span><span class="p">,</span>
+            <span class="n">batch_sampler</span><span class="o">=</span><span class="n">batch_sampler</span><span class="p">,</span>
+            <span class="n">num_workers</span><span class="o">=</span><span class="n">num_workers</span><span class="p">,</span>
+            <span class="n">collate_fn</span><span class="o">=</span><span class="n">collate_fn</span><span class="p">,</span>
+        <span class="p">)</span>
+
+        <span class="n">task</span> <span class="o">=</span> <span class="n">task</span><span class="o">.</span><span class="n">to</span><span class="p">(</span><span class="n">device</span><span class="p">)</span>
+        <span class="k">with</span> <span class="n">torch</span><span class="o">.</span><span class="n">no_grad</span><span class="p">():</span>
+            <span class="n">batch_results</span> <span class="o">=</span> <span class="p">[]</span>
+            <span class="k">for</span> <span class="n">batch_idx</span><span class="p">,</span> <span class="n">batch</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span>
+                <span class="n">tqdm</span><span class="p">(</span><span class="n">dataloader</span><span class="p">,</span> <span class="n">desc</span><span class="o">=</span><span class="n">mode</span><span class="p">,</span> <span class="n">total</span><span class="o">=</span><span class="nb">len</span><span class="p">(</span><span class="n">dataloader</span><span class="p">))</span>
+            <span class="p">):</span>
+                <span class="k">if</span> <span class="n">batch_idx</span> <span class="o">==</span> <span class="n">eval_batch</span><span class="p">:</span>
+                    <span class="k">break</span>
+                <span class="n">batch</span> <span class="o">=</span> <span class="n">_to_device</span><span class="p">(</span><span class="n">batch</span><span class="p">,</span> <span class="n">device</span><span class="p">)</span>
+                <span class="n">task</span><span class="o">.</span><span class="n">eval</span><span class="p">()</span>
+                <span class="n">loss</span><span class="p">,</span> <span class="n">cacheable</span> <span class="o">=</span> <span class="n">task</span><span class="p">(</span><span class="n">mode</span><span class="p">,</span> <span class="n">_dump_dir</span><span class="o">=</span><span class="n">dump_dir</span><span class="p">,</span> <span class="o">**</span><span class="n">batch</span><span class="p">)</span>
+                <span class="n">batch_results</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">_force_cacheable</span><span class="p">(</span><span class="n">cacheable</span><span class="p">))</span>
+
+        <span class="n">logs</span> <span class="o">=</span> <span class="n">task</span><span class="o">.</span><span class="n">reduction</span><span class="p">(</span><span class="n">mode</span><span class="p">,</span> <span class="n">batch_results</span><span class="p">,</span> <span class="n">_dump_dir</span><span class="o">=</span><span class="n">dump_dir</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">logs</span></div>
+
+<div class="viewcode-block" id="Problem.save_model"><a class="viewcode-back" href="../../../_autosummary/s3prl.problem.base.html#s3prl.problem.base.Problem.save_model">[docs]</a>    <span class="k">def</span> <span class="nf">save_model</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="n">save_model</span><span class="p">:</span> <span class="nb">dict</span><span class="p">,</span>
+        <span class="n">model_ckpt_dir</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+        <span class="n">build_model_all_args</span><span class="p">:</span> <span class="nb">dict</span><span class="p">,</span>
+        <span class="n">model</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">nn</span><span class="o">.</span><span class="n">Module</span><span class="p">,</span>
+    <span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Save the model state_dict and the model initialization arguments into the given directory.</span>
+<span class="sd">        If you override this method, it is highly possible you also need to override :obj:`load_model`</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            save_model (dict): same in :obj:`default_config`, so the user can save additional settings,</span>
+<span class="sd">                like the configuration of the dataset by duplicating the dataset hypers</span>
+<span class="sd">                inside the :code:`save_model` field. You can rely on the :code:`omegaconf`</span>
+<span class="sd">                package to simplify the duplication.</span>
+<span class="sd">            model_ckpt_dir (str): save the model into the this directory.</span>
+<span class="sd">            build_model_all_args (dict): all the arguments of :obj:`build_model`.</span>
+<span class="sd">                By saving this dictionary, you can easily reconstruct the same model</span>
+<span class="sd">                by calling :obj:`build_model` with the saved dictionary.</span>
+<span class="sd">            model (torch.nn.Module): the model to be saved.</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            None</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">model_ckpt_dir</span><span class="p">:</span> <span class="n">Path</span> <span class="o">=</span> <span class="n">Path</span><span class="p">(</span><span class="n">model_ckpt_dir</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">model_ckpt_dir</span><span class="o">.</span><span class="n">is_dir</span><span class="p">():</span>
+            <span class="n">shutil</span><span class="o">.</span><span class="n">rmtree</span><span class="p">(</span><span class="n">model_ckpt_dir</span><span class="p">,</span> <span class="n">ignore_errors</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+        <span class="n">model_ckpt_dir</span><span class="o">.</span><span class="n">mkdir</span><span class="p">(</span><span class="n">exist_ok</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">parents</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+
+        <span class="k">with</span> <span class="p">(</span><span class="n">model_ckpt_dir</span> <span class="o">/</span> <span class="s2">&quot;problem_name&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">open</span><span class="p">(</span><span class="s2">&quot;w&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
+            <span class="n">f</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="vm">__class__</span><span class="o">.</span><span class="vm">__name__</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+
+        <span class="n">torch</span><span class="o">.</span><span class="n">save</span><span class="p">(</span><span class="n">model</span><span class="o">.</span><span class="n">state_dict</span><span class="p">(),</span> <span class="n">model_ckpt_dir</span> <span class="o">/</span> <span class="s2">&quot;state_dict.pt&quot;</span><span class="p">)</span>
+
+        <span class="c1"># NOTE: all arguments for building model should be in simple types (yaml serializable)</span>
+        <span class="k">with</span> <span class="p">(</span><span class="n">model_ckpt_dir</span> <span class="o">/</span> <span class="sa">f</span><span class="s2">&quot;arguments.yaml&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">open</span><span class="p">(</span><span class="s2">&quot;w&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
+            <span class="n">yaml</span><span class="o">.</span><span class="n">safe_dump</span><span class="p">(</span><span class="n">build_model_all_args</span><span class="p">,</span> <span class="n">f</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">save_model</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="k">with</span> <span class="p">(</span><span class="n">model_ckpt_dir</span> <span class="o">/</span> <span class="s2">&quot;extra_conf.yaml&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">open</span><span class="p">(</span><span class="s2">&quot;w&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
+                <span class="n">yaml</span><span class="o">.</span><span class="n">safe_dump</span><span class="p">(</span><span class="n">save_model</span><span class="p">,</span> <span class="n">f</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="Problem.load_model"><a class="viewcode-back" href="../../../_autosummary/s3prl.problem.base.html#s3prl.problem.base.Problem.load_model">[docs]</a>    <span class="k">def</span> <span class="nf">load_model</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">model_ckpt_dir</span><span class="p">:</span> <span class="nb">str</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Return the saved model.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            model_ckpt_dir (str): Restore the model with :obj:`build_model` and the checkpoint</span>
+<span class="sd">                saved in this directory.</span>
+
+<span class="sd">        Return:</span>
+<span class="sd">            :obj:`torch.nn.Module`</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">model_ckpt_dir</span><span class="p">:</span> <span class="n">Path</span> <span class="o">=</span> <span class="n">Path</span><span class="p">(</span><span class="n">model_ckpt_dir</span><span class="p">)</span>
+
+        <span class="k">with</span> <span class="p">(</span><span class="n">model_ckpt_dir</span> <span class="o">/</span> <span class="s2">&quot;arguments.yaml&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">open</span><span class="p">(</span><span class="s2">&quot;r&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
+            <span class="n">arguments</span> <span class="o">=</span> <span class="n">yaml</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="n">f</span><span class="p">,</span> <span class="n">Loader</span><span class="o">=</span><span class="n">yaml</span><span class="o">.</span><span class="n">SafeLoader</span><span class="p">)</span>
+        <span class="n">model</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">build_model</span><span class="p">(</span><span class="o">**</span><span class="n">arguments</span><span class="p">)</span>
+
+        <span class="n">state_dict</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="n">model_ckpt_dir</span> <span class="o">/</span> <span class="s2">&quot;state_dict.pt&quot;</span><span class="p">,</span> <span class="n">map_location</span><span class="o">=</span><span class="s2">&quot;cpu&quot;</span><span class="p">)</span>
+        <span class="n">model</span><span class="o">.</span><span class="n">load_state_dict</span><span class="p">(</span><span class="n">state_dict</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">model</span></div>
+
+<div class="viewcode-block" id="Problem.save_task"><a class="viewcode-back" href="../../../_autosummary/s3prl.problem.base.html#s3prl.problem.base.Problem.save_task">[docs]</a>    <span class="k">def</span> <span class="nf">save_task</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="n">save_task</span><span class="p">:</span> <span class="nb">dict</span><span class="p">,</span>
+        <span class="n">task_ckpt_dir</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+        <span class="n">build_task_all_args_except_model</span><span class="p">:</span> <span class="nb">dict</span><span class="p">,</span>
+        <span class="n">task</span><span class="p">:</span> <span class="n">Task</span><span class="p">,</span>
+    <span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Save the task&#39;s state, :code:`task.get_state()`, and the initialization arguments into the given</span>
+<span class="sd">        directory. If you override this method, it is highly possible you also need to override</span>
+<span class="sd">        :obj:`load_task`.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            save_task (dict): same in :obj:`default_config`, so the user can save additional settings,</span>
+<span class="sd">                like the configuration of the dataset by duplicating the dataset hypers</span>
+<span class="sd">                inside the :code:`save_task` field. You can rely on the :code:`omegaconf`</span>
+<span class="sd">                package to simplify the duplication.</span>
+<span class="sd">            task_ckpt_dir (str): save the task into this directory.</span>
+<span class="sd">            build_task_all_args_except_model (dict): all the arguments of :obj:`build_task` except</span>
+<span class="sd">                the :code:`model` argument since the model should be sapartely saved by</span>
+<span class="sd">                :obj:`save_model`. By saving this dictionary, you can easily reconstruct the same task</span>
+<span class="sd">                by calling :obj:`build_task` with the saved dictionary.</span>
+<span class="sd">            task (Task): the task to be saved.</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            None</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">task_ckpt_dir</span><span class="p">:</span> <span class="n">Path</span> <span class="o">=</span> <span class="n">Path</span><span class="p">(</span><span class="n">task_ckpt_dir</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">task_ckpt_dir</span><span class="o">.</span><span class="n">is_dir</span><span class="p">():</span>
+            <span class="n">shutil</span><span class="o">.</span><span class="n">rmtree</span><span class="p">(</span><span class="n">task_ckpt_dir</span><span class="p">,</span> <span class="n">ignore_errors</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+        <span class="n">task_ckpt_dir</span><span class="o">.</span><span class="n">mkdir</span><span class="p">(</span><span class="n">exist_ok</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">parents</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+
+        <span class="k">with</span> <span class="p">(</span><span class="n">task_ckpt_dir</span> <span class="o">/</span> <span class="s2">&quot;problem_name&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">open</span><span class="p">(</span><span class="s2">&quot;w&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
+            <span class="n">f</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="vm">__class__</span><span class="o">.</span><span class="vm">__name__</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+
+        <span class="n">torch</span><span class="o">.</span><span class="n">save</span><span class="p">(</span><span class="n">task</span><span class="o">.</span><span class="n">get_state</span><span class="p">(),</span> <span class="n">task_ckpt_dir</span> <span class="o">/</span> <span class="s2">&quot;state.pt&quot;</span><span class="p">)</span>
+
+        <span class="c1"># NOTE: each argument is saved independently to prevent SPOF</span>
+        <span class="c1"># i.e. a single argument which cannot be loaded will lead to missing</span>
+        <span class="c1"># all other arguments, since the single argument file cannot be loaded</span>
+        <span class="n">arguments</span> <span class="o">=</span> <span class="n">build_task_all_args_except_model</span>
+        <span class="n">arguments_dir</span> <span class="o">=</span> <span class="n">task_ckpt_dir</span> <span class="o">/</span> <span class="s2">&quot;arguments&quot;</span>
+        <span class="n">arguments_dir</span><span class="o">.</span><span class="n">mkdir</span><span class="p">(</span><span class="n">exist_ok</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">parents</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">k</span><span class="p">,</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">arguments</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+            <span class="k">try</span><span class="p">:</span>
+                <span class="c1"># If the object is yaml serializable, use yaml for readibility</span>
+                <span class="n">yaml</span><span class="o">.</span><span class="n">safe_dump</span><span class="p">(</span><span class="n">v</span><span class="p">)</span>
+            <span class="k">except</span><span class="p">:</span>
+                <span class="c1"># If not, use pickle</span>
+                <span class="k">with</span> <span class="p">(</span><span class="n">arguments_dir</span> <span class="o">/</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">k</span><span class="si">}</span><span class="s2">.pkl&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">open</span><span class="p">(</span><span class="s2">&quot;wb&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
+                    <span class="n">pickle</span><span class="o">.</span><span class="n">dump</span><span class="p">(</span><span class="n">v</span><span class="p">,</span> <span class="n">f</span><span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="k">with</span> <span class="p">(</span><span class="n">arguments_dir</span> <span class="o">/</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">k</span><span class="si">}</span><span class="s2">.yaml&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">open</span><span class="p">(</span><span class="s2">&quot;w&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
+                    <span class="n">yaml</span><span class="o">.</span><span class="n">safe_dump</span><span class="p">(</span><span class="n">v</span><span class="p">,</span> <span class="n">f</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">save_task</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="k">with</span> <span class="p">(</span><span class="n">task_ckpt_dir</span><span class="p">,</span> <span class="s2">&quot;extra_conf.yaml&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">open</span><span class="p">(</span><span class="s2">&quot;w&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
+                <span class="n">yaml</span><span class="o">.</span><span class="n">safe_dump</span><span class="p">(</span><span class="n">save_task</span><span class="p">,</span> <span class="n">f</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="Problem.load_task"><a class="viewcode-back" href="../../../_autosummary/s3prl.problem.base.html#s3prl.problem.base.Problem.load_task">[docs]</a>    <span class="k">def</span> <span class="nf">load_task</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span> <span class="n">task_ckpt_dir</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">model</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">nn</span><span class="o">.</span><span class="n">Module</span><span class="p">,</span> <span class="n">task_overrides</span><span class="p">:</span> <span class="nb">dict</span> <span class="o">=</span> <span class="kc">None</span>
+    <span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Return the saved task.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            task_ckpt_dir (str): Restore the task with :obj:`build_task` and the checkpoint</span>
+<span class="sd">                saved in this directory.</span>
+<span class="sd">            model (torch.nn.Module): the model for the task, since the model is separately saved</span>
+<span class="sd">                and is required for :obj:`build_task`.</span>
+<span class="sd">            task_overrides (dict): overrides the saved initialization arguments, so can change</span>
+<span class="sd">                the loaded task&#39;s behavior. Like, change the decoding hyperparameters.</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            :obj:`s3prl.task.Task`</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="n">task_ckpt_dir</span><span class="p">:</span> <span class="n">Path</span> <span class="o">=</span> <span class="n">Path</span><span class="p">(</span><span class="n">task_ckpt_dir</span><span class="p">)</span>
+        <span class="n">task_overrides</span> <span class="o">=</span> <span class="n">task_overrides</span> <span class="ow">or</span> <span class="p">{}</span>
+
+        <span class="n">arguments</span> <span class="o">=</span> <span class="n">task_overrides</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
+        <span class="n">arguments_dir</span> <span class="o">=</span> <span class="n">task_ckpt_dir</span> <span class="o">/</span> <span class="s2">&quot;arguments&quot;</span>
+        <span class="k">for</span> <span class="n">filename</span> <span class="ow">in</span> <span class="n">os</span><span class="o">.</span><span class="n">listdir</span><span class="p">(</span><span class="n">arguments_dir</span><span class="p">):</span>
+            <span class="n">filepath</span> <span class="o">=</span> <span class="n">arguments_dir</span> <span class="o">/</span> <span class="n">filename</span>
+            <span class="n">key</span> <span class="o">=</span> <span class="n">filepath</span><span class="o">.</span><span class="n">stem</span>
+
+            <span class="k">if</span> <span class="n">key</span> <span class="ow">in</span> <span class="n">task_overrides</span><span class="p">:</span>
+                <span class="c1"># do not load the file (potential crash) if the overrides already has the value</span>
+                <span class="k">continue</span>
+
+            <span class="k">if</span> <span class="n">filepath</span><span class="o">.</span><span class="n">suffix</span> <span class="o">==</span> <span class="s2">&quot;.yaml&quot;</span><span class="p">:</span>
+                <span class="k">with</span> <span class="n">filepath</span><span class="o">.</span><span class="n">open</span><span class="p">(</span><span class="s2">&quot;r&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
+                    <span class="n">value</span> <span class="o">=</span> <span class="n">yaml</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="n">f</span><span class="p">,</span> <span class="n">Loader</span><span class="o">=</span><span class="n">yaml</span><span class="o">.</span><span class="n">SafeLoader</span><span class="p">)</span>
+            <span class="k">elif</span> <span class="n">filepath</span><span class="o">.</span><span class="n">suffix</span> <span class="o">==</span> <span class="s2">&quot;.pkl&quot;</span><span class="p">:</span>
+                <span class="k">with</span> <span class="n">filepath</span><span class="o">.</span><span class="n">open</span><span class="p">(</span><span class="s2">&quot;rb&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
+                    <span class="n">value</span> <span class="o">=</span> <span class="n">pickle</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="n">f</span><span class="p">)</span>
+
+            <span class="k">assert</span> <span class="n">key</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">arguments</span><span class="p">,</span> <span class="p">(</span>
+                <span class="sa">f</span><span class="s2">&quot;Unexpected duplicated file stem &#39;</span><span class="si">{</span><span class="n">key</span><span class="si">}</span><span class="s2">&#39; found in </span><span class="si">{</span><span class="n">arguments_dir</span><span class="si">}</span><span class="s2">. &quot;</span>
+                <span class="s2">&quot;Please delete one of them.&quot;</span>
+            <span class="p">)</span>
+            <span class="n">arguments</span><span class="p">[</span><span class="n">key</span><span class="p">]</span> <span class="o">=</span> <span class="n">value</span>
+
+        <span class="n">task</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">build_task</span><span class="p">(</span><span class="n">model</span><span class="o">=</span><span class="n">model</span><span class="p">,</span> <span class="o">**</span><span class="n">arguments</span><span class="p">)</span>
+
+        <span class="n">state</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="n">Path</span><span class="p">(</span><span class="n">task_ckpt_dir</span><span class="p">)</span> <span class="o">/</span> <span class="s2">&quot;state.pt&quot;</span><span class="p">,</span> <span class="n">map_location</span><span class="o">=</span><span class="s2">&quot;cpu&quot;</span><span class="p">)</span>
+        <span class="n">task</span><span class="o">.</span><span class="n">set_state</span><span class="p">(</span><span class="n">state</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">task</span></div>
+
+<div class="viewcode-block" id="Problem.load_model_and_task"><a class="viewcode-back" href="../../../_autosummary/s3prl.problem.base.html#s3prl.problem.base.Problem.load_model_and_task">[docs]</a>    <span class="k">def</span> <span class="nf">load_model_and_task</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ckpts_dir</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">task_overrides</span><span class="p">:</span> <span class="nb">dict</span> <span class="o">=</span> <span class="kc">None</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        This is a helper method to combine :obj:`load_model` and :obj:`load_task`</span>
+<span class="sd">        together to directly load the model and the task. This method assumes</span>
+<span class="sd">        the model is saved under :code:`ckpts_dir / &#39;model&#39;` and the task is</span>
+<span class="sd">        saved under :code:`ckpts_dir / &#39;task&#39;`</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            tuple</span>
+
+<span class="sd">            1. model (:obj:`torch.nn.Module`)</span>
+<span class="sd">            2. task (:obj:`s3prl.task.Task`)</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">ckpts_dir</span><span class="p">:</span> <span class="n">Path</span> <span class="o">=</span> <span class="n">Path</span><span class="p">(</span><span class="n">ckpts_dir</span><span class="p">)</span>
+        <span class="n">task_overrides</span> <span class="o">=</span> <span class="n">task_overrides</span> <span class="ow">or</span> <span class="p">{}</span>
+
+        <span class="n">model</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">load_model</span><span class="p">(</span><span class="n">ckpts_dir</span> <span class="o">/</span> <span class="s2">&quot;model&quot;</span><span class="p">)</span>
+        <span class="n">task</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">load_task</span><span class="p">(</span><span class="n">ckpts_dir</span> <span class="o">/</span> <span class="s2">&quot;task&quot;</span><span class="p">,</span> <span class="n">model</span><span class="p">,</span> <span class="n">task_overrides</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">model</span><span class="p">,</span> <span class="n">task</span></div>
+
+    <span class="nd">@staticmethod</span>
+    <span class="k">def</span> <span class="nf">_get_current_arguments</span><span class="p">(</span>
+        <span class="n">exclude_self_and_cls</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span> <span class="n">flatten_dict</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">]]</span> <span class="o">=</span> <span class="kc">None</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">:</span>
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">flatten_dict</span><span class="p">,</span> <span class="nb">str</span><span class="p">):</span>
+            <span class="n">flatten_dict</span> <span class="o">=</span> <span class="p">[</span><span class="n">flatten_dict</span><span class="p">]</span>
+
+        <span class="n">frame</span> <span class="o">=</span> <span class="n">inspect</span><span class="o">.</span><span class="n">currentframe</span><span class="p">()</span><span class="o">.</span><span class="n">f_back</span>
+        <span class="n">args</span><span class="p">,</span> <span class="n">_</span><span class="p">,</span> <span class="n">_</span><span class="p">,</span> <span class="n">values</span> <span class="o">=</span> <span class="n">inspect</span><span class="o">.</span><span class="n">getargvalues</span><span class="p">(</span><span class="n">frame</span><span class="p">)</span>
+        <span class="n">config</span> <span class="o">=</span> <span class="p">{</span><span class="n">key</span><span class="p">:</span> <span class="n">values</span><span class="p">[</span><span class="n">key</span><span class="p">]</span> <span class="k">for</span> <span class="n">key</span> <span class="ow">in</span> <span class="n">args</span><span class="p">}</span>
+
+        <span class="k">if</span> <span class="n">exclude_self_and_cls</span><span class="p">:</span>
+            <span class="n">config</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s2">&quot;self&quot;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+            <span class="n">config</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s2">&quot;cls&quot;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">flatten_dict</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">flatten_config</span> <span class="o">=</span> <span class="p">{}</span>
+            <span class="k">for</span> <span class="n">k</span><span class="p">,</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">config</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+                <span class="k">if</span> <span class="n">k</span> <span class="ow">in</span> <span class="n">flatten_dict</span><span class="p">:</span>
+                    <span class="k">assert</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">v</span><span class="p">,</span> <span class="nb">dict</span><span class="p">)</span>
+                    <span class="k">for</span> <span class="n">_k</span><span class="p">,</span> <span class="n">_v</span> <span class="ow">in</span> <span class="n">v</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+                        <span class="n">flatten_config</span><span class="p">[</span><span class="n">_k</span><span class="p">]</span> <span class="o">=</span> <span class="n">_v</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="n">flatten_config</span><span class="p">[</span><span class="n">k</span><span class="p">]</span> <span class="o">=</span> <span class="n">v</span>
+            <span class="n">config</span> <span class="o">=</span> <span class="n">flatten_config</span>
+
+        <span class="k">def</span> <span class="nf">assert_no_missing</span><span class="p">(</span><span class="n">config</span><span class="p">:</span> <span class="nb">dict</span><span class="p">):</span>
+            <span class="n">omegaconf</span><span class="o">.</span><span class="n">OmegaConf</span><span class="o">.</span><span class="n">to_container</span><span class="p">(</span>
+                <span class="n">omegaconf</span><span class="o">.</span><span class="n">OmegaConf</span><span class="o">.</span><span class="n">create</span><span class="p">(</span><span class="n">config</span><span class="p">),</span> <span class="n">throw_on_missing</span><span class="o">=</span><span class="kc">True</span>
+            <span class="p">)</span>
+
+        <span class="n">assert_no_missing</span><span class="p">(</span><span class="n">config</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">config</span>
+
+    <span class="nd">@staticmethod</span>
+    <span class="k">def</span> <span class="nf">_get_time_tag</span><span class="p">():</span>
+        <span class="k">return</span> <span class="n">datetime</span><span class="o">.</span><span class="n">fromtimestamp</span><span class="p">(</span><span class="n">time</span><span class="p">())</span><span class="o">.</span><span class="n">strftime</span><span class="p">(</span><span class="s2">&quot;%Y_%m_</span><span class="si">%d</span><span class="s2">_%H_%M_%S&quot;</span><span class="p">)</span>
+
+    <span class="nd">@staticmethod</span>
+    <span class="k">def</span> <span class="nf">_stage_check</span><span class="p">(</span><span class="n">stage_id</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">stop</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">check_fn</span><span class="p">:</span> <span class="n">callable</span><span class="p">):</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">check_fn</span><span class="p">()</span>
+        <span class="k">except</span><span class="p">:</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span>
+                <span class="sa">f</span><span class="s2">&quot;Stage </span><span class="si">{</span><span class="n">stage_id</span><span class="si">}</span><span class="s2"> was not done before or is corrupted. Please re-run from this stage.&quot;</span>
+            <span class="p">)</span>
+            <span class="k">raise</span>
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">stop</span><span class="p">,</span> <span class="nb">int</span><span class="p">)</span> <span class="ow">and</span> <span class="n">stage_id</span> <span class="o">==</span> <span class="n">stop</span><span class="p">:</span>
+            <span class="n">exit</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
+
+<div class="viewcode-block" id="Problem.main"><a class="viewcode-back" href="../../../_autosummary/s3prl.problem.base.html#s3prl.problem.base.Problem.main">[docs]</a>    <span class="k">def</span> <span class="nf">main</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">args</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">):</span>
+        <span class="n">parser</span> <span class="o">=</span> <span class="n">argparse</span><span class="o">.</span><span class="n">ArgumentParser</span><span class="p">()</span>
+        <span class="n">parser</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span><span class="s2">&quot;--verbose&quot;</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="s2">&quot;INFO&quot;</span><span class="p">)</span>
+        <span class="n">parser</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span>
+            <span class="s2">&quot;--config&quot;</span><span class="p">,</span> <span class="n">help</span><span class="o">=</span><span class="s2">&quot;The yaml config path to override the default config&quot;</span>
+        <span class="p">)</span>
+        <span class="n">parser</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span><span class="s2">&quot;--print_config&quot;</span><span class="p">,</span> <span class="s2">&quot;-p&quot;</span><span class="p">,</span> <span class="n">action</span><span class="o">=</span><span class="s2">&quot;store_true&quot;</span><span class="p">)</span>
+        <span class="n">parser</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span>
+            <span class="s2">&quot;--dump_config&quot;</span><span class="p">,</span> <span class="s2">&quot;-d&quot;</span><span class="p">,</span> <span class="n">help</span><span class="o">=</span><span class="s2">&quot;The path to dump the default config as yaml&quot;</span>
+        <span class="p">)</span>
+        <span class="n">args</span><span class="p">,</span> <span class="n">override</span> <span class="o">=</span> <span class="n">parser</span><span class="o">.</span><span class="n">parse_known_args</span><span class="p">(</span><span class="n">args</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">args</span><span class="o">.</span><span class="n">print_config</span><span class="p">:</span>
+            <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">Default config of </span><span class="si">{</span><span class="bp">self</span><span class="si">}</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">)</span>
+            <span class="nb">print</span><span class="p">(</span><span class="n">yaml</span><span class="o">.</span><span class="n">safe_dump</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">default_config</span><span class="p">()))</span>
+            <span class="n">exit</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">args</span><span class="o">.</span><span class="n">dump_config</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">args</span><span class="o">.</span><span class="n">dump_config</span><span class="p">,</span> <span class="s2">&quot;w&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
+                <span class="n">yaml</span><span class="o">.</span><span class="n">safe_dump</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">default_config</span><span class="p">(),</span> <span class="n">f</span><span class="p">)</span>
+            <span class="n">exit</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
+
+        <span class="n">root_logger</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">()</span>
+        <span class="n">root_logger</span><span class="o">.</span><span class="n">handlers</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="n">logging</span><span class="o">.</span><span class="n">basicConfig</span><span class="p">(</span><span class="n">level</span><span class="o">=</span><span class="nb">getattr</span><span class="p">(</span><span class="n">logging</span><span class="p">,</span> <span class="n">args</span><span class="o">.</span><span class="n">verbose</span><span class="p">),</span> <span class="nb">format</span><span class="o">=</span><span class="n">LOGGING_FORMAT</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">args</span><span class="o">.</span><span class="n">config</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">args</span><span class="o">.</span><span class="n">config</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
+                <span class="n">yaml_conf</span> <span class="o">=</span> <span class="n">yaml</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="n">f</span><span class="p">,</span> <span class="n">Loader</span><span class="o">=</span><span class="n">yaml</span><span class="o">.</span><span class="n">FullLoader</span><span class="p">)</span> <span class="ow">or</span> <span class="nb">dict</span><span class="p">()</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">yaml_conf</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">()</span>
+        <span class="n">override_conf</span> <span class="o">=</span> <span class="n">parse_overrides</span><span class="p">(</span><span class="n">override</span><span class="p">)</span>
+
+        <span class="n">schema</span> <span class="o">=</span> <span class="n">omegaconf</span><span class="o">.</span><span class="n">OmegaConf</span><span class="o">.</span><span class="n">create</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">default_config</span><span class="p">())</span>
+        <span class="n">config</span> <span class="o">=</span> <span class="n">omegaconf</span><span class="o">.</span><span class="n">OmegaConf</span><span class="o">.</span><span class="n">merge</span><span class="p">(</span><span class="n">schema</span><span class="p">,</span> <span class="n">yaml_conf</span><span class="p">,</span> <span class="n">override_conf</span><span class="p">)</span>
+        <span class="n">config</span> <span class="o">=</span> <span class="n">omegaconf</span><span class="o">.</span><span class="n">OmegaConf</span><span class="o">.</span><span class="n">to_container</span><span class="p">(</span>
+            <span class="n">config</span><span class="p">,</span> <span class="n">resolve</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">throw_on_missing</span><span class="o">=</span><span class="kc">True</span>
+        <span class="p">)</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="n">config</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">run</span><span class="p">(</span><span class="o">**</span><span class="n">config</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">config</span></div></div>
+</pre></div>
+        </article>
+      </div>
+      <footer>
+        
+        <div class="related-pages">
+          
+          
+        </div>
+        <div class="bottom-of-page">
+          <div class="left-details">
+            <div class="copyright">
+                Copyright &#169; 2022, S3PRL Team
+            </div>
+            Made with <a href="https://www.sphinx-doc.org/">Sphinx</a> and <a class="muted-link" href="https://pradyunsg.me">@pradyunsg</a>'s
+            
+            <a href="https://github.com/pradyunsg/furo">Furo</a>
+            
+          </div>
+          <div class="right-details">
+            
+          </div>
+        </div>
+        
+      </footer>
+    </div>
+    <aside class="toc-drawer no-toc">
+      
+      
+      
+    </aside>
+  </div>
+</div><script data-url_root="../../../" id="documentation_options" src="../../../_static/documentation_options.js"></script>
+    <script src="../../../_static/jquery.js"></script>
+    <script src="../../../_static/underscore.js"></script>
+    <script src="../../../_static/_sphinx_javascript_frameworks_compat.js"></script>
+    <script src="../../../_static/doctools.js"></script>
+    <script src="../../../_static/scripts/furo.js"></script>
+    <script src="../../../_static/js/custom.js"></script>
+    </body>
+</html>

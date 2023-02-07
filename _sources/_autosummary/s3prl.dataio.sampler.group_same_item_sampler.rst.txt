@@ -1,0 +1,38 @@
+group\_same\_item\_sampler
+==========================
+
+**(s3prl.dataio.sampler.group_same_item_sampler)**
+
+.. automodule:: s3prl.dataio.sampler.group_same_item_sampler
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+GroupSameItemSampler
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. autoclass:: GroupSameItemSampler
+   :member-order: bysource
+   :members:
+   :undoc-members:
+   :inherited-members: torch.nn.Module,nn.Module,Module
+   :show-inheritance:
+
+
+
+
+
+
+
+
+

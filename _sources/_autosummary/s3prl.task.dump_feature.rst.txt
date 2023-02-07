@@ -1,0 +1,38 @@
+dump\_feature
+=============
+
+**(s3prl.task.dump_feature)**
+
+.. automodule:: s3prl.task.dump_feature
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+DumpFeature
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. autoclass:: DumpFeature
+   :member-order: bysource
+   :members:
+   :undoc-members:
+   :inherited-members: torch.nn.Module,nn.Module,Module
+   :show-inheritance:
+
+
+
+
+
+
+
+
+

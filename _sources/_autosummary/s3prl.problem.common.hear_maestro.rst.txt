@@ -1,0 +1,38 @@
+hear\_maestro
+=============
+
+**(s3prl.problem.common.hear_maestro)**
+
+.. automodule:: s3prl.problem.common.hear_maestro
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+HearMaestro
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. autoclass:: HearMaestro
+   :member-order: bysource
+   :members:
+   :undoc-members:
+   :inherited-members: torch.nn.Module,nn.Module,Module
+   :show-inheritance:
+
+
+
+
+
+
+
+
+

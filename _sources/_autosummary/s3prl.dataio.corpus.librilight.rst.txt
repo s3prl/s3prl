@@ -1,0 +1,38 @@
+librilight
+==========
+
+**(s3prl.dataio.corpus.librilight)**
+
+.. automodule:: s3prl.dataio.corpus.librilight
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+LibriLight
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. autoclass:: LibriLight
+   :member-order: bysource
+   :members:
+   :undoc-members:
+   :inherited-members: torch.nn.Module,nn.Module,Module
+   :show-inheritance:
+
+
+
+
+
+
+
+
+

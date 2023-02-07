@@ -1,0 +1,33 @@
+util
+====
+
+**(s3prl.dataio.dataset.util)**
+
+.. automodule:: s3prl.dataio.dataset.util
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+get_info
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. autofunction:: get_info
+
+
+
+
+

@@ -1,0 +1,38 @@
+hear\_gsc5hr
+============
+
+**(s3prl.problem.common.hear_gsc5hr)**
+
+.. automodule:: s3prl.problem.common.hear_gsc5hr
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+HearGSC5hr
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. autoclass:: HearGSC5hr
+   :member-order: bysource
+   :members:
+   :undoc-members:
+   :inherited-members: torch.nn.Module,nn.Module,Module
+   :show-inheritance:
+
+
+
+
+
+
+
+
+

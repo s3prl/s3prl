@@ -1,0 +1,38 @@
+hear\_cremad
+============
+
+**(s3prl.problem.common.hear_cremad)**
+
+.. automodule:: s3prl.problem.common.hear_cremad
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+HearCremaD
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. autoclass:: HearCremaD
+   :member-order: bysource
+   :members:
+   :undoc-members:
+   :inherited-members: torch.nn.Module,nn.Module,Module
+   :show-inheritance:
+
+
+
+
+
+
+
+
+

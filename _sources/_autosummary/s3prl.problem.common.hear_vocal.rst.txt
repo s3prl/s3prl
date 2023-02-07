@@ -1,0 +1,38 @@
+hear\_vocal
+===========
+
+**(s3prl.problem.common.hear_vocal)**
+
+.. automodule:: s3prl.problem.common.hear_vocal
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+HearVocal
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. autoclass:: HearVocal
+   :member-order: bysource
+   :members:
+   :undoc-members:
+   :inherited-members: torch.nn.Module,nn.Module,Module
+   :show-inheritance:
+
+
+
+
+
+
+
+
+

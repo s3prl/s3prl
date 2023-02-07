@@ -1,0 +1,38 @@
+hear\_tonic
+===========
+
+**(s3prl.problem.common.hear_tonic)**
+
+.. automodule:: s3prl.problem.common.hear_tonic
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+HearTonic
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. autoclass:: HearTonic
+   :member-order: bysource
+   :members:
+   :undoc-members:
+   :inherited-members: torch.nn.Module,nn.Module,Module
+   :show-inheritance:
+
+
+
+
+
+
+
+
+

@@ -1,0 +1,38 @@
+g2p
+===
+
+**(s3prl.dataio.encoder.g2p)**
+
+.. automodule:: s3prl.dataio.encoder.g2p
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+G2P
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. autoclass:: G2P
+   :member-order: bysource
+   :members:
+   :undoc-members:
+   :inherited-members: torch.nn.Module,nn.Module,Module
+   :show-inheritance:
+
+
+
+
+
+
+
+
+

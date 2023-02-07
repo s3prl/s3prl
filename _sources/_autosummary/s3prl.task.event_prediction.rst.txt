@@ -1,0 +1,38 @@
+event\_prediction
+=================
+
+**(s3prl.task.event_prediction)**
+
+.. automodule:: s3prl.task.event_prediction
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+EventPredictionTask
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. autoclass:: EventPredictionTask
+   :member-order: bysource
+   :members:
+   :undoc-members:
+   :inherited-members: torch.nn.Module,nn.Module,Module
+   :show-inheritance:
+
+
+
+
+
+
+
+
+

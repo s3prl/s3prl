@@ -1,0 +1,48 @@
+sorted\_sampler
+===============
+
+**(s3prl.dataio.sampler.sorted_sampler)**
+
+.. automodule:: s3prl.dataio.sampler.sorted_sampler
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+SortedSliceSampler
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. autoclass:: SortedSliceSampler
+   :member-order: bysource
+   :members:
+   :undoc-members:
+   :inherited-members: torch.nn.Module,nn.Module,Module
+   :show-inheritance:
+
+SortedBucketingSampler
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. autoclass:: SortedBucketingSampler
+   :member-order: bysource
+   :members:
+   :undoc-members:
+   :inherited-members: torch.nn.Module,nn.Module,Module
+   :show-inheritance:
+
+
+
+
+
+
+
+
+

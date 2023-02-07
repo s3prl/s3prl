@@ -1,0 +1,45 @@
+superb\_sid
+===========
+
+**(s3prl.problem.common.superb_sid)**
+
+.. automodule:: s3prl.problem.common.superb_sid
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+SuperbSID
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. autoclass:: SuperbSID
+   :member-order: bysource
+   :members:
+   :undoc-members:
+   :inherited-members: torch.nn.Module,nn.Module,Module
+   :show-inheritance:
+
+
+
+
+
+
+
+voxceleb1_for_sid
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. autofunction:: voxceleb1_for_sid
+
+
+
+
+

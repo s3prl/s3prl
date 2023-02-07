@@ -1,0 +1,551 @@
+<!doctype html>
+<html class="no-js" lang="en">
+  <head><meta charset="utf-8"/>
+    <meta name="viewport" content="width=device-width,initial-scale=1"/>
+    <meta name="color-scheme" content="light dark"><link rel="index" title="Index" href="../../../../genindex.html" /><link rel="search" title="Search" href="../../../../search.html" />
+
+    <!-- Generated with Sphinx 5.1.1 and Furo 2022.12.07 -->
+        <title>s3prl.problem.common.hear_maestro - S3PRL 0.4.10 documentation</title>
+      <link rel="stylesheet" type="text/css" href="../../../../_static/pygments.css" />
+    <link rel="stylesheet" type="text/css" href="../../../../_static/styles/furo.css?digest=91d0f0d1c444bdcb17a68e833c7a53903343c195" />
+    <link rel="stylesheet" type="text/css" href="../../../../_static/styles/furo-extensions.css?digest=30d1aed668e5c3a91c3e3bf6a60b675221979f0e" />
+    <link rel="stylesheet" type="text/css" href="../../../../_static/css/custom.css" />
+    
+    
+
+
+<style>
+  body {
+    --color-code-background: #f8f8f8;
+  --color-code-foreground: black;
+  
+  }
+  @media not print {
+    body[data-theme="dark"] {
+      --color-code-background: #202020;
+  --color-code-foreground: #d0d0d0;
+  
+    }
+    @media (prefers-color-scheme: dark) {
+      body:not([data-theme="light"]) {
+        --color-code-background: #202020;
+  --color-code-foreground: #d0d0d0;
+  
+      }
+    }
+  }
+</style></head>
+  <body>
+    
+    <script>
+      document.body.dataset.theme = localStorage.getItem("theme") || "auto";
+    </script>
+    
+
+<svg xmlns="http://www.w3.org/2000/svg" style="display: none;">
+  <symbol id="svg-toc" viewBox="0 0 24 24">
+    <title>Contents</title>
+    <svg stroke="currentColor" fill="currentColor" stroke-width="0" viewBox="0 0 1024 1024">
+      <path d="M408 442h480c4.4 0 8-3.6 8-8v-56c0-4.4-3.6-8-8-8H408c-4.4 0-8 3.6-8 8v56c0 4.4 3.6 8 8 8zm-8 204c0 4.4 3.6 8 8 8h480c4.4 0 8-3.6 8-8v-56c0-4.4-3.6-8-8-8H408c-4.4 0-8 3.6-8 8v56zm504-486H120c-4.4 0-8 3.6-8 8v56c0 4.4 3.6 8 8 8h784c4.4 0 8-3.6 8-8v-56c0-4.4-3.6-8-8-8zm0 632H120c-4.4 0-8 3.6-8 8v56c0 4.4 3.6 8 8 8h784c4.4 0 8-3.6 8-8v-56c0-4.4-3.6-8-8-8zM115.4 518.9L271.7 642c5.8 4.6 14.4.5 14.4-6.9V388.9c0-7.4-8.5-11.5-14.4-6.9L115.4 505.1a8.74 8.74 0 0 0 0 13.8z"/>
+    </svg>
+  </symbol>
+  <symbol id="svg-menu" viewBox="0 0 24 24">
+    <title>Menu</title>
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather-menu">
+      <line x1="3" y1="12" x2="21" y2="12"></line>
+      <line x1="3" y1="6" x2="21" y2="6"></line>
+      <line x1="3" y1="18" x2="21" y2="18"></line>
+    </svg>
+  </symbol>
+  <symbol id="svg-arrow-right" viewBox="0 0 24 24">
+    <title>Expand</title>
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather-chevron-right">
+      <polyline points="9 18 15 12 9 6"></polyline>
+    </svg>
+  </symbol>
+  <symbol id="svg-sun" viewBox="0 0 24 24">
+    <title>Light mode</title>
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="feather-sun">
+      <circle cx="12" cy="12" r="5"></circle>
+      <line x1="12" y1="1" x2="12" y2="3"></line>
+      <line x1="12" y1="21" x2="12" y2="23"></line>
+      <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
+      <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
+      <line x1="1" y1="12" x2="3" y2="12"></line>
+      <line x1="21" y1="12" x2="23" y2="12"></line>
+      <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
+      <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
+    </svg>
+  </symbol>
+  <symbol id="svg-moon" viewBox="0 0 24 24">
+    <title>Dark mode</title>
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="icon-tabler-moon">
+      <path stroke="none" d="M0 0h24v24H0z" fill="none" />
+      <path d="M12 3c.132 0 .263 0 .393 0a7.5 7.5 0 0 0 7.92 12.446a9 9 0 1 1 -8.313 -12.454z" />
+    </svg>
+  </symbol>
+  <symbol id="svg-sun-half" viewBox="0 0 24 24">
+    <title>Auto light/dark mode</title>
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="icon-tabler-shadow">
+      <path stroke="none" d="M0 0h24v24H0z" fill="none"/>
+      <circle cx="12" cy="12" r="9" />
+      <path d="M13 12h5" />
+      <path d="M13 15h4" />
+      <path d="M13 18h1" />
+      <path d="M13 9h4" />
+      <path d="M13 6h1" />
+    </svg>
+  </symbol>
+</svg>
+
+<input type="checkbox" class="sidebar-toggle" name="__navigation" id="__navigation">
+<input type="checkbox" class="sidebar-toggle" name="__toc" id="__toc">
+<label class="overlay sidebar-overlay" for="__navigation">
+  <div class="visually-hidden">Hide navigation sidebar</div>
+</label>
+<label class="overlay toc-overlay" for="__toc">
+  <div class="visually-hidden">Hide table of contents sidebar</div>
+</label>
+
+
+
+<div class="page">
+  <header class="mobile-header">
+    <div class="header-left">
+      <label class="nav-overlay-icon" for="__navigation">
+        <div class="visually-hidden">Toggle site navigation sidebar</div>
+        <i class="icon"><svg><use href="#svg-menu"></use></svg></i>
+      </label>
+    </div>
+    <div class="header-center">
+      <a href="../../../../index.html"><div class="brand">S3PRL 0.4.10
+ documentation</div></a>
+    </div>
+    <div class="header-right">
+      <div class="theme-toggle-container theme-toggle-header">
+        <button class="theme-toggle">
+          <div class="visually-hidden">Toggle Light / Dark / Auto color theme</div>
+          <svg class="theme-icon-when-auto"><use href="#svg-sun-half"></use></svg>
+          <svg class="theme-icon-when-dark"><use href="#svg-moon"></use></svg>
+          <svg class="theme-icon-when-light"><use href="#svg-sun"></use></svg>
+        </button>
+      </div>
+      <label class="toc-overlay-icon toc-header-icon no-toc" for="__toc">
+        <div class="visually-hidden">Toggle table of contents sidebar</div>
+        <i class="icon"><svg><use href="#svg-toc"></use></svg></i>
+      </label>
+    </div>
+  </header>
+  <aside class="sidebar-drawer">
+    <div class="sidebar-container">
+      
+      <div class="sidebar-sticky"><a class="sidebar-brand" href="../../../../index.html">
+  
+  
+  <span class="sidebar-brand-text">S3PRL 0.4.10
+ documentation</span>
+  
+</a><form class="sidebar-search-container" method="get" action="../../../../search.html" role="search">
+  <input class="sidebar-search" placeholder="Search" name="q" aria-label="Search">
+  <input type="hidden" name="check_keywords" value="yes">
+  <input type="hidden" name="area" value="default">
+</form>
+<div id="searchbox"></div><div class="sidebar-scroll"><div class="sidebar-tree">
+  <p class="caption" role="heading"><span class="caption-text">Getting started</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../../tutorial/installation.html">Install S3PRL</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../tutorial/upstream_collection.html">S3PRL Upstream Collection</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../tutorial/problem.html">Use Problem module to run customizable recipes</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">How to Contribute</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../../contribute/general.html">General Guideline</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../contribute/upstream.html">Adding New Upstream</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">API Documentation</span></p>
+<ul>
+<li class="toctree-l1 has-children"><a class="reference internal" href="../../../../_autosummary/s3prl.nn.html">nn</a><input class="toctree-checkbox" id="toctree-checkbox-1" name="toctree-checkbox-1" role="switch" type="checkbox"/><label for="toctree-checkbox-1"><div class="visually-hidden">Toggle child pages in navigation</div><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul>
+<li class="toctree-l2"><a class="reference internal" href="../../../../_autosummary/s3prl.nn.beam_decoder.html">beam_decoder</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../../_autosummary/s3prl.nn.common.html">common</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../../_autosummary/s3prl.nn.hear.html">hear</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../../_autosummary/s3prl.nn.interface.html">interface</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../../_autosummary/s3prl.nn.linear.html">linear</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../../_autosummary/s3prl.nn.pit.html">pit</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../../_autosummary/s3prl.nn.pooling.html">pooling</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../../_autosummary/s3prl.nn.rnn.html">rnn</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../../_autosummary/s3prl.nn.speaker_loss.html">speaker_loss</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../../_autosummary/s3prl.nn.speaker_model.html">speaker_model</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../../_autosummary/s3prl.nn.specaug.html">specaug</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../../_autosummary/s3prl.nn.upstream.html">upstream</a></li>
+</ul>
+</li>
+<li class="toctree-l1 has-children"><a class="reference internal" href="../../../../_autosummary/s3prl.problem.html">problem</a><input class="toctree-checkbox" id="toctree-checkbox-2" name="toctree-checkbox-2" role="switch" type="checkbox"/><label for="toctree-checkbox-2"><div class="visually-hidden">Toggle child pages in navigation</div><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul>
+<li class="toctree-l2 has-children"><a class="reference internal" href="../../../../_autosummary/s3prl.problem.asr.html">asr</a><input class="toctree-checkbox" id="toctree-checkbox-3" name="toctree-checkbox-3" role="switch" type="checkbox"/><label for="toctree-checkbox-3"><div class="visually-hidden">Toggle child pages in navigation</div><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul>
+<li class="toctree-l3"><a class="reference internal" href="../../../../_autosummary/s3prl.problem.asr.run.html">run</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../../../_autosummary/s3prl.problem.asr.superb_asr.html">superb_asr</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../../../_autosummary/s3prl.problem.asr.superb_pr.html">superb_pr</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../../../_autosummary/s3prl.problem.asr.superb_sf.html">superb_sf</a></li>
+</ul>
+</li>
+<li class="toctree-l2 has-children"><a class="reference internal" href="../../../../_autosummary/s3prl.problem.asv.html">asv</a><input class="toctree-checkbox" id="toctree-checkbox-4" name="toctree-checkbox-4" role="switch" type="checkbox"/><label for="toctree-checkbox-4"><div class="visually-hidden">Toggle child pages in navigation</div><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul>
+<li class="toctree-l3"><a class="reference internal" href="../../../../_autosummary/s3prl.problem.asv.run.html">run</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../../../_autosummary/s3prl.problem.asv.superb_asv.html">superb_asv</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="../../../../_autosummary/s3prl.problem.base.html">base</a></li>
+<li class="toctree-l2 has-children"><a class="reference internal" href="../../../../_autosummary/s3prl.problem.common.html">common</a><input class="toctree-checkbox" id="toctree-checkbox-5" name="toctree-checkbox-5" role="switch" type="checkbox"/><label for="toctree-checkbox-5"><div class="visually-hidden">Toggle child pages in navigation</div><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul>
+<li class="toctree-l3"><a class="reference internal" href="../../../../_autosummary/s3prl.problem.common.example.html">example</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../../../_autosummary/s3prl.problem.common.hear_beijing_opera.html">hear_beijing_opera</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../../../_autosummary/s3prl.problem.common.hear_cremad.html">hear_cremad</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../../../_autosummary/s3prl.problem.common.hear_dcase_2016_task2.html">hear_dcase_2016_task2</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../../../_autosummary/s3prl.problem.common.hear_esc50.html">hear_esc50</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../../../_autosummary/s3prl.problem.common.hear_fsd.html">hear_fsd</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../../../_autosummary/s3prl.problem.common.hear_gsc5hr.html">hear_gsc5hr</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../../../_autosummary/s3prl.problem.common.hear_gtzan.html">hear_gtzan</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../../../_autosummary/s3prl.problem.common.hear_gtzan_music_speech.html">hear_gtzan_music_speech</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../../../_autosummary/s3prl.problem.common.hear_gunshot.html">hear_gunshot</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../../../_autosummary/s3prl.problem.common.hear_libricount.html">hear_libricount</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../../../_autosummary/s3prl.problem.common.hear_maestro.html">hear_maestro</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../../../_autosummary/s3prl.problem.common.hear_nsynth5hr.html">hear_nsynth5hr</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../../../_autosummary/s3prl.problem.common.hear_stroke.html">hear_stroke</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../../../_autosummary/s3prl.problem.common.hear_tonic.html">hear_tonic</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../../../_autosummary/s3prl.problem.common.hear_vocal.html">hear_vocal</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../../../_autosummary/s3prl.problem.common.hear_vox_lingual.html">hear_vox_lingual</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../../../_autosummary/s3prl.problem.common.run.html">run</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../../../_autosummary/s3prl.problem.common.superb_er.html">superb_er</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../../../_autosummary/s3prl.problem.common.superb_ic.html">superb_ic</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../../../_autosummary/s3prl.problem.common.superb_ks.html">superb_ks</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../../../_autosummary/s3prl.problem.common.superb_sid.html">superb_sid</a></li>
+</ul>
+</li>
+<li class="toctree-l2 has-children"><a class="reference internal" href="../../../../_autosummary/s3prl.problem.diarization.html">diarization</a><input class="toctree-checkbox" id="toctree-checkbox-6" name="toctree-checkbox-6" role="switch" type="checkbox"/><label for="toctree-checkbox-6"><div class="visually-hidden">Toggle child pages in navigation</div><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul>
+<li class="toctree-l3"><a class="reference internal" href="../../../../_autosummary/s3prl.problem.diarization.run.html">run</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../../../_autosummary/s3prl.problem.diarization.superb_sd.html">superb_sd</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../../../_autosummary/s3prl.problem.diarization.util.html">util</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l1 has-children"><a class="reference internal" href="../../../../_autosummary/s3prl.task.html">task</a><input class="toctree-checkbox" id="toctree-checkbox-7" name="toctree-checkbox-7" role="switch" type="checkbox"/><label for="toctree-checkbox-7"><div class="visually-hidden">Toggle child pages in navigation</div><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul>
+<li class="toctree-l2"><a class="reference internal" href="../../../../_autosummary/s3prl.task.base.html">base</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../../_autosummary/s3prl.task.diarization.html">diarization</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../../_autosummary/s3prl.task.dump_feature.html">dump_feature</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../../_autosummary/s3prl.task.event_prediction.html">event_prediction</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../../_autosummary/s3prl.task.scene_prediction.html">scene_prediction</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../../_autosummary/s3prl.task.speaker_verification_task.html">speaker_verification_task</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../../_autosummary/s3prl.task.speech2text_ctc_task.html">speech2text_ctc_task</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../../_autosummary/s3prl.task.utterance_classification_task.html">utterance_classification_task</a></li>
+</ul>
+</li>
+<li class="toctree-l1 has-children"><a class="reference internal" href="../../../../_autosummary/s3prl.dataio.html">dataio</a><input class="toctree-checkbox" id="toctree-checkbox-8" name="toctree-checkbox-8" role="switch" type="checkbox"/><label for="toctree-checkbox-8"><div class="visually-hidden">Toggle child pages in navigation</div><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul>
+<li class="toctree-l2"><a class="reference internal" href="../../../../_autosummary/s3prl.dataio.collate_fn.html">collate_fn</a></li>
+<li class="toctree-l2 has-children"><a class="reference internal" href="../../../../_autosummary/s3prl.dataio.corpus.html">corpus</a><input class="toctree-checkbox" id="toctree-checkbox-9" name="toctree-checkbox-9" role="switch" type="checkbox"/><label for="toctree-checkbox-9"><div class="visually-hidden">Toggle child pages in navigation</div><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul>
+<li class="toctree-l3"><a class="reference internal" href="../../../../_autosummary/s3prl.dataio.corpus.base.html">base</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../../../_autosummary/s3prl.dataio.corpus.fluent_speech_commands.html">fluent_speech_commands</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../../../_autosummary/s3prl.dataio.corpus.iemocap.html">iemocap</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../../../_autosummary/s3prl.dataio.corpus.librilight.html">librilight</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../../../_autosummary/s3prl.dataio.corpus.librispeech.html">librispeech</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../../../_autosummary/s3prl.dataio.corpus.quesst14.html">quesst14</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../../../_autosummary/s3prl.dataio.corpus.snips.html">snips</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../../../_autosummary/s3prl.dataio.corpus.speech_commands.html">speech_commands</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../../../_autosummary/s3prl.dataio.corpus.voxceleb1sid.html">voxceleb1sid</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../../../_autosummary/s3prl.dataio.corpus.voxceleb1sv.html">voxceleb1sv</a></li>
+</ul>
+</li>
+<li class="toctree-l2 has-children"><a class="reference internal" href="../../../../_autosummary/s3prl.dataio.dataset.html">dataset</a><input class="toctree-checkbox" id="toctree-checkbox-10" name="toctree-checkbox-10" role="switch" type="checkbox"/><label for="toctree-checkbox-10"><div class="visually-hidden">Toggle child pages in navigation</div><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul>
+<li class="toctree-l3"><a class="reference internal" href="../../../../_autosummary/s3prl.dataio.dataset.base.html">base</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../../../_autosummary/s3prl.dataio.dataset.diarization.html">diarization</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../../../_autosummary/s3prl.dataio.dataset.encode.html">encode</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../../../_autosummary/s3prl.dataio.dataset.frame_label.html">frame_label</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../../../_autosummary/s3prl.dataio.dataset.load_audio.html">load_audio</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../../../_autosummary/s3prl.dataio.dataset.util.html">util</a></li>
+</ul>
+</li>
+<li class="toctree-l2 has-children"><a class="reference internal" href="../../../../_autosummary/s3prl.dataio.encoder.html">encoder</a><input class="toctree-checkbox" id="toctree-checkbox-11" name="toctree-checkbox-11" role="switch" type="checkbox"/><label for="toctree-checkbox-11"><div class="visually-hidden">Toggle child pages in navigation</div><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul>
+<li class="toctree-l3"><a class="reference internal" href="../../../../_autosummary/s3prl.dataio.encoder.category.html">category</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../../../_autosummary/s3prl.dataio.encoder.g2p.html">g2p</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../../../_autosummary/s3prl.dataio.encoder.tokenizer.html">tokenizer</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../../../_autosummary/s3prl.dataio.encoder.vocabulary.html">vocabulary</a></li>
+</ul>
+</li>
+<li class="toctree-l2 has-children"><a class="reference internal" href="../../../../_autosummary/s3prl.dataio.sampler.html">sampler</a><input class="toctree-checkbox" id="toctree-checkbox-12" name="toctree-checkbox-12" role="switch" type="checkbox"/><label for="toctree-checkbox-12"><div class="visually-hidden">Toggle child pages in navigation</div><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul>
+<li class="toctree-l3"><a class="reference internal" href="../../../../_autosummary/s3prl.dataio.sampler.balanced_weighted_sampler.html">balanced_weighted_sampler</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../../../_autosummary/s3prl.dataio.sampler.distributed_sampler.html">distributed_sampler</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../../../_autosummary/s3prl.dataio.sampler.fixed_batch_size_batch_sampler.html">fixed_batch_size_batch_sampler</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../../../_autosummary/s3prl.dataio.sampler.group_same_item_sampler.html">group_same_item_sampler</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../../../_autosummary/s3prl.dataio.sampler.max_timestamp_batch_sampler.html">max_timestamp_batch_sampler</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../../../_autosummary/s3prl.dataio.sampler.sorted_sampler.html">sorted_sampler</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l1 has-children"><a class="reference internal" href="../../../../_autosummary/s3prl.metric.html">metric</a><input class="toctree-checkbox" id="toctree-checkbox-13" name="toctree-checkbox-13" role="switch" type="checkbox"/><label for="toctree-checkbox-13"><div class="visually-hidden">Toggle child pages in navigation</div><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul>
+<li class="toctree-l2"><a class="reference internal" href="../../../../_autosummary/s3prl.metric.common.html">common</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../../_autosummary/s3prl.metric.diarization.html">diarization</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../../_autosummary/s3prl.metric.slot_filling.html">slot_filling</a></li>
+</ul>
+</li>
+<li class="toctree-l1 has-children"><a class="reference internal" href="../../../../_autosummary/s3prl.util.html">util</a><input class="toctree-checkbox" id="toctree-checkbox-14" name="toctree-checkbox-14" role="switch" type="checkbox"/><label for="toctree-checkbox-14"><div class="visually-hidden">Toggle child pages in navigation</div><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul>
+<li class="toctree-l2"><a class="reference internal" href="../../../../_autosummary/s3prl.util.audio_info.html">audio_info</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../../_autosummary/s3prl.util.benchmark.html">benchmark</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../../_autosummary/s3prl.util.download.html">download</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../../_autosummary/s3prl.util.override.html">override</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../../_autosummary/s3prl.util.pseudo_data.html">pseudo_data</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../../_autosummary/s3prl.util.seed.html">seed</a></li>
+</ul>
+</li>
+</ul>
+
+</div>
+</div>
+
+      </div>
+      
+    </div>
+  </aside>
+  <div class="main">
+    <div class="content">
+      <div class="article-container">
+        <a href="#" class="back-to-top muted-link">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
+            <path d="M13 20h-2V8l-5.5 5.5-1.42-1.42L12 4.16l7.92 7.92-1.42 1.42L13 8v12z"></path>
+          </svg>
+          <span>Back to top</span>
+        </a>
+        <div class="content-icon-container">
+          <div class="theme-toggle-container theme-toggle-content">
+            <button class="theme-toggle">
+              <div class="visually-hidden">Toggle Light / Dark / Auto color theme</div>
+              <svg class="theme-icon-when-auto"><use href="#svg-sun-half"></use></svg>
+              <svg class="theme-icon-when-dark"><use href="#svg-moon"></use></svg>
+              <svg class="theme-icon-when-light"><use href="#svg-sun"></use></svg>
+            </button>
+          </div>
+          <label class="toc-overlay-icon toc-content-icon no-toc" for="__toc">
+            <div class="visually-hidden">Toggle table of contents sidebar</div>
+            <i class="icon"><svg><use href="#svg-toc"></use></svg></i>
+          </label>
+        </div>
+        <article role="main">
+          <h1>Source code for s3prl.problem.common.hear_maestro</h1><div class="highlight"><pre>
+<span></span><span class="kn">import</span> <span class="nn">json</span>
+<span class="kn">from</span> <span class="nn">collections</span> <span class="kn">import</span> <span class="n">defaultdict</span>
+<span class="kn">from</span> <span class="nn">copy</span> <span class="kn">import</span> <span class="n">deepcopy</span>
+<span class="kn">from</span> <span class="nn">pathlib</span> <span class="kn">import</span> <span class="n">Path</span>
+
+<span class="kn">import</span> <span class="nn">pandas</span> <span class="k">as</span> <span class="nn">pd</span>
+<span class="kn">import</span> <span class="nn">torchaudio</span>
+<span class="kn">from</span> <span class="nn">omegaconf</span> <span class="kn">import</span> <span class="n">MISSING</span>
+
+<span class="kn">from</span> <span class="nn">._hear_util</span> <span class="kn">import</span> <span class="n">resample_hear_corpus</span>
+<span class="kn">from</span> <span class="nn">.hear_dcase_2016_task2</span> <span class="kn">import</span> <span class="n">HearDcase2016Task2</span>
+
+<span class="n">MAESTRO_NUM_FOLDS</span> <span class="o">=</span> <span class="mi">5</span>
+
+<span class="n">__all__</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;HearMaestro&quot;</span><span class="p">]</span>
+
+
+<span class="k">def</span> <span class="nf">prepare_maestro</span><span class="p">(</span>
+    <span class="n">target_dir</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+    <span class="n">cache_dir</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+    <span class="n">dataset_root</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+    <span class="n">test_fold</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">0</span><span class="p">,</span>
+    <span class="n">get_path_only</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
+<span class="p">):</span>
+    <span class="n">target_dir</span><span class="p">:</span> <span class="n">Path</span> <span class="o">=</span> <span class="n">Path</span><span class="p">(</span><span class="n">target_dir</span><span class="p">)</span>
+    <span class="n">train_csv</span> <span class="o">=</span> <span class="n">target_dir</span> <span class="o">/</span> <span class="s2">&quot;train.csv&quot;</span>
+    <span class="n">valid_csv</span> <span class="o">=</span> <span class="n">target_dir</span> <span class="o">/</span> <span class="s2">&quot;valid.csv&quot;</span>
+    <span class="n">test_csv</span> <span class="o">=</span> <span class="n">target_dir</span> <span class="o">/</span> <span class="s2">&quot;test.csv&quot;</span>
+    <span class="k">if</span> <span class="n">get_path_only</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">train_csv</span><span class="p">,</span> <span class="n">valid_csv</span><span class="p">,</span> <span class="p">[</span><span class="n">test_csv</span><span class="p">]</span>
+
+    <span class="k">assert</span> <span class="n">test_fold</span> <span class="o">&lt;</span> <span class="n">MAESTRO_NUM_FOLDS</span><span class="p">,</span> <span class="p">(</span>
+        <span class="sa">f</span><span class="s2">&quot;MAESTRO only has </span><span class="si">{</span><span class="n">MAESTRO_NUM_FOLDS</span><span class="si">}</span><span class="s2"> folds but get &#39;test_fold&#39; &quot;</span>
+        <span class="sa">f</span><span class="s2">&quot;arguments </span><span class="si">{</span><span class="n">test_fold</span><span class="si">}</span><span class="s2">&quot;</span>
+    <span class="p">)</span>
+
+    <span class="n">resample_hear_corpus</span><span class="p">(</span><span class="n">dataset_root</span><span class="p">,</span> <span class="n">target_sr</span><span class="o">=</span><span class="mi">16000</span><span class="p">)</span>
+
+    <span class="n">dataset_root</span> <span class="o">=</span> <span class="n">Path</span><span class="p">(</span><span class="n">dataset_root</span><span class="p">)</span>
+    <span class="n">wav_root</span> <span class="o">=</span> <span class="n">dataset_root</span> <span class="o">/</span> <span class="s2">&quot;16000&quot;</span>
+
+    <span class="n">NUM_FOLD</span> <span class="o">=</span> <span class="mi">5</span>
+    <span class="n">test_id</span> <span class="o">=</span> <span class="n">test_fold</span>
+    <span class="n">valid_id</span> <span class="o">=</span> <span class="p">(</span><span class="n">test_fold</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)</span> <span class="o">%</span> <span class="n">NUM_FOLD</span>
+    <span class="n">train_ids</span> <span class="o">=</span> <span class="p">[</span><span class="n">idx</span> <span class="k">for</span> <span class="n">idx</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">NUM_FOLD</span><span class="p">)</span> <span class="k">if</span> <span class="n">idx</span> <span class="ow">not</span> <span class="ow">in</span> <span class="p">[</span><span class="n">test_id</span><span class="p">,</span> <span class="n">valid_id</span><span class="p">]]</span>
+
+    <span class="n">fold_metas</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="n">fold_dfs</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="k">for</span> <span class="n">fold_id</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">NUM_FOLD</span><span class="p">):</span>
+        <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">dataset_root</span> <span class="o">/</span> <span class="sa">f</span><span class="s2">&quot;fold</span><span class="si">{</span><span class="n">fold_id</span><span class="si">:</span><span class="s2">2d</span><span class="si">}</span><span class="s2">.json&quot;</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s2">&quot; &quot;</span><span class="p">,</span> <span class="s2">&quot;0&quot;</span><span class="p">))</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
+            <span class="n">metadata</span> <span class="o">=</span> <span class="n">json</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="n">f</span><span class="p">)</span>
+            <span class="n">fold_metas</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">metadata</span><span class="p">)</span>
+
+        <span class="n">data</span> <span class="o">=</span> <span class="n">defaultdict</span><span class="p">(</span><span class="nb">list</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">utt</span> <span class="ow">in</span> <span class="n">metadata</span><span class="p">:</span>
+            <span class="n">wav_path</span> <span class="o">=</span> <span class="p">(</span>
+                <span class="n">wav_root</span> <span class="o">/</span> <span class="sa">f</span><span class="s2">&quot;fold</span><span class="si">{</span><span class="n">fold_id</span><span class="si">:</span><span class="s2">2d</span><span class="si">}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s2">&quot; &quot;</span><span class="p">,</span> <span class="s2">&quot;0&quot;</span><span class="p">)</span> <span class="o">/</span> <span class="n">utt</span>
+            <span class="p">)</span><span class="o">.</span><span class="n">resolve</span><span class="p">()</span>
+            <span class="n">info</span> <span class="o">=</span> <span class="n">torchaudio</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="n">wav_path</span><span class="p">)</span>
+            <span class="n">baseinfo</span> <span class="o">=</span> <span class="p">{</span>
+                <span class="s2">&quot;record_id&quot;</span><span class="p">:</span> <span class="n">utt</span><span class="p">,</span>
+                <span class="s2">&quot;wav_path&quot;</span><span class="p">:</span> <span class="nb">str</span><span class="p">(</span><span class="n">wav_path</span><span class="p">),</span>
+                <span class="s2">&quot;duration&quot;</span><span class="p">:</span> <span class="n">info</span><span class="o">.</span><span class="n">num_frames</span> <span class="o">/</span> <span class="n">info</span><span class="o">.</span><span class="n">sample_rate</span><span class="p">,</span>
+            <span class="p">}</span>
+            <span class="k">for</span> <span class="n">segment</span> <span class="ow">in</span> <span class="n">metadata</span><span class="p">[</span><span class="n">utt</span><span class="p">]:</span>
+                <span class="n">fullinfo</span> <span class="o">=</span> <span class="n">deepcopy</span><span class="p">(</span><span class="n">baseinfo</span><span class="p">)</span>
+                <span class="n">fullinfo</span><span class="p">[</span>
+                    <span class="s2">&quot;utt_id&quot;</span>
+                <span class="p">]</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">baseinfo</span><span class="p">[</span><span class="s1">&#39;record_id&#39;</span><span class="p">]</span><span class="si">}</span><span class="s2">-</span><span class="si">{</span><span class="nb">int</span><span class="p">(</span><span class="n">segment</span><span class="p">[</span><span class="s1">&#39;start&#39;</span><span class="p">])</span><span class="si">}</span><span class="s2">-</span><span class="si">{</span><span class="nb">int</span><span class="p">(</span><span class="n">segment</span><span class="p">[</span><span class="s1">&#39;end&#39;</span><span class="p">])</span><span class="si">}</span><span class="s2">&quot;</span>
+                <span class="n">fullinfo</span><span class="p">[</span><span class="s2">&quot;labels&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">segment</span><span class="p">[</span><span class="s2">&quot;label&quot;</span><span class="p">]</span>
+                <span class="n">fullinfo</span><span class="p">[</span><span class="s2">&quot;start_sec&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">segment</span><span class="p">[</span><span class="s2">&quot;start&quot;</span><span class="p">]</span> <span class="o">/</span> <span class="mi">1000</span>
+                <span class="n">fullinfo</span><span class="p">[</span><span class="s2">&quot;end_sec&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">segment</span><span class="p">[</span><span class="s2">&quot;end&quot;</span><span class="p">]</span> <span class="o">/</span> <span class="mi">1000</span>
+
+                <span class="k">for</span> <span class="n">key</span><span class="p">,</span> <span class="n">value</span> <span class="ow">in</span> <span class="n">fullinfo</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+                    <span class="n">data</span><span class="p">[</span><span class="n">key</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">value</span><span class="p">)</span>
+
+        <span class="n">fold_dfs</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">(</span><span class="n">data</span><span class="o">=</span><span class="n">data</span><span class="p">))</span>
+
+    <span class="n">test_meta</span><span class="p">,</span> <span class="n">test_data</span> <span class="o">=</span> <span class="n">fold_metas</span><span class="p">[</span><span class="n">test_id</span><span class="p">],</span> <span class="n">fold_dfs</span><span class="p">[</span><span class="n">test_id</span><span class="p">]</span>
+    <span class="n">valid_meta</span><span class="p">,</span> <span class="n">valid_data</span> <span class="o">=</span> <span class="n">fold_metas</span><span class="p">[</span><span class="n">valid_id</span><span class="p">],</span> <span class="n">fold_dfs</span><span class="p">[</span><span class="n">valid_id</span><span class="p">]</span>
+    <span class="n">train_meta</span><span class="p">,</span> <span class="n">train_data</span> <span class="o">=</span> <span class="p">{},</span> <span class="p">[]</span>
+    <span class="k">for</span> <span class="n">idx</span> <span class="ow">in</span> <span class="n">train_ids</span><span class="p">:</span>
+        <span class="n">train_meta</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">fold_metas</span><span class="p">[</span><span class="n">idx</span><span class="p">])</span>
+        <span class="n">train_data</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">fold_dfs</span><span class="p">[</span><span class="n">idx</span><span class="p">])</span>
+    <span class="n">train_data</span><span class="p">:</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">concat</span><span class="p">(</span><span class="n">train_data</span><span class="p">)</span>
+
+    <span class="n">train_data</span><span class="o">.</span><span class="n">to_csv</span><span class="p">(</span><span class="n">train_csv</span><span class="p">,</span> <span class="n">index</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+    <span class="n">valid_data</span><span class="o">.</span><span class="n">to_csv</span><span class="p">(</span><span class="n">valid_csv</span><span class="p">,</span> <span class="n">index</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+    <span class="n">test_data</span><span class="o">.</span><span class="n">to_csv</span><span class="p">(</span><span class="n">test_csv</span><span class="p">,</span> <span class="n">index</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">train_csv</span><span class="p">,</span> <span class="n">valid_csv</span><span class="p">,</span> <span class="p">[</span><span class="n">test_csv</span><span class="p">]</span>
+
+
+<div class="viewcode-block" id="HearMaestro"><a class="viewcode-back" href="../../../../_autosummary/s3prl.problem.common.hear_maestro.html#s3prl.problem.HearMaestro">[docs]</a><span class="k">class</span> <span class="nc">HearMaestro</span><span class="p">(</span><span class="n">HearDcase2016Task2</span><span class="p">):</span>
+<div class="viewcode-block" id="HearMaestro.default_config"><a class="viewcode-back" href="../../../../_autosummary/s3prl.problem.common.hear_maestro.html#s3prl.problem.HearMaestro.default_config">[docs]</a>    <span class="k">def</span> <span class="nf">default_config</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">:</span>
+        <span class="k">return</span> <span class="nb">dict</span><span class="p">(</span>
+            <span class="n">start</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span>
+            <span class="n">stop</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+            <span class="n">target_dir</span><span class="o">=</span><span class="n">MISSING</span><span class="p">,</span>
+            <span class="n">cache_dir</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+            <span class="n">remove_all_cache</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+            <span class="n">prepare_data</span><span class="o">=</span><span class="nb">dict</span><span class="p">(</span>
+                <span class="n">dataset_root</span><span class="o">=</span><span class="n">MISSING</span><span class="p">,</span>
+                <span class="n">test_fold</span><span class="o">=</span><span class="n">MISSING</span><span class="p">,</span>
+            <span class="p">),</span>
+            <span class="n">build_batch_sampler</span><span class="o">=</span><span class="nb">dict</span><span class="p">(</span>
+                <span class="n">train</span><span class="o">=</span><span class="nb">dict</span><span class="p">(</span>
+                    <span class="n">batch_size</span><span class="o">=</span><span class="mi">5</span><span class="p">,</span>
+                    <span class="n">shuffle</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+                <span class="p">),</span>
+                <span class="n">valid</span><span class="o">=</span><span class="nb">dict</span><span class="p">(</span>
+                    <span class="n">item</span><span class="o">=</span><span class="s2">&quot;record_id&quot;</span><span class="p">,</span>
+                <span class="p">),</span>
+                <span class="n">test</span><span class="o">=</span><span class="nb">dict</span><span class="p">(</span>
+                    <span class="n">item</span><span class="o">=</span><span class="s2">&quot;record_id&quot;</span><span class="p">,</span>
+                <span class="p">),</span>
+            <span class="p">),</span>
+            <span class="n">build_upstream</span><span class="o">=</span><span class="nb">dict</span><span class="p">(</span>
+                <span class="n">name</span><span class="o">=</span><span class="n">MISSING</span><span class="p">,</span>
+            <span class="p">),</span>
+            <span class="n">build_featurizer</span><span class="o">=</span><span class="nb">dict</span><span class="p">(</span>
+                <span class="n">layer_selections</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+                <span class="n">normalize</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+            <span class="p">),</span>
+            <span class="n">build_downstream</span><span class="o">=</span><span class="nb">dict</span><span class="p">(</span>
+                <span class="n">hidden_layers</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span>
+            <span class="p">),</span>
+            <span class="n">build_model</span><span class="o">=</span><span class="nb">dict</span><span class="p">(</span>
+                <span class="n">upstream_trainable</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+            <span class="p">),</span>
+            <span class="n">build_task</span><span class="o">=</span><span class="nb">dict</span><span class="p">(</span>
+                <span class="n">prediction_type</span><span class="o">=</span><span class="s2">&quot;multilabel&quot;</span><span class="p">,</span>
+                <span class="n">scores</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;event_onset_50ms_fms&quot;</span><span class="p">,</span> <span class="s2">&quot;event_onset_offset_50ms_20perc_fms&quot;</span><span class="p">],</span>
+                <span class="n">postprocessing_grid</span><span class="o">=</span><span class="p">{</span>
+                    <span class="s2">&quot;median_filter_ms&quot;</span><span class="p">:</span> <span class="p">[</span><span class="mi">150</span><span class="p">],</span>
+                    <span class="s2">&quot;min_duration&quot;</span><span class="p">:</span> <span class="p">[</span><span class="mi">50</span><span class="p">],</span>
+                <span class="p">},</span>
+            <span class="p">),</span>
+            <span class="n">build_optimizer</span><span class="o">=</span><span class="nb">dict</span><span class="p">(</span>
+                <span class="n">name</span><span class="o">=</span><span class="s2">&quot;Adam&quot;</span><span class="p">,</span>
+                <span class="n">conf</span><span class="o">=</span><span class="nb">dict</span><span class="p">(</span>
+                    <span class="n">lr</span><span class="o">=</span><span class="mf">1.0e-3</span><span class="p">,</span>
+                <span class="p">),</span>
+            <span class="p">),</span>
+            <span class="n">build_scheduler</span><span class="o">=</span><span class="nb">dict</span><span class="p">(</span>
+                <span class="n">name</span><span class="o">=</span><span class="s2">&quot;ExponentialLR&quot;</span><span class="p">,</span>
+                <span class="n">gamma</span><span class="o">=</span><span class="mf">0.9</span><span class="p">,</span>
+            <span class="p">),</span>
+            <span class="n">save_model</span><span class="o">=</span><span class="nb">dict</span><span class="p">(),</span>
+            <span class="n">save_task</span><span class="o">=</span><span class="nb">dict</span><span class="p">(),</span>
+            <span class="n">train</span><span class="o">=</span><span class="nb">dict</span><span class="p">(</span>
+                <span class="n">total_steps</span><span class="o">=</span><span class="mi">15000</span><span class="p">,</span>
+                <span class="n">log_step</span><span class="o">=</span><span class="mi">100</span><span class="p">,</span>
+                <span class="n">eval_step</span><span class="o">=</span><span class="mi">500</span><span class="p">,</span>
+                <span class="n">save_step</span><span class="o">=</span><span class="mi">500</span><span class="p">,</span>
+                <span class="n">gradient_clipping</span><span class="o">=</span><span class="mf">1.0</span><span class="p">,</span>
+                <span class="n">gradient_accumulate</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span>
+                <span class="n">valid_metric</span><span class="o">=</span><span class="s2">&quot;event_onset_50ms_fms&quot;</span><span class="p">,</span>
+                <span class="n">valid_higher_better</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+                <span class="n">auto_resume</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+                <span class="n">resume_ckpt_dir</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+            <span class="p">),</span>
+            <span class="n">evaluate</span><span class="o">=</span><span class="nb">dict</span><span class="p">(),</span>
+        <span class="p">)</span></div>
+
+<div class="viewcode-block" id="HearMaestro.prepare_data"><a class="viewcode-back" href="../../../../_autosummary/s3prl.problem.common.hear_maestro.html#s3prl.problem.HearMaestro.prepare_data">[docs]</a>    <span class="k">def</span> <span class="nf">prepare_data</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="n">prepare_data</span><span class="p">:</span> <span class="nb">dict</span><span class="p">,</span>
+        <span class="n">target_dir</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+        <span class="n">cache_dir</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+        <span class="n">get_path_only</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
+    <span class="p">):</span>
+        <span class="k">return</span> <span class="n">prepare_maestro</span><span class="p">(</span>
+            <span class="o">**</span><span class="bp">self</span><span class="o">.</span><span class="n">_get_current_arguments</span><span class="p">(</span><span class="n">flatten_dict</span><span class="o">=</span><span class="s2">&quot;prepare_data&quot;</span><span class="p">)</span>
+        <span class="p">)</span></div></div>
+</pre></div>
+        </article>
+      </div>
+      <footer>
+        
+        <div class="related-pages">
+          
+          
+        </div>
+        <div class="bottom-of-page">
+          <div class="left-details">
+            <div class="copyright">
+                Copyright &#169; 2022, S3PRL Team
+            </div>
+            Made with <a href="https://www.sphinx-doc.org/">Sphinx</a> and <a class="muted-link" href="https://pradyunsg.me">@pradyunsg</a>'s
+            
+            <a href="https://github.com/pradyunsg/furo">Furo</a>
+            
+          </div>
+          <div class="right-details">
+            
+          </div>
+        </div>
+        
+      </footer>
+    </div>
+    <aside class="toc-drawer no-toc">
+      
+      
+      
+    </aside>
+  </div>
+</div><script data-url_root="../../../../" id="documentation_options" src="../../../../_static/documentation_options.js"></script>
+    <script src="../../../../_static/jquery.js"></script>
+    <script src="../../../../_static/underscore.js"></script>
+    <script src="../../../../_static/_sphinx_javascript_frameworks_compat.js"></script>
+    <script src="../../../../_static/doctools.js"></script>
+    <script src="../../../../_static/scripts/furo.js"></script>
+    <script src="../../../../_static/js/custom.js"></script>
+    </body>
+</html>

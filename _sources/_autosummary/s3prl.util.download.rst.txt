@@ -1,0 +1,48 @@
+download
+========
+
+**(s3prl.util.download)**
+
+.. automodule:: s3prl.util.download
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+get_dir
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. autofunction:: get_dir
+
+set_dir
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. autofunction:: set_dir
+
+download
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. autofunction:: download
+
+urls_to_filepaths
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. autofunction:: urls_to_filepaths
+
+
+
+
+

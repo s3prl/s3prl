@@ -1,0 +1,43 @@
+vocabulary
+==========
+
+**(s3prl.dataio.encoder.vocabulary)**
+
+.. automodule:: s3prl.dataio.encoder.vocabulary
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+generate_basic_vocab
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. autofunction:: generate_basic_vocab
+
+generate_subword_vocab
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. autofunction:: generate_subword_vocab
+
+generate_vocab
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. autofunction:: generate_vocab
+
+
+
+
+

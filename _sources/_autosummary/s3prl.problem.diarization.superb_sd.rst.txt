@@ -1,0 +1,38 @@
+superb\_sd
+==========
+
+**(s3prl.problem.diarization.superb_sd)**
+
+.. automodule:: s3prl.problem.diarization.superb_sd
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+SuperbSD
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. autoclass:: SuperbSD
+   :member-order: bysource
+   :members:
+   :undoc-members:
+   :inherited-members: torch.nn.Module,nn.Module,Module
+   :show-inheritance:
+
+
+
+
+
+
+
+
+

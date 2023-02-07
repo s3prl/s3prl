@@ -1,0 +1,38 @@
+hear
+====
+
+**(s3prl.nn.hear)**
+
+.. automodule:: s3prl.nn.hear
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+HearFullyConnectedPrediction
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. autoclass:: HearFullyConnectedPrediction
+   :member-order: bysource
+   :members:
+   :undoc-members:
+   :inherited-members: torch.nn.Module,nn.Module,Module
+   :show-inheritance:
+
+
+
+
+
+
+
+
+

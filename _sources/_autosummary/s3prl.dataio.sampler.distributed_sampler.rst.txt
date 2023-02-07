@@ -1,0 +1,38 @@
+distributed\_sampler
+====================
+
+**(s3prl.dataio.sampler.distributed_sampler)**
+
+.. automodule:: s3prl.dataio.sampler.distributed_sampler
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+DistributedBatchSamplerWrapper
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. autoclass:: DistributedBatchSamplerWrapper
+   :member-order: bysource
+   :members:
+   :undoc-members:
+   :inherited-members: torch.nn.Module,nn.Module,Module
+   :show-inheritance:
+
+
+
+
+
+
+
+
+

@@ -1,0 +1,38 @@
+balanced\_weighted\_sampler
+===========================
+
+**(s3prl.dataio.sampler.balanced_weighted_sampler)**
+
+.. automodule:: s3prl.dataio.sampler.balanced_weighted_sampler
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+BalancedWeightedSampler
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. autoclass:: BalancedWeightedSampler
+   :member-order: bysource
+   :members:
+   :undoc-members:
+   :inherited-members: torch.nn.Module,nn.Module,Module
+   :show-inheritance:
+
+
+
+
+
+
+
+
+

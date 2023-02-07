@@ -1,0 +1,38 @@
+hear\_dcase\_2016\_task2
+========================
+
+**(s3prl.problem.common.hear_dcase_2016_task2)**
+
+.. automodule:: s3prl.problem.common.hear_dcase_2016_task2
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+HearDcase2016Task2
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. autoclass:: HearDcase2016Task2
+   :member-order: bysource
+   :members:
+   :undoc-members:
+   :inherited-members: torch.nn.Module,nn.Module,Module
+   :show-inheritance:
+
+
+
+
+
+
+
+
+

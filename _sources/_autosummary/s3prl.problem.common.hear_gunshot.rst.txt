@@ -1,0 +1,38 @@
+hear\_gunshot
+=============
+
+**(s3prl.problem.common.hear_gunshot)**
+
+.. automodule:: s3prl.problem.common.hear_gunshot
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+HearGunshot
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. autoclass:: HearGunshot
+   :member-order: bysource
+   :members:
+   :undoc-members:
+   :inherited-members: torch.nn.Module,nn.Module,Module
+   :show-inheritance:
+
+
+
+
+
+
+
+
+

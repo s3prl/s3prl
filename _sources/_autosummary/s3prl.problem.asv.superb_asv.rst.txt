@@ -1,0 +1,45 @@
+superb\_asv
+===========
+
+**(s3prl.problem.asv.superb_asv)**
+
+.. automodule:: s3prl.problem.asv.superb_asv
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+SuperbASV
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. autoclass:: SuperbASV
+   :member-order: bysource
+   :members:
+   :undoc-members:
+   :inherited-members: torch.nn.Module,nn.Module,Module
+   :show-inheritance:
+
+
+
+
+
+
+
+prepare_voxceleb1_for_sv
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. autofunction:: prepare_voxceleb1_for_sv
+
+
+
+
+

@@ -1,0 +1,38 @@
+fluent\_speech\_commands
+========================
+
+**(s3prl.dataio.corpus.fluent_speech_commands)**
+
+.. automodule:: s3prl.dataio.corpus.fluent_speech_commands
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+FluentSpeechCommands
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. autoclass:: FluentSpeechCommands
+   :member-order: bysource
+   :members:
+   :undoc-members:
+   :inherited-members: torch.nn.Module,nn.Module,Module
+   :show-inheritance:
+
+
+
+
+
+
+
+
+

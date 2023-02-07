@@ -1,0 +1,49 @@
+diarization
+===========
+
+**(s3prl.problem.diarization)**
+
+.. automodule:: s3prl.problem.diarization
+
+
+
+
+.. autosummary::
+   :toctree:
+   :template: custom-module-template.rst
+   :recursive:
+
+
+   s3prl.problem.diarization.run
+   s3prl.problem.diarization.superb_sd
+   s3prl.problem.diarization.util
+
+
+
+
+
+
+
+
+
+
+
+
+SuperbSD
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. autoclass:: SuperbSD
+   :member-order: bysource
+   :members:
+   :undoc-members:
+   :inherited-members: torch.nn.Module,nn.Module,Module
+   :show-inheritance:
+
+
+
+
+
+
+
+
+

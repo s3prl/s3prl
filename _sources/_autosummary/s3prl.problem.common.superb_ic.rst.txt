@@ -1,0 +1,45 @@
+superb\_ic
+==========
+
+**(s3prl.problem.common.superb_ic)**
+
+.. automodule:: s3prl.problem.common.superb_ic
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+SuperbIC
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. autoclass:: SuperbIC
+   :member-order: bysource
+   :members:
+   :undoc-members:
+   :inherited-members: torch.nn.Module,nn.Module,Module
+   :show-inheritance:
+
+
+
+
+
+
+
+fsc_for_multi_classification
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. autofunction:: fsc_for_multi_classification
+
+
+
+
+

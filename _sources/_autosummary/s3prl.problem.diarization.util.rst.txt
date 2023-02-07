@@ -1,0 +1,43 @@
+util
+====
+
+**(s3prl.problem.diarization.util)**
+
+.. automodule:: s3prl.problem.diarization.util
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+kaldi_dir_to_rttm
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. autofunction:: kaldi_dir_to_rttm
+
+csv_to_kaldi_dir
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. autofunction:: csv_to_kaldi_dir
+
+kaldi_dir_to_csv
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. autofunction:: kaldi_dir_to_csv
+
+
+
+
+

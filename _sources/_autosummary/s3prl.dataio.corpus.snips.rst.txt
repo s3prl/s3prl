@@ -1,0 +1,38 @@
+snips
+=====
+
+**(s3prl.dataio.corpus.snips)**
+
+.. automodule:: s3prl.dataio.corpus.snips
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+SNIPS
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. autoclass:: SNIPS
+   :member-order: bysource
+   :members:
+   :undoc-members:
+   :inherited-members: torch.nn.Module,nn.Module,Module
+   :show-inheritance:
+
+
+
+
+
+
+
+
+

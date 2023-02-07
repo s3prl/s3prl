@@ -1,0 +1,48 @@
+speech2text\_ctc\_task
+======================
+
+**(s3prl.task.speech2text_ctc_task)**
+
+.. automodule:: s3prl.task.speech2text_ctc_task
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Speech2TextCTCExample
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. autoclass:: Speech2TextCTCExample
+   :member-order: bysource
+   :members:
+   :undoc-members:
+   :inherited-members: torch.nn.Module,nn.Module,Module
+   :show-inheritance:
+
+Speech2TextCTCTask
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. autoclass:: Speech2TextCTCTask
+   :member-order: bysource
+   :members:
+   :undoc-members:
+   :inherited-members: torch.nn.Module,nn.Module,Module
+   :show-inheritance:
+
+
+
+
+
+
+
+
+

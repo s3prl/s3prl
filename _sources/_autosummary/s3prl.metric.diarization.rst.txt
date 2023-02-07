@@ -1,0 +1,33 @@
+diarization
+===========
+
+**(s3prl.metric.diarization)**
+
+.. automodule:: s3prl.metric.diarization
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+calc_diarization_error
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. autofunction:: calc_diarization_error
+
+
+
+
+

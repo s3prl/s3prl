@@ -1,0 +1,38 @@
+base
+====
+
+**(s3prl.dataio.corpus.base)**
+
+.. automodule:: s3prl.dataio.corpus.base
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Corpus
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. autoclass:: Corpus
+   :member-order: bysource
+   :members:
+   :undoc-members:
+   :inherited-members: torch.nn.Module,nn.Module,Module
+   :show-inheritance:
+
+
+
+
+
+
+
+
+

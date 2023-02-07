@@ -1,0 +1,38 @@
+fixed\_batch\_size\_batch\_sampler
+==================================
+
+**(s3prl.dataio.sampler.fixed_batch_size_batch_sampler)**
+
+.. automodule:: s3prl.dataio.sampler.fixed_batch_size_batch_sampler
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+FixedBatchSizeBatchSampler
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. autoclass:: FixedBatchSizeBatchSampler
+   :member-order: bysource
+   :members:
+   :undoc-members:
+   :inherited-members: torch.nn.Module,nn.Module,Module
+   :show-inheritance:
+
+
+
+
+
+
+
+
+

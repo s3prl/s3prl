@@ -1,0 +1,38 @@
+hear\_beijing\_opera
+====================
+
+**(s3prl.problem.common.hear_beijing_opera)**
+
+.. automodule:: s3prl.problem.common.hear_beijing_opera
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+HearBeijingOpera
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. autoclass:: HearBeijingOpera
+   :member-order: bysource
+   :members:
+   :undoc-members:
+   :inherited-members: torch.nn.Module,nn.Module,Module
+   :show-inheritance:
+
+
+
+
+
+
+
+
+

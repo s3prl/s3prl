@@ -1,0 +1,50 @@
+superb\_asr
+===========
+
+**(s3prl.problem.asr.superb_asr)**
+
+.. automodule:: s3prl.problem.asr.superb_asr
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+SuperbASR
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. autoclass:: SuperbASR
+   :member-order: bysource
+   :members:
+   :undoc-members:
+   :inherited-members: torch.nn.Module,nn.Module,Module
+   :show-inheritance:
+
+
+
+
+
+
+
+prepare_librispeech
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. autofunction:: prepare_librispeech
+
+prepare_common_tokenizer
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. autofunction:: prepare_common_tokenizer
+
+
+
+
+

@@ -1,0 +1,48 @@
+asv
+===
+
+**(s3prl.problem.asv)**
+
+.. automodule:: s3prl.problem.asv
+
+
+
+
+.. autosummary::
+   :toctree:
+   :template: custom-module-template.rst
+   :recursive:
+
+
+   s3prl.problem.asv.run
+   s3prl.problem.asv.superb_asv
+
+
+
+
+
+
+
+
+
+
+
+
+SuperbASV
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. autoclass:: SuperbASV
+   :member-order: bysource
+   :members:
+   :undoc-members:
+   :inherited-members: torch.nn.Module,nn.Module,Module
+   :show-inheritance:
+
+
+
+
+
+
+
+
+
