@@ -128,3 +128,24 @@ def mhubert_base_vp_en_es_fr_it3(refresh=False, **kwds):
         "ckpt"
     ] = "https://huggingface.co/s3prl/converted_ckpts/resolve/main/mhubert_base_vp_en_es_fr_it3.pt"
     return hubert_custom(refresh=refresh, **kwds)
+
+
+def contentvec(refresh=False, **kwds):
+    kwds[
+        "ckpt"
+    ] = "https://huggingface.co/s3prl/converted_ckpts/resolve/main/contentvec_km100.pt"
+    return hubert_custom(refresh=refresh, **kwds)
+
+
+def contentvec_km100(refresh=False, **kwds):
+    kwds[
+        "ckpt"
+    ] = "https://huggingface.co/s3prl/converted_ckpts/resolve/main/contentvec_km100.pt"
+    return hubert_custom(refresh=refresh, **kwds)
+
+
+def contentvec_km500(refresh=False, **kwds):
+    kwds[
+        "ckpt"
+    ] = "https://huggingface.co/s3prl/converted_ckpts/resolve/main/contentvec_km500.pt"
+    return hubert_custom(refresh=refresh, **kwds)

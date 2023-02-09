@@ -172,7 +172,7 @@ class DownstreamExpert(nn.Module):
         return self._get_eval_dataloader(self.test_dataset)
 
     # Interface
-    def forward(self, mode, features, utter_idx, labels, records, **kwargs):
+    def forward(self, mode, features, utter_idx, labels=None, records=None, **kwargs):
         """
         Args:
             features:
@@ -222,15 +222,10 @@ class DownstreamExpert(nn.Module):
         elif mode in ['dev', 'test']:
             agg_vec = self.model.inference(features_pad, attention_mask_pad.cuda())
             agg_vec = torch.nn.functional.normalize(agg_vec,dim=-1)
+            utt_name = utter_idx
             
-            # separate batched data to pair data.
-            vec1, vec2 = self.separate_data(agg_vec)
-            names1, names2 = self.separate_data(utter_idx)
-
-            scores = self.score_fn(vec1, vec2).cpu().detach().tolist()
-            records['scores'].extend(scores)
-            records['labels'].extend(labels)
-            records['pair_names'].extend([f"{name1}_{name2}" for name1, name2 in zip(names1, names2)])
+            for idx in range(len(agg_vec)):
+                records[utt_name[idx]] = agg_vec[idx].cpu().detach()
 
             return torch.tensor(0)
 
@@ -261,7 +256,14 @@ class DownstreamExpert(nn.Module):
             print(f'sv-voxceleb1/{mode}-loss: {loss}')
 
         elif mode in ['dev', 'test']:
-            eer, *others = self.eval_metric(np.array(records['labels']), np.array(records['scores']))
+            trials = self.test_dataset.pair_table
+            labels = []
+            scores = []
+            for label, name1, name2 in trials:
+                labels.append(label)
+                score = self.score_fn(records[name1], records[name2]).numpy()
+                scores.append(score)
+            eer, *others = self.eval_metric(np.array(labels, dtype=int), np.array(scores))
             logger.add_scalar(f'sv-voxceleb1/{mode}-EER', eer, global_step=global_step)
             print(f'sv-voxceleb1/{mode}-EER: {eer}')
 
