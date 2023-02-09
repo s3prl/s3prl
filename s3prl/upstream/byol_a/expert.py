@@ -29,29 +29,18 @@ class UpstreamExpert(nn.Module):
         self,
         ckpt: str,
         model_config: str,
-        feature_d: int,
-        window_secs: float = 1024 / 16000,
-        stride_secs: float = 160 / 16000,
         norm_mean: float = None,  # Has to be a float value to continue training.
         norm_std: float = None,  # The same as above.
     ):
         super().__init__()
         config = load_yaml_config(model_config)
 
-        self.window_secs = window_secs
-        self.stride_secs = stride_secs
-        self.output_dim = feature_d
-        self.seg_input_length = len(
-            range(0, int(window_secs * SAMPLE_RATE), config.hop_length)
-        )
-        self.max_input_length = config.shape[-1]
-
         # Preprocessor and normalizer.
         self.to_logmelspec = LogMelSpectrogram()
         if norm_mean is None or norm_std is None:
-            # ** CAUTION **
-            # ** Please note that thi is for calculating statistics using RunningNorm and will exit in the middle of training. **
-            # ** CAUTION **
+            print('  ** CAUTION **')
+            print('  This is a run for calculating statistics of the downstream task using RunningNorm and will exit in the middle of training. **')
+            print('  ** CAUTION **')
             self.normalizer = RunningNorm(epoch_samples=10_000, max_update_epochs=1, axis=[0, 1, 2]) # Use single scalar mean/std values.
         else:
             print(f'*** Using normalization statistics: mean={norm_mean}, std={norm_std} ***')

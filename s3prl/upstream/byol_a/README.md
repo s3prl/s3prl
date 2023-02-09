@@ -1,41 +1,53 @@
 # BYOL-A upstream model for SUPERB
 
-- BYOL-A reqires normalization statistics pre-computed for each downstream tasks.
-- Evaluate BYOL-A in two steps. First, calculate statistics, then, train and test using the computed stats.
+This is the upstream model of BYOL-A.
 
-## Using BYOL-A on SUPERB
+**Note** that you will need to compute the statistics (i.e., mean and standard deviation) of the downstream task before training and testing on it, because BYOL-A requires pre-computed normalization statistics for each downstream task.
 
-### 1. Pre-compute statistics.
+## Usage
 
-The followings explain using a downstream task `voxceleb1`.
+Install nnAudio if not.
 
-    python run_downstream.py -m train -n byol_a_2048_calcnorm_1 -u byol_a_2048_calcnorm -d voxceleb1
+    pip install nnAudio
+
+### 0. Downloading weights
+
+Download the weight from the links below.
+
+- 2048-d feature (recommended): https://github.com/nttcslab/byol-a/raw/master/pretrained_weights/AudioNTT2020-BYOLA-64x96d2048.pth
+- 1024-d feature: https://github.com/nttcslab/byol-a/raw/master/pretrained_weights/AudioNTT2020-BYOLA-64x96d1024.pth
+- 512-d feature: https://github.com/nttcslab/byol-a/raw/master/pretrained_weights/AudioNTT2020-BYOLA-64x96d512.pth
+
+### 1. Configuring the number of feature dimensions
+
+Edit your `config.yaml` to match your weight.
+
+    # Dimensions of feature representations.
+    feature_d: 2048
+
+### 2. Pre-computing statistics
+
+This is required for each downstream task. Once you have done this, you do not need to calculate again; keep the calculated statistics for the task.
+The followings is an example for `voxceleb1`.
+
+    python run_downstream.py -m train -n byola_calcnorm_vc1 -u byol_a_calcnorm -d voxceleb1 -k ./AudioNTT2020-BYOLA-64x96d2048.pth
 
 This will output:
 
     ** Running Norm has finished updates over 10000 times, using the following stats from now on. ***
-    mean=-8.907230377197266, std=4.892485618591309
+    mean,std=-8.907230377197266,4.892485618591309
     *** Please use these statistics in your model. EXIT... ***
 
-These `-8.907230377197266` and `4.8924856` are the statistics for the `voxceleb1`. We add a function for using these values in the `hubconf.py`.
+These `-8.907230377197266` and `4.892485618591309` are the statistics for the `voxceleb1`.
 
-```python
-def byol_a_2048_vc1(refresh=False, **kwds):
-    """BYOL-A d=2048 for voxceleb1."""
-    return _byol_a_2048(norm_mean=-8.9072303, norm_std=4.8924856, **kwds)
-```
+### 3. Training and testing
 
-### 2. Evaluating on a downstream task
+The followings is an example for `voxceleb1`.
 
-For the `voxceleb1`, we use the `byol_a_2048_vc1` to train and test.
+    python run_downstream.py -m train -n my_byol_a_vc1_1 -u byol_a -d voxceleb1 -o "config.optimizer.lr=1e-3" -k ./AudioNTT2020-BYOLA-64x96d2048.pth,-8.907230377197266,4.892485618591309
+    python run_downstream.py -m evaluate -e result/downstream/my_byol_a_vc1_1/dev-best.ckpt
 
-    python run_downstream.py -m train -n byol_a_2048_vc1_1 -u byol_a_2048_vc1 -d voxceleb1
-    python run_downstream.py -m train -n byol_a_2048_vc1_1 -u byol_a_2048_vc1 -d voxceleb1 -o "config.optimizer.lr=1e-2"
-
-The following will test the trained model.
-
-    python run_downstream.py -m evaluate -n byol_a_2048_vc1_1 -d voxceleb1 -e result/downstream/byol_a_2048_vc1_1/dev-best.ckpt
-
+As you can see, `-o "config.optimizer.lr=1e-3"` sets the learning rate.
 
 ## Examples
 
@@ -43,8 +55,7 @@ The following will test the trained model.
 
     pip install editdistance
 
-    python run_downstream.py -m train -n byol_a_2048_pr_1 -u byol_a_2048_LS -d ctc -c downstream/ctc/libriphone.yaml -o "config.optimizer.lr=1e-3"
-    CUDA_VISIBLE_DEVICES=1 python run_downstream.py -m train -n byol_a_2048_pr_1 -u byol_a_2048_LS -d ctc -c downstream/ctc/libriphone.yaml -o "config.optimizer.lr=1e-3"
+    python run_downstream.py -m train -n byol_a_2048_pr_1 -u byol_a -d ctc -c downstream/ctc/libriphone.yaml -o "config.optimizer.lr=1e-2" -k ./AudioNTT2020-BYOLA-64x96d2048.pth,-8.5402,4.5456
+    python run_downstream.py -m evaluate -e result/downstream/byol_a_2048_pr_1/dev-best.ckpt
 
-    CUDA_VISIBLE_DEVICES=1 python run_downstream.py -m evaluate -n byol_a_2048_pr_1 -d ctc -c downstream/ctc/libriphone.yaml -e result/downstream/byol_a_2048_pr_1/dev-best.ckpt
 
