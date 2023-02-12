@@ -214,6 +214,7 @@ upstream_dir=$exps_root/$task/$upstream
 if [ ! -z "$override" ]; then
     sanitized_override=${override//,,/__}
     sanitized_override=${sanitized_override//=/--}
+    sanitized_override=${sanitized_override////-}
     upstream_dir=${upstream_dir}/${sanitized_override}
 fi
 if [ ! -z "$override_not_shown" ]; then
