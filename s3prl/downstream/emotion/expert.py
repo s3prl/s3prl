@@ -34,11 +34,12 @@ class DownstreamExpert(nn.Module):
             "Ps. Use -o config.downstream_expert.datarc.test_fold={fold_id (int)} to change the testing fold in the config."
         )
 
+        class_file = self.datarc["class_file"]
         pre_load = self.datarc["pre_load"]
         fold_dir = Path(self.datarc["csv_dir"]) / f"fold_{fold_id}"
-        self.train_dataset = IEMOCAPDataset("train", fold_dir, pre_load)
-        self.dev_dataset = IEMOCAPDataset("dev", fold_dir, pre_load)
-        self.test_dataset = IEMOCAPDataset("test", fold_dir, pre_load)
+        self.train_dataset = IEMOCAPDataset("train", fold_dir, class_file, pre_load)
+        self.dev_dataset = IEMOCAPDataset("dev", fold_dir, class_file, pre_load)
+        self.test_dataset = IEMOCAPDataset("test", fold_dir, class_file, pre_load)
 
         model_cls = eval(self.modelrc['select'])
         model_conf = self.modelrc.get(self.modelrc['select'], {})

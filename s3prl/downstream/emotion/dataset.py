@@ -16,8 +16,9 @@ from torchaudio.transforms import Resample
 SAMPLE_RATE = 16000
 log = logging.getLogger(__name__)
 
+
 class IEMOCAPDataset(Dataset):
-    def __init__(self, split: str, csv_dir: str, pre_load=True):
+    def __init__(self, split: str, csv_dir: str, classes_file: str, pre_load=True):
         self.pre_load = pre_load
 
         assert split in ["train", "dev", "test"]
@@ -26,7 +27,10 @@ class IEMOCAPDataset(Dataset):
         self.wav_paths = df["wav_path"].tolist()
         self.labels = df["label"].tolist()
 
-        classes = sorted(set(self.labels))
+        assert Path(classes_file).is_file()
+        with open(classes_file) as f:
+            classes = [line.strip() for line in f.readlines() if len(line.strip()) > 0]
+
         self.class_num = len(classes)
         self.idx2emotion = {idx: label for idx, label in enumerate(classes)}
         self.emotion2idx = {label: idx for idx, label in enumerate(classes)}
@@ -59,6 +63,7 @@ class IEMOCAPDataset(Dataset):
 
     def __len__(self):
         return len(self.wav_paths)
+
 
 def collate_fn(samples):
     return zip(*samples)
