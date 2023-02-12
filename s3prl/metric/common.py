@@ -25,7 +25,10 @@ __all__ = [
 ]
 
 
-def accuracy(xs, ys, item_same_fn=None):
+def accuracy(xs: Union[list, dict], ys: Union[list, dict], item_same_fn=None):
+    assert isinstance(xs, (list, tuple, dict))
+    assert isinstance(ys, (list, tuple, dict))
+
     if isinstance(xs, (tuple, list)):
         assert isinstance(ys, (tuple, list))
         return _accuracy_impl(xs, ys, item_same_fn)
@@ -55,6 +58,9 @@ def ter(hyps: List[Union[str, List[str]]], refs: List[Union[str, List[str]]]) ->
     Returns:
         float: Averaged token error rate overall utterances.
     """
+    assert isinstance(hyps, (list, tuple))
+    assert isinstance(refs, (list, tuple))
+
     error_tokens = 0
     total_tokens = 0
     for h, r in zip(hyps, refs):
@@ -73,6 +79,9 @@ def wer(hyps: List[str], refs: List[str]) -> float:
     Returns:
         float: Averaged word error rate overall utterances.
     """
+    assert isinstance(hyps, (list, tuple))
+    assert isinstance(refs, (list, tuple))
+
     hyps = [h.split(" ") for h in hyps]
     refs = [r.split(" ") for r in refs]
     return ter(hyps, refs)
@@ -88,6 +97,9 @@ def per(hyps: List[str], refs: List[str]) -> float:
     Returns:
         float: Averaged phoneme error rate overall utterances.
     """
+    assert isinstance(hyps, (list, tuple))
+    assert isinstance(refs, (list, tuple))
+
     return wer(hyps, refs)
 
 
@@ -101,6 +113,9 @@ def cer(hyps: List[str], refs: List[str]) -> float:
     Returns:
         float: Averaged character error rate overall utterances.
     """
+    assert isinstance(hyps, (list, tuple))
+    assert isinstance(refs, (list, tuple))
+
     return ter(hyps, refs)
 
 
@@ -115,6 +130,9 @@ def compute_eer(labels: List[int], scores: List[float]):
         eer (float): Equal error rate.
         treshold (float): The treshold to accept a target trial.
     """
+    assert isinstance(labels, (list, tuple))
+    assert isinstance(scores, (list, tuple))
+
     fpr, tpr, thresholds = roc_curve(labels, scores, pos_label=1)
     eer = brentq(lambda x: 1.0 - x - interp1d(fpr, tpr)(x), 0.0, 1.0)
     threshold = interp1d(fpr, thresholds)(eer)
@@ -143,6 +161,9 @@ def compute_minDCF(
         min_dcf (float): The calculated min_dcf.
         min_c_det_threshold (float): The treshold to calculate min_dcf.
     """
+    assert isinstance(labels, (list, tuple))
+    assert isinstance(scores, (list, tuple))
+
     fpr, tpr, thresholds = roc_curve(labels, scores, pos_label=1)
     fnr = 1.0 - tpr
 
