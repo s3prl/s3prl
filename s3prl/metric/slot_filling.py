@@ -65,7 +65,7 @@ def get_slot_dict(
     return ref_dict, hyp_dict
 
 
-def slot_type_f1(hypothesis: List[str], groundtruth: List[str], **kwargs) -> float:
+def slot_type_f1(hypothesis: List[str], groundtruth: List[str], return_breakdown: bool = False) -> float:
     F1s = []
     for p, t in zip(hypothesis, groundtruth):
         ref_dict, hyp_dict = get_slot_dict(p, t)
@@ -90,10 +90,14 @@ def slot_type_f1(hypothesis: List[str], groundtruth: List[str], **kwargs) -> flo
             F1 = 2 * P * R / (P + R) if (P + R) > 0 else 0.0
         F1s.append(F1)
 
-    return sum(F1s) / len(F1s)
+    avg_f1 = sum(F1s) / len(F1s)
+    if return_breakdown:
+        return avg_f1, F1s
+    else:
+        return avg_f1
 
 
-def slot_value_cer(hypothesis: List[str], groundtruth: List[str], **kwargs) -> float:
+def slot_value_cer(hypothesis: List[str], groundtruth: List[str]) -> float:
     value_hyps, value_refs = [], []
     for p, t in zip(hypothesis, groundtruth):
         ref_dict, hyp_dict = get_slot_dict(p, t)
@@ -120,7 +124,7 @@ def slot_value_cer(hypothesis: List[str], groundtruth: List[str], **kwargs) -> f
     return cer(value_hyps, value_refs)
 
 
-def slot_value_wer(hypothesis: List[str], groundtruth: List[str], **kwargs) -> float:
+def slot_value_wer(hypothesis: List[str], groundtruth: List[str]) -> float:
     value_hyps = []
     value_refs = []
     for p, t in zip(hypothesis, groundtruth):
@@ -149,7 +153,7 @@ def slot_value_wer(hypothesis: List[str], groundtruth: List[str], **kwargs) -> f
 
 
 def slot_edit_f1(
-    hypothesis: List[str], groundtruth: List[str], loop_over_all_slot: bool, **kwargs
+    hypothesis: List[str], groundtruth: List[str], loop_over_all_slot: bool,
 ) -> float:
     slot2F1 = {}  # defaultdict(lambda: [0,0,0]) # TPs, FNs, FPs
     for p, t in zip(hypothesis, groundtruth):
