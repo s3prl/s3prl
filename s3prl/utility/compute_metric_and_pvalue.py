@@ -7,7 +7,7 @@ import pandas as pd
 from scipy.stats import ttest_rel
 from mlxtend.evaluate import mcnemar_table, mcnemar
 
-from s3prl.metric import per, wer, cer, accuracy
+from s3prl.metric import per, wer, cer, accuracy, slot_type_f1, compute_eer
 
 logger = logging.getLogger(__name__)
 
@@ -63,13 +63,13 @@ if __name__ == "__main__":
     logging.basicConfig(level=logging.INFO)
 
     parser = argparse.ArgumentParser()
-    parser.add_argument("metric", choices=["per", "cer", "wer", "acc", "multi_acc"])
+    parser.add_argument("metric", choices=["per", "cer", "wer", "acc", "multi_acc", "slot_type_f1", "eer"])
     parser.add_argument("ground_truth", help="The ground truth file")
     parser.add_argument("prediction1", help="The 1st prediction file")
     parser.add_argument("prediction2", help="The 2nd prediction file")
     args = parser.parse_args()
 
-    if args.metric in ["per", "cer", "wer"]:
+    if args.metric in ["per", "cer", "wer", "slot_type_f1"]:
         groundtruth = read_file(args.ground_truth)
         prediction1 = read_file(args.prediction1)
         prediction2 = read_file(args.prediction2)
@@ -82,6 +82,8 @@ if __name__ == "__main__":
             metric_fn = cer
         elif args.metric == "wer":
             metric_fn = wer
+        elif args.metric == "slot_type_f1":
+            metric_fn = slot_type_f1
 
         macro_metric1 = metric_fn(p1, gs)
         macro_metric2 = metric_fn(p2, gs)
@@ -119,6 +121,26 @@ if __name__ == "__main__":
 
         metrics1, metrics2 = per_sample_metrics(pairs, lambda pred, gt: pred == gt)
         pvalue = mcnemar_test_pvalue(metrics1, metrics2)
+
+    elif args.metric == "eer":
+        groundtruth = read_file(args.ground_truth)
+        prediction1 = read_file(args.prediction1)
+        prediction2 = read_file(args.prediction2)
+
+        pairs = form_pairs(groundtruth, prediction1, prediction2)
+        gs, p1, p2 = zip(*pairs)
+        gs = [int(gs_) for gs_ in gs]
+        p1 = [float(p1_) for p1_ in p1]
+        p2 = [float(p2_) for p2_ in p2]
+
+        macro_metric1, threshold1 = compute_eer(gs, p1)
+        metrics1 = [int(p1_ > threshold1) == gs_ for gs_, p1_ in zip(gs, p1)]
+
+        macro_metric2, threshold2 = compute_eer(gs, p2)
+        metrics2 = [int(p2_ > threshold2) == gs_ for gs_, p2_ in zip(gs, p2)]
+
+        pvalue = mcnemar_test_pvalue(metrics1, metrics2)
+
 
     print(f"{args.metric} 1: {macro_metric1}")
     print(f"{args.metric} 2: {macro_metric2}")

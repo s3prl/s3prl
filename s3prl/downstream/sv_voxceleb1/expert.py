@@ -272,13 +272,18 @@ class DownstreamExpert(nn.Module):
                 self.best_score = torch.ones(1) * eer
                 save_names.append(f'{mode}-best.ckpt')
 
-            with open(Path(self.expdir) / f"{mode}_predict.txt", "w") as file:
-                line = [f"{name} {score}\n" for name, score in zip(records["pair_names"], records["scores"])]
-                file.writelines(line)
+            def format_sv_path(path: str):
+                parts = list(Path(path).parts[-3:])
+                parts = parts[:-1] + [Path(parts[-1]).stem]
+                return "-".join(parts)
 
-            with open(Path(self.expdir) / f"{mode}_truth.txt", "w") as file:
-                line = [f"{name} {score}\n" for name, score in zip(records["pair_names"], records["labels"])]
-                file.writelines(line)
+            with open(Path(self.expdir) / f"{mode}_predict.txt", "w") as pred_file:
+                with open(Path(self.expdir) / f"{mode}_truth.txt", "w") as true_file:
+                    for (label, path1, path2), score in zip(trials, scores):
+                        name1 = format_sv_path(path1)
+                        name2 = format_sv_path(path2)
+                        pred_file.write(f"{name1}_{name2} {score}\n")
+                        true_file.write(f"{name1}_{name2} {label}\n")
 
         return save_names
 
