@@ -3,6 +3,7 @@ import argparse
 from typing import Tuple, List, Dict
 
 import numpy as np
+import pandas as pd
 from scipy.stats import ttest_rel
 from mlxtend.evaluate import mcnemar_table, mcnemar
 
@@ -62,7 +63,7 @@ if __name__ == "__main__":
     logging.basicConfig(level=logging.INFO)
 
     parser = argparse.ArgumentParser()
-    parser.add_argument("metric", choices=["per", "cer", "wer", "acc"])
+    parser.add_argument("metric", choices=["per", "cer", "wer", "acc", "multi_acc"])
     parser.add_argument("ground_truth", help="The ground truth file")
     parser.add_argument("prediction1", help="The 1st prediction file")
     parser.add_argument("prediction2", help="The 2nd prediction file")
@@ -91,10 +92,25 @@ if __name__ == "__main__":
         pvalue = pairwise_t_test_pvalue(metrics1, metrics2)
 
 
-    elif args.metric == "acc":
-        groundtruth = read_file(args.ground_truth)
-        prediction1 = read_file(args.prediction1)
-        prediction2 = read_file(args.prediction2)
+    elif args.metric in ["acc", "multi_acc"]:
+
+        def read_csv(filepath: str):
+            csv = pd.read_csv(filepath, header=None)
+            name2value = {}
+            for _, row in csv.iterrows():
+                name, action, obj, location = row
+                assert name not in name2value
+                name2value[name] = (action, obj, location)
+            return name2value
+
+        if args.metric == "acc":
+            read_fn = read_file
+        else:
+            read_fn = read_csv
+
+        groundtruth = read_fn(args.ground_truth)
+        prediction1 = read_fn(args.prediction1)
+        prediction2 = read_fn(args.prediction2)
         pairs = form_pairs(groundtruth, prediction1, prediction2)
         gs, p1, p2 = zip(*pairs)
 
