@@ -666,6 +666,32 @@ feature_selection     (str) -
 ====================  ====================
 
 
+wav2vec2_custom
+~~~~~~~~~~~~~~~~~~~~~
+
+This entry expects you to provide the source of the checkpoint: :code:`path_or_url`, which should be
+the local path or a url of the checkpoint converted by :code:`s3prl/upstream/wav2vec2/convert.py` (
+from a regular fairseq checkpoint.)
+
+This entry also supports the following additional :code:`extra_conf`.
+
+====================  ====================
+column                description
+====================  ====================
+fairseq               (bool) -
+                        If True, perform the on-the-fly checkpoint conversion, so that
+                        you can directly give the fairseq checkpoint to the :code:`path_or_url`
+                        argument, either a fairseq URL or a fairseq checkpoint local path.
+====================  ====================
+
+
+hf_wav2vec2_custom
+~~~~~~~~~~~~~~~~~~~~
+
+This entry expects you to provide the source of the checkpoint: :code:`path_or_url`, which should be
+in the HuggingFace format, like :code:`facebook/wav2vec2-large-960h`
+
+
 wav2vec2
 ~~~~~~~~~~~~~~~~
 
@@ -706,6 +732,8 @@ The Large model trained on Libri-Light 60k hours + CommonVoice + Switchboard + F
 wav2vec2_conformer_relpos
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
+The results can be found in the Table 4 of `fairseq S2T: Fast Speech-to-Text Modeling with fairseq <https://arxiv.org/abs/2010.05171>`_.
+
 - Architecture: 24-layer Conformer encoders with relative positional encoding
 - Unlabeled Speech: LibriLight LL60k hours
 
@@ -713,8 +741,38 @@ wav2vec2_conformer_relpos
 wav2vec2_conformer_rope
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
+The results can be found in the Table 4 of `fairseq S2T: Fast Speech-to-Text Modeling with fairseq <https://arxiv.org/abs/2010.05171>`_.
+
 - Architecture: 24-layer Conformer encoders with ROPE positional encoding
 - Unlabeled Speech: LibriLight LL60k hours
+
+
+wav2vec2_base_s2st_es_voxpopuli
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+- The wav2vec2 model from `Enhanced Direct Speech-to-Speech Translation Using Self-supervised Pre-training and Data Augmentation <https://arxiv.org/abs/2204.02967>`_,
+- released in Fairseq with the link: `https://dl.fbaipublicfiles.com/fairseq/speech_to_speech/s2st_finetuning/w2v2/es/transformer_B.pt <https://dl.fbaipublicfiles.com/fairseq/speech_to_speech/s2st_finetuning/w2v2/es/transformer_B.pt>`_
+
+
+wav2vec2_base_s2st_en_librilight
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+- The wav2vec2 model from `Enhanced Direct Speech-to-Speech Translation Using Self-supervised Pre-training and Data Augmentation <https://arxiv.org/abs/2204.02967>`_,
+- released in Fairseq with the link: `https://dl.fbaipublicfiles.com/fairseq/speech_to_speech/s2st_finetuning/w2v2/en/transformer_B.pt <https://dl.fbaipublicfiles.com/fairseq/speech_to_speech/s2st_finetuning/w2v2/en/transformer_B.pt>`_
+
+
+wav2vec2_conformer_large_s2st_es_voxpopuli
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+- The wav2vec2 model from `Enhanced Direct Speech-to-Speech Translation Using Self-supervised Pre-training and Data Augmentation <https://arxiv.org/abs/2204.02967>`_,
+- released in Fairseq with the link: `https://dl.fbaipublicfiles.com/fairseq/speech_to_speech/s2st_finetuning/w2v2/es/conformer_L.pt <https://dl.fbaipublicfiles.com/fairseq/speech_to_speech/s2st_finetuning/w2v2/es/conformer_L.pt>`_
+
+
+wav2vec2_conformer_large_s2st_en_librilight
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+- The wav2vec2 model from `Enhanced Direct Speech-to-Speech Translation Using Self-supervised Pre-training and Data Augmentation <https://arxiv.org/abs/2204.02967>`_,
+- released in Fairseq with the link: `https://dl.fbaipublicfiles.com/fairseq/speech_to_speech/s2st_finetuning/w2v2/en/conformer_L.pt <https://dl.fbaipublicfiles.com/fairseq/speech_to_speech/s2st_finetuning/w2v2/en/conformer_L.pt>`_
 
 
 xlsr_53
@@ -781,6 +839,32 @@ HuBERT
     }
 
 
+hubert_custom
+~~~~~~~~~~~~~~~~~~~~~
+
+This entry expects you to provide the source of the checkpoint: :code:`path_or_url`, which should be
+the local path or a url of the checkpoint converted by :code:`s3prl/upstream/hubert/convert.py` (
+from a regular fairseq checkpoint.)
+
+This entry also supports the following additional :code:`extra_conf`.
+
+====================  ====================
+column                description
+====================  ====================
+fairseq               (bool) -
+                        If True, perform the on-the-fly checkpoint conversion, so that
+                        you can directly give the fairseq checkpoint to the :code:`path_or_url`
+                        argument, either a fairseq URL or a fairseq checkpoint local path.
+====================  ====================
+
+
+hf_hubert_custom
+~~~~~~~~~~~~~~~~~~~~
+
+This entry expects you to provide the source of the checkpoint: :code:`path_or_url`, which should be
+in the HuggingFace format, like :code:`facebook/hubert-large-ll60k`
+
+
 hubert
 ~~~~~~~~~~~~~~~~~~~~~
 
@@ -797,6 +881,12 @@ hubert_large_ll60k
 ~~~~~~~~~~~~~~~~~~~~~
 
 - Unlabled Speech: LibriLight ll60k hours
+
+
+mhubert_base_vp_en_es_fr_it3
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+- The multilingual model from `Textless Speech-to-Speech Translation on Real Data <https://arxiv.org/abs/2112.08352>`_
 
 
 DistilHuBERT

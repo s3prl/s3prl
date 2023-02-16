@@ -126,47 +126,43 @@ class SpeakerVerifi_test(Dataset):
         self.root = file_path
         self.meta_data = meta_data
         self.necessary_dict = self.processing()
-        self.vad_c = vad_config
-        self.dataset = self.necessary_dict['pair_table']
-
+        self.vad_c = vad_config 
+        self.dataset = self.necessary_dict['spk_paths']
+        self.pair_table = self.necessary_dict['pair_table']
+        
     def processing(self):
         pair_table = []
+        spk_paths = set()
         with open(self.meta_data, "r") as f:
             usage_list = f.readlines()
         for pair in usage_list:
             list_pair = pair.split()
             pair_1= os.path.join(self.root, list_pair[1])
             pair_2= os.path.join(self.root, list_pair[2])
+            spk_paths.add(pair_1)
+            spk_paths.add(pair_2)
             one_pair = [list_pair[0],pair_1,pair_2 ]
             pair_table.append(one_pair)
         return {
-            "spk_paths": None,
+            "spk_paths": list(spk_paths),
             "total_spk_num": None,
             "pair_table": pair_table
         }
 
     def __len__(self):
-        return len(self.necessary_dict['pair_table'])
+        return len(self.necessary_dict['spk_paths'])
 
     def __getitem__(self, idx):
-        y_label, x1_path, x2_path = self.dataset[idx]
+        x_path = self.dataset[idx]
 
-        def path2name(path):
-            return Path("-".join((Path(path).parts)[-3:])).stem
+        x_name = x_path
 
-        x1_name = path2name(x1_path)
-        x2_name = path2name(x2_path)
+        wav, _ = apply_effects_file(x_path, EFFECTS)
 
-        wav1, _ = apply_effects_file(x1_path, EFFECTS)
-        wav2, _ = apply_effects_file(x2_path, EFFECTS)
+        wav = wav.squeeze(0)
 
-        wav1 = wav1.squeeze(0)
-        wav2 = wav2.squeeze(0)
-
-        return wav1.numpy(), wav2.numpy(), x1_name, x2_name, int(y_label[0])
+        return wav.numpy(), x_name
 
     def collate_fn(self, data_sample):
-        wavs1, wavs2, x1_names, x2_names, ylabels = zip(*data_sample)
-        all_wavs = wavs1 + wavs2
-        all_names = x1_names + x2_names
-        return all_wavs, all_names, ylabels
+        wavs, x_names = zip(*data_sample)
+        return wavs, x_names

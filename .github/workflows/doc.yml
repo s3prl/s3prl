@@ -26,7 +26,7 @@ jobs:
         run: |
           pip install -e ".[dev]"
 
-      # - name: Setup upterm session
+      # - name: Setup upterm sessions
       #   uses: lhotari/action-upterm@v1
 
       - name: Build doc

@@ -32,3 +32,4 @@ protobuf ~=3.19.0
 sed_eval
 more_itertools
 sacremoses
+tensorboard
