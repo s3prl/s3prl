@@ -134,10 +134,10 @@ if __name__ == "__main__":
         p2 = [float(p2_) for p2_ in p2]
 
         macro_metric1, threshold1 = compute_eer(gs, p1)
-        metrics1 = [int(p1_ > threshold1) == gs_ for gs_, p1_ in zip(gs, p1)]
+        metrics1 = [int(int(p1_ > threshold1) == gs_) for gs_, p1_ in zip(gs, p1)]
 
         macro_metric2, threshold2 = compute_eer(gs, p2)
-        metrics2 = [int(p2_ > threshold2) == gs_ for gs_, p2_ in zip(gs, p2)]
+        metrics2 = [int(int(p2_ > threshold2) == gs_) for gs_, p2_ in zip(gs, p2)]
 
         pvalue = mcnemar_test_pvalue(metrics1, metrics2)
 
