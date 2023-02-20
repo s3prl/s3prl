@@ -19,3 +19,6 @@ with open(f'{paras.save_dir}/args.yaml', 'w') as handle:
 with open(f'{paras.save_dir}/config.yaml', 'w') as handle:
     config = ckpt['Config']
     yaml.dump(config, handle)
+
+with open(f"{paras.save_dir}/global_step.txt", "w") as f:
+    f.write(str(ckpt["Step"]))
