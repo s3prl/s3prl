@@ -136,8 +136,8 @@ class DownstreamExpert(nn.Module):
                     save_names.append(f"{split}-best.ckpt")
 
         if "test" in split or "dev" in split:
-            hyp_ark = open(os.path.join(self.expdir, f"{split}-hyp.ark"), "w")
-            ref_ark = open(os.path.join(self.expdir, f"{split}-ref.ark"), "w")
+            hyp_ark = open(os.path.join(self.expdir, f"{split}-hyp.ark"), "w", encoding="utf-8")
+            ref_ark = open(os.path.join(self.expdir, f"{split}-ref.ark"), "w", encoding="utf-8")
             for filename, hyp, ref in zip(
                 records["filename"], records["hypothesis"], records["groundtruth"]
             ):
