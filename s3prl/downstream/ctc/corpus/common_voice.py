@@ -22,7 +22,7 @@ class CommonVoiceDataset(Dataset):
         self.bucket_size = bucket_size
 
         for s in split:
-            with open(s, "r") as fp:
+            with open(s, "r", encoding="utf-8") as fp:
                 rows = csv.reader(fp, delimiter="\t")
                 file_list, text = [], []
                 for i, row in enumerate(rows):

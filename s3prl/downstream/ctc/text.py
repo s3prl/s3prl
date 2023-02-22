@@ -72,7 +72,7 @@ class CharacterTextEncoder(_BaseTextEncoder):
 
     @classmethod
     def load_from_file(cls, vocab_file):
-        with open(vocab_file, "r") as f:
+        with open(vocab_file, "r", encoding="utf-8") as f:
             # Do not strip space because character based text encoder should
             # have a space token
             vocab_list = [line.strip("\r\n") for line in f]
