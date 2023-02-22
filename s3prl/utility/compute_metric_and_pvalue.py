@@ -17,7 +17,11 @@ def read_file(filepath: str) -> Dict[str, float]:
     with open(filepath) as f:
         for line in f.readlines():
             line = line.strip()
-            name, value = line.split(maxsplit=1)
+            fields = line.split(maxsplit=1)
+            if len(fields) == 1:
+                name, value = fields[0], ""
+            else:
+                name, value = fields[0], fields[1]
             assert name not in name2value
             name2value[name] = value
     return name2value
