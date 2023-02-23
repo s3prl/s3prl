@@ -64,7 +64,7 @@ function single_trial() {
                 ./downstream/a2o-vc-vcc2020/config.yaml superb $spk $spks_expdir $override
         done
         ./downstream/a2o-vc-vcc2020/batch_vc_decode.sh $upstream \
-            task1 superb ./downstream/a2o-vc-vcc2020/pwg_task1 $spks_expdir \
+            task1 superb ./downstream/a2o-vc-vcc2020/hifigan_vctk+vcc2020/ $spks_expdir \
             > $spks_expdir/summary
     fi
 }
