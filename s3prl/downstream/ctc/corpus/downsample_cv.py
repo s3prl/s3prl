@@ -8,6 +8,7 @@ import torch
 import torchaudio
 import numpy as np
 from librosa import resample
+from joblib import Parallel, delayed
 
 
 def read_processed_tsv(path):
@@ -25,21 +26,23 @@ def main():
     parser = argparse.ArgumentParser()
     parser.add_argument("--root", type=str, help="Directory of the dataset.")
     parser.add_argument("--tsv", type=str, help="Path to processed tsv file.")
+    parser.add_argument("--n_jobs", type=int, default=8, help="number of workers for audio downsampling")
     args = parser.parse_args()
 
     file_list = read_processed_tsv(args.tsv)
 
-    for file in tqdm(file_list):
+    def downsample_file(file: str):
         file = str(file)
         file = join(args.root, file)
         wav, sample_rate = torchaudio.load(file)
         wav = resample(
-            wav.squeeze(0).numpy(), sample_rate, 16000, res_type="kaiser_best"
+            wav.squeeze(0).numpy(), orig_sr=sample_rate, target_sr=16000, res_type="kaiser_best"
         )
         wav = torch.FloatTensor(wav).unsqueeze(0)
         new_file = file[:-3] + "wav"
         torchaudio.save(new_file, wav, 16000)
 
+    Parallel(n_jobs=args.n_jobs)(delayed(downsample_file)(str(f)) for f in tqdm(file_list))
 
 if __name__ == "__main__":
     main()
