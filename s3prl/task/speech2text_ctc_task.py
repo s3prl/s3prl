@@ -202,12 +202,12 @@ class Speech2TextCTCTask(Task):
         unique_names = results["unique_name"]
 
         if _dump_dir is not None:
-            with (Path(_dump_dir) / "ref").open("w") as f:
+            with (Path(_dump_dir) / "hyp").open("w") as f:
                 f.writelines(
                     [f"{uid} {p}\n" for p, uid in zip(predictions, unique_names)]
                 )
 
-            with (Path(_dump_dir) / "hyp").open("w") as f:
+            with (Path(_dump_dir) / "ref").open("w") as f:
                 f.writelines([f"{uid} {p}\n" for p, uid in zip(labels, unique_names)])
 
         beam_hyps = None
