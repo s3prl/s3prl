@@ -23,18 +23,34 @@ We support the following environments. The test cases are ran with **[tox](./tox
 | python | `3.7`, `3.8`, `3.9`, `3.10` |
 | pytorch | `1.8.1`, `1.9.1`, `1.10.2`, `1.11.0`, `1.12.1` |
 
-## What's New
+## Change Log
 
-* *Mar 2022*: Introduce [**SUPERB-SG**](https://arxiv.org/abs/2203.06849), see [Speech Translation](./s3prl/downstream/speech_translation), [Out-of-domain ASR](./s3prl/downstream/ctc/), [Voice Conversion](./s3prl/downstream/a2o-vc-vcc2020/), [Speech Separation](./s3prl/downstream/separation_stft/) and [Speech Enhancement](./s3prl/downstream/enhancement_stft/) for more info.
-* *Nov 2021*: Introduce [**S3PRL-VC**](https://arxiv.org/abs/2110.06280), see [Any-to-one](https://github.com/s3prl/s3prl/tree/master/s3prl/downstream/a2o-vc-vcc2020) and [Any-to-any](https://github.com/s3prl/s3prl/tree/master/s3prl/downstream/a2a-vc-vctk) docs for more info.
-* *Oct 2021*: Support [**DistilHuBERT**](https://arxiv.org/abs/2110.01900), see [docs](./s3prl/upstream/distiller/README.md) for more info
+**Please note that**
+
+As the core developers and repository owners, [Andy T. Liu](https://github.com/andi611) and [Shu-wen (Leo) Yang](https://github.com/leo19941227) **never** forced others to contribute to the S3PRL project. Instead, most of the times **people want and ask** to contribute to this proejct. Feel free to ask old contributors to check. We built this project from scratch and developed most of the functions ourselves **since 2019** and received huge amount of stars. (Around 400 stars before we started to develop SUPERB Benchmark.) Hence people were interested to contribute to our project and develop new functions together. From our perspective, we are kind enough to help reviewing PRs and help others build their resume. But later, someone started to question about our ownership on this repository and manipulate the information, just because we allowed others to contribute. This made us **really disappointed**. We hence thought about never allowing new contributions in the future. If any old contributors felt unhappy about the current situation, it is okay to dicuss about removing your previous contributions, and we are happy to help. Our principle is always to give biggest credit to those who already contributed (especially who contributed when there was very few stuff), instead of someone wishing to take over the repository by undiscussed and overwhelming PRs after the repository is successful. We still welcome new contributions as long as the development is fully discussed and the new contributors accept our principle above. We are grateful and care about every precious old contributions and refuse to dilute old contributors' credit by accepting lots of new PRs. Please find the names below to know the people who put huge effort on making this project successfull.
+
+As a worth-mentioning point, we are not accepting new SUPERB development in the future. There are two major reasons:
+
+- The SUPERB team members changed a lot and rapidly. Andy and Leo are not available to involve every new effort, hence we are afraid to accept undiscussed and unreviewed while huge amount of new implementations. We won't get benefit from helping reviewing these efforts, while people will further question about our ownership and try to take over it, and the new members might not always want to contribute to our project. Hence, there is no benefit to both sides.
+- The current S3PRL is getting too large and becoming hard to maintain and keep the dependency small.
+
+Hence, we will do our best in maintaining SUPERB and SUPERB-SG, and we believe it is better to let the new SUPERB members to maintain their own implementation.
+So both sides get proper credit to their own implementation.
+
+* *Mar 2022*: Introduce [**SUPERB-SG**](https://arxiv.org/abs/2203.06849), see [Speech Translation](./s3prl/downstream/speech_translation) by [Hsiang-Sheng Tsai](https://github.com/bearhsiang), [Out-of-domain ASR](./s3prl/downstream/ctc/) by [Heng-Jui Chang](https://github.com/vectominist), [Voice Conversion](./s3prl/downstream/a2o-vc-vcc2020/) by [Wen-Chin Huang](https://github.com/unilight), [Speech Separation](./s3prl/downstream/separation_stft/) and [Speech Enhancement](./s3prl/downstream/enhancement_stft/) by [Zili Huang](https://github.com/HuangZiliAndy) for more info.
+* *Nov 2021*: Introduce [**S3PRL-VC**](https://arxiv.org/abs/2110.06280) by [Wen-Chin Huang](https://github.com/unilight), see [Any-to-one](https://github.com/s3prl/s3prl/tree/master/s3prl/downstream/a2o-vc-vcc2020) for more info. We highly recommend to consider the [newly released official repo of S3PRL-VC](https://github.com/unilight/s3prl-vc) which is developed and actively maintained by [Wen-Chin Huang](https://github.com/unilight). The standalone repo contains much more recepies for the VC experiments. In S3PRL we only include the Any-to-one recipe for reproducing the SUPERB results.
+* *Oct 2021*: Support [**DistilHuBERT**](https://arxiv.org/abs/2110.01900) by [Heng-Jui Chang](https://github.com/vectominist), see [docs](./s3prl/upstream/distiller/README.md) for more info
 * *Sep 2021:* We host a *challenge* in [*AAAI workshop: The 2nd Self-supervised Learning for Audio and Speech Processing*](https://aaai-sas-2022.github.io/)! See [**SUPERB official site**](https://superbbenchmark.org/) for the challenge details and the [**SUPERB documentation**](./s3prl/downstream/docs/superb.md) in this toolkit!
 * *Aug 2021:* We now have a tutorial that introduces our toolkit, you can **[watch it on Youtube](https://youtu.be/PkMFnS6cjAc)**!
 * *July 2021:* We are now working on packaging s3prl and reorganizing the file structure in **v0.3**. Please consider using the stable **v0.2.0** for now. We will test and release **v0.3** before August.
-* *June 2021:* Support [**SUPERB:** **S**peech processing **U**niversal **PER**formance **B**enchmark](https://arxiv.org/abs/2105.01051), submitted to Interspeech 2021. Use the tag **superb-interspeech2021** or **v0.2.0**.
+* *June 2021:* Support [**SUPERB:** **S**peech processing **U**niversal **PER**formance **B**enchmark](https://arxiv.org/abs/2105.01051), submitted to Interspeech 2021. Use the tag **superb-interspeech2021** or **v0.2.0**. The individual task contributors include: [Shu-wen (Leo) Yang](https://github.com/leo19941227), [Pohan Chi](https://github.com/pohanchi), [Yist Lin](https://github.com/yistLin), [Yung-Sung Chuang](https://github.com/voidism), [Jiatong Shi](https://github.com/ftshijt), [Xuankai](https://github.com/simpleoier), [Wei-Cheng Tseng](https://github.com/RayTzeng) and Tzu-Hsien Huang.
 * *June 2021:* Support extracting multiple hidden states from the SSL pretrained models
 * *Jan 2021:* Readme updated with detailed instructions on how to use our latest version!
 * *Dec 2020:* We are migrating to a newer version for a more general, flexible, and scalable code. See the introduction below for more information! The legacy version can be accessed the tag **v0.1.0**.
+* *Oct 2020:* We added lots of classic upstream models, including PASE+, APC, VQ-APC, NPC, wav2vec, vq-wav2vec ...etc.
+* *Oct 2019:* [Andy T. Liu](https://github.com/andi611), [Shu-wen (Leo) Yang](https://github.com/leo19941227) and [Pohan Chi](https://github.com/pohanchi) implemented the Mockingjay pre-training and several simple downstream evaluation tasks. This work was the very start of the S3PRL project which established lots of foundamental modules and coding styles. Feel free to checkout to the oldest commits to explore our legacy codebase!
+
+****
 
 ## Introduction and Usages
 
