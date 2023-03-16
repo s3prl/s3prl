@@ -3,6 +3,10 @@
 Development: [Wen-Chin Huang](https://github.com/unilight) @ Nagoya University (2021).  
 If you have any questions, please open an issue, or contact through email: wen.chinhuang@g.sp.m.is.nagoya-u.ac.jp
 
+> [Wen-Chin Huang](https://github.com/unilight) has released [a standalone and actively maintained official repository for S3PRL-VC](https://github.com/unilight/s3prl-vc).
+> The standalone version contains much more recipes for various VC experiments.
+> Please must have a try!
+
 **Note**: This is the **any-to-one** recipe. For the **any-to-any** recipe, please go to the [a2a-vc-vctk](../a2a-vc-vctk/) recipe.
 
 We have a [preprint paper](https://arxiv.org/abs/2110.06280) describing this toolkit. If you find this recipe useful, please consider citing:
