@@ -5,6 +5,5 @@ numpy >=1.21
 PyYAML >=5.4.1
 filelock
 omegaconf >=2.1.1
-setuptools ==59.5.0
 requests
 transformers
