@@ -267,3 +267,9 @@ def wav2vec2_conformer_large_s2st_en_librilight(refresh=False, legacy=False, **k
             "ckpt"
         ] = "https://huggingface.co/s3prl/converted_ckpts/resolve/main/wav2vec2_conformer_large_s2st_en_librilight.pt"
     return wav2vec2_custom(refresh=refresh, legacy=legacy, **kwargs)
+
+
+def ccc_wav2vec2(refresh=False, **kwds):
+    kwds["ckpt"] = "https://huggingface.co/datasets/leo19941227/ccc_wav2vec2/resolve/main/ccc_wav2vec2_base_960h_SUPERB.converted.pt"
+    return wav2vec2_custom(refresh=refresh, **kwds)
+
