@@ -50,3 +50,8 @@ def data2vec_large_ll60k(refresh=False, *args, **kwargs):
         "ckpt"
     ] = "https://huggingface.co/s3prl/converted_ckpts/resolve/main/vox_pretrained.pt"
     return data2vec_custom(refresh=refresh, *args, **kwargs)
+
+
+def data2vec_aqc(refresh=False, *args, **kwds):
+    kwds["ckpt"] = "https://huggingface.co/s3prl/data2vec_aqc/resolve/main/data2vec-aqc_base_960h_SUPERB.converted.pt"
+    return data2vec_custom(refresh=refresh, *args, **kwds)

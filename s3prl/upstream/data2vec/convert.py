@@ -42,7 +42,7 @@ def load_converted_model(ckpt: str):
     model.remove_pretraining_modules()
     del ckpt_state["model_weight"]["_ema"]
 
-    model.load_state_dict(ckpt_state["model_weight"])
+    model.load_state_dict(ckpt_state["model_weight"], strict=False)
     return model, task_cfg
 
 
