@@ -687,7 +687,8 @@ The model is expected to output SI-SDRi on the test set.
 
 ## SE: Speech Enhancement
 
-We have two versions for the speech enhancement task. The first version (enhancement_stft) is the same as the SUPERB-SG paper. In the second version (enhancement_stft2), we largely improve the system performance and training speed. Please refer to [README](../enhancement_stft2/README.md) about the detailed changes of the second version.
+To be comparable to SUPERB benchmark, please follow the `downstream/enhancement_stft` folder.
+We have a second version in the `downstream/enhancement_stft2` folder, which gets improved speech enhancement performance with SSL features. However, the second version is not comparable to the results on the SUPERB benchmark, but a recipe helpful for people more interested in boosting the performance for speech enhancement.
 
 #### Prepare data
 
