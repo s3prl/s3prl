@@ -175,8 +175,8 @@ if __name__ == "__main__":
 
     if args.override is not None:
         message = override(args.override, args, config)
-    for m in message:
-        log.warning(m)
+        for m in message:
+            log.warning(m)
 
     dexpert = config["downstream_expert"]
     dtwrc = dexpert["dtwrc"]

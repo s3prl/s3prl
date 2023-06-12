@@ -53,10 +53,11 @@ if __name__ == "__main__":
 
     epochs = list(range(args.start_epoch, args.end_epoch+args.step_epoch, args.step_epoch))
     bests = []
+    best_files = []
     trgspks = task1_trgspks if args.task == "task1" else task2_trgspks
 
     for trgspk in trgspks:
-        scores = []
+        scores_with_files = []
         for ep in epochs:
             # the expdir name pattern is consistent with the batch training script
             log_file = os.path.join(args.expdir, f"a2o_vc_vcc2020_{args.tag}_{trgspk}_{args.upstream}", str(ep), f"{args.vocoder}_wav", "obj.log")
@@ -64,14 +65,21 @@ if __name__ == "__main__":
                 result = grep(log_file, "Mean")[0].split("Mean MCD, f0RMSE, f0CORR, DDUR, CER, WER, accept rate: ")[1].split(" ")
             elif args.task == "task2":
                 result = grep(log_file, "Mean")[0].split("Mean CER, WER, accept rate: ")[1].split(" ")
-            scores.append(result)
+            scores_with_files.append((result, log_file))
 
         # task 1: choose by MCD; task 2: choose by CER
-        best = min(scores, key=lambda x: float(x[0]))
-        bests.append(best)
+        best = min(scores_with_files, key=lambda x: float(x[0][0]))
+        bests.append(best[0])
+        best_files.append(best[1])
+
+    print("Best files:")
+    for file in best_files:
+        print(file)
 
     if args.task == "task1":
         avg = [f"{(sum([float(best[i]) for best in bests]) / 4.0):.2f}" for i in range(7)]
     elif args.task == "task2":
         avg = [f"{(sum([float(best[i]) for best in bests]) / 6.0):.2f}" for i in range(3)]
+
     print("Best result:"+" ".join(avg))
+
