@@ -46,7 +46,7 @@ class UpstreamExpert(torch.nn.Module):
         self.model.encoder.layerdrop = 0.0
 
         params = self.model.calc_sampled_param_num()
-        logger.info(f"LightHubert subnet (Params {params / 1e6:.0f}M) | {subnet}")
+        logger.info(f"LightHubert subnet (Params {params}) | {subnet}")
 
     def get_downsample_rates(self, key: str) -> int:
         return 320
