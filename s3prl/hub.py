@@ -26,6 +26,7 @@ from s3prl.upstream.passt.hubconf import *
 from s3prl.upstream.roberta.hubconf import *
 from s3prl.upstream.ssast.hubconf import *
 from s3prl.upstream.tera.hubconf import *
+from s3prl.upstream.tera2.hubconf import *
 from s3prl.upstream.unispeech_sat.hubconf import *
 from s3prl.upstream.vggish.hubconf import *
 from s3prl.upstream.vq_apc.hubconf import *
