@@ -448,14 +448,23 @@ class Runner():
 
         batch_ids = []
         records = defaultdict(list)
-        for batch_id, (wavs, *others) in enumerate(tqdm(dataloader, dynamic_ncols=True, desc=split, total=evaluate_steps)):
+        for batch_id, (upstream_inputs, *others) in enumerate(tqdm(dataloader, dynamic_ncols=True, desc=split, total=evaluate_steps)):
             if batch_id > evaluate_steps:
                 break
 
-            wavs = [torch.FloatTensor(wav).to(self.args.device) for wav in wavs]
+            if isinstance(upstream_inputs, (list, tuple)):
+                upstream_inputs = [torch.FloatTensor(wav).to(self.args.device) for wav in upstream_inputs]
+                paired_wavs = upstream_inputs
+            else:
+                paired_wavs = upstream_inputs["wavs"]
+
             with torch.no_grad():
-                features = self.upstream.model(wavs)
-                features = self.featurizer.model(wavs, features)
+                if self.upstream.trainable:
+                    features = self.upstream.model(upstream_inputs)
+                else:
+                    with torch.no_grad():
+                        features = self.upstream.model(upstream_inputs)
+                features = self.featurizer.model(paired_wavs, features)
                 self.downstream.model(
                     split,
                     features, *others,
