@@ -101,6 +101,7 @@ class UpstreamExpert(torch.nn.Module):
                 sampling_rate=SAMPLE_RATE,
                 do_normalize=True,
             ).input_features.to(device)
+            whisper_mels = clean_mels
         else:
 
             def to_device(target, device):
