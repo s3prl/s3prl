@@ -68,11 +68,10 @@ class UpstreamExpert(torch.nn.Module):
             )
 
         self.extract_whisper_mels = extract_whisper_mels
-        if extract_whisper_mels:
-            logger.info("Setup Whisper Mel extractor")
-            self.whisper_feature_extractor = AutoFeatureExtractor.from_pretrained(
-                "openai/whisper-base"
-            )
+        logger.info("Setup Whisper Mel extractor")
+        self.whisper_feature_extractor = AutoFeatureExtractor.from_pretrained(
+            "openai/whisper-base"
+        )
 
         self.register_buffer("device_detector", torch.zeros(1))
 
