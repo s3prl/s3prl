@@ -32,7 +32,9 @@ class UpstreamExpert(torch.nn.Module):
         project_size: int,
         use_wavlm: bool,
         use_whisper: bool,
-        extract_whisper_mels: bool,
+        extract_mels: bool,
+        use_noisy_mels: bool,
+        use_clean_mels: bool,
         **kwds,
     ):
         super().__init__()
@@ -67,7 +69,9 @@ class UpstreamExpert(torch.nn.Module):
                 ]
             )
 
-        self.extract_whisper_mels = extract_whisper_mels
+        self.extract_mels = extract_mels
+        self.use_noisy_mels = use_noisy_mels
+        self.use_clean_mels = use_clean_mels
         logger.info("Setup Whisper Mel extractor")
         self.whisper_feature_extractor = AutoFeatureExtractor.from_pretrained(
             "openai/whisper-base"
@@ -98,6 +102,7 @@ class UpstreamExpert(torch.nn.Module):
                 do_normalize=True,
             ).input_features.to(device)
         else:
+
             def to_device(target, device):
                 if target is None:
                     return None
@@ -112,13 +117,22 @@ class UpstreamExpert(torch.nn.Module):
             noisy_mels = to_device(all_upstream_inputs["noisy_mels"], device)
             clean_mels = to_device(all_upstream_inputs["clean_mels"], device)
 
-            if self.extract_whisper_mels:
-                clean_mels = self.whisper_feature_extractor(
-                    all_upstream_inputs["clean_wavs"],
+            if self.extract_mels:
+                if self.use_noisy_mels:
+                    wavs_for_whisper = all_upstream_inputs["noisy_wavs"]
+                if self.use_clean_mels:
+                    wavs_for_whisper = all_upstream_inputs["clean_wavs"]
+                whisper_mels = self.whisper_feature_extractor(
+                    wavs_for_whisper,
                     return_tensors="pt",
                     sampling_rate=SAMPLE_RATE,
                     do_normalize=True,
                 ).input_features
+            else:
+                if self.use_noisy_mels:
+                    whisper_mels = noisy_mels
+                if self.use_clean_mels:
+                    whisper_mels = clean_mels
 
         wavs_len = [len(wav) for wav in noisy_wavs]
         max_seq_len = len(list(range(0, max(wavs_len), DOWNSAMPLE_RATE)))
@@ -144,7 +158,7 @@ class UpstreamExpert(torch.nn.Module):
             with torch.no_grad():
                 self.whisper_model.eval()
                 result = self.whisper_model(
-                    clean_mels.to(device),
+                    whisper_mels.to(device),
                     decoder_input_ids=decoder_input_ids.to(device),
                     output_hidden_states=True,
                 )

@@ -19,7 +19,9 @@ upstreamrc:
   project_size: 256
   use_wavlm: True
   use_whisper: True
-  extract_whisper_mels: True
+  extract_mels: True
+  use_noisy_mels: False
+  use_clean_mels: True
 
 downstream_expert:
   datarc:
