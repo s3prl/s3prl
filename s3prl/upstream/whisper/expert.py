@@ -35,10 +35,20 @@ class UpstreamExpert(torch.nn.Module):
         extract_mels: bool,
         use_noisy_mels: bool,
         use_clean_mels: bool,
+        whisper_mel: str = "noisy",
+        noise_disentanglement: float = 1.0,
         **kwds,
     ):
         super().__init__()
         assert use_wavlm or use_whisper
+        self.whisper_mel = whisper_mel
+        self.extract_mels = extract_mels
+        self.use_noisy_mels = use_noisy_mels
+        self.use_clean_mels = use_clean_mels
+        logger.info("Setup Whisper Mel extractor")
+        self.whisper_feature_extractor = AutoFeatureExtractor.from_pretrained(
+            "openai/whisper-base"
+        )
 
         if project_model == "MLP":
             build_model = partial(
@@ -69,13 +79,15 @@ class UpstreamExpert(torch.nn.Module):
                 ]
             )
 
-        self.extract_mels = extract_mels
-        self.use_noisy_mels = use_noisy_mels
-        self.use_clean_mels = use_clean_mels
-        logger.info("Setup Whisper Mel extractor")
-        self.whisper_feature_extractor = AutoFeatureExtractor.from_pretrained(
-            "openai/whisper-base"
-        )
+        self.noise_disentanglement = noise_disentanglement
+        if noise_disentanglement > 0:
+            self.clean_whisper_projects = torch.nn.ModuleList(
+                [
+                    build_model(WHISPER_HIDDEN_SIZE)
+                    for _ in range(WHISPER_BASE_NUM_LAYER)
+                ]
+            )
+            self.noise_disentanglement_l1 = torch.nn.L1Loss()
 
         self.register_buffer("device_detector", torch.zeros(1))
 
@@ -101,7 +113,6 @@ class UpstreamExpert(torch.nn.Module):
                 sampling_rate=SAMPLE_RATE,
                 do_normalize=True,
             ).input_features.to(device)
-            whisper_mels = clean_mels
         else:
 
             def to_device(target, device):
@@ -121,19 +132,21 @@ class UpstreamExpert(torch.nn.Module):
             if self.extract_mels:
                 if self.use_noisy_mels:
                     wavs_for_whisper = all_upstream_inputs["noisy_wavs"]
+                    noisy_mels = self.whisper_feature_extractor(
+                        wavs_for_whisper,
+                        return_tensors="pt",
+                        sampling_rate=SAMPLE_RATE,
+                        do_normalize=True,
+                    ).input_features
+
                 if self.use_clean_mels:
                     wavs_for_whisper = all_upstream_inputs["clean_wavs"]
-                whisper_mels = self.whisper_feature_extractor(
-                    wavs_for_whisper,
-                    return_tensors="pt",
-                    sampling_rate=SAMPLE_RATE,
-                    do_normalize=True,
-                ).input_features
-            else:
-                if self.use_noisy_mels:
-                    whisper_mels = noisy_mels
-                if self.use_clean_mels:
-                    whisper_mels = clean_mels
+                    clean_mels = self.whisper_feature_extractor(
+                        wavs_for_whisper,
+                        return_tensors="pt",
+                        sampling_rate=SAMPLE_RATE,
+                        do_normalize=True,
+                    ).input_features
 
         wavs_len = [len(wav) for wav in noisy_wavs]
         max_seq_len = len(list(range(0, max(wavs_len), DOWNSAMPLE_RATE)))
@@ -153,6 +166,11 @@ class UpstreamExpert(torch.nn.Module):
 
         whisper_projected_hs = []
         if self.use_whisper:
+            if self.whisper_mel == "noisy":
+                whisper_mels = noisy_mels
+            elif self.whisper_mel == "clean":
+                whisper_mels = clean_mels
+
             decoder_input_ids = (
                 torch.tensor([[1]]) * self.whisper_model.config.decoder_start_token_id
             )
@@ -171,6 +189,35 @@ class UpstreamExpert(torch.nn.Module):
                 projected_hs = project(hs)
                 whisper_projected_hs.append(projected_hs)
 
+        if self.noise_disentanglement > 0:
+            clean_whisper_projected_hs = []
+            with torch.no_grad():
+                self.whisper_model.eval()
+                result = self.whisper_model(
+                    clean_mels.to(device),
+                    decoder_input_ids=decoder_input_ids.to(device),
+                    output_hidden_states=True,
+                )
+            clean_whisper_hs = result.encoder_hidden_states
+            clean_whisper_hs = [
+                F.layer_norm(hs[:, :max_seq_len, :], hs.shape[-1:])
+                for hs in clean_whisper_hs
+            ]
+            for hs, project in zip(clean_whisper_hs, self.clean_whisper_projects):
+                projected_hs = project(hs)
+                clean_whisper_projected_hs.append(projected_hs)
+
+            noisy_whisper_hs = torch.stack(whisper_projected_hs, dim=0).mean(dim=0)
+            clean_whisper_hs = torch.stack(clean_whisper_projected_hs, dim=0).mean(
+                dim=0
+            )
+            noise_disentangle_loss = self.noise_disentanglement_l1(
+                noisy_whisper_hs, clean_whisper_hs
+            )
+            scaled_noise_disentangle_loss = (
+                self.noise_disentanglement * noise_disentangle_loss
+            )
+
         if self.use_wavlm and self.use_whisper:
             hidden_states = []
             for wavlm_hs, whisper_hs in zip(wavlm_projected_hs, whisper_projected_hs):
@@ -186,6 +233,15 @@ class UpstreamExpert(torch.nn.Module):
         elif self.use_whisper:
             hidden_state = torch.stack(whisper_projected_hs, dim=0).mean(dim=0)
 
-        return {
+        results = {
             "hidden_states": [hidden_state],
         }
+        if self.noise_disentanglement > 0:
+            results.update(
+                {
+                    "noise_disentangle_loss": noise_disentangle_loss,
+                    "scaled_noise_disentangle_loss": scaled_noise_disentangle_loss,
+                }
+            )
+
+        return results

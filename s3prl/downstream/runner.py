@@ -296,16 +296,22 @@ class Runner():
                     else:
                         with torch.no_grad():
                             features = self.upstream.model(upstream_inputs)
+                    if "noise_disentangle_loss" in features:
+                        noise_disentangle_loss = features["noise_disentangle_loss"]
+                        scaled_noise_disentangle_loss = features["scaled_noise_disentangle_loss"]
+                        records["noise_disentangle_loss"].append(noise_disentangle_loss.cpu().item())
                     features = self.featurizer.model(paired_wavs, features)
 
                     if specaug:
                         features, _ = specaug(features)
 
-                    loss = self.downstream.model(
+                    downstream_loss = self.downstream.model(
                         train_split,
                         features, *others,
                         records = records,
                     )
+                    records["downstream_loss"].append(downstream_loss.cpu().item())
+                    loss = downstream_loss + scaled_noise_disentangle_loss
                     batch_ids.append(batch_id)
 
                     gradient_accumulate_steps = self.config['runner'].get('gradient_accumulate_steps')
@@ -359,6 +365,8 @@ class Runner():
                         batch_ids = batch_ids,
                         total_batch_num = len(dataloader),
                     )
+                    logger.add_scalar("train_downstream_loss", torch.FloatTensor(records["downstream_loss"]).mean().item(), global_step=global_step)
+                    logger.add_scalar("train_noise_disentanglement_loss", torch.FloatTensor(records["noise_disentangle_loss"]).mean().item(), global_step=global_step)
                     batch_ids = []
                     records = defaultdict(list)
 
@@ -443,13 +451,12 @@ class Runner():
 
         # prepare data
         dataloader = self.downstream.model.get_dataloader(split)
-        evaluate_ratio = float(self.config["runner"].get("evaluate_ratio", 1))
-        evaluate_steps = round(len(dataloader) * evaluate_ratio)
+        eval_batch = self.config["runner"].get("eval_batch", None)
 
         batch_ids = []
         records = defaultdict(list)
-        for batch_id, (upstream_inputs, *others) in enumerate(tqdm(dataloader, dynamic_ncols=True, desc=split, total=evaluate_steps)):
-            if batch_id > evaluate_steps:
+        for batch_id, (upstream_inputs, *others) in enumerate(tqdm(dataloader, dynamic_ncols=True, desc=split)):
+            if isinstance(eval_batch, int) and batch_id >= eval_batch:
                 break
 
             if isinstance(upstream_inputs, (list, tuple)):
@@ -464,6 +471,9 @@ class Runner():
                 else:
                     with torch.no_grad():
                         features = self.upstream.model(upstream_inputs)
+                if "noise_disentangle_loss" in features:
+                    noise_disentangle_loss = features["noise_disentangle_loss"]
+                    records["noise_disentangle_loss"].append(noise_disentangle_loss.cpu().item())
                 features = self.featurizer.model(paired_wavs, features)
                 self.downstream.model(
                     split,
@@ -481,6 +491,7 @@ class Runner():
             batch_ids = batch_ids,
             total_batch_num = len(dataloader),
         )
+        logger.add_scalar(f"{split}_noise_disentanglement_loss", torch.FloatTensor(records["noise_disentangle_loss"]).mean().item(), global_step=global_step)
         batch_ids = []
         records = defaultdict(list)
 

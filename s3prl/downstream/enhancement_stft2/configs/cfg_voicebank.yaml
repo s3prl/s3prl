@@ -20,8 +20,10 @@ upstreamrc:
   use_wavlm: True
   use_whisper: True
   extract_mels: True
-  use_noisy_mels: False
+  use_noisy_mels: True
   use_clean_mels: True
+  whisper_mel: noisy
+  noise_disentanglement: 1.0
 
 downstream_expert:
   datarc:
