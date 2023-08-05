@@ -14,6 +14,13 @@ optimizer:
   name: AdamW
   lr: 1.e-3
 
+upstreamrc:
+  project_model: MLP
+  project_size: 256
+  use_wavlm: True
+  use_whisper: True
+  extract_whisper_mels: True
+
 downstream_expert:
   datarc:
     num_speakers: 1
@@ -25,6 +32,8 @@ downstream_expert:
     hop_length: 160
     window: "hann"
     center: True
+    source_whisper_mels: False
+    target_whisper_mels: False
 
   loaderrc:
     num_workers: 4

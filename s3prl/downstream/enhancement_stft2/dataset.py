@@ -11,7 +11,7 @@
 # IMPORTATION #
 ###############
 import os
-import random
+from typing import List
 
 import numpy as np
 
@@ -20,6 +20,7 @@ from torch.nn.utils.rnn import pad_sequence
 from torch.utils.data.dataset import Dataset
 
 import librosa
+from transformers import AutoFeatureExtractor
 
 SAMPLE_RATE = 16000
 
@@ -35,6 +36,8 @@ class SeparationDataset(Dataset):
         win_length=512,
         window='hann', 
         center=True,
+        source_whisper_mels=False,
+        target_whisper_mels=True,
     ):
         super(SeparationDataset, self).__init__()
         """
@@ -77,6 +80,8 @@ class SeparationDataset(Dataset):
         self.window = window
         self.center = center
         self.n_srcs = len(self.tgt)
+        self.source_whisper_mels = source_whisper_mels
+        self.target_whisper_mels = target_whisper_mels
 
         assert len(self.src) == 1 and len(self.tgt) == 1
 
@@ -100,6 +105,10 @@ class SeparationDataset(Dataset):
 
         self.recolist = list(self.reco2path.keys())
         self.recolist.sort()
+
+        self.whisper_feature_extractor = AutoFeatureExtractor.from_pretrained(
+            "openai/whisper-base"
+        )
 
     def __len__(self):
         return len(self.recolist)
@@ -183,6 +192,37 @@ class SeparationDataset(Dataset):
             target_wav_list.append(pad_sequence([torch.from_numpy(sorted_batch[i][3][j]) for i in range(bs)], batch_first=True))
 
         feat_length = torch.from_numpy(np.array([stft.size(0) for stft in mix_stft_list]))
+
+        source_wavs_np = [wav.numpy() for wav in source_wav_list]
+        if self.source_whisper_mels:
+            source_whisper_mels: torch.Tensor = self.whisper_feature_extractor(
+                source_wavs_np,
+                return_tensors="pt",
+                sampling_rate=SAMPLE_RATE,
+                do_normalize=True,
+            ).input_features
+        else:
+            source_whisper_mels = None
+
+        target_wavs_np = [clean.numpy()[:len(noisy)] for noisy, clean in zip(source_wav_list, target_wav_list[0])]
+        if self.target_whisper_mels:
+            target_whisper_mels = self.whisper_feature_extractor(
+                target_wavs_np,
+                return_tensors="pt",
+                sampling_rate=SAMPLE_RATE,
+                do_normalize=True,
+            ).input_features
+        else:
+            target_whisper_mels = None
+
+        all_upstream_inputs = {
+            "noisy_wavs": source_wavs_np,
+            "clean_wavs": target_wavs_np,
+            "noisy_mels": source_whisper_mels,
+            "clean_mels": target_whisper_mels,
+            "wavs": source_wavs_np,
+        }
+
         """
         source_wav_list (list(tensor)):
             list of audio samples for the source
@@ -205,4 +245,4 @@ class SeparationDataset(Dataset):
         wav_length (tensor):
             number of samples in each utterance
         """
-        return source_wav_list, uttname_list, source_attr, source_wav, target_attr, target_wav_list, feat_length, wav_length
+        return all_upstream_inputs, uttname_list, source_attr, source_wav, target_attr, target_wav_list, feat_length, wav_length

@@ -150,6 +150,7 @@ class Runner():
             ckpt = ckpt_path,
             model_config = self.args.upstream_model_config,
             refresh = upstream_refresh,
+            **self.config.get("upstreamrc", {}),
         ).to(self.args.device)
 
         if is_initialized() and get_rank() == 0:
@@ -277,20 +278,25 @@ class Runner():
                 else:
                     raise
 
-            for batch_id, (wavs, *others) in enumerate(tqdm(dataloader, dynamic_ncols=True, desc='train', file=tqdm_file)):
+            for batch_id, (upstream_inputs, *others) in enumerate(tqdm(dataloader, dynamic_ncols=True, desc='train', file=tqdm_file)):
                 # try/except block for forward/backward
                 try:
                     if pbar.n >= pbar.total:
                         break
                     global_step = pbar.n + 1
 
-                    wavs = [torch.FloatTensor(wav).to(self.args.device) for wav in wavs]
+                    if isinstance(upstream_inputs, (list, tuple)):
+                        upstream_inputs = [torch.FloatTensor(wav).to(self.args.device) for wav in upstream_inputs]
+                        paired_wavs = upstream_inputs
+                    else:
+                        paired_wavs = upstream_inputs["wavs"]
+
                     if self.upstream.trainable:
-                        features = self.upstream.model(wavs)
+                        features = self.upstream.model(upstream_inputs)
                     else:
                         with torch.no_grad():
-                            features = self.upstream.model(wavs)
-                    features = self.featurizer.model(wavs, features)
+                            features = self.upstream.model(upstream_inputs)
+                    features = self.featurizer.model(paired_wavs, features)
 
                     if specaug:
                         features, _ = specaug(features)

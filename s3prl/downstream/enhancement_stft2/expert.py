@@ -79,6 +79,8 @@ class DownstreamExpert(nn.Module):
                 win_length=self.datarc['win_length'],
                 window=self.datarc['window'],
                 center=self.datarc['center'],
+                source_whisper_mels=self.datarc['source_whisper_mels'],
+                target_whisper_mels=self.datarc['target_whisper_mels'],
             )
         self.dev_dataset = SeparationDataset(
                 data_dir=self.loaderrc["dev_dir"],
@@ -90,6 +92,8 @@ class DownstreamExpert(nn.Module):
                 win_length=self.datarc['win_length'],
                 window=self.datarc['window'],
                 center=self.datarc['center'],
+                source_whisper_mels=self.datarc['source_whisper_mels'],
+                target_whisper_mels=self.datarc['target_whisper_mels'],
         )
         self.test_dataset = SeparationDataset(
                 data_dir=self.loaderrc["test_dir"],
@@ -101,6 +105,8 @@ class DownstreamExpert(nn.Module):
                 win_length=self.datarc['win_length'],
                 window=self.datarc['window'],
                 center=self.datarc['center'],
+                source_whisper_mels=self.datarc['source_whisper_mels'],
+                target_whisper_mels=self.datarc['target_whisper_mels'],
         )
 
         if self.modelrc["model"] == "SepRNN":

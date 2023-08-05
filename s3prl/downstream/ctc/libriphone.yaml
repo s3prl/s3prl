@@ -15,6 +15,13 @@ optimizer:
   torch_optim_name: Adam
   lr: 1.0e-2
 
+upstreamrc:
+  duplicate_wav: True
+  project_model: MLP
+  project_size: 256
+  use_wavlm: True
+  use_whisper: True
+
 # comment the whole scheduler config block
 # to disable learning rate scheduling
 # scheduler:
