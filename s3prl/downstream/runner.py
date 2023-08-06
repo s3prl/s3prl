@@ -93,6 +93,9 @@ class Runner():
         self.upstream = self._get_upstream()
         self.featurizer = self._get_featurizer()
         self.downstream = self._get_downstream()
+        if self.config["downstream_expert"].get("pretrained", None) is not None:
+            pretrained_ckpt = torch.load(self.config["downstream_expert"]["pretrained"], map_location="cpu")
+            self.downstream.model.load_state_dict(pretrained_ckpt["Downstream"])
         self.all_entries = [self.upstream, self.featurizer, self.downstream]
 
 
@@ -296,12 +299,13 @@ class Runner():
                     else:
                         with torch.no_grad():
                             features = self.upstream.model(upstream_inputs)
-                    if "noise_disentangle_loss" in features:
-                        noise_disentangle_loss = features["noise_disentangle_loss"]
-                        scaled_noise_disentangle_loss = features["scaled_noise_disentangle_loss"]
-                        records["noise_disentangle_loss"].append(noise_disentangle_loss.cpu().item())
-                    features = self.featurizer.model(paired_wavs, features)
 
+                    if "clean_latent_guidance_loss" in features:
+                        clean_latent_guidance_loss = features["clean_latent_guidance_loss"]
+                        scaled_clean_latent_guidance_loss = features["scaled_clean_latent_guidance_loss"]
+                        records["clean_latent_guidance_loss"].append(clean_latent_guidance_loss.cpu().item())
+
+                    features = self.featurizer.model(paired_wavs, features)
                     if specaug:
                         features, _ = specaug(features)
 
@@ -310,8 +314,7 @@ class Runner():
                         features, *others,
                         records = records,
                     )
-                    records["downstream_loss"].append(downstream_loss.cpu().item())
-                    loss = downstream_loss + scaled_noise_disentangle_loss
+                    loss = downstream_loss + scaled_clean_latent_guidance_loss
                     batch_ids.append(batch_id)
 
                     gradient_accumulate_steps = self.config['runner'].get('gradient_accumulate_steps')
@@ -365,8 +368,7 @@ class Runner():
                         batch_ids = batch_ids,
                         total_batch_num = len(dataloader),
                     )
-                    logger.add_scalar("train_downstream_loss", torch.FloatTensor(records["downstream_loss"]).mean().item(), global_step=global_step)
-                    logger.add_scalar("train_noise_disentanglement_loss", torch.FloatTensor(records["noise_disentangle_loss"]).mean().item(), global_step=global_step)
+                    logger.add_scalar("train_clean_latent_guidance_loss", torch.FloatTensor(records["clean_latent_guidance_loss"]).mean().item(), global_step=global_step)
                     batch_ids = []
                     records = defaultdict(list)
 
@@ -471,9 +473,11 @@ class Runner():
                 else:
                     with torch.no_grad():
                         features = self.upstream.model(upstream_inputs)
-                if "noise_disentangle_loss" in features:
-                    noise_disentangle_loss = features["noise_disentangle_loss"]
-                    records["noise_disentangle_loss"].append(noise_disentangle_loss.cpu().item())
+
+                if "clean_latent_guidance_loss" in features:
+                    clean_latent_guidance_loss = features["clean_latent_guidance_loss"]
+                    records["clean_latent_guidance_loss"].append(clean_latent_guidance_loss.cpu().item())
+
                 features = self.featurizer.model(paired_wavs, features)
                 self.downstream.model(
                     split,
@@ -491,7 +495,7 @@ class Runner():
             batch_ids = batch_ids,
             total_batch_num = len(dataloader),
         )
-        logger.add_scalar(f"{split}_noise_disentanglement_loss", torch.FloatTensor(records["noise_disentangle_loss"]).mean().item(), global_step=global_step)
+        logger.add_scalar(f"{split}_clean_latent_guidance_loss", torch.FloatTensor(records["clean_latent_guidance_loss"]).mean().item(), global_step=global_step)
         batch_ids = []
         records = defaultdict(list)
 

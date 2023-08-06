@@ -19,13 +19,14 @@ upstreamrc:
   project_size: 256
   use_wavlm: True
   use_whisper: True
-  extract_mels: True
-  use_noisy_mels: True
-  use_clean_mels: True
+  extract_noisy_mel: True
+  extract_clean_mel: True
   whisper_mel: noisy
-  noise_disentanglement: 1.0
+  clean_latent_guidance: 1.0
+  pretrained_clean_whisper_projects: /home/leo/d/se/twcc_s3prl/s3prl/result/se/wavlm_noisy_whisper_clean/best-states-dev.ckpt
 
 downstream_expert:
+  pretrained: /home/leo/d/se/twcc_s3prl/s3prl/result/se/wavlm_noisy_whisper_clean/best-states-dev.ckpt
   datarc:
     num_speakers: 1
     rate: 16000

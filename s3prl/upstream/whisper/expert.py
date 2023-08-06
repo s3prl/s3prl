@@ -1,5 +1,6 @@
 import logging
 from functools import partial
+from collections import OrderedDict
 
 import torch
 import torch.nn.functional as F
@@ -32,19 +33,18 @@ class UpstreamExpert(torch.nn.Module):
         project_size: int,
         use_wavlm: bool,
         use_whisper: bool,
-        extract_mels: bool,
-        use_noisy_mels: bool,
-        use_clean_mels: bool,
+        extract_noisy_mel: bool,
+        extract_clean_mel: bool,
+        pretrained_clean_whisper_projects: str,
         whisper_mel: str = "noisy",
-        noise_disentanglement: float = 1.0,
+        clean_latent_guidance: float = 1.0,
         **kwds,
     ):
         super().__init__()
         assert use_wavlm or use_whisper
         self.whisper_mel = whisper_mel
-        self.extract_mels = extract_mels
-        self.use_noisy_mels = use_noisy_mels
-        self.use_clean_mels = use_clean_mels
+        self.extract_noisy_mel = extract_noisy_mel
+        self.extract_clean_mel = extract_clean_mel
         logger.info("Setup Whisper Mel extractor")
         self.whisper_feature_extractor = AutoFeatureExtractor.from_pretrained(
             "openai/whisper-base"
@@ -79,15 +79,24 @@ class UpstreamExpert(torch.nn.Module):
                 ]
             )
 
-        self.noise_disentanglement = noise_disentanglement
-        if noise_disentanglement > 0:
+        self.clean_latent_guidance = clean_latent_guidance
+        if clean_latent_guidance > 0:
             self.clean_whisper_projects = torch.nn.ModuleList(
                 [
                     build_model(WHISPER_HIDDEN_SIZE)
                     for _ in range(WHISPER_BASE_NUM_LAYER)
                 ]
             )
-            self.noise_disentanglement_l1 = torch.nn.L1Loss()
+            self.clean_latent_guidance_loss = torch.nn.L1Loss()
+            pretrained_ckpt = torch.load(
+                pretrained_clean_whisper_projects, map_location="cpu"
+            )
+            pretrained_weights = OrderedDict()
+            for key, value in pretrained_ckpt["Upstream"].items():
+                if key.startswith("whisper_projects"):
+                    key = key.replace("whisper_projects", "clean_whisper_projects")
+                    pretrained_weights[key] = value
+            self.load_state_dict(pretrained_weights, strict=False)
 
         self.register_buffer("device_detector", torch.zeros(1))
 
@@ -129,24 +138,21 @@ class UpstreamExpert(torch.nn.Module):
             noisy_mels = to_device(all_upstream_inputs["noisy_mels"], device)
             clean_mels = to_device(all_upstream_inputs["clean_mels"], device)
 
-            if self.extract_mels:
-                if self.use_noisy_mels:
-                    wavs_for_whisper = all_upstream_inputs["noisy_wavs"]
-                    noisy_mels = self.whisper_feature_extractor(
-                        wavs_for_whisper,
-                        return_tensors="pt",
-                        sampling_rate=SAMPLE_RATE,
-                        do_normalize=True,
-                    ).input_features
+            if self.extract_noisy_mel:
+                noisy_mels = self.whisper_feature_extractor(
+                    all_upstream_inputs["noisy_wavs"],
+                    return_tensors="pt",
+                    sampling_rate=SAMPLE_RATE,
+                    do_normalize=True,
+                ).input_features
 
-                if self.use_clean_mels:
-                    wavs_for_whisper = all_upstream_inputs["clean_wavs"]
-                    clean_mels = self.whisper_feature_extractor(
-                        wavs_for_whisper,
-                        return_tensors="pt",
-                        sampling_rate=SAMPLE_RATE,
-                        do_normalize=True,
-                    ).input_features
+            if self.extract_clean_mel:
+                clean_mels = self.whisper_feature_extractor(
+                    all_upstream_inputs["clean_wavs"],
+                    return_tensors="pt",
+                    sampling_rate=SAMPLE_RATE,
+                    do_normalize=True,
+                ).input_features
 
         wavs_len = [len(wav) for wav in noisy_wavs]
         max_seq_len = len(list(range(0, max(wavs_len), DOWNSAMPLE_RATE)))
@@ -189,7 +195,7 @@ class UpstreamExpert(torch.nn.Module):
                 projected_hs = project(hs)
                 whisper_projected_hs.append(projected_hs)
 
-        if self.noise_disentanglement > 0:
+        if self.clean_latent_guidance > 0:
             clean_whisper_projected_hs = []
             with torch.no_grad():
                 self.whisper_model.eval()
@@ -211,11 +217,11 @@ class UpstreamExpert(torch.nn.Module):
             clean_whisper_hs = torch.stack(clean_whisper_projected_hs, dim=0).mean(
                 dim=0
             )
-            noise_disentangle_loss = self.noise_disentanglement_l1(
+            clean_latent_guidance_loss = self.clean_latent_guidance_loss(
                 noisy_whisper_hs, clean_whisper_hs
             )
-            scaled_noise_disentangle_loss = (
-                self.noise_disentanglement * noise_disentangle_loss
+            scaled_clean_latent_guidance_loss = (
+                self.clean_latent_guidance * clean_latent_guidance_loss
             )
 
         if self.use_wavlm and self.use_whisper:
@@ -236,11 +242,11 @@ class UpstreamExpert(torch.nn.Module):
         results = {
             "hidden_states": [hidden_state],
         }
-        if self.noise_disentanglement > 0:
+        if self.clean_latent_guidance > 0:
             results.update(
                 {
-                    "noise_disentangle_loss": noise_disentangle_loss,
-                    "scaled_noise_disentangle_loss": scaled_noise_disentangle_loss,
+                    "clean_latent_guidance_loss": clean_latent_guidance_loss,
+                    "scaled_clean_latent_guidance_loss": scaled_clean_latent_guidance_loss,
                 }
             )
 
