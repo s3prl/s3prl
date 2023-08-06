@@ -97,6 +97,7 @@ class UpstreamExpert(torch.nn.Module):
                     key = key.replace("whisper_projects", "clean_whisper_projects")
                     pretrained_weights[key] = value
             self.load_state_dict(pretrained_weights, strict=False)
+            self.clean_whisper_projects.requires_grad_(False)
 
         self.register_buffer("device_detector", torch.zeros(1))
 
@@ -204,14 +205,14 @@ class UpstreamExpert(torch.nn.Module):
                     decoder_input_ids=decoder_input_ids.to(device),
                     output_hidden_states=True,
                 )
-            clean_whisper_hs = result.encoder_hidden_states
-            clean_whisper_hs = [
-                F.layer_norm(hs[:, :max_seq_len, :], hs.shape[-1:])
-                for hs in clean_whisper_hs
-            ]
-            for hs, project in zip(clean_whisper_hs, self.clean_whisper_projects):
-                projected_hs = project(hs)
-                clean_whisper_projected_hs.append(projected_hs)
+                clean_whisper_hs = result.encoder_hidden_states
+                clean_whisper_hs = [
+                    F.layer_norm(hs[:, :max_seq_len, :], hs.shape[-1:])
+                    for hs in clean_whisper_hs
+                ]
+                for hs, project in zip(clean_whisper_hs, self.clean_whisper_projects):
+                    projected_hs = project(hs)
+                    clean_whisper_projected_hs.append(projected_hs)
 
             noisy_whisper_hs = torch.stack(whisper_projected_hs, dim=0).mean(dim=0)
             clean_whisper_hs = torch.stack(clean_whisper_projected_hs, dim=0).mean(
