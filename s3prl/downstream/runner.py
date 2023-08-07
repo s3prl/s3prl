@@ -85,23 +85,24 @@ class Runner():
     Used to handle high-level concepts of a ML experiment
     eg. training loop, evaluation loop, upstream propagation, optimization, logging, checkpoint saving
     """
+
     def __init__(self, args, config):
         self.args = args
         self.config = config
-        self.init_ckpt = torch.load(self.args.init_ckpt, map_location='cpu') if self.args.init_ckpt else {}
+        self.init_ckpt = torch.load(
+            self.args.init_ckpt, map_location='cpu') if self.args.init_ckpt else {}
 
         self.upstream = self._get_upstream()
         self.featurizer = self._get_featurizer()
         self.downstream = self._get_downstream()
         self.all_entries = [self.upstream, self.featurizer, self.downstream]
 
-
     def _load_weight(self, model, name):
         init_weight = self.init_ckpt.get(name)
         if init_weight:
-            show(f'[Runner] - Loading {name} weights from the previous experiment')
+            show(
+                f'[Runner] - Loading {name} weights from the previous experiment')
             model.load_state_dict(init_weight)
-
 
     def _init_model(self, model, name, trainable, interfaces=None):
         for interface in interfaces or []:
@@ -110,19 +111,21 @@ class Runner():
         self._load_weight(model, name)
 
         if is_initialized() and trainable and any((p.requires_grad for p in model.parameters())):
-            model = DDP(model, device_ids=[self.args.local_rank], find_unused_parameters=False)
+            model = DDP(model, device_ids=[
+                        self.args.local_rank], find_unused_parameters=False)
             for interface in interfaces or []:
                 setattr(model, interface, getattr(model.module, interface))
 
         return ModelEntry(model, name, trainable, interfaces)
 
-
     def _get_upstream(self):
         if "from_hf_hub" in self.args and self.args.from_hf_hub == True:
             from huggingface_hub import snapshot_download
 
-            print(f'[Runner] - Downloading upstream model {self.args.upstream} from the Hugging Face Hub')
-            filepath = snapshot_download(self.args.upstream, self.args.upstream_revision, use_auth_token=True)
+            print(
+                f'[Runner] - Downloading upstream model {self.args.upstream} from the Hugging Face Hub')
+            filepath = snapshot_download(
+                self.args.upstream, self.args.upstream_revision, use_auth_token=True)
             sys.path.append(filepath)
 
             dependencies = (Path(filepath) / 'requirements.txt').resolve()
@@ -147,57 +150,55 @@ class Runner():
             upstream_refresh = False
 
         model = Upstream(
-            ckpt = ckpt_path,
-            model_config = self.args.upstream_model_config,
-            refresh = upstream_refresh,
+            ckpt=ckpt_path,
+            model_config=self.args.upstream_model_config,
+            refresh=upstream_refresh,
         ).to(self.args.device)
 
         if is_initialized() and get_rank() == 0:
             torch.distributed.barrier()
 
         return self._init_model(
-            model = model,
-            name = 'Upstream',
-            trainable = self.args.upstream_trainable,
-            interfaces = ["get_downsample_rates"]
+            model=model,
+            name='Upstream',
+            trainable=self.args.upstream_trainable,
+            interfaces=["get_downsample_rates"]
         )
-
 
     def _get_featurizer(self):
         model = Featurizer(
-            upstream = self.upstream.model,
-            feature_selection = self.args.upstream_feature_selection,
-            layer_selection = self.args.upstream_layer_selection,
-            upstream_device = self.args.device,
-            normalize = self.args.upstream_feature_normalize,
+            upstream=self.upstream.model,
+            feature_selection=self.args.upstream_feature_selection,
+            layer_selection=self.args.upstream_layer_selection,
+            upstream_device=self.args.device,
+            normalize=self.args.upstream_feature_normalize,
         ).to(self.args.device)
 
         return self._init_model(
-            model = model,
-            name = 'Featurizer',
-            trainable = True,
-            interfaces = ['output_dim', 'downsample_rate']
+            model=model,
+            name='Featurizer',
+            trainable=True,
+            interfaces=['output_dim', 'downsample_rate']
         )
 
-
     def _get_downstream(self):
-        expert = importlib.import_module(f"s3prl.downstream.{self.args.downstream}.expert")
+        expert = importlib.import_module(
+            f"s3prl.downstream.{self.args.downstream}.expert")
         Downstream = getattr(expert, "DownstreamExpert")
 
         model = Downstream(
-            upstream_dim = self.featurizer.model.output_dim,
-            upstream_rate = self.featurizer.model.downsample_rate,
+            upstream_dim=self.featurizer.model.output_dim,
+            upstream_rate=self.featurizer.model.downsample_rate,
             **self.config,
             **vars(self.args)
         ).to(self.args.device)
 
         return self._init_model(
-            model = model,
-            name = 'Downstream',
-            trainable = True,
-            interfaces = ['get_dataloader', 'log_records']
+            model=model,
+            name='Downstream',
+            trainable=True,
+            interfaces=['get_dataloader', 'log_records']
         )
-
 
     def _get_optimizer(self, model_params):
         optimizer = get_optimizer(
@@ -207,7 +208,6 @@ class Runner():
         )
         self._load_weight(optimizer, 'Optimizer')
         return optimizer
-
 
     def _get_scheduler(self, optimizer):
         scheduler = get_scheduler(
@@ -219,10 +219,10 @@ class Runner():
         return scheduler
 
     def _create_model_card(self, path):
-        model_card = MODEL_CARD_MARKDOWN.format(upstream_model=self.args.upstream)
+        model_card = MODEL_CARD_MARKDOWN.format(
+            upstream_model=self.args.upstream)
         with open(os.path.join(path, "README.md"), "w") as f:
             f.write(model_card)
-
 
     def train(self):
         # trainable parameters and train/eval mode
@@ -252,7 +252,8 @@ class Runner():
 
         # progress bar
         tqdm_file = sys.stderr if is_leader_process() else open(os.devnull, 'w')
-        pbar = tqdm(total=self.config['runner']['total_steps'], dynamic_ncols=True, desc='overall', file=tqdm_file)
+        pbar = tqdm(total=self.config['runner']['total_steps'],
+                    dynamic_ncols=True, desc='overall', file=tqdm_file)
         init_step = self.init_ckpt.get('Step')
         if init_step:
             pbar.n = init_step
@@ -268,10 +269,12 @@ class Runner():
         train_split = self.config['runner'].get("train_dataloader", "train")
         while pbar.n < pbar.total:
             try:
-                dataloader = self.downstream.model.get_dataloader(train_split, epoch=epoch)
+                dataloader = self.downstream.model.get_dataloader(
+                    train_split, epoch=epoch)
             except TypeError as e:
                 if "unexpected keyword argument 'epoch'" in str(e):
-                    dataloader = self.downstream.model.get_dataloader(train_split)
+                    dataloader = self.downstream.model.get_dataloader(
+                        train_split)
                     if hasattr(dataloader, "sampler") and isinstance(dataloader.sampler, DistributedSampler):
                         dataloader.sampler.set_epoch(epoch)
                 else:
@@ -284,7 +287,8 @@ class Runner():
                         break
                     global_step = pbar.n + 1
 
-                    wavs = [torch.FloatTensor(wav).to(self.args.device) for wav in wavs]
+                    wavs = [torch.FloatTensor(wav).to(
+                        self.args.device) for wav in wavs]
                     if self.upstream.trainable:
                         features = self.upstream.model(wavs)
                     else:
@@ -298,17 +302,19 @@ class Runner():
                     loss = self.downstream.model(
                         train_split,
                         features, *others,
-                        records = records,
+                        records=records,
                     )
                     batch_ids.append(batch_id)
 
-                    gradient_accumulate_steps = self.config['runner'].get('gradient_accumulate_steps')
+                    gradient_accumulate_steps = self.config['runner'].get(
+                        'gradient_accumulate_steps')
                     (loss / gradient_accumulate_steps).backward()
                     del loss
 
                 except RuntimeError as e:
                     if 'CUDA out of memory' in str(e):
-                        print(f'[Runner] - CUDA out of memory at step {global_step}')
+                        print(
+                            f'[Runner] - CUDA out of memory at step {global_step}')
                         if is_initialized():
                             raise
                         with torch.cuda.device(self.args.device):
@@ -347,11 +353,11 @@ class Runner():
                 if global_step % self.config['runner']['log_step'] == 0:
                     self.downstream.model.log_records(
                         train_split,
-                        records = records,
-                        logger = logger,
-                        global_step = global_step,
-                        batch_ids = batch_ids,
-                        total_batch_num = len(dataloader),
+                        records=records,
+                        logger=logger,
+                        global_step=global_step,
+                        batch_ids=batch_ids,
+                        total_batch_num=len(dataloader),
                     )
                     batch_ids = []
                     records = defaultdict(list)
@@ -368,7 +374,8 @@ class Runner():
                         max_keep = self.config['runner']['max_keep']
                         ckpt_pths = glob.glob(f'{directory}/states-*.ckpt')
                         if len(ckpt_pths) >= max_keep:
-                            ckpt_pths = sorted(ckpt_pths, key=lambda pth: int(pth.split('-')[-1].split('.')[0]))
+                            ckpt_pths = sorted(ckpt_pths, key=lambda pth: int(
+                                pth.split('-')[-1].split('.')[0]))
                             for ckpt_pth in ckpt_pths[:len(ckpt_pths) - max_keep + 1]:
                                 os.remove(ckpt_pth)
                     check_ckpt_num(self.args.expdir)
@@ -385,7 +392,8 @@ class Runner():
 
                     for entry in self.all_entries:
                         if entry.trainable:
-                            all_states[entry.name] = get_model_state(entry.model)
+                            all_states[entry.name] = get_model_state(
+                                entry.model)
 
                     if scheduler:
                         all_states['Scheduler'] = scheduler.state_dict()
@@ -393,7 +401,8 @@ class Runner():
                     if is_initialized():
                         all_states['WorldSize'] = get_world_size()
 
-                    save_paths = [os.path.join(self.args.expdir, name) for name in save_names]
+                    save_paths = [os.path.join(self.args.expdir, name)
+                                  for name in save_names]
                     tqdm.write(f'[Runner] - Save the checkpoint to:')
                     for i, path in enumerate(save_paths):
                         tqdm.write(f'{i + 1}. {path}')
@@ -409,7 +418,6 @@ class Runner():
         if is_leader_process():
             logger.close()
 
-
     def evaluate(self, split=None, logger=None, global_step=0):
         """evaluate function will always be called on a single process even during distributed training"""
 
@@ -420,7 +428,7 @@ class Runner():
             tempdir = tempfile.mkdtemp()
             logger = SummaryWriter(tempdir)
 
-        # fix seed to guarantee the same evaluation protocol across steps 
+        # fix seed to guarantee the same evaluation protocol across steps
         random.seed(self.args.seed)
         np.random.seed(self.args.seed)
         torch.manual_seed(self.args.seed)
@@ -446,25 +454,26 @@ class Runner():
             if batch_id > evaluate_steps:
                 break
 
-            wavs = [torch.FloatTensor(wav).to(self.args.device) for wav in wavs]
+            wavs = [torch.FloatTensor(wav).to(self.args.device)
+                    for wav in wavs]
             with torch.no_grad():
                 features = self.upstream.model(wavs)
                 features = self.featurizer.model(wavs, features)
                 self.downstream.model(
                     split,
                     features, *others,
-                    records = records,
-                    batch_id = batch_id,
+                    records=records,
+                    batch_id=batch_id,
                 )
                 batch_ids.append(batch_id)
 
         save_names = self.downstream.model.log_records(
             split,
-            records = records,
-            logger = logger,
-            global_step = global_step,
-            batch_ids = batch_ids,
-            total_batch_num = len(dataloader),
+            records=records,
+            logger=logger,
+            global_step=global_step,
+            batch_ids=batch_ids,
+            total_batch_num=len(dataloader),
         )
         batch_ids = []
         records = defaultdict(list)
@@ -511,7 +520,8 @@ class Runner():
         else:
             organization = os.environ.get("HF_USERNAME")
         huggingface_token = HfFolder.get_token()
-        print(f"[Runner] - Organisation to push fine-tuned model to: {organization}")
+        print(
+            f"[Runner] - Organisation to push fine-tuned model to: {organization}")
 
         # Extract upstream repository metadata
         if self.args.hub == "huggingface":
@@ -536,7 +546,8 @@ class Runner():
         # Download repo
         HF_HUB_DIR = "hf_hub"
         REPO_ROOT_DIR = os.path.join(self.args.expdir, HF_HUB_DIR, repo_name)
-        REPO_TASK_DIR = os.path.join(REPO_ROOT_DIR, self.args.downstream, self.args.expname)
+        REPO_TASK_DIR = os.path.join(
+            REPO_ROOT_DIR, self.args.downstream, self.args.expname)
         print(f"[Runner] - Cloning Hub repo to {REPO_ROOT_DIR}")
         model_repo = Repository(
             local_dir=REPO_ROOT_DIR, clone_from=repo_url, use_auth_token=huggingface_token
@@ -547,18 +558,22 @@ class Runner():
         # Copy checkpoints, tensorboard logs, and args / configs
         # Note that this copies all files from the experiment directory,
         # including those from multiple runs
-        shutil.copytree(self.args.expdir, REPO_TASK_DIR, dirs_exist_ok=True, ignore=shutil.ignore_patterns(HF_HUB_DIR))
+        shutil.copytree(self.args.expdir, REPO_TASK_DIR,
+                        dirs_exist_ok=True, ignore=shutil.ignore_patterns(HF_HUB_DIR))
 
         # By default we use model.ckpt in the PreTrainedModel interface, so
         # rename the best checkpoint to match this convention
         checkpoints = list(Path(REPO_TASK_DIR).glob("*best*.ckpt"))
         if len(checkpoints) == 0:
-            print("[Runner] - Did not find a best checkpoint! Using the final checkpoint instead ...")
+            print(
+                "[Runner] - Did not find a best checkpoint! Using the final checkpoint instead ...")
             CKPT_PATH = (
-                os.path.join(REPO_TASK_DIR, f"states-{self.config['runner']['total_steps']}.ckpt")
-                )
+                os.path.join(
+                    REPO_TASK_DIR, f"states-{self.config['runner']['total_steps']}.ckpt")
+            )
         elif len(checkpoints) > 1:
-            print(f"[Runner] - More than one best checkpoint found! Using {checkpoints[0]} as default ...")
+            print(
+                f"[Runner] - More than one best checkpoint found! Using {checkpoints[0]} as default ...")
             CKPT_PATH = checkpoints[0]
         else:
             print(f"[Runner] - Found best checkpoint {checkpoints[0]}!")

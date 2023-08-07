@@ -332,16 +332,18 @@ class Runner():
                         self.args.device) for wav in wavs]
                     if self.upstream1.trainable:
                         features1 = self.upstream1.model(wavs)
-                        features2 = self.upstream2.model(wavs)
+                        # features2 = self.upstream2.model(wavs)
                     else:
                         with torch.no_grad():
                             features1 = self.upstream1.model(wavs)
-                            features2 = self.upstream2.model(wavs)
+                            # features2 = self.upstream2.model(wavs)
                     features1 = self.featurizer1.model(wavs, features1)
-                    features2 = self.featurizer2.model(wavs, features2)
+                    # features2 = self.featurizer2.model(wavs, features2)
+                    # print(len(features1))
                     # print(features1[0].shape)
                     # print(features2[0].shape)
-                    features = self.two_model_sum.model(features1, features2)
+                    features = features1
+                    # features = self.two_model_sum.model(features1, features2)
                     # print(type(features))
                     # print(features[0].shape)
 
