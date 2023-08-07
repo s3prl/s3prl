@@ -28,7 +28,7 @@ sentencepiece
 huggingface_hub >=0.2.1
 mutagen
 pydantic
-protobuf ~=3.19.0
+protobuf ~=4.23.4
 sed_eval
 more_itertools
 tensorboard
