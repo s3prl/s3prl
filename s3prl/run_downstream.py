@@ -26,7 +26,7 @@ def get_downstream_args():
 
     # distributed training
     parser.add_argument('--backend', default='nccl', help='The backend for distributed training')
-    parser.add_argument('--local_rank', type=int,
+    parser.add_argument('--local-rank', type=int,
                         help=f'The GPU id this process should use while distributed training. \
                                None when not launched by torch.distributed.launch')
 
@@ -146,7 +146,7 @@ def get_downstream_args():
     if args.override is not None and args.override.lower() != "none":
         override(args.override, args, config)
         os.makedirs(args.expdir, exist_ok=True)
-    
+
     return args, config, backup_files
 
 
@@ -187,7 +187,7 @@ def main():
         huggingface_token = HfApi().login(username=hf_user, password=hf_password)
         HfFolder.save_token(huggingface_token)
         print(f"Logged into Hugging Face Hub with user: {hf_user}")
-    
+
     # Save command
     if is_leader_process():
         with open(os.path.join(args.expdir, f'args_{get_time_tag()}.yaml'), 'w') as file:

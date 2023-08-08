@@ -110,7 +110,7 @@ class Runner():
         self._load_weight(model, name)
 
         if is_initialized() and trainable and any((p.requires_grad for p in model.parameters())):
-            model = DDP(model, device_ids=[self.args.local_rank], find_unused_parameters=True)
+            model = DDP(model, device_ids=[self.args.local_rank], find_unused_parameters=False)
             for interface in interfaces or []:
                 setattr(model, interface, getattr(model.module, interface))
 
@@ -201,7 +201,7 @@ class Runner():
 
     def _get_optimizer(self, model_params):
         optimizer = get_optimizer(
-            model_params, 
+            model_params,
             self.config['runner']['total_steps'],
             self.config['optimizer']
         )
@@ -230,11 +230,11 @@ class Runner():
         trainable_paras = []
         for entry in self.all_entries:
             if entry.trainable:
-                entry.model.train()
+                entry.model.train().to(self.args.device)
                 trainable_models.append(entry.model)
                 trainable_paras += list(entry.model.parameters())
             else:
-                entry.model.eval()
+                entry.model.eval().to(self.args.device)
 
         # optimizer
         optimizer = self._get_optimizer(trainable_models)
@@ -433,7 +433,7 @@ class Runner():
         trainings = []
         for entry in self.all_entries:
             trainings.append(entry.model.training)
-            entry.model.eval()
+            entry.model.eval().to(self.args.device)
 
         # prepare data
         dataloader = self.downstream.model.get_dataloader(split)
@@ -476,7 +476,7 @@ class Runner():
 
         for entry, training in zip(self.all_entries, trainings):
             if training:
-                entry.model.train()
+                entry.model.train().to(self.args.device)
 
         if not_during_training:
             logger.close()
@@ -497,7 +497,7 @@ class Runner():
         wavs = [wav.view(-1).to(self.args.device)]
 
         for entry in self.all_entries:
-            entry.model.eval()
+            entry.model.eval().to(self.args.device)
 
         with torch.no_grad():
             features = self.upstream.model(wavs)
@@ -512,7 +512,7 @@ class Runner():
             organization = os.environ.get("HF_USERNAME")
         huggingface_token = HfFolder.get_token()
         print(f"[Runner] - Organisation to push fine-tuned model to: {organization}")
-        
+
         # Extract upstream repository metadata
         if self.args.hub == "huggingface":
             model_info = HfApi().model_info(self.args.upstream, token=huggingface_token)
