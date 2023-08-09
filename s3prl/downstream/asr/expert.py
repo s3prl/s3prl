@@ -182,7 +182,7 @@ class DownstreamExpert(nn.Module):
                 if len(decoded) >= 1:
                     decoded = decoded[0]
                     decoded = None if len(decoded) < 1 else decoded[0]
-            
+
             pred_token_ids = log_prob.argmax(dim=-1).unique_consecutive()
             pred_token_ids = pred_token_ids[pred_token_ids != self.blank].tolist()
             pred_tokens = self.dictionary.string(pred_token_ids)
