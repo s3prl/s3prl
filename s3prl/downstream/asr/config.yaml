@@ -1,10 +1,10 @@
 runner:
-  total_steps: 200000
+  total_steps: 10000 #200000
   gradient_clipping: 1
   gradient_accumulate_steps: 1
-  log_step: 100
-  eval_step: 2000
-  save_step: 500
+  log_step: 50 #100
+  eval_step: 500 #2000
+  save_step: 100 #500
   max_keep: 1
   eval_dataloaders:
     - dev-clean
@@ -47,8 +47,8 @@ downstream_expert:
     train_batch_size: 32
     batch_size: 32
     eval_batch_size: 1
-    libri_root: '/mnt/md0/user_lllion66666/CORPORA_DIR/LibriSpeech'
-    bucket_file: './data/librispeech/len_for_bucket'
+    libri_root: '/mnt/md0/user_lllion66666/CORPORA_DIR/librispeech_finetuning'
+    bucket_file: './data/librilight/len_for_bucket'
     dict_path: "./downstream/asr/char.dict"
 
     zero_infinity: True
