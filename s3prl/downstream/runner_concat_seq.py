@@ -325,14 +325,12 @@ class Runner():
                         with torch.no_grad():
                             features1 = self.upstream1.model(wavs)
                             features2 = self.upstream2.model(wavs)
-                    features1 = self.featurizer1.model(wavs, features1)
-                    features2 = self.featurizer2.model(wavs, features2)
+                    features1 = self.featurizer1.model([], features1)
+                    features2 = self.featurizer2.model([], features2)
                     # print(features1[0].shape)
                     # print(features2[0].shape)
-                    features = []
-                    for i in range(len(features1)):
-                        features.append(
-                            torch.cat((features1[i], features2[i]), 0))
+                    features = torch.cat((features1, features2), 1)
+                    features = self.featurizer1.model.tolist(wavs, features)
                     # print(type(features))
                     # print(features[0].shape)
 
@@ -499,13 +497,11 @@ class Runner():
             with torch.no_grad():
                 features1 = self.upstream1.model(wavs)
                 features2 = self.upstream2.model(wavs)
-                features1 = self.featurizer1.model(wavs, features1)
-                features2 = self.featurizer2.model(wavs, features2)
+                features1 = self.featurizer1.model([], features1)
+                features2 = self.featurizer2.model([], features2)
                 # exit()
-                features = []
-                for i in range(len(features1)):
-                    features.append(
-                        torch.cat((features1[i], features2[i]), 0))
+                features = torch.cat((features1, features2), 1)
+                features = self.featurizer1.model.tolist(wavs, features)
                 self.downstream.model(
                     split,
                     features, *others,

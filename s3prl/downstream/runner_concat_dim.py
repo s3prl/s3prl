@@ -327,14 +327,12 @@ class Runner():
                             features2 = self.upstream2.model(wavs)
                     features1 = self.featurizer1.model(wavs, features1)
                     features2 = self.featurizer2.model(wavs, features2)
-                    print(features1[0].shape)
-                    print(features2[0].shape)
-                    features = []
-                    for i in range(len(features1)):
-                        features.append(
-                            torch.cat((features1[i], features2[i]), 1))
+                    # print(features1.shape)
+                    # print(features2.shape)
+                    features = torch.cat((features1, features2), 2)
+                    features = self.featurizer1.model.tolist(wavs, features)
                     # print(type(features))
-                    print(features[0].shape)
+                    # print(features[0].shape)
 
                     if specaug:
                         features, _ = specaug(features)
@@ -502,10 +500,8 @@ class Runner():
                 features1 = self.featurizer1.model(wavs, features1)
                 features2 = self.featurizer2.model(wavs, features2)
                 # exit()
-                features = []
-                for i in range(len(features1)):
-                    features.append(
-                        torch.cat((features1[i], features2[i]), 1))
+                features = torch.cat((features1, features2), 2)
+                features = self.featurizer1.model.tolist(wavs, features)
                 self.downstream.model(
                     split,
                     features, *others,
