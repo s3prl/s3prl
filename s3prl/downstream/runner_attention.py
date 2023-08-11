@@ -339,23 +339,16 @@ class Runner():
                         with torch.no_grad():
                             features1 = self.upstream1.model(wavs)
                             features2 = self.upstream2.model(wavs)
-                    features1 = self.featurizer1.model(wavs, features1)
-                    features2 = self.featurizer2.model(wavs, features2)
-                    batch_num = len(features1)
-                    features_length = []
-                    for batch in features1:
-                        features_length.append(list(batch.size())[0])
-                    # print(features_length[0])
+                    features1 = self.featurizer1.model([], features1)
+                    features2 = self.featurizer2.model([], features2)
+                    print(features1.shape)
+                    print(features2.shape)
                     # pad 0 for shorter tensors
-                    features1 = pad_sequence(features1, batch_first=True)
-                    features2 = pad_sequence(features2, batch_first=True)
                     features_tensor, _ = self.attention.model(
                         query=features2, key=features1, value=features1)  # wavlm as K & V, hubert as Q
-                    features = []
-                    for batch_idx in range(batch_num):
-                        features.append(
-                            features_tensor[batch_idx, 0:features_length[batch_idx], :])
-
+                    features = self.featurizer1.model.tolist(
+                        wavs, features_tensor)
+                    print(len(features), features[0].shape)
                     if specaug:
                         features, _ = specaug(features)
 
@@ -519,20 +512,14 @@ class Runner():
             with torch.no_grad():
                 features1 = self.upstream1.model(wavs)
                 features2 = self.upstream2.model(wavs)
-                features1 = self.featurizer1.model(wavs, features1)
-                features2 = self.featurizer2.model(wavs, features2)
-                batch_num = len(features1)
-                features_length = []
-                for batch in features1:
-                    features_length.append(list(batch.size())[0])
-                features1 = torch.stack(features1, 0)
-                features2 = torch.stack(features2, 0)
+                features1 = self.featurizer1.model([], features1)
+                features2 = self.featurizer2.model([], features2)
+                # print(features_length[0])
+                # pad 0 for shorter tensors
                 features_tensor, _ = self.attention.model(
                     query=features2, key=features1, value=features1)  # wavlm as K & V, hubert as Q
-                features = []
-                for batch_idx in range(batch_num):
-                    features.append(
-                        features_tensor[batch_idx, 0:features_length[batch_idx], :])
+                features = self.featurizer1.model.tolist(
+                    wavs, features_tensor)
                 self.downstream.model(
                     split,
                     features, *others,

@@ -22,7 +22,5 @@ class two_model_sum(torch.nn.Module):
         # print(torch.sigmoid(self.l))
         # exit()
         l = torch.sigmoid(self.l)
-        for i in range(len(wavlm_feature)):
-            tmp = l*wavlm_feature[i] + (1-l)*hubert_feature[i]
-            result.append(tmp)
+        result = l*wavlm_feature + (1-l)*hubert_feature
         return result

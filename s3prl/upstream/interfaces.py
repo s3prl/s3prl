@@ -282,4 +282,4 @@ class Featurizer(nn.Module):
         if isinstance(feature, (list, tuple)):
             feature = self._weighted_sum(feature)
 
-        return self.tolist(paired_wavs, feature)
+        return feature
