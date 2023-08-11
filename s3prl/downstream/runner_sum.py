@@ -97,8 +97,8 @@ class Runner():
         self.featurizer1, self.featurizer2 = self._get_featurizer()
         self.two_model_sum = self._get_two_model_sum()
         self.downstream = self._get_downstream()
-        self.all_entries = [self.upstream1, self.upstream2, self.two_model_sum,
-                            self.featurizer1, self.featurizer2, self.downstream]
+        self.all_entries = [self.upstream1, self.upstream2,
+                            self.featurizer1, self.featurizer2, self.two_model_sum, self.downstream]
 
     def _load_weight(self, model, name):
         init_weight = self.init_ckpt.get(name)
