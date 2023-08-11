@@ -48,7 +48,8 @@ class UpstreamBase(nn.Module, metaclass=initHook):
             hooks: each Tuple is an argument list for the Hook initializer
         """
         super().__init__()
-        self.hooks: List[Hook] = [Hook(*hook) for hook in hooks] if hooks else []
+        self.hooks: List[Hook] = [Hook(*hook)
+                                  for hook in hooks] if hooks else []
         self.hook_postprocess = hook_postprocess
         self._hook_hiddens: List[Tuple(str, Tensor)] = []
 
@@ -89,7 +90,8 @@ class UpstreamBase(nn.Module, metaclass=initHook):
 
         def generate_hook_handler(hiddens: List, hook: Hook):
             def hook_handler(self, input, output):
-                hiddens.append((hook.unique_identifier, hook.transform(input, output)))
+                hiddens.append(
+                    (hook.unique_identifier, hook.transform(input, output)))
 
             return hook_handler
 
@@ -122,7 +124,8 @@ class UpstreamBase(nn.Module, metaclass=initHook):
             if callable(self.hook_postprocess):
                 hook_hiddens = self.hook_postprocess(hook_hiddens)
 
-            result["_hidden_states_info"], result["hidden_states"] = zip(*hook_hiddens)
+            result["_hidden_states_info"], result["hidden_states"] = zip(
+                *hook_hiddens)
             result["last_hidden_state"] = result["hidden_states"][-1]
 
             for layer_id, hidden_state in enumerate(result["hidden_states"]):
@@ -183,7 +186,8 @@ class Featurizer(nn.Module):
 
         self.output_dim = feature.size(-1)
         if hasattr(upstream, "get_downsample_rates"):
-            self.downsample_rate = upstream.get_downsample_rates(feature_selection)
+            self.downsample_rate = upstream.get_downsample_rates(
+                feature_selection)
             show(
                 f"[{self.name}] - The selected feature {feature_selection}'s downsample rate is {self.downsample_rate}",
                 file=sys.stderr,
@@ -211,7 +215,8 @@ class Featurizer(nn.Module):
 
         if isinstance(feature, (list, tuple)) and isinstance(self.layer_selection, int):
             feature = feature[self.layer_selection]
-
+        if (type(feature) == torch.Tensor):  # fbank
+            F.pad(feature, pad=(0, 0, 0, 0, 0, 528), mode='constant', value=0)
         return feature
 
     def _weighted_sum(self, feature):
@@ -242,17 +247,20 @@ class Featurizer(nn.Module):
         _, *origin_shape = stacked_feature.shape
         stacked_feature = stacked_feature.view(self.layer_num, -1)
         norm_weights = F.softmax(self.weights, dim=-1)
-        weighted_feature = (norm_weights.unsqueeze(-1) * stacked_feature).sum(dim=0)
+        weighted_feature = (norm_weights.unsqueeze(-1)
+                            * stacked_feature).sum(dim=0)
         weighted_feature = weighted_feature.view(*origin_shape)
 
         return weighted_feature
 
     def tolist(self, paired_wavs: List[Tensor], paired_feature: Tensor):
         assert paired_feature.dim() == 3, "(batch_size, max_seq_len, feat_dim)"
-        feature_len = [round(len(wav) / self.downsample_rate) for wav in paired_wavs]
+        feature_len = [round(len(wav) / self.downsample_rate)
+                       for wav in paired_wavs]
         length_diff = abs(
             paired_feature.size(1)
-            - round(max([len(wav) for wav in paired_wavs]) / self.downsample_rate)
+            - round(max([len(wav) for wav in paired_wavs]) /
+                    self.downsample_rate)
         )
         assert (
             length_diff < TOLERABLE_SEQLEN_DIFF
