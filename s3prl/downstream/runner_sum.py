@@ -97,7 +97,7 @@ class Runner():
         self.featurizer1, self.featurizer2 = self._get_featurizer()
         self.two_model_sum = self._get_two_model_sum()
         self.downstream = self._get_downstream()
-        self.all_entries = [self.upstream1, self.upstream2,
+        self.all_entries = [self.upstream1, self.upstream2, self.two_model_sum,
                             self.featurizer1, self.featurizer2, self.downstream]
 
     def _load_weight(self, model, name):
@@ -276,7 +276,7 @@ class Runner():
                 trainable_paras += list(entry.model.parameters())
             else:
                 entry.model.eval()
-
+        print(trainable_models)
         # optimizer
         optimizer = self._get_optimizer(trainable_models)
 
@@ -332,18 +332,14 @@ class Runner():
                         self.args.device) for wav in wavs]
                     if self.upstream1.trainable:
                         features1 = self.upstream1.model(wavs)
-                        # features2 = self.upstream2.model(wavs)
+                        features2 = self.upstream2.model(wavs)
                     else:
                         with torch.no_grad():
                             features1 = self.upstream1.model(wavs)
-                            # features2 = self.upstream2.model(wavs)
+                            features2 = self.upstream2.model(wavs)
                     features1 = self.featurizer1.model(wavs, features1)
-                    # features2 = self.featurizer2.model(wavs, features2)
-                    # print(len(features1))
-                    # print(features1[0].shape)
-                    # print(features2[0].shape)
-                    features = features1
-                    # features = self.two_model_sum.model(features1, features2)
+                    features2 = self.featurizer2.model(wavs, features2)
+                    features = self.two_model_sum.model(features1, features2)
                     # print(type(features))
                     # print(features[0].shape)
 
