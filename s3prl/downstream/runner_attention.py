@@ -214,7 +214,7 @@ class Runner():
 
     def _get_attention(self):
         model = torch.nn.MultiheadAttention(
-            embed_dim=768, num_heads=8, batch_first=True).to(self.args.device)
+            embed_dim=768, num_heads=8, batch_first=True, bias=False).to(self.args.device)
         return self._init_model(
             model=model,
             name='attention',
@@ -275,7 +275,7 @@ class Runner():
                 trainable_models.append(entry.model)
                 trainable_paras += list(entry.model.parameters())
                 print(entry.name)
-                print(trainable_paras)
+                # print(trainable_paras)
             else:
                 entry.model.eval()
 
