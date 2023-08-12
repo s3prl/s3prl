@@ -18,7 +18,7 @@ class two_model_sum(torch.nn.Module):
         a Tensor of output data. We can use Modules defined in the constructor as
         well as arbitrary operators on Tensors.
         """
-        result = []
+        # result = []
         # print(torch.sigmoid(self.l))
         # exit()
         l = torch.sigmoid(self.l)
