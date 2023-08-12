@@ -341,14 +341,14 @@ class Runner():
                             features2 = self.upstream2.model(wavs)
                     features1 = self.featurizer1.model([], features1)
                     features2 = self.featurizer2.model([], features2)
-                    print(features1.shape)
-                    print(features2.shape)
+                    # print(features1.shape)
+                    # print(features2.shape)
                     # pad 0 for shorter tensors
                     features_tensor, _ = self.attention.model(
                         query=features2, key=features1, value=features1)  # wavlm as K & V, hubert as Q
                     features = self.featurizer1.model.tolist(
                         wavs, features_tensor)
-                    print(len(features), features[0].shape)
+                    # print(len(features), features[0].shape)
                     if specaug:
                         features, _ = specaug(features)
 
