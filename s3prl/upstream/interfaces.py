@@ -215,13 +215,13 @@ class Featurizer(nn.Module):
 
         if isinstance(feature, (list, tuple)) and isinstance(self.layer_selection, int):
             feature = feature[self.layer_selection]
-        if (type(feature) == torch.Tensor):  # fbank
-            print("before")
-            print(feature.shape)
-            feature = F.pad(feature, pad=(0, 528, 0, 0, 0, 0),
-                            mode='constant', value=0)
-            print("after")
-            print(feature.shape)
+        # if (type(feature) == torch.Tensor):  # fbank
+        #     print("before")
+        #     print(feature.shape)
+        #     feature = F.pad(feature, pad=(0, 528, 0, 0, 0, 0),
+        #                     mode='constant', value=0)
+        #     print("after")
+        #     print(feature.shape)
         return feature
 
     def _weighted_sum(self, feature):
