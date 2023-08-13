@@ -67,11 +67,11 @@ def hubert_custom(
 
 
 def hubert_local(*args, **kwargs):
-    return hubert_custom(*args, **kwargs)
+    return hubert_custom(fairseq=True, *args, **kwargs)
 
 
 def hubert_url(*args, **kwargs):
-    return hubert_custom(*args, **kwargs)
+    return hubert_custom(fairseq=True, *args, **kwargs)
 
 
 def hubert(refresh=False, *args, **kwargs):
