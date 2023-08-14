@@ -186,7 +186,7 @@ class Runner():
         model1 = Featurizer(
             upstream=self.upstream1.model,
             feature_selection=self.args.upstream_feature_selection,
-            layer_selection=self.args.upstream_layer_selection,
+            layer_selection=self.args.upstream1_layer_selection,
             upstream_device=self.args.device,
             normalize=self.args.upstream_feature_normalize,
         ).to(self.args.device)
@@ -194,7 +194,7 @@ class Runner():
         model2 = Featurizer(
             upstream=self.upstream2.model,
             feature_selection=self.args.upstream_feature_selection,
-            layer_selection=self.args.upstream_layer_selection,
+            layer_selection=self.args.upstream2_layer_selection,
             upstream_device=self.args.device,
             normalize=self.args.upstream_feature_normalize,
         ).to(self.args.device)

@@ -77,7 +77,9 @@ def get_downstream_args():
                         help='Fine-tune, set upstream.train(). Default is upstream.eval()')
     parser.add_argument('-s', '--upstream_feature_selection', default='hidden_states',
                         help='Specify the layer to be extracted as the representation')
-    parser.add_argument('-l', '--upstream_layer_selection', type=int,
+    parser.add_argument('-l1', '--upstream1_layer_selection', type=int,
+                        help='Select a specific layer for the features selected by -s')
+    parser.add_argument('-l2', '--upstream2_layer_selection', type=int,
                         help='Select a specific layer for the features selected by -s')
     parser.add_argument('--upstream_feature_normalize', action='store_true',
                         help='Specify whether to normalize hidden features before weighted sum')
