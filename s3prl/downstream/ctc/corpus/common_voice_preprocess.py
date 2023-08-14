@@ -27,7 +27,7 @@ def normalize(sent, language):
     if language in ["zh-TW", "zh-CN", "ja", "ar", "ru"]:
         if any([(c.encode("UTF-8").isalpha() or c == "'") for c in list(sent)]):
             return ""
-    if language == "zh-CN":
+    if language == "zh-CN" or language == "zh-TW":
         if len(zhcn_exception.intersection(set(list(sent)))) > 0:
             return ""
     if language == "es":
@@ -37,7 +37,8 @@ def normalize(sent, language):
         if any(
             [
                 not (
-                    (ord(c) >= ord("A") and ord(c) <= ord("Z")) or c == " " or c == "'"
+                    (ord(c) >= ord("A") and ord(c) <=
+                     ord("Z")) or c == " " or c == "'"
                 )
                 for c in list(sent)
             ]
@@ -78,6 +79,7 @@ def read_tsv(path, corpus_root, language, accent=None, hours=-1):
 
             sent_normed = normalize(row[2], language)
             if sent_normed == "":
+                print(i)
                 continue
 
             data_list.append(
@@ -117,11 +119,14 @@ def write_txt(data, out_path):
 
 def main():
     parser = argparse.ArgumentParser()
-    parser.add_argument("--root", type=str, help="Root of Common Voice 7.0 directory.")
+    parser.add_argument("--root", type=str,
+                        help="Root of Common Voice 7.0 directory.")
     parser.add_argument("--lang", type=str, help="Language abbreviation.")
     parser.add_argument("--out", type=str, help="Path to output directory.")
-    parser.add_argument("--accent", type=str, default="none", help="English accent")
-    parser.add_argument("--hours", type=float, default=-1, help="Maximum hours used.")
+    parser.add_argument("--accent", type=str,
+                        default="none", help="English accent")
+    parser.add_argument("--hours", type=float, default=-
+                        1, help="Maximum hours used.")
     args = parser.parse_args()
 
     os.makedirs(args.out, exist_ok=True)
