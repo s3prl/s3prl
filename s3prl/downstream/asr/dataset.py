@@ -34,10 +34,10 @@ HALF_BATCHSIZE_TIME = 2000
 # Sequence Dataset #
 ####################
 class SequenceDataset(Dataset):
-    
+
     def __init__(self, split, bucket_size, dictionary, libri_root, bucket_file, **kwargs):
         super(SequenceDataset, self).__init__()
-        
+
         self.dictionary = dictionary
         self.libri_root = libri_root
         self.sample_rate = SAMPLE_RATE
@@ -77,7 +77,7 @@ class SequenceDataset(Dataset):
         self.Y = {
             k: self.dictionary.encode_line(
                 v, line_tokenizer=lambda x: x.split()
-            ).long() 
+            ).long()
             for k, v in Y.items()
         }
 
@@ -89,7 +89,7 @@ class SequenceDataset(Dataset):
             if self._parse_x_name(x) in usage_list:
                 batch_x.append(x)
                 batch_len.append(x_len)
-                
+
                 # Fill in batch_x until batch is full
                 if len(batch_x) == bucket_size:
                     # Half the batch size if seq too long
@@ -99,7 +99,7 @@ class SequenceDataset(Dataset):
                     else:
                         self.X.append(batch_x)
                     batch_x, batch_len = [], []
-        
+
         # Gather the last batch
         if len(batch_x) > 1:
             if self._parse_x_name(x) in usage_list:
