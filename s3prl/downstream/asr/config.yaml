@@ -1,11 +1,11 @@
 runner:
-  total_steps: 10000 #200000
+  total_steps: 200000 #200000
   gradient_clipping: 1
   gradient_accumulate_steps: 1
-  log_step: 200 #100
+  log_step: 500 #100
   eval_step: 1000 #2000
   save_step: 1000 #500
-  max_keep: 1
+  max_keep: 10
   eval_dataloaders:
     - dev-clean
 
@@ -38,7 +38,7 @@ specaug:
 
 downstream_expert:
   datarc:
-    train: ['train-clean-100']
+    train: ['10h']
     dev-clean: ['dev-clean']
     dev-other: ['dev-other']
     test-clean: ['test-clean']
