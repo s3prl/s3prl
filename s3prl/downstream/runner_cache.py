@@ -97,11 +97,15 @@ class Runner():
         self.all_entries = [self.upstream, self.featurizer, self.downstream]
 
         # cache the upstream features to h5 file
-        self.cache_dir = Path(self.args.cache_dir)
-        self.cache_dir.mkdir(parents=True, exist_ok=True)
-        self.cache_file = self.cache_dir / f"{self.args.upstream}.h5"
-        self.cache = h5.File(self.cache_file, 'a')
+        cache_dir = Path(self.config['runner']['cache_dir'])
+        cache_dir.mkdir(parents=True, exist_ok=True)
+        self.cache_file = cache_dir / f"{self.args.upstream}.h5"
+        self.ram_cache = {}
+        self.file_cache = h5.File(self.cache_file, 'a')
 
+
+    def __del__(self):
+        self.file_cache.close()
 
     def _load_weight(self, model, name):
         init_weight = self.init_ckpt.get(name)
@@ -208,7 +212,7 @@ class Runner():
 
     def _get_optimizer(self, model_params):
         optimizer = get_optimizer(
-            model_params, 
+            model_params,
             self.config['runner']['total_steps'],
             self.config['optimizer']
         )
@@ -230,6 +234,21 @@ class Runner():
         with open(os.path.join(path, "README.md"), "w") as f:
             f.write(model_card)
 
+    def have_cache(self, filepath):
+        return filepath in self.ram_cache or filepath in self.file_cache
+
+    def save_cache(self, filepath, feature : torch.Tensor):
+        np_feature = feature.numpy(force=True)
+        self.ram_cache[filepath] = np_feature
+        self.file_cache[filepath] = np_feature
+
+    def load_cache(self, filepath):
+        if filepath in self.ram_cache:
+            np_feature = self.ram_cache[filepath]
+        else:
+            np_feature = self.file_cache[filepath][:]
+            self.ram_cache[filepath] = np_feature
+        return torch.from_numpy(np_feature)
 
     def train(self):
         # trainable parameters and train/eval mode
@@ -284,7 +303,7 @@ class Runner():
                 else:
                     raise
 
-            for batch_id, (wavs, labels, paths) in enumerate(tqdm(dataloader, dynamic_ncols=True, desc='train', file=tqdm_file)):
+            for batch_id, datas in enumerate(tqdm(dataloader, dynamic_ncols=True, desc='train', file=tqdm_file)):
                 # try/except block for forward/backward
                 try:
                     if pbar.n >= pbar.total:
@@ -292,29 +311,33 @@ class Runner():
                     global_step = pbar.n + 1
 
                     # use cache if possible
-                    cached_ids = [i for i, path in enumerate(paths) if path in self.cache]
-                    cached_labels = labels[cached_ids]
-                    cached_paths = paths[cached_ids]
-                    uncached_ids = [i for i in range(len(paths)) if i not in cached_ids]
-                    uncached_wavs = wavs[uncached_ids]
-                    uncached_labels = labels[uncached_ids]
-                    uncached_paths = paths[uncached_ids]
+                    uncached_data = []
+                    cached_data = []
+                    for data in zip(*datas):
+                        (uncached_data, cached_data)[self.have_cache(data[2])].append(data)
 
-                    cached_features = [self.cache[path] for path in cached_paths]
-
-                    uncached_wavs = [torch.FloatTensor(wav).to(self.args.device) for wav in uncached_wavs]
-                    if self.upstream.trainable:
-                        uncached_features = self.upstream.model(uncached_wavs)
-                    else:
+                    if len(uncached_data) > 0:
+                        uncached_wavs, uncached_labels, uncached_paths = zip(*uncached_data)
+                        uncached_wavs = [torch.FloatTensor(wav).to(self.args.device) for wav in uncached_wavs]
                         with torch.no_grad():
                             uncached_features = self.upstream.model(uncached_wavs)
+                            uncached_features = self.featurizer.model(uncached_wavs, uncached_features)
 
-                    uncached_features = self.featurizer.model(uncached_wavs, uncached_features)
-                    for path, feature in zip(uncached_paths, uncached_features):
-                        self.cache[path] = feature
+                        for path, feature in zip(uncached_paths, uncached_features):
+                            self.save_cache(path, feature)
+                    else:
+                        uncached_wavs, uncached_labels, uncached_paths = [], [], []
+                        uncached_features = []
 
-                    features = cached_features + uncached_features
-                    labels = cached_labels + uncached_labels
+                    cached_wavs  ,   cached_labels,   cached_paths = zip(*cached_data) if len(cached_data) > 0 else ([], [], [])
+                    cached_features = [self.load_cache(path).to(self.args.device) for path in cached_paths]
+
+                    labels = list(cached_labels) + list(uncached_labels)
+                    paths = list(cached_paths) + list(uncached_paths)
+                    features = list(cached_features) + list(uncached_features)
+
+                    del uncached_data, uncached_wavs, uncached_labels, uncached_paths, uncached_features
+                    del cached_data, cached_wavs, cached_labels, cached_paths, cached_features
 
                     if specaug:
                         features, _ = specaug(features)
@@ -466,17 +489,43 @@ class Runner():
 
         batch_ids = []
         records = defaultdict(list)
-        for batch_id, (wavs, *others) in enumerate(tqdm(dataloader, dynamic_ncols=True, desc=split, total=evaluate_steps)):
+        for batch_id, datas in enumerate(tqdm(dataloader, dynamic_ncols=True, desc=split, total=evaluate_steps)):
             if batch_id > evaluate_steps:
                 break
 
-            wavs = [torch.FloatTensor(wav).to(self.args.device) for wav in wavs]
+            # use cache if possible
+            uncached_data = []
+            cached_data = []
+            for data in zip(*datas):
+                (uncached_data, cached_data)[self.have_cache(data[2])].append(data)
+
+            if len(uncached_data) > 0:
+                uncached_wavs, uncached_labels, uncached_paths = zip(*uncached_data)
+                uncached_wavs = [torch.FloatTensor(wav).to(self.args.device) for wav in uncached_wavs]
+                with torch.no_grad():
+                    uncached_features = self.upstream.model(uncached_wavs)
+                    uncached_features = self.featurizer.model(uncached_wavs, uncached_features)
+
+                for path, feature in zip(uncached_paths, uncached_features):
+                    self.save_cache(path, feature)
+            else:
+                uncached_wavs, uncached_labels, uncached_paths = [], [], []
+                uncached_features = []
+
+            cached_wavs  ,   cached_labels,   cached_paths = zip(*cached_data) if len(cached_data) > 0 else ([], [], [])
+            cached_features = [self.load_cache(path).to(self.args.device) for path in cached_paths]
+
+            labels = list(cached_labels) + list(uncached_labels)
+            paths = list(cached_paths) + list(uncached_paths)
+            features = list(cached_features) + list(uncached_features)
+
+            del uncached_data, uncached_wavs, uncached_labels, uncached_paths, uncached_features
+            del cached_data, cached_wavs, cached_labels, cached_paths, cached_features
+
             with torch.no_grad():
-                features = self.upstream.model(wavs)
-                features = self.featurizer.model(wavs, features)
                 self.downstream.model(
                     split,
-                    features, *others,
+                    features, labels, paths,
                     records = records,
                     batch_id = batch_id,
                 )
