@@ -34,7 +34,7 @@ def main():
         file = join(args.root, file)
         wav, sample_rate = torchaudio.load(file)
         wav = resample(
-            wav.squeeze(0).numpy(), sample_rate, 16000, res_type="kaiser_best"
+            wav.squeeze(0).numpy(), orig_sr=sample_rate, target_sr=16000, res_type="kaiser_best"
         )
         wav = torch.FloatTensor(wav).unsqueeze(0)
         new_file = file[:-3] + "wav"
