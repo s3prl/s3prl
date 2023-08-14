@@ -262,6 +262,8 @@ class Runner():
                 entry.model.train()
                 trainable_models.append(entry.model)
                 trainable_paras += list(entry.model.parameters())
+                print(entry.name)
+                # print(trainable_paras)
             else:
                 entry.model.eval()
 
@@ -330,7 +332,8 @@ class Runner():
                     # print(features1[0].shape)
                     # print(features2[0].shape)
                     features = torch.cat((features1, features2), 1)
-                    features = self.featurizer1.model.tolist(wavs, features)
+                    features = self.featurizer1.model.tolist(
+                        wavs, features, override_downsample_rate=self.featurizer1.model.downsample_rate/2)
                     # print(type(features))
                     # print(features[0].shape)
 
@@ -501,7 +504,8 @@ class Runner():
                 features2 = self.featurizer2.model([], features2)
                 # exit()
                 features = torch.cat((features1, features2), 1)
-                features = self.featurizer1.model.tolist(wavs, features)
+                features = self.featurizer1.model.tolist(
+                    wavs, features, override_downsample_rate=self.featurizer1.model.downsample_rate/2)
                 self.downstream.model(
                     split,
                     features, *others,
