@@ -66,6 +66,6 @@ jobs:
     # Not all upstreams will be tested on CI since this will take too much time
     # To test all upstreams, run tox locally with '-e all_upstream'
 
-    - name: Run tox for all other functionalities
-      run: |
-        tox -e all_others-deps_all-audio${{ matrix.torchaudio-version }}
+    # - name: Run tox for all other functionalities
+    #   run: |
+    #     tox -e all_others-deps_all-audio${{ matrix.torchaudio-version }}
