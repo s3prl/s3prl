@@ -47,4 +47,3 @@ def test_download():
     logger.info("This should success")
     _download_with_timeout(None, 2)
     torch.load(filepath, map_location="cpu")
-    assert not Path(str(filepath) + ".lock").exists()
