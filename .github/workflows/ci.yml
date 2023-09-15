@@ -56,16 +56,16 @@ jobs:
     # log into the machine hosted by GitHub, it becomes easy to debug
     # why the CI fails on a specific machine.
 
-    - name: Setup upterm session
-      uses: lhotari/action-upterm@v1
+    # - name: Setup upterm session
+    #   uses: lhotari/action-upterm@v1
 
-    # - name: Run tox for common upstream
-    #   run: |
-    #     tox -e common_upstream-audio${{ matrix.torchaudio-version }}
+    - name: Run tox for common upstream
+      run: |
+        tox -e common_upstream-audio${{ matrix.torchaudio-version }}
 
     # Not all upstreams will be tested on CI since this will take too much time
     # To test all upstreams, run tox locally with '-e all_upstream'
 
-    - name: Run tox for all other functionalities
-      run: |
-        tox -e all_others-deps_all-audio${{ matrix.torchaudio-version }}
+    # - name: Run tox for all other functionalities
+    #   run: |
+    #     tox -e all_others-deps_all-audio${{ matrix.torchaudio-version }}
