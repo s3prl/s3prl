@@ -37,7 +37,9 @@ jobs:
         python-version: ${{ matrix.python-version }}
 
     - name: Install Linux dependencies
-      run: sudo apt-get install -y libsndfile1-dev sox git git-lfs
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y libsndfile1-dev sox git git-lfs
 
     - name: Upgrade pip and wheel
       run: pip3 install --upgrade pip wheel
