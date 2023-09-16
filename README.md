@@ -9,9 +9,26 @@
     <a href="https://github.com/s3prl/s3prl/issues"><img alt="Bitbucket open issues" src="https://img.shields.io/github/issues/s3prl/s3prl"></a>
 </p>
 
-## Notice for pull requests
+## Contact
 
-Please first discuss with us on the issue page about your feature request before implementing the actual pull request, so we can discuss about how to achieve the functionality. If we did not discuss about the detail, it is highly possible that we are not accepting the pull request due to the difficulty of maintenance.
+We prefer to have discussions directly on Github issue page, so that all the information is transparent to all the contributors and is auto-archieved on the Github.
+If you wish to use email, please contact repository owners:
+
+- Leo Yang (leo19941227@gmail.com)
+- Andy T. Liu (liuandyt@gmail.com)
+
+## Contribution (pull request)
+
+Guidelines:
+- If you want to add new features (e.g. new upstream or new task), please discuss with us on the Github issue page first before implementing the actual pull request. So we can discuss about whether we want the feauture, how to achieve the feature, and whether the feature is maintainable. (As S3PRL is growing too large, we might not consider complex new features.) Thanks!
+- Reporting bugs or the PR fixing the bugs is always welcome!
+
+Steps:
+1. [Create a personal fork](https://help.github.com/articles/fork-a-repo/) of the [main S3PRL repository](https://github.com/s3prl/s3prl) in GitHub.
+2. Make your changes in a named branch different from `master`, e.g. you create a branch `new-awesome-feature`.
+3. Contact us if you have any questions during development.
+4. [Generate a pull request](https://help.github.com/articles/creating-a-pull-request/) through the Web interface of GitHub.
+5. Please verify that your code is free of basic mistakes, we appreciate your contribution!
 
 ## Environment compatibilities [![CI](https://github.com/s3prl/s3prl/actions/workflows/ci.yml/badge.svg?branch=main&event=push)](https://github.com/s3prl/s3prl/actions/workflows/ci.yml)
 
@@ -25,18 +42,7 @@ We support the following environments. The test cases are ran with **[tox](./tox
 
 ## Change Log
 
-**Please note that**
-
-As the core developers and repository owners, [Andy T. Liu](https://github.com/andi611) and [Shu-wen (Leo) Yang](https://github.com/leo19941227) **never** forced others to contribute to the S3PRL project. Instead, most of the times **people want and ask** to contribute to this proejct. Feel free to ask old contributors to check. We built this project from scratch and developed most of the functions ourselves **since 2019** and received huge amount of stars. There were around 400 stars before we started to develop SUPERB Benchmark. (Not to mention that we also recruited most of the first generation SUPERB team members at National Taiwan University ourselves and led the development of SUPERB and rebuilt the entire downstream evaluation codebase. **No one ever paid us** for building this project which we started ourselves in the hope to help others and we did. There are several papers using our upstream collection function citing the S3PRL github link before SUPERB's existence. For example, the S2VC paper in the `Used by` section below.) Hence people were interested to contribute to our project and develop new functions together. From our perspective, **we were kind enough** to help reviewing PRs and help others build their resume. (We could just refuse them in the beginning.) But later, someone started to question about our ownership on this repository and manipulate the information, just because we allowed others to contribute. This made us **really disappointed**. We hence thought about never allowing new contributions in the future. If any old contributors felt unhappy about the current situation, it is okay to dicuss about removing your previous contributions, and we are happy to help. Our principle is always to give the biggest credit to those who already contributed (especially who fought with us when no one knew S3PRL,) instead of someone wishing to take over the repository by undiscussed and overwhelming PRs after the repository is successful. We still welcome new contributions as long as the development is fully discussed and the new contributors accept our principle above. We are grateful and care about every precious old contributions and refuse to dilute old contributors' credit by accepting lots of new PRs. Please find the names below to know the people who put huge effort on making this project successful.
-
-As a worth-mentioning point, we are not accepting new SUPERB development in the future. There are two major reasons:
-
-- The SUPERB team members changed a lot and rapidly. Andy and Leo are not available to involve every new effort, hence we are afraid to accept undiscussed and unreviewed while huge amount of new implementations. We won't get benefit from helping reviewing these efforts, while people will further question about our ownership and try to take over it, and the new members might not always want to contribute to our project. Hence, there is no benefit to both sides.
-- The current S3PRL is getting too large and becoming hard to maintain and keep the dependency small.
-
-Hence, we will do our best in maintaining SUPERB and SUPERB-SG, and we believe it is better to let the new SUPERB members to maintain their own implementation in their own repositories, just like how we started from nothing when developing the first version of SUPERB.
-So both sides get proper credit to their own development.
-
+* *Sep 2022*: We upgrade the codebase to support testing, documentation and a new [s3prl PyPI package](https://pypi.org/project/s3prl/) for easy installation and usage for upstream models. See our [online doc](https://s3prl.github.io/s3prl/) for more information.
 * *Mar 2022*: Introduce [**SUPERB-SG**](https://arxiv.org/abs/2203.06849), see [Speech Translation](./s3prl/downstream/speech_translation) by [Hsiang-Sheng Tsai](https://github.com/bearhsiang), [Out-of-domain ASR](./s3prl/downstream/ctc/) by [Heng-Jui Chang](https://github.com/vectominist), [Voice Conversion](./s3prl/downstream/a2o-vc-vcc2020/) by [Wen-Chin Huang](https://github.com/unilight), [Speech Separation](./s3prl/downstream/separation_stft/) and [Speech Enhancement](./s3prl/downstream/enhancement_stft/) by [Zili Huang](https://github.com/HuangZiliAndy) for more info.
 * *Nov 2021*: Introduce [**S3PRL-VC**](https://arxiv.org/abs/2110.06280) by [Wen-Chin Huang](https://github.com/unilight), see [Any-to-one](https://github.com/s3prl/s3prl/tree/master/s3prl/downstream/a2o-vc-vcc2020) for more info. We highly recommend to consider the [newly released official repo of S3PRL-VC](https://github.com/unilight/s3prl-vc) which is developed and actively maintained by [Wen-Chin Huang](https://github.com/unilight). The standalone repo contains much more recepies for the VC experiments. In S3PRL we only include the Any-to-one recipe for reproducing the SUPERB results.
 * *Oct 2021*: Support [**DistilHuBERT**](https://arxiv.org/abs/2110.01900) by [Heng-Jui Chang](https://github.com/vectominist), see [docs](./s3prl/upstream/distiller/README.md) for more info
@@ -91,15 +97,7 @@ If you find this toolkit helpful to your research, please do consider citing [ou
 1. **Python** >= 3.6
 2. Install **sox** on your OS
 3. Install s3prl: [Read doc](https://s3prl.github.io/s3prl/tutorial/installation.html#) or `pip install -e ".[all]"`
-4. (Optional) Some upstream models require special dependencies. If you encounter error with a specific upstream model, you can look into the `README.md` under each `upstream` folder. E.g., `upstream/pase/README.md`
-
-## Development pattern for contributors
-
-1. [Create a personal fork](https://help.github.com/articles/fork-a-repo/) of the [main S3PRL repository](https://github.com/andi611/Self-Supervised-Speech-Pretraining-and-Representation-Learning) in GitHub.
-2. Make your changes in a named branch different from `master`, e.g. you create a branch `new-awesome-feature`.
-3. Contact us if you have any questions during development.
-4. [Generate a pull request](https://help.github.com/articles/creating-a-pull-request/) through the Web interface of GitHub.
-5. Please verify that your code is free of basic mistakes, we appreciate any contribution!
+4. (Optional) Some upstream models require special dependencies. If you encounter error with a specific upstream model, you can look into the `README.md` under each `upstream` folder. E.g., `upstream/pase/README.md`=
 
 ## Reference Repositories
 
