@@ -12,10 +12,14 @@
 ## Contact
 
 We prefer to have discussions directly on Github issue page, so that all the information is transparent to all the contributors and is auto-archieved on the Github.
-If you wish to use email, please contact repository owners:
+If you wish to use email, please contact:
 
 - Leo Yang (leo19941227@gmail.com)
 - Andy T. Liu (liuandyt@gmail.com)
+
+## Star History
+
+[![Star History Chart](https://api.star-history.com/svg?repos=s3prl/s3prl&type=Date)](https://star-history.com/#s3prl/s3prl&Date)
 
 ## Contribution (pull request)
 
