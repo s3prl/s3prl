@@ -15,11 +15,13 @@ class UpstreamExpert(nn.Module):
         model_name: str = None,
         window_secs: float = 1,
         hop_secs: float = 0.05,
+        model_config: str = None,
     ):
         super().__init__()
         self.model = serab.load_model(ckpt, model_name)
         self.frame_duration = window_secs * 1000
         self.hop_size = hop_secs * 1000
+        self.model_config = model_config
 
     def get_downsample_rates(self, key: str = None) -> int:
         return int(self.hop_size / 1000 * SAMPLE_RATE)
