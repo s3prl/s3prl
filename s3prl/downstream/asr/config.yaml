@@ -47,7 +47,7 @@ downstream_expert:
     train_batch_size: 32
     batch_size: 32
     eval_batch_size: 1
-    libri_root: '/app/data/LibriSpeech'
+    libri_root: '/home/leo/d/datasets/LibriSpeech'
     bucket_file: './data/librispeech/len_for_bucket'
     dict_path: "./downstream/asr/char.dict"
 
@@ -64,8 +64,8 @@ downstream_expert:
       criterion: "ctc"
       beam: 5
       beam_threshold: 25
-      kenlm_model: '/path/to/4-gram.arpa'
-      lexicon: '/path/to/librispeech_lexicon.lst'
+      kenlm_model: '/home/leo/d/datasets/4-gram.arpa'
+      lexicon: '/home/leo/d/datasets/librispeech_lexicon.lst'
       lm_weight: 2
       word_score: -1
       unk_weight: -math.inf

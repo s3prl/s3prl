@@ -1,7 +1,6 @@
 # Copyright (c) Facebook, Inc. All Rights Reserved
 
 import os
-import math  # noqa
 import editdistance
 from pathlib import Path
 from argparse import Namespace
@@ -30,6 +29,7 @@ def get_decoder(decoder_args_dict, dictionary):
 
     if decoder_args.decoder_type == "kenlm":
         from .w2l_decoder import W2lKenLMDecoder
+
         decoder_args.beam_size_token = len(dictionary)
         if isinstance(decoder_args.unk_weight, str):
             decoder_args.unk_weight = eval(decoder_args.unk_weight)
@@ -44,7 +44,9 @@ class DownstreamExpert(nn.Module):
     eg. downstream forward, metric computation, contents to log
     """
 
-    def __init__(self, upstream_dim, upstream_rate, downstream_expert, expdir, **kwargs):
+    def __init__(
+        self, upstream_dim, upstream_rate, downstream_expert, expdir, **kwargs
+    ):
         """
         Args:
             upstream_dim: int
@@ -54,7 +56,7 @@ class DownstreamExpert(nn.Module):
             upstream_rate: int
                 160: for upstream with 10 ms per frame
                 320: for upstream with 20 ms per frame
-            
+
             downstream_expert: dict
                 The 'downstream_expert' field specified in your downstream config file
                 eg. downstream/example/config.yaml
@@ -66,7 +68,7 @@ class DownstreamExpert(nn.Module):
             **kwargs: dict
                 All the arguments specified by the argparser in run_downstream.py
                 and all the other fields in config.yaml, in case you need it.
-                
+
                 Note1. Feel free to add new argument for __init__ as long as it is
                 a command-line argument or a config field. You can check the constructor
                 code in downstream/runner.py
@@ -75,29 +77,30 @@ class DownstreamExpert(nn.Module):
         super(DownstreamExpert, self).__init__()
         self.upstream_dim = upstream_dim
         self.upstream_rate = upstream_rate
-        self.datarc = downstream_expert['datarc']
-        self.modelrc = downstream_expert['modelrc']
+        self.datarc = downstream_expert["datarc"]
+        self.modelrc = downstream_expert["modelrc"]
         self.expdir = expdir
 
-        self.dictionary = Dictionary.load(self.datarc.get("dict_path", str(Path(__file__).parent / "char.dict")))
-    
-        self.projector = nn.Linear(upstream_dim, self.modelrc['project_dim'])
-        model_cls = eval(self.modelrc['select'])
-        model_conf = self.modelrc[self.modelrc['select']]
+        self.dictionary = Dictionary.load(
+            self.datarc.get("dict_path", str(Path(__file__).parent / "char.dict"))
+        )
+
+        self.projector = nn.Linear(upstream_dim, self.modelrc["project_dim"])
+        model_cls = eval(self.modelrc["select"])
+        model_conf = self.modelrc[self.modelrc["select"]]
         self.model = model_cls(
-            self.modelrc['project_dim'],
+            self.modelrc["project_dim"],
             len(self.dictionary.symbols),
             upstream_rate,
             **model_conf,
         )
         self.blank = self.dictionary.bos()
         self.objective = nn.CTCLoss(
-            blank=self.blank,
-            zero_infinity=self.datarc['zero_infinity']
+            blank=self.blank, zero_infinity=self.datarc["zero_infinity"]
         )
-        decoder_args = self.datarc.get('decoder_args')
+        decoder_args = self.datarc.get("decoder_args")
         self.decoder = get_decoder(decoder_args, self.dictionary)
-        self.register_buffer('best_score', torch.ones(1) * 100)
+        self.register_buffer("best_score", torch.ones(1) * 100)
 
     # Interface
     def get_dataloader(self, split):
@@ -117,33 +120,46 @@ class DownstreamExpert(nn.Module):
                 2. sample_rate == 16000
                 3. directly loaded by torchaudio
         """
-        if not hasattr(self, f'{split}_dataset'):
-            batch_size = self.datarc['batch_size'] if split == "train" else self.datarc['eval_batch_size']
-            setattr(self, f'{split}_dataset', SequenceDataset(split, batch_size, self.dictionary, **self.datarc))
+        if not hasattr(self, f"{split}_dataset"):
+            batch_size = (
+                self.datarc["batch_size"]
+                if split == "train"
+                else self.datarc["eval_batch_size"]
+            )
+            setattr(
+                self,
+                f"{split}_dataset",
+                SequenceDataset(split, batch_size, self.dictionary, **self.datarc),
+            )
 
-        if split == 'train':
+        if split == "train":
             return self._get_train_dataloader(self.train_dataset)
         else:
-            return self._get_eval_dataloader(getattr(self, f'{split}_dataset'))
+            return self._get_eval_dataloader(getattr(self, f"{split}_dataset"))
 
     def _get_train_dataloader(self, dataset):
         sampler = DistributedSampler(dataset) if is_initialized() else None
         return DataLoader(
-            dataset, batch_size=1,
+            dataset,
+            batch_size=1,
             shuffle=(sampler is None),
             sampler=sampler,
-            num_workers=self.datarc['num_workers'],
+            num_workers=self.datarc["num_workers"],
             collate_fn=dataset.collate_fn,
         )
 
     def _get_eval_dataloader(self, dataset):
         return DataLoader(
-            dataset, batch_size=1,
-            shuffle=False, num_workers=self.datarc['num_workers'],
-            collate_fn=dataset.collate_fn
+            dataset,
+            batch_size=1,
+            shuffle=False,
+            num_workers=self.datarc["num_workers"],
+            collate_fn=dataset.collate_fn,
         )
 
-    def _compute_metrics(self, pred_tokens_all, pred_words_all, target_tokens_all, target_words_all):
+    def _compute_metrics(
+        self, pred_tokens_all, pred_words_all, target_tokens_all, target_words_all
+    ):
         """Computes WER and UER given the prediction and true transcriptions"""
         unit_error_sum = 0.0
         word_error_sum = 0.0
@@ -151,8 +167,8 @@ class DownstreamExpert(nn.Module):
         word_length_sum = 0
 
         for pred_tokens, pred_words, target_tokens, target_words in zip(
-            pred_tokens_all, pred_words_all, target_tokens_all, target_words_all):
-
+            pred_tokens_all, pred_words_all, target_tokens_all, target_words_all
+        ):
             pred_tokens = pred_tokens.split()
             target_tokens = target_tokens.split()
             unit_error_sum += editdistance.eval(pred_tokens, target_tokens)
@@ -182,7 +198,7 @@ class DownstreamExpert(nn.Module):
                 if len(decoded) >= 1:
                     decoded = decoded[0]
                     decoded = None if len(decoded) < 1 else decoded[0]
-            
+
             pred_token_ids = log_prob.argmax(dim=-1).unique_consecutive()
             pred_token_ids = pred_token_ids[pred_token_ids != self.blank].tolist()
             pred_tokens = self.dictionary.string(pred_token_ids)
@@ -208,8 +224,10 @@ class DownstreamExpert(nn.Module):
 
     def inference(self, features, filenames):
         log_probs, log_probs_len = self._get_log_probs(features)
-        _, pred_words_batch = self._decode(log_probs.float().contiguous().cpu(), log_probs_len)
-        hyps = [' '.join(hyp) for hyp in pred_words_batch]
+        _, pred_words_batch = self._decode(
+            log_probs.float().contiguous().cpu(), log_probs_len
+        )
+        hyps = [" ".join(hyp) for hyp in pred_words_batch]
 
         if filenames != []:
             with open(Path(self.expdir) / "inference.ark", "w") as file:
@@ -263,12 +281,12 @@ class DownstreamExpert(nn.Module):
         ).to(device=device)
 
         loss = self.objective(
-                log_probs.transpose(0, 1), # (N, T, C) -> (T, N, C)
-                labels,
-                log_probs_len,
-                labels_len,
-            )
-        records['loss'].append(loss.item())
+            log_probs.transpose(0, 1),  # (N, T, C) -> (T, N, C)
+            labels,
+            log_probs_len,
+            labels_len,
+        )
+        records["loss"].append(loss.item())
 
         target_tokens_batch = []
         target_words_batch = []
@@ -284,18 +302,22 @@ class DownstreamExpert(nn.Module):
             target_words_batch.append(target_words)
 
         with torch.no_grad():
-            pred_tokens_batch, pred_words_batch = self._decode(log_probs.float().contiguous().cpu(), log_probs_len)
+            pred_tokens_batch, pred_words_batch = self._decode(
+                log_probs.float().contiguous().cpu(), log_probs_len
+            )
 
-        records['target_tokens'] += target_tokens_batch
-        records['target_words'] += target_words_batch
-        records['pred_tokens'] += pred_tokens_batch
-        records['pred_words'] += pred_words_batch
-        records['filenames'] += filenames
+        records["target_tokens"] += target_tokens_batch
+        records["target_words"] += target_words_batch
+        records["pred_tokens"] += pred_tokens_batch
+        records["pred_words"] += pred_words_batch
+        records["filenames"] += filenames
 
         return loss
 
     # interface
-    def log_records(self, split, records, logger, global_step, batch_ids, total_batch_num, **kwargs):
+    def log_records(
+        self, split, records, logger, global_step, batch_ids, total_batch_num, **kwargs
+    ):
         """
         Args:
             split: string
@@ -323,43 +345,45 @@ class DownstreamExpert(nn.Module):
 
             total_batch_num:
                 The total amount of batches in the dataloader
-        
+
         Return:
             a list of string
                 Each string is a filename we wish to use to save the current model
                 according to the evaluation result, like the best.ckpt on the dev set
                 You can return nothing or an empty list when no need to save the checkpoint
         """
-        loss = torch.FloatTensor(records['loss']).mean().item()
-        print(f'{split} loss: {loss}')
+        loss = torch.FloatTensor(records["loss"]).mean().item()
+        print(f"{split} loss: {loss}")
 
         uer, wer = self._compute_metrics(
-            records['pred_tokens'],
-            records['pred_words'],
-            records['target_tokens'],
-            records['target_words'],
+            records["pred_tokens"],
+            records["pred_words"],
+            records["target_tokens"],
+            records["target_words"],
         )
 
-        logger.add_scalar(f'asr/{split}-loss', loss, global_step=global_step)
-        logger.add_scalar(f'asr/{split}-uer', uer, global_step=global_step)
-        logger.add_scalar(f'asr/{split}-wer', wer, global_step=global_step)
-        print(f'{split} uer: {uer}')
-        print(f'{split} wer: {wer}')
+        logger.add_scalar(f"asr/{split}-loss", loss, global_step=global_step)
+        logger.add_scalar(f"asr/{split}-uer", uer, global_step=global_step)
+        logger.add_scalar(f"asr/{split}-wer", wer, global_step=global_step)
+        print(f"{split} uer: {uer}")
+        print(f"{split} wer: {wer}")
 
         save_names = []
-        if split == 'dev-clean' and wer < self.best_score:
+        if split == "dev-clean" and wer < self.best_score:
             self.best_score = torch.ones(1) * wer
-            save_names.append(f'{split}-best.ckpt')
+            save_names.append(f"{split}-best.ckpt")
 
-        if 'test' in split or 'dev' in split:
+        if "test" in split or "dev" in split:
             lm = "noLM" if self.decoder is None else "LM"
-            hyp_ark = open(os.path.join(self.expdir, f'{split}-{lm}-hyp.ark'), 'w')
-            ref_ark = open(os.path.join(self.expdir, f'{split}-{lm}-ref.ark'), 'w')
-            for filename, hyp, ref in zip(records['filenames'], records['pred_words'], records['target_words']):
-                hyp = ' '.join(hyp)
-                ref = ' '.join(ref)
-                hyp_ark.write(f'{filename} {hyp}\n')
-                ref_ark.write(f'{filename} {ref}\n')
+            hyp_ark = open(os.path.join(self.expdir, f"{split}-{lm}-hyp.ark"), "w")
+            ref_ark = open(os.path.join(self.expdir, f"{split}-{lm}-ref.ark"), "w")
+            for filename, hyp, ref in zip(
+                records["filenames"], records["pred_words"], records["target_words"]
+            ):
+                hyp = " ".join(hyp)
+                ref = " ".join(ref)
+                hyp_ark.write(f"{filename} {hyp}\n")
+                ref_ark.write(f"{filename} {ref}\n")
             hyp_ark.close()
             ref_ark.close()
 
