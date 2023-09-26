@@ -80,7 +80,6 @@ class AutoregressiveReconstructionTask(Task):
         x_len: int,
         unique_name: List[str],
     ):
-
         loss, hidden_states, prediction = self.predict(x, label, x_len).slice(3)
 
         logs = Logs()

@@ -55,7 +55,6 @@ def parse_args():
 
 
 def main():
-
     logging.basicConfig()
     logger.setLevel(logging.INFO)
 

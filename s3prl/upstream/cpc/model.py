@@ -32,7 +32,6 @@ class IDModule(nn.Module):
 
 class ChannelNorm(nn.Module):
     def __init__(self, numFeatures, epsilon=1e-05, affine=True):
-
         super(ChannelNorm, self).__init__()
         if affine:
             self.weight = nn.parameter.Parameter(torch.Tensor(1, numFeatures, 1))
@@ -51,7 +50,6 @@ class ChannelNorm(nn.Module):
             torch.nn.init.zeros_(self.bias)
 
     def forward(self, x):
-
         cumMean = x.mean(dim=1, keepdim=True)
         cumVar = x.var(dim=1, keepdim=True)
         x = (x - cumMean) * torch.rsqrt(cumVar + self.epsilon)
@@ -63,7 +61,6 @@ class ChannelNorm(nn.Module):
 
 class CPCEncoder(nn.Module):
     def __init__(self, sizeHidden=512, normMode="layerNorm"):
-
         super(CPCEncoder, self).__init__()
 
         validModes = ["batchNorm", "instanceNorm", "ID", "layerNorm"]
@@ -109,7 +106,6 @@ class CPCEncoder(nn.Module):
 
 class MFCCEncoder(nn.Module):
     def __init__(self, dimEncoded):
-
         super(MFCCEncoder, self).__init__()
         melkwargs = {"n_mels": max(128, dimEncoded), "n_fft": 321}
         self.dimEncoded = dimEncoded
@@ -123,7 +119,6 @@ class MFCCEncoder(nn.Module):
 
 class LFBEnconder(nn.Module):
     def __init__(self, dimEncoded, normalize=True):
-
         super(LFBEnconder, self).__init__()
         self.dimEncoded = dimEncoded
         self.conv = nn.Conv1d(1, 2 * dimEncoded, 400, stride=1)
@@ -133,7 +128,6 @@ class LFBEnconder(nn.Module):
         )
 
     def forward(self, x):
-
         N, C, L = x.size()
         x = self.conv(x)
         x = x.view(N, self.dimEncoded, 2, -1)
@@ -153,7 +147,6 @@ class CPCAR(nn.Module):
     def __init__(
         self, dimEncoded, dimOutput, keepHidden, nLevelsGRU, mode="GRU", reverse=False
     ):
-
         super(CPCAR, self).__init__()
         self.RESIDUAL_STD = 0.1
 
@@ -178,7 +171,6 @@ class CPCAR(nn.Module):
         return self.baseNet.hidden_size
 
     def forward(self, x):
-
         if self.reverse:
             x = torch.flip(x, [1])
         try:
@@ -213,7 +205,6 @@ class BiDIRARTangled(nn.Module):
     """
 
     def __init__(self, dimEncoded, dimOutput, nLevelsGRU):
-
         super(BiDIRARTangled, self).__init__()
         assert dimOutput % 2 == 0
 
@@ -229,7 +220,6 @@ class BiDIRARTangled(nn.Module):
         return self.ARNet.hidden_size * 2
 
     def forward(self, x):
-
         self.ARNet.flatten_parameters()
         xf, _ = self.ARNet(x)
         return xf
@@ -241,7 +231,6 @@ class BiDIRAR(nn.Module):
     """
 
     def __init__(self, dimEncoded, dimOutput, nLevelsGRU):
-
         super(BiDIRAR, self).__init__()
         assert dimOutput % 2 == 0
 
@@ -256,7 +245,6 @@ class BiDIRAR(nn.Module):
         return self.netForward.hidden_size * 2
 
     def forward(self, x):
-
         self.netForward.flatten_parameters()
         self.netBackward.flatten_parameters()
         xf, _ = self.netForward(x)
@@ -271,7 +259,6 @@ class BiDIRAR(nn.Module):
 
 class CPCModel(nn.Module):
     def __init__(self, encoder, AR):
-
         super(CPCModel, self).__init__()
         self.gEncoder = encoder
         self.gAR = AR
@@ -284,12 +271,10 @@ class CPCModel(nn.Module):
 
 class ConcatenatedModel(nn.Module):
     def __init__(self, model_list):
-
         super(ConcatenatedModel, self).__init__()
         self.models = torch.nn.ModuleList(model_list)
 
     def forward(self, batchData, label):
-
         outFeatures = []
         outEncoded = []
         for model in self.models:

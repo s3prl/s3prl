@@ -24,7 +24,6 @@ SAMPLE_RATE = 16000
 
 
 class CMVN(nn.Module):
-
     __constants__ = ["mode", "dim", "eps"]
 
     def __init__(self, mode="global", dim=2, eps=1e-10):

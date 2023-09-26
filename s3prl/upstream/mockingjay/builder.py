@@ -242,7 +242,6 @@ class TransformerBuilder(nn.Module):
         return feat, pos_enc, attn_mask  # (x, pos_enc, attention_mask)
 
     def _forward(self, x):
-
         if self.permute_input:
             x = x.permute(1, 0, 2).contiguous()  # (T, B, D) -> (B, T, D)
         input_len = x.shape[1]
@@ -521,7 +520,6 @@ def spec_augment(spec, mask_T=70, mask_F=9, num_T=2, num_F=2, p=1.0):
         )  # upper bound on the time mask so that a time mask cannot be wider than p times the number of time steps
 
         for idx in range(spec.shape[0]):
-
             # time masking
             if mask_T > 0 and mask_T < upper_bound:
                 for _ in range(num_T):

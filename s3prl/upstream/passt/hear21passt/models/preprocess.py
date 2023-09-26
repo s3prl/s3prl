@@ -66,7 +66,6 @@ class AugmentMelSTFT(nn.Module):
             self.timem = torchaudio.transforms.TimeMasking(timem, iid_masks=True)
 
     def forward(self, x):
-
         x = nn.functional.conv1d(x.unsqueeze(1), self.preemphasis_coefficient).squeeze(
             1
         )

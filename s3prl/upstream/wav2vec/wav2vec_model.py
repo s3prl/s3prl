@@ -176,7 +176,6 @@ class KmeansVectorQuantizer(nn.Module):
         return res["x"], res["targets"]
 
     def forward(self, x, produce_targets=False):
-
         result = {"num_vars": self.num_vars}
 
         if self.time_first:
@@ -507,7 +506,6 @@ class Wav2VecPredictionsModel(nn.Module):
         return negs
 
     def forward(self, x, y):
-
         x = x.unsqueeze(-1)
         x = self.project_to_steps(x)  # BxCxTxS
         x = self.dropout(x)

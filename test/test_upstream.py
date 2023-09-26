@@ -36,7 +36,6 @@ EXTRACTED_GT_DIR = Path(__file__).parent.parent / "sample_hidden_states"
 def _prepare_sample_hidden_states():
     lock_file = Path(__file__).parent.parent / "sample_hidden_states.lock"
     with FileLock(str(lock_file)):
-
         # NOTE: home variable is necessary for git lfs to work
         env = dict(os.environ)
         if not "HOME" in env:

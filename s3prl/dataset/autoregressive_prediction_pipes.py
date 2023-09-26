@@ -18,9 +18,7 @@ class AutoregressivePrediction(DataPipe):
     source_feat_len_name: str = "feat_len"
 
     def generate_shifted_data(self, source_feat):
-
         with torch.no_grad():
-
             feat_len = int(source_feat.size(0)) - self.n_future
             target_feat = copy.deepcopy(source_feat[self.n_future :, :])
             source_feat = source_feat[: -self.n_future, :]
@@ -31,7 +29,6 @@ class AutoregressivePrediction(DataPipe):
         return source_feat, target_feat, feat_len
 
     def __call__(self, dataset: AugmentedDynamicItemDataset):
-
         dataset.add_dynamic_item(
             self.generate_shifted_data,
             takes=self.source_feat_name,

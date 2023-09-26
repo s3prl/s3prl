@@ -167,7 +167,6 @@ class EMAModule:
 
 @dataclass
 class Data2VecAudioConfig(Wav2Vec2Config):
-
     loss_beta: float = field(
         default=0, metadata={"help": "beta for smooth l1 loss. 0 means use l2 loss"}
     )

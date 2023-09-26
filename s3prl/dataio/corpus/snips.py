@@ -63,7 +63,6 @@ class SNIPS(Corpus):
         valid_speakers: List[str],
         test_speakers: List[str],
     ) -> Dict[str, Dict[str, Any]]:
-
         # Load transcription
         transcripts_file = open(dataset_root / "all.iob.snips.txt").readlines()
         transcripts = {}

@@ -29,7 +29,6 @@ def load_fairseq_ckpt(source: str, **override):
 
 
 def merge_with_parent(dc: dataclass, cfg: dict):
-
     assert is_dataclass(dc)
     assert type(cfg) == dict
     cfg = deepcopy(cfg)

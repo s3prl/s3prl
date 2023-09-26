@@ -17,6 +17,7 @@ logger = logging.getLogger(__name__)
 
 NUM_VERTICAL_PATCH = 12
 
+
 # override the timm package to relax the input shape constraint.
 class PatchEmbed(nn.Module):
     def __init__(self, img_size=224, patch_size=16, in_chans=3, embed_dim=768):
@@ -64,7 +65,6 @@ class ASTModel(nn.Module):
         verbose=True,
         pretrained_ckpt=None,
     ):
-
         super(ASTModel, self).__init__()
         assert (
             timm.__version__ == "0.4.5"

@@ -81,7 +81,6 @@ class RNNLayer(nn.Module):
         sample_rate: int = 1,
         sample_style: str = "drop",
     ):
-
         super().__init__()
         self._insize = input_size
 
