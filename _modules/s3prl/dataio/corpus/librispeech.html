@@ -491,7 +491,6 @@
     <span class="k">def</span> <span class="nf">_collect_data</span><span class="p">(</span>
         <span class="n">dataset_root</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">splits</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">],</span> <span class="n">n_jobs</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">4</span>
     <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">List</span><span class="p">[</span><span class="n">Any</span><span class="p">]]]:</span>
-
         <span class="n">spkr2gender</span> <span class="o">=</span> <span class="n">_parse_spk_to_gender</span><span class="p">(</span><span class="n">Path</span><span class="p">(</span><span class="n">dataset_root</span><span class="p">)</span> <span class="o">/</span> <span class="s2">&quot;SPEAKERS.TXT&quot;</span><span class="p">)</span>
         <span class="n">data_dict</span> <span class="o">=</span> <span class="p">{}</span>
         <span class="k">for</span> <span class="n">split</span> <span class="ow">in</span> <span class="n">splits</span><span class="p">:</span>

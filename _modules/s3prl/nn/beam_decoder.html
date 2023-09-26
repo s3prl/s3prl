@@ -411,7 +411,9 @@
             <span class="p">)</span>
 
         <span class="k">except</span> <span class="ne">ImportError</span><span class="p">:</span>
-            <span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Please install Flashlight Text from https://github.com/flashlight/text to enable </span><span class="si">{</span><span class="vm">__class__</span><span class="o">.</span><span class="vm">__name__</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span>
+                <span class="sa">f</span><span class="s2">&quot;Please install Flashlight Text from https://github.com/flashlight/text to enable </span><span class="si">{</span><span class="vm">__class__</span><span class="o">.</span><span class="vm">__name__</span><span class="si">}</span><span class="s2">&quot;</span>
+            <span class="p">)</span>
             <span class="k">raise</span>
 
         <span class="k">if</span> <span class="n">token</span> <span class="o">==</span> <span class="s2">&quot;&quot;</span><span class="p">:</span>
