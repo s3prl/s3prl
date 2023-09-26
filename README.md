@@ -9,9 +9,30 @@
     <a href="https://github.com/s3prl/s3prl/issues"><img alt="Bitbucket open issues" src="https://img.shields.io/github/issues/s3prl/s3prl"></a>
 </p>
 
-## Notice for pull requests
+## Contact
 
-Please first discuss with us on the issue page about your feature request before implementing the actual pull request, so we can discuss about how to achieve the functionality. If we did not discuss about the detail, it is highly possible that we are not accepting the pull request due to the difficulty of maintenance.
+We prefer to have discussions directly on Github issue page, so that all the information is transparent to all the contributors and is auto-archieved on the Github.
+If you wish to use email, please contact:
+
+- Leo Yang (leo19941227@gmail.com)
+- Andy T. Liu (liuandyt@gmail.com)
+
+## Star History
+
+[![Star History Chart](https://api.star-history.com/svg?repos=s3prl/s3prl&type=Date)](https://star-history.com/#s3prl/s3prl&Date)
+
+## Contribution (pull request)
+
+Guidelines:
+- If you want to add new features (e.g. new upstream or new task), please discuss with us on the Github issue page first before implementing the actual pull request. So we can discuss about whether we want the feauture, how to achieve the feature, and whether the feature is maintainable. (As S3PRL is growing too large, we might not consider complex new features.) Thanks!
+- Reporting bugs or the PR fixing the bugs is always welcome!
+
+Steps:
+1. [Create a personal fork](https://help.github.com/articles/fork-a-repo/) of the [main S3PRL repository](https://github.com/s3prl/s3prl) in GitHub.
+2. Make your changes in a named branch different from `master`, e.g. you create a branch `new-awesome-feature`.
+3. Contact us if you have any questions during development.
+4. [Generate a pull request](https://help.github.com/articles/creating-a-pull-request/) through the Web interface of GitHub.
+5. Please verify that your code is free of basic mistakes, we appreciate your contribution!
 
 ## Environment compatibilities [![CI](https://github.com/s3prl/s3prl/actions/workflows/ci.yml/badge.svg?branch=main&event=push)](https://github.com/s3prl/s3prl/actions/workflows/ci.yml)
 
@@ -23,18 +44,23 @@ We support the following environments. The test cases are ran with **[tox](./tox
 | python | `3.7`, `3.8`, `3.9`, `3.10` |
 | pytorch | `1.8.1`, `1.9.1`, `1.10.2`, `1.11.0`, `1.12.1` |
 
-## What's New
+## Change Log
 
-* *Mar 2022*: Introduce [**SUPERB-SG**](https://arxiv.org/abs/2203.06849), see [Speech Translation](./s3prl/downstream/speech_translation), [Out-of-domain ASR](./s3prl/downstream/ctc/), [Voice Conversion](./s3prl/downstream/a2o-vc-vcc2020/), [Speech Separation](./s3prl/downstream/separation_stft/) and [Speech Enhancement](./s3prl/downstream/enhancement_stft/) for more info.
-* *Nov 2021*: Introduce [**S3PRL-VC**](https://arxiv.org/abs/2110.06280), see [Any-to-one](https://github.com/s3prl/s3prl/tree/master/s3prl/downstream/a2o-vc-vcc2020) and [Any-to-any](https://github.com/s3prl/s3prl/tree/master/s3prl/downstream/a2a-vc-vctk) docs for more info.
-* *Oct 2021*: Support [**DistilHuBERT**](https://arxiv.org/abs/2110.01900), see [docs](./s3prl/upstream/distiller/README.md) for more info
+* *Sep 2022*: We upgrade the codebase to support testing, documentation and a new [s3prl PyPI package](https://pypi.org/project/s3prl/) for easy installation and usage for upstream models. See our [online doc](https://s3prl.github.io/s3prl/) for more information.
+* *Mar 2022*: Introduce [**SUPERB-SG**](https://arxiv.org/abs/2203.06849), see [Speech Translation](./s3prl/downstream/speech_translation) by [Hsiang-Sheng Tsai](https://github.com/bearhsiang), [Out-of-domain ASR](./s3prl/downstream/ctc/) by [Heng-Jui Chang](https://github.com/vectominist), [Voice Conversion](./s3prl/downstream/a2o-vc-vcc2020/) by [Wen-Chin Huang](https://github.com/unilight), [Speech Separation](./s3prl/downstream/separation_stft/) and [Speech Enhancement](./s3prl/downstream/enhancement_stft/) by [Zili Huang](https://github.com/HuangZiliAndy) for more info.
+* *Nov 2021*: Introduce [**S3PRL-VC**](https://arxiv.org/abs/2110.06280) by [Wen-Chin Huang](https://github.com/unilight), see [Any-to-one](https://github.com/s3prl/s3prl/tree/master/s3prl/downstream/a2o-vc-vcc2020) for more info. We highly recommend to consider the [newly released official repo of S3PRL-VC](https://github.com/unilight/s3prl-vc) which is developed and actively maintained by [Wen-Chin Huang](https://github.com/unilight). The standalone repo contains much more recepies for the VC experiments. In S3PRL we only include the Any-to-one recipe for reproducing the SUPERB results.
+* *Oct 2021*: Support [**DistilHuBERT**](https://arxiv.org/abs/2110.01900) by [Heng-Jui Chang](https://github.com/vectominist), see [docs](./s3prl/upstream/distiller/README.md) for more info
 * *Sep 2021:* We host a *challenge* in [*AAAI workshop: The 2nd Self-supervised Learning for Audio and Speech Processing*](https://aaai-sas-2022.github.io/)! See [**SUPERB official site**](https://superbbenchmark.org/) for the challenge details and the [**SUPERB documentation**](./s3prl/downstream/docs/superb.md) in this toolkit!
 * *Aug 2021:* We now have a tutorial that introduces our toolkit, you can **[watch it on Youtube](https://youtu.be/PkMFnS6cjAc)**!
 * *July 2021:* We are now working on packaging s3prl and reorganizing the file structure in **v0.3**. Please consider using the stable **v0.2.0** for now. We will test and release **v0.3** before August.
-* *June 2021:* Support [**SUPERB:** **S**peech processing **U**niversal **PER**formance **B**enchmark](https://arxiv.org/abs/2105.01051), submitted to Interspeech 2021. Use the tag **superb-interspeech2021** or **v0.2.0**.
+* *June 2021:* Support [**SUPERB:** **S**peech processing **U**niversal **PER**formance **B**enchmark](https://arxiv.org/abs/2105.01051), submitted to Interspeech 2021. Use the tag **superb-interspeech2021** or **v0.2.0**. The individual task contributors include: [Shu-wen (Leo) Yang](https://github.com/leo19941227), [Pohan Chi](https://github.com/pohanchi), [Yist Lin](https://github.com/yistLin), [Yung-Sung Chuang](https://github.com/voidism), [Jiatong Shi](https://github.com/ftshijt), [Xuankai](https://github.com/simpleoier), [Wei-Cheng Tseng](https://github.com/RayTzeng) and Tzu-Hsien Huang.
 * *June 2021:* Support extracting multiple hidden states from the SSL pretrained models
 * *Jan 2021:* Readme updated with detailed instructions on how to use our latest version!
 * *Dec 2020:* We are migrating to a newer version for a more general, flexible, and scalable code. See the introduction below for more information! The legacy version can be accessed the tag **v0.1.0**.
+* *Oct 2020:* We added lots of classic upstream models, including PASE+, APC, VQ-APC, NPC, wav2vec, vq-wav2vec ...etc.
+* *Oct 2019:* [Andy T. Liu](https://github.com/andi611), [Shu-wen (Leo) Yang](https://github.com/leo19941227) and [Pohan Chi](https://github.com/pohanchi) implemented the Mockingjay pre-training and several simple downstream evaluation tasks. This work was the very start of the S3PRL project which established lots of foundamental modules and coding styles. Feel free to checkout to the oldest commits to explore our legacy codebase!
+
+****
 
 ## Introduction and Usages
 
@@ -75,15 +101,7 @@ If you find this toolkit helpful to your research, please do consider citing [ou
 1. **Python** >= 3.6
 2. Install **sox** on your OS
 3. Install s3prl: [Read doc](https://s3prl.github.io/s3prl/tutorial/installation.html#) or `pip install -e ".[all]"`
-4. (Optional) Some upstream models require special dependencies. If you encounter error with a specific upstream model, you can look into the `README.md` under each `upstream` folder. E.g., `upstream/pase/README.md`
-
-## Development pattern for contributors
-
-1. [Create a personal fork](https://help.github.com/articles/fork-a-repo/) of the [main S3PRL repository](https://github.com/andi611/Self-Supervised-Speech-Pretraining-and-Representation-Learning) in GitHub.
-2. Make your changes in a named branch different from `master`, e.g. you create a branch `new-awesome-feature`.
-3. Contact us if you have any questions during development.
-4. [Generate a pull request](https://help.github.com/articles/creating-a-pull-request/) through the Web interface of GitHub.
-5. Please verify that your code is free of basic mistakes, we appreciate any contribution!
+4. (Optional) Some upstream models require special dependencies. If you encounter error with a specific upstream model, you can look into the `README.md` under each `upstream` folder. E.g., `upstream/pase/README.md`=
 
 ## Reference Repositories
 

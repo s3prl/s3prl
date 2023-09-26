@@ -17,7 +17,9 @@ jobs:
           echo "$HOME/s3prl_env/bin" >> $GITHUB_PATH
 
       - name: Install Linux dependencies
-        run: sudo apt-get install -y libsndfile1-dev sox
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y libsndfile1-dev sox
 
       - name: Upgrade pip and wheel
         run: pip3 install --upgrade pip wheel
@@ -26,7 +28,7 @@ jobs:
         run: |
           pip install -e ".[dev]"
 
-      # - name: Setup upterm session
+      # - name: Setup upterm sessions
       #   uses: lhotari/action-upterm@v1
 
       - name: Build doc

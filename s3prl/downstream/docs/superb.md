@@ -165,20 +165,36 @@ Installing all the dependencies right could be quite complicated. Note that the 
 
 ##### I. Prepare Decoding Environment
 
-1. Install [KenLM](https://github.com/kpu/kenlm)
-    - Please follow the official installation instructions of KenLM.
+The decoding evnironment depends on [flashlight-text](https://github.com/flashlight/text/tree/main/bindings/python) and [flashlight-sequence](https://github.com/flashlight/sequence/tree/main/bindings/python).
+You can install these two packages following the links or the steps below:
 
-2. Install [Flashlight Text bindings](https://github.com/flashlight/text) and [Flashlight Sequence bindings](https://github.com/flashlight/sequence/).
+1. Install [KenLM](https://github.com/kpu/kenlm) python package
+    ```
+    git clone https://github.com/kpu/kenlm
+    cd kenlm/
+    pip install .
+    ```
 
-3. Download LibriSpeech official 4-gram LM
+2. Install `flashlight-text`
+    ```
+    pip install flashlight-text
+    ```
+
+3. Install `flashlight-sequence`
+    ```
+    git clone https://github.com/flashlight/sequence.git
+    cd sequence/
+    pip install .
+    ```
+
+4. Download LibriSpeech official 4-gram LM
     - https://www.openslr.org/resources/11/4-gram.arpa.gz
     - Downloaded filename: **4-gram.arpa.gz**
 
-4. Download character-based lexicon
+5. Download character-based lexicon
     - https://dl.fbaipublicfiles.com/fairseq/wav2vec/librispeech_lexicon.lst
     - Downloaded filename: **librispeech_lexicon.lst**
 
-5. Make sure your fairseq version contains this commit [cb8469](https://github.com/pytorch/fairseq/commit/cb84694c195afced474d17318b5e746d1a9d20a3#diff-ee3a94b6d9b5f2cc60f1b69afc075abbe2061083b52515178eb7145d59e7e7e4)
 
 ##### II. Test
 
@@ -686,7 +702,8 @@ The model is expected to output SI-SDRi on the test set.
 
 ## SE: Speech Enhancement
 
-We have two versions for the speech enhancement task. The first version (enhancement_stft) is the same as the SUPERB-SG paper. In the second version (enhancement_stft2), we largely improve the system performance and training speed. Please refer to [README](../enhancement_stft2/README.md) about the detailed changes of the second version.
+To be comparable to SUPERB benchmark, please follow the `downstream/enhancement_stft` folder.
+We have a second version in the `downstream/enhancement_stft2` folder, which gets improved speech enhancement performance with SSL features. However, the second version is not comparable to the results on the SUPERB benchmark, but a recipe helpful for people more interested in boosting the performance for speech enhancement.
 
 #### Prepare data
 
