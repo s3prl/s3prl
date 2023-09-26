@@ -1264,7 +1264,11 @@ class RobertaModel(FairseqEncoderModel):
                 end_idx = (i + 1) * layer.self_attn.head_dim
                 norm_loss_layer += scaling * (
                     torch.sum(
-                        torch.abs(layer.self_attn.q_proj.weight[start_idx:end_idx,])
+                        torch.abs(
+                            layer.self_attn.q_proj.weight[
+                                start_idx:end_idx,
+                            ]
+                        )
                     )
                     + torch.sum(
                         torch.abs(layer.self_attn.q_proj.bias[start_idx:end_idx])
@@ -1272,7 +1276,11 @@ class RobertaModel(FairseqEncoderModel):
                 )
                 norm_loss_layer += scaling * (
                     torch.sum(
-                        torch.abs(layer.self_attn.k_proj.weight[start_idx:end_idx,])
+                        torch.abs(
+                            layer.self_attn.k_proj.weight[
+                                start_idx:end_idx,
+                            ]
+                        )
                     )
                     + torch.sum(
                         torch.abs(layer.self_attn.k_proj.bias[start_idx:end_idx])
@@ -1280,7 +1288,11 @@ class RobertaModel(FairseqEncoderModel):
                 )
                 norm_loss_layer += scaling * (
                     torch.sum(
-                        torch.abs(layer.self_attn.v_proj.weight[start_idx:end_idx,])
+                        torch.abs(
+                            layer.self_attn.v_proj.weight[
+                                start_idx:end_idx,
+                            ]
+                        )
                     )
                     + torch.sum(
                         torch.abs(layer.self_attn.v_proj.bias[start_idx:end_idx])
