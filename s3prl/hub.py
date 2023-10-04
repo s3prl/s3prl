@@ -36,6 +36,7 @@ from s3prl.upstream.wavlm.hubconf import *
 from s3prl.upstream.dp_hubert.hubconf import *
 from s3prl.upstream.cobert.hubconf import *
 from s3prl.upstream.fast_vgs.hubconf import *
+from s3prl.upstream.data2vec2.hubconf import *
 
 
 def options(only_registered_ckpt: bool = False):
