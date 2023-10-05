@@ -23,7 +23,9 @@ class UpstreamExpert(torch.nn.Module):
             HubertTask is not None
         ), "ESPnet is not installed, run `external_tools/install_espnet.sh` to install"
         hubert_model, hubert_train_args = HubertTask.build_model_from_file(
-            config, ckpt, device,
+            config,
+            ckpt,
+            device,
         )
         self.device = next(hubert_model.parameters()).device
         self.model = hubert_model.encoder.hubert_pretrain_model
