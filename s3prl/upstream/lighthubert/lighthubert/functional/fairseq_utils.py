@@ -7,8 +7,9 @@
 # --------------------------------------------------------
 
 import math
-from typing import Callable
 import warnings
+from typing import Callable
+
 import torch
 import torch.nn.functional as F
 

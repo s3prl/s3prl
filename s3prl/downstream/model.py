@@ -26,7 +26,7 @@ class FrameLevel(nn.Module):
         self.linear = nn.Linear(latest_dim, output_dim)
 
     def forward(self, hidden_state, features_len=None):
-        hidden_states = self.hiddens(hidden_state)
+        hidden_state = self.hiddens(hidden_state)
         logit = self.linear(hidden_state)
 
         return logit, features_len

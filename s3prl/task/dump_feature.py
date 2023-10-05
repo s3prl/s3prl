@@ -3,7 +3,7 @@ Dump feature Task
 
 Authors
   * Yist Y. Lin 2021
-  * Shu-wen Yang 2022
+  * Leo 2022
 """
 
 from pathlib import Path
@@ -12,7 +12,6 @@ import torch
 import torch.nn as nn
 
 from .base import Task
-
 
 __all__ = ["DumpFeature"]
 

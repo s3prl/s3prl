@@ -1,12 +1,16 @@
 import json
-import pandas as pd
-from pathlib import Path
-from omegaconf import MISSING
 from collections import defaultdict
+from pathlib import Path
 
+import pandas as pd
+from omegaconf import MISSING
+
+from ._hear_util import resample_hear_corpus
 from .hear_fsd import HearFSD
 
 ESC50_NUM_FOLDS = 5
+
+__all__ = ["HearESC50"]
 
 
 def hear_scene_kfolds(
@@ -30,8 +34,10 @@ def hear_scene_kfolds(
     if get_path_only:
         return train_csv, valid_csv, [test_csv]
 
+    resample_hear_corpus(dataset_root, target_sr=16000)
+
     dataset_root = Path(dataset_root)
-    wav_root = dataset_root / "16000"
+    wav_root: Path = dataset_root / "16000"
 
     def load_json(filepath):
         with open(filepath, "r") as fp:
@@ -98,7 +104,7 @@ class HearESC50(HearFSD):
                 ),
             ),
             build_upstream=dict(
-                name="fbank",
+                name=MISSING,
             ),
             build_featurizer=dict(
                 layer_selections=None,
@@ -118,7 +124,7 @@ class HearESC50(HearFSD):
             build_optimizer=dict(
                 name="Adam",
                 conf=dict(
-                    lr=1.0e-4,
+                    lr=1.0e-3,
                 ),
             ),
             build_scheduler=dict(

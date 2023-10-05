@@ -3,13 +3,11 @@ The setting of Superb KS
 
 Authors
   * Yist Y. Lin 2021
-  * Shu-wen Yang 2022
+  * Leo 2022
 """
 
 import logging
-import math
 import pickle
-from collections import Counter
 from pathlib import Path
 from typing import OrderedDict
 
@@ -18,16 +16,13 @@ from omegaconf import MISSING
 from torch.utils.data import Dataset
 
 from s3prl.dataio.corpus.speech_commands import SpeechCommandsV1
-from s3prl.dataset.utterance_classification_pipe import UtteranceClassificationPipe
 from s3prl.dataio.encoder.category import CategoryEncoder
-from s3prl.nn.linear import MeanPoolingLinear
 from s3prl.dataio.sampler import BalancedWeightedSampler, FixedBatchSizeBatchSampler
+from s3prl.nn.linear import MeanPoolingLinear
 
-from .run import Common
+from .superb_sid import SuperbSID
 
 logger = logging.getLogger(__name__)
-
-EFFECTS = [["channels", "1"], ["rate", "16000"], ["gain", "-3.0"]]
 
 
 __all__ = [
@@ -117,7 +112,7 @@ def gsc1_for_classification(
     return train_path, valid_path, test_paths
 
 
-class SuperbKS(Common):
+class SuperbKS(SuperbSID):
     def default_config(self) -> dict:
         return dict(
             start=0,
@@ -130,11 +125,32 @@ class SuperbKS(Common):
                 gsc1_test=MISSING,
             ),
             build_encoder=dict(),
-            build_dataset=dict(),
+            build_dataset=dict(
+                train=dict(
+                    sox_effects=[
+                        ["channels", "1"],
+                        ["rate", "16000"],
+                        ["gain", "-3.0"],
+                    ],
+                ),
+                valid=dict(
+                    sox_effects=[
+                        ["channels", "1"],
+                        ["rate", "16000"],
+                        ["gain", "-3.0"],
+                    ],
+                ),
+                test=dict(
+                    sox_effects=[
+                        ["channels", "1"],
+                        ["rate", "16000"],
+                        ["gain", "-3.0"],
+                    ],
+                ),
+            ),
             build_batch_sampler=dict(
                 train=dict(
                     batch_size=32,
-                    shuffle=True,
                 ),
                 valid=dict(
                     batch_size=32,
@@ -144,13 +160,15 @@ class SuperbKS(Common):
                 ),
             ),
             build_upstream=dict(
-                name="fbank",
+                name=MISSING,
             ),
             build_featurizer=dict(
                 layer_selections=None,
                 normalize=False,
             ),
-            build_downstream=dict(hidden_size=256),
+            build_downstream=dict(
+                hidden_size=256,
+            ),
             build_model=dict(
                 upstream_trainable=False,
             ),
@@ -170,8 +188,8 @@ class SuperbKS(Common):
             train=dict(
                 total_steps=200000,
                 log_step=100,
-                eval_step=2000,
-                save_step=500,
+                eval_step=5000,
+                save_step=1000,
                 gradient_clipping=1.0,
                 gradient_accumulate=1,
                 valid_metric="accuracy",
@@ -271,80 +289,6 @@ class SuperbKS(Common):
 
         return encoder
 
-    def build_dataset(
-        self,
-        build_dataset: dict,
-        target_dir: str,
-        cache_dir: str,
-        mode: str,
-        data_csv: str,
-        encoder_path: str,
-        frame_shift: int,
-    ):
-        """
-        Build the dataset for train/valid/test.
-
-        Args:
-            build_dataset (dict): same in :obj:`default_config`, no argument supported for now
-            target_dir (str): Current experiment directory
-            cache_dir (str): If the preprocessing takes too long time, you can save
-                the temporary files into this directory. This directory is expected to be shared
-                across different training sessions (different hypers and :code:`target_dir`)
-            mode (str): train/valid/test
-            data_csv (str): The metadata csv file for the specific :code:`mode`
-            encoder_path (str): The pickled encoder path for encoding the labels
-
-        Returns:
-            torch Dataset
-
-            For all train/valid/test mode, the dataset should return each item as a dictionary
-            containing the following keys:
-
-            ====================  ====================
-            key                   description
-            ====================  ====================
-            x                     (torch.FloatTensor) - the waveform in (seq_len, 1)
-            x_len                 (int) - the waveform length :code:`seq_len`
-            class_id              (int) - the encoded class id
-            label                 (str) - the class name
-            unique_name           (str) - the unique id for this datapoint
-            ====================  ====================
-        """
-        data_points = OrderedDict()
-        csv = pd.read_csv(data_csv)
-        for _, row in csv.iterrows():
-            if "start_sec" in row and "end_sec" in row:
-                start_sec = row["start_sec"]
-                end_sec = row["end_sec"]
-
-                if math.isnan(start_sec):
-                    start_sec = None
-
-                if math.isnan(end_sec):
-                    end_sec = None
-
-            else:
-                start_sec = None
-                end_sec = None
-
-            data_points[row["id"]] = {
-                "wav_path": row["wav_path"],
-                "label": row["label"],
-                "start_sec": start_sec,
-                "end_sec": end_sec,
-            }
-
-        with open(encoder_path, "rb") as f:
-            encoder = pickle.load(f)
-
-        dataset = UtteranceClassificationPipe(
-            train_category_encoder=False, sox_effects=EFFECTS
-        )(
-            data_points,
-            tools={"category": encoder},
-        )
-        return dataset
-
     def build_batch_sampler(
         self,
         build_batch_sampler: dict,
@@ -390,22 +334,12 @@ class SuperbKS(Common):
             test = test or {}
 
             csv = pd.read_csv(data_csv)
-
-            def get_weights(csv):
-                labels = csv["label"].tolist()
-                class2weight = Counter()
-                class2weight.update(labels)
-
-                weights = []
-                for row_id, row in csv.iterrows():
-                    weights.append(len(csv) / class2weight[row["label"]])
-
-                return weights
+            labels = csv["label"].tolist()
 
             if mode == "train":
-                return BalancedWeightedSampler(csv, get_weights=get_weights, **train)
+                return BalancedWeightedSampler(labels, **train)
             elif mode == "valid":
-                return BalancedWeightedSampler(csv, get_weights=get_weights, **valid)
+                return BalancedWeightedSampler(labels, **valid)
             elif mode == "test":
                 return FixedBatchSizeBatchSampler(csv, **test)
 

@@ -2,12 +2,12 @@
 Parse the Google Speech Commands V1 corpus
 
 Authors:
-  * Shu-wen Yang 2022
+  * Leo 2022
+  * Cheng Liang 2022
 """
 
 import hashlib
 import logging
-import os
 import re
 from collections import OrderedDict
 from pathlib import Path

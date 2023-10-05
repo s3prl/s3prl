@@ -4,30 +4,65 @@
 """*********************************************************************************************"""
 #   FileName     [ upstream/wav2vec2/hubconf.py ]
 #   Synopsis     [ the wav2vec 2.0 torch hubconf ]
-#   Author       [ S3PRL / Kushal Lakhotia]
+#   Author       [ S3PRL / Kushal Lakhotia ]
 """*********************************************************************************************"""
 
-import os
 import logging
+import os
+import time
+from pathlib import Path
+
+from filelock import FileLock
 
 from s3prl.util.download import _urls_to_filepaths
-from .expert import UpstreamExpert as _UpstreamExpert
+
+from .convert import load_and_convert_fairseq_ckpt
 from .expert import LegacyUpstreamExpert as _LegacyUpstreamExpert
+from .expert import UpstreamExpert as _UpstreamExpert
 
 logger = logging.getLogger(__name__)
 
+NEW_ENOUGH_SECS = 2.0
+
 
 def wav2vec2_custom(
-    ckpt: str, *args, legacy: bool = False, refresh: bool = False, **kwargs
+    ckpt: str,
+    legacy: bool = False,
+    fairseq: bool = False,
+    refresh: bool = False,
+    **kwargs,
 ):
+    assert not (legacy and fairseq), (
+        "The option 'legacy' will directly load a fairseq checkpoint, "
+        "while the option 'fairseq' will first convert the fairseq checkpoint to "
+        "be fairseq indenpendent and then load the checkpoint. "
+        "These two options cannot be used jointly."
+    )
+
     if ckpt.startswith("http"):
         ckpt = _urls_to_filepaths(ckpt, refresh=refresh)
 
+    if fairseq:
+        ckpt: Path = Path(ckpt)
+        converted_ckpt = ckpt.parent / f"{ckpt.stem}.converted.pt"
+        lock_file = Path(str(converted_ckpt) + ".lock")
+
+        logger.info(f"Converting a fairseq checkpoint: {ckpt}")
+        logger.info(f"To: {converted_ckpt}")
+
+        with FileLock(str(lock_file)):
+            if not converted_ckpt.is_file() or (
+                refresh and (time.time() - os.path.getmtime(ckpt)) > NEW_ENOUGH_SECS
+            ):
+                load_and_convert_fairseq_ckpt(ckpt, converted_ckpt)
+
+        ckpt = converted_ckpt
+
     assert os.path.isfile(ckpt)
     if legacy:
-        return _LegacyUpstreamExpert(ckpt, *args, **kwargs)
+        return _LegacyUpstreamExpert(ckpt, **kwargs)
     else:
-        return _UpstreamExpert(ckpt, *args, **kwargs)
+        return _UpstreamExpert(ckpt, **kwargs)
 
 
 def wav2vec2_local(*args, **kwargs):
@@ -167,8 +202,68 @@ def wav2vec2_conformer_rope(refresh=False, legacy=False, **kwargs):
     return wav2vec2_custom(refresh=refresh, legacy=legacy, **kwargs)
 
 
-def wav2vec2_vox(refresh=False, legacy=False, **kwargs):
+def wav2vec2_large_voxpopuli_100k(refresh=False, legacy=False, **kwargs):
     kwargs[
         "ckpt"
     ] = "https://dl.fbaipublicfiles.com/voxpopuli/models/wav2vec2_large_100k.pt"
-    return wav2vec2_custom(refresh=refresh, legacy=True, **kwargs)
+    if not legacy:
+        kwargs[
+            "ckpt"
+        ] = "https://huggingface.co/s3prl/converted_ckpts/resolve/main/wav2vec2_large_100k.pt"
+    return wav2vec2_custom(refresh=refresh, legacy=legacy, **kwargs)
+
+
+def wav2vec2_base_s2st_es_voxpopuli(refresh=False, legacy=False, **kwargs):
+    kwargs[
+        "ckpt"
+    ] = "https://dl.fbaipublicfiles.com/fairseq/speech_to_speech/s2st_finetuning/w2v2/es/transformer_B.pt"
+    if not legacy:
+        kwargs[
+            "ckpt"
+        ] = "https://huggingface.co/s3prl/converted_ckpts/resolve/main/wav2vec2_base_s2st_es_voxpopuli.pt"
+    return wav2vec2_custom(refresh=refresh, legacy=legacy, **kwargs)
+
+
+# FIXME: the official fairseq checkpoint link is down currently
+# def wav2vec2_large_s2st_es_voxpopuli(refresh=False, legacy=False, **kwargs):
+#     kwargs[
+#         "ckpt"
+#     ] = "https://dl.fbaipublicfiles.com/fairseq/speech_to_speech/s2st_finetuning/w2v2/es/transformer_L.pt"
+#     if not legacy:
+#         kwargs[
+#             "ckpt"
+#         ] = "https://huggingface.co/s3prl/converted_ckpts/resolve/main/wav2vec2-large-s2st-es-voxpopuli.pt"
+#     return wav2vec2_custom(refresh=refresh, legacy=legacy, **kwargs)
+
+
+def wav2vec2_conformer_large_s2st_es_voxpopuli(refresh=False, legacy=False, **kwargs):
+    kwargs[
+        "ckpt"
+    ] = "https://dl.fbaipublicfiles.com/fairseq/speech_to_speech/s2st_finetuning/w2v2/es/conformer_L.pt"
+    if not legacy:
+        kwargs[
+            "ckpt"
+        ] = "https://huggingface.co/s3prl/converted_ckpts/resolve/main/wav2vec2_conformer_large_s2st_es_voxpopuli.pt"
+    return wav2vec2_custom(refresh=refresh, legacy=legacy, **kwargs)
+
+
+def wav2vec2_base_s2st_en_librilight(refresh=False, legacy=False, **kwargs):
+    kwargs[
+        "ckpt"
+    ] = "https://dl.fbaipublicfiles.com/fairseq/speech_to_speech/s2st_finetuning/w2v2/en/transformer_B.pt"
+    if not legacy:
+        kwargs[
+            "ckpt"
+        ] = "https://huggingface.co/s3prl/converted_ckpts/resolve/main/wav2vec2_base_s2st_en_librilight.pt"
+    return wav2vec2_custom(refresh=refresh, legacy=legacy, **kwargs)
+
+
+def wav2vec2_conformer_large_s2st_en_librilight(refresh=False, legacy=False, **kwargs):
+    kwargs[
+        "ckpt"
+    ] = "https://dl.fbaipublicfiles.com/fairseq/speech_to_speech/s2st_finetuning/w2v2/en/conformer_L.pt"
+    if not legacy:
+        kwargs[
+            "ckpt"
+        ] = "https://huggingface.co/s3prl/converted_ckpts/resolve/main/wav2vec2_conformer_large_s2st_en_librilight.pt"
+    return wav2vec2_custom(refresh=refresh, legacy=legacy, **kwargs)

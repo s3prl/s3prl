@@ -46,9 +46,7 @@ class FrameLevel(nn.Module):
         self._outdim = output_size
         hidden_sizes = hidden_sizes or [256]
 
-        hidden_sizes = hidden_sizes
         latest_size = input_size
-
         hidden_layers = []
         if len(hidden_sizes) > 0:
             for size in hidden_sizes:

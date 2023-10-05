@@ -74,10 +74,10 @@ setup(
     url="https://github.com/s3prl/s3prl",  # Optional
     # This should be your name or the name of the organization which owns the
     # project.
-    author="Shu-wen (Leo) Yang, Andy T. Liu and S3PRL Team",  # Optional
+    author="Shu-wen (Leo) Yang, Andy T. Liu (Ting-Wei Liu), and the S3PRL Team",  # Optional
     # This should be a valid email address corresponding to the author listed
     # above.
-    author_email="leo19941227@gmail.com, tingweiandyliu@gmail.com",  # Optional
+    author_email="leo19941227@gmail.com, liuandyt@gmail.com",  # Optional
     # Classifiers help users find your project by categorizing it.
     #
     # For a list of valid classifiers, see https://pypi.org/classifiers/

@@ -2,12 +2,12 @@
 Limit the maximum timestamps in a batch to realize dynamic batching.
 
 Authors:
-  * Shu-wen Yang 2022
+  * Leo 2022
 """
 
+from typing import List
+
 import torch
-from joblib import Parallel, delayed
-from tqdm import tqdm
 
 __all__ = [
     "MaxTimestampBatchSampler",
@@ -22,37 +22,18 @@ class MaxTimestampBatchSampler:
 
     def __init__(
         self,
-        dataset,
-        max_timestamp: int,
+        lengths: List[int],
+        max_length: int,
         shuffle: bool = False,
         seed: int = 12345678,
-        get_length_func: callable = None,
         reduce_func: callable = None,
     ) -> None:
-        get_length_func = get_length_func or self.get_length
-        timestamps = get_length_func(dataset)
-
-        self.timestamps = timestamps
-        self.max_timestamp = max_timestamp
+        self.lengths = lengths
+        self.max_length = max_length
         self.shuffle = shuffle
         self.seed = seed
         self.epoch = 0
         self.reduce_func = reduce_func or self._default_reduce_func
-
-    @staticmethod
-    def get_length(dataset):
-        import torchaudio
-
-        torchaudio.set_audio_backend("sox_io")
-
-        lengths = []
-        with dataset.output_keys_as(["wav_path"]):
-            for data_index, item in enumerate(
-                tqdm(dataset, desc="Read wav_path audio length")
-            ):
-                info = torchaudio.info(item["wav_path"])
-                lengths.append(info.num_frames)
-        return lengths
 
     @staticmethod
     def _default_reduce_func(timestamps):
@@ -62,26 +43,26 @@ class MaxTimestampBatchSampler:
         self.epoch = epoch
 
     def _evaluate_reduced_timestamps(self, batch_indices):
-        return self.reduce_func([self.timestamps[indice] for indice in batch_indices])
+        return self.reduce_func([self.lengths[indice] for indice in batch_indices])
 
     def __iter__(self):
         if self.shuffle:
             generator = torch.Generator()
             generator.manual_seed(self.epoch + self.seed)
-            indices = torch.randperm(len(self.timestamps), generator=generator).tolist()
+            indices = torch.randperm(len(self.lengths), generator=generator).tolist()
         else:
-            indices = list(range(len(self.timestamps)))
+            indices = list(range(len(self.lengths)))
 
         batch = []
         for indice in indices:
             try_new_batch = batch + [indice]
-            if self._evaluate_reduced_timestamps(try_new_batch) <= self.max_timestamp:
+            if self._evaluate_reduced_timestamps(try_new_batch) <= self.max_length:
                 batch = try_new_batch
             elif len(batch) == 0:
                 raise ValueError(
-                    f"There is a single timestamp {self.timestamps[indice]} larger than "
-                    f"max_timestamp {self.max_timestamp}. Please increase "
-                    "the max_timestamp."
+                    f"There is a single length {self.lengths[indice]} larger than "
+                    f"max_length {self.max_length}. Please increase "
+                    "the max_length."
                 )
             else:
                 yield batch

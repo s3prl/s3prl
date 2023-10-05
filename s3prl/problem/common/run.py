@@ -2,17 +2,17 @@
 The backbone run procedure for the common train/valid/test
 
 Authors
-  * Shu-wen Yang 2022
+  * Leo 2022
 """
 
-import yaml
 import logging
 import pickle
 import shutil
 from pathlib import Path
 
-import torch
 import pandas as pd
+import torch
+import yaml
 
 from s3prl.problem.base import Problem
 from s3prl.task.utterance_classification_task import UtteranceClassificationTask
@@ -263,16 +263,17 @@ class Common(Problem):
                 rank=rank,
             )
 
-        def check_fn():
-            assert (train_dir / "valid_best").is_dir()
+            def check_fn():
+                assert (train_dir / "valid_best").is_dir()
 
-        self._stage_check(stage_id, stop, check_fn)
+            self._stage_check(stage_id, stop, check_fn)
 
         stage_id = 3
         if start <= stage_id:
             test_ckpt_dir: Path = Path(
                 test_ckpt_dir or target_dir / "train" / "valid_best"
             )
+            assert test_ckpt_dir.is_dir()
             logger.info(f"Stage {stage_id}: Test model: {test_ckpt_dir}")
             for test_idx, test_csv in enumerate(test_csvs):
                 test_name = Path(test_csv).stem
@@ -312,7 +313,7 @@ class Common(Problem):
                     num_workers,
                 )
                 test_metrics = {name: float(value) for name, value in logs.items()}
-
+                logger.info(f"test results: {test_metrics}")
                 with (test_dir / f"result.yaml").open("w") as f:
                     yaml.safe_dump(test_metrics, f)
 

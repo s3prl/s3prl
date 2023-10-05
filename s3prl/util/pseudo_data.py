@@ -2,11 +2,11 @@
 Create pseudo data
 
 Authors
-  * Shu-wen Yang 2022
+  * Leo 2022
 """
 
-import shutil
 import random
+import shutil
 import tempfile
 from pathlib import Path
 from typing import Any, List
@@ -24,17 +24,23 @@ __all__ = [
 
 
 class pseudo_audio:
-    def __init__(self, secs: List[int], sample_rate: int = SAMPLE_RATE):
+    """
+    This context manager returns filepaths (List[str]) and num_samples (List[int]) on entering
+    """
+
+    def __init__(self, secs: List[float], sample_rate: int = SAMPLE_RATE):
         self.tempdir = Path(tempfile.TemporaryDirectory().name)
         self.tempdir.mkdir(parents=True, exist_ok=True)
         self.num_samples = []
         for n, sec in enumerate(secs):
-            wav = torch.randn(1, sample_rate * sec)
+            wav = torch.randn(1, round(sample_rate * sec))
             torchaudio.save(
-                str(self.tempdir / f"{n}.wav"), wav, sample_rate=sample_rate
+                str(self.tempdir / f"audio_{n}.wav"), wav, sample_rate=sample_rate
             )
             self.num_samples.append(wav.size(-1))
-        self.filepaths = [str(self.tempdir / f"{i}.wav") for i in range(len(secs))]
+        self.filepaths = [
+            str(self.tempdir / f"audio_{i}.wav") for i in range(len(secs))
+        ]
 
     def __enter__(self):
         return self.filepaths, self.num_samples

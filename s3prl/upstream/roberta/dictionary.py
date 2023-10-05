@@ -1,9 +1,10 @@
-import re
 import os
-import torch
-from pathlib import Path
+import re
 from collections import Counter
 from multiprocessing import Pool
+from pathlib import Path
+
+import torch
 
 SPACE_NORMALIZER = re.compile(r"\s+")
 
@@ -468,7 +469,7 @@ class Dictionary:
             chunks = zip(offsets, offsets[1:])
             pool = Pool(processes=num_workers)
             results = []
-            for (start_offset, end_offset) in chunks:
+            for start_offset, end_offset in chunks:
                 results.append(
                     pool.apply_async(
                         Dictionary._add_file_to_dictionary_single_worker,

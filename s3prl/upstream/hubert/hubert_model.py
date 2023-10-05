@@ -8,23 +8,23 @@
 
 import logging
 from dataclasses import dataclass, field
-from typing import Dict, List, Optional, Tuple, Any
+from typing import Any, Dict, List, Optional, Tuple
 
 import numpy as np
 import torch
 import torch.nn as nn
 
 from ..wav2vec2.wav2vec2_model import (
-    get_available_activation_fns,
-    compute_mask_indices,
-    ChoiceEnum,
     EXTRACTOR_MODE_CHOICES,
-    MASKING_DISTRIBUTION_CHOICES,
     LAYER_TYPE_CHOICES,
+    MASKING_DISTRIBUTION_CHOICES,
+    ChoiceEnum,
     ConvFeatureExtractionModel,
-    TransformerEncoder,
     GradMultiply,
     LayerNorm,
+    TransformerEncoder,
+    compute_mask_indices,
+    get_available_activation_fns,
 )
 
 logger = logging.getLogger(__name__)

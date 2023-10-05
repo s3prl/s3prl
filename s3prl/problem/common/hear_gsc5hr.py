@@ -2,6 +2,8 @@ from omegaconf import MISSING
 
 from .hear_fsd import HearFSD
 
+__all__ = ["HearGSC5hr"]
+
 
 class HearGSC5hr(HearFSD):
     def default_config(self) -> dict:
@@ -27,7 +29,7 @@ class HearGSC5hr(HearFSD):
                 ),
             ),
             build_upstream=dict(
-                name="fbank",
+                name=MISSING,
             ),
             build_featurizer=dict(
                 layer_selections=None,
@@ -47,7 +49,7 @@ class HearGSC5hr(HearFSD):
             build_optimizer=dict(
                 name="Adam",
                 conf=dict(
-                    lr=1.0e-4,
+                    lr=1.0e-3,
                 ),
             ),
             build_scheduler=dict(
@@ -62,7 +64,7 @@ class HearGSC5hr(HearFSD):
                 eval_step=1000,
                 save_step=100,
                 gradient_clipping=1.0,
-                gradient_accumulate=4,
+                gradient_accumulate=1,
                 valid_metric="top1_acc",
                 valid_higher_better=True,
                 auto_resume=True,

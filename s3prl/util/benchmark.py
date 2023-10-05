@@ -2,7 +2,7 @@
 Benchmark the timing a block of code
 
 Authors
-  * Shu-wen Yang 2022
+  * Leo 2022
 """
 
 import logging
@@ -21,7 +21,7 @@ __all__ = ["benchmark"]
 
 
 class benchmark(ContextDecorator):
-    def __init__(self, name: str, freq: int = 20) -> None:
+    def __init__(self, name: str, freq: int = 1) -> None:
         super().__init__()
         self.name = name
         self.freq = freq

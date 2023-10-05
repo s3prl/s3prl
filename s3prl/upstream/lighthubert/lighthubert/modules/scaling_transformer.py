@@ -13,6 +13,7 @@ import numpy as np
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
+
 from ..functional.fairseq_utils import get_activation_fn, index_put, pad_to_multiple
 from .fairseq_modules import SamePad, TransposeLast
 from .scaling_conv import SConv1d
@@ -307,7 +308,6 @@ class STransformerEncoder(nn.Module):
         return layer
 
     def __init__(self, args):
-
         super().__init__()
 
         self.dropout = args.dropout

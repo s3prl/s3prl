@@ -2,11 +2,11 @@
 Parse the Fluent Speech Command corpus
 
 Authors:
-  * Shu-wen Yang 2022
+  * Leo 2022
+  * Cheng Liang 2022
 """
 
 import logging
-import os
 from collections import OrderedDict
 from pathlib import Path
 

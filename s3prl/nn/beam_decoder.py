@@ -5,8 +5,8 @@ Authors:
   * Heng-Jui Chang 2022
 """
 
-import logging
 import itertools as it
+import logging
 import math
 from typing import Iterable, List
 
@@ -76,7 +76,9 @@ class BeamDecoder(object):
             )
 
         except ImportError:
-            logger.error(f"Please install flashlight to enable {__class__.__name__}")
+            logger.error(
+                f"Please install Flashlight Text from https://github.com/flashlight/text to enable {__class__.__name__}"
+            )
             raise
 
         if token == "":

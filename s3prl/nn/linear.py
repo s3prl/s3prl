@@ -17,6 +17,7 @@ class FrameLevelLinear(FrameLevel):
     """
     The frame-level linear probing model used in SUPERB Benchmark
     """
+
     def __init__(
         self,
         input_size: int,
@@ -30,6 +31,7 @@ class MeanPoolingLinear(UtteranceLevel):
     """
     The utterance-level linear probing model used in SUPERB Benchmark
     """
+
     def __init__(
         self,
         input_size: int,

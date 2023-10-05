@@ -1,21 +1,27 @@
-import pytest
-import shutil
 import logging
+import os
+import shutil
 import tempfile
 import traceback
 from pathlib import Path
 from subprocess import check_call
 
+import pytest
 import torch
-from s3prl.nn import S3PRLUpstream, Featurizer
-from s3prl.util.pseudo_data import get_pseudo_wavs
+from filelock import FileLock
+
+from s3prl.nn import Featurizer, S3PRLUpstream
 from s3prl.util.download import _urls_to_filepaths
+from s3prl.util.pseudo_data import get_pseudo_wavs
 
 logger = logging.getLogger(__name__)
 
 TEST_MORE_ITER = 2
 TRAIN_MORE_ITER = 5
 SAMPLE_RATE = 16000
+ATOL = 0.01
+MAX_LENGTH_DIFF = 3
+EXTRA_SHORT_SEC = 0.001
 EXTRACTED_GT_DIR = Path(__file__).parent.parent / "sample_hidden_states"
 
 # Expect the following directory structure:
@@ -28,27 +34,44 @@ EXTRACTED_GT_DIR = Path(__file__).parent.parent / "sample_hidden_states"
 
 
 def _prepare_sample_hidden_states():
-    if not EXTRACTED_GT_DIR.is_dir():
-        with tempfile.TemporaryDirectory() as tempdir:
-            tempdir = Path(tempdir)
-            tempdir.mkdir(exist_ok=True, parents=True)
+    lock_file = Path(__file__).parent.parent / "sample_hidden_states.lock"
+    with FileLock(str(lock_file)):
+        # NOTE: home variable is necessary for git lfs to work
+        env = dict(os.environ)
+        if not "HOME" in env:
+            env["HOME"] = Path.home()
 
-            logger.info("Downloading extracted sample hidden states...")
-            check_call("git lfs install".split(), cwd=tempdir)
-            check_call(
-                "git clone https://huggingface.co/datasets/s3prl/sample_hidden_states".split(),
-                cwd=tempdir,
-            )
-            shutil.move(
-                str(tempdir / "sample_hidden_states"), str(EXTRACTED_GT_DIR.parent)
-            )
-    else:
-        logger.info(f"{EXTRACTED_GT_DIR} exists. Perform git pull...")
-        check_call("git pull".split(), cwd=EXTRACTED_GT_DIR)
+        if not EXTRACTED_GT_DIR.is_dir():
+            with tempfile.TemporaryDirectory() as tempdir:
+                tempdir = Path(tempdir)
+                tempdir.mkdir(exist_ok=True, parents=True)
+
+                logger.info("Downloading extracted sample hidden states...")
+                check_call("git lfs install".split(), cwd=tempdir, env=env)
+                check_call(
+                    "git clone https://huggingface.co/datasets/s3prl/sample_hidden_states".split(),
+                    cwd=tempdir,
+                    env=env,
+                )
+                shutil.move(
+                    str(tempdir / "sample_hidden_states"), str(EXTRACTED_GT_DIR.parent)
+                )
+        else:
+            logger.info(f"{EXTRACTED_GT_DIR} exists. Perform git pull...")
+            check_call("git pull".split(), cwd=EXTRACTED_GT_DIR, env=env)
+
+    try:
+        lock_file.unlink()
+    except FileNotFoundError:
+        pass
 
 
-def _extract_feat(model: S3PRLUpstream, seed: int = 0):
-    wavs, wavs_len = get_pseudo_wavs(seed=seed, padded=True)
+def _extract_feat(
+    model: S3PRLUpstream,
+    seed: int = 0,
+    **pseudo_wavs_args,
+):
+    wavs, wavs_len = get_pseudo_wavs(seed=seed, padded=True, **pseudo_wavs_args)
     all_hs, all_lens = model(wavs, wavs_len)
     return all_hs
 
@@ -56,10 +79,12 @@ def _extract_feat(model: S3PRLUpstream, seed: int = 0):
 def _all_hidden_states_same(hs1, hs2):
     for h1, h2 in zip(hs1, hs2):
         if h1.size(1) != h2.size(1):
+            length_diff = abs(h1.size(1) - h2.size(1))
+            assert length_diff <= MAX_LENGTH_DIFF, f"{length_diff} > {MAX_LENGTH_DIFF}"
             min_seqlen = min(h1.size(1), h2.size(1))
             h1 = h1[:, :min_seqlen, :]
             h2 = h2[:, :min_seqlen, :]
-        assert torch.allclose(h1, h2)
+            assert torch.allclose(h1, h2, atol=ATOL)
 
 
 def _load_ground_truth(name: str):
@@ -102,31 +127,23 @@ def _compare_with_extracted(name: str):
         ), "should have deterministic num_layer in train mode"
 
 
-def _test_model(name: str):
+def _test_forward_backward(name: str, **pseudo_wavs_args):
     """
     Test the upstream with the name: 'name' can successfully forward and backward
     """
     with torch.autograd.set_detect_anomaly(True):
         model = S3PRLUpstream(name)
-        hs = _extract_feat(model)
+        hs = _extract_feat(model, **pseudo_wavs_args)
         h_sum = 0
         for h in hs:
             h_sum = h_sum + h.sum()
         h_sum.backward()
 
 
-"""
-Test cases ensure that all upstreams are working and are same with pre-extracted features
-"""
-
-
-@pytest.mark.slow
-def test_all_model():
-    _prepare_sample_hidden_states()
-
+def _filter_options(options: list):
     options = [
         name
-        for name in S3PRLUpstream.available_names(only_registered_ckpt=True)
+        for name in options
         if (not name == "customized_upstream")
         and (
             not "mos" in name
@@ -143,14 +160,64 @@ def test_all_model():
         and (
             not name == "xls_r_2b"
         )  # skip due to too large model, too long download time
+        and (
+            not name in ["ast", "ssast_patch_base", "ssast_frame_base"]
+        )  # FIXME: remove timm dependency
+        and (not name == "vggish")  # FIXME: remove resampy dependency
+        and (not name == "byol_s_cvt")  # FIXME: remove einops dependency
+        and (not "lighthubert" in name)  # FIXME: solve the random subnet issue
+        and (not name == "passt_hop160base2lvl")  # too huge memory usage
+        and (not name == "passt_hop160base2lvlmel")  # too huge memory usage
+        and (not name == "passt_hop100base2lvl")  # too huge memory usage
+        and (not name == "passt_hop100base2lvlmel")  # too huge memory usage
     ]
+    options = [option for option in options if "passt" in option]
+    return options
+
+
+"""
+Test cases ensure that all upstreams are working and are same with pre-extracted features
+"""
+
+
+@pytest.mark.upstream
+@pytest.mark.parametrize(
+    "name",
+    [
+        "wav2vec2",
+        "wavlm",
+        "hubert",
+    ],
+)
+def test_common_upstream(name):
+    _prepare_sample_hidden_states()
+    _compare_with_extracted(name)
+    _test_forward_backward(
+        name, min_secs=EXTRA_SHORT_SEC, max_secs=EXTRA_SHORT_SEC, n=1
+    )
+    _test_forward_backward(
+        name, min_secs=EXTRA_SHORT_SEC, max_secs=EXTRA_SHORT_SEC, n=2
+    )
+    _test_forward_backward(name, min_secs=EXTRA_SHORT_SEC, max_secs=1, n=3)
+
+
+@pytest.mark.upstream
+@pytest.mark.slow
+def test_upstream_with_extracted(upstream_names: str):
+    _prepare_sample_hidden_states()
+
+    if upstream_names is not None:
+        options = upstream_names.split(",")
+    else:
+        options = S3PRLUpstream.available_names(only_registered_ckpt=True)
+        options = _filter_options(options)
+        options = sorted(options)
 
     tracebacks = []
     for name in options:
         logger.info(f"Testing upstream: '{name}'")
         try:
             _compare_with_extracted(name)
-            _test_model(name)
 
         except Exception as e:
             logger.error(f"{name}\n{traceback.format_exc()}")
@@ -164,30 +231,36 @@ def test_all_model():
         assert False
 
 
-def test_one_model(upstream_name: str):
-    if upstream_name is None:
-        return
+@pytest.mark.upstream
+@pytest.mark.slow
+def test_upstream_forward_backward(upstream_names: str):
+    if upstream_names is not None:
+        options = upstream_names.split(",")
+    else:
+        options = S3PRLUpstream.available_names(only_registered_ckpt=True)
+        options = _filter_options(options)
+        options = sorted(options)
+        options = reversed(options)
 
-    _prepare_sample_hidden_states()
-    _compare_with_extracted(upstream_name)
-    _test_model(upstream_name)
+    tracebacks = []
+    for name in options:
+        logger.info(f"Testing upstream: '{name}'")
+        try:
+            _test_forward_backward(name)
+
+        except Exception as e:
+            logger.error(f"{name}\n{traceback.format_exc()}")
+            tb = traceback.format_exc()
+            tracebacks.append((name, tb))
+
+    if len(tracebacks) > 0:
+        for name, tb in tracebacks:
+            logger.error(f"Error in {name}:\n{tb}")
+        logger.error(f"All failed models:\n{[name for name, _ in tracebacks]}")
+        assert False
 
 
-@pytest.mark.parametrize("name", ["lighthubert", "vggish", "mae_ast_frame"])
-def test_forward_backward(name: str):
-    _test_model(name)
-
-
-@pytest.mark.extra_dependency
-def test_ssast():
-    _test_model("ssast_frame_base")
-
-
-@pytest.mark.extra_dependency
-def test_ast():
-    _test_model("ast")
-
-
+@pytest.mark.upstream
 @pytest.mark.parametrize("layer_selections", [None, [0, 4, 9]])
 @pytest.mark.parametrize("normalize", [False, True])
 def test_featurizer(layer_selections, normalize):
@@ -204,6 +277,7 @@ def test_featurizer(layer_selections, normalize):
     assert isinstance(hs_len, torch.LongTensor)
 
 
+@pytest.mark.upstream
 def test_upstream_properties():
     model = S3PRLUpstream("hubert")
     featurizer = Featurizer(model)

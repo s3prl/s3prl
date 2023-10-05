@@ -1,11 +1,12 @@
 # Copyright Hear Benchmark Team
-# Copyright Shu-wen Yang
+# Copyright Shu-wen Yang (refactor from https://github.com/hearbenchmark/hear-eval-kit)
 
-import torch
 from typing import List
 
-from s3prl.task.base import Task
+import torch
+
 from s3prl.dataio.encoder.category import CategoryEncoder
+from s3prl.task.base import Task
 
 from ._hear_score import available_scores, validate_score_return_type
 
@@ -85,7 +86,7 @@ class ScenePredictionTask(Task):
             if isinstance(score_ret, tuple):
                 end_scores[f"{score}"] = score_ret[0][1]
                 # All other scores will also be logged
-                for (subscore, value) in score_ret:
+                for subscore, value in score_ret:
                     end_scores[f"{score}_{subscore}"] = value
             elif isinstance(score_ret, float):
                 end_scores[f"{score}"] = score_ret
@@ -101,7 +102,7 @@ class ScenePredictionTask(Task):
         self,
         _mode: str,
         cached_results: List[dict],
-        _dump_dir: str,
+        _dump_dir: str = None,
     ):
         result = self.parse_cached_results(cached_results)
 

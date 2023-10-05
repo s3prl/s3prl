@@ -5,9 +5,9 @@
 
 # S3PRL has no contribution to this file
 
+import copy
 import logging
 import math
-import copy
 from dataclasses import dataclass, field
 from typing import Optional
 
@@ -18,15 +18,14 @@ import torch.nn.functional as F
 from omegaconf import II
 
 from s3prl.upstream.wav2vec2.wav2vec2_model import (
-    Wav2Vec2Config,
     ConvFeatureExtractionModel,
-    TransformerEncoder,
     GradMultiply,
     LayerNorm,
-    index_put,
+    TransformerEncoder,
+    Wav2Vec2Config,
     compute_mask_indices,
+    index_put,
 )
-
 
 logger = logging.getLogger(__name__)
 
@@ -168,7 +167,6 @@ class EMAModule:
 
 @dataclass
 class Data2VecAudioConfig(Wav2Vec2Config):
-
     loss_beta: float = field(
         default=0, metadata={"help": "beta for smooth l1 loss. 0 means use l2 loss"}
     )

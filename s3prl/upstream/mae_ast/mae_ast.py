@@ -3,8 +3,8 @@
 # This source code is licensed under the MIT license found in the
 # LICENSE file in the root directory of this source tree.
 
-import math
 import logging
+import math
 import random
 from dataclasses import dataclass, field
 from typing import Dict, Optional, Tuple
@@ -14,18 +14,18 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 
-from .load_model import MAE_AST_Pretraining_Task
 from ..roberta.roberta_model import init_bert_params
 from ..wav2vec2.wav2vec2_model import (
-    get_activation_fn,
-    compute_mask_indices,
     ChoiceEnum,
     GradMultiply,
     LayerNorm,
     MultiheadAttention,
     SamePad,
+    compute_mask_indices,
+    get_activation_fn,
     index_put,
 )
+from .load_model import MAE_AST_Pretraining_Task
 
 logger = logging.getLogger(__name__)
 
@@ -407,7 +407,6 @@ class MAE_AST(nn.Module):
         is_decoder_finetune: bool = False,
         is_input_prepatched: bool = False,
     ) -> Dict[str, torch.Tensor]:
-
         # Checks whether the dataset was patched and normalized before-hand. is_input_prepatched == True for speed profiling during training.
         if is_input_prepatched:
             source_patch = source
@@ -661,7 +660,6 @@ class TransformerEncoder(nn.Module):
         return x, layer_results
 
     def extract_features(self, x, padding_mask=None, tgt_layer=None):
-
         if not self.layer_norm_first:
             x = self.layer_norm(x)
 
@@ -715,7 +713,6 @@ class TransformerSentenceEncoderLayer(nn.Module):
         activation_fn: str = "relu",
         layer_norm_first: bool = False,
     ) -> None:
-
         super().__init__()
         # Initialize parameters
         self.embedding_dim = embedding_dim

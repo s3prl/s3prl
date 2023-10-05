@@ -1,0 +1,47 @@
+runner:
+  total_steps: 100000
+  gradient_clipping: 1.0
+  gradient_accumulate_steps: 1
+
+  log_step: 1250
+  eval_step: 1250
+  save_step: 10000
+  max_keep: 100
+  eval_dataloaders:
+    - dev
+
+optimizer:
+  name: AdamW
+  lr: 1.e-3
+
+downstream_expert:
+  datarc:
+    num_speakers: 1
+    rate: 16000
+    src: ['noisy']
+    tgt: ['clean']
+    n_fft: 512
+    win_length: 400
+    hop_length: 160
+    window: "hann"
+    center: True
+
+  loaderrc:
+    num_workers: 4
+    train_batchsize: 8
+    eval_batchsize: 1
+    train_dir: ./downstream/enhancement_stft2/datasets/voicebank/wav16k/train
+    dev_dir: ./downstream/enhancement_stft2/datasets/voicebank/wav16k/dev
+    test_dir: ./downstream/enhancement_stft2/datasets/voicebank/wav16k/test
+  
+  modelrc: 
+    model: SepRNN
+    rnn: LSTM
+    rnn_layers: 3
+    hidden_size: 256
+    dropout: 0.1
+    non_linear: sigmoid
+    bidirectional: True
+    loss_type: L1
+    mask_type: AM
+    log: log1p

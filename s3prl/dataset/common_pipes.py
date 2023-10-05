@@ -15,6 +15,7 @@ from s3prl.dataio.encoder.tokenizer import (
     load_tokenizer,
 )
 from s3prl.dataio.encoder.vocabulary import generate_vocab
+
 from .base import AugmentedDynamicItemDataset, DataPipe
 
 logger = logging.getLogger(__name__)
@@ -322,21 +323,21 @@ class Phonemize(DataPipe):
     g2p_name: str = "g2p"
     tokenizer_name: str = "tokenizer"
 
-    def grapheme2phoneme(self, g2p: Callable, text: str) -> str:
-        return g2p(text)
+    def grapheme2phoneme(self, g2p: G2P, text: str) -> str:
+        return g2p.encode(text)
 
     def encode_text(self, tokenizer: Tokenizer, text: str) -> torch.LongTensor:
         return torch.LongTensor(tokenizer.encode(text))
 
     def forward(self, dataset: AugmentedDynamicItemDataset):
         if not dataset.has_tool(self.g2p_name):
-            logger.warn(
+            logger.warning(
                 f"Cannot find {self.g2p_name} in dataset, use default G2P instead."
             )
             dataset.add_tool(self.g2p_name, G2P())
 
         if not dataset.has_tool(self.tokenizer_name):
-            logger.warn(
+            logger.warning(
                 f"Cannot find {self.tokenizer_name} in dataset, use default tokenizer instead."
             )
             dataset.add_tool(self.tokenizer_name, default_phoneme_tokenizer())

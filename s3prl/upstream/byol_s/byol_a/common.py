@@ -3,10 +3,10 @@ import datetime
 import logging
 import os
 import random
-import yaml
-
+from argparse import Namespace
 from pathlib import Path
-from easydict import EasyDict
+
+import yaml
 
 try:
     import pickle5 as pickle
@@ -31,7 +31,7 @@ def load_yaml_config(path_to_config):
     assert path_to_config.is_file()
     with open(path_to_config) as f:
         yaml_contents = yaml.safe_load(f)
-    cfg = EasyDict(yaml_contents)
+    cfg = Namespace(**yaml_contents)
     return cfg
 
 

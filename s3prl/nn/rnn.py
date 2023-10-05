@@ -55,6 +55,20 @@ def downsample(
 
 
 class RNNLayer(nn.Module):
+    """RNN Layer
+
+    Args:
+        input_size (int): Input size.
+        hidden_size (int): Hidden size.
+        module (str): RNN module (RNN, GRU, LSTM)
+        dropout (float, optional): Dropout rate. Defaults to 0.0.
+        bidirectional (bool, optional): Bidirectional. Defaults to False.
+        proj (bool, optional): Projection layer. Defaults to False.
+        layer_norm (bool, optional): Layer normalization. Defaults to False.
+        sample_rate (int, optional): Downsampling rate. Defaults to 1.
+        sample_style (str, optional): Downsampling style (**drop** or **concat**). Defaults to "drop".
+    """
+
     def __init__(
         self,
         input_size: int,
@@ -67,19 +81,6 @@ class RNNLayer(nn.Module):
         sample_rate: int = 1,
         sample_style: str = "drop",
     ):
-        """RNN Layer
-
-        Args:
-            input_size (int): Input size.
-            hidden_size (int): Hidden size.
-            module (str): RNN module (RNN, GRU, LSTM)
-            dropout (float, optional): Dropout rate. Defaults to 0.0.
-            bidirectional (bool, optional): Bidirectional. Defaults to False.
-            proj (bool, optional): Projection layer. Defaults to False.
-            layer_norm (bool, optional): Layer normalization. Defaults to False.
-            sample_rate (int, optional): Downsampling rate. Defaults to 1.
-            sample_style (str, optional): Downsampling style (**drop** or **concat**). Defaults to "drop".
-        """
         super().__init__()
         self._insize = input_size
 
@@ -165,6 +166,21 @@ class RNNLayer(nn.Module):
 
 
 class RNNEncoder(AbsFrameModel):
+    """RNN Encoder for sequence to sequence modeling, e.g., ASR.
+
+    Args:
+        input_size (int): Input size.
+        output_size (int): Output size.
+        module (str, optional): RNN module type. Defaults to "LSTM".
+        hidden_size (List[int], optional): Hidden sizes for each layer. Defaults to [1024].
+        dropout (List[float], optional): Dropout rates for each layer. Defaults to [0.0].
+        layer_norm (List[bool], optional): Whether to use layer norm for each layer. Defaults to [False].
+        proj (List[bool], optional): Whether to use projection for each layer. Defaults to [True].
+        sample_rate (List[int], optional): Downsample rates for each layer. Defaults to [1].
+        sample_style (str, optional): Downsample style ("drop" or "concat"). Defaults to "drop".
+        bidirectional (bool, optional): Whether RNN layers are bidirectional. Defaults to False.
+    """
+
     def __init__(
         self,
         input_size: int,
@@ -179,20 +195,6 @@ class RNNEncoder(AbsFrameModel):
         sample_style: str = "drop",
         bidirectional: bool = False,
     ):
-        """RNN Encoder for sequence to sequence modeling, e.g., ASR.
-
-        Args:
-            input_size (int): Input size.
-            output_size (int): Output size.
-            module (str, optional): RNN module type. Defaults to "LSTM".
-            hidden_size (List[int], optional): Hidden sizes for each layer. Defaults to [1024].
-            dropout (List[float], optional): Dropout rates for each layer. Defaults to [0.0].
-            layer_norm (List[bool], optional): Whether to use layer norm for each layer. Defaults to [False].
-            proj (List[bool], optional): Whether to use projection for each layer. Defaults to [True].
-            sample_rate (List[int], optional): Downsample rates for each layer. Defaults to [1].
-            sample_style (str, optional): Downsample style ("drop" or "concat"). Defaults to "drop".
-            bidirectional (bool, optional): Whether RNN layers are bidirectional. Defaults to False.
-        """
         super().__init__()
         self._input_size = input_size
         self._output_size = output_size
@@ -262,6 +264,7 @@ class SuperbDiarizationModel(AbsFrameModel):
         rnn_layers (int): number of rnn layers
         hidden_size (int): the hidden size across all rnn layers
     """
+
     def __init__(
         self, input_size: int, output_size: int, rnn_layers: int, hidden_size: int
     ):

@@ -2,7 +2,7 @@
 The backbone run procedure of all ASR tasks
 
 Authors
-  * Shu-wen Yang 2022
+  * Leo 2022
 """
 
 import logging
@@ -167,6 +167,8 @@ class ASR(Problem):
                 target_dir,
                 cache_dir,
                 train_csv,
+                valid_csv,
+                test_csvs,
                 get_path_only=False,
             )
 
@@ -175,11 +177,13 @@ class ASR(Problem):
             target_dir,
             cache_dir,
             train_csv,
+            valid_csv,
+            test_csvs,
             get_path_only=True,
         )
 
         def check_fn():
-            assert Path(tokenizer_data_path).is_file()
+            assert Path(tokenizer_data_path).exists()
 
         self._stage_check(stage_id, stop, check_fn)
 
@@ -314,6 +318,7 @@ class ASR(Problem):
                     num_workers,
                 )
                 test_metrics = {name: float(value) for name, value in logs.items()}
+                logger.info(f"test results: {test_metrics}")
                 with (test_dir / f"result.yaml").open("w") as f:
                     yaml.safe_dump(test_metrics, f)
 

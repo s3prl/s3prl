@@ -9,6 +9,7 @@
 from typing import List, Tuple
 
 import torch.nn as nn
+
 from .fairseq_modules import Fp32GroupNorm, Fp32LayerNorm, TransposeLast
 
 
@@ -83,7 +84,6 @@ class ConvFeatureExtractionModel(nn.Module):
             in_d = dim
 
     def forward(self, x):
-
         # BxT -> BxCxT
         x = x.unsqueeze(1)
 

@@ -3,15 +3,12 @@ The setting of Superb ER
 
 Authors
   * Tzu-Hsien Huang 2021
-  * Shu-wen Yang 2021
-  * Shu-wen Yang 2022
+  * Leo 2021
+  * Leo 2022
 """
 
 import json
 import logging
-import math
-import pickle
-from collections import OrderedDict
 from pathlib import Path
 from typing import List
 
@@ -21,8 +18,7 @@ from omegaconf import MISSING
 from torch.utils.data import random_split
 
 from s3prl.dataio.corpus.iemocap import IEMOCAP
-from s3prl.dataset.utterance_classification_pipe import UtteranceClassificationPipe
-from s3prl.util.download import _download
+from s3prl.util.download import download
 
 from .superb_sid import SuperbSID
 
@@ -99,12 +95,12 @@ def iemocap_for_superb(
     test_meta_data_json = (
         Path(cache_dir) / f"test_session{test_session_id}_test_metadata.json"
     )
-    _download(
+    download(
         train_meta_data_json,
         f"https://huggingface.co/datasets/s3prl/iemocap_split/raw/4097f2b496c41eed016d4e5eb0ada4cccd46d1f3/Session{test_session_id}/train_meta_data.json",
         refresh=False,
     )
-    _download(
+    download(
         test_meta_data_json,
         f"https://huggingface.co/datasets/s3prl/iemocap_split/raw/4097f2b496c41eed016d4e5eb0ada4cccd46d1f3/Session{test_session_id}/test_meta_data.json",
         refresh=False,
@@ -176,7 +172,7 @@ class SuperbER(SuperbSID):
                 ),
             ),
             build_upstream=dict(
-                name="fbank",
+                name=MISSING,
             ),
             build_featurizer=dict(
                 layer_selections=None,
@@ -209,7 +205,7 @@ class SuperbER(SuperbSID):
                 gradient_clipping=1.0,
                 gradient_accumulate=8,
                 valid_metric="accuracy",
-                valid_higher_better=False,
+                valid_higher_better=True,
                 auto_resume=True,
                 resume_ckpt_dir=None,
             ),
@@ -258,77 +254,3 @@ class SuperbER(SuperbSID):
         return iemocap_for_superb(
             **self._get_current_arguments(flatten_dict="prepare_data")
         )
-
-    def build_dataset(
-        self,
-        build_dataset: dict,
-        target_dir: str,
-        cache_dir: str,
-        mode: str,
-        data_csv: str,
-        encoder_path: str,
-        frame_shift: int,
-    ):
-        """
-        Build the dataset for train/valid/test.
-
-        Args:
-            build_dataset (dict): same in :obj:`default_config`, no argument supported
-            target_dir (str): Current experiment directory
-            cache_dir (str): If the preprocessing takes too long time, you can save
-                the temporary files into this directory. This directory is expected to be shared
-                across different training sessions (different hypers and :code:`target_dir`)
-            mode (str): train/valid/test
-            data_csv (str): The metadata csv file for the specific :code:`mode`
-            encoder_path (str): The pickled encoder path for encoding the labels
-
-        Returns:
-            torch Dataset
-
-            For all train/valid/test mode, the dataset should return each item as a dictionary
-            containing the following keys:
-
-            ====================  ====================
-            key                   description
-            ====================  ====================
-            x                     (torch.FloatTensor) - the waveform in (seq_len, 1)
-            x_len                 (int) - the waveform length :code:`seq_len`
-            class_id              (int) - the encoded class id
-            label                 (str) - the class name
-            unique_name           (str) - the unique id for this datapoint
-            ====================  ====================
-        """
-
-        data_points = OrderedDict()
-        csv = pd.read_csv(data_csv)
-        for _, row in csv.iterrows():
-            if "start_sec" in row and "end_sec" in row:
-                start_sec = row["start_sec"]
-                end_sec = row["end_sec"]
-
-                if math.isnan(start_sec):
-                    start_sec = None
-
-                if math.isnan(end_sec):
-                    end_sec = None
-
-            else:
-                start_sec = None
-                end_sec = None
-
-            data_points[row["id"]] = {
-                "wav_path": row["wav_path"],
-                "label": row["label"],
-                "start_sec": start_sec,
-                "end_sec": end_sec,
-            }
-
-        with open(encoder_path, "rb") as f:
-            encoder = pickle.load(f)
-
-        dataset = UtteranceClassificationPipe(train_category_encoder=False)(
-            data_points,
-            tools={"category": encoder},
-        )
-
-        return dataset

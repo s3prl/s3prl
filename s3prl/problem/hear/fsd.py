@@ -2,8 +2,8 @@ import logging
 
 from s3prl import newdict
 from s3prl.corpus.hear import hear_scene_trainvaltest
-from s3prl.util.configuration import default_cfg, field
 from s3prl.sampler import FixedBatchSizeBatchSampler
+from s3prl.util.configuration import default_cfg, field
 
 from .scene import HearScene
 

@@ -3,7 +3,7 @@ The setting fo Superb SD
 
 Authors:
   * Jiatong Shi 2021
-  * Shu-wen Yang 2022
+  * Leo 2022
 """
 
 from dataclasses import dataclass
@@ -11,9 +11,9 @@ from pathlib import Path
 
 from omegaconf import MISSING
 
-from s3prl.dataset.diarization import DiarizationDataset
-from s3prl.nn.rnn import SuperbDiarizationModel
+from s3prl.dataio.dataset import DiarizationDataset, get_info
 from s3prl.dataio.sampler import FixedBatchSizeBatchSampler, GroupSameItemSampler
+from s3prl.nn.rnn import SuperbDiarizationModel
 
 from .run import Diarization
 from .util import kaldi_dir_to_csv
@@ -43,18 +43,15 @@ class SuperbSD(Diarization):
             ),
             build_batch_sampler=dict(
                 train=dict(
-                    batch_size=32,
+                    batch_size=8,
                     shuffle=True,
                 ),
                 valid=dict(
                     batch_size=1,
                 ),
-                test=dict(
-                    item="record_id",
-                ),
             ),
             build_upstream=dict(
-                name="fbank",
+                name=MISSING,
             ),
             build_featurizer=dict(
                 layer_selections=None,
@@ -84,12 +81,12 @@ class SuperbSD(Diarization):
             ),
             save_task=dict(),
             train=dict(
-                total_steps=200000,
-                log_step=100,
-                eval_step=2000,
+                total_steps=30000,
+                log_step=500,
+                eval_step=500,
                 save_step=500,
                 gradient_clipping=1.0,
-                gradient_accumulate=1,
+                gradient_accumulate=4,
                 valid_metric="der",
                 valid_higher_better=False,
                 auto_resume=True,
@@ -267,7 +264,6 @@ class SuperbSD(Diarization):
         class Config:
             train: dict = None
             valid: dict = None
-            test: dict = None
 
         conf = Config(**build_batch_sampler)
 
@@ -276,7 +272,8 @@ class SuperbSD(Diarization):
         elif mode == "valid":
             return FixedBatchSizeBatchSampler(dataset, **(conf.valid or {}))
         elif mode == "test":
-            return GroupSameItemSampler(dataset, **(conf.test or {}))
+            record_ids = get_info(dataset, ["record_id"])
+            return GroupSameItemSampler(record_ids)
         else:
             raise ValueError(f"Unsupported mode: {mode}")
 

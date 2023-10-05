@@ -4,6 +4,8 @@ from .hear_esc50 import HearESC50
 
 VOX_LINQUAL_NUM_FOLDS = 5
 
+__all__ = ["HearVoxLingual"]
+
 
 class HearVoxLingual(HearESC50):
     def default_config(self) -> dict:
@@ -31,7 +33,7 @@ class HearVoxLingual(HearESC50):
                 ),
             ),
             build_upstream=dict(
-                name="fbank",
+                name=MISSING,
             ),
             build_featurizer=dict(
                 layer_selections=None,
@@ -51,7 +53,7 @@ class HearVoxLingual(HearESC50):
             build_optimizer=dict(
                 name="Adam",
                 conf=dict(
-                    lr=1.0e-4,
+                    lr=1.0e-3,
                 ),
             ),
             build_scheduler=dict(
@@ -66,7 +68,7 @@ class HearVoxLingual(HearESC50):
                 eval_step=1000,
                 save_step=100,
                 gradient_clipping=1.0,
-                gradient_accumulate=4,
+                gradient_accumulate=1,
                 valid_metric="top1_acc",
                 valid_higher_better=True,
                 auto_resume=True,

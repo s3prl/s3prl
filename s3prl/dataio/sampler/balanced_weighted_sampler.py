@@ -2,11 +2,11 @@
 For datasets with highly unbalanced class
 
 Authors:
-  * Shu-wen Yang 2022
+  * Leo 2022
 """
 
 from collections import Counter
-from typing import Iterator, TypeVar
+from typing import Iterator, List, TypeVar
 
 import torch
 from torch.utils.data import WeightedRandomSampler
@@ -17,11 +17,14 @@ __all__ = ["BalancedWeightedSampler"]
 
 
 class BalancedWeightedSampler:
+    """
+    This batch sampler is always randomized, hence cannot be used for testing
+    """
+
     def __init__(
         self,
-        dataset,
+        labels: List[str],
         batch_size: int,
-        get_weights: callable = None,
         duplicate: int = 1,
         seed: int = 12345678,
     ) -> None:
@@ -30,21 +33,15 @@ class BalancedWeightedSampler:
         self.batch_size = batch_size
         self.duplicate = duplicate
 
-        get_weights = get_weights or self.get_weights
-        self.weights = get_weights(dataset)
-
-    @staticmethod
-    def get_weights(dataset):
         class2weight = Counter()
-        weights = []
-        with dataset.output_keys_as(["label"]):
-            for data_index, item in enumerate(dataset):
-                label = item["label"]
-                class2weight.update([label])
+        for label in labels:
+            class2weight.update([label])
 
-            for item in dataset:
-                weights.append(len(dataset) / class2weight[item["label"]])
-        return weights
+        weights = []
+        for label in labels:
+            weights.append(len(labels) / class2weight[label])
+
+        self.weights = weights
 
     def set_epoch(self, epoch: int):
         self.epoch = epoch
@@ -64,6 +61,9 @@ class BalancedWeightedSampler:
             if len(batch) == self.batch_size:
                 yield batch
                 batch = []
+
+        if len(batch) > 0:
+            yield batch
 
     def __len__(self):
         return len(list(iter(self)))

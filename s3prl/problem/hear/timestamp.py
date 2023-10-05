@@ -1,13 +1,13 @@
 import logging
 
-from s3prl import Container, field, Workspace
+from s3prl import Container, Workspace, field
+from s3prl.dataset.hear_timestamp import HearTimestampDatapipe
 from s3prl.nn import S3PRLUpstreamDriver, UpstreamDownstreamModel
 from s3prl.problem.base import Problem
 from s3prl.problem.trainer import Trainer
+from s3prl.sampler import FixedBatchSizeBatchSampler, GroupSameItemSampler
 from s3prl.util.configuration import default_cfg
 from s3prl.util.seed import fix_random_seeds
-from s3prl.dataset.hear_timestamp import HearTimestampDatapipe
-from s3prl.sampler import FixedBatchSizeBatchSampler, GroupSameItemSampler
 
 logger = logging.getLogger(__name__)
 

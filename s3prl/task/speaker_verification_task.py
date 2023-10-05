@@ -7,7 +7,7 @@ Authors
 """
 
 import logging
-from typing import Dict, List, Tuple
+from typing import List, Tuple
 
 import torch
 import torch.nn.functional as F
@@ -72,7 +72,7 @@ class SpeakerVerification(Task):
         test_trials (List[Tuple[int, str, str]]):
             each tuple in the list consists of (label, enroll_utt, test_utt)
         loss_type (str): softmax or amsoftmax
-        loss_cfg (dict): **kwds for loss_type class
+        loss_conf (dict): arguments for the loss_type class
     """
 
     def __init__(
@@ -81,7 +81,7 @@ class SpeakerVerification(Task):
         category: CategoryEncoder,
         test_trials: List[Tuple[int, str, str]] = None,
         loss_type: str = "amsoftmax",
-        loss_cfg: dict = None,
+        loss_conf: dict = None,
     ):
         super().__init__()
         self.model = model
@@ -98,7 +98,7 @@ class SpeakerVerification(Task):
         self.loss: torch.nn.Module = loss_cls(
             input_size=self.model.output_size,
             output_size=len(self.category),
-            **loss_cfg,
+            **loss_conf,
         )
         assert self.loss.output_size == len(category)
 
@@ -128,17 +128,17 @@ class SpeakerVerification(Task):
         self,
         x: torch.Tensor,
         x_len: torch.LongTensor,
-        label: torch.LongTensor,
+        class_id: torch.LongTensor,
         unique_name: List[str],
         _dump_dir: str = None,
     ):
         spk_embeddings = self.predict(x, x_len)
-        loss, logits = self.loss(spk_embeddings, label)
+        loss, logits = self.loss(spk_embeddings, class_id)
         prediction = [index for index in logits.argmax(dim=-1).detach().cpu().tolist()]
 
         cacheable = dict(
             loss=loss.detach().cpu().item(),
-            label=label,
+            class_id=class_id.detach().cpu().tolist(),
             prediction=prediction,
             unique_name=unique_name,
         )
@@ -147,8 +147,8 @@ class SpeakerVerification(Task):
 
     def train_reduction(self, cached_results: list, _dump_dir: str = None):
         results = self.parse_cached_results(cached_results)
-        acc = accuracy(results["prediction"], results["label"])
-        loss = (sum(results["loss"]) / len(results["loss"])).item()
+        acc = accuracy(results["prediction"], results["class_id"])
+        loss = torch.FloatTensor(results["loss"]).mean().item()
 
         return dict(
             loss=loss,
@@ -159,7 +159,6 @@ class SpeakerVerification(Task):
         self,
         x: torch.Tensor,
         x_len: torch.LongTensor,
-        label: torch.LongStorage,
         unique_name: List[str],
         _dump_dir: str,
     ):

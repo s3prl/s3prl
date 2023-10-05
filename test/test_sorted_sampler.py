@@ -2,40 +2,25 @@ import logging
 import random
 from collections import OrderedDict
 
-from s3prl.dataset.base import AugmentedDynamicItemDataset
 from s3prl.dataio.sampler import SortedBucketingSampler, SortedSliceSampler
 
 logger = logging.getLogger(__name__)
 
 
-def get_length(dataset):
-    id2length = {}
-    for index, item in enumerate(dataset):
-        id2length[index] = item["length"]
-    return id2length
-
-
 def test_sorted_slice_sampler():
     batch_size = 16
     max_length = 16000 * 5
-    data = OrderedDict(
-        {
-            index: {"length": random.randint(16000 * 3, 16000 * 8)}
-            for index in range(1000)
-        }
-    )
+    lengths = [random.randint(16000 * 3, 16000 * 8) for index in range(1000)]
 
-    dataset = AugmentedDynamicItemDataset(data)
     sampler = SortedSliceSampler(
-        dataset,
+        lengths,
         batch_size=batch_size,
         max_length=max_length,
-        get_length_func=get_length,
     )
 
     for epoch in range(5):
         sampler.set_epoch(epoch)
-        id2length = get_length(dataset)
+        id2length = lengths
         for batch_ids in sampler:
             batch_lengths = [id2length[idx] for idx in batch_ids]
             assert sorted(batch_lengths, reverse=True) == batch_lengths
@@ -48,31 +33,24 @@ def test_sorted_slice_sampler():
             if len(batch) not in [batch_size, batch_size // 2]
         ]
         assert len(set(other_batch_sizes)) == len(other_batch_sizes)
-        assert len(sampler) == len(data)
+        assert len(sampler) == len(lengths)
 
 
 def test_sorted_bucketing_sampler():
     batch_size = 16
     max_length = 16000 * 5
-    data = OrderedDict(
-        {
-            index: {"length": random.randint(16000 * 3, 16000 * 8)}
-            for index in range(1000)
-        }
-    )
+    lengths = [random.randint(16000 * 3, 16000 * 8) for index in range(1000)]
 
-    dataset = AugmentedDynamicItemDataset(data)
     sampler = SortedBucketingSampler(
-        dataset,
+        lengths,
         batch_size=batch_size,
         max_length=max_length,
-        get_length_func=get_length,
         shuffle=False,
     )
 
     for epoch in range(5):
         sampler.set_epoch(epoch)
-        id2length = get_length(dataset)
+        id2length = lengths
         for batch_ids in sampler:
             batch_lengths = [id2length[idx] for idx in batch_ids]
             assert sorted(batch_lengths, reverse=True) == batch_lengths
@@ -86,4 +64,4 @@ def test_sorted_bucketing_sampler():
             if batch_size not in [batch_size, batch_size // 2]
         ]
         assert len(other_batch_sizes) <= 1
-        assert len(data) / 16 < len(sampler) < len(data) / 8
+        assert len(lengths) / 16 < len(sampler) < len(lengths) / 8

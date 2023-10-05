@@ -72,7 +72,6 @@ class BuildMultiClassTagging(DataPipe):
     def forward(
         self, dataset: AugmentedDynamicItemDataset
     ) -> AugmentedDynamicItemDataset:
-
         if not dataset.has_tool(self.all_category_name):
             logger.warning(
                 f"The input dataset does not contain '{self.all_category_name}'. Generate it on-the-fly. "

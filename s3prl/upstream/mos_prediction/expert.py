@@ -76,7 +76,6 @@ class UpstreamExpert(UpstreamBase):
         return {"scores": scores}
 
     def preprocessor(self, wav):
-
         wav_segments = unfold_segments(wav, self.segments_durations)
         return wav_segments
 

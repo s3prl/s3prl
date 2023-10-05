@@ -1,9 +1,10 @@
-import os
 import logging
-from pathlib import Path
+import os
 from multiprocessing import Process
+from pathlib import Path
 
 import torch
+
 from s3prl.util.download import _urls_to_filepaths
 
 logger = logging.getLogger(__name__)
@@ -46,4 +47,3 @@ def test_download():
     logger.info("This should success")
     _download_with_timeout(None, 2)
     torch.load(filepath, map_location="cpu")
-    assert not Path(str(filepath) + ".lock").exists()

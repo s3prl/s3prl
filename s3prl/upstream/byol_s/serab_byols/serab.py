@@ -1,22 +1,23 @@
 """
-HEAR Competition submission script following the 
+HEAR Competition submission script following the
 https://neuralaudio.ai/hear2021-holistic-evaluation-of-audio-representations.html#common-api
 guidelines
 """
 
+from pathlib import Path
 from typing import List, Tuple
-from easydict import EasyDict
+
 import torch
 from torch import Tensor
 from torchaudio.transforms import MelSpectrogram
+
 from ..byol_a.augmentations import PrecomputedNorm
+from ..byol_a.common import load_yaml_config
 from ..byol_a.models.audio_ntt import AudioNTT2020
 from ..byol_a.models.clstm import CLSTM
-from ..byol_a.models.resnetish import resnetish34
 from ..byol_a.models.cvt import CvT
-from ..byol_a.common import load_yaml_config
+from ..byol_a.models.resnetish import resnetish34
 from .utils import *
-from pathlib import Path
 
 # Default frame duration in milliseconds
 TIMESTAMP_FRAME_DUR = 1000
@@ -27,7 +28,7 @@ TIMESTAMP_HOP_SIZE = 50
 BATCH_SIZE = 512
 
 
-def get_model(model_name: str = "", cfg: EasyDict = {}) -> torch.nn.Module:
+def get_model(model_name: str = "", cfg={}) -> torch.nn.Module:
     """Define the model object.
 
     Parameters
@@ -153,32 +154,18 @@ def get_timestamp_embeddings(
     )
     audio_batches, num_frames, _ = frames.shape
     frames = frames.flatten(end_dim=1)
+    # (batch_size * num_window, window_size)
 
     # Convert audio frames to Log Mel-spectrograms
     melspec_frames = (to_melspec(frames) + torch.finfo(torch.float).eps).log()
+    # (batch_size * num_window, fbank_size, num_frames)
+
     normalizer = PrecomputedNorm(compute_timestamp_stats(melspec_frames))
-    melspec_frames = normalizer(melspec_frames).unsqueeze(0)
-    melspec_frames = melspec_frames.permute(1, 0, 2, 3)
+    melspec_frames = normalizer(melspec_frames).unsqueeze(1)
+    # (batch_size * num_window, 1, fbank_size, num_frames)
 
-    # We're using a DataLoader to help with batching of frames
-    dataset = torch.utils.data.TensorDataset(melspec_frames)
-    loader = torch.utils.data.DataLoader(
-        dataset, batch_size=BATCH_SIZE, shuffle=False, drop_last=False
-    )
-
-    # Put the model into eval mode, and not computing gradients while in inference.
-    # Iterate over all batches and accumulate the embeddings for each frame.
-    # Disable parameter tuning
-    model.eval()
-    for param in model.parameters():
-        param.requires_grad = False
-    with torch.no_grad():
-        embeddings_list = [model(batch[0]) for batch in loader]
-
-    # Concatenate mini-batches back together and unflatten the frames
-    # to reconstruct the audio batches
-    embeddings = torch.cat(embeddings_list, dim=0)
-    embeddings = embeddings.unflatten(0, (audio_batches, num_frames))
+    embeddings = model(melspec_frames)
+    embeddings = embeddings.reshape(audio_batches, num_frames, -1)
 
     return embeddings, timestamps
 

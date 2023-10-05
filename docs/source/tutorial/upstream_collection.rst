@@ -42,6 +42,12 @@ Here is an example on how to get a hubert model and its representation using the
     Like, the HuBERT method has "hubert" and "hubert_large_ll60k" different names for different
     checkpoint variants.
 
+.. tip::
+
+    Some SSL pre-trained models' entries can be further configured by a :code:`extra_conf` dictionary.
+    See :obj:`s3prl.nn.S3PRLUpstream`. You can find the valid :code:`extra_conf` options in each SSL
+    model category. If not documented, by default it does not support any :code:`extra_conf`.
+
 The following includes the model and checkpoint information for each :code:`name`, including the releasing date,
 paper, citation, model architecture, pre-training data, criterion, and their source code. The format follows:
 
@@ -643,6 +649,48 @@ wav2vec 2.0
         year={2020}
     }
 
+All the entries below support the following :code:`extra_conf`:
+
+====================  ====================
+column                description
+====================  ====================
+feature_selection     (str) -
+                        if :code:`fairseq_layers` or :code:`fairseq_layers_before_residual`,
+                        extract the representation following official fairseq API.
+                        for :code:`fairseq_layers`, it is the output of each transformer
+                        encoder layer; for :code:`fairseq_layers_before_residual`, it is
+                        the output of the feedforward layer (before adding with the
+                        main residual) of each transformer encoder layer. by default
+                        this option is None, which follows the default place to extract
+                        in S3PRL.
+====================  ====================
+
+
+wav2vec2_custom
+~~~~~~~~~~~~~~~~~~~~~
+
+This entry expects you to provide the source of the checkpoint: :code:`path_or_url`, which should be
+the local path or a url of the checkpoint converted by :code:`s3prl/upstream/wav2vec2/convert.py` (
+from a regular fairseq checkpoint.)
+
+This entry also supports the following additional :code:`extra_conf`.
+
+====================  ====================
+column                description
+====================  ====================
+fairseq               (bool) -
+                        If True, perform the on-the-fly checkpoint conversion, so that
+                        you can directly give the fairseq checkpoint to the :code:`path_or_url`
+                        argument, either a fairseq URL or a fairseq checkpoint local path.
+====================  ====================
+
+
+hf_wav2vec2_custom
+~~~~~~~~~~~~~~~~~~~~
+
+This entry expects you to provide the source of the checkpoint: :code:`path_or_url`, which should be
+in the HuggingFace format, like :code:`facebook/wav2vec2-large-960h`
+
 
 wav2vec2
 ~~~~~~~~~~~~~~~~
@@ -684,6 +732,8 @@ The Large model trained on Libri-Light 60k hours + CommonVoice + Switchboard + F
 wav2vec2_conformer_relpos
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
+The results can be found in the Table 4 of `fairseq S2T: Fast Speech-to-Text Modeling with fairseq <https://arxiv.org/abs/2010.05171>`_.
+
 - Architecture: 24-layer Conformer encoders with relative positional encoding
 - Unlabeled Speech: LibriLight LL60k hours
 
@@ -691,8 +741,38 @@ wav2vec2_conformer_relpos
 wav2vec2_conformer_rope
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
+The results can be found in the Table 4 of `fairseq S2T: Fast Speech-to-Text Modeling with fairseq <https://arxiv.org/abs/2010.05171>`_.
+
 - Architecture: 24-layer Conformer encoders with ROPE positional encoding
 - Unlabeled Speech: LibriLight LL60k hours
+
+
+wav2vec2_base_s2st_es_voxpopuli
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+- The wav2vec2 model from `Enhanced Direct Speech-to-Speech Translation Using Self-supervised Pre-training and Data Augmentation <https://arxiv.org/abs/2204.02967>`_,
+- released in Fairseq with the link: `https://dl.fbaipublicfiles.com/fairseq/speech_to_speech/s2st_finetuning/w2v2/es/transformer_B.pt <https://dl.fbaipublicfiles.com/fairseq/speech_to_speech/s2st_finetuning/w2v2/es/transformer_B.pt>`_
+
+
+wav2vec2_base_s2st_en_librilight
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+- The wav2vec2 model from `Enhanced Direct Speech-to-Speech Translation Using Self-supervised Pre-training and Data Augmentation <https://arxiv.org/abs/2204.02967>`_,
+- released in Fairseq with the link: `https://dl.fbaipublicfiles.com/fairseq/speech_to_speech/s2st_finetuning/w2v2/en/transformer_B.pt <https://dl.fbaipublicfiles.com/fairseq/speech_to_speech/s2st_finetuning/w2v2/en/transformer_B.pt>`_
+
+
+wav2vec2_conformer_large_s2st_es_voxpopuli
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+- The wav2vec2 model from `Enhanced Direct Speech-to-Speech Translation Using Self-supervised Pre-training and Data Augmentation <https://arxiv.org/abs/2204.02967>`_,
+- released in Fairseq with the link: `https://dl.fbaipublicfiles.com/fairseq/speech_to_speech/s2st_finetuning/w2v2/es/conformer_L.pt <https://dl.fbaipublicfiles.com/fairseq/speech_to_speech/s2st_finetuning/w2v2/es/conformer_L.pt>`_
+
+
+wav2vec2_conformer_large_s2st_en_librilight
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+- The wav2vec2 model from `Enhanced Direct Speech-to-Speech Translation Using Self-supervised Pre-training and Data Augmentation <https://arxiv.org/abs/2204.02967>`_,
+- released in Fairseq with the link: `https://dl.fbaipublicfiles.com/fairseq/speech_to_speech/s2st_finetuning/w2v2/en/conformer_L.pt <https://dl.fbaipublicfiles.com/fairseq/speech_to_speech/s2st_finetuning/w2v2/en/conformer_L.pt>`_
 
 
 xlsr_53
@@ -717,10 +797,10 @@ XLS-R
 .. code-block:: bash
 
     @article{babu2021xls,
-    title={XLS-R: Self-supervised cross-lingual speech representation learning at scale},
-    author={Babu, Arun and Wang, Changhan and Tjandra, Andros and Lakhotia, Kushal and Xu, Qiantong and Goyal, Naman and Singh, Kritika and von Platen, Patrick and Saraf, Yatharth and Pino, Juan and others},
-    journal={arXiv preprint arXiv:2111.09296},
-    year={2021}
+        title={XLS-R: Self-supervised cross-lingual speech representation learning at scale},
+        author={Babu, Arun and Wang, Changhan and Tjandra, Andros and Lakhotia, Kushal and Xu, Qiantong and Goyal, Naman and Singh, Kritika and von Platen, Patrick and Saraf, Yatharth and Pino, Juan and others},
+        journal={arXiv preprint arXiv:2111.09296},
+        year={2021}
     }
 
 
@@ -759,6 +839,32 @@ HuBERT
     }
 
 
+hubert_custom
+~~~~~~~~~~~~~~~~~~~~~
+
+This entry expects you to provide the source of the checkpoint: :code:`path_or_url`, which should be
+the local path or a url of the checkpoint converted by :code:`s3prl/upstream/hubert/convert.py` (
+from a regular fairseq checkpoint.)
+
+This entry also supports the following additional :code:`extra_conf`.
+
+====================  ====================
+column                description
+====================  ====================
+fairseq               (bool) -
+                        If True, perform the on-the-fly checkpoint conversion, so that
+                        you can directly give the fairseq checkpoint to the :code:`path_or_url`
+                        argument, either a fairseq URL or a fairseq checkpoint local path.
+====================  ====================
+
+
+hf_hubert_custom
+~~~~~~~~~~~~~~~~~~~~
+
+This entry expects you to provide the source of the checkpoint: :code:`path_or_url`, which should be
+in the HuggingFace format, like :code:`facebook/hubert-large-ll60k`
+
+
 hubert
 ~~~~~~~~~~~~~~~~~~~~~
 
@@ -775,6 +881,12 @@ hubert_large_ll60k
 ~~~~~~~~~~~~~~~~~~~~~
 
 - Unlabled Speech: LibriLight ll60k hours
+
+
+mhubert_base_vp_en_es_fr_it3
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+- The multilingual model from `Textless Speech-to-Speech Translation on Real Data <https://arxiv.org/abs/2112.08352>`_
 
 
 DistilHuBERT
@@ -962,6 +1074,22 @@ AST
     }
 
 
+All the entries below support the following :code:`extra_conf`:
+
+====================  ====================
+column                description
+====================  ====================
+window_secs           (float) -
+                        The segment waveform length to feed into the
+                        AST model. If the input waveform is longer than this
+                        length, do sliding windowing on the waveform and concat
+                        the results along the time axis.
+stride_secs           (float) -
+                        When doing sliding window on the waveform (see
+                        above), the stride seconds between windows.
+====================  ====================
+
+
 ast
 ~~~~~~~~~~~~~~~~~~
 
@@ -985,10 +1113,30 @@ SSAST
     }
 
 
+All the entries below support the following :code:`extra_conf`:
+
+====================  ====================
+column                description
+====================  ====================
+window_secs           (float) -
+                        The segment waveform length to feed into the
+                        AST model. If the input waveform is longer than this
+                        length, do sliding windowing on the waveform and concat
+                        the results along the time axis.
+====================  ====================
+
+
 ssast_frame_base
 ~~~~~~~~~~~~~~~~~~
 
 - Unlabled Data: LibriSpeech & AudioSet
+- fbank patch size: 128 (freq) * 2 (time)
+
+ssast_patch_base
+~~~~~~~~~~~~~~~~~~~
+
+- Unlabled Data: LibriSpeech & AudioSet
+- fbank patch size: 16 (freq) * 16 (time)
 
 
 MAE-AST
@@ -1009,13 +1157,14 @@ mae_ast_frame
 ~~~~~~~~~~~~~~~~~~
 
 - Unlabled Data: LibriSpeech & AudioSet
+- fbank patch size: 128 (freq) * 2 (time)
 
 
 mae_ast_patch
 ~~~~~~~~~~~~~~~~~~
 
 - Unlabled Data: LibriSpeech & AudioSet
-
+- fbank patch size: 16 (freq) * 16 (time)
 
 
 Byol-A
@@ -1032,6 +1181,22 @@ Byol-A
         year={2021},
         organization={IEEE}
     }
+
+
+All the entries below support the following :code:`extra_conf`:
+
+====================  ====================
+column                description
+====================  ====================
+window_secs           (float) -
+                        The segment waveform length to feed into the
+                        AST model. If the input waveform is longer than this
+                        length, do sliding windowing on the waveform and concat
+                        the results along the time axis.
+stride_secs           (float) -
+                        When doing sliding window on the waveform (see
+                        above), the stride seconds between windows.
+====================  ====================
 
 
 byol_a_2048
@@ -1104,3 +1269,42 @@ vggish
 ~~~~~~~~~~~~~~~~~~
 
 - Labaled Data: AudioSet
+
+
+PaSST
+--------------------------------------------------
+`Efficient Training of Audio Transformers with Patchout <https://arxiv.org/abs/2110.05069>`_
+
+.. code-block:: bash
+
+    @article{koutini2021efficient,
+        title={Efficient training of audio transformers with patchout},
+        author={Koutini, Khaled and Schl{\"u}ter, Jan and Eghbal-zadeh, Hamid and Widmer, Gerhard},
+        journal={arXiv preprint arXiv:2110.05069},
+        year={2021}
+    }
+
+All the entries below support the following :code:`extra_conf`:
+
+====================  ====================
+column                description
+====================  ====================
+window_secs           (float) -
+                        The segment waveform length to feed into the
+                        model. If the input waveform is longer than this
+                        length, do sliding windowing on the waveform and concat
+                        the results along the time axis.
+stride_secs           (float) -
+                        When doing sliding window on the waveform (see
+                        above), the stride seconds between windows.
+====================  ====================
+
+passt_base
+~~~~~~~~~~~~~~~~~~
+
+- Labaled Data: AudioSet
+
+
+Authors:
+
+- Leo 2022

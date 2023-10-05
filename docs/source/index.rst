@@ -46,8 +46,8 @@ How to Contribute
 .. toctree::
    :caption: How to Contribute
 
-   ./contribute/public.rst
-   ./contribute/private.rst
+   ./contribute/general.rst
+   ./contribute/upstream.rst
 
 
 API Documentation

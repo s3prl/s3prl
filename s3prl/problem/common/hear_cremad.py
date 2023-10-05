@@ -2,8 +2,9 @@ from omegaconf import MISSING
 
 from .hear_esc50 import HearESC50
 
-
 CREMAD_NUM_FOLDS = 5
+
+__all__ = ["HearCremaD"]
 
 
 class HearCremaD(HearESC50):
@@ -32,7 +33,7 @@ class HearCremaD(HearESC50):
                 ),
             ),
             build_upstream=dict(
-                name="fbank",
+                name=MISSING,
             ),
             build_featurizer=dict(
                 layer_selections=None,
@@ -67,7 +68,7 @@ class HearCremaD(HearESC50):
                 eval_step=1000,
                 save_step=100,
                 gradient_clipping=1.0,
-                gradient_accumulate=4,
+                gradient_accumulate=1,
                 valid_metric="top1_acc",
                 valid_higher_better=True,
                 auto_resume=True,

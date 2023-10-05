@@ -1,20 +1,21 @@
 # Copyright Hear Benchmark Team
-# Copyright Shu-wen Yang
+# Copyright Shu-wen Yang (refactor from https://github.com/hearbenchmark/hear-eval-kit)
 
-import torch
 import logging
+from pathlib import Path
+from typing import Any, Dict, List, Optional, Tuple, Union
+
+import more_itertools
 import numpy as np
 import pandas as pd
-from tqdm import tqdm
-import more_itertools
-from pathlib import Path
-from collections import defaultdict
-from typing import List, Dict, Any, Tuple, Union, Optional
+import torch
 from scipy.ndimage import median_filter
 from sklearn.model_selection import ParameterGrid
+from tqdm import tqdm
 
-from s3prl.task.base import Task
 from s3prl.dataio.encoder.category import CategoryEncoder
+from s3prl.task.base import Task
+
 from ._hear_score import available_scores, validate_score_return_type
 
 logger = logging.getLogger(__name__)
@@ -278,7 +279,16 @@ class EventPredictionTask(Task):
         return inputs
 
     def train_step(
-        self, x, x_len, y, y_len, record_id, chunk_id, _dump_dir: str = None
+        self,
+        x,
+        x_len,
+        y,
+        y_len,
+        labels,
+        record_id: List[str],
+        chunk_id: List[int],
+        unique_name: List[str],
+        _dump_dir: str = None,
     ):
         y_hat, y_hat_len = self.model(x, x_len)
         y_hat = self._match_length(y_hat, y)
@@ -303,7 +313,7 @@ class EventPredictionTask(Task):
         loss = torch.FloatTensor(loss).mean().item()
 
         return {
-            "loss": loss.detach().cpu().item(),
+            "loss": loss,
         }
 
     def _eval_step(
@@ -312,8 +322,10 @@ class EventPredictionTask(Task):
         x_len,
         y,
         y_len,
+        labels,
         record_id: List[str],
         chunk_id: List[int],
+        unique_name: List[str],
         _dump_dir: str = None,
     ):
         y_pr, y_hat, y_pr_len = self.predict(x, x_len)
@@ -358,7 +370,7 @@ class EventPredictionTask(Task):
             if isinstance(score_ret, tuple):
                 end_scores[f"{score}"] = score_ret[0][1]
                 # All other scores will also be logged
-                for (subscore, value) in score_ret:
+                for subscore, value in score_ret:
                     end_scores[f"{score}_{subscore}"] = value
             elif isinstance(score_ret, float):
                 end_scores[f"{score}"] = score_ret

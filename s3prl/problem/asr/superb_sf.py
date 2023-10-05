@@ -4,9 +4,12 @@ The setting of Superb SF
 Authors
   * Yung-Sung Chuang 2021
   * Heng-Jui Chang 2022
-  * Shu-wen Yang 2022
+  * Leo 2022
 """
 
+import pickle
+import re
+from collections import defaultdict
 from dataclasses import dataclass
 from pathlib import Path
 from typing import List
@@ -15,13 +18,13 @@ import pandas as pd
 from omegaconf import MISSING
 
 from s3prl.dataio.corpus.snips import SNIPS
-from s3prl.dataio.sampler import FixedBatchSizeBatchSampler
-from s3prl.util.download import _urls_to_filepaths
+from s3prl.dataio.dataset import EncodeText, LoadAudio, get_info
+from s3prl.dataio.sampler import FixedBatchSizeBatchSampler, SortedSliceSampler
 
-from .superb_asr import SuperbASR
+from .superb_asr import SuperbASR, prepare_common_tokenizer
 
-VOCAB_URL = "https://huggingface.co/datasets/s3prl/SNIPS/raw/main/character.txt"
-SLOTS_URL = "https://huggingface.co/datasets/s3prl/SNIPS/raw/main/slots.txt"
+# Mapping for character-slot tokenizer (SNIPS)
+translator = str.maketrans('ÁÃÄÅÆÇÈÉÊËÍÏÐÒÓÔÖØÚÛĘŃŌŞŪ"', "AAAAACEEEEIIDOOOOOUUENOSU ")
 
 __all__ = [
     "audio_snips_for_slot_filling",
@@ -51,14 +54,40 @@ def audio_snips_for_slot_filling(
     train_data, valid_data, test_data = corpus.data_split
 
     def dict_to_csv(data_dict, csv_path):
-        keys = sorted(list(data_dict.keys()))
-        fields = sorted(data_dict[keys[0]].keys())
-        data = dict()
-        for field in fields:
-            data[field] = []
-            for key in keys:
-                data[field].append(data_dict[key][field])
-        data["id"] = keys
+        data_ids = sorted(list(data_dict.keys()))
+        fields = sorted(data_dict[data_ids[0]].keys())
+        data = defaultdict(list)
+        for data_id in data_ids:
+            data_point = data_dict[data_id]
+
+            trans = data_point["transcription"]
+            trans = trans.replace("楽園追放", "EXPELLED")
+            trans = trans.replace("官方杂志", "")
+            trans = trans.replace("–", "-")
+            trans = trans.replace("&", " AND ")
+            trans = trans.translate(translator)
+            trans = re.sub(" +", " ", trans).strip(" ")
+
+            words = trans.split(" ")
+            iobs = data_point["iob"].split(" ")
+            assert len(words) == len(iobs)
+
+            filtered_words = []
+            filtered_iobs = []
+            for word, iob in zip(words, iobs):
+                if word in "?!.,;-–…":
+                    continue
+                filtered_words.append(word)
+                filtered_iobs.append(iob)
+
+            assert len(filtered_words) == len(filtered_iobs)
+            data_point["transcription"] = " ".join(filtered_words)
+            data_point["iob"] = " ".join(filtered_iobs)
+
+            for field in fields:
+                data[field].append(data_point[field])
+
+        data["id"] = data_ids
         df = pd.DataFrame(data)
         df.to_csv(csv_path, index=False)
 
@@ -94,16 +123,13 @@ class SuperbSF(SuperbASR):
             ),
             prepare_tokenizer_data=dict(),
             build_tokenizer=dict(
-                tokenizer_name=None,
                 vocab_type="character",
-                vocab_file=VOCAB_URL,
-                slots_file=SLOTS_URL,
             ),
             build_dataset=dict(),
             build_batch_sampler=dict(
                 train=dict(
                     batch_size=32,
-                    shuffle=True,
+                    max_length=300000,
                 ),
                 valid=dict(
                     batch_size=1,
@@ -113,7 +139,7 @@ class SuperbSF(SuperbASR):
                 ),
             ),
             build_upstream=dict(
-                name="fbank",
+                name=MISSING,
             ),
             build_featurizer=dict(
                 layer_selections=None,
@@ -211,12 +237,109 @@ class SuperbSF(SuperbASR):
             ====================  ====================
             id                    (str) - the unique id for this data point
             wav_path              (str) - the absolute path of the waveform file
-            transcription         (str) - a text string
+            transcription         (str) - a text string where words are separted by a space.
+                                    Eg. "I want to fly from Taipei to New York"
+            iob                   (str) - iob tags, use "O" if no tag, every word should have a tag, separted by a space.
+                                    Eg. "O O O O O from_location O to_location to_location"
             ====================  ====================
         """
         return audio_snips_for_slot_filling(
             **self._get_current_arguments(flatten_dict="prepare_data")
         )
+
+    def prepare_tokenizer_data(
+        self,
+        prepare_tokenizer_data: dict,
+        target_dir: str,
+        cache_dir: str,
+        train_csv: str,
+        valid_csv: str,
+        test_csvs: str,
+        get_path_only: bool = False,
+    ):
+        data_dir = target_dir / "tokenizer_data"
+        if get_path_only:
+            return data_dir
+
+        train_df = pd.read_csv(train_csv)
+        valid_df = pd.read_csv(valid_csv)
+        test_dfs = [pd.read_csv(test_csv) for test_csv in test_csvs]
+        iob_lines = pd.concat([train_df, valid_df, *test_dfs], axis=0)["iob"].tolist()
+        iobs = []
+        for line in iob_lines:
+            iobs.extend(line.split(" "))
+        iobs = list(sorted(set(iobs)))
+
+        Path(data_dir).mkdir(parents=True, exist_ok=True)
+
+        with open(data_dir / "slot.txt", "w") as f:
+            f.writelines([f"{iob}\n" for iob in iobs])
+
+        train_df = pd.read_csv(train_csv)
+        texts = train_df["transcription"].tolist()
+
+        with open(data_dir / "text.txt", "w") as f:
+            f.writelines([f"{t}\n" for t in texts])
+
+        return data_dir
+
+    def build_tokenizer(
+        self,
+        build_tokenizer: dict,
+        target_dir: str,
+        cache_dir: str,
+        tokenizer_data_path: str,
+        get_path_only: bool = False,
+    ):
+        return prepare_common_tokenizer(
+            target_dir,
+            cache_dir,
+            Path(tokenizer_data_path) / "text.txt",
+            get_path_only,
+            None,
+            None,
+            slots_file=Path(tokenizer_data_path) / "slot.txt",
+            **build_tokenizer,
+        )
+
+    def build_dataset(
+        self,
+        build_dataset: dict,
+        target_dir: str,
+        cache_dir: str,
+        mode: str,
+        data_csv: str,
+        tokenizer_path: str,
+    ):
+        csv = pd.read_csv(data_csv)
+
+        audio_loader = LoadAudio(csv["wav_path"].tolist())
+
+        with open(tokenizer_path, "rb") as f:
+            tokenizer = pickle.load(f)
+
+        text_encoder = EncodeText(
+            csv["transcription"].tolist(), tokenizer, iob=csv["iob"].tolist()
+        )
+        ids = csv["id"].tolist()
+
+        class SlotFillingDataset:
+            def __len__(self):
+                return len(audio_loader)
+
+            def __getitem__(self, index: int):
+                audio = audio_loader[index]
+                text = text_encoder[index]
+                return {
+                    "x": audio["wav"],
+                    "x_len": audio["wav_len"],
+                    "class_ids": text["class_ids"],
+                    "labels": text["labels"],
+                    "unique_name": ids[index],
+                }
+
+        dataset = SlotFillingDataset()
+        return dataset
 
     def build_batch_sampler(
         self,
@@ -236,7 +359,7 @@ class SuperbSF(SuperbASR):
                 ====================  ====================
                 key                   description
                 ====================  ====================
-                train                 (dict) - arguments for :obj:`FixedBatchSizeBatchSampler`
+                train                 (dict) - arguments for :obj:`SortedSliceSampler`
                 valid                 (dict) - arguments for :obj:`FixedBatchSizeBatchSampler`
                 test                  (dict) - arguments for :obj:`FixedBatchSizeBatchSampler`
                 ====================  ====================
@@ -262,7 +385,9 @@ class SuperbSF(SuperbASR):
         conf = Config(**build_batch_sampler)
 
         if mode == "train":
-            return FixedBatchSizeBatchSampler(dataset, **(conf.train or {}))
+            wav_lens = get_info(dataset, ["x_len"], Path(target_dir) / "train_stats")
+            sampler = SortedSliceSampler(wav_lens, **(conf.train or {}))
+            return sampler
         elif mode == "valid":
             return FixedBatchSizeBatchSampler(dataset, **(conf.valid or {}))
         elif mode == "test":

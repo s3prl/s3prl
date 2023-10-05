@@ -11,9 +11,8 @@ jobs:
   build-and-test:
 
     strategy:
-      max-parallel: 4
       matrix:
-        os: [ubuntu-18.04]
+        os: [ubuntu-20.04]
         python-version: [3.8]
         torchaudio-version: [0.8.1, 0.9.1, 0.10.2, 0.11.0, 0.12.1]
         include:
@@ -23,6 +22,9 @@ jobs:
           - os: ubuntu-20.04
             python-version: 3.9
             torchaudio-version: 0.8.1
+          - os: ubuntu-20.04
+            python-version: "3.10"  # if not quoted, will be interpreted as 3.1
+            torchaudio-version: 0.11.0
 
     runs-on: ${{ matrix.os }}
 
@@ -35,16 +37,15 @@ jobs:
         python-version: ${{ matrix.python-version }}
 
     - name: Install Linux dependencies
-      run: sudo apt-get install -y libsndfile1-dev sox
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y libsndfile1-dev sox git git-lfs
 
     - name: Upgrade pip and wheel
       run: pip3 install --upgrade pip wheel
 
-    - name: Install S3PRL
-      run: pip3 install -e ".[dev]"
-
-    - name: Install specific PyTorch & Torchaudio
-      run: pip3 install torchaudio==${{ matrix.torchaudio-version }}
+    - name: Install dependencies for tests
+      run: pip3 install -r requirements/dev.txt
 
     - name: Check coding style by ci/format.py
       run: |
@@ -58,7 +59,13 @@ jobs:
     # - name: Setup upterm session
     #   uses: lhotari/action-upterm@v1
 
-    - name: Run tests
+    - name: Run tox for common upstream
       run: |
-        pytest -n 2
+        tox -e common_upstream-audio${{ matrix.torchaudio-version }}
 
+    # Not all upstreams will be tested on CI since this will take too much time
+    # To test all upstreams, run tox locally with '-e all_upstream'
+
+    # - name: Run tox for all other functionalities
+    #   run: |
+    #     tox -e all_others-deps_all-audio${{ matrix.torchaudio-version }}

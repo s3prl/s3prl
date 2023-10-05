@@ -10,7 +10,6 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 
-
 __all__ = [
     "MeanPooling",
     "TemporalAveragePooling",
@@ -59,7 +58,7 @@ class TemporalStatisticsPooling(nn.Module):
     """
     TemporalStatisticsPooling
     Paper: X-vectors: Robust DNN Embeddings for Speaker Recognition
-    Link： http://www.danielpovey.com/files/2018_icassp_xvectors.pdf
+    Link: http://www.danielpovey.com/files/2018_icassp_xvectors.pdf
     """
 
     def __init__(self, input_size: int):
@@ -98,7 +97,7 @@ class SelfAttentivePooling(nn.Module):
     """
     SelfAttentivePooling
     Paper: Self-Attentive Speaker Embeddings for Text-Independent Speaker Verification
-    Link： https://danielpovey.com/files/2018_interspeech_xvector_attention.pdf
+    Link: https://danielpovey.com/files/2018_interspeech_xvector_attention.pdf
     """
 
     def __init__(self, input_size: int):

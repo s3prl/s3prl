@@ -1,8 +1,11 @@
 torchaudio >=0.8.0
-torch >=1.8.0
+torch >=1.8.0,!=1.10.0  # nllloss might have bug in 1.10.0
 tqdm >=4.56.0
 numpy >=1.21
 PyYAML >=5.4.1
 filelock
 omegaconf >=2.1.1
-setuptools ==59.5.0
+setuptools >=65.5.1
+requests
+transformers
+protobuf==3.20.3

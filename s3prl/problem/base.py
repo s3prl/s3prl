@@ -2,7 +2,7 @@
 The shared backbone of common ML train/test procedure for all problems
 
 Authors:
-  * Shu-wen Yang 2022
+  * Leo 2022
 """
 
 from __future__ import annotations
@@ -25,13 +25,13 @@ from typing import Dict, List, Union
 import omegaconf
 import torch
 import yaml
-from torch.utils.tensorboard.writer import SummaryWriter
 from torch.utils.data import DataLoader
+from torch.utils.tensorboard.writer import SummaryWriter
 from tqdm import tqdm
 
-from s3prl.dataset.base import default_collate_fn
-from s3prl.nn.upstream import Featurizer, S3PRLUpstream, UpstreamDownstreamModel
+from s3prl.dataio.collate_fn import default_collate_fn
 from s3prl.dataio.sampler import DistributedBatchSamplerWrapper
+from s3prl.nn.upstream import Featurizer, S3PRLUpstream, UpstreamDownstreamModel
 from s3prl.task import Task
 from s3prl.util.override import parse_overrides
 from s3prl.util.seed import fix_random_seeds
@@ -582,6 +582,9 @@ class Problem:
                 save_names = []
 
                 if global_step % conf.eval_step == 0:
+                    assert (
+                        valid_dataset is not None and valid_batch_sampler is not None
+                    ), f"valid dataset is not supported, please set train.eval_step to infinite"
                     logs: dict = self.evaluate(
                         evaluate,
                         "valid",
@@ -613,7 +616,10 @@ class Problem:
                         key for key in os.listdir(train_dir) if key.startswith("step_")
                     ]
                     ckpt_dirs.sort(key=lambda stem: int(stem.split("_")[-1]))
-                    if len(ckpt_dirs) >= conf.keep_num_ckpts:
+                    if (
+                        conf.keep_num_ckpts is not None
+                        and len(ckpt_dirs) >= conf.keep_num_ckpts
+                    ):
                         for ckpt_dir in ckpt_dirs[
                             : len(ckpt_dirs) - conf.keep_num_ckpts + 1
                         ]:

@@ -1,18 +1,18 @@
 # Copyright Hear Benchmark Team
 
+from collections import ChainMap
 from functools import partial
 from typing import Any, Callable, Dict, List, Optional, Tuple, Union
-from collections import ChainMap
 
 import numpy as np
 import pandas as pd
 import sed_eval
 import torch
-from sklearn.metrics import average_precision_score, roc_auc_score
-from scipy import stats
 
 # Can we get away with not using DCase for every event-based evaluation??
 from dcase_util.containers import MetaDataContainer
+from scipy import stats
+from sklearn.metrics import average_precision_score, roc_auc_score
 
 
 def label_vocab_as_dict(df: pd.DataFrame, key: str, value: str) -> Dict:

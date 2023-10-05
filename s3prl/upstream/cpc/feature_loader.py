@@ -41,7 +41,6 @@ class FeatureModule(torch.nn.Module):
         return self.featureMaker.gEncoder.DOWNSAMPLING
 
     def forward(self, data):
-
         batchAudio, label = data
         cFeature, encoded, _ = self.featureMaker(batchAudio.cuda(), label)
         if self.get_encoded:
@@ -120,7 +119,6 @@ def getCheckpointData(pathDir):
 
 
 def getEncoder(args):
-
     if args.encoder_type == "mfcc":
         from .model import MFCCEncoder
 
@@ -210,7 +208,6 @@ def get_module(i_module):
 def save_checkpoint(
     model_state, criterion_state, optimizer_state, best_state, path_checkpoint
 ):
-
     state_dict = {
         "gEncoder": model_state,
         "cpcCriterion": criterion_state,
@@ -222,7 +219,6 @@ def save_checkpoint(
 
 
 def toOneHot(inputVector, nItems):
-
     batchSize, seqSize = inputVector.size()
     out = torch.zeros(
         (batchSize, seqSize, nItems), device=inputVector.device, dtype=torch.long
