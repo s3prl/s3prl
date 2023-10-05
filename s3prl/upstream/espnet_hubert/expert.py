@@ -12,7 +12,7 @@ try:
     from espnet2.tasks.hubert import HubertTask
 except ModuleNotFoundError:
     HuBERTTask = None
-    logger.warnning("ESPnet is not installed, cannot use espnet_hubert upstream")
+    logger.warning("ESPnet is not installed, cannot use espnet_hubert upstream")
 
 
 class UpstreamExpert(torch.nn.Module):
