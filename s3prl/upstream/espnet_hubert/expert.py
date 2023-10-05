@@ -16,13 +16,13 @@ except ModuleNotFoundError:
     
 
 class UpstreamExpert(torch.nn.Module):
-    def __init__(self, ckpt, **kwds):
+    def __init__(self, ckpt, config=None, **kwargs):
         super().__init__()
         device = "cuda" if torch.cuda.is_available() else "cpu"
         assert HubertTask is not None, \
             "ESPnet is not installed, run `external_tools/install_espnet.sh` to install"
         hubert_model, hubert_train_args = HubertTask.build_model_from_file(
-            None,
+            config,
             ckpt,
             device,
         )
