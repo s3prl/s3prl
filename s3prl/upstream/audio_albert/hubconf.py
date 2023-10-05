@@ -36,8 +36,8 @@ def audio_albert_url(ckpt, refresh=False, *args, **kwargs):
 
 def audio_albert(refresh=False, *args, **kwargs):
     """
-        The default model
-            refresh (bool): whether to download ckpt/config again if existed
+    The default model
+        refresh (bool): whether to download ckpt/config again if existed
     """
     return audio_albert_960hr(refresh=refresh, *args, **kwargs)
 
@@ -73,5 +73,7 @@ def audio_albert_logMelBase_T_share_AdamW_b32_1m_960hr_drop1(
     Total steps: 1M
     Unlabled Speech: 960hr
     """
-    kwargs['ckpt'] = 'https://www.dropbox.com/s/3wgynxmod77ha1z/states-1000000.ckpt?dl=1'
+    kwargs[
+        "ckpt"
+    ] = "https://www.dropbox.com/s/3wgynxmod77ha1z/states-1000000.ckpt?dl=1"
     return audio_albert_url(refresh=refresh, *args, **kwargs)

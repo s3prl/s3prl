@@ -31,9 +31,7 @@ def wavlm_url(ckpt, refresh=False, *args, **kwargs):
         ckpt (str): URL
         refresh (bool): whether to download ckpt/config again if existed
     """
-    return wavlm_local(
-        _urls_to_filepaths(ckpt, refresh=refresh), *args, **kwargs
-    )
+    return wavlm_local(_urls_to_filepaths(ckpt, refresh=refresh), *args, **kwargs)
 
 
 def wavlm(refresh=False, *args, **kwargs):

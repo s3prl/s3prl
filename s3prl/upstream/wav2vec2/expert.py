@@ -10,6 +10,11 @@ from .convert import load_converted_model
 
 logger = logging.getLogger(__name__)
 
+from ..interfaces import UpstreamBase
+from .convert import load_converted_model
+
+logger = logging.getLogger(__name__)
+
 
 class UpstreamExpert(UpstreamBase):
     def __init__(self, ckpt, **kwargs):

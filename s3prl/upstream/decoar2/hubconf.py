@@ -16,25 +16,25 @@ def decoar2_custom(ckpt: str, refresh=False, *args, **kwargs):
 
 def decoar2_local(*args, **kwargs):
     """
-        The model from local ckpt
-            ckpt (str): PATH
-            feature_selection (str): 'c' (default) or 'z'
+    The model from local ckpt
+        ckpt (str): PATH
+        feature_selection (str): 'c' (default) or 'z'
     """
     return decoar2_custom(*args, **kwargs)
 
 
 def decoar2_url(*args, **kwargs):
     """
-        The model from URL
-            ckpt (str): URL
+    The model from URL
+        ckpt (str): URL
     """
     return decoar2_custom(*args, **kwargs)
 
 
 def decoar2(*args, refresh=False, **kwargs):
     """
-        The apc standard model on 360hr
-            refresh (bool): whether to download ckpt/config again if existed
+    The apc standard model on 360hr
+        refresh (bool): whether to download ckpt/config again if existed
     """
     kwargs[
         "ckpt"

@@ -1,5 +1,6 @@
 import torch
 import torch.nn.functional as F
+from packaging import version
 from torch.nn.utils.rnn import pad_sequence
 
 from ..interfaces import UpstreamBase
@@ -32,6 +33,20 @@ class UpstreamExpert(UpstreamBase):
                 return list(zip(names, hiddens))
 
             self.hook_postprocess = postprocess
+
+        self._init_layerdrop = self.model.encoder.layerdrop
+
+    @property
+    def layer_drop(self):
+        return self.model.encoder.layerdrop
+
+    def set_layer_drop(self, layerdrop: float = None):
+        if isinstance(layerdrop, float):
+            self.model.encoder.layerdrop = layerdrop
+        elif layerdrop is None:
+            self.model.encoder.layerdrop = self._init_layerdrop
+        else:
+            raise ValueError("layerdrop can only be float or None")
 
     def get_downsample_rates(self, key: str) -> int:
         return 320

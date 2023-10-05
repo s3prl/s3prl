@@ -37,6 +37,7 @@ Getting Started
 
    ./tutorial/installation.rst
    ./tutorial/upstream_collection.rst
+   ./tutorial/problem.rst
 
 
 How to Contribute
@@ -59,6 +60,11 @@ API Documentation
    :recursive:
 
    s3prl.nn
+   s3prl.problem
+   s3prl.task
+   s3prl.dataio
+   s3prl.metric
+   s3prl.util
 
 
 Indices and tables

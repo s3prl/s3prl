@@ -74,10 +74,10 @@ setup(
     url="https://github.com/s3prl/s3prl",  # Optional
     # This should be your name or the name of the organization which owns the
     # project.
-    author="s3prl development team",  # Optional
+    author="Shu-wen (Leo) Yang, Andy T. Liu and S3PRL Team",  # Optional
     # This should be a valid email address corresponding to the author listed
     # above.
-    author_email="s3prl.speech.ssl@gmail.com",  # Optional
+    author_email="leo19941227@gmail.com, tingweiandyliu@gmail.com",  # Optional
     # Classifiers help users find your project by categorizing it.
     #
     # For a list of valid classifiers, see https://pypi.org/classifiers/
@@ -88,18 +88,13 @@ setup(
         #   5 - Production/Stable
         "Development Status :: 3 - Alpha",
         # Pick your license as you wish
-        "License :: OSI Approved :: MIT License",
+        "License :: OSI Approved :: Apache Software License",
         "Intended Audience :: Science/Research",
         "Topic :: Software Development :: Libraries :: Python Modules",
         # Specify the Python versions you support here. In particular, ensure
         # that you indicate you support Python 3. These classifiers are *not*
         # checked by 'pip install'. See instead 'python_requires' below.
         "Programming Language :: Python :: 3",
-        "Programming Language :: Python :: 3.6",
-        "Programming Language :: Python :: 3.7",
-        "Programming Language :: Python :: 3.8",
-        "Programming Language :: Python :: 3.9",
-        "Programming Language :: Python :: 3 :: Only",
     ],
     # This field adds keywords for your project which will appear on the
     # project page. What does your project relate to?
@@ -114,6 +109,7 @@ setup(
     # You can just specify package directories manually here if your project is
     # simple. Or you can use find_packages().
     #
+    license="Apache Software License",
     # Alternatively, if you just want to distribute a single Python file, use
     # the `py_modules` argument instead as follows, which will expect a file
     # called `my_module.py` to exist:
@@ -146,7 +142,7 @@ setup(
     # installed, specify them here.
     package_data={  # Optional
         "s3prl": ["version.txt"],
-        "s3prl.upstream": ["*/*.yaml"]
+        "s3prl.upstream": ["*/*.yaml", "*/*/*.yaml"]
     },
     # Although 'package_data' is the preferred approach, in some case you may
     # need to place data files outside of your packages. See:
@@ -161,11 +157,11 @@ setup(
     #
     # For example, the following would provide a command called `sample` which
     # executes the function `main` from this package when invoked:
-    # entry_points={  # Optional
-    #     'console_scripts': [
-    #         'sample=sample:main',
-    #     ],
-    # },
+    entry_points={  # Optional
+        "console_scripts": [
+            "s3prl-main=s3prl.main:main",
+        ],
+    },
     # List additional URLs that are relevant to your project as a dict.
     #
     # This field corresponds to the "Project-URL" metadata fields:

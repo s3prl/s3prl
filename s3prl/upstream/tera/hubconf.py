@@ -68,12 +68,12 @@ def tera_960hr(refresh=False, *args, **kwargs):
 
 def tera_logMelBase_T_F_AdamW_b32_200k_100hr(refresh=False, *args, **kwargs):
     """
-        Feature: 80-dim log Mel
-        Alteration: time + freq
-        Optimizer: AdamW
-        Batch size: 32
-        Total steps: 200k
-        Unlabled Speech: 100hr
+    Feature: 80-dim log Mel
+    Alteration: time + freq
+    Optimizer: AdamW
+    Batch size: 32
+    Total steps: 200k
+    Unlabled Speech: 100hr
     """
     kwargs["ckpt"] = "https://www.dropbox.com/s/o36qt1zgtn3tsep/states-200000.ckpt?dl=1"
     return tera_url(refresh=refresh, *args, **kwargs)

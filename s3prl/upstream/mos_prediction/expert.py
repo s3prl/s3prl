@@ -1,15 +1,16 @@
 from collections import OrderedDict
-from typing import List, Union, Dict
+from itertools import accumulate
+from typing import Dict, List, Union
 
 import torch
 import torch.nn as nn
 from torch import Tensor
 from torch.nn.utils.rnn import pad_sequence
 from torchaudio.sox_effects import apply_effects_tensor
-from itertools import accumulate
 
 import s3prl
-from ..interfaces import UpstreamBase, Featurizer
+
+from ..interfaces import Featurizer, UpstreamBase
 from .model import MosDownstream, MosDownstreamModule
 from .utility import unfold_segments
 
