@@ -165,4 +165,5 @@ docs/source/_autosummary/
 # ckpts and hidden states
 sample_hidden_states/
 converted_ckpts/
-
+cache/
+result/
