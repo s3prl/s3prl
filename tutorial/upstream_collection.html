@@ -1156,6 +1156,84 @@ in the HuggingFace format, like <code class="code docutils literal notranslate">
 </ul>
 </section>
 </section>
+<section id="espnethubert">
+<h2>ESPnetHuBERT<a class="headerlink" href="#espnethubert" title="Permalink to this heading">#</a></h2>
+<p><a class="reference external" href="https://arxiv.org/abs/2306.06672">Reducing Barriers to Self-Supervised Learning: HuBERT Pre-training with Academic Compute</a></p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>@inproceedings<span class="o">{</span>chen23l_interspeech,
+<span class="w">    </span><span class="nv">author</span><span class="o">={</span>William<span class="w"> </span>Chen<span class="w"> </span>and<span class="w"> </span>Xuankai<span class="w"> </span>Chang<span class="w"> </span>and<span class="w"> </span>Yifan<span class="w"> </span>Peng<span class="w"> </span>and<span class="w"> </span>Zhaoheng<span class="w"> </span>Ni<span class="w"> </span>and<span class="w"> </span>Soumi<span class="w"> </span>Maiti<span class="w"> </span>and<span class="w"> </span>Shinji<span class="w"> </span>Watanabe<span class="o">}</span>,
+<span class="w">    </span><span class="nv">title</span><span class="o">={{</span>Reducing<span class="w"> </span>Barriers<span class="w"> </span>to<span class="w"> </span>Self-Supervised<span class="w"> </span>Learning:<span class="w"> </span>HuBERT<span class="w"> </span>Pre-training<span class="w"> </span>with<span class="w"> </span>Academic<span class="w"> </span>Compute<span class="o">}}</span>,
+<span class="w">    </span><span class="nv">year</span><span class="o">=</span><span class="m">2023</span>,
+<span class="w">    </span><span class="nv">booktitle</span><span class="o">={</span>Proc.<span class="w"> </span>INTERSPEECH<span class="w"> </span><span class="m">2023</span><span class="o">}</span>,
+<span class="w">    </span><span class="nv">pages</span><span class="o">={</span><span class="m">4404</span>--4408<span class="o">}</span>,
+<span class="w">    </span><span class="nv">doi</span><span class="o">={</span><span class="m">10</span>.21437/Interspeech.2023-1176<span class="o">}</span>
+<span class="o">}</span>
+</pre></div>
+</div>
+<section id="espnet-hubert-custom">
+<h3>espnet_hubert_custom<a class="headerlink" href="#espnet-hubert-custom" title="Permalink to this heading">#</a></h3>
+<p>This entry expects you to provide the source of the checkpoint: <code class="code docutils literal notranslate"><span class="pre">ckpt</span></code>, which should be
+the local path of the checkpoint pretrained from ESPnet (e.g., latest.pth).</p>
+</section>
+<section id="espnet-hubert-base-iter0">
+<h3>espnet_hubert_base_iter0<a class="headerlink" href="#espnet-hubert-base-iter0" title="Permalink to this heading">#</a></h3>
+<ul class="simple">
+<li><p>Unlabeled Speech: LibriSpeech 960hr (first iteration of HuBERT pre-training)</p></li>
+</ul>
+</section>
+<section id="espnet-hubert-base-iter1">
+<h3>espnet_hubert_base_iter1<a class="headerlink" href="#espnet-hubert-base-iter1" title="Permalink to this heading">#</a></h3>
+<ul class="simple">
+<li><p>Unlabeled Speech: LibriSpeech 960hr (second iteration of HuBERT pre-training)</p></li>
+</ul>
+</section>
+<section id="espnet-hubert-large-gs-ll60k">
+<h3>espnet_hubert_large_gs_ll60k<a class="headerlink" href="#espnet-hubert-large-gs-ll60k" title="Permalink to this heading">#</a></h3>
+<ul class="simple">
+<li><p>Unlabeled Speech: LibriLight ll60k hours</p></li>
+<li><p>Labeled Speech: GigaSpeech 10k hours (to get units)</p></li>
+</ul>
+</section>
+</section>
+<section id="wavlablm">
+<h2>WavLabLM<a class="headerlink" href="#wavlablm" title="Permalink to this heading">#</a></h2>
+<p><a class="reference external" href="https://arxiv.org/abs/2309.15317">Joint Prediction and Denoising for Large-scale Multilingual Self-supervised Learning</a></p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>@inproceedings<span class="o">{</span>chen23joint,
+<span class="w">    </span><span class="nv">author</span><span class="o">={</span>William<span class="w"> </span>Chen<span class="w"> </span>and<span class="w"> </span>Jiatong<span class="w"> </span>Shi<span class="w"> </span>and<span class="w"> </span>Brian<span class="w"> </span>Yan<span class="w"> </span>and<span class="w"> </span>Dan<span class="w"> </span>Berrebbi<span class="w"> </span>and<span class="w"> </span>Wangyou<span class="w"> </span>Zhang<span class="w"> </span>and<span class="w"> </span>Yifan<span class="w"> </span>Peng<span class="w"> </span>and<span class="w"> </span>Xuankai<span class="w"> </span>Chang<span class="w"> </span>and<span class="w"> </span>Soumi<span class="w"> </span>Maiti<span class="w"> </span>and<span class="w"> </span>Shinji<span class="w"> </span>Watanabe<span class="o">}</span>,
+<span class="w">    </span><span class="nv">title</span><span class="o">={</span>Joint<span class="w"> </span>Prediction<span class="w"> </span>and<span class="w"> </span>Denoising<span class="w"> </span><span class="k">for</span><span class="w"> </span>Large-scale<span class="w"> </span>Multilingual<span class="w"> </span>Self-supervised<span class="w"> </span>Learning<span class="o">}</span>,
+<span class="w">    </span><span class="nv">year</span><span class="o">=</span><span class="m">2023</span>,
+<span class="w">    </span><span class="nv">booktitle</span><span class="o">={</span>IEEE<span class="w"> </span>Automatic<span class="w"> </span>Speech<span class="w"> </span>Recognition<span class="w"> </span>and<span class="w"> </span>Understanding<span class="w"> </span>Workshop<span class="w"> </span><span class="o">(</span>ASRU<span class="o">)}</span>,
+<span class="o">}</span>
+</pre></div>
+</div>
+<section id="cvhubert">
+<h3>cvhubert<a class="headerlink" href="#cvhubert" title="Permalink to this heading">#</a></h3>
+<ul class="simple">
+<li><p>Unlabeled Speech: Commonvoice V11 Multilingual Data (13.6k hours)</p></li>
+<li><p>only 20ms resolution version is provided. <cite>check huggingface  for other resolutions &lt;https://huggingface.co/espnet/espnet_cvhubert/tree/main&gt;_</cite></p></li>
+</ul>
+</section>
+<section id="wavlablm-ek-40k">
+<h3>wavlablm_ek_40k<a class="headerlink" href="#wavlablm-ek-40k" title="Permalink to this heading">#</a></h3>
+<ul class="simple">
+<li><p>Unlabeled Speech: Openli110 (Combination of Commonvoice, Voxpopuli, MLS, Googlei18n, around 39k hours)</p></li>
+<li><p>Initialed from hubert_large_ll60k and continue train with English based k-means from librispeech</p></li>
+</ul>
+</section>
+<section id="wavlablm-mk-40k">
+<h3>wavlablm_mk_40k<a class="headerlink" href="#wavlablm-mk-40k" title="Permalink to this heading">#</a></h3>
+<ul class="simple">
+<li><p>Unlabeled Speech: Openli110 (Combination of Commonvoice, Voxpopuli, MLS, Googlei18n, around 39k hours)</p></li>
+<li><p>Trained from scratch and use a multilingual k-means from the training data</p></li>
+</ul>
+</section>
+<section id="wavlablm-ms-40k">
+<h3>wavlablm_ms_40k<a class="headerlink" href="#wavlablm-ms-40k" title="Permalink to this heading">#</a></h3>
+<ul class="simple">
+<li><p>Unlabeled Speech: Openli110 (Combination of Commonvoice, Voxpopuli, MLS, Googlei18n, around 39k hours)</p></li>
+<li><p>Trained from scratch and use a multilingual k-means from the training data with a multi-stage training</p></li>
+</ul>
+</section>
+</section>
 <section id="distilhubert">
 <h2>DistilHuBERT<a class="headerlink" href="#distilhubert" title="Permalink to this heading">#</a></h2>
 <p><a class="reference external" href="https://arxiv.org/abs/2110.01900">DistilHuBERT: Speech Representation Learning by Layer-wise Distillation of Hidden-unit BERT</a></p>
@@ -1672,6 +1750,8 @@ above), the stride seconds between windows.</p>
 <li><a class="reference internal" href="#wav2vec-2-0">wav2vec 2.0</a></li>
 <li><a class="reference internal" href="#xls-r">XLS-R</a></li>
 <li><a class="reference internal" href="#hubert">HuBERT</a></li>
+<li><a class="reference internal" href="#espnethubert">ESPnetHuBERT</a></li>
+<li><a class="reference internal" href="#wavlablm">WavLabLM</a></li>
 <li><a class="reference internal" href="#distilhubert">DistilHuBERT</a></li>
 <li><a class="reference internal" href="#hubert-mgr">HuBERT-MGR</a></li>
 <li><a class="reference internal" href="#unispeech-sat">Unispeech-SAT</a></li>
