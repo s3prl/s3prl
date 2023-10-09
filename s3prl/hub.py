@@ -11,6 +11,7 @@ from s3prl.upstream.decoar2.hubconf import *
 from s3prl.upstream.decoar.hubconf import *
 from s3prl.upstream.decoar_layers.hubconf import *
 from s3prl.upstream.distiller.hubconf import *
+from s3prl.upstream.espnet_hubert.hubconf import *
 from s3prl.upstream.example.hubconf import *
 from s3prl.upstream.hf_hubert.hubconf import *
 from s3prl.upstream.hf_wav2vec2.hubconf import *

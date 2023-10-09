@@ -889,6 +889,90 @@ mhubert_base_vp_en_es_fr_it3
 - The multilingual model from `Textless Speech-to-Speech Translation on Real Data <https://arxiv.org/abs/2112.08352>`_
 
 
+ESPnetHuBERT
+----------------------
+`Reducing Barriers to Self-Supervised Learning: HuBERT Pre-training with Academic Compute <https://arxiv.org/abs/2306.06672>`_
+
+.. code-block:: bash
+
+    @inproceedings{chen23l_interspeech,
+        author={William Chen and Xuankai Chang and Yifan Peng and Zhaoheng Ni and Soumi Maiti and Shinji Watanabe},
+        title={{Reducing Barriers to Self-Supervised Learning: HuBERT Pre-training with Academic Compute}},
+        year=2023,
+        booktitle={Proc. INTERSPEECH 2023},
+        pages={4404--4408},
+        doi={10.21437/Interspeech.2023-1176}
+    }
+
+
+espnet_hubert_custom
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+This entry expects you to provide the source of the checkpoint: :code:`ckpt`, which should be
+the local path of the checkpoint pretrained from ESPnet (e.g., latest.pth).
+
+
+espnet_hubert_base_iter0
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+- Unlabeled Speech: LibriSpeech 960hr (first iteration of HuBERT pre-training)
+
+
+espnet_hubert_base_iter1
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+- Unlabeled Speech: LibriSpeech 960hr (second iteration of HuBERT pre-training)
+
+
+espnet_hubert_large_gs_ll60k
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+- Unlabeled Speech: LibriLight ll60k hours
+- Labeled Speech: GigaSpeech 10k hours (to get units)
+
+
+WavLabLM
+----------------------
+`Joint Prediction and Denoising for Large-scale Multilingual Self-supervised Learning <https://arxiv.org/abs/2309.15317>`_
+
+.. code-block:: bash
+
+    @inproceedings{chen23joint,
+        author={William Chen and Jiatong Shi and Brian Yan and Dan Berrebbi and Wangyou Zhang and Yifan Peng and Xuankai Chang and Soumi Maiti and Shinji Watanabe},
+        title={Joint Prediction and Denoising for Large-scale Multilingual Self-supervised Learning},
+        year=2023,
+        booktitle={IEEE Automatic Speech Recognition and Understanding Workshop (ASRU)},
+    }
+
+
+cvhubert
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+- Unlabeled Speech: Commonvoice V11 Multilingual Data (13.6k hours)
+- only 20ms resolution version is provided. `check huggingface  for other resolutions <https://huggingface.co/espnet/espnet_cvhubert/tree/main>_`
+
+
+wavlablm_ek_40k
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+- Unlabeled Speech: Openli110 (Combination of Commonvoice, Voxpopuli, MLS, Googlei18n, around 39k hours)
+- Initialed from hubert_large_ll60k and continue train with English based k-means from librispeech
+
+
+wavlablm_mk_40k
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+- Unlabeled Speech: Openli110 (Combination of Commonvoice, Voxpopuli, MLS, Googlei18n, around 39k hours)
+- Trained from scratch and use a multilingual k-means from the training data
+
+
+wavlablm_ms_40k
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+- Unlabeled Speech: Openli110 (Combination of Commonvoice, Voxpopuli, MLS, Googlei18n, around 39k hours)
+- Trained from scratch and use a multilingual k-means from the training data with a multi-stage training
+
+
 DistilHuBERT
 ----------------------
 `DistilHuBERT: Speech Representation Learning by Layer-wise Distillation of Hidden-unit BERT <https://arxiv.org/abs/2110.01900>`_
