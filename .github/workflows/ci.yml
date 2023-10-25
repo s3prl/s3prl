@@ -59,6 +59,9 @@ jobs:
     # - name: Setup upterm session
     #   uses: lhotari/action-upterm@v1
 
+    - name: Install espnet package for upstream dependency
+      run: ./external_tools/install_espnet.sh
+
     - name: Run tox for common upstream
       run: |
         tox -e common_upstream-audio${{ matrix.torchaudio-version }}
