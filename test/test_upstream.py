@@ -209,6 +209,7 @@ def _test_specific_upstream(name: str):
         "decoar_layers",
         "decoar2",
         "distilhubert",
+        "espnet_hubert_base_iter1",
         "hubert",
         "lighthubert_base",
         "mockingjay",
