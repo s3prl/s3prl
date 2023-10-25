@@ -209,7 +209,7 @@ def _test_specific_upstream(name: str):
         "decoar_layers",
         "decoar2",
         "distilhubert",
-        "espnet_hubert_base_iter1",
+        # "espnet_hubert_base_iter1",  # espnet will be tested separately due to complex dependency
         "hubert",
         "lighthubert_base",
         "mockingjay",
@@ -225,6 +225,13 @@ def _test_specific_upstream(name: str):
     ],
 )
 def test_common_upstream(name):
+    if "espnet" in name:
+        try:
+            import espnet
+        except:
+            logger.info("Skip ESPNet upstream test cases if espnet is not installed")
+            return
+
     _prepare_sample_hidden_states()
     _test_specific_upstream(name)
 
@@ -234,8 +241,22 @@ def test_specific_upstream(upstream_names: str):
     _prepare_sample_hidden_states()
     if upstream_names is not None:
         options = upstream_names.split(",")
+
+        tracebacks = []
         for name in options:
-            _test_specific_upstream(name)
+            logger.info(f"Testing upstream: '{name}'")
+            try:
+                _test_specific_upstream(name)
+            except Exception as e:
+                logger.error(f"{name}\n{traceback.format_exc()}")
+                tb = traceback.format_exc()
+                tracebacks.append((name, tb))
+
+        if len(tracebacks) > 0:
+            for name, tb in tracebacks:
+                logger.error(f"Error in {name}:\n{tb}")
+            logger.error(f"All failed models:\n{[name for name, _ in tracebacks]}")
+            assert False
 
 
 @pytest.mark.upstream
