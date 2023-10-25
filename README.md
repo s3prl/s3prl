@@ -42,7 +42,7 @@ We support the following environments. The test cases are ran with **[tox](./tox
 | --- | --- |
 | os  | `ubuntu-18.04`, `ubuntu-20.04` |
 | python | `3.7`, `3.8`, `3.9`, `3.10` |
-| pytorch | `1.8.1`, `1.9.1`, `1.10.2`, `1.11.0`, `1.12.1` |
+| pytorch | `1.8.1`, `1.9.1`, `1.10.2`, `1.11.0`, `1.12.1` , `1.13.1` , `2.0.1` , `2.1.0` |
 
 ## Change Log
 
@@ -93,7 +93,7 @@ Below is an **intuitive illustration** on how this toolkit may help you:
 <img src="https://raw.githubusercontent.com/s3prl/s3prl/main/file/S3PRL-interface.png" width="900"/>
 \
 \
-Feel free to use or modify our toolkit in your research. Here is a [list of papers using our toolkit](#used-by). Any question, bug report or improvement suggestion is welcome through [opening up a new issue](https://github.com/s3prl/s3prl/issues). 
+Feel free to use or modify our toolkit in your research. Here is a [list of papers using our toolkit](#used-by). Any question, bug report or improvement suggestion is welcome through [opening up a new issue](https://github.com/s3prl/s3prl/issues).
 
 If you find this toolkit helpful to your research, please do consider citing [our papers](#citation), thanks!
 
@@ -200,7 +200,7 @@ The majority of S3PRL Toolkit is licensed under the Apache License version 2.0, 
 + [Adversarial Defense for Automatic Speaker Verification by Cascaded Self-Supervised Learning Models (Wu et al., 2021)](https://arxiv.org/abs/2102.07047)
   ```
   @misc{asv_ssl,
-      title={Adversarial defense for automatic speaker verification by cascaded self-supervised learning models}, 
+      title={Adversarial defense for automatic speaker verification by cascaded self-supervised learning models},
       author={Haibin Wu and Xu Li and Andy T. Liu and Zhiyong Wu and Helen Meng and Hung-yi Lee},
       year={2021},
       eprint={2102.07047},
@@ -213,7 +213,7 @@ The majority of S3PRL Toolkit is licensed under the Apache License version 2.0, 
 + [S2VC: A Framework for Any-to-Any Voice Conversion with Self-Supervised Pretrained Representations (Lin et al., 2021)](https://arxiv.org/abs/2104.02901)
   ```
   @misc{s2vc,
-        title={S2VC: A Framework for Any-to-Any Voice Conversion with Self-Supervised Pretrained Representations}, 
+        title={S2VC: A Framework for Any-to-Any Voice Conversion with Self-Supervised Pretrained Representations},
         author={Jheng-hao Lin and Yist Y. Lin and Chung-Ming Chien and Hung-yi Lee},
         year={2021},
         eprint={2104.02901},
@@ -227,7 +227,7 @@ The majority of S3PRL Toolkit is licensed under the Apache License version 2.0, 
 + [SUPERB: Speech processing Universal PERformance Benchmark (Yang et al., 2021)](https://arxiv.org/abs/2105.01051)
   ```
   @misc{superb,
-        title={SUPERB: Speech processing Universal PERformance Benchmark}, 
+        title={SUPERB: Speech processing Universal PERformance Benchmark},
         author={Shu-wen Yang and Po-Han Chi and Yung-Sung Chuang and Cheng-I Jeff Lai and Kushal Lakhotia and Yist Y. Lin and Andy T. Liu and Jiatong Shi and Xuankai Chang and Guan-Ting Lin and Tzu-Hsien Huang and Wei-Cheng Tseng and Ko-tik Lee and Da-Rong Liu and Zili Huang and Shuyan Dong and Shang-Wen Li and Shinji Watanabe and Abdelrahman Mohamed and Hung-yi Lee},
         year={2021},
         eprint={2105.01051},
@@ -239,7 +239,7 @@ The majority of S3PRL Toolkit is licensed under the Apache License version 2.0, 
 + [Utilizing Self-supervised Representations for MOS Prediction (Tseng et al., 2021)](https://arxiv.org/abs/2104.03017)
   ```
   @misc{ssr_mos,
-      title={Utilizing Self-supervised Representations for MOS Prediction}, 
+      title={Utilizing Self-supervised Representations for MOS Prediction},
       author={Wei-Cheng Tseng and Chien-yu Huang and Wei-Tsung Kao and Yist Y. Lin and Hung-yi Lee},
       year={2021},
       eprint={2104.03017},
