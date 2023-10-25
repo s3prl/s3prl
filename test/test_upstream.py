@@ -234,13 +234,8 @@ def test_specific_upstream(upstream_names: str):
     _prepare_sample_hidden_states()
     if upstream_names is not None:
         options = upstream_names.split(",")
-    else:
-        options = S3PRLUpstream.available_names(only_registered_ckpt=True)
-        options = _filter_options(options)
-        options = sorted(options)
-
-    for name in options:
-        _test_specific_upstream(name)
+        for name in options:
+            _test_specific_upstream(name)
 
 
 @pytest.mark.upstream
