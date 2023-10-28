@@ -42,5 +42,5 @@ def distilhubert_base(refresh=False, *args, **kwargs):
     """
     kwargs[
         "ckpt"
-    ] = "https://www.dropbox.com/s/hcfczqo5ao8tul3/disilhubert_ls960_4-8-12.ckpt?dl=1"
+    ] = "https://huggingface.co/leo19941227/distilhubert/resolve/main/distilhubert_ls960_4-8-12.ckpt"
     return distiller_url(refresh=refresh, *args, **kwargs)
