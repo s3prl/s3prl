@@ -75,5 +75,5 @@ def audio_albert_logMelBase_T_share_AdamW_b32_1m_960hr_drop1(
     """
     kwargs[
         "ckpt"
-    ] = "https://www.dropbox.com/s/3wgynxmod77ha1z/states-1000000.ckpt?dl=1"
+    ] = "https://huggingface.co/s3prl/audio_albert/resolve/main/audio_albert_logMelBase_T_share_AdamW_b32_1m_960hr_drop1/states-1000000.ckpt"
     return audio_albert_url(refresh=refresh, *args, **kwargs)

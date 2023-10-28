@@ -15,17 +15,9 @@ jobs:
       matrix:
         os: [ubuntu-20.04]
         python-version: [3.8]
-        torchaudio-version: [0.8.1, 0.9.1, 0.10.2, 0.11.0, 0.12.1, 0.13.1, 2.0.2, 2.1.0]
-        include:
-          - os: ubuntu-20.04
-            python-version: 3.7
-            torchaudio-version: 0.11.0
-          - os: ubuntu-20.04
-            python-version: 3.9
-            torchaudio-version: 0.8.1
-          - os: ubuntu-20.04
-            python-version: "3.10"  # if not quoted, will be interpreted as 3.1
-            torchaudio-version: 0.11.0
+        torchaudio-version: [0.12.1, 0.13.1, 2.0.2, 2.1.0]
+          # espnet use 'torchaudio.models.hubert_pretrain_model' with 'feature_grad_mult' option
+          # which is available after torchaudio==0.12.0
 
     runs-on: ${{ matrix.os }}
 
@@ -48,10 +40,6 @@ jobs:
     - name: Install dependencies for tests
       run: pip3 install -r requirements/dev.txt
 
-    - name: Check coding style by ci/format.py
-      run: |
-        ./ci/format.py --check
-
     # This can be very helpful for debugging
     # The action can create a SSH server for you to connect. After you
     # log into the machine hosted by GitHub, it becomes easy to debug
@@ -62,7 +50,7 @@ jobs:
 
     - name: Run tox for common upstream
       run: |
-        tox -e common_upstream-audio${{ matrix.torchaudio-version }} -- -k test_common_upstream
+        tox -e common_upstream-audio${{ matrix.torchaudio-version }}-espnet -- -k test_specific_upstream --upstream_names espnet_hubert_base_iter1
 
     # Not all upstreams will be tested on CI since this will take too much time
     # To test all upstreams, run tox locally with '-e all_upstream'
