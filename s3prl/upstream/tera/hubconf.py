@@ -156,7 +156,7 @@ def tera_logMelBase_T_F_M_AdamW_b32_1m_960hr_drop1(refresh=False, *args, **kwarg
     """
     kwargs[
         "ckpt"
-    ] = "https://huggingface.co/s3prl/tera/blob/main/tera_logMelBase_T_F_M_AdamW_b32_1m_960hr_drop1/states-1000000.ckpt"
+    ] = "https://huggingface.co/s3prl/tera/resolve/main/tera_logMelBase_T_F_M_AdamW_b32_1m_960hr_drop1/states-1000000.ckpt"
     return tera_url(refresh=refresh, *args, **kwargs)
 
 

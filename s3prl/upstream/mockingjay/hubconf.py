@@ -115,7 +115,7 @@ def mockingjay_logMelLinearLarge_T_AdamW_b32_500k_360hr_drop1(
     """
     kwargs[
         "ckpt"
-    ] = "https://huggingface.co/s3prl/mockingjay/blob/main/mockingjay_logMelLinearLarge_T_AdamW_b32_500k_360hr_drop1/states-500000.ckpt"
+    ] = "https://huggingface.co/s3prl/mockingjay/resolve/main/mockingjay_logMelLinearLarge_T_AdamW_b32_500k_360hr_drop1/states-500000.ckpt"
     return mockingjay_url(refresh=refresh, *args, **kwargs)
 
 
