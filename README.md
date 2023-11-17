@@ -11,7 +11,7 @@
 
 ## Contact
 
-We prefer to have discussions directly on Github issue page, so that all the information is transparent to all the contributors and is auto-archieved on the Github.
+We prefer to have discussions directly on Github issue page, so that all the information is transparent to all the contributors and is auto-archived on the Github.
 If you wish to use email, please contact:
 
 - Leo Yang (leo19941227@gmail.com)
@@ -24,7 +24,7 @@ If you wish to use email, please contact:
 ## Contribution (pull request)
 
 Guidelines:
-- If you want to add new features (e.g. new upstream or new task), please discuss with us on the Github issue page first before implementing the actual pull request. So we can discuss about whether we want the feauture, how to achieve the feature, and whether the feature is maintainable. (As S3PRL is growing too large, we might not consider complex new features.) Thanks!
+- If you want to add new features (e.g. new upstream), please discuss with us on the Github issue page first before implementing the actual pull request. So we can discuss about whether we want the feauture, how to achieve the feature, and whether the feature is maintainable. (As S3PRL is growing too large, we might not consider new tasks or complex new features.) Thanks!
 - Reporting bugs or the PR fixing the bugs is always welcome!
 
 Steps:
