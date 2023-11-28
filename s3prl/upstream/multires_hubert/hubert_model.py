@@ -15,14 +15,18 @@ import torch
 import torch.nn as nn
 from omegaconf import II, MISSING, open_dict
 
-from ..wav2vec2.wav2vec2_model import (EXTRACTOR_MODE_CHOICES,
-                                       LAYER_TYPE_CHOICES,
-                                       MASKING_DISTRIBUTION_CHOICES,
-                                       ChoiceEnum, ConvFeatureExtractionModel,
-                                       GradMultiply, LayerNorm,
-                                       TransformerEncoder,
-                                       compute_mask_indices,
-                                       get_available_activation_fns)
+from ..wav2vec2.wav2vec2_model import (
+    EXTRACTOR_MODE_CHOICES,
+    LAYER_TYPE_CHOICES,
+    MASKING_DISTRIBUTION_CHOICES,
+    ChoiceEnum,
+    ConvFeatureExtractionModel,
+    GradMultiply,
+    LayerNorm,
+    TransformerEncoder,
+    compute_mask_indices,
+    get_available_activation_fns,
+)
 from ..wav2vec.wav2vec_model import norm_block
 
 logger = logging.getLogger(__name__)

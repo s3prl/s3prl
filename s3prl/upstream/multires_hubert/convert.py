@@ -5,7 +5,10 @@ from typing import List
 import s3prl
 import torch
 from s3prl.upstream.multires_hubert.hubert_model import (
-    MultiresHubertConfig, MultiresHubertModel, MultiresHubertPretrainingConfig)
+    MultiresHubertConfig,
+    MultiresHubertModel,
+    MultiresHubertPretrainingConfig,
+)
 from s3prl.upstream.utils import load_fairseq_ckpt, merge_with_parent
 from s3prl.util.download import _urls_to_filepaths
 
