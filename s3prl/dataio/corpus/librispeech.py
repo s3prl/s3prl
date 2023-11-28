@@ -156,7 +156,6 @@ class LibriSpeech(Corpus):
     def _collect_data(
         dataset_root: str, splits: List[str], n_jobs: int = 4
     ) -> Dict[str, Dict[str, List[Any]]]:
-
         spkr2gender = _parse_spk_to_gender(Path(dataset_root) / "SPEAKERS.TXT")
         data_dict = {}
         for split in splits:

@@ -66,7 +66,6 @@ class AugmentMelSTFT(nn.Module):
             self.timem = torchaudio.transforms.TimeMasking(timem, iid_masks=True)
 
     def forward(self, x):
-
         x = nn.functional.conv1d(x.unsqueeze(1), self.preemphasis_coefficient).squeeze(
             1
         )
@@ -78,7 +77,9 @@ class AugmentMelSTFT(nn.Module):
             center=True,
             normalized=False,
             window=self.window,
+            return_complex=True,
         )
+        x = torch.view_as_real(x)
         x = (x**2).sum(dim=-1)  # power mag
         fmin = self.fmin + torch.randint(self.fmin_aug_range, (1,)).item()
         fmax = (

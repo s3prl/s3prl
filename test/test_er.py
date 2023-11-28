@@ -14,7 +14,6 @@ from s3prl.problem import SuperbER
 @pytest.mark.corpus
 @pytest.mark.parametrize("fold_id", [0, 1, 2, 3, 4])
 def test_er_dataset(fold_id):
-
     v3_er_folder = Path(__file__).parent.parent / "s3prl" / "downstream" / "emotion"
 
     IEMOCAP = dotenv_values()["IEMOCAP"]

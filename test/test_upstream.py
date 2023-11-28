@@ -21,8 +21,9 @@ TRAIN_MORE_ITER = 5
 SAMPLE_RATE = 16000
 ATOL = 0.01
 MAX_LENGTH_DIFF = 3
-EXTRA_SHORT_SEC = 0.001
+EXTRA_SHORT_SEC = 0.05
 EXTRACTED_GT_DIR = Path(__file__).parent.parent / "sample_hidden_states"
+S3PRL_HF_SAMPLE_HS = "https://huggingface.co/datasets/s3prl/sample_hidden_states"
 
 # Expect the following directory structure:
 #
@@ -36,7 +37,6 @@ EXTRACTED_GT_DIR = Path(__file__).parent.parent / "sample_hidden_states"
 def _prepare_sample_hidden_states():
     lock_file = Path(__file__).parent.parent / "sample_hidden_states.lock"
     with FileLock(str(lock_file)):
-
         # NOTE: home variable is necessary for git lfs to work
         env = dict(os.environ)
         if not "HOME" in env:
@@ -50,7 +50,7 @@ def _prepare_sample_hidden_states():
                 logger.info("Downloading extracted sample hidden states...")
                 check_call("git lfs install".split(), cwd=tempdir, env=env)
                 check_call(
-                    "git clone https://huggingface.co/datasets/s3prl/sample_hidden_states".split(),
+                    f"git clone {S3PRL_HF_SAMPLE_HS}".split(),
                     cwd=tempdir,
                     env=env,
                 )
@@ -59,7 +59,11 @@ def _prepare_sample_hidden_states():
                 )
         else:
             logger.info(f"{EXTRACTED_GT_DIR} exists. Perform git pull...")
-            check_call("git pull".split(), cwd=EXTRACTED_GT_DIR, env=env)
+            check_call(
+                f"git pull {S3PRL_HF_SAMPLE_HS} main".split(),
+                cwd=EXTRACTED_GT_DIR,
+                env=env,
+            )
 
     try:
         lock_file.unlink()
@@ -181,17 +185,7 @@ Test cases ensure that all upstreams are working and are same with pre-extracted
 """
 
 
-@pytest.mark.upstream
-@pytest.mark.parametrize(
-    "name",
-    [
-        "wav2vec2",
-        "wavlm",
-        "hubert",
-    ],
-)
-def test_common_upstream(name):
-    _prepare_sample_hidden_states()
+def _test_specific_upstream(name: str):
     _compare_with_extracted(name)
     _test_forward_backward(
         name, min_secs=EXTRA_SHORT_SEC, max_secs=EXTRA_SHORT_SEC, n=1
@@ -200,6 +194,69 @@ def test_common_upstream(name):
         name, min_secs=EXTRA_SHORT_SEC, max_secs=EXTRA_SHORT_SEC, n=2
     )
     _test_forward_backward(name, min_secs=EXTRA_SHORT_SEC, max_secs=1, n=3)
+
+
+@pytest.mark.upstream
+@pytest.mark.parametrize(
+    "name",
+    [
+        "apc",
+        "audio_albert",
+        "fbank",
+        "mel",
+        "modified_cpc",
+        "data2vec",
+        "decoar_layers",
+        "decoar2",
+        "distilhubert",
+        # "espnet_hubert_base_iter1",  # espnet will be tested separately due to complex dependency
+        "hubert",
+        "lighthubert_base",
+        "mockingjay",
+        "npc",
+        "discretebert",
+        "tera",
+        "unispeech_sat_base",
+        "vq_apc",
+        "vq_wav2vec",
+        "wav2vec",
+        "wav2vec2",
+        "wavlm",
+    ],
+)
+def test_common_upstream(name):
+    if "espnet" in name:
+        try:
+            import espnet
+        except:
+            logger.info("Skip ESPNet upstream test cases if espnet is not installed")
+            return
+
+    _prepare_sample_hidden_states()
+    _test_specific_upstream(name)
+
+
+@pytest.mark.upstream
+def test_specific_upstream(upstream_names: str):
+    _prepare_sample_hidden_states()
+    if upstream_names is not None:
+        options = upstream_names.split(",")
+
+        tracebacks = []
+        for name in options:
+            logger.info(f"Testing upstream: '{name}'")
+            try:
+                _test_specific_upstream(name)
+            except Exception as e:
+                logger.error(f"{name}\n{traceback.format_exc()}")
+                tb = traceback.format_exc()
+                tracebacks.append((name, tb))
+
+        if len(tracebacks) > 0:
+            for name, tb in tracebacks:
+                logger.error(f"Error in {name}:\n{tb}")
+            logger.error(f"All failed models:\n{[name for name, _ in tracebacks]}")
+            assert False
 
 
 @pytest.mark.upstream

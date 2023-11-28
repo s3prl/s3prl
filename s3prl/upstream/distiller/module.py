@@ -108,7 +108,6 @@ class TransformerSentenceEncoderLayer(nn.Module):
         layer_norm_first: bool = False,
         attention_type: str = "original",
     ) -> None:
-
         super().__init__()
         # Initialize parameters
         self.embedding_dim = embedding_dim
@@ -301,7 +300,6 @@ class TransformerEncoder(nn.Module):
         return x, layer_results
 
     def extract_features(self, x, padding_mask=None, attn_mask=None, get_hidden=False):
-
         if padding_mask is not None:
             x[padding_mask] = 0
 

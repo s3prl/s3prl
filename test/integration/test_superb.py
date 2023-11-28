@@ -21,14 +21,12 @@ from s3prl.util.pseudo_data import pseudo_audio
 
 @pytest.mark.parametrize("vocab_type", ["subword", "character"])
 def test_superb_asr(vocab_type):
-
     if vocab_type == "subword":
         vocab_args = {"vocab_size": 18}
     else:
         vocab_args = {}
 
     with tempfile.TemporaryDirectory() as tempdir:
-
         with pseudo_audio([10, 2, 1, 8, 5]) as (wav_paths, num_samples):
 
             class TestASR(SuperbASR):
@@ -89,9 +87,7 @@ def test_superb_asr(vocab_type):
 
 
 def test_superb_er():
-
     with tempfile.TemporaryDirectory() as tempdir:
-
         with pseudo_audio([10, 2, 1, 8, 5]) as (wav_paths, num_samples):
 
             class TestER(SuperbER):
@@ -145,7 +141,6 @@ def test_superb_er():
 
 def test_superb_ks():
     with tempfile.TemporaryDirectory() as tempdir:
-
         with pseudo_audio([10, 2, 1, 8, 5]) as (wav_paths, num_samples):
 
             class TestKS(SuperbKS):
@@ -198,9 +193,7 @@ def test_superb_ks():
 
 
 def test_superb_pr():
-
     with tempfile.TemporaryDirectory() as tempdir:
-
         with pseudo_audio([10, 2, 1, 8, 5]) as (wav_paths, num_samples):
 
             class TestPR(SuperbPR):
@@ -263,7 +256,6 @@ def test_superb_pr():
 
 def test_superb_ic():
     with tempfile.TemporaryDirectory() as tempdir:
-
         with pseudo_audio([10, 2, 1, 8, 5]) as (wav_paths, num_samples):
 
             class TestIC(SuperbIC):
@@ -317,7 +309,6 @@ def test_superb_ic():
 
 def test_superb_sid():
     with tempfile.TemporaryDirectory() as tempdir:
-
         with pseudo_audio([10, 2, 1, 8, 5]) as (wav_paths, num_samples):
 
             class TestSID(SuperbSID):
@@ -371,7 +362,6 @@ def test_superb_sid():
 
 def test_superb_sd():
     with tempfile.TemporaryDirectory() as tempdir:
-
         secs = [10, 2, 1, 8, 5]
         with pseudo_audio(secs) as (wav_paths, num_samples):
 
@@ -431,7 +421,6 @@ def test_superb_sd():
 
 def test_superb_asv():
     with tempfile.TemporaryDirectory() as tempdir:
-
         secs = [10, 2, 1, 8, 5]
         with pseudo_audio(secs) as (wav_paths, num_samples):
 
@@ -494,14 +483,12 @@ def test_superb_asv():
 
 @pytest.mark.parametrize("vocab_type", ["subword", "character"])
 def test_superb_sf(vocab_type):
-
     if vocab_type == "subword":
         vocab_args = {"vocab_size": 22}
     else:
         vocab_args = {}
 
     with tempfile.TemporaryDirectory() as tempdir:
-
         with pseudo_audio([10, 2, 1, 8, 5]) as (wav_paths, num_samples):
 
             class TestSF(SuperbSF):

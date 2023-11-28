@@ -407,7 +407,6 @@ class MAE_AST(nn.Module):
         is_decoder_finetune: bool = False,
         is_input_prepatched: bool = False,
     ) -> Dict[str, torch.Tensor]:
-
         # Checks whether the dataset was patched and normalized before-hand. is_input_prepatched == True for speed profiling during training.
         if is_input_prepatched:
             source_patch = source
@@ -661,7 +660,6 @@ class TransformerEncoder(nn.Module):
         return x, layer_results
 
     def extract_features(self, x, padding_mask=None, tgt_layer=None):
-
         if not self.layer_norm_first:
             x = self.layer_norm(x)
 
@@ -715,7 +713,6 @@ class TransformerSentenceEncoderLayer(nn.Module):
         activation_fn: str = "relu",
         layer_norm_first: bool = False,
     ) -> None:
-
         super().__init__()
         # Initialize parameters
         self.embedding_dim = embedding_dim

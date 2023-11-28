@@ -63,9 +63,7 @@ class MaskedReconstruction(DataPipe):
     """
 
     def generate_masked_data(self, source_feat, target_feat):
-
         with torch.no_grad():
-
             masked_feat = copy.deepcopy(source_feat)
 
             # Record length for each uttr
@@ -157,7 +155,6 @@ class MaskedReconstruction(DataPipe):
         return masked_feat, pos_enc, attn_mask, label_mask
 
     def __call__(self, dataset: AugmentedDynamicItemDataset):
-
         dataset.add_dynamic_item(
             self.generate_masked_data,
             takes=[self.source_feat_name, self.target_feat_name],
@@ -188,7 +185,6 @@ def get_sinusoid_table(hidden_size):
 
 
 def fast_position_encoding(seq_len, hidden_size, batch_size=None, padding_idx=None):
-
     assert (
         seq_len <= MAX_SEQLEN
     ), f"constant MAX_SEQLEN ({MAX_SEQLEN}) in mam.py < received seq_len ({seq_len})"

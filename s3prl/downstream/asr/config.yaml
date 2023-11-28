@@ -47,14 +47,14 @@ downstream_expert:
     train_batch_size: 32
     batch_size: 32
     eval_batch_size: 1
-    libri_root: '/app/data/LibriSpeech'
+    libri_root: '/home/leo/d/datasets/LibriSpeech'
     bucket_file: './data/librispeech/len_for_bucket'
     dict_path: "./downstream/asr/char.dict"
 
     zero_infinity: True
 
     decoder_args:
-      # See https://github.com/facebookresearch/flashlight/blob/master/flashlight/lib/text/decoder/LexiconDecoder.h#L20
+      # See https://github.com/flashlight/text/blob/main/flashlight/lib/text/decoder/LexiconDecoder.h#L20-L30
       # for what the options mean. Python binding exposes the same options from C++.
       # KenLM is a fast LM query implementation, and it can be powered by:
       # 1. official LibriSpeech 4-gram LM: the 4-gram.arpa file on http://www.openslr.org/11
@@ -64,8 +64,8 @@ downstream_expert:
       criterion: "ctc"
       beam: 5
       beam_threshold: 25
-      kenlm_model: '/path/to/4-gram.arpa'
-      lexicon: '/path/to/librispeech_lexicon.lst'
+      kenlm_model: '/home/leo/d/datasets/4-gram.arpa'
+      lexicon: '/home/leo/d/datasets/librispeech_lexicon.lst'
       lm_weight: 2
       word_score: -1
       unk_weight: -math.inf

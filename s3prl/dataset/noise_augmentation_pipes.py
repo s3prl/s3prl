@@ -20,7 +20,6 @@ class NoiseAugmentation(DataPipe):
     """
 
     def apply_noise_on_data(self, input_feat):
-
         with torch.no_grad():
             if self.noise_proportion > 0:
                 noised_feat = copy.deepcopy(input_feat)
@@ -34,7 +33,6 @@ class NoiseAugmentation(DataPipe):
                 return input_feat
 
     def __call__(self, dataset: AugmentedDynamicItemDataset):
-
         dataset.add_dynamic_item(
             self.apply_noise_on_data,
             takes=self.input_feat_name,

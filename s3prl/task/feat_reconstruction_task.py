@@ -98,7 +98,6 @@ class FeatReconstructionTask(Task):
         attention_mask: torch.LongTensor = None,
         unique_name: List[str] = None,
     ):
-
         loss, hidden_states, prediction = self.predict(
             x, label, label_mask, position_encoding, attention_mask
         ).slice(3)

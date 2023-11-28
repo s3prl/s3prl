@@ -76,7 +76,9 @@ class BeamDecoder(object):
             )
 
         except ImportError:
-            logger.error(f"Please install flashlight to enable {__class__.__name__}")
+            logger.error(
+                f"Please install Flashlight Text from https://github.com/flashlight/text to enable {__class__.__name__}"
+            )
             raise
 
         if token == "":

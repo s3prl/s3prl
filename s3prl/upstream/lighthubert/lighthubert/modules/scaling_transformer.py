@@ -308,7 +308,6 @@ class STransformerEncoder(nn.Module):
         return layer
 
     def __init__(self, args):
-
         super().__init__()
 
         self.dropout = args.dropout

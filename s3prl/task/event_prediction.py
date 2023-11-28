@@ -370,7 +370,7 @@ class EventPredictionTask(Task):
             if isinstance(score_ret, tuple):
                 end_scores[f"{score}"] = score_ret[0][1]
                 # All other scores will also be logged
-                for (subscore, value) in score_ret:
+                for subscore, value in score_ret:
                     end_scores[f"{score}_{subscore}"] = value
             elif isinstance(score_ret, float):
                 end_scores[f"{score}"] = score_ret

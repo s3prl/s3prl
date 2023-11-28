@@ -113,7 +113,9 @@ def mockingjay_logMelLinearLarge_T_AdamW_b32_500k_360hr_drop1(
     Total steps: 500k
     Unlabled Speech: 360hr
     """
-    kwargs["ckpt"] = "https://www.dropbox.com/s/zwsfa6w2iy2cc68/states-500000.ckpt?dl=1"
+    kwargs[
+        "ckpt"
+    ] = "https://huggingface.co/s3prl/mockingjay/resolve/main/mockingjay_logMelLinearLarge_T_AdamW_b32_500k_360hr_drop1/states-500000.ckpt"
     return mockingjay_url(refresh=refresh, *args, **kwargs)
 
 

@@ -236,6 +236,12 @@ class Runner():
             else:
                 entry.model.eval()
 
+        # set amp
+        amp = self.config['runner'].get('fp16', False)
+        if amp:
+            print('[Runner] - Enabled fp16 training')
+            scaler = torch.cuda.amp.GradScaler()
+
         # optimizer
         optimizer = self._get_optimizer(trainable_models)
 
@@ -285,25 +291,31 @@ class Runner():
                     global_step = pbar.n + 1
 
                     wavs = [torch.FloatTensor(wav).to(self.args.device) for wav in wavs]
-                    if self.upstream.trainable:
-                        features = self.upstream.model(wavs)
-                    else:
-                        with torch.no_grad():
+
+                    with torch.cuda.amp.autocast(enabled=amp):
+                        if self.upstream.trainable:
                             features = self.upstream.model(wavs)
-                    features = self.featurizer.model(wavs, features)
+                        else:
+                            with torch.no_grad():
+                                features = self.upstream.model(wavs)
+                        features = self.featurizer.model(wavs, features)
 
-                    if specaug:
-                        features, _ = specaug(features)
+                        if specaug:
+                            features, _ = specaug(features)
 
-                    loss = self.downstream.model(
-                        train_split,
-                        features, *others,
-                        records = records,
-                    )
+                        loss = self.downstream.model(
+                            train_split,
+                            features, *others,
+                            records = records,
+                        )
                     batch_ids.append(batch_id)
 
                     gradient_accumulate_steps = self.config['runner'].get('gradient_accumulate_steps')
-                    (loss / gradient_accumulate_steps).backward()
+                    loss = (loss / gradient_accumulate_steps)
+                    if amp:
+                        scaler.scale(loss).backward()
+                    else:
+                        loss.backward()
                     del loss
 
                 except RuntimeError as e:
@@ -323,12 +335,19 @@ class Runner():
                 if backward_steps % gradient_accumulate_steps > 0:
                     continue
 
+                # unscale
+                if amp:
+                    scaler.unscale_(optimizer)
+
                 # gradient clipping
                 grad_norm = torch.nn.utils.clip_grad_norm_(
                     trainable_paras, self.config['runner']['gradient_clipping'])
 
                 # optimize
-                if math.isnan(grad_norm):
+                if amp:
+                    scaler.step(optimizer)
+                    scaler.update()
+                elif math.isnan(grad_norm):
                     print(f'[Runner] - grad norm is NaN at step {global_step}')
                 else:
                     optimizer.step()
