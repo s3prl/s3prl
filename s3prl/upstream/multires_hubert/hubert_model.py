@@ -35,7 +35,8 @@ logger = logging.getLogger(__name__)
 @dataclass
 class MultiresHubertPretrainingConfig:
     label_rate: float = field(
-        default=-1.0, metadata={"help": "label frame rate. -1.0 for sequence label"},
+        default=-1.0,
+        metadata={"help": "label frame rate. -1.0 for sequence label"},
     )
     #     label_rate: 1,2,2,5
     #                 (imply (1,2), (2,5))
@@ -57,16 +58,20 @@ class MultiresHubertPretrainingConfig:
         metadata={"help": "if set, normalizes input to have 0 mean and unit variance"},
     )
     enable_padding: bool = field(
-        default=False, metadata={"help": "pad shorter samples instead of cropping"},
+        default=False,
+        metadata={"help": "pad shorter samples instead of cropping"},
     )
     max_keep_size: Optional[int] = field(
-        default=None, metadata={"help": "exclude sample longer than this"},
+        default=None,
+        metadata={"help": "exclude sample longer than this"},
     )
     max_sample_size: Optional[int] = field(
-        default=None, metadata={"help": "max sample size to crop to for batching"},
+        default=None,
+        metadata={"help": "max sample size to crop to for batching"},
     )
     min_sample_size: Optional[int] = field(
-        default=None, metadata={"help": "min sample size to crop to for batching"},
+        default=None,
+        metadata={"help": "min sample size to crop to for batching"},
     )
     single_target: Optional[bool] = field(
         default=False,
@@ -75,7 +80,8 @@ class MultiresHubertPretrainingConfig:
         },
     )
     random_crop: Optional[bool] = field(
-        default=True, metadata={"help": "always crop from the beginning if false"},
+        default=True,
+        metadata={"help": "always crop from the beginning if false"},
     )
     pad_audio: Optional[bool] = field(
         default=False,
@@ -140,16 +146,20 @@ class MultiresHubertConfig:
 
     # dropouts
     dropout: float = field(
-        default=0.1, metadata={"help": "dropout probability for the transformer"},
+        default=0.1,
+        metadata={"help": "dropout probability for the transformer"},
     )
     attention_dropout: float = field(
-        default=0.1, metadata={"help": "dropout probability for attention weights"},
+        default=0.1,
+        metadata={"help": "dropout probability for attention weights"},
     )
     activation_dropout: float = field(
-        default=0.0, metadata={"help": "dropout probability after activation in FFN"},
+        default=0.0,
+        metadata={"help": "dropout probability after activation in FFN"},
     )
     encoder_layerdrop: float = field(
-        default=0.0, metadata={"help": "probability of dropping a tarnsformer layer"},
+        default=0.0,
+        metadata={"help": "probability of dropping a tarnsformer layer"},
     )
     dropout_input: float = field(
         default=0.0,
@@ -168,10 +178,12 @@ class MultiresHubertConfig:
         },
     )
     untie_final_proj: bool = field(
-        default=True, metadata={"help": "use separate projection for each target"},
+        default=True,
+        metadata={"help": "use separate projection for each target"},
     )
     layer_norm_first: bool = field(
-        default=False, metadata={"help": "apply layernorm first in the transformer"},
+        default=False,
+        metadata={"help": "apply layernorm first in the transformer"},
     )
     conv_feature_layers: str = field(
         default="[(512,10,5)] + [(512,3,2)] * 4 + [(512,2,2)] * 2",
@@ -191,7 +203,8 @@ class MultiresHubertConfig:
         default=False, metadata={"help": "adds projection + glu to targets"}
     )
     feature_grad_mult: float = field(
-        default=1.0, metadata={"help": "multiply feature extractor var grads by this"},
+        default=1.0,
+        metadata={"help": "multiply feature extractor var grads by this"},
     )
     use_single_target: bool = field(
         default=False,
@@ -209,7 +222,8 @@ class MultiresHubertConfig:
     # masking
     mask_length: int = field(default=10, metadata={"help": "mask length"})
     mask_prob: float = field(
-        default=0.65, metadata={"help": "probability of replacing a token with mask"},
+        default=0.65,
+        metadata={"help": "probability of replacing a token with mask"},
     )
     mask_selection: MASKING_DISTRIBUTION_CHOICES = field(
         default="static", metadata={"help": "how to choose mask length"}
@@ -232,10 +246,12 @@ class MultiresHubertConfig:
 
     # channel masking
     mask_channel_length: int = field(
-        default=10, metadata={"help": "length of the mask for features (channels)"},
+        default=10,
+        metadata={"help": "length of the mask for features (channels)"},
     )
     mask_channel_prob: float = field(
-        default=0.0, metadata={"help": "probability of replacing a feature with 0"},
+        default=0.0,
+        metadata={"help": "probability of replacing a feature with 0"},
     )
     mask_channel_selection: MASKING_DISTRIBUTION_CHOICES = field(
         default="static",
@@ -250,7 +266,8 @@ class MultiresHubertConfig:
         },
     )
     no_mask_channel_overlap: bool = field(
-        default=False, metadata={"help": "whether to allow channel masks to overlap"},
+        default=False,
+        metadata={"help": "whether to allow channel masks to overlap"},
     )
     mask_channel_min_space: int = field(
         default=1,
@@ -268,15 +285,18 @@ class MultiresHubertConfig:
     )
 
     latent_temp: Tuple[float, float, float] = field(
-        default=(2, 0.5, 0.999995), metadata={"help": "legacy (to be removed)"},
+        default=(2, 0.5, 0.999995),
+        metadata={"help": "legacy (to be removed)"},
     )
 
     # loss computation
     skip_masked: bool = field(
-        default=False, metadata={"help": "skip computing losses over masked frames"},
+        default=False,
+        metadata={"help": "skip computing losses over masked frames"},
     )
     skip_nomask: bool = field(
-        default=False, metadata={"help": "skip computing losses over unmasked frames"},
+        default=False,
+        metadata={"help": "skip computing losses over unmasked frames"},
     )
 
     checkpoint_activations: bool = field(
@@ -300,7 +320,8 @@ class MultiresHubertConfig:
         },
     )
     attn_type: str = field(
-        default="", metadata={"help": "if espnet use ESPNET MHA"},
+        default="",
+        metadata={"help": "if espnet use ESPNET MHA"},
     )
     pos_enc_type: str = field(
         default="abs",
@@ -678,7 +699,10 @@ class MultiresHubertModel(torch.nn.Module):
         return features
 
     def forward_targets(
-        self, features: torch.Tensor, target: torch.Tensor, feat2tar_ratio: float,
+        self,
+        features: torch.Tensor,
+        target: torch.Tensor,
+        feat2tar_ratio: float,
     ) -> Tuple[torch.Tensor, torch.Tensor]:
         # Trim features to ensure labels exist and then get aligned labels
 
@@ -696,7 +720,9 @@ class MultiresHubertModel(torch.nn.Module):
         return features, target
 
     def forward_padding_mask(
-        self, features: torch.Tensor, padding_mask: torch.Tensor,
+        self,
+        features: torch.Tensor,
+        padding_mask: torch.Tensor,
     ) -> torch.Tensor:
         extra = padding_mask.size(1) % features.size(1)
         if extra > 0:

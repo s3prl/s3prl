@@ -25,7 +25,9 @@ NEW_ENOUGH_SECS = 2.0
 
 
 def multires_hubert_custom(
-    ckpt: str, refresh: bool = False, **kwargs,
+    ckpt: str,
+    refresh: bool = False,
+    **kwargs,
 ):
 
     assert os.path.isfile(ckpt)
