@@ -14,7 +14,6 @@ import time
 from pathlib import Path
 
 from filelock import FileLock
-
 from s3prl.util.download import _urls_to_filepaths
 
 from .convert import load_and_convert_fairseq_ckpt
@@ -24,10 +23,9 @@ logger = logging.getLogger(__name__)
 
 NEW_ENOUGH_SECS = 2.0
 
+
 def multires_hubert_custom(
-    ckpt: str,
-    refresh: bool = False,
-    **kwargs,
+    ckpt: str, refresh: bool = False, **kwargs,
 ):
 
     assert os.path.isfile(ckpt)
@@ -36,4 +34,3 @@ def multires_hubert_custom(
 
 def multires_hubert_local(*args, **kwargs):
     return multires_hubert_custom(*args, **kwargs)
-

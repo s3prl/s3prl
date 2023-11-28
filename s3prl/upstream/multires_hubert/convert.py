@@ -2,14 +2,10 @@ import tempfile
 from pathlib import Path
 from typing import List
 
-import torch
-
 import s3prl
+import torch
 from s3prl.upstream.multires_hubert.hubert_model import (
-    MultiresHubertConfig,
-    MultiresHubertModel,
-    MultiresHubertPretrainingConfig,
-)
+    MultiresHubertConfig, MultiresHubertModel, MultiresHubertPretrainingConfig)
 from s3prl.upstream.utils import load_fairseq_ckpt, merge_with_parent
 from s3prl.util.download import _urls_to_filepaths
 
@@ -48,7 +44,9 @@ def load_converted_model(ckpt: str):
                 f"{ckpt} is not a valid checkpoint since the required key: {required_key} is missing"
             )
 
-    task_cfg = merge_with_parent(MultiresHubertPretrainingConfig, ckpt_state["task_cfg"])
+    task_cfg = merge_with_parent(
+        MultiresHubertPretrainingConfig, ckpt_state["task_cfg"]
+    )
     model_cfg = merge_with_parent(MultiresHubertConfig, ckpt_state["model_cfg"])
     model = MultiresHubertModel(model_cfg, task_cfg, ckpt_state["dictionaries_symbols"])
 

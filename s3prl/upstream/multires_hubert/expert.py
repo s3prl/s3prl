@@ -11,8 +11,6 @@ import logging
 from pathlib import Path
 
 import numpy as np
-
-
 import torch
 import torch.nn.functional as F
 from torch.nn.utils.rnn import pad_sequence
@@ -25,8 +23,10 @@ EXAMPLE_SEC = 5
 
 logger = logging.getLogger(__name__)
 
+
 def upsample(x, upsample_rate):
     return x.repeat_interleave(upsample_rate, dim=1)
+
 
 class UpstreamExpert(UpstreamBase):
     def __init__(self, ckpt, legacy=True, **kwargs):
@@ -37,7 +37,7 @@ class UpstreamExpert(UpstreamBase):
         self.final_factors = []
 
         self.num_res = self.model.label_nums
-        logger.info("num res: {}".format(self.num_res)) 
+        logger.info("num res: {}".format(self.num_res))
         # decide ratios
         if legacy:
             feature_ds_rates = self.model.feature_ds_rates
@@ -56,22 +56,23 @@ class UpstreamExpert(UpstreamBase):
                         lambda input, output: input[0].transpose(0, 1),
                     )
                     self.final_factors.append(self.upsample_factor[res_index])
-                self.add_hook("self.model.encoders[{}]".format(res_index), lambda input, output: output[0]
-                    )
+                self.add_hook(
+                    "self.model.encoders[{}]".format(res_index),
+                    lambda input, output: output[0],
+                )
                 self.final_factors.append(self.upsample_factor[res_index])
-            
+
             # Process middle encoders
             module_name = "self.model.middle_encoder.layers"
             for module_id in range(len(eval(module_name))):
-                    self.add_hook(
-                        f"{module_name}[{module_id}]",
-                        lambda input, output: input[0].transpose(0, 1),
-                    )
-                    self.final_factors.append(self.upsample_factor[self.num_res - 1])
-            self.add_hook("self.model.middle_encoder", lambda input, output: output[0]
+                self.add_hook(
+                    f"{module_name}[{module_id}]",
+                    lambda input, output: input[0].transpose(0, 1),
                 )
+                self.final_factors.append(self.upsample_factor[self.num_res - 1])
+            self.add_hook("self.model.middle_encoder", lambda input, output: output[0])
             self.final_factors.append(self.upsample_factor[self.num_res - 1])
-            
+
             # Process decoders
             for res_index in range(self.num_res - 1):
                 module_name = "self.model.decoders[{}].layers".format(res_index)
@@ -81,14 +82,19 @@ class UpstreamExpert(UpstreamBase):
                         lambda input, output: input[0].transpose(0, 1),
                     )
                     self.final_factors.append(self.reverse_upsample_factor[res_index])
-                self.add_hook("self.model.decoders[{}]".format(res_index), lambda input, output: output[0]
-                    )
+                self.add_hook(
+                    "self.model.decoders[{}]".format(res_index),
+                    lambda input, output: output[0],
+                )
                 self.final_factors.append(self.reverse_upsample_factor[res_index])
 
             def postprocess(xs):
                 names, hiddens = zip(*xs)
                 assert len(hiddens) == len(self.final_factors)
-                hiddens = [upsample(hiddens[i], self.final_factors[i]) for i in range(len(hiddens))]
+                hiddens = [
+                    upsample(hiddens[i], self.final_factors[i])
+                    for i in range(len(hiddens))
+                ]
                 unpad_len = min([hidden.size(1) for hidden in hiddens])
                 hiddens = [hidden[:, :unpad_len, :] for hidden in hiddens]
                 return list(zip(names, hiddens))
@@ -111,11 +117,8 @@ class UpstreamExpert(UpstreamBase):
         padded_wav = pad_sequence(wavs, batch_first=True)
 
         features, feat_padding_mask = self.model.extract_features(
-            padded_wav,
-            padding_mask=wav_padding_mask,
-            mask=None,
+            padded_wav, padding_mask=wav_padding_mask, mask=None,
         )
 
         # This forward function only does the model forward
         # The return dict is then handled by UpstreamBase's hooks
-

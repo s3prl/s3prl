@@ -6,27 +6,23 @@
 # The file was copied from fairseq to remove the dependency on the entire fairseq package
 
 import logging
+import math
 from dataclasses import dataclass, field
 from typing import Any, Dict, List, Optional, Tuple
-from omegaconf import II, MISSING, open_dict
 
 import numpy as np
 import torch
-import math
 import torch.nn as nn
+from omegaconf import II, MISSING, open_dict
 
-from ..wav2vec2.wav2vec2_model import (
-    EXTRACTOR_MODE_CHOICES,
-    LAYER_TYPE_CHOICES,
-    MASKING_DISTRIBUTION_CHOICES,
-    ChoiceEnum,
-    ConvFeatureExtractionModel,
-    GradMultiply,
-    LayerNorm,
-    TransformerEncoder,
-    compute_mask_indices,
-    get_available_activation_fns,
-)
+from ..wav2vec2.wav2vec2_model import (EXTRACTOR_MODE_CHOICES,
+                                       LAYER_TYPE_CHOICES,
+                                       MASKING_DISTRIBUTION_CHOICES,
+                                       ChoiceEnum, ConvFeatureExtractionModel,
+                                       GradMultiply, LayerNorm,
+                                       TransformerEncoder,
+                                       compute_mask_indices,
+                                       get_available_activation_fns)
 from ..wav2vec.wav2vec_model import norm_block
 
 logger = logging.getLogger(__name__)
@@ -35,15 +31,15 @@ logger = logging.getLogger(__name__)
 @dataclass
 class MultiresHubertPretrainingConfig:
     label_rate: float = field(
-        default=-1.0,
-        metadata={"help": "label frame rate. -1.0 for sequence label"},
+        default=-1.0, metadata={"help": "label frame rate. -1.0 for sequence label"},
     )
     #     label_rate: 1,2,2,5
     #                 (imply (1,2), (2,5))
     #     if base label_rate = 50
     #     (1,2), (2,5) --> label rates 50, 25, 10
     label_rate_ratios: list = field(
-        default_factory=lambda: [1, 2], metadata={"help": "tuple for label rates e.g., [(1,2), (2,5)]"}
+        default_factory=lambda: [1, 2],
+        metadata={"help": "tuple for label rates e.g., [(1,2), (2,5)]"},
     )
     sample_rate: int = field(
         default=16_000,
@@ -57,20 +53,16 @@ class MultiresHubertPretrainingConfig:
         metadata={"help": "if set, normalizes input to have 0 mean and unit variance"},
     )
     enable_padding: bool = field(
-        default=False,
-        metadata={"help": "pad shorter samples instead of cropping"},
+        default=False, metadata={"help": "pad shorter samples instead of cropping"},
     )
     max_keep_size: Optional[int] = field(
-        default=None,
-        metadata={"help": "exclude sample longer than this"},
+        default=None, metadata={"help": "exclude sample longer than this"},
     )
     max_sample_size: Optional[int] = field(
-        default=None,
-        metadata={"help": "max sample size to crop to for batching"},
+        default=None, metadata={"help": "max sample size to crop to for batching"},
     )
     min_sample_size: Optional[int] = field(
-        default=None,
-        metadata={"help": "min sample size to crop to for batching"},
+        default=None, metadata={"help": "min sample size to crop to for batching"},
     )
     single_target: Optional[bool] = field(
         default=False,
@@ -79,8 +71,7 @@ class MultiresHubertPretrainingConfig:
         },
     )
     random_crop: Optional[bool] = field(
-        default=True,
-        metadata={"help": "always crop from the beginning if false"},
+        default=True, metadata={"help": "always crop from the beginning if false"},
     )
     pad_audio: Optional[bool] = field(
         default=False,
@@ -96,7 +87,8 @@ class MultiresHubertConfig:
     #     if base label_rate = 50
     #     (1,2), (2,5) --> label rates 50, 25, 10
     label_rate_ratios: List[int] = field(
-        default_factory=lambda: [1, 2], metadata={"help": "list of label rates e.g., [1,2, 2,5]"}
+        default_factory=lambda: [1, 2],
+        metadata={"help": "list of label rates e.g., [1,2, 2,5]"},
     )
 
     extractor_mode: EXTRACTOR_MODE_CHOICES = field(
@@ -144,20 +136,16 @@ class MultiresHubertConfig:
 
     # dropouts
     dropout: float = field(
-        default=0.1,
-        metadata={"help": "dropout probability for the transformer"},
+        default=0.1, metadata={"help": "dropout probability for the transformer"},
     )
     attention_dropout: float = field(
-        default=0.1,
-        metadata={"help": "dropout probability for attention weights"},
+        default=0.1, metadata={"help": "dropout probability for attention weights"},
     )
     activation_dropout: float = field(
-        default=0.0,
-        metadata={"help": "dropout probability after activation in FFN"},
+        default=0.0, metadata={"help": "dropout probability after activation in FFN"},
     )
     encoder_layerdrop: float = field(
-        default=0.0,
-        metadata={"help": "probability of dropping a tarnsformer layer"},
+        default=0.0, metadata={"help": "probability of dropping a tarnsformer layer"},
     )
     dropout_input: float = field(
         default=0.0,
@@ -176,12 +164,10 @@ class MultiresHubertConfig:
         },
     )
     untie_final_proj: bool = field(
-        default=True,
-        metadata={"help": "use separate projection for each target"},
+        default=True, metadata={"help": "use separate projection for each target"},
     )
     layer_norm_first: bool = field(
-        default=False,
-        metadata={"help": "apply layernorm first in the transformer"},
+        default=False, metadata={"help": "apply layernorm first in the transformer"},
     )
     conv_feature_layers: str = field(
         default="[(512,10,5)] + [(512,3,2)] * 4 + [(512,2,2)] * 2",
@@ -201,8 +187,7 @@ class MultiresHubertConfig:
         default=False, metadata={"help": "adds projection + glu to targets"}
     )
     feature_grad_mult: float = field(
-        default=1.0,
-        metadata={"help": "multiply feature extractor var grads by this"},
+        default=1.0, metadata={"help": "multiply feature extractor var grads by this"},
     )
     use_single_target: bool = field(
         default=False,
@@ -214,14 +199,13 @@ class MultiresHubertConfig:
         default=False,
         metadata={
             "help": "if true, we will not conduct mlm prediction in low resolution in the middle"
-        }
+        },
     )
 
     # masking
     mask_length: int = field(default=10, metadata={"help": "mask length"})
     mask_prob: float = field(
-        default=0.65,
-        metadata={"help": "probability of replacing a token with mask"},
+        default=0.65, metadata={"help": "probability of replacing a token with mask"},
     )
     mask_selection: MASKING_DISTRIBUTION_CHOICES = field(
         default="static", metadata={"help": "how to choose mask length"}
@@ -244,12 +228,10 @@ class MultiresHubertConfig:
 
     # channel masking
     mask_channel_length: int = field(
-        default=10,
-        metadata={"help": "length of the mask for features (channels)"},
+        default=10, metadata={"help": "length of the mask for features (channels)"},
     )
     mask_channel_prob: float = field(
-        default=0.0,
-        metadata={"help": "probability of replacing a feature with 0"},
+        default=0.0, metadata={"help": "probability of replacing a feature with 0"},
     )
     mask_channel_selection: MASKING_DISTRIBUTION_CHOICES = field(
         default="static",
@@ -264,8 +246,7 @@ class MultiresHubertConfig:
         },
     )
     no_mask_channel_overlap: bool = field(
-        default=False,
-        metadata={"help": "whether to allow channel masks to overlap"},
+        default=False, metadata={"help": "whether to allow channel masks to overlap"},
     )
     mask_channel_min_space: int = field(
         default=1,
@@ -283,18 +264,15 @@ class MultiresHubertConfig:
     )
 
     latent_temp: Tuple[float, float, float] = field(
-        default=(2, 0.5, 0.999995),
-        metadata={"help": "legacy (to be removed)"},
+        default=(2, 0.5, 0.999995), metadata={"help": "legacy (to be removed)"},
     )
 
     # loss computation
     skip_masked: bool = field(
-        default=False,
-        metadata={"help": "skip computing losses over masked frames"},
+        default=False, metadata={"help": "skip computing losses over masked frames"},
     )
     skip_nomask: bool = field(
-        default=False,
-        metadata={"help": "skip computing losses over unmasked frames"},
+        default=False, metadata={"help": "skip computing losses over unmasked frames"},
     )
 
     checkpoint_activations: bool = field(
@@ -318,8 +296,7 @@ class MultiresHubertConfig:
         },
     )
     attn_type: str = field(
-        default="",
-        metadata={"help": "if espnet use ESPNET MHA"},
+        default="", metadata={"help": "if espnet use ESPNET MHA"},
     )
     pos_enc_type: str = field(
         default="abs",
@@ -376,7 +353,8 @@ class MultiresHubertModel(torch.nn.Module):
                 len(self.override_encoder_layers) % 2 == 1
             ), "must be odd number of layers if specify detailed layers"
             assert (
-                len(self.override_encoder_layers) // 2 == len(cfg.label_rate_ratios) // 2
+                len(self.override_encoder_layers) // 2
+                == len(cfg.label_rate_ratios) // 2
             ), "number of override encoder layers must match the label rate ratios information"
             self.len_encoder_modules = len(self.override_encoder_layers)
             logger.info(self.override_encoder_layers)
@@ -398,7 +376,6 @@ class MultiresHubertModel(torch.nn.Module):
             override_encoder_layer=middle_override_encoder_layer,
         )
 
-
         first_pos_conv = False  # only enable pos_conv for the first encoder
         raw_label_rate_ratios = cfg.label_rate_ratios
         for i in range(len(raw_label_rate_ratios) // 2):
@@ -419,7 +396,10 @@ class MultiresHubertModel(torch.nn.Module):
                     ConvDownsampler(
                         k=cfg.conv_adapator_kernal,
                         label_rate=(
-                            (raw_label_rate_ratios[i * 2], raw_label_rate_ratios[i * 2 + 1])
+                            (
+                                raw_label_rate_ratios[i * 2],
+                                raw_label_rate_ratios[i * 2 + 1],
+                            )
                         ),
                         dropout=0.0,
                         channels=cfg.encoder_embed_dim,
@@ -435,7 +415,10 @@ class MultiresHubertModel(torch.nn.Module):
                     ConvAdapter(
                         k=cfg.conv_adapator_kernal,
                         label_rate=(
-                            (raw_label_rate_ratios[i * 2], raw_label_rate_ratios[i * 2 + 1])
+                            (
+                                raw_label_rate_ratios[i * 2],
+                                raw_label_rate_ratios[i * 2 + 1],
+                            )
                         ),
                         dropout=0.0,
                         channels=cfg.encoder_embed_dim,
@@ -466,7 +449,10 @@ class MultiresHubertModel(torch.nn.Module):
                     ConvUpsampler(
                         k=cfg.conv_adapator_kernal,
                         label_rate=(
-                            (raw_label_rate_ratios[i * 2 + 1], raw_label_rate_ratios[i * 2])
+                            (
+                                raw_label_rate_ratios[i * 2 + 1],
+                                raw_label_rate_ratios[i * 2],
+                            )
                         ),
                         dropout=0.0,
                         channels=cfg.encoder_embed_dim,
@@ -482,7 +468,10 @@ class MultiresHubertModel(torch.nn.Module):
                     ConvAdapter(
                         k=cfg.conv_adapator_kernal,
                         label_rate=(
-                            (raw_label_rate_ratios[i * 2 + 1], raw_label_rate_ratios[i * 2])
+                            (
+                                raw_label_rate_ratios[i * 2 + 1],
+                                raw_label_rate_ratios[i * 2],
+                            )
                         ),
                         dropout=0.0,
                         channels=cfg.encoder_embed_dim,
@@ -685,10 +674,7 @@ class MultiresHubertModel(torch.nn.Module):
         return features
 
     def forward_targets(
-        self,
-        features: torch.Tensor,
-        target: torch.Tensor,
-        feat2tar_ratio: float,
+        self, features: torch.Tensor, target: torch.Tensor, feat2tar_ratio: float,
     ) -> Tuple[torch.Tensor, torch.Tensor]:
         # Trim features to ensure labels exist and then get aligned labels
 
@@ -706,9 +692,7 @@ class MultiresHubertModel(torch.nn.Module):
         return features, target
 
     def forward_padding_mask(
-        self,
-        features: torch.Tensor,
-        padding_mask: torch.Tensor,
+        self, features: torch.Tensor, padding_mask: torch.Tensor,
     ) -> torch.Tensor:
         extra = padding_mask.size(1) % features.size(1)
         if extra > 0:
@@ -777,7 +761,7 @@ class MultiresHubertModel(torch.nn.Module):
                 x, padding=padding_mask, mask_indices=mask_indices
             )
 
-        residual =  self.middle_encoder(x, padding_mask=padding_mask, layer=None)[0]
+        residual = self.middle_encoder(x, padding_mask=padding_mask, layer=None)[0]
         x = x + residual
         res_outputs.append(x)
 
@@ -785,7 +769,7 @@ class MultiresHubertModel(torch.nn.Module):
         # The encoder has (self.label_nums - 1) blocks
         padding_masks.append(padding_mask)
         multi_mask_indices.append(mask_indices)
-        residuals.reverse() # NOTE(jiatong): reverse res_output to match corresponding input
+        residuals.reverse()  # NOTE(jiatong): reverse res_output to match corresponding input
         for i in range(self.label_nums - 1):
             x, padding_mask, mask_indices = self.upsample_modules[i](
                 x, padding=padding_mask, mask_indices=mask_indices
@@ -834,7 +818,7 @@ class MultiresHubertModel(torch.nn.Module):
                 "padding_mask": padding_mask,
                 "features": features,
             }
-        
+
         def compute_pred(proj_x, target, label_embs):
             # compute logits for the i-th label set
             y = torch.index_select(label_embs, 0, target.long())
@@ -853,7 +837,6 @@ class MultiresHubertModel(torch.nn.Module):
             "padding_mask": [],
             "features_pen": [],
         }
-
 
         logit_m_list, logit_u_list = [], []
         for j in range(self.label_nums):
@@ -900,7 +883,6 @@ class MultiresHubertModel(torch.nn.Module):
             "features_pen": features_pen,
         }
         return result
-
 
     def extract_features(
         self,
@@ -949,8 +931,6 @@ class MultiresHubertModel(torch.nn.Module):
     def remove_pretraining_modules(self):
         self.target_glu = None
         self.final_proj = None
-
-
 
 
 class ConvAdapter(nn.Module):
@@ -1081,7 +1061,6 @@ class ConvAdapter(nn.Module):
         return x, padding, mask_indices
 
 
-
 class ConvDownsampler(nn.Module):
     """Conv downsampler that combines two modules with different label rate with downsample or upsample.
     To allow different ratios than integer, two convs are utilized with first to upsample (numerator)
@@ -1127,7 +1106,7 @@ class ConvDownsampler(nn.Module):
         assert upsample_rate == 1, "must be 1 to perform downsample only"
         self.log_compression = log_compression
         self.skip_connections = skip_connections
-        self.highway = highway # Useless as placeholder
+        self.highway = highway  # Useless as placeholder
         self.residual_scale = math.sqrt(residual_scale)
 
     def forward(self, x, padding=None, mask_indices=None):
@@ -1164,7 +1143,6 @@ class ConvDownsampler(nn.Module):
             mask_indices = mask_indices[..., :: self.downsample_rate]
             mask_indices = mask_indices[..., : x.size(1)]
         return x, padding, mask_indices
-
 
 
 class ConvUpsampler(nn.Module):
@@ -1214,7 +1192,7 @@ class ConvUpsampler(nn.Module):
         assert downsample_rate == 1, "must be 1 to perform downsample only"
         self.log_compression = log_compression
         self.skip_connections = skip_connections
-        self.highway = highway # Useless
+        self.highway = highway  # Useless
         self.residual_scale = math.sqrt(residual_scale)
 
     def forward(self, x, padding=None, mask_indices=None):
