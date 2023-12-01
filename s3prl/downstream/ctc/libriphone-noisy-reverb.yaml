@@ -38,14 +38,20 @@ distortion:
     noise:
       audios: data/wham/wham_train.txt
       snrs: [3, 6, 9]
+    reverb:
+      rirs: data/rir/train.lst
   dev:
     noise:
       audios: data/wham/wham_valid.txt
       snrs: [3, 6, 9]
+    reverb:
+      rirs: data/rir/valid.lst
   test:
     noise:
       audios: data/wham/wham_test.txt
       snrs: [3, 6, 9]
+    reverb:
+      rirs: data/rir/test.lst
 
 downstream_expert:
   corpus:

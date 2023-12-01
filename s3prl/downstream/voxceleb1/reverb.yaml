@@ -26,13 +26,13 @@ optimizer:
 distortion:
   train:
     reverb:
-      reverberance: [0, 80]
+      rirs: data/rir/train.lst
   dev:
     reverb:
-      reverberance: [0, 80]
+      rirs: data/rir/valid.lst
   test:
     reverb:
-      reverberance: [0, 80]
+      rirs: data/rir/test.lst
 
 downstream_expert:
   datarc:
