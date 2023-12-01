@@ -5,6 +5,7 @@
 
 # The file was copied from fairseq to remove the dependency on the entire fairseq package
 
+# fmt: off
 import logging
 import math
 from dataclasses import dataclass, field
@@ -24,6 +25,8 @@ from ..wav2vec2.wav2vec2_model import (EXTRACTOR_MODE_CHOICES,
                                        compute_mask_indices,
                                        get_available_activation_fns)
 from ..wav2vec.wav2vec_model import norm_block
+
+# fmt: on
 
 logger = logging.getLogger(__name__)
 
