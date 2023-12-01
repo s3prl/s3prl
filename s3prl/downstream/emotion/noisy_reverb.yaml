@@ -25,26 +25,27 @@ optimizer:
 distortion:
   train:
     noise:
-      audios: ./wham_train.txt
+      audios: data/wham/wham_train.txt
       snrs: [3, 6, 9]
     reverb:
-      reverberance: [0, 80]
+      rirs: data/rir/train.lst
   dev:
     noise:
-      audios: ./wham_valid.txt
+      audios: data/wham/wham_valid.txt
       snrs: [3, 6, 9]
     reverb:
-      reverberance: [0, 80]
+      rirs: data/rir/valid.lst
   test:
     noise:
-      audios: ./wham_test.txt
+      audios: data/wham/wham_test.txt
       snrs: [3, 6, 9]
     reverb:
-      reverberance: [0, 80]
+      rirs: data/rir/test.lst
 
 downstream_expert:
   datarc:
     csv_dir: data/superb_er
+    class_file: downstream/emotion/classes.txt
       # expect fold_0/train.csv, fold_0/dev.csv, fold_0/test.csv in the directory
     test_fold: 0  # can change to 0, 1, 2, 3, 4
     pre_load: True
