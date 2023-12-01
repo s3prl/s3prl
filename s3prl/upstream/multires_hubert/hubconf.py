@@ -7,7 +7,7 @@
 #   Author       [ S3PRL / Jiatong Shi ]
 """*********************************************************************************************"""
 
-
+# isort: off
 import logging
 import os
 import time
@@ -18,6 +18,8 @@ from s3prl.util.download import _urls_to_filepaths
 
 from .convert import load_and_convert_fairseq_ckpt
 from .expert import UpstreamExpert as _UpstreamExpert
+
+# isort: on
 
 logger = logging.getLogger(__name__)
 
