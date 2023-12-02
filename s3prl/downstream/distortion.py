@@ -441,21 +441,6 @@ class DistortedDataset(Dataset):
         for wav in all_wavs:
             distorted_wav = torch.FloatTensor(wav).clone()
 
-            if self.add_reverb:
-                reverb_path = reverb_randomizer.choice(self.reverb_paths)
-                reverb, reverb_sr = torchaudio.load(reverb_path)
-
-                if reverb_sr != self.sample_rate:
-                    resampler = torchaudio.transforms.Resample(
-                        reverb_sr, self.sample_rate
-                    )
-                    reverb = resampler(reverb)
-
-                distorted_wav = reverberate(
-                    distorted_wav.reshape(1, -1, 1), reverb.reshape(1, -1)
-                )
-                distorted_wav = distorted_wav.view(-1)
-
             if self.add_noise:
                 noise_path = noise_randomizer.choice(self.noise_paths)
                 noise, noise_sr = torchaudio.load(noise_path)
@@ -472,6 +457,21 @@ class DistortedDataset(Dataset):
                 distorted_wav = augment_noise(
                     distorted_wav, noise, snr, noise_randomizer
                 )
+
+            if self.add_reverb:
+                reverb_path = reverb_randomizer.choice(self.reverb_paths)
+                reverb, reverb_sr = torchaudio.load(reverb_path)
+
+                if reverb_sr != self.sample_rate:
+                    resampler = torchaudio.transforms.Resample(
+                        reverb_sr, self.sample_rate
+                    )
+                    reverb = resampler(reverb)
+
+                distorted_wav = reverberate(
+                    distorted_wav.reshape(1, -1, 1), reverb.reshape(1, -1)
+                )
+                distorted_wav = distorted_wav.view(-1)
 
             distorted_wavs.append(distorted_wav.numpy())
 
