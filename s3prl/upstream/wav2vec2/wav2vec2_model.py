@@ -2980,7 +2980,12 @@ class TransformerEncoder(nn.Module):
             )
         return layer
 
-    def __init__(self, args: Wav2Vec2Config, skip_pos_conv: bool = False, override_encoder_layer: int = None):
+    def __init__(
+        self,
+        args: Wav2Vec2Config,
+        skip_pos_conv: bool = False,
+        override_encoder_layer: int = None,
+    ):
         super().__init__()
 
         self.dropout = args.dropout

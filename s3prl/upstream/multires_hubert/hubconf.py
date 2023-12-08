@@ -52,6 +52,7 @@ def multires_hubert_base(refresh=False, **kwargs):
     ] = "https://huggingface.co/s3prl/mr_hubert/resolve/main/mrhubert_mono_base.pt"
     return multires_hubert_custom(refresh=refresh, **kwargs)
 
+
 def multires_hubert_large(refresh=False, **kwargs):
     """
     The monolingual base model
@@ -62,15 +63,15 @@ def multires_hubert_large(refresh=False, **kwargs):
     ] = "https://huggingface.co/s3prl/mr_hubert/resolve/main/mrhubert_mono_large.pt"
     return multires_hubert_custom(refresh=refresh, **kwargs)
 
+
 def multires_hubert_multilingual_base(refresh=False, **kwargs):
     """
     The multilingual base model
         refresh (bool): whether to download ckpt/config again if existed
     """
-    kwargs[
-        "ckpt"
-    ] = "https://huggingface.co/s3prl/mr_hubert/resolve/main/multi_base.pt"
+    kwargs["ckpt"] = "https://huggingface.co/s3prl/mr_hubert/resolve/main/multi_base.pt"
     return multires_hubert_custom(refresh=refresh, **kwargs)
+
 
 def multires_hubert_multilingual_large400k(refresh=False, **kwargs):
     """
@@ -81,6 +82,7 @@ def multires_hubert_multilingual_large400k(refresh=False, **kwargs):
         "ckpt"
     ] = "https://huggingface.co/s3prl/mr_hubert/resolve/main/multi_large_400k.pt"
     return multires_hubert_custom(refresh=refresh, **kwargs)
+
 
 def multires_hubert_multilingual_large600k(refresh=False, **kwargs):
     """
