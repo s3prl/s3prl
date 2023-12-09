@@ -949,7 +949,7 @@ cvhubert
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 - Unlabeled Speech: Commonvoice V11 Multilingual Data (13.6k hours)
-- only 20ms resolution version is provided. `check huggingface  for other resolutions <https://huggingface.co/espnet/espnet_cvhubert/tree/main>_`
+- only 20ms resolution version is provided. `check huggingface  for other resolutions <https://huggingface.co/espnet/espnet_cvhubert/tree/main>`_
 
 
 wavlablm_ek_40k
@@ -971,6 +971,69 @@ wavlablm_ms_40k
 
 - Unlabeled Speech: Openli110 (Combination of Commonvoice, Voxpopuli, MLS, Googlei18n, around 39k hours)
 - Trained from scratch and use a multilingual k-means from the training data with a multi-stage training
+
+
+Multiresolution HuBERT (MR-HuBERT)
+----------------------
+`Multi-resolution HuBERT: Multi-resolution Speech Self-Supervised Learning with Masked Unit Prediction <https://openreview.net/pdf?id=kUuKFW7DIF>`_
+
+.. code-block:: bash
+
+    @inproceedings{anonymous2023multiresolution,
+        title={Multi-resolution Hu{BERT}: Multi-resolution Speech Self-Supervised Learning with Masked Unit Prediction},
+        author={Anonymous},
+        booktitle={Submitted to The Twelfth International Conference on Learning Representations},
+        year={2023},
+        url={https://openreview.net/forum?id=kUuKFW7DIF},
+        note={under review}
+    }
+
+
+multires_hubert_custom
+~~~~~~~~~~~~~~~~~~~~~
+
+This entry expects you to provide the source of the checkpoint: :code:`ckpt`, which should be
+the local path or a url of the checkpoint converted by :code:`s3prl/upstream/multires_hubert/convert.py` (
+from a regular fairseq checkpoint.)
+For more available checkpoints, please check `https://github.com/facebookresearch/fairseq/blob/main/examples/mr_hubert/README.md`_
+Related converted checkpoints are also at `https://huggingface.co/s3prl/mr_hubert`_
+
+
+multires_hubert_base
+~~~~~~~~~~~~~~~~~~~~~
+
+- Unlabled Speech: LibriSpeech 960hr
+- K-means extracted from `hubert_base`_
+
+
+multires_hubert_large
+~~~~~~~~~~~~~~~~~~~~~
+
+- Unlabeled Speech: LibriLight 60khr
+- K-means extracted from `hubert_base`_
+
+
+multires_hubert_multilingual_base
+---------------------------------
+
+- Unlabeled Speech: Voxpopuli 100khr
+- K-means extracted from `hubert_base`_
+
+
+multires_hubert_multilingual_large400k
+--------------------------------------
+
+- Unlabeled Speech: Voxpopuli 100khr
+- K-means extracted from `hubert_base`_
+- Training steps 400k
+
+
+multires_hubert_multilingual_large600k
+--------------------------------------
+
+- Unlabeled Speech: Voxpopuli 100khr
+- K-means extracted from `hubert_base`_
+- Training steps 600k
 
 
 DistilHuBERT
