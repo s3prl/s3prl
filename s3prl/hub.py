@@ -21,6 +21,7 @@ from s3prl.upstream.log_stft.hubconf import *
 from s3prl.upstream.mae_ast.hubconf import *
 from s3prl.upstream.mockingjay.hubconf import *
 from s3prl.upstream.mos_prediction.hubconf import *
+from s3prl.upstream.multires_hubert.hubconf import *
 from s3prl.upstream.npc.hubconf import *
 from s3prl.upstream.pase.hubconf import *
 from s3prl.upstream.passt.hubconf import *
