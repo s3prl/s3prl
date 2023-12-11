@@ -1014,14 +1014,14 @@ multires_hubert_large
 
 
 multires_hubert_multilingual_base
----------------------------------
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 - Unlabeled Speech: Voxpopuli 100khr
 - K-means extracted from `hubert_base`_
 
 
 multires_hubert_multilingual_large400k
---------------------------------------
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 - Unlabeled Speech: Voxpopuli 100khr
 - K-means extracted from `hubert_base`_
@@ -1029,7 +1029,7 @@ multires_hubert_multilingual_large400k
 
 
 multires_hubert_multilingual_large600k
---------------------------------------
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 - Unlabeled Speech: Voxpopuli 100khr
 - K-means extracted from `hubert_base`_
