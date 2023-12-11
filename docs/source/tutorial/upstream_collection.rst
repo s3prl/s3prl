@@ -995,8 +995,8 @@ multires_hubert_custom
 This entry expects you to provide the source of the checkpoint: :code:`ckpt`, which should be
 the local path or a url of the checkpoint converted by :code:`s3prl/upstream/multires_hubert/convert.py` (
 from a regular fairseq checkpoint.)
-For more available checkpoints, please check `https://github.com/facebookresearch/fairseq/blob/main/examples/mr_hubert/README.md`_
-Related converted checkpoints are also at `https://huggingface.co/s3prl/mr_hubert`_
+For more available checkpoints, please check `Fairseq official release <https://github.com/facebookresearch/fairseq/blob/main/examples/mr_hubert/README.md>`_
+Related converted checkpoints are also at `S3PRL HuggingFace Repo <https://huggingface.co/s3prl/mr_hubert>`_
 
 
 multires_hubert_base
