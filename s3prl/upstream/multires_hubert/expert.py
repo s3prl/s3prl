@@ -29,7 +29,7 @@ def upsample(x, upsample_rate):
 
 
 class UpstreamExpert(UpstreamBase):
-    def __init__(self, ckpt, legacy=True, **kwargs):
+    def __init__(self, ckpt, **kwargs):
         super().__init__(**kwargs)
         model, task_cfg = load_converted_model(ckpt)
         self.model = model
@@ -38,13 +38,13 @@ class UpstreamExpert(UpstreamBase):
 
         self.num_res = self.model.label_nums
         logger.info("num res: {}".format(self.num_res))
+
         # decide ratios
-        if legacy:
-            feature_ds_rates = self.model.feature_ds_rates
-            lcm = np.lcm.reduce(feature_ds_rates)
-            self.upsample_factor = [lcm // res for res in feature_ds_rates][::-1]
-            self.reverse_upsample_factor = self.upsample_factor[::-1][1:]
-            logger.info("upsample_factor: {}".format(self.upsample_factor))
+        feature_ds_rates = self.model.feature_ds_rates
+        lcm = np.lcm.reduce(feature_ds_rates)
+        self.upsample_factor = [lcm // res for res in feature_ds_rates][::-1]
+        self.reverse_upsample_factor = self.upsample_factor[::-1][1:]
+        logger.info("upsample_factor: {}".format(self.upsample_factor))
 
         if len(self.hooks) == 0:
             # Process Encoders
