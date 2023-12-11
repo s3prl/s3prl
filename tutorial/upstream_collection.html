@@ -1209,7 +1209,7 @@ the local path of the checkpoint pretrained from ESPnet (e.g., latest.pth).</p>
 <h3>cvhubert<a class="headerlink" href="#cvhubert" title="Permalink to this heading">#</a></h3>
 <ul class="simple">
 <li><p>Unlabeled Speech: Commonvoice V11 Multilingual Data (13.6k hours)</p></li>
-<li><p>only 20ms resolution version is provided. <cite>check huggingface  for other resolutions &lt;https://huggingface.co/espnet/espnet_cvhubert/tree/main&gt;_</cite></p></li>
+<li><p>only 20ms resolution version is provided. <a class="reference external" href="https://huggingface.co/espnet/espnet_cvhubert/tree/main">check huggingface  for other resolutions</a></p></li>
 </ul>
 </section>
 <section id="wavlablm-ek-40k">
@@ -1233,6 +1233,65 @@ the local path of the checkpoint pretrained from ESPnet (e.g., latest.pth).</p>
 <li><p>Trained from scratch and use a multilingual k-means from the training data with a multi-stage training</p></li>
 </ul>
 </section>
+</section>
+<section id="multiresolution-hubert-mr-hubert">
+<h2>Multiresolution HuBERT (MR-HuBERT)<a class="headerlink" href="#multiresolution-hubert-mr-hubert" title="Permalink to this heading">#</a></h2>
+<p><a class="reference external" href="https://openreview.net/pdf?id=kUuKFW7DIF">Multi-resolution HuBERT: Multi-resolution Speech Self-Supervised Learning with Masked Unit Prediction</a></p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>@inproceedings<span class="o">{</span>anonymous2023multiresolution,
+<span class="w">    </span><span class="nv">title</span><span class="o">={</span>Multi-resolution<span class="w"> </span>Hu<span class="o">{</span>BERT<span class="o">}</span>:<span class="w"> </span>Multi-resolution<span class="w"> </span>Speech<span class="w"> </span>Self-Supervised<span class="w"> </span>Learning<span class="w"> </span>with<span class="w"> </span>Masked<span class="w"> </span>Unit<span class="w"> </span>Prediction<span class="o">}</span>,
+<span class="w">    </span><span class="nv">author</span><span class="o">={</span>Anonymous<span class="o">}</span>,
+<span class="w">    </span><span class="nv">booktitle</span><span class="o">={</span>Submitted<span class="w"> </span>to<span class="w"> </span>The<span class="w"> </span>Twelfth<span class="w"> </span>International<span class="w"> </span>Conference<span class="w"> </span>on<span class="w"> </span>Learning<span class="w"> </span>Representations<span class="o">}</span>,
+<span class="w">    </span><span class="nv">year</span><span class="o">={</span><span class="m">2023</span><span class="o">}</span>,
+<span class="w">    </span><span class="nv">url</span><span class="o">={</span>https://openreview.net/forum?id<span class="o">=</span>kUuKFW7DIF<span class="o">}</span>,
+<span class="w">    </span><span class="nv">note</span><span class="o">={</span>under<span class="w"> </span>review<span class="o">}</span>
+<span class="o">}</span>
+</pre></div>
+</div>
+<section id="multires-hubert-custom">
+<h3>multires_hubert_custom<a class="headerlink" href="#multires-hubert-custom" title="Permalink to this heading">#</a></h3>
+<p>This entry expects you to provide the source of the checkpoint: <code class="code docutils literal notranslate"><span class="pre">ckpt</span></code>, which should be
+the local path or a url of the checkpoint converted by <code class="code docutils literal notranslate"><span class="pre">s3prl/upstream/multires_hubert/convert.py</span></code> (
+from a regular fairseq checkpoint.)
+For more available checkpoints, please check <a href="#id22"><span class="problematic" id="id23">`https://github.com/facebookresearch/fairseq/blob/main/examples/mr_hubert/README.md`_</span></a>
+Related converted checkpoints are also at <a href="#id24"><span class="problematic" id="id25">`https://huggingface.co/s3prl/mr_hubert`_</span></a></p>
+</section>
+<section id="multires-hubert-base">
+<h3>multires_hubert_base<a class="headerlink" href="#multires-hubert-base" title="Permalink to this heading">#</a></h3>
+<ul class="simple">
+<li><p>Unlabled Speech: LibriSpeech 960hr</p></li>
+<li><p>K-means extracted from <a class="reference internal" href="#hubert-base">hubert_base</a></p></li>
+</ul>
+</section>
+<section id="multires-hubert-large">
+<h3>multires_hubert_large<a class="headerlink" href="#multires-hubert-large" title="Permalink to this heading">#</a></h3>
+<ul class="simple">
+<li><p>Unlabeled Speech: LibriLight 60khr</p></li>
+<li><p>K-means extracted from <a class="reference internal" href="#hubert-base">hubert_base</a></p></li>
+</ul>
+</section>
+</section>
+<section id="multires-hubert-multilingual-base">
+<h2>multires_hubert_multilingual_base<a class="headerlink" href="#multires-hubert-multilingual-base" title="Permalink to this heading">#</a></h2>
+<ul class="simple">
+<li><p>Unlabeled Speech: Voxpopuli 100khr</p></li>
+<li><p>K-means extracted from <a class="reference internal" href="#hubert-base">hubert_base</a></p></li>
+</ul>
+</section>
+<section id="multires-hubert-multilingual-large400k">
+<h2>multires_hubert_multilingual_large400k<a class="headerlink" href="#multires-hubert-multilingual-large400k" title="Permalink to this heading">#</a></h2>
+<ul class="simple">
+<li><p>Unlabeled Speech: Voxpopuli 100khr</p></li>
+<li><p>K-means extracted from <a class="reference internal" href="#hubert-base">hubert_base</a></p></li>
+<li><p>Training steps 400k</p></li>
+</ul>
+</section>
+<section id="multires-hubert-multilingual-large600k">
+<h2>multires_hubert_multilingual_large600k<a class="headerlink" href="#multires-hubert-multilingual-large600k" title="Permalink to this heading">#</a></h2>
+<ul class="simple">
+<li><p>Unlabeled Speech: Voxpopuli 100khr</p></li>
+<li><p>K-means extracted from <a class="reference internal" href="#hubert-base">hubert_base</a></p></li>
+<li><p>Training steps 600k</p></li>
+</ul>
 </section>
 <section id="distilhubert">
 <h2>DistilHuBERT<a class="headerlink" href="#distilhubert" title="Permalink to this heading">#</a></h2>
@@ -1752,6 +1811,10 @@ above), the stride seconds between windows.</p>
 <li><a class="reference internal" href="#hubert">HuBERT</a></li>
 <li><a class="reference internal" href="#espnethubert">ESPnetHuBERT</a></li>
 <li><a class="reference internal" href="#wavlablm">WavLabLM</a></li>
+<li><a class="reference internal" href="#multiresolution-hubert-mr-hubert">Multiresolution HuBERT (MR-HuBERT)</a></li>
+<li><a class="reference internal" href="#multires-hubert-multilingual-base">multires_hubert_multilingual_base</a></li>
+<li><a class="reference internal" href="#multires-hubert-multilingual-large400k">multires_hubert_multilingual_large400k</a></li>
+<li><a class="reference internal" href="#multires-hubert-multilingual-large600k">multires_hubert_multilingual_large600k</a></li>
 <li><a class="reference internal" href="#distilhubert">DistilHuBERT</a></li>
 <li><a class="reference internal" href="#hubert-mgr">HuBERT-MGR</a></li>
 <li><a class="reference internal" href="#unispeech-sat">Unispeech-SAT</a></li>
