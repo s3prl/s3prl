@@ -259,9 +259,12 @@ class DownstreamExpert(nn.Module):
             trials = self.test_dataset.pair_table
             labels = []
             scores = []
+            def names(name): return "-".join(name.split('/')[-3:]).split('.')[0] # added
             for label, name1, name2 in trials:
                 labels.append(label)
                 score = self.score_fn(records[name1], records[name2]).numpy()
+                records['scores'].extend([score]) # added
+                records['pair_names'].extend([f"{names(name1)}_{names(name2)}"]) # added
                 scores.append(score)
             eer, *others = self.eval_metric(np.array(labels, dtype=int), np.array(scores))
             logger.add_scalar(f'sv-voxceleb1/{mode}-EER', eer, global_step=global_step)
