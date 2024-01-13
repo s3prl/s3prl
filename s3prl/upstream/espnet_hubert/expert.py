@@ -11,7 +11,7 @@ logger = logging.getLogger(__name__)
 try:
     from espnet2.tasks.hubert import HubertTask
 except ModuleNotFoundError:
-    HuBERTTask = None
+    HubertTask = None
     logger.warning("ESPnet is not installed, cannot use espnet_hubert upstream")
 
 
