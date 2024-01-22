@@ -8,4 +8,4 @@ omegaconf >=2.1.1
 setuptools >=65.5.1
 requests
 transformers
-protobuf==3.20.3
+protobuf==4.23.4
