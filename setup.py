@@ -17,8 +17,8 @@ for file in os.listdir(here / "requirements"):
     requirement_files.append(f"requirements/{file}")
 requirements["dev"] = requirements["all"] + requirements["dev"]
 
-install_requires = requirements["install"]
-extras_require = {k: v for k, v in requirements.items() if k not in ["install"]}
+install_requires = requirements["all"]
+extras_require = {k: v for k, v in requirements.items() if k not in ["all"]}
 
 # Arguments marked as "Required" below must be included for upload to PyPI.
 # Fields marked as "Optional" may be commented out.
