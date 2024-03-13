@@ -17,7 +17,7 @@ If you wish to use email, please contact:
 - Leo Yang (leo19941227@gmail.com)
 - Andy T. Liu (liuandyt@gmail.com)
 
-Please refer to the [legacy citation](https://scholar.google.com/citations?view_op=view_citation&hl=en&user=R1mNI8QAAAAJ&citation_for_view=R1mNI8QAAAAJ:LkGwnXOMwfcC) of S3PRL and the timeline below justifying our ownership on this repository. This information is only used to protect us from half-truths. We encourage to cite individual papers most related to the function your are using to give fair credit to the one developed the function. Please find the names in the [Change Log](#change-log).
+Please refer to the [legacy citation](https://scholar.google.com/citations?view_op=view_citation&hl=en&user=R1mNI8QAAAAJ&citation_for_view=R1mNI8QAAAAJ:LkGwnXOMwfcC) of S3PRL and the timeline below justifying our ownership on this project. This information is only used to protect us from half-truths. We encourage to cite individual papers most related to the function you are using to give fair credit to the developer of the function. Please find the names in the [Change Log](#change-log).
 Finally, we thank our advisor [Prof. Hung-yi Lee](https://speech.ee.ntu.edu.tw/~hylee/index.php) for his advice and support.
 
 If you have any question (e.g., about who developed which functions or how the project started), feel free to engage in an open and responsible conversation on the GitHub issue page, and we'll be happy to help!
