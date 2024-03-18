@@ -15,10 +15,7 @@ class UpstreamExpert(torch.nn.Module):
         try:
             self.extracter = Wav2Vec2FeatureExtractor.from_pretrained(ckpt)
         except:
-            if "base" in ckpt:
-                alter_extractor = "facebook/hubert-base-ls960"
-            else:
-                alter_extractor = "facebook/hubert-large-ll60k"
+            alter_extractor = "facebook/hubert-base-ls960"
             logger.info(
                 f"The model {ckpt} on huggingface does not have a correspoinding feature extractor. "
                 f"Using {alter_extractor}'s feature extractor as the alternative."

@@ -12,7 +12,15 @@ logger = logging.getLogger(__name__)
 class UpstreamExpert(torch.nn.Module):
     def __init__(self, ckpt, **kwds):
         super().__init__()
-        self.extracter = Wav2Vec2FeatureExtractor.from_pretrained(ckpt)
+        try:
+            self.extracter = Wav2Vec2FeatureExtractor.from_pretrained(ckpt)
+        except:
+            alter_extractor = "facebook/wav2vec2-base"
+            logger.info(
+                f"The model {ckpt} on huggingface does not have a correspoinding feature extractor. "
+                f"Using {alter_extractor}'s feature extractor as the alternative."
+            )
+            self.extracter = Wav2Vec2FeatureExtractor.from_pretrained(alter_extractor)
         self.model = Wav2Vec2Model.from_pretrained(ckpt)
 
     def get_downsample_rates(self, key: str = None) -> int:
