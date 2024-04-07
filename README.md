@@ -29,8 +29,9 @@ If you have any question (e.g., about who developed which functions or how the p
 ## Contribution (pull request)
 
 Guidelines:
-- If you want to add new features (e.g. new upstream), please discuss with us on the Github issue page first before implementing the actual pull request. So we can discuss about whether we want the feauture, how to achieve the feature, and whether the feature is maintainable. (As S3PRL is growing too large, we might not consider new tasks or complex new features.) Thanks!
-- Reporting bugs or the PR fixing the bugs is always welcome!
+- Starting in 2024, we will only accept new contributions in the form of new upstream models, so we can save bandwidth for developing new techniques (which will not be in S3PRL.)
+- S3PRL has transitioned into pure maintenance mode, ensuring the long-term maintenance of all existing functions.
+- Reporting bugs or the PR fixing the bugs is always welcome! Thanks!
 
 Steps:
 1. [Create a personal fork](https://help.github.com/articles/fork-a-repo/) of the [main S3PRL repository](https://github.com/s3prl/s3prl) in GitHub.
