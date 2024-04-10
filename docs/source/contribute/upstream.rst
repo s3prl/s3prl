@@ -6,7 +6,7 @@ Discuss
 ---------
 
 Please make sure that you already go through :doc:`./general`.
-Again, we might not always want new contributions, hence please make sure we have consensus on the new feature request.
+Again, please make sure we have consensus on the new feature request.
 The best and the most transparent way is to
 `submit your feature request <https://github.com/s3prl/s3prl/issues/new?assignees=&labels=&template=feature_request.md&title=>`_.
 
