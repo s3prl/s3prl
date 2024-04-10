@@ -25,8 +25,8 @@ jobs:
       - name: Upgrade pip and wheel
         run: pip3 install --upgrade pip wheel setuptools
 
-      - name: Setup upterm sessions
-        uses: lhotari/action-upterm@v1
+      # - name: Setup upterm sessions
+      #   uses: lhotari/action-upterm@v1
 
       - name: install S3PRL
         run: |
