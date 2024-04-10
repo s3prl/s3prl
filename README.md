@@ -23,13 +23,13 @@ If you have any question (e.g., about who came up with / developed which functio
 
 ## Contribution (pull request)
 
-**Guideline:**
+**Guideline**
 
 - Starting in 2024, we will only accept new contributions in the form of new upstream models, so we can save bandwidth for developing new techniques (which will not be in S3PRL.)
 - S3PRL has transitioned into pure maintenance mode, ensuring the long-term maintenance of all existing functions.
 - Reporting bugs or the PR fixing the bugs is always welcome! Thanks!
 
-**Tutorials:**
+**Tutorials**
 
 - [General tutorial](https://s3prl.github.io/s3prl/contribute/general.html)
 - [Tutorial for adding new upstream models](https://s3prl.github.io/s3prl/contribute/upstream.html)
