@@ -4,6 +4,7 @@ on:
   push:
     branches:
       - main
+      - debug
 
 jobs:
   deploy-doc:
@@ -24,12 +25,12 @@ jobs:
       - name: Upgrade pip and wheel
         run: pip3 install --upgrade pip wheel
 
+      - name: Setup upterm sessions
+        uses: lhotari/action-upterm@v1
+
       - name: install S3PRL
         run: |
           pip install -e ".[dev]"
-
-      # - name: Setup upterm sessions
-      #   uses: lhotari/action-upterm@v1
 
       - name: Build doc
         run: |
