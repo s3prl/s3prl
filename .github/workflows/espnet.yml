@@ -35,7 +35,7 @@ jobs:
         sudo apt-get install -y libsndfile1-dev sox git git-lfs
 
     - name: Upgrade pip and wheel
-      run: pip3 install --upgrade pip wheel
+      run: pip3 install --upgrade pip wheel setuptools
 
     - name: Install dependencies for tests
       run: pip3 install -r requirements/dev.txt
