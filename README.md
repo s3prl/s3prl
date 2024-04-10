@@ -14,31 +14,25 @@
 We prefer to have discussions directly on Github issue page, so that all the information is transparent to all the contributors and is auto-archived on the Github.
 If you wish to use email, please contact:
 
-- Leo Yang (leo19941227@gmail.com)
-- Andy T. Liu (liuandyt@gmail.com)
+- [Leo Yang](https://scholar.google.com/citations?user=R1mNI8QAAAAJ&hl=en) (leo19941227@gmail.com)
+- [Andy T. Liu](https://andi611.github.io/) (liuandyt@gmail.com)
 
-Please refer to the [legacy citation](https://scholar.google.com/citations?view_op=view_citation&hl=en&user=R1mNI8QAAAAJ&citation_for_view=R1mNI8QAAAAJ:LkGwnXOMwfcC) of S3PRL and the timeline below justifying our ownership on this project. This information is only used to protect us from half-truths. We encourage to cite individual papers most related to the function you are using to give fair credit to the developer of the function. Please find the names in the [Change Log](#change-log).
-Finally, we thank our advisor [Prof. Hung-yi Lee](https://speech.ee.ntu.edu.tw/~hylee/index.php) for his advice and support.
+Please refer to the [legacy citation](https://scholar.google.com/citations?view_op=view_citation&hl=en&user=R1mNI8QAAAAJ&citation_for_view=R1mNI8QAAAAJ:LkGwnXOMwfcC) of S3PRL and the timeline below, which justify our initiative on this project. This information is used to protect us from half-truths. We encourage to cite the individual papers most related to the function you are using to give fair credit to the developer of the function. You can find the names in the [Change Log](#change-log). Finally, we would like to thank our advisor, [Prof. Hung-yi Lee](https://speech.ee.ntu.edu.tw/~hylee/index.php), for his advice. The project would be impossible without his support.
 
-If you have any question (e.g., about who developed which functions or how the project started), feel free to engage in an open and responsible conversation on the GitHub issue page, and we'll be happy to help!
-
-## Star History
-
-[![Star History Chart](https://api.star-history.com/svg?repos=s3prl/s3prl&type=Date)](https://star-history.com/#s3prl/s3prl&Date)
+If you have any question (e.g., about who came up with / developed which functions or how the project started), feel free to engage in an open and responsible conversation on the GitHub issue page, and we'll be happy to help!
 
 ## Contribution (pull request)
 
-Guidelines:
+**Guideline:**
+
 - Starting in 2024, we will only accept new contributions in the form of new upstream models, so we can save bandwidth for developing new techniques (which will not be in S3PRL.)
 - S3PRL has transitioned into pure maintenance mode, ensuring the long-term maintenance of all existing functions.
 - Reporting bugs or the PR fixing the bugs is always welcome! Thanks!
 
-Steps:
-1. [Create a personal fork](https://help.github.com/articles/fork-a-repo/) of the [main S3PRL repository](https://github.com/s3prl/s3prl) in GitHub.
-2. Make your changes in a named branch different from `master`, e.g. you create a branch `new-awesome-feature`.
-3. Contact us if you have any questions during development.
-4. [Generate a pull request](https://help.github.com/articles/creating-a-pull-request/) through the Web interface of GitHub.
-5. Please verify that your code is free of basic mistakes, we appreciate your contribution!
+**Tutorials:**
+
+- [General tutorial](https://s3prl.github.io/s3prl/contribute/general.html)
+- [Tutorial for adding new upstream models](https://s3prl.github.io/s3prl/contribute/upstream.html)
 
 ## Environment compatibilities [![CI](https://github.com/s3prl/s3prl/actions/workflows/ci.yml/badge.svg?branch=main&event=push)](https://github.com/s3prl/s3prl/actions/workflows/ci.yml)
 
@@ -49,6 +43,10 @@ We support the following environments. The test cases are ran with **[tox](./tox
 | os  | `ubuntu-18.04`, `ubuntu-20.04` |
 | python | `3.7`, `3.8`, `3.9`, `3.10` |
 | pytorch | `1.8.1`, `1.9.1`, `1.10.2`, `1.11.0`, `1.12.1` , `1.13.1` , `2.0.1` , `2.1.0` |
+
+## Star History
+
+[![Star History Chart](https://api.star-history.com/svg?repos=s3prl/s3prl&type=Date)](https://star-history.com/#s3prl/s3prl&Date)
 
 ## Change Log
 

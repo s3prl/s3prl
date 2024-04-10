@@ -3,7 +3,7 @@ Contribute to S3PRL
 
 Thank you for considering contributing to S3PRL! We really appreciate it!
 
-**Please first discuss with us on the Github issue page about your "feature request"** before submitting
+**Please discuss with us on the Github issue page about your "feature request"** before submitting
 the implemented pull request, and we will discuss about the following things:
 
 1. Whether we want to add it in S3PRL

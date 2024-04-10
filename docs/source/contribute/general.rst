@@ -5,7 +5,7 @@ General Guideline
 
 Thank you for considering contributing to S3PRL, we really appreciate it.
 
-However, due to the increasing difficulty of maintenance, please understand that **we might not want your new feature**.
+However, due to the increasing difficulty of maintenance, please understand that **we might not accept the new feature**.
 
 Hence, **before submitting the implemented pull request**,
 please **submit your feature request** to the Github issue page so we can discuss about whether we want it and how to achieve it.
@@ -13,12 +13,6 @@ please **submit your feature request** to the Github issue page so we can discus
 .. warning::
 
     If we did not go through this discussion, the pull request will not be dealt with and will be directly closed.
-
-.. note::
-
-    If any previous contributor feels uncomfortable about our government system (we believe the system never changes but in case
-    anyone misunderstood it due to some historical reasons), feel free to submit the pull request to delete your previous contribution,
-    which can even appear as a new contribution.
 
 
 Discuss
