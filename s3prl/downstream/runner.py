@@ -230,7 +230,7 @@ class Runner():
         trainable_paras = []
         for entry in self.all_entries:
             if entry.trainable:
-                entry.model.train()
+                entry.model.train().to(self.args.device)
                 trainable_models.append(entry.model)
                 trainable_paras += list(entry.model.parameters())
             else:
@@ -495,7 +495,7 @@ class Runner():
 
         for entry, training in zip(self.all_entries, trainings):
             if training:
-                entry.model.train()
+                entry.model.train().to(self.args.device)
 
         if not_during_training:
             logger.close()
