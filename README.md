@@ -9,6 +9,10 @@
     <a href="https://github.com/s3prl/s3prl/issues"><img alt="Bitbucket open issues" src="https://img.shields.io/github/issues/s3prl/s3prl"></a>
 </p>
 
+## Emergent Announcement
+
+Unfortunately, the SUPERB server is currently down because of a disk corruption issue. We are actively working to resolve this and are doing our best to preserve any submission results. Please stay tuned for updates if you're planning to submit your work in the near future. Thank you for your patience!
+
 ## Contact
 
 We prefer to have discussions directly on Github issue page, so that all the information is transparent to all the contributors and is auto-archived on the Github.
