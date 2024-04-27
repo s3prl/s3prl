@@ -96,12 +96,52 @@ The toolkit has **three major usages**:
 - Benchmark upstream models with [**SUPERB Benchmark**](./s3prl/downstream/docs/superb.md)
 - Document: [**downstream/README.md**](./s3prl/downstream/README.md)
 
-Below is an **intuitive illustration** on how this toolkit may help you:
-\
-\
-<img src="https://raw.githubusercontent.com/s3prl/s3prl/main/file/S3PRL-interface.png" width="900"/>
-\
-\
+---
+
+Here is a high-level illustration of how S3PRL might help you. We support to leverage numerous SSL representations on numerous speech processing tasks in our [GitHub codebase](https://github.com/s3prl/s3prl):
+
+![interface](file/S3PRL-interface.png)
+
+---
+
+We also modularize all the SSL models into a standalone [PyPi package](https://pypi.org/project/s3prl/) so that you can easily install it and use it without depending on our entire codebase. The following shows a simple example and you can find more details in our [documentation](https://s3prl.github.io/s3prl/).
+
+1. Install the S3PRL package:
+
+```sh
+pip install s3prl
+```
+
+2. Use it to extract representations for your own audio:
+
+```python
+import torch
+from s3prl.nn import S3PRLUpstream
+
+model = S3PRLUpstream("hubert")
+model.eval()
+
+with torch.no_grad():
+    wavs = torch.randn(2, 16000 * 2)
+    wavs_len = torch.LongTensor([16000 * 1, 16000 * 2])
+    all_hs, all_hs_len = model(wavs, wavs_len)
+
+for hs, hs_len in zip(all_hs, all_hs_len):
+    assert isinstance(hs, torch.FloatTensor)
+    assert isinstance(hs_len, torch.LongTensor)
+
+    batch_size, max_seq_len, hidden_size = hs.shape
+    assert hs_len.dim() == 1
+```
+
+---
+
+With this modularization, we have achieved close integration with the general speech processing toolkit [ESPNet](https://github.com/espnet/espnet), enabling the use of SSL models for a broader range of speech processing tasks and corpora to achieve state-of-the-art (SOTA) results (kudos to the [ESPNet Team](https://www.wavlab.org/open_source)):
+
+![integration](file/S3PRL-integration.png)
+
+---
+
 Feel free to use or modify our toolkit in your research. Here is a [list of papers using our toolkit](#used-by). Any question, bug report or improvement suggestion is welcome through [opening up a new issue](https://github.com/s3prl/s3prl/issues).
 
 If you find this toolkit helpful to your research, please do consider citing [our papers](#citation), thanks!
@@ -290,6 +330,15 @@ If you find this toolkit useful, please consider citing following papers.
 ```
 
 - If you use our organized upstream interface and features, or the *SUPERB* downstream benchmark, please consider citing the following:
+```
+@article{yang2024large,
+  title={A Large-Scale Evaluation of Speech Foundation Models},
+  author={Yang, Shu-wen and Chang, Heng-Jui and Huang, Zili and Liu, Andy T and Lai, Cheng-I and Wu, Haibin and Shi, Jiatong and Chang, Xuankai and Tsai, Hsiang-Sheng and Huang, Wen-Chin and others},
+  journal={IEEE/ACM Transactions on Audio, Speech, and Language Processing},
+  year={2024},
+  publisher={IEEE}
+}
+```
 ```
 @inproceedings{yang21c_interspeech,
   author={Shu-wen Yang and Po-Han Chi and Yung-Sung Chuang and Cheng-I Jeff Lai and Kushal Lakhotia and Yist Y. Lin and Andy T. Liu and Jiatong Shi and Xuankai Chang and Guan-Ting Lin and Tzu-Hsien Huang and Wei-Cheng Tseng and Ko-tik Lee and Da-Rong Liu and Zili Huang and Shuyan Dong and Shang-Wen Li and Shinji Watanabe and Abdelrahman Mohamed and Hung-yi Lee},
