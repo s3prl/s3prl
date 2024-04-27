@@ -140,6 +140,11 @@ With this modularization, we have achieved close integration with the general sp
 
 ![integration](file/S3PRL-integration.png)
 
+You can start the journal of SSL with the following entry points:
+
+- S3PRL: [A simple SUPERB downstream task](https://github.com/s3prl/s3prl/blob/main/s3prl/downstream/docs/superb.md#pr-phoneme-recognition)
+- ESPNet: [Levearging S3PRL for ASR](https://github.com/espnet/espnet/tree/master/egs2/librispeech/asr1)
+
 ---
 
 Feel free to use or modify our toolkit in your research. Here is a [list of papers using our toolkit](#used-by). Any question, bug report or improvement suggestion is welcome through [opening up a new issue](https://github.com/s3prl/s3prl/issues).
