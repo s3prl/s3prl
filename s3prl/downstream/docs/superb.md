@@ -332,7 +332,7 @@ Specified by the command `-d fluent_commands`
     - Official data link: http://fluent.ai:2052/jf8398hf30f0381738rucj3828chfdnchs.tar.gz
     - Official website: https://fluent.ai/fluent-speech-commands-a-dataset-for-spoken-language-understanding-research/
     - Since the official link might break occasionally, we provide a backup link. If this is not allowed please let us know and we will remove it immediately.
-    - Please use `wget http://140.112.21.28:9000/fluent.tar.gz`
+    - Please use `wget https://huggingface.co/datasets/leo19941227/fluent_speech_commands/resolve/main/fluent.tar.gz?download=true`
 
 2. Check the prepared file structure
 
@@ -427,10 +427,10 @@ python3 run_downstream.py -m evaluate -e result/downstream/ExpName/dev-best.ckpt
     
     # prepare dev
     cd $voxceleb1_root/dev/
-    wget https://thor.robots.ox.ac.uk/~vgg/data/voxceleb/vox1a/vox1_dev_wav_partaa
-    wget https://thor.robots.ox.ac.uk/~vgg/data/voxceleb/vox1a/vox1_dev_wav_partab
-    wget https://thor.robots.ox.ac.uk/~vgg/data/voxceleb/vox1a/vox1_dev_wav_partac
-    wget https://thor.robots.ox.ac.uk/~vgg/data/voxceleb/vox1a/vox1_dev_wav_partad
+    wget https://huggingface.co/datasets/ProgramComputer/voxceleb/resolve/main/vox1/vox1_dev_wav_partaa?download=true
+    wget https://huggingface.co/datasets/ProgramComputer/voxceleb/resolve/main/vox1/vox1_dev_wav_partab?download=true
+    wget https://huggingface.co/datasets/ProgramComputer/voxceleb/resolve/main/vox1/vox1_dev_wav_partac?download=true
+    wget https://huggingface.co/datasets/ProgramComputer/voxceleb/resolve/main/vox1/vox1_dev_wav_partad?download=true
     cat vox1_dev* > vox1_dev_wav.zip
     unzip vox1_dev_wav.zip
 
