@@ -24,7 +24,7 @@ class SpeakerClassifiDataset(Dataset):
 
         self.root = file_path
         self.speaker_num = 1251
-        self.meta_data =meta_data
+        self.meta_data = meta_data
         self.max_timestep = max_timestep
         self.usage_list = open(self.meta_data, "r").readlines()
 
@@ -48,7 +48,7 @@ class SpeakerClassifiDataset(Dataset):
 
         y = []
         for path in train_path_list:
-            id_string = path.split("/")[-3]
+            id_string = path.split(os.path.sep)[-3]
             y.append(int(id_string[2:]) - 10001)
 
         return y
