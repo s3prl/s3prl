@@ -35,13 +35,14 @@ HALF_BATCHSIZE_TIME = 2000
 ####################
 class SequenceDataset(Dataset):
     
-    def __init__(self, split, bucket_size, dictionary, libri_root, bucket_file, **kwargs):
+    def __init__(self, split, bucket_size, dictionary, libri_root, bucket_file, load_discrete=False, discrete_path="", **kwargs):
         super(SequenceDataset, self).__init__()
         
         self.dictionary = dictionary
         self.libri_root = libri_root
         self.sample_rate = SAMPLE_RATE
         self.split_sets = kwargs[split]
+        self.load_discrete = load_discrete
 
         # Read table for bucketing
         assert os.path.isdir(bucket_file), 'Please first run `python3 preprocess/generate_len_for_bucket.py -h` to get bucket file.'
@@ -59,6 +60,22 @@ class SequenceDataset(Dataset):
 
         table_list = pd.concat(table_list)
         table_list = table_list.sort_values(by=['length'], ascending=False)
+        
+        # Strs
+        if self.load_discrete:
+            discrete_list = []
+            for item in self.split_sets:
+                file_path = os.path.join(discrete_path, item + ".csv")
+                if os.path.exists(file_path):
+                    discrete_list.append(
+                        pd.read_csv(file_path)
+                    )
+                else:
+                    raise RuntimeError
+
+            discrete_df = pd.concat(discrete_list)
+            discrete_df = discrete_df.sort_values(by=['length'], ascending=False)
+            self.discrete_df = discrete_df.set_index(discrete_df.columns[0], inplace=True)
 
         X = table_list['file_path'].tolist()
         X_lens = table_list['length'].tolist()
@@ -108,6 +125,10 @@ class SequenceDataset(Dataset):
     def _parse_x_name(self, x):
         return x.split('/')[-1].split('.')[0]
 
+    def _load_str(self, wav_path):
+        wav_name = self._parse_x_name(wav_path)
+        return self.discrete_df.at[wav_name, "unit"]
+    
     def _load_wav(self, wav_path):
         wav, sr = torchaudio.load(os.path.join(self.libri_root, wav_path))
         assert sr == self.sample_rate, f'Sample rate mismatch: real {sr}, config {self.sample_rate}'
@@ -155,7 +176,10 @@ class SequenceDataset(Dataset):
 
     def __getitem__(self, index):
         # Load acoustic feature and pad
-        wav_batch = [self._load_wav(x_file).numpy() for x_file in self.X[index]]
+        if self.load_discrete:
+            wav_batch = [self._load_str(x_file)for x_file in self.X[index]]
+        else:
+            wav_batch = [self._load_wav(x_file).numpy() for x_file in self.X[index]]
         label_batch = [self.Y[self._parse_x_name(x_file)].numpy() for x_file in self.X[index]]
         filename_batch = [Path(x_file).stem for x_file in self.X[index]]
         return wav_batch, label_batch, filename_batch # bucketing, return ((wavs, labels))

@@ -259,6 +259,12 @@ class Featurizer(nn.Module):
         ), f"{length_diff} >= {TOLERABLE_SEQLEN_DIFF}"
         feature = [f[:l] for f, l in zip(paired_feature, feature_len)]
         return feature
+    
+    def tolist_byzeros(self, paired_feature: Tensor):
+        assert paired_feature.dim() == 3, "(batch_size, max_seq_len, feat_dim)"
+        feature_len = [(f != 0).any(dim=1).sum().item() for f in paired_feature]
+        feature = [f[:l] for f, l in zip(paired_feature, feature_len)]
+        return feature
 
     def forward(
         self,
@@ -269,4 +275,7 @@ class Featurizer(nn.Module):
         if isinstance(feature, (list, tuple)):
             feature = self._weighted_sum(feature)
 
-        return self.tolist(paired_wavs, feature)
+        if isinstance(paired_wavs[0], str):
+            return self.tolist_byzeros(feature)
+        if isinstance(paired_wavs[0], Tensor):
+            return self.tolist(paired_wavs, feature)
