@@ -1,4 +1,5 @@
 import sys
+import inspect
 from typing import Callable, Dict, List, Tuple, Union
 
 import numpy as np
@@ -145,7 +146,16 @@ class Featurizer(nn.Module):
         self.name = "Featurizer"
 
         upstream.eval()
-        paired_wavs = [torch.randn(SAMPLE_RATE).to(upstream_device)]
+        
+        # Check the upstream forward type
+        signature = inspect.signature(upstream.forward)
+        param_type = signature.parameters['wavs'].annotation
+        if param_type == List[str]:
+            paired_wavs = ["_".join(["0"]*100)]
+        else: # param_type == List[torch.Tensor]
+            paired_wavs = [torch.randn(SAMPLE_RATE).to(upstream_device)]
+
+        
         with torch.no_grad():
             paired_features = upstream(paired_wavs)
 
@@ -260,11 +270,11 @@ class Featurizer(nn.Module):
         feature = [f[:l] for f, l in zip(paired_feature, feature_len)]
         return feature
     
-    def tolist_byzeros(self, paired_feature: Tensor):
-        assert paired_feature.dim() == 3, "(batch_size, max_seq_len, feat_dim)"
-        feature_len = [(f != 0).any(dim=1).sum().item() for f in paired_feature]
-        feature = [f[:l] for f, l in zip(paired_feature, feature_len)]
-        return feature
+    def tolist_byzeros(self, feature: Tensor):
+        assert feature.dim() == 3, "(batch_size, max_seq_len, feat_dim)"
+        feature_len = [(f != 0).any(dim=1).sum().item() for f in feature]
+        tolist_feature = [f[:l] for f, l in zip(feature, feature_len)]
+        return tolist_feature
 
     def forward(
         self,

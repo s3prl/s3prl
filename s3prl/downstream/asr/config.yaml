@@ -1,7 +1,7 @@
 runner:
   total_steps: 200000
   gradient_clipping: 1
-  gradient_accumulate_steps: 2
+  gradient_accumulate_steps: 1
   log_step: 100
   eval_step: 2000
   save_step: 500
@@ -13,10 +13,13 @@ optimizer:
   name: TorchOptim
   torch_optim_name: Adam
   lr: 5.0e-5
-# Step 1:
+
+# Preprocessing:
 # python preprocess/generate_len_for_bucket.py -i "/mnt/andy9_liu/dataset/LibriSpeech" -o data/librispeech -a .flac --n_jobs 12
-# Step 2:
-# python run_downstream.py -m train -u mlm -d asr -a -n asr-libri-960-dinosr-mlm-500
+# Training:
+# python run_downstream.py -m train -u mlm -d asr -a -n asr-libri-960-dinosr-mlm-500-1e5 -o config.optimizer.lr=1.0e-5
+# Testing:
+# python run_downstream.py -m evaluate -t "test-clean" -e result/downstream/asr-libri-960-dinosr-mlm-500-1e5/dev-clean-best.ckpt
 
 # comment the whole scheduler config block
 # to disable learning rate scheduling
@@ -47,9 +50,9 @@ downstream_expert:
     dev-other: ['dev-other']
     test-clean: ['test-clean']
     test-other: ['test-other']
-    num_workers: 12
-    train_batch_size: 128
-    batch_size: 32
+    num_workers: 32
+    train_batch_size: 256
+    batch_size: 256
     eval_batch_size: 1
     libri_root: '/mnt/andy9_liu/dataset/LibriSpeech'
     bucket_file: './data/librispeech/len_for_bucket'

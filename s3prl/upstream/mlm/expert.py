@@ -16,9 +16,9 @@ from transformers import PreTrainedTokenizerFast
 from tokenizers import processors
 from transformers import RobertaModel
 
-HIDDEN_DIM = 8
-
-
+# Disable tokenizers parallelism to avoid warnings
+os.environ["TOKENIZERS_PARALLELISM"] = "false"
+os.environ['NUMEXPR_MAX_THREADS'] = '32'
 class UpstreamExpert(nn.Module):
     def __init__(self, ckpt: str, **kwargs):
         super().__init__()
@@ -46,6 +46,7 @@ class UpstreamExpert(nn.Module):
             sep_token="[SEP]",
             unk_token="[UNK]",
             mask_token="[MASK]",
+            clean_up_tokenization_spaces=True,
         )
         tokenizer.backend_tokenizer.post_processor = processors.TemplateProcessing(
             single="[CLS] $A [SEP]",
@@ -75,20 +76,22 @@ class UpstreamExpert(nn.Module):
             return_tensors='pt',
             return_attention_mask=True,
             return_length=False,
-        )
+            )
         input_ids = batch_encoded['input_ids'].to(self.device)
         attention_mask = batch_encoded['attention_mask'].to(self.device)
 
         with self.ctx:
-            hidden_states = self.model(input_ids=input_ids,
-                                attention_mask=attention_mask,
-                                output_hidden_states=True).hidden_states
+            hidden_states = self.model(
+                input_ids=input_ids,
+                attention_mask=attention_mask,
+                output_hidden_states=True
+                ).hidden_states
 
             # Expand the attention mask to match the hidden states dimensions
             expanded_attention_mask = attention_mask.unsqueeze(-1)
             # Apply the mask to each layer's hidden states
-            for i, hidden_state in enumerate(hidden_states):
-                hidden_states[i] = hidden_state * expanded_attention_mask
+            for i in range(len(hidden_states)):
+                hidden_states[i].mul_(expanded_attention_mask)
 
         # The "hidden_states" key will be used as default in many cases
         return {

@@ -65,7 +65,7 @@ class SequenceDataset(Dataset):
         if self.load_discrete:
             discrete_list = []
             for item in self.split_sets:
-                file_path = os.path.join(discrete_path, item + ".csv")
+                file_path = os.path.join(discrete_path, item + "-data.csv")
                 if os.path.exists(file_path):
                     discrete_list.append(
                         pd.read_csv(file_path)
@@ -73,9 +73,8 @@ class SequenceDataset(Dataset):
                 else:
                     raise RuntimeError
 
-            discrete_df = pd.concat(discrete_list)
-            discrete_df = discrete_df.sort_values(by=['length'], ascending=False)
-            self.discrete_df = discrete_df.set_index(discrete_df.columns[0], inplace=True)
+            self.discrete_df = pd.concat(discrete_list)
+            self.discrete_df.set_index(self.discrete_df.columns[0], inplace=True)
 
         X = table_list['file_path'].tolist()
         X_lens = table_list['length'].tolist()

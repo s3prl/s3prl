@@ -290,7 +290,8 @@ class Runner():
                         break
                     global_step = pbar.n + 1
 
-                    wavs = [torch.FloatTensor(wav).to(self.args.device) for wav in wavs]
+                    if not isinstance(wavs[0], str):
+                        wavs = [torch.FloatTensor(wav).to(self.args.device) for wav in wavs]
 
                     with torch.cuda.amp.autocast(enabled=amp):
                         if self.upstream.trainable:
