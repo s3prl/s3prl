@@ -149,3 +149,10 @@ def contentvec_km500(refresh=False, **kwds):
         "ckpt"
     ] = "https://huggingface.co/s3prl/converted_ckpts/resolve/main/contentvec_km500.pt"
     return hubert_custom(refresh=refresh, **kwds)
+
+
+def MS_HuBERT(refresh=False, **kwds):
+    kwds[
+        "ckpt"
+    ] = "https://huggingface.co/s3prl/MS-HuBERT/blob/main/MS-HuBERT.pt" 
+    return hubert_custom(refresh=refresh, **kwds)
