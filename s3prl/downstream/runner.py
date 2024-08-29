@@ -466,7 +466,8 @@ class Runner():
             if batch_id > evaluate_steps:
                 break
 
-            wavs = [torch.FloatTensor(wav).to(self.args.device) for wav in wavs]
+            if not isinstance(wavs[0], str):
+                wavs = [torch.FloatTensor(wav).to(self.args.device) for wav in wavs]
             with torch.no_grad():
                 features = self.upstream.model(wavs)
                 features = self.featurizer.model(wavs, features)
