@@ -1,7 +1,7 @@
 runner:
   total_steps: 200000
   gradient_clipping: 1
-  gradient_accumulate_steps: 1
+  gradient_accumulate_steps: 2
   log_step: 100
   eval_step: 2000
   save_step: 500
@@ -11,8 +11,8 @@ runner:
 
 optimizer:
   name: TorchOptim
-  torch_optim_name: Adam
-  lr: 5.0e-5
+  torch_optim_name: AdamW
+  lr: 1.0e-4
 
 # Preprocessing:
 # python preprocess/generate_len_for_bucket.py -i "/mnt/andy9_liu/dataset/LibriSpeech" -o data/librispeech -a .flac --n_jobs 12
@@ -20,6 +20,9 @@ optimizer:
 # python run_downstream.py -m train -u mlm -d asr -a -n asr-libri-960-dinosr-mlm-500-1e5 -o config.optimizer.lr=1.0e-5
 # Testing:
 # python run_downstream.py -m evaluate -t "test-clean" -e result/downstream/asr-libri-960-dinosr-mlm-500-1e5/dev-clean-best.ckpt
+
+# Exp
+# CUDA_VISIBLE_DEVICES=6 python run_downstream.py -m train -u mlm_base_w003 -d asr -a -n asr-libri-960-dinosr-mlm-500-w003-5e5-s42-a2 -o "config.optimizer.lr=5.0e-5,,config.runner.gradient_accumulate_steps=2" --seed=42 && CUDA_VISIBLE_DEVICES=6 python run_downstream.py -m train -u mlm_base_w003 -d asr -a -n asr-libri-960-dinosr-mlm-500-w003-5e5-s42 -o "config.optimizer.lr=5.0e-5" --seed=42
 
 # comment the whole scheduler config block
 # to disable learning rate scheduling
@@ -51,8 +54,8 @@ downstream_expert:
     test-clean: ['test-clean']
     test-other: ['test-other']
     num_workers: 32
-    train_batch_size: 256
-    batch_size: 256
+    train_batch_size: 128
+    batch_size: 128
     eval_batch_size: 1
     libri_root: '/mnt/andy9_liu/dataset/LibriSpeech'
     bucket_file: './data/librispeech/len_for_bucket'
