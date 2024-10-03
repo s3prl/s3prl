@@ -1,23 +1,26 @@
 runner:
   total_steps: 200000
   gradient_clipping: 1.0e+3
-  gradient_accumulate_steps: 5
+  gradient_accumulate_steps: 4
 
   log_step: 500
   eval_step: 10000
   save_step: 10000
-  max_keep: 20
+  max_keep: 5
   eval_dataloaders: []
   
 optimizer: 
   name: TorchOptim
   torch_optim_name: AdamW
-  lr: 1.0e-4
+  lr: 5.0e-5
 
 # # comment the whole scheduler config block to disable learning rate scheduling
 # scheduler:
 #   name: linear_schedule_with_warmup
 #   num_warmup_steps: 6000
+
+# Exp
+# CUDA_VISIBLE_DEVICES=6 python run_downstream.py -m train -u mlm_base_w003 -d sv_voxceleb1 -a -n asv-libri-960-dinosr-mlm-500-w003-5e5-s42-b512 -o "config.optimizer.lr=5.0e-5" --seed=42
 
 downstream_expert: 
   datarc:
@@ -26,15 +29,16 @@ downstream_expert:
     vad_config:
       min_sec: 32000
     
-    file_path: /path/to/VoxCeleb1
+    file_path: /mnt/andy9_liu/dataset/VoxCeleb1
     train_meta_data: ./downstream/sv_voxceleb1/dev_meta_data/dev_speaker_ids.txt
     dev_meta_data: ./downstream/sv_voxceleb1/dev_meta_data/dev_meta_data.txt
     test_meta_data: ./downstream/sv_voxceleb1/voxceleb1_test_v2.txt
 
     max_timestep: 128000
-    train_batch_size: 10
+    train_batch_size: 128
     eval_batch_size: 1
-    num_workers: 8 
+    num_workers: 8
+    load_discrete: True
 
   modelrc:
     module:

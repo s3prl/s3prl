@@ -1,23 +1,15 @@
 import os
-import re
-import sys
-import time
+import json
 import random
-import pickle
 
-import tqdm
+from tqdm import tqdm
 import torch
-import torchaudio
-import numpy as np 
-from torch import nn
+
 from pathlib import Path
-from sox import Transformer
-from torchaudio import load
 from librosa.util import find_files
 from joblib.parallel import Parallel, delayed
-from torch.utils.data import DataLoader, Dataset
+from torch.utils.data import Dataset
 from torchaudio.sox_effects import apply_effects_file
-
 
 EFFECTS = [
 ["channels", "1"],
@@ -26,9 +18,42 @@ EFFECTS = [
 ["silence", "1", "0.1", "0.1%", "-1", "0.1", "0.1%"],
 ]
 
+import sys
+import argparse
+import torch.nn.functional as F
+sys.path.append("/mnt/andy9_liu/work/fairseq")
+import fairseq
+
+def get_dinosr_model(code_path, ckpt_path, device="cup"):
+    fairseq.utils.import_user_module(argparse.Namespace(user_dir=code_path))
+    models, cfg, task = fairseq.checkpoint_utils.load_model_ensemble_and_task([ckpt_path])
+    model = models[0]
+    model.eval()
+    model.to(device)
+    model.feature_grad_mult = 0
+    return model
+
+def single_instance_forward(model, wav):
+    # wav shape: (1, wav_length)
+    x = model(source=wav, mask=False, features_only=True)['x']
+    pred = model.heads[-1](x).float()
+    unit = F.log_softmax(pred, dim=-1)
+    unit = torch.argmax(unit, dim=-1)
+    return unit.squeeze().tolist()
+
+def extract_unit_from_wav_normalized(model, device, wav):
+    """
+    Using the layer normalization to preprocess the wav, following the fairseq implementation:
+    https://github.com/facebookresearch/fairseq/blob/920a548ca770fb1a951f7f4289b4d3a0c1bc226f/examples/textless_nlp/gslm/speech2unit/pretrained/hubert_feature_reader.py#L57
+    """
+    wav = F.layer_norm(wav.float(), wav.shape)
+    wav = wav.view(1, -1)
+    unit = single_instance_forward(model, wav.to(device))
+    return unit
+
 # Voxceleb 2 Speaker verification
 class SpeakerVerifi_train(Dataset):
-    def __init__(self, vad_config, key_list, file_path, meta_data, max_timestep=None, n_jobs=12):
+    def __init__(self, vad_config, key_list, file_path, meta_data, max_timestep=None, n_jobs=12, load_discrete=True):
         self.roots = file_path
         self.root_key = key_list
         self.max_timestep = max_timestep
@@ -64,38 +89,82 @@ class SpeakerVerifi_train(Dataset):
 
         self.all_speakers.sort()
         self.speaker_num = len(self.all_speakers)
+        self.load_discrete = load_discrete
+        if self.load_discrete:
+            self.preprocess_discrete_dinosr(redo=True)
+
+    def preprocess_discrete_dinosr(self, redo=False):
+        # Create cache directory if it doesn't exist
+        cache_dir = Path("/mnt/andy9_liu/dataset/preprocessed_cache")
+        cache_dir.mkdir(exist_ok=True)
+        cache_path = cache_dir / f"discrete_units_voxceleb1_dinosr_train.json"
+        
+        # Try to load from cache
+        if not redo and cache_path.exists():
+            print(f"Loading cached preprocessed data from {cache_path}")
+            with open(cache_path, 'r') as f:
+                self.dataset_discrete = json.load(f)
+            return
+    
+        code_path = '/mnt/andy9_liu/fairseq/examples/dinosr'
+        ckpt_path = '/mnt/andy9_liu/fairseq/examples/dinosr/dinosr.ckpt'
+        device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+        dinosr_model = get_dinosr_model(code_path, ckpt_path, device)
+       
+        self.dataset_discrete = {}
+        for path in tqdm(self.dataset):
+            wav, _ = apply_effects_file(str(path), EFFECTS)
+            unit = extract_unit_from_wav_normalized(dinosr_model, device, wav)
+            if len(unit) > 1095: # max_seq_length of mlm
+                start = random.randint(0, len(unit) - 1095)
+                unit = unit[start : start + 1095]
+            unit_str = '_'.join(map(str, unit))
+            self.dataset_discrete[str(path)] = unit_str
+            
+        # Save results to cache
+        print(f"Saving preprocessed data to cache: {cache_path}")
+        with open(cache_path, 'w') as f:
+            json.dump(self.dataset_discrete, f)
 
     def __len__(self):
         return len(self.dataset)
     
     def __getitem__(self, idx):
         path = self.dataset[idx]
-        wav, _ = apply_effects_file(str(path), EFFECTS)
-        wav = wav.squeeze(0)
-        length = wav.shape[0]
-        
-        if self.max_timestep != None:
-            if length > self.max_timestep:
-                start = random.randint(0, int(length - self.max_timestep))
-                wav = wav[start : start + self.max_timestep]
-
         tags = Path(path).parts[-3:]
         utterance_id = "-".join(tags).replace(".wav", "")
         label = self.all_speakers.index(tags[0])
-        return wav.numpy(), utterance_id, label
+        
+        if self.load_discrete:
+            return self.dataset_discrete[str(path)], utterance_id, label
+        else:
+            wav, _ = apply_effects_file(str(path), EFFECTS)
+            wav = wav.squeeze(0)
+            length = wav.shape[0]
+            
+            if self.max_timestep != None:
+                if length > self.max_timestep:
+                    start = random.randint(0, int(length - self.max_timestep))
+                    wav = wav[start : start + self.max_timestep]
+            return wav.numpy(), utterance_id, label
         
     def collate_fn(self, samples):
         return zip(*samples)
 
 
 class SpeakerVerifi_test(Dataset):
-    def __init__(self, vad_config, file_path, meta_data):
+    def __init__(self, vad_config, file_path, meta_data, load_discrete=True):
         self.root = file_path
         self.meta_data = meta_data
         self.necessary_dict = self.processing()
         self.vad_c = vad_config 
         self.dataset = self.necessary_dict['spk_paths']
         self.pair_table = self.necessary_dict['pair_table']
+        self.load_discrete = load_discrete
+        if self.load_discrete:
+            self.split = "test" if "test" in self.meta_data else "dev"
+            self.preprocess_discrete_dinosr(redo=True)
+
         
     def processing(self):
         pair_table = []
@@ -115,6 +184,38 @@ class SpeakerVerifi_test(Dataset):
             "total_spk_num": None,
             "pair_table": pair_table
         }
+        
+    def preprocess_discrete_dinosr(self, redo=False):
+        # Create cache directory if it doesn't exist
+        cache_dir = Path("/mnt/andy9_liu/dataset/preprocessed_cache")
+        cache_dir.mkdir(exist_ok=True)
+        cache_path = cache_dir / f"discrete_units_voxceleb1_dinosr_{self.split}.json"
+        
+        # Try to load from cache
+        if not redo and cache_path.exists():
+            print(f"Loading cached preprocessed data from {cache_path}")
+            with open(cache_path, 'r') as f:
+                self.dataset_discrete = json.load(f)
+            return
+
+        code_path = '/mnt/andy9_liu/fairseq/examples/dinosr'
+        ckpt_path = '/mnt/andy9_liu/fairseq/examples/dinosr/dinosr.ckpt'
+        device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+        dinosr_model = get_dinosr_model(code_path, ckpt_path, device)
+       
+        self.dataset_discrete = {}
+        for path in tqdm(self.dataset):
+            wav, _ = apply_effects_file(str(path), EFFECTS)
+            unit = extract_unit_from_wav_normalized(dinosr_model, device, wav)
+            if len(unit) > 1095: # max_seq_length of mlm
+                unit = unit[:1095]
+            unit_str = '_'.join(map(str, unit))
+            self.dataset_discrete[str(path)] = unit_str
+            
+        # Save results to cache
+        print(f"Saving preprocessed data to cache: {cache_path}")
+        with open(cache_path, 'w') as f:
+            json.dump(self.dataset_discrete, f)
 
     def __len__(self):
         return len(self.necessary_dict['spk_paths'])
@@ -122,13 +223,13 @@ class SpeakerVerifi_test(Dataset):
     def __getitem__(self, idx):
         x_path = self.dataset[idx]
 
-        x_name = x_path
-
-        wav, _ = apply_effects_file(x_path, EFFECTS)
-
-        wav = wav.squeeze(0)
-
-        return wav.numpy(), x_name
+        if self.load_discrete:
+            return self.dataset_discrete[str(x_path)], x_path
+        else:
+            x_name = x_path
+            wav, _ = apply_effects_file(x_path, EFFECTS)
+            wav = wav.squeeze(0)
+            return wav.numpy(), x_name
 
     def collate_fn(self, data_sample):
         wavs, x_names = zip(*data_sample)
