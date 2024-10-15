@@ -21,8 +21,12 @@ optimizer:
 # Testing:
 # python run_downstream.py -m evaluate -t "test-clean" -e result/downstream/asr-libri-960-dinosr-mlm-500-1e5/dev-clean-best.ckpt
 
-# Exp
+# Training
 # CUDA_VISIBLE_DEVICES=6 python run_downstream.py -m train -u mlm_base_w003 -d asr -a -n asr-libri-960-dinosr-mlm-500-w003-5e5-s42-a2 -o "config.optimizer.lr=5.0e-5,,config.runner.gradient_accumulate_steps=2" --seed=42 && CUDA_VISIBLE_DEVICES=6 python run_downstream.py -m train -u mlm_base_w003 -d asr -a -n asr-libri-960-dinosr-mlm-500-w003-5e5-s42 -o "config.optimizer.lr=5.0e-5" --seed=42
+# Testing
+# python run_downstream.py -m evaluate -t "test-clean" -e result/downstream/asr-libri-960-dinosr-mlm-500-w003-1e4-s42-a2/dev-clean-best.ckpt
+# Testing with LM
+# python run_downstream.py -m evaluate -t "test-clean" -e result/downstream/asr-libri-960-dinosr-mlm-500-w003-1e4-s42-a2/dev-clean-best.ckpt -o "config.downstream_expert.datarc.decoder_args.decoder_type='kenlm',,config.downstream_expert.datarc.decoder_args.kenlm_model='/mnt/andy9_liu/dataset/LibriSpeech/4-gram.arpa.gz',,config.downstream_expert.datarc.decoder_args.lexicon='/mnt/andy9_liu/dataset/LibriSpeech/librispeech_lexicon.lst'"
 
 # comment the whole scheduler config block
 # to disable learning rate scheduling

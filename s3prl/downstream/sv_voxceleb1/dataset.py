@@ -91,19 +91,20 @@ class SpeakerVerifi_train(Dataset):
         self.speaker_num = len(self.all_speakers)
         self.load_discrete = load_discrete
         if self.load_discrete:
-            self.preprocess_discrete_dinosr(redo=True)
+            self.preprocess_discrete_dinosr(redo=False)
+            self.preprocess_dataset_to_discrete()
 
     def preprocess_discrete_dinosr(self, redo=False):
         # Create cache directory if it doesn't exist
         cache_dir = Path("/mnt/andy9_liu/dataset/preprocessed_cache")
         cache_dir.mkdir(exist_ok=True)
-        cache_path = cache_dir / f"discrete_units_voxceleb1_dinosr_train.json"
+        cache_path = cache_dir / f"discrete_units_voxceleb1_dinosr_no_truncation_train.json"
         
         # Try to load from cache
         if not redo and cache_path.exists():
             print(f"Loading cached preprocessed data from {cache_path}")
             with open(cache_path, 'r') as f:
-                self.dataset_discrete = json.load(f)
+                self.path_to_discrete = json.load(f)
             return
     
         code_path = '/mnt/andy9_liu/fairseq/examples/dinosr'
@@ -111,33 +112,38 @@ class SpeakerVerifi_train(Dataset):
         device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
         dinosr_model = get_dinosr_model(code_path, ckpt_path, device)
        
-        self.dataset_discrete = {}
+        self.path_to_discrete = {}
         for path in tqdm(self.dataset):
             wav, _ = apply_effects_file(str(path), EFFECTS)
             unit = extract_unit_from_wav_normalized(dinosr_model, device, wav)
-            if len(unit) > 1095: # max_seq_length of mlm
-                start = random.randint(0, len(unit) - 1095)
-                unit = unit[start : start + 1095]
             unit_str = '_'.join(map(str, unit))
-            self.dataset_discrete[str(path)] = unit_str
+            self.path_to_discrete[str(path)] = unit_str
             
         # Save results to cache
         print(f"Saving preprocessed data to cache: {cache_path}")
         with open(cache_path, 'w') as f:
-            json.dump(self.dataset_discrete, f)
+            json.dump(self.path_to_discrete, f)
+            
+    def preprocess_dataset_to_discrete(self):
+        self.discrete_dataset = []
+        for path in tqdm(self.dataset):
+            tags = Path(path).parts[-3:]
+            utterance_id = "-".join(tags).replace(".wav", "")
+            label = self.all_speakers.index(tags[0])
+            self.discrete_dataset.append((self.path_to_discrete[str(path)], utterance_id, label))
 
     def __len__(self):
         return len(self.dataset)
     
     def __getitem__(self, idx):
-        path = self.dataset[idx]
-        tags = Path(path).parts[-3:]
-        utterance_id = "-".join(tags).replace(".wav", "")
-        label = self.all_speakers.index(tags[0])
-        
         if self.load_discrete:
-            return self.dataset_discrete[str(path)], utterance_id, label
+            discrete, utterance_id, label = self.discrete_dataset[idx]
+            return discrete, utterance_id, label
         else:
+            path = self.dataset[idx]
+            tags = Path(path).parts[-3:]
+            utterance_id = "-".join(tags).replace(".wav", "")
+            label = self.all_speakers.index(tags[0])
             wav, _ = apply_effects_file(str(path), EFFECTS)
             wav = wav.squeeze(0)
             length = wav.shape[0]
@@ -163,7 +169,7 @@ class SpeakerVerifi_test(Dataset):
         self.load_discrete = load_discrete
         if self.load_discrete:
             self.split = "test" if "test" in self.meta_data else "dev"
-            self.preprocess_discrete_dinosr(redo=True)
+            self.preprocess_discrete_dinosr(redo=False)
 
         
     def processing(self):
@@ -189,13 +195,13 @@ class SpeakerVerifi_test(Dataset):
         # Create cache directory if it doesn't exist
         cache_dir = Path("/mnt/andy9_liu/dataset/preprocessed_cache")
         cache_dir.mkdir(exist_ok=True)
-        cache_path = cache_dir / f"discrete_units_voxceleb1_dinosr_{self.split}.json"
+        cache_path = cache_dir / f"discrete_units_voxceleb1_dinosr_no_truncation_{self.split}.json"
         
         # Try to load from cache
         if not redo and cache_path.exists():
             print(f"Loading cached preprocessed data from {cache_path}")
             with open(cache_path, 'r') as f:
-                self.dataset_discrete = json.load(f)
+                self.path_to_discrete = json.load(f)
             return
 
         code_path = '/mnt/andy9_liu/fairseq/examples/dinosr'
@@ -203,19 +209,17 @@ class SpeakerVerifi_test(Dataset):
         device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
         dinosr_model = get_dinosr_model(code_path, ckpt_path, device)
        
-        self.dataset_discrete = {}
+        self.path_to_discrete = {}
         for path in tqdm(self.dataset):
             wav, _ = apply_effects_file(str(path), EFFECTS)
             unit = extract_unit_from_wav_normalized(dinosr_model, device, wav)
-            if len(unit) > 1095: # max_seq_length of mlm
-                unit = unit[:1095]
             unit_str = '_'.join(map(str, unit))
-            self.dataset_discrete[str(path)] = unit_str
+            self.path_to_discrete[str(path)] = unit_str
             
         # Save results to cache
         print(f"Saving preprocessed data to cache: {cache_path}")
         with open(cache_path, 'w') as f:
-            json.dump(self.dataset_discrete, f)
+            json.dump(self.path_to_discrete, f)
 
     def __len__(self):
         return len(self.necessary_dict['spk_paths'])
@@ -224,7 +228,7 @@ class SpeakerVerifi_test(Dataset):
         x_path = self.dataset[idx]
 
         if self.load_discrete:
-            return self.dataset_discrete[str(x_path)], x_path
+            return self.path_to_discrete[str(x_path)], x_path
         else:
             x_name = x_path
             wav, _ = apply_effects_file(x_path, EFFECTS)
