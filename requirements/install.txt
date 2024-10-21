@@ -4,7 +4,7 @@ tqdm >=4.56.0
 numpy >=1.21,<2.0.0
 PyYAML >=5.4.1
 filelock
-omegaconf >=2.1.1
+omegaconf ==2.0.6
 setuptools >=65.5.1
 requests
 transformers
