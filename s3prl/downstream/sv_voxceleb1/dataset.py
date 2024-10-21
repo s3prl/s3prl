@@ -21,7 +21,7 @@ EFFECTS = [
 import sys
 import argparse
 import torch.nn.functional as F
-sys.path.append("/mnt/andy9_liu/work/fairseq")
+sys.path.append("/home/ai611/fairseq")
 import fairseq
 
 def get_dinosr_model(code_path, ckpt_path, device="cup"):
@@ -96,7 +96,7 @@ class SpeakerVerifi_train(Dataset):
 
     def preprocess_discrete_dinosr(self, redo=False):
         # Create cache directory if it doesn't exist
-        cache_dir = Path("/mnt/andy9_liu/dataset/preprocessed_cache")
+        cache_dir = Path("/home/ai611/dataset/preprocessed_cache")
         cache_dir.mkdir(exist_ok=True)
         cache_path = cache_dir / f"discrete_units_voxceleb1_dinosr_no_truncation_train.json"
         
@@ -107,8 +107,8 @@ class SpeakerVerifi_train(Dataset):
                 self.path_to_discrete = json.load(f)
             return
     
-        code_path = '/mnt/andy9_liu/fairseq/examples/dinosr'
-        ckpt_path = '/mnt/andy9_liu/fairseq/examples/dinosr/dinosr.ckpt'
+        code_path = '/home/ai611/fairseq/examples/dinosr'
+        ckpt_path = '/home/ai611/fairseq/examples/dinosr/dinosr.ckpt'
         device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
         dinosr_model = get_dinosr_model(code_path, ckpt_path, device)
        
@@ -193,7 +193,7 @@ class SpeakerVerifi_test(Dataset):
         
     def preprocess_discrete_dinosr(self, redo=False):
         # Create cache directory if it doesn't exist
-        cache_dir = Path("/mnt/andy9_liu/dataset/preprocessed_cache")
+        cache_dir = Path("/home/ai611/dataset/preprocessed_cache")
         cache_dir.mkdir(exist_ok=True)
         cache_path = cache_dir / f"discrete_units_voxceleb1_dinosr_no_truncation_{self.split}.json"
         
@@ -204,8 +204,8 @@ class SpeakerVerifi_test(Dataset):
                 self.path_to_discrete = json.load(f)
             return
 
-        code_path = '/mnt/andy9_liu/fairseq/examples/dinosr'
-        ckpt_path = '/mnt/andy9_liu/fairseq/examples/dinosr/dinosr.ckpt'
+        code_path = '/home/ai611/fairseq/examples/dinosr'
+        ckpt_path = '/home/ai611/fairseq/examples/dinosr/dinosr.ckpt'
         device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
         dinosr_model = get_dinosr_model(code_path, ckpt_path, device)
        
