@@ -40,7 +40,7 @@ def mlm_base(**kwargs):
         pre-training data: 960 hours
         discrete model: DinoSR
     """
-    kwargs["ckpt"] = "/mnt/andy9_liu/model/libri-960-dinosr-mlm-500/"
+    kwargs["ckpt"] = "/home/ai611/model/libri-960-dinosr-mlm-500/"
     return mlm_custom(**kwargs)
 
 def mlm20_base(**kwargs):
@@ -50,7 +50,7 @@ def mlm20_base(**kwargs):
         pre-training data: 960 hours
         discrete model: DinoSR
     """
-    kwargs["ckpt"] = "/mnt/andy9_liu/model/libri-960-dinosr-mlm20-500/"
+    kwargs["ckpt"] = "/home/ai611/model/libri-960-dinosr-mlm20-500/"
     return mlm_custom(**kwargs)
 
 def mlm_base_w003(**kwargs):
@@ -60,5 +60,5 @@ def mlm_base_w003(**kwargs):
         pre-training data: 960 hours
         discrete model: DinoSR
     """
-    kwargs["ckpt"] = "/mnt/andy9_liu/model/libri-960-dinosr-mlm-500-w003/"
+    kwargs["ckpt"] = "/home/ai611/model/libri-960-dinosr-mlm-500-w003/"
     return mlm_custom(**kwargs)

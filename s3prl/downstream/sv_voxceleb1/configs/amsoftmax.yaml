@@ -29,7 +29,7 @@ downstream_expert:
     vad_config:
       min_sec: 32000
     
-    file_path: /mnt/andy9_liu/dataset/VoxCeleb1
+    file_path: /home/ai611/dataset/VoxCeleb1
     train_meta_data: ./downstream/sv_voxceleb1/dev_meta_data/dev_speaker_ids.txt
     dev_meta_data: ./downstream/sv_voxceleb1/dev_meta_data/dev_meta_data.txt
     test_meta_data: ./downstream/sv_voxceleb1/voxceleb1_test_v2.txt
