@@ -436,7 +436,7 @@ python3 run_downstream.py -m evaluate -e result/downstream/ExpName/dev-best.ckpt
 
     # prepare test
     cd $voxceleb1_root/test/
-    wget https://thor.robots.ox.ac.uk/~vgg/data/voxceleb/vox1a/vox1_test_wav.zip
+    wget https://huggingface.co/datasets/ProgramComputer/voxceleb/resolve/main/vox1/vox1_test_wav.zip
     unzip vox1_test_wav.zip
     ```
 
