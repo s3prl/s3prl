@@ -74,7 +74,7 @@ class SpeakerVerifi_train(Dataset):
                     return length
 
                 wav_paths = find_files(root)
-                wav_lengths = Parallel(n_jobs=n_jobs)(delayed(trimmed_length)(path) for path in tqdm.tqdm(wav_paths, desc="Preprocessing"))
+                wav_lengths = Parallel(n_jobs=n_jobs)(delayed(trimmed_length)(path) for path in tqdm(wav_paths, desc="Preprocessing"))
                 wav_tags = [Path(path).parts[-3:] for path in wav_paths]
                 torch.save([wav_tags, wav_lengths], str(cache_path))
             else:
