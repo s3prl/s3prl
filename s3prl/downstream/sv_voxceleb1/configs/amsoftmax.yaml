@@ -1,7 +1,7 @@
 runner:
   total_steps: 200000
   gradient_clipping: 1
-  gradient_accumulate_steps: 4
+  gradient_accumulate_steps: 2
 
   log_step: 500
   eval_step: 10000
@@ -35,7 +35,7 @@ downstream_expert:
     test_meta_data: ./downstream/sv_voxceleb1/voxceleb1_test_v2.txt
 
     max_timestep: 128000
-    train_batch_size: 128
+    train_batch_size: 256
     eval_batch_size: 1
     num_workers: 8
     load_discrete: True
