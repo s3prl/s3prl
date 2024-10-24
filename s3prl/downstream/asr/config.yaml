@@ -1,7 +1,7 @@
 runner:
   total_steps: 200000
   gradient_clipping: 1
-  gradient_accumulate_steps: 2
+  gradient_accumulate_steps: 1
   log_step: 100
   eval_step: 2000
   save_step: 500
@@ -58,8 +58,8 @@ downstream_expert:
     test-clean: ['test-clean']
     test-other: ['test-other']
     num_workers: 32
-    train_batch_size: 128
-    batch_size: 128
+    train_batch_size: 256
+    batch_size: 256
     eval_batch_size: 1
     libri_root: '/home/ai611/dataset/LibriSpeech'
     bucket_file: './data/librispeech/len_for_bucket'
