@@ -14,7 +14,7 @@ import torch.nn as nn
 from torch import Tensor
 from transformers import PreTrainedTokenizerFast
 from tokenizers import processors
-from transformers import RobertaModel
+from transformers import RobertaConfig, RobertaModel
 
 # Disable tokenizers parallelism to avoid warnings
 os.environ["TOKENIZERS_PARALLELISM"] = "false"
@@ -29,7 +29,10 @@ class UpstreamExpert(nn.Module):
         self.padding_idx = self.tokenizer.pad_token_id
 
         # Load the model
+        config = RobertaConfig.from_pretrained(os.path.join(ckpt, "config.json"))
+        print(config)
         self.model = RobertaModel.from_pretrained(ckpt,
+                                                  config=config,
                                                   use_safetensors=True,
                                                   add_pooling_layer=False)
         
