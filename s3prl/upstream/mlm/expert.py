@@ -31,6 +31,7 @@ class UpstreamExpert(nn.Module):
         # Load the model
         config = RobertaConfig.from_pretrained(os.path.join(ckpt, "config.json"))
         print(config)
+        self.model_max_length = config.max_position_embeddings - 2
         self.model = RobertaModel.from_pretrained(ckpt,
                                                   config=config,
                                                   use_safetensors=True,
@@ -76,7 +77,7 @@ class UpstreamExpert(nn.Module):
             add_special_tokens=True,
             padding='longest',
             truncation=True,
-            max_length=1095,
+            max_length=self.model_max_length,
             return_tensors='pt',
             return_attention_mask=True,
             return_length=False,
