@@ -25,7 +25,7 @@ class UpstreamExpert(nn.Module):
         self.name = "[MLM UpstreamExpert]"
 
         # Load the custom tokenizer
-        self.tokenizer = self.get_speech_tokenizer(os.path.join(ckpt, "tokenizer-dinosr.json"))
+        self.tokenizer = self.get_speech_tokenizer(os.path.join(ckpt, "tokenizer.json"))
         self.padding_idx = self.tokenizer.pad_token_id
 
         # Load the model
