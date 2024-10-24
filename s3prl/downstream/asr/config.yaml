@@ -15,7 +15,7 @@ optimizer:
   lr: 1.0e-4
 
 # Preprocessing:
-# python preprocess/generate_len_for_bucket.py -i "/mnt/andy9_liu/dataset/LibriSpeech" -o data/librispeech -a .flac --n_jobs 12
+# python preprocess/generate_len_for_bucket.py -i "/home/ai611/dataset/LibriSpeech" -o data/librispeech -a .flac --n_jobs 12
 # Training:
 # python run_downstream.py -m train -u mlm -d asr -a -n asr-libri-960-dinosr-mlm-500-1e5 -o config.optimizer.lr=1.0e-5
 # Testing:
@@ -26,7 +26,7 @@ optimizer:
 # Testing
 # python run_downstream.py -m evaluate -t "test-clean" -e result/downstream/asr-libri-960-dinosr-mlm-500-w003-1e4-s42-a2/dev-clean-best.ckpt
 # Testing with LM
-# python run_downstream.py -m evaluate -t "test-clean" -e result/downstream/asr-libri-960-dinosr-mlm-500-w003-1e4-s42-a2/dev-clean-best.ckpt -o "config.downstream_expert.datarc.decoder_args.decoder_type='kenlm',,config.downstream_expert.datarc.decoder_args.kenlm_model='/mnt/andy9_liu/dataset/LibriSpeech/4-gram.arpa.gz',,config.downstream_expert.datarc.decoder_args.lexicon='/mnt/andy9_liu/dataset/LibriSpeech/librispeech_lexicon.lst'"
+# python run_downstream.py -m evaluate -t "test-clean" -e result/downstream/asr-libri-960-dinosr-mlm-500-w003-1e4-s42-a2/dev-clean-best.ckpt -o "config.downstream_expert.datarc.decoder_args.decoder_type='kenlm',,config.downstream_expert.datarc.decoder_args.kenlm_model='/home/ai611/dataset/LibriSpeech/4-gram.arpa.gz',,config.downstream_expert.datarc.decoder_args.lexicon='/home/ai611/dataset/LibriSpeech/librispeech_lexicon.lst'"
 
 # comment the whole scheduler config block
 # to disable learning rate scheduling
@@ -61,11 +61,11 @@ downstream_expert:
     train_batch_size: 128
     batch_size: 128
     eval_batch_size: 1
-    libri_root: '/mnt/andy9_liu/dataset/LibriSpeech'
+    libri_root: '/home/ai611/dataset/LibriSpeech'
     bucket_file: './data/librispeech/len_for_bucket'
     dict_path: "./downstream/asr/char.dict"
     load_discrete: True
-    discrete_path: "/mnt/andy9_liu/dataset/librispeech-dinosr-tokens"
+    discrete_path: "/home/ai611/dataset/librispeech-hubert-tokens"
 
     zero_infinity: True
 

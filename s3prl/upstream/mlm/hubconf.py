@@ -30,30 +30,9 @@ def mlm(*args, **kwargs):
     The default model - Base
         refresh (bool): whether to download ckpt/config again if existed
     """
-    return mlm_base(*args, **kwargs)
+    return mlm_base_dinosr(*args, **kwargs)
 
-
-def mlm_base(**kwargs):
-    """
-    The Base model
-        vocab size: 500
-        pre-training data: 960 hours
-        discrete model: DinoSR
-    """
-    kwargs["ckpt"] = "/home/ai611/model/libri-960-dinosr-mlm-500/"
-    return mlm_custom(**kwargs)
-
-def mlm20_base(**kwargs):
-    """
-    The Base model with MLM probability of 0.20
-        vocab size: 500
-        pre-training data: 960 hours
-        discrete model: DinoSR
-    """
-    kwargs["ckpt"] = "/home/ai611/model/libri-960-dinosr-mlm20-500/"
-    return mlm_custom(**kwargs)
-
-def mlm_base_w003(**kwargs):
+def mlm_base_dinosr(**kwargs):
     """
     The Base model with weight_decay of 0.03
         vocab size: 500
@@ -61,4 +40,14 @@ def mlm_base_w003(**kwargs):
         discrete model: DinoSR
     """
     kwargs["ckpt"] = "/home/ai611/model/libri-960-dinosr-mlm-500-w003/"
+    return mlm_custom(**kwargs)
+
+def mlm_base_hubert(**kwargs):
+    """
+    The Base model with weight_decay of 0.03
+        vocab size: 1000
+        pre-training data: 960 hours
+        discrete model: HuBERT
+    """
+    kwargs["ckpt"] = "/home/ai611/model/libri-960-hubert-mlm-1000-w003/"
     return mlm_custom(**kwargs)
