@@ -49,5 +49,5 @@ def mlm_base_hubert(**kwargs):
         pre-training data: 960 hours
         discrete model: HuBERT
     """
-    kwargs["ckpt"] = "/home/ai611/model-temp/libri-960-hubert-mlm-1000-w003/"
+    kwargs["ckpt"] = "/home/ai611/model/libri-960-hubert-mlm-1000/"
     return mlm_custom(**kwargs)
