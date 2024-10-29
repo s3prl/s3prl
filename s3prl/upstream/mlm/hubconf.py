@@ -51,3 +51,13 @@ def mlm_base_hubert(**kwargs):
     """
     kwargs["ckpt"] = "/home/ai611/model/libri-960-hubert-mlm-1000/"
     return mlm_custom(**kwargs)
+
+def mlm_base_hubert_2x(**kwargs):
+    """
+    The Base model with weight_decay of 0.03
+        vocab size: 1000
+        pre-training data: 960 hours
+        discrete model: HuBERT
+    """
+    kwargs["ckpt"] = "/home/ai611/model/libri-960-hubert-mlm-1000-2x/"
+    return mlm_custom(**kwargs)
