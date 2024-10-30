@@ -239,7 +239,7 @@ The majority of S3PRL Toolkit is licensed under the Apache License version 2.0, 
 
 ### Adversarial Attack
 
-+ [Defense for Black-box Attacks on Anti-spoofing Models by Self-Supervised Learning (Wu et al., 2020)](https://arxiv.org/abs/2006.03214), code for computing LNSR: [utility/observe_lnsr.py](https://github.com/s3prl/s3prl/blob/master/utility/observe_lnsr.py)
++ [Defense for Black-box Attacks on Anti-spoofing Models by Self-Supervised Learning (Wu et al., 2020)](https://arxiv.org/abs/2006.03214), code for computing LNSR: [utility/observe_lnsr.py](https://github.com/s3prl/s3prl/blob/main/s3prl/utility/observe_lnsr.py)
   ```
   @inproceedings{mockingjay_defense,
       author={Haibin Wu and Andy T. Liu and Hung-yi Lee},
