@@ -23,7 +23,7 @@ optimizer:
 # Training
 # CUDA_VISIBLE_DEVICES=6 python run_downstream.py -m train -u mlm_base_w003 -d sv_voxceleb1 -a -n asv-libri-960-dinosr-mlm-500-w003-5e5-s42-b512 -o "config.optimizer.lr=5.0e-5" --seed=42
 # Testing
-# ./downstream/sv_voxceleb1/test_expdir.sh result/downstream/asv-libri-960-dinosr-mlm-500-w003-5e5-s42-b512
+# ./downstream/sv_voxceleb1/test_expdir.sh result/downstream/asv-libri-960-dinosr-mlm-500-w003-5e5-s42-b512 /home/ai611/dataset/VoxCeleb1/
 downstream_expert: 
   datarc:
     # In first time, we filter out utterances which shorter than two sec. (change config just influenced by cache files)
