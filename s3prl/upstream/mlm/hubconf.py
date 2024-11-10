@@ -43,11 +43,22 @@ def mlm_base_dinosr(**kwargs):
     kwargs["ckpt"] = "/home/ai611/model/libri-960-dinosr-mlm-500/"
     return mlm_custom(**kwargs)
 
+def mlm_base_dinosr_250(**kwargs):
+    """
+    The Base model -
+        weight_decay of 0.03
+        vocab size: 250
+        pre-training data: 960 hours
+        discrete model: DinoSR
+    """
+    kwargs["ckpt"] = "/home/ai611/model/libri-960-dinosr-mlm-250/"
+    return mlm_custom(**kwargs)
+
 def mlm_base_dinosr_1000(**kwargs):
     """
     The Base model -
         weight_decay of 0.03
-        vocab size: 500
+        vocab size: 1000
         pre-training data: 960 hours
         discrete model: DinoSR
     """
@@ -76,14 +87,14 @@ def mlm_base_hubert_1000(**kwargs):
     kwargs["ckpt"] = "/home/ai611/model/libri-960-hubert-mlm-1000/"
     return mlm_custom(**kwargs)
 
-def mlm_base_hubert_2x(**kwargs):
+def mlm_base_hubert_2000(**kwargs):
     """
     The Base model -
         weight_decay of 0.03
-        vocab size: 1000
+        vocab size: 2000
         pre-training data: 960 hours
         discrete model: HuBERT
         max_seq_length: 2x
     """
-    kwargs["ckpt"] = "/home/ai611/model/libri-960-hubert-mlm-1000-2x/"
+    kwargs["ckpt"] = "/home/ai611/model/libri-960-hubert-mlm-2000/"
     return mlm_custom(**kwargs)
