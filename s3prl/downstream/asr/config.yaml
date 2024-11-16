@@ -65,7 +65,7 @@ downstream_expert:
     bucket_file: './data/librispeech/len_for_bucket'
     dict_path: "./downstream/asr/char.dict"
     load_discrete: True
-    discrete_path: "/home/ai611/dataset/librispeech-hubert-tokens"
+    discrete_path: "/home/ai611/dataset/librispeech-dinosr-tokens"
 
     zero_infinity: True
 
