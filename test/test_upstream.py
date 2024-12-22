@@ -40,7 +40,7 @@ def _prepare_sample_hidden_states():
         # NOTE: home variable is necessary for git lfs to work
         env = dict(os.environ)
         if not "HOME" in env:
-            env["HOME"] = Path.home()
+            env["HOME"] = str(Path.home())
 
         if not EXTRACTED_GT_DIR.is_dir():
             with tempfile.TemporaryDirectory() as tempdir:
@@ -95,7 +95,11 @@ def _all_hidden_states_same(hs1, hs2):
 def _load_ground_truth(name: str):
     source = f"{EXTRACTED_GT_DIR}/{name}.pt"
     if source.startswith("http"):
-        path = _urls_to_filepaths(source)
+        paths = _urls_to_filepaths(source)
+        if isinstance(paths, list):
+            path = paths[0]
+        else:
+            path = paths
     else:
         path = source
     return torch.load(path)
@@ -139,9 +143,9 @@ def _test_forward_backward(name: str, **pseudo_wavs_args):
     with torch.autograd.set_detect_anomaly(True):
         model = S3PRLUpstream(name)
         hs = _extract_feat(model, **pseudo_wavs_args)
-        h_sum = 0
+        h_sum = torch.zeros(1)
         for h in hs:
-            h_sum = h_sum + h.sum()
+            h_sum: torch.Tensor = h_sum + h.sum()
         h_sum.backward()
 
 

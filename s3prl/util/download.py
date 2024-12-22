@@ -65,6 +65,7 @@ def _download_url_to_file(url, dst, hash_prefix=None, progress=True):
     f = tempfile.NamedTemporaryFile(delete=False, dir=dst_dir)
 
     try:
+        sha256 = None
         if hash_prefix is not None:
             sha256 = hashlib.sha256()
 
@@ -82,12 +83,12 @@ def _download_url_to_file(url, dst, hash_prefix=None, progress=True):
                 if len(buffer) == 0:
                     break
                 f.write(buffer)
-                if hash_prefix is not None:
+                if hash_prefix is not None and sha256 is not None:
                     sha256.update(buffer)
                 pbar.update(len(buffer))
 
         f.close()
-        if hash_prefix is not None:
+        if hash_prefix is not None and sha256 is not None:
             digest = sha256.hexdigest()
             if digest[: len(hash_prefix)] != hash_prefix:
                 raise RuntimeError(
@@ -115,6 +116,7 @@ def _download_url_to_file_requests(url, dst, hash_prefix=None, progress=True):
     f = tempfile.NamedTemporaryFile(delete=False, dir=dst_dir)
 
     try:
+        sha256 = None
         if hash_prefix is not None:
             sha256 = hashlib.sha256()
 
@@ -136,12 +138,12 @@ def _download_url_to_file_requests(url, dst, hash_prefix=None, progress=True):
                     f.write(chunk)
                     f.flush()
                     os.fsync(f.fileno())
-                    if hash_prefix is not None:
+                    if hash_prefix is not None and sha256 is not None:
                         sha256.update(chunk)
                     pbar.update(len(chunk))
 
         f.close()
-        if hash_prefix is not None:
+        if hash_prefix is not None and sha256 is not None:
             digest = sha256.hexdigest()
             if digest[: len(hash_prefix)] != hash_prefix:
                 raise RuntimeError(
