@@ -14,18 +14,18 @@ jobs:
       fail-fast: false
       matrix:
         os: [ubuntu-20.04]
-        python-version: [3.8]
-        torchaudio-version: [0.8.1, 0.9.1, 0.10.2, 0.11.0, 0.12.1, 0.13.1, 2.0.2, 2.1.0]
+        python-version: ["3.10"]
+        torchaudio-version: [0.13.1, 2.0.1, 2.1.2, 2.2.2, 2.3.1, 2.4.0]
         include:
           - os: ubuntu-20.04
-            python-version: 3.7
-            torchaudio-version: 0.11.0
-          - os: ubuntu-20.04
             python-version: 3.9
-            torchaudio-version: 0.8.1
+            torchaudio-version: 0.13.1
           - os: ubuntu-20.04
-            python-version: "3.10"  # if not quoted, will be interpreted as 3.1
-            torchaudio-version: 0.11.0
+            python-version: "3.11"
+            torchaudio-version: 2.1.2
+          - os: ubuntu-20.04
+            python-version: "3.12"  # if not quoted, will be interpreted as 3.1
+            torchaudio-version: 2.3.1
 
     runs-on: ${{ matrix.os }}
 
@@ -62,11 +62,4 @@ jobs:
 
     - name: Run tox for common upstream
       run: |
-        tox -e common_upstream-audio${{ matrix.torchaudio-version }} -- -k test_few_upstream
-
-    # Not all upstreams will be tested on CI since this will take too much time
-    # To test all upstreams, run tox locally with '-e all_upstream'
-
-    # - name: Run tox for all other functionalities
-    #   run: |
-    #     tox -e all_others-deps_all-audio${{ matrix.torchaudio-version }}
+        tox -e common_upstream-audio${{ matrix.torchaudio-version }}

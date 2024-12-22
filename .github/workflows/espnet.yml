@@ -14,8 +14,8 @@ jobs:
       fail-fast: false
       matrix:
         os: [ubuntu-20.04]
-        python-version: [3.8]
-        torchaudio-version: [0.12.1, 0.13.1, 2.0.2, 2.1.0]
+        python-version: ["3.10"]
+        torchaudio-version: [0.13.1, 2.0.1, 2.1.2, 2.2.2, 2.3.1, 2.4.0]
           # espnet use 'torchaudio.models.hubert_pretrain_model' with 'feature_grad_mult' option
           # which is available after torchaudio==0.12.0
 
@@ -50,11 +50,4 @@ jobs:
 
     - name: Run tox for common upstream
       run: |
-        tox -e common_upstream-audio${{ matrix.torchaudio-version }}-espnet -- -k test_specific_upstream --upstream_names espnet_hubert_base_iter1
-
-    # Not all upstreams will be tested on CI since this will take too much time
-    # To test all upstreams, run tox locally with '-e all_upstream'
-
-    # - name: Run tox for all other functionalities
-    #   run: |
-    #     tox -e all_others-deps_all-audio${{ matrix.torchaudio-version }}
+        tox -e espnet-audio${{ matrix.torchaudio-version }}
