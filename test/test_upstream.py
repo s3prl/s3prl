@@ -241,6 +241,31 @@ def test_common_upstream(name):
 
 
 @pytest.mark.upstream
+@pytest.mark.parametrize(
+    "name",
+    [
+        "apc",
+        "audio_albert",
+        "decoar2",
+        "distilhubert",
+        # "espnet_hubert_base_iter1",  # espnet will be tested separately due to complex dependency
+        "hubert",
+        "mockingjay",
+    ],
+)
+def test_few_upstream(name):
+    if "espnet" in name:
+        try:
+            import espnet
+        except:
+            logger.info("Skip ESPNet upstream test cases if espnet is not installed")
+            return
+
+    _prepare_sample_hidden_states()
+    _test_specific_upstream(name)
+
+
+@pytest.mark.upstream
 def test_specific_upstream(upstream_names: str):
     _prepare_sample_hidden_states()
     if upstream_names is not None:
