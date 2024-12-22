@@ -52,6 +52,9 @@ jobs:
       run: |
         ./ci/format.py --check
 
+    - name: Clean Docker space
+      run: docker system prune -af
+
     # This can be very helpful for debugging
     # The action can create a SSH server for you to connect. After you
     # log into the machine hosted by GitHub, it becomes easy to debug

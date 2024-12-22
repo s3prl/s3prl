@@ -64,7 +64,9 @@ def get_pseudo_wavs(
     wavs = []
     wavs_len = []
     for _ in range(n):
-        wav_length = random.randint(min_secs * sample_rate, max_secs * sample_rate)
+        wav_length = random.randint(
+            round(min_secs * sample_rate), round(max_secs * sample_rate)
+        )
         wav = torch.randn(wav_length, requires_grad=True).to(device)
         wavs_len.append(wav_length)
         wavs.append(wav)
