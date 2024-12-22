@@ -62,4 +62,4 @@ jobs:
 
     - name: Run tox for common upstream
       run: |
-        tox -e few_upstream-audio${{ matrix.torchaudio-version }}
+        tox -e common_upstream-audio${{ matrix.torchaudio-version }}
