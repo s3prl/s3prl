@@ -399,7 +399,9 @@
     <span class="n">wavs</span> <span class="o">=</span> <span class="p">[]</span>
     <span class="n">wavs_len</span> <span class="o">=</span> <span class="p">[]</span>
     <span class="k">for</span> <span class="n">_</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">n</span><span class="p">):</span>
-        <span class="n">wav_length</span> <span class="o">=</span> <span class="n">random</span><span class="o">.</span><span class="n">randint</span><span class="p">(</span><span class="n">min_secs</span> <span class="o">*</span> <span class="n">sample_rate</span><span class="p">,</span> <span class="n">max_secs</span> <span class="o">*</span> <span class="n">sample_rate</span><span class="p">)</span>
+        <span class="n">wav_length</span> <span class="o">=</span> <span class="n">random</span><span class="o">.</span><span class="n">randint</span><span class="p">(</span>
+            <span class="nb">round</span><span class="p">(</span><span class="n">min_secs</span> <span class="o">*</span> <span class="n">sample_rate</span><span class="p">),</span> <span class="nb">round</span><span class="p">(</span><span class="n">max_secs</span> <span class="o">*</span> <span class="n">sample_rate</span><span class="p">)</span>
+        <span class="p">)</span>
         <span class="n">wav</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">randn</span><span class="p">(</span><span class="n">wav_length</span><span class="p">,</span> <span class="n">requires_grad</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span><span class="o">.</span><span class="n">to</span><span class="p">(</span><span class="n">device</span><span class="p">)</span>
         <span class="n">wavs_len</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">wav_length</span><span class="p">)</span>
         <span class="n">wavs</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">wav</span><span class="p">)</span>
