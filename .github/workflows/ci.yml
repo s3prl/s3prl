@@ -19,13 +19,13 @@ jobs:
         include:
           - os: ubuntu-20.04
             python-version: 3.9
-            torchaudio-version: 2.4.0
+            torchaudio-version: 0.13.1
           - os: ubuntu-20.04
             python-version: "3.11"
-            torchaudio-version: 2.2.2
+            torchaudio-version: 2.1.2
           - os: ubuntu-20.04
             python-version: "3.12"  # if not quoted, will be interpreted as 3.1
-            torchaudio-version: 0.13.1
+            torchaudio-version: 2.3.1
 
     runs-on: ${{ matrix.os }}
 
