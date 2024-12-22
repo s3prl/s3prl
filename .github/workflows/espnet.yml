@@ -14,7 +14,7 @@ jobs:
       fail-fast: false
       matrix:
         os: [ubuntu-20.04]
-        python-version: [3.10]
+        python-version: ["3.10"]
         torchaudio-version: [0.13.1, 2.0.1, 2.1.2, 2.2.2, 2.3.1, 2.4.0]
           # espnet use 'torchaudio.models.hubert_pretrain_model' with 'feature_grad_mult' option
           # which is available after torchaudio==0.12.0
