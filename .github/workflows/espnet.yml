@@ -8,7 +8,7 @@ on:
   pull_request:
 
 jobs:
-  build-and-test:
+  espnet-upstream:
 
     strategy:
       fail-fast: false
