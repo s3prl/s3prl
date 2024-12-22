@@ -62,7 +62,7 @@ jobs:
 
     - name: Run tox for common upstream
       run: |
-        tox -e common_upstream-audio${{ matrix.torchaudio-version }} -- -k test_common_upstream
+        tox -e common_upstream-audio${{ matrix.torchaudio-version }} -- -k test_few_upstream
 
     # Not all upstreams will be tested on CI since this will take too much time
     # To test all upstreams, run tox locally with '-e all_upstream'
