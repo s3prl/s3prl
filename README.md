@@ -14,7 +14,7 @@
 We prefer to have discussions directly on Github issue page, so that all the information is transparent to all the contributors and is auto-archived on the Github.
 If you wish to use email, please contact:
 
-- [Shu-wen (Leo) Yang](https://leo19941227.github.io/) (leo19941227@gmail.com)
+- [Shu-wen Yang](https://leo19941227.github.io/) (leo19941227@gmail.com)
 - [Andy T. Liu](https://andi611.github.io/) (liuandyt@gmail.com)
 
 Please refer to the [legacy citation](https://scholar.google.com/citations?view_op=view_citation&hl=en&user=R1mNI8QAAAAJ&citation_for_view=R1mNI8QAAAAJ:LkGwnXOMwfcC) of S3PRL and the timeline below, which justify our initiative on this project. This information is used to protect us from half-truths. We encourage to cite the individual papers most related to the function you are using to give fair credit to the developer of the function. You can find the names in the [Change Log](#change-log). Finally, we would like to thank our advisor, [Prof. Hung-yi Lee](https://speech.ee.ntu.edu.tw/~hylee/index.php), for his advice. The project would be impossible without his support.
