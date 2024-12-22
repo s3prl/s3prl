@@ -40,9 +40,9 @@ We support the following environments. The test cases are ran with **[tox](./tox
 
 | Env | versions |
 | --- | --- |
-| os  | `ubuntu-18.04`, `ubuntu-20.04` |
-| python | `3.7`, `3.8`, `3.9`, `3.10` |
-| pytorch | `1.8.1`, `1.9.1`, `1.10.2`, `1.11.0`, `1.12.1` , `1.13.1` , `2.0.1` , `2.1.0` |
+| os  | `ubuntu-20.04` |
+| python | `3.9`, `3.10`, `3.11`, `3.12` |
+| pytorch | `1.13.1` , `2.0.1` , `2.1.2`, `2.2.2`, `2.3.1`, `2.4.0` |
 
 ## Star History
 
