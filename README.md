@@ -337,15 +337,6 @@ If you find this toolkit useful, please consider citing following papers.
 
 - If you use our organized upstream interface and features, or the *SUPERB* downstream benchmark, please consider citing the following:
 ```
-@article{yang2024large,
-  title={A Large-Scale Evaluation of Speech Foundation Models},
-  author={Yang, Shu-wen and Chang, Heng-Jui and Huang, Zili and Liu, Andy T and Lai, Cheng-I and Wu, Haibin and Shi, Jiatong and Chang, Xuankai and Tsai, Hsiang-Sheng and Huang, Wen-Chin and others},
-  journal={IEEE/ACM Transactions on Audio, Speech, and Language Processing},
-  year={2024},
-  publisher={IEEE}
-}
-```
-```
 @inproceedings{yang21c_interspeech,
   author={Shu-wen Yang and Po-Han Chi and Yung-Sung Chuang and Cheng-I Jeff Lai and Kushal Lakhotia and Yist Y. Lin and Andy T. Liu and Jiatong Shi and Xuankai Chang and Guan-Ting Lin and Tzu-Hsien Huang and Wei-Cheng Tseng and Ko-tik Lee and Da-Rong Liu and Zili Huang and Shuyan Dong and Shang-Wen Li and Shinji Watanabe and Abdelrahman Mohamed and Hung-yi Lee},
   title={{SUPERB: Speech Processing Universal PERformance Benchmark}},
@@ -353,5 +344,14 @@ If you find this toolkit useful, please consider citing following papers.
   booktitle={Proc. Interspeech 2021},
   pages={1194--1198},
   doi={10.21437/Interspeech.2021-1775}
+}
+```
+```
+@article{yang2024large,
+  title={A Large-Scale Evaluation of Speech Foundation Models},
+  author={Yang, Shu-wen and Chang, Heng-Jui and Huang, Zili and Liu, Andy T and Lai, Cheng-I and Wu, Haibin and Shi, Jiatong and Chang, Xuankai and Tsai, Hsiang-Sheng and Huang, Wen-Chin and others},
+  journal={IEEE/ACM Transactions on Audio, Speech, and Language Processing},
+  year={2024},
+  publisher={IEEE}
 }
 ```
