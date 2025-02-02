@@ -589,6 +589,7 @@ class ConformerWav2Vec2EncoderLayer(ConformerEncoderLayer):
         need_weights: bool = False,
         att_args=None,
         position_emb=None,
+        ffn_adapter=None,
     ):
         return super().forward(x, self_attn_padding_mask, position_emb)
 
@@ -2925,6 +2926,7 @@ class ConvFeatureExtractionModel(nn.Module):
             in_d = dim
 
     def forward(self, x):
+
         # BxT -> BxCxT
         x = x.unsqueeze(1)
 
@@ -2976,16 +2978,11 @@ class TransformerEncoder(nn.Module):
                 activation_fn="swish",
                 attn_type=args.attn_type,
                 use_fp16=args.fp16,
-                pos_enc_type="abs",
+                pos_enc_type=args.pos_enc_type,
             )
         return layer
 
-    def __init__(
-        self,
-        args: Wav2Vec2Config,
-        skip_pos_conv: bool = False,
-        override_encoder_layer: int = None,
-    ):
+    def __init__(self, args: Wav2Vec2Config):
         super().__init__()
 
         self.dropout = args.dropout
@@ -3022,8 +3019,6 @@ class TransformerEncoder(nn.Module):
                 self.embedding_dim, k, args.conv_pos_groups, num_layers
             )
 
-        elif skip_pos_conv:
-            self.pos_conv = None
         else:
             self.pos_conv = make_conv_pos(
                 self.embedding_dim,
@@ -3031,20 +3026,32 @@ class TransformerEncoder(nn.Module):
                 args.conv_pos_groups,
             )
 
-        if override_encoder_layer is None:
-            encoder_layers = args.encoder_layers
-        else:
-            encoder_layers = override_encoder_layer
-
         self.layers = nn.ModuleList(
-            [self.build_encoder_layer(args) for _ in range(encoder_layers)]
+            [self.build_encoder_layer(args) for _ in range(args.encoder_layers)]
         )
         self.layer_norm_first = args.layer_norm_first
         self.layer_norm = LayerNorm(self.embedding_dim)
         self.layerdrop = args.encoder_layerdrop
 
-    def forward(self, x, padding_mask=None, layer=None):
-        x, layer_results = self.extract_features(x, padding_mask, layer)
+    def forward(
+        self,
+        x,
+        padding_mask=None,
+        layer=None,
+        ffn_adapters=None,
+        freeze_pos=False,
+        freeze_layers=None,
+        disable_pos=False,
+    ):
+        x, layer_results = self.extract_features(
+            x,
+            padding_mask,
+            layer,
+            ffn_adapters=ffn_adapters,
+            freeze_pos=freeze_pos,
+            freeze_layers=freeze_layers,
+            disable_pos=disable_pos,
+        )
 
         if self.layer_norm_first and layer is None:
             x = self.layer_norm(x)
@@ -3057,17 +3064,30 @@ class TransformerEncoder(nn.Module):
         padding_mask=None,
         tgt_layer=None,
         min_layer=0,
+        ffn_adapters=None,
+        freeze_pos=False,
+        freeze_layers=None,
+        disable_pos=False,
     ):
+
         if padding_mask is not None:
             x = index_put(x, padding_mask, 0)
 
-        if self.pos_conv is not None:
-            x_conv = self.pos_conv(x.transpose(1, 2))
-            x_conv = x_conv.transpose(1, 2)
-            x = x + x_conv
-
-        if not self.layer_norm_first:
-            x = self.layer_norm(x)
+        if freeze_pos:
+            with torch.no_grad():
+                if not disable_pos:
+                    x_conv = self.pos_conv(x.transpose(1, 2))
+                    x_conv = x_conv.transpose(1, 2)
+                    x = x + x_conv
+                if not self.layer_norm_first:
+                    x = self.layer_norm(x)
+        else:
+            if not disable_pos:
+                x_conv = self.pos_conv(x.transpose(1, 2))
+                x_conv = x_conv.transpose(1, 2)
+                x = x + x_conv
+            if not self.layer_norm_first:
+                x = self.layer_norm(x)
 
         # pad to the sequence length dimension
         x, pad_length = pad_to_multiple(
@@ -3090,9 +3110,25 @@ class TransformerEncoder(nn.Module):
         for i, layer in enumerate(self.layers):
             dropout_probability = np.random.random() if self.layerdrop > 0 else 1
             if not self.training or (dropout_probability > self.layerdrop):
-                x, (z, lr) = layer(
-                    x, self_attn_padding_mask=padding_mask, need_weights=False
-                )
+                ffn_adapter = None
+                if ffn_adapters is not None:
+                    ffn_adapter = ffn_adapters[i]
+
+                if isinstance(freeze_layers, list) and i + 1 in freeze_layers:
+                    with torch.no_grad():
+                        x, (z, lr) = layer(
+                            x,
+                            self_attn_padding_mask=padding_mask,
+                            need_weights=False,
+                            ffn_adapter=ffn_adapter,
+                        )
+                else:
+                    x, (z, lr) = layer(
+                        x,
+                        self_attn_padding_mask=padding_mask,
+                        need_weights=False,
+                        ffn_adapter=ffn_adapter,
+                    )
                 if i >= min_layer:
                     layer_results.append((x, z, lr))
             if i == tgt_layer:
@@ -3228,6 +3264,7 @@ class TransformerSentenceEncoderLayer(nn.Module):
         activation_fn: str = "relu",
         layer_norm_first: bool = False,
     ) -> None:
+
         super().__init__()
         # Initialize parameters
         self.embedding_dim = embedding_dim
@@ -3264,6 +3301,7 @@ class TransformerSentenceEncoderLayer(nn.Module):
         self_attn_padding_mask: torch.Tensor = None,
         need_weights: bool = False,
         att_args=None,
+        ffn_adapter=None,
     ):
         """
         LayerNorm is applied either before or after the self-attention/ffn
@@ -3290,9 +3328,13 @@ class TransformerSentenceEncoderLayer(nn.Module):
             x = self.dropout2(x)
             x = self.fc2(x)
 
+            if ffn_adapter is not None:
+                x = ffn_adapter(x)
+
             layer_result = x
 
             x = self.dropout3(x)
+
             x = residual + x
         else:
             x, attn = self.self_attn(
@@ -3312,6 +3354,9 @@ class TransformerSentenceEncoderLayer(nn.Module):
             x = self.activation_fn(self.fc1(x))
             x = self.dropout2(x)
             x = self.fc2(x)
+
+            if ffn_adapter is not None:
+                x = ffn_adapter(x)
 
             layer_result = x
 

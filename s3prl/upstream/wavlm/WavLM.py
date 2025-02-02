@@ -357,6 +357,7 @@ class WavLM(nn.Module):
         output_layer: Optional[int] = None,
         ret_layer_results: bool = False,
     ):
+
         if self.feature_grad_mult > 0:
             features = self.feature_extractor(source)
             if self.feature_grad_mult != 1.0:
@@ -509,6 +510,7 @@ class ConvFeatureExtractionModel(nn.Module):
             pass
 
     def forward(self, x, mask=None):
+
         # BxT -> BxCxT
         x = x.unsqueeze(1)
         if self.conv_type == "custom":
@@ -588,8 +590,19 @@ class TransformerEncoder(nn.Module):
 
         self.apply(init_bert_params)
 
-    def forward(self, x, padding_mask=None, streaming_mask=None, layer=None):
-        x, layer_results = self.extract_features(x, padding_mask, streaming_mask, layer)
+    def forward(
+        self,
+        x,
+        padding_mask=None,
+        streaming_mask=None,
+        layer=None,
+        ffn_adapters=None,
+        freeze_pos=False,
+        freeze_layers=None,
+    ):
+        x, layer_results = self.extract_features(
+            x, padding_mask, streaming_mask, layer, ffn_adapters, freeze_pos=freeze_pos, freeze_layers=freeze_layers
+        )
 
         if self.layer_norm_first and layer is None:
             x = self.layer_norm(x)
@@ -597,14 +610,28 @@ class TransformerEncoder(nn.Module):
         return x, layer_results
 
     def extract_features(
-        self, x, padding_mask=None, streaming_mask=None, tgt_layer=None
+        self,
+        x,
+        padding_mask=None,
+        streaming_mask=None,
+        tgt_layer=None,
+        ffn_adapters=None,
+        freeze_pos=False,
+        freeze_layers=None,
     ):
+
         if padding_mask is not None:
             x[padding_mask] = 0
 
-        x_conv = self.pos_conv(x.transpose(1, 2))
-        x_conv = x_conv.transpose(1, 2)
-        x = x + x_conv
+        if freeze_pos:
+            with torch.no_grad():
+                x_conv = self.pos_conv(x.transpose(1, 2))
+                x_conv = x_conv.transpose(1, 2)
+                x = x + x_conv
+        else:
+            x_conv = self.pos_conv(x.transpose(1, 2))
+            x_conv = x_conv.transpose(1, 2)
+            x = x + x_conv
 
         if not self.layer_norm_first:
             x = self.layer_norm(x)
@@ -616,22 +643,39 @@ class TransformerEncoder(nn.Module):
 
         layer_results = []
         z = None
-        if tgt_layer is not None:
-            layer_results.append((x, z))
+        # if tgt_layer is not None:
+        #     layer_results.append((x, z))
         r = None
         pos_bias = None
         for i, layer in enumerate(self.layers):
             dropout_probability = np.random.random()
             if not self.training or (dropout_probability > self.layerdrop):
-                x, z, pos_bias = layer(
-                    x,
-                    self_attn_padding_mask=padding_mask,
-                    need_weights=False,
-                    self_attn_mask=streaming_mask,
-                    pos_bias=pos_bias,
-                )
-            if tgt_layer is not None:
-                layer_results.append((x, z))
+                ffn_adapter = None
+                if ffn_adapters is not None:
+                    ffn_adapter = ffn_adapters[i]
+
+                if isinstance(freeze_layers, list) and i + 1 in freeze_layers:
+                    with torch.no_grad():
+                        x, z, pos_bias = layer(
+                            x,
+                            self_attn_padding_mask=padding_mask,
+                            need_weights=False,
+                            self_attn_mask=streaming_mask,
+                            pos_bias=pos_bias,
+                            ffn_adapter=ffn_adapter,
+                        )
+                else:
+                    x, z, pos_bias = layer(
+                        x,
+                        self_attn_padding_mask=padding_mask,
+                        need_weights=False,
+                        self_attn_mask=streaming_mask,
+                        pos_bias=pos_bias,
+                        ffn_adapter=ffn_adapter,
+                    )
+            # if tgt_layer is not None:
+            #     layer_results.append((x, z))
+            layer_results.append((x, z))
             if i == tgt_layer:
                 r = x
                 break
@@ -667,6 +711,7 @@ class TransformerSentenceEncoderLayer(nn.Module):
         rescale_init: bool = False,
         gru_rel_pos: bool = False,
     ) -> None:
+
         super().__init__()
         # Initialize parameters
         self.embedding_dim = embedding_dim
@@ -713,6 +758,7 @@ class TransformerSentenceEncoderLayer(nn.Module):
         self_attn_padding_mask: torch.Tensor = None,
         need_weights: bool = False,
         pos_bias=None,
+        ffn_adapter=None,
     ):
         """
         LayerNorm is applied either before or after the self-attention/ffn
@@ -742,6 +788,10 @@ class TransformerSentenceEncoderLayer(nn.Module):
                 x = self.activation_fn(self.fc1(x))
             x = self.dropout2(x)
             x = self.fc2(x)
+
+            if ffn_adapter is not None:
+                x = ffn_adapter(x)
+
             x = self.dropout3(x)
             x = residual + x
         else:
@@ -767,6 +817,10 @@ class TransformerSentenceEncoderLayer(nn.Module):
                 x = self.activation_fn(self.fc1(x))
             x = self.dropout2(x)
             x = self.fc2(x)
+
+            if ffn_adapter is not None:
+                x = ffn_adapter(x)
+
             x = self.dropout3(x)
             x = residual + x
             x = self.final_layer_norm(x)
