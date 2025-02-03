@@ -2,5 +2,5 @@ parallel-wavegan
 fastdtw
 pyworld
 pysptk
-jiwer
+jiwer<4
 resemblyzer
