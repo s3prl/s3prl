@@ -37,6 +37,7 @@ from s3prl.upstream.wav2vec.hubconf import *
 from s3prl.upstream.wavlm.hubconf import *
 from s3prl.upstream.spin.hubconf import *
 from s3prl.upstream.spin_kmeans.hubconf import *
+from s3prl.upstream.vae.hubconf import *
 
 
 def options(only_registered_ckpt: bool = False):
