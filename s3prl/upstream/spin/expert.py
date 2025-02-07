@@ -30,7 +30,7 @@ class UpstreamExpert(UpstreamBase):
         ckpt = torch.load(ckpt_path, map_location="cpu")
         if "logger" in ckpt["hyper_parameters"]["trainer"]:
             del ckpt["hyper_parameters"]["trainer"]["logger"] 
-        torch.save(ckpt, ckpt_path)
+            torch.save(ckpt, ckpt_path)
 
         self.model = SpinModel.load_from_checkpoint(ckpt_path, strict=False)
         if self.model.encoder_type == "HuBERT":
