@@ -37,6 +37,7 @@ from s3prl.upstream.wav2vec.hubconf import *
 from s3prl.upstream.wavlm.hubconf import *
 from s3prl.upstream.spin.hubconf import *
 from s3prl.upstream.spin_kmeans.hubconf import *
+from s3prl.upstream.spin_pca.hubconf import *
 from s3prl.upstream.vae.hubconf import *
 
 
