@@ -340,17 +340,17 @@
 <span class="sd">  * Leo 2022</span>
 <span class="sd">&quot;&quot;&quot;</span>
 
-<span class="kn">import</span> <span class="nn">logging</span>
-<span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">List</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">logging</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">typing</span><span class="w"> </span><span class="kn">import</span> <span class="n">List</span>
 
-<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
-<span class="kn">import</span> <span class="nn">torch</span>
-<span class="kn">import</span> <span class="nn">torch.nn.functional</span> <span class="k">as</span> <span class="nn">F</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">torch</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">torch.nn.functional</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">F</span>
 
-<span class="kn">from</span> <span class="nn">s3prl.dataio.encoder.category</span> <span class="kn">import</span> <span class="n">CategoryEncoder</span><span class="p">,</span> <span class="n">CategoryEncoders</span>
-<span class="kn">from</span> <span class="nn">s3prl.metric</span> <span class="kn">import</span> <span class="n">accuracy</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">s3prl.dataio.encoder.category</span><span class="w"> </span><span class="kn">import</span> <span class="n">CategoryEncoder</span><span class="p">,</span> <span class="n">CategoryEncoders</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">s3prl.metric</span><span class="w"> </span><span class="kn">import</span> <span class="n">accuracy</span>
 
-<span class="kn">from</span> <span class="nn">.</span> <span class="kn">import</span> <span class="n">Task</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">.</span><span class="w"> </span><span class="kn">import</span> <span class="n">Task</span>
 
 <span class="n">logger</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="vm">__name__</span><span class="p">)</span>
 
@@ -360,27 +360,27 @@
 <span class="p">]</span>
 
 
-<div class="viewcode-block" id="UtteranceClassifierExample"><a class="viewcode-back" href="../../../_autosummary/s3prl.task.utterance_classification_task.html#s3prl.task.UtteranceClassifierExample">[docs]</a><span class="k">class</span> <span class="nc">UtteranceClassifierExample</span><span class="p">(</span><span class="n">torch</span><span class="o">.</span><span class="n">nn</span><span class="o">.</span><span class="n">Module</span><span class="p">):</span>
+<div class="viewcode-block" id="UtteranceClassifierExample"><a class="viewcode-back" href="../../../_autosummary/s3prl.task.utterance_classification_task.html#s3prl.task.UtteranceClassifierExample">[docs]</a><span class="k">class</span><span class="w"> </span><span class="nc">UtteranceClassifierExample</span><span class="p">(</span><span class="n">torch</span><span class="o">.</span><span class="n">nn</span><span class="o">.</span><span class="n">Module</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Attributes:</span>
 <span class="sd">        input_size: int</span>
 <span class="sd">        output_size: int</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
-    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">input_size</span><span class="o">=</span><span class="mi">3</span><span class="p">,</span> <span class="n">output_size</span><span class="o">=</span><span class="mi">4</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">input_size</span><span class="o">=</span><span class="mi">3</span><span class="p">,</span> <span class="n">output_size</span><span class="o">=</span><span class="mi">4</span><span class="p">):</span>
         <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">()</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_input_size</span> <span class="o">=</span> <span class="n">input_size</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_output_size</span> <span class="o">=</span> <span class="n">output_size</span>
 
     <span class="nd">@property</span>
-    <span class="k">def</span> <span class="nf">input_size</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">input_size</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_input_size</span>
 
     <span class="nd">@property</span>
-    <span class="k">def</span> <span class="nf">output_size</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">output_size</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_output_size</span>
 
-<div class="viewcode-block" id="UtteranceClassifierExample.forward"><a class="viewcode-back" href="../../../_autosummary/s3prl.task.utterance_classification_task.html#s3prl.task.UtteranceClassifierExample.forward">[docs]</a>    <span class="k">def</span> <span class="nf">forward</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">,</span> <span class="n">x_len</span><span class="p">):</span>
+<div class="viewcode-block" id="UtteranceClassifierExample.forward"><a class="viewcode-back" href="../../../_autosummary/s3prl.task.utterance_classification_task.html#s3prl.task.UtteranceClassifierExample.forward">[docs]</a>    <span class="k">def</span><span class="w"> </span><span class="nf">forward</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">,</span> <span class="n">x_len</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Args:</span>
 <span class="sd">            x (torch.Tensor): (batch_size, timestemps, input_size)</span>
@@ -394,14 +394,14 @@
         <span class="k">assert</span> <span class="n">output</span></div></div>
 
 
-<div class="viewcode-block" id="UtteranceClassificationTask"><a class="viewcode-back" href="../../../_autosummary/s3prl.task.utterance_classification_task.html#s3prl.task.UtteranceClassificationTask">[docs]</a><span class="k">class</span> <span class="nc">UtteranceClassificationTask</span><span class="p">(</span><span class="n">Task</span><span class="p">):</span>
+<div class="viewcode-block" id="UtteranceClassificationTask"><a class="viewcode-back" href="../../../_autosummary/s3prl.task.utterance_classification_task.html#s3prl.task.UtteranceClassificationTask">[docs]</a><span class="k">class</span><span class="w"> </span><span class="nc">UtteranceClassificationTask</span><span class="p">(</span><span class="n">Task</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Attributes:</span>
 <span class="sd">        input_size (int): defined by model.input_size</span>
 <span class="sd">        output_size (int): defined by len(categories)</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
-    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">model</span><span class="p">:</span> <span class="n">UtteranceClassifierExample</span><span class="p">,</span> <span class="n">category</span><span class="p">:</span> <span class="n">CategoryEncoder</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">model</span><span class="p">:</span> <span class="n">UtteranceClassifierExample</span><span class="p">,</span> <span class="n">category</span><span class="p">:</span> <span class="n">CategoryEncoder</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        model.output_size should match len(categories)</span>
 
@@ -418,7 +418,7 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">category</span> <span class="o">=</span> <span class="n">category</span>
         <span class="k">assert</span> <span class="bp">self</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">output_size</span> <span class="o">==</span> <span class="nb">len</span><span class="p">(</span><span class="n">category</span><span class="p">)</span>
 
-<div class="viewcode-block" id="UtteranceClassificationTask.predict"><a class="viewcode-back" href="../../../_autosummary/s3prl.task.utterance_classification_task.html#s3prl.task.UtteranceClassificationTask.predict">[docs]</a>    <span class="k">def</span> <span class="nf">predict</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">,</span> <span class="n">x_len</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">LongTensor</span><span class="p">):</span>
+<div class="viewcode-block" id="UtteranceClassificationTask.predict"><a class="viewcode-back" href="../../../_autosummary/s3prl.task.utterance_classification_task.html#s3prl.task.UtteranceClassificationTask.predict">[docs]</a>    <span class="k">def</span><span class="w"> </span><span class="nf">predict</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">,</span> <span class="n">x_len</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">LongTensor</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Args:</span>
 <span class="sd">            x (torch.Tensor): (batch_size, timestamps, input_size)</span>
@@ -435,7 +435,7 @@
         <span class="p">]</span>
         <span class="k">return</span> <span class="n">logits</span><span class="p">,</span> <span class="n">predictions</span></div>
 
-<div class="viewcode-block" id="UtteranceClassificationTask.forward"><a class="viewcode-back" href="../../../_autosummary/s3prl.task.utterance_classification_task.html#s3prl.task.UtteranceClassificationTask.forward">[docs]</a>    <span class="k">def</span> <span class="nf">forward</span><span class="p">(</span>
+<div class="viewcode-block" id="UtteranceClassificationTask.forward"><a class="viewcode-back" href="../../../_autosummary/s3prl.task.utterance_classification_task.html#s3prl.task.UtteranceClassificationTask.forward">[docs]</a>    <span class="k">def</span><span class="w"> </span><span class="nf">forward</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span>
         <span class="n">_mode</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
         <span class="n">x</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">,</span>
@@ -457,7 +457,7 @@
 
         <span class="k">return</span> <span class="n">loss</span><span class="p">,</span> <span class="n">cacheable</span></div>
 
-<div class="viewcode-block" id="UtteranceClassificationTask.reduction"><a class="viewcode-back" href="../../../_autosummary/s3prl.task.utterance_classification_task.html#s3prl.task.UtteranceClassificationTask.reduction">[docs]</a>    <span class="k">def</span> <span class="nf">reduction</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">_mode</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">cached_results</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="nb">dict</span><span class="p">],</span> <span class="n">_dump_dir</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="kc">None</span><span class="p">):</span>
+<div class="viewcode-block" id="UtteranceClassificationTask.reduction"><a class="viewcode-back" href="../../../_autosummary/s3prl.task.utterance_classification_task.html#s3prl.task.UtteranceClassificationTask.reduction">[docs]</a>    <span class="k">def</span><span class="w"> </span><span class="nf">reduction</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">_mode</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">cached_results</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="nb">dict</span><span class="p">],</span> <span class="n">_dump_dir</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="kc">None</span><span class="p">):</span>
         <span class="n">results</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">parse_cached_results</span><span class="p">(</span><span class="n">cached_results</span><span class="p">)</span>
         <span class="n">predictions</span> <span class="o">=</span> <span class="n">results</span><span class="p">[</span><span class="s2">&quot;prediction&quot;</span><span class="p">]</span>
         <span class="n">labels</span> <span class="o">=</span> <span class="n">results</span><span class="p">[</span><span class="s2">&quot;label&quot;</span><span class="p">]</span>
@@ -472,14 +472,14 @@
         <span class="p">)</span></div></div>
 
 
-<div class="viewcode-block" id="UtteranceMultiClassClassificationTask"><a class="viewcode-back" href="../../../_autosummary/s3prl.task.html#s3prl.task.UtteranceMultiClassClassificationTask">[docs]</a><span class="k">class</span> <span class="nc">UtteranceMultiClassClassificationTask</span><span class="p">(</span><span class="n">Task</span><span class="p">):</span>
-    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">model</span><span class="p">:</span> <span class="n">UtteranceClassifierExample</span><span class="p">,</span> <span class="n">categories</span><span class="p">:</span> <span class="n">CategoryEncoders</span><span class="p">):</span>
+<div class="viewcode-block" id="UtteranceMultiClassClassificationTask"><a class="viewcode-back" href="../../../_autosummary/s3prl.task.html#s3prl.task.UtteranceMultiClassClassificationTask">[docs]</a><span class="k">class</span><span class="w"> </span><span class="nc">UtteranceMultiClassClassificationTask</span><span class="p">(</span><span class="n">Task</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">model</span><span class="p">:</span> <span class="n">UtteranceClassifierExample</span><span class="p">,</span> <span class="n">categories</span><span class="p">:</span> <span class="n">CategoryEncoders</span><span class="p">):</span>
         <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">()</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">model</span> <span class="o">=</span> <span class="n">model</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">categories</span> <span class="o">=</span> <span class="n">categories</span>
         <span class="k">assert</span> <span class="bp">self</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">output_size</span> <span class="o">==</span> <span class="nb">len</span><span class="p">(</span><span class="n">categories</span><span class="p">)</span>
 
-<div class="viewcode-block" id="UtteranceMultiClassClassificationTask.predict"><a class="viewcode-back" href="../../../_autosummary/s3prl.task.html#s3prl.task.UtteranceMultiClassClassificationTask.predict">[docs]</a>    <span class="k">def</span> <span class="nf">predict</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">,</span> <span class="n">x_len</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">LongTensor</span><span class="p">):</span>
+<div class="viewcode-block" id="UtteranceMultiClassClassificationTask.predict"><a class="viewcode-back" href="../../../_autosummary/s3prl.task.html#s3prl.task.UtteranceMultiClassClassificationTask.predict">[docs]</a>    <span class="k">def</span><span class="w"> </span><span class="nf">predict</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">,</span> <span class="n">x_len</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">LongTensor</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Args:</span>
 <span class="sd">            x (torch.Tensor): (batch_size, timestamps, input_size)</span>
@@ -508,7 +508,7 @@
 
         <span class="k">return</span> <span class="n">sub_logits</span><span class="p">,</span> <span class="n">prediction</span></div>
 
-<div class="viewcode-block" id="UtteranceMultiClassClassificationTask.forward"><a class="viewcode-back" href="../../../_autosummary/s3prl.task.html#s3prl.task.UtteranceMultiClassClassificationTask.forward">[docs]</a>    <span class="k">def</span> <span class="nf">forward</span><span class="p">(</span>
+<div class="viewcode-block" id="UtteranceMultiClassClassificationTask.forward"><a class="viewcode-back" href="../../../_autosummary/s3prl.task.html#s3prl.task.UtteranceMultiClassClassificationTask.forward">[docs]</a>    <span class="k">def</span><span class="w"> </span><span class="nf">forward</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span>
         <span class="n">_mode</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
         <span class="n">x</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">,</span>
@@ -547,7 +547,7 @@
 
         <span class="k">return</span> <span class="n">loss</span><span class="p">,</span> <span class="n">cacheable</span></div>
 
-<div class="viewcode-block" id="UtteranceMultiClassClassificationTask.reduction"><a class="viewcode-back" href="../../../_autosummary/s3prl.task.html#s3prl.task.UtteranceMultiClassClassificationTask.reduction">[docs]</a>    <span class="k">def</span> <span class="nf">reduction</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">_mode</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">cached_results</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="nb">dict</span><span class="p">],</span> <span class="n">_dump_dir</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="kc">None</span><span class="p">):</span>
+<div class="viewcode-block" id="UtteranceMultiClassClassificationTask.reduction"><a class="viewcode-back" href="../../../_autosummary/s3prl.task.html#s3prl.task.UtteranceMultiClassClassificationTask.reduction">[docs]</a>    <span class="k">def</span><span class="w"> </span><span class="nf">reduction</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">_mode</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">cached_results</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="nb">dict</span><span class="p">],</span> <span class="n">_dump_dir</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="kc">None</span><span class="p">):</span>
         <span class="n">results</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">parse_cached_results</span><span class="p">(</span><span class="n">cached_results</span><span class="p">)</span>
         <span class="n">losses</span> <span class="o">=</span> <span class="n">results</span><span class="p">[</span><span class="s2">&quot;loss&quot;</span><span class="p">]</span>
         <span class="n">predictions</span> <span class="o">=</span> <span class="n">results</span><span class="p">[</span><span class="s2">&quot;prediction&quot;</span><span class="p">]</span>

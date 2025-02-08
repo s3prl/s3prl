@@ -341,25 +341,25 @@
 <span class="sd">  * Leo 2022</span>
 <span class="sd">&quot;&quot;&quot;</span>
 
-<span class="kn">from</span> <span class="nn">dataclasses</span> <span class="kn">import</span> <span class="n">dataclass</span>
-<span class="kn">from</span> <span class="nn">pathlib</span> <span class="kn">import</span> <span class="n">Path</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">dataclasses</span><span class="w"> </span><span class="kn">import</span> <span class="n">dataclass</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">pathlib</span><span class="w"> </span><span class="kn">import</span> <span class="n">Path</span>
 
-<span class="kn">from</span> <span class="nn">omegaconf</span> <span class="kn">import</span> <span class="n">MISSING</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">omegaconf</span><span class="w"> </span><span class="kn">import</span> <span class="n">MISSING</span>
 
-<span class="kn">from</span> <span class="nn">s3prl.dataio.dataset</span> <span class="kn">import</span> <span class="n">DiarizationDataset</span><span class="p">,</span> <span class="n">get_info</span>
-<span class="kn">from</span> <span class="nn">s3prl.dataio.sampler</span> <span class="kn">import</span> <span class="n">FixedBatchSizeBatchSampler</span><span class="p">,</span> <span class="n">GroupSameItemSampler</span>
-<span class="kn">from</span> <span class="nn">s3prl.nn.rnn</span> <span class="kn">import</span> <span class="n">SuperbDiarizationModel</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">s3prl.dataio.dataset</span><span class="w"> </span><span class="kn">import</span> <span class="n">DiarizationDataset</span><span class="p">,</span> <span class="n">get_info</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">s3prl.dataio.sampler</span><span class="w"> </span><span class="kn">import</span> <span class="n">FixedBatchSizeBatchSampler</span><span class="p">,</span> <span class="n">GroupSameItemSampler</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">s3prl.nn.rnn</span><span class="w"> </span><span class="kn">import</span> <span class="n">SuperbDiarizationModel</span>
 
-<span class="kn">from</span> <span class="nn">.run</span> <span class="kn">import</span> <span class="n">Diarization</span>
-<span class="kn">from</span> <span class="nn">.util</span> <span class="kn">import</span> <span class="n">kaldi_dir_to_csv</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">.run</span><span class="w"> </span><span class="kn">import</span> <span class="n">Diarization</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">.util</span><span class="w"> </span><span class="kn">import</span> <span class="n">kaldi_dir_to_csv</span>
 
 <span class="n">__all__</span> <span class="o">=</span> <span class="p">[</span>
     <span class="s2">&quot;SuperbSD&quot;</span><span class="p">,</span>
 <span class="p">]</span>
 
 
-<div class="viewcode-block" id="SuperbSD"><a class="viewcode-back" href="../../../../_autosummary/s3prl.problem.diarization.superb_sd.html#s3prl.problem.SuperbSD">[docs]</a><span class="k">class</span> <span class="nc">SuperbSD</span><span class="p">(</span><span class="n">Diarization</span><span class="p">):</span>
-<div class="viewcode-block" id="SuperbSD.default_config"><a class="viewcode-back" href="../../../../_autosummary/s3prl.problem.diarization.superb_sd.html#s3prl.problem.SuperbSD.default_config">[docs]</a>    <span class="k">def</span> <span class="nf">default_config</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<div class="viewcode-block" id="SuperbSD"><a class="viewcode-back" href="../../../../_autosummary/s3prl.problem.diarization.superb_sd.html#s3prl.problem.SuperbSD">[docs]</a><span class="k">class</span><span class="w"> </span><span class="nc">SuperbSD</span><span class="p">(</span><span class="n">Diarization</span><span class="p">):</span>
+<div class="viewcode-block" id="SuperbSD.default_config"><a class="viewcode-back" href="../../../../_autosummary/s3prl.problem.diarization.superb_sd.html#s3prl.problem.SuperbSD.default_config">[docs]</a>    <span class="k">def</span><span class="w"> </span><span class="nf">default_config</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="k">return</span> <span class="nb">dict</span><span class="p">(</span>
             <span class="n">start</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span>
             <span class="n">stop</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
@@ -433,7 +433,7 @@
             <span class="p">),</span>
         <span class="p">)</span></div>
 
-<div class="viewcode-block" id="SuperbSD.prepare_data"><a class="viewcode-back" href="../../../../_autosummary/s3prl.problem.diarization.superb_sd.html#s3prl.problem.SuperbSD.prepare_data">[docs]</a>    <span class="k">def</span> <span class="nf">prepare_data</span><span class="p">(</span>
+<div class="viewcode-block" id="SuperbSD.prepare_data"><a class="viewcode-back" href="../../../../_autosummary/s3prl.problem.diarization.superb_sd.html#s3prl.problem.SuperbSD.prepare_data">[docs]</a>    <span class="k">def</span><span class="w"> </span><span class="nf">prepare_data</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span> <span class="n">prepare_data</span><span class="p">:</span> <span class="nb">dict</span><span class="p">,</span> <span class="n">target_dir</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">cache_dir</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">get_path_only</span><span class="o">=</span><span class="kc">False</span>
     <span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
@@ -482,7 +482,7 @@
 <span class="sd">        &quot;&quot;&quot;</span>
 
         <span class="nd">@dataclass</span>
-        <span class="k">class</span> <span class="nc">Config</span><span class="p">:</span>
+        <span class="k">class</span><span class="w"> </span><span class="nc">Config</span><span class="p">:</span>
             <span class="n">data_dir</span><span class="p">:</span> <span class="nb">str</span>
 
         <span class="n">conf</span> <span class="o">=</span> <span class="n">Config</span><span class="p">(</span><span class="o">**</span><span class="n">prepare_data</span><span class="p">)</span>
@@ -500,7 +500,7 @@
         <span class="n">kaldi_dir_to_csv</span><span class="p">(</span><span class="n">Path</span><span class="p">(</span><span class="n">conf</span><span class="o">.</span><span class="n">data_dir</span><span class="p">)</span> <span class="o">/</span> <span class="s2">&quot;test&quot;</span><span class="p">,</span> <span class="n">test_csv</span><span class="p">)</span>
         <span class="k">return</span> <span class="n">train_csv</span><span class="p">,</span> <span class="n">valid_csv</span><span class="p">,</span> <span class="p">[</span><span class="n">test_csv</span><span class="p">]</span></div>
 
-<div class="viewcode-block" id="SuperbSD.build_dataset"><a class="viewcode-back" href="../../../../_autosummary/s3prl.problem.diarization.superb_sd.html#s3prl.problem.SuperbSD.build_dataset">[docs]</a>    <span class="k">def</span> <span class="nf">build_dataset</span><span class="p">(</span>
+<div class="viewcode-block" id="SuperbSD.build_dataset"><a class="viewcode-back" href="../../../../_autosummary/s3prl.problem.diarization.superb_sd.html#s3prl.problem.SuperbSD.build_dataset">[docs]</a>    <span class="k">def</span><span class="w"> </span><span class="nf">build_dataset</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span>
         <span class="n">build_dataset</span><span class="p">:</span> <span class="nb">dict</span><span class="p">,</span>
         <span class="n">target_dir</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
@@ -557,7 +557,7 @@
         <span class="p">)</span>
         <span class="k">return</span> <span class="n">dataset</span></div>
 
-<div class="viewcode-block" id="SuperbSD.build_batch_sampler"><a class="viewcode-back" href="../../../../_autosummary/s3prl.problem.diarization.superb_sd.html#s3prl.problem.SuperbSD.build_batch_sampler">[docs]</a>    <span class="k">def</span> <span class="nf">build_batch_sampler</span><span class="p">(</span>
+<div class="viewcode-block" id="SuperbSD.build_batch_sampler"><a class="viewcode-back" href="../../../../_autosummary/s3prl.problem.diarization.superb_sd.html#s3prl.problem.SuperbSD.build_batch_sampler">[docs]</a>    <span class="k">def</span><span class="w"> </span><span class="nf">build_batch_sampler</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span>
         <span class="n">build_batch_sampler</span><span class="p">:</span> <span class="nb">dict</span><span class="p">,</span>
         <span class="n">target_dir</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
@@ -596,7 +596,7 @@
 <span class="sd">        &quot;&quot;&quot;</span>
 
         <span class="nd">@dataclass</span>
-        <span class="k">class</span> <span class="nc">Config</span><span class="p">:</span>
+        <span class="k">class</span><span class="w"> </span><span class="nc">Config</span><span class="p">:</span>
             <span class="n">train</span><span class="p">:</span> <span class="nb">dict</span> <span class="o">=</span> <span class="kc">None</span>
             <span class="n">valid</span><span class="p">:</span> <span class="nb">dict</span> <span class="o">=</span> <span class="kc">None</span>
 
@@ -612,7 +612,7 @@
         <span class="k">else</span><span class="p">:</span>
             <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Unsupported mode: </span><span class="si">{</span><span class="n">mode</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span></div>
 
-<div class="viewcode-block" id="SuperbSD.build_downstream"><a class="viewcode-back" href="../../../../_autosummary/s3prl.problem.diarization.superb_sd.html#s3prl.problem.SuperbSD.build_downstream">[docs]</a>    <span class="k">def</span> <span class="nf">build_downstream</span><span class="p">(</span>
+<div class="viewcode-block" id="SuperbSD.build_downstream"><a class="viewcode-back" href="../../../../_autosummary/s3prl.problem.diarization.superb_sd.html#s3prl.problem.SuperbSD.build_downstream">[docs]</a>    <span class="k">def</span><span class="w"> </span><span class="nf">build_downstream</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span>
         <span class="n">build_downstream</span><span class="p">:</span> <span class="nb">dict</span><span class="p">,</span>
         <span class="n">downstream_input_size</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>

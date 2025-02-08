@@ -338,13 +338,13 @@
 <span class="sd">    - Leo (2022)</span>
 <span class="sd">&quot;&quot;&quot;</span>
 
-<span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">Any</span><span class="p">,</span> <span class="n">List</span><span class="p">,</span> <span class="n">Tuple</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">typing</span><span class="w"> </span><span class="kn">import</span> <span class="n">Any</span><span class="p">,</span> <span class="n">List</span><span class="p">,</span> <span class="n">Tuple</span>
 
-<span class="kn">import</span> <span class="nn">pandas</span> <span class="k">as</span> <span class="nn">pd</span>
-<span class="kn">import</span> <span class="nn">torch</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">pandas</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">pd</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">torch</span>
 
-<span class="kn">from</span> <span class="nn">.base</span> <span class="kn">import</span> <span class="n">Dataset</span>
-<span class="kn">from</span> <span class="nn">.load_audio</span> <span class="kn">import</span> <span class="n">LoadAudio</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">.base</span><span class="w"> </span><span class="kn">import</span> <span class="n">Dataset</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">.load_audio</span><span class="w"> </span><span class="kn">import</span> <span class="n">LoadAudio</span>
 
 <span class="n">__all__</span> <span class="o">=</span> <span class="p">[</span>
     <span class="s2">&quot;chunking&quot;</span><span class="p">,</span>
@@ -355,7 +355,7 @@
 <span class="p">]</span>
 
 
-<div class="viewcode-block" id="chunking"><a class="viewcode-back" href="../../../../_autosummary/s3prl.dataio.dataset.frame_label.html#s3prl.dataio.dataset.chunking">[docs]</a><span class="k">def</span> <span class="nf">chunking</span><span class="p">(</span>
+<div class="viewcode-block" id="chunking"><a class="viewcode-back" href="../../../../_autosummary/s3prl.dataio.dataset.frame_label.html#s3prl.dataio.dataset.chunking">[docs]</a><span class="k">def</span><span class="w"> </span><span class="nf">chunking</span><span class="p">(</span>
     <span class="n">start_sec</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span>
     <span class="n">end_sec</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span>
     <span class="n">chunk_secs</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span>
@@ -389,7 +389,7 @@
         <span class="n">start</span> <span class="o">=</span> <span class="n">start</span> <span class="o">+</span> <span class="n">step_secs</span></div>
 
 
-<div class="viewcode-block" id="scale_labels_secs"><a class="viewcode-back" href="../../../../_autosummary/s3prl.dataio.dataset.frame_label.html#s3prl.dataio.dataset.scale_labels_secs">[docs]</a><span class="k">def</span> <span class="nf">scale_labels_secs</span><span class="p">(</span><span class="n">labels</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="n">Tuple</span><span class="p">[</span><span class="n">Any</span><span class="p">,</span> <span class="nb">float</span><span class="p">,</span> <span class="nb">float</span><span class="p">]],</span> <span class="n">ratio</span><span class="p">:</span> <span class="nb">float</span><span class="p">):</span>
+<div class="viewcode-block" id="scale_labels_secs"><a class="viewcode-back" href="../../../../_autosummary/s3prl.dataio.dataset.frame_label.html#s3prl.dataio.dataset.scale_labels_secs">[docs]</a><span class="k">def</span><span class="w"> </span><span class="nf">scale_labels_secs</span><span class="p">(</span><span class="n">labels</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="n">Tuple</span><span class="p">[</span><span class="n">Any</span><span class="p">,</span> <span class="nb">float</span><span class="p">,</span> <span class="nb">float</span><span class="p">]],</span> <span class="n">ratio</span><span class="p">:</span> <span class="nb">float</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    When the recording length is changed due to like pitch or speed manipulation,</span>
 <span class="sd">    the start/end timestamp (in seconds) should also be changed</span>
@@ -405,7 +405,7 @@
     <span class="k">return</span> <span class="p">[(</span><span class="n">label</span><span class="p">,</span> <span class="n">start</span> <span class="o">*</span> <span class="n">ratio</span><span class="p">,</span> <span class="n">end</span> <span class="o">*</span> <span class="n">ratio</span><span class="p">)</span> <span class="k">for</span> <span class="n">label</span><span class="p">,</span> <span class="n">start</span><span class="p">,</span> <span class="n">end</span> <span class="ow">in</span> <span class="n">labels</span><span class="p">]</span></div>
 
 
-<div class="viewcode-block" id="get_chunk_labels"><a class="viewcode-back" href="../../../../_autosummary/s3prl.dataio.dataset.frame_label.html#s3prl.dataio.dataset.get_chunk_labels">[docs]</a><span class="k">def</span> <span class="nf">get_chunk_labels</span><span class="p">(</span>
+<div class="viewcode-block" id="get_chunk_labels"><a class="viewcode-back" href="../../../../_autosummary/s3prl.dataio.dataset.frame_label.html#s3prl.dataio.dataset.get_chunk_labels">[docs]</a><span class="k">def</span><span class="w"> </span><span class="nf">get_chunk_labels</span><span class="p">(</span>
     <span class="n">start_sec</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span>
     <span class="n">end_sec</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span>
     <span class="n">labels</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="n">Tuple</span><span class="p">[</span><span class="n">Any</span><span class="p">,</span> <span class="nb">float</span><span class="p">,</span> <span class="nb">float</span><span class="p">]],</span>
@@ -433,7 +433,7 @@
         <span class="k">yield</span> <span class="n">label</span><span class="p">,</span> <span class="nb">max</span><span class="p">(</span><span class="n">start_sec</span><span class="p">,</span> <span class="n">start</span><span class="p">),</span> <span class="nb">min</span><span class="p">(</span><span class="n">end_sec</span><span class="p">,</span> <span class="n">end</span><span class="p">)</span></div>
 
 
-<div class="viewcode-block" id="chunk_labels_to_frame_tensor_label"><a class="viewcode-back" href="../../../../_autosummary/s3prl.dataio.dataset.frame_label.html#s3prl.dataio.dataset.chunk_labels_to_frame_tensor_label">[docs]</a><span class="k">def</span> <span class="nf">chunk_labels_to_frame_tensor_label</span><span class="p">(</span>
+<div class="viewcode-block" id="chunk_labels_to_frame_tensor_label"><a class="viewcode-back" href="../../../../_autosummary/s3prl.dataio.dataset.frame_label.html#s3prl.dataio.dataset.chunk_labels_to_frame_tensor_label">[docs]</a><span class="k">def</span><span class="w"> </span><span class="nf">chunk_labels_to_frame_tensor_label</span><span class="p">(</span>
     <span class="n">start_sec</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span>
     <span class="n">end_sec</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span>
     <span class="n">labels</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="n">Tuple</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="nb">float</span><span class="p">,</span> <span class="nb">float</span><span class="p">]],</span>
@@ -474,7 +474,7 @@
     <span class="k">return</span> <span class="n">frame_labels</span></div>
 
 
-<div class="viewcode-block" id="FrameLabelDataset"><a class="viewcode-back" href="../../../../_autosummary/s3prl.dataio.dataset.frame_label.html#s3prl.dataio.dataset.FrameLabelDataset">[docs]</a><span class="k">class</span> <span class="nc">FrameLabelDataset</span><span class="p">(</span><span class="n">Dataset</span><span class="p">):</span>
+<div class="viewcode-block" id="FrameLabelDataset"><a class="viewcode-back" href="../../../../_autosummary/s3prl.dataio.dataset.frame_label.html#s3prl.dataio.dataset.FrameLabelDataset">[docs]</a><span class="k">class</span><span class="w"> </span><span class="nc">FrameLabelDataset</span><span class="p">(</span><span class="n">Dataset</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Args:</span>
 <span class="sd">        df (pd.DataFrame): the dataframe should have the following columns</span>
@@ -482,7 +482,7 @@
 <span class="sd">            label (int), start_sec (float), end_sec (float)</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
-    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span>
         <span class="n">df</span><span class="p">:</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">,</span>
         <span class="n">num_class</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
@@ -534,7 +534,7 @@
                     <span class="p">}</span>
                 <span class="p">)</span>
 
-        <span class="k">def</span> <span class="nf">flatten</span><span class="p">(</span><span class="n">data</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="nb">dict</span><span class="p">],</span> <span class="n">key</span><span class="p">:</span> <span class="nb">str</span><span class="p">):</span>
+        <span class="k">def</span><span class="w"> </span><span class="nf">flatten</span><span class="p">(</span><span class="n">data</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="nb">dict</span><span class="p">],</span> <span class="n">key</span><span class="p">:</span> <span class="nb">str</span><span class="p">):</span>
             <span class="k">return</span> <span class="p">[</span><span class="n">item</span><span class="p">[</span><span class="n">key</span><span class="p">]</span> <span class="k">for</span> <span class="n">item</span> <span class="ow">in</span> <span class="n">data</span><span class="p">]</span>
 
         <span class="bp">self</span><span class="o">.</span><span class="n">audio_loader</span> <span class="o">=</span> <span class="n">LoadAudio</span><span class="p">(</span>
@@ -544,13 +544,13 @@
             <span class="o">**</span><span class="p">(</span><span class="n">load_audio_conf</span> <span class="ow">or</span> <span class="p">{}),</span>
         <span class="p">)</span>
 
-    <span class="k">def</span> <span class="fm">__len__</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">int</span><span class="p">:</span>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__len__</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">int</span><span class="p">:</span>
         <span class="k">return</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">chunked_utts</span><span class="p">)</span>
 
-<div class="viewcode-block" id="FrameLabelDataset.getinfo"><a class="viewcode-back" href="../../../../_autosummary/s3prl.dataio.dataset.frame_label.html#s3prl.dataio.dataset.FrameLabelDataset.getinfo">[docs]</a>    <span class="k">def</span> <span class="nf">getinfo</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">index</span><span class="p">:</span> <span class="nb">int</span><span class="p">):</span>
+<div class="viewcode-block" id="FrameLabelDataset.getinfo"><a class="viewcode-back" href="../../../../_autosummary/s3prl.dataio.dataset.frame_label.html#s3prl.dataio.dataset.FrameLabelDataset.getinfo">[docs]</a>    <span class="k">def</span><span class="w"> </span><span class="nf">getinfo</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">index</span><span class="p">:</span> <span class="nb">int</span><span class="p">):</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">chunked_utts</span><span class="p">[</span><span class="n">index</span><span class="p">]</span></div>
 
-    <span class="k">def</span> <span class="fm">__getitem__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">index</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__getitem__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">index</span><span class="p">):</span>
         <span class="n">info</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">getinfo</span><span class="p">(</span><span class="n">index</span><span class="p">)</span>
         <span class="n">audio</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">audio_loader</span><span class="p">[</span><span class="n">index</span><span class="p">]</span>
         <span class="n">label</span> <span class="o">=</span> <span class="n">chunk_labels_to_frame_tensor_label</span><span class="p">(</span>

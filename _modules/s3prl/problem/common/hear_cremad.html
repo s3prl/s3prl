@@ -333,17 +333,17 @@
         </div>
         <article role="main">
           <h1>Source code for s3prl.problem.common.hear_cremad</h1><div class="highlight"><pre>
-<span></span><span class="kn">from</span> <span class="nn">omegaconf</span> <span class="kn">import</span> <span class="n">MISSING</span>
+<span></span><span class="kn">from</span><span class="w"> </span><span class="nn">omegaconf</span><span class="w"> </span><span class="kn">import</span> <span class="n">MISSING</span>
 
-<span class="kn">from</span> <span class="nn">.hear_esc50</span> <span class="kn">import</span> <span class="n">HearESC50</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">.hear_esc50</span><span class="w"> </span><span class="kn">import</span> <span class="n">HearESC50</span>
 
 <span class="n">CREMAD_NUM_FOLDS</span> <span class="o">=</span> <span class="mi">5</span>
 
 <span class="n">__all__</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;HearCremaD&quot;</span><span class="p">]</span>
 
 
-<div class="viewcode-block" id="HearCremaD"><a class="viewcode-back" href="../../../../_autosummary/s3prl.problem.common.hear_cremad.html#s3prl.problem.HearCremaD">[docs]</a><span class="k">class</span> <span class="nc">HearCremaD</span><span class="p">(</span><span class="n">HearESC50</span><span class="p">):</span>
-<div class="viewcode-block" id="HearCremaD.default_config"><a class="viewcode-back" href="../../../../_autosummary/s3prl.problem.common.hear_cremad.html#s3prl.problem.HearCremaD.default_config">[docs]</a>    <span class="k">def</span> <span class="nf">default_config</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">:</span>
+<div class="viewcode-block" id="HearCremaD"><a class="viewcode-back" href="../../../../_autosummary/s3prl.problem.common.hear_cremad.html#s3prl.problem.HearCremaD">[docs]</a><span class="k">class</span><span class="w"> </span><span class="nc">HearCremaD</span><span class="p">(</span><span class="n">HearESC50</span><span class="p">):</span>
+<div class="viewcode-block" id="HearCremaD.default_config"><a class="viewcode-back" href="../../../../_autosummary/s3prl.problem.common.hear_cremad.html#s3prl.problem.HearCremaD.default_config">[docs]</a>    <span class="k">def</span><span class="w"> </span><span class="nf">default_config</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">:</span>
         <span class="k">return</span> <span class="nb">dict</span><span class="p">(</span>
             <span class="n">start</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span>
             <span class="n">stop</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>

@@ -340,14 +340,14 @@
 <span class="sd">  * Leo 2022</span>
 <span class="sd">&quot;&quot;&quot;</span>
 
-<span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">List</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">typing</span><span class="w"> </span><span class="kn">import</span> <span class="n">List</span>
 
-<span class="kn">import</span> <span class="nn">torch</span>
-<span class="kn">import</span> <span class="nn">torch.nn</span> <span class="k">as</span> <span class="nn">nn</span>
-<span class="kn">import</span> <span class="nn">torch.nn.functional</span> <span class="k">as</span> <span class="nn">F</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">torch</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">torch.nn</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">nn</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">torch.nn.functional</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">F</span>
 
-<span class="kn">from</span> <span class="nn">s3prl</span> <span class="kn">import</span> <span class="n">hub</span>
-<span class="kn">from</span> <span class="nn">s3prl.util.pseudo_data</span> <span class="kn">import</span> <span class="n">get_pseudo_wavs</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">s3prl</span><span class="w"> </span><span class="kn">import</span> <span class="n">hub</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">s3prl.util.pseudo_data</span><span class="w"> </span><span class="kn">import</span> <span class="n">get_pseudo_wavs</span>
 
 <span class="n">__all__</span> <span class="o">=</span> <span class="p">[</span>
     <span class="s2">&quot;S3PRLUpstream&quot;</span><span class="p">,</span>
@@ -359,8 +359,8 @@
 <span class="n">SAMPLE_RATE</span> <span class="o">=</span> <span class="mi">16000</span>
 
 
-<span class="k">def</span> <span class="nf">randomize_upstream</span><span class="p">(</span><span class="n">upstream</span><span class="p">:</span> <span class="n">nn</span><span class="o">.</span><span class="n">Module</span><span class="p">):</span>
-    <span class="k">def</span> <span class="nf">init_weights</span><span class="p">(</span><span class="n">m</span><span class="p">:</span> <span class="n">nn</span><span class="o">.</span><span class="n">Module</span><span class="p">):</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">randomize_upstream</span><span class="p">(</span><span class="n">upstream</span><span class="p">:</span> <span class="n">nn</span><span class="o">.</span><span class="n">Module</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">init_weights</span><span class="p">(</span><span class="n">m</span><span class="p">:</span> <span class="n">nn</span><span class="o">.</span><span class="n">Module</span><span class="p">):</span>
         <span class="k">for</span> <span class="n">p</span> <span class="ow">in</span> <span class="n">m</span><span class="o">.</span><span class="n">parameters</span><span class="p">():</span>
             <span class="k">if</span> <span class="n">p</span><span class="o">.</span><span class="n">dim</span><span class="p">()</span> <span class="o">&lt;</span> <span class="mi">2</span><span class="p">:</span>
                 <span class="n">torch</span><span class="o">.</span><span class="n">nn</span><span class="o">.</span><span class="n">init</span><span class="o">.</span><span class="n">normal_</span><span class="p">(</span><span class="n">p</span><span class="p">,</span> <span class="n">mean</span><span class="o">=</span><span class="n">p</span><span class="o">.</span><span class="n">mean</span><span class="p">()</span><span class="o">.</span><span class="n">item</span><span class="p">(),</span> <span class="n">std</span><span class="o">=</span><span class="n">p</span><span class="o">.</span><span class="n">std</span><span class="p">()</span><span class="o">.</span><span class="n">item</span><span class="p">())</span>
@@ -370,7 +370,7 @@
     <span class="n">upstream</span><span class="o">.</span><span class="n">apply</span><span class="p">(</span><span class="n">init_weights</span><span class="p">)</span>
 
 
-<div class="viewcode-block" id="S3PRLUpstream"><a class="viewcode-back" href="../../../_autosummary/s3prl.nn.upstream.html#s3prl.nn.S3PRLUpstream">[docs]</a><span class="k">class</span> <span class="nc">S3PRLUpstream</span><span class="p">(</span><span class="n">nn</span><span class="o">.</span><span class="n">Module</span><span class="p">):</span>
+<div class="viewcode-block" id="S3PRLUpstream"><a class="viewcode-back" href="../../../_autosummary/s3prl.nn.upstream.html#s3prl.nn.S3PRLUpstream">[docs]</a><span class="k">class</span><span class="w"> </span><span class="nc">S3PRLUpstream</span><span class="p">(</span><span class="n">nn</span><span class="o">.</span><span class="n">Module</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    This is an easy interface for using all the models in S3PRL.</span>
 <span class="sd">    See :doc:`../tutorial/upstream_collection` for the example usage and all the supported models.</span>
@@ -422,7 +422,7 @@
 <span class="sd">    &quot;&quot;&quot;</span>
 
 <div class="viewcode-block" id="S3PRLUpstream.available_names"><a class="viewcode-back" href="../../../_autosummary/s3prl.nn.upstream.html#s3prl.nn.S3PRLUpstream.available_names">[docs]</a>    <span class="nd">@classmethod</span>
-    <span class="k">def</span> <span class="nf">available_names</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">only_registered_ckpt</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">]:</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">available_names</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">only_registered_ckpt</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">]:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        All the available names supported by this S3PRLUpstream</span>
 
@@ -435,7 +435,7 @@
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="n">hub</span><span class="o">.</span><span class="n">options</span><span class="p">(</span><span class="n">only_registered_ckpt</span><span class="p">)</span></div>
 
-    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span>
         <span class="n">name</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
         <span class="n">path_or_url</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
@@ -475,7 +475,7 @@
             <span class="k">raise</span> <span class="ne">ValueError</span>
 
     <span class="nd">@property</span>
-    <span class="k">def</span> <span class="nf">num_layers</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">int</span><span class="p">:</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">num_layers</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">int</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Number of hidden sizes. All the upstream have a deterministic</span>
 <span class="sd">        number of layers. That is, layer drop is turned off by default.</span>
@@ -483,7 +483,7 @@
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_num_layers</span>
 
     <span class="nd">@property</span>
-    <span class="k">def</span> <span class="nf">downsample_rates</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="nb">int</span><span class="p">]:</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">downsample_rates</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="nb">int</span><span class="p">]:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Downsampling rate from 16000 Hz audio of each layer.</span>
 <span class="sd">        Usually, all layers have the same downsampling rate,</span>
@@ -492,13 +492,13 @@
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_downsample_rates</span>
 
     <span class="nd">@property</span>
-    <span class="k">def</span> <span class="nf">hidden_sizes</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="nb">int</span><span class="p">]:</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">hidden_sizes</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="nb">int</span><span class="p">]:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        The hidden size of each layer</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_hidden_sizes</span>
 
-    <span class="k">def</span> <span class="nf">_match_length</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">xs</span><span class="p">,</span> <span class="n">target_max_len</span><span class="p">:</span> <span class="nb">int</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">_match_length</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">xs</span><span class="p">,</span> <span class="n">target_max_len</span><span class="p">:</span> <span class="nb">int</span><span class="p">):</span>
         <span class="n">xs_max_len</span> <span class="o">=</span> <span class="n">xs</span><span class="o">.</span><span class="n">size</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>
 
         <span class="k">if</span> <span class="n">xs_max_len</span> <span class="o">&gt;</span> <span class="n">target_max_len</span><span class="p">:</span>
@@ -513,7 +513,7 @@
 
         <span class="k">return</span> <span class="n">xs</span>
 
-<div class="viewcode-block" id="S3PRLUpstream.forward"><a class="viewcode-back" href="../../../_autosummary/s3prl.nn.upstream.html#s3prl.nn.S3PRLUpstream.forward">[docs]</a>    <span class="k">def</span> <span class="nf">forward</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">wavs</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">FloatTensor</span><span class="p">,</span> <span class="n">wavs_len</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">LongTensor</span><span class="p">):</span>
+<div class="viewcode-block" id="S3PRLUpstream.forward"><a class="viewcode-back" href="../../../_autosummary/s3prl.nn.upstream.html#s3prl.nn.S3PRLUpstream.forward">[docs]</a>    <span class="k">def</span><span class="w"> </span><span class="nf">forward</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">wavs</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">FloatTensor</span><span class="p">,</span> <span class="n">wavs_len</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">LongTensor</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Args:</span>
 <span class="sd">            wavs (torch.FloatTensor): (batch_size, seqlen) or (batch_size, seqlen, 1)</span>
@@ -566,7 +566,7 @@
         <span class="k">return</span> <span class="n">all_hs</span><span class="p">,</span> <span class="n">all_lens</span></div></div>
 
 
-<div class="viewcode-block" id="Featurizer"><a class="viewcode-back" href="../../../_autosummary/s3prl.nn.upstream.html#s3prl.nn.Featurizer">[docs]</a><span class="k">class</span> <span class="nc">Featurizer</span><span class="p">(</span><span class="n">nn</span><span class="o">.</span><span class="n">Module</span><span class="p">):</span>
+<div class="viewcode-block" id="Featurizer"><a class="viewcode-back" href="../../../_autosummary/s3prl.nn.upstream.html#s3prl.nn.Featurizer">[docs]</a><span class="k">class</span><span class="w"> </span><span class="nc">Featurizer</span><span class="p">(</span><span class="n">nn</span><span class="o">.</span><span class="n">Module</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Featurizer take the :obj:`S3PRLUpstream`&#39;s multiple layer of hidden_states and</span>
 <span class="sd">    reduce (standardize) them into a single hidden_states, to connect with downstream NNs.</span>
@@ -609,7 +609,7 @@
 <span class="sd">        &gt;&gt;&gt; assert hs_len.dim() == 1</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
-    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span>
         <span class="n">upstream</span><span class="p">:</span> <span class="n">S3PRLUpstream</span><span class="p">,</span>
         <span class="n">layer_selections</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="nb">int</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
@@ -631,20 +631,20 @@
             <span class="bp">self</span><span class="o">.</span><span class="n">weights</span> <span class="o">=</span> <span class="n">nn</span><span class="o">.</span><span class="n">Parameter</span><span class="p">(</span><span class="n">torch</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">layer_selections</span><span class="p">)))</span>
 
     <span class="nd">@property</span>
-    <span class="k">def</span> <span class="nf">output_size</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">int</span><span class="p">:</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">output_size</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">int</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        The hidden size of the final weighted-sum output</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_output_size</span>
 
     <span class="nd">@property</span>
-    <span class="k">def</span> <span class="nf">downsample_rate</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">int</span><span class="p">:</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">downsample_rate</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">int</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        The downsample rate (from 16k Hz waveform) of the final weighted-sum output</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_downsample_rate</span>
 
-    <span class="k">def</span> <span class="nf">_weighted_sum</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">all_hs</span><span class="p">,</span> <span class="n">all_lens</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">_weighted_sum</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">all_hs</span><span class="p">,</span> <span class="n">all_lens</span><span class="p">):</span>
         <span class="k">assert</span> <span class="nb">len</span><span class="p">(</span><span class="n">all_hs</span><span class="p">)</span> <span class="o">==</span> <span class="nb">len</span><span class="p">(</span><span class="n">all_lens</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">1</span>
         <span class="k">for</span> <span class="n">l</span> <span class="ow">in</span> <span class="n">all_lens</span><span class="p">[</span><span class="mi">1</span><span class="p">:]:</span>
             <span class="n">torch</span><span class="o">.</span><span class="n">allclose</span><span class="p">(</span><span class="n">all_lens</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">l</span><span class="p">)</span>
@@ -661,7 +661,7 @@
 
         <span class="k">return</span> <span class="n">weighted_hs</span><span class="p">,</span> <span class="n">all_lens</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
 
-<div class="viewcode-block" id="Featurizer.forward"><a class="viewcode-back" href="../../../_autosummary/s3prl.nn.upstream.html#s3prl.nn.Featurizer.forward">[docs]</a>    <span class="k">def</span> <span class="nf">forward</span><span class="p">(</span>
+<div class="viewcode-block" id="Featurizer.forward"><a class="viewcode-back" href="../../../_autosummary/s3prl.nn.upstream.html#s3prl.nn.Featurizer.forward">[docs]</a>    <span class="k">def</span><span class="w"> </span><span class="nf">forward</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span> <span class="n">all_hs</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="n">torch</span><span class="o">.</span><span class="n">FloatTensor</span><span class="p">],</span> <span class="n">all_lens</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="n">torch</span><span class="o">.</span><span class="n">LongTensor</span><span class="p">]</span>
     <span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
@@ -684,8 +684,8 @@
         <span class="k">return</span> <span class="n">hs</span><span class="p">,</span> <span class="n">hs_len</span></div></div>
 
 
-<div class="viewcode-block" id="UpstreamDownstreamModel"><a class="viewcode-back" href="../../../_autosummary/s3prl.nn.upstream.html#s3prl.nn.UpstreamDownstreamModel">[docs]</a><span class="k">class</span> <span class="nc">UpstreamDownstreamModel</span><span class="p">(</span><span class="n">nn</span><span class="o">.</span><span class="n">Module</span><span class="p">):</span>
-    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span>
+<div class="viewcode-block" id="UpstreamDownstreamModel"><a class="viewcode-back" href="../../../_autosummary/s3prl.nn.upstream.html#s3prl.nn.UpstreamDownstreamModel">[docs]</a><span class="k">class</span><span class="w"> </span><span class="nc">UpstreamDownstreamModel</span><span class="p">(</span><span class="n">nn</span><span class="o">.</span><span class="n">Module</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span>
         <span class="n">upstream</span><span class="p">:</span> <span class="n">S3PRLUpstream</span><span class="p">,</span>
         <span class="n">featurizer</span><span class="p">:</span> <span class="n">Featurizer</span><span class="p">,</span>
@@ -699,18 +699,18 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">upstream_trainable</span> <span class="o">=</span> <span class="n">upstream_trainable</span>
 
     <span class="nd">@property</span>
-    <span class="k">def</span> <span class="nf">input_size</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">input_size</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="k">return</span> <span class="mi">1</span>
 
     <span class="nd">@property</span>
-    <span class="k">def</span> <span class="nf">downsample_rate</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">downsample_rate</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">featurizer</span><span class="o">.</span><span class="n">downsample_rate</span>
 
     <span class="nd">@property</span>
-    <span class="k">def</span> <span class="nf">output_size</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">output_size</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">downstream</span><span class="o">.</span><span class="n">output_size</span>
 
-<div class="viewcode-block" id="UpstreamDownstreamModel.forward"><a class="viewcode-back" href="../../../_autosummary/s3prl.nn.upstream.html#s3prl.nn.UpstreamDownstreamModel.forward">[docs]</a>    <span class="k">def</span> <span class="nf">forward</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">wav</span><span class="p">,</span> <span class="n">wav_len</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+<div class="viewcode-block" id="UpstreamDownstreamModel.forward"><a class="viewcode-back" href="../../../_autosummary/s3prl.nn.upstream.html#s3prl.nn.UpstreamDownstreamModel.forward">[docs]</a>    <span class="k">def</span><span class="w"> </span><span class="nf">forward</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">wav</span><span class="p">,</span> <span class="n">wav_len</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
         <span class="k">with</span> <span class="n">torch</span><span class="o">.</span><span class="n">set_grad_enabled</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">upstream_trainable</span><span class="p">):</span>
             <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">upstream_trainable</span><span class="p">:</span>
                 <span class="bp">self</span><span class="o">.</span><span class="n">upstream</span><span class="o">.</span><span class="n">eval</span><span class="p">()</span>

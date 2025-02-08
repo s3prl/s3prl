@@ -340,36 +340,36 @@
 <span class="sd">  * Leo 2022</span>
 <span class="sd">&quot;&quot;&quot;</span>
 
-<span class="kn">from</span> <span class="nn">__future__</span> <span class="kn">import</span> <span class="n">annotations</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">__future__</span><span class="w"> </span><span class="kn">import</span> <span class="n">annotations</span>
 
-<span class="kn">import</span> <span class="nn">argparse</span>
-<span class="kn">import</span> <span class="nn">inspect</span>
-<span class="kn">import</span> <span class="nn">logging</span>
-<span class="kn">import</span> <span class="nn">math</span>
-<span class="kn">import</span> <span class="nn">os</span>
-<span class="kn">import</span> <span class="nn">pickle</span>
-<span class="kn">import</span> <span class="nn">shutil</span>
-<span class="kn">import</span> <span class="nn">sys</span>
-<span class="kn">from</span> <span class="nn">copy</span> <span class="kn">import</span> <span class="n">deepcopy</span>
-<span class="kn">from</span> <span class="nn">dataclasses</span> <span class="kn">import</span> <span class="n">dataclass</span>
-<span class="kn">from</span> <span class="nn">datetime</span> <span class="kn">import</span> <span class="n">datetime</span>
-<span class="kn">from</span> <span class="nn">pathlib</span> <span class="kn">import</span> <span class="n">Path</span>
-<span class="kn">from</span> <span class="nn">time</span> <span class="kn">import</span> <span class="n">time</span>
-<span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">Dict</span><span class="p">,</span> <span class="n">List</span><span class="p">,</span> <span class="n">Union</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">argparse</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">inspect</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">logging</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">math</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">os</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">pickle</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">shutil</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">sys</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">copy</span><span class="w"> </span><span class="kn">import</span> <span class="n">deepcopy</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">dataclasses</span><span class="w"> </span><span class="kn">import</span> <span class="n">dataclass</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">datetime</span><span class="w"> </span><span class="kn">import</span> <span class="n">datetime</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">pathlib</span><span class="w"> </span><span class="kn">import</span> <span class="n">Path</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">time</span><span class="w"> </span><span class="kn">import</span> <span class="n">time</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">typing</span><span class="w"> </span><span class="kn">import</span> <span class="n">Dict</span><span class="p">,</span> <span class="n">List</span><span class="p">,</span> <span class="n">Union</span>
 
-<span class="kn">import</span> <span class="nn">omegaconf</span>
-<span class="kn">import</span> <span class="nn">torch</span>
-<span class="kn">import</span> <span class="nn">yaml</span>
-<span class="kn">from</span> <span class="nn">torch.utils.data</span> <span class="kn">import</span> <span class="n">DataLoader</span>
-<span class="kn">from</span> <span class="nn">torch.utils.tensorboard.writer</span> <span class="kn">import</span> <span class="n">SummaryWriter</span>
-<span class="kn">from</span> <span class="nn">tqdm</span> <span class="kn">import</span> <span class="n">tqdm</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">omegaconf</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">torch</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">yaml</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">torch.utils.data</span><span class="w"> </span><span class="kn">import</span> <span class="n">DataLoader</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">torch.utils.tensorboard.writer</span><span class="w"> </span><span class="kn">import</span> <span class="n">SummaryWriter</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">tqdm</span><span class="w"> </span><span class="kn">import</span> <span class="n">tqdm</span>
 
-<span class="kn">from</span> <span class="nn">s3prl.dataio.collate_fn</span> <span class="kn">import</span> <span class="n">default_collate_fn</span>
-<span class="kn">from</span> <span class="nn">s3prl.dataio.sampler</span> <span class="kn">import</span> <span class="n">DistributedBatchSamplerWrapper</span>
-<span class="kn">from</span> <span class="nn">s3prl.nn.upstream</span> <span class="kn">import</span> <span class="n">Featurizer</span><span class="p">,</span> <span class="n">S3PRLUpstream</span><span class="p">,</span> <span class="n">UpstreamDownstreamModel</span>
-<span class="kn">from</span> <span class="nn">s3prl.task</span> <span class="kn">import</span> <span class="n">Task</span>
-<span class="kn">from</span> <span class="nn">s3prl.util.override</span> <span class="kn">import</span> <span class="n">parse_overrides</span>
-<span class="kn">from</span> <span class="nn">s3prl.util.seed</span> <span class="kn">import</span> <span class="n">fix_random_seeds</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">s3prl.dataio.collate_fn</span><span class="w"> </span><span class="kn">import</span> <span class="n">default_collate_fn</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">s3prl.dataio.sampler</span><span class="w"> </span><span class="kn">import</span> <span class="n">DistributedBatchSamplerWrapper</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">s3prl.nn.upstream</span><span class="w"> </span><span class="kn">import</span> <span class="n">Featurizer</span><span class="p">,</span> <span class="n">S3PRLUpstream</span><span class="p">,</span> <span class="n">UpstreamDownstreamModel</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">s3prl.task</span><span class="w"> </span><span class="kn">import</span> <span class="n">Task</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">s3prl.util.override</span><span class="w"> </span><span class="kn">import</span> <span class="n">parse_overrides</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">s3prl.util.seed</span><span class="w"> </span><span class="kn">import</span> <span class="n">fix_random_seeds</span>
 
 <span class="n">logger</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="vm">__name__</span><span class="p">)</span>
 
@@ -399,15 +399,15 @@
 <span class="n">__all__</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;Problem&quot;</span><span class="p">]</span>
 
 
-<span class="k">class</span> <span class="nc">_DistributedDataParallel</span><span class="p">(</span><span class="n">torch</span><span class="o">.</span><span class="n">nn</span><span class="o">.</span><span class="n">parallel</span><span class="o">.</span><span class="n">DistributedDataParallel</span><span class="p">):</span>
-    <span class="k">def</span> <span class="fm">__getattr__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">):</span>
+<span class="k">class</span><span class="w"> </span><span class="nc">_DistributedDataParallel</span><span class="p">(</span><span class="n">torch</span><span class="o">.</span><span class="n">nn</span><span class="o">.</span><span class="n">parallel</span><span class="o">.</span><span class="n">DistributedDataParallel</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__getattr__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">):</span>
         <span class="k">try</span><span class="p">:</span>
             <span class="k">return</span> <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__getattr__</span><span class="p">(</span><span class="n">name</span><span class="p">)</span>
         <span class="k">except</span> <span class="ne">AttributeError</span><span class="p">:</span>
             <span class="k">return</span> <span class="nb">getattr</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">module</span><span class="p">,</span> <span class="n">name</span><span class="p">)</span>
 
 
-<span class="k">def</span> <span class="nf">_force_cacheable</span><span class="p">(</span><span class="n">data</span><span class="p">:</span> <span class="nb">dict</span><span class="p">):</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">_force_cacheable</span><span class="p">(</span><span class="n">data</span><span class="p">:</span> <span class="nb">dict</span><span class="p">):</span>
     <span class="n">output</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">()</span>
     <span class="k">for</span> <span class="n">key</span><span class="p">,</span> <span class="n">value</span> <span class="ow">in</span> <span class="n">data</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
         <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">value</span><span class="p">,</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">):</span>
@@ -416,7 +416,7 @@
     <span class="k">return</span> <span class="n">output</span>
 
 
-<span class="k">def</span> <span class="nf">_to_device</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="n">device</span><span class="p">:</span> <span class="nb">str</span><span class="p">):</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">_to_device</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="n">device</span><span class="p">:</span> <span class="nb">str</span><span class="p">):</span>
     <span class="n">output</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">()</span>
     <span class="k">for</span> <span class="n">key</span><span class="p">,</span> <span class="n">value</span> <span class="ow">in</span> <span class="n">data</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
         <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">value</span><span class="p">,</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">):</span>
@@ -425,13 +425,13 @@
     <span class="k">return</span> <span class="n">output</span>
 
 
-<span class="k">def</span> <span class="nf">_doc_default_config</span><span class="p">(</span><span class="bp">cls</span><span class="p">:</span> <span class="n">Problem</span><span class="p">):</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">_doc_default_config</span><span class="p">(</span><span class="bp">cls</span><span class="p">:</span> <span class="n">Problem</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    This is used to layout the :code:`default_config` dictionary into yaml format</span>
 <span class="sd">    for :code:`default_config`&#39;s docstring.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
-    <span class="k">def</span> <span class="nf">_append_prefix_spaces</span><span class="p">(</span><span class="n">docstring</span><span class="p">:</span> <span class="nb">str</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">_append_prefix_spaces</span><span class="p">(</span><span class="n">docstring</span><span class="p">:</span> <span class="nb">str</span><span class="p">):</span>
         <span class="k">return</span> <span class="s2">&quot;</span><span class="se">\n</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">join</span><span class="p">([</span><span class="sa">f</span><span class="s2">&quot;  </span><span class="si">{</span><span class="n">line</span><span class="si">}</span><span class="s2">&quot;</span> <span class="k">for</span> <span class="n">line</span> <span class="ow">in</span> <span class="n">docstring</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">)])</span>
 
     <span class="n">obj</span> <span class="o">=</span> <span class="bp">cls</span><span class="p">()</span>
@@ -453,16 +453,16 @@
         <span class="p">)</span>
 
 
-<div class="viewcode-block" id="Problem"><a class="viewcode-back" href="../../../_autosummary/s3prl.problem.base.html#s3prl.problem.base.Problem">[docs]</a><span class="k">class</span> <span class="nc">Problem</span><span class="p">:</span>
+<div class="viewcode-block" id="Problem"><a class="viewcode-back" href="../../../_autosummary/s3prl.problem.base.html#s3prl.problem.base.Problem">[docs]</a><span class="k">class</span><span class="w"> </span><span class="nc">Problem</span><span class="p">:</span>
     <span class="n">_store</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Problem</span><span class="p">]</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">()</span>
 
-    <span class="k">def</span> <span class="nf">__init_subclass__</span><span class="p">(</span><span class="bp">cls</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">__init_subclass__</span><span class="p">(</span><span class="bp">cls</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
         <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="n">__init_subclass__</span><span class="p">()</span>
         <span class="bp">cls</span><span class="o">.</span><span class="n">_store</span><span class="p">[</span><span class="bp">cls</span><span class="o">.</span><span class="vm">__name__</span><span class="p">]</span> <span class="o">=</span> <span class="bp">cls</span>
         <span class="n">_doc_default_config</span><span class="p">(</span><span class="bp">cls</span><span class="p">)</span>
 
 <div class="viewcode-block" id="Problem.get_class_from_name"><a class="viewcode-back" href="../../../_autosummary/s3prl.problem.base.html#s3prl.problem.base.Problem.get_class_from_name">[docs]</a>    <span class="nd">@classmethod</span>
-    <span class="k">def</span> <span class="nf">get_class_from_name</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">name</span><span class="p">:</span> <span class="nb">str</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">get_class_from_name</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">name</span><span class="p">:</span> <span class="nb">str</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Args:</span>
 <span class="sd">            name (str): the :code:`__name__` of the problem class</span>
@@ -475,7 +475,7 @@
         <span class="p">),</span> <span class="sa">f</span><span class="s2">&quot;The class &#39;</span><span class="si">{</span><span class="n">name</span><span class="si">}</span><span class="s2">&#39; is either not defined or not imported&quot;</span>
         <span class="k">return</span> <span class="bp">cls</span><span class="o">.</span><span class="n">_store</span><span class="p">[</span><span class="n">name</span><span class="p">]</span></div>
 
-<div class="viewcode-block" id="Problem.build_collate_fn"><a class="viewcode-back" href="../../../_autosummary/s3prl.problem.base.html#s3prl.problem.base.Problem.build_collate_fn">[docs]</a>    <span class="k">def</span> <span class="nf">build_collate_fn</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">build_collate_fn</span><span class="p">:</span> <span class="nb">dict</span><span class="p">,</span> <span class="n">mode</span><span class="p">:</span> <span class="nb">str</span><span class="p">):</span>
+<div class="viewcode-block" id="Problem.build_collate_fn"><a class="viewcode-back" href="../../../_autosummary/s3prl.problem.base.html#s3prl.problem.base.Problem.build_collate_fn">[docs]</a>    <span class="k">def</span><span class="w"> </span><span class="nf">build_collate_fn</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">build_collate_fn</span><span class="p">:</span> <span class="nb">dict</span><span class="p">,</span> <span class="n">mode</span><span class="p">:</span> <span class="nb">str</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        By default returns :obj:`s3prl.dataset.base.default_collate_fn`</span>
 
@@ -490,7 +490,7 @@
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="n">default_collate_fn</span></div>
 
-<div class="viewcode-block" id="Problem.build_upstream"><a class="viewcode-back" href="../../../_autosummary/s3prl.problem.base.html#s3prl.problem.base.Problem.build_upstream">[docs]</a>    <span class="k">def</span> <span class="nf">build_upstream</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">build_upstream</span><span class="p">:</span> <span class="nb">dict</span><span class="p">):</span>
+<div class="viewcode-block" id="Problem.build_upstream"><a class="viewcode-back" href="../../../_autosummary/s3prl.problem.base.html#s3prl.problem.base.Problem.build_upstream">[docs]</a>    <span class="k">def</span><span class="w"> </span><span class="nf">build_upstream</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">build_upstream</span><span class="p">:</span> <span class="nb">dict</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        By default build the upstream with :obj:`s3prl.nn.upstream.S3PRLUpstream`</span>
 
@@ -507,7 +507,7 @@
         <span class="n">upstream</span> <span class="o">=</span> <span class="n">S3PRLUpstream</span><span class="p">(</span><span class="o">**</span><span class="n">build_upstream</span><span class="p">)</span>
         <span class="k">return</span> <span class="n">upstream</span></div>
 
-<div class="viewcode-block" id="Problem.build_featurizer"><a class="viewcode-back" href="../../../_autosummary/s3prl.problem.base.html#s3prl.problem.base.Problem.build_featurizer">[docs]</a>    <span class="k">def</span> <span class="nf">build_featurizer</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">build_featurizer</span><span class="p">:</span> <span class="nb">dict</span><span class="p">,</span> <span class="n">upstream</span><span class="p">):</span>
+<div class="viewcode-block" id="Problem.build_featurizer"><a class="viewcode-back" href="../../../_autosummary/s3prl.problem.base.html#s3prl.problem.base.Problem.build_featurizer">[docs]</a>    <span class="k">def</span><span class="w"> </span><span class="nf">build_featurizer</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">build_featurizer</span><span class="p">:</span> <span class="nb">dict</span><span class="p">,</span> <span class="n">upstream</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        By default build the featurizer with :obj:`s3prl.nn.Featurizer`</span>
 
@@ -526,7 +526,7 @@
         <span class="n">featurizer</span> <span class="o">=</span> <span class="n">Featurizer</span><span class="p">(</span><span class="n">upstream</span><span class="p">,</span> <span class="o">**</span><span class="n">build_featurizer</span><span class="p">)</span>
         <span class="k">return</span> <span class="n">featurizer</span></div>
 
-<div class="viewcode-block" id="Problem.build_model"><a class="viewcode-back" href="../../../_autosummary/s3prl.problem.base.html#s3prl.problem.base.Problem.build_model">[docs]</a>    <span class="k">def</span> <span class="nf">build_model</span><span class="p">(</span>
+<div class="viewcode-block" id="Problem.build_model"><a class="viewcode-back" href="../../../_autosummary/s3prl.problem.base.html#s3prl.problem.base.Problem.build_model">[docs]</a>    <span class="k">def</span><span class="w"> </span><span class="nf">build_model</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span>
         <span class="n">build_model</span><span class="p">:</span> <span class="nb">dict</span><span class="p">,</span>
         <span class="n">model_output_size</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
@@ -565,7 +565,7 @@
         <span class="n">model</span> <span class="o">=</span> <span class="n">UpstreamDownstreamModel</span><span class="p">(</span><span class="n">upstream</span><span class="p">,</span> <span class="n">featurizer</span><span class="p">,</span> <span class="n">downstream</span><span class="p">,</span> <span class="o">**</span><span class="n">build_model</span><span class="p">)</span>
         <span class="k">return</span> <span class="n">model</span></div>
 
-<div class="viewcode-block" id="Problem.build_optimizer"><a class="viewcode-back" href="../../../_autosummary/s3prl.problem.base.html#s3prl.problem.base.Problem.build_optimizer">[docs]</a>    <span class="k">def</span> <span class="nf">build_optimizer</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">build_optimizer</span><span class="p">:</span> <span class="nb">dict</span><span class="p">,</span> <span class="n">parameters</span><span class="p">):</span>
+<div class="viewcode-block" id="Problem.build_optimizer"><a class="viewcode-back" href="../../../_autosummary/s3prl.problem.base.html#s3prl.problem.base.Problem.build_optimizer">[docs]</a>    <span class="k">def</span><span class="w"> </span><span class="nf">build_optimizer</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">build_optimizer</span><span class="p">:</span> <span class="nb">dict</span><span class="p">,</span> <span class="n">parameters</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Args:</span>
 <span class="sd">            build_optimizer (dict): same in :obj:`default_config`, refer to below</span>
@@ -585,14 +585,14 @@
 <span class="sd">            An optimizer following standard torch usage</span>
 <span class="sd">        &quot;&quot;&quot;</span>
 
-        <span class="k">def</span> <span class="nf">_default_build_optimizer</span><span class="p">(</span><span class="n">name</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">conf</span><span class="p">:</span> <span class="nb">dict</span><span class="p">):</span>
+        <span class="k">def</span><span class="w"> </span><span class="nf">_default_build_optimizer</span><span class="p">(</span><span class="n">name</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">conf</span><span class="p">:</span> <span class="nb">dict</span><span class="p">):</span>
             <span class="n">opt_cls</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">torch</span><span class="o">.</span><span class="n">optim</span><span class="p">,</span> <span class="n">name</span><span class="p">)</span>
             <span class="n">opt</span> <span class="o">=</span> <span class="n">opt_cls</span><span class="p">(</span><span class="n">parameters</span><span class="p">,</span> <span class="o">**</span><span class="n">conf</span><span class="p">)</span>
             <span class="k">return</span> <span class="n">opt</span>
 
         <span class="k">return</span> <span class="n">_default_build_optimizer</span><span class="p">(</span><span class="o">**</span><span class="n">build_optimizer</span><span class="p">)</span></div>
 
-<div class="viewcode-block" id="Problem.build_scheduler"><a class="viewcode-back" href="../../../_autosummary/s3prl.problem.base.html#s3prl.problem.base.Problem.build_scheduler">[docs]</a>    <span class="k">def</span> <span class="nf">build_scheduler</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">build_scheduler</span><span class="p">:</span> <span class="nb">dict</span><span class="p">,</span> <span class="n">optimizer</span><span class="p">):</span>
+<div class="viewcode-block" id="Problem.build_scheduler"><a class="viewcode-back" href="../../../_autosummary/s3prl.problem.base.html#s3prl.problem.base.Problem.build_scheduler">[docs]</a>    <span class="k">def</span><span class="w"> </span><span class="nf">build_scheduler</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">build_scheduler</span><span class="p">:</span> <span class="nb">dict</span><span class="p">,</span> <span class="n">optimizer</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Args:</span>
 <span class="sd">            build_scheduler (dict): same in :obj:`default_config`</span>
@@ -612,14 +612,14 @@
 <span class="sd">            A scheduler following standard torch usage</span>
 <span class="sd">        &quot;&quot;&quot;</span>
 
-        <span class="k">def</span> <span class="nf">_default_build_scheduler</span><span class="p">(</span><span class="n">name</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">conf</span><span class="p">:</span> <span class="nb">dict</span><span class="p">):</span>
+        <span class="k">def</span><span class="w"> </span><span class="nf">_default_build_scheduler</span><span class="p">(</span><span class="n">name</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">conf</span><span class="p">:</span> <span class="nb">dict</span><span class="p">):</span>
             <span class="n">scheduler_cls</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">torch</span><span class="o">.</span><span class="n">optim</span><span class="o">.</span><span class="n">lr_scheduler</span><span class="p">,</span> <span class="n">name</span><span class="p">)</span>
             <span class="n">scheduler</span> <span class="o">=</span> <span class="n">scheduler_cls</span><span class="p">(</span><span class="n">optimizer</span><span class="p">,</span> <span class="o">**</span><span class="n">conf</span><span class="p">)</span>
             <span class="k">return</span> <span class="n">scheduler</span>
 
         <span class="k">return</span> <span class="n">_default_build_scheduler</span><span class="p">(</span><span class="o">**</span><span class="n">build_scheduler</span><span class="p">)</span></div>
 
-<div class="viewcode-block" id="Problem.train"><a class="viewcode-back" href="../../../_autosummary/s3prl.problem.base.html#s3prl.problem.base.Problem.train">[docs]</a>    <span class="k">def</span> <span class="nf">train</span><span class="p">(</span>
+<div class="viewcode-block" id="Problem.train"><a class="viewcode-back" href="../../../_autosummary/s3prl.problem.base.html#s3prl.problem.base.Problem.train">[docs]</a>    <span class="k">def</span><span class="w"> </span><span class="nf">train</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span>
         <span class="n">train</span><span class="p">:</span> <span class="nb">dict</span><span class="p">,</span>
         <span class="n">train_dir</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
@@ -679,7 +679,7 @@
 <span class="sd">        &quot;&quot;&quot;</span>
 
         <span class="nd">@dataclass</span>
-        <span class="k">class</span> <span class="nc">TrainConfig</span><span class="p">:</span>
+        <span class="k">class</span><span class="w"> </span><span class="nc">TrainConfig</span><span class="p">:</span>
             <span class="n">total_steps</span><span class="p">:</span> <span class="nb">int</span>
             <span class="n">log_step</span><span class="p">:</span> <span class="nb">int</span>
             <span class="n">eval_step</span><span class="p">:</span> <span class="nb">int</span>
@@ -802,7 +802,7 @@
             <span class="n">tf_dir</span> <span class="o">=</span> <span class="n">train_dir</span> <span class="o">/</span> <span class="s2">&quot;tb&quot;</span>
             <span class="n">tf_logger</span> <span class="o">=</span> <span class="n">SummaryWriter</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">tf_dir</span><span class="p">))</span>
 
-        <span class="k">def</span> <span class="nf">_save_ckpts_to_dir</span><span class="p">(</span>
+        <span class="k">def</span><span class="w"> </span><span class="nf">_save_ckpts_to_dir</span><span class="p">(</span>
             <span class="n">ckpts_dir</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
             <span class="n">task</span><span class="p">,</span>
             <span class="n">optimizer</span><span class="p">,</span>
@@ -895,7 +895,7 @@
                     <span class="n">pbar</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>
                     <span class="k">continue</span>
 
-                <span class="k">def</span> <span class="nf">_log_results</span><span class="p">(</span>
+                <span class="k">def</span><span class="w"> </span><span class="nf">_log_results</span><span class="p">(</span>
                     <span class="n">split_name</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
                     <span class="n">logs</span><span class="p">:</span> <span class="nb">dict</span><span class="p">,</span>
                     <span class="n">tensorboard</span><span class="p">:</span> <span class="n">SummaryWriter</span><span class="p">,</span>
@@ -992,7 +992,7 @@
         <span class="k">if</span> <span class="n">rank</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
             <span class="n">tf_logger</span><span class="o">.</span><span class="n">close</span><span class="p">()</span></div>
 
-<div class="viewcode-block" id="Problem.evaluate"><a class="viewcode-back" href="../../../_autosummary/s3prl.problem.base.html#s3prl.problem.base.Problem.evaluate">[docs]</a>    <span class="k">def</span> <span class="nf">evaluate</span><span class="p">(</span>
+<div class="viewcode-block" id="Problem.evaluate"><a class="viewcode-back" href="../../../_autosummary/s3prl.problem.base.html#s3prl.problem.base.Problem.evaluate">[docs]</a>    <span class="k">def</span><span class="w"> </span><span class="nf">evaluate</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span>
         <span class="n">evaluate</span><span class="p">:</span> <span class="nb">dict</span><span class="p">,</span>
         <span class="n">mode</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
@@ -1041,7 +1041,7 @@
         <span class="n">logs</span> <span class="o">=</span> <span class="n">task</span><span class="o">.</span><span class="n">reduction</span><span class="p">(</span><span class="n">mode</span><span class="p">,</span> <span class="n">batch_results</span><span class="p">,</span> <span class="n">_dump_dir</span><span class="o">=</span><span class="n">dump_dir</span><span class="p">)</span>
         <span class="k">return</span> <span class="n">logs</span></div>
 
-<div class="viewcode-block" id="Problem.save_model"><a class="viewcode-back" href="../../../_autosummary/s3prl.problem.base.html#s3prl.problem.base.Problem.save_model">[docs]</a>    <span class="k">def</span> <span class="nf">save_model</span><span class="p">(</span>
+<div class="viewcode-block" id="Problem.save_model"><a class="viewcode-back" href="../../../_autosummary/s3prl.problem.base.html#s3prl.problem.base.Problem.save_model">[docs]</a>    <span class="k">def</span><span class="w"> </span><span class="nf">save_model</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span>
         <span class="n">save_model</span><span class="p">:</span> <span class="nb">dict</span><span class="p">,</span>
         <span class="n">model_ckpt_dir</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
@@ -1084,7 +1084,7 @@
             <span class="k">with</span> <span class="p">(</span><span class="n">model_ckpt_dir</span> <span class="o">/</span> <span class="s2">&quot;extra_conf.yaml&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">open</span><span class="p">(</span><span class="s2">&quot;w&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
                 <span class="n">yaml</span><span class="o">.</span><span class="n">safe_dump</span><span class="p">(</span><span class="n">save_model</span><span class="p">,</span> <span class="n">f</span><span class="p">)</span></div>
 
-<div class="viewcode-block" id="Problem.load_model"><a class="viewcode-back" href="../../../_autosummary/s3prl.problem.base.html#s3prl.problem.base.Problem.load_model">[docs]</a>    <span class="k">def</span> <span class="nf">load_model</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">model_ckpt_dir</span><span class="p">:</span> <span class="nb">str</span><span class="p">):</span>
+<div class="viewcode-block" id="Problem.load_model"><a class="viewcode-back" href="../../../_autosummary/s3prl.problem.base.html#s3prl.problem.base.Problem.load_model">[docs]</a>    <span class="k">def</span><span class="w"> </span><span class="nf">load_model</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">model_ckpt_dir</span><span class="p">:</span> <span class="nb">str</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Return the saved model.</span>
 
@@ -1106,7 +1106,7 @@
 
         <span class="k">return</span> <span class="n">model</span></div>
 
-<div class="viewcode-block" id="Problem.save_task"><a class="viewcode-back" href="../../../_autosummary/s3prl.problem.base.html#s3prl.problem.base.Problem.save_task">[docs]</a>    <span class="k">def</span> <span class="nf">save_task</span><span class="p">(</span>
+<div class="viewcode-block" id="Problem.save_task"><a class="viewcode-back" href="../../../_autosummary/s3prl.problem.base.html#s3prl.problem.base.Problem.save_task">[docs]</a>    <span class="k">def</span><span class="w"> </span><span class="nf">save_task</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span>
         <span class="n">save_task</span><span class="p">:</span> <span class="nb">dict</span><span class="p">,</span>
         <span class="n">task_ckpt_dir</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
@@ -1165,7 +1165,7 @@
             <span class="k">with</span> <span class="p">(</span><span class="n">task_ckpt_dir</span><span class="p">,</span> <span class="s2">&quot;extra_conf.yaml&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">open</span><span class="p">(</span><span class="s2">&quot;w&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
                 <span class="n">yaml</span><span class="o">.</span><span class="n">safe_dump</span><span class="p">(</span><span class="n">save_task</span><span class="p">,</span> <span class="n">f</span><span class="p">)</span></div>
 
-<div class="viewcode-block" id="Problem.load_task"><a class="viewcode-back" href="../../../_autosummary/s3prl.problem.base.html#s3prl.problem.base.Problem.load_task">[docs]</a>    <span class="k">def</span> <span class="nf">load_task</span><span class="p">(</span>
+<div class="viewcode-block" id="Problem.load_task"><a class="viewcode-back" href="../../../_autosummary/s3prl.problem.base.html#s3prl.problem.base.Problem.load_task">[docs]</a>    <span class="k">def</span><span class="w"> </span><span class="nf">load_task</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span> <span class="n">task_ckpt_dir</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">model</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">nn</span><span class="o">.</span><span class="n">Module</span><span class="p">,</span> <span class="n">task_overrides</span><span class="p">:</span> <span class="nb">dict</span> <span class="o">=</span> <span class="kc">None</span>
     <span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
@@ -1216,7 +1216,7 @@
 
         <span class="k">return</span> <span class="n">task</span></div>
 
-<div class="viewcode-block" id="Problem.load_model_and_task"><a class="viewcode-back" href="../../../_autosummary/s3prl.problem.base.html#s3prl.problem.base.Problem.load_model_and_task">[docs]</a>    <span class="k">def</span> <span class="nf">load_model_and_task</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ckpts_dir</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">task_overrides</span><span class="p">:</span> <span class="nb">dict</span> <span class="o">=</span> <span class="kc">None</span><span class="p">):</span>
+<div class="viewcode-block" id="Problem.load_model_and_task"><a class="viewcode-back" href="../../../_autosummary/s3prl.problem.base.html#s3prl.problem.base.Problem.load_model_and_task">[docs]</a>    <span class="k">def</span><span class="w"> </span><span class="nf">load_model_and_task</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ckpts_dir</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">task_overrides</span><span class="p">:</span> <span class="nb">dict</span> <span class="o">=</span> <span class="kc">None</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        This is a helper method to combine :obj:`load_model` and :obj:`load_task`</span>
 <span class="sd">        together to directly load the model and the task. This method assumes</span>
@@ -1237,7 +1237,7 @@
         <span class="k">return</span> <span class="n">model</span><span class="p">,</span> <span class="n">task</span></div>
 
     <span class="nd">@staticmethod</span>
-    <span class="k">def</span> <span class="nf">_get_current_arguments</span><span class="p">(</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">_get_current_arguments</span><span class="p">(</span>
         <span class="n">exclude_self_and_cls</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span> <span class="n">flatten_dict</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">]]</span> <span class="o">=</span> <span class="kc">None</span>
     <span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">:</span>
         <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">flatten_dict</span><span class="p">,</span> <span class="nb">str</span><span class="p">):</span>
@@ -1262,7 +1262,7 @@
                     <span class="n">flatten_config</span><span class="p">[</span><span class="n">k</span><span class="p">]</span> <span class="o">=</span> <span class="n">v</span>
             <span class="n">config</span> <span class="o">=</span> <span class="n">flatten_config</span>
 
-        <span class="k">def</span> <span class="nf">assert_no_missing</span><span class="p">(</span><span class="n">config</span><span class="p">:</span> <span class="nb">dict</span><span class="p">):</span>
+        <span class="k">def</span><span class="w"> </span><span class="nf">assert_no_missing</span><span class="p">(</span><span class="n">config</span><span class="p">:</span> <span class="nb">dict</span><span class="p">):</span>
             <span class="n">omegaconf</span><span class="o">.</span><span class="n">OmegaConf</span><span class="o">.</span><span class="n">to_container</span><span class="p">(</span>
                 <span class="n">omegaconf</span><span class="o">.</span><span class="n">OmegaConf</span><span class="o">.</span><span class="n">create</span><span class="p">(</span><span class="n">config</span><span class="p">),</span> <span class="n">throw_on_missing</span><span class="o">=</span><span class="kc">True</span>
             <span class="p">)</span>
@@ -1271,11 +1271,11 @@
         <span class="k">return</span> <span class="n">config</span>
 
     <span class="nd">@staticmethod</span>
-    <span class="k">def</span> <span class="nf">_get_time_tag</span><span class="p">():</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">_get_time_tag</span><span class="p">():</span>
         <span class="k">return</span> <span class="n">datetime</span><span class="o">.</span><span class="n">fromtimestamp</span><span class="p">(</span><span class="n">time</span><span class="p">())</span><span class="o">.</span><span class="n">strftime</span><span class="p">(</span><span class="s2">&quot;%Y_%m_</span><span class="si">%d</span><span class="s2">_%H_%M_%S&quot;</span><span class="p">)</span>
 
     <span class="nd">@staticmethod</span>
-    <span class="k">def</span> <span class="nf">_stage_check</span><span class="p">(</span><span class="n">stage_id</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">stop</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">check_fn</span><span class="p">:</span> <span class="nb">callable</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">_stage_check</span><span class="p">(</span><span class="n">stage_id</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">stop</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">check_fn</span><span class="p">:</span> <span class="nb">callable</span><span class="p">):</span>
         <span class="k">try</span><span class="p">:</span>
             <span class="n">check_fn</span><span class="p">()</span>
         <span class="k">except</span><span class="p">:</span>
@@ -1286,7 +1286,7 @@
         <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">stop</span><span class="p">,</span> <span class="nb">int</span><span class="p">)</span> <span class="ow">and</span> <span class="n">stage_id</span> <span class="o">==</span> <span class="n">stop</span><span class="p">:</span>
             <span class="n">exit</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
 
-<div class="viewcode-block" id="Problem.main"><a class="viewcode-back" href="../../../_autosummary/s3prl.problem.base.html#s3prl.problem.base.Problem.main">[docs]</a>    <span class="k">def</span> <span class="nf">main</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">args</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">):</span>
+<div class="viewcode-block" id="Problem.main"><a class="viewcode-back" href="../../../_autosummary/s3prl.problem.base.html#s3prl.problem.base.Problem.main">[docs]</a>    <span class="k">def</span><span class="w"> </span><span class="nf">main</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">args</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">):</span>
         <span class="n">parser</span> <span class="o">=</span> <span class="n">argparse</span><span class="o">.</span><span class="n">ArgumentParser</span><span class="p">()</span>
         <span class="n">parser</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span><span class="s2">&quot;--verbose&quot;</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="s2">&quot;INFO&quot;</span><span class="p">)</span>
         <span class="n">parser</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span>

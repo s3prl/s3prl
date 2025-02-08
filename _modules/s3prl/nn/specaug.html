@@ -347,7 +347,7 @@
 <span class="c1">#   Copyright    [ Copyleft(c), Speech Lab, NTU, Taiwan ]</span>
 <span class="c1"># Adaptive_SpecAugment Author: ShampooWang, cornliu</span>
 
-<span class="kn">import</span> <span class="nn">torch</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">torch</span>
 
 <span class="n">DEFAULT_TIME_WARP_MODE</span> <span class="o">=</span> <span class="s2">&quot;bicubic&quot;</span>
 
@@ -358,7 +358,7 @@
 <span class="p">]</span>
 
 
-<div class="viewcode-block" id="ModelWithSpecaug"><a class="viewcode-back" href="../../../_autosummary/s3prl.nn.specaug.html#s3prl.nn.specaug.ModelWithSpecaug">[docs]</a><span class="k">class</span> <span class="nc">ModelWithSpecaug</span><span class="p">(</span><span class="n">torch</span><span class="o">.</span><span class="n">nn</span><span class="o">.</span><span class="n">Module</span><span class="p">):</span>
+<div class="viewcode-block" id="ModelWithSpecaug"><a class="viewcode-back" href="../../../_autosummary/s3prl.nn.specaug.html#s3prl.nn.specaug.ModelWithSpecaug">[docs]</a><span class="k">class</span><span class="w"> </span><span class="nc">ModelWithSpecaug</span><span class="p">(</span><span class="n">torch</span><span class="o">.</span><span class="n">nn</span><span class="o">.</span><span class="n">Module</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Insert a Specaug module in front of the input model</span>
 
@@ -367,20 +367,20 @@
 <span class="sd">        specaug_conf (dict): the arguments for :obj:`SpecAug`</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
-    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">model</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">nn</span><span class="o">.</span><span class="n">Module</span><span class="p">,</span> <span class="o">**</span><span class="n">specaug_conf</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">model</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">nn</span><span class="o">.</span><span class="n">Module</span><span class="p">,</span> <span class="o">**</span><span class="n">specaug_conf</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
         <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">()</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">model</span> <span class="o">=</span> <span class="n">model</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">specaug</span> <span class="o">=</span> <span class="n">SpecAug</span><span class="p">(</span><span class="o">**</span><span class="n">specaug_conf</span><span class="p">)</span>
 
     <span class="nd">@property</span>
-    <span class="k">def</span> <span class="nf">input_size</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">int</span><span class="p">:</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">input_size</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">int</span><span class="p">:</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">input_size</span>
 
     <span class="nd">@property</span>
-    <span class="k">def</span> <span class="nf">output_size</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">int</span><span class="p">:</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">output_size</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">int</span><span class="p">:</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">output_size</span>
 
-<div class="viewcode-block" id="ModelWithSpecaug.forward"><a class="viewcode-back" href="../../../_autosummary/s3prl.nn.specaug.html#s3prl.nn.specaug.ModelWithSpecaug.forward">[docs]</a>    <span class="k">def</span> <span class="nf">forward</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">,</span> <span class="n">x_len</span><span class="p">,</span> <span class="o">**</span><span class="n">others</span><span class="p">):</span>
+<div class="viewcode-block" id="ModelWithSpecaug.forward"><a class="viewcode-back" href="../../../_autosummary/s3prl.nn.specaug.html#s3prl.nn.specaug.ModelWithSpecaug.forward">[docs]</a>    <span class="k">def</span><span class="w"> </span><span class="nf">forward</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">,</span> <span class="n">x_len</span><span class="p">,</span> <span class="o">**</span><span class="n">others</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        The input :code:`x` will be augmented with Specaug and feed into the following :code:`model`</span>
 
@@ -396,8 +396,8 @@
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">model</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">x_len</span><span class="p">,</span> <span class="o">**</span><span class="n">others</span><span class="p">)</span></div></div>
 
 
-<div class="viewcode-block" id="SpecAug"><a class="viewcode-back" href="../../../_autosummary/s3prl.nn.specaug.html#s3prl.nn.specaug.SpecAug">[docs]</a><span class="k">class</span> <span class="nc">SpecAug</span><span class="p">(</span><span class="n">torch</span><span class="o">.</span><span class="n">nn</span><span class="o">.</span><span class="n">Module</span><span class="p">):</span>
-    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span>
+<div class="viewcode-block" id="SpecAug"><a class="viewcode-back" href="../../../_autosummary/s3prl.nn.specaug.html#s3prl.nn.specaug.SpecAug">[docs]</a><span class="k">class</span><span class="w"> </span><span class="nc">SpecAug</span><span class="p">(</span><span class="n">torch</span><span class="o">.</span><span class="n">nn</span><span class="o">.</span><span class="n">Module</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span>
         <span class="n">apply_time_warp</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span>
         <span class="n">time_warp_window</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">5</span><span class="p">,</span>
@@ -447,7 +447,7 @@
         <span class="k">else</span><span class="p">:</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">time_mask</span> <span class="o">=</span> <span class="kc">None</span>
 
-<div class="viewcode-block" id="SpecAug.apply_specaug"><a class="viewcode-back" href="../../../_autosummary/s3prl.nn.specaug.html#s3prl.nn.specaug.SpecAug.apply_specaug">[docs]</a>    <span class="k">def</span> <span class="nf">apply_specaug</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">,</span> <span class="n">x_lengths</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+<div class="viewcode-block" id="SpecAug.apply_specaug"><a class="viewcode-back" href="../../../_autosummary/s3prl.nn.specaug.html#s3prl.nn.specaug.SpecAug.apply_specaug">[docs]</a>    <span class="k">def</span><span class="w"> </span><span class="nf">apply_specaug</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">,</span> <span class="n">x_lengths</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">time_warp</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
             <span class="n">x</span><span class="p">,</span> <span class="n">x_lengths</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">time_warp</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">x_lengths</span><span class="p">)</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">freq_mask</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
@@ -456,7 +456,7 @@
             <span class="n">x</span><span class="p">,</span> <span class="n">x_lengths</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">time_mask</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">x_lengths</span><span class="p">)</span>
         <span class="k">return</span> <span class="n">x</span><span class="p">,</span> <span class="n">x_lengths</span></div>
 
-<div class="viewcode-block" id="SpecAug.forward"><a class="viewcode-back" href="../../../_autosummary/s3prl.nn.specaug.html#s3prl.nn.specaug.SpecAug.forward">[docs]</a>    <span class="k">def</span> <span class="nf">forward</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">,</span> <span class="n">x_len</span><span class="p">):</span>
+<div class="viewcode-block" id="SpecAug.forward"><a class="viewcode-back" href="../../../_autosummary/s3prl.nn.specaug.html#s3prl.nn.specaug.SpecAug.forward">[docs]</a>    <span class="k">def</span><span class="w"> </span><span class="nf">forward</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">,</span> <span class="n">x_len</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Args:</span>
 <span class="sd">            x (torch.FloatTensor): (batch_size, seq_len, input_size)</span>
@@ -475,22 +475,22 @@
         <span class="k">return</span> <span class="n">x</span><span class="p">,</span> <span class="n">x_len</span></div></div>
 
 
-<span class="k">class</span> <span class="nc">TimeWarp</span><span class="p">(</span><span class="n">torch</span><span class="o">.</span><span class="n">nn</span><span class="o">.</span><span class="n">Module</span><span class="p">):</span>
+<span class="k">class</span><span class="w"> </span><span class="nc">TimeWarp</span><span class="p">(</span><span class="n">torch</span><span class="o">.</span><span class="n">nn</span><span class="o">.</span><span class="n">Module</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Time warping using torch.interpolate.</span>
 <span class="sd">    Args:</span>
 <span class="sd">        window: time warp parameter</span>
 <span class="sd">        mode: Interpolate mode</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
-    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">window</span><span class="o">=</span><span class="mi">80</span><span class="p">,</span> <span class="n">mode</span><span class="o">=</span><span class="n">DEFAULT_TIME_WARP_MODE</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">window</span><span class="o">=</span><span class="mi">80</span><span class="p">,</span> <span class="n">mode</span><span class="o">=</span><span class="n">DEFAULT_TIME_WARP_MODE</span><span class="p">):</span>
         <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">()</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">window</span> <span class="o">=</span> <span class="n">window</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">mode</span> <span class="o">=</span> <span class="n">mode</span>
 
-    <span class="k">def</span> <span class="nf">extra_repr</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">extra_repr</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="k">return</span> <span class="sa">f</span><span class="s2">&quot;window=</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">window</span><span class="si">}</span><span class="s2">, mode=</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">mode</span><span class="si">}</span><span class="s2">&quot;</span>
 
-    <span class="k">def</span> <span class="nf">time_warp</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">time_warp</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">):</span>
         <span class="n">org_size</span> <span class="o">=</span> <span class="n">x</span><span class="o">.</span><span class="n">size</span><span class="p">()</span>
         <span class="k">if</span> <span class="n">x</span><span class="o">.</span><span class="n">dim</span><span class="p">()</span> <span class="o">==</span> <span class="mi">3</span><span class="p">:</span>
             <span class="c1"># x: (Batch, Time, Freq) -&gt; (Batch, 1, Time, Freq)</span>
@@ -523,7 +523,7 @@
 
         <span class="k">return</span> <span class="n">x</span><span class="o">.</span><span class="n">view</span><span class="p">(</span><span class="o">*</span><span class="n">org_size</span><span class="p">)</span>
 
-    <span class="k">def</span> <span class="nf">forward</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">,</span> <span class="n">x_lengths</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">forward</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">,</span> <span class="n">x_lengths</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Forward function.</span>
 <span class="sd">        Args:</span>
 <span class="sd">            x: (Batch, Time, Freq)</span>
@@ -539,8 +539,8 @@
         <span class="k">return</span> <span class="n">ys</span><span class="p">,</span> <span class="n">x_lengths</span>
 
 
-<span class="k">class</span> <span class="nc">MaskAlongAxis</span><span class="p">(</span><span class="n">torch</span><span class="o">.</span><span class="n">nn</span><span class="o">.</span><span class="n">Module</span><span class="p">):</span>
-    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span>
+<span class="k">class</span><span class="w"> </span><span class="nc">MaskAlongAxis</span><span class="p">(</span><span class="n">torch</span><span class="o">.</span><span class="n">nn</span><span class="o">.</span><span class="n">Module</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span>
         <span class="n">mask_width_range</span><span class="o">=</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">30</span><span class="p">),</span>
         <span class="n">num_mask</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span>
@@ -587,7 +587,7 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">max_n_time_masks</span> <span class="o">=</span> <span class="n">max_n_time_masks</span>
         <span class="c1">###############################################</span>
 
-    <span class="k">def</span> <span class="nf">mask_along_axis</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">spec</span><span class="p">,</span> <span class="n">spec_lengths</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">mask_along_axis</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">spec</span><span class="p">,</span> <span class="n">spec_lengths</span><span class="p">):</span>
         <span class="n">org_size</span> <span class="o">=</span> <span class="n">spec</span><span class="o">.</span><span class="n">size</span><span class="p">()</span>
         <span class="k">if</span> <span class="n">spec</span><span class="o">.</span><span class="n">dim</span><span class="p">()</span> <span class="o">==</span> <span class="mi">4</span><span class="p">:</span>
             <span class="c1"># spec: (Batch, Channel, Length, Freq) -&gt; (Batch * Channel, Length, Freq)</span>
@@ -646,7 +646,7 @@
         <span class="n">spec</span> <span class="o">=</span> <span class="n">spec</span><span class="o">.</span><span class="n">view</span><span class="p">(</span><span class="o">*</span><span class="n">org_size</span><span class="p">)</span>
         <span class="k">return</span> <span class="n">spec</span><span class="p">,</span> <span class="n">spec_lengths</span>
 
-    <span class="k">def</span> <span class="nf">forward</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">spec</span><span class="p">,</span> <span class="n">spec_lengths</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">forward</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">spec</span><span class="p">,</span> <span class="n">spec_lengths</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Forward function.</span>
 <span class="sd">        Args:</span>
 <span class="sd">            spec: (Batch, Length, Freq)</span>

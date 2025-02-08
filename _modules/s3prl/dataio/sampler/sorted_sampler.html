@@ -342,9 +342,9 @@
 <span class="sd">  Leo 2022</span>
 <span class="sd">&quot;&quot;&quot;</span>
 
-<span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">List</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">typing</span><span class="w"> </span><span class="kn">import</span> <span class="n">List</span>
 
-<span class="kn">import</span> <span class="nn">torch</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">torch</span>
 
 <span class="n">__all__</span> <span class="o">=</span> <span class="p">[</span>
     <span class="s2">&quot;SortedSliceSampler&quot;</span><span class="p">,</span>
@@ -352,7 +352,7 @@
 <span class="p">]</span>
 
 
-<div class="viewcode-block" id="SortedSliceSampler"><a class="viewcode-back" href="../../../../_autosummary/s3prl.dataio.sampler.sorted_sampler.html#s3prl.dataio.sampler.SortedSliceSampler">[docs]</a><span class="k">class</span> <span class="nc">SortedSliceSampler</span><span class="p">:</span>
+<div class="viewcode-block" id="SortedSliceSampler"><a class="viewcode-back" href="../../../../_autosummary/s3prl.dataio.sampler.sorted_sampler.html#s3prl.dataio.sampler.SortedSliceSampler">[docs]</a><span class="k">class</span><span class="w"> </span><span class="nc">SortedSliceSampler</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    This sampler should only be used for training hence is always in random shuffle mode</span>
 
@@ -364,7 +364,7 @@
 <span class="sd">        in_batch_shuffle (bool): if False, batches are sorted by length from long to short</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
-    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span>
         <span class="n">lengths</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="nb">int</span><span class="p">],</span>
         <span class="n">batch_size</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
@@ -383,10 +383,10 @@
         <span class="n">sorted_ids</span> <span class="o">=</span> <span class="nb">sorted</span><span class="p">(</span><span class="n">sorted_ids</span><span class="p">,</span> <span class="n">key</span><span class="o">=</span><span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="n">x</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="n">reverse</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">sorted_ids</span> <span class="o">=</span> <span class="p">[</span><span class="n">data_id</span> <span class="k">for</span> <span class="n">data_id</span><span class="p">,</span> <span class="n">length</span> <span class="ow">in</span> <span class="n">sorted_ids</span><span class="p">]</span>
 
-<div class="viewcode-block" id="SortedSliceSampler.set_epoch"><a class="viewcode-back" href="../../../../_autosummary/s3prl.dataio.sampler.sorted_sampler.html#s3prl.dataio.sampler.SortedSliceSampler.set_epoch">[docs]</a>    <span class="k">def</span> <span class="nf">set_epoch</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">epoch</span><span class="p">:</span> <span class="nb">int</span><span class="p">):</span>
+<div class="viewcode-block" id="SortedSliceSampler.set_epoch"><a class="viewcode-back" href="../../../../_autosummary/s3prl.dataio.sampler.sorted_sampler.html#s3prl.dataio.sampler.SortedSliceSampler.set_epoch">[docs]</a>    <span class="k">def</span><span class="w"> </span><span class="nf">set_epoch</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">epoch</span><span class="p">:</span> <span class="nb">int</span><span class="p">):</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">epoch</span> <span class="o">=</span> <span class="n">epoch</span></div>
 
-    <span class="k">def</span> <span class="fm">__iter__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__iter__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="n">generator</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">Generator</span><span class="p">()</span>
         <span class="n">generator</span><span class="o">.</span><span class="n">manual_seed</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">epoch</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">seed</span><span class="p">)</span>
 
@@ -409,11 +409,11 @@
 
             <span class="k">yield</span> <span class="n">batch</span>
 
-    <span class="k">def</span> <span class="fm">__len__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__len__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="k">return</span> <span class="nb">len</span><span class="p">(</span><span class="nb">list</span><span class="p">(</span><span class="nb">iter</span><span class="p">(</span><span class="bp">self</span><span class="p">)))</span></div>
 
 
-<div class="viewcode-block" id="SortedBucketingSampler"><a class="viewcode-back" href="../../../../_autosummary/s3prl.dataio.sampler.sorted_sampler.html#s3prl.dataio.sampler.SortedBucketingSampler">[docs]</a><span class="k">class</span> <span class="nc">SortedBucketingSampler</span><span class="p">:</span>
+<div class="viewcode-block" id="SortedBucketingSampler"><a class="viewcode-back" href="../../../../_autosummary/s3prl.dataio.sampler.sorted_sampler.html#s3prl.dataio.sampler.SortedBucketingSampler">[docs]</a><span class="k">class</span><span class="w"> </span><span class="nc">SortedBucketingSampler</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Args:</span>
 <span class="sd">        lengths (List[int])</span>
@@ -424,7 +424,7 @@
 <span class="sd">        in_batch_shuffle (bool): if False, batches are sorted by length from long to short</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
-    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span>
         <span class="n">lengths</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="nb">int</span><span class="p">],</span>
         <span class="n">batch_size</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
@@ -445,10 +445,10 @@
         <span class="n">sorted_ids</span> <span class="o">=</span> <span class="nb">sorted</span><span class="p">(</span><span class="n">sorted_ids</span><span class="p">,</span> <span class="n">key</span><span class="o">=</span><span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="n">x</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="n">reverse</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">sorted_ids</span> <span class="o">=</span> <span class="p">[</span><span class="n">data_id</span> <span class="k">for</span> <span class="n">data_id</span><span class="p">,</span> <span class="n">length</span> <span class="ow">in</span> <span class="n">sorted_ids</span><span class="p">]</span>
 
-<div class="viewcode-block" id="SortedBucketingSampler.set_epoch"><a class="viewcode-back" href="../../../../_autosummary/s3prl.dataio.sampler.sorted_sampler.html#s3prl.dataio.sampler.SortedBucketingSampler.set_epoch">[docs]</a>    <span class="k">def</span> <span class="nf">set_epoch</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">epoch</span><span class="p">:</span> <span class="nb">int</span><span class="p">):</span>
+<div class="viewcode-block" id="SortedBucketingSampler.set_epoch"><a class="viewcode-back" href="../../../../_autosummary/s3prl.dataio.sampler.sorted_sampler.html#s3prl.dataio.sampler.SortedBucketingSampler.set_epoch">[docs]</a>    <span class="k">def</span><span class="w"> </span><span class="nf">set_epoch</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">epoch</span><span class="p">:</span> <span class="nb">int</span><span class="p">):</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">epoch</span> <span class="o">=</span> <span class="n">epoch</span></div>
 
-    <span class="k">def</span> <span class="fm">__iter__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__iter__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="n">generator</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">Generator</span><span class="p">()</span>
         <span class="n">generator</span><span class="o">.</span><span class="n">manual_seed</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">epoch</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">seed</span><span class="p">)</span>
 
@@ -476,7 +476,7 @@
 
         <span class="k">return</span> <span class="nb">iter</span><span class="p">(</span><span class="n">batches</span><span class="p">)</span>
 
-    <span class="k">def</span> <span class="fm">__len__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__len__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="k">return</span> <span class="nb">len</span><span class="p">(</span><span class="nb">list</span><span class="p">(</span><span class="nb">iter</span><span class="p">(</span><span class="bp">self</span><span class="p">)))</span></div>
 </pre></div>
         </article>

@@ -343,22 +343,22 @@
 <span class="sd">  * Leo 2022</span>
 <span class="sd">&quot;&quot;&quot;</span>
 
-<span class="kn">import</span> <span class="nn">logging</span>
-<span class="kn">import</span> <span class="nn">pickle</span>
-<span class="kn">from</span> <span class="nn">dataclasses</span> <span class="kn">import</span> <span class="n">dataclass</span>
-<span class="kn">from</span> <span class="nn">pathlib</span> <span class="kn">import</span> <span class="n">Path</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">logging</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">pickle</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">dataclasses</span><span class="w"> </span><span class="kn">import</span> <span class="n">dataclass</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">pathlib</span><span class="w"> </span><span class="kn">import</span> <span class="n">Path</span>
 
-<span class="kn">import</span> <span class="nn">pandas</span> <span class="k">as</span> <span class="nn">pd</span>
-<span class="kn">from</span> <span class="nn">omegaconf</span> <span class="kn">import</span> <span class="n">MISSING</span>
-<span class="kn">from</span> <span class="nn">torch.utils.data</span> <span class="kn">import</span> <span class="n">Subset</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">pandas</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">pd</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">omegaconf</span><span class="w"> </span><span class="kn">import</span> <span class="n">MISSING</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">torch.utils.data</span><span class="w"> </span><span class="kn">import</span> <span class="n">Subset</span>
 
-<span class="kn">from</span> <span class="nn">s3prl.dataio.corpus.voxceleb1sv</span> <span class="kn">import</span> <span class="n">VoxCeleb1SV</span>
-<span class="kn">from</span> <span class="nn">s3prl.dataio.dataset</span> <span class="kn">import</span> <span class="n">EncodeCategory</span><span class="p">,</span> <span class="n">LoadAudio</span><span class="p">,</span> <span class="n">get_info</span>
-<span class="kn">from</span> <span class="nn">s3prl.dataio.encoder.category</span> <span class="kn">import</span> <span class="n">CategoryEncoder</span>
-<span class="kn">from</span> <span class="nn">s3prl.dataio.sampler</span> <span class="kn">import</span> <span class="n">FixedBatchSizeBatchSampler</span>
-<span class="kn">from</span> <span class="nn">s3prl.nn.speaker_model</span> <span class="kn">import</span> <span class="n">SuperbXvector</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">s3prl.dataio.corpus.voxceleb1sv</span><span class="w"> </span><span class="kn">import</span> <span class="n">VoxCeleb1SV</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">s3prl.dataio.dataset</span><span class="w"> </span><span class="kn">import</span> <span class="n">EncodeCategory</span><span class="p">,</span> <span class="n">LoadAudio</span><span class="p">,</span> <span class="n">get_info</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">s3prl.dataio.encoder.category</span><span class="w"> </span><span class="kn">import</span> <span class="n">CategoryEncoder</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">s3prl.dataio.sampler</span><span class="w"> </span><span class="kn">import</span> <span class="n">FixedBatchSizeBatchSampler</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">s3prl.nn.speaker_model</span><span class="w"> </span><span class="kn">import</span> <span class="n">SuperbXvector</span>
 
-<span class="kn">from</span> <span class="nn">.run</span> <span class="kn">import</span> <span class="n">ASV</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">.run</span><span class="w"> </span><span class="kn">import</span> <span class="n">ASV</span>
 
 <span class="n">SAMPLE_RATE</span> <span class="o">=</span> <span class="mi">16000</span>
 <span class="n">EFFECTS</span> <span class="o">=</span> <span class="p">[</span>
@@ -376,7 +376,7 @@
 <span class="p">]</span>
 
 
-<div class="viewcode-block" id="prepare_voxceleb1_for_sv"><a class="viewcode-back" href="../../../../_autosummary/s3prl.problem.asv.superb_asv.html#s3prl.problem.prepare_voxceleb1_for_sv">[docs]</a><span class="k">def</span> <span class="nf">prepare_voxceleb1_for_sv</span><span class="p">(</span>
+<div class="viewcode-block" id="prepare_voxceleb1_for_sv"><a class="viewcode-back" href="../../../../_autosummary/s3prl.problem.asv.superb_asv.html#s3prl.problem.prepare_voxceleb1_for_sv">[docs]</a><span class="k">def</span><span class="w"> </span><span class="nf">prepare_voxceleb1_for_sv</span><span class="p">(</span>
     <span class="n">target_dir</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
     <span class="n">cache_dir</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
     <span class="n">get_path_only</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
@@ -425,8 +425,8 @@
     <span class="k">return</span> <span class="n">train_path</span><span class="p">,</span> <span class="p">[</span><span class="n">test_trial_path</span><span class="p">]</span></div>
 
 
-<div class="viewcode-block" id="SuperbASV"><a class="viewcode-back" href="../../../../_autosummary/s3prl.problem.asv.superb_asv.html#s3prl.problem.SuperbASV">[docs]</a><span class="k">class</span> <span class="nc">SuperbASV</span><span class="p">(</span><span class="n">ASV</span><span class="p">):</span>
-<div class="viewcode-block" id="SuperbASV.default_config"><a class="viewcode-back" href="../../../../_autosummary/s3prl.problem.asv.superb_asv.html#s3prl.problem.SuperbASV.default_config">[docs]</a>    <span class="k">def</span> <span class="nf">default_config</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<div class="viewcode-block" id="SuperbASV"><a class="viewcode-back" href="../../../../_autosummary/s3prl.problem.asv.superb_asv.html#s3prl.problem.SuperbASV">[docs]</a><span class="k">class</span><span class="w"> </span><span class="nc">SuperbASV</span><span class="p">(</span><span class="n">ASV</span><span class="p">):</span>
+<div class="viewcode-block" id="SuperbASV.default_config"><a class="viewcode-back" href="../../../../_autosummary/s3prl.problem.asv.superb_asv.html#s3prl.problem.SuperbASV.default_config">[docs]</a>    <span class="k">def</span><span class="w"> </span><span class="nf">default_config</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="k">return</span> <span class="nb">dict</span><span class="p">(</span>
             <span class="n">target_dir</span><span class="o">=</span><span class="n">MISSING</span><span class="p">,</span>
             <span class="n">cache_dir</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
@@ -491,7 +491,7 @@
             <span class="p">),</span>
         <span class="p">)</span></div>
 
-<div class="viewcode-block" id="SuperbASV.prepare_data"><a class="viewcode-back" href="../../../../_autosummary/s3prl.problem.asv.superb_asv.html#s3prl.problem.SuperbASV.prepare_data">[docs]</a>    <span class="k">def</span> <span class="nf">prepare_data</span><span class="p">(</span>
+<div class="viewcode-block" id="SuperbASV.prepare_data"><a class="viewcode-back" href="../../../../_autosummary/s3prl.problem.asv.superb_asv.html#s3prl.problem.SuperbASV.prepare_data">[docs]</a>    <span class="k">def</span><span class="w"> </span><span class="nf">prepare_data</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span> <span class="n">prepare_data</span><span class="p">:</span> <span class="nb">dict</span><span class="p">,</span> <span class="n">target_dir</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">cache_dir</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">get_path_only</span><span class="p">:</span> <span class="nb">bool</span>
     <span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
@@ -540,7 +540,7 @@
             <span class="o">**</span><span class="bp">self</span><span class="o">.</span><span class="n">_get_current_arguments</span><span class="p">(</span><span class="n">flatten_dict</span><span class="o">=</span><span class="s2">&quot;prepare_data&quot;</span><span class="p">)</span>
         <span class="p">)</span></div>
 
-<div class="viewcode-block" id="SuperbASV.build_encoder"><a class="viewcode-back" href="../../../../_autosummary/s3prl.problem.asv.superb_asv.html#s3prl.problem.SuperbASV.build_encoder">[docs]</a>    <span class="k">def</span> <span class="nf">build_encoder</span><span class="p">(</span>
+<div class="viewcode-block" id="SuperbASV.build_encoder"><a class="viewcode-back" href="../../../../_autosummary/s3prl.problem.asv.superb_asv.html#s3prl.problem.SuperbASV.build_encoder">[docs]</a>    <span class="k">def</span><span class="w"> </span><span class="nf">build_encoder</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span>
         <span class="n">build_encoder</span><span class="p">:</span> <span class="nb">dict</span><span class="p">,</span>
         <span class="n">target_dir</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
@@ -582,7 +582,7 @@
 
         <span class="k">return</span> <span class="n">encoder_path</span></div>
 
-<div class="viewcode-block" id="SuperbASV.build_dataset"><a class="viewcode-back" href="../../../../_autosummary/s3prl.problem.asv.superb_asv.html#s3prl.problem.SuperbASV.build_dataset">[docs]</a>    <span class="k">def</span> <span class="nf">build_dataset</span><span class="p">(</span>
+<div class="viewcode-block" id="SuperbASV.build_dataset"><a class="viewcode-back" href="../../../../_autosummary/s3prl.problem.asv.superb_asv.html#s3prl.problem.SuperbASV.build_dataset">[docs]</a>    <span class="k">def</span><span class="w"> </span><span class="nf">build_dataset</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span>
         <span class="n">build_dataset</span><span class="p">:</span> <span class="nb">dict</span><span class="p">,</span>
         <span class="n">target_dir</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
@@ -650,7 +650,7 @@
         <span class="k">if</span> <span class="n">mode</span> <span class="o">==</span> <span class="s2">&quot;train&quot;</span><span class="p">:</span>
 
             <span class="nd">@dataclass</span>
-            <span class="k">class</span> <span class="nc">Config</span><span class="p">:</span>
+            <span class="k">class</span><span class="w"> </span><span class="nc">Config</span><span class="p">:</span>
                 <span class="n">min_secs</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="kc">None</span>
                 <span class="n">max_secs</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="kc">None</span>
 
@@ -670,11 +670,11 @@
             <span class="n">label_encoder</span> <span class="o">=</span> <span class="n">EncodeCategory</span><span class="p">(</span><span class="n">labels</span><span class="p">,</span> <span class="n">encoder</span><span class="p">)</span>
             <span class="n">ids</span> <span class="o">=</span> <span class="n">csv</span><span class="p">[</span><span class="s2">&quot;id&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">tolist</span><span class="p">()</span>
 
-            <span class="k">class</span> <span class="nc">SVTrainDataset</span><span class="p">:</span>
-                <span class="k">def</span> <span class="fm">__len__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+            <span class="k">class</span><span class="w"> </span><span class="nc">SVTrainDataset</span><span class="p">:</span>
+                <span class="k">def</span><span class="w"> </span><span class="fm">__len__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
                     <span class="k">return</span> <span class="nb">len</span><span class="p">(</span><span class="n">audio_loader</span><span class="p">)</span>
 
-                <span class="k">def</span> <span class="fm">__getitem__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">index</span><span class="p">:</span> <span class="nb">int</span><span class="p">):</span>
+                <span class="k">def</span><span class="w"> </span><span class="fm">__getitem__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">index</span><span class="p">:</span> <span class="nb">int</span><span class="p">):</span>
                     <span class="n">audio</span> <span class="o">=</span> <span class="n">audio_loader</span><span class="p">[</span><span class="n">index</span><span class="p">]</span>
                     <span class="n">label</span> <span class="o">=</span> <span class="n">label_encoder</span><span class="p">[</span><span class="n">index</span><span class="p">]</span>
                     <span class="k">return</span> <span class="p">{</span>
@@ -721,11 +721,11 @@
 
             <span class="n">audio_loader</span> <span class="o">=</span> <span class="n">LoadAudio</span><span class="p">(</span><span class="n">wav_paths</span><span class="p">)</span>
 
-            <span class="k">class</span> <span class="nc">SVTestDataset</span><span class="p">:</span>
-                <span class="k">def</span> <span class="fm">__len__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+            <span class="k">class</span><span class="w"> </span><span class="nc">SVTestDataset</span><span class="p">:</span>
+                <span class="k">def</span><span class="w"> </span><span class="fm">__len__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
                     <span class="k">return</span> <span class="nb">len</span><span class="p">(</span><span class="n">audio_loader</span><span class="p">)</span>
 
-                <span class="k">def</span> <span class="fm">__getitem__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">index</span><span class="p">:</span> <span class="nb">int</span><span class="p">):</span>
+                <span class="k">def</span><span class="w"> </span><span class="fm">__getitem__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">index</span><span class="p">:</span> <span class="nb">int</span><span class="p">):</span>
                     <span class="n">audio</span> <span class="o">=</span> <span class="n">audio_loader</span><span class="p">[</span><span class="n">index</span><span class="p">]</span>
                     <span class="k">return</span> <span class="p">{</span>
                         <span class="s2">&quot;x&quot;</span><span class="p">:</span> <span class="n">audio</span><span class="p">[</span><span class="s2">&quot;wav&quot;</span><span class="p">],</span>
@@ -737,7 +737,7 @@
 
         <span class="k">return</span> <span class="n">dataset</span></div>
 
-<div class="viewcode-block" id="SuperbASV.build_batch_sampler"><a class="viewcode-back" href="../../../../_autosummary/s3prl.problem.asv.superb_asv.html#s3prl.problem.SuperbASV.build_batch_sampler">[docs]</a>    <span class="k">def</span> <span class="nf">build_batch_sampler</span><span class="p">(</span>
+<div class="viewcode-block" id="SuperbASV.build_batch_sampler"><a class="viewcode-back" href="../../../../_autosummary/s3prl.problem.asv.superb_asv.html#s3prl.problem.SuperbASV.build_batch_sampler">[docs]</a>    <span class="k">def</span><span class="w"> </span><span class="nf">build_batch_sampler</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span>
         <span class="n">build_batch_sampler</span><span class="p">:</span> <span class="nb">dict</span><span class="p">,</span>
         <span class="n">target_dir</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
@@ -783,7 +783,7 @@
         <span class="k">else</span><span class="p">:</span>
             <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;ASV only supports train/test modes&quot;</span><span class="p">)</span></div>
 
-<div class="viewcode-block" id="SuperbASV.build_downstream"><a class="viewcode-back" href="../../../../_autosummary/s3prl.problem.asv.superb_asv.html#s3prl.problem.SuperbASV.build_downstream">[docs]</a>    <span class="k">def</span> <span class="nf">build_downstream</span><span class="p">(</span>
+<div class="viewcode-block" id="SuperbASV.build_downstream"><a class="viewcode-back" href="../../../../_autosummary/s3prl.problem.asv.superb_asv.html#s3prl.problem.SuperbASV.build_downstream">[docs]</a>    <span class="k">def</span><span class="w"> </span><span class="nf">build_downstream</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span>
         <span class="n">build_downstream</span><span class="p">:</span> <span class="nb">dict</span><span class="p">,</span>
         <span class="n">downstream_input_size</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>

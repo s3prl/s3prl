@@ -342,20 +342,20 @@
 <span class="sd">  * Leo 2022</span>
 <span class="sd">&quot;&quot;&quot;</span>
 
-<span class="kn">import</span> <span class="nn">json</span>
-<span class="kn">import</span> <span class="nn">logging</span>
-<span class="kn">from</span> <span class="nn">pathlib</span> <span class="kn">import</span> <span class="n">Path</span>
-<span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">List</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">json</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">logging</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">pathlib</span><span class="w"> </span><span class="kn">import</span> <span class="n">Path</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">typing</span><span class="w"> </span><span class="kn">import</span> <span class="n">List</span>
 
-<span class="kn">import</span> <span class="nn">pandas</span> <span class="k">as</span> <span class="nn">pd</span>
-<span class="kn">import</span> <span class="nn">torch</span>
-<span class="kn">from</span> <span class="nn">omegaconf</span> <span class="kn">import</span> <span class="n">MISSING</span>
-<span class="kn">from</span> <span class="nn">torch.utils.data</span> <span class="kn">import</span> <span class="n">random_split</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">pandas</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">pd</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">torch</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">omegaconf</span><span class="w"> </span><span class="kn">import</span> <span class="n">MISSING</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">torch.utils.data</span><span class="w"> </span><span class="kn">import</span> <span class="n">random_split</span>
 
-<span class="kn">from</span> <span class="nn">s3prl.dataio.corpus.iemocap</span> <span class="kn">import</span> <span class="n">IEMOCAP</span>
-<span class="kn">from</span> <span class="nn">s3prl.util.download</span> <span class="kn">import</span> <span class="n">download</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">s3prl.dataio.corpus.iemocap</span><span class="w"> </span><span class="kn">import</span> <span class="n">IEMOCAP</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">s3prl.util.download</span><span class="w"> </span><span class="kn">import</span> <span class="n">download</span>
 
-<span class="kn">from</span> <span class="nn">.superb_sid</span> <span class="kn">import</span> <span class="n">SuperbSID</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">.superb_sid</span><span class="w"> </span><span class="kn">import</span> <span class="n">SuperbSID</span>
 
 <span class="n">logger</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="vm">__name__</span><span class="p">)</span>
 
@@ -365,7 +365,7 @@
 <span class="p">]</span>
 
 
-<div class="viewcode-block" id="iemocap_for_superb"><a class="viewcode-back" href="../../../../_autosummary/s3prl.problem.common.superb_er.html#s3prl.problem.iemocap_for_superb">[docs]</a><span class="k">def</span> <span class="nf">iemocap_for_superb</span><span class="p">(</span>
+<div class="viewcode-block" id="iemocap_for_superb"><a class="viewcode-back" href="../../../../_autosummary/s3prl.problem.common.superb_er.html#s3prl.problem.iemocap_for_superb">[docs]</a><span class="k">def</span><span class="w"> </span><span class="nf">iemocap_for_superb</span><span class="p">(</span>
     <span class="n">target_dir</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
     <span class="n">cache_dir</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
     <span class="n">iemocap</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
@@ -403,7 +403,7 @@
     <span class="n">corpus</span> <span class="o">=</span> <span class="n">IEMOCAP</span><span class="p">(</span><span class="n">iemocap</span><span class="p">)</span>
     <span class="n">all_datapoints</span> <span class="o">=</span> <span class="n">corpus</span><span class="o">.</span><span class="n">all_data</span>
 
-    <span class="k">def</span> <span class="nf">format_fields</span><span class="p">(</span><span class="n">data</span><span class="p">:</span> <span class="nb">dict</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">format_fields</span><span class="p">(</span><span class="n">data</span><span class="p">:</span> <span class="nb">dict</span><span class="p">):</span>
         <span class="n">result</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">()</span>
         <span class="k">for</span> <span class="n">data_id</span> <span class="ow">in</span> <span class="n">data</span><span class="o">.</span><span class="n">keys</span><span class="p">():</span>
             <span class="n">datapoint</span> <span class="o">=</span> <span class="n">data</span><span class="p">[</span><span class="n">data_id</span><span class="p">]</span>
@@ -413,7 +413,7 @@
             <span class="p">)</span>
         <span class="k">return</span> <span class="n">result</span>
 
-    <span class="k">def</span> <span class="nf">filter_data</span><span class="p">(</span><span class="n">data_ids</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">]):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">filter_data</span><span class="p">(</span><span class="n">data_ids</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">]):</span>
         <span class="n">result</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">()</span>
         <span class="k">for</span> <span class="n">data_id</span> <span class="ow">in</span> <span class="n">data_ids</span><span class="p">:</span>
             <span class="n">data_point</span> <span class="o">=</span> <span class="n">all_datapoints</span><span class="p">[</span><span class="n">data_id</span><span class="p">]</span>
@@ -461,7 +461,7 @@
     <span class="n">valid_data</span> <span class="o">=</span> <span class="n">format_fields</span><span class="p">(</span><span class="n">filter_data</span><span class="p">(</span><span class="n">valid_ids</span><span class="p">))</span>
     <span class="n">test_data</span> <span class="o">=</span> <span class="n">format_fields</span><span class="p">(</span><span class="n">filter_data</span><span class="p">(</span><span class="n">test_ids</span><span class="p">))</span>
 
-    <span class="k">def</span> <span class="nf">dict_to_csv</span><span class="p">(</span><span class="n">data_dict</span><span class="p">,</span> <span class="n">csv_path</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">dict_to_csv</span><span class="p">(</span><span class="n">data_dict</span><span class="p">,</span> <span class="n">csv_path</span><span class="p">):</span>
         <span class="n">keys</span> <span class="o">=</span> <span class="nb">sorted</span><span class="p">(</span><span class="nb">list</span><span class="p">(</span><span class="n">data_dict</span><span class="o">.</span><span class="n">keys</span><span class="p">()))</span>
         <span class="n">fields</span> <span class="o">=</span> <span class="nb">sorted</span><span class="p">(</span><span class="n">data_dict</span><span class="p">[</span><span class="n">keys</span><span class="p">[</span><span class="mi">0</span><span class="p">]]</span><span class="o">.</span><span class="n">keys</span><span class="p">())</span>
         <span class="n">data</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">()</span>
@@ -480,8 +480,8 @@
     <span class="k">return</span> <span class="n">train_path</span><span class="p">,</span> <span class="n">valid_path</span><span class="p">,</span> <span class="n">test_paths</span></div>
 
 
-<div class="viewcode-block" id="SuperbER"><a class="viewcode-back" href="../../../../_autosummary/s3prl.problem.common.superb_er.html#s3prl.problem.SuperbER">[docs]</a><span class="k">class</span> <span class="nc">SuperbER</span><span class="p">(</span><span class="n">SuperbSID</span><span class="p">):</span>
-<div class="viewcode-block" id="SuperbER.default_config"><a class="viewcode-back" href="../../../../_autosummary/s3prl.problem.common.superb_er.html#s3prl.problem.SuperbER.default_config">[docs]</a>    <span class="k">def</span> <span class="nf">default_config</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">:</span>
+<div class="viewcode-block" id="SuperbER"><a class="viewcode-back" href="../../../../_autosummary/s3prl.problem.common.superb_er.html#s3prl.problem.SuperbER">[docs]</a><span class="k">class</span><span class="w"> </span><span class="nc">SuperbER</span><span class="p">(</span><span class="n">SuperbSID</span><span class="p">):</span>
+<div class="viewcode-block" id="SuperbER.default_config"><a class="viewcode-back" href="../../../../_autosummary/s3prl.problem.common.superb_er.html#s3prl.problem.SuperbER.default_config">[docs]</a>    <span class="k">def</span><span class="w"> </span><span class="nf">default_config</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">:</span>
         <span class="k">return</span> <span class="nb">dict</span><span class="p">(</span>
             <span class="n">start</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span>
             <span class="n">stop</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
@@ -547,7 +547,7 @@
             <span class="n">evaluate</span><span class="o">=</span><span class="nb">dict</span><span class="p">(),</span>
         <span class="p">)</span></div>
 
-<div class="viewcode-block" id="SuperbER.prepare_data"><a class="viewcode-back" href="../../../../_autosummary/s3prl.problem.common.superb_er.html#s3prl.problem.SuperbER.prepare_data">[docs]</a>    <span class="k">def</span> <span class="nf">prepare_data</span><span class="p">(</span>
+<div class="viewcode-block" id="SuperbER.prepare_data"><a class="viewcode-back" href="../../../../_autosummary/s3prl.problem.common.superb_er.html#s3prl.problem.SuperbER.prepare_data">[docs]</a>    <span class="k">def</span><span class="w"> </span><span class="nf">prepare_data</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span>
         <span class="n">prepare_data</span><span class="p">:</span> <span class="nb">dict</span><span class="p">,</span>
         <span class="n">target_dir</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>

@@ -336,31 +336,31 @@
 <span></span><span class="c1"># Copyright Hear Benchmark Team</span>
 <span class="c1"># Copyright Shu-wen Yang (refactor from https://github.com/hearbenchmark/hear-eval-kit)</span>
 
-<span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">List</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">typing</span><span class="w"> </span><span class="kn">import</span> <span class="n">List</span>
 
-<span class="kn">import</span> <span class="nn">torch</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">torch</span>
 
-<span class="kn">from</span> <span class="nn">s3prl.dataio.encoder.category</span> <span class="kn">import</span> <span class="n">CategoryEncoder</span>
-<span class="kn">from</span> <span class="nn">s3prl.task.base</span> <span class="kn">import</span> <span class="n">Task</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">s3prl.dataio.encoder.category</span><span class="w"> </span><span class="kn">import</span> <span class="n">CategoryEncoder</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">s3prl.task.base</span><span class="w"> </span><span class="kn">import</span> <span class="n">Task</span>
 
-<span class="kn">from</span> <span class="nn">._hear_score</span> <span class="kn">import</span> <span class="n">available_scores</span><span class="p">,</span> <span class="n">validate_score_return_type</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">._hear_score</span><span class="w"> </span><span class="kn">import</span> <span class="n">available_scores</span><span class="p">,</span> <span class="n">validate_score_return_type</span>
 
 <span class="n">__all__</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;ScenePredictionTask&quot;</span><span class="p">]</span>
 
 
-<span class="k">class</span> <span class="nc">OneHotToCrossEntropyLoss</span><span class="p">(</span><span class="n">torch</span><span class="o">.</span><span class="n">nn</span><span class="o">.</span><span class="n">Module</span><span class="p">):</span>
-    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="k">class</span><span class="w"> </span><span class="nc">OneHotToCrossEntropyLoss</span><span class="p">(</span><span class="n">torch</span><span class="o">.</span><span class="n">nn</span><span class="o">.</span><span class="n">Module</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">()</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">loss</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">nn</span><span class="o">.</span><span class="n">CrossEntropyLoss</span><span class="p">()</span>
 
-    <span class="k">def</span> <span class="nf">forward</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">y_hat</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">,</span> <span class="n">y</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">:</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">forward</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">y_hat</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">,</span> <span class="n">y</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">:</span>
         <span class="k">assert</span> <span class="n">torch</span><span class="o">.</span><span class="n">all</span><span class="p">(</span><span class="n">torch</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">y</span><span class="p">,</span> <span class="n">dim</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span> <span class="o">==</span> <span class="n">y</span><span class="o">.</span><span class="n">new_ones</span><span class="p">(</span><span class="n">y</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]))</span>
         <span class="n">y</span> <span class="o">=</span> <span class="n">y</span><span class="o">.</span><span class="n">argmax</span><span class="p">(</span><span class="n">dim</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">loss</span><span class="p">(</span><span class="n">y_hat</span><span class="p">,</span> <span class="n">y</span><span class="p">)</span>
 
 
-<div class="viewcode-block" id="ScenePredictionTask"><a class="viewcode-back" href="../../../_autosummary/s3prl.task.scene_prediction.html#s3prl.task.scene_prediction.ScenePredictionTask">[docs]</a><span class="k">class</span> <span class="nc">ScenePredictionTask</span><span class="p">(</span><span class="n">Task</span><span class="p">):</span>
-    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span>
+<div class="viewcode-block" id="ScenePredictionTask"><a class="viewcode-back" href="../../../_autosummary/s3prl.task.scene_prediction.html#s3prl.task.scene_prediction.ScenePredictionTask">[docs]</a><span class="k">class</span><span class="w"> </span><span class="nc">ScenePredictionTask</span><span class="p">(</span><span class="n">Task</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span>
         <span class="n">model</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">nn</span><span class="o">.</span><span class="n">Module</span><span class="p">,</span>
         <span class="n">category</span><span class="p">:</span> <span class="n">CategoryEncoder</span><span class="p">,</span>
@@ -389,12 +389,12 @@
         <span class="k">else</span><span class="p">:</span>
             <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Unknown prediction_type </span><span class="si">{</span><span class="n">prediction_type</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
 
-<div class="viewcode-block" id="ScenePredictionTask.predict"><a class="viewcode-back" href="../../../_autosummary/s3prl.task.scene_prediction.html#s3prl.task.scene_prediction.ScenePredictionTask.predict">[docs]</a>    <span class="k">def</span> <span class="nf">predict</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">,</span> <span class="n">x_len</span><span class="p">):</span>
+<div class="viewcode-block" id="ScenePredictionTask.predict"><a class="viewcode-back" href="../../../_autosummary/s3prl.task.scene_prediction.html#s3prl.task.scene_prediction.ScenePredictionTask.predict">[docs]</a>    <span class="k">def</span><span class="w"> </span><span class="nf">predict</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">,</span> <span class="n">x_len</span><span class="p">):</span>
         <span class="n">logits</span><span class="p">,</span> <span class="n">_</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">model</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">x_len</span><span class="p">)</span>
         <span class="n">prediction</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">activation</span><span class="p">(</span><span class="n">logits</span><span class="p">)</span>
         <span class="k">return</span> <span class="n">prediction</span><span class="p">,</span> <span class="n">logits</span></div>
 
-<div class="viewcode-block" id="ScenePredictionTask.forward"><a class="viewcode-back" href="../../../_autosummary/s3prl.task.scene_prediction.html#s3prl.task.scene_prediction.ScenePredictionTask.forward">[docs]</a>    <span class="k">def</span> <span class="nf">forward</span><span class="p">(</span>
+<div class="viewcode-block" id="ScenePredictionTask.forward"><a class="viewcode-back" href="../../../_autosummary/s3prl.task.scene_prediction.html#s3prl.task.scene_prediction.ScenePredictionTask.forward">[docs]</a>    <span class="k">def</span><span class="w"> </span><span class="nf">forward</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span> <span class="n">_mode</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">x</span><span class="p">,</span> <span class="n">x_len</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">labels</span><span class="p">,</span> <span class="n">unique_name</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">_dump_dir</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="kc">None</span>
     <span class="p">):</span>
         <span class="n">y_pr</span><span class="p">,</span> <span class="n">y_hat</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">predict</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">x_len</span><span class="p">)</span>
@@ -409,7 +409,7 @@
 
         <span class="k">return</span> <span class="n">loss</span><span class="p">,</span> <span class="n">cacheable</span></div>
 
-<div class="viewcode-block" id="ScenePredictionTask.log_scores"><a class="viewcode-back" href="../../../_autosummary/s3prl.task.scene_prediction.html#s3prl.task.scene_prediction.ScenePredictionTask.log_scores">[docs]</a>    <span class="k">def</span> <span class="nf">log_scores</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">score_args</span><span class="p">):</span>
+<div class="viewcode-block" id="ScenePredictionTask.log_scores"><a class="viewcode-back" href="../../../_autosummary/s3prl.task.scene_prediction.html#s3prl.task.scene_prediction.ScenePredictionTask.log_scores">[docs]</a>    <span class="k">def</span><span class="w"> </span><span class="nf">log_scores</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">score_args</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Logs the metric score value for each score defined for the model&quot;&quot;&quot;</span>
         <span class="k">assert</span> <span class="nb">hasattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="s2">&quot;scores&quot;</span><span class="p">),</span> <span class="s2">&quot;Scores for the model should be defined&quot;</span>
         <span class="n">end_scores</span> <span class="o">=</span> <span class="p">{}</span>
@@ -433,7 +433,7 @@
                 <span class="p">)</span>
         <span class="k">return</span> <span class="n">end_scores</span></div>
 
-<div class="viewcode-block" id="ScenePredictionTask.reduction"><a class="viewcode-back" href="../../../_autosummary/s3prl.task.scene_prediction.html#s3prl.task.scene_prediction.ScenePredictionTask.reduction">[docs]</a>    <span class="k">def</span> <span class="nf">reduction</span><span class="p">(</span>
+<div class="viewcode-block" id="ScenePredictionTask.reduction"><a class="viewcode-back" href="../../../_autosummary/s3prl.task.scene_prediction.html#s3prl.task.scene_prediction.ScenePredictionTask.reduction">[docs]</a>    <span class="k">def</span><span class="w"> </span><span class="nf">reduction</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span>
         <span class="n">_mode</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
         <span class="n">cached_results</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="nb">dict</span><span class="p">],</span>

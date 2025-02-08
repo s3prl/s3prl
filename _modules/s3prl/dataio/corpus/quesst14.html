@@ -341,9 +341,9 @@
 <span class="sd">  * Cheng Liang 2022</span>
 <span class="sd">&quot;&quot;&quot;</span>
 
-<span class="kn">import</span> <span class="nn">logging</span>
-<span class="kn">import</span> <span class="nn">re</span>
-<span class="kn">from</span> <span class="nn">pathlib</span> <span class="kn">import</span> <span class="n">Path</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">logging</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">re</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">pathlib</span><span class="w"> </span><span class="kn">import</span> <span class="n">Path</span>
 
 <span class="n">logger</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="vm">__name__</span><span class="p">)</span>
 
@@ -352,8 +352,8 @@
 <span class="p">]</span>
 
 
-<div class="viewcode-block" id="Quesst14"><a class="viewcode-back" href="../../../../_autosummary/s3prl.dataio.corpus.quesst14.html#s3prl.dataio.corpus.Quesst14">[docs]</a><span class="k">class</span> <span class="nc">Quesst14</span><span class="p">:</span>
-    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">dataset_root</span><span class="p">:</span> <span class="nb">str</span><span class="p">):</span>
+<div class="viewcode-block" id="Quesst14"><a class="viewcode-back" href="../../../../_autosummary/s3prl.dataio.corpus.quesst14.html#s3prl.dataio.corpus.Quesst14">[docs]</a><span class="k">class</span><span class="w"> </span><span class="nc">Quesst14</span><span class="p">:</span>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">dataset_root</span><span class="p">:</span> <span class="nb">str</span><span class="p">):</span>
         <span class="n">dataset_root</span> <span class="o">=</span> <span class="n">Path</span><span class="p">(</span><span class="n">dataset_root</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">doc_paths</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_english_audio_paths</span><span class="p">(</span>
             <span class="n">dataset_root</span><span class="p">,</span> <span class="s2">&quot;language_key_utterances.lst&quot;</span>
@@ -370,7 +370,7 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">n_docs</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">doc_paths</span><span class="p">)</span>
 
     <span class="nd">@staticmethod</span>
-    <span class="k">def</span> <span class="nf">_english_audio_paths</span><span class="p">(</span><span class="n">dataset_root_path</span><span class="p">,</span> <span class="n">lst_name</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">_english_audio_paths</span><span class="p">(</span><span class="n">dataset_root_path</span><span class="p">,</span> <span class="n">lst_name</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Extract English audio paths.&quot;&quot;&quot;</span>
         <span class="n">audio_paths</span> <span class="o">=</span> <span class="p">[]</span>
 
@@ -385,37 +385,37 @@
         <span class="k">return</span> <span class="n">audio_paths</span>
 
     <span class="nd">@property</span>
-    <span class="k">def</span> <span class="nf">valid_queries</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">valid_queries</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">dev_query_paths</span>
 
     <span class="nd">@property</span>
-    <span class="k">def</span> <span class="nf">test_queries</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">test_queries</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">eval_query_paths</span>
 
     <span class="nd">@property</span>
-    <span class="k">def</span> <span class="nf">docs</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">docs</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Valid and Test share the same document database</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">doc_paths</span>
 
 <div class="viewcode-block" id="Quesst14.download_dataset"><a class="viewcode-back" href="../../../../_autosummary/s3prl.dataio.corpus.quesst14.html#s3prl.dataio.corpus.Quesst14.download_dataset">[docs]</a>    <span class="nd">@classmethod</span>
-    <span class="k">def</span> <span class="nf">download_dataset</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">tgt_dir</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
-        <span class="kn">import</span> <span class="nn">os</span>
-        <span class="kn">import</span> <span class="nn">tarfile</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">download_dataset</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">tgt_dir</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="kn">import</span><span class="w"> </span><span class="nn">os</span>
+        <span class="kn">import</span><span class="w"> </span><span class="nn">tarfile</span>
 
-        <span class="kn">import</span> <span class="nn">requests</span>
+        <span class="kn">import</span><span class="w"> </span><span class="nn">requests</span>
 
         <span class="k">assert</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span>
             <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">abspath</span><span class="p">(</span><span class="n">tgt_dir</span><span class="p">)</span>
         <span class="p">),</span> <span class="s2">&quot;Target directory does not exist&quot;</span>
 
-        <span class="k">def</span> <span class="nf">unzip_targz_then_delete</span><span class="p">(</span><span class="n">filepath</span><span class="p">:</span> <span class="nb">str</span><span class="p">):</span>
+        <span class="k">def</span><span class="w"> </span><span class="nf">unzip_targz_then_delete</span><span class="p">(</span><span class="n">filepath</span><span class="p">:</span> <span class="nb">str</span><span class="p">):</span>
             <span class="k">with</span> <span class="n">tarfile</span><span class="o">.</span><span class="n">open</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">abspath</span><span class="p">(</span><span class="n">filepath</span><span class="p">))</span> <span class="k">as</span> <span class="n">tar</span><span class="p">:</span>
                 <span class="n">tar</span><span class="o">.</span><span class="n">extractall</span><span class="p">(</span><span class="n">path</span><span class="o">=</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">abspath</span><span class="p">(</span><span class="n">tgt_dir</span><span class="p">))</span>
             <span class="n">os</span><span class="o">.</span><span class="n">remove</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">abspath</span><span class="p">(</span><span class="n">filepath</span><span class="p">))</span>
 
-        <span class="k">def</span> <span class="nf">download_from_url</span><span class="p">(</span><span class="n">url</span><span class="p">:</span> <span class="nb">str</span><span class="p">):</span>
+        <span class="k">def</span><span class="w"> </span><span class="nf">download_from_url</span><span class="p">(</span><span class="n">url</span><span class="p">:</span> <span class="nb">str</span><span class="p">):</span>
             <span class="n">filename</span> <span class="o">=</span> <span class="n">url</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">&quot;/&quot;</span><span class="p">)[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s2">&quot; &quot;</span><span class="p">,</span> <span class="s2">&quot;_&quot;</span><span class="p">)</span>
             <span class="n">filepath</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">tgt_dir</span><span class="p">,</span> <span class="n">filename</span><span class="p">)</span>
 

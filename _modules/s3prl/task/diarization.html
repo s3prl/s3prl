@@ -341,24 +341,24 @@
 <span class="sd">  * Leo 2022</span>
 <span class="sd">&quot;&quot;&quot;</span>
 
-<span class="kn">from</span> <span class="nn">pathlib</span> <span class="kn">import</span> <span class="n">Path</span>
-<span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">List</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">pathlib</span><span class="w"> </span><span class="kn">import</span> <span class="n">Path</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">typing</span><span class="w"> </span><span class="kn">import</span> <span class="n">List</span>
 
-<span class="kn">import</span> <span class="nn">torch</span>
-<span class="kn">import</span> <span class="nn">torch.nn</span> <span class="k">as</span> <span class="nn">nn</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">torch</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">torch.nn</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">nn</span>
 
-<span class="kn">from</span> <span class="nn">s3prl.metric.diarization</span> <span class="kn">import</span> <span class="n">calc_diarization_error</span>
-<span class="kn">from</span> <span class="nn">s3prl.nn.pit</span> <span class="kn">import</span> <span class="n">get_label_perm</span><span class="p">,</span> <span class="n">pit_loss</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">s3prl.metric.diarization</span><span class="w"> </span><span class="kn">import</span> <span class="n">calc_diarization_error</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">s3prl.nn.pit</span><span class="w"> </span><span class="kn">import</span> <span class="n">get_label_perm</span><span class="p">,</span> <span class="n">pit_loss</span>
 
-<span class="kn">from</span> <span class="nn">.base</span> <span class="kn">import</span> <span class="n">Task</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">.base</span><span class="w"> </span><span class="kn">import</span> <span class="n">Task</span>
 
 <span class="n">TOLERANT_FRAME_DIFF</span> <span class="o">=</span> <span class="mi">2</span>
 
 <span class="n">__all__</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;DiarizationPIT&quot;</span><span class="p">]</span>
 
 
-<div class="viewcode-block" id="DiarizationPIT"><a class="viewcode-back" href="../../../_autosummary/s3prl.task.diarization.html#s3prl.task.DiarizationPIT">[docs]</a><span class="k">class</span> <span class="nc">DiarizationPIT</span><span class="p">(</span><span class="n">Task</span><span class="p">):</span>
-    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span>
+<div class="viewcode-block" id="DiarizationPIT"><a class="viewcode-back" href="../../../_autosummary/s3prl.task.diarization.html#s3prl.task.DiarizationPIT">[docs]</a><span class="k">class</span><span class="w"> </span><span class="nc">DiarizationPIT</span><span class="p">(</span><span class="n">Task</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span>
         <span class="n">model</span><span class="p">:</span> <span class="n">nn</span><span class="o">.</span><span class="n">Module</span><span class="p">,</span>
     <span class="p">):</span>
@@ -366,7 +366,7 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">model</span> <span class="o">=</span> <span class="n">model</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">objective</span> <span class="o">=</span> <span class="n">pit_loss</span>
 
-    <span class="k">def</span> <span class="nf">_tile_representations</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">reps</span><span class="p">,</span> <span class="n">factor</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">_tile_representations</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">reps</span><span class="p">,</span> <span class="n">factor</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Tile up the representations by `factor`.</span>
 <span class="sd">        Input - sequence of representations, shape: (batch_size, seq_len, feature_dim)</span>
@@ -381,7 +381,7 @@
         <span class="p">)</span>
         <span class="k">return</span> <span class="n">tiled_reps</span>
 
-    <span class="k">def</span> <span class="nf">_match_length</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">inputs</span><span class="p">,</span> <span class="n">labels</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">_match_length</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">inputs</span><span class="p">,</span> <span class="n">labels</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Since the upstream extraction process can sometimes cause a mismatch</span>
 <span class="sd">        between the seq lenth of inputs and labels:</span>
@@ -405,11 +405,11 @@
             <span class="p">)</span>  <span class="c1"># (batch_size, seq_len, feature_dim), where seq_len == labels.size(-1)</span>
         <span class="k">return</span> <span class="n">inputs</span><span class="p">,</span> <span class="n">labels</span>
 
-<div class="viewcode-block" id="DiarizationPIT.predict"><a class="viewcode-back" href="../../../_autosummary/s3prl.task.diarization.html#s3prl.task.DiarizationPIT.predict">[docs]</a>    <span class="k">def</span> <span class="nf">predict</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">,</span> <span class="n">x_len</span><span class="p">):</span>
+<div class="viewcode-block" id="DiarizationPIT.predict"><a class="viewcode-back" href="../../../_autosummary/s3prl.task.diarization.html#s3prl.task.DiarizationPIT.predict">[docs]</a>    <span class="k">def</span><span class="w"> </span><span class="nf">predict</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">,</span> <span class="n">x_len</span><span class="p">):</span>
         <span class="n">predicted</span><span class="p">,</span> <span class="n">predicted_len</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">model</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">x_len</span><span class="p">)</span>
         <span class="k">return</span> <span class="n">predicted</span><span class="p">,</span> <span class="n">predicted_len</span></div>
 
-<div class="viewcode-block" id="DiarizationPIT.forward"><a class="viewcode-back" href="../../../_autosummary/s3prl.task.diarization.html#s3prl.task.DiarizationPIT.forward">[docs]</a>    <span class="k">def</span> <span class="nf">forward</span><span class="p">(</span>
+<div class="viewcode-block" id="DiarizationPIT.forward"><a class="viewcode-back" href="../../../_autosummary/s3prl.task.diarization.html#s3prl.task.DiarizationPIT.forward">[docs]</a>    <span class="k">def</span><span class="w"> </span><span class="nf">forward</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span>
         <span class="n">_mode</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
         <span class="n">x</span><span class="p">,</span>
@@ -486,7 +486,7 @@
 
         <span class="k">return</span> <span class="n">loss</span><span class="p">,</span> <span class="n">cacheable</span></div>
 
-<div class="viewcode-block" id="DiarizationPIT.reduction"><a class="viewcode-back" href="../../../_autosummary/s3prl.task.diarization.html#s3prl.task.DiarizationPIT.reduction">[docs]</a>    <span class="k">def</span> <span class="nf">reduction</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">_mode</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">cached_results</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="nb">dict</span><span class="p">],</span> <span class="n">_dump_dir</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="kc">None</span><span class="p">):</span>
+<div class="viewcode-block" id="DiarizationPIT.reduction"><a class="viewcode-back" href="../../../_autosummary/s3prl.task.diarization.html#s3prl.task.DiarizationPIT.reduction">[docs]</a>    <span class="k">def</span><span class="w"> </span><span class="nf">reduction</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">_mode</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">cached_results</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="nb">dict</span><span class="p">],</span> <span class="n">_dump_dir</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="kc">None</span><span class="p">):</span>
         <span class="n">results</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">parse_cached_results</span><span class="p">(</span><span class="n">cached_results</span><span class="p">)</span>
         <span class="n">logs</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span>
             <span class="n">accuracy</span><span class="o">=</span><span class="n">torch</span><span class="o">.</span><span class="n">FloatTensor</span><span class="p">(</span><span class="n">results</span><span class="p">[</span><span class="s2">&quot;accuracy&quot;</span><span class="p">])</span><span class="o">.</span><span class="n">mean</span><span class="p">()</span><span class="o">.</span><span class="n">item</span><span class="p">(),</span>

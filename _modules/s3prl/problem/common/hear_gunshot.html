@@ -333,17 +333,17 @@
         </div>
         <article role="main">
           <h1>Source code for s3prl.problem.common.hear_gunshot</h1><div class="highlight"><pre>
-<span></span><span class="kn">from</span> <span class="nn">omegaconf</span> <span class="kn">import</span> <span class="n">MISSING</span>
+<span></span><span class="kn">from</span><span class="w"> </span><span class="nn">omegaconf</span><span class="w"> </span><span class="kn">import</span> <span class="n">MISSING</span>
 
-<span class="kn">from</span> <span class="nn">.hear_esc50</span> <span class="kn">import</span> <span class="n">HearESC50</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">.hear_esc50</span><span class="w"> </span><span class="kn">import</span> <span class="n">HearESC50</span>
 
 <span class="n">GUNSHOT_NUM_FOLDS</span> <span class="o">=</span> <span class="mi">7</span>
 
 <span class="n">__all__</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;HearGunshot&quot;</span><span class="p">]</span>
 
 
-<div class="viewcode-block" id="HearGunshot"><a class="viewcode-back" href="../../../../_autosummary/s3prl.problem.common.hear_gunshot.html#s3prl.problem.HearGunshot">[docs]</a><span class="k">class</span> <span class="nc">HearGunshot</span><span class="p">(</span><span class="n">HearESC50</span><span class="p">):</span>
-<div class="viewcode-block" id="HearGunshot.default_config"><a class="viewcode-back" href="../../../../_autosummary/s3prl.problem.common.hear_gunshot.html#s3prl.problem.HearGunshot.default_config">[docs]</a>    <span class="k">def</span> <span class="nf">default_config</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">:</span>
+<div class="viewcode-block" id="HearGunshot"><a class="viewcode-back" href="../../../../_autosummary/s3prl.problem.common.hear_gunshot.html#s3prl.problem.HearGunshot">[docs]</a><span class="k">class</span><span class="w"> </span><span class="nc">HearGunshot</span><span class="p">(</span><span class="n">HearESC50</span><span class="p">):</span>
+<div class="viewcode-block" id="HearGunshot.default_config"><a class="viewcode-back" href="../../../../_autosummary/s3prl.problem.common.hear_gunshot.html#s3prl.problem.HearGunshot.default_config">[docs]</a>    <span class="k">def</span><span class="w"> </span><span class="nf">default_config</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">:</span>
         <span class="k">return</span> <span class="nb">dict</span><span class="p">(</span>
             <span class="n">start</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span>
             <span class="n">stop</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>

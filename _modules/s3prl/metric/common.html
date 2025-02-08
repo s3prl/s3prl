@@ -342,12 +342,12 @@
 <span class="sd">  * Haibin Wu 2022</span>
 <span class="sd">&quot;&quot;&quot;</span>
 
-<span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">List</span><span class="p">,</span> <span class="n">Union</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">typing</span><span class="w"> </span><span class="kn">import</span> <span class="n">List</span><span class="p">,</span> <span class="n">Union</span>
 
-<span class="kn">import</span> <span class="nn">editdistance</span> <span class="k">as</span> <span class="nn">ed</span>
-<span class="kn">from</span> <span class="nn">scipy.interpolate</span> <span class="kn">import</span> <span class="n">interp1d</span>
-<span class="kn">from</span> <span class="nn">scipy.optimize</span> <span class="kn">import</span> <span class="n">brentq</span>
-<span class="kn">from</span> <span class="nn">sklearn.metrics</span> <span class="kn">import</span> <span class="n">accuracy_score</span><span class="p">,</span> <span class="n">roc_curve</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">editdistance</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">ed</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">scipy.interpolate</span><span class="w"> </span><span class="kn">import</span> <span class="n">interp1d</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">scipy.optimize</span><span class="w"> </span><span class="kn">import</span> <span class="n">brentq</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">sklearn.metrics</span><span class="w"> </span><span class="kn">import</span> <span class="n">accuracy_score</span><span class="p">,</span> <span class="n">roc_curve</span>
 
 <span class="n">__all__</span> <span class="o">=</span> <span class="p">[</span>
     <span class="s2">&quot;accuracy&quot;</span><span class="p">,</span>
@@ -360,7 +360,7 @@
 <span class="p">]</span>
 
 
-<div class="viewcode-block" id="accuracy"><a class="viewcode-back" href="../../../_autosummary/s3prl.metric.common.html#s3prl.metric.accuracy">[docs]</a><span class="k">def</span> <span class="nf">accuracy</span><span class="p">(</span><span class="n">xs</span><span class="p">,</span> <span class="n">ys</span><span class="p">,</span> <span class="n">item_same_fn</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+<div class="viewcode-block" id="accuracy"><a class="viewcode-back" href="../../../_autosummary/s3prl.metric.common.html#s3prl.metric.accuracy">[docs]</a><span class="k">def</span><span class="w"> </span><span class="nf">accuracy</span><span class="p">(</span><span class="n">xs</span><span class="p">,</span> <span class="n">ys</span><span class="p">,</span> <span class="n">item_same_fn</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
     <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">xs</span><span class="p">,</span> <span class="p">(</span><span class="nb">tuple</span><span class="p">,</span> <span class="nb">list</span><span class="p">)):</span>
         <span class="k">assert</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">ys</span><span class="p">,</span> <span class="p">(</span><span class="nb">tuple</span><span class="p">,</span> <span class="nb">list</span><span class="p">))</span>
         <span class="k">return</span> <span class="n">_accuracy_impl</span><span class="p">(</span><span class="n">xs</span><span class="p">,</span> <span class="n">ys</span><span class="p">,</span> <span class="n">item_same_fn</span><span class="p">)</span>
@@ -374,13 +374,13 @@
         <span class="k">raise</span> <span class="ne">ValueError</span></div>
 
 
-<span class="k">def</span> <span class="nf">_accuracy_impl</span><span class="p">(</span><span class="n">xs</span><span class="p">,</span> <span class="n">ys</span><span class="p">,</span> <span class="n">item_same_fn</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">_accuracy_impl</span><span class="p">(</span><span class="n">xs</span><span class="p">,</span> <span class="n">ys</span><span class="p">,</span> <span class="n">item_same_fn</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
     <span class="n">item_same_fn</span> <span class="o">=</span> <span class="n">item_same_fn</span> <span class="ow">or</span> <span class="p">(</span><span class="k">lambda</span> <span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">:</span> <span class="n">x</span> <span class="o">==</span> <span class="n">y</span><span class="p">)</span>
     <span class="n">same</span> <span class="o">=</span> <span class="p">[</span><span class="nb">int</span><span class="p">(</span><span class="n">item_same_fn</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">))</span> <span class="k">for</span> <span class="n">x</span><span class="p">,</span> <span class="n">y</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">xs</span><span class="p">,</span> <span class="n">ys</span><span class="p">)]</span>
     <span class="k">return</span> <span class="nb">sum</span><span class="p">(</span><span class="n">same</span><span class="p">)</span> <span class="o">/</span> <span class="nb">len</span><span class="p">(</span><span class="n">same</span><span class="p">)</span>
 
 
-<div class="viewcode-block" id="ter"><a class="viewcode-back" href="../../../_autosummary/s3prl.metric.common.html#s3prl.metric.ter">[docs]</a><span class="k">def</span> <span class="nf">ter</span><span class="p">(</span><span class="n">hyps</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="n">Union</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">]]],</span> <span class="n">refs</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="n">Union</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">]]])</span> <span class="o">-&gt;</span> <span class="nb">float</span><span class="p">:</span>
+<div class="viewcode-block" id="ter"><a class="viewcode-back" href="../../../_autosummary/s3prl.metric.common.html#s3prl.metric.ter">[docs]</a><span class="k">def</span><span class="w"> </span><span class="nf">ter</span><span class="p">(</span><span class="n">hyps</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="n">Union</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">]]],</span> <span class="n">refs</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="n">Union</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">]]])</span> <span class="o">-&gt;</span> <span class="nb">float</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Token error rate calculator.</span>
 
 <span class="sd">    Args:</span>
@@ -398,7 +398,7 @@
     <span class="k">return</span> <span class="nb">float</span><span class="p">(</span><span class="n">error_tokens</span><span class="p">)</span> <span class="o">/</span> <span class="nb">float</span><span class="p">(</span><span class="n">total_tokens</span><span class="p">)</span></div>
 
 
-<div class="viewcode-block" id="wer"><a class="viewcode-back" href="../../../_autosummary/s3prl.metric.common.html#s3prl.metric.wer">[docs]</a><span class="k">def</span> <span class="nf">wer</span><span class="p">(</span><span class="n">hyps</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">],</span> <span class="n">refs</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="nb">float</span><span class="p">:</span>
+<div class="viewcode-block" id="wer"><a class="viewcode-back" href="../../../_autosummary/s3prl.metric.common.html#s3prl.metric.wer">[docs]</a><span class="k">def</span><span class="w"> </span><span class="nf">wer</span><span class="p">(</span><span class="n">hyps</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">],</span> <span class="n">refs</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="nb">float</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Word error rate calculator.</span>
 
 <span class="sd">    Args:</span>
@@ -413,7 +413,7 @@
     <span class="k">return</span> <span class="n">ter</span><span class="p">(</span><span class="n">hyps</span><span class="p">,</span> <span class="n">refs</span><span class="p">)</span></div>
 
 
-<div class="viewcode-block" id="per"><a class="viewcode-back" href="../../../_autosummary/s3prl.metric.common.html#s3prl.metric.per">[docs]</a><span class="k">def</span> <span class="nf">per</span><span class="p">(</span><span class="n">hyps</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">],</span> <span class="n">refs</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="nb">float</span><span class="p">:</span>
+<div class="viewcode-block" id="per"><a class="viewcode-back" href="../../../_autosummary/s3prl.metric.common.html#s3prl.metric.per">[docs]</a><span class="k">def</span><span class="w"> </span><span class="nf">per</span><span class="p">(</span><span class="n">hyps</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">],</span> <span class="n">refs</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="nb">float</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Phoneme error rate calculator.</span>
 
 <span class="sd">    Args:</span>
@@ -426,7 +426,7 @@
     <span class="k">return</span> <span class="n">wer</span><span class="p">(</span><span class="n">hyps</span><span class="p">,</span> <span class="n">refs</span><span class="p">)</span></div>
 
 
-<div class="viewcode-block" id="cer"><a class="viewcode-back" href="../../../_autosummary/s3prl.metric.common.html#s3prl.metric.cer">[docs]</a><span class="k">def</span> <span class="nf">cer</span><span class="p">(</span><span class="n">hyps</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">],</span> <span class="n">refs</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="nb">float</span><span class="p">:</span>
+<div class="viewcode-block" id="cer"><a class="viewcode-back" href="../../../_autosummary/s3prl.metric.common.html#s3prl.metric.cer">[docs]</a><span class="k">def</span><span class="w"> </span><span class="nf">cer</span><span class="p">(</span><span class="n">hyps</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">],</span> <span class="n">refs</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="nb">float</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Character error rate calculator.</span>
 
 <span class="sd">    Args:</span>
@@ -439,7 +439,7 @@
     <span class="k">return</span> <span class="n">ter</span><span class="p">(</span><span class="n">hyps</span><span class="p">,</span> <span class="n">refs</span><span class="p">)</span></div>
 
 
-<div class="viewcode-block" id="compute_eer"><a class="viewcode-back" href="../../../_autosummary/s3prl.metric.common.html#s3prl.metric.compute_eer">[docs]</a><span class="k">def</span> <span class="nf">compute_eer</span><span class="p">(</span><span class="n">labels</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="nb">int</span><span class="p">],</span> <span class="n">scores</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="nb">float</span><span class="p">]):</span>
+<div class="viewcode-block" id="compute_eer"><a class="viewcode-back" href="../../../_autosummary/s3prl.metric.common.html#s3prl.metric.compute_eer">[docs]</a><span class="k">def</span><span class="w"> </span><span class="nf">compute_eer</span><span class="p">(</span><span class="n">labels</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="nb">int</span><span class="p">],</span> <span class="n">scores</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="nb">float</span><span class="p">]):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Compute equal error rate.</span>
 
 <span class="sd">    Args:</span>
@@ -456,7 +456,7 @@
     <span class="k">return</span> <span class="n">eer</span><span class="p">,</span> <span class="n">threshold</span></div>
 
 
-<div class="viewcode-block" id="compute_minDCF"><a class="viewcode-back" href="../../../_autosummary/s3prl.metric.common.html#s3prl.metric.compute_minDCF">[docs]</a><span class="k">def</span> <span class="nf">compute_minDCF</span><span class="p">(</span>
+<div class="viewcode-block" id="compute_minDCF"><a class="viewcode-back" href="../../../_autosummary/s3prl.metric.common.html#s3prl.metric.compute_minDCF">[docs]</a><span class="k">def</span><span class="w"> </span><span class="nf">compute_minDCF</span><span class="p">(</span>
     <span class="n">labels</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="nb">int</span><span class="p">],</span>
     <span class="n">scores</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="nb">float</span><span class="p">],</span>
     <span class="n">p_target</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">0.01</span><span class="p">,</span>

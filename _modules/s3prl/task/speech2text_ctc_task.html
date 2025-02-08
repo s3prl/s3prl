@@ -340,27 +340,27 @@
 <span class="sd">  * Heng-Jui Chang 2022</span>
 <span class="sd">&quot;&quot;&quot;</span>
 
-<span class="kn">import</span> <span class="nn">logging</span>
-<span class="kn">from</span> <span class="nn">pathlib</span> <span class="kn">import</span> <span class="n">Path</span>
-<span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">List</span><span class="p">,</span> <span class="n">Union</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">logging</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">pathlib</span><span class="w"> </span><span class="kn">import</span> <span class="n">Path</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">typing</span><span class="w"> </span><span class="kn">import</span> <span class="n">List</span><span class="p">,</span> <span class="n">Union</span>
 
-<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
-<span class="kn">import</span> <span class="nn">torch</span>
-<span class="kn">import</span> <span class="nn">torch.nn.functional</span> <span class="k">as</span> <span class="nn">F</span>
-<span class="kn">from</span> <span class="nn">torch</span> <span class="kn">import</span> <span class="n">nn</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">torch</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">torch.nn.functional</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">F</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">torch</span><span class="w"> </span><span class="kn">import</span> <span class="n">nn</span>
 
-<span class="kn">from</span> <span class="nn">s3prl.dataio.encoder.tokenizer</span> <span class="kn">import</span> <span class="n">Tokenizer</span>
-<span class="kn">from</span> <span class="nn">s3prl.metric</span> <span class="kn">import</span> <span class="n">cer</span><span class="p">,</span> <span class="n">per</span><span class="p">,</span> <span class="n">wer</span>
-<span class="kn">from</span> <span class="nn">s3prl.metric.slot_filling</span> <span class="kn">import</span> <span class="p">(</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">s3prl.dataio.encoder.tokenizer</span><span class="w"> </span><span class="kn">import</span> <span class="n">Tokenizer</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">s3prl.metric</span><span class="w"> </span><span class="kn">import</span> <span class="n">cer</span><span class="p">,</span> <span class="n">per</span><span class="p">,</span> <span class="n">wer</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">s3prl.metric.slot_filling</span><span class="w"> </span><span class="kn">import</span> <span class="p">(</span>
     <span class="n">slot_edit_f1_full</span><span class="p">,</span>
     <span class="n">slot_edit_f1_part</span><span class="p">,</span>
     <span class="n">slot_type_f1</span><span class="p">,</span>
     <span class="n">slot_value_cer</span><span class="p">,</span>
     <span class="n">slot_value_wer</span><span class="p">,</span>
 <span class="p">)</span>
-<span class="kn">from</span> <span class="nn">s3prl.nn</span> <span class="kn">import</span> <span class="n">BeamDecoder</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">s3prl.nn</span><span class="w"> </span><span class="kn">import</span> <span class="n">BeamDecoder</span>
 
-<span class="kn">from</span> <span class="nn">.</span> <span class="kn">import</span> <span class="n">Task</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">.</span><span class="w"> </span><span class="kn">import</span> <span class="n">Task</span>
 
 <span class="n">logger</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="vm">__name__</span><span class="p">)</span>
 
@@ -370,7 +370,7 @@
 <span class="p">]</span>
 
 
-<div class="viewcode-block" id="Speech2TextCTCExample"><a class="viewcode-back" href="../../../_autosummary/s3prl.task.speech2text_ctc_task.html#s3prl.task.Speech2TextCTCExample">[docs]</a><span class="k">class</span> <span class="nc">Speech2TextCTCExample</span><span class="p">(</span><span class="n">nn</span><span class="o">.</span><span class="n">Module</span><span class="p">):</span>
+<div class="viewcode-block" id="Speech2TextCTCExample"><a class="viewcode-back" href="../../../_autosummary/s3prl.task.speech2text_ctc_task.html#s3prl.task.Speech2TextCTCExample">[docs]</a><span class="k">class</span><span class="w"> </span><span class="nc">Speech2TextCTCExample</span><span class="p">(</span><span class="n">nn</span><span class="o">.</span><span class="n">Module</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;An example speech-to-text task with CTC objective</span>
 
 <span class="sd">    Args:</span>
@@ -378,20 +378,20 @@
 <span class="sd">        output_size (int, optional): Output size. Defaults to 4.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
-    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">input_size</span><span class="o">=</span><span class="mi">3</span><span class="p">,</span> <span class="n">output_size</span><span class="o">=</span><span class="mi">4</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">input_size</span><span class="o">=</span><span class="mi">3</span><span class="p">,</span> <span class="n">output_size</span><span class="o">=</span><span class="mi">4</span><span class="p">):</span>
         <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">()</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_input_size</span> <span class="o">=</span> <span class="n">input_size</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_output_size</span> <span class="o">=</span> <span class="n">output_size</span>
 
     <span class="nd">@property</span>
-    <span class="k">def</span> <span class="nf">input_size</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">input_size</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_input_size</span>
 
     <span class="nd">@property</span>
-    <span class="k">def</span> <span class="nf">output_size</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">output_size</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_output_size</span>
 
-<div class="viewcode-block" id="Speech2TextCTCExample.forward"><a class="viewcode-back" href="../../../_autosummary/s3prl.task.speech2text_ctc_task.html#s3prl.task.Speech2TextCTCExample.forward">[docs]</a>    <span class="k">def</span> <span class="nf">forward</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">,</span> <span class="n">x_len</span><span class="p">):</span>
+<div class="viewcode-block" id="Speech2TextCTCExample.forward"><a class="viewcode-back" href="../../../_autosummary/s3prl.task.speech2text_ctc_task.html#s3prl.task.Speech2TextCTCExample.forward">[docs]</a>    <span class="k">def</span><span class="w"> </span><span class="nf">forward</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">,</span> <span class="n">x_len</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Args:</span>
 <span class="sd">            x (torch.Tensor): (batch_size, timestemps, input_size)</span>
@@ -406,7 +406,7 @@
         <span class="k">assert</span> <span class="n">output</span><span class="p">,</span> <span class="n">x_len</span></div></div>
 
 
-<div class="viewcode-block" id="Speech2TextCTCTask"><a class="viewcode-back" href="../../../_autosummary/s3prl.task.speech2text_ctc_task.html#s3prl.task.Speech2TextCTCTask">[docs]</a><span class="k">class</span> <span class="nc">Speech2TextCTCTask</span><span class="p">(</span><span class="n">Task</span><span class="p">):</span>
+<div class="viewcode-block" id="Speech2TextCTCTask"><a class="viewcode-back" href="../../../_autosummary/s3prl.task.speech2text_ctc_task.html#s3prl.task.Speech2TextCTCTask">[docs]</a><span class="k">class</span><span class="w"> </span><span class="nc">Speech2TextCTCTask</span><span class="p">(</span><span class="n">Task</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Speech-to-text task with CTC objective</span>
 
 <span class="sd">    Args:</span>
@@ -418,7 +418,7 @@
 <span class="sd">            Metrics to be logged. Defaults to [&quot;cer&quot;, &quot;wer&quot;].</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
-    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span>
         <span class="n">model</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">nn</span><span class="o">.</span><span class="n">Module</span><span class="p">,</span>
         <span class="n">tokenizer</span><span class="p">:</span> <span class="n">Tokenizer</span><span class="p">,</span>
@@ -444,7 +444,7 @@
             <span class="n">zero_infinity</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
         <span class="p">)</span>
 
-<div class="viewcode-block" id="Speech2TextCTCTask.predict"><a class="viewcode-back" href="../../../_autosummary/s3prl.task.speech2text_ctc_task.html#s3prl.task.Speech2TextCTCTask.predict">[docs]</a>    <span class="k">def</span> <span class="nf">predict</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">,</span> <span class="n">x_len</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">LongTensor</span><span class="p">):</span>
+<div class="viewcode-block" id="Speech2TextCTCTask.predict"><a class="viewcode-back" href="../../../_autosummary/s3prl.task.speech2text_ctc_task.html#s3prl.task.Speech2TextCTCTask.predict">[docs]</a>    <span class="k">def</span><span class="w"> </span><span class="nf">predict</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">,</span> <span class="n">x_len</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">LongTensor</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Args:</span>
 <span class="sd">            x (torch.Tensor): (batch_size, timestamps, input_size)</span>
@@ -471,7 +471,7 @@
         <span class="p">]</span>
         <span class="k">return</span> <span class="n">logits</span><span class="p">,</span> <span class="n">predictions</span><span class="p">,</span> <span class="n">x_len</span></div>
 
-<div class="viewcode-block" id="Speech2TextCTCTask.forward"><a class="viewcode-back" href="../../../_autosummary/s3prl.task.speech2text_ctc_task.html#s3prl.task.Speech2TextCTCTask.forward">[docs]</a>    <span class="k">def</span> <span class="nf">forward</span><span class="p">(</span>
+<div class="viewcode-block" id="Speech2TextCTCTask.forward"><a class="viewcode-back" href="../../../_autosummary/s3prl.task.speech2text_ctc_task.html#s3prl.task.Speech2TextCTCTask.forward">[docs]</a>    <span class="k">def</span><span class="w"> </span><span class="nf">forward</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span>
         <span class="n">_mode</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
         <span class="n">x</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">,</span>
@@ -528,7 +528,7 @@
 
         <span class="k">return</span> <span class="n">loss</span><span class="p">,</span> <span class="n">cacheable</span></div>
 
-<div class="viewcode-block" id="Speech2TextCTCTask.reduction"><a class="viewcode-back" href="../../../_autosummary/s3prl.task.speech2text_ctc_task.html#s3prl.task.Speech2TextCTCTask.reduction">[docs]</a>    <span class="k">def</span> <span class="nf">reduction</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">_mode</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">cached_results</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="nb">dict</span><span class="p">],</span> <span class="n">_dump_dir</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="kc">None</span><span class="p">):</span>
+<div class="viewcode-block" id="Speech2TextCTCTask.reduction"><a class="viewcode-back" href="../../../_autosummary/s3prl.task.speech2text_ctc_task.html#s3prl.task.Speech2TextCTCTask.reduction">[docs]</a>    <span class="k">def</span><span class="w"> </span><span class="nf">reduction</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">_mode</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">cached_results</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="nb">dict</span><span class="p">],</span> <span class="n">_dump_dir</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="kc">None</span><span class="p">):</span>
         <span class="n">results</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">parse_cached_results</span><span class="p">(</span><span class="n">cached_results</span><span class="p">)</span>
 
         <span class="n">losses</span> <span class="o">=</span> <span class="n">results</span><span class="p">[</span><span class="s2">&quot;loss&quot;</span><span class="p">]</span>

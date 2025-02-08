@@ -336,22 +336,22 @@
 <span></span><span class="c1"># Copyright Hear Benchmark Team</span>
 <span class="c1"># Copyright Shu-wen Yang (refactor from https://github.com/hearbenchmark/hear-eval-kit)</span>
 
-<span class="kn">import</span> <span class="nn">logging</span>
-<span class="kn">from</span> <span class="nn">pathlib</span> <span class="kn">import</span> <span class="n">Path</span>
-<span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">Any</span><span class="p">,</span> <span class="n">Dict</span><span class="p">,</span> <span class="n">List</span><span class="p">,</span> <span class="n">Optional</span><span class="p">,</span> <span class="n">Tuple</span><span class="p">,</span> <span class="n">Union</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">logging</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">pathlib</span><span class="w"> </span><span class="kn">import</span> <span class="n">Path</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">typing</span><span class="w"> </span><span class="kn">import</span> <span class="n">Any</span><span class="p">,</span> <span class="n">Dict</span><span class="p">,</span> <span class="n">List</span><span class="p">,</span> <span class="n">Optional</span><span class="p">,</span> <span class="n">Tuple</span><span class="p">,</span> <span class="n">Union</span>
 
-<span class="kn">import</span> <span class="nn">more_itertools</span>
-<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
-<span class="kn">import</span> <span class="nn">pandas</span> <span class="k">as</span> <span class="nn">pd</span>
-<span class="kn">import</span> <span class="nn">torch</span>
-<span class="kn">from</span> <span class="nn">scipy.ndimage</span> <span class="kn">import</span> <span class="n">median_filter</span>
-<span class="kn">from</span> <span class="nn">sklearn.model_selection</span> <span class="kn">import</span> <span class="n">ParameterGrid</span>
-<span class="kn">from</span> <span class="nn">tqdm</span> <span class="kn">import</span> <span class="n">tqdm</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">more_itertools</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">pandas</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">pd</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">torch</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">scipy.ndimage</span><span class="w"> </span><span class="kn">import</span> <span class="n">median_filter</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">sklearn.model_selection</span><span class="w"> </span><span class="kn">import</span> <span class="n">ParameterGrid</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">tqdm</span><span class="w"> </span><span class="kn">import</span> <span class="n">tqdm</span>
 
-<span class="kn">from</span> <span class="nn">s3prl.dataio.encoder.category</span> <span class="kn">import</span> <span class="n">CategoryEncoder</span>
-<span class="kn">from</span> <span class="nn">s3prl.task.base</span> <span class="kn">import</span> <span class="n">Task</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">s3prl.dataio.encoder.category</span><span class="w"> </span><span class="kn">import</span> <span class="n">CategoryEncoder</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">s3prl.task.base</span><span class="w"> </span><span class="kn">import</span> <span class="n">Task</span>
 
-<span class="kn">from</span> <span class="nn">._hear_score</span> <span class="kn">import</span> <span class="n">available_scores</span><span class="p">,</span> <span class="n">validate_score_return_type</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">._hear_score</span><span class="w"> </span><span class="kn">import</span> <span class="n">available_scores</span><span class="p">,</span> <span class="n">validate_score_return_type</span>
 
 <span class="n">logger</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="vm">__name__</span><span class="p">)</span>
 
@@ -360,7 +360,7 @@
 <span class="n">__all__</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;EventPredictionTask&quot;</span><span class="p">]</span>
 
 
-<span class="k">def</span> <span class="nf">create_events_from_prediction</span><span class="p">(</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">create_events_from_prediction</span><span class="p">(</span>
     <span class="n">prediction_dict</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">float</span><span class="p">,</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">],</span>
     <span class="n">idx_to_label</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="nb">str</span><span class="p">],</span>
     <span class="n">threshold</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">0.5</span><span class="p">,</span>
@@ -431,7 +431,7 @@
     <span class="k">return</span> <span class="n">events</span>
 
 
-<span class="k">def</span> <span class="nf">get_events_for_all_files</span><span class="p">(</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">get_events_for_all_files</span><span class="p">(</span>
     <span class="n">predictions</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">,</span>
     <span class="n">filenames</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">],</span>
     <span class="n">timestamps</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">,</span>
@@ -515,7 +515,7 @@
     <span class="k">return</span> <span class="n">event_dict</span>
 
 
-<span class="k">def</span> <span class="nf">label_vocab_nlabels</span><span class="p">(</span><span class="n">embedding_path</span><span class="p">:</span> <span class="n">Path</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Tuple</span><span class="p">[</span><span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">,</span> <span class="nb">int</span><span class="p">]:</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">label_vocab_nlabels</span><span class="p">(</span><span class="n">embedding_path</span><span class="p">:</span> <span class="n">Path</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Tuple</span><span class="p">[</span><span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">,</span> <span class="nb">int</span><span class="p">]:</span>
     <span class="n">label_vocab</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">read_csv</span><span class="p">(</span><span class="n">embedding_path</span><span class="o">.</span><span class="n">joinpath</span><span class="p">(</span><span class="s2">&quot;labelvocabulary.csv&quot;</span><span class="p">))</span>
 
     <span class="n">nlabels</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">label_vocab</span><span class="p">)</span>
@@ -523,12 +523,12 @@
     <span class="k">return</span> <span class="p">(</span><span class="n">label_vocab</span><span class="p">,</span> <span class="n">nlabels</span><span class="p">)</span>
 
 
-<span class="k">class</span> <span class="nc">OneHotToCrossEntropyLoss</span><span class="p">(</span><span class="n">torch</span><span class="o">.</span><span class="n">nn</span><span class="o">.</span><span class="n">Module</span><span class="p">):</span>
-    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="k">class</span><span class="w"> </span><span class="nc">OneHotToCrossEntropyLoss</span><span class="p">(</span><span class="n">torch</span><span class="o">.</span><span class="n">nn</span><span class="o">.</span><span class="n">Module</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">()</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">loss</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">nn</span><span class="o">.</span><span class="n">CrossEntropyLoss</span><span class="p">()</span>
 
-    <span class="k">def</span> <span class="nf">forward</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">y_hat</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">,</span> <span class="n">y</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">:</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">forward</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">y_hat</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">,</span> <span class="n">y</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">:</span>
         <span class="k">assert</span> <span class="n">torch</span><span class="o">.</span><span class="n">all</span><span class="p">(</span>
             <span class="n">torch</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">y</span><span class="p">,</span> <span class="n">dim</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span> <span class="o">==</span> <span class="n">torch</span><span class="o">.</span><span class="n">ones</span><span class="p">(</span><span class="n">y</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">device</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">device</span><span class="p">)</span>
         <span class="p">)</span>
@@ -536,8 +536,8 @@
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">loss</span><span class="p">(</span><span class="n">y_hat</span><span class="p">,</span> <span class="n">y</span><span class="p">)</span>
 
 
-<div class="viewcode-block" id="EventPredictionTask"><a class="viewcode-back" href="../../../_autosummary/s3prl.task.event_prediction.html#s3prl.task.event_prediction.EventPredictionTask">[docs]</a><span class="k">class</span> <span class="nc">EventPredictionTask</span><span class="p">(</span><span class="n">Task</span><span class="p">):</span>
-    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span>
+<div class="viewcode-block" id="EventPredictionTask"><a class="viewcode-back" href="../../../_autosummary/s3prl.task.event_prediction.html#s3prl.task.event_prediction.EventPredictionTask">[docs]</a><span class="k">class</span><span class="w"> </span><span class="nc">EventPredictionTask</span><span class="p">(</span><span class="n">Task</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span>
         <span class="n">model</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">nn</span><span class="o">.</span><span class="n">Module</span><span class="p">,</span>
         <span class="n">category</span><span class="p">:</span> <span class="n">CategoryEncoder</span><span class="p">,</span>
@@ -579,20 +579,20 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">postprocessing_grid</span> <span class="o">=</span> <span class="n">postprocessing_grid</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">best_postprocessing</span> <span class="o">=</span> <span class="kc">None</span>
 
-<div class="viewcode-block" id="EventPredictionTask.get_state"><a class="viewcode-back" href="../../../_autosummary/s3prl.task.event_prediction.html#s3prl.task.event_prediction.EventPredictionTask.get_state">[docs]</a>    <span class="k">def</span> <span class="nf">get_state</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<div class="viewcode-block" id="EventPredictionTask.get_state"><a class="viewcode-back" href="../../../_autosummary/s3prl.task.event_prediction.html#s3prl.task.event_prediction.EventPredictionTask.get_state">[docs]</a>    <span class="k">def</span><span class="w"> </span><span class="nf">get_state</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="k">return</span> <span class="p">{</span>
             <span class="s2">&quot;best_postprocessing&quot;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">best_postprocessing</span><span class="p">,</span>
         <span class="p">}</span></div>
 
-<div class="viewcode-block" id="EventPredictionTask.set_state"><a class="viewcode-back" href="../../../_autosummary/s3prl.task.event_prediction.html#s3prl.task.event_prediction.EventPredictionTask.set_state">[docs]</a>    <span class="k">def</span> <span class="nf">set_state</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">state</span><span class="p">:</span> <span class="nb">dict</span><span class="p">):</span>
+<div class="viewcode-block" id="EventPredictionTask.set_state"><a class="viewcode-back" href="../../../_autosummary/s3prl.task.event_prediction.html#s3prl.task.event_prediction.EventPredictionTask.set_state">[docs]</a>    <span class="k">def</span><span class="w"> </span><span class="nf">set_state</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">state</span><span class="p">:</span> <span class="nb">dict</span><span class="p">):</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">best_postprocessing</span> <span class="o">=</span> <span class="n">state</span><span class="p">[</span><span class="s2">&quot;best_postprocessing&quot;</span><span class="p">]</span></div>
 
-<div class="viewcode-block" id="EventPredictionTask.predict"><a class="viewcode-back" href="../../../_autosummary/s3prl.task.event_prediction.html#s3prl.task.event_prediction.EventPredictionTask.predict">[docs]</a>    <span class="k">def</span> <span class="nf">predict</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">,</span> <span class="n">x_len</span><span class="p">):</span>
+<div class="viewcode-block" id="EventPredictionTask.predict"><a class="viewcode-back" href="../../../_autosummary/s3prl.task.event_prediction.html#s3prl.task.event_prediction.EventPredictionTask.predict">[docs]</a>    <span class="k">def</span><span class="w"> </span><span class="nf">predict</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">,</span> <span class="n">x_len</span><span class="p">):</span>
         <span class="n">logits</span><span class="p">,</span> <span class="n">_</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">model</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">x_len</span><span class="p">)</span>
         <span class="n">prediction</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">activation</span><span class="p">(</span><span class="n">logits</span><span class="p">)</span>
         <span class="k">return</span> <span class="n">prediction</span><span class="p">,</span> <span class="n">logits</span><span class="p">,</span> <span class="n">x_len</span></div>
 
-    <span class="k">def</span> <span class="nf">_match_length</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">inputs</span><span class="p">,</span> <span class="n">labels</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">_match_length</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">inputs</span><span class="p">,</span> <span class="n">labels</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Since the upstream extraction process can sometimes cause a mismatch</span>
 <span class="sd">        between the seq lenth of inputs and labels:</span>
@@ -613,7 +613,7 @@
             <span class="p">)</span>  <span class="c1"># (batch_size, seq_len, feature_dim), where seq_len == labels.size(-1)</span>
         <span class="k">return</span> <span class="n">inputs</span>
 
-<div class="viewcode-block" id="EventPredictionTask.train_step"><a class="viewcode-back" href="../../../_autosummary/s3prl.task.event_prediction.html#s3prl.task.event_prediction.EventPredictionTask.train_step">[docs]</a>    <span class="k">def</span> <span class="nf">train_step</span><span class="p">(</span>
+<div class="viewcode-block" id="EventPredictionTask.train_step"><a class="viewcode-back" href="../../../_autosummary/s3prl.task.event_prediction.html#s3prl.task.event_prediction.EventPredictionTask.train_step">[docs]</a>    <span class="k">def</span><span class="w"> </span><span class="nf">train_step</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span>
         <span class="n">x</span><span class="p">,</span>
         <span class="n">x_len</span><span class="p">,</span>
@@ -641,7 +641,7 @@
 
         <span class="k">return</span> <span class="n">loss</span><span class="p">,</span> <span class="n">cacheable</span></div>
 
-<div class="viewcode-block" id="EventPredictionTask.train_reduction"><a class="viewcode-back" href="../../../_autosummary/s3prl.task.event_prediction.html#s3prl.task.event_prediction.EventPredictionTask.train_reduction">[docs]</a>    <span class="k">def</span> <span class="nf">train_reduction</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">batch_results</span><span class="p">:</span> <span class="nb">list</span><span class="p">,</span> <span class="n">_dump_dir</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="kc">None</span><span class="p">):</span>
+<div class="viewcode-block" id="EventPredictionTask.train_reduction"><a class="viewcode-back" href="../../../_autosummary/s3prl.task.event_prediction.html#s3prl.task.event_prediction.EventPredictionTask.train_reduction">[docs]</a>    <span class="k">def</span><span class="w"> </span><span class="nf">train_reduction</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">batch_results</span><span class="p">:</span> <span class="nb">list</span><span class="p">,</span> <span class="n">_dump_dir</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="kc">None</span><span class="p">):</span>
         <span class="n">loss</span> <span class="o">=</span> <span class="p">[]</span>
         <span class="k">for</span> <span class="n">batch</span> <span class="ow">in</span> <span class="n">batch_results</span><span class="p">:</span>
             <span class="n">loss</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">batch</span><span class="p">[</span><span class="s2">&quot;loss&quot;</span><span class="p">])</span>
@@ -651,7 +651,7 @@
             <span class="s2">&quot;loss&quot;</span><span class="p">:</span> <span class="n">loss</span><span class="p">,</span>
         <span class="p">}</span></div>
 
-    <span class="k">def</span> <span class="nf">_eval_step</span><span class="p">(</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">_eval_step</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span>
         <span class="n">x</span><span class="p">,</span>
         <span class="n">x_len</span><span class="p">,</span>
@@ -687,13 +687,13 @@
             <span class="n">record_id</span><span class="o">=</span><span class="n">record_id</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span>  <span class="c1"># List[str]</span>
         <span class="p">)</span>
 
-<div class="viewcode-block" id="EventPredictionTask.valid_step"><a class="viewcode-back" href="../../../_autosummary/s3prl.task.event_prediction.html#s3prl.task.event_prediction.EventPredictionTask.valid_step">[docs]</a>    <span class="k">def</span> <span class="nf">valid_step</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwds</span><span class="p">):</span>
+<div class="viewcode-block" id="EventPredictionTask.valid_step"><a class="viewcode-back" href="../../../_autosummary/s3prl.task.event_prediction.html#s3prl.task.event_prediction.EventPredictionTask.valid_step">[docs]</a>    <span class="k">def</span><span class="w"> </span><span class="nf">valid_step</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwds</span><span class="p">):</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_eval_step</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwds</span><span class="p">)</span></div>
 
-<div class="viewcode-block" id="EventPredictionTask.test_step"><a class="viewcode-back" href="../../../_autosummary/s3prl.task.event_prediction.html#s3prl.task.event_prediction.EventPredictionTask.test_step">[docs]</a>    <span class="k">def</span> <span class="nf">test_step</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwds</span><span class="p">):</span>
+<div class="viewcode-block" id="EventPredictionTask.test_step"><a class="viewcode-back" href="../../../_autosummary/s3prl.task.event_prediction.html#s3prl.task.event_prediction.EventPredictionTask.test_step">[docs]</a>    <span class="k">def</span><span class="w"> </span><span class="nf">test_step</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwds</span><span class="p">):</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_eval_step</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwds</span><span class="p">)</span></div>
 
-<div class="viewcode-block" id="EventPredictionTask.log_scores"><a class="viewcode-back" href="../../../_autosummary/s3prl.task.event_prediction.html#s3prl.task.event_prediction.EventPredictionTask.log_scores">[docs]</a>    <span class="k">def</span> <span class="nf">log_scores</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">score_args</span><span class="p">):</span>
+<div class="viewcode-block" id="EventPredictionTask.log_scores"><a class="viewcode-back" href="../../../_autosummary/s3prl.task.event_prediction.html#s3prl.task.event_prediction.EventPredictionTask.log_scores">[docs]</a>    <span class="k">def</span><span class="w"> </span><span class="nf">log_scores</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">score_args</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Logs the metric score value for each score defined for the model&quot;&quot;&quot;</span>
         <span class="k">assert</span> <span class="nb">hasattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="s2">&quot;scores&quot;</span><span class="p">),</span> <span class="s2">&quot;Scores for the model should be defined&quot;</span>
         <span class="n">end_scores</span> <span class="o">=</span> <span class="p">{}</span>
@@ -717,13 +717,13 @@
                 <span class="p">)</span>
         <span class="k">return</span> <span class="n">end_scores</span></div>
 
-<div class="viewcode-block" id="EventPredictionTask.valid_reduction"><a class="viewcode-back" href="../../../_autosummary/s3prl.task.event_prediction.html#s3prl.task.event_prediction.EventPredictionTask.valid_reduction">[docs]</a>    <span class="k">def</span> <span class="nf">valid_reduction</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">cached_results</span><span class="p">:</span> <span class="nb">list</span><span class="p">,</span> <span class="n">_dump_dir</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="kc">None</span><span class="p">):</span>
+<div class="viewcode-block" id="EventPredictionTask.valid_reduction"><a class="viewcode-back" href="../../../_autosummary/s3prl.task.event_prediction.html#s3prl.task.event_prediction.EventPredictionTask.valid_reduction">[docs]</a>    <span class="k">def</span><span class="w"> </span><span class="nf">valid_reduction</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">cached_results</span><span class="p">:</span> <span class="nb">list</span><span class="p">,</span> <span class="n">_dump_dir</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="kc">None</span><span class="p">):</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">eval_reduction</span><span class="p">(</span><span class="s2">&quot;valid&quot;</span><span class="p">,</span> <span class="n">cached_results</span><span class="p">,</span> <span class="n">_dump_dir</span><span class="p">)</span></div>
 
-<div class="viewcode-block" id="EventPredictionTask.test_reduction"><a class="viewcode-back" href="../../../_autosummary/s3prl.task.event_prediction.html#s3prl.task.event_prediction.EventPredictionTask.test_reduction">[docs]</a>    <span class="k">def</span> <span class="nf">test_reduction</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">cached_results</span><span class="p">:</span> <span class="nb">list</span><span class="p">,</span> <span class="n">_dump_dir</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="kc">None</span><span class="p">):</span>
+<div class="viewcode-block" id="EventPredictionTask.test_reduction"><a class="viewcode-back" href="../../../_autosummary/s3prl.task.event_prediction.html#s3prl.task.event_prediction.EventPredictionTask.test_reduction">[docs]</a>    <span class="k">def</span><span class="w"> </span><span class="nf">test_reduction</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">cached_results</span><span class="p">:</span> <span class="nb">list</span><span class="p">,</span> <span class="n">_dump_dir</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="kc">None</span><span class="p">):</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">eval_reduction</span><span class="p">(</span><span class="s2">&quot;test&quot;</span><span class="p">,</span> <span class="n">cached_results</span><span class="p">,</span> <span class="n">_dump_dir</span><span class="p">)</span></div>
 
-<div class="viewcode-block" id="EventPredictionTask.eval_reduction"><a class="viewcode-back" href="../../../_autosummary/s3prl.task.event_prediction.html#s3prl.task.event_prediction.EventPredictionTask.eval_reduction">[docs]</a>    <span class="k">def</span> <span class="nf">eval_reduction</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">_mode</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">cached_results</span><span class="p">:</span> <span class="nb">list</span><span class="p">,</span> <span class="n">_dump_dir</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="kc">None</span><span class="p">):</span>
+<div class="viewcode-block" id="EventPredictionTask.eval_reduction"><a class="viewcode-back" href="../../../_autosummary/s3prl.task.event_prediction.html#s3prl.task.event_prediction.EventPredictionTask.eval_reduction">[docs]</a>    <span class="k">def</span><span class="w"> </span><span class="nf">eval_reduction</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">_mode</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">cached_results</span><span class="p">:</span> <span class="nb">list</span><span class="p">,</span> <span class="n">_dump_dir</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="kc">None</span><span class="p">):</span>
         <span class="n">target</span><span class="p">,</span> <span class="n">prediction</span><span class="p">,</span> <span class="n">prediction_logit</span><span class="p">,</span> <span class="n">filename</span><span class="p">,</span> <span class="n">timestamp</span> <span class="o">=</span> <span class="p">[],</span> <span class="p">[],</span> <span class="p">[],</span> <span class="p">[],</span> <span class="p">[]</span>
         <span class="k">for</span> <span class="n">batch</span> <span class="ow">in</span> <span class="n">cached_results</span><span class="p">:</span>
             <span class="n">length</span> <span class="o">=</span> <span class="n">batch</span><span class="p">[</span><span class="s2">&quot;label&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">size</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>

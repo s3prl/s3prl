@@ -333,16 +333,16 @@
         </div>
         <article role="main">
           <h1>Source code for s3prl.dataio.collate_fn</h1><div class="highlight"><pre>
-<span></span><span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
-<span class="kn">import</span> <span class="nn">torch</span>
-<span class="kn">from</span> <span class="nn">torch.nn.utils.rnn</span> <span class="kn">import</span> <span class="n">pad_sequence</span>
+<span></span><span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">torch</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">torch.nn.utils.rnn</span><span class="w"> </span><span class="kn">import</span> <span class="n">pad_sequence</span>
 
 <span class="n">__all__</span> <span class="o">=</span> <span class="p">[</span>
     <span class="s2">&quot;default_collate_fn&quot;</span><span class="p">,</span>
 <span class="p">]</span>
 
 
-<div class="viewcode-block" id="default_collate_fn"><a class="viewcode-back" href="../../../_autosummary/s3prl.dataio.collate_fn.html#s3prl.dataio.collate_fn.default_collate_fn">[docs]</a><span class="k">def</span> <span class="nf">default_collate_fn</span><span class="p">(</span><span class="n">samples</span><span class="p">,</span> <span class="n">padding_value</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">0</span><span class="p">):</span>
+<div class="viewcode-block" id="default_collate_fn"><a class="viewcode-back" href="../../../_autosummary/s3prl.dataio.collate_fn.html#s3prl.dataio.collate_fn.default_collate_fn">[docs]</a><span class="k">def</span><span class="w"> </span><span class="nf">default_collate_fn</span><span class="p">(</span><span class="n">samples</span><span class="p">,</span> <span class="n">padding_value</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">0</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Each item in **DynamicItemDataset** is a dict</span>
 <span class="sd">    This function pad (or transform into numpy list) a batch of dict</span>

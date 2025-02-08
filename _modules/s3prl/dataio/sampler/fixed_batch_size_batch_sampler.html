@@ -341,13 +341,13 @@
 <span class="sd">  * Leo 2022</span>
 <span class="sd">&quot;&quot;&quot;</span>
 
-<span class="kn">import</span> <span class="nn">torch</span>
-<span class="kn">from</span> <span class="nn">torch.utils.data</span> <span class="kn">import</span> <span class="n">BatchSampler</span><span class="p">,</span> <span class="n">RandomSampler</span><span class="p">,</span> <span class="n">SequentialSampler</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">torch</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">torch.utils.data</span><span class="w"> </span><span class="kn">import</span> <span class="n">BatchSampler</span><span class="p">,</span> <span class="n">RandomSampler</span><span class="p">,</span> <span class="n">SequentialSampler</span>
 
 <span class="n">__all__</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;FixedBatchSizeBatchSampler&quot;</span><span class="p">]</span>
 
 
-<div class="viewcode-block" id="FixedBatchSizeBatchSampler"><a class="viewcode-back" href="../../../../_autosummary/s3prl.dataio.sampler.fixed_batch_size_batch_sampler.html#s3prl.dataio.sampler.FixedBatchSizeBatchSampler">[docs]</a><span class="k">class</span> <span class="nc">FixedBatchSizeBatchSampler</span><span class="p">:</span>
+<div class="viewcode-block" id="FixedBatchSizeBatchSampler"><a class="viewcode-back" href="../../../../_autosummary/s3prl.dataio.sampler.fixed_batch_size_batch_sampler.html#s3prl.dataio.sampler.FixedBatchSizeBatchSampler">[docs]</a><span class="k">class</span><span class="w"> </span><span class="nc">FixedBatchSizeBatchSampler</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    The reduced timestamps for a batch should not exceed the max_timestamp.</span>
 <span class="sd">    If shuffled, each indices are first shuffled before aggregated into batches</span>
@@ -356,7 +356,7 @@
 <span class="sd">        data_source: __len__ is implemented</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
-    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span>
         <span class="n">data_source</span><span class="p">,</span>
         <span class="n">batch_size</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
@@ -373,20 +373,20 @@
         <span class="k">else</span><span class="p">:</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">sampler</span> <span class="o">=</span> <span class="n">SequentialSampler</span><span class="p">(</span><span class="n">data_source</span><span class="p">)</span>
 
-<div class="viewcode-block" id="FixedBatchSizeBatchSampler.set_epoch"><a class="viewcode-back" href="../../../../_autosummary/s3prl.dataio.sampler.fixed_batch_size_batch_sampler.html#s3prl.dataio.sampler.FixedBatchSizeBatchSampler.set_epoch">[docs]</a>    <span class="k">def</span> <span class="nf">set_epoch</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">epoch</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<div class="viewcode-block" id="FixedBatchSizeBatchSampler.set_epoch"><a class="viewcode-back" href="../../../../_autosummary/s3prl.dataio.sampler.fixed_batch_size_batch_sampler.html#s3prl.dataio.sampler.FixedBatchSizeBatchSampler.set_epoch">[docs]</a>    <span class="k">def</span><span class="w"> </span><span class="nf">set_epoch</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">epoch</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">shuffle</span><span class="p">:</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">generator</span><span class="o">.</span><span class="n">manual_seed</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">seed</span> <span class="o">+</span> <span class="n">epoch</span><span class="p">)</span></div>
 
-    <span class="k">def</span> <span class="nf">_evaluate_reduced_timestamps</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">batch_indices</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">_evaluate_reduced_timestamps</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">batch_indices</span><span class="p">):</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">reduce_func</span><span class="p">([</span><span class="bp">self</span><span class="o">.</span><span class="n">timestamps</span><span class="p">[</span><span class="n">indice</span><span class="p">]</span> <span class="k">for</span> <span class="n">indice</span> <span class="ow">in</span> <span class="n">batch_indices</span><span class="p">])</span>
 
-    <span class="k">def</span> <span class="fm">__iter__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__iter__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="n">batch_sampler</span> <span class="o">=</span> <span class="n">BatchSampler</span><span class="p">(</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">sampler</span><span class="p">,</span> <span class="n">batch_size</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">batch_size</span><span class="p">,</span> <span class="n">drop_last</span><span class="o">=</span><span class="kc">False</span>
         <span class="p">)</span>
         <span class="k">return</span> <span class="nb">iter</span><span class="p">(</span><span class="n">batch_sampler</span><span class="p">)</span>
 
-    <span class="k">def</span> <span class="fm">__len__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__len__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="k">return</span> <span class="nb">len</span><span class="p">(</span><span class="nb">list</span><span class="p">(</span><span class="nb">iter</span><span class="p">(</span><span class="bp">self</span><span class="p">)))</span></div>
 </pre></div>
         </article>

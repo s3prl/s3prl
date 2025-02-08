@@ -340,14 +340,14 @@
 <span class="sd">  * Heng-Jui Chang 2022</span>
 <span class="sd">&quot;&quot;&quot;</span>
 
-<span class="kn">import</span> <span class="nn">itertools</span> <span class="k">as</span> <span class="nn">it</span>
-<span class="kn">import</span> <span class="nn">logging</span>
-<span class="kn">import</span> <span class="nn">math</span>
-<span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">Iterable</span><span class="p">,</span> <span class="n">List</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">itertools</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">it</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">logging</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">math</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">typing</span><span class="w"> </span><span class="kn">import</span> <span class="n">Iterable</span><span class="p">,</span> <span class="n">List</span>
 
-<span class="kn">import</span> <span class="nn">torch</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">torch</span>
 
-<span class="kn">from</span> <span class="nn">s3prl.util.download</span> <span class="kn">import</span> <span class="n">_urls_to_filepaths</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">s3prl.util.download</span><span class="w"> </span><span class="kn">import</span> <span class="n">_urls_to_filepaths</span>
 
 <span class="n">TOKEN_URL</span> <span class="o">=</span> <span class="s2">&quot;https://huggingface.co/datasets/s3prl/flashlight/raw/main/lexicon/librispeech_char_tokens.txt&quot;</span>
 
@@ -364,7 +364,7 @@
 <span class="n">__all__</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;BeamDecoder&quot;</span><span class="p">]</span>
 
 
-<div class="viewcode-block" id="BeamDecoder"><a class="viewcode-back" href="../../../_autosummary/s3prl.nn.beam_decoder.html#s3prl.nn.BeamDecoder">[docs]</a><span class="k">class</span> <span class="nc">BeamDecoder</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+<div class="viewcode-block" id="BeamDecoder"><a class="viewcode-back" href="../../../_autosummary/s3prl.nn.beam_decoder.html#s3prl.nn.BeamDecoder">[docs]</a><span class="k">class</span><span class="w"> </span><span class="nc">BeamDecoder</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Beam decoder powered by flashlight.</span>
 
 <span class="sd">    Args:</span>
@@ -381,7 +381,7 @@
 <span class="sd">        sil_score (float, optional): score for silence appearance in the transcription. Defaults to 0.0.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
-    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span>
         <span class="n">token</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;&quot;</span><span class="p">,</span>
         <span class="n">lexicon</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;&quot;</span><span class="p">,</span>
@@ -396,7 +396,7 @@
         <span class="n">sil_score</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">0.0</span><span class="p">,</span>
     <span class="p">):</span>
         <span class="k">try</span><span class="p">:</span>
-            <span class="kn">from</span> <span class="nn">flashlight.lib.text.decoder</span> <span class="kn">import</span> <span class="p">(</span>
+            <span class="kn">from</span><span class="w"> </span><span class="nn">flashlight.lib.text.decoder</span><span class="w"> </span><span class="kn">import</span> <span class="p">(</span>
                 <span class="n">CriterionType</span><span class="p">,</span>
                 <span class="n">KenLM</span><span class="p">,</span>
                 <span class="n">LexiconDecoder</span><span class="p">,</span>
@@ -404,7 +404,7 @@
                 <span class="n">SmearingMode</span><span class="p">,</span>
                 <span class="n">Trie</span><span class="p">,</span>
             <span class="p">)</span>
-            <span class="kn">from</span> <span class="nn">flashlight.lib.text.dictionary</span> <span class="kn">import</span> <span class="p">(</span>
+            <span class="kn">from</span><span class="w"> </span><span class="nn">flashlight.lib.text.dictionary</span><span class="w"> </span><span class="kn">import</span> <span class="p">(</span>
                 <span class="n">Dictionary</span><span class="p">,</span>
                 <span class="n">create_word_dict</span><span class="p">,</span>
                 <span class="n">load_words</span><span class="p">,</span>
@@ -474,7 +474,7 @@
             <span class="kc">False</span><span class="p">,</span>
         <span class="p">)</span>
 
-<div class="viewcode-block" id="BeamDecoder.get_tokens"><a class="viewcode-back" href="../../../_autosummary/s3prl.nn.beam_decoder.html#s3prl.nn.BeamDecoder.get_tokens">[docs]</a>    <span class="k">def</span> <span class="nf">get_tokens</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">idxs</span><span class="p">:</span> <span class="n">Iterable</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">torch</span><span class="o">.</span><span class="n">LongTensor</span><span class="p">:</span>
+<div class="viewcode-block" id="BeamDecoder.get_tokens"><a class="viewcode-back" href="../../../_autosummary/s3prl.nn.beam_decoder.html#s3prl.nn.BeamDecoder.get_tokens">[docs]</a>    <span class="k">def</span><span class="w"> </span><span class="nf">get_tokens</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">idxs</span><span class="p">:</span> <span class="n">Iterable</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">torch</span><span class="o">.</span><span class="n">LongTensor</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Normalize tokens by handling CTC blank, ASG replabels, etc.</span>
 
 <span class="sd">        Args:</span>
@@ -488,7 +488,7 @@
         <span class="n">idxs</span> <span class="o">=</span> <span class="nb">filter</span><span class="p">(</span><span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="n">x</span> <span class="o">!=</span> <span class="bp">self</span><span class="o">.</span><span class="n">blank_idx</span><span class="p">,</span> <span class="n">idxs</span><span class="p">)</span>
         <span class="k">return</span> <span class="n">torch</span><span class="o">.</span><span class="n">LongTensor</span><span class="p">(</span><span class="nb">list</span><span class="p">(</span><span class="n">idxs</span><span class="p">))</span></div>
 
-<div class="viewcode-block" id="BeamDecoder.get_timesteps"><a class="viewcode-back" href="../../../_autosummary/s3prl.nn.beam_decoder.html#s3prl.nn.BeamDecoder.get_timesteps">[docs]</a>    <span class="k">def</span> <span class="nf">get_timesteps</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">token_idxs</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="nb">int</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="nb">int</span><span class="p">]:</span>
+<div class="viewcode-block" id="BeamDecoder.get_timesteps"><a class="viewcode-back" href="../../../_autosummary/s3prl.nn.beam_decoder.html#s3prl.nn.BeamDecoder.get_timesteps">[docs]</a>    <span class="k">def</span><span class="w"> </span><span class="nf">get_timesteps</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">token_idxs</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="nb">int</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="nb">int</span><span class="p">]:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Returns frame numbers corresponding to every non-blank token.</span>
 
 <span class="sd">        Args:</span>
@@ -506,7 +506,7 @@
                 <span class="n">timesteps</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">i</span><span class="p">)</span>
         <span class="k">return</span> <span class="n">timesteps</span></div>
 
-<div class="viewcode-block" id="BeamDecoder.decode"><a class="viewcode-back" href="../../../_autosummary/s3prl.nn.beam_decoder.html#s3prl.nn.BeamDecoder.decode">[docs]</a>    <span class="k">def</span> <span class="nf">decode</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">emissions</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="n">List</span><span class="p">[</span><span class="nb">dict</span><span class="p">]]:</span>
+<div class="viewcode-block" id="BeamDecoder.decode"><a class="viewcode-back" href="../../../_autosummary/s3prl.nn.beam_decoder.html#s3prl.nn.BeamDecoder.decode">[docs]</a>    <span class="k">def</span><span class="w"> </span><span class="nf">decode</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">emissions</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="n">List</span><span class="p">[</span><span class="nb">dict</span><span class="p">]]:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Decode sequence.</span>
 
 <span class="sd">        Args:</span>

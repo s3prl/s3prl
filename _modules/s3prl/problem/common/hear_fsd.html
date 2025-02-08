@@ -333,29 +333,29 @@
         </div>
         <article role="main">
           <h1>Source code for s3prl.problem.common.hear_fsd</h1><div class="highlight"><pre>
-<span></span><span class="kn">import</span> <span class="nn">json</span>
-<span class="kn">import</span> <span class="nn">pickle</span>
-<span class="kn">from</span> <span class="nn">collections</span> <span class="kn">import</span> <span class="n">defaultdict</span>
-<span class="kn">from</span> <span class="nn">dataclasses</span> <span class="kn">import</span> <span class="n">dataclass</span>
-<span class="kn">from</span> <span class="nn">pathlib</span> <span class="kn">import</span> <span class="n">Path</span>
+<span></span><span class="kn">import</span><span class="w"> </span><span class="nn">json</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">pickle</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">collections</span><span class="w"> </span><span class="kn">import</span> <span class="n">defaultdict</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">dataclasses</span><span class="w"> </span><span class="kn">import</span> <span class="n">dataclass</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">pathlib</span><span class="w"> </span><span class="kn">import</span> <span class="n">Path</span>
 
-<span class="kn">import</span> <span class="nn">pandas</span> <span class="k">as</span> <span class="nn">pd</span>
-<span class="kn">import</span> <span class="nn">torch</span>
-<span class="kn">from</span> <span class="nn">omegaconf</span> <span class="kn">import</span> <span class="n">MISSING</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">pandas</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">pd</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">torch</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">omegaconf</span><span class="w"> </span><span class="kn">import</span> <span class="n">MISSING</span>
 
-<span class="kn">from</span> <span class="nn">s3prl.dataio.dataset</span> <span class="kn">import</span> <span class="n">EncodeMultiLabel</span><span class="p">,</span> <span class="n">LoadAudio</span>
-<span class="kn">from</span> <span class="nn">s3prl.dataio.encoder</span> <span class="kn">import</span> <span class="n">CategoryEncoder</span>
-<span class="kn">from</span> <span class="nn">s3prl.dataio.sampler</span> <span class="kn">import</span> <span class="n">FixedBatchSizeBatchSampler</span>
-<span class="kn">from</span> <span class="nn">s3prl.nn.hear</span> <span class="kn">import</span> <span class="n">HearFullyConnectedPrediction</span>
-<span class="kn">from</span> <span class="nn">s3prl.task.scene_prediction</span> <span class="kn">import</span> <span class="n">ScenePredictionTask</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">s3prl.dataio.dataset</span><span class="w"> </span><span class="kn">import</span> <span class="n">EncodeMultiLabel</span><span class="p">,</span> <span class="n">LoadAudio</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">s3prl.dataio.encoder</span><span class="w"> </span><span class="kn">import</span> <span class="n">CategoryEncoder</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">s3prl.dataio.sampler</span><span class="w"> </span><span class="kn">import</span> <span class="n">FixedBatchSizeBatchSampler</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">s3prl.nn.hear</span><span class="w"> </span><span class="kn">import</span> <span class="n">HearFullyConnectedPrediction</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">s3prl.task.scene_prediction</span><span class="w"> </span><span class="kn">import</span> <span class="n">ScenePredictionTask</span>
 
-<span class="kn">from</span> <span class="nn">._hear_util</span> <span class="kn">import</span> <span class="n">resample_hear_corpus</span>
-<span class="kn">from</span> <span class="nn">.superb_sid</span> <span class="kn">import</span> <span class="n">SuperbSID</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">._hear_util</span><span class="w"> </span><span class="kn">import</span> <span class="n">resample_hear_corpus</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">.superb_sid</span><span class="w"> </span><span class="kn">import</span> <span class="n">SuperbSID</span>
 
 <span class="n">__all__</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;HearFSD&quot;</span><span class="p">]</span>
 
 
-<span class="k">def</span> <span class="nf">hear_scene_trainvaltest</span><span class="p">(</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">hear_scene_trainvaltest</span><span class="p">(</span>
     <span class="n">target_dir</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
     <span class="n">cache_dir</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
     <span class="n">dataset_root</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
@@ -375,11 +375,11 @@
     <span class="k">if</span> <span class="n">get_path_only</span><span class="p">:</span>
         <span class="k">return</span> <span class="n">train_csv</span><span class="p">,</span> <span class="n">valid_csv</span><span class="p">,</span> <span class="p">[</span><span class="n">test_csv</span><span class="p">]</span>
 
-    <span class="k">def</span> <span class="nf">load_json</span><span class="p">(</span><span class="n">filepath</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">load_json</span><span class="p">(</span><span class="n">filepath</span><span class="p">):</span>
         <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">filepath</span><span class="p">,</span> <span class="s2">&quot;r&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">fp</span><span class="p">:</span>
             <span class="k">return</span> <span class="n">json</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="n">fp</span><span class="p">)</span>
 
-    <span class="k">def</span> <span class="nf">split_to_df</span><span class="p">(</span><span class="n">split</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">:</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">split_to_df</span><span class="p">(</span><span class="n">split</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">:</span>
         <span class="n">meta</span> <span class="o">=</span> <span class="n">load_json</span><span class="p">(</span><span class="n">dataset_root</span> <span class="o">/</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">split</span><span class="si">}</span><span class="s2">.json&quot;</span><span class="p">)</span>
         <span class="n">data</span> <span class="o">=</span> <span class="n">defaultdict</span><span class="p">(</span><span class="nb">list</span><span class="p">)</span>
         <span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="nb">list</span><span class="p">(</span><span class="n">meta</span><span class="o">.</span><span class="n">keys</span><span class="p">()):</span>
@@ -395,8 +395,8 @@
     <span class="k">return</span> <span class="n">train_csv</span><span class="p">,</span> <span class="n">valid_csv</span><span class="p">,</span> <span class="p">[</span><span class="n">test_csv</span><span class="p">]</span>
 
 
-<div class="viewcode-block" id="HearFSD"><a class="viewcode-back" href="../../../../_autosummary/s3prl.problem.common.hear_fsd.html#s3prl.problem.HearFSD">[docs]</a><span class="k">class</span> <span class="nc">HearFSD</span><span class="p">(</span><span class="n">SuperbSID</span><span class="p">):</span>
-<div class="viewcode-block" id="HearFSD.default_config"><a class="viewcode-back" href="../../../../_autosummary/s3prl.problem.common.hear_fsd.html#s3prl.problem.HearFSD.default_config">[docs]</a>    <span class="k">def</span> <span class="nf">default_config</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">:</span>
+<div class="viewcode-block" id="HearFSD"><a class="viewcode-back" href="../../../../_autosummary/s3prl.problem.common.hear_fsd.html#s3prl.problem.HearFSD">[docs]</a><span class="k">class</span><span class="w"> </span><span class="nc">HearFSD</span><span class="p">(</span><span class="n">SuperbSID</span><span class="p">):</span>
+<div class="viewcode-block" id="HearFSD.default_config"><a class="viewcode-back" href="../../../../_autosummary/s3prl.problem.common.hear_fsd.html#s3prl.problem.HearFSD.default_config">[docs]</a>    <span class="k">def</span><span class="w"> </span><span class="nf">default_config</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">:</span>
         <span class="k">return</span> <span class="nb">dict</span><span class="p">(</span>
             <span class="n">start</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span>
             <span class="n">stop</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
@@ -463,7 +463,7 @@
             <span class="n">evaluate</span><span class="o">=</span><span class="nb">dict</span><span class="p">(),</span>
         <span class="p">)</span></div>
 
-<div class="viewcode-block" id="HearFSD.prepare_data"><a class="viewcode-back" href="../../../../_autosummary/s3prl.problem.common.hear_fsd.html#s3prl.problem.HearFSD.prepare_data">[docs]</a>    <span class="k">def</span> <span class="nf">prepare_data</span><span class="p">(</span>
+<div class="viewcode-block" id="HearFSD.prepare_data"><a class="viewcode-back" href="../../../../_autosummary/s3prl.problem.common.hear_fsd.html#s3prl.problem.HearFSD.prepare_data">[docs]</a>    <span class="k">def</span><span class="w"> </span><span class="nf">prepare_data</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span>
         <span class="n">prepare_data</span><span class="p">:</span> <span class="nb">dict</span><span class="p">,</span>
         <span class="n">target_dir</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
@@ -474,7 +474,7 @@
             <span class="o">**</span><span class="bp">self</span><span class="o">.</span><span class="n">_get_current_arguments</span><span class="p">(</span><span class="n">flatten_dict</span><span class="o">=</span><span class="s2">&quot;prepare_data&quot;</span><span class="p">)</span>
         <span class="p">)</span></div>
 
-<div class="viewcode-block" id="HearFSD.build_encoder"><a class="viewcode-back" href="../../../../_autosummary/s3prl.problem.common.hear_fsd.html#s3prl.problem.HearFSD.build_encoder">[docs]</a>    <span class="k">def</span> <span class="nf">build_encoder</span><span class="p">(</span>
+<div class="viewcode-block" id="HearFSD.build_encoder"><a class="viewcode-back" href="../../../../_autosummary/s3prl.problem.common.hear_fsd.html#s3prl.problem.HearFSD.build_encoder">[docs]</a>    <span class="k">def</span><span class="w"> </span><span class="nf">build_encoder</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span>
         <span class="n">build_encoder</span><span class="p">:</span> <span class="nb">dict</span><span class="p">,</span>
         <span class="n">target_dir</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
@@ -504,7 +504,7 @@
 
         <span class="k">return</span> <span class="n">encoder_path</span></div>
 
-<div class="viewcode-block" id="HearFSD.build_dataset"><a class="viewcode-back" href="../../../../_autosummary/s3prl.problem.common.hear_fsd.html#s3prl.problem.HearFSD.build_dataset">[docs]</a>    <span class="k">def</span> <span class="nf">build_dataset</span><span class="p">(</span>
+<div class="viewcode-block" id="HearFSD.build_dataset"><a class="viewcode-back" href="../../../../_autosummary/s3prl.problem.common.hear_fsd.html#s3prl.problem.HearFSD.build_dataset">[docs]</a>    <span class="k">def</span><span class="w"> </span><span class="nf">build_dataset</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span>
         <span class="n">build_dataset</span><span class="p">:</span> <span class="nb">dict</span><span class="p">,</span>
         <span class="n">target_dir</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
@@ -527,11 +527,11 @@
         <span class="n">audio_loader</span> <span class="o">=</span> <span class="n">LoadAudio</span><span class="p">(</span><span class="n">wav_paths</span><span class="p">)</span>
         <span class="n">label_encoder</span> <span class="o">=</span> <span class="n">EncodeMultiLabel</span><span class="p">(</span><span class="n">labels</span><span class="p">,</span> <span class="n">encoder</span><span class="p">)</span>
 
-        <span class="k">class</span> <span class="nc">Dataset</span><span class="p">:</span>
-            <span class="k">def</span> <span class="fm">__len__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">class</span><span class="w"> </span><span class="nc">Dataset</span><span class="p">:</span>
+            <span class="k">def</span><span class="w"> </span><span class="fm">__len__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
                 <span class="k">return</span> <span class="nb">len</span><span class="p">(</span><span class="n">audio_loader</span><span class="p">)</span>
 
-            <span class="k">def</span> <span class="fm">__getitem__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">index</span><span class="p">:</span> <span class="nb">int</span><span class="p">):</span>
+            <span class="k">def</span><span class="w"> </span><span class="fm">__getitem__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">index</span><span class="p">:</span> <span class="nb">int</span><span class="p">):</span>
                 <span class="n">audio</span> <span class="o">=</span> <span class="n">audio_loader</span><span class="p">[</span><span class="n">index</span><span class="p">]</span>
                 <span class="n">label</span> <span class="o">=</span> <span class="n">label_encoder</span><span class="p">[</span><span class="n">index</span><span class="p">]</span>
                 <span class="k">return</span> <span class="p">{</span>
@@ -545,7 +545,7 @@
         <span class="n">dataset</span> <span class="o">=</span> <span class="n">Dataset</span><span class="p">()</span>
         <span class="k">return</span> <span class="n">dataset</span></div>
 
-<div class="viewcode-block" id="HearFSD.build_batch_sampler"><a class="viewcode-back" href="../../../../_autosummary/s3prl.problem.common.hear_fsd.html#s3prl.problem.HearFSD.build_batch_sampler">[docs]</a>    <span class="k">def</span> <span class="nf">build_batch_sampler</span><span class="p">(</span>
+<div class="viewcode-block" id="HearFSD.build_batch_sampler"><a class="viewcode-back" href="../../../../_autosummary/s3prl.problem.common.hear_fsd.html#s3prl.problem.HearFSD.build_batch_sampler">[docs]</a>    <span class="k">def</span><span class="w"> </span><span class="nf">build_batch_sampler</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span>
         <span class="n">build_batch_sampler</span><span class="p">:</span> <span class="nb">dict</span><span class="p">,</span>
         <span class="n">target_dir</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
@@ -555,7 +555,7 @@
         <span class="n">dataset</span><span class="p">,</span>
     <span class="p">):</span>
         <span class="nd">@dataclass</span>
-        <span class="k">class</span> <span class="nc">Config</span><span class="p">:</span>
+        <span class="k">class</span><span class="w"> </span><span class="nc">Config</span><span class="p">:</span>
             <span class="n">train</span><span class="p">:</span> <span class="nb">dict</span> <span class="o">=</span> <span class="kc">None</span>
             <span class="n">valid</span><span class="p">:</span> <span class="nb">dict</span> <span class="o">=</span> <span class="kc">None</span>
             <span class="n">test</span><span class="p">:</span> <span class="nb">dict</span> <span class="o">=</span> <span class="kc">None</span>
@@ -563,7 +563,7 @@
         <span class="n">conf</span> <span class="o">=</span> <span class="n">Config</span><span class="p">(</span><span class="o">**</span><span class="n">build_batch_sampler</span><span class="p">)</span>
         <span class="k">return</span> <span class="n">FixedBatchSizeBatchSampler</span><span class="p">(</span><span class="n">dataset</span><span class="p">,</span> <span class="o">**</span><span class="p">(</span><span class="n">conf</span><span class="o">.</span><span class="n">train</span> <span class="ow">or</span> <span class="p">{}))</span></div>
 
-<div class="viewcode-block" id="HearFSD.build_downstream"><a class="viewcode-back" href="../../../../_autosummary/s3prl.problem.common.hear_fsd.html#s3prl.problem.HearFSD.build_downstream">[docs]</a>    <span class="k">def</span> <span class="nf">build_downstream</span><span class="p">(</span>
+<div class="viewcode-block" id="HearFSD.build_downstream"><a class="viewcode-back" href="../../../../_autosummary/s3prl.problem.common.hear_fsd.html#s3prl.problem.HearFSD.build_downstream">[docs]</a>    <span class="k">def</span><span class="w"> </span><span class="nf">build_downstream</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span>
         <span class="n">build_downstream</span><span class="p">:</span> <span class="nb">dict</span><span class="p">,</span>
         <span class="n">downstream_input_size</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
@@ -574,7 +574,7 @@
             <span class="n">downstream_input_size</span><span class="p">,</span> <span class="n">downstream_output_size</span><span class="p">,</span> <span class="o">**</span><span class="n">build_downstream</span>
         <span class="p">)</span></div>
 
-<div class="viewcode-block" id="HearFSD.build_task"><a class="viewcode-back" href="../../../../_autosummary/s3prl.problem.common.hear_fsd.html#s3prl.problem.HearFSD.build_task">[docs]</a>    <span class="k">def</span> <span class="nf">build_task</span><span class="p">(</span>
+<div class="viewcode-block" id="HearFSD.build_task"><a class="viewcode-back" href="../../../../_autosummary/s3prl.problem.common.hear_fsd.html#s3prl.problem.HearFSD.build_task">[docs]</a>    <span class="k">def</span><span class="w"> </span><span class="nf">build_task</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span>
         <span class="n">build_task</span><span class="p">:</span> <span class="nb">dict</span><span class="p">,</span>
         <span class="n">model</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">nn</span><span class="o">.</span><span class="n">Module</span><span class="p">,</span>

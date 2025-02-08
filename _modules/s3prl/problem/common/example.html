@@ -333,19 +333,19 @@
         </div>
         <article role="main">
           <h1>Source code for s3prl.problem.common.example</h1><div class="highlight"><pre>
-<span></span><span class="kn">from</span> <span class="nn">pathlib</span> <span class="kn">import</span> <span class="n">Path</span>
+<span></span><span class="kn">from</span><span class="w"> </span><span class="nn">pathlib</span><span class="w"> </span><span class="kn">import</span> <span class="n">Path</span>
 
-<span class="kn">import</span> <span class="nn">pandas</span> <span class="k">as</span> <span class="nn">pd</span>
-<span class="kn">import</span> <span class="nn">torch</span>
-<span class="kn">import</span> <span class="nn">torchaudio</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">pandas</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">pd</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">torch</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">torchaudio</span>
 
-<span class="kn">from</span> <span class="nn">.superb_sid</span> <span class="kn">import</span> <span class="n">SuperbSID</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">.superb_sid</span><span class="w"> </span><span class="kn">import</span> <span class="n">SuperbSID</span>
 
 <span class="n">torchaudio</span><span class="o">.</span><span class="n">set_audio_backend</span><span class="p">(</span><span class="s2">&quot;sox_io&quot;</span><span class="p">)</span>
 
 
-<div class="viewcode-block" id="CommonExample"><a class="viewcode-back" href="../../../../_autosummary/s3prl.problem.common.example.html#s3prl.problem.CommonExample">[docs]</a><span class="k">class</span> <span class="nc">CommonExample</span><span class="p">(</span><span class="n">SuperbSID</span><span class="p">):</span>
-<div class="viewcode-block" id="CommonExample.default_config"><a class="viewcode-back" href="../../../../_autosummary/s3prl.problem.common.example.html#s3prl.problem.CommonExample.default_config">[docs]</a>    <span class="k">def</span> <span class="nf">default_config</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">:</span>
+<div class="viewcode-block" id="CommonExample"><a class="viewcode-back" href="../../../../_autosummary/s3prl.problem.common.example.html#s3prl.problem.CommonExample">[docs]</a><span class="k">class</span><span class="w"> </span><span class="nc">CommonExample</span><span class="p">(</span><span class="n">SuperbSID</span><span class="p">):</span>
+<div class="viewcode-block" id="CommonExample.default_config"><a class="viewcode-back" href="../../../../_autosummary/s3prl.problem.common.example.html#s3prl.problem.CommonExample.default_config">[docs]</a>    <span class="k">def</span><span class="w"> </span><span class="nf">default_config</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">:</span>
         <span class="n">config</span> <span class="o">=</span> <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="n">default_config</span><span class="p">()</span>
         <span class="n">config</span><span class="p">[</span><span class="s2">&quot;prepare_data&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="p">{}</span>
         <span class="n">config</span><span class="p">[</span><span class="s2">&quot;train&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span>
@@ -361,7 +361,7 @@
         <span class="p">)</span>
         <span class="k">return</span> <span class="n">config</span></div>
 
-<div class="viewcode-block" id="CommonExample.prepare_data"><a class="viewcode-back" href="../../../../_autosummary/s3prl.problem.common.example.html#s3prl.problem.CommonExample.prepare_data">[docs]</a>    <span class="k">def</span> <span class="nf">prepare_data</span><span class="p">(</span>
+<div class="viewcode-block" id="CommonExample.prepare_data"><a class="viewcode-back" href="../../../../_autosummary/s3prl.problem.common.example.html#s3prl.problem.CommonExample.prepare_data">[docs]</a>    <span class="k">def</span><span class="w"> </span><span class="nf">prepare_data</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span>
         <span class="n">prepare_data</span><span class="p">:</span> <span class="nb">dict</span><span class="p">,</span>
         <span class="n">target_dir</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>

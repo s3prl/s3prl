@@ -340,22 +340,22 @@
 <span class="sd">  * Leo 2022</span>
 <span class="sd">&quot;&quot;&quot;</span>
 
-<span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">List</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">typing</span><span class="w"> </span><span class="kn">import</span> <span class="n">List</span>
 
-<span class="kn">import</span> <span class="nn">torch</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">torch</span>
 
 <span class="n">__all__</span> <span class="o">=</span> <span class="p">[</span>
     <span class="s2">&quot;MaxTimestampBatchSampler&quot;</span><span class="p">,</span>
 <span class="p">]</span>
 
 
-<div class="viewcode-block" id="MaxTimestampBatchSampler"><a class="viewcode-back" href="../../../../_autosummary/s3prl.dataio.sampler.max_timestamp_batch_sampler.html#s3prl.dataio.sampler.MaxTimestampBatchSampler">[docs]</a><span class="k">class</span> <span class="nc">MaxTimestampBatchSampler</span><span class="p">:</span>
+<div class="viewcode-block" id="MaxTimestampBatchSampler"><a class="viewcode-back" href="../../../../_autosummary/s3prl.dataio.sampler.max_timestamp_batch_sampler.html#s3prl.dataio.sampler.MaxTimestampBatchSampler">[docs]</a><span class="k">class</span><span class="w"> </span><span class="nc">MaxTimestampBatchSampler</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    The reduced timestamps for a batch should not exceed the max_timestamp.</span>
 <span class="sd">    If shuffled, each indices are first shuffled before aggregated into batches</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
-    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span>
         <span class="n">lengths</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="nb">int</span><span class="p">],</span>
         <span class="n">max_length</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
@@ -371,16 +371,16 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">reduce_func</span> <span class="o">=</span> <span class="n">reduce_func</span> <span class="ow">or</span> <span class="bp">self</span><span class="o">.</span><span class="n">_default_reduce_func</span>
 
     <span class="nd">@staticmethod</span>
-    <span class="k">def</span> <span class="nf">_default_reduce_func</span><span class="p">(</span><span class="n">timestamps</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">_default_reduce_func</span><span class="p">(</span><span class="n">timestamps</span><span class="p">):</span>
         <span class="k">return</span> <span class="nb">max</span><span class="p">(</span><span class="n">timestamps</span><span class="p">)</span> <span class="o">*</span> <span class="nb">len</span><span class="p">(</span><span class="n">timestamps</span><span class="p">)</span>
 
-<div class="viewcode-block" id="MaxTimestampBatchSampler.set_epoch"><a class="viewcode-back" href="../../../../_autosummary/s3prl.dataio.sampler.max_timestamp_batch_sampler.html#s3prl.dataio.sampler.MaxTimestampBatchSampler.set_epoch">[docs]</a>    <span class="k">def</span> <span class="nf">set_epoch</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">epoch</span><span class="p">:</span> <span class="nb">int</span><span class="p">):</span>
+<div class="viewcode-block" id="MaxTimestampBatchSampler.set_epoch"><a class="viewcode-back" href="../../../../_autosummary/s3prl.dataio.sampler.max_timestamp_batch_sampler.html#s3prl.dataio.sampler.MaxTimestampBatchSampler.set_epoch">[docs]</a>    <span class="k">def</span><span class="w"> </span><span class="nf">set_epoch</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">epoch</span><span class="p">:</span> <span class="nb">int</span><span class="p">):</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">epoch</span> <span class="o">=</span> <span class="n">epoch</span></div>
 
-    <span class="k">def</span> <span class="nf">_evaluate_reduced_timestamps</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">batch_indices</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">_evaluate_reduced_timestamps</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">batch_indices</span><span class="p">):</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">reduce_func</span><span class="p">([</span><span class="bp">self</span><span class="o">.</span><span class="n">lengths</span><span class="p">[</span><span class="n">indice</span><span class="p">]</span> <span class="k">for</span> <span class="n">indice</span> <span class="ow">in</span> <span class="n">batch_indices</span><span class="p">])</span>
 
-    <span class="k">def</span> <span class="fm">__iter__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__iter__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">shuffle</span><span class="p">:</span>
             <span class="n">generator</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">Generator</span><span class="p">()</span>
             <span class="n">generator</span><span class="o">.</span><span class="n">manual_seed</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">epoch</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">seed</span><span class="p">)</span>
@@ -406,7 +406,7 @@
         <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">batch</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
             <span class="k">yield</span> <span class="n">batch</span>
 
-    <span class="k">def</span> <span class="fm">__len__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__len__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="k">return</span> <span class="nb">len</span><span class="p">(</span><span class="nb">list</span><span class="p">(</span><span class="nb">iter</span><span class="p">(</span><span class="bp">self</span><span class="p">)))</span></div>
 </pre></div>
         </article>

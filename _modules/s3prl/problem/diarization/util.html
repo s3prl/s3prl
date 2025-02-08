@@ -341,18 +341,18 @@
 <span class="sd">  * Leo 2022</span>
 <span class="sd">&quot;&quot;&quot;</span>
 
-<span class="kn">import</span> <span class="nn">logging</span>
-<span class="kn">import</span> <span class="nn">os</span>
-<span class="kn">import</span> <span class="nn">re</span>
-<span class="kn">import</span> <span class="nn">subprocess</span>
-<span class="kn">from</span> <span class="nn">pathlib</span> <span class="kn">import</span> <span class="n">Path</span>
-<span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">List</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">logging</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">os</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">re</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">subprocess</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">pathlib</span><span class="w"> </span><span class="kn">import</span> <span class="n">Path</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">typing</span><span class="w"> </span><span class="kn">import</span> <span class="n">List</span>
 
-<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
-<span class="kn">import</span> <span class="nn">pandas</span> <span class="k">as</span> <span class="nn">pd</span>
-<span class="kn">import</span> <span class="nn">torch</span>
-<span class="kn">from</span> <span class="nn">scipy.signal</span> <span class="kn">import</span> <span class="n">medfilt</span>
-<span class="kn">from</span> <span class="nn">tqdm</span> <span class="kn">import</span> <span class="n">tqdm</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">pandas</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">pd</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">torch</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">scipy.signal</span><span class="w"> </span><span class="kn">import</span> <span class="n">medfilt</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">tqdm</span><span class="w"> </span><span class="kn">import</span> <span class="n">tqdm</span>
 
 <span class="n">logger</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="vm">__name__</span><span class="p">)</span>
 
@@ -365,7 +365,7 @@
 <span class="p">]</span>
 
 
-<div class="viewcode-block" id="kaldi_dir_to_rttm"><a class="viewcode-back" href="../../../../_autosummary/s3prl.problem.diarization.util.html#s3prl.problem.diarization.util.kaldi_dir_to_rttm">[docs]</a><span class="k">def</span> <span class="nf">kaldi_dir_to_rttm</span><span class="p">(</span><span class="n">data_dir</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">rttm_path</span><span class="p">:</span> <span class="nb">str</span><span class="p">):</span>
+<div class="viewcode-block" id="kaldi_dir_to_rttm"><a class="viewcode-back" href="../../../../_autosummary/s3prl.problem.diarization.util.html#s3prl.problem.diarization.util.kaldi_dir_to_rttm">[docs]</a><span class="k">def</span><span class="w"> </span><span class="nf">kaldi_dir_to_rttm</span><span class="p">(</span><span class="n">data_dir</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">rttm_path</span><span class="p">:</span> <span class="nb">str</span><span class="p">):</span>
     <span class="n">data_dir</span><span class="p">:</span> <span class="n">Path</span> <span class="o">=</span> <span class="n">Path</span><span class="p">(</span><span class="n">data_dir</span><span class="p">)</span>
     <span class="n">segments_file</span> <span class="o">=</span> <span class="n">data_dir</span> <span class="o">/</span> <span class="s2">&quot;segments&quot;</span>
     <span class="n">utt2spk_file</span> <span class="o">=</span> <span class="n">data_dir</span> <span class="o">/</span> <span class="s2">&quot;utt2spk&quot;</span>
@@ -399,7 +399,7 @@
                 <span class="p">)</span></div>
 
 
-<span class="k">def</span> <span class="nf">make_rttm_and_score</span><span class="p">(</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">make_rttm_and_score</span><span class="p">(</span>
     <span class="n">prediction_dir</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
     <span class="n">score_dir</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
     <span class="n">gt_rttm</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
@@ -441,7 +441,7 @@
     <span class="k">return</span> <span class="n">best_der</span><span class="p">,</span> <span class="p">(</span><span class="n">best_th</span><span class="p">,</span> <span class="n">best_med</span><span class="p">)</span>
 
 
-<span class="k">def</span> <span class="nf">make_rttm</span><span class="p">(</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">make_rttm</span><span class="p">(</span>
     <span class="n">prediction_dir</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
     <span class="n">out_rttm_path</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
     <span class="n">threshold</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
@@ -477,7 +477,7 @@
                     <span class="p">)</span>
 
 
-<span class="k">def</span> <span class="nf">score_with_dscore</span><span class="p">(</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">score_with_dscore</span><span class="p">(</span>
     <span class="n">dscore_dir</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">hyp_rttm</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">gt_rttm</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">score_result</span><span class="p">:</span> <span class="nb">str</span>
 <span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">float</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
@@ -502,7 +502,7 @@
     <span class="k">return</span> <span class="n">get_overall_der_from_dscore_file</span><span class="p">(</span><span class="n">score_result</span><span class="p">)</span>
 
 
-<span class="k">def</span> <span class="nf">get_overall_der_from_dscore_file</span><span class="p">(</span><span class="n">score_result</span><span class="p">:</span> <span class="nb">str</span><span class="p">):</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">get_overall_der_from_dscore_file</span><span class="p">(</span><span class="n">score_result</span><span class="p">:</span> <span class="nb">str</span><span class="p">):</span>
     <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">score_result</span><span class="p">)</span> <span class="k">as</span> <span class="n">file</span><span class="p">:</span>
         <span class="n">lines</span> <span class="o">=</span> <span class="n">file</span><span class="o">.</span><span class="n">readlines</span><span class="p">()</span>
         <span class="n">overall_lines</span> <span class="o">=</span> <span class="p">[</span><span class="n">line</span> <span class="k">for</span> <span class="n">line</span> <span class="ow">in</span> <span class="n">lines</span> <span class="k">if</span> <span class="s2">&quot;OVERALL&quot;</span> <span class="ow">in</span> <span class="n">line</span><span class="p">]</span>
@@ -516,7 +516,7 @@
     <span class="k">return</span> <span class="n">overall_der</span>
 
 
-<div class="viewcode-block" id="csv_to_kaldi_dir"><a class="viewcode-back" href="../../../../_autosummary/s3prl.problem.diarization.util.html#s3prl.problem.diarization.util.csv_to_kaldi_dir">[docs]</a><span class="k">def</span> <span class="nf">csv_to_kaldi_dir</span><span class="p">(</span><span class="n">csv</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">data_dir</span><span class="p">:</span> <span class="nb">str</span><span class="p">):</span>
+<div class="viewcode-block" id="csv_to_kaldi_dir"><a class="viewcode-back" href="../../../../_autosummary/s3prl.problem.diarization.util.html#s3prl.problem.diarization.util.csv_to_kaldi_dir">[docs]</a><span class="k">def</span><span class="w"> </span><span class="nf">csv_to_kaldi_dir</span><span class="p">(</span><span class="n">csv</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">data_dir</span><span class="p">:</span> <span class="nb">str</span><span class="p">):</span>
     <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Convert csv </span><span class="si">{</span><span class="n">csv</span><span class="si">}</span><span class="s2"> into kaldi data directory </span><span class="si">{</span><span class="n">data_dir</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
 
     <span class="n">data_dir</span><span class="p">:</span> <span class="n">Path</span> <span class="o">=</span> <span class="n">Path</span><span class="p">(</span><span class="n">data_dir</span><span class="p">)</span>
@@ -581,7 +581,7 @@
         <span class="p">)</span></div>
 
 
-<div class="viewcode-block" id="kaldi_dir_to_csv"><a class="viewcode-back" href="../../../../_autosummary/s3prl.problem.diarization.util.html#s3prl.problem.diarization.util.kaldi_dir_to_csv">[docs]</a><span class="k">def</span> <span class="nf">kaldi_dir_to_csv</span><span class="p">(</span><span class="n">data_dir</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">csv</span><span class="p">:</span> <span class="nb">str</span><span class="p">):</span>
+<div class="viewcode-block" id="kaldi_dir_to_csv"><a class="viewcode-back" href="../../../../_autosummary/s3prl.problem.diarization.util.html#s3prl.problem.diarization.util.kaldi_dir_to_csv">[docs]</a><span class="k">def</span><span class="w"> </span><span class="nf">kaldi_dir_to_csv</span><span class="p">(</span><span class="n">data_dir</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">csv</span><span class="p">:</span> <span class="nb">str</span><span class="p">):</span>
     <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Convert kaldi data directory </span><span class="si">{</span><span class="n">data_dir</span><span class="si">}</span><span class="s2"> into csv </span><span class="si">{</span><span class="n">csv</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
 
     <span class="n">data_dir</span><span class="p">:</span> <span class="n">Path</span> <span class="o">=</span> <span class="n">Path</span><span class="p">(</span><span class="n">data_dir</span><span class="p">)</span>

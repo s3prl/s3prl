@@ -341,8 +341,8 @@ See <a class="reference internal" href="../_autosummary/s3prl.problem.html#modul
 <section id="usage-1-import-and-run-on-colab">
 <h2>Usage 1. Import and run on Colab<a class="headerlink" href="#usage-1-import-and-run-on-colab" title="Permalink to this heading">#</a></h2>
 <p>All the problem class follows the same usage</p>
-<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">torch</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">s3prl.problem</span> <span class="kn">import</span> <span class="n">SuperbASR</span>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span><span class="w"> </span><span class="nn">torch</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span><span class="w"> </span><span class="nn">s3prl.problem</span><span class="w"> </span><span class="kn">import</span> <span class="n">SuperbASR</span>
 <span class="gp">...</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">problem</span> <span class="o">=</span> <span class="n">SuperbASR</span><span class="p">()</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">config</span> <span class="o">=</span> <span class="n">problem</span><span class="o">.</span><span class="n">default_config</span><span class="p">()</span>
@@ -361,7 +361,7 @@ See <a class="reference internal" href="../_autosummary/s3prl.problem.html#modul
 <p>If you want to directly run from command-line, write a python script (<code class="code docutils literal notranslate"><span class="pre">asr.py</span></code>) as follow:</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="c1"># This is asr.py</span>
 
-<span class="kn">from</span> <span class="nn">s3prl.problem</span> <span class="kn">import</span> <span class="n">SuperbASR</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">s3prl.problem</span><span class="w"> </span><span class="kn">import</span> <span class="n">SuperbASR</span>
 <span class="n">SuperbASR</span><span class="p">()</span><span class="o">.</span><span class="n">main</span><span class="p">()</span>
 </pre></div>
 </div>
@@ -394,13 +394,13 @@ optimizer, scheduler… etc, which can all be freely defined by you!</p>
 <p>We demonstrate how to change the corpus and the downstream model in the following <code class="code docutils literal notranslate"><span class="pre">new_asr.py</span></code>:</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># This is new_asr.py</span>
 
-<span class="kn">import</span> <span class="nn">torch</span>
-<span class="kn">import</span> <span class="nn">pandas</span> <span class="k">as</span> <span class="nn">pd</span>
-<span class="kn">from</span> <span class="nn">s3prl.problem</span> <span class="kn">import</span> <span class="n">SuperbASR</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">torch</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">pandas</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">pd</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">s3prl.problem</span><span class="w"> </span><span class="kn">import</span> <span class="n">SuperbASR</span>
 
 
-<span class="k">class</span> <span class="nc">LowResourceLinearSuperbASR</span><span class="p">(</span><span class="n">SuperbASR</span><span class="p">):</span>
-    <span class="k">def</span> <span class="nf">prepare_data</span><span class="p">(</span>
+<span class="k">class</span><span class="w"> </span><span class="nc">LowResourceLinearSuperbASR</span><span class="p">(</span><span class="n">SuperbASR</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">prepare_data</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span> <span class="n">prepare_data</span><span class="p">:</span> <span class="nb">dict</span><span class="p">,</span> <span class="n">target_dir</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">cache_dir</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">get_path_only</span><span class="o">=</span><span class="kc">False</span>
     <span class="p">):</span>
         <span class="n">train_path</span><span class="p">,</span> <span class="n">valid_path</span><span class="p">,</span> <span class="n">test_paths</span> <span class="o">=</span> <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="n">prepare_data</span><span class="p">(</span>
@@ -414,19 +414,19 @@ optimizer, scheduler… etc, which can all be freely defined by you!</p>
 
         <span class="k">return</span> <span class="n">train_path</span><span class="p">,</span> <span class="n">valid_path</span><span class="p">,</span> <span class="n">test_paths</span>
 
-    <span class="k">def</span> <span class="nf">build_downstream</span><span class="p">(</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">build_downstream</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span>
         <span class="n">build_downstream</span><span class="p">:</span> <span class="nb">dict</span><span class="p">,</span>
         <span class="n">downstream_input_size</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
         <span class="n">downstream_output_size</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
         <span class="n">downstream_input_stride</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
     <span class="p">):</span>
-        <span class="k">class</span> <span class="nc">Model</span><span class="p">(</span><span class="n">torch</span><span class="o">.</span><span class="n">nn</span><span class="o">.</span><span class="n">Module</span><span class="p">):</span>
-            <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">input_size</span><span class="p">,</span> <span class="n">output_size</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">class</span><span class="w"> </span><span class="nc">Model</span><span class="p">(</span><span class="n">torch</span><span class="o">.</span><span class="n">nn</span><span class="o">.</span><span class="n">Module</span><span class="p">):</span>
+            <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">input_size</span><span class="p">,</span> <span class="n">output_size</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
                 <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">()</span>
                 <span class="bp">self</span><span class="o">.</span><span class="n">linear</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">nn</span><span class="o">.</span><span class="n">Linear</span><span class="p">(</span><span class="n">input_size</span><span class="p">,</span> <span class="n">output_size</span><span class="p">)</span>
 
-            <span class="k">def</span> <span class="nf">forward</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">,</span> <span class="n">x_len</span><span class="p">):</span>
+            <span class="k">def</span><span class="w"> </span><span class="nf">forward</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">,</span> <span class="n">x_len</span><span class="p">):</span>
                 <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">linear</span><span class="p">(</span><span class="n">x</span><span class="p">),</span> <span class="n">x_len</span>
 
         <span class="k">return</span> <span class="n">Model</span><span class="p">(</span><span class="n">downstream_input_size</span><span class="p">,</span> <span class="n">downstream_output_size</span><span class="p">)</span>

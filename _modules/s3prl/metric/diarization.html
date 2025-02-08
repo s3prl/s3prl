@@ -340,17 +340,17 @@
 <span class="sd">  * Jiatong Shi 2021</span>
 <span class="sd">&quot;&quot;&quot;</span>
 
-<span class="kn">from</span> <span class="nn">itertools</span> <span class="kn">import</span> <span class="n">permutations</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">itertools</span><span class="w"> </span><span class="kn">import</span> <span class="n">permutations</span>
 
-<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
-<span class="kn">import</span> <span class="nn">torch</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">torch</span>
 
 <span class="n">__all__</span> <span class="o">=</span> <span class="p">[</span>
     <span class="s2">&quot;calc_diarization_error&quot;</span><span class="p">,</span>
 <span class="p">]</span>
 
 
-<div class="viewcode-block" id="calc_diarization_error"><a class="viewcode-back" href="../../../_autosummary/s3prl.metric.diarization.html#s3prl.metric.calc_diarization_error">[docs]</a><span class="k">def</span> <span class="nf">calc_diarization_error</span><span class="p">(</span><span class="n">pred</span><span class="p">,</span> <span class="n">label</span><span class="p">,</span> <span class="n">length</span><span class="p">):</span>
+<div class="viewcode-block" id="calc_diarization_error"><a class="viewcode-back" href="../../../_autosummary/s3prl.metric.diarization.html#s3prl.metric.calc_diarization_error">[docs]</a><span class="k">def</span><span class="w"> </span><span class="nf">calc_diarization_error</span><span class="p">(</span><span class="n">pred</span><span class="p">,</span> <span class="n">label</span><span class="p">,</span> <span class="n">length</span><span class="p">):</span>
     <span class="p">(</span><span class="n">batch_size</span><span class="p">,</span> <span class="n">max_len</span><span class="p">,</span> <span class="n">num_output</span><span class="p">)</span> <span class="o">=</span> <span class="n">label</span><span class="o">.</span><span class="n">size</span><span class="p">()</span>
     <span class="c1"># mask the padding part</span>
     <span class="n">mask</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="n">batch_size</span><span class="p">,</span> <span class="n">max_len</span><span class="p">,</span> <span class="n">num_output</span><span class="p">))</span>

@@ -340,14 +340,14 @@
 <span class="sd">  * Haibin Wu 2022</span>
 <span class="sd">&quot;&quot;&quot;</span>
 
-<span class="kn">import</span> <span class="nn">logging</span>
-<span class="kn">from</span> <span class="nn">pathlib</span> <span class="kn">import</span> <span class="n">Path</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">logging</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">pathlib</span><span class="w"> </span><span class="kn">import</span> <span class="n">Path</span>
 
-<span class="kn">from</span> <span class="nn">tqdm</span> <span class="kn">import</span> <span class="n">tqdm</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">tqdm</span><span class="w"> </span><span class="kn">import</span> <span class="n">tqdm</span>
 
-<span class="kn">from</span> <span class="nn">s3prl.util.download</span> <span class="kn">import</span> <span class="n">_download</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">s3prl.util.download</span><span class="w"> </span><span class="kn">import</span> <span class="n">_download</span>
 
-<span class="kn">from</span> <span class="nn">.base</span> <span class="kn">import</span> <span class="n">Corpus</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">.base</span><span class="w"> </span><span class="kn">import</span> <span class="n">Corpus</span>
 
 <span class="n">SPLIT_FILE_URL</span> <span class="o">=</span> <span class="s2">&quot;https://www.robots.ox.ac.uk/~vgg/data/voxceleb/meta/iden_split.txt&quot;</span>
 <span class="n">TRIAL_FILE_URL</span> <span class="o">=</span> <span class="s2">&quot;https://openslr.magicdatatech.com/resources/49/voxceleb1_test_v2.txt&quot;</span>
@@ -357,8 +357,8 @@
 <span class="p">]</span>
 
 
-<div class="viewcode-block" id="VoxCeleb1SV"><a class="viewcode-back" href="../../../../_autosummary/s3prl.dataio.corpus.voxceleb1sv.html#s3prl.dataio.corpus.VoxCeleb1SV">[docs]</a><span class="k">class</span> <span class="nc">VoxCeleb1SV</span><span class="p">(</span><span class="n">Corpus</span><span class="p">):</span>
-    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span>
+<div class="viewcode-block" id="VoxCeleb1SV"><a class="viewcode-back" href="../../../../_autosummary/s3prl.dataio.corpus.voxceleb1sv.html#s3prl.dataio.corpus.VoxCeleb1SV">[docs]</a><span class="k">class</span><span class="w"> </span><span class="nc">VoxCeleb1SV</span><span class="p">(</span><span class="n">Corpus</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span> <span class="n">dataset_root</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">download_dir</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">force_download</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span>
     <span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">dataset_root</span> <span class="o">=</span> <span class="n">Path</span><span class="p">(</span><span class="n">dataset_root</span><span class="p">)</span><span class="o">.</span><span class="n">resolve</span><span class="p">()</span>
@@ -375,11 +375,11 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">test_trials</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">format_test_trials</span><span class="p">(</span><span class="n">download_dir</span><span class="p">,</span> <span class="n">force_download</span><span class="p">)</span>
 
 <div class="viewcode-block" id="VoxCeleb1SV.path2uid"><a class="viewcode-back" href="../../../../_autosummary/s3prl.dataio.corpus.voxceleb1sv.html#s3prl.dataio.corpus.VoxCeleb1SV.path2uid">[docs]</a>    <span class="nd">@classmethod</span>
-    <span class="k">def</span> <span class="nf">path2uid</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">path</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">path2uid</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">path</span><span class="p">):</span>
         <span class="k">return</span> <span class="s2">&quot;-&quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">Path</span><span class="p">(</span><span class="n">path</span><span class="p">)</span><span class="o">.</span><span class="n">parts</span><span class="p">[</span><span class="o">-</span><span class="mi">3</span><span class="p">:])</span></div>
 
 <div class="viewcode-block" id="VoxCeleb1SV.path2data"><a class="viewcode-back" href="../../../../_autosummary/s3prl.dataio.corpus.voxceleb1sv.html#s3prl.dataio.corpus.VoxCeleb1SV.path2data">[docs]</a>    <span class="nd">@classmethod</span>
-    <span class="k">def</span> <span class="nf">path2data</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">paths</span><span class="p">,</span> <span class="n">speakerid2label</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">path2data</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">paths</span><span class="p">,</span> <span class="n">speakerid2label</span><span class="p">):</span>
         <span class="n">data</span> <span class="o">=</span> <span class="p">{</span>
             <span class="bp">cls</span><span class="o">.</span><span class="n">path2uid</span><span class="p">(</span><span class="n">path</span><span class="p">):</span> <span class="p">{</span>
                 <span class="s2">&quot;wav_path&quot;</span><span class="p">:</span> <span class="n">path</span><span class="p">,</span>
@@ -390,7 +390,7 @@
         <span class="k">return</span> <span class="n">data</span></div>
 
 <div class="viewcode-block" id="VoxCeleb1SV.format_path"><a class="viewcode-back" href="../../../../_autosummary/s3prl.dataio.corpus.voxceleb1sv.html#s3prl.dataio.corpus.VoxCeleb1SV.format_path">[docs]</a>    <span class="nd">@staticmethod</span>
-    <span class="k">def</span> <span class="nf">format_path</span><span class="p">(</span><span class="n">dataset_root</span><span class="p">,</span> <span class="n">download_dir</span><span class="p">,</span> <span class="n">force_download</span><span class="p">:</span> <span class="nb">bool</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">format_path</span><span class="p">(</span><span class="n">dataset_root</span><span class="p">,</span> <span class="n">download_dir</span><span class="p">,</span> <span class="n">force_download</span><span class="p">:</span> <span class="nb">bool</span><span class="p">):</span>
         <span class="n">split_filename</span> <span class="o">=</span> <span class="n">SPLIT_FILE_URL</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">&quot;/&quot;</span><span class="p">)[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
         <span class="n">split_filepath</span> <span class="o">=</span> <span class="n">Path</span><span class="p">(</span><span class="n">download_dir</span><span class="p">)</span> <span class="o">/</span> <span class="n">split_filename</span>
         <span class="n">_download</span><span class="p">(</span><span class="n">split_filepath</span><span class="p">,</span> <span class="n">SPLIT_FILE_URL</span><span class="p">,</span> <span class="n">refresh</span><span class="o">=</span><span class="n">force_download</span><span class="p">)</span>
@@ -437,7 +437,7 @@
         <span class="k">return</span> <span class="n">train</span><span class="p">,</span> <span class="n">valid</span><span class="p">,</span> <span class="n">test</span><span class="p">,</span> <span class="n">speakerid2label</span></div>
 
 <div class="viewcode-block" id="VoxCeleb1SV.format_test_trials"><a class="viewcode-back" href="../../../../_autosummary/s3prl.dataio.corpus.voxceleb1sv.html#s3prl.dataio.corpus.VoxCeleb1SV.format_test_trials">[docs]</a>    <span class="nd">@classmethod</span>
-    <span class="k">def</span> <span class="nf">format_test_trials</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">download_dir</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">force_download</span><span class="p">:</span> <span class="nb">bool</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">format_test_trials</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">download_dir</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">force_download</span><span class="p">:</span> <span class="nb">bool</span><span class="p">):</span>
         <span class="n">trial_filename</span> <span class="o">=</span> <span class="n">TRIAL_FILE_URL</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">&quot;/&quot;</span><span class="p">)[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
         <span class="n">trial_filepath</span> <span class="o">=</span> <span class="n">Path</span><span class="p">(</span><span class="n">download_dir</span><span class="p">)</span> <span class="o">/</span> <span class="n">trial_filename</span>
         <span class="n">_download</span><span class="p">(</span><span class="n">trial_filepath</span><span class="p">,</span> <span class="n">TRIAL_FILE_URL</span><span class="p">,</span> <span class="n">refresh</span><span class="o">=</span><span class="n">force_download</span><span class="p">)</span>
@@ -453,11 +453,11 @@
         <span class="k">return</span> <span class="n">test_trials</span></div>
 
     <span class="nd">@property</span>
-    <span class="k">def</span> <span class="nf">all_data</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">all_data</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">train_data</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">valid_data</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">test_data</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">test_trials</span>
 
     <span class="nd">@property</span>
-    <span class="k">def</span> <span class="nf">data_split_ids</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">data_split_ids</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="k">return</span> <span class="kc">None</span></div>
 </pre></div>
         </article>
