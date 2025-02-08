@@ -41,3 +41,17 @@ def ae_lr5e_4_1transformer_latent16(*args, **kwargs):
         "/home/leo1994122701/cslm/cst/result/vae/ae_lr5e-4_1transformer_latent16/best_valid_loss--0.922.ckpt",
         "latent",
     )
+
+
+def ae_lr5e_4_2transformer_latent16(*args, **kwargs):
+    return UpstreamExpert(
+        "/home/leo1994122701/cslm/cst/result/vae/ae_lr5e-4_2transformer_latent16/best_valid_loss--1.185.ckpt",
+        "latent",
+    )
+
+
+def ae_lr5e_4_4transformer_latent16(*args, **kwargs):
+    return UpstreamExpert(
+        "/home/leo1994122701/cslm/cst/result/vae/ae_lr5e-4_4transformer_latent16/best_valid_loss--1.383.ckpt",
+        "latent",
+    )
