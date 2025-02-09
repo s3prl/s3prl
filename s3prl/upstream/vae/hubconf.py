@@ -22,6 +22,13 @@ def ae_lr5e_4_1transformer_latent128(*args, **kwargs):
     )
 
 
+def ae_lr5e_4_1transformer_latent128_reconstruct(*args, **kwargs):
+    return UpstreamExpert(
+        "/home/leo1994122701/cslm/cst/result/vae/ae_lr5e-4_1transformer_latent128/best_valid_loss--1.379.ckpt",
+        "reconstruct",
+    )
+
+
 def ae_lr5e_4_1transformer_latent64(*args, **kwargs):
     return UpstreamExpert(
         "/home/leo1994122701/cslm/cst/result/vae/ae_lr5e-4_1transformer_latent64/best_valid_loss--1.176.ckpt",
@@ -29,10 +36,24 @@ def ae_lr5e_4_1transformer_latent64(*args, **kwargs):
     )
 
 
+def ae_lr5e_4_1transformer_latent64_reconstruct(*args, **kwargs):
+    return UpstreamExpert(
+        "/home/leo1994122701/cslm/cst/result/vae/ae_lr5e-4_1transformer_latent64/best_valid_loss--1.176.ckpt",
+        "reconstruct",
+    )
+
+
 def ae_lr5e_4_1transformer_latent32(*args, **kwargs):
     return UpstreamExpert(
         "/home/leo1994122701/cslm/cst/result/vae/ae_lr5e-4_1transformer_latent32/best_valid_loss--1.049.ckpt",
         "latent",
+    )
+
+
+def ae_lr5e_4_1transformer_latent32_reconstruct(*args, **kwargs):
+    return UpstreamExpert(
+        "/home/leo1994122701/cslm/cst/result/vae/ae_lr5e-4_1transformer_latent32/best_valid_loss--1.049.ckpt",
+        "reconstruct",
     )
 
 
@@ -68,6 +89,14 @@ def ae_lr5e_4_4transformer_latent16(*args, **kwargs):
     return UpstreamExpert(
         "/home/leo1994122701/cslm/cst/result/vae/ae_lr5e-4_4transformer_latent16/best_valid_loss--1.383.ckpt",
         "latent",
+    )
+
+
+def ae_lr5e_4_4transformer_latent16_stack8(*args, **kwargs):
+    return UpstreamExpert(
+        "/home/leo1994122701/cslm/cst/result/vae/ae_lr5e-4_4transformer_latent16/best_valid_loss--1.383.ckpt",
+        "latent",
+        stack=8,
     )
 
 
