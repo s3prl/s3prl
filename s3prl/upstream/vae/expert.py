@@ -50,8 +50,6 @@ class UpstreamExpert(nn.Module):
                 :, : seqlen // self.stack * self.stack, :
             ].reshape(bsz, seqlen // self.stack, size * self.stack)
 
-        else:
-            raise ValueError(f"Unsupported target: {self.target}")
         return {
             "hidden_states": [hidden_states],
         }

@@ -22,6 +22,14 @@ def ae_lr5e_4_1transformer_latent128(*args, **kwargs):
     )
 
 
+def ae_lr5e_4_1transformer_latent128_stack8(*args, **kwargs):
+    return UpstreamExpert(
+        "/home/leo1994122701/cslm/cst/result/vae/ae_lr5e-4_1transformer_latent128/best_valid_loss--1.379.ckpt",
+        "latent",
+        stack=8,
+    )
+
+
 def ae_lr5e_4_1transformer_latent128_reconstruct(*args, **kwargs):
     return UpstreamExpert(
         "/home/leo1994122701/cslm/cst/result/vae/ae_lr5e-4_1transformer_latent128/best_valid_loss--1.379.ckpt",
@@ -118,4 +126,11 @@ def ae_lr5e_4_6transformer_reconstruct(*args, **kwargs):
     return UpstreamExpert(
         "/home/leo1994122701/cslm/cst/result/vae/ae_lr5e-4_6transformer_latent16/best_valid_loss--1.462.ckpt",
         "reconstruct",
+    )
+
+
+def ae_lr5e_4_spatial128_stack8_4transformer_latent128(*args, **kwargs):
+    return UpstreamExpert(
+        "/home/leo1994122701/cslm/cst/result/temporal/ae_lr5e-4_spatial128_stack8_4transformer_latent128/best_valid_loss-0.244.ckpt",
+        "latent",
     )
