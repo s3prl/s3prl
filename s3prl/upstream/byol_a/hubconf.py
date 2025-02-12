@@ -15,25 +15,29 @@ from .expert import UpstreamExpert as _UpstreamExpert
 DEFAULT_CONFIG_PATH = _Path(__file__).parent / "config.yaml"
 
 
-def byol_a_2048(refresh=False, **kwds):
-    ckpt = _urls_to_filepaths(
-        "https://github.com/nttcslab/byol-a/raw/master/pretrained_weights/AudioNTT2020-BYOLA-64x96d2048.pth",
-        refresh=refresh,
-    )
-    return _UpstreamExpert(ckpt, DEFAULT_CONFIG_PATH, 2048, **kwds)
+def _byol_a(refresh=False, **kwargs):
+    assert 'ckpt' in kwargs, '*** Please maks sure to set "-k your-checkpoint.pth".'
+    if 'model_config' not in kwargs or not kwargs['model_config']:
+        kwargs['model_config'] = DEFAULT_CONFIG_PATH
+    return _UpstreamExpert(**kwargs)
 
 
-def byol_a_1024(refresh=False, **kwds):
-    ckpt = _urls_to_filepaths(
-        "https://github.com/nttcslab/byol-a/raw/master/pretrained_weights/AudioNTT2020-BYOLA-64x96d1024.pth",
-        refresh=refresh,
-    )
-    return _UpstreamExpert(ckpt, DEFAULT_CONFIG_PATH, 1024, **kwds)
+def byol_a_calcnorm(refresh=False, **kwargs):
+    """Calculate downstream task statistics using this model."""
+    return _byol_a(**kwargs)
 
 
-def byol_a_512(refresh=False, **kwds):
-    ckpt = _urls_to_filepaths(
-        "https://github.com/nttcslab/byol-a/raw/master/pretrained_weights/AudioNTT2020-BYOLA-64x96d512.pth",
-        refresh=refresh,
-    )
-    return _UpstreamExpert(ckpt, DEFAULT_CONFIG_PATH, 512, **kwds)
+def byol_a(refresh=False, *args, **kwargs):
+    """
+    kwargs['ckpt'] is expected in the format of "path-of-ckpt,dataset-mean,dataset-std".
+    """
+    assert 'ckpt' in kwargs, '*** Please maks sure to set "-k your-checkpoint.pth,dataset-mean,dataset-std".'
+    if kwargs['ckpt'] is None:
+        print('Set "-k your-checkpoint.pth,norm_mean,norm_std". Exit now.')
+        exit(-1)
+    ckpt, norm_mean, norm_std = kwargs['ckpt'].split(',')
+    kwargs['ckpt'] = ckpt
+    norm_mean, norm_std = float(norm_mean), float(norm_std)
+    print(' using checkpoint:', ckpt)
+    print(' normalization statistics:', norm_mean, norm_std)
+    return _byol_a(*args, norm_mean=norm_mean, norm_std=norm_std, **kwargs)

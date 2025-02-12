@@ -11,9 +11,9 @@ import logging
 
 import torch
 import torch.nn as nn
-import torchaudio
+from torch.nn.utils.rnn import pad_sequence
 
-from .byol_a import AudioNTT2020, PrecomputedNorm, load_yaml_config
+from .byol_a import load_yaml_config, LogMelSpectrogram, RunningNorm, AudioNTT2020Task6X
 
 logger = logging.getLogger(__name__)
 
@@ -29,43 +29,36 @@ class UpstreamExpert(nn.Module):
         self,
         ckpt: str,
         model_config: str,
-        feature_d: int,
-        window_secs: float = 1.0,
-        stride_secs: float = 1.0,
+        norm_mean: float = None,  # Has to be a float value to continue training.
+        norm_std: float = None,  # The same as above.
     ):
         super().__init__()
         config = load_yaml_config(model_config)
 
-        self.window_secs = window_secs
-        self.stride_secs = stride_secs
-        self.output_dim = feature_d
-        self.seg_input_length = len(
-            range(0, int(window_secs * SAMPLE_RATE), config.hop_length)
-        )
-
         # Preprocessor and normalizer.
-        self.to_melspec = torchaudio.transforms.MelSpectrogram(
-            sample_rate=config.sample_rate,
-            n_fft=config.n_fft,
-            win_length=config.win_length,
-            hop_length=config.hop_length,
-            n_mels=config.n_mels,
-            f_min=config.f_min,
-            f_max=config.f_max,
-        )
-        stats = [
-            -5.4919195,
-            5.0389895,
-        ]  # FIXME: should use downstream dataset statistics
-        self.normalizer = PrecomputedNorm(stats)
+        self.to_logmelspec = LogMelSpectrogram()
+        if norm_mean is None or norm_std is None:
+            print('  ** CAUTION **')
+            print('  This is a run for calculating statistics of the downstream task using RunningNorm and will exit in the middle of training. **')
+            print('  ** CAUTION **')
+            self.normalizer = RunningNorm(epoch_samples=10_000, max_update_epochs=1, axis=[0, 1, 2]) # Use single scalar mean/std values.
+        else:
+            print(f'*** Using normalization statistics: mean={norm_mean}, std={norm_std} ***')
+            self.normalizer = lambda x: (x - norm_mean) / norm_std
 
         # Load pretrained weights.
-        self.model = AudioNTT2020(d=feature_d)
-        self.model.load_weight(ckpt, device="cpu")
+        self.model = AudioNTT2020Task6X(d=config.feature_d, n_mels=config.n_mels)
+        self.model.load_weight(ckpt, device='cpu')
 
-    def get_downsample_rates(self, key: str = None) -> int:
-        return int(self.stride_secs * SAMPLE_RATE)
+    # Interface
+    def get_output_dim(self):
+        return self.output_dim
 
+    # Interface
+    def get_downsample_rates(self, key: str) -> int:
+        return 160 * 2**3 # hop_size x stride=2 for 3 layers
+
+    # Interface
     def forward(self, wavs):
         """
         Args:
@@ -80,50 +73,11 @@ class UpstreamExpert(nn.Module):
                 each feat is in torch.FloatTensor and already
                 put in the device assigned by command-line args
         """
-        wavs_len = [len(wav) for wav in wavs]
-        max_wav_len = max(wavs_len)
-        start_points = list(range(0, max_wav_len, int(self.stride_secs * SAMPLE_RATE)))
-        padded_max_wav_len = start_points[-1] + int(self.window_secs * SAMPLE_RATE)
-        padded_wavs = [
-            torch.cat([wav, wav.new_zeros(padded_max_wav_len - len(wav))])
-            for wav in wavs
-        ]
-
-        all_features = []
-        for start in start_points:
-            subwavs = [
-                wav[start : start + int(self.window_secs * SAMPLE_RATE)]
-                for wav in padded_wavs
-            ]
-            features = [
-                self.normalizer(
-                    (self.to_melspec(wav) + torch.finfo(torch.float).eps).log()
-                ).permute(1, 0)
-                for wav in subwavs
-            ]
-            features = torch.stack(
-                features, dim=0
-            )  # (batch_size, segment_seq_len, hiddqen_size)
-            all_features.append(features)
-
-        all_features = torch.stack(all_features, dim=0)
-        num_segment, batch_size, segment_seq_len, hidden_size = all_features.shape
-
-        flatten_features = all_features.reshape(-1, segment_seq_len, hidden_size)
-
-        repre = self.model(
-            flatten_features.transpose(1, 2).unsqueeze(1)
-        )  # repre: (num_segment * batch_size, hidden_size)
-        repre = repre.reshape(num_segment, batch_size, -1).transpose(
-            0, 1
-        )  # repre: (batch_size, num_segment, hidden_size)
-
-        trimmed_hs = []
-        for h in [repre]:
-            max_h_len = len(range(0, max_wav_len, self.get_downsample_rates()))
-            h = h[:, :max_h_len, :]
-            trimmed_hs.append(h)
-
+        self.to_logmelspec.to(wavs[0].device)
+        wavs = pad_sequence(wavs, batch_first=True)
+        features = self.normalizer(self.to_logmelspec(wavs)).unsqueeze(1) # (B, F, T) -> (B, 1, F, T)
+        layered_features = self.model.by_layers(self.model(features, layered=True)) # [(B, T, D)] x 5
         return {
-            "hidden_states": trimmed_hs,
+            "last_hidden_state": layered_features[-1],
+            "hidden_states": layered_features,
         }
