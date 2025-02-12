@@ -15,6 +15,21 @@ def ae_lr5e_4_mlp_reconstruct(*args, **kwargs):
     )
 
 
+def ae_lr5e_4_1transformer_latent384(*args, **kwargs):
+    return UpstreamExpert(
+        "/home/leo1994122701/cslm/cst/result/vae/ae_lr5e-4_1transformer/best_valid_loss--2.156.ckpt",
+        "latent",
+    )
+
+
+def ae_lr5e_4_1transformer_latent384_stack4(*args, **kwargs):
+    return UpstreamExpert(
+        "/home/leo1994122701/cslm/cst/result/vae/ae_lr5e-4_1transformer/best_valid_loss--2.156.ckpt",
+        "latent",
+        stack=4,
+    )
+
+
 def ae_lr5e_4_1transformer_latent128(*args, **kwargs):
     return UpstreamExpert(
         "/home/leo1994122701/cslm/cst/result/vae/ae_lr5e-4_1transformer_latent128/best_valid_loss--1.379.ckpt",
@@ -131,6 +146,28 @@ def ae_lr5e_4_6transformer_reconstruct(*args, **kwargs):
 
 def ae_lr5e_4_spatial128_stack8_4transformer_latent128(*args, **kwargs):
     return UpstreamExpert(
-        "/home/leo1994122701/cslm/cst/result/temporal/ae_lr5e-4_spatial128_stack8_4transformer_latent128/best_valid_loss-0.244.ckpt",
+        "/home/leo1994122701/cslm/cst/result/temporal/ae_lr5e-4_spatial128_stack8_4transformer_latent128/best_valid_loss-0.206.ckpt",
         "latent",
+    )
+
+
+def ae_lr5e_4_spatial384_stack4_4transformer_latent64(*args, **kwargs):
+    return UpstreamExpert(
+        "/home/leo1994122701/cslm/cst/result/temporal/ae_lr5e-4_spatial384_stack4_4transformer_latent64/best_valid_loss-0.419.ckpt",
+        "latent",
+    )
+
+
+def ae_lr5e_4_spatial384_stack4_4transformer_latent64_reconstruct(*args, **kwargs):
+    return UpstreamExpert(
+        "/home/leo1994122701/cslm/cst/result/temporal/ae_lr5e-4_spatial384_stack4_4transformer_latent64/best_valid_loss-0.419.ckpt",
+        "reconstruct",
+    )
+
+
+def ae_lr5e_4_spatial384_stack4_4transformer_latent64_stack2(*args, **kwargs):
+    return UpstreamExpert(
+        "/home/leo1994122701/cslm/cst/result/temporal/ae_lr5e-4_spatial384_stack4_4transformer_latent64/best_valid_loss-0.419.ckpt",
+        "latent",
+        stack=2,
     )
