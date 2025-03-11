@@ -121,7 +121,7 @@ class FluentSpeechCommands(Corpus):
         import requests
 
         tgt_dir = Path(tgt_dir)
-        tgt_dir.mkdir(exists_ok=True, parents=True)
+        tgt_dir.mkdir(exist_ok=True, parents=True)
 
         def unzip_targz_then_delete(filepath: str):
             with tarfile.open(os.path.abspath(filepath)) as tar:
