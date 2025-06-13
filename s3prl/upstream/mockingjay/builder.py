@@ -55,7 +55,11 @@ class TransformerBuilder(nn.Module):
             original_optimizer = sys.modules.get("optimizers")
             sys.modules["optimizers"] = s3prl.optimizers
 
-            self.all_states = torch.load(options["ckpt_file"], map_location="cpu")
+            try:
+                self.all_states = torch.load(options["ckpt_file"], map_location="cpu", weights_only=False)
+            except:
+                self.all_states = torch.load(options["ckpt_file"], map_location="cpu")
+
             if "transformer" in self.all_states["Config"]:
                 # for legacy ckpts, 'Config' stored the upstream config, and runner config was stored under 'Runner'.
                 self.config = self.all_states["Config"]

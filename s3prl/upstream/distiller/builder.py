@@ -37,7 +37,11 @@ class DistillerBuilder(nn.Module):
             original_optimizer = sys.modules.get("optimizers")
             sys.modules["optimizers"] = s3prl.optimizers
 
-            self.all_states = torch.load(options["ckpt_file"], map_location="cpu")
+            try:
+                self.all_states = torch.load(options["ckpt_file"], map_location="cpu", weights_only=False)
+            except:
+                self.all_states = torch.load(options["ckpt_file"], map_location="cpu")
+
             self.config = self.all_states["Config"]
 
             del sys.modules["optimizers"]
