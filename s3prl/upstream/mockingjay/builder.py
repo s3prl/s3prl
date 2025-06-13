@@ -56,7 +56,9 @@ class TransformerBuilder(nn.Module):
             sys.modules["optimizers"] = s3prl.optimizers
 
             try:
-                self.all_states = torch.load(options["ckpt_file"], map_location="cpu", weights_only=False)
+                self.all_states = torch.load(
+                    options["ckpt_file"], map_location="cpu", weights_only=False
+                )
             except:
                 self.all_states = torch.load(options["ckpt_file"], map_location="cpu")
 
