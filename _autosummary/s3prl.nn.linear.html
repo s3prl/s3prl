@@ -351,16 +351,6 @@
 <em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">s3prl.nn.linear.</span></span><span class="sig-name descname"><span class="pre">FrameLevelLinear</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">input_size</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">output_size</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">hidden_size</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">256</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/s3prl/nn/linear.html#FrameLevelLinear"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="reference external" href="https://github.com/s3prl/s3prl/blob/v0.4.17 /s3prl/nn/linear.py#L16-L27"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#s3prl.nn.linear.FrameLevelLinear" title="Permalink to this definition">#</a></dt>
 <dd><p>Bases: <a class="reference internal" href="s3prl.nn.common.html#s3prl.nn.common.FrameLevel" title="s3prl.nn.common.FrameLevel"><code class="xref py py-class docutils literal notranslate"><span class="pre">FrameLevel</span></code></a></p>
 <p>The frame-level linear probing model used in SUPERB Benchmark</p>
-<dl class="py attribute">
-<dt class="sig sig-object py" id="s3prl.nn.linear.FrameLevelLinear.call_super_init">
-<span class="sig-name descname"><span class="pre">call_super_init</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">bool</span></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">False</span></em><a class="reference external" href="https://github.com/s3prl/s3prl/blob/v0.4.17 /s3prl/nn/linear.py"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#s3prl.nn.linear.FrameLevelLinear.call_super_init" title="Permalink to this definition">#</a></dt>
-<dd></dd></dl>
-
-<dl class="py attribute">
-<dt class="sig sig-object py" id="s3prl.nn.linear.FrameLevelLinear.dump_patches">
-<span class="sig-name descname"><span class="pre">dump_patches</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">bool</span></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">False</span></em><a class="reference external" href="https://github.com/s3prl/s3prl/blob/v0.4.17 /s3prl/nn/linear.py"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#s3prl.nn.linear.FrameLevelLinear.dump_patches" title="Permalink to this definition">#</a></dt>
-<dd></dd></dl>
-
 <dl class="py method">
 <dt class="sig sig-object py" id="s3prl.nn.linear.FrameLevelLinear.forward">
 <span class="sig-name descname"><span class="pre">forward</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">x</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">x_len</span></span></em><span class="sig-paren">)</span><a class="reference external" href="https://github.com/s3prl/s3prl/blob/v0.4.17 /s3prl/nn/common.py#L71-L85"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#s3prl.nn.linear.FrameLevelLinear.forward" title="Permalink to this definition">#</a></dt>
@@ -392,11 +382,6 @@
 <em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">output_size</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">int</span></em><a class="reference external" href="https://github.com/s3prl/s3prl/blob/v0.4.17 /s3prl/nn/linear.py"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#s3prl.nn.linear.FrameLevelLinear.output_size" title="Permalink to this definition">#</a></dt>
 <dd></dd></dl>
 
-<dl class="py attribute">
-<dt class="sig sig-object py" id="s3prl.nn.linear.FrameLevelLinear.training">
-<span class="sig-name descname"><span class="pre">training</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">bool</span></em><a class="reference external" href="https://github.com/s3prl/s3prl/blob/v0.4.17 /s3prl/nn/linear.py"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#s3prl.nn.linear.FrameLevelLinear.training" title="Permalink to this definition">#</a></dt>
-<dd></dd></dl>
-
 </dd></dl>
 
 </section>
@@ -407,16 +392,6 @@
 <em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">s3prl.nn.linear.</span></span><span class="sig-name descname"><span class="pre">MeanPoolingLinear</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">input_size</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">output_size</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">hidden_size</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">256</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/s3prl/nn/linear.html#MeanPoolingLinear"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="reference external" href="https://github.com/s3prl/s3prl/blob/v0.4.17 /s3prl/nn/linear.py#L30-L41"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#s3prl.nn.linear.MeanPoolingLinear" title="Permalink to this definition">#</a></dt>
 <dd><p>Bases: <a class="reference internal" href="s3prl.nn.common.html#s3prl.nn.common.UtteranceLevel" title="s3prl.nn.common.UtteranceLevel"><code class="xref py py-class docutils literal notranslate"><span class="pre">UtteranceLevel</span></code></a></p>
 <p>The utterance-level linear probing model used in SUPERB Benchmark</p>
-<dl class="py attribute">
-<dt class="sig sig-object py" id="s3prl.nn.linear.MeanPoolingLinear.call_super_init">
-<span class="sig-name descname"><span class="pre">call_super_init</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">bool</span></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">False</span></em><a class="reference external" href="https://github.com/s3prl/s3prl/blob/v0.4.17 /s3prl/nn/linear.py"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#s3prl.nn.linear.MeanPoolingLinear.call_super_init" title="Permalink to this definition">#</a></dt>
-<dd></dd></dl>
-
-<dl class="py attribute">
-<dt class="sig sig-object py" id="s3prl.nn.linear.MeanPoolingLinear.dump_patches">
-<span class="sig-name descname"><span class="pre">dump_patches</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">bool</span></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">False</span></em><a class="reference external" href="https://github.com/s3prl/s3prl/blob/v0.4.17 /s3prl/nn/linear.py"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#s3prl.nn.linear.MeanPoolingLinear.dump_patches" title="Permalink to this definition">#</a></dt>
-<dd></dd></dl>
-
 <dl class="py method">
 <dt class="sig sig-object py" id="s3prl.nn.linear.MeanPoolingLinear.forward">
 <span class="sig-name descname"><span class="pre">forward</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">x</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">x_len</span></span></em><span class="sig-paren">)</span><a class="reference external" href="https://github.com/s3prl/s3prl/blob/v0.4.17 /s3prl/nn/common.py#L146-L160"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#s3prl.nn.linear.MeanPoolingLinear.forward" title="Permalink to this definition">#</a></dt>
@@ -443,11 +418,6 @@
 <dl class="py property">
 <dt class="sig sig-object py" id="s3prl.nn.linear.MeanPoolingLinear.output_size">
 <em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">output_size</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">int</span></em><a class="reference external" href="https://github.com/s3prl/s3prl/blob/v0.4.17 /s3prl/nn/linear.py"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#s3prl.nn.linear.MeanPoolingLinear.output_size" title="Permalink to this definition">#</a></dt>
-<dd></dd></dl>
-
-<dl class="py attribute">
-<dt class="sig sig-object py" id="s3prl.nn.linear.MeanPoolingLinear.training">
-<span class="sig-name descname"><span class="pre">training</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">bool</span></em><a class="reference external" href="https://github.com/s3prl/s3prl/blob/v0.4.17 /s3prl/nn/linear.py"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#s3prl.nn.linear.MeanPoolingLinear.training" title="Permalink to this definition">#</a></dt>
 <dd></dd></dl>
 
 </dd></dl>
