@@ -122,7 +122,11 @@ class Runner():
             from huggingface_hub import snapshot_download
 
             print(f'[Runner] - Downloading upstream model {self.args.upstream} from the Hugging Face Hub')
-            filepath = snapshot_download(self.args.upstream, self.args.upstream_revision, use_auth_token=True)
+            filepath = snapshot_download(
+                repo_id=self.args.upstream,
+                revision=self.args.upstream_revision,
+                use_auth_token=True
+            )
             sys.path.append(filepath)
 
             dependencies = (Path(filepath) / 'requirements.txt').resolve()
