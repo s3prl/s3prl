@@ -22,8 +22,8 @@ from tqdm import tqdm
 
 logger = logging.getLogger(__name__)
 
-
-_download_dir = Path.home() / ".cache" / "s3prl" / "download"
+_cache_home = Path(os.environ["XDG_CACHE_HOME"]) if "XDG_CACHE_HOME" in os.environ else Path.home() / ".cache"
+_download_dir = _cache_home / "s3prl" / "download"
 
 __all__ = [
     "get_dir",
