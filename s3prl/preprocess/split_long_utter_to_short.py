@@ -17,7 +17,6 @@ import torchaudio
 from tqdm import tqdm
 from pathlib import Path
 from joblib import Parallel, delayed
-torchaudio.set_audio_backend("sox_io")
 
 
 #############################

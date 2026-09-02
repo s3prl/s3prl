@@ -10,7 +10,6 @@ out_path = sys.argv[2]
 # Now we can forward waveforms as Torch tensors
 import torch
 import torchaudio
-torchaudio.set_audio_backend('sox')
 
 x, sr = torchaudio.load(wav_path)
 x = x.view(-1).cuda()

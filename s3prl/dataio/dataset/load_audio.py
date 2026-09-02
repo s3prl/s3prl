@@ -7,8 +7,6 @@ import torchaudio
 
 from . import Dataset
 
-torchaudio.set_audio_backend("sox_io")
-
 
 class LoadAudio(Dataset):
     """

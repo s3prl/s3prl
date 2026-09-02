@@ -6,8 +6,6 @@ import torchaudio
 
 from .superb_sid import SuperbSID
 
-torchaudio.set_audio_backend("sox_io")
-
 
 class CommonExample(SuperbSID):
     def default_config(self) -> dict:

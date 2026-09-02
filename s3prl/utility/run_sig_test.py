@@ -173,7 +173,6 @@ def process_records(records, metric):
 
 def main():
     torch.multiprocessing.set_sharing_strategy('file_system')
-    torchaudio.set_audio_backend('sox_io')
     hack_isinstance()
 
     # get config and arguments
