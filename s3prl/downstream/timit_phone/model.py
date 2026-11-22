@@ -29,14 +29,14 @@ class ConvBank(nn.Module):
         self.out_linear = nn.Linear(latest_size, output_class_num)
 
     def forward(self, features):
-        hidden = F.dropout(F.relu(self.in_linear(features)), p=self.drop_p)
+        hidden = F.dropout(F.relu(self.in_linear(features)), p=self.drop_p, training=self.training)
 
         conv_feats = []
         hidden = hidden.transpose(1, 2).contiguous()
         for cnn in self.cnns:
             conv_feats.append(cnn(hidden))
         hidden = torch.cat(conv_feats, dim=1).transpose(1, 2).contiguous()
-        hidden = F.dropout(F.relu(hidden), p=self.drop_p)
+        hidden = F.dropout(F.relu(hidden), p=self.drop_p, training=self.training)
 
         predicted = self.out_linear(hidden)
         return predicted
